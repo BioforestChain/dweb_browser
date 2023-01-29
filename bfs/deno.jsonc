@@ -1,0 +1,29 @@
+{
+  "tasks": {
+    "build": "deno run -A ./scripts/build_npm.ts",
+    "pub": "deno run -A ./scripts/pub_npm.ts",
+    "test": "deno test --allow-all --unstable --no-check  ./test"
+  },
+  "compilerOptions": {
+    "allowJs": false,
+    "strict": true,
+    "strictNullChecks": true
+  },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-namespace"
+      ]
+    }
+  },
+  "fmt": {
+    "options": {
+      "useTabs": false,
+      "lineWidth": 120,
+      "indentWidth": 2,
+      "singleQuote": false,
+      "proseWrap": "preserve"
+    }
+  },
+  "importMap": "./import_map.json"
+}
