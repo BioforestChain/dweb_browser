@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="info.bagen.libappmgr">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- 手机 -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
+    <!-- 存储卡 -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- 相机 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!--&lt;!&ndash; 日历 &ndash;&gt;
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    &lt;!&ndash; 联系人 &ndash;&gt;
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    &lt;!&ndash; 位置 &ndash;&gt;
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    &lt;!&ndash; 麦克风 &ndash;&gt;
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    &lt;!&ndash; 传感器 &ndash;&gt;
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    &lt;!&ndash; 短信 &ndash;&gt;
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
+    &lt;!&ndash; 拨打和通话记录 &ndash;&gt;
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.ERAD_CALL_LOG" />
+    <uses-permission android:name="android.permission.WRITE_CALL_LOG" />
+    <uses-permission android:name="android.permission.ADD_VOICEMAIL" />
+    <uses-permission android:name="android.permission.USE_SIP" />
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />-->
+
+    <application android:requestLegacyExternalStorage="true">
+        <activity android:name=".ui.main.MainActivity" />
+        <activity android:name=".ui.dcim.DCIMActivity" />
+        <activity android:name=".ui.splash.SplashActivity" />
+
+        <provider
+            android:name=".database.AppProvider"
+            android:authorities="info.bagen.rust.plaoc"
+            android:exported="true" />
+
+        <service android:name=".service.AppMgrService" />
+    </application>
+</manifest>

@@ -1,0 +1,46 @@
+<resources>
+  <string name="app_name">BFExplorer</string>
+  <string name="web_host">dweb.bfchain.org</string>
+  <string name="title_activity_webview">WebviewActivity</string>
+
+  <!-- Strings used for fragments for navigation -->
+  <string name="first_fragment_label">First Fragment</string>
+  <string name="second_fragment_label">Second Fragment</string>
+  <string name="next">next</string>
+  <string name="previous">Previous</string>
+
+  <string name="hello_first_fragment">Hello first fragment</string>
+  <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+  <!-- Preference Titles -->
+  <string name="messages_header">Messages</string>
+  <string name="sync_header">Sync</string>
+
+  <!-- Messages Preferences -->
+  <string name="signature_title">Your signature</string>
+  <string name="reply_title">Default reply action</string>
+
+  <!-- Sync Preferences -->
+  <string name="sync_title">Sync email periodically</string>
+  <string name="attachment_title">Download incoming attachments</string>
+  <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+  <string name="attachment_summary_off">Only download attachments when manually requested</string>
+
+  <!-- 权限部分的字符串 -->
+  <string name="permission_allow">允许</string>
+  <string name="permission_denial">拒绝</string>
+  <string name="permission_go_settings">前往设置</string>
+  <string name="permission_cancel">取消</string>
+  <string name="permission_deny_title">权限申请</string>
+  <string name="permission_deny_text">申请的权限失败，请点击”前往设置“进行手动授权</string>
+  <string name="permission_deny_storage">需要存储权限许可才能提供数据的本地存储的读写操作</string>
+  <string name="permission_deny_calendar">需要日历权限许可才能读取日历和新增/修改/删除日历</string>
+  <string name="permission_deny_camera">需要相机权限许可才能访问摄像头进行拍照和录像</string>
+  <string name="permission_deny_location">需要位置权限许可才能访问设备的具体位置信息</string>
+  <string name="permission_deny_record_audio">需要录音权限许可才能调用mic进行录音</string>
+  <string name="permission_deny_contacts">需要联系人权限许可才能访问联系人信息和新增/修改/删除联系人信息</string>
+  <string name="permission_deny_call">需要拨打权限许可才能拨打电话，并查看通话记录</string>
+  <string name="permission_deny_sensor">需要传感器权限许可才能获取传感器相关的身体健康状况</string>
+  <string name="permission_deny_sms">需要信息权限许可才能阅读短信和新建/修改/删除/发送信息</string>
+  <string name="permission_deny_device">需要设备权限许可才能获取设备的相关信息</string>
+</resources>
