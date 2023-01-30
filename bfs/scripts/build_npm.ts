@@ -4,7 +4,7 @@ import {
   emptyDir,
   EntryPoint,
   LibName,
-} from "https://deno.land/x/dnt@0.31.0/mod.ts";
+} from "https://deno.land/x/dnt@0.33.0/mod.ts";
 
 export const doBuid = async (config: {
   name: string;

@@ -1,0 +1,14 @@
+
+{
+    "version" : "1.0.0",
+    "bfsAppId" : "BFSABCD",
+    "name" : "鱿鱼",
+    "icon" : "carbon_stamp",
+    "author" : ["kzf,kezhaofeng@bnqkl.cn,https://bnqkl.cn/developer/kzf"],
+    "homepage" : "https://www.sina.com.cn",
+    "autoUpdate" : {
+        "maxAge" : 10,
+        "provider" : "通用适配器",
+        "url" : "https://shop.plaoc.com/KEJPMHLA/appversion.json",
+    }
+}

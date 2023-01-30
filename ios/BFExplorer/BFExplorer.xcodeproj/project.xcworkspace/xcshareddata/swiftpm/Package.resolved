@@ -1,0 +1,41 @@
+{
+  "pins" : [
+    {
+      "identity" : "emptydataset-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Xiaoye220/EmptyDataSet-Swift",
+      "state" : {
+        "revision" : "ffaa10404b3c7582532887adc7a0f8558f656673",
+        "version" : "5.0.2"
+      }
+    },
+    {
+      "identity" : "snapkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SnapKit/SnapKit",
+      "state" : {
+        "revision" : "f222cbdf325885926566172f6f5f06af95473158",
+        "version" : "5.6.0"
+      }
+    },
+    {
+      "identity" : "swiftsoup",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/scinfu/SwiftSoup",
+      "state" : {
+        "revision" : "6778575285177365cbad3e5b8a72f2a20583cfec",
+        "version" : "2.4.3"
+      }
+    },
+    {
+      "identity" : "toast-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/scalessec/Toast-Swift",
+      "state" : {
+        "branch" : "master",
+        "revision" : "0c9493eeacb102cc614da385cfaaf475379f4ab4"
+      }
+    }
+  ],
+  "version" : 2
+}

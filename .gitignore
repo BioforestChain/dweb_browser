@@ -1,0 +1,23 @@
+# ios
+Pods
+.DS_Store
+ios/BFExplorer/BFExplorer.xcworkspace
+.build/
+
+# android
+.gradle/
+*.iml
+.idea/
+local.properties
+build/
+*.log
+
+# node/deno/typescript
+node_modules/
+.npm
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*

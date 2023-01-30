@@ -15,6 +15,9 @@ import java.util.concurrent.RejectedExecutionHandler
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
+
+val NOTIFICATION_TITLE: CharSequence = "WorkRequest Starting"
+const val CHANNEL_ID = "VERBOSE_NOTIFICATION"
 private const val TAG = "DENO_WORKER"
 var TASK: Thread? = null
 val threadPoolExecutor = ThreadPoolExecutor(
