@@ -33,7 +33,7 @@ class BFSNetworkManager: NSObject {
                                     var schemePath = desPath + "\(appId)/sys"
                                     if self.shouldUpdate(name: appId) {
                                         Schemehandler.setupHTMLCache(appId: appId, fromPath: schemePath)
-                                        InnerAppFileManager.shared.updateRedHot(appId: appId, statue: true)
+                                        sharedInnerAppFileMgr.updateRedHot(appId: appId, statue: true)
                                     }
                                     RefreshManager.saveLastUpdateTime(appId: appId, time: Date().timeStamp)
                                 }
@@ -127,7 +127,7 @@ class BFSNetworkManager: NSObject {
         if FileManager.default.fileExists(atPath: desPath) {
             let tmpManager = BatchTempManager()
             let tmpVersion = tmpManager.tempAppVersion(name: name)
-            let oldVersion = InnerAppFileManager.shared.systemAPPVersion(appId: name)
+            let oldVersion = sharedInnerAppFileMgr.systemAPPVersion(appId: name)
             let result = tmpVersion.versionCompare(oldVersion: oldVersion)
             if result == .orderedAscending {
                 return true

@@ -53,7 +53,7 @@ class JSCoreManager: NSObject {
     
     private func loadAPPEntry(appId: String) {
         
-        guard let entryPath = InnerAppFileManager.shared.systemAPPEntryPath(appId: appId) else { return }
+        guard let entryPath = sharedInnerAppFileMgr.systemAPPEntryPath(appId: appId) else { return }
         
         jsContext?.setObject(plaoc, forKeyedSubscript: "PlaocJavascriptBridge" as NSCopying & NSObjectProtocol)
         if let content = try? String(contentsOfFile: entryPath) {

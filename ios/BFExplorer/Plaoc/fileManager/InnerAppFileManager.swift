@@ -15,6 +15,7 @@ enum InnerAppType: Int {
 }
 
 let sharedRecommendAppManager = RecommendAppManager()
+let sharedInnerAppFileMgr = InnerAppFileManager()
 
 class InnerAppFileManager: NSObject {
 
@@ -35,7 +36,7 @@ class InnerAppFileManager: NSObject {
     
     let redSoptCachePath = documentdir + "/redHot"
 
-    static let shared = InnerAppFileManager()
+//    static let shared = InnerAppFileManager()
     
     override init() {
         super.init()
