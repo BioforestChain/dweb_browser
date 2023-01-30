@@ -1,0 +1,36 @@
+<resources>
+    <!-- Permission String -->
+    <string name="permission_allow">Allow</string>
+    <string name="permission_denial">Don\'t allow</string>
+    <string name="permission_go_settings">Go To Setting</string>
+    <string name="permission_cancel">Cancel</string>
+    <string name="permission_deny_title">Permission Required</string>
+    <string name="permission_deny_text">permission required fail, please click the "Go To Setting" to manual authorization</string>
+    <string name="permission_deny_storage">Storage permission is required to provide the read/write operation of the local storage of data</string>
+    <string name="permission_deny_calendar">Calendar permission is required to read calendars and add/modify/delete calendars</string>
+    <string name="permission_deny_camera">Camera permission is required to take photo and video</string>
+    <string name="permission_deny_location">Location permission is required to provide you with the finest information about your device</string>
+    <string name="permission_deny_record_audio">Recording permission is required to call mic for recording</string>
+    <string name="permission_deny_contacts">Contact permission is required to access contact information and add/modify/delete contact information</string>
+    <string name="permission_deny_call">Call permission is required to make calls and view call records</string>
+    <string name="permission_deny_sensor">Sensor permission is required to obtain sensor related health conditions</string>
+    <string name="permission_deny_sms">SMS permission is required to read SMS and create/modify/delete/send information</string>
+    <string name="permission_deny_device">Device permission is required to obtain information about the device</string>
+
+    <!-- 导航内容 -->
+    <string name="navitem_home">Home</string>
+    <string name="navitem_contact">Contact</string>
+    <string name="navitem_message">Message</string>
+    <string name="navitem_me">Me</string>
+
+    <string name="app_name">BFExplorer</string>
+    <string name="privacy_title">Tips</string>
+    <string name="privacy_content_1">Welcome to BFExplorer. It will use the internet when you use it. Please consult your local operator for traffic costs. Please read the</string>
+    <string name="privacy_content_2">carefully before using BFExplorer. You need to agree and accept all the terms before starting our service.</string>
+    <string name="privacy_policy">《privacy policy》</string>
+    <string name="privacy_content_deny">This product can only be used after agreeing to the relevant agreement</string>
+    <string name="button_not_agree">Not Agree</string>
+    <string name="button_agree_continue">Agree and Continue</string>
+    <string name="button_exit_app">exit app</string>
+    <string name="button_i_know">I Know</string>
+</resources>

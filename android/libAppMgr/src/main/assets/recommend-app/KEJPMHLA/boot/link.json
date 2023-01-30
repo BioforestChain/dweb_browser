@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "bfsAppId": "KEJPMHLA",
+  "name": "AR扫码",
+  "icon": "./vite.svg",
+  "author": [
+    "kzf,kezhaofeng@bnqkl.cn,https://bnqkl.cn/developer/kzf"
+  ],
+  "homepage": "NULL",
+  "autoUpdate": {
+    "maxAge": 3,
+    "provider": 1,
+    "url": "KEJPMHLA/appversion.json",
+    "version": "1.0.1",
+    "files": [
+      {
+        "url": "https://www.google.cn",
+        "size": 1024,
+        "sha512": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    ],
+    "releaseNotes": "本次发布的信息，一般存放更新信息",
+    "releaseName": "本次发布的标题，用于展示更新信息时的标题",
+    "releaseDate": "2022-08-26"
+  }
+}

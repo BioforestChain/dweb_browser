@@ -1,0 +1,46 @@
+<resources>
+  <string name="app_name">BFExplorer</string>
+  <string name="web_host">dweb.bfchain.org</string>
+  <string name="title_activity_webview">WebviewActivity</string>
+
+  <!-- Strings used for fragments for navigation -->
+  <string name="first_fragment_label">First Fragment</string>
+  <string name="second_fragment_label">Second Fragment</string>
+  <string name="next">Next</string>
+  <string name="previous">Previous</string>
+
+  <string name="hello_first_fragment">Hello first fragment</string>
+  <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+  <!-- Preference Titles -->
+  <string name="messages_header">Messages</string>
+  <string name="sync_header">Sync</string>
+
+  <!-- Messages Preferences -->
+  <string name="signature_title">Your signature</string>
+  <string name="reply_title">Default reply action</string>
+
+  <!-- Sync Preferences -->
+  <string name="sync_title">Sync email periodically</string>
+  <string name="attachment_title">Download incoming attachments</string>
+  <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+  <string name="attachment_summary_off">Only download attachments when manually requested</string>
+
+  <!-- Permission String -->
+  <string name="permission_allow">Allow</string>
+  <string name="permission_denial">Don\'t allow</string>
+  <string name="permission_go_settings">Go To Setting</string>
+  <string name="permission_cancel">Cancel</string>
+  <string name="permission_deny_title">Permission Required</string>
+  <string name="permission_deny_text">permission required fail, please click the "Go To Setting" to manual authorization</string>
+  <string name="permission_deny_storage">Storage permission is required to provide the read/write operation of the local storage of data</string>
+  <string name="permission_deny_calendar">Calendar permission is required to read calendars and add/modify/delete calendars</string>
+  <string name="permission_deny_camera">Camera permission is required to take photo and video</string>
+  <string name="permission_deny_location">Location permission is required to provide you with the finest information about your device</string>
+  <string name="permission_deny_record_audio">Recording permission is required to call mic for recording</string>
+  <string name="permission_deny_contacts">Contact permission is required to access contact information and add/modify/delete contact information</string>
+  <string name="permission_deny_call">Call permission is required to make calls and view call records</string>
+  <string name="permission_deny_sensor">Sensor permission is required to obtain sensor related health conditions</string>
+  <string name="permission_deny_sms">SMS permission is required to read SMS and create/modify/delete/send information</string>
+  <string name="permission_deny_device">Device permission is required to obtain information about the device</string>
+</resources>

@@ -1,0 +1,48 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    apply from: 'versions.gradle'
+    ext.compose_version = "1.2.0-alpha08"
+    ext.ktor_version = "2.1.0"
+    addRepos(repositories)
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.2.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.20"
+//        classpath "com.vanniktech:gradle-maven-publish-plugin:$versions.mavenPublish"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle filesndkVersion
+    }
+
+}
+
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+allprojects {
+    tasks.withType(Javadoc) {
+        options {
+            encoding "UTF-8"
+            charSet 'UTF-8'
+            links "http://docs.oracle.com/javase/8/docs/api"
+        }
+
+        options.addStringOption('Xdoclint:none', '-quiet')
+        failOnError false
+    }
+}
+
+//kotlin {
+//    targets {
+//        fromPreset(presets.androidNativeArm32, 'HelloWorld') // ① 配置为 Android 的工程
+//
+//        configure([HelloWorld]) {
+//            compilations.main.outputKinds 'DYNAMIC' // ② 配置为动态链接库
+//        }
+//    }
+//}
+//

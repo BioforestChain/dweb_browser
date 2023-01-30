@@ -1,0 +1,31 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- Base application theme. -->
+  <style name="Theme.plaoc" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Primary brand color. -->
+    <item name="colorPrimary">@color/colorPrimary_light</item>
+    <item name="colorPrimaryVariant">@color/colorPrimaryVariant_light</item>
+    <item name="colorOnPrimary">@color/colorOnPrimary_light</item>
+    <!-- Secondary brand color. -->
+    <item name="colorSecondary">@color/colorSecondary_light</item>
+    <item name="colorSecondaryVariant">@color/colorSecondaryVariant_light</item>
+    <item name="colorOnSecondary">@color/colorOnSecondary_light</item>
+    <!-- Status bar color. -->
+    <item name="android:statusBarColor">@color/colorPrimary_light</item>
+    <!-- Customize your theme here. -->
+    <item name="android:textAllCaps">false</item>
+  </style>
+
+  <style name="OnClick">
+    <item name="android:clickable">true</item>
+    <item name="android:onClick">onClick</item>
+  </style>
+
+  <style name="Theme.plaoc.NoActionBar">
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
+  </style>
+
+  <style name="Theme.RustEample.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+  <style name="Theme.RustEample.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+</resources>

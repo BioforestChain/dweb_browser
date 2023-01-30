@@ -1,0 +1,35 @@
+<resources>
+    <!-- 权限部分的字符串 -->
+    <string name="permission_allow">允许</string>
+    <string name="permission_denial">拒绝</string>
+    <string name="permission_go_settings">前往设置</string>
+    <string name="permission_cancel">取消</string>
+    <string name="permission_deny_title">权限申请</string>
+    <string name="permission_deny_text">申请的权限失败，请点击”前往设置“进行手动授权</string>
+    <string name="permission_deny_storage">需要存储权限许可才能提供数据的本地存储的读写操作</string>
+    <string name="permission_deny_calendar">需要日历权限许可才能读取日历和新增/修改/删除日历</string>
+    <string name="permission_deny_camera">需要相机权限许可才能访问摄像头进行拍照和录像</string>
+    <string name="permission_deny_location">需要位置权限许可才能访问设备的具体位置信息</string>
+    <string name="permission_deny_record_audio">需要录音权限许可才能调用mic进行录音</string>
+    <string name="permission_deny_contacts">需要联系人权限许可才能访问联系人信息和新增/修改/删除联系人信息</string>
+    <string name="permission_deny_call">需要拨打权限许可才能拨打电话，并查看通话记录</string>
+    <string name="permission_deny_sensor">需要传感器权限许可才能获取传感器相关的身体健康状况</string>
+    <string name="permission_deny_sms">需要信息权限许可才能阅读短信和新建/修改/删除/发送信息</string>
+    <string name="permission_deny_device">需要设备权限许可才能获取设备的相关信息</string>
+
+    <string name="navitem_home">首页</string>
+    <string name="navitem_contact">联系人</string>
+    <string name="navitem_message">消息</string>
+    <string name="navitem_me">我的</string>
+
+    <string name="app_name">BFExplorer</string>
+    <string name="privacy_title">温馨提示</string>
+    <string name="privacy_content_1">欢迎使用BFExplorer，在您使用的时候，需要连接网络，产生的流量费用请咨询当地运营商。在使用BFExplorer前，请认真阅读</string>
+    <string name="privacy_content_2">。您需要同意并接受全部条款后再开始我们的服务。</string>
+    <string name="privacy_policy">《隐私协议》</string>
+    <string name="privacy_content_deny">本产品需要同意相关协议后才能使用哦</string>
+    <string name="button_not_agree">不同意</string>
+    <string name="button_agree_continue">同意并继续</string>
+    <string name="button_exit_app">退出应用</string>
+    <string name="button_i_know">我知道了</string>
+</resources>
