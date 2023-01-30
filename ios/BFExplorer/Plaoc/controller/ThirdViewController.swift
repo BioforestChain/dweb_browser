@@ -45,7 +45,7 @@ class ThirdViewController: UIViewController {
         let alertVC = UIAlertController(title: "确认下载更新吗？", message: nil, preferredStyle: .alert)
         let sureAction = UIAlertAction(title: "确认", style: .default) { action in
             
-            InnerAppFileManager.shared.scanToDownloadApp(appId: appId, dict: dataDict)
+            sharedInnerAppFileMgr.scanToDownloadApp(appId: appId, dict: dataDict)
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.navigationController?.popViewController(animated: true)

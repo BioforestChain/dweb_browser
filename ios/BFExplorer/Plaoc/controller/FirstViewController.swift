@@ -22,7 +22,7 @@ class FirstViewController: UIViewController {
 
         self.view.backgroundColor = .white
         
-        appNames =  Array( InnerAppFileManager.shared.appIdList )
+        appNames =  Array( sharedInnerAppFileMgr.appIdList )
         
         for i in stride(from: 0, to: appNames.count + 1, by: 1) {
             if i == appNames.count {
@@ -36,12 +36,12 @@ class FirstViewController: UIViewController {
                 let name = appNames[i]
                 let button = UIButton(frame: CGRect(x: 30 + i * 90, y: 200, width: 60, height: 60))
                 button.addTarget(self, action: #selector(tap(sender:)), for: .touchUpInside)
-                let type = InnerAppFileManager.shared.currentAppType(appId: name)
+                let type = sharedInnerAppFileMgr.currentAppType(appId: name)
                 if type == .user {
-                    let urlString = InnerAppFileManager.shared.scanImageURL(appId: name)
+                    let urlString = sharedInnerAppFileMgr.scanImageURL(appId: name)
                     button.sd_setImage(with: URL(string: urlString), for: .normal)
                 } else {
-                    button.setImage(InnerAppFileManager.shared.currentAppImage(appId: name), for: .normal)
+                    button.setImage(sharedInnerAppFileMgr.currentAppImage(appId: name), for: .normal)
                 }
                 button.tag = i
                 button.layer.cornerRadius = 10
@@ -52,7 +52,7 @@ class FirstViewController: UIViewController {
                 let label = UILabel(frame: CGRect(x: button.frame.minX, y: 280, width: 60, height: 20))
                 label.textAlignment = .center
                 label.textColor = .black
-                label.text = InnerAppFileManager.shared.currentAppName(appId: name)
+                label.text = sharedInnerAppFileMgr.currentAppName(appId: name)
                 self.view.addSubview(label)
                 labels.append(label)
             }
@@ -78,10 +78,10 @@ class FirstViewController: UIViewController {
         DispatchQueue.main.async {
             if type == "complete" {
                 if appId != nil {
-                    InnerAppFileManager.shared.updateFileType(appId: appId!)
+                    sharedInnerAppFileMgr.updateFileType(appId: appId!)
                     if let index = self.appNames.firstIndex(of: appId!) {
                         let button = self.buttons[index]
-                        button.setImage(InnerAppFileManager.shared.currentAppImage(appId: appId!), for: .normal)
+                        button.setImage(sharedInnerAppFileMgr.currentAppImage(appId: appId!), for: .normal)
                         button.startExpandAnimation()
                     }
                 }
@@ -123,13 +123,13 @@ class FirstViewController: UIViewController {
             return
         }
         let name = appNames[sender.tag]
-        let type = InnerAppFileManager.shared.currentAppType(appId: name)
+        let type = sharedInnerAppFileMgr.currentAppType(appId: name)
         if type == .system {
             let second = WebViewViewController()
             second.appId = name
-            second.urlString = InnerAppFileManager.shared.systemWebAPPURLString(appId: name)! //"iosqmkkx:/index.html"
-            let type = InnerAppFileManager.shared.systemAPPType(appId: name)
-            let url = InnerAppFileManager.shared.systemWebAPPURLString(appId: name) ?? ""
+            second.urlString = sharedInnerAppFileMgr.systemWebAPPURLString(appId: name)! //"iosqmkkx:/index.html"
+            let type = sharedInnerAppFileMgr.systemAPPType(appId: name)
+            let url = sharedInnerAppFileMgr.systemWebAPPURLString(appId: name) ?? ""
             if type == "web" {
                 second.urlString = url
             } else {
@@ -137,9 +137,9 @@ class FirstViewController: UIViewController {
             }
             self.navigationController?.pushViewController(second, animated: true)
         } else if type == .recommend {
-            InnerAppFileManager.shared.clickRecommendAppAction(appId: name)
+            sharedInnerAppFileMgr.clickRecommendAppAction(appId: name)
         } else if type == .user {
-            InnerAppFileManager.shared.clickRecommendAppAction(appId: name)
+            sharedInnerAppFileMgr.clickRecommendAppAction(appId: name)
         }
     }
     
@@ -156,7 +156,7 @@ class FirstViewController: UIViewController {
     }
     
     func addScanAppAction(name: String) {
-        let scanURLString = InnerAppFileManager.shared.scanDownloadURLString(appId: name)
+        let scanURLString = sharedInnerAppFileMgr.scanDownloadURLString(appId: name)
         guard scanURLString.count > 0 else { return }
         BFSNetworkManager.shared.downloadApp(appId: name, urlString: scanURLString)
         let button = self.view.viewWithTag(3) as? UIButton

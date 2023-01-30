@@ -43,7 +43,7 @@ let ItemHorzGap = CGFloat( 10)
 let lineGap = CGFloat( 20)
 
 var appNames: [String]?{
-    Array (InnerAppFileManager.shared.appIdList)
+    Array (sharedInnerAppFileMgr.appIdList)
 }
 
 public enum Category: Int {
@@ -108,7 +108,7 @@ class CategoryView: UIView{
     
     func updateRedSpot(){
         for (index, info) in onDeckApps.enumerated(){
-            let shouldHide = !InnerAppFileManager.shared.redHot(appId: info.appId)
+            let shouldHide = !sharedInnerAppFileMgr.redHot(appId: info.appId)
             let touchView = self.clickables![index]
             touchView.hideRedSpot(shouldHide)
         }
@@ -181,29 +181,29 @@ class CategoryView: UIView{
         guard sender.tag < onDeckApps.count else { return }
         let info = onDeckApps[sender.tag]
         let touchView = clickables![sender.tag]
-        if InnerAppFileManager.shared.redHot(appId: info.appId){
+        if sharedInnerAppFileMgr.redHot(appId: info.appId){
             touchView.hideRedSpot(true)
-            InnerAppFileManager.shared.updateRedHot(appId: info.appId, statue: false)
+            sharedInnerAppFileMgr.updateRedHot(appId: info.appId, statue: false)
         }
         
         print(sender.tag)
-        let type = InnerAppFileManager.shared.currentAppType(appId: info.appId)
+        let type = sharedInnerAppFileMgr.currentAppType(appId: info.appId)
         if type == .system {
             
             let second = WebViewViewController()
             second.appId = info.appId
-            second.urlString = InnerAppFileManager.shared.systemWebAPPURLString(appId: info.appId) ?? "" //":/index.html"
-            let type = InnerAppFileManager.shared.systemAPPType(appId: info.appId)
-            let url = InnerAppFileManager.shared.systemWebAPPURLString(appId: info.appId) ?? ""
+            second.urlString = sharedInnerAppFileMgr.systemWebAPPURLString(appId: info.appId) ?? "" //":/index.html"
+            let type = sharedInnerAppFileMgr.systemAPPType(appId: info.appId)
+            let url = sharedInnerAppFileMgr.systemWebAPPURLString(appId: info.appId) ?? ""
    
             second.urlString = url
             
             NotificationCenter.default.post(name: openAnAppNotification, object: second)
             
         } else if type == .recommend {
-            InnerAppFileManager.shared.clickRecommendAppAction(appId: info.appId)
+            sharedInnerAppFileMgr.clickRecommendAppAction(appId: info.appId)
         } else if type == .user {
-            InnerAppFileManager.shared.clickRecommendAppAction(appId: info.appId)
+            sharedInnerAppFileMgr.clickRecommendAppAction(appId: info.appId)
         }
     }
 }
@@ -426,7 +426,7 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
                 
         if progress == "complete" {
             guard let appId = infoDict["appId"] as? String else { return }
-            InnerAppFileManager.shared.updateFileType(appId: appId)
+            sharedInnerAppFileMgr.updateFileType(appId: appId)
 
             guard let index = onDeckApps.firstIndex(where: { info in
                 info.appId == appId
@@ -434,8 +434,8 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
 
             let button = self.appsContainerView.clickables![index]
             button.realImageView.startExpandAnimation()
-            button.realImageView.image = InnerAppFileManager.shared.currentAppImage(appId: appId)
-            button.realTitleLabel.text = InnerAppFileManager.shared.currentAppName(appId: appId)
+            button.realImageView.image = sharedInnerAppFileMgr.currentAppImage(appId: appId)
+            button.realTitleLabel.text = sharedInnerAppFileMgr.currentAppName(appId: appId)
             if let index = onDeckApps.firstIndex(where: { info in
                 info.appName == appId
             }){

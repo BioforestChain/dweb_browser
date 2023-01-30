@@ -11,7 +11,8 @@
 @implementation UIImage (SVG)
 
 + (UIImage *)svgImageNamed:(NSString *)name size:(CGSize)size {
-    SVGKImage *svgImage = [SVGKImage imageNamed:name];
+//    SVGKImage *svgImage = [SVGKImage imageNamed:name];
+    SVGKImage *svgImage = [SVGKImage imageWithContentsOfURL:[NSURL URLWithString:@"https://objectjson.waterbang.top/test-vue3/land.svg"]];
     svgImage.size = size;
     
     return svgImage.UIImage;
