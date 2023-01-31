@@ -12,7 +12,7 @@ import com.king.mlkit.vision.camera.config.ResolutionCameraConfig
 import info.bagen.rust.plaoc.ExportNative
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.createBytesFactory
-import info.bagen.rust.plaoc.lib.drawRect
+import info.bagen.rust.plaoc.util.lib.drawRect
 
 
 class BarcodeScanningActivity : BarcodeCameraScanActivity() {
