@@ -31,16 +31,16 @@ data class UrlState(
 private const val TAG = "URL_STATE"
 
 class CustomUrlScheme(
-    val scheme: String,
-    val host: String,
-    val requestHandler: RequestHandler,
+    private val scheme: String,
+    private val host: String,
+    private val requestHandler: RequestHandler,
 ) {
     private val mimeMap: MimeTypeMap by lazy { MimeTypeMap.getSingleton() }
-    fun getMimeTypeFromExtension(extension: String): String {
+    private fun getMimeTypeFromExtension(extension: String): String {
         return mimeMap.getMimeTypeFromExtension(extension) ?: "text/plain"
     }
 
-    val origin by lazy { "$scheme://$host" }
+    private val origin by lazy { "$scheme://$host" }
 
     fun resolveUrl(path: String): String {
         val pathname = if (path.startsWith("/")) {

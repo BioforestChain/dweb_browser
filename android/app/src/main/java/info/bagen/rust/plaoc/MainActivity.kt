@@ -36,6 +36,8 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
+import info.bagen.rust.plaoc.microService.BootNMM
+import info.bagen.rust.plaoc.microService.WindowOptions
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
@@ -46,8 +48,6 @@ import info.bagen.rust.plaoc.webView.network.dWebView_host
 import info.bagen.rust.plaoc.webView.openDWebWindow
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
-
-private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
     var isQRCode = false //是否是识别二维码
@@ -109,9 +109,7 @@ class MainActivity : AppCompatActivity() {
                             Log.d("MainActivity", "onCreate -> app pid = $pid, $dAppInfo")
                             dWebView_host = appId
                             LogUtils.d("启动了Ar 扫雷：isDWeb:${dAppInfo?.isDWeb}，$dWebView_host--$dAppInfo ")
-                            /*dAppInfo?.let { appInfo ->
-                                createWorker(WorkerNative.valueOf("DenoRuntime"), appInfo.dAppUrl)
-                            }*/
+
                             // openDWebViewActivity("file://${App.appContext.dataDir.absolutePath}/${APP_DIR_TYPE.SystemApp.rootName}/$appId/sys/index.html")
                             openDWebViewActivity("http://${dWebView_host.lowercase()}.dweb/index.html")
                         })
@@ -119,6 +117,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     // 选择图片后回调到这
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -297,11 +297,6 @@ class MainActivity : AppCompatActivity() {
         if (dWebView_host == "") {
             throw NotFoundException("app host not found!")
         }
-        /*val url = if (path.startsWith("http")) {
-            path
-        } else {
-            "https://${dWebView_host.lowercase(Locale.ROOT)}.dweb${shakeUrl(path)}?_=${Date().time}"
-        }*/
         LogUtils.d("启动了DWebView:url=$path")
         openDWebWindow(
             activity = getContext(),

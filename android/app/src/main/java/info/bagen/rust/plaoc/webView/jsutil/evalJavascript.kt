@@ -8,7 +8,6 @@ import info.bagen.rust.plaoc.webView.dWebView
 
 /** 传递参数给前端*/
 fun sendToJavaScript(jsCode: String) {
-    // 这里的消息需要等待serviceWorker启动再执行
     dWebView?.post {
         Log.e("evalJavascript", "sendToJavaScript jsCode=$jsCode")
         dWebView?.evaluateJavascript(jsCode, ValueCallback<String> { result ->

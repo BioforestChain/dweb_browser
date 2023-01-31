@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc
 
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
@@ -19,16 +20,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import info.bagen.libappmgr.R
 import info.bagen.libappmgr.ui.splash.SplashPrivacyDialog
 import info.bagen.libappmgr.utils.getBoolean
 import info.bagen.libappmgr.utils.saveBoolean
+import info.bagen.rust.plaoc.microService.startBootNMM
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import info.bagen.rust.plaoc.webView.DWebViewActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
 
 class SplashActivity : AppCompatActivity() {
     private val keyAppFirstLoad = "App_First_Load"
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -49,15 +52,19 @@ class SplashActivity : AppCompatActivity() {
                 }
             }
         } else {
-            openHomeActivity()
+            startBootNMM()
+            this.saveBoolean(keyAppFirstLoad, false)
+            finish()
         }
     }
 
-    private fun openHomeActivity() {
-        startActivity(Intent(this, MainActivity::class.java))
-        this.saveBoolean(keyAppFirstLoad, false)
-        finish()
+}
+
+fun openHomeActivity() {
+    val intent = Intent(App.appContext.applicationContext, MainActivity::class.java).apply {
+        addFlags(FLAG_ACTIVITY_NEW_TASK)
     }
+    App.appContext.startActivity(intent)
 }
 
 @OptIn(ExperimentalTextApi::class)

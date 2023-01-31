@@ -37,7 +37,7 @@ open class AdWebViewClient : WebViewClient() {
         navigator.canGoForward = view?.canGoForward() ?: false
         view?.let { webView ->
             // 为了将bfs.js中的 Api 注入到 webView 中
-            val inputStream = App.appContext.assets.open("bfs.js")
+            val inputStream = App.appContext.assets.open("injectWorkerJs/bfs.js")
             val byteArray = inputStream.readBytes()
             val injectString = String(byteArray)
             webView.evaluateJavascript("javascript:$injectString") {}

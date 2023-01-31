@@ -129,7 +129,7 @@ private fun NavFun(activity: ComponentActivity) {
 
                 val host = Path(urlStr).getName(1).toString()
                 val assetBasePath = "./"
-                Log.d(TAG, "NavFun host : host=$host, urlStr=$urlStr")
+                println("kotlin#DwebViewActivity NavFun host=$host, urlStr=$urlStr")
                 // 设置规则
                 val customUrlScheme = CustomUrlScheme(
                     "https", host,
@@ -150,8 +150,9 @@ private fun NavFun(activity: ComponentActivity) {
 }
 
 /** 打开DWebview*/
-fun openDWebWindow(activity: ComponentActivity, url: String) {
+ fun openDWebWindow(activity: ComponentActivity, url: String) {
     val intent = Intent(activity.applicationContext, DWebViewActivity::class.java).also {
+        println("kotlin#DwebViewActivity openDWebWindow url:$url,${Uri.parse("https://" + URLEncoder.encode(url, "UTF-8"))}")
         it.data = Uri.parse("https://" + URLEncoder.encode(url, "UTF-8"))
     }
     activity.startActivity(intent)

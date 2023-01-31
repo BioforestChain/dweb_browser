@@ -20,6 +20,7 @@ class BFSApi {
     @JavascriptInterface
     fun getConnectChannel(url: String) {
         Log.d("BFSApi", "getConnectChannel url=$url")
+
     }
 
     @JavascriptInterface

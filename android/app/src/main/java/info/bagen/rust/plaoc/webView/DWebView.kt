@@ -166,27 +166,27 @@ fun DWebView(
                     // 将webView的背景默认设置为透明。不通过systemUi的api提供这个功能，一些手机上动态地修改webView背景颜色，在黑夜模式下，会有问题
                     webView.setBackgroundColor(Companion.Transparent.toArgb())
                     webView.adWebViewHook = hook
-                    // 通用的工具类
-                    jsUtil = JsUtil(
-                        activity = activity,
-                        evaluateJavascript = { code, callback ->
-                            webView.evaluateJavascript(code, callback)
-                        }
-                    )
-                    // 初始化挂载 系统UI 函数
-                    val systemUiFFI = SystemUiFFI(
-                        activity, webView, hook, jsUtil!!, systemUIState,
-                    )
-                    initSystemUiFn(systemUiFFI)
-                    // 初始化挂载 TopBar 函数
-                    initTopBarFn(TopBarFFI(topBarState))
-                    // 初始化挂载 BottomBar 函数
-                    initBottomFn(BottomBarFFI(bottomBarState))
-                    // 初始化挂载 Dialog 函数
-                    val dialogFFI = DialogFFI(
-                        jsUtil!!, jsAlertConfig, jsPromptConfig, jsConfirmConfig, jsWarningConfig
-                    )
-                    initDialogFn(dialogFFI)
+//                    // 通用的工具类
+//                    jsUtil = JsUtil(
+//                        activity = activity,
+//                        evaluateJavascript = { code, callback ->
+//                            webView.evaluateJavascript(code, callback)
+//                        }
+//                    )
+//                    // 初始化挂载 系统UI 函数
+//                    val systemUiFFI = SystemUiFFI(
+//                        activity, webView, hook, jsUtil!!, systemUIState,
+//                    )
+//                    initSystemUiFn(systemUiFFI)
+//                    // 初始化挂载 TopBar 函数
+//                    initTopBarFn(TopBarFFI(topBarState))
+//                    // 初始化挂载 BottomBar 函数
+//                    initBottomFn(BottomBarFFI(bottomBarState))
+//                    // 初始化挂载 Dialog 函数
+//                    val dialogFFI = DialogFFI(
+//                        jsUtil!!, jsAlertConfig, jsPromptConfig, jsConfirmConfig, jsWarningConfig
+//                    )
+//                    initDialogFn(dialogFFI)
                     onCreated(webView)
                     webView.addJavascriptInterface(BFSApi(), "bfs") // 注入bfs，js可以直接调用
                 },
@@ -301,22 +301,7 @@ fun DWebView(
                     MyWebChromeClient()
                 },
                 client = remember {
-                    val swController = ServiceWorkerController.getInstance()
-                    swController.setServiceWorkerClient(object : ServiceWorkerClient() {
-                        override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
-                            // 拦截serviceWorker的网络请求
-                            Log.e("DWebView", "client::swController::setServiceWorkerClient::shouldInterceptRequest customUrlScheme=$customUrlScheme")
-                            val result = interceptNetworkRequests(request, customUrlScheme)
-                            if (result != null) {
-                                return result
-                            }
-                            return super.shouldInterceptRequest(request)
-                        }
-                    })
-                    swController.serviceWorkerWebSettings.allowContentAccess = true
                     class MyWebViewClient : AdWebViewClient() {
-                        private val ITAG = "$TAG/CUSTOM-SCHEME"
-
                         // API >= 21
                         @SuppressLint("NewApi")
                         @Override
@@ -324,11 +309,11 @@ fun DWebView(
                             view: WebView?,
                             request: WebResourceRequest?
                         ): WebResourceResponse? {
-                            // 只加载资源文件 index.js index.html
+//                            return super.shouldInterceptRequest(view, request)
                             request?.let { webResourceRequest ->
                                 val url = webResourceRequest.url
                                 val path = url.path.toString()
-                                Log.e("DWebView", "client::MyWebViewClient::shouldInterceptRequest url=$url, path=$path, url.host=${url.host}")
+                               println("kotlin#DWebView shouldInterceptRequest url=$url, path=$path, url.host=${url.host}")
                                 if (url.host == "${dWebView_host.lowercase()}.dweb") {
                                     // 这里出来的url全部都用是小写，serviceWorker没办法一开始就注册，所以还会走一次这里
                                     return interceptNetworkRequests(request, customUrlScheme)
@@ -341,7 +326,7 @@ fun DWebView(
                             view: WebView?,
                             request: WebResourceRequest?
                         ): Boolean {
-                            Log.i(ITAG, "Override Url Loading: ${request?.url}")
+                            println("kotlin#DWebView shouldOverrideUrlLoading: ${request?.url}")
                             if (request !== null && customUrlScheme.isCrossDomain(request)) {
                                 return false
                             }

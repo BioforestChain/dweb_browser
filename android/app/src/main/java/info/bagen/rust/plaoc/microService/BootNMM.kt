@@ -1,12 +1,12 @@
 package info.bagen.rust.plaoc.microService
 
+
 typealias Router = MutableMap<String, IO>
 typealias IO = (mmid: Any) -> Any
 
 class BootNMM : NativeMicroModule() {
-    private val registeredMmids = mutableSetOf<Mmid>()
     private val routers: Router = mutableMapOf()
-
+    private val registeredMmids = DwebDNS()
     init {
         // 初始化注册微组件的函数
         routers["register"] = put@{ mmid  ->
@@ -16,23 +16,23 @@ class BootNMM : NativeMicroModule() {
             return@put unRegisterMicro(mmid as Mmid)
         }
         // 初始化启动一个dwebView
-        registeredMmids.add("boot.sys.dweb")
+        registeredMmids.add("boot.sys.dweb",NativeMicroModule("boot.sys.dweb"))
     }
 
-    override fun bootstrap() {
+    override fun bootstrap(args: WindowOptions) {
         // 初始化启动一个dwebView --(new MicroModule.from('desktop.sys.dweb') as JsMicroModule).boostrap()
-        for (mmid in registeredMmids) {
-            NativeMicroModule(mmid).bootstrap()
+        registeredMmids.dnsTables.values.forEach { microModule ->
+            println("Kotlin#BootNMM:$microModule")
+            microModule.bootstrap(args)
         }
     }
 
     private fun registerMicro(mmid: Mmid): Boolean {
 
-        return registeredMmids.add(mmid)
+        return registeredMmids.add(mmid,MultiWebViewNMM())
     }
 
-    private fun unRegisterMicro(mmid: Mmid): Boolean {
-
+    private fun unRegisterMicro(mmid: Mmid): String {
         return registeredMmids.remove(mmid)
     }
 
