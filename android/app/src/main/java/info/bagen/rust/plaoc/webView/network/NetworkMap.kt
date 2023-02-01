@@ -31,16 +31,7 @@ fun interceptNetworkRequests(
     if (url.isNotEmpty() && !path.isNullOrEmpty()) {
         val temp = url.substring(url.lastIndexOf("/") + 1)
         Log.e("NetworkMap", "interceptNetworkRequests: temp=$temp,")
-        // 解析接收数据
-        /*if (temp.startsWith("chunk") || temp.startsWith("registryChannelId")) {
-            // 拦截转发到后端的事件
-            messageGateWay(path) // remove by lin.huang 20230129
-            return WebResourceResponse(
-                "application/json",
-                "utf-8",
-                ByteArrayInputStream(JsonUtil.toJson(Response(true, "请求成功！")).toByteArray())
-            )
-        }*/
+
         if (temp.startsWith("poll") || temp.startsWith("setUi")) {
             return jsGateWay(customUrlScheme, request)
         }

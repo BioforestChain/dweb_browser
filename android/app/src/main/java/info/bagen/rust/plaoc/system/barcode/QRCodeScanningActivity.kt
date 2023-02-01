@@ -38,7 +38,7 @@ import info.bagen.rust.plaoc.ExportNative
 import info.bagen.rust.plaoc.MainActivity
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.createBytesFactory
-import info.bagen.rust.plaoc.lib.drawRect
+import info.bagen.rust.plaoc.util.lib.drawRect
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

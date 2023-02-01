@@ -3,7 +3,6 @@ package info.bagen.rust.plaoc
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import info.bagen.libappmgr.di.libRepositoryModule
 import info.bagen.libappmgr.di.libViewModelModule
@@ -42,16 +41,8 @@ class App : Application() {
             )
         }
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
-        // 启动deno runtime
-        // startDenoService() // remove by lin.huang 20230129
         // 监听activity状态，获取当前哪个app在前台， 目的是为了在onResume的时候获取剪切板
         // registerActivityLifecycleCallbacks(ActivityLifecycleCallbacksImp()) // remove by lin.huang 20230129
-    }
-
-    /** 启动Deno服务*/
-    private fun startDenoService() {
-        val deno = Intent(this, DenoService::class.java)
-        startService(deno)
     }
 
     private class ActivityLifecycleCallbacksImp : ActivityLifecycleCallbacks {

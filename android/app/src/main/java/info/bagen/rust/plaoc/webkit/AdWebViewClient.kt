@@ -28,6 +28,13 @@ open class AdWebViewClient : WebViewClient() {
         state.errorsForCurrentRequest.clear()
         state.pageTitle = null
         state.pageIcon = null
+        view?.let { webView ->
+            // 为了将bfs.js中的 Api 注入到 webView 中
+            val inputStream = App.appContext.assets.open("injectWorkerJs/bfs.js")
+            val byteArray = inputStream.readBytes()
+            val injectString = String(byteArray)
+            webView.evaluateJavascript("javascript:$injectString") {}
+        }
     }
 
     override fun onPageFinished(view: WebView?, url: String?) {
@@ -35,13 +42,6 @@ open class AdWebViewClient : WebViewClient() {
         state.loadingState = AdLoadingState.Finished
         navigator.canGoBack = view?.canGoBack() ?: false
         navigator.canGoForward = view?.canGoForward() ?: false
-        view?.let { webView ->
-            // 为了将bfs.js中的 Api 注入到 webView 中
-            val inputStream = App.appContext.assets.open("bfs.js")
-            val byteArray = inputStream.readBytes()
-            val injectString = String(byteArray)
-            webView.evaluateJavascript("javascript:$injectString") {}
-        }
     }
 
     override fun doUpdateVisitedHistory(

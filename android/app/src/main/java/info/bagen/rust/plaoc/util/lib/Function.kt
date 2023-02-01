@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.lib
+package info.bagen.rust.plaoc.util.lib
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

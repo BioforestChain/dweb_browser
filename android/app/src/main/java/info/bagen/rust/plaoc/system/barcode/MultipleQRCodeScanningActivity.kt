@@ -22,7 +22,7 @@ import com.king.app.dialog.AppDialogConfig
 import com.king.mlkit.vision.barcode.QRCodeCameraScanActivity
 import com.king.mlkit.vision.camera.AnalyzeResult
 import info.bagen.rust.plaoc.R
-import info.bagen.rust.plaoc.lib.drawRect
+import info.bagen.rust.plaoc.util.lib.drawRect
 
 
 class MultipleQRCodeScanningActivity : QRCodeCameraScanActivity() {

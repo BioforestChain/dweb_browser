@@ -36,7 +36,9 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
-import info.bagen.rust.plaoc.lib.drawRect
+import info.bagen.rust.plaoc.microService.MultiWebViewNMM
+import info.bagen.rust.plaoc.microService.WebViewOptions
+import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
 import info.bagen.rust.plaoc.system.initSystemFn
@@ -47,14 +49,13 @@ import info.bagen.rust.plaoc.webView.openDWebWindow
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
-private const val TAG = "MainActivity"
-
 class MainActivity : AppCompatActivity() {
     var isQRCode = false //是否是识别二维码
     fun getContext() = this
     private val appViewModel: AppViewModel by viewModel()
     private val mainViewModel: MainViewModel by viewModel()
     private var bfsBroadcastReceiver: BFSBroadcastReceiver? = null
+    private val microWebView = MultiWebViewNMM()
 
     @JvmName("getAppViewModel1")
     fun getAppViewModel(): AppViewModel {
@@ -70,8 +71,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         App.mainActivity = this
-        // 初始化无界面APP
-        // initServiceApp() // remove by lin.huang 20230129
         // 初始化系统函数map
         initSystemFn(this)
         // 初始化广播
@@ -85,40 +84,34 @@ class MainActivity : AppCompatActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colors.primary)
                 ) {
-                    Home(mainViewModel, appViewModel,
-                        onSearchAction = { action, data ->
-                            LogUtils.d("搜索框内容响应：$action--$data")
-                            when (action) {
-                                SearchAction.Search -> {
-                                    openDWebWindow(this@MainActivity, data)
-                                }
-                                SearchAction.OpenCamera -> {
-                                    if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
-                                        openScannerActivity()
-                                    } else {
-                                        PermissionManager.requestPermissions(
-                                            this@MainActivity, EPermission.PERMISSION_CAMERA.type
-                                        )
-                                    }
+                    Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
+                        LogUtils.d("搜索框内容响应：$action--$data")
+                        when (action) {
+                            SearchAction.Search -> {
+                                openDWebWindow(this@MainActivity, data)
+                            }
+                            SearchAction.OpenCamera -> {
+                                if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
+                                    openScannerActivity()
+                                } else {
+                                    PermissionManager.requestPermissions(
+                                        this@MainActivity, EPermission.PERMISSION_CAMERA.type
+                                    )
                                 }
                             }
-                        },
-                        onOpenDWebview = { appId, dAppInfo ->
-                            //执行初始化
-                            val pid = android.os.Process.myPid()
-                            Log.d("MainActivity", "onCreate -> app pid = $pid, $dAppInfo")
-                            dWebView_host = appId
-                            LogUtils.d("启动了Ar 扫雷：isDWeb:${dAppInfo?.isDWeb}，$dWebView_host--$dAppInfo ")
-                            /*dAppInfo?.let { appInfo ->
-                                createWorker(WorkerNative.valueOf("DenoRuntime"), appInfo.dAppUrl)
-                            }*/
-                            // openDWebViewActivity("file://${App.appContext.dataDir.absolutePath}/${APP_DIR_TYPE.SystemApp.rootName}/$appId/sys/index.html")
-                            openDWebViewActivity("http://${dWebView_host.lowercase()}.dweb/index.html")
-                        })
+                        }
+                    }, onOpenDWebview = { appId, dAppInfo ->
+                        dWebView_host = appId
+                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host--$dAppInfo ")
+                        if (dAppInfo != null) {
+                            microWebView.openDwebView(WebViewOptions(webViewId = appId, origin = dAppInfo.url))
+                        };
+                    })
                 }
             }
         }
     }
+
 
     // 选择图片后回调到这
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -132,15 +125,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == info.bagen.libappmgr.system.permission.PermissionManager.MY_PERMISSIONS) {
             info.bagen.libappmgr.system.permission.PermissionManager(this@MainActivity)
-                .onRequestPermissionsResult(
-                    requestCode, permissions, grantResults,
+                .onRequestPermissionsResult(requestCode,
+                    permissions,
+                    grantResults,
                     object :
                         info.bagen.libappmgr.system.permission.PermissionManager.PermissionCallback {
                         override fun onPermissionGranted(
@@ -160,9 +152,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     })
         } else if (requestCode == REQUEST_CODE_REQUEST_EXTERNAL_STORAGE && PermissionUtils.requestPermissionsResult(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                permissions,
-                grantResults
+                Manifest.permission.READ_EXTERNAL_STORAGE, permissions, grantResults
             )
         ) {
             startPickPhoto()
@@ -219,11 +209,9 @@ class MainActivity : AppCompatActivity() {
 
                             val config =
                                 AppDialogConfig(getContext(), R.layout.barcode_result_dialog)
-                            config.setContent(buffer)
-                                .setHideCancel(true)
-                                .setOnClickOk {
-                                    AppDialog.INSTANCE.dismissDialog()
-                                }
+                            config.setContent(buffer).setHideCancel(true).setOnClickOk {
+                                AppDialog.INSTANCE.dismissDialog()
+                            }
                             val imageView = config.getView<ImageView>(R.id.ivDialogContent)
                             imageView.setImageBitmap(bitmap)
                             AppDialog.INSTANCE.showDialog(config)
@@ -252,8 +240,7 @@ class MainActivity : AppCompatActivity() {
     private fun pickPhotoClicked(isQRCode: Boolean) {
         this.isQRCode = isQRCode
         if (PermissionUtils.checkPermission(
-                getContext(),
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                getContext(), Manifest.permission.READ_EXTERNAL_STORAGE
             )
         ) {
             startPickPhoto()
@@ -269,8 +256,7 @@ class MainActivity : AppCompatActivity() {
     // 打开相册
     private fun startPickPhoto() {
         val pickIntent = Intent(
-            Intent.ACTION_PICK,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
         pickIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
         startActivityForResult(pickIntent, REQUEST_CODE_PHOTO)
@@ -279,16 +265,14 @@ class MainActivity : AppCompatActivity() {
     // 打开条形码（现在这里的效果是不断扫二维码,还需要修改）
     fun openBarCodeScannerActivity() {
         startActivityForResult(
-            Intent(this, BarcodeScanningActivity::class.java),
-            REQUEST_CODE_SCAN_CODE
+            Intent(this, BarcodeScanningActivity::class.java), REQUEST_CODE_SCAN_CODE
         )
     }
 
     // 打开二维码
     fun openScannerActivity() {
         startActivityForResult(
-            Intent(this, QRCodeScanningActivity::class.java),
-            REQUEST_CODE_SCAN_CODE
+            Intent(this, QRCodeScanningActivity::class.java), REQUEST_CODE_SCAN_CODE
         )
     }
 
@@ -297,15 +281,9 @@ class MainActivity : AppCompatActivity() {
         if (dWebView_host == "") {
             throw NotFoundException("app host not found!")
         }
-        /*val url = if (path.startsWith("http")) {
-            path
-        } else {
-            "https://${dWebView_host.lowercase(Locale.ROOT)}.dweb${shakeUrl(path)}?_=${Date().time}"
-        }*/
         LogUtils.d("启动了DWebView:url=$path")
         openDWebWindow(
-            activity = getContext(),
-            url = path // url
+            activity = getContext(), url = path // url
         )
     }
 }

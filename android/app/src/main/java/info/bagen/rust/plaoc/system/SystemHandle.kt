@@ -32,27 +32,6 @@ private val vibrateManage = VibrateManage()
 private val networkManager = Network()
 private val cameraPlugin = CameraPlugin()
 
-/** 初始化系统后端app*/
-fun initServiceApp() {
-    val serviceId = arrayListOf("HE74YAAL")
-    serviceId.forEach { id ->
-        try {
-            val dApp = FilesUtil.getDAppInfo(id, APP_DIR_TYPE.AssetsApp)
-            dApp?.manifest?.bfsaEntry?.let {
-                val path = splicingPath(id, it)
-                try {
-                    App.appContext.assets.open(path) // 判断文件是否存在
-                    createWorker(WorkerNative.valueOf("ReadOnlyRuntime"), path)
-                } catch (e: java.io.FileNotFoundException) {
-                    Log.e("initServiceApp", "not found ${e.message}")
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            Log.i("initServiceApp: ", e.toString())
-        }
-    }
-}
 
 /** 拼接入口*/
 fun splicingPath(bfsId: String, entry: String): String {
