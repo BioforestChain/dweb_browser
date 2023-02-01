@@ -43,7 +43,7 @@ let ItemHorzGap = CGFloat( 10)
 let lineGap = CGFloat( 20)
 
 var appNames: [String]?{
-    Array (sharedInnerAppFileMgr.appIdList)
+    Array (sharedAppInfoMgr.appIdList)
 }
 
 public enum Category: Int {
@@ -83,7 +83,7 @@ class CategoryView: UIView{
             clickables?.append(btn)
             addSubview(btn)
             btn.tag = index
-            let selector = (type == .apps) ? #selector (iconClicked) : #selector (clickedNews)
+            let selector = (type == .apps) ? #selector (appClicked) : #selector (clickedNews)
             btn.addTarget(self, action: selector, for: .touchUpInside)
         }
         if type == .apps{
@@ -108,7 +108,7 @@ class CategoryView: UIView{
     
     func updateRedSpot(){
         for (index, info) in onDeckApps.enumerated(){
-            let shouldHide = !sharedInnerAppFileMgr.redHot(appId: info.appId)
+            let shouldHide = !sharedAppInfoMgr.redHot(appId: info.appId)
             let touchView = self.clickables![index]
             touchView.hideRedSpot(shouldHide)
         }
@@ -177,33 +177,22 @@ class CategoryView: UIView{
         }
     }
     
-    @objc func iconClicked(sender: UIButton) {
+    @objc func appClicked(sender: UIButton) {
         guard sender.tag < onDeckApps.count else { return }
         let info = onDeckApps[sender.tag]
         let touchView = clickables![sender.tag]
-        if sharedInnerAppFileMgr.redHot(appId: info.appId){
+        if sharedAppInfoMgr.redHot(appId: info.appId){
             touchView.hideRedSpot(true)
-            sharedInnerAppFileMgr.updateRedHot(appId: info.appId, statue: false)
+            sharedAppInfoMgr.updateRedHot(appId: info.appId, statue: false)
         }
         
-        print(sender.tag)
-        let type = sharedInnerAppFileMgr.currentAppType(appId: info.appId)
+        let type = sharedAppInfoMgr.currentAppType(appId: info.appId)
         if type == .system {
-            
-            let second = WebViewViewController()
-            second.appId = info.appId
-            second.urlString = sharedInnerAppFileMgr.systemWebAPPURLString(appId: info.appId) ?? "" //":/index.html"
-            let type = sharedInnerAppFileMgr.systemAPPType(appId: info.appId)
-            let url = sharedInnerAppFileMgr.systemWebAPPURLString(appId: info.appId) ?? ""
-   
-            second.urlString = url
-            
-            NotificationCenter.default.post(name: openAnAppNotification, object: second)
-            
+            NotificationCenter.default.post(name: openAnAppNotification, object: info.appId)
         } else if type == .recommend {
-            sharedInnerAppFileMgr.clickRecommendAppAction(appId: info.appId)
+            sharedAppInfoMgr.clickRecommendAppAction(appId: info.appId)
         } else if type == .user {
-            sharedInnerAppFileMgr.clickRecommendAppAction(appId: info.appId)
+            sharedAppInfoMgr.clickRecommendAppAction(appId: info.appId)
         }
     }
 }
@@ -219,7 +208,7 @@ let HoverViewTag = 10013
     public var clickables : [UIButton]? = nil
     
     @objc  dynamic var clickedLink: String = "www.baidu.com"
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(titleLabel)
@@ -245,7 +234,6 @@ let HoverViewTag = 10013
             let hoverView = HoverView(frame: CGRect(x: 0, y: 0, width: scales[i] * btn.width, height: btn.height * 0.8))
             hoverView.tag = HoverViewTag
             btn.addSubview(hoverView)
-            
         }
         layer.masksToBounds = true
         
@@ -426,7 +414,7 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
                 
         if progress == "complete" {
             guard let appId = infoDict["appId"] as? String else { return }
-            sharedInnerAppFileMgr.updateFileType(appId: appId)
+            sharedAppInfoMgr.updateFileType(appId: appId)
 
             guard let index = onDeckApps.firstIndex(where: { info in
                 info.appId == appId
@@ -434,8 +422,8 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
 
             let button = self.appsContainerView.clickables![index]
             button.realImageView.startExpandAnimation()
-            button.realImageView.image = sharedInnerAppFileMgr.currentAppImage(appId: appId)
-            button.realTitleLabel.text = sharedInnerAppFileMgr.currentAppName(appId: appId)
+            button.realImageView.image = sharedAppInfoMgr.currentAppImage(appId: appId)
+            button.realTitleLabel.text = sharedAppInfoMgr.currentAppName(appId: appId)
             if let index = onDeckApps.firstIndex(where: { info in
                 info.appName == appId
             }){

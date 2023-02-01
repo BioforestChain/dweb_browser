@@ -6,8 +6,9 @@
 //
 
 import UIKit
+//let sharedAppInfoMgr.sysAppMgr = SystemAppManager()
 
-class SystemAppManager: InnerAppManager {
+class SystemAppManager: AppManager {
 
     private var mateDict: [String:Any]?
     

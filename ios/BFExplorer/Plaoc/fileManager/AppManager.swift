@@ -7,7 +7,7 @@
 
 import UIKit
 
-class InnerAppManager: NSObject {
+class AppManager: NSObject {
 
     var linkDict: [String : [String : Any]] = [:]
     
@@ -37,6 +37,7 @@ class InnerAppManager: NSObject {
         }
         return appIds
     }
+
 
     //读取bfs-app-id 的link文件信息
     private func readBFSAppLinkContent(appId: String) {

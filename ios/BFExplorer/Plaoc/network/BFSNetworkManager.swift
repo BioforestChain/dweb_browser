@@ -4,6 +4,8 @@ import UIKit
 import Alamofire
 import SSZipArchive
 
+let sharedNetworkMgr = BFSNetworkManager()
+
 class BFSNetworkManager: NSObject {
     
     static let shared = BFSNetworkManager()
@@ -33,7 +35,7 @@ class BFSNetworkManager: NSObject {
                                     var schemePath = desPath + "\(appId)/sys"
                                     if self.shouldUpdate(name: appId) {
                                         Schemehandler.setupHTMLCache(appId: appId, fromPath: schemePath)
-                                        sharedInnerAppFileMgr.updateRedHot(appId: appId, statue: true)
+                                        sharedAppInfoMgr.updateRedHot(appId: appId, statue: true)
                                     }
                                     RefreshManager.saveLastUpdateTime(appId: appId, time: Date().timeStamp)
                                 }
@@ -127,7 +129,7 @@ class BFSNetworkManager: NSObject {
         if FileManager.default.fileExists(atPath: desPath) {
             let tmpManager = BatchTempManager()
             let tmpVersion = tmpManager.tempAppVersion(name: name)
-            let oldVersion = sharedInnerAppFileMgr.systemAPPVersion(appId: name)
+            let oldVersion = sharedAppInfoMgr.systemAPPVersion(appId: name)
             let result = tmpVersion.versionCompare(oldVersion: oldVersion)
             if result == .orderedAscending {
                 return true

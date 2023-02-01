@@ -25,7 +25,7 @@ class GlobalTimer: NSObject {
     }
     
     private func enquiryUpdateInfo() {
-//        sharedInnerAppFileMgr.fetchRegularUpdateTime()
+//        sharedAppInfoMgr.fetchRegularUpdateTime()
     }
     
     func stopTimer() {

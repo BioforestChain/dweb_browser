@@ -13,52 +13,69 @@ enum InnerAppType: Int {
     case system //推荐安装，已经安装
     case user   //第三方已安装的
 }
+let sharedAppInfoMgr = AppInfoMgr()
+//let recommendAppMgr = recommendAppMgr
+//let userAppMgr = userAppMgr
+//let sysAppMgr = sysAppMgr
 
-let sharedRecommendAppManager = RecommendAppManager()
-let sharedInnerAppFileMgr = InnerAppFileManager()
-
-class InnerAppFileManager: NSObject {
+class AppInfoMgr: NSObject {
 
     private let disposeBag = DisposeBag()
-    private let sysManager = SystemAppManager()
-    private let scanManager = UserAppManager()
     private var appNames: [String:String] = [:]
     private var appImages: [String:UIImage?] = [:]
     private var fileLinkDict: [String:String] = [:]
     private var redDict: [String: Bool] = [:]
     
-//    private var appNamesContainer = [[String]]()
-
     private var appType: [String : InnerAppType] = [:]
-
     
     private(set) var appIdList = Set<String>()
     
+    var recommendAppMgr = RecommendAppManager()
+    var sysAppMgr = SystemAppManager()
+    var userAppMgr = UserAppManager()
+    
     let redSoptCachePath = documentdir + "/redHot"
 
-//    static let shared = InnerAppFileManager()
-    
     override init() {
         super.init()
-        initBatchFile()
+
+        self.loadAppConfigs()
+
     }
     
-    private func initBatchFile() {
-        
+    private func loadAppConfigs() {
         totalRedHotContent()
-        
-
-        
-        loadAppType()
-        fetchAppNames()
-        fetchAppIcons()
-        
-        GlobalTimer.shared.StartTimer()
+        readAllAppLinkConfig()
         
         operateMonitor.refreshCompleteMonitor.subscribe(onNext: { [weak self] appId in
             guard let strongSelf = self else { return }
             strongSelf.downloadNewFile(appId: appId)
         }).disposed(by: disposeBag)
+    }
+    
+    private func readAllAppLinkConfig(){
+        let sysAppList = sysAppMgr.appDirs()
+        let userAppList = userAppMgr.appDirs()
+        let recommendAppList = recommendAppMgr.appDirs()
+        
+        appIdList = Set(Array( recommendAppList + sysAppList + userAppList))
+        guard appIdList.count > 0 else { return }
+        
+        for appId in appIdList {
+            if sysAppList.contains(appId) {
+                appType[appId] = .system
+                appNames[appId] = sysAppMgr.appName(appId: appId)
+                appImages[appId] = sysAppMgr.appIcon(appId: appId)
+
+            } else if userAppList.contains(appId) {
+                appType[appId] = .user
+                appNames[appId] = userAppMgr.appName(appId: appId)
+            } else if recommendAppList.contains(appId) {
+                appType[appId] = .recommend
+                appNames[appId] = recommendAppMgr.appName(appId: appId)
+                appImages[appId] = recommendAppMgr.appIcon(appId: appId)
+            }
+        }
     }
     
     //点击recommend文件
@@ -74,11 +91,11 @@ class InnerAppFileManager: NSObject {
         guard json != nil else { return }
         let type = currentAppType(appId: appId)
         if type == .system {
-            sysManager.writeUpdateInfoToTmpFile(appId: appId, json: json!)
+            sysAppMgr.writeUpdateInfoToTmpFile(appId: appId, json: json!)
         } else if type == .recommend {
-            sharedRecommendAppManager.writeUpdateInfoToTmpFile(appId: appId, json: json!)
+            recommendAppMgr.writeUpdateInfoToTmpFile(appId: appId, json: json!)
         } else if type == .user {
-            scanManager.writeUpdateInfoToTmpFile(appId: appId, json: json!)
+            userAppMgr.writeUpdateInfoToTmpFile(appId: appId, json: json!)
         }
     }
     
@@ -89,11 +106,11 @@ class InnerAppFileManager: NSObject {
     //更新文件状态为扫码
     func updateUserType(appId: String) {
         appType[appId] = .user
-        appNames[appId] = scanManager.appName(appId: appId)
+        appNames[appId] = userAppMgr.appName(appId: appId)
     }
     //获取扫码的图片地址
     func scanImageURL(appId: String) -> String {
-        return scanManager.appIconUrlString(appId: appId) ?? ""
+        return userAppMgr.appIconUrlString(appId: appId) ?? ""
     }
     //获取扫码后app的下载地址
     func scanDownloadURLString(appId: String) -> String {
@@ -140,7 +157,7 @@ class InnerAppFileManager: NSObject {
         //1、点击升级，退回到桌面界面
         //2、开始动画，下载文件
         operateMonitor.startAnimationMonitor.onNext(appId)
-        BFSNetworkManager.shared.downloadApp(appId: appId, urlString: urlString)
+        sharedNetworkMgr.downloadApp(appId: appId, urlString: urlString)
         
     }
     
@@ -159,26 +176,26 @@ class InnerAppFileManager: NSObject {
     
     //扫码添加安装的app数据
     func addAPPFromScan(appId: String, dict: [String:Any]) {
-        scanManager.writeLinkJson(appId: appId, dict: dict)
+        userAppMgr.writeLinkJson(appId: appId, dict: dict)
     }
     
     //获取system-app的entryPath
     func systemAPPEntryPath(appId: String) -> String? {
-        return sysManager.fetchEntryPath(appId: appId)
+        return sysAppMgr.fetchEntryPath(appId: appId)
     }
     
     //获取system-app的appType
     func systemAPPType(appId: String) -> String? {
-        return sysManager.readAppType(appId: appId)
+        return sysAppMgr.readAppType(appId: appId)
     }
     
     //获取system-app的web地址
     func systemWebAPPURLString(appId: String) -> String? {
-        return sysManager.readWebAppURLString(appId: appId)
+        return sysAppMgr.readWebAppURLString(appId: appId)
     }
     //获取system-app的版本号
     func systemAPPVersion(appId: String) -> String {
-        return sysManager.readMetadataVersion(appId: appId) ?? ""
+        return sysAppMgr.readMetadataVersion(appId: appId) ?? ""
     }
     
     //更新信息下载完后，重新下载项目文件,  可能不需要判断system-app 看最后system-app升级时的需求
@@ -203,7 +220,7 @@ class InnerAppFileManager: NSObject {
         // FIXME: 为什么要重新下载
         if currentURLString == nil {
             operateMonitor.startAnimationMonitor.onNext(appId)
-            BFSNetworkManager.shared.downloadApp(appId: appId, urlString: newURLString)
+            sharedNetworkMgr.downloadApp(appId: appId, urlString: newURLString)
         } else {
             //5、重新下载
             reloadUpdateFile(appId: appId, cancelUrlString: currentURLString, urlString: newURLString)
@@ -233,11 +250,11 @@ class InnerAppFileManager: NSObject {
         
         let type = currentAppType(appId: appId)
         if type == .system {
-            return sysManager.readCacheUpdateInfo(appId: appId)
+            return sysAppMgr.readCacheUpdateInfo(appId: appId)
         } else if type == .recommend {
-            return sharedRecommendAppManager.readCacheUpdateInfo(appId: appId)
+            return recommendAppMgr.readCacheUpdateInfo(appId: appId)
         } else if type == .user {
-            return scanManager.readCacheUpdateInfo(appId: appId)
+            return userAppMgr.readCacheUpdateInfo(appId: appId)
         }
         return nil
     }
@@ -251,10 +268,10 @@ class InnerAppFileManager: NSObject {
     
     //取消缓存的下载信息，重新下载最新信息
     private func reloadUpdateFile(appId: String, cancelUrlString: String?, urlString: String?) {
-        BFSNetworkManager.shared.cancelNetworkRequest(urlString: cancelUrlString)
+        sharedNetworkMgr.cancelNetworkRequest(urlString: cancelUrlString)
         if urlString != nil {
             operateMonitor.startAnimationMonitor.onNext(appId)
-            BFSNetworkManager.shared.downloadApp(appId: appId, urlString: urlString!)
+            sharedNetworkMgr.downloadApp(appId: appId, urlString: urlString!)
         }
     }
     
@@ -262,11 +279,11 @@ class InnerAppFileManager: NSObject {
     private func autoUpdateURLString(appId: String) -> String? {
         let type = currentAppType(appId: appId)
         if type == .system {
-            return sysManager.readAutoUpdateURLInfo(appId: appId)
+            return sysAppMgr.readAutoUpdateURLInfo(appId: appId)
         } else if type == .recommend {
-            return sharedRecommendAppManager.readAutoUpdateURLInfo(appId: appId)
+            return recommendAppMgr.readAutoUpdateURLInfo(appId: appId)
         } else if type == .user {
-            return scanManager.readAutoUpdateURLInfo(appId: appId)
+            return userAppMgr.readAutoUpdateURLInfo(appId: appId)
         }
         return nil
     }
@@ -275,11 +292,11 @@ class InnerAppFileManager: NSObject {
     private func autoUpdateMaxAge(appId: String) -> Int? {
         let type = currentAppType(appId: appId)
         if type == .system {
-            return sysManager.readAutoUpdateMaxAge(appId: appId)
+            return sysAppMgr.readAutoUpdateMaxAge(appId: appId)
         } else if type == .recommend {
-            return sharedRecommendAppManager.readAutoUpdateMaxAge(appId: appId)
+            return recommendAppMgr.readAutoUpdateMaxAge(appId: appId)
         } else if type == .user {
-            return scanManager.readAutoUpdateMaxAge(appId: appId)
+            return userAppMgr.readAutoUpdateMaxAge(appId: appId)
         }
         return nil
     }
@@ -288,19 +305,19 @@ class InnerAppFileManager: NSObject {
     private func hasNewUpdateInfo(appId: String) -> Bool {
         let type = currentAppType(appId: appId)
         if type == .system {
-            return sysManager.isNewUpdateInfo(appId: appId)
+            return sysAppMgr.isNewUpdateInfo(appId: appId)
         } else if type == .recommend {
-            return sharedRecommendAppManager.isNewUpdateInfo(appId: appId)
+            return recommendAppMgr.isNewUpdateInfo(appId: appId)
         } else if type == .user {
-            return scanManager.isNewUpdateInfo(appId: appId)
+            return userAppMgr.isNewUpdateInfo(appId: appId)
         }
         return false
     }
     
     //判断system-app是否有新的更新消息
     private func isSystemUpdate(appId: String) -> Bool {
-        guard let currentVersion = sysManager.readMetadataVersion(appId: appId) else { return false }
-        let cacheDict = sysManager.readCacheUpdateInfo(appId: appId)
+        guard let currentVersion = sysAppMgr.readMetadataVersion(appId: appId) else { return false }
+        let cacheDict = sysAppMgr.readCacheUpdateInfo(appId: appId)
         guard let version = cacheDict?["version"] as? String  else { return false }
         let result = version.versionCompare(oldVersion: currentVersion)
         if result == .orderedAscending {
@@ -308,16 +325,12 @@ class InnerAppFileManager: NSObject {
         }
         return false
     }
-    
-    func recommandAppList(){
         
-    }
-    
     //获取文件夹的类型
     private func loadAppType() {
-        let recommendAppList = sharedRecommendAppManager.appDirs()
-        let sysAppList = sysManager.appDirs()
-        let userAppList = scanManager.appDirs()
+        let sysAppList = sysAppMgr.appDirs()
+        let userAppList = userAppMgr.appDirs()
+        let recommendAppList = recommendAppMgr.appDirs()
         
         appIdList = Set(Array( recommendAppList + sysAppList + userAppList))
         guard appIdList.count > 0 else { return }
@@ -339,7 +352,7 @@ class InnerAppFileManager: NSObject {
         let sureAction = UIAlertAction(title: "确认", style: .default) { action in
             if urlstring != nil {
                 operateMonitor.startAnimationMonitor.onNext(appId)
-                BFSNetworkManager.shared.downloadApp(appId: appId, urlString: urlstring!)
+                sharedNetworkMgr.downloadApp(appId: appId, urlString: urlstring!)
             }
             let type = self.currentAppType(appId: appId)
 //            if appType != nil {
@@ -369,7 +382,7 @@ class InnerAppFileManager: NSObject {
 }
 
 //MARK: 获取app信息
-extension InnerAppFileManager {
+extension AppInfoMgr {
     
     //根据文件名获取app名称
     func currentAppName(appId: String) -> String {
@@ -389,11 +402,11 @@ extension InnerAppFileManager {
     private func fetchAppNames() {
         for (appId, type) in appType {
             if type == .system {
-                appNames[appId] = sysManager.appName(appId: appId)
+                appNames[appId] = sysAppMgr.appName(appId: appId)
             } else if type == .recommend {
-                appNames[appId] = sharedRecommendAppManager.appName(appId: appId)
+                appNames[appId] = recommendAppMgr.appName(appId: appId)
             } else if type == .user {
-                appNames[appId] = scanManager.appName(appId: appId)
+                appNames[appId] = userAppMgr.appName(appId: appId)
             }
         }
     }
@@ -401,16 +414,16 @@ extension InnerAppFileManager {
     private func fetchAppIcons() {
         for (key,type) in appType {
             if type == .system {
-                appImages[key] = sysManager.appIcon(appId: key)
+                appImages[key] = sysAppMgr.appIcon(appId: key)
             } else if type == .recommend {
-                appImages[key] = sharedRecommendAppManager.appIcon(appId: key)
+                appImages[key] = recommendAppMgr.appIcon(appId: key)
             }
         }
     }
 }
 
 //MARK: 更新app下载后的信息
-extension InnerAppFileManager {
+extension AppInfoMgr {
     //获取app红点信息
     private func totalRedHotContent() {
         let path = redSoptCachePath
@@ -438,8 +451,8 @@ extension InnerAppFileManager {
             
         }
         appType[appId] = .system
-        appNames[appId] = sysManager.appName(appId: appId)
-        appImages[appId] = sysManager.appIcon(appId: appId)
+        appNames[appId] = sysAppMgr.appName(appId: appId)
+        appImages[appId] = sysAppMgr.appIcon(appId: appId)
     }
 
 }
