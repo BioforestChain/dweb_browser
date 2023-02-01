@@ -5,7 +5,7 @@ import info.bagen.rust.plaoc.openHomeActivity
 
 typealias Domain = String;
 typealias Mmid = String;
-val dns_map = mutableMapOf<Mmid, (data: WindowOptions) -> Unit>()
+val dns_map = mutableMapOf<Mmid, (data: BootOptions) -> Unit>()
 
 class DwebDNS {
     val dnsTables = mutableMapOf<Domain, MicroModule>()

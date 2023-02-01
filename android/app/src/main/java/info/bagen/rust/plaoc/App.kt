@@ -3,14 +3,10 @@ package info.bagen.rust.plaoc
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import androidx.compose.ui.platform.LocalContext
 import info.bagen.libappmgr.di.libRepositoryModule
 import info.bagen.libappmgr.di.libViewModelModule
 import info.bagen.libappmgr.utils.ClipboardUtil
-import info.bagen.rust.plaoc.microService.BootNMM
-import info.bagen.rust.plaoc.microService.WindowOptions
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
 import kotlinx.coroutines.GlobalScope

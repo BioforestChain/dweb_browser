@@ -2,18 +2,20 @@ package info.bagen.rust.plaoc.webView.jsutil
 
 import android.util.Log
 import android.webkit.ValueCallback
-import info.bagen.rust.plaoc.ExportNative
-import info.bagen.rust.plaoc.createBytesFactory
 import info.bagen.rust.plaoc.webView.dWebView
 
-/** 传递参数给前端*/
+/** 传递字符串触发前端事件*/
+fun returnStringForJs(cmd:String,data:String) {
+    sendToJavaScript("nativeListen.dispatchStringMessage('$cmd','$data')")
+}
+
+/** 在webView运行js*/
 fun sendToJavaScript(jsCode: String) {
     dWebView?.post {
         Log.e("evalJavascript", "sendToJavaScript jsCode=$jsCode")
         dWebView?.evaluateJavascript(jsCode, ValueCallback<String> { result ->
             if (result.isNotEmpty() && result != "null") {
                 Log.e("evalJavascript", "sendToJavaScript 返回的数据=$result")
-                createBytesFactory(ExportNative.EvalJsRuntime, result)// 返回数据给后端
             }
         })
     }

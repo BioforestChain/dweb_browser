@@ -1,11 +1,20 @@
 function BFSInstallApp(path) {
-    window.bfs.BFSInstallApp(path)
+    return globalThis.bfs.BFSInstallApp(path)
 }
 
-function getConnectChannel(url) {
-    window.bfs.getConnectChannel(url)
+function BFSGetConnectChannel(url) {
+    return globalThis.bfs.getConnectChannel(url)
 }
 
-function postConnectChannel(url, cmd, buf) {
-    window.bfs.postConnectChannel(url, cmd, buf)
+function BFSPostConnectChannel(url, cmd, buf) {
+    return globalThis.bfs.postConnectChannel(url, cmd, buf)
+}
+
+const BFSOriginFetch = fetch;
+
+globalThis.fetch = (origin, option) => {
+    if (origin.startsWith("file://")) {
+        return BFSGetConnectChannel(origin)
+    }
+    return BFSOriginFetch(origin, option)
 }

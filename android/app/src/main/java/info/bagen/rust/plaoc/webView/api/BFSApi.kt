@@ -18,13 +18,14 @@ class BFSApi {
     }
 
     @JavascriptInterface
-    fun getConnectChannel(url: String) {
+    fun getConnectChannel(url: String): String {
         Log.d("BFSApi", "getConnectChannel url=$url")
-
+        return url
     }
 
     @JavascriptInterface
-    fun postConnectChannel(url: String, cmd: String, buf: String) {
+    fun postConnectChannel(url: String, cmd: String, buf: String): String  {
         Log.d("BFSApi", "postConnectChannel cmd=$cmd,url=$url,buf=$buf")
+        return url
     }
 }

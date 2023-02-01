@@ -45,14 +45,16 @@ class SplashActivity : AppCompatActivity() {
                 RustApplicationTheme {
                     SplashMainView()
                     SplashPrivacyDialog(
-                        openHome = { openHomeActivity() },
+                        openHome = {  startBootNMM() },
                         openWebView = { url -> openDWebWindow(this, url) },
                         closeApp = { finish() }
                     )
                 }
+                this.saveBoolean(keyAppFirstLoad, false)
             }
         } else {
             startBootNMM()
+            println("kotlin#splashActivity")
             this.saveBoolean(keyAppFirstLoad, false)
             finish()
         }

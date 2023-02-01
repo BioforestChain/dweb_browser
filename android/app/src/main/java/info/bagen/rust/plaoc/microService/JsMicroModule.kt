@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService
 
+typealias workerOption = BootOptions
 
 class JsMicroModule : NativeMicroModule() {
     // 该程序的来源
@@ -7,7 +8,7 @@ class JsMicroModule : NativeMicroModule() {
     override var mmid = "sys.dweb"
     private val boostrapCode = "";
 
-    override fun bootstrap(args: WindowOptions) {
+    override fun bootstrap(args: workerOption) {
 /// 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
 //        const ctx = JavascriptContext.create(args.processId);
 //        ctx.evalJavascript();// 为这个上下文安装启动代码

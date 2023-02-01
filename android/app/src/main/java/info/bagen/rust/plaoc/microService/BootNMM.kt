@@ -4,6 +4,12 @@ package info.bagen.rust.plaoc.microService
 typealias Router = MutableMap<String, IO>
 typealias IO = (mmid: Any) -> Any
 
+open class BootOptions(
+   val origin: String = "",
+   var mainJs:String = ""
+)
+
+
 class BootNMM : NativeMicroModule() {
     private val routers: Router = mutableMapOf()
     private val registeredMmids = DwebDNS()
@@ -19,7 +25,7 @@ class BootNMM : NativeMicroModule() {
         registeredMmids.add("desktop.sys.dweb",NativeMicroModule("desktop.sys.dweb"))
     }
 
-    override fun bootstrap(args: WindowOptions) {
+    override fun bootstrap(args: BootOptions) {
         // 初始化启动一个dwebView --(new MicroModule.from('desktop.sys.dweb') as JsMicroModule).boostrap()
         registeredMmids.dnsTables.values.forEach { microModule ->
             println("Kotlin#BootNMM:$microModule")
