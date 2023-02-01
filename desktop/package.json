@@ -1,0 +1,34 @@
+{
+    "name": "bfsium",
+    "main-": "index.html",
+    "main": "./index.js",
+    "domain": "dweb",
+    "webview": {
+        "partitions": [
+            {
+                "name": "trusted",
+                "accessible_resources": [
+                    "<all_urls>"
+                ]
+            }
+        ]
+    },
+    "scripts": {
+        "dev": "tsc -w",
+        "bundle:js-process.worker": "esbuild ./src/sys/js-process.worker.cts --outfile=./dist/sys/js-process.worker.cjs --bundle --format=cjs",
+        "bundle:desktop.worker": "esbuild ./src/user/desktop.worker.cts --outfile=./dist/user/desktop.worker.cjs --bundle --format=cjs",
+        "start": "D:/tools/nwjs/nwjs-sdk-v0.72.0-win-x64/nw.exe ./"
+    },
+    "devDependencies": {
+        "@types/lodash": "^4.14.191",
+        "@types/node": "^18.11.18",
+        "esbuild": "^0.17.5",
+        "nwjs-types": "^1.0.0",
+        "prettier": "^2.8.3"
+    },
+    "dependencies": {
+        "@types/chrome": "^0.0.210",
+        "lit": "^2.6.1",
+        "lodash": "^4.17.21"
+    }
+}

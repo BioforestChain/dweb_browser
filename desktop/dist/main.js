@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.dns = void 0;
+const js_process_cjs_1 = require("./sys/js-process.cjs");
+const dns_cjs_1 = require("./sys/dns.cjs");
+const boot_cjs_1 = require("./sys/boot.cjs");
+const multi_webview_mobile_1 = require("./sys/multi-webview.mobile");
+exports.dns = new dns_cjs_1.DnsNMM();
+exports.dns.install(new boot_cjs_1.BootNMM());
+exports.dns.install(new multi_webview_mobile_1.MultiWebviewNMM());
+exports.dns.install(new js_process_cjs_1.JsProcessNMM());
+const desktop_js_cjs_1 = require("./sys/desktop.js.cjs");
+exports.dns.install(desktop_js_cjs_1.desktopJmm);
+// console.log("asasdf");
+// core.bootstrap();
+// core.bootstrap();
+Object.assign(globalThis, { dns: exports.dns });
+console.log("location.href", location.href);
