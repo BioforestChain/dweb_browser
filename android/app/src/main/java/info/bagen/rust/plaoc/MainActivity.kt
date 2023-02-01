@@ -70,8 +70,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         App.mainActivity = this
-        // 初始化无界面APP
-        // initServiceApp() // remove by lin.huang 20230129
         // 初始化系统函数map
         initSystemFn(this)
         // 初始化广播

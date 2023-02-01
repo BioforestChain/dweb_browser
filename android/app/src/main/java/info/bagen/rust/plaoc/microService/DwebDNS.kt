@@ -1,10 +1,18 @@
 package info.bagen.rust.plaoc.microService
 
+import info.bagen.rust.plaoc.openHomeActivity
+
+
 typealias Domain = String;
 typealias Mmid = String;
+val dns_map = mutableMapOf<Mmid, (data: WindowOptions) -> Unit>()
 
 class DwebDNS {
     val dnsTables = mutableMapOf<Domain, MicroModule>()
+    init {
+        initDnsMap()
+    }
+
     fun add(mmid:Mmid,microModule: MicroModule): Boolean {
         dnsTables[mmid] = microModule
         return true
@@ -15,6 +23,16 @@ class DwebDNS {
         }
         return "false"
     }
+
+    private fun initDnsMap() {
+        dns_map["desktop.sys.dweb"] = {
+            openHomeActivity()
+        }
+    }
+
 }
+
+
+
 
 

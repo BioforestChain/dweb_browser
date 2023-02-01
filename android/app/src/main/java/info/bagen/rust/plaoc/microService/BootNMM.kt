@@ -15,8 +15,8 @@ class BootNMM : NativeMicroModule() {
         routers["unregister"] = put@{ mmid ->
             return@put unRegisterMicro(mmid as Mmid)
         }
-        // 初始化启动一个dwebView
-        registeredMmids.add("boot.sys.dweb",NativeMicroModule("boot.sys.dweb"))
+        // 初始化启动一个桌面系统程序
+        registeredMmids.add("desktop.sys.dweb",NativeMicroModule("desktop.sys.dweb"))
     }
 
     override fun bootstrap(args: WindowOptions) {
@@ -29,7 +29,7 @@ class BootNMM : NativeMicroModule() {
 
     private fun registerMicro(mmid: Mmid): Boolean {
 
-        return registeredMmids.add(mmid,MultiWebViewNMM())
+        return registeredMmids.add(mmid,NativeMicroModule(mmid))
     }
 
     private fun unRegisterMicro(mmid: Mmid): String {
