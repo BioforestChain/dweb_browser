@@ -1,16 +1,18 @@
 import { PromiseOut } from "../core/helper.cjs";
-import { IpcRequest, IpcResponse } from "../core/ipc.cjs";
-import { $messageToIpcMessage, NativeIpc } from "../core/ipc.native.cjs";
+import { IPC_ROLE } from "../core/ipc.cjs";
+import { $OnMessage, NativeIpc } from "../core/ipc.native.cjs";
+import type { MicroModule } from "../core/micro-module.cjs";
 const JS_PROCESS_WORKER_CODE = fetch(
-  new URL("dist/sys/js-process.worker.cjs", location.href)
+  new URL("bundle/js-process.worker.cjs", location.href)
 ).then((res) => res.text());
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 const ALL_PROCESS_MAP = new Map<number, { worker: Worker; ipc: NativeIpc }>();
 let acc_process_id = 0;
 const createProcess = async (
+  module: MicroModule,
   main_code: string,
-  onMessage: (message: IpcRequest | IpcResponse) => unknown
+  onMessage: $OnMessage
 ) => {
   const process_id = acc_process_id++;
   const worker = new Worker(
@@ -32,7 +34,7 @@ const createProcess = async (
 
   /// 等待启动任务完成
   worker.addEventListener("message", onIpcChannelConnected);
-  const ipc = new NativeIpc(await ipc_port_po.promise);
+  const ipc = new NativeIpc(await ipc_port_po.promise, module, IPC_ROLE.CLIENT);
   worker.removeEventListener("message", onIpcChannelConnected);
 
   /// 保存 js-process
@@ -55,6 +57,6 @@ const createIpc = (worker_id: number) => {
 };
 
 export const APIS = {
-  createWorker: createProcess,
+  createProcess,
   createIpc,
 };

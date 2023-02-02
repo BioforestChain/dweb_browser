@@ -1,3 +1,4 @@
+/// <reference lib="DOM"/>
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -34,7 +35,7 @@ let ViewTree = class ViewTree extends LitElement {
       ${[...this.url_tree.entries()].map(([id, urls]) => {
             return html `<div id="layer-${id}">
           ${urls.map(({ src, id }) => {
-                return html `<iframe id="view-${id}" src=${src}></iframe>`;
+                return html `<webview id="view-${id}" src=${src}></webview>`;
             })}
         </div>`;
         })} `;
@@ -47,6 +48,7 @@ ViewTree.styles = css `
     }
     webview {
       outline: 1px solid red;
+      min-height: 80vh;
     }
   `;
 __decorate([

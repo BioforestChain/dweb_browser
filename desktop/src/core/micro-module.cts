@@ -1,20 +1,8 @@
-import {
-  $deserializeRequestToParams,
-  $serializeResultToResponse,
-  fetch_helpers,
-  PromiseOut,
-} from "./helper.cjs";
-import { IpcResponse, IpcRequest, Ipc, IPC_DATA_TYPE } from "./ipc.cjs";
-import {
-  $Schema1,
-  $Schema2,
-  $Schema1ToType,
-  $PromiseMaybe,
-  $Schema2ToType,
-  $MMID,
-} from "./types.cjs";
+import { fetch_helpers, PromiseOut } from "./helper.cjs";
+import type { Ipc } from "./ipc.cjs";
+import type { $MicroModule, $MMID, $PromiseMaybe } from "./types.cjs";
 
-export abstract class MicroModule {
+export abstract class MicroModule implements $MicroModule {
   abstract mmid: $MMID;
   running = false;
   protected before_bootstrap() {

@@ -25,3 +25,11 @@ export type $TypeName1 = "mmid" | "string" | "number" | "boolean" | "void";
 export type $TypeName2 = `${$TypeName1}${"?" | ""}`;
 export type $Schema1 = Record<string, $TypeName2>;
 export type $Schema2 = Record<string, $TypeName2> | $TypeName2;
+
+export interface $MicroModule {
+  readonly mmid: $MMID;
+  fetch(
+    input: RequestInfo | URL,
+    init?: RequestInit
+  ): Promise<Response> & typeof import("./helper.cjs")["fetch_helpers"];
+}

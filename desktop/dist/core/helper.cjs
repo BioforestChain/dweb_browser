@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetch_helpers = exports.normalizeFetchArgs = exports.readRequestAsIpcRequest = exports.openNwWindow = exports.PromiseOut = exports.$serializeResultToResponse = exports.$deserializeRequestToParams = exports.$typeNameParser = void 0;
+exports.simpleDecoder = exports.simpleEncoder = exports.fetch_helpers = exports.normalizeFetchArgs = exports.headersToRecord = exports.readRequestAsIpcRequest = exports.openNwWindow = exports.PromiseOut = exports.$serializeResultToResponse = exports.$deserializeRequestToParams = exports.$typeNameParser = void 0;
 const ipc_cjs_1 = require("./ipc.cjs");
 const $typeNameParser = (key, typeName2, value) => {
     let param;
@@ -57,9 +57,7 @@ exports.$deserializeRequestToParams = $deserializeRequestToParams;
  */
 const $serializeResultToResponse = (schema) => {
     return (request, result) => {
-        return new ipc_cjs_1.IpcResponse(request.req_id, 200, JSON.stringify(result), {
-            "Content-Type": "application/json",
-        });
+        return ipc_cjs_1.IpcResponse.fromJson(request.req_id, 200, result);
     };
 };
 exports.$serializeResultToResponse = $serializeResultToResponse;
@@ -117,27 +115,32 @@ const readRequestAsIpcRequest = async (request_init) => {
         }
     }
     /// 读取 headers
-    let headers = Object.create(null);
-    if (request_init.headers) {
-        let req_headers;
-        if (request_init.headers instanceof Array) {
-            req_headers = new Headers(request_init.headers);
-        }
-        else if (request_init.headers instanceof Headers) {
-            req_headers = request_init.headers;
-        }
-        else {
-            headers = request_init.headers;
-        }
-        if (req_headers !== undefined) {
-            req_headers.forEach((value, key) => {
-                headers[key] = value;
-            });
-        }
-    }
+    const headers = (0, exports.headersToRecord)(request_init.headers);
     return { method, body, headers };
 };
 exports.readRequestAsIpcRequest = readRequestAsIpcRequest;
+const headersToRecord = (headers) => {
+    let record = Object.create(null);
+    if (headers) {
+        let req_headers;
+        if (headers instanceof Array) {
+            req_headers = new Headers(headers);
+        }
+        else if (headers instanceof Headers) {
+            req_headers = headers;
+        }
+        else {
+            record = headers;
+        }
+        if (req_headers !== undefined) {
+            req_headers.forEach((value, key) => {
+                record[key] = value;
+            });
+        }
+    }
+    return record;
+};
+exports.headersToRecord = headersToRecord;
 /** 将 fetch 的参数进行标准化解析 */
 const normalizeFetchArgs = (url, init) => {
     let _parsed_url;
@@ -180,3 +183,30 @@ exports.fetch_helpers = $make_helpers({
         return this.then((res) => res.json());
     },
 });
+const textEncoder = new TextEncoder();
+const simpleEncoder = (data, encoding) => {
+    if (encoding === "base64") {
+        const byteCharacters = atob(data);
+        const binary = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            binary[i] = byteCharacters.charCodeAt(i);
+        }
+        return binary;
+    }
+    return textEncoder.encode(data);
+};
+exports.simpleEncoder = simpleEncoder;
+const textDecoder = new TextDecoder();
+const simpleDecoder = (data, encoding) => {
+    if (encoding === "base64") {
+        var binary = "";
+        var bytes = new Uint8Array(data);
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+    return textDecoder.decode(data);
+};
+exports.simpleDecoder = simpleDecoder;

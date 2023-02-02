@@ -1,17 +1,26 @@
-import { Ipc, IpcRequest, IpcResponse, IPC_DATA_TYPE } from "./ipc.cjs";
+import {
+  $IpcMessage,
+  Ipc,
+  IpcRequest,
+  IpcResponse,
+  IpcStream,
+  IpcStreamEnd,
+  IPC_DATA_TYPE,
+  IPC_ROLE,
+} from "./ipc.cjs";
+import type { $MicroModule } from "./types.cjs";
 
 type $JSON<T> = {
   [key in keyof T]: T[key] extends Function ? never : T[key];
 };
 
 export const $messageToIpcMessage = (
-  data: $JSON<IpcRequest | IpcResponse> | "close"
+  data: $JSON<$IpcMessage> | "close",
+  ipc: Ipc
 ) => {
-  let message: IpcRequest | IpcResponse | "close" | undefined;
+  let message: undefined | $IpcMessage | "close";
 
-  /*  if (data instanceof IpcRequest || data instanceof IpcResponse) {
-      message = data;
-   } else  */ if (data === "close") {
+  if (data === "close") {
     message = data;
   } else if (data.type === IPC_DATA_TYPE.REQUEST) {
     message = new IpcRequest(
@@ -25,18 +34,27 @@ export const $messageToIpcMessage = (
     message = new IpcResponse(
       data.req_id,
       data.statusCode,
-      data.body,
-      data.headers
+      data.rawBody,
+      data.headers,
+      ipc
     );
+  } else if (data.type === IPC_DATA_TYPE.STREAM) {
+    message = new IpcStream(data.stream_id, data.data);
+  } else if (data.type === IPC_DATA_TYPE.STREAM_END) {
+    message = new IpcStreamEnd(data.stream_id);
   }
   return message;
 };
 
 export class NativeIpc extends Ipc {
-  constructor(readonly port: MessagePort) {
+  constructor(
+    readonly port: MessagePort,
+    readonly module: $MicroModule,
+    readonly role: IPC_ROLE
+  ) {
     super();
     port.addEventListener("message", (event) => {
-      const message = $messageToIpcMessage(event.data);
+      const message = $messageToIpcMessage(event.data, this);
 
       if (message === undefined) {
         return;
@@ -45,9 +63,15 @@ export class NativeIpc extends Ipc {
         this.close();
         return;
       }
+      if (
+        message.type === IPC_DATA_TYPE.STREAM ||
+        message.type === IPC_DATA_TYPE.STREAM_END
+      ) {
+        return;
+      }
       /// ipc-message
       for (const cb of this._cbs) {
-        cb(message);
+        cb(message, this);
       }
     });
     port.start();
@@ -58,8 +82,8 @@ export class NativeIpc extends Ipc {
     }
     this.port.postMessage(message);
   }
-  private _cbs = new Set<(message: IpcRequest | IpcResponse) => unknown>();
-  onMessage(cb: (message: IpcRequest | IpcResponse) => unknown) {
+  private _cbs = new Set<$OnMessage>();
+  onMessage(cb: $OnMessage) {
     this._cbs.add(cb);
     return () => this._cbs.delete(cb);
   }
@@ -81,3 +105,7 @@ export class NativeIpc extends Ipc {
     return () => this._onclose_cbs.delete(cb);
   }
 }
+export type $OnMessage = (
+  message: IpcRequest | IpcResponse,
+  ipc: Ipc
+) => unknown;

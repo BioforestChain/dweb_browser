@@ -2,12 +2,19 @@
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 import {
+  fetch_helpers,
   normalizeFetchArgs,
   PromiseOut,
   readRequestAsIpcRequest,
 } from "../core/helper.cjs";
-import { IpcRequest, IpcResponse, IPC_DATA_TYPE } from "../core/ipc.cjs";
-import { $messageToIpcMessage, NativeIpc } from "../core/ipc.native.cjs";
+import {
+  IpcRequest,
+  IpcResponse,
+  IPC_DATA_TYPE,
+  IPC_ROLE,
+} from "../core/ipc.cjs";
+import { NativeIpc } from "../core/ipc.native.cjs";
+import type { $MicroModule, $MMID } from "../core/types.cjs";
 
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
@@ -18,11 +25,17 @@ import { $messageToIpcMessage, NativeIpc } from "../core/ipc.native.cjs";
 /**
  * 安装上下文
  */
-export const installEnv = () => {
+export const installEnv = (mmid: $MMID) => {
+  const process = new (class JsProcessMicroModule implements $MicroModule {
+    mmid = mmid;
+    fetch(input: RequestInfo | URL, init?: RequestInit) {
+      return Object.assign(fetch(input, init), fetch_helpers);
+    }
+  })();
   /// 消息通道构造器
   self.addEventListener("message", (event) => {
     if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
-      const ipc = new NativeIpc(event.data[1]);
+      const ipc = new NativeIpc(event.data[1], process, IPC_ROLE.SERVER);
       self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
     }
   });
@@ -31,7 +44,7 @@ export const installEnv = () => {
   const channel = new MessageChannel();
   const { port1, port2 } = channel;
   self.postMessage(["fetch-ipc-channel", port2], [port2]);
-  const fetchIpc = new NativeIpc(port1);
+  const fetchIpc = new NativeIpc(port1, process, IPC_ROLE.SERVER);
   fetchIpc.onMessage((message) => {
     if (message.type === IPC_DATA_TYPE.RESPONSE) {
       const res_po = reqresMap.get(message.req_id);
@@ -48,10 +61,7 @@ export const installEnv = () => {
   const allocReqId = () => req_id++;
 
   const native_fetch = globalThis.fetch;
-  globalThis.fetch = function fetch(
-    url: RequestInfo | URL,
-    init?: RequestInit
-  ) {
+  function fetch(url: RequestInfo | URL, init?: RequestInit) {
     const args = normalizeFetchArgs(url, init);
     const { parsed_url } = args;
     /// 进入特殊的解析模式
@@ -82,5 +92,10 @@ export const installEnv = () => {
     }
 
     return native_fetch(url, init);
-  };
+  }
+  Object.assign(globalThis, {
+    fetch,
+    process,
+  });
+  return process;
 };

@@ -29,8 +29,8 @@ class MultiWebviewNMM extends micro_module_native_cjs_1.NativeMicroModule {
             matchMode: "full",
             input: { url: "string" },
             output: "number",
-            hanlder: (args, ipc) => {
-                return APIS.openWebview(ipc.uid, args.url);
+            hanlder: (args, client_ipc) => {
+                return APIS.openWebview(client_ipc.uid, args.url);
             },
         });
         this.window = window;

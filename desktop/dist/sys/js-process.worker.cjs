@@ -27,7 +27,7 @@ const installEnv = (mmid) => {
     /// 消息通道构造器
     self.addEventListener("message", (event) => {
         if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
-            const ipc = new ipc_native_cjs_1.NativeIpc(event.data[1], process);
+            const ipc = new ipc_native_cjs_1.NativeIpc(event.data[1], process, "server" /* IPC_ROLE.SERVER */);
             self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
         }
     });
@@ -35,7 +35,7 @@ const installEnv = (mmid) => {
     const channel = new MessageChannel();
     const { port1, port2 } = channel;
     self.postMessage(["fetch-ipc-channel", port2], [port2]);
-    const fetchIpc = new ipc_native_cjs_1.NativeIpc(port1, process);
+    const fetchIpc = new ipc_native_cjs_1.NativeIpc(port1, process, "server" /* IPC_ROLE.SERVER */);
     fetchIpc.onMessage((message) => {
         if (message.type === 1 /* IPC_DATA_TYPE.RESPONSE */) {
             const res_po = reqresMap.get(message.req_id);

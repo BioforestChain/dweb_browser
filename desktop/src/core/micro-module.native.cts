@@ -1,25 +1,31 @@
-import { Ipc, IpcRequest, IpcResponse, IPC_DATA_TYPE } from "./ipc.cjs";
-import { MicroModule } from "./micro-module.cjs";
-import { NativeIpc } from "./ipc.native.cjs";
 import {
   $deserializeRequestToParams,
   $serializeResultToResponse,
 } from "./helper.cjs";
 import {
-  $Schema1,
-  $Schema2,
-  $Schema1ToType,
+  Ipc,
+  IpcRequest,
+  IpcResponse,
+  IPC_DATA_TYPE,
+  IPC_ROLE,
+} from "./ipc.cjs";
+import { NativeIpc } from "./ipc.native.cjs";
+import { MicroModule } from "./micro-module.cjs";
+import type {
   $PromiseMaybe,
+  $Schema1,
+  $Schema1ToType,
+  $Schema2,
   $Schema2ToType,
 } from "./types.cjs";
 
 export abstract class NativeMicroModule extends MicroModule {
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
   private _connectting_ipcs = new Set<Ipc>();
-  _connect() {
+  _connect(): NativeIpc {
     const channel = new MessageChannel();
     const { port1, port2 } = channel;
-    const inner_ipc = new NativeIpc(port2);
+    const inner_ipc = new NativeIpc(port2, this, IPC_ROLE.SERVER);
 
     this._connectting_ipcs.add(inner_ipc);
     inner_ipc.onClose(() => {
@@ -27,7 +33,7 @@ export abstract class NativeMicroModule extends MicroModule {
     });
 
     this._emitConnect(inner_ipc);
-    return new NativeIpc(port1);
+    return new NativeIpc(port1, this, IPC_ROLE.CLIENT);
   }
 
   /**
@@ -69,8 +75,8 @@ export abstract class NativeMicroModule extends MicroModule {
     }
     this._inited_commmon_ipc_on_message = true;
 
-    this.onConnect((ipc) => {
-      ipc.onMessage(async (request) => {
+    this.onConnect((client_ipc) => {
+      client_ipc.onMessage(async (request) => {
         if (request.type !== IPC_DATA_TYPE.REQUEST) {
           return;
         }
@@ -87,7 +93,7 @@ export abstract class NativeMicroModule extends MicroModule {
             try {
               const result = await hanlder_schema.hanlder(
                 hanlder_schema.input(request),
-                ipc
+                client_ipc
               );
               if (result instanceof IpcResponse) {
                 response = result;
@@ -101,23 +107,19 @@ export abstract class NativeMicroModule extends MicroModule {
               } else {
                 body = String(err);
               }
-              response = new IpcResponse(request.req_id, 500, body, {
-                "Content-Type": "text/plain",
-              });
+              response = IpcResponse.fromJson(request.req_id, 500, body);
             }
+            break;
           }
         }
         if (response === undefined) {
-          response = response = new IpcResponse(
+          response = IpcResponse.fromText(
             request.req_id,
             404,
-            `no found hanlder for '${pathname}'`,
-            {
-              "Content-Type": "text/plain",
-            }
+            `no found hanlder for '${pathname}'`
           );
         }
-        ipc.postMessage(response);
+        client_ipc.postMessage(response);
       });
     });
   }
@@ -148,7 +150,7 @@ export type $RequestCommonHanlderSchema<
   readonly output: O;
   readonly hanlder: (
     args: $Schema1ToType<I>,
-    ipc: Ipc
+    client_ipc: Ipc
   ) => $PromiseMaybe<$Schema2ToType<O> | IpcResponse>;
 };
 
@@ -157,5 +159,8 @@ export type $RequestCustomHanlderSchema<ARGS = unknown, RES = unknown> = {
   readonly matchMode: "full" | "prefix";
   readonly input: (request: IpcRequest) => ARGS;
   readonly output: (request: IpcRequest, result: RES) => IpcResponse;
-  readonly hanlder: (args: ARGS, ipc: Ipc) => $PromiseMaybe<RES | IpcResponse>;
+  readonly hanlder: (
+    args: ARGS,
+    client_ipc: Ipc
+  ) => $PromiseMaybe<RES | IpcResponse>;
 };

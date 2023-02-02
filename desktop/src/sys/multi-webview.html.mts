@@ -1,5 +1,7 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+/// <reference lib="DOM"/>
+
+import { css, html, LitElement } from "lit";
+import { customElement, property } from "lit/decorators.js";
 
 @customElement("view-tree")
 export class ViewTree extends LitElement {
@@ -10,6 +12,7 @@ export class ViewTree extends LitElement {
     }
     webview {
       outline: 1px solid red;
+      min-height: 80vh;
     }
   `;
 
@@ -38,7 +41,7 @@ export class ViewTree extends LitElement {
       ${[...this.url_tree.entries()].map(([id, urls]) => {
         return html`<div id="layer-${id}">
           ${urls.map(({ src, id }) => {
-            return html`<iframe id="view-${id}" src=${src}></iframe>`;
+            return html`<webview id="view-${id}" src=${src}></webview>`;
           })}
         </div>`;
       })} `;

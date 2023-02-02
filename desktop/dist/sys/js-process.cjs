@@ -2,9 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JsIpc = exports.JsProcessNMM = void 0;
 const helper_cjs_1 = require("../core/helper.cjs");
-require("../core/ipc.cjs");
+const ipc_cjs_1 = require("../core/ipc.cjs");
 const ipc_native_cjs_1 = require("../core/ipc.native.cjs");
 const micro_module_native_cjs_1 = require("../core/micro-module.native.cjs");
+const packageJson = require("../../package.json");
 /**
  * 将指定的js运行在后台的一个管理器，
  * 注意它们共享一个域，所以要么就关闭
@@ -17,7 +18,8 @@ class JsProcessNMM extends micro_module_native_cjs_1.NativeMicroModule {
     }
     async _bootstrap() {
         const window = (this.window = await (0, helper_cjs_1.openNwWindow)("../../js-process.html", {
-            show: true,
+            /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
+            show: packageJson.main.endsWith(".html"),
         }));
         if (window.window.APIS_READY !== true) {
             await new Promise((resolve) => {
@@ -32,10 +34,11 @@ class JsProcessNMM extends micro_module_native_cjs_1.NativeMicroModule {
             input: { main_code: "string" },
             output: "number",
             hanlder: (args) => {
-                return apis.createProcess(this, args.main_code, (ipcMessage) => {
+                return apis.createProcess(this, args.main_code, async (ipcMessage, ipc) => {
                     if (ipcMessage.type === 0 /* IPC_DATA_TYPE.REQUEST */) {
                         /// 收到 Worker 的数据请求，转发出去
-                        this.fetch(ipcMessage.url, ipcMessage);
+                        const response = await this.fetch(ipcMessage.url, ipcMessage);
+                        ipc.postMessage(await ipc_cjs_1.IpcResponse.formResponse(ipcMessage.req_id, response, ipc));
                     }
                 });
             },
@@ -79,7 +82,7 @@ const getIpcCache = (port_id) => {
  */
 class JsIpc extends ipc_native_cjs_1.NativeIpc {
     constructor(port_id, module) {
-        super(getIpcCache(port_id), module);
+        super(getIpcCache(port_id), module, "client" /* IPC_ROLE.CLIENT */);
         /// TODO 这里应该放在和 ALL_IPC_CACHE.set 同一个函数下，只是原生的 MessageChannel 没有 close 事件，这里没有给它模拟，所以有问题
         this.onClose(() => {
             ALL_IPC_CACHE.delete(port_id);
