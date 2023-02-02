@@ -27,3 +27,9 @@
    cd $BFS_REPO_PATH/desktop
    $NWJS_PATH/nw.exe ./
    ```
+
+## 源码阅读辅助
+
+1. 这里由 cts 与 mts 后缀的文件，其中 .mts 是给 web 用的，以 esmodule 为标准，省去 bundle 的逻辑
+1. worker.cts 是给 WebWorker 环境用的，因为我们启动用的 WebWorker 默认没有启动 esmodule，所以需要通过 esbuild 进行打包。
+1. 启动有两个入口，一个是 index.html 是提供一个按钮手动启动，方便打断点后启动调试。一个是 index.js 是直接无窗口启动，是正式发布时的入口。
