@@ -1,12 +1,12 @@
 import { IpcRequest, IpcResponse } from "./ipc.cjs";
-import {
-  $TypeName2,
-  $TypeName1,
-  $TypeName2ToType,
+import type {
   $Schema1,
   $Schema1ToType,
   $Schema2,
   $Schema2ToType,
+  $TypeName1,
+  $TypeName2,
+  $TypeName2ToType,
 } from "./types.cjs";
 
 export const $typeNameParser = <T extends $TypeName2>(
@@ -76,9 +76,7 @@ export const $deserializeRequestToParams = <S extends $Schema1>(schema: S) => {
 export const $serializeResultToResponse = <S extends $Schema2>(schema: S) => {
   type O = $Schema2ToType<S>;
   return (request: IpcRequest, result: O) => {
-    return new IpcResponse(request.req_id, 200, JSON.stringify(result), {
-      "Content-Type": "application/json",
-    });
+    return IpcResponse.fromJson(request.req_id, 200, result);
   };
 };
 
@@ -144,24 +142,29 @@ export const readRequestAsIpcRequest = async (request_init: RequestInit) => {
   }
 
   /// 读取 headers
-  let headers: Record<string, string> = Object.create(null);
-  if (request_init.headers) {
+  const headers = headersToRecord(request_init.headers);
+
+  return { method, body, headers };
+};
+
+export const headersToRecord = (headers?: HeadersInit | null) => {
+  let record: Record<string, string> = Object.create(null);
+  if (headers) {
     let req_headers: Headers | undefined;
-    if (request_init.headers instanceof Array) {
-      req_headers = new Headers(request_init.headers);
-    } else if (request_init.headers instanceof Headers) {
-      req_headers = request_init.headers;
+    if (headers instanceof Array) {
+      req_headers = new Headers(headers);
+    } else if (headers instanceof Headers) {
+      req_headers = headers;
     } else {
-      headers = request_init.headers;
+      record = headers;
     }
     if (req_headers !== undefined) {
       req_headers.forEach((value, key) => {
-        headers[key] = value;
+        record[key] = value;
       });
     }
   }
-
-  return { method, body, headers };
+  return record;
 };
 
 /** 将 fetch 的参数进行标准化解析 */
@@ -188,4 +191,50 @@ export const normalizeFetchArgs = (
     parsed_url,
     request_init,
   };
+};
+
+type $Helpers<M> = M & ThisType<Promise<Response> & M>; // Type of 'this' in methods is D & M
+const $make_helpers = <M extends unknown>(helpers: $Helpers<M>) => {
+  return helpers;
+};
+export const fetch_helpers = $make_helpers({
+  number() {
+    return this.string().then((text) => +text);
+  },
+  string() {
+    return this.then((res) => res.text());
+  },
+  boolean() {
+    return this.string().then((text) => text === "true");
+  },
+  object<T>() {
+    return this.then((res) => res.json()) as Promise<T>;
+  },
+});
+
+export type $SimpleEncoding = "utf8" | "base64";
+const textEncoder = new TextEncoder();
+export const simpleEncoder = (data: string, encoding: $SimpleEncoding) => {
+  if (encoding === "base64") {
+    const byteCharacters = atob(data);
+    const binary = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      binary[i] = byteCharacters.charCodeAt(i);
+    }
+    return binary;
+  }
+  return textEncoder.encode(data);
+};
+const textDecoder = new TextDecoder();
+export const simpleDecoder = (data: ArrayBuffer, encoding: $SimpleEncoding) => {
+  if (encoding === "base64") {
+    var binary = "";
+    var bytes = new Uint8Array(data);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+  return textDecoder.decode(data);
 };

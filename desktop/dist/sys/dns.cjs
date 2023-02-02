@@ -51,76 +51,8 @@ class DnsNMM extends micro_module_native_cjs_1.NativeMicroModule {
                 return true;
             },
         });
-        //#region 重写 fetch
-        const app_mm = this;
-        const connects = new WeakMap();
-        const native_fetch = globalThis.fetch;
-        globalThis.fetch = function fetch(url, init) {
-            /// 如果上下文是 MicroModule，那么进入特殊的解析模式
-            if (this instanceof micro_module_cjs_1.MicroModule) {
-                const from_app = this;
-                const args = (0, helper_cjs_1.normalizeFetchArgs)(url, init);
-                const { parsed_url } = args;
-                if (parsed_url.protocol === "file:" &&
-                    parsed_url.hostname.endsWith(".dweb")) {
-                    const mmid = parsed_url.hostname;
-                    /// 拦截到了，走自定义总线
-                    let from_app_ipcs = connects.get(from_app);
-                    if (from_app_ipcs === undefined) {
-                        from_app_ipcs = new Map();
-                        connects.set(from_app, from_app_ipcs);
-                    }
-                    /// 与指定应用建立通讯
-                    let ipc_promise = from_app_ipcs.get(mmid);
-                    if (ipc_promise === undefined) {
-                        /// 初始化互联
-                        ipc_promise = (async () => {
-                            const app = await app_mm.open(parsed_url.hostname);
-                            let req_id = 0;
-                            const allocReqId = () => req_id++;
-                            const ipc = await app.connect(from_app);
-                            const reqresMap = new Map();
-                            /// 监听回调
-                            ipc.onMessage((message) => {
-                                if (message instanceof ipc_cjs_1.IpcResponse) {
-                                    const response_po = reqresMap.get(message.req_id);
-                                    if (response_po) {
-                                        reqresMap.delete(message.req_id);
-                                        response_po.resolve(message);
-                                    }
-                                }
-                            });
-                            ipc.onClose(() => {
-                                from_app_ipcs?.delete(mmid);
-                            });
-                            return {
-                                ipc,
-                                reqresMap,
-                                allocReqId,
-                            };
-                        })();
-                        from_app_ipcs.set(mmid, ipc_promise);
-                    }
-                    return (async () => {
-                        const { ipc, reqresMap, allocReqId } = await ipc_promise;
-                        const { body, method, headers } = await (0, helper_cjs_1.readRequestAsIpcRequest)(args.request_init);
-                        /// 注册回调
-                        const req_id = allocReqId();
-                        const response_po = new helper_cjs_1.PromiseOut();
-                        reqresMap.set(req_id, response_po);
-                        /// 发送
-                        ipc.postMessage(new ipc_cjs_1.IpcRequest(req_id, method, parsed_url.href, body, headers));
-                        const ipc_response = await response_po.promise;
-                        return new Response(ipc_response.body, {
-                            headers: ipc_response.headers,
-                            status: ipc_response.statusCode,
-                        });
-                    })();
-                }
-            }
-            return native_fetch(url, init);
-        };
-        //#endregion
+        // 重写 fetch
+        hookFetch(this);
         //#region 启动引导程序
         return this.open(`boot.sys.dweb`);
         //#endregion
@@ -170,3 +102,72 @@ class DnsNMM extends micro_module_native_cjs_1.NativeMicroModule {
     }
 }
 exports.DnsNMM = DnsNMM;
+/**
+ * 重写全局 fetch 函数，使得支持 fetch("file://*.dweb/*")
+ */
+const hookFetch = (app_mm) => {
+    const connects = new WeakMap();
+    const native_fetch = globalThis.fetch;
+    globalThis.fetch = function fetch(url, init) {
+        /// 如果上下文是 MicroModule，那么进入特殊的解析模式
+        if (this instanceof micro_module_cjs_1.MicroModule) {
+            const from_app = this;
+            const args = (0, helper_cjs_1.normalizeFetchArgs)(url, init);
+            const { parsed_url } = args;
+            if (parsed_url.protocol === "file:" &&
+                parsed_url.hostname.endsWith(".dweb")) {
+                const mmid = parsed_url.hostname;
+                /// 拦截到了，走自定义总线
+                let from_app_ipcs = connects.get(from_app);
+                if (from_app_ipcs === undefined) {
+                    from_app_ipcs = new Map();
+                    connects.set(from_app, from_app_ipcs);
+                }
+                /// 与指定应用建立通讯
+                let ipc_promise = from_app_ipcs.get(mmid);
+                if (ipc_promise === undefined) {
+                    /// 初始化互联
+                    ipc_promise = (async () => {
+                        const app = await app_mm.open(parsed_url.hostname);
+                        let req_id = 0;
+                        const allocReqId = () => req_id++;
+                        const ipc = await app.connect(from_app);
+                        const reqresMap = new Map();
+                        /// 监听回调
+                        ipc.onMessage((message) => {
+                            if (message instanceof ipc_cjs_1.IpcResponse) {
+                                const response_po = reqresMap.get(message.req_id);
+                                if (response_po) {
+                                    reqresMap.delete(message.req_id);
+                                    response_po.resolve(message);
+                                }
+                            }
+                        });
+                        ipc.onClose(() => {
+                            from_app_ipcs?.delete(mmid);
+                        });
+                        return {
+                            ipc,
+                            reqresMap,
+                            allocReqId,
+                        };
+                    })();
+                    from_app_ipcs.set(mmid, ipc_promise);
+                }
+                return (async () => {
+                    const { ipc, reqresMap, allocReqId } = await ipc_promise;
+                    const { body, method, headers } = await (0, helper_cjs_1.readRequestAsIpcRequest)(args.request_init);
+                    /// 注册回调
+                    const req_id = allocReqId();
+                    const response_po = new helper_cjs_1.PromiseOut();
+                    reqresMap.set(req_id, response_po);
+                    /// 发送
+                    ipc.postMessage(new ipc_cjs_1.IpcRequest(req_id, method, parsed_url.href, body, headers));
+                    const ipc_response = await response_po.promise;
+                    return ipc_response.asResponse();
+                })();
+            }
+        }
+        return native_fetch(url, init);
+    };
+};

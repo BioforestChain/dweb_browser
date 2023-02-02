@@ -1,7 +1,11 @@
 import { openNwWindow } from "../core/helper.cjs";
-import { IpcRequest, IPC_DATA_TYPE } from "../core/ipc.cjs";
+import { IpcResponse, IPC_DATA_TYPE, IPC_ROLE } from "../core/ipc.cjs";
 import { NativeIpc } from "../core/ipc.native.cjs";
+import type { MicroModule } from "../core/micro-module.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
+
+const packageJson = require("../../package.json");
+
 type $APIS = typeof import("./js-process.html.cjs")["APIS"];
 /**
  * 将指定的js运行在后台的一个管理器，
@@ -12,7 +16,8 @@ export class JsProcessNMM extends NativeMicroModule {
   private window?: nw.Window;
   async _bootstrap() {
     const window = (this.window = await openNwWindow("../../js-process.html", {
-      show: true,
+      /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
+      show: packageJson.main.endsWith(".html"),
     }));
     if (window.window.APIS_READY !== true) {
       await new Promise((resolve) => {
@@ -27,12 +32,19 @@ export class JsProcessNMM extends NativeMicroModule {
       input: { main_code: "string" },
       output: "number",
       hanlder: (args) => {
-        return apis.createWorker(args.main_code, (ipcMessage) => {
-          if (ipcMessage.type === IPC_DATA_TYPE.REQUEST) {
-            /// 收到 Worker 的数据请求，转发出去
-            this.fetch(ipcMessage.url, ipcMessage);
+        return apis.createProcess(
+          this,
+          args.main_code,
+          async (ipcMessage, ipc) => {
+            if (ipcMessage.type === IPC_DATA_TYPE.REQUEST) {
+              /// 收到 Worker 的数据请求，转发出去
+              const response = await this.fetch(ipcMessage.url, ipcMessage);
+              ipc.postMessage(
+                await IpcResponse.formResponse(ipcMessage.req_id, response, ipc)
+              );
+            }
           }
-        });
+        );
       },
     });
     /// 创建 web 通讯管道
@@ -76,8 +88,8 @@ const getIpcCache = (port_id: number) => {
  * 那么连接发起方就可以通过这个 id(number) 和 JsIpc 构造器来实现与 js-worker 的直连
  */
 export class JsIpc extends NativeIpc {
-  constructor(port_id: number) {
-    super(getIpcCache(port_id));
+  constructor(port_id: number, module: MicroModule) {
+    super(getIpcCache(port_id), module, IPC_ROLE.CLIENT);
     /// TODO 这里应该放在和 ALL_IPC_CACHE.set 同一个函数下，只是原生的 MessageChannel 没有 close 事件，这里没有给它模拟，所以有问题
     this.onClose(() => {
       ALL_IPC_CACHE.delete(port_id);

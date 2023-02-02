@@ -27,8 +27,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: { url: "string" },
       output: "number",
-      hanlder: (args, ipc) => {
-        return APIS.openWebview(ipc.uid, args.url);
+      hanlder: (args, client_ipc) => {
+        return APIS.openWebview(client_ipc.uid, args.url);
       },
     });
     this.window = window;

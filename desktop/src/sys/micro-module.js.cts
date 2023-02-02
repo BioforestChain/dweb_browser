@@ -1,7 +1,6 @@
-import { Ipc } from "../core/ipc.cjs";
-import { NativeIpc } from "../core/ipc.native.cjs";
+import type { Ipc } from "../core/ipc.cjs";
 import { MicroModule } from "../core/micro-module.cjs";
-import { $MMID, $PromiseMaybe } from "../core/types.cjs";
+import type { $MMID } from "../core/types.cjs";
 import { JsIpc } from "./js-process.cjs";
 
 /**
@@ -30,7 +29,7 @@ export class JsMicroModule extends MicroModule {
     ).number());
   }
   private _connectting_ipcs = new Set<Ipc>();
-  async _connect() {
+  async _connect(): Promise<JsIpc> {
     const process_id = this._process_id;
     if (process_id === undefined) {
       throw new Error("process_id no found.");
@@ -38,7 +37,7 @@ export class JsMicroModule extends MicroModule {
     const port_id = await this.fetch(
       `file://js.sys.dweb/create-ipc?process_id=${process_id}`
     ).number();
-    return new JsIpc(port_id);
+    return new JsIpc(port_id, this);
   }
 
   _shutdown() {

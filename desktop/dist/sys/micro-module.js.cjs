@@ -28,7 +28,7 @@ class JsMicroModule extends micro_module_cjs_1.MicroModule {
             throw new Error("process_id no found.");
         }
         const port_id = await this.fetch(`file://js.sys.dweb/create-ipc?process_id=${process_id}`).number();
-        return new js_process_cjs_1.JsIpc(port_id);
+        return new js_process_cjs_1.JsIpc(port_id, this);
     }
     _shutdown() {
         for (const inner_ipc of this._connectting_ipcs) {

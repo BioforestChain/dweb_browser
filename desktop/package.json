@@ -1,7 +1,7 @@
 {
     "name": "bfsium",
-    "main-": "index.html",
-    "main": "./index.js",
+    "main": "index.html",
+    "main-": "./index.js",
     "domain": "dweb",
     "webview": {
         "partitions": [
@@ -15,8 +15,8 @@
     },
     "scripts": {
         "dev": "tsc -w",
-        "bundle:js-process.worker": "esbuild ./src/sys/js-process.worker.cts --outfile=./dist/sys/js-process.worker.cjs --bundle --format=cjs",
-        "bundle:desktop.worker": "esbuild ./src/user/desktop.worker.cts --outfile=./dist/user/desktop.worker.cjs --bundle --format=cjs",
+        "bundle:js-process.worker": "esbuild ./src/sys/js-process.worker.cts --outfile=./bundle/js-process.worker.cjs --bundle --format=cjs",
+        "bundle:desktop.worker": "esbuild ./src/user/desktop/desktop.worker.cts --outfile=./bundle/desktop.worker.cjs --bundle --format=cjs",
         "start": "D:/tools/nwjs/nwjs-sdk-v0.72.0-win-x64/nw.exe ./"
     },
     "devDependencies": {
@@ -24,7 +24,8 @@
         "@types/node": "^18.11.18",
         "esbuild": "^0.17.5",
         "nwjs-types": "^1.0.0",
-        "prettier": "^2.8.3"
+        "prettier": "^2.8.3",
+        "prettier-plugin-organize-imports": "^3.2.2"
     },
     "dependencies": {
         "@types/chrome": "^0.0.210",
