@@ -189,3 +189,22 @@ export const normalizeFetchArgs = (
     request_init,
   };
 };
+
+type $Helpers<M> = M & ThisType<Promise<Response> & M>; // Type of 'this' in methods is D & M
+const $make_helpers = <M extends unknown>(helpers: $Helpers<M>) => {
+  return helpers;
+};
+export const fetch_helpers = $make_helpers({
+  number() {
+    return this.string().then((text) => +text);
+  },
+  string() {
+    return this.then((res) => res.text());
+  },
+  boolean() {
+    return this.string().then((text) => text === "true");
+  },
+  object<T>() {
+    return this.then((res) => res.json()) as Promise<T>;
+  },
+});

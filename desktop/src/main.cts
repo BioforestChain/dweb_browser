@@ -8,7 +8,7 @@ dns.install(new BootNMM());
 dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 
-import { desktopJmm } from "./user/desktop.js.cjs";
+import { desktopJmm } from "./user/desktop/desktop.main.cjs";
 dns.install(desktopJmm);
 
 Object.assign(globalThis, { dns: dns });
