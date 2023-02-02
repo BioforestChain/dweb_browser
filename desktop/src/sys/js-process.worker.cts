@@ -2,9 +2,9 @@
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 import {
-   normalizeFetchArgs,
-   PromiseOut,
-   readRequestAsIpcRequest,
+  normalizeFetchArgs,
+  PromiseOut,
+  readRequestAsIpcRequest,
 } from "../core/helper.cjs";
 import { IpcRequest, IpcResponse, IPC_DATA_TYPE } from "../core/ipc.cjs";
 import { $messageToIpcMessage, NativeIpc } from "../core/ipc.native.cjs";
@@ -19,68 +19,68 @@ import { $messageToIpcMessage, NativeIpc } from "../core/ipc.native.cjs";
  * 安装上下文
  */
 export const installEnv = () => {
-   /// 消息通道构造器
-   self.addEventListener("message", (event) => {
-      if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
-         const ipc = new NativeIpc(event.data[1]);
-         self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
+  /// 消息通道构造器
+  self.addEventListener("message", (event) => {
+    if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
+      const ipc = new NativeIpc(event.data[1]);
+      self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
+    }
+  });
+
+  /// 初始化内定的主消息通道
+  const channel = new MessageChannel();
+  const { port1, port2 } = channel;
+  self.postMessage(["fetch-ipc-channel", port2], [port2]);
+  const fetchIpc = new NativeIpc(port1);
+  fetchIpc.onMessage((message) => {
+    if (message.type === IPC_DATA_TYPE.RESPONSE) {
+      const res_po = reqresMap.get(message.req_id);
+      if (res_po !== undefined) {
+        reqresMap.delete(message.req_id);
+        res_po.resolve(message);
       }
-   });
+    }
+  });
 
-   /// 初始化内定的主消息通道
-   const channel = new MessageChannel();
-   const { port1, port2 } = channel;
-   self.postMessage(["fetch-ipc-channel", port2], [port2]);
-   const fetchIpc = new NativeIpc(port1);
-   fetchIpc.onMessage((message) => {
-      if (message.type === IPC_DATA_TYPE.RESPONSE) {
-         const res_po = reqresMap.get(message.req_id);
-         if (res_po !== undefined) {
-            reqresMap.delete(message.req_id);
-            res_po.resolve(message);
-         }
-      }
-   });
+  const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
 
-   const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
+  let req_id = 0;
+  const allocReqId = () => req_id++;
 
-   let req_id = 0;
-   const allocReqId = () => req_id++;
+  const native_fetch = globalThis.fetch;
+  globalThis.fetch = function fetch(
+    url: RequestInfo | URL,
+    init?: RequestInit
+  ) {
+    const args = normalizeFetchArgs(url, init);
+    const { parsed_url } = args;
+    /// 进入特殊的解析模式
+    if (
+      parsed_url.protocol === "file:" &&
+      parsed_url.hostname.endsWith(".dweb")
+    ) {
+      return (async () => {
+        const { body, method, headers } = await readRequestAsIpcRequest(
+          args.request_init
+        );
 
-   const native_fetch = globalThis.fetch;
-   globalThis.fetch = function fetch(
-      url: RequestInfo | URL,
-      init?: RequestInit
-   ) {
-      const args = normalizeFetchArgs(url, init);
-      const { parsed_url } = args;
-      /// 进入特殊的解析模式
-      if (
-         parsed_url.protocol === "file:" &&
-         parsed_url.hostname.endsWith(".dweb")
-      ) {
-         return (async () => {
-            const { body, method, headers } = await readRequestAsIpcRequest(
-               args.request_init
-            );
+        /// 注册回调
+        const req_id = allocReqId();
+        const response_po = new PromiseOut<IpcResponse>();
+        reqresMap.set(req_id, response_po);
 
-            /// 注册回调
-            const req_id = allocReqId();
-            const response_po = new PromiseOut<IpcResponse>();
-            reqresMap.set(req_id, response_po);
+        /// 发送
+        fetchIpc.postMessage(
+          new IpcRequest(req_id, method, parsed_url.href, body, headers)
+        );
+        const ipc_response = await response_po.promise;
+        return new Response(ipc_response.body, {
+          headers: ipc_response.headers,
+          status: ipc_response.statusCode,
+        });
+      })();
+    }
 
-            /// 发送
-            fetchIpc.postMessage(
-               new IpcRequest(req_id, method, parsed_url.href, body, headers)
-            );
-            const ipc_response = await response_po.promise;
-            return new Response(ipc_response.body, {
-               headers: ipc_response.headers,
-               status: ipc_response.statusCode,
-            });
-         })();
-      }
-
-      return native_fetch(url, init);
-   };
+    return native_fetch(url, init);
+  };
 };

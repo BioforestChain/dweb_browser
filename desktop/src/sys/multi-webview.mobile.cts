@@ -9,32 +9,32 @@ type $APIS = typeof import("./multi-webview.html.mjs")["APIS"];
  * 但这里是模拟手机版，所以还是构建一个层级视图
  */
 export class MultiWebviewNMM extends NativeMicroModule {
-   mmid = "mwebview.sys.dweb" as const;
-   private window?: nw.Window;
-   async _bootstrap() {
-      const window = await openNwWindow("../../multi-webview.html", {
-         id: "multi-webview",
-         show_in_taskbar: true,
+  mmid = "mwebview.sys.dweb" as const;
+  private window?: nw.Window;
+  async _bootstrap() {
+    const window = await openNwWindow("../../multi-webview.html", {
+      id: "multi-webview",
+      show_in_taskbar: true,
+    });
+    if (window.window.APIS_READY !== true) {
+      await new Promise((resolve) => {
+        window.window.addEventListener("apis-ready", resolve);
       });
-      if (window.window.APIS_READY !== true) {
-         await new Promise((resolve) => {
-            window.window.addEventListener("apis-ready", resolve);
-         });
-      }
-      const APIS = window.window as $APIS;
-      this.registerCommonIpcOnMessageHanlder({
-         pathname: "/open",
-         matchMode: "full",
-         input: { url: "string" },
-         output: "number",
-         hanlder: (args, ipc) => {
-            return APIS.openWebview(ipc.uid, args.url);
-         },
-      });
-      this.window = window;
-   }
-   _shutdown() {
-      this.window?.close();
-      this.window = undefined;
-   }
+    }
+    const APIS = window.window as $APIS;
+    this.registerCommonIpcOnMessageHanlder({
+      pathname: "/open",
+      matchMode: "full",
+      input: { url: "string" },
+      output: "number",
+      hanlder: (args, ipc) => {
+        return APIS.openWebview(ipc.uid, args.url);
+      },
+    });
+    this.window = window;
+  }
+  _shutdown() {
+    this.window?.close();
+    this.window = undefined;
+  }
 }

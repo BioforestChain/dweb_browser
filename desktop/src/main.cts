@@ -14,4 +14,3 @@ dns.install(desktopJmm);
 Object.assign(globalThis, { dns: dns });
 
 console.log("location.href", location.href);
-
