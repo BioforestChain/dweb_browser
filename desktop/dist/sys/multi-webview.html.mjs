@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { LitElement, html, css } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 let ViewTree = class ViewTree extends LitElement {
     constructor() {
@@ -31,24 +31,24 @@ let ViewTree = class ViewTree extends LitElement {
     // Render the UI as a function of component state
     render() {
         return html `<p>Hello, ${this.name}!</p>
-         ${[...this.url_tree.entries()].map(([id, urls]) => {
+      ${[...this.url_tree.entries()].map(([id, urls]) => {
             return html `<div id="layer-${id}">
-               ${urls.map(({ src, id }) => {
+          ${urls.map(({ src, id }) => {
                 return html `<iframe id="view-${id}" src=${src}></iframe>`;
             })}
-            </div>`;
+        </div>`;
         })} `;
     }
 };
 // Define scoped styles right with your component, in plain CSS
 ViewTree.styles = css `
-      :host {
-         color: blue;
-      }
-      webview {
-         outline: 1px solid red;
-      }
-   `;
+    :host {
+      color: blue;
+    }
+    webview {
+      outline: 1px solid red;
+    }
+  `;
 __decorate([
     property(),
     __metadata("design:type", String)

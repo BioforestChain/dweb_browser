@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JsIpc = exports.JsProcessNMM = void 0;
 const helper_cjs_1 = require("../core/helper.cjs");
+require("../core/ipc.cjs");
 const ipc_native_cjs_1 = require("../core/ipc.native.cjs");
 const micro_module_native_cjs_1 = require("../core/micro-module.native.cjs");
 /**
@@ -31,7 +32,7 @@ class JsProcessNMM extends micro_module_native_cjs_1.NativeMicroModule {
             input: { main_code: "string" },
             output: "number",
             hanlder: (args) => {
-                return apis.createWorker(args.main_code, (ipcMessage) => {
+                return apis.createProcess(this, args.main_code, (ipcMessage) => {
                     if (ipcMessage.type === 0 /* IPC_DATA_TYPE.REQUEST */) {
                         /// 收到 Worker 的数据请求，转发出去
                         this.fetch(ipcMessage.url, ipcMessage);
@@ -77,8 +78,8 @@ const getIpcCache = (port_id) => {
  * 那么连接发起方就可以通过这个 id(number) 和 JsIpc 构造器来实现与 js-worker 的直连
  */
 class JsIpc extends ipc_native_cjs_1.NativeIpc {
-    constructor(port_id) {
-        super(getIpcCache(port_id));
+    constructor(port_id, module) {
+        super(getIpcCache(port_id), module);
         /// TODO 这里应该放在和 ALL_IPC_CACHE.set 同一个函数下，只是原生的 MessageChannel 没有 close 事件，这里没有给它模拟，所以有问题
         this.onClose(() => {
             ALL_IPC_CACHE.delete(port_id);

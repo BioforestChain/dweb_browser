@@ -1,284 +1,81 @@
 "use strict";
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var __accessCheck = (obj, member, msg) => {
-  if (!member.has(obj))
-    throw TypeError("Cannot " + msg);
-};
-var __privateGet = (obj, member, getter) => {
-  __accessCheck(obj, member, "read from private field");
-  return getter ? getter.call(obj) : member.get(obj);
-};
-var __privateAdd = (obj, member, value) => {
-  if (member.has(obj))
-    throw TypeError("Cannot add the same private member more than once");
-  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
-};
-var __privateSet = (obj, member, value, setter) => {
-  __accessCheck(obj, member, "write to private field");
-  setter ? setter.call(obj, value) : member.set(obj, value);
-  return value;
-};
-
-// src/sys/js-process.worker.cts
-var js_process_worker_exports = {};
-__export(js_process_worker_exports, {
-  installEnv: () => installEnv
-});
-module.exports = __toCommonJS(js_process_worker_exports);
-
-// src/core/ipc.cts
-var _parsed_url;
-var IpcRequest = class {
-  constructor(req_id, method, url, body, headers) {
-    this.req_id = req_id;
-    this.method = method;
-    this.url = url;
-    this.body = body;
-    this.headers = headers;
-    this.type = 0 /* REQUEST */;
-    __privateAdd(this, _parsed_url, void 0);
-  }
-  get parsed_url() {
-    return __privateGet(this, _parsed_url) ?? __privateSet(this, _parsed_url, new URL(this.url));
-  }
-};
-_parsed_url = new WeakMap();
-var IpcResponse = class {
-  constructor(req_id, statusCode, body, headers) {
-    this.req_id = req_id;
-    this.statusCode = statusCode;
-    this.body = body;
-    this.headers = headers;
-    this.type = 1 /* RESPONSE */;
-  }
-};
-var ipc_uid_acc = 0;
-var Ipc = class {
-  constructor() {
-    this.uid = ipc_uid_acc++;
-  }
-};
-
-// src/core/helper.cts
-var PromiseOut = class {
-  constructor() {
-    this.promise = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    });
-  }
-};
-var readRequestAsIpcRequest = async (request_init) => {
-  let body = "";
-  const method = request_init.method ?? "GET";
-  if (method === "POST" || method === "PUT") {
-    let buffer;
-    if (request_init.body instanceof ReadableStream) {
-      const reader = request_init.body.getReader();
-      const chunks = [];
-      while (true) {
-        const item = await reader.read();
-        if (item.done) {
-          break;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.installEnv = void 0;
+/// <reference lib="webworker"/>
+/// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
+/// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
+const helper_cjs_1 = require("../core/helper.cjs");
+const ipc_cjs_1 = require("../core/ipc.cjs");
+const ipc_native_cjs_1 = require("../core/ipc.native.cjs");
+/// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
+/// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
+/// 虽然 nwjs 可以通过 chrome.webRequest 来捕捉请求，但没法自定义相应内容
+/// 所以这里的方案还是对 fetch 进行重写
+/// 拦截到的 ipc-message 通过 postMessage 转发到 html 层，再有 html 层
+/**
+ * 安装上下文
+ */
+const installEnv = (mmid) => {
+    const process = new (class JsProcessMicroModule {
+        constructor() {
+            this.mmid = mmid;
         }
-        chunks.push(item.value);
-      }
-      buffer = Buffer.concat(chunks);
-    } else if (request_init.body instanceof Blob) {
-      buffer = Buffer.from(await request_init.body.arrayBuffer());
-    } else if (ArrayBuffer.isView(request_init.body)) {
-      buffer = Buffer.from(
-        request_init.body.buffer,
-        request_init.body.byteOffset,
-        request_init.body.byteLength
-      );
-    } else if (request_init.body instanceof ArrayBuffer) {
-      buffer = Buffer.from(request_init.body);
-    } else if (typeof request_init.body === "string") {
-      body = request_init.body;
-    } else if (request_init.body) {
-      throw new Error(
-        `unsupport body type: ${request_init.body.constructor.name}`
-      );
-    }
-    if (buffer !== void 0) {
-      body = buffer.toString("base64");
-    }
-  }
-  let headers = /* @__PURE__ */ Object.create(null);
-  if (request_init.headers) {
-    let req_headers;
-    if (request_init.headers instanceof Array) {
-      req_headers = new Headers(request_init.headers);
-    } else if (request_init.headers instanceof Headers) {
-      req_headers = request_init.headers;
-    } else {
-      headers = request_init.headers;
-    }
-    if (req_headers !== void 0) {
-      req_headers.forEach((value, key) => {
-        headers[key] = value;
-      });
-    }
-  }
-  return { method, body, headers };
-};
-var normalizeFetchArgs = (url, init) => {
-  let _parsed_url2;
-  let _request_init = init;
-  if (typeof url === "string") {
-    _parsed_url2 = new URL(url);
-  } else if (url instanceof Request) {
-    _parsed_url2 = new URL(url.url);
-    _request_init = url;
-  } else if (url instanceof URL) {
-    _parsed_url2 = url;
-  }
-  if (_parsed_url2 === void 0) {
-    throw new Error(`no found url for fetch`);
-  }
-  const parsed_url = _parsed_url2;
-  const request_init = _request_init ?? {};
-  return {
-    parsed_url,
-    request_init
-  };
-};
-
-// src/core/ipc.native.cts
-var $messageToIpcMessage = (data) => {
-  let message;
-  if (data === "close") {
-    message = data;
-  } else if (data.type === 0 /* REQUEST */) {
-    message = new IpcRequest(
-      data.req_id,
-      data.method,
-      data.url,
-      data.body,
-      data.headers
-    );
-  } else if (data.type === 1 /* RESPONSE */) {
-    message = new IpcResponse(
-      data.req_id,
-      data.statusCode,
-      data.body,
-      data.headers
-    );
-  }
-  return message;
-};
-var NativeIpc = class extends Ipc {
-  constructor(port) {
-    super();
-    this.port = port;
-    this._cbs = /* @__PURE__ */ new Set();
-    this._closed = false;
-    this._onclose_cbs = /* @__PURE__ */ new Set();
-    port.addEventListener("message", (event) => {
-      const message = $messageToIpcMessage(event.data);
-      if (message === void 0) {
-        return;
-      }
-      if (message === "close") {
-        this.close();
-        return;
-      }
-      for (const cb of this._cbs) {
-        cb(message);
-      }
+        fetch(input, init) {
+            return Object.assign(fetch(input, init), helper_cjs_1.fetch_helpers);
+        }
+    })();
+    /// 消息通道构造器
+    self.addEventListener("message", (event) => {
+        if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
+            const ipc = new ipc_native_cjs_1.NativeIpc(event.data[1], process);
+            self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
+        }
     });
-    port.start();
-  }
-  postMessage(message) {
-    if (this._closed) {
-      return;
+    /// 初始化内定的主消息通道
+    const channel = new MessageChannel();
+    const { port1, port2 } = channel;
+    self.postMessage(["fetch-ipc-channel", port2], [port2]);
+    const fetchIpc = new ipc_native_cjs_1.NativeIpc(port1, process);
+    fetchIpc.onMessage((message) => {
+        if (message.type === 1 /* IPC_DATA_TYPE.RESPONSE */) {
+            const res_po = reqresMap.get(message.req_id);
+            if (res_po !== undefined) {
+                reqresMap.delete(message.req_id);
+                res_po.resolve(message);
+            }
+        }
+    });
+    const reqresMap = new Map();
+    let req_id = 0;
+    const allocReqId = () => req_id++;
+    const native_fetch = globalThis.fetch;
+    function fetch(url, init) {
+        const args = (0, helper_cjs_1.normalizeFetchArgs)(url, init);
+        const { parsed_url } = args;
+        /// 进入特殊的解析模式
+        if (parsed_url.protocol === "file:" &&
+            parsed_url.hostname.endsWith(".dweb")) {
+            return (async () => {
+                const { body, method, headers } = await (0, helper_cjs_1.readRequestAsIpcRequest)(args.request_init);
+                /// 注册回调
+                const req_id = allocReqId();
+                const response_po = new helper_cjs_1.PromiseOut();
+                reqresMap.set(req_id, response_po);
+                /// 发送
+                fetchIpc.postMessage(new ipc_cjs_1.IpcRequest(req_id, method, parsed_url.href, body, headers));
+                const ipc_response = await response_po.promise;
+                return new Response(ipc_response.body, {
+                    headers: ipc_response.headers,
+                    status: ipc_response.statusCode,
+                });
+            })();
+        }
+        return native_fetch(url, init);
     }
-    this.port.postMessage(message);
-  }
-  onMessage(cb) {
-    this._cbs.add(cb);
-    return () => this._cbs.delete(cb);
-  }
-  close() {
-    if (this._closed) {
-      return;
-    }
-    this._closed = true;
-    this.port.postMessage("close");
-    this.port.close();
-    for (const cb of this._onclose_cbs) {
-      cb();
-    }
-  }
-  onClose(cb) {
-    this._onclose_cbs.add(cb);
-    return () => this._onclose_cbs.delete(cb);
-  }
+    Object.assign(globalThis, {
+        fetch,
+        process,
+    });
+    return process;
 };
-
-// src/sys/js-process.worker.cts
-var installEnv = () => {
-  self.addEventListener("message", (event) => {
-    if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
-      const ipc = new NativeIpc(event.data[1]);
-      self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
-    }
-  });
-  const channel = new MessageChannel();
-  const { port1, port2 } = channel;
-  self.postMessage(["fetch-ipc-channel", port2], [port2]);
-  const fetchIpc = new NativeIpc(port1);
-  fetchIpc.onMessage((message) => {
-    if (message.type === 1 /* RESPONSE */) {
-      const res_po = reqresMap.get(message.req_id);
-      if (res_po !== void 0) {
-        reqresMap.delete(message.req_id);
-        res_po.resolve(message);
-      }
-    }
-  });
-  const reqresMap = /* @__PURE__ */ new Map();
-  let req_id = 0;
-  const allocReqId = () => req_id++;
-  const native_fetch = globalThis.fetch;
-  globalThis.fetch = function fetch(url, init) {
-    const args = normalizeFetchArgs(url, init);
-    const { parsed_url } = args;
-    if (parsed_url.protocol === "file:" && parsed_url.hostname.endsWith(".dweb")) {
-      return (async () => {
-        const { body, method, headers } = await readRequestAsIpcRequest(
-          args.request_init
-        );
-        const req_id2 = allocReqId();
-        const response_po = new PromiseOut();
-        reqresMap.set(req_id2, response_po);
-        fetchIpc.postMessage(
-          new IpcRequest(req_id2, method, parsed_url.href, body, headers)
-        );
-        const ipc_response = await response_po.promise;
-        return new Response(ipc_response.body, {
-          headers: ipc_response.headers,
-          status: ipc_response.statusCode
-        });
-      })();
-    }
-    return native_fetch(url, init);
-  };
-};
+exports.installEnv = installEnv;

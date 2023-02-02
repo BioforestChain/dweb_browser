@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NativeMicroModule = void 0;
-const ipc_cjs_1 = require("./ipc.cjs");
-const micro_module_cjs_1 = require("./micro-module.cjs");
-const ipc_native_cjs_1 = require("./ipc.native.cjs");
 const helper_cjs_1 = require("./helper.cjs");
+const ipc_cjs_1 = require("./ipc.cjs");
+const ipc_native_cjs_1 = require("./ipc.native.cjs");
+const micro_module_cjs_1 = require("./micro-module.cjs");
 class NativeMicroModule extends micro_module_cjs_1.MicroModule {
     constructor() {
         super(...arguments);
@@ -21,13 +21,13 @@ class NativeMicroModule extends micro_module_cjs_1.MicroModule {
     _connect() {
         const channel = new MessageChannel();
         const { port1, port2 } = channel;
-        const inner_ipc = new ipc_native_cjs_1.NativeIpc(port2);
+        const inner_ipc = new ipc_native_cjs_1.NativeIpc(port2, this);
         this._connectting_ipcs.add(inner_ipc);
         inner_ipc.onClose(() => {
             this._connectting_ipcs.delete(inner_ipc);
         });
         this._emitConnect(inner_ipc);
-        return new ipc_native_cjs_1.NativeIpc(port1);
+        return new ipc_native_cjs_1.NativeIpc(port1, this);
     }
     /**
      * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
@@ -62,8 +62,7 @@ class NativeMicroModule extends micro_module_cjs_1.MicroModule {
                 }
                 const { pathname } = request.parsed_url;
                 let response;
-                for (const hanlder_schema of this
-                    ._commmon_ipc_on_message_hanlders) {
+                for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {
                     if (hanlder_schema.matchMode === "full"
                         ? pathname === hanlder_schema.pathname
                         : hanlder_schema.matchMode === "prefix"

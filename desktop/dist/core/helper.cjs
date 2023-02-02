@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.normalizeFetchArgs = exports.readRequestAsIpcRequest = exports.openNwWindow = exports.PromiseOut = exports.$serializeResultToResponse = exports.$deserializeRequestToParams = exports.$typeNameParser = void 0;
+exports.fetch_helpers = exports.normalizeFetchArgs = exports.readRequestAsIpcRequest = exports.openNwWindow = exports.PromiseOut = exports.$serializeResultToResponse = exports.$deserializeRequestToParams = exports.$typeNameParser = void 0;
 const ipc_cjs_1 = require("./ipc.cjs");
 const $typeNameParser = (key, typeName2, value) => {
     let param;
@@ -163,3 +163,20 @@ const normalizeFetchArgs = (url, init) => {
     };
 };
 exports.normalizeFetchArgs = normalizeFetchArgs;
+const $make_helpers = (helpers) => {
+    return helpers;
+};
+exports.fetch_helpers = $make_helpers({
+    number() {
+        return this.string().then((text) => +text);
+    },
+    string() {
+        return this.then((res) => res.text());
+    },
+    boolean() {
+        return this.string().then((text) => text === "true");
+    },
+    object() {
+        return this.then((res) => res.json());
+    },
+});

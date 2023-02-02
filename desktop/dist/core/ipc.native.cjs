@@ -5,8 +5,8 @@ const ipc_cjs_1 = require("./ipc.cjs");
 const $messageToIpcMessage = (data) => {
     let message;
     /*  if (data instanceof IpcRequest || data instanceof IpcResponse) {
-       message = data;
-    } else  */ if (data === "close") {
+        message = data;
+     } else  */ if (data === "close") {
         message = data;
     }
     else if (data.type === 0 /* IPC_DATA_TYPE.REQUEST */) {
@@ -19,9 +19,10 @@ const $messageToIpcMessage = (data) => {
 };
 exports.$messageToIpcMessage = $messageToIpcMessage;
 class NativeIpc extends ipc_cjs_1.Ipc {
-    constructor(port) {
+    constructor(port, module) {
         super();
         this.port = port;
+        this.module = module;
         this._cbs = new Set();
         this._closed = false;
         this._onclose_cbs = new Set();

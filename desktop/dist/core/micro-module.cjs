@@ -58,24 +58,7 @@ class MicroModule {
     }
     fetch(url, init) {
         /// 强制注入上下文
-        return Object.assign(fetch.call(this, url, init), fetch_helpers);
+        return Object.assign(fetch.call(this, url, init), helper_cjs_1.fetch_helpers);
     }
 }
 exports.MicroModule = MicroModule;
-const $make_helpers = (helpers) => {
-    return helpers;
-};
-const fetch_helpers = $make_helpers({
-    number() {
-        return this.string().then((text) => +text);
-    },
-    string() {
-        return this.then((res) => res.text());
-    },
-    boolean() {
-        return this.string().then((text) => text === "true");
-    },
-    object() {
-        return this.then((res) => res.json());
-    },
-});
