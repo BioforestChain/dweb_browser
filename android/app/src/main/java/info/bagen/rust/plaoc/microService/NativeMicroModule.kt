@@ -20,7 +20,7 @@ open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule
 
 open class NativeOptions(
     var origin: String = "", // 程序地址
-    var mainJs: String = "", // webWorker运行地址
+    var mainCode: String = "", // webWorker运行地址
     val routerTarget:String,
     val processId: Int? = null,  // 要挂载的父进程id
     val webViewId: String = "default", // default.mwebview.sys.dweb
@@ -30,8 +30,8 @@ open class NativeOptions(
             this.origin = value
             return
         }
-        if ((key == "mainJs" || key == "main_js" ) && value != null) {
-            this.mainJs = value
+        if ((key == "main_code" || key == "mainCode" ) && value != null) {
+            this.mainCode = value
             return
         }
     }

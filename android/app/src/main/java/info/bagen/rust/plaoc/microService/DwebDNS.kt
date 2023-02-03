@@ -34,13 +34,13 @@ class DwebDNS : NativeMicroModule() {
         val option = fetchMatchParam(tmp)
         dnsTables.keys.forEach { domain ->
             if (mmid.contains(domain)) {
-                println("kotlin#fetchMatchParam bootOptions ==> ${option.origin},${option.mainJs} ")
+//                println("kotlin#fetchMatchParam bootOptions ==> ${option.origin},${option.mainJs} ")
                 dnsTables[domain]?.bootstrap(option)
             }
         }
     }
 
-    private val bootOptionParams = mutableSetOf("origin", "mainJs", "main_js")
+    private val bootOptionParams = mutableSetOf("origin", "mainCode", "main_code")
 
     /** 截取参数 */
     private fun fetchMatchParam(url: String): NativeOptions {
