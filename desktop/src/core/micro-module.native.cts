@@ -98,7 +98,11 @@ export abstract class NativeMicroModule extends MicroModule {
               if (result instanceof IpcResponse) {
                 response = result;
               } else {
-                response = hanlder_schema.output(request, result);
+                response = await hanlder_schema.output(
+                  request,
+                  result,
+                  client_ipc
+                );
               }
             } catch (err) {
               let body: string;
@@ -140,27 +144,29 @@ export abstract class NativeMicroModule extends MicroModule {
   }
 }
 
-export type $RequestCommonHanlderSchema<
-  I extends $Schema1,
-  O extends $Schema2
-> = {
+interface $RequestHanlderSchema<ARGS, RES> {
   readonly pathname: string;
   readonly matchMode: "full" | "prefix";
-  readonly input: I;
-  readonly output: O;
-  readonly hanlder: (
-    args: $Schema1ToType<I>,
-    client_ipc: Ipc
-  ) => $PromiseMaybe<$Schema2ToType<O> | IpcResponse>;
-};
-
-export type $RequestCustomHanlderSchema<ARGS = unknown, RES = unknown> = {
-  readonly pathname: string;
-  readonly matchMode: "full" | "prefix";
-  readonly input: (request: IpcRequest) => ARGS;
-  readonly output: (request: IpcRequest, result: RES) => IpcResponse;
   readonly hanlder: (
     args: ARGS,
     client_ipc: Ipc
   ) => $PromiseMaybe<RES | IpcResponse>;
-};
+}
+
+export interface $RequestCommonHanlderSchema<
+  I extends $Schema1,
+  O extends $Schema2
+> extends $RequestHanlderSchema<$Schema1ToType<I>, $Schema2ToType<O>> {
+  readonly input: I;
+  readonly output: O;
+}
+
+export interface $RequestCustomHanlderSchema<ARGS = unknown, RES = unknown>
+  extends $RequestHanlderSchema<ARGS, RES> {
+  readonly input: (request: IpcRequest) => ARGS;
+  readonly output: (
+    request: IpcRequest,
+    result: RES,
+    ipc: Ipc
+  ) => $PromiseMaybe<IpcResponse>;
+}

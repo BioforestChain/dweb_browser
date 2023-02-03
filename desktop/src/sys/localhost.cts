@@ -14,8 +14,8 @@ export class LocalhostNMM extends NativeMicroModule {
     /* ipc-id */ number,
     Map</* port */ number, /* origin */ string>
   >();
+  private _local_port = 18909;
   async _bootstrap() {
-    const port = 18909;
     /// nwjs 拦截到请求后不允许直接构建 Response，即便重定向了也不是 302 重定向。
     /// 所以这里我们直接使用 localhost 作为顶级域名来相应实现相关功能，也就意味着这里需要监听端口
     /// 但在IOS和Android上，也可以听过监听端口来实现类似功能，但所有请求都需要校验
@@ -61,7 +61,7 @@ export class LocalhostNMM extends NativeMicroModule {
           </html>
         `);
       })
-      .listen(port);
+      .listen(this._local_port);
 
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/listen",
@@ -86,8 +86,11 @@ export class LocalhostNMM extends NativeMicroModule {
 
   /// 监听
   listen(port: number, ipc: Ipc) {
-    const origin = `http://${ipc.module.mmid}.${port}.localhost:${port}`;
+    const origin = `http://${ipc.module.mmid}.${port}.localhost:${this._local_port}`;
     return { origin };
+  }
+  onRequest(port: number, ipc: Ipc) {
+    return new Response
   }
   /// 释放监听
   unlisten(port: number, ipc: Ipc) {

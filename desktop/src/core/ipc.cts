@@ -112,7 +112,7 @@ export class IpcResponse {
   }
 
   /** 将 response 对象进行转码变成 ipcResponse */
-  static async formResponse(req_id: number, response: Response, ipc: Ipc) {
+  static async fromResponse(req_id: number, response: Response, ipc: Ipc) {
     let ipcResponse = (response as any)[IpcResponse.ORIGIN] as
       | IpcResponse
       | undefined;
@@ -157,6 +157,15 @@ export class IpcResponse {
       (response as any)[IpcResponse.ORIGIN] = ipcResponse;
     }
 
+    if (ipcResponse.req_id !== req_id) {
+      ipcResponse = new IpcResponse(
+        req_id,
+        ipcResponse.statusCode,
+        ipcResponse.rawBody,
+        ipcResponse.headers
+      );
+    }
+
     return ipcResponse;
   }
   static fromJson(
@@ -190,7 +199,7 @@ export class IpcResponse {
   static fromBinary(
     req_id: number,
     statusCode: number,
-    binary: Uint8Array,
+    binary: ArrayBufferView | ArrayBuffer,
     headers: Record<string, string> = {}
   ) {
     headers["Content-Type"] = "application/octet-stream";

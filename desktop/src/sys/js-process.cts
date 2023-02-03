@@ -40,7 +40,7 @@ export class JsProcessNMM extends NativeMicroModule {
               /// 收到 Worker 的数据请求，转发出去
               const response = await this.fetch(ipcMessage.url, ipcMessage);
               ipc.postMessage(
-                await IpcResponse.formResponse(ipcMessage.req_id, response, ipc)
+                await IpcResponse.fromResponse(ipcMessage.req_id, response, ipc)
               );
             }
           }

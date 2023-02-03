@@ -1,4 +1,4 @@
-import { IpcRequest, IpcResponse } from "./ipc.cjs";
+import { Ipc, IpcRequest, IpcResponse } from "./ipc.cjs";
 import type {
   $Schema1,
   $Schema1ToType,
@@ -75,7 +75,13 @@ export const $deserializeRequestToParams = <S extends $Schema1>(schema: S) => {
  */
 export const $serializeResultToResponse = <S extends $Schema2>(schema: S) => {
   type O = $Schema2ToType<S>;
-  return (request: IpcRequest, result: O) => {
+  return (request: IpcRequest, result: O, ipc: Ipc) => {
+    if (result instanceof Response) {
+      return IpcResponse.fromResponse(request.req_id, result, ipc);
+    }
+    if (ArrayBuffer.isView(result) || result instanceof ArrayBuffer) {
+      return IpcResponse.fromBinary(request.req_id, 200, result);
+    }
     return IpcResponse.fromJson(request.req_id, 200, result);
   };
 };
@@ -226,15 +232,28 @@ export const simpleEncoder = (data: string, encoding: $SimpleEncoding) => {
   return textEncoder.encode(data);
 };
 const textDecoder = new TextDecoder();
-export const simpleDecoder = (data: ArrayBuffer, encoding: $SimpleEncoding) => {
+export const simpleDecoder = (
+  data: ArrayBuffer | ArrayBufferView,
+  encoding: $SimpleEncoding
+) => {
   if (encoding === "base64") {
-    var binary = "";
-    var bytes = new Uint8Array(data);
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
+    let binary = "";
+
+    const bytes =
+      "buffer" in data
+        ? data instanceof Uint8Array
+          ? data
+          : new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+        : new Uint8Array(data);
+    for (const byte of bytes) {
+      binary += String.fromCharCode(byte);
     }
     return btoa(binary);
   }
   return textDecoder.decode(data);
 };
+
+export const isBinary = (
+  data: unknown
+): data is ArrayBuffer | ArrayBufferView =>
+  data instanceof ArrayBuffer || ArrayBuffer.isView(data);

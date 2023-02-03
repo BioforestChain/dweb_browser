@@ -12,10 +12,16 @@ debugger;
     }>();
 
   console.log("origin", origin);
-
-  const view_id = await process
-    .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
-    .string();
+  {
+    const view_id = await process
+      .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
+      .string();
+  }
+  {
+    const view_id = await process
+      .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
+      .string();
+  }
 
   //    addEventListener("fetch", (event) => {
   //       if (event.request.headers["view-id"] === view_id) {

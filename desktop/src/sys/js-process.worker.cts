@@ -51,6 +51,8 @@ export const installEnv = (mmid: $MMID) => {
       if (res_po !== undefined) {
         reqresMap.delete(message.req_id);
         res_po.resolve(message);
+      } else {
+        throw new Error(`no found response by req_id: ${message.req_id}`);
       }
     }
   });
