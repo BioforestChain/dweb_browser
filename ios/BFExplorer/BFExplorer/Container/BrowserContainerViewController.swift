@@ -158,7 +158,12 @@ class BrowserContainerViewController: UIViewController,  OverlayShareViewDelegat
                 vc.contentView.homePageView.installingProgressUpdate(notify)
             })
         }
-        
+        NotificationCenter.default.addObserver(forName: UpdateAppFinishedNotification, object: nil, queue: .main) { notify in
+            self.tabViewControllers.forEach({ vc in
+                guard let appId = notify.userInfo?["appId"] as? String else { return }
+                vc.contentView.homePageView.updateAppDone(appId: appId)
+            })
+        }
         
         automaticallyAdjustsScrollViewInsets = false
         extendedLayoutIncludesOpaqueBars = true

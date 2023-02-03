@@ -166,8 +166,6 @@ class AppManager: NSObject {
                 let oldDict = ChangeTools.stringValueDic(cacheString)
                 let version = oldDict?["version"] as? String ?? ""
                 return version
-//                let versionDouble = Double(version) ?? 0
-//                return versionDouble
             }
         }
         return ""

@@ -13,17 +13,16 @@ enum InnerAppType: Int {
     case system //推荐安装，已经安装
     case user   //第三方已安装的
 }
+let fileMgr = FileManager.default
 let sharedAppInfoMgr = AppInfoMgr()
-//let recommendAppMgr = recommendAppMgr
-//let userAppMgr = userAppMgr
-//let sysAppMgr = sysAppMgr
+
 
 class AppInfoMgr: NSObject {
-
+    
     private let disposeBag = DisposeBag()
     private var appNames: [String:String] = [:]
     private var appImages: [String:UIImage?] = [:]
-    private var fileLinkDict: [String:String] = [:]
+    private var appLinkDict: [String:String] = [:]
     private var redDict: [String: Bool] = [:]
     
     private var appType: [String : InnerAppType] = [:]
@@ -35,23 +34,101 @@ class AppInfoMgr: NSObject {
     var userAppMgr = UserAppManager()
     
     let redSoptCachePath = documentdir + "/redHot"
-
+    
     override init() {
         super.init()
-
-        self.loadAppConfigs()
-
+        loadAppConfigs()
+        registerObserver()
+    }
+    
+    private func registerObserver(){
+        operateMonitor.refreshCompleteMonitor.subscribe(onNext: { [weak self] appId in
+            guard let strongSelf = self else { return }
+            strongSelf.downloadNewFile(appId: appId)
+        }).disposed(by: disposeBag)
+        
+        notifyCenter.addObserver(forName: DownloadAppFinishedNotification, object: nil, queue: .main) { notification in
+            guard let userInfo = notification.userInfo as? [String:Any],
+                  let appId = userInfo["appId"] as? String,
+                  let downloadPath = userInfo["tempZipPath"] as? String else { return }
+            self.handleDownloadAppZip(appId: appId, zipPath: downloadPath)
+        }
     }
     
     private func loadAppConfigs() {
         totalRedHotContent()
         readAllAppLinkConfig()
-        
-        operateMonitor.refreshCompleteMonitor.subscribe(onNext: { [weak self] appId in
-            guard let strongSelf = self else { return }
-            strongSelf.downloadNewFile(appId: appId)
-        }).disposed(by: disposeBag)
     }
+    
+    func handleDownloadAppZip(appId: String, zipPath: String){
+        
+        let appTemPath = documentdir + "/tmp/downloaded/"
+        do {
+            try FileManager.default.createDirectory(atPath: appTemPath, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            print(error)
+            return
+        }
+        
+        NVHTarGzip.sharedInstance().unTarGzipFile(atPath: zipPath, toPath: appTemPath) { unzipError in
+            if unzipError == nil {
+                if self.shouldUpdate(appId: appId) {
+                    let installPath = documentdir + (self.appType[appId] == .user ? "/user-app/" : "/system-app/")
+                    do {
+                        try fileMgr.moveItem(atPath: appTemPath, toPath: installPath)
+                    }catch {
+                        print(error.localizedDescription)
+                        return
+                    }
+                    
+                    let schemePath = documentdir + "/system-app/" + "\(appId)/sys"
+                    Schemehandler.setupHTMLCache(appId: appId, fromPath: schemePath)
+                    sharedAppInfoMgr.updateRedHot(appId: appId, statue: true)
+                    
+                    //FIXME: 需要更新本地的app version
+                    NotificationCenter.default.post(name: UpdateAppFinishedNotification, object: nil, userInfo: ["appId": appId])
+                    
+                }
+                //                        RefreshManager.saveLastUpdateTime(appId: appId, time: Date().timeStamp)
+                //                        let msg = (progress == nil) ? "complete" : "fail"
+                //
+                //                        NotificationCenter.default.post(name: NSNotification.Name.progressNotification, object: nil, userInfo: ["progress": msg, "appId": appId])
+                
+            }
+            do{
+                try fileMgr.removeItem(atPath: appTemPath)
+            }catch {
+                print(error.localizedDescription)
+            }
+        }
+        
+        
+    }
+    
+    private func shouldUpdate(appId: String) -> Bool {
+        let desPath = documentdir + "/system-app/\(appId)"
+        if FileManager.default.fileExists(atPath: desPath) {
+            guard let temFileVersion = appVersion(appId: appId) else { return false} //读取tem 文件夹里面的version
+            guard let installedAppVersion = appVersion(appId: appId,isInstalledApp: true) else { return false}
+            return appVersionMgr.isVersionIncreasing(nowVersion: installedAppVersion, newVersion: temFileVersion)
+        } else {
+            return true
+        }
+    }
+    
+    func appVersion(appId: String, isInstalledApp: Bool = false) -> String? {
+        var midPath = "/tmp/downloaded/"
+        if isInstalledApp{
+            midPath = appType[appId] == .system ? "/system-app/" : "/user-app/"
+        }
+        let manifestPath = documentdir + midPath + "\(appId)/boot/bfsa-metadata.json"
+        guard let data = fileMgr.contents(atPath: manifestPath) else { return "0"}
+        guard let content = String(data: data, encoding: .utf8) else { return "0"}
+        let dict = ChangeTools.stringValueDic(content)
+        guard let manifest = dict?["manifest"] as? [String:Any] else { return "0"}
+        return manifest["version"] as? String
+    }
+    
     
     private func readAllAppLinkConfig(){
         let sysAppList = sysAppMgr.appDirs()
@@ -66,7 +143,7 @@ class AppInfoMgr: NSObject {
                 appType[appId] = .system
                 appNames[appId] = sysAppMgr.appName(appId: appId)
                 appImages[appId] = sysAppMgr.appIcon(appId: appId)
-
+                
             } else if userAppList.contains(appId) {
                 appType[appId] = .user
                 appNames[appId] = userAppMgr.appName(appId: appId)
@@ -82,9 +159,9 @@ class AppInfoMgr: NSObject {
     func clickRecommendAppAction(appId: String) {
         //1、从bfs-app-id/tmp/autoUpdate/缓存中读取当下的新json数据,并请求更新
         guard appId.count > 0 else { return }
-        let currentURLString = readCachedAppConfig(appId: appId)
-        alertUpdateViewController(appId: appId, urlstring: currentURLString)
-        fileLinkDict[appId] = currentURLString
+        guard let link = appDownloadUrl(appId: appId) else { return }
+        appLinkDict[appId] = link
+        alertUpdateViewController(appId: appId, urlstring: link)
     }
     //写入轮询更新数据
     func writeUpdateContent(appId: String, json: [String:Any]?) {
@@ -114,7 +191,7 @@ class AppInfoMgr: NSObject {
     }
     //获取扫码后app的下载地址
     func scanDownloadURLString(appId: String) -> String {
-        return readCachedAppConfig(appId: appId) ?? ""
+        return appDownloadUrl(appId: appId) ?? ""
     }
     //扫码下载app
     func scanToDownloadApp(appId: String, dict: [String:Any]) {
@@ -123,13 +200,13 @@ class AppInfoMgr: NSObject {
         RefreshManager.saveLastUpdateTime(appId: appId, time: Date().timeStamp)
         self.writeUpdateContent(appId: appId, json: dict)
     }
-
+    
     //定时刷新
     func fetchRegularUpdateTime() {
         
         guard appIdList.count > 0 else { return }
         let updateArray = appIdList//.filter{ currentAppType(appId: $0) == .recommend }
-//        guard updateArray.count > 0 else { return }
+        //        guard updateArray.count > 0 else { return }
         let refreshManager = RefreshManager()
         for appId in updateArray {
             if isNeedUpdate(appId: appId) {
@@ -206,7 +283,7 @@ class AppInfoMgr: NSObject {
             downloadRecommendFile(appId: appId)
         } else if type == .system {
             //暂时注释掉
-           // downloadSystemFile(appId: appId)
+            // downloadSystemFile(appId: appId)
         }
     }
     //更新信息下载完后，重新下载Recommend项目文件
@@ -214,9 +291,9 @@ class AppInfoMgr: NSObject {
         //3、如果有最新信息，停止缓存中的更新
         guard hasNewUpdateInfo(appId: appId) else { return }
         //4再从从bfs-app-id/tmp/autoUpdate/缓存中读取最新的json数据
-        guard let newURLString = readCachedAppConfig(appId: appId) else { return }
-        let currentURLString = fileLinkDict[appId]
-
+        guard let newURLString = appDownloadUrl(appId: appId) else { return }
+        let currentURLString = appLinkDict[appId]
+        
         // FIXME: 为什么要重新下载
         if currentURLString == nil {
             operateMonitor.startAnimationMonitor.onNext(appId)
@@ -231,13 +308,13 @@ class AppInfoMgr: NSObject {
         //3、如果有最新信息，弹框
         guard isSystemUpdate(appId: appId) else { return }
         //4再从从bfs-app-id/tmp/autoUpdate/缓存中读取最新的json数据
-        guard let newURLString = readCachedAppConfig(appId: appId) else { return }
+        guard let newURLString = appDownloadUrl(appId: appId) else { return }
         alertUpdateViewController(appId: appId, urlstring: newURLString)
         
     }
     
     //从bfs-app-id/tmp/autoUpdate/缓存中读取url数据
-    private func readCachedAppConfig(appId: String) -> String? {
+    private func appDownloadUrl(appId: String) -> String? {
         let cacheInfo = readCacheUpdateInfo(appId: appId)
         let caches = cacheInfo?["files"] as? [[String:Any]]
         let fileInfo = caches?.first
@@ -325,39 +402,17 @@ class AppInfoMgr: NSObject {
         }
         return false
     }
-        
-    //获取文件夹的类型
-    private func loadAppType() {
-        let sysAppList = sysAppMgr.appDirs()
-        let userAppList = userAppMgr.appDirs()
-        let recommendAppList = recommendAppMgr.appDirs()
-        
-        appIdList = Set(Array( recommendAppList + sysAppList + userAppList))
-        guard appIdList.count > 0 else { return }
-        
-        for appId in appIdList {
-            if sysAppList.contains(appId) {
-                appType[appId] = .system
-            } else if userAppList.contains(appId) {
-                appType[appId] = .user
-            } else if recommendAppList.contains(appId) {
-                appType[appId] = .recommend
-            }
-        }
-    }
     
     //下载弹框
     private func alertUpdateViewController(appId: String, urlstring: String?) {
+        guard urlstring != nil else { return }
+        
         let alertVC = UIAlertController(title: "确认下载更新吗？", message: nil, preferredStyle: .alert)
         let sureAction = UIAlertAction(title: "确认", style: .default) { action in
-            if urlstring != nil {
-                operateMonitor.startAnimationMonitor.onNext(appId)
-                sharedNetworkMgr.downloadApp(appId: appId, urlString: urlstring!)
-            }
+            operateMonitor.startAnimationMonitor.onNext(appId)
+            sharedNetworkMgr.downloadApp(appId: appId, urlString: urlstring!)
             let type = self.currentAppType(appId: appId)
-//            if appType != nil {
-//                type = appType!
-//            }
+            
             if type == .system {
                 operateMonitor.backMonitor.onNext(appId)
             } else if type == .recommend {
@@ -394,32 +449,9 @@ extension AppInfoMgr {
     }
     //根据文件名获取app类型
     func currentAppType(appId: String) -> InnerAppType? {
-        return appType[appId] 
+        return appType[appId]
     }
-
     
-    //获取所有的icon名称
-    private func fetchAppNames() {
-        for (appId, type) in appType {
-            if type == .system {
-                appNames[appId] = sysAppMgr.appName(appId: appId)
-            } else if type == .recommend {
-                appNames[appId] = recommendAppMgr.appName(appId: appId)
-            } else if type == .user {
-                appNames[appId] = userAppMgr.appName(appId: appId)
-            }
-        }
-    }
-    //获取所有的icon图片
-    private func fetchAppIcons() {
-        for (key,type) in appType {
-            if type == .system {
-                appImages[key] = sysAppMgr.appIcon(appId: key)
-            } else if type == .recommend {
-                appImages[key] = recommendAppMgr.appIcon(appId: key)
-            }
-        }
-    }
 }
 
 //MARK: 更新app下载后的信息
@@ -454,5 +486,5 @@ extension AppInfoMgr {
         appNames[appId] = sysAppMgr.appName(appId: appId)
         appImages[appId] = sysAppMgr.appIcon(appId: appId)
     }
-
+    
 }
