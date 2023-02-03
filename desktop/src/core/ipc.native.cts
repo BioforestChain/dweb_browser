@@ -1,10 +1,13 @@
+import { createSingle } from "./helper.cjs";
 import {
   $IpcMessage,
+  $IpcOnMessage,
   Ipc,
   IpcRequest,
   IpcResponse,
-  IpcStream,
+  IpcStreamData,
   IpcStreamEnd,
+  IpcStreamPull,
   IPC_DATA_TYPE,
   IPC_ROLE,
 } from "./ipc.cjs";
@@ -27,8 +30,9 @@ export const $messageToIpcMessage = (
       data.req_id,
       data.method,
       data.url,
-      data.body,
-      data.headers
+      data.rawBody,
+      data.headers,
+      ipc
     );
   } else if (data.type === IPC_DATA_TYPE.RESPONSE) {
     message = new IpcResponse(
@@ -38,8 +42,10 @@ export const $messageToIpcMessage = (
       data.headers,
       ipc
     );
-  } else if (data.type === IPC_DATA_TYPE.STREAM) {
-    message = new IpcStream(data.stream_id, data.data);
+  } else if (data.type === IPC_DATA_TYPE.STREAM_DATA) {
+    message = new IpcStreamData(data.stream_id, data.data);
+  } else if (data.type === IPC_DATA_TYPE.STREAM_PULL) {
+    message = new IpcStreamPull(data.stream_id, data.desiredSize);
   } else if (data.type === IPC_DATA_TYPE.STREAM_END) {
     message = new IpcStreamEnd(data.stream_id);
   }
@@ -63,16 +69,9 @@ export class NativeIpc extends Ipc {
         this.close();
         return;
       }
-      if (
-        message.type === IPC_DATA_TYPE.STREAM ||
-        message.type === IPC_DATA_TYPE.STREAM_END
-      ) {
-        return;
-      }
+
       /// ipc-message
-      for (const cb of this._cbs) {
-        cb(message, this);
-      }
+      this._onMessage.emit(message, this);
     });
     port.start();
   }
@@ -82,10 +81,9 @@ export class NativeIpc extends Ipc {
     }
     this.port.postMessage(message);
   }
-  private _cbs = new Set<$OnMessage>();
-  onMessage(cb: $OnMessage) {
-    this._cbs.add(cb);
-    return () => this._cbs.delete(cb);
+  private _onMessage = createSingle<$IpcOnMessage>();
+  onMessage(cb: $IpcOnMessage) {
+    return this._onMessage.bind(cb);
   }
   private _closed = false;
   close() {
@@ -95,17 +93,10 @@ export class NativeIpc extends Ipc {
     this._closed = true;
     this.port.postMessage("close");
     this.port.close();
-    for (const cb of this._onclose_cbs) {
-      cb();
-    }
+    this._onClose.emit();
   }
-  private _onclose_cbs = new Set<() => unknown>();
+  private _onClose = createSingle<() => unknown>();
   onClose(cb: () => unknown) {
-    this._onclose_cbs.add(cb);
-    return () => this._onclose_cbs.delete(cb);
+    return this._onClose.bind(cb);
   }
 }
-export type $OnMessage = (
-  message: IpcRequest | IpcResponse,
-  ipc: Ipc
-) => unknown;

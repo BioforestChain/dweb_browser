@@ -4,15 +4,9 @@
 import {
   fetch_helpers,
   normalizeFetchArgs,
-  PromiseOut,
-  readRequestAsIpcRequest,
+  $readRequestAsIpcRequest,
 } from "../core/helper.cjs";
-import {
-  IpcRequest,
-  IpcResponse,
-  IPC_DATA_TYPE,
-  IPC_ROLE,
-} from "../core/ipc.cjs";
+import { IPC_ROLE } from "../core/ipc.cjs";
 import { NativeIpc } from "../core/ipc.native.cjs";
 import type { $MicroModule, $MMID } from "../core/types.cjs";
 
@@ -44,23 +38,7 @@ export const installEnv = (mmid: $MMID) => {
   const channel = new MessageChannel();
   const { port1, port2 } = channel;
   self.postMessage(["fetch-ipc-channel", port2], [port2]);
-  const fetchIpc = new NativeIpc(port1, process, IPC_ROLE.SERVER);
-  fetchIpc.onMessage((message) => {
-    if (message.type === IPC_DATA_TYPE.RESPONSE) {
-      const res_po = reqresMap.get(message.req_id);
-      if (res_po !== undefined) {
-        reqresMap.delete(message.req_id);
-        res_po.resolve(message);
-      } else {
-        throw new Error(`no found response by req_id: ${message.req_id}`);
-      }
-    }
-  });
-
-  const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
-
-  let req_id = 0;
-  const allocReqId = () => req_id++;
+  const fetchIpc: NativeIpc = new NativeIpc(port1, process, IPC_ROLE.SERVER);
 
   const native_fetch = globalThis.fetch;
   function fetch(url: RequestInfo | URL, init?: RequestInit) {
@@ -72,24 +50,12 @@ export const installEnv = (mmid: $MMID) => {
       parsed_url.hostname.endsWith(".dweb")
     ) {
       return (async () => {
-        const { body, method, headers } = await readRequestAsIpcRequest(
-          args.request_init
+        const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+        const ipc_response = await fetchIpc.request(
+          parsed_url.href,
+          ipc_req_init
         );
-
-        /// 注册回调
-        const req_id = allocReqId();
-        const response_po = new PromiseOut<IpcResponse>();
-        reqresMap.set(req_id, response_po);
-
-        /// 发送
-        fetchIpc.postMessage(
-          new IpcRequest(req_id, method, parsed_url.href, body, headers)
-        );
-        const ipc_response = await response_po.promise;
-        return new Response(ipc_response.body, {
-          headers: ipc_response.headers,
-          status: ipc_response.statusCode,
-        });
+        return ipc_response.asResponse();
       })();
     }
 

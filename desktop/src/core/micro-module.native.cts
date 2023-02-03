@@ -1,5 +1,7 @@
 import {
   $deserializeRequestToParams,
+  $isMatchReq,
+  $ReqMatcher,
   $serializeResultToResponse,
 } from "./helper.cjs";
 import {
@@ -83,17 +85,12 @@ export abstract class NativeMicroModule extends MicroModule {
         const { pathname } = request.parsed_url;
         let response: IpcResponse | undefined;
         for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {
-          if (
-            hanlder_schema.matchMode === "full"
-              ? pathname === hanlder_schema.pathname
-              : hanlder_schema.matchMode === "prefix"
-              ? pathname.startsWith(hanlder_schema.pathname)
-              : false
-          ) {
+          if ($isMatchReq(hanlder_schema, pathname, request.method)) {
             try {
               const result = await hanlder_schema.hanlder(
                 hanlder_schema.input(request),
-                client_ipc
+                client_ipc,
+                request
               );
               if (result instanceof IpcResponse) {
                 response = result;
@@ -144,12 +141,11 @@ export abstract class NativeMicroModule extends MicroModule {
   }
 }
 
-interface $RequestHanlderSchema<ARGS, RES> {
-  readonly pathname: string;
-  readonly matchMode: "full" | "prefix";
+interface $RequestHanlderSchema<ARGS, RES> extends $ReqMatcher {
   readonly hanlder: (
     args: ARGS,
-    client_ipc: Ipc
+    client_ipc: Ipc,
+    ipc_request: IpcRequest
   ) => $PromiseMaybe<RES | IpcResponse>;
 }
 

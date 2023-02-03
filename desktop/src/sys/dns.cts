@@ -1,9 +1,8 @@
 import {
   normalizeFetchArgs,
-  PromiseOut,
-  readRequestAsIpcRequest,
+  $readRequestAsIpcRequest,
 } from "../core/helper.cjs";
-import { Ipc, IpcRequest, IpcResponse, IPC_DATA_TYPE } from "../core/ipc.cjs";
+import type { Ipc } from "../core/ipc.cjs";
 import { MicroModule } from "../core/micro-module.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
 import type { $MMID, $PromiseMaybe } from "../core/types.cjs";
@@ -114,8 +113,6 @@ const hookFetch = (app_mm: DnsNMM) => {
       $MMID,
       $PromiseMaybe<{
         ipc: Ipc;
-        reqresMap: Map<number, PromiseOut<IpcResponse>>;
-        allocReqId: () => number;
       }>
     >
   >();
@@ -148,50 +145,22 @@ const hookFetch = (app_mm: DnsNMM) => {
           /// 初始化互联
           ipc_promise = (async () => {
             const app = await app_mm.open(parsed_url.hostname as $MMID);
-            let req_id = 0;
-            const allocReqId = () => req_id++;
             const ipc = await app.connect(from_app);
-            const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
-            /// 监听回调
-            ipc.onMessage((message) => {
-              if (message.type === IPC_DATA_TYPE.RESPONSE) {
-                const response_po = reqresMap.get(message.req_id);
-                if (response_po) {
-                  reqresMap.delete(message.req_id);
-                  response_po.resolve(message);
-                } else {
-                  throw new Error(`no found response by req_id: ${req_id}`);
-                }
-              }
-            });
+            // 监听生命周期 释放引用
             ipc.onClose(() => {
               from_app_ipcs?.delete(mmid);
             });
             return {
               ipc,
-              reqresMap,
-              allocReqId,
             };
           })();
           from_app_ipcs.set(mmid, ipc_promise);
         }
 
         return (async () => {
-          const { ipc, reqresMap, allocReqId } = await ipc_promise;
-          const { body, method, headers } = await readRequestAsIpcRequest(
-            args.request_init
-          );
-
-          /// 注册回调
-          const req_id = allocReqId();
-          const response_po = new PromiseOut<IpcResponse>();
-          reqresMap.set(req_id, response_po);
-
-          /// 发送
-          ipc.postMessage(
-            new IpcRequest(req_id, method, parsed_url.href, body, headers)
-          );
-          const ipc_response = await response_po.promise;
+          const { ipc } = await ipc_promise;
+          const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+          const ipc_response = await ipc.request(parsed_url.href, ipc_req_init);
 
           return ipc_response.asResponse();
         })();

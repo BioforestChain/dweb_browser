@@ -1,5 +1,6 @@
 import { Ipc, IpcRequest, IpcResponse } from "./ipc.cjs";
 import type {
+  $Method,
   $Schema1,
   $Schema1ToType,
   $Schema2,
@@ -43,6 +44,10 @@ export const $typeNameParser = <T extends $TypeName2>(
       }
       case "string": {
         param = value;
+        break;
+      }
+      case "object": {
+        param = JSON.parse(value);
         break;
       }
       default:
@@ -105,52 +110,55 @@ export const openNwWindow = (
 };
 
 /** 将 request 参数解构 成 ipcRequest 的参数 */
-export const readRequestAsIpcRequest = async (request_init: RequestInit) => {
-  let body = "";
+export const $readRequestAsIpcRequest = async (request_init: RequestInit) => {
+  let body: Uint8Array | ReadableStream<Uint8Array> | "" = "";
   const method = request_init.method ?? "GET";
 
   /// 读取 body
   if (method === "POST" || method === "PUT") {
-    let buffer: Buffer | undefined;
     if (request_init.body instanceof ReadableStream) {
-      const reader = (
-        request_init.body as ReadableStream<Uint8Array>
-      ).getReader();
-      const chunks: Uint8Array[] = [];
-      while (true) {
-        const item = await reader.read();
-        if (item.done) {
-          break;
-        }
-        chunks.push(item.value);
-      }
-      buffer = Buffer.concat(chunks);
-    } else if (request_init.body instanceof Blob) {
-      buffer = Buffer.from(await request_init.body.arrayBuffer());
-    } else if (ArrayBuffer.isView(request_init.body)) {
-      buffer = Buffer.from(
-        request_init.body.buffer,
-        request_init.body.byteOffset,
-        request_init.body.byteLength
-      );
-    } else if (request_init.body instanceof ArrayBuffer) {
-      buffer = Buffer.from(request_init.body);
-    } else if (typeof request_init.body === "string") {
       body = request_init.body;
+      // const reader = (
+      //   request_init.body as ReadableStream<Uint8Array>
+      // ).getReader();
+      // const chunks: Uint8Array[] = [];
+      // while (true) {
+      //   const item = await reader.read();
+      //   if (item.done) {
+      //     break;
+      //   }
+      //   chunks.push(item.value);
+      // }
+      // buffer = Buffer.concat(chunks);
+    } else if (request_init.body instanceof Blob) {
+      body = new Uint8Array(await request_init.body.arrayBuffer());
+    } else if (ArrayBuffer.isView(request_init.body)) {
+      body =
+        request_init.body instanceof Uint8Array
+          ? request_init.body
+          : new Uint8Array(
+              request_init.body.buffer,
+              request_init.body.byteOffset,
+              request_init.body.byteLength
+            );
+    } else if (request_init.body instanceof ArrayBuffer) {
+      body = Buffer.from(request_init.body);
+    } else if (typeof request_init.body === "string") {
+      body = simpleEncoder(request_init.body, "utf8");
     } else if (request_init.body) {
       throw new Error(
         `unsupport body type: ${request_init.body.constructor.name}`
       );
-    }
-    if (buffer !== undefined) {
-      body = buffer.toString("base64");
     }
   }
 
   /// 读取 headers
   const headers = headersToRecord(request_init.headers);
 
-  return { method, body, headers };
+  return { method, body, headers } satisfies Pick<
+    IpcRequest,
+    "method" | "body" | "headers"
+  >;
 };
 
 export const headersToRecord = (headers?: HeadersInit | null) => {
@@ -204,17 +212,60 @@ const $make_helpers = <M extends unknown>(helpers: $Helpers<M>) => {
   return helpers;
 };
 export const fetch_helpers = $make_helpers({
-  number() {
-    return this.string().then((text) => +text);
+  async number() {
+    const text = await this.string();
+    return +text;
   },
-  string() {
-    return this.then((res) => res.text());
+  async string() {
+    const response = await this;
+    return response.text();
   },
-  boolean() {
-    return this.string().then((text) => text === "true");
+  async boolean() {
+    const text = await this.string();
+    return text === "true"; // JSON.stringify(true)
   },
-  object<T>() {
-    return this.then((res) => res.json()) as Promise<T>;
+  async object<T>() {
+    const response = await this;
+    try {
+      const object = (await response.json()) as T;
+      return object;
+    } catch (err) {
+      debugger;
+      throw err;
+    }
+  },
+  async *jsonlines<T = unknown>() {
+    const stream = await this.then((res) => {
+      const stream = res.body;
+      if (stream == null) {
+        throw new Error(`request ${res.url} could not by stream.`);
+      }
+      return stream;
+    });
+    const reader = stream.getReader();
+
+    let json = "";
+    try {
+      while (true) {
+        const item = await reader.read();
+        if (item.done) {
+          break;
+        }
+        json += simpleDecoder(item.value, "utf8");
+        while (json.includes("\n")) {
+          const line_break_index = json.indexOf("\n");
+          const line = json.slice(0, line_break_index);
+          yield JSON.parse(line) as T;
+          json = json.slice(line.length + 1);
+        }
+      }
+      json = json.trim();
+      if (json.length > 0) {
+        yield JSON.parse(json) as T;
+      }
+    } catch (err) {
+      debugger;
+    }
   },
 });
 
@@ -257,3 +308,40 @@ export const isBinary = (
   data: unknown
 ): data is ArrayBuffer | ArrayBufferView =>
   data instanceof ArrayBuffer || ArrayBuffer.isView(data);
+
+export const createSingle = <
+  $Callback extends (...args: any[]) => unknown
+>() => {
+  const cbs = new Set<$Callback>();
+  const bind = (cb: $Callback) => {
+    cbs.add(cb);
+    return () => cbs.delete(cb);
+  };
+  const emit = (...args: Parameters<$Callback>) => {
+    for (const cb of cbs) {
+      cb.apply(null, args);
+    }
+  };
+  return { bind, emit } as const;
+};
+
+export interface $ReqMatcher {
+  readonly pathname: string;
+  readonly matchMode: "full" | "prefix";
+  readonly method?: $Method;
+}
+
+export const $isMatchReq = (
+  matcher: $ReqMatcher,
+  pathname: string,
+  method: string = "GET"
+) => {
+  return (
+    (matcher.method ?? "GET") === method &&
+    (matcher.matchMode === "full"
+      ? pathname === matcher.pathname
+      : matcher.matchMode === "prefix"
+      ? pathname.startsWith(matcher.pathname)
+      : false)
+  );
+};

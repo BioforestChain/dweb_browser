@@ -1,6 +1,6 @@
 import { PromiseOut } from "../core/helper.cjs";
-import { IPC_ROLE } from "../core/ipc.cjs";
-import { $OnMessage, NativeIpc } from "../core/ipc.native.cjs";
+import { $IpcOnMessage, IPC_ROLE } from "../core/ipc.cjs";
+import { NativeIpc } from "../core/ipc.native.cjs";
 import type { MicroModule } from "../core/micro-module.cjs";
 const JS_PROCESS_WORKER_CODE = fetch(
   new URL("bundle/js-process.worker.cjs", location.href)
@@ -12,7 +12,7 @@ let acc_process_id = 0;
 const createProcess = async (
   module: MicroModule,
   main_code: string,
-  onMessage: $OnMessage
+  onMessage: $IpcOnMessage
 ) => {
   const process_id = acc_process_id++;
   const worker = new Worker(

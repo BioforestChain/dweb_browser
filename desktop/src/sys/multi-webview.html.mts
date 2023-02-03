@@ -71,7 +71,11 @@ export class ViewTree extends LitElement {
                 class="webview-container"
                 style="--index:${index + 2 - list.length};"
               >
-                <webview id="view-${id}" src=${src}></webview>
+                <webview
+                  id="view-${id}"
+                  src=${src}
+                  partition="trusted"
+                ></webview>
               </div>
             `;
           })}
