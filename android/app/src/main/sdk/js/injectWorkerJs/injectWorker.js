@@ -113,7 +113,7 @@ var readRequestAsIpcRequest = async (request_init) => {
             body = request_init.body;
         } else if (request_init.body) {
             throw new Error(
-                "unsupport body type:"+ request_init.body.constructor.name
+                "unsupport body type:" + request_init.body.constructor.name
             );
         }
         if (buffer !== void 0) {
@@ -209,7 +209,7 @@ var NativeIpc = class extends Ipc {
         if (this._closed) {
             return;
         }
-        this.port.postMessage(message);
+        this.port.postMessage(JSON.stringify(message));
     }
     onMessage(cb) {
         this._cbs.add(cb);
@@ -234,24 +234,27 @@ var NativeIpc = class extends Ipc {
 
 // src/sys/js-process.worker.cts
 var installEnv = () => {
+    let fetchIpc;
+    let registerFetchIpc = true;
+    const registerFetchIpc_po = new PromiseOut();
     self.addEventListener("message", (event) => {
-        console.log("injectWorker:message",event.data[0])
+        console.log("injectWorker: register worker in native port", event.data)
         if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
-            const ipc = new NativeIpc(event.data[1]);
-            self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
-        }
-    });
-    const channel = new MessageChannel();
-    const { port1, port2 } = channel;
-    self.postMessage(["fetch-ipc-channel", port2], [port2]);
-    const fetchIpc = new NativeIpc(port1);
-    fetchIpc.onMessage((message) => {
-        if (message.type === 1 /* RESPONSE */) {
-            const res_po = reqresMap.get(message.req_id);
-            if (res_po !== void 0) {
-                reqresMap.delete(message.req_id);
-                res_po.resolve(message);
+            fetchIpc = new NativeIpc(event.data[1]);
+            event.data[1].onmessage = (message) => {
+                console.log("injectWorker: webWorker get data", message)
+                const obj = message.data;
+                if (Object.prototype.toString.call(obj) === '[Object Object]' && obj.type === 1 /* RESPONSE */) {
+                    const res_po = reqresMap.get(obj.req_id);
+                    if (res_po !== void 0) {
+                        reqresMap.delete(obj.req_id);
+                        res_po.resolve(obj);
+                    }
+                }
             }
+            registerFetchIpc = false
+            registerFetchIpc_po.resolve()
+            self.dispatchEvent(new MessageEvent("connect", { data: fetchIpc }));
         }
     });
     const reqresMap = /* @__PURE__ */ new Map();
@@ -259,7 +262,7 @@ var installEnv = () => {
     const allocReqId = () => req_id++;
     const native_fetch = globalThis.fetch;
     globalThis.fetch = function fetch(url, init) {
-    console.log("injectWorker:globalThis.fetch:",url)
+        console.log("injectWorker:globalThis.fetch:", url)
         const args = normalizeFetchArgs(url, init);
         const { parsed_url } = args;
         if (parsed_url.protocol === "file:" && parsed_url.hostname.endsWith(".dweb")) {
@@ -270,7 +273,10 @@ var installEnv = () => {
                 const req_id2 = allocReqId();
                 const response_po = new PromiseOut();
                 reqresMap.set(req_id2, response_po);
-                console.log("injectWorker:fetchIpc.postMessage:",url)
+                if (registerFetchIpc) {
+                    await registerFetchIpc_po.promise;
+                }
+                console.log("injectWorker:fetchIpc.postMessage:", url, fetchIpc)
                 fetchIpc.postMessage(
                     new IpcRequest(req_id2, method, parsed_url.href, body, headers)
                 );

@@ -8,10 +8,7 @@ import android.content.res.Resources.NotFoundException
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -39,7 +36,6 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
-import info.bagen.rust.plaoc.microService.ctx
 import info.bagen.rust.plaoc.microService.global_micro_dns
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
@@ -77,43 +73,40 @@ class MainActivity : AppCompatActivity() {
         initSystemFn(this)
         // 初始化广播
         registerBFSBroadcastReceiver()
-        setContentView(R.layout.acivity_main)
-        ctx.parent?.let { (it as ViewGroup).removeAllViews() }
-        this.findViewById<FrameLayout>(R.id.web_view_container).addView(ctx)
-//        setContent {
-//            ViewCompat.getWindowInsetsController(LocalView.current)?.isAppearanceLightStatusBars =
-//                !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
-//            RustApplicationTheme {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(MaterialTheme.colors.primary)
-//                ) {
-//                    Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
-//                        LogUtils.d("搜索框内容响应：$action--$data")
-//                        when (action) {
-//                            SearchAction.Search -> {
-//                                openDWebWindow(this@MainActivity, data)
-//                            }
-//                            SearchAction.OpenCamera -> {
-//                                if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
-//                                    openScannerActivity()
-//                                } else {
-//                                    PermissionManager.requestPermissions(
-//                                        this@MainActivity, EPermission.PERMISSION_CAMERA.type
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }, onOpenDWebview = { appId, dAppInfo ->
-//                        dWebView_host = appId
-//                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host")
-////                        global_micro_dns.nativeFetch("file://mwebview.sys.dweb/open?origin=https://objectjson.waterbang.top")
-//                        global_micro_dns.nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
-//                    })
-//                }
-//            }
-//        }
+        setContent {
+            ViewCompat.getWindowInsetsController(LocalView.current)?.isAppearanceLightStatusBars =
+                !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
+            RustApplicationTheme {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colors.primary)
+                ) {
+                    Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
+                        LogUtils.d("搜索框内容响应：$action--$data")
+                        when (action) {
+                            SearchAction.Search -> {
+                                openDWebWindow(this@MainActivity, data)
+                            }
+                            SearchAction.OpenCamera -> {
+                                if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
+                                    openScannerActivity()
+                                } else {
+                                    PermissionManager.requestPermissions(
+                                        this@MainActivity, EPermission.PERMISSION_CAMERA.type
+                                    )
+                                }
+                            }
+                        }
+                    }, onOpenDWebview = { appId, dAppInfo ->
+                        dWebView_host = appId
+                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host")
+//                        global_micro_dns.nativeFetch("file://mwebview.sys.dweb/open?origin=https://objectjson.waterbang.top")
+                        global_micro_dns.nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
+                    })
+                }
+            }
+        }
     }
 
 
