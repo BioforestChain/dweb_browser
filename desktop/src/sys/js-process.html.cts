@@ -1,4 +1,4 @@
-import { PromiseOut } from "../core/helper.cjs";
+import { PromiseOut, utf8_to_b64 } from "../core/helper.cjs";
 import { $IpcOnMessage, IPC_ROLE } from "../core/ipc.cjs";
 import { NativeIpc } from "../core/ipc.native.cjs";
 import type { MicroModule } from "../core/micro-module.cjs";
@@ -15,14 +15,22 @@ const createProcess = async (
   onMessage: $IpcOnMessage
 ) => {
   const process_id = acc_process_id++;
-  const worker = new Worker(
-    `data:utf-8,
-   ((module,exports=module.exports)=>{${await JS_PROCESS_WORKER_CODE};return module.exports})({exports:{}}).installEnv();
-   ((module,exports=module.exports)=>{${main_code}})({exports:{}});`.replaceAll(
-      `"use strict";`,
-      ""
-    )
+  const prepare_code = await JS_PROCESS_WORKER_CODE;
+  const worker_code = `
+  ((module,exports=module.exports)=>{${prepare_code};return module.exports})({exports:{}}).installEnv();
+  ((module,exports=module.exports)=>{${main_code}})({exports:{}});`.replaceAll(
+    `"use strict";`,
+    ""
   );
+
+  const use_base64 = true;
+  const data_url = use_base64
+    ? `data:application/javascript;base64,${utf8_to_b64(worker_code)}`
+    : `data:application/javascript;charset=UTF-8,${encodeURIComponent(
+        worker_code
+      )}`;
+
+  const worker = new Worker(data_url);
 
   /// 一些启动任务
   const ipc_port_po = new PromiseOut<MessagePort>();

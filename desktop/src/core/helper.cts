@@ -304,6 +304,14 @@ export const simpleDecoder = (
   return textDecoder.decode(data);
 };
 
+export const utf8_to_b64 = (str: string) => {
+  return btoa(unescape(encodeURIComponent(str)));
+};
+
+export const b64_to_utf8 = (str: string) => {
+  return decodeURIComponent(escape(atob(str)));
+};
+
 export const isBinary = (
   data: unknown
 ): data is ArrayBuffer | ArrayBufferView =>
