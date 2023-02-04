@@ -6,7 +6,7 @@ import { NativeMicroModule } from "../core/micro-module.native.cjs";
 
 const packageJson = require("../../package.json");
 
-type $APIS = typeof import("./js-process.html.cjs")["APIS"];
+type $APIS = typeof import("./js-process.web.cjs")["APIS"];
 /**
  * 将指定的js运行在后台的一个管理器，
  * 注意它们共享一个域，所以要么就关闭

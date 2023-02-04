@@ -1,10 +1,36 @@
-import { PromiseOut, utf8_to_b64 } from "../core/helper.cjs";
+import { dataUrlToUtf8, PromiseOut } from "../core/helper.cjs";
 import { $IpcOnMessage, IPC_ROLE } from "../core/ipc.cjs";
 import { NativeIpc } from "../core/ipc.native.cjs";
 import type { MicroModule } from "../core/micro-module.cjs";
 const JS_PROCESS_WORKER_CODE = fetch(
   new URL("bundle/js-process.worker.cjs", location.href)
-).then((res) => res.text());
+).then(async (res) => {
+  const prepare_code = await res.text();
+  const install_code = wrapCommonJsCode(prepare_code, {
+    after: ".installEnv()",
+  });
+
+  return install_code;
+
+  // const blob = new Blob([install_code], { type: "application/javascript" });
+  // const blob_url = URL.createObjectURL(blob);
+  // return `importScripts("${blob_url}");`;
+});
+
+const wrapCommonJsCode = (
+  common_js_code: string,
+  options: {
+    before?: string;
+    after?: string;
+  } = {}
+) => {
+  const { before = "", after = "" } = options;
+
+  return `${before};((module,exports=module.exports)=>{${common_js_code.replaceAll(
+    `"use strict";`,
+    ""
+  )};return module.exports})({exports:{}})${after};`;
+};
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 const ALL_PROCESS_MAP = new Map<number, { worker: Worker; ipc: NativeIpc }>();
@@ -16,19 +42,9 @@ const createProcess = async (
 ) => {
   const process_id = acc_process_id++;
   const prepare_code = await JS_PROCESS_WORKER_CODE;
-  const worker_code = `
-  ((module,exports=module.exports)=>{${prepare_code};return module.exports})({exports:{}}).installEnv();
-  ((module,exports=module.exports)=>{${main_code}})({exports:{}});`.replaceAll(
-    `"use strict";`,
-    ""
-  );
+  const worker_code = wrapCommonJsCode(main_code, { before: prepare_code });
 
-  const use_base64 = true;
-  const data_url = use_base64
-    ? `data:application/javascript;base64,${utf8_to_b64(worker_code)}`
-    : `data:application/javascript;charset=UTF-8,${encodeURIComponent(
-        worker_code
-      )}`;
+  const data_url = dataUrlToUtf8(worker_code, false, "application/javascript");
 
   const worker = new Worker(data_url);
 

@@ -353,3 +353,14 @@ export const $isMatchReq = (
       : false)
   );
 };
+
+export const dataUrlToUtf8 = (
+  utf8_string: string,
+  asBase64: boolean,
+  mime: string = ""
+) => {
+  const data_url = asBase64
+    ? `data:${mime};base64,${utf8_to_b64(utf8_string)}`
+    : `data:${mime};charset=UTF-8,${encodeURIComponent(utf8_string)}`;
+  return data_url;
+};
