@@ -152,6 +152,31 @@ export class LocalhostNMM extends NativeMicroModule {
       })
       .listen(this._local_port);
 
+    chrome.webRequest.onResponseStarted.addListener(
+      (details) => {
+        console.log("onCompleted details:", details);
+      },
+      {
+        urls: ["<all_urls>"],
+      }
+    );
+    chrome.webRequest.onCompleted.addListener(
+      (details) => {
+        console.log("onCompleted details:", details);
+      },
+      {
+        urls: ["<all_urls>"],
+      }
+    );
+    chrome.webRequest.onErrorOccurred.addListener(
+      (details) => {
+        console.log("onErrorOccurred details:", details);
+      },
+      {
+        urls: ["<all_urls>"],
+      }
+    );
+
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/listen",
       matchMode: "full",

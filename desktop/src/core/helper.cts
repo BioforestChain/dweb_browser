@@ -354,7 +354,7 @@ export const $isMatchReq = (
   );
 };
 
-export const dataUrlToUtf8 = (
+export const dataUrlFromUtf8 = (
   utf8_string: string,
   asBase64: boolean,
   mime: string = ""
@@ -363,4 +363,25 @@ export const dataUrlToUtf8 = (
     ? `data:${mime};base64,${utf8_to_b64(utf8_string)}`
     : `data:${mime};charset=UTF-8,${encodeURIComponent(utf8_string)}`;
   return data_url;
+};
+
+export const createJsBlob = (code: string) => {
+  const blob = new Blob([code], { type: "application/javascript" });
+  const blob_url = URL.createObjectURL(blob);
+  return blob_url;
+};
+
+export const wrapCommonJsCode = (
+  common_js_code: string,
+  options: {
+    before?: string;
+    after?: string;
+  } = {}
+) => {
+  const { before = "", after = "" } = options;
+
+  return `${before};((module,exports=module.exports)=>{${common_js_code.replaceAll(
+    `"use strict";`,
+    ""
+  )};return module.exports})({exports:{}})${after};`;
 };

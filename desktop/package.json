@@ -30,6 +30,7 @@
     "dependencies": {
         "@types/chrome": "^0.0.210",
         "lit": "^2.6.1",
-        "lodash": "^4.17.21"
+        "lodash": "^4.17.21",
+        "shadowrealm-api": "^0.8.2"
     }
 }

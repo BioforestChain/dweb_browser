@@ -5,8 +5,8 @@ import type { $HttpRequestInfo } from "../../sys/localhost.cjs";
 
 console.log("ookkkkk, i'm in worker");
 
-debugger;
-(async () => {
+export const main = async () => {
+  debugger;
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const { origin } = await process
     .fetch(`file://localhost.sys.dweb/listen?port=80`)
@@ -79,10 +79,18 @@ debugger;
     const view_id = await process
       .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
       .string();
+    // const view_id = await process
+    //   .fetch(
+    //     `file://mwebview.sys.dweb/open?url=${encodeURIComponent(
+    //       `https://localhost.sys.dweb:80`
+    //     )}`
+    //   )
+    //   .string();
   }
 
   //    addEventListener("fetch", (event) => {
   //       if (event.request.headers["view-id"] === view_id) {
   //       }
   //    });
-})();
+};
+main();

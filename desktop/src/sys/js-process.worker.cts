@@ -1,10 +1,11 @@
 /// <reference lib="webworker"/>
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
+
 import {
+  $readRequestAsIpcRequest,
   fetch_helpers,
   normalizeFetchArgs,
-  $readRequestAsIpcRequest,
 } from "../core/helper.cjs";
 import { IPC_ROLE } from "../core/ipc.cjs";
 import { NativeIpc } from "../core/ipc.native.cjs";
@@ -16,29 +17,38 @@ import type { $MicroModule, $MMID } from "../core/types.cjs";
 /// 所以这里的方案还是对 fetch 进行重写
 /// 拦截到的 ipc-message 通过 postMessage 转发到 html 层，再有 html 层
 
+class JsProcessMicroModule implements $MicroModule {
+  constructor(readonly mmid: $MMID) {}
+  fetch(input: RequestInfo | URL, init?: RequestInit) {
+    return Object.assign(fetch(input, init), fetch_helpers);
+  }
+}
+
+/// 消息通道构造器
+const waitFetchIpc = (process: $MicroModule) => {
+  return new Promise<NativeIpc>((resolve) => {
+    self.addEventListener("message", (event) => {
+      const data = event.data as any[];
+      if (Array.isArray(event.data) === false) {
+        return;
+      }
+      /// 这是来自 原生接口 WebMessageChannel 创建出来的通道
+      /// 由 web 主线程代理传递过来
+      if (data[0] === "fetch-ipc-channel") {
+        const ipc = new NativeIpc(data[1], process, IPC_ROLE.SERVER);
+        resolve(ipc);
+        // self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
+      }
+    });
+  });
+};
+
 /**
  * 安装上下文
  */
-export const installEnv = (mmid: $MMID) => {
-  const process = new (class JsProcessMicroModule implements $MicroModule {
-    mmid = mmid;
-    fetch(input: RequestInfo | URL, init?: RequestInit) {
-      return Object.assign(fetch(input, init), fetch_helpers);
-    }
-  })();
-  /// 消息通道构造器
-  self.addEventListener("message", (event) => {
-    if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
-      const ipc = new NativeIpc(event.data[1], process, IPC_ROLE.SERVER);
-      self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
-    }
-  });
-
-  /// 初始化内定的主消息通道
-  const channel = new MessageChannel();
-  const { port1, port2 } = channel;
-  self.postMessage(["fetch-ipc-channel", port2], [port2]);
-  const fetchIpc: NativeIpc = new NativeIpc(port1, process, IPC_ROLE.SERVER);
+export const installEnv = async (mmid: $MMID) => {
+  const process = new JsProcessMicroModule(mmid);
+  const fetchIpc = await waitFetchIpc(process);
 
   const native_fetch = globalThis.fetch;
   function fetch(url: RequestInfo | URL, init?: RequestInit) {
@@ -65,5 +75,95 @@ export const installEnv = (mmid: $MMID) => {
     fetch,
     process,
   });
+  /// 安装完成，告知外部
+  self.postMessage(["env-ready"]);
   return process;
 };
+
+export type $RunMainConfig = {
+  mmid: $MMID;
+  main_url: string;
+};
+self.addEventListener("message", async (event) => {
+  const data = event.data as any[];
+  if (Array.isArray(event.data) === false) {
+    return;
+  }
+  if (data[0] === "run-main") {
+    const config = data[1] as $RunMainConfig;
+    const process = installEnv(config.mmid);
+    // const vm = new VM(config.main_url);
+    // const sr_globalObject = (vm as any).__realm.globalObject;
+    // sr_globalObject.process = process;
+    // const main_fun = (await vm.importValue(
+    //   config.main_url,
+    //   "main"
+    // )) as Function;
+    // main_fun([]);
+
+    const main_parsed_url = new URL(config.main_url);
+    const location = {
+      hash: main_parsed_url.hash,
+      host: main_parsed_url.host,
+      hostname: main_parsed_url.hostname,
+      href: main_parsed_url.href,
+      origin: main_parsed_url.origin,
+      pathname: main_parsed_url.pathname,
+      port: main_parsed_url.port,
+      protocol: main_parsed_url.protocol,
+      search: main_parsed_url.search,
+      toString() {
+        return main_parsed_url.href;
+      },
+    };
+    Object.setPrototypeOf(location, WorkerLocation);
+    Object.freeze(location);
+
+    Object.defineProperty(self, "location", {
+      value: location,
+      configurable: false,
+      enumerable: false,
+      writable: false,
+    });
+
+    importScripts(config.main_url);
+  }
+});
+
+// class VM {
+//   readonly globalObject = Object.create(self);
+//   constructor(readonly main_url: string) {
+//     const main_parsed_url = new URL(main_url);
+//     const location = {
+//       hash: main_parsed_url.hash,
+//       host: main_parsed_url.host,
+//       hostname: main_parsed_url.hostname,
+//       href: main_parsed_url.href,
+//       origin: main_parsed_url.origin,
+//       pathname: main_parsed_url.pathname,
+//       port: main_parsed_url.port,
+//       protocol: main_parsed_url.protocol,
+//       search: main_parsed_url.search,
+//     };
+//     Object.setPrototypeOf(location, WorkerLocation);
+
+//     Object.defineProperty(this.globalObject, "location", {
+//       value: location,
+//       configurable: false,
+//       enumerable: false,
+//       writable: false,
+//     });
+//   }
+
+//   /// TODO 这里将使用 esbuild 的 wasm 版本的代码对代码进行解析(在主线程那边解码)，然后才执行
+//   evaluate<R>(code: string): R {
+//     // @ts-ignore
+//     with (this.globalObject) {
+//       return eval(`${code}`);
+//     }
+//   }
+
+//   start(){
+//     this.evaluate(`importScripts()`)
+//   }
+// }
