@@ -9,6 +9,7 @@ import {
   simpleEncoder,
 } from "../core/helper.cjs";
 import type { $Method } from "../core/types.cjs";
+import { findPort } from "./$helper/find-port.cjs";
 
 interface $OnRequestBind {
   paths: readonly $ReqMatcher[];
@@ -129,7 +130,7 @@ class HttpListener {
 export class LocalhostNMM extends NativeMicroModule {
   mmid = "localhost.sys.dweb" as const;
   private listenMap = new Map</* host */ string, HttpListener>();
-  private _local_port = 18909;
+  private _local_port = 0;
   private _http_server?: http.Server;
 
   async _bootstrap() {
@@ -150,32 +151,7 @@ export class LocalhostNMM extends NativeMicroModule {
         }
         listener.hookHttpRequest(req, res);
       })
-      .listen(this._local_port);
-
-    chrome.webRequest.onResponseStarted.addListener(
-      (details) => {
-        console.log("onCompleted details:", details);
-      },
-      {
-        urls: ["<all_urls>"],
-      }
-    );
-    chrome.webRequest.onCompleted.addListener(
-      (details) => {
-        console.log("onCompleted details:", details);
-      },
-      {
-        urls: ["<all_urls>"],
-      }
-    );
-    chrome.webRequest.onErrorOccurred.addListener(
-      (details) => {
-        console.log("onErrorOccurred details:", details);
-      },
-      {
-        urls: ["<all_urls>"],
-      }
-    );
+      .listen((this._local_port = await findPort([28909])));
 
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/listen",
@@ -234,7 +210,7 @@ export class LocalhostNMM extends NativeMicroModule {
   }
 
   private _getOrigin(port: number, ipc: Ipc) {
-    return `${ipc.module.mmid}.${port}.localhost:${this._local_port}`;
+    return `${ipc.remote.mmid}.${port}.localhost:${this._local_port}`;
   }
 
   /// 监听

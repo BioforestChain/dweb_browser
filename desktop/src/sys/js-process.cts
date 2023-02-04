@@ -7,8 +7,8 @@ import {
 } from "../core/helper.cjs";
 import { Ipc, IpcResponse, IPC_DATA_TYPE, IPC_ROLE } from "../core/ipc.cjs";
 import { NativeIpc } from "../core/ipc.native.cjs";
-import type { MicroModule } from "../core/micro-module.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
+import { findPort } from "./$helper/find-port.cjs";
 
 const packageJson = require("../../package.json");
 
@@ -43,45 +43,38 @@ export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.sys.dweb` as const;
   private window?: nw.Window;
   private server?: http.Server;
+  private _server_port = 0;
 
   private processImportsMap = new Map<string, ProcessImports>();
   async _bootstrap() {
     /// 创建 http 服务
-    const port = await new Promise<number>((resolve, reject) => {
-      const server = (this.server = http
-        .createServer(async (req, res) => {
-          const req_host = req.headers.host;
-          if (req_host == null) {
-            defaultErrorPage(req, res, 403, "invalid host");
-            return;
-          }
-          /// TODO 这里需要检查 Referer 值是否正常才行，避免跨应用盗取
-          const processImports = this.processImportsMap.get(req_host);
-          if (processImports === undefined) {
-            defaultErrorPage(req, res, 502, "no found process");
-            return;
-          }
+    const server = (this.server = http
+      .createServer(async (req, res) => {
+        const req_host = req.headers.host;
+        if (req_host == null) {
+          defaultErrorPage(req, res, 403, "invalid host");
+          return;
+        }
+        /// TODO 这里需要检查 Referer 值是否正常才行，避免跨应用盗取
+        const processImports = this.processImportsMap.get(req_host);
+        if (processImports === undefined) {
+          defaultErrorPage(req, res, 502, "no found process");
+          return;
+        }
 
-          const code = await processImports.linker(
-            new URL(req.url ?? "/", `http://${req_host}`)
-          );
-          if (code === undefined) {
-            defaultErrorPage(req, res, 404, "no found");
-            return;
-          }
-          res.statusCode = 200;
-          res.setHeader("Content-Type", code.mime);
-          res.end(code.data);
-        })
-        .listen(() => {
-          const address_info = server.address();
-          if (address_info == null || typeof address_info === "string") {
-            reject(new Error(`fail to get port`));
-          } else {
-            resolve(address_info.port);
-          }
-        }));
-    });
+        const code = await processImports.linker(
+          new URL(req.url ?? "/", `http://${req_host}`)
+        );
+        if (code === undefined) {
+          defaultErrorPage(req, res, 404, "no found");
+          return;
+        }
+        res.statusCode = 200;
+        res.setHeader("Content-Type", code.mime);
+        res.end(code.data);
+      })
+      .listen((this._server_port = await findPort([28901]))));
+
     const defaultErrorPage = (
       req: http.IncomingMessage,
       res: http.ServerResponse,
@@ -95,19 +88,20 @@ export class JsProcessNMM extends NativeMicroModule {
 
     /// 内部的代码
     const internalProcessImports = new ProcessImports(
-      `internal.js.sys.dweb.localhost:${port}`
+      `internal.js.sys.dweb.localhost:${this._server_port}`
     );
     const JS_PROCESS_WORKER_CODE = await fetch(
       new URL("bundle/js-process.worker.cjs", location.href)
     ).then((res) => res.text());
     internalProcessImports.importMaps.push({
       pathMatcher: {
-        pathname: "/env.js",
-        matchMode: "full",
+        pathname: "/js-process/",
+        matchMode: "prefix",
       },
       hanlder(url) {
+        const mmid = url.pathname.split("/", 3)[2];
         const install_code = wrapCommonJsCode(JS_PROCESS_WORKER_CODE, {
-          after: `.installEnv(${JSON.stringify(url.searchParams.get("mmid"))})`,
+          after: `.installEnv(${JSON.stringify(mmid)})`,
         });
         return {
           mime: "application/javascript",
@@ -138,10 +132,8 @@ export class JsProcessNMM extends NativeMicroModule {
       output: "number",
       hanlder: (args, ipc) => {
         return this.createProcessAndRun(
-          { apis, port, ipc },
-          `http://${
-            internalProcessImports.host
-          }/env.js?mmid=${encodeURIComponent(this.mmid)}`,
+          { apis, ipc },
+          `http://${internalProcessImports.host}/js-process/${ipc.remote.mmid}`,
           args.main_code
         );
       },
@@ -173,7 +165,6 @@ export class JsProcessNMM extends NativeMicroModule {
   private async createProcessAndRun(
     ctx: {
       apis: $APIS;
-      port: number;
       ipc: Ipc;
     },
     bootstrap_url: string,
@@ -184,7 +175,11 @@ export class JsProcessNMM extends NativeMicroModule {
     const process = await ctx.apis.createProcess(bootstrap_url, channel.port2);
 
     /// 将 js-worker 中的请求进行中转代理
-    const worker_ipc = new NativeIpc(channel.port1, this, IPC_ROLE.CLIENT);
+    const worker_ipc = new NativeIpc(
+      channel.port1,
+      ctx.ipc.remote,
+      IPC_ROLE.CLIENT
+    );
     worker_ipc.onMessage(async (ipcMessage, ipc) => {
       if (ipcMessage.type === IPC_DATA_TYPE.REQUEST) {
         /// 收到 Worker 的数据请求，转发出去
@@ -195,7 +190,7 @@ export class JsProcessNMM extends NativeMicroModule {
       }
     });
 
-    const host = `p_${process.process_id}.js.sys.dweb.localhost:${ctx.port}`;
+    const host = `p_${process.process_id}.js.sys.dweb.localhost:${this._server_port}`;
 
     const processImports = new ProcessImports(host);
     processImports.importMaps.push({
@@ -213,7 +208,6 @@ export class JsProcessNMM extends NativeMicroModule {
     this.processImportsMap.set(host, processImports);
 
     process.runMain({
-      mmid: this.mmid,
       main_url: new URL(main_pathname, `http://${host}`).href,
     });
 
@@ -245,8 +239,8 @@ const getIpcCache = (port_id: number) => {
  * 那么连接发起方就可以通过这个 id(number) 和 JsIpc 构造器来实现与 js-worker 的直连
  */
 export class JsIpc extends NativeIpc {
-  constructor(port_id: number, module: MicroModule) {
-    super(getIpcCache(port_id), module, IPC_ROLE.CLIENT);
+  constructor(port_id: number, modules: NativeIpc["remote"]) {
+    super(getIpcCache(port_id), modules, IPC_ROLE.CLIENT);
     /// TODO 这里应该放在和 ALL_IPC_CACHE.set 同一个函数下，只是原生的 MessageChannel 没有 close 事件，这里没有给它模拟，所以有问题
     this.onClose(() => {
       ALL_IPC_CACHE.delete(port_id);

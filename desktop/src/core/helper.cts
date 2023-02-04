@@ -189,7 +189,7 @@ export const normalizeFetchArgs = (
   let _parsed_url: URL | undefined;
   let _request_init = init;
   if (typeof url === "string") {
-    _parsed_url = new URL(url);
+    _parsed_url = new URL(url, location.href);
   } else if (url instanceof Request) {
     _parsed_url = new URL(url.url);
     _request_init = url;

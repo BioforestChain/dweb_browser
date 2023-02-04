@@ -291,7 +291,7 @@ export const enum IPC_ROLE {
 let ipc_uid_acc = 0;
 export abstract class Ipc {
   readonly uid = ipc_uid_acc++;
-  abstract readonly module: $MicroModule;
+  abstract readonly remote: $MicroModule;
   abstract readonly role: IPC_ROLE;
   abstract postMessage(data: $IpcMessage): void;
   abstract onMessage(cb: $IpcOnMessage): () => boolean;

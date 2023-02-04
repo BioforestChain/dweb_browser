@@ -1,4 +1,5 @@
 import { PromiseOut } from "../core/helper.cjs";
+import type { $RunMainConfig } from "./js-process.worker.cjs";
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 const ALL_PROCESS_MAP = new Map<
@@ -18,7 +19,7 @@ const createProcess = async (
 ) => {
   const process_id = allocProcessId();
 
-  const worker = new Worker(env_script_url);
+  const worker = new Worker(env_script_url, {});
 
   worker.postMessage(["fetch-ipc-channel", fetch_port], [fetch_port]);
   /// 等待启动任务完成
@@ -35,7 +36,7 @@ const createProcess = async (
   /// 保存 js-process
   ALL_PROCESS_MAP.set(process_id, { worker, fetch_port });
 
-  const runMain = (config: { mmid: string; main_url: string }) => {
+  const runMain = (config: $RunMainConfig) => {
     worker.postMessage(["run-main", config]);
   };
 

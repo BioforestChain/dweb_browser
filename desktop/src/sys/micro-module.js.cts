@@ -29,7 +29,7 @@ export class JsMicroModule extends MicroModule {
     ).number());
   }
   private _connectting_ipcs = new Set<Ipc>();
-  async _connect(): Promise<JsIpc> {
+  async _connect(from: MicroModule): Promise<JsIpc> {
     const process_id = this._process_id;
     if (process_id === undefined) {
       throw new Error("process_id no found.");

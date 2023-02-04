@@ -55,7 +55,7 @@ export const $messageToIpcMessage = (
 export class NativeIpc extends Ipc {
   constructor(
     readonly port: MessagePort,
-    readonly module: $MicroModule,
+    readonly remote: $MicroModule,
     readonly role: IPC_ROLE
   ) {
     super();
