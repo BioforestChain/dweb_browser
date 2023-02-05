@@ -152,40 +152,6 @@ private fun NavFun(activity: ComponentActivity) {
                     customUrlScheme = customUrlScheme,
                 ) { webView ->
                     dWebView = webView
-                    val workerHandle = "worker${Date().time}"
-                    println("kotlin#JsMicroModule workerHandle==> $workerHandle")
-                    val inputStream = App.appContext.assets.open("injectWorkerJs/injectWorker.js")
-                    val byteArray = inputStream.readBytes()
-                    val injectJs = String(byteArray)
-                    val channel = webView.createWebMessageChannel()
-                    channel[0].setWebMessageCallback(object :
-                        WebMessagePort.WebMessageCallback() {
-                        override fun onMessage(port: WebMessagePort, message: WebMessage) {
-                            println("kotlin#JsMicroModuleport🍟message: ${message.data}")
-                        }
-                    })
-                    // 构建注入的代码
-                    val workerCode =
-                        "data:utf-8,((module,exports=module.exports)=>{$injectJs;return module.exports})({exports:{}}).installEnv();console.log(\"ookkkkk, i'm in worker\");\n" +
-                                "(async () => {\n" +
-                                "    const view_id = await fetch(\"file://KEJPMHLA.mwebview.sys.dweb/open?origin=https://objectjson.waterbang.top/index.html\").then((res) => res.text());\n" +
-                                "})()"
-                    webView.evaluateJavascript("const $workerHandle = new Worker(`$workerCode`); \n") {
-                        println("worker创建完成")
-                    }
-                    webView.evaluateJavascript(
-                        "onmessage = function (e) {\n" +
-                                "console.log(\"kotlin#DwebViewActivity port1111\", e.data, e.ports[0]); \n" +
-                                "$workerHandle.postMessage([\"ipc-channel\", e.ports[0]], [e.ports[0]])\n" +
-                                "}\n"
-                    ) {
-                        println("worker监听注册完成")
-                    }
-                    webView.postWebMessage(
-                        WebMessage("fetch-ipc-channel", arrayOf(channel[1])),
-                        Uri.EMPTY
-                    )
-                    channel[0].postMessage(WebMessage("xxx"))
                 }
             }
         }

@@ -238,31 +238,40 @@ var installEnv = () => {
     let registerFetchIpc = true;
     const registerFetchIpc_po = new PromiseOut();
     self.addEventListener("message", (event) => {
-        console.log("injectWorker: register worker in native port", event.data)
         if (Array.isArray(event.data) && event.data[0] === "ipc-channel") {
             fetchIpc = new NativeIpc(event.data[1]);
             event.data[1].onmessage = (message) => {
-                console.log("injectWorker: webWorker get data", message)
-                const obj = message.data;
-                if (Object.prototype.toString.call(obj) === '[Object Object]' && obj.type === 1 /* RESPONSE */) {
-                    const res_po = reqresMap.get(obj.req_id);
-                    if (res_po !== void 0) {
-                        reqresMap.delete(obj.req_id);
-                        res_po.resolve(obj);
-                    }
-                }
+                let response = message.data;
+                responseFactory(response)
             }
             registerFetchIpc = false
             registerFetchIpc_po.resolve()
             self.dispatchEvent(new MessageEvent("connect", { data: fetchIpc }));
         }
     });
+    function responseFactory(response) {
+        if (Object.prototype.toString.call(response) === '[object String]') {
+            try {
+                response = JSON.parse(response)
+            } catch (error) {
+                console.log("injectWorker:responseFactory==>", error)
+            }
+        }
+        console.log("injectWorker: webWorker get data", response, Object.prototype.toString.call(response))
+        if (Object.prototype.toString.call(response) === '[object Object]' && response.type === 1 /* RESPONSE */) {
+            console.log("injectWorker: in aaaa=>", response.req_id, response.body)
+            const res_po = reqresMap.get(response.req_id);
+            if (res_po !== void 0) {
+                reqresMap.delete(response.req_id);
+                res_po.resolve(response);
+            }
+        }
+    }
     const reqresMap = /* @__PURE__ */ new Map();
     let req_id = 0;
     const allocReqId = () => req_id++;
     const native_fetch = globalThis.fetch;
     globalThis.fetch = function fetch(url, init) {
-        console.log("injectWorker:globalThis.fetch:", url)
         const args = normalizeFetchArgs(url, init);
         const { parsed_url } = args;
         if (parsed_url.protocol === "file:" && parsed_url.hostname.endsWith(".dweb")) {
