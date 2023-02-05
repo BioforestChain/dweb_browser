@@ -3,13 +3,14 @@ package info.bagen.rust.plaoc.microService
 
 /** 启动Boot服务*/
 fun startBootNMM() {
-    BootNMM().bootstrap(NativeOptions(routerTarget = "desktop.sys.dweb"))
+   val boot = global_micro_dns.nativeFetch("file://desktop.sys.dweb/")
+    println("startBootNMM# boot response: $boot")
 }
 
 open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
-    override fun bootstrap(args:NativeOptions) {
+    override fun bootstrap(args:NativeOptions): Any? {
         println("Kotlin#NativeMicroModule mmid:$mmid bootstrap $args")
-        global_micro_dns.dnsMap[mmid]?.let { it -> it(args) }
+       return global_micro_dns.dnsMap[mmid]?.let { it -> it(args) }
     }
 
     override fun ipc(): Ipc {
@@ -39,6 +40,6 @@ open class NativeOptions(
 
 abstract class MicroModule {
     open val mmid: String = ""
-    abstract fun bootstrap(args:NativeOptions)
+    abstract fun bootstrap(args:NativeOptions): Any?
     abstract fun ipc(): Ipc
 }

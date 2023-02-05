@@ -100,9 +100,8 @@ class MainActivity : AppCompatActivity() {
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
-                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host")
-//                        global_micro_dns.nativeFetch("file://mwebview.sys.dweb/open?origin=https://objectjson.waterbang.top")
-                        global_micro_dns.nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
+                        val workerId = global_micro_dns.nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
+                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerId")
                     })
                 }
             }

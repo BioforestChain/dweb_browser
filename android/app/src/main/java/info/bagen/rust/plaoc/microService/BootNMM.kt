@@ -8,7 +8,7 @@ typealias IO = (mmid: Any) -> Any
 class BootNMM : NativeMicroModule() {
     override val mmid: Mmid = "boot.sys.dweb"
     private val routers: Router = mutableMapOf()
-    private val registeredMmids = mutableMapOf<Mmid, MicroModule>()
+    val registeredMmids = mutableMapOf<Mmid, MicroModule>()
 
     init {
         // 初始化注册微组件的函数
@@ -22,12 +22,6 @@ class BootNMM : NativeMicroModule() {
         registeredMmids["desktop.bfs.dweb"] = NativeMicroModule("desktop.bfs.dweb")
     }
 
-    override fun bootstrap(args: NativeOptions) {
-        registeredMmids.values.forEach { microModule ->
-            println("Kotlin#BootNMM:$microModule")
-            microModule.bootstrap(args)
-        }
-    }
 
     private fun registerMicro(mmid: Mmid): Boolean {
         val micro = registeredMmids.put(mmid, NativeMicroModule(mmid))

@@ -61,11 +61,12 @@ class SplashActivity : AppCompatActivity() {
 
 }
 
-fun openHomeActivity() {
+fun openHomeActivity(): Boolean {
     val intent = Intent(App.appContext.applicationContext, MainActivity::class.java).apply {
         addFlags(FLAG_ACTIVITY_NEW_TASK)
     }
     App.appContext.startActivity(intent)
+    return true
 }
 
 @OptIn(ExperimentalTextApi::class)

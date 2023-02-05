@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService
 
 import info.bagen.rust.plaoc.openHomeActivity
+import kotlinx.coroutines.sync.Mutex
 import java.net.URLDecoder
 
 
@@ -11,7 +12,7 @@ val global_micro_dns = DwebDNS()
 
 class DwebDNS : NativeMicroModule() {
     private val dnsTables = mutableMapOf<Domain, MicroModule>()
-    val dnsMap = mutableMapOf<Mmid, (data: NativeOptions) -> Unit>()
+    val dnsMap = mutableMapOf<Mmid, (data: NativeOptions) -> Any?>()
 
     private val jsMicroModule = JsMicroModule()
     private val bootNMM = BootNMM()
@@ -27,17 +28,22 @@ class DwebDNS : NativeMicroModule() {
     /** 转发dns到各个微组件
      *  file://
      *  */
-    fun nativeFetch(url: String) {
+    fun nativeFetch(url: String): Any? {
         val tmp = url.substring(7)
         val mmid = tmp.substring(0, tmp.indexOf("/"))
-        println("kotlin#nativeFetch mmid==> $mmid tmp==> $tmp")
         val option = fetchMatchParam(tmp)
+        println("kotlin#nativeFetch mmid==> $mmid routerTarget==> ${option.routerTarget}")
         dnsTables.keys.forEach { domain ->
             if (mmid.contains(domain)) {
+               return dnsTables[domain]?.bootstrap(option)
 //                println("kotlin#fetchMatchParam bootOptions ==> ${option.origin},${option.mainJs} ")
-                dnsTables[domain]?.bootstrap(option)
             }
         }
+        bootNMM.registeredMmids.values.forEach { microModule ->
+            println("Kotlin#BootNMM:$microModule")
+            return microModule.bootstrap(option)
+        }
+        return "Error not found $mmid domain"
     }
 
     private val bootOptionParams = mutableSetOf("origin", "mainCode", "main_code")

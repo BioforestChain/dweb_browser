@@ -23,6 +23,7 @@ data class IpcResponse(
     @SerializedName("headers") val headers: Map<String, String> =  mapOf(),
     @SerializedName("type") val type:Int  = 1
 )
+
 var ipc_uid_acc = 0;
 
 abstract class Ipc {
