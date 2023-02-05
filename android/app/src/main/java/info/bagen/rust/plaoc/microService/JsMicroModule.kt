@@ -12,8 +12,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import java.util.*
-import kotlin.coroutines.startCoroutine
-import kotlin.system.measureTimeMillis
+
 
 
 typealias workerOption = NativeOptions
@@ -28,7 +27,7 @@ class JsMicroModule : MicroModule() {
 
     init {
         // 创建一个webWorker
-        routers["create-process"] = put@{ args ->
+        routers["/create-process"] = put@{ args ->
             return@put createProcess(args as workerOption)
         }
     }
@@ -39,9 +38,7 @@ class JsMicroModule : MicroModule() {
        return this.createProcess(args)
     }
 
-    override fun ipc(): Ipc {
-        TODO("Not yet implemented")
-    }
+
 
     // 创建一个webWorker
     private fun createProcess(args: workerOption): Any {

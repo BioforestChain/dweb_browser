@@ -24,15 +24,6 @@ data class IpcResponse(
     @SerializedName("type") val type:Int  = 1
 )
 
-var ipc_uid_acc = 0;
 
-abstract class Ipc {
-    val uid = ipc_uid_acc++;
-    abstract fun postMessage(data: IpcRequest): Void
-    abstract fun onMessage(
-        cb: (message: IpcRequest) -> Void
-    ): () -> Boolean;
 
-    abstract fun close(): Void;
-    abstract fun onClose(cb: () -> Void): () -> Boolean;
-}
+

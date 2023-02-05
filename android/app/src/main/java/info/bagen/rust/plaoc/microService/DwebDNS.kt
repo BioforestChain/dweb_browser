@@ -54,18 +54,18 @@ class DwebDNS : NativeMicroModule() {
         var query = ""
         // 如果是这种类型的 open?xx=xxx
         if (url.indexOf("?") > 0) {
-            routerTarget = url.substring(url.indexOf("/") + 1,url.indexOf("?"))
+            routerTarget = url.substring(url.indexOf("/"),url.indexOf("?"))
             query = url.substring(url.indexOf("?") + 1)
         } else {
             // 如果是这种类型的 /listen/(:webview_id)
             val lIdx = url.lastIndexOf("/")
             val idx = url.indexOf("/")
             if (lIdx < 0) {
-                routerTarget = url.substring(idx + 1,lIdx)
+                routerTarget = url.substring(idx,lIdx)
                 query = url.substring(lIdx)
             } else {
                 // 如果是这种类型的请求 mwebview.sys.dweb/open 没有参数 那么就不需要截取最后的 / 直接取出 open(routerTarget)
-                routerTarget = url.substring(idx + 1)
+                routerTarget = url.substring(idx)
             }
         }
         // 处理传递的参数

@@ -12,10 +12,10 @@ class BootNMM : NativeMicroModule() {
 
     init {
         // 初始化注册微组件的函数
-        routers["register"] = put@{ mmid ->
+        routers["/register"] = put@{ mmid ->
             return@put registerMicro(mmid as Mmid)
         }
-        routers["unregister"] = put@{ mmid ->
+        routers["/unregister"] = put@{ mmid ->
             return@put unRegisterMicro(mmid as Mmid)
         }
         // 初始化启动一个桌面系统程序

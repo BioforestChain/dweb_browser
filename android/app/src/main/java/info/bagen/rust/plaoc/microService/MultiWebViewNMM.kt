@@ -14,10 +14,10 @@ class MultiWebViewNMM() : NativeMicroModule() {
 
     init {
         // 注册路由
-        routers["open"] = put@{
+        routers["/open"] = put@{
             return@put openDwebView(it as NativeOptions)
         }
-        routers["evalJavascript"] = put@{
+        routers["/evalJavascript"] = put@{
             return@put true
         }
     }
