@@ -19,6 +19,8 @@ interface ApiService {
         DLProgress: (Long, Long) -> Unit
     )
 
+    suspend fun getNetWorker(url:String):String
+
     suspend fun breakpointDownloadAndSave(
         path: String,
         file: File?,

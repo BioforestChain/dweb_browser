@@ -17,6 +17,8 @@ import kotlinx.coroutines.cancel
 import java.io.File
 
 class ApiServiceImpl(private val client: HttpClient) : ApiService {
+
+
     override suspend fun getAppVersion(path: String): ApiResultData<BaseData<AppVersion>> =
         info.bagen.libappmgr.network.base.runCatching {
             client.get(path).checkAndBody()
@@ -57,6 +59,11 @@ class ApiServiceImpl(private val client: HttpClient) : ApiService {
             }
             if (isStop) httpResponse.cancel()
         }
+    }
+
+    override suspend fun getNetWorker(url: String): String {
+       val response =  client.get(url)
+       return response.bodyAsText()
     }
 
     override suspend fun breakpointDownloadAndSave(

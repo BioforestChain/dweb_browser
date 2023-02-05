@@ -4,28 +4,24 @@ import info.bagen.rust.plaoc.webView.openDWebWindow
 
 typealias code = String
 
-data class WebViewOptions(
-    val processId: Int? = null,  // 要挂载的父进程id
-    val webViewId: String = "default", // default.mwebview.sys.dweb
-    val origin: String = "",
-)
 
-class MultiWebViewNMM(override val mmid: String = "mwebview.sys.dweb") : NativeMicroModule() {
+class MultiWebViewNMM() : NativeMicroModule() {
+    override val mmid: String ="mwebview.sys.dweb"
 
     private var viewTree: ViewTree = ViewTree()
-    private val routers: Router = mutableMapOf()
+    val routers: Router = mutableMapOf()
 
     init {
         // 注册路由
-        routers["/open"] = put@{
-            return@put openDwebView(it as WebViewOptions)
+        routers["open"] = put@{
+            return@put openDwebView(it as NativeOptions)
         }
-        routers["/evalJavascript/(:webview_id)"] = put@{
+        routers["evalJavascript"] = put@{
             return@put true
         }
     }
 
-     fun openDwebView(args: WebViewOptions): Number {
+     private fun openDwebView(args: NativeOptions): Number {
         println("Kotlin#MultiWebViewNMM openDwebView $args")
         val webviewNode = viewTree.createNode(args)
         viewTree.appendTo(webviewNode)
@@ -52,7 +48,7 @@ class ViewTree {
         val children: MutableList<ViewTreeStruct?>
     )
 
-    fun createNode(args: WebViewOptions): ViewTreeStruct {
+    fun createNode(args: NativeOptions): ViewTreeStruct {
         // 存储当前的父级节点
         var processId = currentProcess
         //  当用户传递了processId，即明确需要挂载到某个view下

@@ -30,8 +30,7 @@ fun interceptNetworkRequests(
     // 防止卡住请求为空而崩溃
     if (url.isNotEmpty() && !path.isNullOrEmpty()) {
         val temp = url.substring(url.lastIndexOf("/") + 1)
-        Log.e("NetworkMap", "interceptNetworkRequests: temp=$temp,")
-
+        Log.e("NetworkMap", "interceptNetworkRequests: temp=$temp")
         if (temp.startsWith("poll") || temp.startsWith("setUi")) {
             return jsGateWay(customUrlScheme, request)
         }

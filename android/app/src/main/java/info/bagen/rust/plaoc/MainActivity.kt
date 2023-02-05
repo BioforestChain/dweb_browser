@@ -36,8 +36,7 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
-import info.bagen.rust.plaoc.microService.MultiWebViewNMM
-import info.bagen.rust.plaoc.microService.WebViewOptions
+import info.bagen.rust.plaoc.microService.global_micro_dns
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
@@ -55,7 +54,6 @@ class MainActivity : AppCompatActivity() {
     private val appViewModel: AppViewModel by viewModel()
     private val mainViewModel: MainViewModel by viewModel()
     private var bfsBroadcastReceiver: BFSBroadcastReceiver? = null
-    private val microWebView = MultiWebViewNMM()
 
     @JvmName("getAppViewModel1")
     fun getAppViewModel(): AppViewModel {
@@ -102,10 +100,9 @@ class MainActivity : AppCompatActivity() {
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
-                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host--$dAppInfo ")
-                        if (dAppInfo != null) {
-                            microWebView.openDwebView(WebViewOptions(webViewId = appId, origin = dAppInfo.url))
-                        };
+                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host")
+//                        global_micro_dns.nativeFetch("file://mwebview.sys.dweb/open?origin=https://objectjson.waterbang.top")
+                        global_micro_dns.nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
                     })
                 }
             }
