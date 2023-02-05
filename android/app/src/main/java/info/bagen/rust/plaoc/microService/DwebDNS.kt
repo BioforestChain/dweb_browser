@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService
 
 import info.bagen.rust.plaoc.openHomeActivity
+import kotlinx.coroutines.sync.Mutex
 import java.net.URLDecoder
 
 
@@ -11,7 +12,7 @@ val global_micro_dns = DwebDNS()
 
 class DwebDNS : NativeMicroModule() {
     private val dnsTables = mutableMapOf<Domain, MicroModule>()
-    val dnsMap = mutableMapOf<Mmid, (data: NativeOptions) -> Unit>()
+    val dnsMap = mutableMapOf<Mmid, (data: NativeOptions) -> Any?>()
 
     private val jsMicroModule = JsMicroModule()
     private val bootNMM = BootNMM()
@@ -27,17 +28,22 @@ class DwebDNS : NativeMicroModule() {
     /** 转发dns到各个微组件
      *  file://
      *  */
-    fun nativeFetch(url: String) {
+    fun nativeFetch(url: String): Any? {
         val tmp = url.substring(7)
         val mmid = tmp.substring(0, tmp.indexOf("/"))
-        println("kotlin#nativeFetch mmid==> $mmid tmp==> $tmp")
         val option = fetchMatchParam(tmp)
+        println("kotlin#nativeFetch mmid==> $mmid routerTarget==> ${option.routerTarget}")
         dnsTables.keys.forEach { domain ->
             if (mmid.contains(domain)) {
+               return dnsTables[domain]?.bootstrap(option)
 //                println("kotlin#fetchMatchParam bootOptions ==> ${option.origin},${option.mainJs} ")
-                dnsTables[domain]?.bootstrap(option)
             }
         }
+        bootNMM.registeredMmids.values.forEach { microModule ->
+            println("Kotlin#BootNMM:$microModule")
+            return microModule.bootstrap(option)
+        }
+        return "Error not found $mmid domain"
     }
 
     private val bootOptionParams = mutableSetOf("origin", "mainCode", "main_code")
@@ -48,18 +54,18 @@ class DwebDNS : NativeMicroModule() {
         var query = ""
         // 如果是这种类型的 open?xx=xxx
         if (url.indexOf("?") > 0) {
-            routerTarget = url.substring(url.indexOf("/") + 1,url.indexOf("?"))
+            routerTarget = url.substring(url.indexOf("/"),url.indexOf("?"))
             query = url.substring(url.indexOf("?") + 1)
         } else {
             // 如果是这种类型的 /listen/(:webview_id)
             val lIdx = url.lastIndexOf("/")
             val idx = url.indexOf("/")
             if (lIdx < 0) {
-                routerTarget = url.substring(idx + 1,lIdx)
+                routerTarget = url.substring(idx,lIdx)
                 query = url.substring(lIdx)
             } else {
                 // 如果是这种类型的请求 mwebview.sys.dweb/open 没有参数 那么就不需要截取最后的 / 直接取出 open(routerTarget)
-                routerTarget = url.substring(idx + 1)
+                routerTarget = url.substring(idx)
             }
         }
         // 处理传递的参数
