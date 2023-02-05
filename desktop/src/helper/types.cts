@@ -39,7 +39,8 @@ export interface $MicroModule {
   fetch(
     input: RequestInfo | URL,
     init?: RequestInit
-  ): Promise<Response> & typeof import("./helper.cjs")["fetch_helpers"];
+  ): Promise<Response> &
+    typeof import("./$makeFetchExtends.cjs")["fetchExtends"];
 }
 
 export type $Method = "GET" | "POST" | "PUT" | "DELETE" | "OPTIONS";

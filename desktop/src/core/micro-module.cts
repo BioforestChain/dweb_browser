@@ -1,6 +1,7 @@
-import { fetch_helpers, PromiseOut } from "./helper.cjs";
-import type { Ipc } from "./ipc.cjs";
-import type { $MicroModule, $MMID, $PromiseMaybe } from "./types.cjs";
+import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
+import { PromiseOut } from "../helper/PromiseOut.cjs";
+import type { $MicroModule, $MMID, $PromiseMaybe } from "../helper/types.cjs";
+import type { Ipc } from "./ipc/index.cjs";
 
 export abstract class MicroModule implements $MicroModule {
   abstract mmid: $MMID;
@@ -66,6 +67,6 @@ export abstract class MicroModule implements $MicroModule {
 
   fetch(url: RequestInfo | URL, init?: RequestInit) {
     /// 强制注入上下文
-    return Object.assign(fetch.call(this, url, init), fetch_helpers);
+    return Object.assign(fetch.call(this, url, init), fetchExtends);
   }
 }

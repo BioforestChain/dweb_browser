@@ -1,4 +1,6 @@
-import { createSingle } from "./helper.cjs";
+import { decode, encode } from "@msgpack/msgpack";
+import { createSignal } from "../helper/createSignal.cjs";
+import type { $MicroModule } from "../helper/types.cjs";
 import {
   $IpcMessage,
   $IpcOnMessage,
@@ -10,17 +12,19 @@ import {
   IpcStreamPull,
   IPC_DATA_TYPE,
   IPC_ROLE,
-} from "./ipc.cjs";
-import type { $MicroModule } from "./types.cjs";
+} from "./ipc/index.cjs";
 
 type $JSON<T> = {
   [key in keyof T]: T[key] extends Function ? never : T[key];
 };
 
 export const $messageToIpcMessage = (
-  data: $JSON<$IpcMessage> | "close",
+  data: $JSON<$IpcMessage> | "close" | Uint8Array,
   ipc: Ipc
 ) => {
+  if (data instanceof Uint8Array) {
+    data = decode(data) as $JSON<$IpcMessage>;
+  }
   let message: undefined | $IpcMessage | "close";
 
   if (data === "close") {
@@ -52,11 +56,13 @@ export const $messageToIpcMessage = (
   return message;
 };
 
-export class NativeIpc extends Ipc {
+export class MessagePortIpc extends Ipc {
   constructor(
     readonly port: MessagePort,
     readonly remote: $MicroModule,
-    readonly role: IPC_ROLE
+    readonly role: IPC_ROLE,
+    /** MessagePort 默认支持二进制传输 */
+    readonly support_message_pack = true
   ) {
     super();
     port.addEventListener("message", (event) => {
@@ -71,7 +77,7 @@ export class NativeIpc extends Ipc {
       }
 
       /// ipc-message
-      this._onMessage.emit(message, this);
+      this._messageSignal.emit(message, this);
     });
     port.start();
   }
@@ -79,11 +85,13 @@ export class NativeIpc extends Ipc {
     if (this._closed) {
       return;
     }
-    this.port.postMessage(message);
+    this.port.postMessage(
+      this.support_message_pack ? encode(message) : message
+    );
   }
-  private _onMessage = createSingle<$IpcOnMessage>();
+  private _messageSignal = createSignal<$IpcOnMessage>();
   onMessage(cb: $IpcOnMessage) {
-    return this._onMessage.bind(cb);
+    return this._messageSignal.bind(cb);
   }
   private _closed = false;
   close() {
@@ -93,10 +101,22 @@ export class NativeIpc extends Ipc {
     this._closed = true;
     this.port.postMessage("close");
     this.port.close();
-    this._onClose.emit();
+    this._closeSignal.emit();
   }
-  private _onClose = createSingle<() => unknown>();
+  private _closeSignal = createSignal<() => unknown>();
   onClose(cb: () => unknown) {
-    return this._onClose.bind(cb);
+    return this._closeSignal.bind(cb);
+  }
+}
+
+export class NativeIpc extends MessagePortIpc {
+  constructor(
+    port: MessagePort,
+    remote: $MicroModule,
+    role: IPC_ROLE,
+    /// 原生之间的互相传输，默认支持 message-pack 格式
+    support_message_pack = true
+  ) {
+    super(port, remote, role, support_message_pack);
   }
 }

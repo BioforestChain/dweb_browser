@@ -1,5 +1,5 @@
-import { openNwWindow } from "../core/helper.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
+import { openNwWindow } from "../helper/openNwWindow.cjs";
 
 // @ts-ignore
 type $APIS = typeof import("./multi-webview.html.mjs")["APIS"];

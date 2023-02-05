@@ -1,11 +1,9 @@
-import {
-  normalizeFetchArgs,
-  $readRequestAsIpcRequest,
-} from "../core/helper.cjs";
-import type { Ipc } from "../core/ipc.cjs";
+import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
+import { $readRequestAsIpcRequest } from "../helper/$readRequestAsIpcRequest.cjs";
+import type { Ipc } from "../core/ipc/index.cjs";
 import { MicroModule } from "../core/micro-module.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
-import type { $MMID, $PromiseMaybe } from "../core/types.cjs";
+import type { $MMID, $PromiseMaybe } from "../helper/types.cjs";
 
 /** DNS 服务，内核！
  * 整个系统都围绕这个 DNS 服务来展开互联

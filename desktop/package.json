@@ -28,6 +28,7 @@
         "prettier-plugin-organize-imports": "^3.2.2"
     },
     "dependencies": {
+        "@msgpack/msgpack": "^2.8.0",
         "@types/chrome": "^0.0.210",
         "lit": "^2.6.1",
         "lodash": "^4.17.21",

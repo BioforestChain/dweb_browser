@@ -1,6 +1,6 @@
-import type { Ipc } from "../core/ipc.cjs";
+import type { Ipc } from "../core/ipc/index.cjs";
 import { MicroModule } from "../core/micro-module.cjs";
-import type { $MMID } from "../core/types.cjs";
+import type { $MMID } from "../helper/types.cjs";
 import { JsIpc } from "./js-process.cjs";
 
 /**

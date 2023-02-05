@@ -1,13 +1,10 @@
 import http from "node:http";
-import {
-  $isMatchReq,
-  $ReqMatcher,
-  openNwWindow,
-  wrapCommonJsCode,
-} from "../core/helper.cjs";
-import { Ipc, IpcResponse, IPC_DATA_TYPE, IPC_ROLE } from "../core/ipc.cjs";
-import { NativeIpc } from "../core/ipc.native.cjs";
+import { Ipc, IpcResponse, IPC_DATA_TYPE, IPC_ROLE } from "../core/ipc/index.cjs";
+import { MessagePortIpc, NativeIpc } from "../core/ipc.native.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
+import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
+import { openNwWindow } from "../helper/openNwWindow.cjs";
+import { wrapCommonJsCode } from "../helper/wrapCommonJsCode.cjs";
 import { findPort } from "./$helper/find-port.cjs";
 
 const packageJson = require("../../package.json");
@@ -174,11 +171,15 @@ export class JsProcessNMM extends NativeMicroModule {
     const channel = new MessageChannel();
     const process = await ctx.apis.createProcess(bootstrap_url, channel.port2);
 
-    /// 将 js-worker 中的请求进行中转代理
+    /**
+     * 将 js-worker 中的请求进行中转代理
+     * 在Android和IOS中的Webview默认只能传输字符串
+     */
     const worker_ipc = new NativeIpc(
       channel.port1,
       ctx.ipc.remote,
-      IPC_ROLE.CLIENT
+      IPC_ROLE.CLIENT,
+      false
     );
     worker_ipc.onMessage(async (ipcMessage, ipc) => {
       if (ipcMessage.type === IPC_DATA_TYPE.REQUEST) {
@@ -238,9 +239,15 @@ const getIpcCache = (port_id: number) => {
  *
  * 那么连接发起方就可以通过这个 id(number) 和 JsIpc 构造器来实现与 js-worker 的直连
  */
-export class JsIpc extends NativeIpc {
-  constructor(port_id: number, modules: NativeIpc["remote"]) {
-    super(getIpcCache(port_id), modules, IPC_ROLE.CLIENT);
+export class JsIpc extends MessagePortIpc {
+  constructor(
+    port_id: number,
+    remote: NativeIpc["remote"],
+    role = IPC_ROLE.CLIENT,
+    /** 这里是native直接通往js线程里的通讯，所以默认只支持字符串 */
+    support_message_pack = false
+  ) {
+    super(getIpcCache(port_id), remote, role, support_message_pack);
     /// TODO 这里应该放在和 ALL_IPC_CACHE.set 同一个函数下，只是原生的 MessageChannel 没有 close 事件，这里没有给它模拟，所以有问题
     this.onClose(() => {
       ALL_IPC_CACHE.delete(port_id);

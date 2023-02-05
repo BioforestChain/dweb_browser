@@ -1,5 +1,5 @@
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
-import type { $MMID } from "../core/types.cjs";
+import type { $MMID } from "../helper/types.cjs";
 
 export class BootNMM extends NativeMicroModule {
   mmid = "boot.sys.dweb" as const;

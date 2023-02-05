@@ -1,6 +1,6 @@
 /// <reference path="../../sys/js-process.worker.d.ts"/>
 
-import type { $ReqMatcher } from "../../core/helper.cjs";
+import type { $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
 import type { $HttpRequestInfo } from "../../sys/localhost.cjs";
 
 console.log("ookkkkk, i'm in worker");

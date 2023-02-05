@@ -1,14 +1,11 @@
-import { Ipc, IPC_DATA_TYPE } from "../core/ipc.cjs";
+import { Ipc, IPC_DATA_TYPE } from "../core/ipc/index.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
 
 import http from "node:http";
-import {
-  $isMatchReq,
-  $ReqMatcher,
-  PromiseOut,
-  simpleEncoder,
-} from "../core/helper.cjs";
-import type { $Method } from "../core/types.cjs";
+import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
+import { simpleEncoder } from "../helper/encoding.cjs";
+import { PromiseOut } from "../helper/PromiseOut.cjs";
+import type { $Method } from "../helper/types.cjs";
 import { findPort } from "./$helper/find-port.cjs";
 
 interface $OnRequestBind {

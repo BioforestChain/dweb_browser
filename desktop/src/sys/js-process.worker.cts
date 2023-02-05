@@ -2,14 +2,12 @@
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
-import {
-  $readRequestAsIpcRequest,
-  fetch_helpers,
-  normalizeFetchArgs,
-} from "../core/helper.cjs";
-import { IPC_ROLE } from "../core/ipc.cjs";
+import { IPC_ROLE } from "../core/ipc/index.cjs";
 import { NativeIpc } from "../core/ipc.native.cjs";
-import type { $MicroModule, $MMID } from "../core/types.cjs";
+import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
+import { $readRequestAsIpcRequest } from "../helper/$readRequestAsIpcRequest.cjs";
+import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
+import type { $MicroModule, $MMID } from "../helper/types.cjs";
 
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
@@ -23,7 +21,7 @@ import type { $MicroModule, $MMID } from "../core/types.cjs";
 class JsProcessMicroModule implements $MicroModule {
   constructor(readonly mmid: $MMID) {}
   fetch(input: RequestInfo | URL, init?: RequestInit) {
-    return Object.assign(fetch(input, init), fetch_helpers);
+    return Object.assign(fetch(input, init), fetchExtends);
   }
 }
 
@@ -38,7 +36,8 @@ const waitFetchIpc = (process: $MicroModule) => {
       /// 这是来自 原生接口 WebMessageChannel 创建出来的通道
       /// 由 web 主线程代理传递过来
       if (data[0] === "fetch-ipc-channel") {
-        const ipc = new NativeIpc(data[1], process, IPC_ROLE.SERVER);
+        /// 与原生互通讯息，默认只能支持字符串
+        const ipc = new NativeIpc(data[1], process, IPC_ROLE.SERVER, false);
         resolve(ipc);
         // self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
       }

@@ -1,25 +1,23 @@
-import {
-  $deserializeRequestToParams,
-  $isMatchReq,
-  $ReqMatcher,
-  $serializeResultToResponse,
-} from "./helper.cjs";
-import {
-  Ipc,
-  IpcRequest,
-  IpcResponse,
-  IPC_DATA_TYPE,
-  IPC_ROLE,
-} from "./ipc.cjs";
-import { NativeIpc } from "./ipc.native.cjs";
-import { MicroModule } from "./micro-module.cjs";
+import { $deserializeRequestToParams } from "../helper/$deserializeRequestToParams.cjs";
+import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
+import { $serializeResultToResponse } from "../helper/$serializeResultToResponse.cjs";
+import { createSignal } from "../helper/createSignal.cjs";
 import type {
   $PromiseMaybe,
   $Schema1,
   $Schema1ToType,
   $Schema2,
   $Schema2ToType,
-} from "./types.cjs";
+} from "../helper/types.cjs";
+import {
+  Ipc,
+  IpcRequest,
+  IpcResponse,
+  IPC_DATA_TYPE,
+  IPC_ROLE,
+} from "./ipc/index.cjs";
+import { NativeIpc } from "./ipc.native.cjs";
+import { MicroModule } from "./micro-module.cjs";
 
 export abstract class NativeMicroModule extends MicroModule {
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
@@ -34,7 +32,7 @@ export abstract class NativeMicroModule extends MicroModule {
       this._connectting_ipcs.delete(inner_ipc);
     });
 
-    this._emitConnect(inner_ipc);
+    this._connectSignal.emit(inner_ipc);
     return new NativeIpc(port1, this, IPC_ROLE.CLIENT);
   }
 
@@ -42,20 +40,14 @@ export abstract class NativeMicroModule extends MicroModule {
    * 内部程序与外部程序通讯的方法
    * TODO 这里应该是可以是多个
    */
-  protected _on_connect_cbs = new Set<(ipc: Ipc) => unknown>();
+  protected _connectSignal = createSignal<(ipc: Ipc) => unknown>();
   /**
    * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
    * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
    * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
    */
   protected onConnect(cb: (ipc: Ipc) => unknown) {
-    this._on_connect_cbs.add(cb);
-    return () => this._on_connect_cbs.delete(cb);
-  }
-  protected _emitConnect(ipc: Ipc) {
-    for (const cb of this._on_connect_cbs) {
-      cb(ipc);
-    }
+    return this._connectSignal.bind(cb);
   }
 
   override after_shutdown() {

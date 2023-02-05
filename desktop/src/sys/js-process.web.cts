@@ -1,4 +1,4 @@
-import { PromiseOut } from "../core/helper.cjs";
+import { PromiseOut } from "../helper/PromiseOut.cjs";
 import type { $RunMainConfig } from "./js-process.worker.cjs";
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
