@@ -2,6 +2,7 @@
 Pods
 .DS_Store
 ios/BFExplorer/BFExplorer.xcworkspace
+ios/BFExplorer/BFExplorer.xcodeproj/project.pbxproj
 .build/
 
 # android
