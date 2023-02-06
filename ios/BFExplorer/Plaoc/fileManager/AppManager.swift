@@ -172,20 +172,20 @@ class AppManager: NSObject {
     }
     
     func readAutoUpdateURLInfo(appId: String) -> String? {
-        var dict = linkDict[appId] as? [String:Any]
+        var dict = linkDict[appId]
         if dict == nil {
             readBFSAppLinkContent(appId: appId)
-            dict = linkDict[appId] as? [String:Any]
+            dict = linkDict[appId]
         }
         guard let updateDict = dict?["autoUpdate"] as? [String:Any] else { return nil }
         return updateDict["url"] as? String
     }
     
     func readAutoUpdateMaxAge(appId: String) -> Int? {
-        var dict = linkDict[appId] as? [String:Any]
+        var dict = linkDict[appId]
         if dict == nil {
             readBFSAppLinkContent(appId: appId)
-            dict = linkDict[appId] as? [String:Any]
+            dict = linkDict[appId]
         }
         guard let updateDict = dict?["autoUpdate"] as? [String:Any] else { return nil }
         return updateDict["maxAge"] as? Int

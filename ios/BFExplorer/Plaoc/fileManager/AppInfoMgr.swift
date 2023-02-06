@@ -42,11 +42,6 @@ class AppInfoMgr: NSObject {
     }
     
     private func registerObserver(){
-        operateMonitor.refreshCompleteMonitor.subscribe(onNext: { [weak self] appId in
-            guard let strongSelf = self else { return }
-            strongSelf.downloadNewFile(appId: appId)
-        }).disposed(by: disposeBag)
-        
         notifyCenter.addObserver(forName: DownloadAppFinishedNotification, object: nil, queue: .main) { notification in
             guard let userInfo = notification.userInfo as? [String:Any],
                   let appId = userInfo["appId"] as? String,
@@ -85,6 +80,7 @@ class AppInfoMgr: NSObject {
                     Schemehandler.setupHTMLCache(appId: appId, fromPath: schemePath)
                     sharedAppInfoMgr.updateRedHot(appId: appId, statue: true)
                     
+
                     //FIXME: 需要更新本地的app version
                     NotificationCenter.default.post(name: UpdateAppFinishedNotification, object: nil, userInfo: ["appId": appId])
                     
@@ -154,15 +150,6 @@ class AppInfoMgr: NSObject {
             }
         }
     }
-    
-    //点击recommend文件
-    func clickRecommendAppAction(appId: String) {
-        //1、从bfs-app-id/tmp/autoUpdate/缓存中读取当下的新json数据,并请求更新
-        guard appId.count > 0 else { return }
-        guard let link = appDownloadUrl(appId: appId) else { return }
-        appLinkDict[appId] = link
-        alertUpdateViewController(appId: appId, urlstring: link)
-    }
     //写入轮询更新数据
     func writeUpdateContent(appId: String, json: [String:Any]?) {
         guard json != nil else { return }
@@ -199,32 +186,6 @@ class AppInfoMgr: NSObject {
         self.updateUserType(appId: appId)
         RefreshManager.saveLastUpdateTime(appId: appId, time: Date().timeStamp)
         self.writeUpdateContent(appId: appId, json: dict)
-    }
-    
-    //定时刷新
-    func fetchRegularUpdateTime() {
-        
-        guard appIdList.count > 0 else { return }
-        let updateArray = appIdList//.filter{ currentAppType(appId: $0) == .recommend }
-        //        guard updateArray.count > 0 else { return }
-        let refreshManager = RefreshManager()
-        for appId in updateArray {
-            if isNeedUpdate(appId: appId) {
-                let updateString = autoUpdateURLString(appId: appId)
-                refreshManager.loadUpdateRequestInfo(appId: appId, urlString: updateString, isCompare: false)
-            }
-        }
-    }
-    //判断是否过了缓存时间
-    func isNeedUpdate(appId: String) -> Bool {
-        
-        guard let lastTime = RefreshManager.fetchLastUpdateTime(appId: appId) else { return false }
-        guard let maxAge = autoUpdateMaxAge(appId: appId) else { return false }
-        let currentDate = Date().timeStamp
-        if currentDate - lastTime > maxAge {
-            return true
-        }
-        return false
     }
     
     //获取system-app最新的版本信息
@@ -275,46 +236,8 @@ class AppInfoMgr: NSObject {
         return sysAppMgr.readMetadataVersion(appId: appId) ?? ""
     }
     
-    //更新信息下载完后，重新下载项目文件,  可能不需要判断system-app 看最后system-app升级时的需求
-    private func downloadNewFile(appId: String) {
-        
-        let type = currentAppType(appId: appId)
-        if type == .recommend {
-            downloadRecommendFile(appId: appId)
-        } else if type == .system {
-            //暂时注释掉
-            // downloadSystemFile(appId: appId)
-        }
-    }
-    //更新信息下载完后，重新下载Recommend项目文件
-    private func downloadRecommendFile(appId: String) {
-        //3、如果有最新信息，停止缓存中的更新
-        guard hasNewUpdateInfo(appId: appId) else { return }
-        //4再从从bfs-app-id/tmp/autoUpdate/缓存中读取最新的json数据
-        guard let newURLString = appDownloadUrl(appId: appId) else { return }
-        let currentURLString = appLinkDict[appId]
-        
-        // FIXME: 为什么要重新下载
-        if currentURLString == nil {
-            operateMonitor.startAnimationMonitor.onNext(appId)
-            sharedNetworkMgr.downloadApp(appId: appId, urlString: newURLString)
-        } else {
-            //5、重新下载
-            reloadUpdateFile(appId: appId, cancelUrlString: currentURLString, urlString: newURLString)
-        }
-    }
-    //更新信息下载完后，重新下载System项目文件
-    private func downloadSystemFile(appId: String) {
-        //3、如果有最新信息，弹框
-        guard isSystemUpdate(appId: appId) else { return }
-        //4再从从bfs-app-id/tmp/autoUpdate/缓存中读取最新的json数据
-        guard let newURLString = appDownloadUrl(appId: appId) else { return }
-        alertUpdateViewController(appId: appId, urlstring: newURLString)
-        
-    }
-    
     //从bfs-app-id/tmp/autoUpdate/缓存中读取url数据
-    private func appDownloadUrl(appId: String) -> String? {
+    func appDownloadUrl(appId: String) -> String? {
         let cacheInfo = readCacheUpdateInfo(appId: appId)
         let caches = cacheInfo?["files"] as? [[String:Any]]
         let fileInfo = caches?.first
@@ -336,13 +259,7 @@ class AppInfoMgr: NSObject {
         return nil
     }
     
-    //从link.json的autoUpdate读取更新信息
-    private func refreshNewAutoUpdateInfo(appId: String, isCompare: Bool) {
-        guard let updateString = autoUpdateURLString(appId: appId) else { return }
-        let refreshManager = RefreshManager()
-        refreshManager.loadUpdateRequestInfo(appId: appId, urlString: updateString, isCompare: isCompare)
-    }
-    
+
     //取消缓存的下载信息，重新下载最新信息
     private func reloadUpdateFile(appId: String, cancelUrlString: String?, urlString: String?) {
         sharedNetworkMgr.cancelNetworkRequest(urlString: cancelUrlString)
@@ -350,32 +267,6 @@ class AppInfoMgr: NSObject {
             operateMonitor.startAnimationMonitor.onNext(appId)
             sharedNetworkMgr.downloadApp(appId: appId, urlString: urlString!)
         }
-    }
-    
-    //获取自动更新的url
-    private func autoUpdateURLString(appId: String) -> String? {
-        let type = currentAppType(appId: appId)
-        if type == .system {
-            return sysAppMgr.readAutoUpdateURLInfo(appId: appId)
-        } else if type == .recommend {
-            return recommendAppMgr.readAutoUpdateURLInfo(appId: appId)
-        } else if type == .user {
-            return userAppMgr.readAutoUpdateURLInfo(appId: appId)
-        }
-        return nil
-    }
-    
-    //获取自动更新的时间间隔
-    private func autoUpdateMaxAge(appId: String) -> Int? {
-        let type = currentAppType(appId: appId)
-        if type == .system {
-            return sysAppMgr.readAutoUpdateMaxAge(appId: appId)
-        } else if type == .recommend {
-            return recommendAppMgr.readAutoUpdateMaxAge(appId: appId)
-        } else if type == .user {
-            return userAppMgr.readAutoUpdateMaxAge(appId: appId)
-        }
-        return nil
     }
     
     //判断是否有新的更新消息
@@ -389,50 +280,6 @@ class AppInfoMgr: NSObject {
             return userAppMgr.isNewUpdateInfo(appId: appId)
         }
         return false
-    }
-    
-    //判断system-app是否有新的更新消息
-    private func isSystemUpdate(appId: String) -> Bool {
-        guard let currentVersion = sysAppMgr.readMetadataVersion(appId: appId) else { return false }
-        let cacheDict = sysAppMgr.readCacheUpdateInfo(appId: appId)
-        guard let version = cacheDict?["version"] as? String  else { return false }
-        let result = version.versionCompare(oldVersion: currentVersion)
-        if result == .orderedAscending {
-            return true
-        }
-        return false
-    }
-    
-    //下载弹框
-    private func alertUpdateViewController(appId: String, urlstring: String?) {
-        guard urlstring != nil else { return }
-        
-        let alertVC = UIAlertController(title: "确认下载更新吗？", message: nil, preferredStyle: .alert)
-        let sureAction = UIAlertAction(title: "确认", style: .default) { action in
-            operateMonitor.startAnimationMonitor.onNext(appId)
-            sharedNetworkMgr.downloadApp(appId: appId, urlString: urlstring!)
-            let type = self.currentAppType(appId: appId)
-            
-            if type == .system {
-                operateMonitor.backMonitor.onNext(appId)
-            } else if type == .recommend {
-                self.refreshNewAutoUpdateInfo(appId: appId, isCompare: true)
-            } else if type == .user {
-                self.refreshNewAutoUpdateInfo(appId: appId, isCompare: true)
-            }
-        }
-        let cancelAction = UIAlertAction(title: "取消", style: .cancel) { action in
-            let type = self.currentAppType(appId: appId)
-            if type == .recommend {
-                self.refreshNewAutoUpdateInfo(appId: appId, isCompare: false)
-            }
-        }
-        alertVC.addAction(sureAction)
-        alertVC.addAction(cancelAction)
-        
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let controller = appDelegate.window?.rootViewController
-        controller?.present(alertVC, animated: true)
     }
 }
 
