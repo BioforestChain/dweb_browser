@@ -39,15 +39,7 @@ class RefreshManager: NSObject {
             let dict = ChangeTools.stringValueDic(result)
             guard let dataDict = dict?["data"] as? [String:Any] else { return }
             if appId != nil {
-//                let versionType = self.analysisVersion(urlString: urlString!)
-//                guard let subDict = self.versionTypeJson(type: versionType, dict: dataDict) else {
-//                    DispatchQueue.main.async {
-//                        if isCompare {
-//                            self.openAlertAction()
-//                        }
-//                    }
-//                    return
-//                }
+
                 RefreshManager.saveLastUpdateTime(appId: appId!, time: Date().timeStamp)
                 sharedAppInfoMgr.writeUpdateContent(appId: appId!, json: dataDict)
                 if isCompare {

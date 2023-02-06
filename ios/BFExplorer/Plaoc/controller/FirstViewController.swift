@@ -137,9 +137,9 @@ class FirstViewController: UIViewController {
             }
             self.navigationController?.pushViewController(second, animated: true)
         } else if type == .recommend {
-            sharedAppInfoMgr.clickRecommendAppAction(appId: name)
+//            sharedAppInfoMgr.clickRecommendAppAction(appId: name)
         } else if type == .user {
-            sharedAppInfoMgr.clickRecommendAppAction(appId: name)
+//            sharedAppInfoMgr.clickRecommendAppAction(appId: name)
         }
     }
     
