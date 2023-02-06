@@ -2,12 +2,13 @@
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
-import { IPC_ROLE } from "../core/ipc/index.cjs";
 import { NativeIpc } from "../core/ipc.native.cjs";
+import { IPC_ROLE } from "../core/ipc/index.cjs";
 import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
 import { $readRequestAsIpcRequest } from "../helper/$readRequestAsIpcRequest.cjs";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
 import type { $MicroModule, $MMID } from "../helper/types.cjs";
+import { updateUrlOrigin } from "../helper/urlHelper.cjs";
 
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
@@ -18,7 +19,7 @@ import type { $MicroModule, $MMID } from "../helper/types.cjs";
 /**
  * 这个是虚假的 $MicroModule，这里只是一个影子，指代 native 那边的 micro_module
  */
-class JsProcessMicroModule implements $MicroModule {
+export class JsProcessMicroModule implements $MicroModule {
   constructor(readonly mmid: $MMID) {}
   fetch(input: RequestInfo | URL, init?: RequestInit) {
     return Object.assign(fetch(input, init), fetchExtends);
@@ -76,6 +77,7 @@ export const installEnv = async (mmid: $MMID) => {
   Object.assign(globalThis, {
     fetch,
     process,
+    JsProcessMicroModule,
   });
   /// 安装完成，告知外部
   self.postMessage(["env-ready"]);
@@ -92,9 +94,8 @@ self.addEventListener("message", async (event) => {
   }
   if (data[0] === "run-main") {
     const config = data[1] as $RunMainConfig;
-
-    const main_parsed_url = new URL(
-      new URL(config.main_url).pathname,
+    const main_parsed_url = updateUrlOrigin(
+      config.main_url,
       `file://${process.mmid}`
     );
     const location = {

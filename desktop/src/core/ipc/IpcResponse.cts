@@ -1,25 +1,21 @@
+import { binaryToU8a } from "../../helper/binaryHelper.cjs";
 import { simpleDecoder } from "../../helper/encoding.cjs";
 import { headersToRecord } from "../../helper/headersToRecord.cjs";
-import { $rawDataToBody } from "./$rawDataToBody.cjs";
 import { $streamAsRawData } from "./$streamAsRawData.cjs";
 import { IPC_DATA_TYPE, IPC_RAW_BODY_TYPE, type $RawData } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
+import { IpcBody } from "./IpcBody.cjs";
 
-export class IpcResponse {
+export class IpcResponse extends IpcBody {
   readonly type = IPC_DATA_TYPE.RESPONSE;
   constructor(
     readonly req_id: number,
     readonly statusCode: number,
-    readonly rawBody: $RawData,
+    rawBody: $RawData,
     readonly headers: Record<string, string>,
     ipc: Ipc
   ) {
-    this.#ipc = ipc;
-  }
-  #ipc: Ipc;
-  #body?: ReturnType<typeof $rawDataToBody>;
-  get body() {
-    return (this.#body ??= $rawDataToBody(this.rawBody, this.#ipc));
+    super(rawBody, ipc);
   }
 
   asResponse() {
@@ -33,32 +29,20 @@ export class IpcResponse {
   /** 将 response 对象进行转码变成 ipcResponse */
   static async fromResponse(req_id: number, response: Response, ipc: Ipc) {
     let ipcResponse: IpcResponse;
-    const contentLength = response.headers.get("Content-Length") ?? 0;
 
-    /// 6kb 为分水岭，超过 6kb 就改用流传输，或者如果原本就是流对象
-    /// TODO 这里是否使用流模式，应该引入更加只能的判断方式，比如先读取一部分数据，如果能读取完成，那么就直接吧 end 符号一起带过去
-    if (contentLength > 6144 || response.body) {
-      const stream_id = `res/${req_id}/${contentLength}`;
-      ipcResponse = new IpcResponse(
+    if (response.body) {
+      ipcResponse = this.fromStream(
         req_id,
         response.status,
-        [IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id],
+        response.body,
         headersToRecord(response.headers),
         ipc
       );
-      $streamAsRawData(
-        stream_id,
-        response.body ?? (await response.blob()).stream(),
-        ipc
-      );
     } else {
-      ipcResponse = new IpcResponse(
+      ipcResponse = this.fromBinary(
         req_id,
         response.status,
-        [
-          IPC_RAW_BODY_TYPE.BASE64,
-          simpleDecoder(await response.arrayBuffer(), "base64"),
-        ],
+        await response.arrayBuffer(),
         headersToRecord(response.headers),
         ipc
       );
@@ -72,7 +56,7 @@ export class IpcResponse {
     jsonable: unknown,
     headers: Record<string, string> = {}
   ) {
-    headers["Content-Type"] = "application/json";
+    headers["Content-Type"] ??= "application/json";
     return new IpcResponse(
       req_id,
       statusCode,
@@ -87,7 +71,7 @@ export class IpcResponse {
     text: string,
     headers: Record<string, string> = {}
   ) {
-    headers["Content-Type"] = "text/plain";
+    headers["Content-Type"] ??= "text/plain";
     return new IpcResponse(
       req_id,
       statusCode,
@@ -100,16 +84,39 @@ export class IpcResponse {
     req_id: number,
     statusCode: number,
     binary: ArrayBufferView | ArrayBuffer,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    ipc: Ipc
   ) {
-    headers["Content-Type"] = "application/octet-stream";
+    headers["Content-Type"] ??= "application/octet-stream";
     return new IpcResponse(
       req_id,
       statusCode,
-      [IPC_RAW_BODY_TYPE.BASE64, simpleDecoder(binary, "base64")],
+      ipc.support_message_pack
+        ? [IPC_RAW_BODY_TYPE.BINARY, binaryToU8a(binary)]
+        : [IPC_RAW_BODY_TYPE.BASE64, simpleDecoder(binary, "base64")],
       headers,
       void 0 as never
     );
+  }
+  static fromStream(
+    req_id: number,
+    statusCode: number,
+    stream: ReadableStream<Uint8Array>,
+    headers: Record<string, string> = {},
+    ipc: Ipc
+  ) {
+    headers["Content-Type"] ??= "application/octet-stream";
+    const contentLength = headers["Content-Length"] ?? 0;
+    const stream_id = `res/${req_id}/${contentLength}`;
+    const ipcResponse = new IpcResponse(
+      req_id,
+      statusCode,
+      [IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id],
+      headersToRecord(headers),
+      ipc
+    );
+    $streamAsRawData(stream_id, stream, ipc);
+    return ipcResponse;
   }
   // static fromBinaryStream(
   //   req_id: number,

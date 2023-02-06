@@ -49,13 +49,13 @@ export class ViewTree extends LitElement {
   private url_tree = new Map<number, { src: string; id: number }[]>();
   private _url_id_acc = 0;
 
-  openWebview(id: number, url: string) {
+  openWebview(id: number, src: string) {
     let urls = this.url_tree.get(id);
     if (urls === undefined) {
       this.url_tree.set(id, (urls = []));
     }
     const url_id = this._url_id_acc++;
-    urls.push({ src: new URL(url, location.href).href, id: url_id });
+    urls.push({ src: src, id: url_id });
     this.requestUpdate("url_tree");
     return url_id;
   }

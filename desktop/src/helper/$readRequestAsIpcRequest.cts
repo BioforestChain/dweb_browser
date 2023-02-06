@@ -1,5 +1,5 @@
 import type { IpcRequest } from "../core/ipc/index.cjs";
-import { binaryToU8A, isBinary } from "./binaryHelper.cjs";
+import { binaryToU8a, isBinary } from "./binaryHelper.cjs";
 import { simpleEncoder } from "./encoding.cjs";
 import { headersToRecord } from "./headersToRecord.cjs";
 
@@ -28,7 +28,7 @@ export const $readRequestAsIpcRequest = async (request_init: RequestInit) => {
     } else if (request_init.body instanceof Blob) {
       body = new Uint8Array(await request_init.body.arrayBuffer());
     } else if (isBinary(request_init.body)) {
-      body = binaryToU8A(request_init.body);
+      body = binaryToU8a(request_init.body);
     } else if (typeof request_init.body === "string") {
       body = simpleEncoder(request_init.body, "utf8");
     } else if (request_init.body) {

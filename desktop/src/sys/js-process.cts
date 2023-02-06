@@ -1,11 +1,18 @@
 import http from "node:http";
-import { Ipc, IpcResponse, IPC_DATA_TYPE, IPC_ROLE } from "../core/ipc/index.cjs";
-import { MessagePortIpc, NativeIpc } from "../core/ipc.native.cjs";
+import { MessagePortIpc } from "../core/ipc-web/MessagePortIpc.cjs";
+import { NativeIpc } from "../core/ipc.native.cjs";
+import {
+  Ipc,
+  IpcResponse,
+  IPC_DATA_TYPE,
+  IPC_ROLE,
+} from "../core/ipc/index.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
 import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
+import { findPort } from "../helper/findPort.cjs";
 import { openNwWindow } from "../helper/openNwWindow.cjs";
+import { parseUrl } from "../helper/urlHelper.cjs";
 import { wrapCommonJsCode } from "../helper/wrapCommonJsCode.cjs";
-import { findPort } from "./$helper/find-port.cjs";
 
 const packageJson = require("../../package.json");
 
@@ -60,7 +67,7 @@ export class JsProcessNMM extends NativeMicroModule {
         }
 
         const code = await processImports.linker(
-          new URL(req.url ?? "/", `http://${req_host}`)
+          parseUrl(req.url ?? "/", `http://${req_host}`)
         );
         if (code === undefined) {
           defaultErrorPage(req, res, 404, "no found");
@@ -88,7 +95,7 @@ export class JsProcessNMM extends NativeMicroModule {
       `internal.js.sys.dweb.localhost:${this._server_port}`
     );
     const JS_PROCESS_WORKER_CODE = await fetch(
-      new URL("bundle/js-process.worker.cjs", location.href)
+      parseUrl("bundle/js-process.worker.cjs")
     ).then((res) => res.text());
     internalProcessImports.importMaps.push({
       pathMatcher: {
@@ -209,7 +216,7 @@ export class JsProcessNMM extends NativeMicroModule {
     this.processImportsMap.set(host, processImports);
 
     process.runMain({
-      main_url: new URL(main_pathname, `http://${host}`).href,
+      main_url: parseUrl(main_pathname, `http://${host}`).href,
     });
 
     return process.process_id;

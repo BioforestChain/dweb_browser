@@ -1,3 +1,4 @@
+import { createSignal } from "../../helper/createSignal.cjs";
 import { simpleDecoder } from "../../helper/encoding.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
@@ -6,7 +7,7 @@ import {
   IPC_DATA_TYPE,
   IPC_RAW_BODY_TYPE,
   type $IpcMessage,
-  type $IpcOnMessage,
+  type $OnIpcMessage,
   type $RawData,
   type IPC_ROLE,
 } from "./const.cjs";
@@ -25,10 +26,34 @@ export abstract class Ipc {
   readonly uid = ipc_uid_acc++;
   abstract readonly remote: $MicroModule;
   abstract readonly role: IPC_ROLE;
-  abstract postMessage(data: $IpcMessage): void;
-  abstract onMessage(cb: $IpcOnMessage): () => boolean;
-  abstract close(): void;
-  abstract onClose(cb: () => unknown): () => boolean;
+
+  protected _messageSignal = createSignal<$OnIpcMessage>();
+  postMessage(message: $IpcMessage): void {
+    if (this._closed) {
+      return;
+    }
+    this._doPostMessage(message);
+  }
+  abstract _doPostMessage(data: $IpcMessage): void;
+  onMessage(cb: $OnIpcMessage) {
+    return this._messageSignal.listen(cb);
+  }
+
+  abstract _doClose(): void;
+
+  private _closed = false;
+  close() {
+    if (this._closed) {
+      return;
+    }
+    this._closed = true;
+    this._doClose();
+    this._closeSignal.emit();
+  }
+  private _closeSignal = createSignal<() => unknown>();
+  onClose(cb: () => unknown) {
+    return this._closeSignal.listen(cb);
+  }
 
   private readonly _reqresMap = new Map<number, PromiseOut<IpcResponse>>();
   private _req_id_acc = 0;
