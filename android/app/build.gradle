@@ -1,0 +1,175 @@
+plugins {
+  id("com.android.application")
+  id("org.jetbrains.kotlin.android")
+}
+
+android {
+  compileSdk = 33
+  compileSdkVersion = build_versions.compileSdk
+  buildToolsVersion = build_versions.buildTools
+  defaultConfig {
+    applicationId = "info.bagen.rust.plaoc"
+    minSdkVersion 28
+    targetSdkVersion 33
+    versionCode = 1
+    versionName = "1.0"
+
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    //ndk.abiFilters = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
+    ndk.abiFilters = ["arm64-v8a"]
+    vectorDrawables {
+      useSupportLibrary = true
+    }
+  }
+
+  sourceSets {
+    main {
+      jniLibs.srcDirs = ["src/main/libs"]
+      assets.srcDirs = ["src/main/assets/system-app","src/main/sdk/js"]
+    }
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled = false
+      proguardFiles = [getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"]
+    }
+  }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+  }
+  kotlinOptions {
+    jvmTarget = "1.8"
+//        freeCompilerArgs += listOf(
+//                "-P",
+//                "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+//        )
+  }
+
+  buildFeatures {
+    compose = true
+    viewBinding = true
+  }
+  composeOptions {
+    kotlinCompilerExtensionVersion = compose_version
+  }
+  packagingOptions {
+    resources {
+      excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      // 添加 ktor 框架后，会有异常报错，需要添加如下内容
+      excludes += "/META-INF/INDEX.LIST"
+      excludes += "/META-INF/io.netty.versions.properties"
+    }
+  }
+}
+
+dependencies {
+  implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.10")
+  implementation("androidx.core:core-ktx:1.8.0")
+  implementation("androidx.appcompat:appcompat:1.5.0")
+  implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+  implementation("androidx.navigation:navigation-fragment-ktx:2.5.1")
+  implementation("androidx.navigation:navigation-ui-ktx:2.5.1")
+  implementation("androidx.gridlayout:gridlayout:1.0.0")
+  implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
+//    implementation project(path: ":writeintercept")
+  testImplementation("junit:junit:")
+  androidTestImplementation("androidx.test.ext:junit:1.1.3")
+  androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+//    implementation "androidx.webkit:webkit:1.4.0"
+  implementation("androidx.compose.ui:ui:1.2.0-alpha08")
+  implementation("androidx.compose.material:material:1.2.0-alpha08")
+  implementation("androidx.compose.material3:material3:1.0.0-alpha12")
+  implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha08@aar")
+  implementation("androidx.compose.ui:ui-tooling-preview:1.2.0-alpha08")
+  androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.2.0-alpha08")
+  debugImplementation("androidx.compose.ui:ui-tooling:1.2.0-alpha08")
+  implementation("com.google.code.gson:gson:2.9.0")
+  implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+  implementation("androidx.activity:activity-compose:1.5.1")
+  implementation("io.coil-kt:coil-compose:2.1.0")
+  implementation("io.coil-kt:coil-svg:2.0.0")
+
+
+  // (Java only)
+  implementation("androidx.work:work-runtime:2.7.1")
+  implementation("androidx.work:work-runtime-ktx:2.7.1")
+  implementation("androidx.work:work-rxjava2:2.7.1")
+  implementation("androidx.work:work-gcm:2.7.1")
+  androidTestImplementation("androidx.work:work-testing:2.7.1")
+  implementation("androidx.work:work-multiprocess:2.7.1")
+
+
+  //扫码核心库
+  implementation project(":mlkit-camera-core")
+  implementation project(":mlkit-barcode-scanning")
+  implementation fileTree(dir: 'libs', include: ['*.jar'])
+  testImplementation(deps.test.junit)
+  androidTestImplementation(deps.test.runner)
+  androidTestImplementation(deps.test.espresso)
+  implementation(deps.androidx.design)
+  implementation(deps.androidx.appcompat)
+  implementation(deps.androidx.constraintlayout)
+  implementation(deps.kotlin)
+  implementation(deps.corektx)
+  implementation(deps.app_dialog)
+
+  implementation("com.google.accompanist:accompanist-webview:0.24.7-alpha")
+  implementation("com.google.accompanist:accompanist-navigation-material:0.24.7-alpha")
+  implementation("com.google.accompanist:accompanist-navigation-animation:0.24.7-alpha")
+  implementation("com.google.accompanist:accompanist-systemuicontroller:0.24.7-alpha")
+  // 序列化反序列化
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
+  // region Networking - Retrofit
+  implementation("com.squareup.retrofit2:retrofit:2.6.2")
+  implementation("com.squareup.retrofit2:converter-gson:2.6.2")
+  // endregion
+
+
+  implementation project(":libAppMgr")
+}
+
+
+def rustBasePath =  "../../rust_lib"
+def archTriplets = [
+//        "arm64-v8a": "aarch64-linux-android",
+//        "armeabi-v7a": "armv7-linux-androideabi",
+]
+
+archTriplets.each { arch, target ->
+  project.ext.cargo_target_directory = rustBasePath + "/target"
+  // Build with cargo
+  tasks.create(name: "cargo-build-${arch}", type: Exec, description: "Building core for ${arch}") {
+    workingDir = rustBasePath
+    commandLine = ["cargo", "build", "--target=${target}", "--release"]
+    environment = ["RUSTY_V8_ARCHIVE", file(rustBasePath + "/assets/rusty_v8_mirror/v0.48.1/librusty_v8_release_aarch64-linux-android.a")]
+  }
+  // Sync shared native dependencies
+  tasks.create(name: "sync-rust-deps-${arch}", type: Sync, dependsOn: "cargo-build-${arch}") {
+    from = "${rustBasePath}/src/libs/${arch}"
+    include = "*.so"
+    into = "src/main/libs/${arch}"
+  }
+  // Copy build libs into this app"s libs directory
+  tasks.create(name: "rust-deploy-${arch}", type: Copy, dependsOn: "sync-rust-deps-${arch}", description: "Copy rust libs for (${arch}) to jniLibs") {
+    from = "${project.ext.cargo_target_directory}/${target}/release"
+    include = "*.so"
+    into = "src/main/libs/${arch}"
+  }
+
+  // Hook up tasks to execute before building java
+  tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn "rust-deploy-${arch}"
+  }
+  preBuild.dependsOn "rust-deploy-${arch}"
+
+  // Hook up clean tasks
+  tasks.create(name: "clean-${arch}", type: Delete, description: "Deleting built libs for ${arch}", dependsOn: "cargo-output-dir-${arch}") {
+    delete fileTree("${project.ext.cargo_target_directory}/${target}/release") {
+      include "*.so"
+    }
+  }
+  clean.dependsOn "clean-${arch}"
+}

@@ -1,0 +1,55 @@
+{
+  "version": "1.8.2",
+  "bfsAppId": "6FTMG2WJ",
+  "name": "ar angular 扫码",
+  "icon": "/analog.svg",
+  "author": [
+    "kingsword,kingsword07@163.com"
+  ],
+  "autoUpdate": {
+    "maxAge": 1,
+    "provider": 1,
+    "url": "https://shop.plaoc.com/6FTMG2WJ/appversion.json",
+    "version": "1.8.2",
+    "files": [
+      {
+        "url": "https://shop.plaoc.com/6FTMG2WJ/boot/bfsa-metadata.json",
+        "size": 930,
+        "sha512": "c9e14d7d795e352889a0b09c70ccb05be5973440605d6cb055ba9240bd84351f2db2e32d5a310be5805496ce4fd936333a9d93dbf2f3854544b9b01521a3a60d"
+      },
+      {
+        "url": "https://shop.plaoc.com/6FTMG2WJ/sys/analog.svg",
+        "size": 12121,
+        "sha512": "c30a26c355ad08686b46e05cc846a1defe2af8ed16b99c6554d3b096c84e14b8f65f888e9699dc57a9cae0440fca3e4e1192919bc2514920990d790d19423c19"
+      },
+      {
+        "url": "https://shop.plaoc.com/6FTMG2WJ/sys/assets/index.css",
+        "size": 1391,
+        "sha512": "9310e3880f933a87d1f489873e916a595a24d7e2fa5e55cefb5d81c7eabb3f8ba6c712325299fd4cf9393736ed558c882c548c52eb28eb448b4375544d40a2bf"
+      },
+      {
+        "url": "https://shop.plaoc.com/6FTMG2WJ/sys/assets/index.js",
+        "size": 467928,
+        "sha512": "ad5af93262fe86d4e637c06f77533c56e90dd5107b0eee18eb503fa0d672d32c758aa6223a030a7fdb47cba084b03f564d27ad058953eb09a83405128a72b8a3"
+      },
+      {
+        "url": "https://shop.plaoc.com/6FTMG2WJ/index.js",
+        "size": 61603,
+        "sha512": "7a0782d622bd18efe4fc78b3653cab06299ecbb6f90dc5de07832e654f3c1b90aa68706b0e23dd1767ebcf0348c5a9c725969b9f5fbbd585d8d36ede59268fa5"
+      },
+      {
+        "url": "https://shop.plaoc.com/6FTMG2WJ/sys/index.html",
+        "size": 1695,
+        "sha512": "acfcc6a72bbe77dee04c0b110cbe96232f83411223a07223b53d0a5a5e6c504f1bda6b784af9341d870a2b781d459568554b39407f91afd4d3ebd96e8a7229cf"
+      },
+      {
+        "url": "https://shop.plaoc.com/6FTMG2WJ/sys/serviceWorker.js",
+        "size": 22232,
+        "sha512": "edaedd991e3b253baa41dbf237ba3f67c8c1c86ba74807b566436a3e4e0f035e04008bd76bb7546700e5c5c03142cd5f783178a037b2fc0c13f874693973ef20"
+      }
+    ],
+    "releaseNotes": "angular dweb app",
+    "releaseName": "xxx",
+    "releaseDate": "xxx"
+  }
+}

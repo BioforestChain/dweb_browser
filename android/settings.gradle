@@ -1,0 +1,17 @@
+rootProject.name = "plaoc"
+include ':mlkit-barcode-scanning'
+include ':mlkit-camera-core'
+//include ':writeintercept'
+include ':app'
+include ':libAppMgr'
+
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        jcenter()
+        maven { url 'https://jitpack.io' }
+    }
+}

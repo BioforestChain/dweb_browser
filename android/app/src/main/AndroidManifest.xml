@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  package="info.bagen.rust.plaoc">
+
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+  <uses-permission android:name="android.permission.BLUETOOTH" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+  <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.VIBRATE" /> <!-- 振动，蜂鸣 -->
+  <uses-permission
+    android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+    tools:ignore="ProtectedPermissions" />
+  <!--前台服务开启权限-->
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+  <!--弹出横幅通知的权限-->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+  <!-- 存储卡 -->
+  <uses-permission
+    android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    tools:ignore="ScopedStorage" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <!-- 相机 -->
+  <uses-permission android:name="android.permission.CAMERA" />
+  <!-- 手机 -->
+  <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+  <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
+
+  <application
+    android:name=".App"
+    android:allowBackup="true"
+    android:icon="@mipmap/ic_launcher"
+    android:label="@string/app_name"
+    android:supportsRtl="true"
+    android:theme="@style/Theme.plaoc"
+    android:usesCleartextTraffic="true">
+    <activity
+      android:name=".webView.DWebViewActivity"
+      android:exported="true"
+      android:launchMode="standard"
+      android:theme="@style/Theme.plaoc">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="info.bagen.rust.plaoc.webView" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <!-- <data android:scheme="dweb" />-->
+        <!-- android:host="@string/web_host"-->
+        <data android:scheme="https" />
+      </intent-filter>
+    </activity>
+    <activity
+      android:name=".SplashActivity"
+      android:exported="true"
+      android:label="@string/app_name"
+      android:theme="@style/Theme.plaoc">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity
+      android:name=".MainActivity"
+      android:exported="true"
+      android:label="@string/app_name"
+      android:theme="@style/Theme.plaoc" />
+
+    <activity
+      android:name=".system.barcode.MultipleQRCodeScanningActivity"
+      android:screenOrientation="portrait"
+      android:theme="@style/CameraScanTheme" />
+    <activity
+      android:name=".system.barcode.QRCodeScanningActivity"
+      android:exported="true"
+      android:screenOrientation="portrait"
+      android:theme="@style/CameraScanTheme">
+
+      <intent-filter>
+        <action android:name="info.bagen.rust.plaoc.qrcodescan" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity
+      android:name=".system.barcode.BarcodeScanningActivity"
+      android:screenOrientation="portrait"
+      android:theme="@style/CameraScanTheme" />
+
+    <service
+      android:name=".DenoService"
+      android:enabled="true"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="info.bagen.rust.plaoc.DenoService" />
+      </intent-filter>
+    </service>
+
+    <meta-data
+      android:name="com.google.firebase.ml.vision.DEPENDENCIES"
+      android:value="barcode" />
+
+    <receiver android:name=".broadcast.BFSBroadcastReceiver" />
+
+    <provider
+      android:name="androidx.core.content.FileProvider"
+      android:authorities="${applicationId}.file.opener.provider"
+      android:exported="false"
+      android:grantUriPermissions="true">
+      <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/file_opener_paths" />
+    </provider>
+  </application>
+
+</manifest>

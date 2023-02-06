@@ -67,14 +67,5 @@ class SystemAppManager: AppManager {
         return dict["url"] as? String
     }
     
-    func isExitSameFile(appId: String) -> Bool {
-        let path = appInstalledPath + "/\(appId)"
-        if FileManager.default.fileExists(atPath: path) {
-            let oldVersion = readMetadataVersion(appId: appId)
-            
-            return true
-        } else {
-            return false
-        }
-    }
+
 }

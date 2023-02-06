@@ -1,0 +1,114 @@
+plugins {
+  id 'com.android.library'
+  id 'org.jetbrains.kotlin.android'
+}
+
+android {
+  compileSdk 33
+
+  defaultConfig {
+    minSdk 28
+    targetSdk 33
+
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    consumerProguardFiles "consumer-rules.pro"
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+  kotlinOptions {
+    jvmTarget = '1.8'
+  }
+  buildFeatures {
+    compose true
+  }
+  composeOptions {
+    kotlinCompilerExtensionVersion compose_version
+  }
+  lintOptions { disable 'MissingTranslation', 'ExtraTranslation'}
+}
+
+dependencies {
+  implementation 'androidx.core:core-ktx:1.7.0'
+  implementation 'androidx.appcompat:appcompat:1.3.0'
+  implementation 'com.google.android.material:material:1.4.0'
+  implementation 'org.jsoup:jsoup:1.15.3'
+  testImplementation 'junit:junit:4.13.2'
+  androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+  androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+  implementation 'androidx.activity:activity-compose:1.4.0'
+  implementation "androidx.compose.ui:ui:$compose_version"
+  implementation "androidx.compose.material:material:$compose_version"
+  implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+  androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+  debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+  debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+  implementation 'androidx.navigation:navigation-ui-ktx:2.4.0-alpha04'
+  // 加载图片 coil
+  implementation 'io.coil-kt:coil:2.2.2'
+  implementation 'io.coil-kt:coil-svg:2.2.2'
+  implementation 'io.coil-kt:coil-compose:2.2.2'
+  implementation 'io.coil-kt:coil-video:2.2.2'
+  implementation 'io.coil-kt:coil-gif:2.2.2'
+  implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0' // 因为导入coil后，编译失败，duplicate
+  // 解压文件
+  implementation 'org.apache.commons:commons-compress:1.21'
+  // 网络请求 Retrofit
+  implementation 'com.google.code.gson:gson:2.9.1'
+  /*implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+  implementation "com.squareup.retrofit2:converter-gson:2.9.0"
+  implementation "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2"*/
+  // 使用moshi 替换 gson
+  //implementation 'com.squareup.moshi:moshi-kotlin:1.13.0'
+  //implementation 'com.squareup.moshi:moshi-kotlin-codegen:1.13.0'
+
+  //ViewModel and livedata
+  implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+  implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07'
+
+  // ktor 网络请求模块 // 将implementation改为api是为了让app主应用能够调用到
+  /*api "io.ktor:ktor-server-core:$ktor_version"
+  api "io.ktor:ktor-server-netty:$ktor_version"*/
+  api "io.ktor:ktor-client-core:$ktor_version"
+  api "io.ktor:ktor-client-cio:$ktor_version"
+  api "io.ktor:ktor-client-okhttp:$ktor_version"
+  api "io.ktor:ktor-client-content-negotiation:$ktor_version"
+  //api "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
+  api("io.ktor:ktor-serialization-gson:$ktor_version")
+  api "io.ktor:ktor-client-logging:$ktor_version"
+
+  // 增加注入ViewModel // 将implementation改为api是为了让app主应用能够调用到
+  //api('io.insert-koin:koin-core:3.2.2')
+  //api('io.insert-koin:koin-core-ext:3.2.2')
+  //api 'io.insert-koin:koin-androidx-ext:2.2.3'
+  //api('io.insert-koin:koin-android:3.2.2')
+  api 'io.insert-koin:koin-androidx-compose:3.2.1'
+  api "io.insert-koin:koin-android:3.1.2"
+  api "io.insert-koin:koin-android-compat:3.1.2"
+
+  // 顶部状态栏自定义
+  api 'com.google.accompanist:accompanist-insets:0.26.5-rc'
+  api 'com.google.accompanist:accompanist-insets-ui:0.26.5-rc'
+  api 'com.google.accompanist:accompanist-systemuicontroller:0.26.5-rc'
+  // 类似ViewPager功能
+  api 'com.google.accompanist:accompanist-pager:0.27.0'
+  implementation 'com.google.accompanist:accompanist-pager-indicators:0.27.0'
+
+  // exoplayer
+  //implementation 'com.google.android.exoplayer:exoplayer:2.14.1'
+  api 'com.google.android.exoplayer:exoplayer-core:2.14.1'
+  api 'com.google.android.exoplayer:exoplayer-ui:2.14.1'
+  //implementation "androidx.concurrent:concurrent-futures:1.1.0"
+  // 由于引入exoplayer后导致com.google.guava:listenablefuture not found -> https://github.com/google/ExoPlayer/issues/7993
+  api 'com.google.guava:guava:29.0-android'
+
+}

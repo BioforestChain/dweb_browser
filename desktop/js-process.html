@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>js process</title>
+      <script>
+         const { APIS } = require("dist/sys/js-process.web.cjs");
+         Object.assign(globalThis, APIS);
+         globalThis.APIS_READY = true;
+         globalThis.dispatchEvent(new Event("apis-ready"));
+      </script>
+   </head>
+   <body></body>
+</html>

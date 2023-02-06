@@ -1,0 +1,60 @@
+{
+  "version": "1.5.2",
+  "bfsAppId": "W85DEFE5",
+  "name": "ar react 扫码",
+  "icon": "/react.svg",
+  "author": [
+    "kingsword,kingsword07@163.com"
+  ],
+  "autoUpdate": {
+    "maxAge": 1,
+    "provider": 1,
+    "url": "https://shop.plaoc.com/W85DEFE5/appversion.json",
+    "version": "1.5.2",
+    "files": [
+      {
+        "url": "https://shop.plaoc.com/W85DEFE5/boot/bfsa-metadata.json",
+        "size": 921,
+        "sha512": "690d50c52a7bdaaaa5dcbb96a5a18aebad71476cdee10f79acb9f85ffa2293a450ca10ded052948f761691398fb38460ad3f31d16ccc49aadaccc611b9289019"
+      },
+      {
+        "url": "https://shop.plaoc.com/W85DEFE5/sys/assets/index.css",
+        "size": 1782,
+        "sha512": "b7c426863a770ab8676d5c43ad3df7f490fa51005c5d8a31cd664bd22f24e1cc89d5c0d7d54e229f43c7034e946513fb24ad491414bd4e67c409c889992946ff"
+      },
+      {
+        "url": "https://shop.plaoc.com/W85DEFE5/sys/assets/index.js",
+        "size": 276941,
+        "sha512": "d1b79e9bf83fd31235f085b542f2c7bce67a5036703cf9dc6ec430839feea88159debbea3c0caedacac99c46f5754d61a6572380044983ffe6fd13e99e537535"
+      },
+      {
+        "url": "https://shop.plaoc.com/W85DEFE5/sys/assets/react.svg",
+        "size": 4126,
+        "sha512": "3cff237554fd440398906ee1c04a1085e1ecf0250837df4eebd4308d64acafa97b9af65e35ce7fd8912e28005c35ffdc0584bd6dd7b0453a5a05e4bcf61c2754"
+      },
+      {
+        "url": "https://shop.plaoc.com/W85DEFE5/index.js",
+        "size": 64384,
+        "sha512": "3335b440f971bb299d49bd512929454c4b3bc3ca676e06ccb8c7bee77884cdfc9ca8817958115c5e3226268e7098520f7646d7f0748e5a191046e99e56fb55fb"
+      },
+      {
+        "url": "https://shop.plaoc.com/W85DEFE5/sys/index.html",
+        "size": 439,
+        "sha512": "356e894dde9770e58b352ed0bb82a4d34dfc8f034abf6d934b8156247fa2bb7f1d76464ca6ac1e46ed7624ee3eda2d18a92dc0e817679c90fc9641a4b4039100"
+      },
+      {
+        "url": "https://shop.plaoc.com/W85DEFE5/sys/serviceWorker.js",
+        "size": 22232,
+        "sha512": "edaedd991e3b253baa41dbf237ba3f67c8c1c86ba74807b566436a3e4e0f035e04008bd76bb7546700e5c5c03142cd5f783178a037b2fc0c13f874693973ef20"
+      },
+      {
+        "url": "https://shop.plaoc.com/W85DEFE5/sys/vite.svg",
+        "size": 1497,
+        "sha512": "fbf065e26d907454cb432a17d831f448e1c3df0f33cd681ccc52b63e5bc26bc9e4de08591a2de579e5b05219fcffd3b4d4261ada6fa55299e731343df860488d"
+      }
+    ],
+    "releaseNotes": "react dweb app",
+    "releaseName": "xxx",
+    "releaseDate": "xxx"
+  }
+}

@@ -12,10 +12,6 @@ public enum PageType: Int {
     case bookmark, history, share
 }
 
-struct SuitableData{
-    
-}
-
 let safeAreaInsets = UIApplication.shared.keyWindow?.safeAreaInsets
 
 class LinkListPageVC: UIViewController {
@@ -28,7 +24,7 @@ class LinkListPageVC: UIViewController {
             sharedCachesMgr.readList(of: type)
         }
     }
-
+    
     fileprivate var suitableDatasStorage : [[String:Any]]?
     
     var suitableDatas: [[String:Any]]{
@@ -39,16 +35,13 @@ class LinkListPageVC: UIViewController {
             return suitableDatasStorage!
         }
     }
-
+    
     var curDataSource: [[String:Any]]{
         get{
             let isSearchMode = searchController.isActive && searchController.searchBar.text != ""
             return  isSearchMode ? self.filteredItems : self.suitableDatas
         }
     }
-    
-
-
     
     var selectedIndexPaths = [IndexPath]()
     
@@ -60,7 +53,6 @@ class LinkListPageVC: UIViewController {
     var isLoading = false {
         didSet {
             tableView.reloadEmptyDataSet()
-//            config.isLoading = isLoading
         }
     }
     
@@ -70,7 +62,6 @@ class LinkListPageVC: UIViewController {
         self.title = ["书签", "历史记录"][type.rawValue]
         searchController.searchBar.placeholder = ["搜索书签", "搜索历史记录"][type.rawValue]
     }
-    
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
@@ -123,9 +114,7 @@ class LinkListPageVC: UIViewController {
             make.height.equalTo(40)
             make.top.equalTo(tableView.snp_bottomMargin)
         }
-        
     }
-    
 }
 
 extension LinkListPageVC: HistoryRecordCellDelegate{
@@ -165,11 +154,6 @@ extension LinkListPageVC: HistoryRecordCellDelegate{
         deleteButton.isEnabled = false
     }
     
-    //desData = [
-    //              ["date":"2022-09-20 星期二", "records":[LinkRecord]],
-    //              ["date":"2022-09-19 星期一", "records":[LinkRecord]]
-    //          ]
-    
     func convert(sourceData:[LinkRecord]) -> [[String:Any]]{
         var result = [[String:Any]]()
         var restRecords = sourceData
@@ -193,11 +177,8 @@ extension LinkListPageVC: HistoryRecordCellDelegate{
 }
 
 extension LinkListPageVC: UITableViewDelegate, UITableViewDataSource, UISearchResultsUpdating {
-    
-
     func numberOfSections(in tableView: UITableView) -> Int {
         curDataSource.count
-        
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -219,19 +200,16 @@ extension LinkListPageVC: UITableViewDelegate, UITableViewDataSource, UISearchRe
         
         let label = headerView?.viewWithTag(101) as? UILabel
         label?.text = curDataSource[section]["date"] as? String
-        
         return headerView
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-
         return (curDataSource[section]["list"] as! [LinkRecord]).count
-        
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? CustomTableViewCell else {return UITableViewCell()}
-   
+        
         let recordsofDate = curDataSource[indexPath.section]
         let record = (recordsofDate["list"] as! [LinkRecord])[indexPath.row]
         cell.delegate = self
@@ -244,30 +222,20 @@ extension LinkListPageVC: UITableViewDelegate, UITableViewDataSource, UISearchRe
     }
     
     private func filterReord(for searchText:String){
-        var matchItems = self.cachedDatas.filter { record in
+        let matchItems = self.cachedDatas.filter { record in
             record.title.contains(searchText) ||  record.link.lowercased().contains(searchText.lowercased())
         }
-        
         filteredItems = self.convert(sourceData: matchItems)
-
         tableView.reloadData()
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
         tableView.deselectRow(at: indexPath, animated: true)
         let record = self.recordFor(indexPath: indexPath)
         NotificationCenter.default.post(name: newsLinkClickedNotification, object: record.link)
-        
         self.dismiss(animated: true)
-        //        let cell = tableView.cellForRow(at: indexPath)
-//        updateCount()
-
     }
-    
-    
 }
-
 
 extension LinkListPageVC: EmptyDataSetSource, EmptyDataSetDelegate{
     
@@ -320,5 +288,4 @@ extension LinkListPageVC: EmptyDataSetSource, EmptyDataSetDelegate{
     func emptyDataSetShouldAllowScroll(_ scrollView: UIScrollView) -> Bool {
         return true
     }
-
 }

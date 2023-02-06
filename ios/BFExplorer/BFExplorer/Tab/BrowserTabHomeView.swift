@@ -1,8 +1,9 @@
+
 //
 //  BrowserTabEmptyStateView.swift
 //  Browser
 //
-//    23.    
+//    23.
 //
 
 import UIKit
@@ -185,10 +186,38 @@ class CategoryView: UIView{
         if type == .system {
             NotificationCenter.default.post(name: openAnAppNotification, object: info.appId)
         } else if type == .recommend {
-            sharedAppInfoMgr.clickRecommendAppAction(appId: info.appId)
+            clickedAppAction(appId: info.appId)
         } else if type == .user {
-            sharedAppInfoMgr.clickRecommendAppAction(appId: info.appId)
+            clickedAppAction(appId: info.appId)
         }
+    }
+    
+    //点击recommend文件
+    func clickedAppAction(appId: String) {
+        //1、从bfs-app-id/tmp/autoUpdate/缓存中读取当下的新json数据,并请求更新
+        guard appId.count > 0 else { return }
+        guard let link = sharedAppInfoMgr.appDownloadUrl(appId: appId) else { return }
+        alertUpdateViewController(appId: appId, urlstring: link)
+    }
+    
+    //下载弹框
+    private func alertUpdateViewController(appId: String, urlstring: String?) {
+        guard urlstring != nil else { return }
+        
+        let alertVC = UIAlertController(title: "确认下载更新吗？", message: nil, preferredStyle: .alert)
+        let sureAction = UIAlertAction(title: "确认", style: .default) { action in
+            operateMonitor.startAnimationMonitor.onNext(appId)
+            sharedNetworkMgr.downloadApp(appId: appId, urlString: urlstring!)
+        }
+        let cancelAction = UIAlertAction(title: "取消", style: .cancel) { action in
+
+        }
+        alertVC.addAction(sureAction)
+        alertVC.addAction(cancelAction)
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let controller = appDelegate.window?.rootViewController
+        controller?.present(alertVC, animated: true)
     }
 }
 
