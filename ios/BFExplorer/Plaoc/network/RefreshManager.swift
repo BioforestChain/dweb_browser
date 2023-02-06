@@ -49,7 +49,7 @@ class RefreshManager: NSObject {
 //                    return
 //                }
                 RefreshManager.saveLastUpdateTime(appId: appId!, time: Date().timeStamp)
-                sharedInnerAppFileMgr.writeUpdateContent(appId: appId!, json: dataDict)
+                sharedAppInfoMgr.writeUpdateContent(appId: appId!, json: dataDict)
                 if isCompare {
                     //TODO 发送比较版本信息
                     operateMonitor.refreshCompleteMonitor.onNext(appId!)

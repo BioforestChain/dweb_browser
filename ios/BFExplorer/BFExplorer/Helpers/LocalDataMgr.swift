@@ -210,15 +210,15 @@ extension CachesManager{
     }
     
     func readAvailableApps()->[AppInfo]{
-        var appNames = sharedInnerAppFileMgr.appIdList
+        var appIds = sharedAppInfoMgr.appIdList
         var infos = [AppInfo]()
-        for name in appNames{
-            var appInfo = AppInfo(appName: sharedInnerAppFileMgr.currentAppName(appId: name),appId: name)
-            let type = sharedInnerAppFileMgr.currentAppType(appId: name)
+        for appId in appIds{
+            var appInfo = AppInfo(appName: sharedAppInfoMgr.currentAppName(appId: appId),appId: appId)
+            let type = sharedAppInfoMgr.currentAppType(appId: appId)
             if type == .user {
-                appInfo.appIconUrl = sharedInnerAppFileMgr.scanImageURL(appId: name)
+                appInfo.appIconUrl = sharedAppInfoMgr.scanImageURL(appId: appId)
             } else {
-                appInfo.appIcon = sharedInnerAppFileMgr.currentAppImage(appId: name)
+                appInfo.appIcon = sharedAppInfoMgr.currentAppImage(appId: appId)
             }
             infos.append(appInfo)
         }

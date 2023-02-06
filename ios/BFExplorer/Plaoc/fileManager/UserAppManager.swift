@@ -1,5 +1,5 @@
 //
-//  BatchScanManager.swift
+//  BatchsharedAppInfoMgr.userAppMgr.swift
 //  Plaoc-iOS
 //
 //  Created by ui03 on 2022/10/18.
@@ -7,7 +7,9 @@
 
 import UIKit
 
-class UserAppManager: InnerAppManager {
+//let sharedAppInfoMgr.userAppMgr = UserAppManager()
+
+class UserAppManager: AppManager {
     override var appInstalledPath: String {
         documentdir + "/user-app"
     }

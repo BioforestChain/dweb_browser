@@ -4,6 +4,12 @@ import UIKit
 import Alamofire
 import SSZipArchive
 
+let sharedNetworkMgr = BFSNetworkManager()
+let notifyCenter = NotificationCenter.default
+
+let DownloadAppFinishedNotification = NSNotification.Name("DownloadAppFinishedNotification")
+let UpdateAppFinishedNotification = NSNotification.Name("UpdateAppFinishedNotification")
+
 class BFSNetworkManager: NSObject {
     
     static let shared = BFSNetworkManager()
@@ -11,7 +17,7 @@ class BFSNetworkManager: NSObject {
     private var requestDict: [String: DownloadRequest] = [:]
     
     func downloadApp(appId: String? = nil, urlString: String) {
-        guard let appId = obtainAppName(from: urlString) else{ return }
+        guard let appId = obtainAppName(from: urlString) else { return }
         let testUrl = "http://dldir1.qq.com/qqfile/qq/QQ7.9/16621/QQ7.9.exe"
         
         let request = AF.download(urlString).downloadProgress { progress in
@@ -23,26 +29,8 @@ class BFSNetworkManager: NSObject {
             case .success:
                 //下载后的文件路径
                 if response.fileURL != nil {
-                    DispatchQueue.global().async {
-
-                        // FIXME: 需要根据下载的app类型来判断是属于哪种
-                        var desPath = documentdir + "/system-app/"
-                        DispatchQueue.main.async {
-                            NVHTarGzip.sharedInstance().unTarGzipFile(atPath: response.fileURL!.path, toPath: desPath) { error in
-                                if error == nil {
-                                    var schemePath = desPath + "\(appId)/sys"
-                                    if self.shouldUpdate(name: appId) {
-                                        Schemehandler.setupHTMLCache(appId: appId, fromPath: schemePath)
-                                        sharedInnerAppFileMgr.updateRedHot(appId: appId, statue: true)
-                                    }
-                                    RefreshManager.saveLastUpdateTime(appId: appId, time: Date().timeStamp)
-                                }
-                                let msg = (error == nil) ? "complete" : "fail"
-                                NotificationCenter.default.post(name: NSNotification.Name.progressNotification, object: nil, userInfo: ["progress": msg, "appId": appId])
-                            }
-                             
-                        }
-                    }
+                    let appConfig = ["appId": appId, "tempZipPath": response.fileURL!.path]
+                    NotificationCenter.default.post(name: DownloadAppFinishedNotification, object: nil,userInfo: appConfig)
                 }
             case .failure:
                 NotificationCenter.default.post(name: NSNotification.Name.progressNotification, object: nil, userInfo: ["progress": "fail", "appId": appId])
@@ -121,13 +109,11 @@ class BFSNetworkManager: NSObject {
     }
     
     private func shouldUpdate(name: String) -> Bool {
-        
-//        guard let filePath = documentdir else { return false }
         let desPath = documentdir + "/system-app/\(name)"
         if FileManager.default.fileExists(atPath: desPath) {
             let tmpManager = BatchTempManager()
             let tmpVersion = tmpManager.tempAppVersion(name: name)
-            let oldVersion = sharedInnerAppFileMgr.systemAPPVersion(appId: name)
+            let oldVersion = sharedAppInfoMgr.systemAPPVersion(appId: name)
             let result = tmpVersion.versionCompare(oldVersion: oldVersion)
             if result == .orderedAscending {
                 return true

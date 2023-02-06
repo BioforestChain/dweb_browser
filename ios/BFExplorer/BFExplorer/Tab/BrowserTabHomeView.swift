@@ -1,8 +1,9 @@
+
 //
 //  BrowserTabEmptyStateView.swift
 //  Browser
 //
-//    23.    
+//    23.
 //
 
 import UIKit
@@ -43,7 +44,7 @@ let ItemHorzGap = CGFloat( 10)
 let lineGap = CGFloat( 20)
 
 var appNames: [String]?{
-    Array (sharedInnerAppFileMgr.appIdList)
+    Array (sharedAppInfoMgr.appIdList)
 }
 
 public enum Category: Int {
@@ -58,7 +59,7 @@ class CategoryView: UIView{
     public let titleLabel = UILabel(frame: CGRect(x: 0, y: 0, width: 150, height: TitleHeight))
     public var clickables : [TouchView]? = nil
     var type: Category = .hotSite
-
+    
     let bg = DisposeBag()
     
     init(frame:CGRect, type: Category){
@@ -83,36 +84,32 @@ class CategoryView: UIView{
             clickables?.append(btn)
             addSubview(btn)
             btn.tag = index
-            let selector = (type == .apps) ? #selector (iconClicked) : #selector (clickedNews)
+            let selector = (type == .apps) ? #selector (appClicked) : #selector (clickedNews)
             btn.addTarget(self, action: selector, for: .touchUpInside)
         }
         if type == .apps{
             operateMonitor.startAnimationMonitor.subscribe(onNext: { [weak self] appId in
-          
+                
                 DispatchQueue.main.async {
                     if let index = onDeckApps.firstIndex(where: { info in
                         info.appId == appId
                     }){
                         let button = self!.clickables![index]
                         button.realImageView.setupForAppleReveal()
-                        
                     }
                 }
-               
+                
             }).disposed(by: bg)
             updateRedSpot()
         }
-
     }
-    
     
     func updateRedSpot(){
         for (index, info) in onDeckApps.enumerated(){
-            let shouldHide = !sharedInnerAppFileMgr.redHot(appId: info.appId)
+            let shouldHide = !sharedAppInfoMgr.redHot(appId: info.appId)
             let touchView = self.clickables![index]
             touchView.hideRedSpot(shouldHide)
         }
-
     }
     
     @objc private  func clickedNews(sender: TouchView){
@@ -150,7 +147,6 @@ class CategoryView: UIView{
         for index in 0...7{
             if index < 8 {
                 if index < records.count{
-                    
                     if let image = ImageHelper.getSavedImage(named: records[index].imageName) {
                         clickables?[index].setImage(image: image)
                     }
@@ -167,7 +163,7 @@ class CategoryView: UIView{
             clickables?[index].isHidden = index >= records.count
         }
     }
-
+    
     func updateAppContainerView(_ records:[AppInfo]){
         for (index,record) in records.enumerated(){
             if let image = record.appIcon {
@@ -177,33 +173,22 @@ class CategoryView: UIView{
         }
     }
     
-    @objc func iconClicked(sender: UIButton) {
+    @objc func appClicked(sender: UIButton) {
         guard sender.tag < onDeckApps.count else { return }
         let info = onDeckApps[sender.tag]
         let touchView = clickables![sender.tag]
-        if sharedInnerAppFileMgr.redHot(appId: info.appId){
+        if sharedAppInfoMgr.redHot(appId: info.appId){
             touchView.hideRedSpot(true)
-            sharedInnerAppFileMgr.updateRedHot(appId: info.appId, statue: false)
+            sharedAppInfoMgr.updateRedHot(appId: info.appId, statue: false)
         }
         
-        print(sender.tag)
-        let type = sharedInnerAppFileMgr.currentAppType(appId: info.appId)
+        let type = sharedAppInfoMgr.currentAppType(appId: info.appId)
         if type == .system {
-            
-            let second = WebViewViewController()
-            second.appId = info.appId
-            second.urlString = sharedInnerAppFileMgr.systemWebAPPURLString(appId: info.appId) ?? "" //":/index.html"
-            let type = sharedInnerAppFileMgr.systemAPPType(appId: info.appId)
-            let url = sharedInnerAppFileMgr.systemWebAPPURLString(appId: info.appId) ?? ""
-   
-            second.urlString = url
-            
-            NotificationCenter.default.post(name: openAnAppNotification, object: second)
-            
+            NotificationCenter.default.post(name: openAnAppNotification, object: info.appId)
         } else if type == .recommend {
-            sharedInnerAppFileMgr.clickRecommendAppAction(appId: info.appId)
+            sharedAppInfoMgr.clickRecommendAppAction(appId: info.appId)
         } else if type == .user {
-            sharedInnerAppFileMgr.clickRecommendAppAction(appId: info.appId)
+            sharedAppInfoMgr.clickRecommendAppAction(appId: info.appId)
         }
     }
 }
@@ -245,7 +230,6 @@ let HoverViewTag = 10013
             let hoverView = HoverView(frame: CGRect(x: 0, y: 0, width: scales[i] * btn.width, height: btn.height * 0.8))
             hoverView.tag = HoverViewTag
             btn.addSubview(hoverView)
-            
         }
         layer.masksToBounds = true
         
@@ -253,12 +237,10 @@ let HoverViewTag = 10013
     
     func updateHotNewsList(newsList:CachedNesws){
         let colors = [UIColor.init(hexColor: "FA3E3E"), UIColor.init(hexColor: "FA9C3E"), UIColor.init(hexColor: "FA9C3E"), UIColor.init(hexColor: "ACB5BF") ]
-
+        
         for (index, news) in newsList.enumerated() {
             let btn = clickables![index]
             btn.addTarget(self, action: #selector(newsClicked), for: .touchUpInside)
-            //            btn.setTitle(news["title"] as? String, for: .normal)
-            // create attributed string
             var boldFont:UIFont { return UIFont(name: "SourceHanSansCN-Bold", size: 18) ?? UIFont.boldSystemFont(ofSize: 18) }
             let attr1 = [ NSAttributedString.Key.font: boldFont, NSAttributedString.Key.foregroundColor:colors[index < 3 ? index : 3]]
             var str1 = " \(index+1)  "
@@ -266,7 +248,6 @@ let HoverViewTag = 10013
                 str1.removeFirst()
             }
             let attrStr1 = NSMutableAttributedString(string: str1, attributes: attr1 )
-            
             
             var titleFont:UIFont { return UIFont(name: "SourceHanSansCN-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16) }
             
@@ -285,18 +266,14 @@ let HoverViewTag = 10013
         }
     }
     
-    
     @objc func newsClicked(sender:UIButton){
         
         guard let index = clickables?.firstIndex(of: sender) else { return }
         guard let item = sharedCachesMgr.fetchNews()?[index] else { return }
-//        guard index < news.count, let item = news[index] else { return }
         guard let link = item["link"] as? String, link.count > 10 else { return }
         NotificationCenter.default.post(name: newsLinkClickedNotification, object: link)
     }
-    
 }
-
 
 class BrowserTabHomeView: UIView, UIScrollViewDelegate {
     private let aboveBlankOfHotSite = CGFloat(40)
@@ -306,7 +283,6 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
     private let GapOfTitleAndNews = CGFloat(10)
     
     private let newsCount = 10
-    //    private let blankH = CGFloat(40)
     
     let topCutline = UIView()
     public var scrollview = UIScrollView()
@@ -322,7 +298,6 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
     var bookmarkViewHeightConstraint: Constraint?
     var appContainerViewHeightConstraint: Constraint?
     
-    
     var hasHandledScrolling = false
     
     override init(frame: CGRect) {
@@ -330,7 +305,6 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
         setupView()
         self.backgroundColor = UIColor(hexColor: "F5F6F7")
         addObserver(self, forKeyPath: #keyPath(UIView.alpha), options: .new, context: nil)
-        
     }
     
     required init?(coder: NSCoder) {
@@ -397,7 +371,7 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
         }
         appsContainerView.updateAppContainerView(list)
     }
-
+    
     func appendTemporaryApp(appId: String){
         if !onDeckApps.contains(where: { info in
             info.appId == appId
@@ -409,12 +383,37 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
             downloadingAppIds.append(appId)
             appsContainerView.updateAppContainerView(onDeckApps)
         }
-
+        
+    }
+    
+    func updateAppDone(appId: String){
+//        guard let appId = infoDict["appId"] as? String else { return }
+        sharedAppInfoMgr.updateFileType(appId: appId)
+        
+        guard let index = onDeckApps.firstIndex(where: { info in
+            info.appId == appId
+        })  else {return}
+        
+        let button = self.appsContainerView.clickables![index]
+        button.realImageView.startExpandAnimation()
+        button.realImageView.image = sharedAppInfoMgr.currentAppImage(appId: appId)
+        button.realTitleLabel.text = sharedAppInfoMgr.currentAppName(appId: appId)
+        if let index = onDeckApps.firstIndex(where: { info in
+            info.appName == appId
+        }){
+            onDeckApps.remove(at: index)
+        }
+        if let index2 = downloadingAppIds .firstIndex(where: { installingId in
+            installingId == appId
+        }){
+            downloadingAppIds.remove(at: index2)
+        }
+        appsContainerView.updateRedSpot()
     }
     
     func installingProgressUpdate(_ notify: Notification){
         guard let infoDict = notify.userInfo,
-                let progress = infoDict["progress"] as? String else { return }
+              let progress = infoDict["progress"] as? String else { return }
         guard let appId = infoDict["appId"] as? String else { return }
         
         if !downloadingAppIds.contains(where: { installingAppId in
@@ -423,31 +422,10 @@ class BrowserTabHomeView: UIView, UIScrollViewDelegate {
             appendTemporaryApp(appId: appId)
             operateMonitor.startAnimationMonitor.onNext(appId)
         }
-                
+        
         if progress == "complete" {
-            guard let appId = infoDict["appId"] as? String else { return }
-            sharedInnerAppFileMgr.updateFileType(appId: appId)
-
-            guard let index = onDeckApps.firstIndex(where: { info in
-                info.appId == appId
-            })  else {return}
-
-            let button = self.appsContainerView.clickables![index]
-            button.realImageView.startExpandAnimation()
-            button.realImageView.image = sharedInnerAppFileMgr.currentAppImage(appId: appId)
-            button.realTitleLabel.text = sharedInnerAppFileMgr.currentAppName(appId: appId)
-            if let index = onDeckApps.firstIndex(where: { info in
-                info.appName == appId
-            }){
-                onDeckApps.remove(at: index)
-            }
-            if let index2 = downloadingAppIds .firstIndex(where: { installingId in
-                installingId == appId
-            }){
-                downloadingAppIds.remove(at: index2)
-            }
-            appsContainerView.updateRedSpot()
-
+            
+            
         }else if progress == "fail"{
             if let index = onDeckApps.firstIndex(where: { info in
                 info.appName == appId
@@ -537,7 +515,7 @@ private extension BrowserTabHomeView {
         reloadBookMarkView()
         reloadAppContainerView()
         guard let newsList = sharedCachesMgr.fetchNews(), newsList.count > 0 else { return }
-
+        
         hotArticleView.updateHotNewsList(newsList: newsList)
     }
 }
