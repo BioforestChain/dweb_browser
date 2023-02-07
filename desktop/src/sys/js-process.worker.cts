@@ -2,7 +2,7 @@
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
-import { NativeIpc } from "../core/ipc.native.cjs";
+import { MessagePortIpc } from "../core/ipc-web/MessagePortIpc.cjs";
 import { IPC_ROLE } from "../core/ipc/index.cjs";
 import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
 import { $readRequestAsIpcRequest } from "../helper/$readRequestAsIpcRequest.cjs";
@@ -28,7 +28,7 @@ export class JsProcessMicroModule implements $MicroModule {
 
 /// 消息通道构造器
 const waitFetchIpc = (process: $MicroModule) => {
-  return new Promise<NativeIpc>((resolve) => {
+  return new Promise<MessagePortIpc>((resolve) => {
     self.addEventListener("message", (event) => {
       const data = event.data as any[];
       if (Array.isArray(event.data) === false) {
@@ -38,7 +38,12 @@ const waitFetchIpc = (process: $MicroModule) => {
       /// 由 web 主线程代理传递过来
       if (data[0] === "fetch-ipc-channel") {
         /// 与原生互通讯息，默认只能支持字符串
-        const ipc = new NativeIpc(data[1], process, IPC_ROLE.SERVER, false);
+        const ipc = new MessagePortIpc(
+          data[1],
+          process,
+          IPC_ROLE.SERVER,
+          false
+        );
         resolve(ipc);
         // self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
       }

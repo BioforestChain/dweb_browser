@@ -7,7 +7,6 @@ const ALL_PROCESS_MAP = new Map<
   {
     worker: Worker;
     fetch_port: MessagePort;
-    // ipc: NativeIpc;
   }
 >();
 let acc_process_id = 0;

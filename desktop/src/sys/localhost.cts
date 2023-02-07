@@ -168,8 +168,39 @@ class HttpListener {
   }
 }
 /**
- * 这是一个模拟监听本地网络的服务，用来为内部程序提供 https 域名来访问网页的功能
+ * 这是一个模拟监听本地网络的服务，用来为内部程序提供 https://*.localhost.dweb 域名，并提供请求转发
  *
+ * ### 实现原理：
+ *
+ * 我们在原生端静态地提供了 https://*.localhost.dweb/(index.html|sw.js) 等请求的响应。
+ * 这些响应是内容是写死的，所以即便我们是通过 https-server 来提供服务，因为只是纯静态服务，也不会有任何风险。
+ * 服务起来后，service-worker 将会运行，然后拦截所有 https://*.localhost.dweb/ 网站下的请求，
+ * 再通过内部 IPC 转发到响应服务中进行处理。
+ *
+ * ### 如何实现 https://*.localhost.dweb 站点服务：
+ *
+ * 在 Android 端，我们使用 `webViewClient.shouldInterceptRequest` 接口来提供网站响应请求。
+ *
+ * 在 IOS 端，通过 `WKWebURLSchemeHandler` 类来提供网站响应请求（需要使用Object-C重写 handlesURLScheme 函数来绕过 拦截https 的限制）。
+ *
+ * 在 Desktop（Win/Mac/Linux） 端，我们使用通过自定义 CA 证书，并通过 chrome.proxy 来配置代理服务。
+ * 在本地启动 https 的服务来作为代理服务器，为 *localhost.dweb 动态生成证书。从而使用标准 https 协议来响应网站请求。
+ *
+ * ### 如何实现 https://*.localhost.deb 的请求拦截给 js-process 处理的功能
+ *
+ * 在 Android 端，因为我们使用了service-worker得到了请求拦截的能力，所以本质上我们需要跟 service-worker 建立ipc通讯。
+ * 这里我们使用 `webView.createWebMessageChannel` 来创建原生的 MessagePort，
+ * 然后通过 `webView.postWebMessage(new WebMessage("forward-to-service-worker", new WebMessagePort[]{port[1]}));` 来传入Web端（Web端通常指 web的主线程 ）。
+ * Web端使用 `window.addEventListener('message')` 来接收这个 channel，之后再将之转发给 service-Worker: `serviceWorkerController.postMessage("from-native", [port2])`。
+ * 从而实现了 Native 与 Service-Worker 的直接通讯（字符串通讯，这里为了JS侧的性能，我们使用JSON格式进行通讯，二进制数据则会转换成base64）
+ * 最后再通过 js-process，将这个 Native 侧的IPC 转发给内部的 WebWorker 即可。
+ *
+ * 在 IOS 端，因为不支持Service-Worker（强行支持就无法使用 WKWebURLSchemeHandler 拦截请求了），所以我们在拦截到如果是存在 request.body （比如 POST、PUT），需要额外通过 `WKNavigationDelegate` 取得 request.body 的二进制或者二进制流。
+ * 所以将这些请求封装成 Native 侧的 IpcRequest ，交给 js-process 让其转发给内部的 WebWorker 即可。
+ *
+ * 在 Desktop（Win/Mac/Linux） 端，我们虽然已经有自启动的端口服务，但为了确保安全，我们不会使用它来做网络拦截。
+ * 而是与 Android 采用类似的方案，直接往 service-worker 中通过传入 MessagePort 来直接进行通讯。（此时的通讯直接传输 Transferable 对象，不需要JSON编码，性能会更进一步）
+ * 后面的数据路径都一样，给到 js-process 来让其转发给内部的 WebWorker
  */
 export class LocalhostNMM extends NativeMicroModule {
   mmid = "localhost.sys.dweb" as const;
