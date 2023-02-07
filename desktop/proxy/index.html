@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script>
+      require("./dist/index.cjs");
+    </script>
+    <style>
+      :root {
+        height: 100%;
+      }
+      body {
+        height: 100%;
+        padding: 16px;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        background-color: rgba(0, 0, 0, 0.3);
+        gap: 16px;
+        box-sizing: border-box;
+
+        --border-radius: 16px;
+        --box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2),
+          -4px -4px 8px rgba(255, 255, 255, 0.5);
+        --box-shadow-inset: inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+          inset -4px -4px 8px rgba(255, 255, 255, 0.5);
+        --border: 0.5px solid rgba(255, 255, 255, 0.1);
+        --background: rgba(255, 255, 255, 0.6);
+      }
+      #toolbar {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 16px;
+      }
+      #url-input {
+        flex: 1;
+        padding: 8px;
+        border: var(--border);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-inset);
+        background: var(--background);
+      }
+      #go-url {
+        cursor: pointer;
+        padding: 8px 16px;
+        border: var(--border);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        background: var(--background);
+      }
+      #go-url:hover {
+      }
+      #views {
+        flex: 1;
+        display: grid;
+        grid-template-areas: "content";
+      }
+      webview {
+        grid-area: content;
+        overflow: hidden;
+        border: var(--border);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        background: var(--background);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toolbar">
+      <input id="url-input" value="https://qaq.localhost.dweb/demo.html" />
+      <button id="go-url">跳转</button>
+    </div>
+    <div id="views">
+      <webview id="web-view" allowtransparency="true"></webview>
+    </div>
+  </body>
+  <script>
+    const urlInput = document.querySelector("#url-input");
+    const webView = document.querySelector("#web-view");
+    webView.setUserAgentOverride(`Dweb Browser/1.0 dweb token xxx.xxx.xxx`);
+    const upsetWebviewUrl = () => {
+      /// 解析一下，确保是url
+      webView.src = new URL(urlInput.value.trim()).href;
+    };
+    document
+      .querySelector("#go-url")
+      .addEventListener("click", upsetWebviewUrl);
+    upsetWebviewUrl();
+  </script>
+</html>

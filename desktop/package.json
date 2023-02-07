@@ -1,5 +1,5 @@
 {
-    "name": "bfsium",
+    "name": "dweb-browser",
     "main": "index.html",
     "main-": "./index.js",
     "domain": "dweb",
