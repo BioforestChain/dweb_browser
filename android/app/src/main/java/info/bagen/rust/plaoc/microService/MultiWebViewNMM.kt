@@ -22,32 +22,36 @@ class MultiWebViewNMM() : NativeMicroModule() {
         }
     }
 
-    override fun bootstrap(args: workerOption): Any? {
-        println("kotlin#MultiWebViewNMM bootstrap==> ${args.mainCode}  ${args.origin}")
+    override fun bootstrap(args: NativeOptions): Any? {
+        println("kotlin#MultiWebViewNMM bootstrap==> ${args["mainCode"]}  ${args["origin"]}")
+        val routerTarget = args["routerTarget"]
         // 导航到自己的路由
-        if (routers[args.routerTarget] == null) {
-            return "mwebview.sys.dweb route not found for ${args.routerTarget}"
+        if (routers[routerTarget] == null) {
+            return "mwebview.sys.dweb route not found for $routerTarget"
         }
-        return routers[args.routerTarget]?.let { it->it(args) }
+        return routers[routerTarget]?.let { it->it(args) }
     }
 
     private fun openDwebView(args: NativeOptions): Any {
         println(
             "Kotlin#MultiWebViewNMM openDwebView " +
-                    "routerTarget：${args.routerTarget} \n" +
-                    "origin: ${args.origin} \n" +
-                    "mainCode: ${args.mainCode} \n" +
-                    "processId: ${args.processId}"
+                    "routerTarget：${args["routerTarget"]} \n" +
+                    "origin: ${args["origin"]} \n" +
+                    "mainCode: ${args["mainCode"]} \n" +
+                    "processId: ${args["processId"]}"
         )
+        if (args["origin"] == null) {
+            return "Error not Found param origin"
+        }
         val webviewNode = viewTree.createNode(args)
         val append = viewTree.appendTo(webviewNode)
         // 当传递了父进程id，但是父进程是不存在的时候
         if(append == 0) {
-            return "not found mount process!!!"
+            return "Error: not found mount process!!!"
         }
         // openDwebView
         if (mainActivity !== null) {
-            openDWebWindow(activity = mainActivity!!.getContext(), url = args.origin)
+            openDWebWindow(activity = mainActivity!!.getContext(), url = args["origin"]!!)
         }
         return webviewNode.id
     }
@@ -72,13 +76,13 @@ class ViewTree {
         // 当前要挂载到哪个父级节点
         var processId = currentProcess
         //  当用户传递了processId，即明确需要挂载到某个view下
-        if (args.processId !== null) {
-            processId = args.processId
+        if (args["processId"] !== null) {
+            processId = args["processId"]!!.toInt()
         }
         return ViewTreeStruct(
             id = processId + 1,
             processId = processId, // self add node id
-            origin = args.origin,
+            origin = args["origin"]!!,
             children = mutableListOf()
         )
     }

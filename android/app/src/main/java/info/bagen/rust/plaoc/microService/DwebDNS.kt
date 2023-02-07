@@ -33,7 +33,7 @@ class DwebDNS : NativeMicroModule() {
         val tmp = url.substring(7)
         val mmid = tmp.substring(0, tmp.indexOf("/"))
         val option = fetchMatchParam(tmp)
-        println("kotlin#nativeFetch mmid==> $mmid routerTarget==> ${option.routerTarget}")
+        println("kotlin#nativeFetch mmid==> $mmid routerTarget==> ${option["routerTarget"]}")
         dnsTables.keys.forEach { domain ->
             if (mmid.contains(domain)) {
                return dnsTables[domain]?.bootstrap(option)
@@ -41,8 +41,6 @@ class DwebDNS : NativeMicroModule() {
         }
         return "Error not found $mmid domain"
     }
-
-    private val bootOptionParams = mutableSetOf("origin", "mainCode", "main_code")
 
     /** 截取参数 */
     private fun fetchMatchParam(url: String): NativeOptions {
@@ -66,18 +64,17 @@ class DwebDNS : NativeMicroModule() {
         }
         // 处理传递的参数
         val pairs = query.split("&")
-        val bootOptions = NativeOptions(routerTarget=routerTarget)
+        val bootOptions = mutableMapOf<String,String>()
+        bootOptions["routerTarget"] = routerTarget
         pairs.forEach { pair ->
             val idx = pair.indexOf("=")
             //如果等号存在且不在字符串两端，取出key、value
             if (idx > 0 && idx < pair.length - 1) {
                 val key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
                 val value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
-//                println("kotlin#fetchMatchParam key ==> $key value ==> $value ")
+                println("kotlin#fetchMatchParam key ==> $key value ==> $value ")
                 // 取出后构建一个参数对象返回
-                if (bootOptionParams.contains(key)) {
-                    bootOptions[key] = value
-                }
+                bootOptions[key] = value
             }
         }
         return bootOptions

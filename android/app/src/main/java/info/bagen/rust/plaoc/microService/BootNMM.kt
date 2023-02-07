@@ -3,8 +3,7 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.openHomeActivity
 
 
-typealias Router = MutableMap<String, IO>
-typealias IO = (mmid: Any) -> Any
+typealias Router = MutableMap<String, AppRun>
 typealias AppRun = (options: NativeOptions) -> Any
 
 
@@ -17,7 +16,7 @@ class BootNMM : NativeMicroModule() {
     init {
         // 注册路由
         routers["/open"] = put@{
-            return@put open(it as NativeOptions)
+            return@put open(it)
         }
         // 初始化注册微组件的函数
         routers["/register"] = put@{ mmid ->
@@ -31,22 +30,27 @@ class BootNMM : NativeMicroModule() {
         registeredMmids.add("desktop.bfs.dweb")
     }
 
-    override fun bootstrap(args: workerOption): Any? {
-        println("kotlin#BootNMM bootstrap==> ${args.mainCode}  ${args.origin}")
+    override fun bootstrap(args: NativeOptions): Any? {
+        println("kotlin#BootNMM bootstrap==> ${args["mainCode"]}  ${args["origin"]}")
+        val routerTarget = args["routerTarget"]
         // 导航到自己的路由
-        if (routers[args.routerTarget] == null) {
-           return "boot.sys.dweb route not found for ${args.routerTarget}"
+        if (routers[routerTarget] == null) {
+           return "boot.sys.dweb route not found for $routerTarget"
         }
-        return routers[args.routerTarget]?.let { it -> it(args) }
+        return routers[routerTarget]?.let { it -> it(args) }
     }
 
     fun open(options: NativeOptions):Any {
-        println("kotlinBootNMM start app:${options.origin},${hookBootApp.containsKey(options.origin)},${options.routerTarget}")
-        // 如果已经注册了该boot app
-        if (hookBootApp.containsKey(options.origin)) {
-          return (hookBootApp[options.origin]!!)(options) // 直接调用该方法
+        val origin = options["origin"]
+        println("kotlinBootNMM start app:$origin,${hookBootApp.containsKey(origin)},${options["routerTarget"]}")
+        if (origin == null) {
+            return "Error not Found param origin"
         }
-        return "Error not register ${options.origin} boot Application"
+        // 如果已经注册了该boot app
+        if (hookBootApp.containsKey(origin)) {
+          return (hookBootApp[origin]!!)(options) // 直接调用该方法
+        }
+        return "Error not register $origin boot Application"
     }
 
 

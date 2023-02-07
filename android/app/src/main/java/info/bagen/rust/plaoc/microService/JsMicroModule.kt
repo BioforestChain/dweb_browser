@@ -4,7 +4,6 @@ package info.bagen.rust.plaoc.microService
 import android.net.Uri
 import android.webkit.*
 import com.fasterxml.jackson.core.JsonParser
-import com.google.gson.Gson
 import info.bagen.libappmgr.network.ApiService
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.mapper
@@ -13,7 +12,6 @@ import kotlinx.coroutines.*
 import java.util.*
 
 
-typealias workerOption = NativeOptions
 
 class JsMicroModule : MicroModule() {
     // 该程序的来源
@@ -26,24 +24,25 @@ class JsMicroModule : MicroModule() {
     init {
         // 创建一个webWorker
         routers["/create-process"] = put@{ args ->
-            return@put createProcess(args as workerOption)
+            return@put createProcess(args as NativeOptions)
         }
     }
 
-    override fun bootstrap(args: workerOption): Any? {
-        println("kotlin#JsMicroModule args==> ${args.mainCode}  ${args.origin}")
+    override fun bootstrap(args: NativeOptions): Any? {
+        println("kotlin#JsMicroModule args==> ${args["mainCode"]}  ${args["origin"]}")
+        val routerTarget = args["routerTarget"]
         // 导航到自己的路由
-        if (routers[args.routerTarget] == null) {
-            return "js.sys.dweb route not found for ${args.routerTarget}"
+        if (routers[routerTarget] == null) {
+            return "js.sys.dweb route not found for $routerTarget"
         }
-        return routers[args.routerTarget]?.let { it->it(args) }
+        return routers[routerTarget]?.let { it->it(args) }
     }
 
 
     // 创建一个webWorker
-    private fun createProcess(args: workerOption): Any {
-        if (args.mainCode == "") return "Error open worker must transmission mainCode or main_code"
-        return jsProcess.hiJackWorkerCode(args.mainCode)
+    private fun createProcess(args: NativeOptions): Any {
+        if (args["mainCode"] == "") return "Error open worker must transmission mainCode or main_code"
+        return jsProcess.hiJackWorkerCode(args["mainCode"]!!)
     }
 
 }
@@ -52,9 +51,6 @@ class JsProcess {
     // 存储每个worker的port 以此来建立每个worker的通信
     val ALL_PROCESS_MAP = mutableMapOf<Number, WebMessagePort>()
     var accProcessId = 0
-
-    // 工具方法
-    val gson = Gson()
 
     // 创建了一个后台运行的webView 用来运行webWorker
     var view: WebView = WebView(App.appContext).also { view ->
@@ -65,15 +61,6 @@ class JsProcess {
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
         settings.databaseEnabled = true
-        val swController = ServiceWorkerController.getInstance()
-        swController.serviceWorkerWebSettings.allowContentAccess = true
-        swController.setServiceWorkerClient(object : ServiceWorkerClient() {
-            override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
-                // 拦截serviceWorker的网络请求
-               println("setServiceWorkerClient==> ${request.url}")
-                return super.shouldInterceptRequest(request)
-            }
-        })
         view.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
@@ -104,7 +91,7 @@ class JsProcess {
     /** 这里负责返回每个webWorker里的返回值
      * 注意每个worker的post都是不同的 */
     private fun tranResponseWorker(webMessagePort: WebMessagePort, res: IpcResponse) {
-        val jsonMessage = gson.toJson(res)
+        val jsonMessage = res.fromJson()
         println("JavascriptContext#tranResponseWorker: $jsonMessage")
         webMessagePort.postMessage(WebMessage(jsonMessage))
     }

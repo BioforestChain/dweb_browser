@@ -162,16 +162,7 @@ private fun NavFun(activity: ComponentActivity) {
 /** 打开DWebview*/
 fun openDWebWindow(activity: ComponentActivity, url: String) {
     val intent = Intent(activity.applicationContext, DWebViewActivity::class.java).also {
-        println(
-            "kotlin#DwebViewActivity openDWebWindow url:$url,${
-                Uri.parse(
-                    "https://" + URLEncoder.encode(
-                        url,
-                        "UTF-8"
-                    )
-                )
-            }"
-        )
+        println("kotlin#DwebViewActivity openDWebWindow url:$url")
         it.data = Uri.parse("https://" + URLEncoder.encode(url, "UTF-8"))
     }
     activity.startActivity(intent)
