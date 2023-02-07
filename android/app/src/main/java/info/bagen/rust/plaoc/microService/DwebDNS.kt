@@ -17,13 +17,19 @@ class DwebDNS : NativeMicroModule() {
     private val jsMicroModule = JsMicroModule()
     private val bootNMM = BootNMM()
     private val multiWebViewNMM = MultiWebViewNMM()
+    private val localhostNMM = LocalhostNMM()
 
     init {
         initDnsMap()
         dnsTables["mwebview.sys.dweb"] = multiWebViewNMM
         dnsTables["boot.sys.dweb"] = bootNMM
         dnsTables["js.sys.dweb"] = jsMicroModule
+        dnsTables["localhost.sys.dweb"] = localhostNMM
+        dnsTables["dns.sys.dweb"] = this
     }
+
+    private val routers: Router = mutableMapOf()
+
 
     /** 转发dns到各个微组件
      *  file://
@@ -38,10 +44,6 @@ class DwebDNS : NativeMicroModule() {
                return dnsTables[domain]?.bootstrap(option)
 //                println("kotlin#fetchMatchParam bootOptions ==> ${option.origin},${option.mainJs} ")
             }
-        }
-        bootNMM.registeredMmids.values.forEach { microModule ->
-            println("Kotlin#BootNMM:$microModule")
-            return microModule.bootstrap(option)
         }
         return "Error not found $mmid domain"
     }
@@ -92,7 +94,7 @@ class DwebDNS : NativeMicroModule() {
         return true
     }
 
-    fun remove(mmid: Mmid): String {
+    fun close(mmid: Mmid): String {
         if (dnsTables.containsKey(mmid)) {
             return dnsTables.remove(mmid)!!.mmid
         }
@@ -101,12 +103,17 @@ class DwebDNS : NativeMicroModule() {
 
     private fun initDnsMap() {
         // 启动对应的功能
-        dnsMap["desktop.bfs.dweb"] = {
-            openHomeActivity()
+        dnsMap["boot.sys.dweb"] = {
+            bootNMM.routers[it.routerTarget]?.let { function -> function(it) }
         }
+        // 启动多页面
         dnsMap["mwebview.sys.dweb"] = { webView ->
             println("kotlin#initDnsMap routerTarget==> ${webView.routerTarget} ")
             multiWebViewNMM.routers[webView.routerTarget]?.let { it -> it(webView) }
+        }
+        // 网络的转发
+        dnsMap["localhost.sys.dweb"] = { nativeOption ->
+            localhostNMM.routers[nativeOption.routerTarget]?.let { it->it(nativeOption) }
         }
     }
 }

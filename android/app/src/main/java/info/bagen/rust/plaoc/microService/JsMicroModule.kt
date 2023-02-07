@@ -14,7 +14,6 @@ import kotlinx.coroutines.sync.Mutex
 import java.util.*
 
 
-
 typealias workerOption = NativeOptions
 
 class JsMicroModule : MicroModule() {
@@ -32,12 +31,11 @@ class JsMicroModule : MicroModule() {
         }
     }
 
-    override fun bootstrap(args: workerOption):Any {
+    override fun bootstrap(args: workerOption): Any {
         println("kotlin#JsMicroModule args==> ${args.mainCode}  ${args.origin}")
         // 开始执行开发者自己的代码
-       return this.createProcess(args)
+        return this.createProcess(args)
     }
-
 
 
     // 创建一个webWorker
@@ -47,7 +45,7 @@ class JsMicroModule : MicroModule() {
         runBlocking {
             result = javascriptContext.hiJackWorkerCode(args.mainCode)
         }
-        return  result
+        return result
     }
 
 }
@@ -115,7 +113,7 @@ class JavascriptContext {
 
     /** 为这个上下文安装启动代码 */
     @OptIn(DelicateCoroutinesApi::class)
-    suspend fun hiJackWorkerCode(mainUrl: String):String {
+    suspend fun hiJackWorkerCode(mainUrl: String): String {
         if (!isWebviewFinished) {
             onWebviewFinished.lock()
         }
@@ -126,13 +124,14 @@ class JavascriptContext {
             val injectJs = getInjectWorkerCode("injectWorkerJs/injectWorker.js")
             val userCode = ApiService.instance.getNetWorker(mainUrl).replace("\"use strict\";", "")
             // 构建注入的代码
-            val workerCode =
-                "data:utf-8,((module,exports=module.exports)=>{$injectJs;return module.exports})({exports:{}}).installEnv();$userCode"
-              withContext(Dispatchers.Main) {
-                  injectJs(workerCode, workerHandle)
+            val workerCode = "data:utf-8," +
+                    "((module,exports=module.exports)=>{$injectJs;return module.exports})({exports:{}}).installEnv();$userCode"
+
+            withContext(Dispatchers.Main) {
+                injectJs(workerCode, workerHandle)
             }
         }
-        return  workerPort.toString()
+        return workerPort.toString()
     }
 
     //    注入webView

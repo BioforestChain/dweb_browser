@@ -3,7 +3,7 @@ package info.bagen.rust.plaoc.microService
 
 /** 启动Boot服务*/
 fun startBootNMM() {
-   val boot = global_micro_dns.nativeFetch("file://desktop.sys.dweb/")
+   val boot = global_micro_dns.nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
     println("startBootNMM# boot response: $boot")
 }
 
