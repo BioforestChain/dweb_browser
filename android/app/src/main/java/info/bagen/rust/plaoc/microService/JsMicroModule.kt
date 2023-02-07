@@ -31,21 +31,17 @@ class JsMicroModule : MicroModule() {
         }
     }
 
-    override fun bootstrap(args: workerOption): Any {
+    override fun bootstrap(args: workerOption): Any? {
         println("kotlin#JsMicroModule args==> ${args.mainCode}  ${args.origin}")
-        // 开始执行开发者自己的代码
-        return this.createProcess(args)
+        // 导航到自己的路由
+        return routers[args.routerTarget]?.let { it->it(args) }
     }
 
 
     // 创建一个webWorker
     private fun createProcess(args: workerOption): Any {
-        var result = "Error open worker must transmission mainCode or main_code"
-        if (args.mainCode == "") return result
-        runBlocking {
-            result = javascriptContext.hiJackWorkerCode(args.mainCode)
-        }
-        return result
+        if (args.mainCode == "") return "Error open worker must transmission mainCode or main_code"
+        return javascriptContext.hiJackWorkerCode(args.mainCode)
     }
 
 }
@@ -57,9 +53,6 @@ class JavascriptContext {
 
     // 工具方法
     val gson = Gson()
-
-    var onWebviewFinished = Mutex()
-    var isWebviewFinished = false
 
     // 创建了一个后台运行的webView 用来运行webWorker
     var view: WebView = WebView(App.appContext).also { view ->
@@ -73,10 +66,6 @@ class JavascriptContext {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                isWebviewFinished = true
-                if (onWebviewFinished.isLocked) {
-                    onWebviewFinished.unlock()
-                }
             }
         }
         WebView.setWebContentsDebuggingEnabled(true)
@@ -113,10 +102,7 @@ class JavascriptContext {
 
     /** 为这个上下文安装启动代码 */
     @OptIn(DelicateCoroutinesApi::class)
-    suspend fun hiJackWorkerCode(mainUrl: String): String {
-        if (!isWebviewFinished) {
-            onWebviewFinished.lock()
-        }
+    fun hiJackWorkerCode(mainUrl: String): String {
         val workerPort = this.accProcessId
         GlobalScope.launch {
             val workerHandle = "worker${Date().time}"

@@ -28,9 +28,6 @@ class DwebDNS : NativeMicroModule() {
         dnsTables["dns.sys.dweb"] = this
     }
 
-    private val routers: Router = mutableMapOf()
-
-
     /** 转发dns到各个微组件
      *  file://
      *  */
@@ -42,7 +39,6 @@ class DwebDNS : NativeMicroModule() {
         dnsTables.keys.forEach { domain ->
             if (mmid.contains(domain)) {
                return dnsTables[domain]?.bootstrap(option)
-//                println("kotlin#fetchMatchParam bootOptions ==> ${option.origin},${option.mainJs} ")
             }
         }
         return "Error not found $mmid domain"
