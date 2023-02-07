@@ -1,16 +1,39 @@
-import { Ipc, IPC_DATA_TYPE } from "../core/ipc/index.cjs";
+import {
+  Ipc,
+  IpcRequest,
+  IPC_DATA_TYPE,
+  IPC_ROLE,
+} from "../core/ipc/index.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
 
-import http from "node:http";
+// import node_web from "node:http2";
+// const protocol = "https:";
+// import WebServer = node_web.Http2Server;
+// import WebServerRequest = node_web.Http2ServerRequest;
+// import WebServerResponse = node_web.Http2ServerResponse;
+
+import node_web from "node:http";
+const protocol = "http:";
+import WebServer = node_web.Server;
+import WebServerRequest = node_web.IncomingMessage;
+import WebServerResponse = node_web.ServerResponse;
+
+import { Readable } from "node:stream";
+import { ReadableStreamIpc } from "../core/ipc-web/ReadableStreamIpc.cjs";
 import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
-import { simpleEncoder } from "../helper/encoding.cjs";
+import { findPort } from "../helper/findPort.cjs";
 import { PromiseOut } from "../helper/PromiseOut.cjs";
+import {
+  ReadableStreamOut,
+  streamFromCallback,
+  streamReader,
+} from "../helper/readableStreamHelper.cjs";
 import type { $Method } from "../helper/types.cjs";
-import { findPort } from "./$helper/find-port.cjs";
+import { parseUrl } from "../helper/urlHelper.cjs";
 
 interface $OnRequestBind {
   paths: readonly $ReqMatcher[];
-  streamController: ReadableByteStreamController;
+  httpResponseIpc: ReadableStreamIpc;
 }
 
 export interface $HttpRequestInfo {
@@ -34,7 +57,7 @@ class HttpListener {
     readonly host: string
   ) {}
 
-  readonly origin = `http://${this.host}`;
+  readonly origin = `${protocol}//${this.host}`;
   readonly onRequestBinds = new Set<$OnRequestBind>();
 
   private _httpReqresMap = new Map<number, PromiseOut<$HttpResponseInfo>>();
@@ -71,13 +94,13 @@ class HttpListener {
   }
 
   /** 接收处理 nodejs-http 请求 */
-  async hookHttpRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+  async hookHttpRequest(req: WebServerRequest, res: WebServerResponse) {
     if (res.closed) {
       throw new Error("http server response already closed");
     }
 
     const { url = "/", method = "GET" } = req;
-    const parsed_url = new URL(req.url ?? "/", "http://locaclhost");
+    const parsed_url = parseUrl(req.url ?? "/");
 
     const hasMatch = this._isBindMatchReq(parsed_url.pathname, method);
     if (hasMatch === undefined) {
@@ -85,39 +108,63 @@ class HttpListener {
       return;
     }
 
-    const http_req_id = this.allocHttpReqId();
+    let ipc_req_body_stream: undefined | ReadableStream<Uint8Array>;
+    /// 如果是存在body的协议，那么将之读取出来
+    console.log("req.method", req.method, "req.readable", req.readable);
+    if (req.method === "POST" || req.method === "PUT") {
+      /** req body 的转发管道，转发到 响应服务端 */
+      const ipc_req_body_piper = new ReadableStreamOut<Uint8Array>();
+      (async () => {
+        const req_body_reader = Readable.toWeb(req).getReader();
 
-    const request_info: $HttpRequestInfo = {
-      http_req_id: http_req_id,
-      url: url,
-      method: method as $Method,
-      rawHeaders: req.rawHeaders,
-    };
+        /// 根据数据拉取的情况，从 req 中按需读取数据，这种按需读取会反压到 web 的请求层那边暂缓数据的发送
+        for await (const _ of streamReader(
+          streamFromCallback(ipc_req_body_piper.onPull)
+        )) {
+          const item = await req_body_reader.read();
+          if (item.done) {
+            /// 客户端的传输一旦关闭，转发管道也要关闭
+            ipc_req_body_piper.controller.close();
+          } else {
+            ipc_req_body_piper.controller.enqueue(item.value);
+          }
+        }
+      })();
 
-    const chunk = simpleEncoder(JSON.stringify(request_info) + "\n", "utf8");
-    /// 通过 `/request/on` 管道将请求通知过去
-    hasMatch.bind.streamController.enqueue(chunk);
+      ipc_req_body_stream = ipc_req_body_piper.stream;
+    }
 
-    /// 然后按需将 body 对象也传回去
-    const read_request_body_off = this.ipc.onMessage((message) => {
-      if (
-        message.type === IPC_DATA_TYPE.REQUEST &&
-        message.parsed_url.pathname === "/read-request-body"
-      ) {
-        read_request_body_off();
+    const http_response_info = await hasMatch.bind.httpResponseIpc.request(
+      url,
+      {
+        method,
+        body: ipc_req_body_stream,
+        headers: req.headers as Record<string, string>,
       }
-    });
-    /// 等待远端提供响应
-    const response_info = await this.registerHttpReqId(http_req_id).promise;
+    );
+
     /// 写回 res 对象
-    res.statusCode = response_info.statusCode;
-    for (const [name, value] of Object.entries(response_info.headers)) {
+    res.statusCode = http_response_info.statusCode;
+    for (const [name, value] of Object.entries(http_response_info.headers)) {
       res.setHeader(name, value);
     }
-    res.end(response_info.body);
-
-    /// 移除相关的绑定
-    read_request_body_off();
+    /// 204 和 304 不可以包含 body
+    if (
+      http_response_info.statusCode !== 204 &&
+      http_response_info.statusCode !== 304
+    ) {
+      // await (await http_response_info.stream()).pipeTo(res)
+      const http_response_body = http_response_info.body;
+      if (http_response_body instanceof ReadableStream) {
+        streamReader(http_response_body).each(
+          (chunk) => res.write(chunk),
+          () => res.end()
+        );
+      } else {
+        res.end(http_response_body);
+        // res.end();/// nw.js 调用 http2 end 会导致 nw 崩溃死掉？
+      }
+    }
   }
 }
 /**
@@ -128,15 +175,26 @@ export class LocalhostNMM extends NativeMicroModule {
   mmid = "localhost.sys.dweb" as const;
   private listenMap = new Map</* host */ string, HttpListener>();
   private _local_port = 0;
-  private _http_server?: http.Server;
+  private _server?: WebServer;
 
   async _bootstrap() {
     /// nwjs 拦截到请求后不允许直接构建 Response，即便重定向了也不是 302 重定向。
     /// 所以这里我们直接使用 localhost 作为顶级域名来相应实现相关功能，也就意味着这里需要监听端口
     /// 但在IOS和Android上，也可以听过监听端口来实现类似功能，但所有请求都需要校验
-    this._http_server = http
-      .createServer((req, res) => {
-        const host = req.headers.host;
+    this._server = node_web
+      // .createSecureServer({
+      //   // allowHTTP1: true,
+      //   key: await fetch("../../cert/_wildcard.localhost-key.pem").then((res) =>
+      //     res.text()
+      //   ),
+      //   cert: await fetch("../../cert/_wildcard.localhost.pem").then((res) =>
+      //     res.text()
+      //   ),
+      // })
+      .createServer()
+      .listen((this._local_port = await findPort([28909])))
+      .addListener("request", (req, res) => {
+        const host = (req.headers.host || req.headers[":authority"]) as string;
         if (host == null) {
           defaultErrorPage(req, res, 502, "request host no found");
           return;
@@ -147,8 +205,7 @@ export class LocalhostNMM extends NativeMicroModule {
           return;
         }
         listener.hookHttpRequest(req, res);
-      })
-      .listen((this._local_port = await findPort([28909])));
+      });
 
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/listen",
@@ -160,13 +217,24 @@ export class LocalhostNMM extends NativeMicroModule {
       },
     });
     /// 监听请求，同时配置了过滤器，这样可以多个线程分开响应不同的任务
+    // this.registerCommonIpcOnMessageHanlder({
+    //   pathname: "/request/on",
+    //   matchMode: "full",
+    //   input: { port: "number", paths: "object" },
+    //   output: "object",
+    //   hanlder: (args, ipc) => {
+    //     return this.onRequest(ipc, args.port, args.paths as any);
+    //   },
+    // });
     this.registerCommonIpcOnMessageHanlder({
+      method: "POST",
       pathname: "/request/on",
       matchMode: "full",
       input: { port: "number", paths: "object" },
       output: "object",
-      hanlder: (args, ipc) => {
-        return this.onRequest(ipc, args.port, args.paths as any);
+      hanlder: async (args, ipc, message) => {
+        console.log("收到处理请求的双工通道");
+        return this.onRequest(ipc, message, args.port, args.paths as any);
       },
     });
     this.registerCommonIpcOnMessageHanlder({
@@ -202,43 +270,51 @@ export class LocalhostNMM extends NativeMicroModule {
     });
   }
   _shutdown() {
-    this._http_server?.close();
-    this._http_server = undefined;
+    this._server?.close();
+    this._server = undefined;
   }
 
-  private _getOrigin(port: number, ipc: Ipc) {
+  private _getHost(port: number, ipc: Ipc) {
     return `${ipc.remote.mmid}.${port}.localhost:${this._local_port}`;
   }
 
   /// 监听
   listen(ipc: Ipc, port: number) {
-    const host = this._getOrigin(port, ipc);
+    const host = this._getHost(port, ipc);
     if (this.listenMap.has(host)) {
       throw new Error(`already in listen with port: ${port}`);
     }
-    const origin = `http://${host}`;
+    const origin = `${protocol}//${host}`;
     this.listenMap.set(host, new HttpListener(ipc, port, host));
     return { origin, host };
   }
 
   /** 远端监听请求，将提供一个 jsonlines 流 */
-  onRequest(ipc: Ipc, port: number, paths: $ReqMatcher[]) {
-    const host = this._getOrigin(port, ipc);
+  async onRequest(
+    ipc: Ipc,
+    message: IpcRequest,
+    port: number,
+    paths: $ReqMatcher[]
+  ) {
+    const host = this._getHost(port, ipc);
     const listener = this.listenMap.get(host);
     if (listener === undefined) {
       throw new Error(`no listen with port: ${port}`);
     }
 
-    const stream = new ReadableStream<ArrayBufferView>({
-      start(controller) {
-        const bind: $OnRequestBind = {
-          paths,
-          streamController: controller as ReadableByteStreamController,
-        };
-        listener.onRequestBinds.add(bind);
-      },
+    const httpResponseIpc = new ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT);
+    httpResponseIpc.bindIncomeStream(await message.stream());
+    httpResponseIpc.onMessage((response) => {
+      if (response.type === IPC_DATA_TYPE.RESPONSE) {
+      }
     });
-    return new Response(stream, { status: 200 });
+
+    const bind: $OnRequestBind = {
+      paths,
+      httpResponseIpc,
+    };
+    listener.onRequestBinds.add(bind);
+    return new Response(httpResponseIpc.stream, { status: 200 });
   }
   /** 远端响应请求 */
   emitResponse(
@@ -249,7 +325,7 @@ export class LocalhostNMM extends NativeMicroModule {
     headers: Record<string, string>,
     body: string | Uint8Array | ReadableStream<Uint8Array | string>
   ) {
-    const host = this._getOrigin(port, ipc);
+    const host = this._getHost(port, ipc);
     const listener = this.listenMap.get(host);
     if (listener === undefined) {
       throw new Error(`no listen with port: ${port}`);
@@ -266,7 +342,7 @@ export class LocalhostNMM extends NativeMicroModule {
    * 释放监听
    */
   unlisten(ipc: Ipc, port: number) {
-    const host = this._getOrigin(port, ipc);
+    const host = this._getHost(port, ipc);
     return this.listenMap.delete(host);
   }
 
@@ -288,8 +364,8 @@ export class LocalhostNMM extends NativeMicroModule {
  * @returns
  */
 export const defaultErrorPage = (
-  req: http.IncomingMessage,
-  res: http.ServerResponse,
+  req: WebServerRequest,
+  res: WebServerResponse,
   statusCode: number,
   errorMessage: string
 ) => {

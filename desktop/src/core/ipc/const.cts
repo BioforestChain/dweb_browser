@@ -1,6 +1,7 @@
 import type { Ipc } from "./ipc.cjs";
 import type { IpcRequest } from "./IpcRequest.cjs";
 import type { IpcResponse } from "./IpcResponse.cjs";
+import type { IpcStreamAbort } from "./IpcStreamAbort.cjs";
 import type { IpcStreamData } from "./IpcStreamData.cjs";
 import type { IpcStreamEnd } from "./IpcStreamEnd.cjs";
 import type { IpcStreamPull } from "./IpcStreamPull.cjs";
@@ -12,12 +13,16 @@ export const enum IPC_DATA_TYPE {
   REQUEST,
   /** 类型：相应 */
   RESPONSE,
-  /** 类型：流数据 */
+  /** 类型：流数据，发送方 */
   STREAM_DATA,
-  /** 类型：流拉取 */
+  /** 类型：流拉取，请求方 */
   STREAM_PULL,
-  /** 类型：流关闭 */
+  /** 类型：流关闭，发送方
+   * 可能是发送完成了，也有可能是被中断了
+   */
   STREAM_END,
+  /** 类型：流中断，请求方 */
+  STREAM_ABORT,
 }
 
 export type $RawData = Readonly<
@@ -55,5 +60,11 @@ export type $IpcMessage =
   | IpcResponse
   | IpcStreamData
   | IpcStreamPull
-  | IpcStreamEnd;
-export type $IpcOnMessage = (message: $IpcMessage, ipc: Ipc) => unknown;
+  | IpcStreamEnd
+  | IpcStreamAbort;
+
+export type $OnIpcMessage = (
+  /// 这里只会有两种类型的数据
+  message: $IpcMessage,
+  ipc: Ipc
+) => unknown;

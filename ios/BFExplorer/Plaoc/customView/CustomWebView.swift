@@ -167,7 +167,7 @@ extension CustomWebView:  WKScriptMessageHandler {
             //点击网页按钮 开始加载
             guard let bodyDict = message.body as? [String:String] else { return }
             guard let path = bodyDict["path"] else { return }
-            BFSNetworkManager.shared.downloadApp(urlString: path)
+            sharedNetworkMgr.downloadApp(urlString: path)
             //同时显示下载进度条
         } else if message.name == "logging" {
             print(message.body)

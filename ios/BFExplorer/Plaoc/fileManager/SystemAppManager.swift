@@ -6,8 +6,9 @@
 //
 
 import UIKit
+//let sharedAppInfoMgr.sysAppMgr = SystemAppManager()
 
-class SystemAppManager: InnerAppManager {
+class SystemAppManager: AppManager {
 
     private var mateDict: [String:Any]?
     
@@ -66,14 +67,5 @@ class SystemAppManager: InnerAppManager {
         return dict["url"] as? String
     }
     
-    func isExitSameFile(appId: String) -> Bool {
-        let path = appInstalledPath + "/\(appId)"
-        if FileManager.default.fileExists(atPath: path) {
-            let oldVersion = readMetadataVersion(appId: appId)
-            
-            return true
-        } else {
-            return false
-        }
-    }
+
 }

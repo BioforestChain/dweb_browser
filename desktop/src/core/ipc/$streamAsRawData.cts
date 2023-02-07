@@ -1,4 +1,4 @@
-import { simpleDecoder } from "../../helper/encoding.cjs";
+import { streamReader } from "../../helper/readableStreamHelper.cjs";
 import { IPC_DATA_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import { IpcStreamData } from "./IpcStreamData.cjs";
@@ -17,40 +17,54 @@ export const $streamAsRawData = (
   stream: ReadableStream<Uint8Array>,
   ipc: Ipc
 ) => {
-  const reader = stream.getReader();
-  /// 这里的数据发送是按需迭代，而不是马上发
-  /// 马上发会有一定的问题，需要确保对方收到 IpcResponse 对象后，并且开始接收数据时才能开始
-  /// 否则发过去的数据 IpcResponse 如果还没构建完，就导致 IpcStreamData 无法认领，为了内存安全必然要被抛弃
-  /// 所以整体上来说，我们使用 pull 的逻辑，让远端来要求我们去发送数据
+  const reader = streamReader(stream);
+
+  const sender = _postStreamData(stream_id, reader, ipc, () => {
+    /// 解除对请求方的请求监听绑定
+    off();
+  });
+
+  /// 来自请求方的数据
   const off = ipc.onMessage(async (message) => {
+    /// 申请数据拉取
     if (
       message.type === IPC_DATA_TYPE.STREAM_PULL &&
       message.stream_id === stream_id
     ) {
-      // let desiredSize = message.desiredSize;
-      // while (desiredSize-- > 0) {}
-
       /// 预期值仅供参考
-      console.log("desiredSize:", message.desiredSize);
-
+      // message.desiredSize
       await sender.next();
     }
-  });
-  const sender = (async function* () {
-    while (true) {
-      yield;
-      const item = await reader.read();
-      if (item.done) {
-        ipc.postMessage(new IpcStreamEnd(stream_id));
-        break;
-      } else {
-        ipc.postMessage(
-          new IpcStreamData(stream_id, simpleDecoder(item.value, "base64"))
-        );
-      }
+    /// 告知数据流中断
+    else if (
+      message.type === IPC_DATA_TYPE.STREAM_ABORT &&
+      message.stream_id === stream_id
+    ) {
+      reader.abort_controller.abort();
     }
-
-    /// 解除pull绑定
-    off();
-  })();
+  });
 };
+
+/**
+ * 这里的数据发送是按需迭代，而不是马上发
+ * 马上发会有一定的问题，需要确保对方收到 IpcResponse 对象后，并且开始接收数据时才能开始
+ * 否则发过去的数据 IpcResponse 如果还没构建完，就导致 IpcStreamData 无法认领，为了内存安全必然要被抛弃
+ * 所以整体上来说，我们使用 pull 的逻辑，让远端来要求我们去发送数据
+ */
+async function* _postStreamData(
+  stream_id: string,
+  reader: AsyncGenerator<Uint8Array>,
+  ipc: Ipc,
+  onDone: () => unknown
+) {
+  for await (const data of reader) {
+    ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, data));
+    yield;
+  }
+  /// 不论是不是被 aborted，都发送结束信号
+  // if (reader.abort_controller.signal.aborted === false) {
+  ipc.postMessage(new IpcStreamEnd(stream_id));
+  // }
+
+  onDone();
+}

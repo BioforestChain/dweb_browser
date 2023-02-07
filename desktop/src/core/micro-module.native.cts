@@ -47,7 +47,7 @@ export abstract class NativeMicroModule extends MicroModule {
    * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
    */
   protected onConnect(cb: (ipc: Ipc) => unknown) {
-    return this._connectSignal.bind(cb);
+    return this._connectSignal.listen(cb);
   }
 
   override after_shutdown() {

@@ -7,8 +7,16 @@
 
 import UIKit
 
-class RecommendAppManager: InnerAppManager {
+//let sharedAppInfoMgr.recommendAppMgr = RecommendAppManager()
 
+class RecommendAppManager: AppManager {
+
+//    static let shared = RecommendAppManager()
+    override init() {
+        super.init()
+        
+    }
+    
     override var filePath: String { Bundle.main.bundlePath + "/app/recommend-app" }
     
     override var appInstalledPath: String {

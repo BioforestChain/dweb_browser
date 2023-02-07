@@ -1,4 +1,4 @@
-import { $Binary, binaryToU8A } from "./binaryHelper.cjs";
+import { $Binary, binaryToU8a } from "./binaryHelper.cjs";
 
 export type $SimpleEncoding = "utf8" | "base64";
 const textEncoder = new TextEncoder();
@@ -17,7 +17,7 @@ const textDecoder = new TextDecoder();
 export const simpleDecoder = (data: $Binary, encoding: $SimpleEncoding) => {
   if (encoding === "base64") {
     let binary = "";
-    const bytes = binaryToU8A(data);
+    const bytes = binaryToU8a(data);
     for (const byte of bytes) {
       binary += String.fromCharCode(byte);
     }

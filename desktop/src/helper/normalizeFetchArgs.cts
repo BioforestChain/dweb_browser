@@ -1,5 +1,7 @@
 /** 将 fetch 的参数进行标准化解析 */
 
+import { parseUrl } from "./urlHelper.cjs";
+
 export const normalizeFetchArgs = (
   url: RequestInfo | URL,
   init?: RequestInit
@@ -7,9 +9,9 @@ export const normalizeFetchArgs = (
   let _parsed_url: URL | undefined;
   let _request_init = init;
   if (typeof url === "string") {
-    _parsed_url = new URL(url, location.href);
+    _parsed_url = parseUrl(url);
   } else if (url instanceof Request) {
-    _parsed_url = new URL(url.url);
+    _parsed_url = parseUrl(url.url);
     _request_init = url;
   } else if (url instanceof URL) {
     _parsed_url = url;

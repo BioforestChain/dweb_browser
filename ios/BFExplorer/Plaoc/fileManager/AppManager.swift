@@ -7,7 +7,7 @@
 
 import UIKit
 
-class InnerAppManager: NSObject {
+class AppManager: NSObject {
 
     var linkDict: [String : [String : Any]] = [:]
     
@@ -37,6 +37,7 @@ class InnerAppManager: NSObject {
         }
         return appIds
     }
+
 
     //读取bfs-app-id 的link文件信息
     private func readBFSAppLinkContent(appId: String) {
@@ -165,28 +166,26 @@ class InnerAppManager: NSObject {
                 let oldDict = ChangeTools.stringValueDic(cacheString)
                 let version = oldDict?["version"] as? String ?? ""
                 return version
-//                let versionDouble = Double(version) ?? 0
-//                return versionDouble
             }
         }
         return ""
     }
     
     func readAutoUpdateURLInfo(appId: String) -> String? {
-        var dict = linkDict[appId] as? [String:Any]
+        var dict = linkDict[appId]
         if dict == nil {
             readBFSAppLinkContent(appId: appId)
-            dict = linkDict[appId] as? [String:Any]
+            dict = linkDict[appId]
         }
         guard let updateDict = dict?["autoUpdate"] as? [String:Any] else { return nil }
         return updateDict["url"] as? String
     }
     
     func readAutoUpdateMaxAge(appId: String) -> Int? {
-        var dict = linkDict[appId] as? [String:Any]
+        var dict = linkDict[appId]
         if dict == nil {
             readBFSAppLinkContent(appId: appId)
-            dict = linkDict[appId] as? [String:Any]
+            dict = linkDict[appId]
         }
         guard let updateDict = dict?["autoUpdate"] as? [String:Any] else { return nil }
         return updateDict["maxAge"] as? Int

@@ -1,16 +1,19 @@
-
 export const createSignal = <
   $Callback extends (...args: any[]) => unknown
 >() => {
-  const cbs = new Set<$Callback>();
-  const bind = (cb: $Callback) => {
-    cbs.add(cb);
-    return () => cbs.delete(cb);
+  return new Signal<$Callback>();
+};
+
+export class Signal<$Callback extends (...args: any[]) => unknown> {
+  private _cbs = new Set<$Callback>();
+  listen = (cb: $Callback) => {
+    this._cbs.add(cb);
+    return () => this._cbs.delete(cb);
   };
-  const emit = (...args: Parameters<$Callback>) => {
-    for (const cb of cbs) {
+
+  emit = (...args: Parameters<$Callback>) => {
+    for (const cb of this._cbs) {
       cb.apply(null, args);
     }
   };
-  return { bind, emit } as const;
-};
+}
