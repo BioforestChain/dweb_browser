@@ -1,7 +1,7 @@
-onmessage = function (e) {
-    port = e.ports[0];
-    port.onmessage = function (f) {
-    console.log("backWebView#onmessage",f.data)
-        parse(f.data);
-    }
+if (navigator.serviceWorker) {
+    navigator.serviceWorker.register('serviceWorker.js').then(function(registration) {
+        console.log('service worker 注册成功');
+    }).catch(function (err) {
+        console.log('service worker 注册失败')
+    });
 }

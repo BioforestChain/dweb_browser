@@ -393,12 +393,6 @@ fun DWebView(
     )
 }
 
-
-private operator fun <T> Array<T>.component6(): Any {
-    return this.elementAt(5) as Any
-}
-
-
 @Composable
 inline fun SetTaskDescription(state: AdWebViewState, activity: ComponentActivity) {
     var pageTitle by remember {

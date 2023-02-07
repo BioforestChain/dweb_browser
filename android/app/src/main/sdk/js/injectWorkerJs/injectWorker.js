@@ -246,7 +246,6 @@ var installEnv = () => {
             }
             registerFetchIpc = false
             registerFetchIpc_po.resolve()
-            self.dispatchEvent(new MessageEvent("connect", { data: fetchIpc }));
         }
     });
     function responseFactory(response) {

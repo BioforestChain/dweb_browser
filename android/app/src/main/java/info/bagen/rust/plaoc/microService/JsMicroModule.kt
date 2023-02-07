@@ -21,7 +21,7 @@ class JsMicroModule : MicroModule() {
     private val routers: Router = mutableMapOf()
 
     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
-    private val javascriptContext = JavascriptContext()
+    private val jsProcess = JsProcess()
 
     init {
         // 创建一个webWorker
@@ -43,12 +43,12 @@ class JsMicroModule : MicroModule() {
     // 创建一个webWorker
     private fun createProcess(args: workerOption): Any {
         if (args.mainCode == "") return "Error open worker must transmission mainCode or main_code"
-        return javascriptContext.hiJackWorkerCode(args.mainCode)
+        return jsProcess.hiJackWorkerCode(args.mainCode)
     }
 
 }
 
-class JavascriptContext {
+class JsProcess {
     // 存储每个worker的port 以此来建立每个worker的通信
     val ALL_PROCESS_MAP = mutableMapOf<Number, WebMessagePort>()
     var accProcessId = 0
@@ -58,19 +58,27 @@ class JavascriptContext {
 
     // 创建了一个后台运行的webView 用来运行webWorker
     var view: WebView = WebView(App.appContext).also { view ->
+        WebView.setWebContentsDebuggingEnabled(true)
         val settings = view.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
         settings.databaseEnabled = true
+        val swController = ServiceWorkerController.getInstance()
+        swController.serviceWorkerWebSettings.allowContentAccess = true
+        swController.setServiceWorkerClient(object : ServiceWorkerClient() {
+            override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
+                // 拦截serviceWorker的网络请求
+               println("setServiceWorkerClient==> ${request.url}")
+                return super.shouldInterceptRequest(request)
+            }
+        })
         view.webViewClient = object : WebViewClient() {
-
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
             }
         }
-        WebView.setWebContentsDebuggingEnabled(true)
     }
 
     /** 处理ipc 请求的工厂 然后会转发到nativeFetch */
