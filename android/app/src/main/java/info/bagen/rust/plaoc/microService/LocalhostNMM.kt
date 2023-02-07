@@ -46,3 +46,7 @@ data class HttpResponseInfo(
     val headers: Map<String, String>,
     val body: Any
 )
+
+class HttpListener() {
+
+}

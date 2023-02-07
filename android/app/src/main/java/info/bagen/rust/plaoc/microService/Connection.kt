@@ -24,6 +24,12 @@ data class IpcResponse(
     @SerializedName("type") val type:Int  = 1
 )
 
+var ipc_uid_acc = 0
+abstract class Ipc {
+    abstract val supportMessagePack: Boolean
+
+}
+
 
 
 
