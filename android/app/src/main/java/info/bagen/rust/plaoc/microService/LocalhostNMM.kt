@@ -2,7 +2,7 @@ package info.bagen.rust.plaoc.microService
 
 class LocalhostNMM : NativeMicroModule() {
     override val mmid: String = "localhost.sys.dweb"
-    val routers: Router = mutableMapOf()
+    private val routers: Router = mutableMapOf()
 
     init {
         // 注册路由
@@ -22,6 +22,15 @@ class LocalhostNMM : NativeMicroModule() {
             return@put true
         }
     }
+    override fun bootstrap(args: workerOption): Any? {
+        println("kotlin#LocalhostNMM bootstrap==> ${args.mainCode}  ${args.origin}")
+        // 导航到自己的路由
+        if (routers[args.routerTarget] == null) {
+            return "localhost.sys.dweb route not found for ${args.routerTarget}"
+        }
+        return routers[args.routerTarget]?.let { it->it(args) }
+    }
+
 
 }
 

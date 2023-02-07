@@ -10,7 +10,7 @@ class MultiWebViewNMM() : NativeMicroModule() {
     override val mmid: String = "mwebview.sys.dweb"
 
     private var viewTree: ViewTree = ViewTree()
-    val routers: Router = mutableMapOf()
+    private val routers: Router = mutableMapOf()
 
     init {
         // 注册路由
@@ -20,6 +20,15 @@ class MultiWebViewNMM() : NativeMicroModule() {
         routers["/evalJavascript"] = put@{
             return@put true
         }
+    }
+
+    override fun bootstrap(args: workerOption): Any? {
+        println("kotlin#MultiWebViewNMM bootstrap==> ${args.mainCode}  ${args.origin}")
+        // 导航到自己的路由
+        if (routers[args.routerTarget] == null) {
+            return "mwebview.sys.dweb route not found for ${args.routerTarget}"
+        }
+        return routers[args.routerTarget]?.let { it->it(args) }
     }
 
     private fun openDwebView(args: NativeOptions): Any {

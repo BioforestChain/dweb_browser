@@ -8,11 +8,10 @@ fun startBootNMM() {
 }
 
 open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
-    override fun bootstrap(args:NativeOptions): Any? {
-        println("Kotlin#NativeMicroModule mmid:$mmid")
-       return global_micro_dns.dnsMap[mmid]?.let { it -> it(args) }
-    }
-
+     override fun bootstrap(args:NativeOptions):Any? {
+         println("kotlin#NativeMicroModule bootstrap==> ${args.mainCode}  ${args.origin}")
+         return args.origin
+     }
 }
 
 

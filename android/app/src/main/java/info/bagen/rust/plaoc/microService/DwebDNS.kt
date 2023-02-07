@@ -12,7 +12,6 @@ val global_micro_dns = DwebDNS()
 
 class DwebDNS : NativeMicroModule() {
     private val dnsTables = mutableMapOf<Domain, MicroModule>()
-    val dnsMap = mutableMapOf<Mmid, (data: NativeOptions) -> Any?>()
 
     private val jsMicroModule = JsMicroModule()
     private val bootNMM = BootNMM()
@@ -20,7 +19,6 @@ class DwebDNS : NativeMicroModule() {
     private val localhostNMM = LocalhostNMM()
 
     init {
-        initDnsMap()
         dnsTables["mwebview.sys.dweb"] = multiWebViewNMM
         dnsTables["boot.sys.dweb"] = bootNMM
         dnsTables["js.sys.dweb"] = jsMicroModule
@@ -95,22 +93,6 @@ class DwebDNS : NativeMicroModule() {
             return dnsTables.remove(mmid)!!.mmid
         }
         return "false"
-    }
-
-    private fun initDnsMap() {
-        // 启动对应的功能
-        dnsMap["boot.sys.dweb"] = {
-            bootNMM.routers[it.routerTarget]?.let { function -> function(it) }
-        }
-        // 启动多页面
-        dnsMap["mwebview.sys.dweb"] = { webView ->
-            println("kotlin#initDnsMap routerTarget==> ${webView.routerTarget} ")
-            multiWebViewNMM.routers[webView.routerTarget]?.let { it -> it(webView) }
-        }
-        // 网络的转发
-        dnsMap["localhost.sys.dweb"] = { nativeOption ->
-            localhostNMM.routers[nativeOption.routerTarget]?.let { it->it(nativeOption) }
-        }
     }
 }
 

@@ -10,7 +10,6 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.mapper
 import io.ktor.http.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
 import java.util.*
 
 
@@ -34,6 +33,9 @@ class JsMicroModule : MicroModule() {
     override fun bootstrap(args: workerOption): Any? {
         println("kotlin#JsMicroModule args==> ${args.mainCode}  ${args.origin}")
         // 导航到自己的路由
+        if (routers[args.routerTarget] == null) {
+            return "js.sys.dweb route not found for ${args.routerTarget}"
+        }
         return routers[args.routerTarget]?.let { it->it(args) }
     }
 
