@@ -1,12 +1,12 @@
-class PromiseOut {
-  constructor() {
-    this.promise = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    })
-  }
-}
 ((self) => {
+  class PromiseOut {
+    constructor() {
+      this.promise = new Promise((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+      })
+    }
+  }
   self.addEventListener("install", (event) => {
     // 跳过等待
     event.waitUntil(self.skipWaiting());
@@ -29,8 +29,9 @@ class PromiseOut {
   });
   // return data 🐯
   self.addEventListener("message", (event) => {
-    if (typeof event.data !== "string")
-      return;
-    console.log("serviceWorker:message", event.data);
+    console.log("serviceWorker:message", event.data, event.ports[0]);
+    event.ports[0].onmessage = function (e) {
+      console.log(e.data)
+    }
   })
 })(self);

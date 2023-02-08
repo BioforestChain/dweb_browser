@@ -11,8 +11,14 @@ class MultiWebViewNMM : NativeMicroModule() {
 
     init {
         // 注册路由
-        routers["/open"] = put@{
-            return@put openDwebView(it)
+        routers["/open"] = put@{ options ->
+          val origin = if (options["origin"] == null) {
+                 "Error not Found param origin"
+            } else {
+              options["origin"]!!
+          }
+            val processId = options["processId"]
+            return@put openDwebView(origin,processId)
         }
         routers["/evalJavascript"] = put@{
             return@put true
@@ -28,12 +34,9 @@ class MultiWebViewNMM : NativeMicroModule() {
         return routers[routerTarget]?.let { it->it(options) }
     }
 
-    private fun openDwebView(options: NativeOptions): Any {
-        println("Kotlin#MultiWebViewNMM openDwebView $options")
-        if (options["origin"] == null) {
-            return "Error not Found param origin"
-        }
-        val webViewNode = viewTree.createNode(options)
+    private fun openDwebView(origin: String,processId:String?): Any {
+        println("Kotlin#MultiWebViewNMM openDwebView $origin")
+        val webViewNode = viewTree.createNode(origin,processId)
         val append = viewTree.appendTo(webViewNode)
         // 当传递了父进程id，但是父进程是不存在的时候
         if(append == 0) {
@@ -41,7 +44,7 @@ class MultiWebViewNMM : NativeMicroModule() {
         }
         // openDwebView
         if (mainActivity !== null) {
-            openDWebWindow(activity = mainActivity!!.getContext(), url = options["origin"]!!)
+            openDWebWindow(activity = mainActivity!!.getContext(), url = origin)
         }
         return webViewNode.id
     }
@@ -62,17 +65,17 @@ class ViewTree {
         val children: MutableList<ViewTreeStruct?>
     )
 
-    fun createNode(options: NativeOptions): ViewTreeStruct {
+    fun createNode(origin: String,processId:String?): ViewTreeStruct {
         // 当前要挂载到哪个父级节点
-        var processId = currentProcess
+        var cProcessId = currentProcess
         //  当用户传递了processId，即明确需要挂载到某个view下
-        if (options["processId"] !== null) {
-            processId = options["processId"]!!.toInt()
+        if (processId !== null) {
+            cProcessId = processId.toInt()
         }
         return ViewTreeStruct(
-            id = processId + 1,
-            processId = processId, // self add node id
-            origin = options["origin"]!!,
+            id = cProcessId + 1,
+            processId = cProcessId, // self add node id
+            origin = origin,
             children = mutableListOf()
         )
     }

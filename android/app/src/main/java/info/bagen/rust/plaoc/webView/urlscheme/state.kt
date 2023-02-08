@@ -65,8 +65,8 @@ class CustomUrlScheme(
         val urlExt = req.url.lastPathSegment?.let { filename ->
             Path(filename).extension
         } ?: ""
-        println("state#handleRequest urlExt:$urlExt")
         val urlMimeType = getMimeTypeFromExtension(urlExt)
+        println("state#handleRequest 文件后缀为:$urlExt,urlMimeType:$urlMimeType")
         val urlEncoding = getEncodingByMimeType(urlMimeType)
         val urlState = UrlState(
             href = url,
@@ -78,7 +78,7 @@ class CustomUrlScheme(
             isRedirect = req.isRedirect,
             isForMainFrame = req.isForMainFrame,
         )
-         Log.d(TAG, "handleRequest url: ${req.url}")
+         Log.d(TAG, "handleRequest url: ${req.url}，urlMimeType：$urlMimeType")
         // 在这里判断是读取FileRequest还是onReadOnlyRequest(只读文件，指assets目录下文件)
         val responseBodyStream = if (req.url.host?.endsWith("sys.dweb") == true) {
             requestHandler.onReadOnlyRequest(urlState)
@@ -136,11 +136,12 @@ fun requestHandlerFromAssets(basePath: String): RequestHandler {
         /** 读取只读文件*/
         override fun onReadOnlyRequest(req: UrlState): InputStream? {
             var urlPath = req.href
-            println("state#onReadOnlyRequest url ===> $urlPath")
+            println("state#onReadOnlyRequest urlPath ===> $urlPath")
             // 本地文件前面不能有 /,必须直接写不然读不到，下面再做一成保险，帮用户去掉前缀
             if (urlPath.startsWith("/")) {
                 urlPath = urlPath.substring(urlPath.indexOf("/") + 1)
             }
+            println("state#onReadOnlyRequest url ===> $urlPath")
             // 使用 context.assets.open 来读取文件
             val inputStream = openInputStream(urlPath)
             // 判断 isFile，不是的话就看 isDirectory，如果是的话就尝试访问 index.html

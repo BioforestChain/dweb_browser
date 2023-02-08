@@ -163,35 +163,9 @@ fun DWebView(
                 onCreated = { webView ->
                     // 将webView的背景默认设置为透明。不通过systemUi的api提供这个功能，一些手机上动态地修改webView背景颜色，在黑夜模式下，会有问题
                     webView.setBackgroundColor(Companion.Transparent.toArgb())
+                    // 设置debugging
+                    WebView.setWebContentsDebuggingEnabled(true)
                     webView.adWebViewHook = hook
-
-                    // 为每一个webWorker都创建一个通道
-                    val channel = webView.createWebMessageChannel()
-                    channel[0].setWebMessageCallback(object :
-                        WebMessagePort.WebMessageCallback() {
-                        override fun onMessage(port: WebMessagePort, message: WebMessage) {
-                            println("kotlin#DwebView🍑message: ${message.data}")
-                        }
-                    })
-                    // 注册serviceWorker,建立监听
-                    webView.evaluateJavascript(
-                        "if (navigator.serviceWorker) {\n" +
-                                "    navigator.serviceWorker.register('./serviceWorker.js').then(function(registration) {\n" +
-                                "        console.log('service worker 注册成功');\n" +
-                                "    }).catch(function (err) {\n" +
-                                "        console.log('service worker 注册失败')\n" +
-                                "    });\n" +
-                                "}" +
-                                "onmessage = function (e) {\n" +
-                                "console.log(\"kotlin#DwebViewActivity port1111\", e.data, e.ports[0]); \n" +
-                                "navigator.postMessage([\"ipc-channel\", e.ports[0]], [e.ports[0]])\n" +
-                                "}\n"
-                    ) {
-                        println("serviceWorker=====>创建完成")
-                    }
-                    // 发送post1到service worker层 建立通信
-                    webView.postWebMessage(WebMessage("forward-to-service-worker", arrayOf(channel[1])), Uri.EMPTY)
-
                     onCreated(webView)
                     webView.addJavascriptInterface(BFSApi(), "bfs") // 注入bfs，js可以直接调用
                 },
@@ -306,8 +280,36 @@ fun DWebView(
                     MyWebChromeClient()
                 },
                 client = remember {
-
+                    val swController = ServiceWorkerController.getInstance()
+                    swController.setServiceWorkerClient(object : ServiceWorkerClient() {
+                        override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
+                            println("kotlin#DWebView shouldInterceptRequest request=${request.url}")
+                            // 拦截serviceWorker的网络请求
+                            val result =  interceptNetworkRequests(request, customUrlScheme)
+                            if (result != null) {
+                                return result
+                            }
+                            return super.shouldInterceptRequest(request)
+                        }
+                    })
+                    swController.serviceWorkerWebSettings.allowContentAccess = true
                     class MyWebViewClient : AdWebViewClient() {
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            super.onPageFinished(view, url)
+                            view?.let {
+                                // 为每一个webWorker都创建一个通道
+                                val channel = view.createWebMessageChannel()
+                                channel[0].setWebMessageCallback(object :
+                                    WebMessagePort.WebMessageCallback() {
+                                    override fun onMessage(port: WebMessagePort, message: WebMessage) {
+                                        println("kotlin#DwebView🍑message: ${message.data}")
+                                    }
+                                })
+                                // 发送post1到service worker层 建立通信
+                                view.postWebMessage(WebMessage("forward-to-service-worker", arrayOf(channel[1])), Uri.EMPTY)
+                                channel[0].postMessage(WebMessage("xxx"))
+                            }
+                        }
                         // API >= 21
                         @SuppressLint("NewApi")
                         @Override

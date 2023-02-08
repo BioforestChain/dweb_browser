@@ -20,8 +20,10 @@ class JsMicroModule : MicroModule() {
 
     init {
         // 创建一个webWorker
-        routers["/create-process"] = put@{ args ->
-            return@put createProcess(args)
+        routers["/create-process"] = put@{ options ->
+             val mainCode = options["mainCode"]?: options["main_code"]
+             ?: return@put "Error open worker must transmission mainCode or main_code"
+            return@put createProcess(mainCode)
         }
     }
 
@@ -36,9 +38,8 @@ class JsMicroModule : MicroModule() {
 
 
     // 创建一个webWorker
-    private fun createProcess(options: NativeOptions): Any {
-        if (options["mainCode"] == "") return "Error open worker must transmission mainCode or main_code"
-        return jsProcess.hiJackWorkerCode(options["mainCode"]!!)
+    private fun createProcess(mainCode: String): Any {
+        return jsProcess.hiJackWorkerCode(mainCode)
     }
 
 }
@@ -57,15 +58,10 @@ class JsProcess {
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
         settings.databaseEnabled = true
-        view.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-            }
-        }
     }
 
     /** 处理ipc 请求的工厂 然后会转发到nativeFetch */
-    fun icpFactory(webMessagePort: WebMessagePort, ipcString: String) {
+    fun ipcFactory(webMessagePort: WebMessagePort, ipcString: String) {
         mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true) //允许出现特殊字符和转义符
         mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true) //允许使用单引号
         val ipcRequest = mapper.readValue(ipcString, IpcRequest::class.java)
@@ -121,7 +117,7 @@ class JsProcess {
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, message: WebMessage) {
                 println("kotlin#JsMicroModuleport🍟message: ${message.data}")
-                icpFactory(channel[0], message.data)
+                ipcFactory(channel[0], message.data)
             }
         })
         view.evaluateJavascript(
@@ -139,11 +135,10 @@ class JsProcess {
         this.ALL_PROCESS_MAP[accProcessId] = channel[0]
         this.accProcessId++
     }
-
-    private fun getInjectWorkerCode(jsAssets: String): String {
-        val inputStream = App.appContext.assets.open(jsAssets)
-        val byteArray = inputStream.readBytes()
-        return String(byteArray)
-    }
 }
-
+/**读取本地资源文件，并把内容转换为String */
+fun getInjectWorkerCode(jsAssets: String): String {
+    val inputStream = App.appContext.assets.open(jsAssets)
+    val byteArray = inputStream.readBytes()
+    return String(byteArray)
+}
