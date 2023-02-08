@@ -5,8 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.webkit.WebMessage
-import android.webkit.WebMessagePort
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,10 +30,9 @@ import androidx.navigation.navDeepLink
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
-import info.bagen.libappmgr.network.ApiService
-import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.App.Companion.dwebViewActivity
 import info.bagen.rust.plaoc.TASK
+import info.bagen.rust.plaoc.microService.DWebView
 import info.bagen.rust.plaoc.system.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.jsutil.emitListenBackButton
@@ -43,13 +40,8 @@ import info.bagen.rust.plaoc.webView.urlscheme.CustomUrlScheme
 import info.bagen.rust.plaoc.webView.urlscheme.requestHandlerFromAssets
 import info.bagen.rust.plaoc.webkit.AdAndroidWebView
 import info.bagen.rust.plaoc.webkit.rememberAdWebViewState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.net.URLDecoder
 import java.net.URLEncoder
-import java.util.*
 import kotlin.io.path.Path
 
 
@@ -137,12 +129,12 @@ private fun NavFun(activity: ComponentActivity) {
                 val urlStr = URLDecoder.decode(url, "UTF-8")
 
                 val host = Path(urlStr).getName(1).toString()
-                val assetBasePath = "./"
+                val assetBasePath = "injectWebView"
                 println("kotlin#DwebViewActivity NavFun host=$host, urlStr=$urlStr")
                 // 设置规则
                 val customUrlScheme = CustomUrlScheme(
                     "https", host,
-                    requestHandlerFromAssets(LocalContext.current.assets, assetBasePath)
+                    requestHandlerFromAssets(assetBasePath)
                 )
                 DWebView(
                     state = rememberAdWebViewState(urlStr),
@@ -162,16 +154,7 @@ private fun NavFun(activity: ComponentActivity) {
 /** 打开DWebview*/
 fun openDWebWindow(activity: ComponentActivity, url: String) {
     val intent = Intent(activity.applicationContext, DWebViewActivity::class.java).also {
-        println(
-            "kotlin#DwebViewActivity openDWebWindow url:$url,${
-                Uri.parse(
-                    "https://" + URLEncoder.encode(
-                        url,
-                        "UTF-8"
-                    )
-                )
-            }"
-        )
+        println("kotlin#DwebViewActivity openDWebWindow url:$url")
         it.data = Uri.parse("https://" + URLEncoder.encode(url, "UTF-8"))
     }
     activity.startActivity(intent)

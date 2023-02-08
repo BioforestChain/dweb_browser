@@ -1,7 +1,8 @@
-package info.bagen.rust.plaoc.webView
+package info.bagen.rust.plaoc.microService
 
 import android.annotation.SuppressLint
 import android.app.ActivityManager
+import android.net.Uri
 import android.os.Message
 import android.util.Log
 import android.webkit.*
@@ -21,17 +22,15 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import info.bagen.rust.plaoc.webView.api.BFSApi
-import info.bagen.rust.plaoc.webView.bottombar.BottomBarFFI
 import info.bagen.rust.plaoc.webView.bottombar.BottomBarState
 import info.bagen.rust.plaoc.webView.bottombar.DWebBottomBar
 import info.bagen.rust.plaoc.webView.dialog.*
 import info.bagen.rust.plaoc.webView.jsutil.JsUtil
 import info.bagen.rust.plaoc.webView.network.*
+import info.bagen.rust.plaoc.webView.openDWebWindow
 import info.bagen.rust.plaoc.webView.systemui.SystemUIState
-import info.bagen.rust.plaoc.webView.systemui.SystemUiFFI
 import info.bagen.rust.plaoc.webView.systemui.js.VirtualKeyboardFFI
 import info.bagen.rust.plaoc.webView.topbar.DWebTopBar
-import info.bagen.rust.plaoc.webView.topbar.TopBarFFI
 import info.bagen.rust.plaoc.webView.topbar.TopBarState
 import info.bagen.rust.plaoc.webView.urlscheme.CustomUrlScheme
 import info.bagen.rust.plaoc.webkit.*
@@ -39,7 +38,6 @@ import java.net.URI
 import kotlin.math.min
 
 
-private const val TAG = "DWebView"
 
 
 private const val LEAVE_URI_SYMBOL = ":~:dweb=leave"
@@ -165,28 +163,9 @@ fun DWebView(
                 onCreated = { webView ->
                     // 将webView的背景默认设置为透明。不通过systemUi的api提供这个功能，一些手机上动态地修改webView背景颜色，在黑夜模式下，会有问题
                     webView.setBackgroundColor(Companion.Transparent.toArgb())
+                    // 设置debugging
+                    WebView.setWebContentsDebuggingEnabled(true)
                     webView.adWebViewHook = hook
-//                    // 通用的工具类
-//                    jsUtil = JsUtil(
-//                        activity = activity,
-//                        evaluateJavascript = { code, callback ->
-//                            webView.evaluateJavascript(code, callback)
-//                        }
-//                    )
-//                    // 初始化挂载 系统UI 函数
-//                    val systemUiFFI = SystemUiFFI(
-//                        activity, webView, hook, jsUtil!!, systemUIState,
-//                    )
-//                    initSystemUiFn(systemUiFFI)
-//                    // 初始化挂载 TopBar 函数
-//                    initTopBarFn(TopBarFFI(topBarState))
-//                    // 初始化挂载 BottomBar 函数
-//                    initBottomFn(BottomBarFFI(bottomBarState))
-//                    // 初始化挂载 Dialog 函数
-//                    val dialogFFI = DialogFFI(
-//                        jsUtil!!, jsAlertConfig, jsPromptConfig, jsConfirmConfig, jsWarningConfig
-//                    )
-//                    initDialogFn(dialogFFI)
                     onCreated(webView)
                     webView.addJavascriptInterface(BFSApi(), "bfs") // 注入bfs，js可以直接调用
                 },
@@ -301,7 +280,36 @@ fun DWebView(
                     MyWebChromeClient()
                 },
                 client = remember {
+                    val swController = ServiceWorkerController.getInstance()
+                    swController.setServiceWorkerClient(object : ServiceWorkerClient() {
+                        override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
+                            println("kotlin#DWebView shouldInterceptRequest request=${request.url}")
+                            // 拦截serviceWorker的网络请求
+                            val result =  interceptNetworkRequests(request, customUrlScheme)
+                            if (result != null) {
+                                return result
+                            }
+                            return super.shouldInterceptRequest(request)
+                        }
+                    })
+                    swController.serviceWorkerWebSettings.allowContentAccess = true
                     class MyWebViewClient : AdWebViewClient() {
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            super.onPageFinished(view, url)
+                            view?.let {
+                                // 为每一个webWorker都创建一个通道
+                                val channel = view.createWebMessageChannel()
+                                channel[0].setWebMessageCallback(object :
+                                    WebMessagePort.WebMessageCallback() {
+                                    override fun onMessage(port: WebMessagePort, message: WebMessage) {
+                                        println("kotlin#DwebView🍑message: ${message.data}")
+                                    }
+                                })
+                                // 发送post1到service worker层 建立通信
+                                view.postWebMessage(WebMessage("forward-to-service-worker", arrayOf(channel[1])), Uri.EMPTY)
+                                channel[0].postMessage(WebMessage("xxx"))
+                            }
+                        }
                         // API >= 21
                         @SuppressLint("NewApi")
                         @Override
@@ -314,23 +322,12 @@ fun DWebView(
                                 val url = webResourceRequest.url
                                 val path = url.path.toString()
                                println("kotlin#DWebView shouldInterceptRequest url=$url, path=$path, url.host=${url.host}")
-                                if (url.host == "${dWebView_host.lowercase()}.dweb") {
+                                if (url.host?.endsWith("sys.dweb") == true) {
                                     // 这里出来的url全部都用是小写，serviceWorker没办法一开始就注册，所以还会走一次这里
                                     return interceptNetworkRequests(request, customUrlScheme)
                                 }
                             }
                             return null
-                        }
-
-                        override fun shouldOverrideUrlLoading(
-                            view: WebView?,
-                            request: WebResourceRequest?
-                        ): Boolean {
-                            println("kotlin#DWebView shouldOverrideUrlLoading: ${request?.url}")
-                            if (request !== null && customUrlScheme.isCrossDomain(request)) {
-                                return false
-                            }
-                            return super.shouldOverrideUrlLoading(view, request)
                         }
                     }
                     MyWebViewClient()
@@ -351,7 +348,6 @@ fun DWebView(
                     if ((top.value == 0F) and (bottom.value == 0F)) {
                         start = 0.dp; end = 0.dp
                     }
-                    // Log.i(TAG, "webview-padding $start, $top, $end, $bottom")
                     m.padding(start, top, end, bottom)
                 },
             )
@@ -393,14 +389,8 @@ fun DWebView(
     )
 }
 
-
-private operator fun <T> Array<T>.component6(): Any {
-    return this.elementAt(5) as Any
-}
-
-
 @Composable
-inline fun SetTaskDescription(state: AdWebViewState, activity: ComponentActivity) {
+fun SetTaskDescription(state: AdWebViewState, activity: ComponentActivity) {
     var pageTitle by remember {
         mutableStateOf(state.pageTitle)
     }

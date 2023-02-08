@@ -30,23 +30,21 @@ fun interceptNetworkRequests(
     // 防止卡住请求为空而崩溃
     if (url.isNotEmpty() && !path.isNullOrEmpty()) {
         val temp = url.substring(url.lastIndexOf("/") + 1)
-        Log.e("NetworkMap", "interceptNetworkRequests: temp=$temp")
-        if (temp.startsWith("poll") || temp.startsWith("setUi")) {
-            return jsGateWay(customUrlScheme, request)
+        val segment = request.url.lastPathSegment
+        println("NetworkMap#interceptNetworkRequests: temp=$temp,lastPathSegment=$segment")
+
+        // 当存初始化的时候
+        if (segment == null || segment.endsWith("serviceWorker.js")) {
+            return customUrlScheme.handleRequest(request, path)
         }
-        if (jumpWhitelist(url)) {
-            if (request.url.lastPathSegment == null) {
-                return null
-            }
-            // 拦截视图文件
-            if (request.url.lastPathSegment!!.endsWith(".html")) {
-                return viewGateWay(customUrlScheme, request)
-            }
-            // 映射本地文件的资源文件 https://bmr9vohvtvbvwrs3p4bwgzsmolhtphsvvj.dweb/index.mjs -> /plaoc/index.mjs
-            if (Regex(dWebView_host.lowercase(Locale.ROOT)).containsMatchIn(url)) {
-                // println("本地文件url==>$url")
-                return customUrlScheme.handleRequest(request, path)
-            }
+        // 拦截视图文件
+        if (segment.endsWith(".html")) {
+            return viewGateWay(customUrlScheme, request)
+        }
+        // 映射本地文件的资源文件 https://bmr9vohvtvbvwrs3p4bwgzsmolhtphsvvj.dweb/index.mjs -> /plaoc/index.mjs
+        if (Regex(dWebView_host.lowercase(Locale.ROOT)).containsMatchIn(url)) {
+            // println("本地文件url==>$url")
+            return customUrlScheme.handleRequest(request, path)
         }
     }
     return null

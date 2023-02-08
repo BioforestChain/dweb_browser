@@ -3,44 +3,50 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.App.Companion.mainActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
 
-typealias code = String
-
-
-class MultiWebViewNMM() : NativeMicroModule() {
+class MultiWebViewNMM : NativeMicroModule() {
     override val mmid: String = "mwebview.sys.dweb"
 
     private var viewTree: ViewTree = ViewTree()
-    val routers: Router = mutableMapOf()
+    private val routers: Router = mutableMapOf()
 
     init {
         // 注册路由
-        routers["/open"] = put@{
-            return@put openDwebView(it as NativeOptions)
+        routers["/open"] = put@{ options ->
+          val origin = if (options["origin"] == null) {
+                 "Error not Found param origin"
+            } else {
+              options["origin"]!!
+          }
+            val processId = options["processId"]
+            return@put openDwebView(origin,processId)
         }
         routers["/evalJavascript"] = put@{
             return@put true
         }
     }
 
-    private fun openDwebView(args: NativeOptions): Any {
-        println(
-            "Kotlin#MultiWebViewNMM openDwebView " +
-                    "routerTarget：${args.routerTarget} \n" +
-                    "origin: ${args.origin} \n" +
-                    "mainCode: ${args.mainCode} \n" +
-                    "processId: ${args.processId}"
-        )
-        val webviewNode = viewTree.createNode(args)
-        val append = viewTree.appendTo(webviewNode)
+    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
+        println("kotlin#MultiWebViewNMM bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
+        // 导航到自己的路由
+        if (routers[routerTarget] == null) {
+            return "mwebview.sys.dweb route not found for $routerTarget"
+        }
+        return routers[routerTarget]?.let { it->it(options) }
+    }
+
+    private fun openDwebView(origin: String,processId:String?): Any {
+        println("Kotlin#MultiWebViewNMM openDwebView $origin")
+        val webViewNode = viewTree.createNode(origin,processId)
+        val append = viewTree.appendTo(webViewNode)
         // 当传递了父进程id，但是父进程是不存在的时候
         if(append == 0) {
-            return "not found mount process!!!"
+            return "Error: not found mount process!!!"
         }
         // openDwebView
         if (mainActivity !== null) {
-            openDWebWindow(activity = mainActivity!!.getContext(), url = args.origin)
+            openDWebWindow(activity = mainActivity!!.getContext(), url = origin)
         }
-        return webviewNode.id
+        return webViewNode.id
     }
 
     private fun closeDwebView(nodeId: Int): Boolean {
@@ -59,31 +65,31 @@ class ViewTree {
         val children: MutableList<ViewTreeStruct?>
     )
 
-    fun createNode(args: NativeOptions): ViewTreeStruct {
+    fun createNode(origin: String,processId:String?): ViewTreeStruct {
         // 当前要挂载到哪个父级节点
-        var processId = currentProcess
+        var cProcessId = currentProcess
         //  当用户传递了processId，即明确需要挂载到某个view下
-        if (args.processId !== null) {
-            processId = args.processId
+        if (processId !== null) {
+            cProcessId = processId.toInt()
         }
         return ViewTreeStruct(
-            id = processId + 1,
-            processId = processId, // self add node id
-            origin = args.origin,
+            id = cProcessId + 1,
+            processId = cProcessId, // self add node id
+            origin = origin,
             children = mutableListOf()
         )
     }
 
-    fun appendTo(webviewNode: ViewTreeStruct): Int {
-        val processId = webviewNode.processId
+    fun appendTo(webViewNode: ViewTreeStruct): Int {
+        val processId = webViewNode.processId
         fun next(node: ViewTreeStruct): Int {
             // 找到加入节点
             if (node.id == processId) {
                 // 因为节点已经加入了，所以当前节点进程移动到新创建的节点
-                currentProcess = webviewNode.id
-                println("multiWebview#currentProcess:$currentProcess")
-                node.children.add(webviewNode)
-                return webviewNode.id
+                currentProcess = webViewNode.id
+                println("multiWebView#currentProcess:$currentProcess")
+                node.children.add(webViewNode)
+                return webViewNode.id
             }
             // 当节点还是小于当前父节点，就还需要BFS查找
             if (node.processId < processId) {

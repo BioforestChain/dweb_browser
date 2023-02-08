@@ -1,20 +1,14 @@
 package info.bagen.rust.plaoc.microService
 
-
 import android.net.Uri
 import android.webkit.*
 import com.fasterxml.jackson.core.JsonParser
-import com.google.gson.Gson
 import info.bagen.libappmgr.network.ApiService
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.mapper
 import io.ktor.http.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
 import java.util.*
-
-
-typealias workerOption = NativeOptions
 
 class JsMicroModule : MicroModule() {
     // 该程序的来源
@@ -22,68 +16,52 @@ class JsMicroModule : MicroModule() {
     private val routers: Router = mutableMapOf()
 
     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
-    private val javascriptContext = JavascriptContext()
+    private val jsProcess = JsProcess()
 
     init {
         // 创建一个webWorker
-        routers["/create-process"] = put@{ args ->
-            return@put createProcess(args as workerOption)
+        routers["/create-process"] = put@{ options ->
+             val mainCode = options["mainCode"]?: options["main_code"]
+             ?: return@put "Error open worker must transmission mainCode or main_code"
+            return@put createProcess(mainCode)
         }
     }
 
-    override fun bootstrap(args: workerOption): Any {
-        println("kotlin#JsMicroModule args==> ${args.mainCode}  ${args.origin}")
-        // 开始执行开发者自己的代码
-        return this.createProcess(args)
+    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
+        println("kotlin#JsMicroModule args==> ${options["mainCode"]}  ${options["origin"]}")
+        // 导航到自己的路由
+        if (routers[routerTarget] == null) {
+            return "js.sys.dweb route not found for $routerTarget"
+        }
+        return routers[routerTarget]?.let { it->it(options) }
     }
 
 
     // 创建一个webWorker
-    private fun createProcess(args: workerOption): Any {
-        var result = "Error open worker must transmission mainCode or main_code"
-        if (args.mainCode == "") return result
-        runBlocking {
-            result = javascriptContext.hiJackWorkerCode(args.mainCode)
-        }
-        return result
+    private fun createProcess(mainCode: String): Any {
+        return jsProcess.hiJackWorkerCode(mainCode)
     }
 
 }
 
-class JavascriptContext {
+class JsProcess {
     // 存储每个worker的port 以此来建立每个worker的通信
     val ALL_PROCESS_MAP = mutableMapOf<Number, WebMessagePort>()
     var accProcessId = 0
 
-    // 工具方法
-    val gson = Gson()
-
-    var onWebviewFinished = Mutex()
-    var isWebviewFinished = false
-
     // 创建了一个后台运行的webView 用来运行webWorker
     var view: WebView = WebView(App.appContext).also { view ->
+        WebView.setWebContentsDebuggingEnabled(true)
         val settings = view.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
         settings.databaseEnabled = true
-        view.webViewClient = object : WebViewClient() {
-
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                isWebviewFinished = true
-                if (onWebviewFinished.isLocked) {
-                    onWebviewFinished.unlock()
-                }
-            }
-        }
-        WebView.setWebContentsDebuggingEnabled(true)
     }
 
     /** 处理ipc 请求的工厂 然后会转发到nativeFetch */
-    fun icpFactory(webMessagePort: WebMessagePort, ipcString: String) {
+    fun ipcFactory(webMessagePort: WebMessagePort, ipcString: String) {
         mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true) //允许出现特殊字符和转义符
         mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true) //允许使用单引号
         val ipcRequest = mapper.readValue(ipcString, IpcRequest::class.java)
@@ -105,7 +83,7 @@ class JavascriptContext {
     /** 这里负责返回每个webWorker里的返回值
      * 注意每个worker的post都是不同的 */
     private fun tranResponseWorker(webMessagePort: WebMessagePort, res: IpcResponse) {
-        val jsonMessage = gson.toJson(res)
+        val jsonMessage = res.fromJson()
         println("JavascriptContext#tranResponseWorker: $jsonMessage")
         webMessagePort.postMessage(WebMessage(jsonMessage))
     }
@@ -113,10 +91,7 @@ class JavascriptContext {
 
     /** 为这个上下文安装启动代码 */
     @OptIn(DelicateCoroutinesApi::class)
-    suspend fun hiJackWorkerCode(mainUrl: String): String {
-        if (!isWebviewFinished) {
-            onWebviewFinished.lock()
-        }
+    fun hiJackWorkerCode(mainUrl: String): String {
         val workerPort = this.accProcessId
         GlobalScope.launch {
             val workerHandle = "worker${Date().time}"
@@ -142,7 +117,7 @@ class JavascriptContext {
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, message: WebMessage) {
                 println("kotlin#JsMicroModuleport🍟message: ${message.data}")
-                icpFactory(channel[0], message.data)
+                ipcFactory(channel[0], message.data)
             }
         })
         view.evaluateJavascript(
@@ -160,11 +135,10 @@ class JavascriptContext {
         this.ALL_PROCESS_MAP[accProcessId] = channel[0]
         this.accProcessId++
     }
-
-    private fun getInjectWorkerCode(jsAssets: String): String {
-        val inputStream = App.appContext.assets.open(jsAssets)
-        val byteArray = inputStream.readBytes()
-        return String(byteArray)
-    }
 }
-
+/**读取本地资源文件，并把内容转换为String */
+fun getInjectWorkerCode(jsAssets: String): String {
+    val inputStream = App.appContext.assets.open(jsAssets)
+    val byteArray = inputStream.readBytes()
+    return String(byteArray)
+}

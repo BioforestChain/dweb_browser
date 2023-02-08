@@ -37,18 +37,7 @@ class CustomUrlScheme(
 ) {
     private val mimeMap: MimeTypeMap by lazy { MimeTypeMap.getSingleton() }
     private fun getMimeTypeFromExtension(extension: String): String {
-        return mimeMap.getMimeTypeFromExtension(extension) ?: "text/plain"
-    }
-
-    private val origin by lazy { "$scheme://$host" }
-
-    fun resolveUrl(path: String): String {
-        val pathname = if (path.startsWith("/")) {
-            path
-        } else {
-            "/$path"
-        }
-        return origin + pathname
+        return mimeMap.getMimeTypeFromExtension(extension) ?: "text/html"
     }
 
     fun getEncodingByMimeType(mimeType: String): String {
@@ -71,23 +60,14 @@ class CustomUrlScheme(
         }
     }
 
-    fun isMatch(req: WebResourceRequest) = req.url.scheme == scheme && req.url.host == host
-
-
-    /**
-     * @TODO 增加跨域白名单的配置功能
-     */
-    fun isCrossDomain(req: WebResourceRequest) =
-        req.url.scheme == scheme && req.url.host != host
-
 
     fun handleRequest(req: WebResourceRequest, url: String): WebResourceResponse {
         val urlExt = req.url.lastPathSegment?.let { filename ->
             Path(filename).extension
         } ?: ""
         val urlMimeType = getMimeTypeFromExtension(urlExt)
+        println("state#handleRequest 文件后缀为:$urlExt,urlMimeType:$urlMimeType")
         val urlEncoding = getEncodingByMimeType(urlMimeType)
-
         val urlState = UrlState(
             href = url,
             ext = urlExt,
@@ -98,13 +78,21 @@ class CustomUrlScheme(
             isRedirect = req.isRedirect,
             isForMainFrame = req.isForMainFrame,
         )
-        //        Log.d(TAG, "handleRequest url: ${req.url}")
+         Log.d(TAG, "handleRequest url: ${req.url}，urlMimeType：$urlMimeType")
         // 在这里判断是读取FileRequest还是onReadOnlyRequest(只读文件，指assets目录下文件)
-        val responseBodyStream = requestHandler.onFileRequest(urlState)
-            ?: return WebResourceResponse(
-                urlMimeType, urlEncoding, 404, "Resource No Found", mapOf(),
-                nullInputStream
-            )
+        val responseBodyStream = if (req.url.host?.endsWith("sys.dweb") == true) {
+            requestHandler.onReadOnlyRequest(urlState)
+                ?: return WebResourceResponse(
+                    urlMimeType, urlEncoding, 404, "Resource No Found", mapOf(),
+                    nullInputStream
+                )
+        } else {
+            requestHandler.onFileRequest(urlState)
+                ?: return WebResourceResponse(
+                    urlMimeType, urlEncoding, 404, "Resource No Found", mapOf(),
+                    nullInputStream
+                )
+        }
         return WebResourceResponse(urlMimeType, urlEncoding, responseBodyStream)
     }
 
@@ -112,17 +100,16 @@ class CustomUrlScheme(
 
 val nullInputStream by lazy { ByteArrayInputStream(byteArrayOf()) }
 
-//typealias  RequestHandler = (req: UrlState) -> InputStream?
 interface RequestHandler {
     fun onFileRequest(req: UrlState): InputStream?
     fun onReadOnlyRequest(req: UrlState): InputStream?
 }
 
-fun requestHandlerFromAssets(assetManager: AssetManager, basePath: String): RequestHandler {
+fun requestHandlerFromAssets(basePath: String): RequestHandler {
     return object : RequestHandler {
         private fun openInputStream(path: String): InputStream? {
             return try {
-                assetManager.open(path)
+                App.appContext.assets.open(path)
             } catch (e: java.io.FileNotFoundException) {
                 null
             }
@@ -149,23 +136,28 @@ fun requestHandlerFromAssets(assetManager: AssetManager, basePath: String): Requ
         /** 读取只读文件*/
         override fun onReadOnlyRequest(req: UrlState): InputStream? {
             var urlPath = req.href
+            println("state#onReadOnlyRequest urlPath ===> $urlPath")
             // 本地文件前面不能有 /,必须直接写不然读不到，下面再做一成保险，帮用户去掉前缀
             if (urlPath.startsWith("/")) {
                 urlPath = urlPath.substring(urlPath.indexOf("/") + 1)
             }
-            // 使用 context.assets.open 来读取文件
-            val inputStream = openInputStream(urlPath)
+            println("state#onReadOnlyRequest url ===> ${stitchingPath(basePath,urlPath)}")
+            val inputStream = openInputStream(stitchingPath(basePath,urlPath))
             // 判断 isFile，不是的话就看 isDirectory，如果是的话就尝试访问 index.html
             if (inputStream == null) {
-                val fileLists = assetManager.list(urlPath) ?: return null
+                val fileLists = App.appContext.assets.list(stitchingPath(basePath,urlPath)) ?: return null
                 if (fileLists.isEmpty()) {
                     return null
                 }
                 val indexName = fileLists.find { it == "index.html" } ?: return null
                 // 如果加上 index.html 后 isFile 仍然是 false，那么返回 null
-                return openInputStream(Path(urlPath, indexName).toString())
+                return openInputStream(Path(stitchingPath(basePath,urlPath), indexName).toString())
             }
             return inputStream
         }
     }
+}
+
+fun stitchingPath(basePath: String,path:String):String {
+    return "$basePath/$path".replace("//","/")
 }
