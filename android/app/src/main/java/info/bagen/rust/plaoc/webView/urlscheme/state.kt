@@ -141,9 +141,8 @@ fun requestHandlerFromAssets(basePath: String): RequestHandler {
             if (urlPath.startsWith("/")) {
                 urlPath = urlPath.substring(urlPath.indexOf("/") + 1)
             }
-            println("state#onReadOnlyRequest url ===> $urlPath")
-            // 使用 context.assets.open 来读取文件
-            val inputStream = openInputStream(urlPath)
+            println("state#onReadOnlyRequest url ===> ${stitchingPath(basePath,urlPath)}")
+            val inputStream = openInputStream(stitchingPath(basePath,urlPath))
             // 判断 isFile，不是的话就看 isDirectory，如果是的话就尝试访问 index.html
             if (inputStream == null) {
                 val fileLists = App.appContext.assets.list(stitchingPath(basePath,urlPath)) ?: return null

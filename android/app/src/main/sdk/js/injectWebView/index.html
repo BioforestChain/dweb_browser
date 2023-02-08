@@ -11,19 +11,21 @@
 
 </body>
 <script>
+
   if (navigator.serviceWorker) {
-    navigator.serviceWorker.register('injectWebView/serviceWorker.js').then(function (registration) {
+    navigator.serviceWorker.register('/serviceWorker.js').then(function (registration) {
       console.log('service worker 注册成功');
+      onmessage = function (e) {
+        if (e.data == "forward-to-service-worker") {
+          console.log("kotlin#index port1111", e.data, e.ports[0], navigator.serviceWorker)
+          navigator.serviceWorker.controller.postMessage(["ipc-channel", e.ports[0]], [e.ports[0]]);
+        }
+      }
     }).catch(function (err) {
       console.log('service worker 注册失败', err)
     });
   }
-  onmessage = function (e) {
-    console.log("kotlin#index port1111", e.data, e.ports[0], e.data[0] == "forward-to-service-worker")
-    if (e.data[0] == "forward-to-service-worker") {
-      navigator.postMessage(["ipc-channel", e.ports[0]], [e.ports[0]])
-    }
-  }
+
 </script>
 
 </html>

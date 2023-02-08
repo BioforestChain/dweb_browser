@@ -29,9 +29,13 @@
   });
   // return data 🐯
   self.addEventListener("message", (event) => {
-    console.log("serviceWorker:message", event.data, event.ports[0]);
-    event.ports[0].onmessage = function (e) {
-      console.log(e.data)
+    if (typeof event.data !== "string") return;
+    if (event.data === "ipc-channel") {
+      console.log("serviceWorker:message", event.data, event.ports[0]);
+      event.ports[0].onmessage = function (e) {
+        console.log(e.data)
+      }
     }
   })
+
 })(self);

@@ -1,7 +1,7 @@
 package info.bagen.rust.plaoc.microService
 
 class HttpNMM : NativeMicroModule() {
-    override val mmid: String = "localhost.sys.dweb"
+    override val mmid: String = "https.sys.dweb"
     private val routers: Router = mutableMapOf()
     private val listenMap =  mutableMapOf</* host */ String, HttpListener>();
     init {
