@@ -1,10 +1,8 @@
 package info.bagen.rust.plaoc.microService
 
 import android.net.Uri
-import java.net.URLDecoder
 
 typealias Domain = String;
-typealias Mmid = String;
 
 // 声明全局dns
 val global_micro_dns = DwebDNS()
@@ -55,17 +53,6 @@ class DwebDNS : NativeMicroModule() {
         return "false"
     }
 }
-
-fun Uri.queryParameterByMap(): HashMap<String, String> {
-    val hashMap = hashMapOf<String, String>()
-    this.queryParameterNames.forEach { name ->
-        val key = URLDecoder.decode(name, "UTF-8")
-        val value = URLDecoder.decode(this.getQueryParameter(name), "UTF-8")
-        hashMap[key] = value
-    }
-    return hashMap
-}
-
 
 
 

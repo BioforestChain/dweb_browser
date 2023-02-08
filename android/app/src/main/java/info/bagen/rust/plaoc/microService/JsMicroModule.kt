@@ -25,7 +25,7 @@ class JsMicroModule : MicroModule() {
         }
     }
 
-    override fun bootstrap(routerTarget:String, options: HashMap<String, String>): Any? {
+    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
         println("kotlin#JsMicroModule args==> ${options["mainCode"]}  ${options["origin"]}")
         // 导航到自己的路由
         if (routers[routerTarget] == null) {
@@ -36,7 +36,7 @@ class JsMicroModule : MicroModule() {
 
 
     // 创建一个webWorker
-    private fun createProcess(options: HashMap<String, String>): Any {
+    private fun createProcess(options: NativeOptions): Any {
         if (options["mainCode"] == "") return "Error open worker must transmission mainCode or main_code"
         return jsProcess.hiJackWorkerCode(options["mainCode"]!!)
     }

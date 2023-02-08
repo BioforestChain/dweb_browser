@@ -29,7 +29,7 @@ class LocalhostNMM : NativeMicroModule() {
         return getHost(it)
     }
 
-    override fun bootstrap(routerTarget:String, options: HashMap<String, String>): Any? {
+    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
         println("kotlin#LocalhostNMM bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
         // 导航到自己的路由
         if (routers[routerTarget] == null) {

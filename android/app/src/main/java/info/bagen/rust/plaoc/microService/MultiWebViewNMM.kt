@@ -3,10 +3,7 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.App.Companion.mainActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
 
-typealias code = String
-
-
-class MultiWebViewNMM() : NativeMicroModule() {
+class MultiWebViewNMM : NativeMicroModule() {
     override val mmid: String = "mwebview.sys.dweb"
 
     private var viewTree: ViewTree = ViewTree()
@@ -22,7 +19,7 @@ class MultiWebViewNMM() : NativeMicroModule() {
         }
     }
 
-    override fun bootstrap(routerTarget:String, options: HashMap<String, String>): Any? {
+    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
         println("kotlin#MultiWebViewNMM bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
         // 导航到自己的路由
         if (routers[routerTarget] == null) {
@@ -31,18 +28,12 @@ class MultiWebViewNMM() : NativeMicroModule() {
         return routers[routerTarget]?.let { it->it(options) }
     }
 
-    private fun openDwebView(args: HashMap<String, String>): Any {
-        println(
-            "Kotlin#MultiWebViewNMM openDwebView " +
-                    "routerTarget：${args["routerTarget"]} \n" +
-                    "origin: ${args["origin"]} \n" +
-                    "mainCode: ${args["mainCode"]} \n" +
-                    "processId: ${args["processId"]}"
-        )
-        if (args["origin"] == null) {
+    private fun openDwebView(options: NativeOptions): Any {
+        println("Kotlin#MultiWebViewNMM openDwebView $options")
+        if (options["origin"] == null) {
             return "Error not Found param origin"
         }
-        val webViewNode = viewTree.createNode(args)
+        val webViewNode = viewTree.createNode(options)
         val append = viewTree.appendTo(webViewNode)
         // 当传递了父进程id，但是父进程是不存在的时候
         if(append == 0) {
@@ -50,7 +41,7 @@ class MultiWebViewNMM() : NativeMicroModule() {
         }
         // openDwebView
         if (mainActivity !== null) {
-            openDWebWindow(activity = mainActivity!!.getContext(), url = args["origin"]!!)
+            openDWebWindow(activity = mainActivity!!.getContext(), url = options["origin"]!!)
         }
         return webViewNode.id
     }
@@ -71,7 +62,7 @@ class ViewTree {
         val children: MutableList<ViewTreeStruct?>
     )
 
-    fun createNode(options: HashMap<String, String>): ViewTreeStruct {
+    fun createNode(options: NativeOptions): ViewTreeStruct {
         // 当前要挂载到哪个父级节点
         var processId = currentProcess
         //  当用户传递了processId，即明确需要挂载到某个view下

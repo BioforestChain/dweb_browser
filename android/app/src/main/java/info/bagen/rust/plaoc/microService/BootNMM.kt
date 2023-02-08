@@ -2,11 +2,6 @@ package info.bagen.rust.plaoc.microService
 
 import info.bagen.rust.plaoc.openHomeActivity
 
-
-typealias Router = MutableMap<String, AppRun>
-typealias AppRun = (options: HashMap<String, String>) -> Any
-
-
 class BootNMM : NativeMicroModule() {
     override val mmid: Mmid = "boot.sys.dweb"
     private val routers: Router = mutableMapOf()
@@ -30,7 +25,7 @@ class BootNMM : NativeMicroModule() {
         registeredMmids.add("desktop.bfs.dweb")
     }
 
-    override fun bootstrap(routerTarget:String, options: HashMap<String, String>): Any? {
+    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
         println("kotlin#BootNMM bootstrap==> $options")
         // 导航到自己的路由
         if (!routers.containsKey(routerTarget)) {
@@ -39,7 +34,7 @@ class BootNMM : NativeMicroModule() {
         return routers[routerTarget]?.let { it -> it(options) }
     }
 
-    fun open(options: HashMap<String, String>):Any {
+    fun open(options: NativeOptions):Any {
         val origin = options["origin"]
         println("kotlinBootNMM start app:$origin,${hookBootApp.containsKey(origin)}")
         if (origin == null) {
@@ -51,7 +46,6 @@ class BootNMM : NativeMicroModule() {
         }
         return "Error not register $origin boot Application"
     }
-
 
     private fun registerMicro(mmid: Mmid): Boolean {
         return registeredMmids.add(mmid)
