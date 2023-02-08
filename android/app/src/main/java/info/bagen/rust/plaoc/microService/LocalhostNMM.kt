@@ -29,14 +29,13 @@ class LocalhostNMM : NativeMicroModule() {
         return getHost(it)
     }
 
-    override fun bootstrap(args: NativeOptions): Any? {
-        println("kotlin#LocalhostNMM bootstrap==> ${args["mainCode"]}  ${args["origin"]}")
-       val routerTarget = args["routerTarget"]
+    override fun bootstrap(routerTarget:String, options: HashMap<String, String>): Any? {
+        println("kotlin#LocalhostNMM bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
         // 导航到自己的路由
         if (routers[routerTarget] == null) {
             return "localhost.sys.dweb route not found for $routerTarget"
         }
-        return routers[routerTarget]?.let { it->it(args) }
+        return routers[routerTarget]?.let { it->it(options) }
     }
 
     private fun getHost(port: String):String {

@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService
 
-
 /** 启动Boot服务*/
 fun startBootNMM() {
    val boot = global_micro_dns.nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
@@ -8,9 +7,9 @@ fun startBootNMM() {
 }
 
 open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
-     override fun bootstrap(args:MutableMap<String, String>):Any? {
-         println("kotlin#NativeMicroModule bootstrap==> ${args["mainCode"]}  ${args["origin"]}")
-         return args["origin"]
+     override fun bootstrap(routerTarget:String, options: HashMap<String, String>):Any? {
+         println("kotlin#NativeMicroModule bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
+         return options["origin"]
      }
 }
 
@@ -36,5 +35,5 @@ typealias NativeOptions = MutableMap<String, String>
 
 abstract class MicroModule {
     open val mmid: String = ""
-    abstract fun bootstrap(args:NativeOptions): Any?
+    abstract fun bootstrap(routerTarget:String, options: HashMap<String, String>): Any?
 }

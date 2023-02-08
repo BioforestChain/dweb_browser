@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService
 
-
 import android.net.Uri
 import android.webkit.*
 import com.fasterxml.jackson.core.JsonParser
@@ -10,8 +9,6 @@ import info.bagen.rust.plaoc.mapper
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import java.util.*
-
-
 
 class JsMicroModule : MicroModule() {
     // 该程序的来源
@@ -24,25 +21,24 @@ class JsMicroModule : MicroModule() {
     init {
         // 创建一个webWorker
         routers["/create-process"] = put@{ args ->
-            return@put createProcess(args as NativeOptions)
+            return@put createProcess(args)
         }
     }
 
-    override fun bootstrap(args: NativeOptions): Any? {
-        println("kotlin#JsMicroModule args==> ${args["mainCode"]}  ${args["origin"]}")
-        val routerTarget = args["routerTarget"]
+    override fun bootstrap(routerTarget:String, options: HashMap<String, String>): Any? {
+        println("kotlin#JsMicroModule args==> ${options["mainCode"]}  ${options["origin"]}")
         // 导航到自己的路由
         if (routers[routerTarget] == null) {
             return "js.sys.dweb route not found for $routerTarget"
         }
-        return routers[routerTarget]?.let { it->it(args) }
+        return routers[routerTarget]?.let { it->it(options) }
     }
 
 
     // 创建一个webWorker
-    private fun createProcess(args: NativeOptions): Any {
-        if (args["mainCode"] == "") return "Error open worker must transmission mainCode or main_code"
-        return jsProcess.hiJackWorkerCode(args["mainCode"]!!)
+    private fun createProcess(options: HashMap<String, String>): Any {
+        if (options["mainCode"] == "") return "Error open worker must transmission mainCode or main_code"
+        return jsProcess.hiJackWorkerCode(options["mainCode"]!!)
     }
 
 }

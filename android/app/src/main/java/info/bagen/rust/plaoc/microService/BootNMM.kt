@@ -4,7 +4,7 @@ import info.bagen.rust.plaoc.openHomeActivity
 
 
 typealias Router = MutableMap<String, AppRun>
-typealias AppRun = (options: NativeOptions) -> Any
+typealias AppRun = (options: HashMap<String, String>) -> Any
 
 
 class BootNMM : NativeMicroModule() {
@@ -30,19 +30,18 @@ class BootNMM : NativeMicroModule() {
         registeredMmids.add("desktop.bfs.dweb")
     }
 
-    override fun bootstrap(args: NativeOptions): Any? {
-        println("kotlin#BootNMM bootstrap==> ${args["mainCode"]}  ${args["origin"]}")
-        val routerTarget = args["routerTarget"]
+    override fun bootstrap(routerTarget:String, options: HashMap<String, String>): Any? {
+        println("kotlin#BootNMM bootstrap==> $options")
         // 导航到自己的路由
-        if (routers[routerTarget] == null) {
+        if (!routers.containsKey(routerTarget)) {
            return "boot.sys.dweb route not found for $routerTarget"
         }
-        return routers[routerTarget]?.let { it -> it(args) }
+        return routers[routerTarget]?.let { it -> it(options) }
     }
 
-    fun open(options: NativeOptions):Any {
+    fun open(options: HashMap<String, String>):Any {
         val origin = options["origin"]
-        println("kotlinBootNMM start app:$origin,${hookBootApp.containsKey(origin)},${options["routerTarget"]}")
+        println("kotlinBootNMM start app:$origin,${hookBootApp.containsKey(origin)}")
         if (origin == null) {
             return "Error not Found param origin"
         }
