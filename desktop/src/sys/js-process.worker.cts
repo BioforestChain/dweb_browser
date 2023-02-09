@@ -55,8 +55,8 @@ const waitFetchIpc = (process: $MicroModule) => {
  * 安装上下文
  */
 export const installEnv = async (mmid: $MMID) => {
-  const process = new JsProcessMicroModule(mmid);
-  const fetchIpc = await waitFetchIpc(process);
+  const jsProcess = new JsProcessMicroModule(mmid);
+  const fetchIpc = await waitFetchIpc(jsProcess);
 
   const native_fetch = globalThis.fetch;
   function fetch(url: RequestInfo | URL, init?: RequestInit) {
@@ -81,12 +81,12 @@ export const installEnv = async (mmid: $MMID) => {
   }
   Object.assign(globalThis, {
     fetch,
-    process,
+    jsProcess,
     JsProcessMicroModule,
   });
   /// 安装完成，告知外部
   self.postMessage(["env-ready"]);
-  return process;
+  return jsProcess;
 };
 
 export type $RunMainConfig = {
@@ -101,7 +101,7 @@ self.addEventListener("message", async (event) => {
     const config = data[1] as $RunMainConfig;
     const main_parsed_url = updateUrlOrigin(
       config.main_url,
-      `file://${process.mmid}`
+      `file://${jsProcess.mmid}`
     );
     const location = {
       hash: main_parsed_url.hash,
