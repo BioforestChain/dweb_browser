@@ -280,36 +280,7 @@ fun DWebView(
                     MyWebChromeClient()
                 },
                 client = remember {
-                    val swController = ServiceWorkerController.getInstance()
-                    swController.setServiceWorkerClient(object : ServiceWorkerClient() {
-                        override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
-                            println("kotlin#DWebView shouldInterceptRequest request=${request.url}")
-                            // 拦截serviceWorker的网络请求
-                            val result =  interceptNetworkRequests(request, customUrlScheme)
-                            if (result != null) {
-                                return result
-                            }
-                            return super.shouldInterceptRequest(request)
-                        }
-                    })
-                    swController.serviceWorkerWebSettings.allowContentAccess = true
                     class MyWebViewClient : AdWebViewClient() {
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            super.onPageFinished(view, url)
-                            view?.let {
-                                // 为每一个webWorker都创建一个通道
-                                val channel = view.createWebMessageChannel()
-                                channel[0].setWebMessageCallback(object :
-                                    WebMessagePort.WebMessageCallback() {
-                                    override fun onMessage(port: WebMessagePort, message: WebMessage) {
-                                        println("kotlin#DwebView🍑message: ${message.data}")
-                                    }
-                                })
-                                // 发送post1到service worker层 建立通信
-                                view.postWebMessage(WebMessage("forward-to-service-worker", arrayOf(channel[1])), Uri.EMPTY)
-                                channel[0].postMessage(WebMessage("xxx"))
-                            }
-                        }
                         // API >= 21
                         @SuppressLint("NewApi")
                         @Override
