@@ -2,17 +2,18 @@
 
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import { IPC_DATA_TYPE, IPC_ROLE } from "../../core/ipc/const.cjs";
+import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import type { $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
+import { buildUrl } from "../../helper/urlHelper.cjs";
 import { script } from "./desktop.web.cjs";
 
 console.log("ookkkkk, i'm in worker");
 
 export const main = async () => {
-  debugger;
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const { origin } = await jsProcess
-    .fetch(`file://localhost.sys.dweb/listen?port=80`)
+    .fetch(`file://http.sys.dweb/listen?port=80`)
     .object<{
       origin: string;
     }>();
@@ -21,26 +22,31 @@ export const main = async () => {
     const html = String.raw;
     /// 创建一个基于 二进制流的 ipc 信道
     const httpServerIpc = new ReadableStreamIpc(
-      new JsProcessMicroModule("localhost.sys.dweb"),
+      new JsProcessMicroModule("http.sys.dweb"),
       IPC_ROLE.CLIENT,
       true
     );
+
     const httpIncomeRequestStream = await jsProcess
       .fetch(
-        `file://localhost.sys.dweb/request/on?port=80&paths=${encodeURIComponent(
-          JSON.stringify([
-            {
-              pathname: "/",
-              matchMode: "prefix",
-              method: "GET",
-            },
-            {
-              pathname: "/",
-              matchMode: "prefix",
-              method: "POST",
-            },
-          ] satisfies $ReqMatcher[])
-        )}`,
+        buildUrl(new URL(`file://http.sys.dweb`), {
+          pathname: "/request/on",
+          search: {
+            port: 80,
+            routes: [
+              {
+                pathname: "/",
+                matchMode: "prefix",
+                method: "GET",
+              },
+              {
+                pathname: "/",
+                matchMode: "prefix",
+                method: "POST",
+              },
+            ] satisfies $ReqMatcher[],
+          },
+        }),
         {
           method: "POST",
           /// 这是上行的通道
@@ -91,9 +97,9 @@ export const main = async () => {
                 <script type="module" src="./desktop.web.mjs"></script>
               </html>
             `,
-            {
+            new IpcHeaders({
               "Content-Type": "text/html",
-            }
+            })
           )
         );
       } else if (request.url === "/desktop.web.mjs") {
@@ -102,9 +108,9 @@ export const main = async () => {
             request.req_id,
             200,
             script.toString().match(/\{([\w\W]+)\}/)![1],
-            {
+            new IpcHeaders({
               "Content-Type": "application/javascript",
-            }
+            })
           )
         );
       } /* else if (
@@ -144,18 +150,6 @@ export const main = async () => {
     const view_id = await jsProcess
       .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
       .text();
-    // const view_id = await process
-    //   .fetch(
-    //     `file://mwebview.sys.dweb/open?url=${encodeURIComponent(
-    //       `https://localhost.sys.dweb:80`
-    //     )}`
-    //   )
-    //   .string();
   }
-
-  //    addEventListener("fetch", (event) => {
-  //       if (event.request.headers["view-id"] === view_id) {
-  //       }
-  //    });
 };
 main();

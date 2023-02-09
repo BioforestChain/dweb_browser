@@ -1,8 +1,8 @@
-import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
-import { $readRequestAsIpcRequest } from "../helper/$readRequestAsIpcRequest.cjs";
 import type { Ipc } from "../core/ipc/index.cjs";
 import { MicroModule } from "../core/micro-module.cjs";
 import { NativeMicroModule } from "../core/micro-module.native.cjs";
+import { $readRequestAsIpcRequest } from "../helper/$readRequestAsIpcRequest.cjs";
+import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
 import type { $MMID, $PromiseMaybe } from "../helper/types.cjs";
 
 /** DNS 服务，内核！
@@ -157,10 +157,12 @@ const hookFetch = (app_mm: DnsNMM) => {
 
         return (async () => {
           const { ipc } = await ipc_promise;
-          const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+          const ipc_req_init = await $readRequestAsIpcRequest(
+            args.request_init
+          );
           const ipc_response = await ipc.request(parsed_url.href, ipc_req_init);
 
-          return ipc_response.asResponse();
+          return ipc_response.asResponse(parsed_url.href);
         })();
       }
     }

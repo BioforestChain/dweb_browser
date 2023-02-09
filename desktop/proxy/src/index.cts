@@ -92,8 +92,8 @@ function requestHandle(req: http.IncomingMessage, res: http.ServerResponse) {
       </body>
     </html>`);
   res.writeHead(200, {
-    "Content-Type": "text/html; charset=utf-8",
-    "Content-Length": content.length,
+    "content-type": "text/html; charset=utf-8",
+    "content-length": content.length,
   });
   res.end(content);
 }

@@ -27,7 +27,7 @@ export class JsProcessMicroModule implements $MicroModule {
 }
 
 /// 消息通道构造器
-const waitFetchIpc = (process: $MicroModule) => {
+const waitFetchIpc = (jsProcess: $MicroModule) => {
   return new Promise<MessagePortIpc>((resolve) => {
     self.addEventListener("message", (event) => {
       const data = event.data as any[];
@@ -40,7 +40,7 @@ const waitFetchIpc = (process: $MicroModule) => {
         /// 与原生互通讯息，默认只能支持字符串
         const ipc = new MessagePortIpc(
           data[1],
-          process,
+          jsProcess,
           IPC_ROLE.SERVER,
           false
         );
@@ -73,7 +73,7 @@ export const installEnv = async (mmid: $MMID) => {
           parsed_url.href,
           ipc_req_init
         );
-        return ipc_response.asResponse();
+        return ipc_response.asResponse(parsed_url.href);
       })();
     }
 

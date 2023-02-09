@@ -1,4 +1,4 @@
-import { streamReader } from "../../helper/readableStreamHelper.cjs";
+import { streamRead } from "../../helper/readableStreamHelper.cjs";
 import { IPC_DATA_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import { IpcStreamData } from "./IpcStreamData.cjs";
@@ -17,7 +17,7 @@ export const $streamAsRawData = (
   stream: ReadableStream<Uint8Array>,
   ipc: Ipc
 ) => {
-  const reader = streamReader(stream);
+  const reader = streamRead(stream);
 
   const sender = _postStreamData(stream_id, reader, ipc, () => {
     /// 解除对请求方的请求监听绑定
@@ -40,7 +40,7 @@ export const $streamAsRawData = (
       message.type === IPC_DATA_TYPE.STREAM_ABORT &&
       message.stream_id === stream_id
     ) {
-      reader.abort_controller.abort();
+      reader.throw("abort");
     }
   });
 };

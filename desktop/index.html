@@ -1,18 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>DNS</title>
-   </head>
-   <body>
-      <button id="sys-boot-btn">启动DNS系统</button>
-   </body>
-   <script>
-      const { dns } = require("./dist/main.cjs");
-      document.querySelector("#sys-boot-btn").addEventListener("click", () => {
-         dns.bootstrap();
-      });
-   </script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DNS</title>
+  </head>
+  <body>
+    <button id="sys-boot-btn">
+      <span class="do-bootstrap"> 启动系统</span>
+      <span class="do-shutdown"> 关闭系统</span>
+    </button>
+  </body>
+  <style>
+    .do-bootstrap {
+      display: block;
+    }
+    .do-shutdown {
+      display: none;
+    }
+    :has(.booted) .do-bootstrap {
+      display: none;
+    }
+    :has(.booted) .do-shutdown {
+      display: block;
+    }
+  </style>
+  <script>
+    const { dns } = require("./dist/main.cjs");
+    let booted = false;
+    const $btn = document.querySelector("#sys-boot-btn");
+    $btn.addEventListener("click", () => {
+      try {
+        if (booted) {
+          dns.shutdown();
+        } else {
+          dns.bootstrap();
+        }
+      } finally {
+        booted = !booted;
+        $btn.classList.toggle("booted", booted);
+      }
+    });
+  </script>
 </html>

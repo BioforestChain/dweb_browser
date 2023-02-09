@@ -3,13 +3,19 @@ import { u8aConcat } from "../../helper/binaryHelper.cjs";
 import { simpleEncoder } from "../../helper/encoding.cjs";
 import {
   ReadableStreamOut,
-  streamReader,
+  streamRead,
 } from "../../helper/readableStreamHelper.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
 import type { $IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
 import { Ipc } from "../ipc/ipc.cjs";
 import { $messageToIpcMessage } from "./$messageToIpcMessage.cjs";
 
+/**
+ * 基于 WebReadableStream 的IPC
+ *
+ * 它会默认构建出一个输出流，
+ * 以及需要手动绑定输入流 {@link bindIncomeStream}
+ */
 export class ReadableStreamIpc extends Ipc {
   constructor(
     readonly remote: $MicroModule,
@@ -36,7 +42,7 @@ export class ReadableStreamIpc extends Ipc {
     }
     this._incomne_stream = stream;
     let cache = new Uint8Array(0);
-    for await (const chunk of streamReader(stream)) {
+    for await (const chunk of streamRead(stream)) {
       cache = u8aConcat([cache, chunk]);
       const len = new Uint32Array(cache.buffer, 0, 1)[0];
       // 数据不够，继续等待

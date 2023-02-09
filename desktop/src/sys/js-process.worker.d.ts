@@ -1,5 +1,7 @@
 /// <reference lib="webworker"/>
 
+// declare module "js-proccess" {
+//   global {
 namespace globalThis {
   type $MMID = import("../helper/types.cjs").$MMID;
   // import { JsProcessMicroModule as JsProcessMicroModuleContructor } from "./js-process.worker.cjs";
@@ -10,6 +12,5 @@ namespace globalThis {
   ) => JsProcessMicroModuleContructor;
   // export { JsProcessMicroModule } from "./js-process.worker.cjs";
   export const jsProcess: JsProcessMicroModuleContructor;
-  declare const a = 1;
-  export const b = 2;
 }
+// }

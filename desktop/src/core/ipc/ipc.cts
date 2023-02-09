@@ -1,16 +1,14 @@
+import { isBinary } from "../../helper/binaryHelper.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
-import { simpleDecoder } from "../../helper/encoding.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
-import { $streamAsRawData } from "./$streamAsRawData.cjs";
 import {
   IPC_DATA_TYPE,
-  IPC_RAW_BODY_TYPE,
   type $IpcMessage,
   type $OnIpcMessage,
-  type $RawData,
   type IPC_ROLE,
 } from "./const.cjs";
+import { IpcHeaders } from "./IpcHeaders.cjs";
 import { IpcRequest } from "./IpcRequest.cjs";
 import type { IpcResponse } from "./IpcResponse.cjs";
 
@@ -91,32 +89,44 @@ export abstract class Ipc {
         | Uint8Array
         /* stream+base64 */
         | ReadableStream<Uint8Array>;
-      headers?: Record<string, string>;
+      headers?: IpcHeaders | HeadersInit;
     } = {}
   ) {
     const req_id = this.allocReqId();
-    let rawBody: $RawData;
-    if (ArrayBuffer.isView(init.body)) {
-      rawBody = this.support_message_pack
-        ? [IPC_RAW_BODY_TYPE.BINARY, init.body]
-        : [IPC_RAW_BODY_TYPE.BASE64, simpleDecoder(init.body, "base64")];
+    const method = init.method ?? "GET";
+    const headers =
+      init.headers instanceof IpcHeaders
+        ? init.headers
+        : new IpcHeaders(init.headers);
+    let ipcRequest: IpcRequest;
+    if (isBinary(init.body)) {
+      ipcRequest = IpcRequest.fromBinary(
+        init.body,
+        req_id,
+        method,
+        url,
+        headers,
+        this
+      );
     } else if (init.body instanceof ReadableStream) {
-      const contentLength = init.headers?.["Content-Length"] ?? 0;
-      const stream_id = `req/${req_id}/${contentLength}`;
-      rawBody = [IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id];
-      $streamAsRawData(stream_id, init.body, this);
+      ipcRequest = IpcRequest.fromStream(
+        init.body,
+        req_id,
+        method,
+        url,
+        headers,
+        this
+      );
     } else {
-      rawBody = [IPC_RAW_BODY_TYPE.TEXT, init.body ?? ""];
+      ipcRequest = IpcRequest.fromText(
+        init.body ?? "",
+        req_id,
+        method,
+        url,
+        headers
+      );
     }
 
-    const ipcRequest = new IpcRequest(
-      req_id,
-      init.method ?? "GET",
-      url,
-      rawBody,
-      init.headers ?? {},
-      this
-    );
     this.postMessage(ipcRequest);
     return this.registerReqId(req_id).promise;
   }
