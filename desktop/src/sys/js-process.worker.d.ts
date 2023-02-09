@@ -9,7 +9,7 @@ namespace globalThis {
     mmid: $MMID
   ) => JsProcessMicroModuleContructor;
   // export { JsProcessMicroModule } from "./js-process.worker.cjs";
-  export const process: JsProcessMicroModuleContructor;
+  export const jsProcess: JsProcessMicroModuleContructor;
   declare const a = 1;
   export const b = 2;
 }
