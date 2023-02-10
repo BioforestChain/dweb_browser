@@ -2,3 +2,6 @@ dist
 bundle
 git-sim_media
 .*.bak
+
+
+proxy/src/index.cjs

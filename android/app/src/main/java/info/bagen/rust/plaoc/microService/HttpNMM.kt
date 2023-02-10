@@ -51,22 +51,31 @@ enum class Method(method: String = "GET") {
     OPTIONS( "OPTIONS")
 }
 
+fun rand(start: Int, end: Int): Int {
+    require(start <= end) { "Illegal Argument" }
+    return (start..end).random()
+}
+
 data class HttpRequestInfo(
-    val http_req_id: Number,
-    val url: String,
-    val method: Method,
-    val rawHeaders: MutableList<String> = mutableListOf()
+    var http_req_id: Number,
+    var url: String,
+    var method: Method,
+    var rawHeaders: MutableList<String> = mutableListOf()
 )
 
 data class HttpResponseInfo(
-    val http_req_id: Number,
-    val statusCode: Number,
-    val headers: Map<String, String>,
-    val body: Any
+    var http_req_id: Number,
+    var statusCode: Number,
+    var headers: Map<String, String>,
+    var body: Any
 )
-
 data class HttpListener(
-    val origin:String = ""
+    var host:String= ""
 ) {
+    private val protocol = "https://"
+    val origin = "$protocol${this.host}.${rand(0,25535)}.localhost"
 
+    fun getAvailablePort():Number {
+        return  25535
+    }
 }
