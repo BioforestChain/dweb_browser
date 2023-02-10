@@ -20,8 +20,8 @@
     ],
     "scripts": {
         "dev": "tsc -w",
-        "bundle:js-process.worker": "esbuild ./src/sys/js-process.worker.cts --outfile=./bundle/js-process.worker.cjs --bundle --format=cjs",
-        "bundle:desktop.worker": "esbuild ./src/user/desktop/desktop.worker.cts --outfile=./bundle/desktop.worker.cjs --bundle --format=cjs",
+        "bundle:js-process.worker": "esbuild ./src/sys/js-process/js-process.worker.mts --outfile=./bundle/js-process.worker.js --bundle --format=esm",
+        "bundle:desktop.worker": "esbuild ./src/user/desktop/desktop.worker.mts --outfile=./bundle/desktop.worker.js --bundle --format=esm",
         "start": "D:/tools/nwjs/nwjs-sdk-v0.72.0-win-x64/nw.exe ./"
     },
     "devDependencies": {

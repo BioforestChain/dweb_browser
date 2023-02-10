@@ -29,7 +29,7 @@ export const defaultErrorResponse = (
         <title>${statusCode}</title>
       </head>
       <body>
-        <h1 style="color:red">[${statusCode}] ${res.statusMessage}</h1>
+        <h1 style="color:red">[${statusCode}] ${errorMessage}</h1>
         ${detailMessage ? html`<blockquote>${detailMessage}</blockquote>` : ""}
         <div>
           <h2>URL:</h2>

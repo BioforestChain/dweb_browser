@@ -5,11 +5,6 @@ export class BootNMM extends NativeMicroModule {
   mmid = "boot.sys.dweb" as const;
   private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]);
   async _bootstrap() {
-    for (const mmid of this.registeredMmids) {
-      /// TODO 这里应该使用总线进行通讯，而不是拿到core直接调用。在未来分布式系统中，core模块可能是远程模块
-      this.fetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
-      //  await core.open(mmid);
-    }
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/register",
       matchMode: "full",
@@ -28,14 +23,21 @@ export class BootNMM extends NativeMicroModule {
         return await this.unregister(args.app_id);
       },
     });
+
+    /// 开始启动开机项
+    for (const mmid of this.registeredMmids) {
+      /// TODO 这里应该使用总线进行通讯，而不是拿到core直接调用。在未来分布式系统中，core模块可能是远程模块
+      this.fetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
+      //  await core.open(mmid);
+    }
   }
   _shutdown() {}
-  register(mmid: $MMID) {
+  private register(mmid: $MMID) {
     /// TODO 这里应该有用户授权，允许开机启动
     this.registeredMmids.add(mmid);
     return true;
   }
-  unregister(mmid: $MMID) {
+  private unregister(mmid: $MMID) {
     /// TODO 这里应该有用户授权，取消开机启动
     return this.registeredMmids.delete(mmid);
   }

@@ -68,3 +68,9 @@ export type $OnIpcMessage = (
   message: $IpcMessage,
   ipc: Ipc
 ) => unknown;
+
+export type $OnIpcRequestMessage = (
+  /// 这里只会有两种类型的数据
+  message: IpcRequest,
+  ipc: Ipc
+) => unknown;

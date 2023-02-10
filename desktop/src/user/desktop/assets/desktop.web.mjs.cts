@@ -1,5 +1,7 @@
+import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
+
 /// <reference lib="DOM"/>
-export const script = () => {
+const script = () => {
   const logEle = document.querySelector(
     "#readwrite-stream-log"
   ) as HTMLPreElement;
@@ -42,4 +44,8 @@ export const script = () => {
       }
     }
   };
+};
+
+export const CODE = async (require: IpcRequest) => {
+  return script.toString().match(/\{([\w\W]+)\}/)![1];
 };

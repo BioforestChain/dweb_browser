@@ -18,6 +18,11 @@ export class IpcResponse extends IpcBody {
     super(rawBody, ipc);
   }
 
+  #ipcHeaders?: IpcHeaders;
+  get ipcHeaders() {
+    return (this.#ipcHeaders ??= new IpcHeaders(this.headers));
+  }
+
   asResponse(url?: string) {
     const body = this.body;
     if (body instanceof Uint8Array) {

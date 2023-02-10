@@ -3,7 +3,6 @@ import net from "node:net";
 import tls from "node:tls";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import { IPC_ROLE } from "../../core/ipc/const.cjs";
-import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import type { $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
@@ -13,7 +12,13 @@ import { defaultErrorResponse } from "./defaultErrorResponse.cjs";
 import { httpsCreateServer } from "./httpsCreateServer.cjs";
 import { createServerCertificate } from "./httpsServerCert.cjs";
 import { PortListener } from "./portListener.cjs";
+import type { $GetHostOptions } from "./types.cjs";
 
+interface $Gateway {
+  listener: PortListener;
+  host: string;
+  token: string;
+}
 /**
  * 类似 https.createServer
  * 差别在于服务只在本地运作
@@ -26,9 +31,12 @@ export class HttpServerNMM extends NativeMicroModule {
   // private _local_files?: Map<string, Uint8Array>;
   private _proxy_port = 0;
   private _proxy_server?: https.Server;
-  private _listenerMap = new Map</* host */ string, PortListener>();
+  private _tokenMap = new Map</* token */ string, $Gateway>();
+  private _gatewayMap = new Map</* host */ string, $Gateway>();
+  /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
   private _default_listener_host = "*";
   readonly protocol = "https:";
+  readonly protocol_default_port = 443;
 
   protected async _bootstrap() {
     /// 启动一个通用的网关服务
@@ -46,9 +54,23 @@ export class HttpServerNMM extends NativeMicroModule {
         }
       )
     ).server.on("request", (req, res) => {
-      const host = req.headers.host ?? this._default_listener_host;
-      const listener = this._listenerMap.get(host);
-      if (listener == undefined) {
+      /// 获取 host
+      let host = this._default_listener_host;
+      if (req.headers.host) {
+        host = req.headers.host;
+        /// 如果没有端口，补全端口
+        if (host.includes(":") === false) {
+          if (this.protocol === "https:") {
+            host += ":443";
+          } else if (this.protocol === "http:") {
+            host += ":80";
+          }
+        }
+      }
+
+      /// 在网关中寻址能够处理该 host 的监听者
+      const gateway = this._gatewayMap.get(host);
+      if (gateway == undefined) {
         return defaultErrorResponse(
           req,
           res,
@@ -57,13 +79,14 @@ export class HttpServerNMM extends NativeMicroModule {
           "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
         );
       }
+
       // const gateway_timeout = setTimeout(() => {
       //   if (res.writableLength === 0) {
       //   }
       //   res.write;
       //   res.hasHeader;
       // }, 3e4 /* 30s 没有任何 body 写入的话，认为网关超时 */);
-      listener.hookHttpRequest(req, res);
+      void gateway.listener.hookHttpRequest(req, res);
     });
 
     /// 启动一个通用的代理服务
@@ -74,7 +97,7 @@ export class HttpServerNMM extends NativeMicroModule {
       })
     ).server.on("connect", (clientRequest, clientSocket, head) => {
       // 连接目标服务器
-      const targetSocket = net.connect(local_port, "127.0.0.1", () => {
+      const targetSocket = net.connect(local_port, "localhost", () => {
         // 通知客户端已经建立连接
         clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
 
@@ -91,30 +114,34 @@ export class HttpServerNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/listen",
       matchMode: "full",
-      input: { port: "number" },
-      output: { origin: "string" },
+      input: { port: "number?", subdomain: "string?" },
+      output: { origin: "string", token: "string" },
       hanlder: async (args, ipc) => {
-        return await this.listen(ipc, args.port);
+        return await this.listen({ ipc, ...args });
       },
     });
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/unlisten",
       matchMode: "full",
-      input: { port: "number" },
+      input: { port: "number?", subdomain: "string?" },
       output: "boolean",
       hanlder: async (args, ipc) => {
-        return await this.unlisten(ipc, args.port);
+        return await this.unlisten({ ipc, ...args });
       },
     });
     this.registerCommonIpcOnMessageHanlder({
       method: "POST",
-      pathname: "/request/on",
+      pathname: "/on-request",
       matchMode: "full",
-      input: { port: "number", routes: "object" },
+      input: { token: "string", routes: "object" },
       output: "object",
       hanlder: async (args, ipc, message) => {
         console.log("收到处理请求的双工通道");
-        return this.onRequest(ipc, message, args.port, args.routes as any);
+        return this.onRequest(
+          args.token,
+          message,
+          args.routes as $ReqMatcher[]
+        );
       },
     });
   }
@@ -127,65 +154,80 @@ export class HttpServerNMM extends NativeMicroModule {
     // this._local_files = undefined;
   }
 
-  private _getHost(port: number, ipc: Ipc) {
-    return `${ipc.remote.mmid}.${port}.localhost:${this._local_port}`;
+  private _getHost(options: $GetHostOptions) {
+    const { mmid } = options.ipc.remote;
+    const { port = this.protocol_default_port } = options;
+    let subdomain = options.subdomain?.trim() ?? "";
+    if (subdomain.length > 0 && subdomain.endsWith(".") === false) {
+      subdomain = subdomain + ".";
+    }
+    return { host: `${subdomain}${mmid}:${port}`, port, subdomain }; //.localhost:${this._local_port}
   }
 
   /** 申请监听，获得一个连接地址 */
-  private listen(ipc: Ipc, port: number) {
-    const host = this._getHost(port, ipc);
-    if (this._listenerMap.has(host)) {
+  private async listen(hostOptions: $GetHostOptions) {
+    const { ipc } = hostOptions;
+    const { host, port } = this._getHost(hostOptions);
+    if (this._gatewayMap.has(host)) {
       throw new Error(`already in listen with port: ${port}`);
     }
     const listener = new PortListener(ipc, port, host, this.protocol);
     /// ipc 在关闭的时候，自动释放所有的绑定
     listener.onDestroy(
       ipc.onClose(() => {
-        this.unlisten(ipc, port);
+        this.unlisten(hostOptions);
       })
     );
-    this._listenerMap.set(host, listener);
 
-    return {
-      origin: listener.origin,
-    };
+    const token = Buffer.from(
+      crypto.getRandomValues(new Uint8Array(64))
+    ).toString("base64url");
+    const gateway: $Gateway = { listener, host, token };
+    this._tokenMap.set(token, gateway);
+    this._gatewayMap.set(host, gateway);
+    return { token, origin: listener.origin };
   }
 
   /** 远端监听请求，将提供一个 ReadableStreamIpc 流 */
   private async onRequest(
-    ipc: Ipc,
+    token: string,
     message: IpcRequest,
-    port: number,
     routes: $ReqMatcher[]
   ) {
-    const host = this._getHost(port, ipc);
-    const listener = this._listenerMap.get(host);
-    if (listener === undefined) {
-      throw new Error(`no listen with port: ${port}`);
+    const gateway = this._tokenMap.get(token);
+    if (gateway === undefined) {
+      throw new Error(`no gateway with token: ${token}`);
     }
 
-    const streamIpc = new ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT);
-    streamIpc.bindIncomeStream(await message.stream());
+    const streamIpc = new ReadableStreamIpc(
+      gateway.listener.ipc.remote,
+      IPC_ROLE.CLIENT
+    );
+    void streamIpc.bindIncomeStream(message.stream());
 
-    listener.addRouter({
-      routes,
-      streamIpc,
-    });
+    streamIpc.onClose(
+      gateway.listener.addRouter({
+        routes,
+        streamIpc,
+      })
+    );
     return new Response(streamIpc.stream, { status: 200 });
   }
   /**
    * 释放监听
    */
-  private unlisten(ipc: Ipc, port: number) {
-    const host = this._getHost(port, ipc);
+  private unlisten(hostOptions: $GetHostOptions) {
+    const { host } = this._getHost(hostOptions);
 
-    const binding = this._listenerMap.get(host);
-    if (binding === undefined) {
+    const gateway = this._gatewayMap.get(host);
+    if (gateway === undefined) {
       return false;
     }
-    this._listenerMap.delete(host);
+    this._tokenMap.delete(gateway.token);
+    this._gatewayMap.delete(gateway.host);
+    /// 执行销毁
+    gateway.listener.destroy();
 
-    binding.destroy();
     return true;
   }
 }

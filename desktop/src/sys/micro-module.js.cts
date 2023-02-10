@@ -1,7 +1,9 @@
-import type { Ipc } from "../core/ipc/index.cjs";
+import { ReadableStreamIpc } from "../core/ipc-web/ReadableStreamIpc.cjs";
+import { Ipc, IpcResponse, IPC_ROLE } from "../core/ipc/index.cjs";
 import { MicroModule } from "../core/micro-module.cjs";
 import type { $MMID } from "../helper/types.cjs";
-import { JsIpc } from "./js-process.cjs";
+import { buildUrl } from "../helper/urlHelper.cjs";
+import { Native2JsIpc } from "./js-process/ipc.native2js.cjs";
 
 /**
  * 所有的js程序都只有这么一个动态的构造器
@@ -22,14 +24,32 @@ export class JsMicroModule extends MicroModule {
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap() {
-    const process_id = (this._process_id = await this.fetch(
-      `file://js.sys.dweb/create-process?main_code=${encodeURIComponent(
-        await fetch(this.metadata.main_url).then((res) => res.text())
-      )}`
-    ).number());
+    const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
+    streamIpc.onRequest(async (request) => {
+      if (request.parsed_url.pathname === "/index.js") {
+        const main_code = await this.fetch(this.metadata.main_url).text();
+
+        streamIpc.postMessage(
+          IpcResponse.fromText(request.req_id, 200, main_code)
+        );
+      } else {
+        streamIpc.postMessage(IpcResponse.fromText(request.req_id, 404, ""));
+      }
+    });
+    void streamIpc.bindIncomeStream(
+      this.fetch(
+        buildUrl(new URL(`file://js.sys.dweb/create-process`), {
+          search: { main_pathname: "/index.js" },
+        }),
+        {
+          method: "POST",
+          body: streamIpc.stream,
+        }
+      ).stream()
+    );
   }
   private _connectting_ipcs = new Set<Ipc>();
-  async _connect(from: MicroModule): Promise<JsIpc> {
+  async _connect(from: MicroModule): Promise<Native2JsIpc> {
     const process_id = this._process_id;
     if (process_id === undefined) {
       throw new Error("process_id no found.");
@@ -37,7 +57,7 @@ export class JsMicroModule extends MicroModule {
     const port_id = await this.fetch(
       `file://js.sys.dweb/create-ipc?process_id=${process_id}`
     ).number();
-    return new JsIpc(port_id, this);
+    return new Native2JsIpc(port_id, this);
   }
 
   _shutdown() {

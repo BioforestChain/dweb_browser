@@ -5,7 +5,7 @@ import {
   ReadableStreamOut,
   streamRead,
 } from "../../helper/readableStreamHelper.cjs";
-import type { $MicroModule } from "../../helper/types.cjs";
+import type { $MicroModule, $PromiseMaybe } from "../../helper/types.cjs";
 import type { $IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
 import { Ipc } from "../ipc/ipc.cjs";
 import { $messageToIpcMessage } from "./$messageToIpcMessage.cjs";
@@ -35,14 +35,17 @@ export class ReadableStreamIpc extends Ipc {
   }
 
   private _incomne_stream?: ReadableStream<Uint8Array>;
-  /** 输入流要额外绑定 */
-  async bindIncomeStream(stream: ReadableStream<Uint8Array>) {
+  /**
+   * 输入流要额外绑定
+   * 注意，非必要不要 await 这个promise
+   */
+  async bindIncomeStream(stream: $PromiseMaybe<ReadableStream<Uint8Array>>) {
     if (this._incomne_stream !== undefined) {
       throw new Error("in come stream alreay binded.");
     }
-    this._incomne_stream = stream;
+    this._incomne_stream = await stream;
     let cache = new Uint8Array(0);
-    for await (const chunk of streamRead(stream)) {
+    for await (const chunk of streamRead(this._incomne_stream)) {
       cache = u8aConcat([cache, chunk]);
       const len = new Uint32Array(cache.buffer, 0, 1)[0];
       // 数据不够，继续等待
