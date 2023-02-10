@@ -5,8 +5,8 @@ import java.net.URLDecoder
 
 /** 启动Boot服务*/
 fun startBootNMM() {
-    val boot = global_micro_dns.nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
-    println("startBootNMM# boot response: $boot")
+//    val boot = global_micro_dns.nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
+//    println("startBootNMM# boot response: $boot")
 }
 
 open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {

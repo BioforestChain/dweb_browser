@@ -5,7 +5,7 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
-import info.bagen.rust.plaoc.microService.global_micro_dns
+//import info.bagen.rust.plaoc.microService.global_micro_dns
 import info.bagen.rust.plaoc.webView.network.jsGateWay
 
 class BFSApi {
@@ -46,6 +46,6 @@ class BFSApi {
     }
     /**处理file:// */
     private fun getMicroHandle(url: String) {
-        global_micro_dns.nativeFetch(url)
+//        global_micro_dns.nativeFetch(url)
     }
 }

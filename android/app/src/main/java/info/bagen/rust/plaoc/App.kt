@@ -7,8 +7,10 @@ import android.os.Bundle
 import info.bagen.libappmgr.di.libRepositoryModule
 import info.bagen.libappmgr.di.libViewModelModule
 import info.bagen.libappmgr.utils.ClipboardUtil
+import info.bagen.rust.plaoc.microService.HttpNMM
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
@@ -16,19 +18,18 @@ import org.koin.android.ext.koin.androidFileProperties
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class App : Application() {
-    val executorService: ExecutorService = Executors.newFixedThreadPool(4)
 
     companion object {
         lateinit var appContext: Context
 
         var mainActivity: MainActivity? = null
         var dwebViewActivity: DWebViewActivity? = null
+        var httpNMM:HttpNMM? = null
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate() {
         super.onCreate()
         appContext = this
@@ -41,8 +42,9 @@ class App : Application() {
             )
         }
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
-        // 监听activity状态，获取当前哪个app在前台， 目的是为了在onResume的时候获取剪切板
-        // registerActivityLifecycleCallbacks(ActivityLifecycleCallbacksImp()) // remove by lin.huang 20230129
+        GlobalScope.launch {
+            httpNMM = HttpNMM()
+        }
     }
 
     private class ActivityLifecycleCallbacksImp : ActivityLifecycleCallbacks {

@@ -1,45 +1,42 @@
 package info.bagen.rust.plaoc.microService
 
-class HttpNMM : NativeMicroModule() {
-    override val mmid: String = "https.sys.dweb"
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+
+class HttpNMM {
+    private val mmid: String = "https.sys.dweb"
     private val routers: Router = mutableMapOf()
-    private val listenMap =  mutableMapOf</* host */ String, HttpListener>();
+    private val listenMap =  mutableMapOf</* host */ String, HttpListener>()
+    private val internal = "jsProcess"
     init {
-        // 注册路由
-        routers["/listen"] = put@{ option ->
-            val port = option["port"] ?: return@put "Error: not found port"
-            return@put createListen(port)
-        }
-        routers["/evalJavascript"] = put@{
-            return@put true
-        }
-        routers["/request/on"] = put@{
-            return@put true
-        }
-        routers["/response/emit"] = put@{
-            return@put true
-        }
-        routers["/unregister"] = put@{
-            return@put true
-        }
+        embeddedServer(Netty, port = 25543) {
+            routing {
+                get("/listen") {
+                    val port = call.request.queryParameters["port"]
+                    if (port == null || port == "") {
+                        call.respondText(DefaultErrorResponse(statusCode = 301,errorMessage = "not found request param port").toString())
+                        return@get
+                    }
+                    println("https.sys.dweb#listen:$port")
+                    createListen(port)
+                }
+            }
+        }.start(wait = true)
     }
 
-    private fun createListen(it:String):String {
+    private fun createListen(port:String):String {
         println("kotlin#LocalhostNMM createListen==> $mmid")
-        return getHost(it)
+        val host = getHost(port)
+        this.listenMap["$internal.$port"] = HttpListener(host)
+        return host
     }
 
-    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
-        println("kotlin#LocalhostNMM bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
-        // 导航到自己的路由
-        if (routers[routerTarget] == null) {
-            return "localhost.sys.dweb route not found for $routerTarget"
-        }
-        return routers[routerTarget]?.let { it->it(options) }
-    }
 
     private fun getHost(port: String):String {
-        return "https://internal.$port.$mmid";
+        return "http://$internal.$port.$mmid";
     }
 }
 

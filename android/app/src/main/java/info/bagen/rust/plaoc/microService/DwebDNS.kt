@@ -5,7 +5,6 @@ import android.net.Uri
 typealias Domain = String;
 
 // 声明全局dns
-val global_micro_dns = DwebDNS()
 
 class DwebDNS : NativeMicroModule() {
     private val dnsTables = mutableMapOf<Domain, MicroModule>()
@@ -19,7 +18,7 @@ class DwebDNS : NativeMicroModule() {
         dnsTables["mwebview.sys.dweb"] = multiWebViewNMM
         dnsTables["boot.sys.dweb"] = bootNMM
         dnsTables["js.sys.dweb"] = jsMicroModule
-        dnsTables["localhost.sys.dweb"] = httpNMM
+//        dnsTables["localhost.sys.dweb"] = httpNMM
         dnsTables["dns.sys.dweb"] = this
     }
 

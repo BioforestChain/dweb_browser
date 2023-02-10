@@ -13,7 +13,7 @@ console.log("ookkkkk, i'm in worker");
 export const main = async () => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const { origin } = await jsProcess
-    .fetch(`file://http.sys.dweb/listen?port=80`)
+    .fetch(`https://http.sys.dweb/listen?xx=xxx`)
     .object<{
       origin: string;
     }>();
@@ -26,7 +26,6 @@ export const main = async () => {
       IPC_ROLE.CLIENT,
       true
     );
-
     const httpIncomeRequestStream = await jsProcess
       .fetch(
         buildUrl(new URL(`file://http.sys.dweb`), {
