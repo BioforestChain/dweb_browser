@@ -24,12 +24,10 @@ export interface $Router {
 export class PortListener {
   constructor(
     readonly ipc: Ipc,
-    readonly port: number,
-    readonly host: string,
-    readonly protocol: string
+    readonly host:string,
+    readonly origin:string
   ) {}
 
-  readonly origin = `${this.protocol}//${this.host}`;
   private _routers = new Set<$Router>();
   addRouter(router: $Router) {
     this._routers.add(router);
