@@ -117,17 +117,13 @@ export class JsProcessNMM extends NativeMicroModule {
     const internal_importLinker = new ImportLinker(internal_origin, [
       {
         pathMatcher: {
-          pathname: "/js-process/",
-          matchMode: "prefix",
+          pathname: "/bootstrap.js",
+          matchMode: "full",
         },
         hanlder(url) {
-          const mmid = url.pathname.split("/", 3)[2];
-          const install_code = `${JS_PROCESS_WORKER_CODE};installEnv(${JSON.stringify(
-            mmid
-          )});`;
           return {
             mime: "application/javascript",
-            data: install_code,
+            data: JS_PROCESS_WORKER_CODE,
           };
         },
       },
@@ -167,7 +163,7 @@ export class JsProcessNMM extends NativeMicroModule {
       hanlder: (args, ipc, requestMessage) => {
         return this.createProcessAndRun(
           { apis, ipc },
-          `${internal_importLinker.origin}/js-process/${ipc.remote.mmid}`,
+          `${internal_importLinker.origin}/bootstrap.js?mmid=${ipc.remote.mmid}`,
           args.main_pathname,
           requestMessage
         );

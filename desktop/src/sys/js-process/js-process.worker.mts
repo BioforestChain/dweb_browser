@@ -128,3 +128,9 @@ self.addEventListener("message", async (event) => {
     await import(config.main_url);
   }
 });
+
+const mmid = new URL(import.meta.url).searchParams.get("mmid");
+if (mmid === null) {
+  throw new Error("no found mmid");
+}
+installEnv(mmid as $MMID);
