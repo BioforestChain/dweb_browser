@@ -9,8 +9,6 @@
     <script>
       const { APIS } = require("dist/sys/js-process/js-process.web.cjs");
       Object.assign(globalThis, APIS);
-      globalThis.APIS_READY = true;
-      globalThis.dispatchEvent(new Event("apis-ready"));
 
       const html = String.raw;
       APIS.onCreateProcess(({ process_id, env_script_url }) => {

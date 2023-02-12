@@ -13,7 +13,7 @@ import { createSignal } from "../../helper/createSignal.cjs";
 import { openNwWindow } from "../../helper/openNwWindow.cjs";
 import type { $PromiseMaybe } from "../../helper/types.cjs";
 import { parseUrl } from "../../helper/urlHelper.cjs";
-import { createHttpDwebServer } from "../http-server/listenHelper.cjs";
+import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
 import { saveNative2JsIpcPort } from "./ipc.native2js.cjs";
 
 type $APIS = typeof import("./js-process.web.cjs")["APIS"];
@@ -95,8 +95,7 @@ const _ipcResponseFromImportLinker = async (
  */
 export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.sys.dweb` as const;
-  private window?: nw.Window;
-  private _server_port = 0;
+  private nww?: nw.Window;
   private _on_shutdown_signal = createSignal<() => unknown>();
 
   async _bootstrap() {
@@ -139,20 +138,16 @@ export class JsProcessNMM extends NativeMicroModule {
     );
     this._on_shutdown_signal.listen(internal_close);
 
-    const window = (this.window = await openNwWindow(
-      "../../../js-process.html",
-      {
-        /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
-        show: require.main?.filename.endsWith(".html"),
-      }
-    ));
-    if (window.window.APIS_READY !== true) {
-      await new Promise((resolve) => {
-        window.window.addEventListener("apis-ready", resolve);
-      });
-    }
+    const nww = (this.nww = await openNwWindow("../../../js-process.html", {
+      /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
+      show: require.main?.filename.endsWith(".html"),
+    }));
 
-    const apis = window.window as $APIS;
+    await new Promise((resolve) => {
+      nww.on("document-end", resolve);
+    });
+
+    const apis = nww.window as $APIS;
     /// 创建 web worker
     this.registerCommonIpcOnMessageHanlder({
       method: "POST",
@@ -182,8 +177,8 @@ export class JsProcessNMM extends NativeMicroModule {
     });
   }
   async _shutdown() {
-    this.window?.close();
-    this.window = undefined;
+    this.nww?.close();
+    this.nww = undefined;
 
     this._on_shutdown_signal.emit();
   }

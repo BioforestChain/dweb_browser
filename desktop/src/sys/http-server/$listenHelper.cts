@@ -4,7 +4,7 @@ import { IPC_ROLE } from "../../core/ipc/const.cjs";
 import type { $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
 import { buildUrl } from "../../helper/urlHelper.cjs";
-import type { $GetHostOptions } from "./types.cjs";
+import type { $GetHostOptions } from "./net/createNetServer.cjs";
 
 /** 创建一个网络服务 */
 export const createHttpDwebServer = async (

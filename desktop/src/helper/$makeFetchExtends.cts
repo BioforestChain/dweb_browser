@@ -16,6 +16,10 @@ export const fetchExtends = $makeFetchExtends({
     const response = await this;
     return response.text();
   },
+  async binary() {
+    const response = await this;
+    return response.arrayBuffer();
+  },
   async boolean() {
     const text = await this.text();
     return text === "true"; // JSON.stringify(true)
