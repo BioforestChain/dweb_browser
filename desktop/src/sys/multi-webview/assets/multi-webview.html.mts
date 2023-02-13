@@ -263,4 +263,5 @@ nww.on("close", () => {
 
 export const APIS = {
   openWebview: viewTree.openWebview.bind(viewTree),
+  closeWebview: viewTree.closeWebview.bind(viewTree),
 };

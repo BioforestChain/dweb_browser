@@ -6,7 +6,7 @@ import { openNwWindow } from "../../helper/openNwWindow.cjs";
 import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
 
 // @ts-ignore
-type $APIS = typeof import("../multi-webview.html")["APIS"];
+type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
 /**
  * 构建一个视图树
  * 如果是桌面版，所以不用去管树的概念，直接生成生成就行了
@@ -40,6 +40,16 @@ export class MultiWebviewNMM extends NativeMicroModule {
       hanlder: async (args, client_ipc) => {
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         return wapis.apis.openWebview(args.url);
+      },
+    });
+    this.registerCommonIpcOnMessageHanlder({
+      pathname: "/close",
+      matchMode: "full",
+      input: { webview_id: "number" },
+      output: "boolean",
+      hanlder: async (args, client_ipc) => {
+        const wapis = await this.forceGetWapis(client_ipc, root_url);
+        return wapis.apis.closeWebview(args.webview_id);
       },
     });
   }
