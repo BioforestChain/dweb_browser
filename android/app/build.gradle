@@ -127,12 +127,7 @@ dependencies {
   implementation("com.squareup.retrofit2:converter-gson:2.6.2")
   // endregion
 
-  // ktor
-  implementation "io.ktor:ktor-server-core:$ktor_version"
-  implementation "io.ktor:ktor-server-netty:$ktor_version"
-  implementation "io.ktor:ktor-server-status-pages:$ktor_version"
-  implementation "io.ktor:ktor-server-default-headers:$ktor_version"
-
+  implementation("io.ktor:ktor-server-jetty:$ktor_version")
   implementation project(":libAppMgr")
 }
 

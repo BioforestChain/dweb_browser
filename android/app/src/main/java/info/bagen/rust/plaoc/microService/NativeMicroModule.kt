@@ -20,24 +20,7 @@ typealias Mmid = String;
 typealias Router = MutableMap<String, AppRun>
 typealias AppRun = (options: NativeOptions) -> Any
 typealias NativeOptions = MutableMap<String, String>
-//open class NativeOptions(
-//    var origin: String = "", // 程序地址
-//    var mainCode: String = "", // webWorker运行地址
-//    val routerTarget:String,
-//    val processId: Int? = null,  // 要挂载的父进程id
-//    val webViewId: String = "default", // default.mwebview.sys.dweb
-//) {
-//    operator fun set(key: String?, value: String?) {
-//        if (key == "origin" && value != null) {
-//            this.origin = value
-//            return
-//        }
-//        if ((key == "main_code" || key == "mainCode" ) && value != null) {
-//            this.mainCode = value
-//            return
-//        }
-//    }
-//}
+
 
 abstract class MicroModule {
     open val mmid: String = ""

@@ -39,6 +39,8 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
+import info.bagen.rust.plaoc.microService.network.Http1Server
+import info.bagen.rust.plaoc.microService.network.nativeFetch
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
@@ -49,6 +51,7 @@ import info.bagen.rust.plaoc.webView.network.dWebView_host
 import info.bagen.rust.plaoc.webView.openDWebWindow
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
     var isQRCode = false //是否是识别二维码
@@ -71,6 +74,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         App.mainActivity = this
+        thread {
+            Http1Server().createServer()
+        }
         // 初始化系统函数map
         initSystemFn(this)
         // 初始化广播
@@ -102,9 +108,9 @@ class MainActivity : AppCompatActivity() {
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
-//                        val workerId =
-//                            global_micro_dns.nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
-//                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerId")
+                        val workerResponse =
+                            nativeFetch("http://js.sys.dweb.localhost/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
+                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
                     })
                 }
             }
