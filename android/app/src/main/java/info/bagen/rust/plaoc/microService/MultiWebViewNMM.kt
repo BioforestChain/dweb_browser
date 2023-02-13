@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService
 
+import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.App.Companion.mainActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
 
@@ -36,7 +37,7 @@ class MultiWebViewNMM : NativeMicroModule() {
 
     private fun openDwebView(origin: String,processId:String?): Any {
         println("Kotlin#MultiWebViewNMM openDwebView $origin")
-        val webViewNode = viewTree.createNode(origin,processId)
+        /*val webViewNode = viewTree.createNode(origin,processId)
         val append = viewTree.appendTo(webViewNode)
         // 当传递了父进程id，但是父进程是不存在的时候
         if(append == 0) {
@@ -46,7 +47,8 @@ class MultiWebViewNMM : NativeMicroModule() {
         if (mainActivity !== null) {
             openDWebWindow(activity = mainActivity!!.getContext(), url = origin)
         }
-        return webViewNode.id
+        return webViewNode.id*/
+        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId) ?: "Error: not found mount process!!!"
     }
 
     private fun closeDwebView(nodeId: Int): Boolean {

@@ -41,6 +41,9 @@ import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.network.Http1Server
 import info.bagen.rust.plaoc.microService.network.nativeFetch
+import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
+import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
+import info.bagen.rust.plaoc.microService.webview.MultiDWebBrowserView
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
@@ -56,6 +59,7 @@ import kotlin.concurrent.thread
 class MainActivity : AppCompatActivity() {
     var isQRCode = false //是否是识别二维码
     fun getContext() = this
+    val dWebBrowserModel: DWebBrowserModel by viewModel()
     private val appViewModel: AppViewModel by viewModel()
     private val mainViewModel: MainViewModel by viewModel()
     private var bfsBroadcastReceiver: BFSBroadcastReceiver? = null
@@ -109,6 +113,7 @@ class MainActivity : AppCompatActivity() {
                             nativeFetch("http://localhost:24433/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
                         println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
                     })
+                    MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                 }
             }
         }
@@ -180,6 +185,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         unRegisterBFSBroadcastReceiver()
         App.mainActivity = null
+        dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
     }
 
     // 扫码后显示一下Toast
