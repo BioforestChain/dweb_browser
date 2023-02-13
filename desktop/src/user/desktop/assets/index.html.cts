@@ -14,6 +14,9 @@ export const CODE = async (request: IpcRequest) => html`
         :root {
           background: rgba(255, 255, 255, 0.9);
         }
+        li {
+          word-break: break-all;
+        }
       </style>
     </head>
     <body>
@@ -21,7 +24,7 @@ export const CODE = async (request: IpcRequest) => html`
       <ol>
         <li>url:${request.url}</li>
         <li>method:${request.method}</li>
-        <li>rawHeaders:${JSON.stringify(request.headers)}</li>
+        <li>rawHeaders:${JSON.stringify(request.headers, null, 2)}</li>
         <li>body:${await request.text()}</li>
       </ol>
       <div class="actions">
