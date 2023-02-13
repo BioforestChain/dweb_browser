@@ -13,32 +13,14 @@ import java.util.*
 class JsMicroModule : MicroModule() {
     // 该程序的来源
     override var mmid = "js.sys.dweb"
-    private val routers: Router = mutableMapOf()
 
     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
     private val jsProcess = JsProcess()
 
-    init {
-        // 创建一个webWorker
-        routers["/create-process"] = put@{ options ->
-             val mainCode = options["mainCode"]?: options["main_code"]
-             ?: return@put "Error open worker must transmission mainCode or main_code"
-            return@put createProcess(mainCode)
-        }
-    }
-
-    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
-        println("kotlin#JsMicroModule args==> ${options["mainCode"]}  ${options["origin"]}")
-        // 导航到自己的路由
-        if (routers[routerTarget] == null) {
-            return "js.sys.dweb route not found for $routerTarget"
-        }
-        return routers[routerTarget]?.let { it->it(options) }
-    }
 
 
     // 创建一个webWorker
-    private fun createProcess(mainCode: String): Any {
+     fun createProcess(mainCode: String): Any {
         return jsProcess.hiJackWorkerCode(mainCode)
     }
 

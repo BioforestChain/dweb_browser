@@ -48,11 +48,11 @@ class Http1Server {
     }
 
     fun createServer() {
-        println("http1Server#start")
         CoroutineScope(Dispatchers.IO).launch {
             server.start(wait = true)
         }
     }
+
     fun closeServer() {
         server.stop()
     }
@@ -88,13 +88,14 @@ data class HttpResponseInfo(
     var headers: Map<String, String>,
     var body: Any
 )
+
 data class HttpListener(
-    var host:String= ""
+    var host: String = ""
 ) {
     private val protocol = "https://"
-    val origin = "$protocol${this.host}.${rand(0,25535)}.localhost"
+    val origin = "$protocol${this.host}.${rand(0, 25535)}.localhost"
 
-    fun getAvailablePort():Number {
-        return  25535
+    fun getAvailablePort(): Number {
+        return 25535
     }
 }

@@ -10,10 +10,6 @@ fun startBootNMM() {
 }
 
 open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
-    override fun bootstrap(routerTarget: String, options: NativeOptions): Any? {
-        println("kotlin#NativeMicroModule bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
-        return options["origin"]
-    }
 }
 
 typealias Mmid = String;
@@ -24,7 +20,7 @@ typealias NativeOptions = MutableMap<String, String>
 
 abstract class MicroModule {
     open val mmid: String = ""
-    abstract fun bootstrap(routerTarget: String, options: NativeOptions): Any?
+//    abstract fun bootstrap(routerTarget: String, options: NativeOptions): Any?
 }
 
 fun Uri.queryParameterByMap(): NativeOptions {

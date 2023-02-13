@@ -8,34 +8,9 @@ class MultiWebViewNMM : NativeMicroModule() {
     override val mmid: String = "mwebview.sys.dweb"
 
     private var viewTree: ViewTree = ViewTree()
-    private val routers: Router = mutableMapOf()
 
-    init {
-        // 注册路由
-        routers["/open"] = put@{ options ->
-          val origin = if (options["origin"] == null) {
-                 "Error not Found param origin"
-            } else {
-              options["origin"]!!
-          }
-            val processId = options["processId"]
-            return@put openDwebView(origin,processId)
-        }
-        routers["/evalJavascript"] = put@{
-            return@put true
-        }
-    }
 
-    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
-        println("kotlin#MultiWebViewNMM bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
-        // 导航到自己的路由
-        if (routers[routerTarget] == null) {
-            return "mwebview.sys.dweb route not found for $routerTarget"
-        }
-        return routers[routerTarget]?.let { it->it(options) }
-    }
-
-    private fun openDwebView(origin: String,processId:String?): Any {
+    fun openDwebView(origin: String,processId:String?): Any {
         println("Kotlin#MultiWebViewNMM openDwebView $origin")
         /*val webViewNode = viewTree.createNode(origin,processId)
         val append = viewTree.appendTo(webViewNode)
@@ -71,7 +46,7 @@ class ViewTree {
         // 当前要挂载到哪个父级节点
         var cProcessId = currentProcess
         //  当用户传递了processId，即明确需要挂载到某个view下
-        if (processId !== null) {
+        if (!processId.isNullOrEmpty()) {
             cProcessId = processId.toInt()
         }
         return ViewTreeStruct(
