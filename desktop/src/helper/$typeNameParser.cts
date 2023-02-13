@@ -8,9 +8,9 @@ export const $typeNameParser = <T extends $TypeName2>(
   let param: any;
   if (value === null) {
     if ((typeName2 as string).endsWith("?")) {
-      throw new Error(`param type error: '${key}'.`);
-    } else {
       param = undefined;
+    } else {
+      throw new Error(`param type error: '${key}'.`);
     }
   } else {
     const typeName1 = (

@@ -1,8 +1,10 @@
+import once from "lodash/once";
 import { isBinary } from "../../helper/binaryHelper.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
 import {
+  $OnIpcRequestMessage,
   IPC_DATA_TYPE,
   type $IpcMessage,
   type $OnIpcMessage,
@@ -33,8 +35,20 @@ export abstract class Ipc {
     this._doPostMessage(message);
   }
   abstract _doPostMessage(data: $IpcMessage): void;
-  onMessage(cb: $OnIpcMessage) {
-    return this._messageSignal.listen(cb);
+  onMessage = this._messageSignal.listen;
+
+  private _getOnRequestListener = once(() => {
+    const signal = createSignal<$OnIpcRequestMessage>();
+    this.onMessage((request, ipc) => {
+      if (request.type === IPC_DATA_TYPE.REQUEST) {
+        signal.emit(request, ipc);
+      }
+    });
+    return signal.listen;
+  });
+
+  onRequest(cb: $OnIpcRequestMessage) {
+    return this._getOnRequestListener()(cb);
   }
 
   abstract _doClose(): void;
@@ -49,9 +63,7 @@ export abstract class Ipc {
     this._closeSignal.emit();
   }
   private _closeSignal = createSignal<() => unknown>();
-  onClose(cb: () => unknown) {
-    return this._closeSignal.listen(cb);
-  }
+  onClose = this._closeSignal.listen;
 
   private readonly _reqresMap = new Map<number, PromiseOut<IpcResponse>>();
   private _req_id_acc = 0;

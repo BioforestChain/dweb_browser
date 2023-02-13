@@ -9,14 +9,8 @@ import type {
   $Schema2,
   $Schema2ToType,
 } from "../helper/types.cjs";
-import {
-  Ipc,
-  IpcRequest,
-  IpcResponse,
-  IPC_DATA_TYPE,
-  IPC_ROLE,
-} from "./ipc/index.cjs";
 import { NativeIpc } from "./ipc.native.cjs";
+import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.cjs";
 import { MicroModule } from "./micro-module.cjs";
 
 export abstract class NativeMicroModule extends MicroModule {
@@ -46,9 +40,7 @@ export abstract class NativeMicroModule extends MicroModule {
    * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
    * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
    */
-  protected onConnect(cb: (ipc: Ipc) => unknown) {
-    return this._connectSignal.listen(cb);
-  }
+  protected onConnect = this._connectSignal.listen;
 
   override after_shutdown() {
     super.after_shutdown();
@@ -70,10 +62,7 @@ export abstract class NativeMicroModule extends MicroModule {
     this._inited_commmon_ipc_on_message = true;
 
     this.onConnect((client_ipc) => {
-      client_ipc.onMessage(async (request) => {
-        if (request.type !== IPC_DATA_TYPE.REQUEST) {
-          return;
-        }
+      client_ipc.onRequest(async (request) => {
         const { pathname } = request.parsed_url;
         let response: IpcResponse | undefined;
         for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {

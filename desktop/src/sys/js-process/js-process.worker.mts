@@ -2,13 +2,14 @@
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
-import { MessagePortIpc } from "../core/ipc-web/MessagePortIpc.cjs";
-import { IPC_ROLE } from "../core/ipc/index.cjs";
-import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
-import { $readRequestAsIpcRequest } from "../helper/$readRequestAsIpcRequest.cjs";
-import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
-import type { $MicroModule, $MMID } from "../helper/types.cjs";
-import { updateUrlOrigin } from "../helper/urlHelper.cjs";
+import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
+import { IPC_ROLE } from "../../core/ipc/index.cjs";
+import { fetchExtends } from "../../helper/$makeFetchExtends.cjs";
+import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.cjs";
+import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.cjs";
+import type { $MicroModule, $MMID } from "../../helper/types.cjs";
+import { updateUrlOrigin } from "../../helper/urlHelper.cjs";
+import type { $RunMainConfig } from "./js-process.web.cjs";
 
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
@@ -89,9 +90,6 @@ export const installEnv = async (mmid: $MMID) => {
   return jsProcess;
 };
 
-export type $RunMainConfig = {
-  main_url: string;
-};
 self.addEventListener("message", async (event) => {
   const data = event.data as any[];
   if (Array.isArray(event.data) === false) {
@@ -127,6 +125,12 @@ self.addEventListener("message", async (event) => {
       writable: false,
     });
 
-    importScripts(config.main_url);
+    await import(config.main_url);
   }
 });
+
+const mmid = new URL(import.meta.url).searchParams.get("mmid");
+if (mmid === null) {
+  throw new Error("no found mmid");
+}
+installEnv(mmid as $MMID);

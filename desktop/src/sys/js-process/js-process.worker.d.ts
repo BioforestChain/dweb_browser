@@ -6,7 +6,7 @@ namespace globalThis {
   type $MMID = import("../helper/types.cjs").$MMID;
   // import { JsProcessMicroModule as JsProcessMicroModuleContructor } from "./js-process.worker.cjs";
   type JsProcessMicroModuleContructor =
-    import("./js-process.worker.cjs").JsProcessMicroModule;
+    import("./js-process.worker").JsProcessMicroModule;
   export const JsProcessMicroModule: new (
     mmid: $MMID
   ) => JsProcessMicroModuleContructor;

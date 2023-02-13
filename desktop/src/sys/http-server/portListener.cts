@@ -24,15 +24,14 @@ export interface $Router {
 export class PortListener {
   constructor(
     readonly ipc: Ipc,
-    readonly port: number,
-    readonly host: string,
-    readonly protocol: string
+    readonly host:string,
+    readonly origin:string
   ) {}
 
-  readonly origin = `${this.protocol}//${this.host}`;
   private _routers = new Set<$Router>();
   addRouter(router: $Router) {
     this._routers.add(router);
+    return () => this._routers.delete(router);
   }
 
   private _isBindMatchReq(pathname: string, method: string) {
@@ -76,7 +75,8 @@ export class PortListener {
     /// 参考文档 https://www.rfc-editor.org/rfc/rfc9110.html#name-method-definitions
     if (
       /// 理论上除了 GET/HEAD/OPTIONS 之外的method （比如 DELETE）是允许包含 BODY 的，但这类严格的对其进行限制，未来可以通过启动监听时的配置来解除限制
-      (method === "POST" || method === "PUT")
+      method === "POST" ||
+      method === "PUT"
       // &&
       // /// HTTP/1.x 的规范：（我们自己的 file: 参考了该标准）
       // (this.protocol === "http:" || this.protocol === "file:")
