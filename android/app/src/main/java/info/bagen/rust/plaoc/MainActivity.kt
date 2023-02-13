@@ -74,9 +74,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         App.mainActivity = this
-        thread {
-            Http1Server().createServer()
-        }
         // 初始化系统函数map
         initSystemFn(this)
         // 初始化广播
@@ -94,7 +91,7 @@ class MainActivity : AppCompatActivity() {
                         LogUtils.d("搜索框内容响应：$action--$data")
                         when (action) {
                             SearchAction.Search -> {
-                                openDWebWindow(this@MainActivity, data)
+                                openDWebWindow(this@MainActivity, "http://localhost:24433")
                             }
                             SearchAction.OpenCamera -> {
                                 if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
@@ -109,12 +106,13 @@ class MainActivity : AppCompatActivity() {
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
                         val workerResponse =
-                            nativeFetch("http://js.sys.dweb.localhost/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
+                            nativeFetch("http://localhost:24433/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
                         println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
                     })
                 }
             }
         }
+        Http1Server().createServer()
     }
 
 

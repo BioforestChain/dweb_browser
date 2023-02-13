@@ -7,10 +7,8 @@ import android.os.Bundle
 import info.bagen.libappmgr.di.libRepositoryModule
 import info.bagen.libappmgr.di.libViewModelModule
 import info.bagen.libappmgr.utils.ClipboardUtil
-import info.bagen.rust.plaoc.microService.HttpNMM
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
@@ -26,10 +24,8 @@ class App : Application() {
 
         var mainActivity: MainActivity? = null
         var dwebViewActivity: DWebViewActivity? = null
-        var httpNMM:HttpNMM? = null
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate() {
         super.onCreate()
         appContext = this
@@ -42,9 +38,6 @@ class App : Application() {
             )
         }
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
-        GlobalScope.launch {
-            httpNMM = HttpNMM()
-        }
     }
 
     private class ActivityLifecycleCallbacksImp : ActivityLifecycleCallbacks {

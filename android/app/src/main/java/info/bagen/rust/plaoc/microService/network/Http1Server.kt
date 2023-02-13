@@ -1,15 +1,60 @@
 package info.bagen.rust.plaoc.microService.network
 
 import info.bagen.rust.plaoc.microService.moduleRouter
-import io.ktor.server.jetty.*
+import io.ktor.http.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.websocket.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 
-class Http1Server  {
+class Http1Server {
+    companion object {
+        private const val PORT = 24433
+    }
+
+    private val server by lazy {
+        embeddedServer(Netty, port = PORT, watchPaths = emptyList()) {
+            install(WebSockets)
+            install(CallLogging)
+            install(ContentNegotiation) {
+                json(Json {
+                    prettyPrint = true // 标准的缩进
+                    isLenient = true //在宽松模式下，引用的布尔文字和未引用的字符串文字是允许的
+                })
+            }
+            install(CORS) {
+                allowMethod(HttpMethod.Options)
+                allowMethod(HttpMethod.Put)
+                allowMethod(HttpMethod.Patch)
+                allowMethod(HttpMethod.Delete)
+                anyHost()
+            }
+            // 压缩内容
+            install(Compression) {
+                gzip()
+            }
+            module()
+        }
+    }
+
     fun createServer() {
         println("http1Server#start")
-        embeddedServer(Jetty, port = 24433, module = Application::module).start(wait = true)
+        CoroutineScope(Dispatchers.IO).launch {
+            server.start(wait = true)
+        }
+    }
+    fun closeServer() {
+        server.stop()
     }
 }
 
@@ -25,15 +70,6 @@ fun Application.modulePlugin() {
     }
 }
 
-
-enum class Method(method: String = "GET") {
-    GET("GET"),
-    POST("POST"),
-    PUT("PUT"),
-    DELETE("DELETE"),
-    OPTIONS( "OPTIONS")
-}
-
 fun rand(start: Int, end: Int): Int {
     require(start <= end) { "Illegal Argument" }
     return (start..end).random()
@@ -42,7 +78,7 @@ fun rand(start: Int, end: Int): Int {
 data class HttpRequestInfo(
     var http_req_id: Number,
     var url: String,
-    var method: Method,
+    var method: HttpMethod,
     var rawHeaders: MutableList<String> = mutableListOf()
 )
 
