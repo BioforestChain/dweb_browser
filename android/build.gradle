@@ -3,11 +3,14 @@
 buildscript {
     apply from: 'versions.gradle'
     ext.compose_version = "1.2.0-alpha08"
-    ext.ktor_version = "2.1.0"
+    ext.ktor_version = "2.2.3"
     addRepos(repositories)
     repositories {
         google()
         mavenCentral()
+        maven {
+            url "https://maven.pkg.jetbrains.space/public/p/ktor/eap"
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.2.2'

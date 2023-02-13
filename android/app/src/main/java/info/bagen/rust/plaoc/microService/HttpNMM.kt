@@ -1,72 +1,66 @@
 package info.bagen.rust.plaoc.microService
 
-class HttpNMM : NativeMicroModule() {
-    override val mmid: String = "https.sys.dweb"
-    private val routers: Router = mutableMapOf()
-    private val listenMap =  mutableMapOf</* host */ String, HttpListener>();
-    init {
-        // 注册路由
-        routers["/listen"] = put@{ option ->
-            val port = option["port"] ?: return@put "Error: not found port"
-            return@put createListen(port)
-        }
-        routers["/evalJavascript"] = put@{
-            return@put true
-        }
-        routers["/request/on"] = put@{
-            return@put true
-        }
-        routers["/response/emit"] = put@{
-            return@put true
-        }
-        routers["/unregister"] = put@{
-            return@put true
-        }
+import android.os.Build
+import info.bagen.rust.plaoc.microService.network.Http1Server
+import info.bagen.rust.plaoc.microService.network.HttpListener
+import info.bagen.rust.plaoc.microService.route.jsProcessRoute
+import info.bagen.rust.plaoc.microService.route.webViewRoute
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import kotlinx.serialization.*
+
+@Serializable
+data class Origin(val origin: String)
+
+val httpNMM = HttpNMM()
+
+
+class HttpNMM {
+    private val mmid: String = "http.sys.dweb"
+    private val listenMap = mutableMapOf</* host */ String, HttpListener>()
+    private val internal = "internal"
+    private val http1 = Http1Server()
+    val jsMicroModule = JsMicroModule()
+    val bootNMM = BootNMM()
+    val multiWebViewNMM = MultiWebViewNMM()
+
+
+     fun bootstrap() {
+        http1.createServer()
     }
 
-    private fun createListen(it:String):String {
+    fun createListen(port: String): String {
         println("kotlin#LocalhostNMM createListen==> $mmid")
-        return getHost(it)
+        val host = getHost(port)
+        this.listenMap["$internal.$port"] = HttpListener(host)
+        return host
     }
 
-    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
-        println("kotlin#LocalhostNMM bootstrap==> ${options["mainCode"]}  ${options["origin"]}")
-        // 导航到自己的路由
-        if (routers[routerTarget] == null) {
-            return "localhost.sys.dweb route not found for $routerTarget"
+
+    private fun getHost(port: String): String {
+        return "http://$internal.$port.$mmid";
+    }
+
+    fun closeServer() {
+
+    }
+}
+
+fun Application.moduleRouter() {
+    environment.monitor.subscribe(ApplicationStarted) { application ->
+        println("Server is started,${application.environment.rootPath}")
+    }
+    routing {
+        get("/") {
+            call.respondText(
+                text = "Hello!! You are here in ${Build.MODEL}",
+                contentType = ContentType.Text.Plain
+            )
         }
-        return routers[routerTarget]?.let { it->it(options) }
-    }
-
-    private fun getHost(port: String):String {
-        return "https://internal.$port.$mmid";
+        jsProcessRoute()
+        webViewRoute()
     }
 }
 
-enum class Method(method: String = "GET") {
-    GET("GET"),
-    POST("POST"),
-    PUT("PUT"),
-    DELETE("DELETE"),
-    OPTIONS( "OPTIONS")
-}
-
-data class HttpRequestInfo(
-    val http_req_id: Number,
-    val url: String,
-    val method: Method,
-    val rawHeaders: MutableList<String> = mutableListOf()
-)
-
-data class HttpResponseInfo(
-    val http_req_id: Number,
-    val statusCode: Number,
-    val headers: Map<String, String>,
-    val body: Any
-)
-
-data class HttpListener(
-    val origin:String = ""
-) {
-
-}

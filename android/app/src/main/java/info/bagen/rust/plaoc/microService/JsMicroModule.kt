@@ -13,32 +13,14 @@ import java.util.*
 class JsMicroModule : MicroModule() {
     // 该程序的来源
     override var mmid = "js.sys.dweb"
-    private val routers: Router = mutableMapOf()
 
     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
     private val jsProcess = JsProcess()
 
-    init {
-        // 创建一个webWorker
-        routers["/create-process"] = put@{ options ->
-             val mainCode = options["mainCode"]?: options["main_code"]
-             ?: return@put "Error open worker must transmission mainCode or main_code"
-            return@put createProcess(mainCode)
-        }
-    }
-
-    override fun bootstrap(routerTarget:String, options: NativeOptions): Any? {
-        println("kotlin#JsMicroModule args==> ${options["mainCode"]}  ${options["origin"]}")
-        // 导航到自己的路由
-        if (routers[routerTarget] == null) {
-            return "js.sys.dweb route not found for $routerTarget"
-        }
-        return routers[routerTarget]?.let { it->it(options) }
-    }
 
 
     // 创建一个webWorker
-    private fun createProcess(mainCode: String): Any {
+     fun createProcess(mainCode: String): Any {
         return jsProcess.hiJackWorkerCode(mainCode)
     }
 
@@ -46,8 +28,8 @@ class JsMicroModule : MicroModule() {
 
 class JsProcess {
     // 存储每个worker的port 以此来建立每个worker的通信
-    val ALL_PROCESS_MAP = mutableMapOf<Number, WebMessagePort>()
-    var accProcessId = 0
+    private val ALL_PROCESS_MAP = mutableMapOf<Number, WebMessagePort>()
+    private var accProcessId = 0
 
     // 创建了一个后台运行的webView 用来运行webWorker
     var view: WebView = WebView(App.appContext).also { view ->
@@ -67,17 +49,17 @@ class JsProcess {
         val ipcRequest = mapper.readValue(ipcString, IpcRequest::class.java)
         println("JavascriptContext#ipcFactory url: ${ipcRequest.url}")
         // 处理请求
-        val body = global_micro_dns.nativeFetch(ipcRequest.url)
-        println("JavascriptContext#ipcFactory body: $body")
-        tranResponseWorker(
-            webMessagePort,
-            IpcResponse(
-                statusCode = 200,
-                req_id = ipcRequest.req_id,
-                headers = ipcRequest.headers,
-                body = body.toString()
-            )
-        )
+//        val body = global_micro_dns.nativeFetch(ipcRequest.url)
+//        println("JavascriptContext#ipcFactory body: $body")
+//        tranResponseWorker(
+//            webMessagePort,
+//            IpcResponse(
+//                statusCode = 200,
+//                req_id = ipcRequest.req_id,
+//                headers = ipcRequest.headers,
+//                body = body.toString()
+//            )
+//        )
     }
 
     /** 这里负责返回每个webWorker里的返回值

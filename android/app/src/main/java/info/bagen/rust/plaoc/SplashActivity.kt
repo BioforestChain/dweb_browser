@@ -53,7 +53,7 @@ class SplashActivity : AppCompatActivity() {
                 this.saveBoolean(keyAppFirstLoad, false)
             }
         } else {
-            startBootNMM()
+            openHomeActivity()
             this.saveBoolean(keyAppFirstLoad, false)
             finish()
         }

@@ -16,11 +16,8 @@ import org.koin.android.ext.koin.androidFileProperties
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class App : Application() {
-    val executorService: ExecutorService = Executors.newFixedThreadPool(4)
 
     companion object {
         lateinit var appContext: Context
@@ -41,8 +38,6 @@ class App : Application() {
             )
         }
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
-        // 监听activity状态，获取当前哪个app在前台， 目的是为了在onResume的时候获取剪切板
-        // registerActivityLifecycleCallbacks(ActivityLifecycleCallbacksImp()) // remove by lin.huang 20230129
     }
 
     private class ActivityLifecycleCallbacksImp : ActivityLifecycleCallbacks {

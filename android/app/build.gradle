@@ -127,10 +127,17 @@ dependencies {
   implementation("com.squareup.retrofit2:converter-gson:2.6.2")
   // endregion
 
-  // moshipack
-  implementation 'com.daveanthonythomas.moshipack:moshipack:1.0.1'
+  // Embedded Server
+  implementation("io.ktor:ktor-server-websockets:$ktor_version")
+  implementation("io.ktor:ktor-server-cors:$ktor_version")
 
-
+  implementation("io.ktor:ktor-server-compression:$ktor_version")
+  implementation("io.ktor:ktor-server-call-logging:$ktor_version")
+  implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
+  implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+//  implementation("io.ktor:ktor-serialization-kotlinx-xml:$ktor_version")
+//  implementation("io.ktor:ktor-serialization-kotlinx-cbor:$ktor_version")
+//  implementation("io.ktor:ktor-serialization-kotlinx-protobuf:$ktor_version")
   implementation project(":libAppMgr")
 }
 
