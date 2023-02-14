@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 data class DWebBrowserUIState(
@@ -62,34 +63,39 @@ class DWebBrowserModel : ViewModel() {
         }
     }
 
-    fun openDWebBrowser(origin: String, processId: String?) : String {
-        Uri.parse(origin)?.host?.let { host ->
-            val dWebBrowser = DWebBrowserItem(
-                url = origin, host = host, dWebBrowser = DWebBrowser(App.appContext, origin)
-            )
-            if (processId?.isNotEmpty() == true) {
-                dWebBrowserTree[processId]?.let { list ->
-                    list.add(dWebBrowser)
-                    uiState.currentProcessId = processId
-                    uiState.dWebBrowserList.clear()
-                    uiState.dWebBrowserList.addAll(list) // 替换列表信息
-                    return processId
+    fun openDWebBrowser(origin: String, processId: String? = null) : String {
+        var ret = "0"
+        viewModelScope.launch(Dispatchers.Main) RETURN@{
+            Uri.parse(origin)?.host?.let { host ->
+                val dWebBrowser = DWebBrowserItem(
+                    url = origin, host = host, dWebBrowser = DWebBrowser(App.appContext, origin)
+                )
+                if (processId?.isNotEmpty() == true) {
+                    dWebBrowserTree[processId]?.let { list ->
+                        list.add(dWebBrowser)
+                        uiState.currentProcessId = processId
+                        uiState.dWebBrowserList.clear()
+                        uiState.dWebBrowserList.addAll(list) // 替换列表信息
+                        ret = processId!!.toString()
+                        return@RETURN
+                    }
+                } else if (uiState.currentProcessId?.isNotEmpty() == true) {
+                    dWebBrowserTree[uiState.currentProcessId!!]?.let { list ->
+                        list.add(dWebBrowser)
+                        uiState.dWebBrowserList.add(dWebBrowser)
+                        ret = uiState.currentProcessId!!
+                        return@RETURN
+                    }
                 }
-            } else if (uiState.currentProcessId?.isNotEmpty() == true) {
-                dWebBrowserTree[uiState.currentProcessId!!]?.let { list ->
-                    list.add(dWebBrowser)
-                    uiState.dWebBrowserList.add(dWebBrowser)
-                    return uiState.currentProcessId!!
-                }
+                mProcessId = uiState.currentProcessId?.toInt() ?: mProcessId
+                uiState.currentProcessId = mProcessId.toString()
+                val list = arrayListOf<DWebBrowserItem>().apply { add(dWebBrowser) }
+                dWebBrowserTree[mProcessId.toString()] = list
+                uiState.dWebBrowserList.clear()
+                uiState.dWebBrowserList.addAll(list)
+                ret = mProcessId.toString()
             }
-            mProcessId = uiState.currentProcessId?.toInt() ?: mProcessId
-            uiState.currentProcessId = mProcessId.toString()
-            val list = arrayListOf<DWebBrowserItem>().apply { add(dWebBrowser) }
-            dWebBrowserTree[mProcessId.toString()] = list
-            uiState.dWebBrowserList.clear()
-            uiState.dWebBrowserList.addAll(list)
-            return mProcessId.toString()
         }
-        return "0"
+        return ret
     }
 }
