@@ -16,8 +16,8 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    //ndk.abiFilters = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
-    ndk.abiFilters = ["arm64-v8a"]
+    ndk.abiFilters = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
+    //ndk.abiFilters = ["arm64-v8a"]
     vectorDrawables {
       useSupportLibrary = true
     }
@@ -35,6 +35,11 @@ android {
       minifyEnabled = false
       proguardFiles = [getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"]
     }
+      benchmark {
+          signingConfig signingConfigs.debug
+          matchingFallbacks = ['release']
+          debuggable false
+      }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -142,6 +147,9 @@ dependencies {
   // slf4j
 //  testImplementation("org.slf4j:slf4j-api:2.0.6")
 //  testImplementation("org.slf4j:slf4j-simple:2.0.6")
+  // 安装的时候将 baseline-prof.txt 同步安装
+  implementation 'androidx.profileinstaller:profileinstaller:1.2.0-alpha02'
+
   implementation project(":libAppMgr")
 }
 
