@@ -295,6 +295,9 @@ var installEnv = () => {
                 });
             })();
         }
+        if (parsed_url.hostname === "http.sys.dweb") {
+            url = url.replace(/http.sys.dweb/, "localhost:24433")
+        }
         return native_fetch(url, init);
     };
 };

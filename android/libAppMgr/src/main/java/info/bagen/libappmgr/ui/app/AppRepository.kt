@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.flow
 
 class AppRepository(private val api: ApiService = ApiService.instance) {
 
-    suspend fun loadAppInfoList() = loadAppInfoListTest() // FilesUtil.getAppInfoList()
+    suspend fun loadAppInfoList() =  FilesUtil.getAppInfoList() //loadAppInfoListTest()
 
     suspend fun loadDAppUrl(appInfo: AppInfo): DAppInfoUI? {
-        return loadDAppUrlTest(appInfo)
-        /*val dAppInfo = FilesUtil.getDAppInfo(appInfo.bfsAppId)
+//        return loadDAppUrlTest(appInfo)
+        val dAppInfo = FilesUtil.getDAppInfo(appInfo.bfsAppId)
         dAppInfo?.let { info ->
             val dAppUrl = FilesUtil.getAppDenoUrl(appInfo, info)
             val url = info.manifest.url ?: ""
@@ -24,7 +24,7 @@ class AppRepository(private val api: ApiService = ApiService.instance) {
             val version = dAppInfo.manifest.version
             return DAppInfoUI(dAppUrl, name, iconPath, url, version, isDWeb)
         }
-        return null*/
+        return null
     }
 
     suspend fun loadAppNewVersion(path: String) = flow {

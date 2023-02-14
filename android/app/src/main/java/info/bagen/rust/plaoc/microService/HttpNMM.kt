@@ -39,13 +39,12 @@ class HttpNMM  {
         return host
     }
 
-
     private fun getHost(port: String): String {
         return "http://$internal.js.sys.dweb-$port.localhost:${PORT}/js-process";
     }
 
     fun closeServer() {
-
+        http1.closeServer()
     }
 }
 
