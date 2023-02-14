@@ -7,6 +7,7 @@ import android.os.Bundle
 import info.bagen.libappmgr.di.libRepositoryModule
 import info.bagen.libappmgr.di.libViewModelModule
 import info.bagen.libappmgr.utils.ClipboardUtil
+import info.bagen.rust.plaoc.di.appModules
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
 import kotlinx.coroutines.GlobalScope
@@ -34,7 +35,7 @@ class App : Application() {
             androidContext(this@App)
             androidFileProperties()
             modules(
-                libViewModelModule, libRepositoryModule
+                appModules, libViewModelModule, libRepositoryModule
             )
         }
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
