@@ -9,7 +9,7 @@ data class IpcResponse(
     @SerializedName("body") val body: String = "",
     @SerializedName("headers") val headers: MutableMap<String, String> = mutableMapOf(),
     @SerializedName("type") val type: Int = 1
-):BaseIpc(){
+){
     fun fromJson(): String? {
         this.headers["Content-Type"] = "application/json"
         return gson.toJson(this)

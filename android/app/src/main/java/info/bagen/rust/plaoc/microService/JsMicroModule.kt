@@ -15,7 +15,11 @@ import java.util.*
 class JsMicroModule : MicroModule() {
     // 该程序的来源
     override var mmid = "js.sys.dweb"
-    override fun bootstrap(): Any? {
+    override fun _bootstrap(): Any? {
+        TODO("Not yet implemented")
+    }
+
+    override fun _shutdown(): Any {
         TODO("Not yet implemented")
     }
 
