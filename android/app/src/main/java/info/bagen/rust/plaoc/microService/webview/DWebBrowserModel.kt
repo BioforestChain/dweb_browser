@@ -1,9 +1,8 @@
 package info.bagen.rust.plaoc.microService.webview
 
-import android.annotation.SuppressLint
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +10,7 @@ import info.bagen.rust.plaoc.App
 import kotlinx.coroutines.launch
 
 data class DWebBrowserUIState(
-    val dWebBrowserList: MutableList<DWebBrowserItem> = mutableListOf(),
+    val dWebBrowserList: MutableList<DWebBrowserItem> = mutableStateListOf(),
     var currentProcessId: String? = null
 )
 
@@ -42,15 +41,16 @@ class DWebBrowserModel : ViewModel() {
         viewModelScope.launch {
             when (action) {
                 is DWebBrowserIntent.OpenDWebBrowser -> {
-                    Log.d(
-                        "DWebBrowserModel",
-                        "OpenDWebBrowser url=${action.origin},${action.processId}"
-                    )
                     openDWebBrowser(action.origin, action.processId)
                 }
                 is DWebBrowserIntent.RemoveLast -> {
-                    val temp = uiState.dWebBrowserList.removeLast()
-                    temp.dWebBrowser.destroy()
+                    val last = uiState.dWebBrowserList.last()
+                    if (last.dWebBrowser.canGoBack()) {
+                        last.dWebBrowser.goBack()
+                    } else {
+                        uiState.dWebBrowserList.removeLast()
+                        last.dWebBrowser.destroy()
+                    }
                 }
                 is DWebBrowserIntent.RemoveALL -> {
                     uiState.dWebBrowserList.forEach { item ->
@@ -67,7 +67,6 @@ class DWebBrowserModel : ViewModel() {
             val dWebBrowser = DWebBrowserItem(
                 url = origin, host = host, dWebBrowser = DWebBrowser(App.appContext, origin)
             )
-
             if (processId?.isNotEmpty() == true) {
                 dWebBrowserTree[processId]?.let { list ->
                     list.add(dWebBrowser)
@@ -85,7 +84,7 @@ class DWebBrowserModel : ViewModel() {
             }
             mProcessId = uiState.currentProcessId?.toInt() ?: mProcessId
             uiState.currentProcessId = mProcessId.toString()
-            val list = arrayListOf<DWebBrowserItem>()
+            val list = arrayListOf<DWebBrowserItem>().apply { add(dWebBrowser) }
             dWebBrowserTree[mProcessId.toString()] = list
             uiState.dWebBrowserList.clear()
             uiState.dWebBrowserList.addAll(list)

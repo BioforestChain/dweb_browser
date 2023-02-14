@@ -23,10 +23,10 @@
     <string name="navitem_message">Message</string>
     <string name="navitem_me">Me</string>
 
-    <string name="app_name">BFExplorer</string>
+    <string name="app_name">DWeb Browser</string>
     <string name="privacy_title">Tips</string>
-    <string name="privacy_content_1">Welcome to BFExplorer. It will use the internet when you use it. Please consult your local operator for traffic costs. Please read the</string>
-    <string name="privacy_content_2">carefully before using BFExplorer. You need to agree and accept all the terms before starting our service.</string>
+    <string name="privacy_content_1">Welcome to DWeb Browser. It will use the internet when you use it. Please consult your local operator for traffic costs. Please read the</string>
+    <string name="privacy_content_2">carefully before using DWeb Browser. You need to agree and accept all the terms before starting our service.</string>
     <string name="privacy_policy">《privacy policy》</string>
     <string name="privacy_content_deny">This product can only be used after agreeing to the relevant agreement</string>
     <string name="button_not_agree">Not Agree</string>

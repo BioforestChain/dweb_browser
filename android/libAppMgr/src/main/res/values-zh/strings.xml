@@ -22,9 +22,9 @@
     <string name="navitem_message">消息</string>
     <string name="navitem_me">我的</string>
 
-    <string name="app_name">BFExplorer</string>
+    <string name="app_name">DWeb Browser</string>
     <string name="privacy_title">温馨提示</string>
-    <string name="privacy_content_1">欢迎使用BFExplorer，在您使用的时候，需要连接网络，产生的流量费用请咨询当地运营商。在使用BFExplorer前，请认真阅读</string>
+    <string name="privacy_content_1">欢迎使用 DWeb Browser，在您使用的时候，需要连接网络，产生的流量费用请咨询当地运营商。在使用 DWeb Browser 前，请认真阅读</string>
     <string name="privacy_content_2">。您需要同意并接受全部条款后再开始我们的服务。</string>
     <string name="privacy_policy">《隐私协议》</string>
     <string name="privacy_content_deny">本产品需要同意相关协议后才能使用哦</string>

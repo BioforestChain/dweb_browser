@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 
 private const val SHARED_PREFERENCES_NAME = "plaoc"
+const val KEY_APP_FIRST_LOAD = "App_First_Load"
 
 fun Context.saveString(key: String, value: String) {
     val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
