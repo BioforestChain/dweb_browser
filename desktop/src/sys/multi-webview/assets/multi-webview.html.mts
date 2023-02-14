@@ -1,9 +1,15 @@
 /// <reference lib="DOM"/>
 
+import { proxy } from "comlink";
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import { styleMap } from "lit/directives/style-map.js";
+import {
+  exportApis,
+  mainApis,
+} from "../../../helper/openNativeWindow.preload.mjs";
+import WebviewTag = Electron.WebviewTag;
 
 @customElement("view-tree")
 export class ViewTree extends LitElement {
@@ -22,23 +28,46 @@ export class ViewTree extends LitElement {
         grid-area: layer;
 
         display: grid;
-        grid-template-areas: "webview";
+        grid-template-areas: "layer-content";
 
         height: 100%;
-        padding: 1em;
+        padding: 0.5em 1em;
       }
       .webview-container {
-        grid-area: webview;
+        grid-area: layer-content;
 
         height: 100%;
+
+        display: grid;
+        grid-template-areas: "webview" "toolbar";
+        grid-template-rows: 1fr 2em;
       }
+    `,
+    css`
       .webview {
+        grid-area: webview;
+
         width: 100%;
         height: 100%;
         border: 0;
         outline: 1px solid red;
         border-radius: 1em;
         overflow: hidden;
+      }
+      .toolbar {
+        grid-area: toolbar;
+
+        display: flex;
+        height: 100%;
+        flex-direction: row;
+        align-items: center;
+      }
+      fieldset {
+        border: 0;
+        padding: 0;
+      }
+      fieldset:disabled {
+        display: none;
       }
     `,
     css`
@@ -187,10 +216,32 @@ export class ViewTree extends LitElement {
     return true;
   }
 
-  private onWebviewLoad(webview: HTMLIFrameElement, webview_id: number) {
-    webview.contentWindow!.close = () => {
-      this.closeWebview(webview_id);
-    };
+  private async onWebviewReady(webview: Webview, ele: WebviewTag) {
+    webview.webContentId = ele.getWebContentsId();
+    webview.api = ele;
+    mainApis.denyWindowOpenHandler(
+      webview.webContentId,
+      proxy((detail) => {
+        console.log(detail);
+        this.openWebview(detail.url);
+      })
+    );
+    mainApis.onDestroy(
+      webview.webContentId,
+      proxy(() => {
+        this.closeWebview(webview.id);
+        console.log("Destroy!!");
+      })
+    );
+    const webcontents = await mainApis.getWenContents(webview.webContentId);
+    console.log("webcontents", webcontents);
+  }
+
+  private async openWebviewDevTools(webview: Webview) {
+    webview.api.openDevTools();
+  }
+  private async destroyWebview(webview: Webview) {
+    await mainApis.destroy(webview.webContentId);
   }
 
   // Render the UI as a function of component state
@@ -212,19 +263,38 @@ export class ViewTree extends LitElement {
                   "--opacity": webview.state.opacity + "",
                 })}
               >
-                <iframe
+                <webview
                   id="view-${webview.id}"
                   class="webview"
                   src=${webview.src}
                   partition="trusted"
+                  allownw
+                  allowpopups
                   @animationend=${(event: AnimationEvent) => {
                     if (event.animationName === "slideOut" && webview.closing) {
                       this._removeWebview(webview);
                     }
                   }}
-                  @load=${(event: any) =>
-                    this.onWebviewLoad(event.target, webview.id)}
-                ></iframe>
+                  @dom-ready=${(event: Event & { target: WebviewTag }) => {
+                    this.onWebviewReady(webview, event.target);
+                  }}
+                ></webview>
+                <fieldset class="toolbar" .disabled=${webview.closing}>
+                  <button
+                    @click=${() => {
+                      this.openWebviewDevTools(webview);
+                    }}
+                  >
+                    打开DevTools
+                  </button>
+                  <button
+                    @click=${() => {
+                      this.destroyWebview(webview);
+                    }}
+                  >
+                    销毁
+                  </button>
+                </fieldset>
               </div>
             `;
           }
@@ -236,6 +306,8 @@ export class ViewTree extends LitElement {
 
 class Webview {
   constructor(readonly id: number, readonly src: string) {}
+  webContentId = -1;
+  api!: WebviewTag;
   closing = false;
   state = {
     zIndex: 0,
@@ -251,17 +323,19 @@ const viewTree = new ViewTree();
 document.body.appendChild(viewTree);
 console.log(viewTree);
 
-const nww = nw.Window.get(window);
-nww.on("new-win-policy", function (frame, url, policy) {
-  policy.ignore();
+// const nww = nw.Window.get(window);
+// nww.on("new-win-policy", function (frame, url, policy) {
+//   policy.ignore();
 
-  viewTree.openWebview(url);
-});
-nww.on("close", () => {
-  console.log("closed");
-});
+//   viewTree.openWebview(url);
+// });
+// nww.on("close", () => {
+//   console.log("closed");
+// });
 
 export const APIS = {
   openWebview: viewTree.openWebview.bind(viewTree),
   closeWebview: viewTree.closeWebview.bind(viewTree),
 };
+
+exportApis(APIS);

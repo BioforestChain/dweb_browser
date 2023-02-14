@@ -1,9 +1,7 @@
-import type { Ipc } from "../core/ipc/index.cjs";
-import { MicroModule } from "../core/micro-module.cjs";
-import { NativeMicroModule } from "../core/micro-module.native.cjs";
-import { $readRequestAsIpcRequest } from "../helper/$readRequestAsIpcRequest.cjs";
-import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
-import type { $MMID, $PromiseMaybe } from "../helper/types.cjs";
+import type { MicroModule } from "../../core/micro-module.cjs";
+import { NativeMicroModule } from "../../core/micro-module.native.cjs";
+import type { $MMID } from "../../helper/types.cjs";
+import { hookFetch } from "./hookFetch.cjs";
 
 /** DNS 服务，内核！
  * 整个系统都围绕这个 DNS 服务来展开互联
@@ -100,73 +98,3 @@ export class DnsNMM extends NativeMicroModule {
     }
   }
 }
-
-/**
- * 重写全局 fetch 函数，使得支持 fetch("file://*.dweb/*")
- */
-const hookFetch = (app_mm: DnsNMM) => {
-  const connects = new WeakMap<
-    MicroModule,
-    Map<
-      $MMID,
-      $PromiseMaybe<{
-        ipc: Ipc;
-      }>
-    >
-  >();
-  const native_fetch = globalThis.fetch;
-  globalThis.fetch = function fetch(
-    this: unknown,
-    url: RequestInfo | URL,
-    init?: RequestInit
-  ) {
-    /// 如果上下文是 MicroModule，那么进入特殊的解析模式
-    if (this instanceof MicroModule) {
-      const from_app = this;
-      const args = normalizeFetchArgs(url, init);
-      const { parsed_url } = args;
-      if (
-        parsed_url.protocol === "file:" &&
-        parsed_url.hostname.endsWith(".dweb")
-      ) {
-        const mmid = parsed_url.hostname as $MMID;
-        /// 拦截到了，走自定义总线
-        let from_app_ipcs = connects.get(from_app);
-        if (from_app_ipcs === undefined) {
-          from_app_ipcs = new Map();
-          connects.set(from_app, from_app_ipcs);
-        }
-
-        /// 与指定应用建立通讯
-        let ipc_promise = from_app_ipcs.get(mmid);
-        if (ipc_promise === undefined) {
-          /// 初始化互联
-          ipc_promise = (async () => {
-            const app = await app_mm.open(parsed_url.hostname as $MMID);
-            const ipc = await app.connect(from_app);
-            // 监听生命周期 释放引用
-            ipc.onClose(() => {
-              from_app_ipcs?.delete(mmid);
-            });
-            return {
-              ipc,
-            };
-          })();
-          from_app_ipcs.set(mmid, ipc_promise);
-        }
-
-        return (async () => {
-          const { ipc } = await ipc_promise;
-          const ipc_req_init = await $readRequestAsIpcRequest(
-            args.request_init
-          );
-          const ipc_response = await ipc.request(parsed_url.href, ipc_req_init);
-
-          return ipc_response.asResponse(parsed_url.href);
-        })();
-      }
-    }
-
-    return native_fetch(url, init);
-  };
-};

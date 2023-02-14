@@ -24,8 +24,8 @@ export interface $Router {
 export class PortListener {
   constructor(
     readonly ipc: Ipc,
-    readonly host:string,
-    readonly origin:string
+    readonly host: string,
+    readonly origin: string
   ) {}
 
   private _routers = new Set<$Router>();
@@ -71,7 +71,6 @@ export class PortListener {
      */
     let ipc_req_body_stream: undefined | ReadableStream<Uint8Array>;
     /// 如果是存在body的协议，那么将之读取出来
-    console.log("req.method", req.method, "req.readable", req.readable);
     /// 参考文档 https://www.rfc-editor.org/rfc/rfc9110.html#name-method-definitions
     if (
       /// 理论上除了 GET/HEAD/OPTIONS 之外的method （比如 DELETE）是允许包含 BODY 的，但这类严格的对其进行限制，未来可以通过启动监听时的配置来解除限制

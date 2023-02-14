@@ -1,5 +1,5 @@
 import { BootNMM } from "./sys/boot.cjs";
-import { DnsNMM } from "./sys/dns.cjs";
+import { DnsNMM } from "./sys/dns/dns.cjs";
 import { HttpServerNMM } from "./sys/http-server/http-server.cjs";
 import { JsProcessNMM } from "./sys/js-process/js-process.cjs";
 import { MultiWebviewNMM } from "./sys/multi-webview/multi-webview.mobile.cjs";
@@ -14,5 +14,3 @@ import { desktopJmm } from "./user/desktop/desktop.main.cjs";
 dns.install(desktopJmm);
 
 Object.assign(globalThis, { dns: dns });
-
-console.log("location.href", location.href);

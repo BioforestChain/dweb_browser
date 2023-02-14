@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import { IPC_ROLE } from "../../core/ipc/const.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
