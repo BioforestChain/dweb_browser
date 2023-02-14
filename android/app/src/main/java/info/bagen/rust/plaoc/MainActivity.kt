@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                         LogUtils.d("搜索框内容响应：$action--$data")
                         when (action) {
                             SearchAction.Search -> {
-                                openDWebWindow(this@MainActivity, "http://localhost:24433")
+                                openDWebWindow(this@MainActivity, data)
                             }
                             SearchAction.OpenCamera -> {
                                 if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {

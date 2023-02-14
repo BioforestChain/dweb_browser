@@ -138,6 +138,10 @@ dependencies {
 //  implementation("io.ktor:ktor-serialization-kotlinx-xml:$ktor_version")
 //  implementation("io.ktor:ktor-serialization-kotlinx-cbor:$ktor_version")
 //  implementation("io.ktor:ktor-serialization-kotlinx-protobuf:$ktor_version")
+
+  // slf4j
+//  testImplementation("org.slf4j:slf4j-api:2.0.6")
+//  testImplementation("org.slf4j:slf4j-simple:2.0.6")
   implementation project(":libAppMgr")
 }
 

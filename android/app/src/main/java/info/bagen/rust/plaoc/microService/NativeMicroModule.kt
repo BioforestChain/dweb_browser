@@ -1,6 +1,9 @@
 package info.bagen.rust.plaoc.microService
 
 import android.net.Uri
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import java.net.URLDecoder
 
 /** 启动Boot服务*/
@@ -10,6 +13,13 @@ fun startBootNMM() {
 }
 
 open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
+    override fun _bootstrap(): Any? {
+        TODO("Not yet implemented")
+    }
+
+    override fun _shutdown(): Any {
+        TODO("Not yet implemented")
+    }
 }
 
 typealias Mmid = String;
@@ -20,7 +30,62 @@ typealias NativeOptions = MutableMap<String, String>
 
 abstract class MicroModule {
     open val mmid: String = ""
-//    abstract fun bootstrap(routerTarget: String, options: NativeOptions): Any?
+    protected abstract  fun _bootstrap(): Any?
+    private var running = false;
+    private var _bootstrapLock :Mutex? = Mutex()
+    protected fun beforeBootstrap() {
+        if (this.running) {
+            throw  Error("module ${this.mmid} already running");
+        }
+        this.running = true;
+    }
+    protected fun afterBootstrap() {
+    }
+
+    fun bootstrap() {
+        this.beforeBootstrap()
+
+          val bootstrapLock = Mutex()
+          this._bootstrapLock = bootstrapLock
+          try {
+            this._bootstrap();
+          } finally {
+              bootstrapLock.unlock();
+              this._bootstrapLock = null;
+
+              this.afterBootstrap();
+          }
+    }
+    protected fun beforeShutdown() {
+        if (!this.running) {
+            throw  Error("module ${this.mmid} already shutdown");
+        }
+        this.running = false;
+    }
+    private var _shutdownLock: Mutex? = null
+    protected abstract fun _shutdown(): Any
+    protected fun afterShutdown() {}
+
+    fun shutdown() {
+        if (this._bootstrapLock!!.isLocked) {
+             this._bootstrapLock
+        }
+
+        val shutdownLock = Mutex()
+        this._shutdownLock = shutdownLock
+        this.beforeShutdown()
+        try {
+             this._shutdown()
+        } finally {
+            shutdownLock.unlock()
+            this._shutdownLock = null
+            this.afterShutdown()
+        }
+    }
+
+    fun connent() {
+
+    }
 }
 
 fun Uri.queryParameterByMap(): NativeOptions {

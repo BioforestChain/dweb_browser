@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService
 
 import android.os.Build
 import info.bagen.rust.plaoc.microService.network.Http1Server
+import info.bagen.rust.plaoc.microService.network.Http1Server.Companion.PORT
 import info.bagen.rust.plaoc.microService.network.HttpListener
 import info.bagen.rust.plaoc.microService.route.jsProcessRoute
 import info.bagen.rust.plaoc.microService.route.webViewRoute
@@ -17,7 +18,7 @@ data class Origin(val origin: String)
 val httpNMM = HttpNMM()
 
 
-class HttpNMM {
+class HttpNMM  {
     private val mmid: String = "http.sys.dweb"
     private val listenMap = mutableMapOf</* host */ String, HttpListener>()
     private val internal = "internal"
@@ -34,13 +35,13 @@ class HttpNMM {
     fun createListen(port: String): String {
         println("kotlin#LocalhostNMM createListen==> $mmid")
         val host = getHost(port)
-        this.listenMap["$internal.$port"] = HttpListener(host)
+        this.listenMap[host] = HttpListener(host)
         return host
     }
 
 
     private fun getHost(port: String): String {
-        return "http://$internal.$port.$mmid";
+        return "http://$internal.js.sys.dweb-$port.localhost:${PORT}/js-process";
     }
 
     fun closeServer() {

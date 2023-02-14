@@ -14,12 +14,11 @@ import io.ktor.server.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 
 
 class Http1Server {
     companion object {
-        private const val PORT = 24433
+         const val PORT = 24433
     }
 
     private val server by lazy {
@@ -27,10 +26,7 @@ class Http1Server {
             install(WebSockets)
             install(CallLogging)
             install(ContentNegotiation) {
-                json(Json {
-                    prettyPrint = true // 标准的缩进
-                    isLenient = true //在宽松模式下，引用的布尔文字和未引用的字符串文字是允许的
-                })
+                json()
             }
             install(CORS) {
                 allowMethod(HttpMethod.Options)

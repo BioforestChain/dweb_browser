@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.JsonParser
 import info.bagen.libappmgr.network.ApiService
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.mapper
+import info.bagen.rust.plaoc.microService.ipc.IpcRequest
+import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import java.util.*
@@ -13,6 +15,9 @@ import java.util.*
 class JsMicroModule : MicroModule() {
     // 该程序的来源
     override var mmid = "js.sys.dweb"
+    override fun bootstrap(): Any? {
+        TODO("Not yet implemented")
+    }
 
     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
     private val jsProcess = JsProcess()
