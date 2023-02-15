@@ -186,6 +186,30 @@ class StreamFileManager: NSObject {
         }
         return result
     }
+    
+    //读取数据返回[UInt8]
+    static func readData(data: Data?) -> [UInt8]? {
+        guard data != nil else { return nil }
+        let stream = InputStream(data: data!)
+        stream.open()
+        defer {
+            stream.close()
+        }
+
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer {
+            buffer.deallocate()
+        }
+        var result: [UInt8] = []
+        while stream.hasBytesAvailable {
+            let length = stream.read(buffer, maxLength: bufferSize)
+            let data = Data(bytes: buffer, count: length)
+            result += [UInt8](data)
+        }
+        return result
+    }
+    
     //写数据进入文件
     func writeFileContent(fileName: String, path: String, content: String?,append: Bool = false, autoCreate: Bool = true) {
         

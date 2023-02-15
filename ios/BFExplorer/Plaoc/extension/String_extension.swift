@@ -101,4 +101,25 @@ extension String {
             (0..<match.numberOfRanges).map { match.range(at: $0).location == NSNotFound ? "" : nsString.substring(with: match.range(at: $0)) }
         } ?? []
     }
+    
+    // 编码
+    func base64Encoding() -> String? {
+
+        let plainData = self.data(using: .utf8)
+        
+        let base64String = plainData?.base64EncodedString(options: NSData.Base64EncodingOptions.init(rawValue: 0))
+        
+        return base64String
+        
+    }
+    //解码
+    func base64Decoding() -> String? {
+        
+        guard let decodedData = Data(base64Encoded: self) else { return nil }
+        
+        let decodedString = String(data: decodedData, encoding: .utf8)
+        
+        return decodedString
+        
+    }
 }
