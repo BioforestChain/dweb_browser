@@ -9,6 +9,7 @@ import {
   exportApis,
   mainApis,
 } from "../../../helper/openNativeWindow.preload.mjs";
+import { PromiseOut } from "../../../helper/PromiseOut.mjs";
 import WebviewTag = Electron.WebviewTag;
 
 @customElement("view-tree")
@@ -18,14 +19,19 @@ export class ViewTree extends LitElement {
     css`
       :host {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
 
         height: 100%;
 
         grid-template-areas: "layer";
       }
+      * {
+        box-sizing: border-box;
+      }
       .layer {
         grid-area: layer;
+
+        flex: 1;
 
         display: grid;
         grid-template-areas: "layer-content";
@@ -39,8 +45,17 @@ export class ViewTree extends LitElement {
         height: 100%;
 
         display: grid;
-        grid-template-areas: "webview" "toolbar";
-        grid-template-rows: 1fr 2em;
+        grid-template-areas: "webview";
+        grid-template-rows: 1fr;
+      }
+      .devtool-container {
+        grid-area: layer-content;
+
+        height: 100%;
+
+        display: grid;
+        grid-template-areas: "toolbar" "devtool";
+        grid-template-rows: 2em 1fr;
       }
     `,
     css`
@@ -51,6 +66,16 @@ export class ViewTree extends LitElement {
         height: 100%;
         border: 0;
         outline: 1px solid red;
+        border-radius: 1em;
+        overflow: hidden;
+      }
+      .devtool {
+        grid-area: devtool;
+
+        width: 100%;
+        height: 100%;
+        border: 0;
+        outline: 1px solid blue;
         border-radius: 1em;
         overflow: hidden;
       }
@@ -74,10 +99,10 @@ export class ViewTree extends LitElement {
       :host {
         --easing: cubic-bezier(0.36, 0.66, 0.04, 1);
       }
-      .opening > .webview {
+      .opening > .ani-view {
         animation: slideIn 520ms var(--easing) forwards;
       }
-      .closing > .webview {
+      .closing > .ani-view {
         animation: slideOut 830ms var(--easing) forwards;
       }
       @keyframes slideIn {
@@ -218,7 +243,7 @@ export class ViewTree extends LitElement {
 
   private async onWebviewReady(webview: Webview, ele: WebviewTag) {
     webview.webContentId = ele.getWebContentsId();
-    webview.api = ele;
+    webview.doReady(ele);
     mainApis.denyWindowOpenHandler(
       webview.webContentId,
       proxy((detail) => {
@@ -237,9 +262,19 @@ export class ViewTree extends LitElement {
     console.log("webcontents", webcontents);
   }
 
-  private async openWebviewDevTools(webview: Webview) {
-    webview.api.openDevTools();
+  private async onDevtoolReady(webview: Webview, ele_devTool: WebviewTag) {
+    await webview.ready();
+    if (webview.webContentId_devTools === ele_devTool.getWebContentsId()) {
+      return;
+    }
+    webview.webContentId_devTools = ele_devTool.getWebContentsId();
+    await mainApis.openDevTools(
+      webview.webContentId,
+      undefined,
+      webview.webContentId_devTools
+    );
   }
+
   private async destroyWebview(webview: Webview) {
     await mainApis.destroy(webview.webContentId);
   }
@@ -265,7 +300,7 @@ export class ViewTree extends LitElement {
               >
                 <webview
                   id="view-${webview.id}"
-                  class="webview"
+                  class="webview ani-view"
                   src=${webview.src}
                   partition="trusted"
                   allownw
@@ -279,22 +314,46 @@ export class ViewTree extends LitElement {
                     this.onWebviewReady(webview, event.target);
                   }}
                 ></webview>
+              </div>
+            `;
+          }
+        )}
+      </div>
+      <div class="layer stack" style="flex: 2.5;">
+        ${repeat(
+          this.webviews,
+          (dialog) => dialog.id,
+          (webview) => {
+            return html`
+              <div
+                class="devtool-container ${webview.closing
+                  ? `closing`
+                  : `opening`}"
+                style=${styleMap({
+                  "--z-index": webview.state.zIndex + "",
+                  "--scale": webview.state.scale + "",
+                  "--opacity": webview.state.opacity + "",
+                })}
+              >
                 <fieldset class="toolbar" .disabled=${webview.closing}>
-                  <button
-                    @click=${() => {
-                      this.openWebviewDevTools(webview);
-                    }}
-                  >
-                    打开DevTools
-                  </button>
                   <button
                     @click=${() => {
                       this.destroyWebview(webview);
                     }}
                   >
-                    销毁
+                    销毁Webview
                   </button>
                 </fieldset>
+                <webview
+                  id="tool-${webview.id}"
+                  class="devtool ani-view"
+                  src="about:blank"
+                  partition="trusted"
+                  @dom-ready=${(event: Event & { target: WebviewTag }) => {
+                    console.log("DevtoolReady", event.target);
+                    this.onDevtoolReady(webview, event.target);
+                  }}
+                ></webview>
               </div>
             `;
           }
@@ -307,7 +366,19 @@ export class ViewTree extends LitElement {
 class Webview {
   constructor(readonly id: number, readonly src: string) {}
   webContentId = -1;
-  api!: WebviewTag;
+  webContentId_devTools = -1;
+  private _api!: WebviewTag;
+  get api(): WebviewTag {
+    return this._api;
+  }
+  doReady(value: WebviewTag) {
+    this._api = value;
+    this._api_po.resolve(value);
+  }
+  private _api_po = new PromiseOut<WebviewTag>();
+  ready() {
+    return this._api_po.promise;
+  }
   closing = false;
   state = {
     zIndex: 0,

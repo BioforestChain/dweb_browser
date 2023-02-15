@@ -93,8 +93,9 @@ export class MultiWebviewNMM extends NativeMicroModule {
           webPreferences: {
             webviewTag: true,
           },
-          fullscreen: true,
+          autoHideMenuBar: true,
         });
+        nww.maximize();
 
         const apis = nww.getApis<$APIS>();
         this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));

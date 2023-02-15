@@ -26,7 +26,7 @@ export const openNativeWindow = async (
   const show_po = new PromiseOut<void>();
   win.once("ready-to-show", () => {
     win.show();
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
     show_po.resolve();
   });
 
@@ -62,8 +62,20 @@ export const openNativeWindow = async (
 };
 export class ForRenderApi {
   constructor(private win: BrowserWindow) {}
-  openDevTools(webContentsId: number, options?: Electron.OpenDevToolsOptions) {
-    return Electron.webContents.fromId(webContentsId).openDevTools(options);
+  openDevTools(
+    webContentsId: number,
+    options?: Electron.OpenDevToolsOptions,
+    devToolsId?: number
+  ) {
+    const content_wcs = Electron.webContents.fromId(webContentsId);
+    if (devToolsId) {
+      const devTools_wcs = Electron.webContents.fromId(devToolsId);
+      content_wcs.setDevToolsWebContents(devTools_wcs);
+      queueMicrotask(() => {
+        devTools_wcs.executeJavaScript("window.location.reload()");
+      });
+    }
+    content_wcs.openDevTools(options);
   }
   denyWindowOpenHandler(
     webContentsId: number,
