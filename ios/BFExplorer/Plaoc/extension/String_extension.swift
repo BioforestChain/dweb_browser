@@ -122,4 +122,17 @@ extension String {
         return decodedString
         
     }
+    
+    //解析url格式
+    func analysisURLFormat() -> String? {
+        
+        guard let url = URL(string: self) else { return nil }
+        let scheme = url.scheme ?? ""
+        let host = url.host ?? ""
+        if scheme.count > 0 {
+            return scheme + "://" + host
+        }
+        return host
+        
+    }
 }

@@ -11,15 +11,17 @@ class IpcRequest: IpcBody {
 
     private let type = IPC_DATA_TYPE.REQUEST
     var parsed_url: URL?
+    private var urlString: String = ""
     
     init(req_id: Int, method: String, url: String, rawBody: RawData, headers: [String:String], ipc: Ipc?) {
         super.init(rawBody: rawBody, ipc: ipc)
+        self.urlString = url
     }
     
-    //TODO
-//    func parsed_url() -> String {
-//        return self.parsed_url ?? ""
-//    }
+    
+    func parsed_urlAction() -> URL? {
+        return self.parsed_url ?? urlHelper.parseUrl(urlString: self.urlString, base: urlHelper.URL_BASE(url: "base")) //TODO  base
+    }
 
     
     static func fromText(text: String,req_id: Int,method: String,url: String,headers:[String:String]) -> IpcRequest {

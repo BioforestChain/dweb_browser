@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftyJSON
 
 class urlHelper: NSObject {
 
@@ -23,50 +24,67 @@ class urlHelper: NSObject {
     
     static func parseUrl(urlString: Any, base: String) -> URL? {
         
+        guard urlString is String || urlString is URL else { return nil }
+        
+        var paramURLString = ""
         if urlString is URL {
-            return urlString as? URL
+            let paramURL = urlString as! URL
+            paramURLString = paramURL.absoluteString
         }
         
-        guard urlString is String else { return nil }
-        let baseString = urlHelper.URL_BASE(url: base)
-        let firstURL = URL(string: urlString as! String)
+        if urlString is String {
+            paramURLString = urlString as! String
+        }
         
-        let url = URL(string: baseString)
+        guard paramURLString.count > 0 else { return nil }
         
-        let scheme = url?.scheme ?? ""
+        let baseURL = URL(string: urlHelper.URL_BASE(url: base))
         
-//        if url == nil {
-//
-//        } else {
-//            return url
-//        }
-//        var content = urlString as! String
-//        if content.contains("?") {
-//            let array = content.components(separatedBy: "?")
-//            content = array.first ?? ""
-//        }
+        return URL(string: paramURLString, relativeTo: baseURL)?.absoluteURL
         
+    }
+    
+    static func updateUrlOrigin(url: Any, new_origin: String, base: String) -> URL? {
         
-        return URL(string: "")!
+        let newUrl = urlHelper.parseUrl(urlString: url, base: base)
+        var urlString = newUrl?.absoluteString
+        let origin = newUrl?.absoluteString.analysisURLFormat() ?? ""
+        urlString = urlString?.replacingOccurrences(of: origin, with: new_origin)
+        return URL(string: urlString ?? "")
     }
     
     static func buildUrl(url: URL, ext: Ext) -> URL? {
         
+        url.pathComponents
         var resultURL: URL?
         var path: String = ""
         var query: String = ""
+        
         if ext.pathname != nil {
             path = ext.pathname!
         }
         if (ext.search != nil) {
             if ext.search! is String {
                 query = ext.search as? String ?? ""
-            } else {
-                //TODO
+            } else  if ext.search is [String: Any] {
+                var tmpDict = ext.search as! [String: Any]
+                for (key, value) in tmpDict {
+                    if value is String {
+                        
+                    } else {
+                        tmpDict[key] = ChangeTools.tempAnyToString(value:value)
+                    }
+                }
+                query = ChangeTools.dicValueString(tmpDict) ?? ""
             }
         }
-        return nil
+        var components = URLComponents(string: url.absoluteString)
+        components?.path = path
+        components?.query = query
+        
+        return components?.url
     }
+    
 }
 
 struct Ext {

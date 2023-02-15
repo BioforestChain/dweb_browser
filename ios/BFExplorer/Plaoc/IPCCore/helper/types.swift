@@ -28,4 +28,6 @@ extension MicroModule {
 4、IpcBody.cts -> stream() -> Blob.stream()
 5、urlHelper.cts -> URL_BASE
 6、streamAsRawData
+7、IpcResponse -> asResponse -> 构建response
+8、ipc.cts -> onMessage = this._messageSignal.listen 什么功能
 **/

@@ -46,4 +46,26 @@ class ChangeTools: NSObject {
 
         return nil
     }
+    
+    static func anyValueToString<T>(value: T) -> String where T : Encodable {
+
+        guard let data = try? JSONEncoder().encode(value) else { return "" }
+        return String(data: data, encoding: .utf8) ?? ""
+    }
+    
+    static func tempAnyToString(value: Any) -> String {
+        
+        if value is Int || value is Float || value is Double || value is Bool {
+            return "\(value)"
+        }
+        
+        if value is [Any] {
+            return ChangeTools.arrayValueString(value as! [Any]) ?? ""
+        }
+        
+        if value is [String:Any] {
+            return ChangeTools.dicValueString(value as! [String : Any]) ?? ""
+        }
+        return ""
+    }
 }
