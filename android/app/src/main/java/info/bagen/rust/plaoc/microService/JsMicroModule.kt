@@ -114,7 +114,6 @@ class JsProcess {
         view.evaluateJavascript(
             "const $workerHandle = new Worker(`$workerCode`); \n" +
                     "onmessage = function (e) {\n" +
-                    "console.log(\"kotlin#DwebViewActivity port1111\", e.data, e.ports[0]); \n" +
                     "$workerHandle.postMessage([\"ipc-channel\", e.ports[0]], [e.ports[0]])\n" +
                     "}\n"
         ) {

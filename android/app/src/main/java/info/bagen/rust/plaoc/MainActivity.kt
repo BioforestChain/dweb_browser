@@ -37,7 +37,7 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
-import info.bagen.rust.plaoc.microService.httpNMM
+import info.bagen.rust.plaoc.microService.global_dns
 import info.bagen.rust.plaoc.microService.network.nativeFetch
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        httpNMM.bootstrap()
+        global_dns.httpNMM._bootstrap()
     }
 
 
@@ -183,6 +183,8 @@ class MainActivity : AppCompatActivity() {
         unRegisterBFSBroadcastReceiver()
         App.mainActivity = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
+        // 退出APP关闭服务
+        global_dns.httpNMM.closeServer()
     }
 
     // 扫码后显示一下Toast

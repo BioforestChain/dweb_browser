@@ -135,6 +135,7 @@ dependencies {
   // Embedded Server
   implementation("io.ktor:ktor-server-websockets:$ktor_version")
   implementation("io.ktor:ktor-server-cors:$ktor_version")
+//  implementation("io.ktor:ktor-server-Jetty:$ktor_version")
 
   implementation("io.ktor:ktor-server-compression:$ktor_version")
   implementation("io.ktor:ktor-server-call-logging:$ktor_version")

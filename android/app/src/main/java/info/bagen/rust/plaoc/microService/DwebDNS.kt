@@ -1,20 +1,17 @@
 package info.bagen.rust.plaoc.microService
 
-import android.net.Uri
-
 typealias Domain = String;
-
 // 声明全局dns
 
-//val global_dns= DwebDNS()
+val global_dns= DwebDNS()
 
 class DwebDNS : NativeMicroModule() {
     private val dnsTables = mutableMapOf<Domain, MicroModule>()
 
-    private val jsMicroModule = JsMicroModule()
+    val jsMicroModule = JsMicroModule()
     private val bootNMM = BootNMM()
-    private val multiWebViewNMM = MultiWebViewNMM()
-    private val httpNMM = HttpNMM()
+    val multiWebViewNMM = MultiWebViewNMM()
+    val httpNMM = HttpNMM()
 
     init {
         dnsTables["mwebview.sys.dweb"] = multiWebViewNMM

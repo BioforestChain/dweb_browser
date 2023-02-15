@@ -1,7 +1,8 @@
 package info.bagen.rust.plaoc.microService.route
 
-import info.bagen.rust.plaoc.microService.DefaultErrorResponse
-import info.bagen.rust.plaoc.microService.httpNMM
+
+import info.bagen.rust.plaoc.microService.global_dns
+import info.bagen.rust.plaoc.microService.network.DefaultErrorResponse
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -21,6 +22,6 @@ fun Route.webViewRoute() {
             )
         }
         println("webViewRoute#open origin: $origin ,processId:$processId")
-        call.respondText(httpNMM.multiWebViewNMM.openDwebView(origin,processId).toString())
+        call.respondText(global_dns.multiWebViewNMM.openDwebView(origin,processId).toString())
     }
 }

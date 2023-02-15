@@ -1,7 +1,7 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import com.google.gson.annotations.SerializedName
-import info.bagen.rust.plaoc.microService.gson
+import info.bagen.rust.plaoc.microService.network.gson
 
 data class IpcResponse(
     @SerializedName("req_id") val req_id: Number = 0,

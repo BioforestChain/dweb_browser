@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.route
 
 import info.bagen.rust.plaoc.microService.*
+import info.bagen.rust.plaoc.microService.network.DefaultErrorResponse
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -16,9 +17,9 @@ fun Route.jsProcessRoute() {
                 )
             )
         }
-        println("https.sys.dweb#listen:$port,${Origin(httpNMM.createListen(port))}")
+        println("https.sys.dweb#listen:$port,${Origin(global_dns.httpNMM.createListen(port))}")
 
-        call.respondText(httpNMM.createListen(port))
+        call.respondText(global_dns.httpNMM.createListen(port))
 //          return@get call.respond(Origin(httpNMM.createListen(port)))
     }
     get("/create-process") {
@@ -33,7 +34,7 @@ fun Route.jsProcessRoute() {
             )
         }
         println("jsProcessRoute#create-process: $mainCode")
-        val processId =  httpNMM.jsMicroModule.createProcess(mainCode)
+        val processId =  global_dns.jsMicroModule.createProcess(mainCode)
         call.respondText(processId.toString())
     }
 }
