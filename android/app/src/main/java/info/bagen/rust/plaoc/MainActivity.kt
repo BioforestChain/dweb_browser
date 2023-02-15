@@ -180,12 +180,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        // 退出APP关闭服务
+        global_dns.httpNMM.closeServer()
         super.onDestroy()
         unRegisterBFSBroadcastReceiver()
         App.mainActivity = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
-        // 退出APP关闭服务
-        global_dns.httpNMM.closeServer()
     }
 
     // 扫码后显示一下Toast

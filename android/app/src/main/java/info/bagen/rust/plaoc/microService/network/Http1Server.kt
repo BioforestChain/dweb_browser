@@ -5,6 +5,8 @@ import info.bagen.rust.plaoc.microService.moduleRouter
 import io.ktor.http.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -21,10 +23,11 @@ import kotlinx.coroutines.launch
 
 class Http1Server {
     companion object {
-         const val PORT = 24433
+        const val PORT = 24433
     }
-    val tokenMap = mutableMapOf</* token */ String, Gateway>();
-    val gatewayMap = mutableMapOf</* host */ String, Gateway>();
+
+    val tokenMap = mutableMapOf</* token */ String, Gateway>()
+    val gatewayMap = mutableMapOf</* host */ String, Gateway>()
 
     private val server by lazy {
         embeddedServer(Netty, port = PORT, watchPaths = emptyList()) {
@@ -52,35 +55,39 @@ class Http1Server {
     // 监听请求
     private val requestHookPlugin = createApplicationPlugin(name = "RequestHookPlugin") {
         onCall { call ->
-            call.response.headers.append("User-Agent", "Hello, world!")
-            println("RequestHookPlugin#origin==> ${call.request.origin}")
-            println("RequestHookPlugin#request User-Agent ==> ${call.request.headers["User-Agent"]}")
-            println("RequestHookPlugin#response User-Agent ==> ${call.response.headers["User-Agent"]}")
+            val userAgent = call.request.headers["User-Agent"]
+            println("RequestHookPlugin#request User-Agent ==> $userAgent")
             /// 在网关中寻址能够处理该 host 的监听者
-            val gateway = gatewayMap[call.request.headers["User-Agent"]]
-                ?: return@onCall call.respond(DefaultErrorResponse(
-                    502,
-                    "Bad Gateway",
-                    "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
-                ));
-
-            /* 30s 没有任何 body 写入的话，认为网关超时 */
-            gateway.listener.hookHttpRequest(call.request, call.response)
-            call.request.origin.apply {
-                println("Request URL: $scheme://$localHost:$localPort$uri")
-            }
+//            val gateway = gatewayMap[userAgent]
+//                ?: return@onCall call.respond(
+//                    DefaultErrorResponse(
+//                        502,
+//                        "Bad Gateway",
+//                        "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
+//                    )
+//                )
+//
+//            /* 30s 没有任何 body 写入的话，认为网关超时 */
+//            gateway.listener.hookHttpRequest(call.request, call.response)
         }
     }
 
 
     fun createServer() {
         CoroutineScope(Dispatchers.IO).launch {
+            /** 如果为真，则 start 调用会阻塞当前线程，直到它完成执行。
+             * 如果您使用 wait = false 从主线程开始运行并且没有其他任何东西阻塞该线程，
+             * 那么您的应用程序将在不处理任何请求的情况下终止。*/
             server.start(wait = true)
         }
     }
 
     fun closeServer() {
-        server.stop()
+        // gracePeriodMillis - 活动冷却的最长时间
+        // timeoutMillis - 等待服务器正常停止的最长时间
+        CoroutineScope(Dispatchers.IO).launch {
+            server.stop(1_000, 2_000)
+        }
     }
 }
 

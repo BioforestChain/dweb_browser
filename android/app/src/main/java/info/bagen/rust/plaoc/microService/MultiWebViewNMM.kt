@@ -7,6 +7,20 @@ import info.bagen.rust.plaoc.webView.openDWebWindow
 class MultiWebViewNMM : NativeMicroModule() {
     override val mmid: String = "mwebview.sys.dweb"
 
+    override val routers: Router = mutableMapOf<String, AppRun>()
+
+    init {
+        // 打开webview
+        routers["/open"] = put@{ options ->
+            val origin = options["origin"] ?: return@put "Error not Found param origin"
+            val processId = options["processId"]
+            return@put openDwebView(origin,processId)
+        }
+        routers["/evalJavascript"] = put@{
+            return@put true
+        }
+    }
+
     private var viewTree: ViewTree = ViewTree()
 
 

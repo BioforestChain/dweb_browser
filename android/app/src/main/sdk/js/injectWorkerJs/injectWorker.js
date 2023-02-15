@@ -256,9 +256,9 @@ var installEnv = () => {
                 console.log("injectWorker:responseFactory==>", error)
             }
         }
-        console.log("injectWorker: webWorker get data", response, Object.prototype.toString.call(response))
+        // console.log("injectWorker: webWorker get data", response, Object.prototype.toString.call(response))
         if (Object.prototype.toString.call(response) === '[object Object]' && response.type === 1 /* RESPONSE */) {
-            console.log("injectWorker: in aaaa=>", response.req_id, response.body)
+            // console.log("injectWorker: in aaaa=>", response.req_id, response.body)
             const res_po = reqresMap.get(response.req_id);
             if (res_po !== void 0) {
                 reqresMap.delete(response.req_id);
@@ -284,7 +284,7 @@ var installEnv = () => {
                 if (registerFetchIpc) {
                     await registerFetchIpc_po.promise;
                 }
-                console.log("injectWorker:fetchIpc.postMessage:", url, fetchIpc)
+                console.log("injectWorker:fetchIpc.postMessage:", url, req_id2)
                 fetchIpc.postMessage(
                     new IpcRequest(req_id2, method, parsed_url.href, body, headers)
                 );

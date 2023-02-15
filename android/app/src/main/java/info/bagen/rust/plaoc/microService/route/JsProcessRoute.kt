@@ -9,13 +9,12 @@ import io.ktor.server.routing.*
 fun Route.jsProcessRoute() {
     get("/listen") {
         val port =  call.request.queryParameters["port"]
+        println("https.sys.dweb#listenxxxxx")
         if (port.isNullOrEmpty()) {
-            return@get call.respond(
-                DefaultErrorResponse(
-                    statusCode = 403,
-                    errorMessage = "not found request param port"
-                )
-            )
+            return@get call.respond(DefaultErrorResponse(
+                statusCode = 403,
+                errorMessage = "not found request param port"
+            ))
         }
         println("https.sys.dweb#listen:$port,${Origin(global_dns.httpNMM.createListen(port))}")
 

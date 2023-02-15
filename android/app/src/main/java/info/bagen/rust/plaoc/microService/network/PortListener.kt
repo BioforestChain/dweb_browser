@@ -75,7 +75,7 @@ fun isMatchReq(
         false
     }
     val matchMode = if (matcher.matchMode.equals("full")) {
-        pathname.equals(matcher.pathname)
+        pathname == matcher.pathname
     } else {
         if (matcher.matchMode.equals("prefix")) {
             pathname.startsWith(matcher.pathname)

@@ -8,8 +8,8 @@ import java.net.URLDecoder
 
 /** 启动Boot服务*/
 fun startBootNMM() {
-//    val boot = global_micro_dns.nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
-//    println("startBootNMM# boot response: $boot")
+    val boot = global_dns.nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
+    println("startBootNMM# boot response: $boot")
 }
 
 open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
@@ -30,10 +30,13 @@ typealias NativeOptions = MutableMap<String, String>
 
 abstract class MicroModule {
     open val mmid: String = ""
+    open val routers:Router? = null
     protected abstract  fun _bootstrap(): Any?
+
     private var running = false;
     private var _bootstrapLock :Mutex? = Mutex()
-    protected fun beforeBootstrap() {
+
+    private fun beforeBootstrap() {
         if (this.running) {
             throw  Error("module ${this.mmid} already running");
         }

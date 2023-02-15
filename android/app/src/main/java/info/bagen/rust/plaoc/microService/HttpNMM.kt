@@ -56,9 +56,6 @@ class HttpNMM : NativeMicroModule() {
 }
 
 fun Application.moduleRouter() {
-    environment.monitor.subscribe(ApplicationStarted) { application ->
-        println("Server is started,${application.environment.rootPath}")
-    }
     routing {
         get("/") {
             call.respondText(

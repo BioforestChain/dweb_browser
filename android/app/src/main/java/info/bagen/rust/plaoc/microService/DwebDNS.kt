@@ -19,7 +19,7 @@ class DwebDNS : NativeMicroModule() {
         dnsTables["mwebview.sys.dweb"] = multiWebViewNMM
         dnsTables["boot.sys.dweb"] = bootNMM
         dnsTables["js.sys.dweb"] = jsMicroModule
-//        dnsTables["localhost.sys.dweb"] = httpNMM
+        dnsTables["localhost.sys.dweb"] = httpNMM
         dnsTables["dns.sys.dweb"] = this
     }
 
@@ -34,8 +34,7 @@ class DwebDNS : NativeMicroModule() {
             if (dnsTables.containsKey(mmid)) {
                 // 有没有传递路由
                 uri.path?.let { router ->
-                    println("kotlin#nativeFetch path==> $router")
-//                    return
+                    return dnsTables[mmid]?.routers?.get(router)?.let { it(uri.queryParameterByMap()) }
                 }
                 return "Error not found routerTarget"
             }

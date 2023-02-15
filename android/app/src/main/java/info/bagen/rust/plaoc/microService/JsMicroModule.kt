@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService
 
 import android.net.Uri
+import android.util.Log
 import android.webkit.*
 import com.fasterxml.jackson.core.JsonParser
 import info.bagen.libappmgr.network.ApiService
@@ -15,6 +16,17 @@ import java.util.*
 class JsMicroModule : MicroModule() {
     // 该程序的来源
     override var mmid = "js.sys.dweb"
+    override val routers: Router = mutableMapOf<String, AppRun>()
+
+    init {
+        // 创建一个webWorker
+        routers["/create-process"] = put@{ options ->
+            val mainCode = options["mainCode"]?: options["main_code"]
+            ?: return@put "Error open worker must transmission mainCode or main_code"
+            return@put createProcess(mainCode)
+        }
+    }
+
     override fun _bootstrap(): Any? {
         TODO("Not yet implemented")
     }
@@ -25,8 +37,6 @@ class JsMicroModule : MicroModule() {
 
     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
     private val jsProcess = JsProcess()
-
-
 
     // 创建一个webWorker
      fun createProcess(mainCode: String): Any {
@@ -58,17 +68,17 @@ class JsProcess {
         val ipcRequest = mapper.readValue(ipcString, IpcRequest::class.java)
         println("JavascriptContext#ipcFactory url: ${ipcRequest.url}")
         // 处理请求
-//        val body = global_micro_dns.nativeFetch(ipcRequest.url)
-//        println("JavascriptContext#ipcFactory body: $body")
-//        tranResponseWorker(
-//            webMessagePort,
-//            IpcResponse(
-//                statusCode = 200,
-//                req_id = ipcRequest.req_id,
-//                headers = ipcRequest.headers,
-//                body = body.toString()
-//            )
-//        )
+        val body = global_dns.nativeFetch(ipcRequest.url)
+        println("JavascriptContext#ipcFactory body: $body")
+        tranResponseWorker(
+            webMessagePort,
+            IpcResponse(
+                statusCode = 200,
+                req_id = ipcRequest.req_id,
+                headers = ipcRequest.headers,
+                body = body.toString()
+            )
+        )
     }
 
     /** 这里负责返回每个webWorker里的返回值
@@ -107,7 +117,7 @@ class JsProcess {
         channel[0].setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, message: WebMessage) {
-                println("kotlin#JsMicroModuleport🍟message: ${message.data}")
+                Log.i("JsProcess","kotlin#JsMicroModuleport🍟message: ${message.data}")
                 ipcFactory(channel[0], message.data)
             }
         })
