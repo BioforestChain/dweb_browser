@@ -6,7 +6,7 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -17,25 +17,49 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 
-@OptIn(ExperimentalAnimationApi::class)
+private val enterAnimator = slideInHorizontally(
+    animationSpec = tween(500),//动画时长1s
+    initialOffsetX = {
+        it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
+    }
+)
+private val exitAnimator = slideOutHorizontally(
+    animationSpec = tween(500),//动画时长1s
+    targetOffsetX = {
+        it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
+    }
+)
+
 @Composable
 fun MultiDWebBrowserView(dWebBrowserModel: DWebBrowserModel) {
-    for (item in dWebBrowserModel.uiState.dWebBrowserList) {
-        AnimatedVisibility(
-            visible = item.show.value,
-            enter = slideInHorizontally(),
-            exit = slideOutHorizontally()
-        ) {
-            Box(modifier = Modifier
+
+    AnimatedVisibility(
+        visible = dWebBrowserModel.uiState.show.value, enter = enterAnimator, exit = exitAnimator
+    ) {
+        Box(
+            modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colors.background)
-                .animateEnterExit(
-                    enter = slideInHorizontally(),
-                    exit = slideOutHorizontally()
-                )) {
-                BackHandler { dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveLast) }
-                AndroidView(factory = { item.dWebBrowser })
+        ) {
+            for (item in dWebBrowserModel.uiState.dWebBrowserList) {
+                DWebBrowserView(dWebBrowserModel, item)
             }
+        }
+    }
+}
+
+@Composable
+fun DWebBrowserView(dWebBrowserModel: DWebBrowserModel, item: DWebBrowserItem) {
+    AnimatedVisibility(
+        visible = item.show.value, enter = enterAnimator, exit = exitAnimator
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colors.background)
+        ) {
+            BackHandler { dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveLast) }
+            AndroidView(factory = { item.dWebBrowser })
         }
     }
 }
