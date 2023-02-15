@@ -7,7 +7,7 @@ const URL_BASE =
         location.protocol === "file:" ||
         location.protocol === "chrome-extension:")
     ? location.href
-    : "http://localhost";
+    : "file:///";
 
 export const parseUrl = (url: string | URL, base = URL_BASE) => {
   return new URL(url, base);

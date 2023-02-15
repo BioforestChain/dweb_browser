@@ -1,5 +1,15 @@
-import { createSignal } from "../../helper/createSignal.cjs";
-import { PromiseOut } from "../../helper/PromiseOut.cjs";
+import { createSignal } from "../../../helper/createSignal.mjs";
+import { exportApis } from "../../../helper/openNativeWindow.preload.mjs";
+import { PromiseOut } from "../../../helper/PromiseOut.mjs";
+
+// /** 将一个 MessagePort 变成一个真正的 MessagePort */
+// const asMessagePort = (origin: MessagePort) => {
+//   if (origin instanceof MessagePort) {
+//     return origin;
+//   }
+//   origin = new
+
+// };
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 const ALL_PROCESS_MAP = new Map<
@@ -36,10 +46,6 @@ const createProcess = async (
   /// 保存 js-process
   ALL_PROCESS_MAP.set(process_id, { worker, fetch_port });
 
-  const runMain = (config: $RunMainConfig) => {
-    worker.postMessage(["run-main", config]);
-  };
-
   /// 触发事件
   on_create_process_signal.emit({
     process_id,
@@ -54,14 +60,23 @@ const createProcess = async (
 
   return {
     process_id,
-    runMain,
   };
 };
-const createIpc = (worker_id: number) => {
-  const process = ALL_PROCESS_MAP.get(worker_id);
+
+const _forceGetProcess = (process_id: number) => {
+  const process = ALL_PROCESS_MAP.get(process_id);
   if (process === undefined) {
-    throw new Error(`no found worker by id: ${worker_id}`);
+    throw new Error(`no found worker by id: ${process_id}`);
   }
+  return process;
+};
+const runProcessMain = (process_id: number, config: $RunMainConfig) => {
+  const process = _forceGetProcess(process_id);
+  process.worker.postMessage(["run-main", config]);
+};
+
+const createIpc = (process_id: number) => {
+  const process = _forceGetProcess(process_id);
   const channel = new MessageChannel();
   process.worker.postMessage(["ipc-channel", channel.port2], [channel.port2]);
   return channel.port1;
@@ -70,11 +85,22 @@ const createIpc = (worker_id: number) => {
 const on_create_process_signal = createSignal();
 
 export const APIS = {
-  // allocProcessId,
   createProcess,
+  runProcessMain,
   createIpc,
-  onCreateProcess: on_create_process_signal.listen,
 };
 export type $RunMainConfig = {
   main_url: string;
 };
+
+Object.assign(globalThis, APIS);
+
+const html = String.raw;
+on_create_process_signal.listen(({ process_id, env_script_url }) => {
+  document.body.innerHTML += html`<div>
+    <span>PID:${process_id}</span>
+    <span>URL:${env_script_url}</span>
+  </div>`;
+});
+
+exportApis(APIS);

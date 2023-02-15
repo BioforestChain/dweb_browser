@@ -1,3 +1,5 @@
+import type { Remote } from "comlink";
+import { transfer } from "comlink";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import {
@@ -9,14 +11,24 @@ import {
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { $isMatchReq, $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
+import {
+  createResolveTo,
+  resolveToRootFile,
+} from "../../helper/createResolveTo.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
-import { openNwWindow } from "../../helper/openNwWindow.cjs";
+import {
+  $NativeWindow,
+  openNativeWindow,
+} from "../../helper/openNativeWindow.cjs";
 import type { $PromiseMaybe } from "../../helper/types.cjs";
 import { parseUrl } from "../../helper/urlHelper.cjs";
 import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
 import { saveNative2JsIpcPort } from "./ipc.native2js.cjs";
 
-type $APIS = typeof import("./js-process.web.cjs")["APIS"];
+const resolveTo = createResolveTo(__dirname);
+
+// @ts-ignore
+type $APIS = typeof import("./assets/js-process.web.mjs")["APIS"];
 
 class ImportLinker {
   constructor(
@@ -95,10 +107,24 @@ const _ipcResponseFromImportLinker = async (
  */
 export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.sys.dweb` as const;
-  private nww?: nw.Window;
+  private nww?: $NativeWindow;
   private _on_shutdown_signal = createSignal<() => unknown>();
 
   async _bootstrap() {
+    const webServer = await createHttpDwebServer(this, {});
+    (await webServer.start()).onRequest(async (request, ipc) => {
+      ipc.postMessage(
+        await IpcResponse.fromResponse(
+          request.req_id,
+          await this.fetch(
+            resolveToRootFile("bundle/js-process" + request.parsed_url.pathname)
+          ),
+          ipc
+        )
+      );
+    });
+    this._on_shutdown_signal.listen(webServer.close);
+
     const {
       origin: internal_origin,
       start: internal_start,
@@ -108,7 +134,7 @@ export class JsProcessNMM extends NativeMicroModule {
     });
 
     const JS_PROCESS_WORKER_CODE = await this.fetch(
-      parseUrl("/bundle/js-process.worker.js")
+      resolveToRootFile("bundle/js-process.worker.js")
     ).text();
     /**
      * 内部的代码
@@ -138,16 +164,15 @@ export class JsProcessNMM extends NativeMicroModule {
     );
     this._on_shutdown_signal.listen(internal_close);
 
-    const nww = (this.nww = await openNwWindow("../../../js-process.html", {
-      /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
-      show: require.main?.filename.endsWith(".html"),
-    }));
+    const nww = (this.nww = await openNativeWindow(
+      webServer.origin + "/index.html",
+      {
+        /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
+        show: require.main?.filename.endsWith(".html"),
+      }
+    ));
 
-    await new Promise((resolve) => {
-      nww.on("document-end", resolve);
-    });
-
-    const apis = nww.window as $APIS;
+    const apis = nww.getApis<$APIS>();
     /// 创建 web worker
     this.registerCommonIpcOnMessageHanlder({
       method: "POST",
@@ -157,7 +182,8 @@ export class JsProcessNMM extends NativeMicroModule {
       output: "object",
       hanlder: (args, ipc, requestMessage) => {
         return this.createProcessAndRun(
-          { apis, ipc },
+          ipc,
+          apis,
           `${internal_importLinker.origin}/bootstrap.js?mmid=${ipc.remote.mmid}`,
           args.main_pathname,
           requestMessage
@@ -170,8 +196,8 @@ export class JsProcessNMM extends NativeMicroModule {
       matchMode: "full",
       input: { process_id: "number" },
       output: "number",
-      hanlder: (args) => {
-        const port2 = apis.createIpc(args.process_id);
+      hanlder: async (args) => {
+        const port2 = await apis.createIpc(args.process_id);
         return saveNative2JsIpcPort(port2);
       },
     });
@@ -184,10 +210,8 @@ export class JsProcessNMM extends NativeMicroModule {
   }
 
   private async createProcessAndRun(
-    ctx: {
-      apis: $APIS;
-      ipc: Ipc;
-    },
+    ipc: Ipc,
+    apis: Remote<$APIS>,
     bootstrap_url: string,
     main_pathname = "/index.js",
     requestMessage: IpcRequest
@@ -196,13 +220,13 @@ export class JsProcessNMM extends NativeMicroModule {
      * 用自己的域名的权限为它创建一个子域名
      */
     const httpDwebServer = await createHttpDwebServer(this, {
-      subdomain: ctx.ipc.remote.mmid,
+      subdomain: ipc.remote.mmid,
     });
 
     /**
      * 远端是代码服务，所以这里是 client 的身份
      */
-    const streamIpc = new ReadableStreamIpc(ctx.ipc.remote, IPC_ROLE.CLIENT);
+    const streamIpc = new ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT);
     void streamIpc.bindIncomeStream(requestMessage.stream());
 
     /**
@@ -217,9 +241,8 @@ export class JsProcessNMM extends NativeMicroModule {
           matchMode: "prefix",
         },
         async hanlder(url) {
-          debugger;
+          /// TODO 对代码进行翻译处理
           const response = await streamIpc.request(url.href);
-          debugger;
 
           return {
             /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
@@ -238,9 +261,9 @@ export class JsProcessNMM extends NativeMicroModule {
      * 创建一个通往 worker 的消息通道
      */
     const channel_for_worker = new MessageChannel();
-    const processHelper = await ctx.apis.createProcess(
+    const processInfo = await apis.createProcess(
       bootstrap_url,
-      channel_for_worker.port2
+      transfer(channel_for_worker.port2, [channel_for_worker.port2])
     );
 
     /**
@@ -249,13 +272,13 @@ export class JsProcessNMM extends NativeMicroModule {
      */
     const ipc_to_worker = new MessagePortIpc(
       channel_for_worker.port1,
-      ctx.ipc.remote,
+      ipc.remote,
       IPC_ROLE.CLIENT,
       false
     );
     /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
     ipc_to_worker.onRequest(async (ipcMessage, worker_ipc) => {
-      const response = await this.fetch(ipcMessage.url, ipcMessage);
+      const response = await ipc.remote.fetch(ipcMessage.url, ipcMessage);
       worker_ipc.postMessage(
         await IpcResponse.fromResponse(ipcMessage.req_id, response, worker_ipc)
       );
@@ -266,7 +289,7 @@ export class JsProcessNMM extends NativeMicroModule {
     /**
      * 开始执行代码
      */
-    processHelper.runMain({
+    await apis.runProcessMain(processInfo.process_id, {
       main_url: parseUrl(main_pathname, httpDwebServer.origin).href,
     });
 
@@ -276,7 +299,7 @@ export class JsProcessNMM extends NativeMicroModule {
      *
      * > 自己shutdown的时候，这些ipc会被关闭
      */
-    ctx.ipc.onClose(() => {
+    ipc.onClose(() => {
       streamIpc.close();
     });
     /**

@@ -54,4 +54,4 @@ export const main = async () => {
       .text();
   }
 };
-main();
+main().catch(console.error);

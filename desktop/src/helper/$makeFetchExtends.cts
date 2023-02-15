@@ -12,22 +12,30 @@ export const fetchExtends = $makeFetchExtends({
     const text = await this.text();
     return +text;
   },
-  async text() {
+  async ok() {
     const response = await this;
-    return response.text();
+    if (response.status >= 400) {
+      throw response.statusText || (await response.text());
+    } else {
+      return response;
+    }
+  },
+  async text() {
+    const ok = await this.ok();
+    return ok.text();
   },
   async binary() {
-    const response = await this;
-    return response.arrayBuffer();
+    const ok = await this.ok();
+    return ok.arrayBuffer();
   },
   async boolean() {
     const text = await this.text();
     return text === "true"; // JSON.stringify(true)
   },
   async object<T>() {
-    const response = await this;
+    const ok = await this.ok();
     try {
-      return (await response.json()) as T;
+      return (await ok.json()) as T;
     } catch (err) {
       debugger;
       throw err;

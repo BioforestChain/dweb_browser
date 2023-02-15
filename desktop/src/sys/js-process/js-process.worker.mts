@@ -9,7 +9,7 @@ import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.
 import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.cjs";
 import type { $MicroModule, $MMID } from "../../helper/types.cjs";
 import { updateUrlOrigin } from "../../helper/urlHelper.cjs";
-import type { $RunMainConfig } from "./js-process.web.cjs";
+import type { $RunMainConfig } from "./assets/js-process.web.mjs";
 
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
