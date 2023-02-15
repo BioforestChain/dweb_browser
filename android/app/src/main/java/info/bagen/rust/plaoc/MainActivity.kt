@@ -37,6 +37,7 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
+import info.bagen.rust.plaoc.microService.DwebDNS
 import info.bagen.rust.plaoc.microService.global_dns
 import info.bagen.rust.plaoc.microService.network.nativeFetch
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
@@ -107,7 +108,7 @@ class MainActivity : AppCompatActivity() {
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
                         val workerResponse =
-                            nativeFetch("http://localhost:24433/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
+                            global_dns.nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
                         println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
