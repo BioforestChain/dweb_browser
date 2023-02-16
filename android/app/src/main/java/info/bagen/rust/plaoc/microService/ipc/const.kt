@@ -2,21 +2,16 @@ package info.bagen.rust.plaoc.microService.ipc
 
 import com.google.gson.*
 import info.bagen.rust.plaoc.microService.Mmid
+import info.bagen.rust.plaoc.microService.helper.Callback
 import io.netty.handler.codec.http.HttpRequest
 import io.netty.handler.codec.http.HttpResponse
 import java.lang.reflect.Type
 
-typealias OnIpcMessage = (
-/// 这里只会有两种类型的数据
-    message: IpcMessage,
-    ipc: Ipc
-) -> Any
+data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)
+typealias OnIpcMessage = Callback<IpcMessageArgs>
 
-typealias OnIpcRequestMessage = (
-/// 这里只会有两种类型的数据
-    message: IpcRequest,
-    ipc: Ipc
-) -> Any;
+data class IpcRequestMessageArgs(val message: IpcRequest, val ipc: Ipc)
+typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
 enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,
     JsonDeserializer<IPC_DATA_TYPE> {

@@ -15,12 +15,10 @@ data class IpcStreamData(val stream_id: String, val data: Any /*String or ByteAr
     }
 
     val u8a by lazy {
-        if (data is ByteArray) {
-            data
-        } else if (data is String) {
-            data.asBase64()
-        } else {
-            throw Exception("invalid data type")
+        when (data) {
+            is ByteArray -> data
+            is String -> data.asBase64()
+            else -> throw Exception("invalid data type")
         }
     }
 }

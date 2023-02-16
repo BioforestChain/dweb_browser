@@ -72,9 +72,9 @@ class HttpNMM : NativeMicroModule() {
 
             /* 30s 没有任何 body 写入的话，认为网关超时 */
             gateway.listener.hookHttpRequest(call.request, call.response)
-            call.request.origin.apply {
-                println("Request URL: $scheme://$localHost:$localPort$uri")
-            }
+//            call.request.origin.apply {
+//                println("Request URL: $scheme://$localHost:$localPort$uri")
+//            }
         }
     }
 

@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+import info.bagen.rust.plaoc.microService.helper.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.runBlocking
@@ -29,21 +30,17 @@ fun rawDataToBody(rawBody: RawData, ipc: Ipc): Any {
     if (rawBody.type and IPC_RAW_BODY_TYPE.STREAM_ID !== 0) {
         val stream_id = rawBody.data as String;
         val stream = ByteChannel();
-//        stream.writeWhile { block->
-//
-//        }
-//        stream.onReady {
-//            ipc.postMessage(PULL)
-//        }
-        ipc.onMessage { message, ipc ->
-            if (message is IpcStreamData && message.stream_id === stream_id) {
+        ipc.onMessageWithOff { args, off ->
+            if (args.message is IpcStreamData && args.message.stream_id === stream_id) {
                 runBlocking {
                     stream.write {
-                        it.put(message.u8a)
+                        it.put(args.message.u8a)
                     }
                 }
+            } else if (args.message is IpcStreamEnd && args.message.stream_id === stream_id) {
+                stream.close()
+                off()
             }
-//            stream.write (data)
         }
         return stream.toInputStream()
     }
@@ -56,4 +53,5 @@ fun rawDataToBody(rawBody: RawData, ipc: Ipc): Any {
 //                BASE64_STREAM_ID
 //                BINARY_STREAM_ID
 //    }
+    return 1;
 }

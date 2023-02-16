@@ -1,32 +1,38 @@
 package info.bagen.rust.plaoc.microService.helper
 
-import info.bagen.rust.plaoc.microService.ipc.Ipc
+typealias Callback<Args> = (args: Args) -> Unit
+typealias CallbackWithOff<Args> = (args: Args, off: OffListener) -> Unit
 
 
-fun <T:Any> createSignal():Signal<T> {
-    return Signal()
-}
+open class Signal<Args>() {
+    private val _cbs = mutableSetOf<Callback<Args>>();
 
-class Signal<Callback: Any>() {
-    var acc = 0;
-    private val _cbs = mutableMapOf<Number,Callback>();
-    fun listen(cb: Callback): Number {
-        this._cbs[acc++] = cb
-       return acc
+    fun listen(cb: Callback<Args>): OffListener {
+        this._cbs.add(cb)
+        return { off(cb) }
     }
 
-    fun deleteCbs(acc:Number) {
-        this._cbs.remove(acc)
+    fun listenWithOff(cb: CallbackWithOff<Args>) {
+        var off = { false }
+        off = listen { args -> cb(args, off) }
     }
 
-   fun emit(args: IpcMessage?, ipc: Ipc?) {
-       if(args == null || ipc == null) {
-           _cbs.forEach {
-              deleteCbs(it.key)
-           }
-       }
+    fun off(cb: Callback<Args>): Boolean {
+        return _cbs.remove(cb)
+    }
+
+    fun emit(args: Args) {
         for (cb in this._cbs) {
-            cb.let { args }
+            cb(args)
         }
     }
 }
+
+typealias SimpleCallback = Callback<Unit>
+typealias  OffListener = () -> Boolean
+
+class SimpleSignal : Signal<Unit>() {
+    fun emit() {
+        super.emit(null as Unit);
+    }
+};
