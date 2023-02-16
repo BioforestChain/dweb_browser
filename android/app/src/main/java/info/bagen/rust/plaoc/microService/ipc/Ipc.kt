@@ -1,6 +1,10 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+<<<<<<< HEAD
 import info.bagen.rust.plaoc.microService.helper.createSignal
+=======
+import info.bagen.rust.plaoc.microService.ipc.helper.*
+>>>>>>> 3a3c3c6 (🚧 the work for android ipc in procress)
 
 var ipc_uid_acc = 0
 
@@ -16,6 +20,10 @@ abstract class Ipc {
             return IPC_ROLE.SERVER
         }
 
+<<<<<<< HEAD
+=======
+    val _messageSignal = createSignal<ipcSignal>()
+>>>>>>> 3a3c3c6 (🚧 the work for android ipc in procress)
     fun postMessage(message: IpcMessage) {
         if (this._closed) {
             return;
@@ -23,22 +31,28 @@ abstract class Ipc {
         this._doPostMessage(message);
     }
 
+<<<<<<< HEAD
     protected val _messageSignal = createSignal<OnIpcMessage>();
 
     fun onMessage(cb: OnIpcMessage) = _messageSignal.listen(cb)
 
 
+=======
+>>>>>>> 3a3c3c6 (🚧 the work for android ipc in procress)
     abstract fun _doPostMessage(data: IpcMessage): Void;
-    private fun _getOnRequestListener(cb: OnIpcRequestMessage): Int {
-        val signal = createSignal<OnIpcRequestMessage>();
-        this._messageSignal.listen(fun(request, ipc) {
-            if (IPC_DATA_TYPE.REQUEST.equals(request.type)) {
+    private fun _getOnRequestListener(cb: OnIpcRequestMessage): Signal<ipcSignal> {
+        val signal = createSignal<ipcSignal>()
+        this._messageSignal.listen { args ->
+            val request = args[0] as IpcRequest
+            val ipc = args[1]  as Ipc
+            if (IPC_DATA_TYPE.REQUEST == request.type) {
                 signal.emit(request, ipc);
             }
-        })
-        return signal.acc
+        }
+        return signal
     }
 
+<<<<<<< HEAD
     private val _requestSignal by lazy {
         createSignal<OnIpcRequestMessage>().also { signal ->
             _messageSignal.listen(fun(request, ipc) {
@@ -54,19 +68,33 @@ abstract class Ipc {
     }
 
     abstract fun _doClose(): Void;
+=======
+   fun onRequest(cb: OnIpcRequestMessage): Signal<ipcSignal> {
+        return this._getOnRequestListener(cb);
+    }
+    abstract fun _doClose(): Void
+>>>>>>> 3a3c3c6 (🚧 the work for android ipc in procress)
 
-    private var _closed = false;
+    private var _closed = false
     fun close() {
         if (this._closed) {
             return;
         }
         this._closed = true;
         this._doClose();
+<<<<<<< HEAD
         this._closeSignal.emit(null, null);
     }
 
     private val _closeSignal = createSignal<() -> Any>();
     val onClose = this._closeSignal.acc;
+=======
+        this._closeSignal.emit(null,null)
+    }
+    private val _closeSignal = createSignal<ipcSignal>();
+    val onMessage = this._messageSignal
+    val onClose =  this._closeSignal
+>>>>>>> 3a3c3c6 (🚧 the work for android ipc in procress)
 
     private val _reqresMap = mutableMapOf<Number, IpcResponse>();
     private var _req_id_acc = 0;
@@ -93,4 +121,5 @@ abstract class Ipc {
 //        });
     }
 }
+
 
