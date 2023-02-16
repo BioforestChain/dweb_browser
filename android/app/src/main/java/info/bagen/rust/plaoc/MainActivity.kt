@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.content.res.Resources.NotFoundException
 import android.os.Bundle
 import android.provider.MediaStore
@@ -37,19 +36,16 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
-import info.bagen.rust.plaoc.microService.DwebDNS
 import info.bagen.rust.plaoc.microService.global_dns
-import info.bagen.rust.plaoc.microService.ipc.CronetEngineSingleton
-import info.bagen.rust.plaoc.microService.network.nativeFetch
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
 import info.bagen.rust.plaoc.microService.webview.MultiDWebBrowserView
-import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
 import info.bagen.rust.plaoc.system.initSystemFn
 import info.bagen.rust.plaoc.system.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.webView.network.dWebView_host
 import info.bagen.rust.plaoc.webView.openDWebWindow
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -108,15 +104,16 @@ class MainActivity : AppCompatActivity() {
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
-                        val workerResponse =
-                            global_dns.nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
-                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
+                        /// TODO 启动 dns？？，让它启动桌面？
+//                        val workerResponse =
+//                            nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
+//                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                 }
             }
         }
-        global_dns.httpNMM._bootstrap()
+        global_dns.httpNMM.bootstrap()
     }
 
 
@@ -182,7 +179,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         // 退出APP关闭服务
-        global_dns.httpNMM.closeServer()
+//        global_dns.httpNMM.closeServer()
         super.onDestroy()
         unRegisterBFSBroadcastReceiver()
         App.mainActivity = null

@@ -6,20 +6,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import java.net.URLDecoder
 
-/** 启动Boot服务*/
-fun startBootNMM() {
-    val boot = global_dns.nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
-    println("startBootNMM# boot response: $boot")
-}
+abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
 
-open class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
-    override fun _bootstrap(): Any? {
-        TODO("Not yet implemented")
-    }
-
-    override fun _shutdown(): Any {
-        TODO("Not yet implemented")
-    }
 }
 
 typealias Mmid = String;
@@ -31,7 +19,7 @@ typealias NativeOptions = MutableMap<String, String>
 abstract class MicroModule {
     open val mmid: String = ""
     open val routers:Router? = null
-    protected abstract  fun _bootstrap(): Any?
+    protected abstract  fun _bootstrap()
 
     private var running = false;
     private var _bootstrapLock :Mutex? = Mutex()
@@ -66,7 +54,7 @@ abstract class MicroModule {
         this.running = false;
     }
     private var _shutdownLock: Mutex? = null
-    protected abstract fun _shutdown(): Any
+    protected abstract fun _shutdown()
     protected fun afterShutdown() {}
 
     fun shutdown() {

@@ -23,7 +23,7 @@ import info.bagen.rust.plaoc.webkit.AdWebViewState
 
 private const val TAG = "TOPBAR_UI"
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DWebTopBar(
     jsUtil: JsUtil?,
@@ -68,30 +68,31 @@ fun DWebTopBar(
                 }
             }
         },
-        colors = @Stable object : TopAppBarColors {
-            @Composable
-            override fun actionIconContentColor(scrollFraction: Float): State<Color> {
-                return topBarState.foregroundColor
-            }
-
-            @Composable
-            override fun containerColor(scrollFraction: Float): State<Color> {
-//              Log.i(TAG,"backgroundColor:${topBarState.backgroundColor.value}")
-                topBarState.backgroundColor.value =
-                    topBarState.backgroundColor.value.copy(topBarState.alpha.value ?: 1F)
-                return topBarState.backgroundColor
-            }
-
-            @Composable
-            override fun navigationIconContentColor(scrollFraction: Float): State<Color> {
-                return topBarState.foregroundColor
-            }
-
-            @Composable
-            override fun titleContentColor(scrollFraction: Float): State<Color> {
-                return topBarState.foregroundColor
-            }
-        },
+        /// TODO 这里颜色配置不兼容，暂时注释掉了
+//        colors = @Stable object : TopAppBarColors {
+//            @Composable
+//            override fun actionIconContentColor(scrollFraction: Float): State<Color> {
+//                return topBarState.foregroundColor
+//            }
+//
+//            @Composable
+//            override fun containerColor(scrollFraction: Float): State<Color> {
+////              Log.i(TAG,"backgroundColor:${topBarState.backgroundColor.value}")
+//                topBarState.backgroundColor.value =
+//                    topBarState.backgroundColor.value.copy(topBarState.alpha.value ?: 1F)
+//                return topBarState.backgroundColor
+//            }
+//
+//            @Composable
+//            override fun navigationIconContentColor(scrollFraction: Float): State<Color> {
+//                return topBarState.foregroundColor
+//            }
+//
+//            @Composable
+//            override fun titleContentColor(scrollFraction: Float): State<Color> {
+//                return topBarState.foregroundColor
+//            }
+//        },
         modifier = Modifier
 //                .graphicsLayer(
 //                    renderEffect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) createBlurEffect(

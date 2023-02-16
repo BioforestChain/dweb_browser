@@ -4,7 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import org.junit.Test
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 
@@ -45,18 +44,18 @@ class ReadableStream {
 
 }
 
-@Test
-suspend fun testReadableStream() {
-    val stream = ReadableStream()
-    stream.postMessage(ByteArray(100))
-    val (bytes,next) =  stream.onMessage()
-   while (next) {
-       println("testReadableStream ==> $bytes")
-   }
-}
-
-fun main() {
-    runBlocking {
-        testReadableStream()
-    }
-}
+//@Test
+//suspend fun testReadableStream() {
+//    val stream = ReadableStream()
+//    stream.postMessage(ByteArray(100))
+//    val (bytes,next) =  stream.onMessage()
+//   while (next) {
+//       println("testReadableStream ==> $bytes")
+//   }
+//}
+//
+//fun main() {
+//    runBlocking {
+//        testReadableStream()
+//    }
+//}

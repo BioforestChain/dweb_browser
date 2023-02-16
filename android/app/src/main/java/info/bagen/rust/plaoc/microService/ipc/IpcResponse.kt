@@ -90,7 +90,22 @@ data class IpcResponse(
             streamAsRawData(stream_id, stream, ipc);
             return ipcResponse;
         }
+
+        fun fromResponse(
+            req_id: Number,
+            response: Response,
+            ipc: Ipc
+        ): IpcResponse {
+            return fromStream(
+                req_id,
+                response.status.code,
+                response.body.stream,
+                IpcHeaders.from(response.headers),
+                ipc
+            )
+        }
     }
+
 
     suspend fun asResponse(): Response {
         return Response(Status(this.statusCode, null))

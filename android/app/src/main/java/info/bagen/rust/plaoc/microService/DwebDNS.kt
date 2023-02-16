@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.microService
 
-import android.net.Uri
-import info.bagen.rust.plaoc.microService.network.fetchAdaptor
+import info.bagen.rust.plaoc.microService.network.*
 
 typealias Domain = String;
 // 声明全局dns
@@ -23,30 +22,15 @@ class DwebDNS : NativeMicroModule() {
         dnsTables["localhost.sys.dweb"] = httpNMM
         dnsTables["dns.sys.dweb"] = this
 
-        fetchAdaptor = { url ->
-            url
-        }
-    }
-
-    /** 转发dns到各个微组件
-     *  file://
-     *  */
-    fun nativeFetch(url: String): Any? {
-        Uri.parse(url)?.let { uri ->
-            val mmid = uri.host
-            println("kotlin#nativeFetch mmid==> $mmid routerTarget==> ${uri.path}")
-            // 看看有没有匹配到mmid
-            if (dnsTables.containsKey(mmid)) {
-                // 有没有传递路由
-                uri.path?.let { router ->
-                    return dnsTables[mmid]?.routers?.get(router)
-                        ?.let { it(uri.queryParameterByMap()) }
+        fetchAdaptor = { remote, request ->
+            if (request.uri.scheme === "file:" && request.uri.host.endsWith(".dweb")) {
+                val mmid = request.uri.host
+                dnsTables[mmid]?.let { mm ->
+                    null
                 }
-                return "Error not found routerTarget"
             }
-            return "Error not found $mmid domain"
+            null
         }
-        return "Error url not parse to uri => $url"
     }
 
     fun add(mmid: Mmid, microModule: MicroModule): Boolean {
@@ -59,6 +43,17 @@ class DwebDNS : NativeMicroModule() {
             return dnsTables.remove(mmid)!!.mmid
         }
         return "false"
+    }
+
+    override fun _bootstrap() {
+        val boot = nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
+        println("startBootNMM# boot response: $boot")
+    }
+
+    override fun _shutdown() {
+        dnsTables.forEach {
+            it.value.shutdown()
+        }
     }
 }
 

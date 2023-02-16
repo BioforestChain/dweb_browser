@@ -2,10 +2,10 @@ package info.bagen.rust.plaoc.webView.bottombar
 
 
 import android.util.Log
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -122,54 +122,27 @@ data class BottomBarAction(
 
         @Composable
         fun toNavigationBarItemColors(): NavigationBarItemColors {
-            val defaultColors = NavigationBarItemDefaults.colors()
+            val defaultIndicatorColor = MaterialTheme.colorScheme.secondary
+            val defaultTextColor = MaterialTheme.colorScheme.surfaceVariant
             // indicatorColor 无法控制透明度
             val indicatorColor = indicatorColor?.let { hexToIntColor(it).toComposeColor() }
-                ?: defaultColors.indicatorColor
-            val iconColor =
-                ColorState(iconColor?.let { hexToIntColor(it).toComposeColor() }
-                    ?: defaultColors.iconColor(false).value)
-            val iconColorSelected = ColorState(
-                iconColorSelected?.let { hexToIntColor(it).toComposeColor() }
-                    ?: defaultColors.indicatorColor
+                ?: defaultIndicatorColor
+            val iconColor = iconColor?.let { hexToIntColor(it).toComposeColor() }
+                ?: defaultTextColor
+            val iconColorSelected = iconColorSelected?.let { hexToIntColor(it).toComposeColor() }
+                ?: defaultIndicatorColor
+            val textColor = textColor?.let { hexToIntColor(it).toComposeColor() }
+                ?: defaultTextColor
+            val textColorSelected = textColorSelected?.let { hexToIntColor(it).toComposeColor() }
+                ?: defaultIndicatorColor
+
+            return NavigationBarItemDefaults.colors(
+                iconColorSelected,
+                textColorSelected,
+                indicatorColor,
+                iconColor,
+                textColor
             )
-            val textColor =
-                ColorState(textColor?.let { hexToIntColor(it).toComposeColor() }
-                    ?: defaultColors.textColor(false).value)
-            val textColorSelected = ColorState(
-                textColorSelected?.let { hexToIntColor(it).toComposeColor() }
-                    ?: defaultColors.indicatorColor
-            )
-
-            val colors = @Stable object : NavigationBarItemColors {
-                override val indicatorColor: Color
-                    @Composable get() = indicatorColor
-
-                /**
-                 * 表示该项的图标颜色，取决于它是否被[选中]。
-                 *
-                 * @param selected 项目是否被选中
-                 */
-                @Composable
-                override fun iconColor(selected: Boolean) = if (selected) {
-                    iconColorSelected
-                } else {
-                    iconColor
-                }
-
-                /**
-                 * 表示该项的文本颜色，取决于它是否被[选中]。
-                 *
-                 * @param selected 项目是否被选中
-                 */
-                @Composable
-                override fun textColor(selected: Boolean) = if (selected) {
-                    textColorSelected
-                } else {
-                    textColor
-                }
-            }
-            return colors
         }
     }
 

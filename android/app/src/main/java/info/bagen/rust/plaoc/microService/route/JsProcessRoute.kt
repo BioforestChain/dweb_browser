@@ -16,9 +16,9 @@ fun Route.jsProcessRoute() {
                 errorMessage = "not found request param port"
             ))
         }
-        println("https.sys.dweb#listen:$port,${Origin(global_dns.httpNMM.createListen(port))}")
-
-        call.respondText(global_dns.httpNMM.createListen(port))
+//        println("https.sys.dweb#listen:$port,${Origin(global_dns.httpNMM.createListen(port))}")
+//
+//        call.respondText(global_dns.httpNMM.createListen(port))
 //          return@get call.respond(Origin(httpNMM.createListen(port)))
     }
     get("/create-process") {

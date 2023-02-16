@@ -2,13 +2,9 @@ package info.bagen.rust.plaoc.microService
 
 import info.bagen.rust.plaoc.openHomeActivity
 
-class BootNMM : NativeMicroModule() {
-    override val mmid: Mmid = "boot.sys.dweb"
+class BootNMM : NativeMicroModule("boot.sys.dweb") {
     override val routers: Router = mutableMapOf()
-    private val hookBootApp = mutableMapOf<Mmid,AppRun>()
-    private val registeredMmids = mutableSetOf<Mmid>()
-
-    init {
+    override fun _bootstrap() {
         // 注册路由
         routers["/open"] = put@{ options->
             val origin = options["origin"]
@@ -29,6 +25,14 @@ class BootNMM : NativeMicroModule() {
         // 初始化启动一个桌面系统程序
         registeredMmids.add("desktop.bfs.dweb")
     }
+
+    override fun _shutdown() {
+        routers.clear()
+    }
+
+    private val hookBootApp = mutableMapOf<Mmid,AppRun>()
+    private val registeredMmids = mutableSetOf<Mmid>()
+
     // 打开一个boot程序
     fun open(origin:String,options:NativeOptions):Any {
         // 如果已经注册了该boot app

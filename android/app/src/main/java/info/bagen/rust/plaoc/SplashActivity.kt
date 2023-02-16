@@ -26,7 +26,6 @@ import info.bagen.libappmgr.ui.splash.SplashPrivacyDialog
 import info.bagen.libappmgr.utils.KEY_APP_FIRST_LOAD
 import info.bagen.libappmgr.utils.getBoolean
 import info.bagen.libappmgr.utils.saveBoolean
-import info.bagen.rust.plaoc.microService.startBootNMM
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.DWebViewActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
@@ -53,7 +52,7 @@ class SplashActivity : AppCompatActivity() {
 
             }
         } else {
-            startBootNMM()
+            /// TODO 这里启动 DNS？
             App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
             finish()
         }
