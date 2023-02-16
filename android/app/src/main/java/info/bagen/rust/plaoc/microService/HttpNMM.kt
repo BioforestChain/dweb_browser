@@ -9,12 +9,9 @@ import info.bagen.rust.plaoc.microService.route.jsProcessRoute
 import info.bagen.rust.plaoc.microService.route.webViewRoute
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.*
 
-@Serializable
 data class Origin(val origin: String)
 
 

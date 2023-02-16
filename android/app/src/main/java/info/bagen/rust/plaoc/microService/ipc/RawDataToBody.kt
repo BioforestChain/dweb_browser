@@ -2,13 +2,11 @@ package info.bagen.rust.plaoc.microService.ipc
 
 import android.content.res.Resources.NotFoundException
 import info.bagen.rust.plaoc.microService.ipc.helper.IPC_DATA_TYPE
-import info.bagen.rust.plaoc.microService.ipc.helper.IpcMessage
-import java.io.InputStream
 
 typealias Uint8Array = ByteArray
 
 class RawDataToBody(val rawBody: RawData, var ipc: Ipc?) {
-    var body: Any? = null
+    var body: ByteArray? = null
     val rawBodyType = rawBody.type
     val bodyEncoder = when (rawBody) {
         IPC_RAW_BODY_TYPE.TEXT -> textFactory()
@@ -24,19 +22,28 @@ class RawDataToBody(val rawBody: RawData, var ipc: Ipc?) {
         if (ipc == null) {
             throw  Error("miss ipc when ipc-response has stream-body");
         }
-        val streamIpc = ipc!!;
+        val streamIpc = ipc!!
         val streamId = rawBody.value
-
-        streamIpc.onMessage.listen { args ->
+        var isClose = false
+        val off = streamIpc.onMessage.listen { args ->
             val message = args[0] as IpcStreamData
             if (message.stream_id.isNotEmpty() && message.stream_id == streamId) {
                 if (message.type == IPC_DATA_TYPE.STREAM_DATA) {
+                    if (message.data === "string") {
 
+                    }
                 } else if (message.type === IPC_DATA_TYPE.STREAM_END) {
-
+                    body?.clone()
+                    isClose = true
                 }
             }
         }
+        // 关闭流操作
+        if (isClose) {
+            off()
+            isClose = false
+        }
+
     }
 
     /** 处理 binary*/
