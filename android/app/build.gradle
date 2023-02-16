@@ -71,6 +71,10 @@ android {
 }
 
 dependencies {
+  implementation platform("org.http4k:http4k-bom:4.39.0.0")
+  implementation "org.http4k:http4k-core"
+  implementation "org.http4k:http4k-server-undertow"
+  implementation "org.http4k:http4k-client-apache"
   implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.10")
   implementation("androidx.core:core-ktx:1.8.0")
   implementation("androidx.appcompat:appcompat:1.5.0")
@@ -79,6 +83,7 @@ dependencies {
   implementation("androidx.navigation:navigation-ui-ktx:2.5.1")
   implementation("androidx.gridlayout:gridlayout:1.0.0")
   implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
+  implementation 'org.chromium.net:cronet-api:76.3809.111'
 //    implementation project(path: ":writeintercept")
   testImplementation("junit:junit:")
   androidTestImplementation("androidx.test.ext:junit:1.1.3")

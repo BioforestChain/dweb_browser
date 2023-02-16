@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.ipc.helder
+package info.bagen.rust.plaoc.microService.helper
 
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 

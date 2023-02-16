@@ -11,6 +11,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import kotlinx.coroutines.runBlocking
+
 val apiService = HttpClient(CIO) {
     install(ContentNegotiation) { // 引入数据转换插件
         gson()
@@ -27,14 +28,15 @@ val apiService = HttpClient(CIO) {
     }
 }
 
-fun nativeFetch(url: String): HttpResponse {
-    var response: HttpResponse
-    runBlocking {
-         response = apiService.request(url) {
-             method = HttpMethod.Get
+var fetchAdaptor: ((url: String) -> HttpResponse?)? = null
+
+fun nativeFetch(url: String) {
+    fetchAdaptor?.let { it(url) } ?: runBlocking {
+        val response = apiService.request(url) {
+            method = HttpMethod.Get
         }
         println("NativeFetch response:$response")
+        response
     }
-    return response
 }
 

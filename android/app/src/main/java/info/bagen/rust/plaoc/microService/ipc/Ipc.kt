@@ -1,22 +1,33 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.ipc.helder.*
+import info.bagen.rust.plaoc.microService.helper.createSignal
 
 var ipc_uid_acc = 0
 
 abstract class Ipc {
     abstract val supportMessagePack: Boolean
     val uid = ipc_uid_acc++
-    val remote:TMicroModule  get() { return  TMicroModule() }
-    val role: IPC_ROLE get() { return IPC_ROLE.SERVER }
+    val remote: TMicroModule
+        get() {
+            return TMicroModule()
+        }
+    val role: IPC_ROLE
+        get() {
+            return IPC_ROLE.SERVER
+        }
 
-    protected val _messageSignal = createSignal<OnIpcMessage>();
     fun postMessage(message: IpcMessage) {
         if (this._closed) {
             return;
         }
         this._doPostMessage(message);
     }
+
+    protected val _messageSignal = createSignal<OnIpcMessage>();
+
+    fun onMessage(cb: OnIpcMessage) = _messageSignal.listen(cb)
+
+
     abstract fun _doPostMessage(data: IpcMessage): Void;
     private fun _getOnRequestListener(cb: OnIpcRequestMessage): Int {
         val signal = createSignal<OnIpcRequestMessage>();
@@ -28,9 +39,20 @@ abstract class Ipc {
         return signal.acc
     }
 
-   fun onRequest(cb: OnIpcRequestMessage): Int {
+    private val _requestSignal by lazy {
+        createSignal<OnIpcRequestMessage>().also { signal ->
+            _messageSignal.listen(fun(request, ipc) {
+                if (IPC_DATA_TYPE.REQUEST.equals(request.type)) {
+                    signal.emit(request, ipc);
+                }
+            })
+        }
+    }
+
+    fun onRequest(cb: OnIpcRequestMessage): Int {
         return this._getOnRequestListener(cb);
     }
+
     abstract fun _doClose(): Void;
 
     private var _closed = false;
@@ -40,8 +62,9 @@ abstract class Ipc {
         }
         this._closed = true;
         this._doClose();
-        this._closeSignal.emit(null,null);
+        this._closeSignal.emit(null, null);
     }
+
     private val _closeSignal = createSignal<() -> Any>();
     val onClose = this._closeSignal.acc;
 

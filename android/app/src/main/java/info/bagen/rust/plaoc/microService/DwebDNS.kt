@@ -1,11 +1,12 @@
 package info.bagen.rust.plaoc.microService
 
 import android.net.Uri
+import info.bagen.rust.plaoc.microService.network.fetchAdaptor
 
 typealias Domain = String;
 // 声明全局dns
 
-val global_dns= DwebDNS()
+val global_dns = DwebDNS()
 
 class DwebDNS : NativeMicroModule() {
     private val dnsTables = mutableMapOf<Domain, MicroModule>()
@@ -21,6 +22,10 @@ class DwebDNS : NativeMicroModule() {
         dnsTables["js.sys.dweb"] = jsMicroModule
         dnsTables["localhost.sys.dweb"] = httpNMM
         dnsTables["dns.sys.dweb"] = this
+
+        fetchAdaptor = { url ->
+            url
+        }
     }
 
     /** 转发dns到各个微组件
@@ -34,7 +39,8 @@ class DwebDNS : NativeMicroModule() {
             if (dnsTables.containsKey(mmid)) {
                 // 有没有传递路由
                 uri.path?.let { router ->
-                    return dnsTables[mmid]?.routers?.get(router)?.let { it(uri.queryParameterByMap()) }
+                    return dnsTables[mmid]?.routers?.get(router)
+                        ?.let { it(uri.queryParameterByMap()) }
                 }
                 return "Error not found routerTarget"
             }

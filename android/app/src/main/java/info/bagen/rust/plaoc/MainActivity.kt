@@ -39,6 +39,7 @@ import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.DwebDNS
 import info.bagen.rust.plaoc.microService.global_dns
+import info.bagen.rust.plaoc.microService.ipc.CronetEngineSingleton
 import info.bagen.rust.plaoc.microService.network.nativeFetch
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
