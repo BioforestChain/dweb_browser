@@ -192,7 +192,7 @@ private fun SplashPrivacyView(
 
         val annotatedString = buildAnnotatedString {
             append(stringResource(id = R.string.privacy_content_1))
-            pushStringAnnotation("ysxy", "https://www.bagen.info/privacy_policy.html")
+            pushStringAnnotation("ysxy", "https://www.bagen.info/dweb_privacy_policy.html")
             withStyle(
                 SpanStyle(
                     color = Color.Black, fontWeight = FontWeight.Bold
