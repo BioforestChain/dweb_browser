@@ -1,16 +1,18 @@
 package info.bagen.rust.plaoc.microService
 
-import android.os.Build
 import info.bagen.rust.plaoc.microService.helper.DefaultErrorResponse
 import info.bagen.rust.plaoc.microService.network.Http1Server
 import info.bagen.rust.plaoc.microService.network.Http1Server.Companion.PORT
 import info.bagen.rust.plaoc.microService.network.PortListener
+import org.http4k.core.Filter
+import org.http4k.core.Response
+import org.http4k.core.Status
+import org.http4k.lens.Path
+import org.http4k.routing.RoutingSseHandler
+import org.http4k.routing.bind
+import org.http4k.routing.sse
+import org.http4k.sse.*
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import org.http4k.routing.RoutingHttpHandler
 
 data class Origin(val origin: String)
 
@@ -19,10 +21,7 @@ class Gateway(
     val listener: PortListener,
     val host: String,
     val token: String
-) {
-
-}
-
+)
 class HttpNMM() : NativeMicroModule() {
     override val mmid: String = "http.sys.dweb"
     private val http1Server = Http1Server()
@@ -47,37 +46,65 @@ class HttpNMM() : NativeMicroModule() {
      * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
      * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
      */
-    private val requestHookPlugin = createApplicationPlugin(name = "RequestHookPlugin") {
-        onCall { call ->
-            var host = call.request.headers["X-Dweb-Host"]
-                ?: call.request.headers["User-Agent"]?.let { user_agent ->
-                    Regex("""\sdweb-host/(.+?)\s""").find(user_agent)?.let { matchResult ->
-                        matchResult.groupValues[1]
-                    }
-                } ?: call.request.headers["Host"] ?: "*";
-            /// 如果没有端口，补全端口
-            if (host.contains(":") === false) {
-                host += ":" + Http1Server.PORT;
-            }
-
-            /// 在网关中寻址能够处理该 host 的监听者
-            val gateway = gatewayMap[host]
-                ?: return@onCall call.respond(
-                    DefaultErrorResponse(
-                        502,
-                        "Bad Gateway",
-                        "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
-                    )
-                );
-
-            /* 30s 没有任何 body 写入的话，认为网关超时 */
-            gateway.listener.hookHttpRequest(call.request, call.response)
+    // a filter allows us to intercept the call to the sse and do logging etc...
+    val sayHello = SseFilter { next ->
+        {
+            println("Hello from the sse!")
+            next(it)
         }
     }
+    val namePath = Path.of("name")
+    val sse: RoutingSseHandler = sayHello.then(
+        sse(
+            "/{name}" bind { sse: Sse ->
+                val name = namePath(sse.connectRequest)
+                sse.send(SseMessage.Data("hello"))
+                sse.onClose { println("$name is closing") }
+            }
+        )
+    )
+
+    // 创建过滤
+    val setContentType = Filter { nextHandler ->
+        { request ->
+            var host = "*"
+            request.headers.forEach { (key, value) ->
+                when (key) {
+                    "X-Dweb-Host" -> {
+                        value?.let {
+                            host = it
+                        }
+                    }
+                    "User-Agent" -> {
+                        value?.let { user_agent ->
+                            Regex("""\sdweb-host/(.+?)\s""").find(user_agent)?.let { matchResult ->
+                                println("headers#router User-Agent ====> ${matchResult.groupValues[1]}")
+                                host = matchResult.groupValues[1]
+                            }
+                        }
+                    }
+                }
+            }
+            /// 如果没有端口，补全端口
+            if (!host.contains(":")) {
+                host += ":" + Http1Server.PORT;
+            }
+            /** 30s 没有任何 body 写入的话，认为网关超时 */
+            val gateway = gatewayMap[host]
+            if (gateway == null) {
+                Response(Status.BAD_GATEWAY).body("作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应")
+            } else {
+//                gateway.listener.hookHttpRequest(request)
+            }
+            nextHandler(request)
+        }
+    }
+    /// 在网关中寻址能够处理该 host 的监听者
 
 
     public override fun _bootstrap() {
         // 启动http后端服务
+        http1Server.createServer(sse)
     }
 
     private fun getHost(port: String): String {

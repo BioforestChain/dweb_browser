@@ -9,6 +9,8 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import org.http4k.server.Netty
+import org.http4k.server.asServer
 
 
 typealias Domain = String;
@@ -69,7 +71,6 @@ class DwebDNS() : NativeMicroModule() {
 //                true
 //            }
         )
-
         /// 启动 boot 模块
         runBlocking {
             open("boot.sys.dweb")

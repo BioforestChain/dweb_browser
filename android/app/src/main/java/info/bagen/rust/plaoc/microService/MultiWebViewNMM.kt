@@ -11,14 +11,14 @@ class MultiWebViewNMM : NativeMicroModule() {
     override fun _bootstrap() {
         // 打开webview
         apiRouting
-        routers["/open"] = put@{ options ->
-            val origin = options["origin"] ?: return@put "Error not Found param origin"
-            val processId = options["processId"]
-            return@put openDwebView(origin, processId)
-        }
-        routers["/evalJavascript"] = put@{
-            return@put true
-        }
+//        routers["/open"] = put@{ options ->
+//            val origin = options["origin"] ?: return@put "Error not Found param origin"
+//            val processId = options["processId"]
+//            return@put openDwebView(origin, processId)
+//        }
+//        routers["/evalJavascript"] = put@{
+//            return@put true
+//        }
     }
 
     override fun _shutdown() {
