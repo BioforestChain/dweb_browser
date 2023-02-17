@@ -97,6 +97,9 @@ export class MultiWebviewNMM extends NativeMicroModule {
         });
         nww.maximize();
 
+        // 打开 开发工具
+        nww.webContents.openDevTools()
+
         const apis = nww.getApis<$APIS>();
         this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));
       }

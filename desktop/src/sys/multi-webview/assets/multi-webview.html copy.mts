@@ -10,13 +10,7 @@ import {
   mainApis,
 } from "../../../helper/openNativeWindow.preload.mjs";
 import { Webview } from "./multi-webview.mjs"
-import { MultiWebViewContent } from "./multi-webview-content.html.mjs"
-import "./multi-webview-devtools.html.mjs"
 import WebviewTag = Electron.WebviewTag;
-import type { 
-  CustomEventDomReadyDetail,
-  CustomEventAnimationendDetail
-} from "./multi-webview-content.html.mjs"
 
 @customElement("view-tree")
 export class ViewTree extends LitElement {
@@ -270,7 +264,6 @@ export class ViewTree extends LitElement {
 
   private async onWebviewReady(webview: Webview, ele: WebviewTag) {
     webview.webContentId = ele.getWebContentsId();
-    console.log('-开支执行doReady')
     webview.doReady(ele);
     mainApis.denyWindowOpenHandler(
       webview.webContentId,
@@ -296,7 +289,6 @@ export class ViewTree extends LitElement {
       return;
     }
     webview.webContentId_devTools = ele_devTool.getWebContentsId();
-    console.log(" webview.webContentId_devTools: ",  webview.webContentId_devTools)
     await mainApis.openDevTools(
       webview.webContentId,
       undefined,
@@ -316,26 +308,42 @@ export class ViewTree extends LitElement {
           this.webviews,
           (dialog) => dialog.id,
           (webview) => {
-            console.log('content - webview:', webview)
             return html`
-              <multi-webview-content
-                .customWebview=${webview}
-                .closing=${webview.closing}
-                .zIndex=${webview.state.zIndex}
-                .scale=${webview.state.scale}
-                .opacity=${webview.state.opacity}
-                .customWebviewId=${webview.id}
-                .src=${webview.src}
-                @animationend=${(event: CustomEvent<CustomEventAnimationendDetail>) => {
-                   if (event.detail.event.animationName === "slideOut" && event.detail.customWebview.closing) {
-                    this._removeWebview(webview);
-                  }
-                }} 
-                @dom-ready=${(event: CustomEvent<CustomEventDomReadyDetail>) => {
-                  console.log('内容准备完毕')
-                  this.onWebviewReady(webview, event.detail.event.target as WebviewTag);
-                }}
-              ></multi-webview-content>
+              <!-- 模拟移动端边框 -->
+              <!-- <div
+                class="webview-container ${webview.closing
+                  ? `closing`
+                  : `opening`}"
+                style=${styleMap({
+                  "--z-index": webview.state.zIndex + "",
+                  "--scale": webview.state.scale + "",
+                  "--opacity": webview.state.opacity + "",
+                })}
+              > -->
+              <div class="webview-container  ani-view ${webview.closing ? `closing` : `opening`}">
+                <div class="webview-statusbar">
+                  状态栏
+                </div>
+                <!-- ani-view 动画效果 需要放在容器出 容器包含了 webview 和 状态栏 -->
+                <!-- <div class="webview-content"> -->
+                  <webview
+                    id="view-${webview.id}"
+                    class="webview ani-view"
+                    src=${webview.src}
+                    partition="trusted"
+                    allownw
+                    allowpopups
+                    @animationend=${(event: AnimationEvent) => {
+                      if (event.animationName === "slideOut" && webview.closing) {
+                        this._removeWebview(webview);
+                      }
+                    }}
+                    @dom-ready=${(event: Event & { target: WebviewTag }) => {
+                      this.onWebviewReady(webview, event.target);
+                    }}
+                  ></webview>
+                <!-- </div> -->
+              </div>
             `;
           }
         )}
@@ -346,19 +354,37 @@ export class ViewTree extends LitElement {
           (dialog) => dialog.id,
           (webview) => {
             return html`
-              <multi-webview-devtools
-                .customWebview=${webview}
-                .closing=${webview.closing}
-                .zIndex=${webview.state.zIndex}
-                .scale=${webview.state.scale}
-                .opacity=${webview.state.opacity}
-                .customWebviewId=${webview.id}
-                @dom-ready=${(event: CustomEvent & { target: WebviewTag }) => {
-                  this.onDevtoolReady(webview, event.detail.event.target as WebviewTag);
-                }}
-                @destroy-webview=${() =>this.destroyWebview(webview)}
-              ></multi-webview-devtools>
-            `
+              <div
+                class="devtool-container ${webview.closing
+                  ? `closing`
+                  : `opening`}"
+                style=${styleMap({
+                  "--z-index": webview.state.zIndex + "",
+                  "--scale": webview.state.scale + "",
+                  "--opacity": webview.state.opacity + "",
+                })}
+              >
+                <fieldset class="toolbar" .disabled=${webview.closing}>
+                  <button
+                    @click=${() => {
+                      this.destroyWebview(webview);
+                    }}
+                  >
+                    销毁Webview
+                  </button>
+                </fieldset>
+                <webview
+                  id="tool-${webview.id}"
+                  class="devtool ani-view"
+                  src="about:blank"
+                  partition="trusted"
+                  @dom-ready=${(event: Event & { target: WebviewTag }) => {
+                    console.log("DevtoolReady", event.target);
+                    this.onDevtoolReady(webview, event.target);
+                  }}
+                ></webview>
+              </div>
+            `;
           }
         )}
       </div>
