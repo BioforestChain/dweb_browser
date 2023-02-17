@@ -11,7 +11,7 @@ console.log("ookkkkk, i'm in worker");
 export const main = async () => {
   debugger;
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
-  const { origin, start } = await createHttpDwebServer(jsProcess, {});
+  const { origin, listen: start } = await createHttpDwebServer(jsProcess, {});
   (await start()).onRequest(async (request, httpServerIpc) => {
     if (
       request.parsed_url.pathname === "/" ||

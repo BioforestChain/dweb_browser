@@ -1,17 +1,24 @@
 package info.bagen.rust.plaoc.microService
 
-import info.bagen.rust.plaoc.microService.helper.DefaultErrorResponse
+import info.bagen.rust.plaoc.microService.helper.boolean
+import info.bagen.rust.plaoc.microService.helper.json
+import info.bagen.rust.plaoc.microService.helper.stream
+import info.bagen.rust.plaoc.microService.helper.suspendOnce
+import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
+import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.network.Http1Server
 import info.bagen.rust.plaoc.microService.network.Http1Server.Companion.PORT
 import info.bagen.rust.plaoc.microService.network.PortListener
-import org.http4k.core.Filter
-import org.http4k.core.Response
-import org.http4k.core.Status
+import info.bagen.rust.plaoc.microService.network.nativeFetch
+import org.http4k.core.*
 import org.http4k.lens.Path
 import org.http4k.routing.RoutingSseHandler
 import org.http4k.routing.bind
 import org.http4k.routing.sse
-import org.http4k.sse.*
+import org.http4k.sse.Sse
+import org.http4k.sse.SseFilter
+import org.http4k.sse.SseMessage
+import org.http4k.sse.then
 
 
 data class Origin(val origin: String)
@@ -22,9 +29,13 @@ class Gateway(
     val host: String,
     val token: String
 )
-class HttpNMM() : NativeMicroModule() {
-    override val mmid: String = "http.sys.dweb"
-    private val http1Server = Http1Server()
+
+class HttpNMM() : NativeMicroModule("http.sys.dweb") {
+    companion object {
+        val DwebServer = Http1Server;
+        val dwebServer = Http1Server()
+    }
+
 
     /// 注册的域名与对应的 token
     val tokenMap = mutableMapOf</* token */ String, Gateway>();
@@ -102,19 +113,66 @@ class HttpNMM() : NativeMicroModule() {
     /// 在网关中寻址能够处理该 host 的监听者
 
 
-    public override fun _bootstrap() {
+    public override suspend fun _bootstrap() {
         // 启动http后端服务
-        http1Server.createServer(sse)
+        dwebServer.createServer(sse)
     }
 
     private fun getHost(port: String): String {
         return "http://internal.js.sys.dweb-$port.localhost:${PORT}/js-process";
     }
 
-    public override fun _shutdown() {
-        http1Server.closeServer()
+    public override suspend fun _shutdown() {
+        dwebServer.closeServer()
     }
 }
 
 
+/// 对外提供一套建议的操作来创建、使用、维护这个http服务
+
+data class DwebServerOptions(
+    val port: Int = HttpNMM.DwebServer.PORT,
+    val subdomain: String = ""
+)
+
+data class HttpDwebServerInfo(
+    val origin: String,
+    val token: String
+)
+
+suspend fun NativeMicroModule.startHttpDwebServer(options: DwebServerOptions) =
+    this.nativeFetch(
+        Uri.of("file://http.sys.dweb/start")
+            .query("port", options.port.toString())
+            .query("subdomain", options.subdomain)
+    ).json<HttpDwebServerInfo>(HttpDwebServerInfo::class.java)
+
+
+suspend fun NativeMicroModule.listenHttpDwebServer(token: String) =
+    ReadableStreamIpc(this, IPC_ROLE.CLIENT).also {
+        it.bindIncomeStream(
+            this.nativeFetch(
+                Uri.of("file://http.sys.dweb/listen")
+                    .query("token", token)
+            ).stream()
+        )
+    }
+
+
+suspend fun NativeMicroModule.closeHttpDwebServer(options: DwebServerOptions) =
+    this.nativeFetch(
+        Uri.of("file://http.sys.dweb/close")
+            .query("port", options.port.toString())
+            .query("subdomain", options.subdomain)
+    ).boolean()
+
+class HttpDwebServer(private val nmm: NativeMicroModule, private val options: DwebServerOptions) {
+
+    val start = suspendOnce { nmm.startHttpDwebServer(options) }
+    val listen = suspendOnce { nmm.listenHttpDwebServer(start().token) }
+    val close = suspendOnce { nmm.closeHttpDwebServer(options) }
+}
+
+suspend fun NativeMicroModule.createHttpDwebServer(options: DwebServerOptions) =
+    HttpDwebServer(this, options).also { it.start() }
 

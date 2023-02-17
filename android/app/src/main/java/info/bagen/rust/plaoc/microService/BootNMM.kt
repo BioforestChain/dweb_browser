@@ -12,10 +12,7 @@ import kotlin.collections.set
 
 class BootNMM : NativeMicroModule("boot.sys.dweb") {
     override val routers: Router = mutableMapOf()
-    override fun _bootstrap() {
-        initBootApp()
-        registeredMmids.add("desktop.bfs.dweb")
-
+    override suspend fun _bootstrap() {
         apiRouting = routes(
             "/register" bind Method.GET to defineHandler { _, ipc ->
                 register(ipc.remote.mmid)
@@ -33,13 +30,12 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
 
     }
 
-    override fun _shutdown() {
+    override suspend fun _shutdown() {
         routers.clear()
     }
 
-    private val hookBootApp = mutableMapOf<Mmid, AppRun>()
-
     /**
+     * 开机启动项注册表
      * TODO 这里需要从数据库中读取
      */
     private val registeredMmids = mutableSetOf<Mmid>(
@@ -58,11 +54,4 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
      * TODO 这里应该有用户授权，取消开机启动
      */
     private fun unregister(mmid: Mmid) = this.registeredMmids.remove(mmid);
-
-
-    private fun initBootApp() {
-        hookBootApp["desktop.bfs.dweb"] = {
-            openHomeActivity()
-        }
-    }
 }

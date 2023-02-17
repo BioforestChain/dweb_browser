@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService
 
 import android.net.Uri
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.SimpleSignal
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -18,22 +19,22 @@ typealias NativeOptions = MutableMap<String, String>
 abstract class MicroModule {
     open val mmid: Mmid = ""
     open val routers: Router? = null
-    protected abstract fun _bootstrap()
+    protected abstract suspend fun _bootstrap()
 
     private var running = false;
     private var _bootstrapLock: Mutex? = Mutex()
 
-    private fun beforeBootstrap() {
+    private suspend fun beforeBootstrap() {
         if (this.running) {
             throw  Error("module ${this.mmid} already running");
         }
         this.running = true;
     }
 
-    protected fun afterBootstrap() {
+    protected suspend fun afterBootstrap() {
     }
 
-    fun bootstrap() {
+    suspend fun bootstrap() {
         this.beforeBootstrap()
 
         val bootstrapLock = Mutex()
@@ -48,18 +49,21 @@ abstract class MicroModule {
         }
     }
 
-    protected fun beforeShutdown() {
-        if (!this.running) {
-            throw  Error("module ${this.mmid} already shutdown");
+    protected val _afterShutdownSignal = SimpleSignal();
+
+    protected suspend fun beforeShutdown() {
+        if (!running) {
+            throw  Error("module $mmid already shutdown");
         }
-        this.running = false;
+        running = false;
+        _afterShutdownSignal.emit()
     }
 
     private var _shutdownLock: Mutex? = null
-    protected abstract fun _shutdown()
-    protected open fun afterShutdown() {}
+    protected abstract suspend fun _shutdown()
+    protected open suspend fun afterShutdown() {}
 
-    fun shutdown() {
+    suspend fun shutdown() {
         if (this._bootstrapLock!!.isLocked) {
             this._bootstrapLock
         }

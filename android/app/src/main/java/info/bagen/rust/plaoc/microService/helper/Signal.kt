@@ -1,6 +1,6 @@
 package info.bagen.rust.plaoc.microService.helper
 
-typealias Callback<Args> = (args: Args) -> Any?
+typealias Callback<Args> = suspend (args: Args) -> Any?
 typealias SimpleCallback = Callback<Unit>
 typealias OffListener = () -> Boolean
 
@@ -30,7 +30,7 @@ open class Signal<Args>() {
         return _cbs.remove(cb)
     }
 
-    fun emit(args: Args) {
+    suspend fun emit(args: Args) {
         val iter = this._cbs.iterator()
         for (cb in iter) {
             when (cb(args)) {
@@ -43,7 +43,7 @@ open class Signal<Args>() {
 
 
 class SimpleSignal : Signal<Unit>() {
-    fun emit() {
+    suspend fun emit() {
         super.emit(null as Unit);
     }
 };

@@ -17,19 +17,19 @@ typealias Domain = String;
 
 val global_dns = DwebDNS()
 
-class DwebDNS() : NativeMicroModule() {
+class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
     private val mmMap = mutableMapOf<Domain, MicroModule>()
 
-    private val jsMicroModule = JsMicroModule()
+    private val jsProcessNMM = JsProcessNMM()
 
     private val bootNMM = BootNMM()
     private val multiWebViewNMM = MultiWebViewNMM()
     private val httpNMM = HttpNMM()
 
-    override fun _bootstrap() {
+    override suspend fun _bootstrap() {
         install(this)
         install(bootNMM)
-        install(jsMicroModule)
+        install(jsProcessNMM)
         install(multiWebViewNMM)
         install(httpNMM)
 
@@ -77,7 +77,7 @@ class DwebDNS() : NativeMicroModule() {
         }
     }
 
-    override fun _shutdown() {
+    override suspend fun _shutdown() {
         fetchAdaptor = null
         mmMap.forEach {
             it.value.shutdown()

@@ -29,7 +29,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   private _close_dweb_server?: () => unknown;
 
   async _bootstrap() {
-    const { origin, start, close } = await createHttpDwebServer(this, {});
+    const { origin, listen: start, close } = await createHttpDwebServer(this, {});
     this._close_dweb_server = close;
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode

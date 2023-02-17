@@ -112,7 +112,7 @@ export class JsProcessNMM extends NativeMicroModule {
 
   async _bootstrap() {
     const webServer = await createHttpDwebServer(this, {});
-    (await webServer.start()).onRequest(async (request, ipc) => {
+    (await webServer.listen()).onRequest(async (request, ipc) => {
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
@@ -127,7 +127,7 @@ export class JsProcessNMM extends NativeMicroModule {
 
     const {
       origin: internal_origin,
-      start: internal_start,
+      listen: internal_start,
       close: internal_close,
     } = await createHttpDwebServer(this, {
       subdomain: "internal",
@@ -253,7 +253,7 @@ export class JsProcessNMM extends NativeMicroModule {
       },
     ]);
 
-    (await httpDwebServer.start()).onRequest((request, ipc) => {
+    (await httpDwebServer.listen()).onRequest((request, ipc) => {
       void _ipcResponseFromImportLinker(ipc, importLinker, request);
     });
 

@@ -18,7 +18,7 @@ class NativeIpc(
         port.postMessage(data)
     }
 
-    override fun _doClose() {
+    override suspend fun _doClose() {
         port.close()
     }
 }

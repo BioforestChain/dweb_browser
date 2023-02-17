@@ -5,6 +5,7 @@ import android.webkit.WebMessagePort
 import info.bagen.rust.plaoc.microService.MicroModule
 import info.bagen.rust.plaoc.microService.helper.moshiPack
 import info.bagen.rust.plaoc.microService.ipc.*
+import kotlinx.coroutines.runBlocking
 
 class MessagePortIpc(
     val port: WebMessagePort,
@@ -13,19 +14,22 @@ class MessagePortIpc(
     /** MessagePort 默认支持二进制传输 */
     override val supportMessagePack: Boolean = false
 ) : Ipc() {
-    val context =this
+    val context = this
+
     init {
         port.setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
-                println("MessagePortIpc#port🍟message: ${event.data}")
-                val message = messageToIpcMessage(event.data,context) ?: return
-
-                if (message === "close") {
-                    context.close();
-                    return;
+                runBlocking {
+                    println("MessagePortIpc#port🍟message: ${event.data}")
+                    val message = messageToIpcMessage(event.data, context) ?: return@runBlocking
+                    if (message === "close") {
+                        context.close();
+                    } else {
+                        context._messageSignal.emit(message as IpcMessageArgs)
+                    }
                 }
-                context._messageSignal.emit(message as IpcMessageArgs)
+
             }
         })
     }
@@ -38,11 +42,11 @@ class MessagePortIpc(
             println("MessagePortIpc#message===>$data")
             WebMessage(data.toString())
         }
-      this.port.postMessage(webMessage)
+        this.port.postMessage(webMessage)
     }
 
-    override fun _doClose() {
-       this.port.postMessage(WebMessage("close"))
+    override suspend fun _doClose() {
+        this.port.postMessage(WebMessage("close"))
         this.port.close()
     }
 }

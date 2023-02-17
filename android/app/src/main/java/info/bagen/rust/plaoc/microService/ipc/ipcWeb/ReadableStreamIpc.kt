@@ -68,8 +68,9 @@ class ReadableStreamIpc(
         }
     }
 
-    override fun _doClose() {
+    override suspend fun _doClose() {
         //  丢弃通道中的所有字节并暂停直到流结束。
-       runBlocking {  context._incomne_stream?.discard() }
+        context._incomne_stream?.discard()
+        context._incomne_stream = null
     }
 }

@@ -5,6 +5,7 @@ import android.util.Log
 import android.webkit.*
 import info.bagen.libappmgr.network.ApiService
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcResponse
@@ -12,24 +13,23 @@ import kotlinx.coroutines.*
 import org.http4k.routing.RoutingHttpHandler
 import java.util.*
 
- class JsMicroModule() : MicroModule() {
+class JsMicroModule(override val mmid: Mmid) : MicroModule() {
     // 该程序的来源
-    override var mmid = "js.sys.dweb"
     override val routers: Router = mutableMapOf<String, AppRun>()
 
-    override fun _bootstrap() {
+    override suspend fun _bootstrap() {
         TODO("Not yet implemented")
     }
 
-    override fun _shutdown() {
+    override suspend fun _shutdown() {
         TODO("Not yet implemented")
     }
 
-     override suspend fun _connect(from: MicroModule): Ipc {
-         TODO("Not yet implemented")
-     }
+    override suspend fun _connect(from: MicroModule): Ipc {
+        TODO("Not yet implemented")
+    }
 
-     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
+    // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
     private val jsProcess = JsProcess()
 
     // 创建一个webWorker
@@ -47,11 +47,7 @@ class JsProcess : NativeMicroModule("js.sys.dweb") {
     // 创建了一个后台运行的webView 用来运行webWorker
     private var webView: WebView? = null
 
-    override var routes: RoutingHttpHandler?
-        get() = TODO("Not yet implemented")
-        set(value) {}
-
-    override fun _bootstrap() {
+    override suspend fun _bootstrap() {
         webView = WebView(App.appContext).also { view ->
             WebView.setWebContentsDebuggingEnabled(true)
             val settings = view.settings
@@ -140,7 +136,7 @@ class JsProcess : NativeMicroModule("js.sys.dweb") {
     }
 
 
-    override fun _shutdown() {
+    override suspend fun _shutdown() {
         webView?.destroy()
         webView = null
     }

@@ -5,10 +5,9 @@ import info.bagen.rust.plaoc.App.Companion.mainActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
 import org.http4k.routing.RoutingHttpHandler
 
-class MultiWebViewNMM : NativeMicroModule() {
-    override val mmid: String = "mwebview.sys.dweb"
+class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 
-    override fun _bootstrap() {
+    override suspend fun _bootstrap() {
         // 打开webview
         apiRouting
 //        routers["/open"] = put@{ options ->
@@ -21,7 +20,7 @@ class MultiWebViewNMM : NativeMicroModule() {
 //        }
     }
 
-    override fun _shutdown() {
+    override suspend fun _shutdown() {
         apiRouting = null
     }
 

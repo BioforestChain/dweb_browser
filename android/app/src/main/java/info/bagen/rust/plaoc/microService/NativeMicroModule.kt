@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService
 
-import com.google.android.gms.common.api.Api
+import com.google.gson.JsonSyntaxException
+import com.google.gson.reflect.TypeToken
 import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.Signal
@@ -10,10 +11,10 @@ import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
 import org.http4k.filter.ServerFilters
 import org.http4k.lens.RequestContextKey
-import org.http4k.lens.RequestContextLens
 import org.http4k.routing.RoutingHttpHandler
+import java.lang.reflect.Type
 
-abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
+abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
     private val _connectedIpcSet = mutableSetOf<Ipc>();
     override suspend fun _connect(from: MicroModule): NativeIpc {
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
@@ -43,7 +44,7 @@ abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroMo
     protected fun onConnect(cb: Callback<NativeIpc>) = _connectSignal.listen(cb);
 
     /** 在模块关停后，从自身构建的通讯通道都要关闭掉 */
-    override fun afterShutdown() {
+    override suspend fun afterShutdown() {
         super.afterShutdown();
         for (inner_ipc in this._connectedIpcSet) {
             inner_ipc.close();
@@ -76,7 +77,8 @@ abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroMo
     protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
         runBlocking {
             try {
-                Response(Status.OK).json(handler(request))
+                Response(Status.OK).body(gson.toJson(handler(request)))
+                    .header("Content-Type", "application/json")
             } catch (ex: Exception) {
                 Response(Status.INTERNAL_SERVER_ERROR).body(ex.message ?: "Unknown Error")
             }
@@ -88,8 +90,4 @@ abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroMo
             handler(request, requestContextKey_ipc(request))
         }
 }
-
-
-inline fun Response.json(src: Any?) =
-    this.body(gson.toJson(src)).header("Content-Type", "application/json")
 

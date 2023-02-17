@@ -45,11 +45,10 @@ abstract class Ipc {
 
     fun onRequest(cb: OnIpcRequestMessage) = _requestSignal.listen(cb)
 
-    abstract fun _doClose(): Unit;
-
+    abstract suspend fun _doClose(): Unit;
 
     private var _closed = false
-    fun close() {
+    suspend fun close() {
         if (this._closed) {
             return;
         }
