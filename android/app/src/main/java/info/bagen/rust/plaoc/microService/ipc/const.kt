@@ -10,7 +10,7 @@ import java.lang.reflect.Type
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)
 typealias OnIpcMessage = Callback<IpcMessageArgs>
 
-data class IpcRequestMessageArgs(val message: IpcRequest, val ipc: Ipc)
+data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc)
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
 enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,
@@ -47,16 +47,6 @@ enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): IPC_DATA_TYPE = json.asInt.let { type -> values().first { it.type === type } }
-
-}
-
-
-class TMicroModule(
-) {
-    val mmid: Mmid? = null
-    fun fetch(input: HttpRequest): HttpResponse? {
-        return null
-    }
 
 }
 
@@ -98,6 +88,13 @@ enum class IPC_RAW_BODY_TYPE(val type: Int) : JsonSerializer<IPC_RAW_BODY_TYPE>,
     ) = json.asInt.let { type -> values().find { it.type === type } }
 
     infix fun and(TYPE: IPC_RAW_BODY_TYPE) = type and TYPE.type
+}
+
+
+enum class Method {
+    GET, POST, PUT, DELETE, OPTIONS, TRACE, PATCH, PURGE, HEAD;
+
+    companion object
 }
 
 enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>,

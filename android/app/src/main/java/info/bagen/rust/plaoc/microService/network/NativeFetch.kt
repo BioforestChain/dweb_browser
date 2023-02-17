@@ -34,14 +34,14 @@ val apiService = HttpClient(CIO) {
     }
 }
 
-var fetchAdaptor: ((remote: MicroModule, request: Request) -> Response?)? = null
+var fetchAdaptor: (suspend (remote: MicroModule, request: Request) -> Response?)? = null
 
 val client = OkHttp()
 
-fun NativeMicroModule.nativeFetch(request: Request): Response {
+suspend fun NativeMicroModule.nativeFetch(request: Request): Response {
     return fetchAdaptor?.let { it(this, request) } ?: client(request)
 }
 
-fun NativeMicroModule.nativeFetch(url: Uri) = nativeFetch(Request(Method.GET, url))
-fun NativeMicroModule.nativeFetch(url: String) = nativeFetch(Request(Method.GET, url))
+suspend fun NativeMicroModule.nativeFetch(url: Uri) = nativeFetch(Request(Method.GET, url))
+suspend fun NativeMicroModule.nativeFetch(url: String) = nativeFetch(Request(Method.GET, url))
 

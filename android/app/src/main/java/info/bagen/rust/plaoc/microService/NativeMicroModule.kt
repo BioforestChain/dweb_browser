@@ -1,90 +1,61 @@
 package info.bagen.rust.plaoc.microService
 
-import android.net.Uri
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import java.net.URLDecoder
+import info.bagen.rust.plaoc.microService.helper.Callback
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.Signal
+import info.bagen.rust.plaoc.microService.ipc.*
+import org.http4k.routing.RoutingHttpHandler
 
 abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
+    private val _connectedIpcSet = mutableSetOf<Ipc>();
+    override suspend fun _connect(from: MicroModule): NativeIpc {
+        val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
+        val nativeIpc = NativeIpc(channel.port1, from, IPC_ROLE.SERVER, true);
 
-}
+        this._connectedIpcSet.add(nativeIpc);
+        nativeIpc.onClose {
+            this._connectedIpcSet.remove(nativeIpc);
+        };
 
-typealias Mmid = String;
-typealias Router = MutableMap<String, AppRun>
-typealias AppRun = (options: NativeOptions) -> Any
-typealias NativeOptions = MutableMap<String, String>
+        this._connectSignal.emit(nativeIpc);
+        return NativeIpc(channel.port2, this, IPC_ROLE.CLIENT, true);
+    }
 
 
-abstract class MicroModule {
-    open val mmid: String = ""
-    open val routers:Router? = null
-    protected abstract  fun _bootstrap()
+    /**
+     * 内部程序与外部程序通讯的方法
+     * TODO 这里应该是可以是多个
+     */
+    private val _connectSignal = Signal<NativeIpc>();
 
-    private var running = false;
-    private var _bootstrapLock :Mutex? = Mutex()
+    /**
+     * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
+     * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
+     * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
+     */
+    protected fun onConnect(cb: Callback<NativeIpc>) = _connectSignal.listen(cb);
 
-    private fun beforeBootstrap() {
-        if (this.running) {
-            throw  Error("module ${this.mmid} already running");
+    /** 在模块关停后，从自身构建的通讯通道都要关闭掉 */
+    override fun afterShutdown() {
+        super.afterShutdown();
+        for (inner_ipc in this._connectedIpcSet) {
+            inner_ipc.close();
         }
-        this.running = true;
-    }
-    protected fun afterBootstrap() {
+        _connectedIpcSet.clear();
     }
 
-    fun bootstrap() {
-        this.beforeBootstrap()
+    protected abstract var routes: RoutingHttpHandler?
 
-          val bootstrapLock = Mutex()
-          this._bootstrapLock = bootstrapLock
-          try {
-            this._bootstrap();
-          } finally {
-              bootstrapLock.unlock();
-              this._bootstrapLock = null;
-
-              this.afterBootstrap();
-          }
-    }
-    protected fun beforeShutdown() {
-        if (!this.running) {
-            throw  Error("module ${this.mmid} already shutdown");
-        }
-        this.running = false;
-    }
-    private var _shutdownLock: Mutex? = null
-    protected abstract fun _shutdown()
-    protected fun afterShutdown() {}
-
-    fun shutdown() {
-        if (this._bootstrapLock!!.isLocked) {
-             this._bootstrapLock
-        }
-
-        val shutdownLock = Mutex()
-        this._shutdownLock = shutdownLock
-        this.beforeShutdown()
-        try {
-             this._shutdown()
-        } finally {
-            shutdownLock.unlock()
-            this._shutdownLock = null
-            this.afterShutdown()
+    /**
+     * 实现一整套简易的路由响应规则
+     */
+    init {
+        onConnect { clientIpc ->
+            clientIpc.onRequest { args ->
+                routes?.let { routes ->
+                    routes(args.request.asRequest())
+                } ?: return@onRequest
+            }
         }
     }
-
-    fun connent() {
-
-    }
-}
-
-fun Uri.queryParameterByMap(): NativeOptions {
-    val hashMap = hashMapOf<String, String>()
-    this.queryParameterNames.forEach { name ->
-        val key = URLDecoder.decode(name, "UTF-8")
-        val value = URLDecoder.decode(this.getQueryParameter(name), "UTF-8")
-        hashMap[key] = value
-    }
-    return hashMap
 }

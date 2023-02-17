@@ -33,7 +33,7 @@ open class IpcBody(open val rawBody: RawData, open val ipc: Ipc) {
         }
     }
 
-    suspend fun stream() = this._stream
+    fun stream() = this._stream
 
     private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
         _body_text ?: _u8a.let {
