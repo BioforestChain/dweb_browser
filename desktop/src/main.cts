@@ -13,4 +13,9 @@ dns.install(new HttpServerNMM());
 import { desktopJmm } from "./user/desktop/desktop.main.cjs";
 dns.install(desktopJmm);
 
+// 安装 browser 
+import { browserJMM } from "./user/browser/browser.main.cjs"
+dns.install(browserJMM)
+
+
 Object.assign(globalThis, { dns: dns });
