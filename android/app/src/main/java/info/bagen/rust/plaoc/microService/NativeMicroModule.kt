@@ -1,14 +1,16 @@
 package info.bagen.rust.plaoc.microService
 
+import com.google.android.gms.common.api.Api
 import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.Signal
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.runBlocking
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
+import org.http4k.core.*
+import org.http4k.filter.ServerFilters
+import org.http4k.lens.RequestContextKey
+import org.http4k.lens.RequestContextLens
 import org.http4k.routing.RoutingHttpHandler
 
 abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
@@ -51,6 +53,11 @@ abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroMo
 
     var apiRouting: RoutingHttpHandler? = null
 
+
+    private val requestContexts = RequestContexts()
+    private val requestContextKey_ipc = RequestContextKey.required<Ipc>(requestContexts)
+    private val ipcApiFilter = ServerFilters.InitialiseRequestContext(requestContexts)
+
     /**
      * 实现一整套简易的路由响应规则
      */
@@ -58,13 +65,15 @@ abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroMo
         onConnect { clientIpc ->
             clientIpc.onRequest { args ->
                 apiRouting?.let { routes ->
-                    routes(args.request.asRequest())
+                    routes.withFilter(ipcApiFilter.then(Filter { next ->
+                        { next(it.with(requestContextKey_ipc of clientIpc)) }
+                    }))(args.request.asRequest())
                 }
             }
         }
     }
 
-    protected fun apiHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
+    protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
         runBlocking {
             try {
                 Response(Status.OK).json(handler(request))
@@ -73,6 +82,11 @@ abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroMo
             }
         }
     }
+
+    protected fun defineHandler(handler: suspend (request: Request, ipc: Ipc) -> Any?) =
+        defineHandler { request ->
+            handler(request, requestContextKey_ipc(request))
+        }
 }
 
 

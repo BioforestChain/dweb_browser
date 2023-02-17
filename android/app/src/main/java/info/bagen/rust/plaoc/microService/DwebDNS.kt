@@ -3,7 +3,6 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.network.fetchAdaptor
-import info.bagen.rust.plaoc.microService.network.nativeFetch
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
 import org.http4k.lens.Query
@@ -61,7 +60,7 @@ class DwebDNS() : NativeMicroModule() {
 
         /// 定义路由功能
         apiRouting = routes(
-            "/open" bind Method.GET to apiHandler { request ->
+            "/open" bind Method.GET to defineHandler { request ->
                 open(query_app_id(request))
                 true
             },
