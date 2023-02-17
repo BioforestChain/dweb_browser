@@ -5,24 +5,17 @@ import android.util.Log
 import android.webkit.*
 import info.bagen.libappmgr.network.ApiService
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcResponse
-import info.bagen.rust.plaoc.microService.network.gson
 import kotlinx.coroutines.*
+import org.http4k.routing.RoutingHttpHandler
 import java.util.*
 
-class JsMicroModule : MicroModule() {
+ class JsMicroModule() : MicroModule() {
     // 该程序的来源
     override var mmid = "js.sys.dweb"
     override val routers: Router = mutableMapOf<String, AppRun>()
-
-    init {
-        // 创建一个webWorker
-        routers["/create-process"] = put@{ options ->
-            val mainCode = options["mainCode"] ?: options["main_code"]
-            ?: return@put "Error open worker must transmission mainCode or main_code"
-            return@put createProcess(mainCode)
-        }
-    }
 
     override fun _bootstrap() {
         TODO("Not yet implemented")
@@ -32,7 +25,11 @@ class JsMicroModule : MicroModule() {
         TODO("Not yet implemented")
     }
 
-    // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
+     override suspend fun _connect(from: MicroModule): Ipc {
+         TODO("Not yet implemented")
+     }
+
+     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
     private val jsProcess = JsProcess()
 
     // 创建一个webWorker
@@ -49,6 +46,23 @@ class JsProcess : NativeMicroModule("js.sys.dweb") {
 
     // 创建了一个后台运行的webView 用来运行webWorker
     private var webView: WebView? = null
+
+    override var routes: RoutingHttpHandler?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+
+    override fun _bootstrap() {
+        webView = WebView(App.appContext).also { view ->
+            WebView.setWebContentsDebuggingEnabled(true)
+            val settings = view.settings
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
+            settings.databaseEnabled = true
+        }
+    }
+
 
 //    /** 处理ipc 请求的工厂 然后会转发到nativeFetch */
 //    fun ipcFactory(webMessagePort: WebMessagePort, ipcString: String) {
@@ -125,17 +139,6 @@ class JsProcess : NativeMicroModule("js.sys.dweb") {
         this.accProcessId++
     }
 
-    override fun _bootstrap() {
-        webView = WebView(App.appContext).also { view ->
-            WebView.setWebContentsDebuggingEnabled(true)
-            val settings = view.settings
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
-            settings.databaseEnabled = true
-        }
-    }
 
     override fun _shutdown() {
         webView?.destroy()

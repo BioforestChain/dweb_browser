@@ -1,26 +1,12 @@
 package info.bagen.rust.plaoc.microService
 
+import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.openHomeActivity
+import org.http4k.routing.RoutingHttpHandler
 
-class BootNMM : NativeMicroModule("boot.sys.dweb") {
+class BootNMM(override var routes: RoutingHttpHandler?) : NativeMicroModule("boot.sys.dweb") {
     override val routers: Router = mutableMapOf()
     override fun _bootstrap() {
-        // 注册路由
-        routers["/open"] = put@{ options->
-            val origin = options["origin"]
-            println("kotlinBootNMM start app:$origin,${hookBootApp.containsKey(origin)}")
-            if (origin == null) {
-                return@put "Error not Found param origin"
-            }
-            return@put open(origin,options)
-        }
-        // 初始化注册微组件的函数
-        routers["/register"] = put@{ mmid ->
-            return@put registerMicro(mmid as Mmid)
-        }
-        routers["/unregister"] = put@{ mmid ->
-            return@put unRegisterMicro(mmid as Mmid)
-        }
         initBootApp()
         // 初始化启动一个桌面系统程序
         registeredMmids.add("desktop.bfs.dweb")

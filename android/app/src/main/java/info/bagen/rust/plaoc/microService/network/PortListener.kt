@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.network
 
+import info.bagen.rust.plaoc.microService.helper.DefaultErrorResponse
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import io.ktor.http.*

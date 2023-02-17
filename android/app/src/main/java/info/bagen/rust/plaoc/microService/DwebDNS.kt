@@ -4,20 +4,27 @@ import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.network.*
 import kotlinx.coroutines.runBlocking
-import kotlin.coroutines.suspendCoroutine
+import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status.Companion.OK
+import org.http4k.routing.RoutingHttpHandler
+import org.http4k.routing.bind
+import org.http4k.routing.routes
 
 typealias Domain = String;
 // 声明全局dns
+val app = routes(
+    "test" bind Method.GET to { Response(OK).body("you GET bob") },
+)
+val global_dns = DwebDNS(app)
 
-val global_dns = DwebDNS()
-
-class DwebDNS : NativeMicroModule() {
+class DwebDNS(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
     private val mmMap = mutableMapOf<Domain, MicroModule>()
 
     private val jsMicroModule = JsMicroModule()
-    private val bootNMM = BootNMM()
-    private val multiWebViewNMM = MultiWebViewNMM()
-    private val httpNMM = HttpNMM()
+    private val bootNMM = BootNMM(routes)
+    private val multiWebViewNMM = MultiWebViewNMM(routes)
+    private val httpNMM = HttpNMM(routes)
 
     override fun _bootstrap() {
         install(this)

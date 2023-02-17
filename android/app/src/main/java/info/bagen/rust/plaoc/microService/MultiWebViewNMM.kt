@@ -3,8 +3,9 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.App.Companion.mainActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
+import org.http4k.routing.RoutingHttpHandler
 
-class MultiWebViewNMM : NativeMicroModule() {
+class MultiWebViewNMM(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
     override val mmid: String = "mwebview.sys.dweb"
     override val routers: Router = mutableMapOf<String, AppRun>()
 

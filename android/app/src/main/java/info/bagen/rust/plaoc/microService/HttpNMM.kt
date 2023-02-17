@@ -1,16 +1,16 @@
 package info.bagen.rust.plaoc.microService
 
 import android.os.Build
-import info.bagen.rust.plaoc.microService.network.DefaultErrorResponse
+import info.bagen.rust.plaoc.microService.helper.DefaultErrorResponse
 import info.bagen.rust.plaoc.microService.network.Http1Server
 import info.bagen.rust.plaoc.microService.network.Http1Server.Companion.PORT
 import info.bagen.rust.plaoc.microService.network.PortListener
-import info.bagen.rust.plaoc.microService.route.jsProcessRoute
-import info.bagen.rust.plaoc.microService.route.webViewRoute
+
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.http4k.routing.RoutingHttpHandler
 
 data class Origin(val origin: String)
 
@@ -23,7 +23,7 @@ class Gateway(
 
 }
 
-class HttpNMM : NativeMicroModule() {
+class HttpNMM(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
     override val mmid: String = "http.sys.dweb"
     private val http1Server = Http1Server()
 
@@ -72,15 +72,12 @@ class HttpNMM : NativeMicroModule() {
 
             /* 30s 没有任何 body 写入的话，认为网关超时 */
             gateway.listener.hookHttpRequest(call.request, call.response)
-//            call.request.origin.apply {
-//                println("Request URL: $scheme://$localHost:$localPort$uri")
-//            }
         }
     }
 
 
     public override fun _bootstrap() {
-        http1Server.createServer(requestHookPlugin)
+        // 启动http后端服务
     }
 
     private fun getHost(port: String): String {
@@ -92,16 +89,5 @@ class HttpNMM : NativeMicroModule() {
     }
 }
 
-fun Application.moduleRouter() {
-    routing {
-        get("/") {
-            call.respondText(
-                text = "Hello!! You are here in ${Build.MODEL}",
-                contentType = ContentType.Text.Plain
-            )
-        }
-        jsProcessRoute()
-        webViewRoute()
-    }
-}
+
 

@@ -1,26 +1,19 @@
 package info.bagen.rust.plaoc.microService.network
 
 import info.bagen.rust.plaoc.microService.Gateway
-import info.bagen.rust.plaoc.microService.moduleRouter
 import io.ktor.http.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.response.*
 import io.ktor.server.websocket.*
-import io.ktor.util.pipeline.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.NotNull
 
 
 class Http1Server {
@@ -62,7 +55,6 @@ class Http1Server {
                 install(Compression) {
                     gzip()
                 }
-                module()
             }.also {
                 it.start(wait = true)
             }
@@ -77,16 +69,7 @@ class Http1Server {
     }
 }
 
-fun Application.module() {
-    moduleRouter()
-}
 
-fun Application.modulePlugin() {
-    install(ShutDownUrl.ApplicationCallPlugin) {
-        shutDownUrl = "/shutdown"
-        exitCodeSupplier = { 0 }
-    }
-}
 
 fun rand(start: Int, end: Int): Int {
     require(start <= end) { "Illegal Argument" }
