@@ -7,7 +7,7 @@ import org.http4k.core.Status
 import java.io.InputStream
 
 data class IpcResponse(
-    val req_id: Number = 0,
+    val req_id: Int = 0,
     val statusCode: Int = 200,
     val headers: IpcHeaders,
     override val rawBody: RawData,
@@ -17,7 +17,7 @@ data class IpcResponse(
 
     companion object {
         fun fromJson(
-            req_id: Number,
+            req_id: Int,
             statusCode: Int,
             jsonAble: Any,
             headers: IpcHeaders = IpcHeaders(),
@@ -28,7 +28,7 @@ data class IpcResponse(
         }
 
         fun fromText(
-            req_id: Number,
+            req_id: Int,
             statusCode: Int,
             text: String,
             headers: IpcHeaders = IpcHeaders(),
@@ -45,7 +45,7 @@ data class IpcResponse(
         }
 
         fun fromBinary(
-            req_id: Number,
+            req_id: Int,
             statusCode: Int,
             binary: ByteArray,
             headers: IpcHeaders,
@@ -67,7 +67,7 @@ data class IpcResponse(
         }
 
         fun fromStream(
-            req_id: Number,
+            req_id: Int,
             statusCode: Int,
             stream: InputStream,
             headers: IpcHeaders,
@@ -91,7 +91,7 @@ data class IpcResponse(
         }
 
         fun fromResponse(
-            req_id: Number,
+            req_id: Int,
             response: Response,
             ipc: Ipc
         ): IpcResponse {
@@ -99,7 +99,7 @@ data class IpcResponse(
                 req_id,
                 response.status.code,
                 response.body.stream,
-                IpcHeaders.from(response.headers),
+                IpcHeaders(response.headers),
                 ipc
             )
         }

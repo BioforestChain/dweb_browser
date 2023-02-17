@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.helper
 
 import java.io.InputStream
+import java.net.URLEncoder
 import java.util.*
 
 fun ByteArray.toBase64(): String = Base64.getEncoder().encodeToString(this)
@@ -17,9 +18,11 @@ fun Long.toByteArray(): ByteArray {
     return bytes
 }
 
-fun InputStream.readLong(): Long {
-    return this.readBytes().toLong()
-}
-
+fun InputStream.readLong() = this.readBytes().toLong()
 
 fun String.asBase64(): ByteArray = Base64.getDecoder().decode(this)
+
+fun String.asUtf8(): ByteArray = this.toByteArray(Charsets.UTF_8)
+
+fun String.toURLQueryComponent(): String = URLEncoder.encode(this, "UTF-8")
+

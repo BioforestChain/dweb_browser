@@ -3,7 +3,12 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.Signal
+import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.*
+import kotlinx.coroutines.runBlocking
+import org.http4k.core.Request
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.routing.RoutingHttpHandler
 
 abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroModule() {
@@ -44,7 +49,7 @@ abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroMo
         _connectedIpcSet.clear();
     }
 
-    protected abstract var routes: RoutingHttpHandler?
+    var apiRouting: RoutingHttpHandler? = null
 
     /**
      * 实现一整套简易的路由响应规则
@@ -52,10 +57,25 @@ abstract class NativeMicroModule(override val mmid: Mmid = "sys.dweb") : MicroMo
     init {
         onConnect { clientIpc ->
             clientIpc.onRequest { args ->
-                routes?.let { routes ->
+                apiRouting?.let { routes ->
                     routes(args.request.asRequest())
-                } ?: return@onRequest
+                }
+            }
+        }
+    }
+
+    protected fun apiHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
+        runBlocking {
+            try {
+                Response(Status.OK).json(handler(request))
+            } catch (ex: Exception) {
+                Response(Status.INTERNAL_SERVER_ERROR).body(ex.message ?: "Unknown Error")
             }
         }
     }
 }
+
+
+inline fun Response.json(src: Any?) =
+    this.body(gson.toJson(src)).header("Content-Type", "application/json")
+

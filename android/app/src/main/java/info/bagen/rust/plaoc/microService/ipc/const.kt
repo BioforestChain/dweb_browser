@@ -2,8 +2,6 @@ package info.bagen.rust.plaoc.microService.ipc
 
 import com.google.gson.*
 import info.bagen.rust.plaoc.microService.helper.Callback
-import io.netty.handler.codec.http.HttpRequest
-import io.netty.handler.codec.http.HttpResponse
 import java.lang.reflect.Type
 
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)

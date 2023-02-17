@@ -2,29 +2,28 @@ package info.bagen.rust.plaoc.microService
 
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.ipc.Ipc
-import info.bagen.rust.plaoc.microService.network.*
+import info.bagen.rust.plaoc.microService.network.fetchAdaptor
+import info.bagen.rust.plaoc.microService.network.nativeFetch
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status.Companion.OK
-import org.http4k.routing.RoutingHttpHandler
+import org.http4k.lens.Query
+import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-typealias Domain = String;
-// 声明全局dns
-val app = routes(
-    "test" bind Method.GET to { Response(OK).body("you GET bob") },
-)
-val global_dns = DwebDNS(app)
 
-class DwebDNS(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
+typealias Domain = String;
+
+val global_dns = DwebDNS()
+
+class DwebDNS() : NativeMicroModule() {
     private val mmMap = mutableMapOf<Domain, MicroModule>()
 
     private val jsMicroModule = JsMicroModule()
-    private val bootNMM = BootNMM(routes)
-    private val multiWebViewNMM = MultiWebViewNMM(routes)
-    private val httpNMM = HttpNMM(routes)
+
+    private val bootNMM = BootNMM()
+    private val multiWebViewNMM = MultiWebViewNMM()
+    private val httpNMM = HttpNMM()
 
     override fun _bootstrap() {
         install(this)
@@ -33,9 +32,9 @@ class DwebDNS(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
         install(multiWebViewNMM)
         install(httpNMM)
 
+        /// 对全局的自定义路由提供适配器
         /** 对等连接列表 */
         val connects = mutableMapOf<MicroModule, MutableMap<Mmid, Ipc>>()
-
         fetchAdaptor = { fromMM, request ->
             if (request.uri.scheme === "file:" && request.uri.host.endsWith(".dweb")) {
                 val mmid = request.uri.host
@@ -49,20 +48,32 @@ class DwebDNS(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
                     val ipc = ipcMap.getOrPut(mmid) {
                         val toMM = open(mmid);
                         toMM.connect(fromMM).also { ipc ->
-                            /// 在 IPC 关闭的时候，从 ipcMap 中移除
-                            ipc.onClose { ipcMap.remove(mmid) }
+                            // 在 IPC 关闭的时候，从 ipcMap 中移除
+                            ipc.onClose { ipcMap.remove(mmid); }
                         }
                     }
-//                    ipc.request
-//                    return@let ipc
-                    return@let null
+                    return@let ipc.request(request)?.let { it.asResponse() }
                 } ?: null
             } else null
         }
+        val query_app_id = Query.string().required("app_id")
 
+
+        /// 定义路由功能
+        apiRouting = routes(
+            "/open" bind Method.GET to apiHandler { request ->
+                open(query_app_id(request))
+                true
+            },
+//            "/close" bind Method.GET to apiHandler { request ->
+//                close(query_app_id(request))
+//                true
+//            }
+        )
+
+        /// 启动 boot 模块
         runBlocking {
-            val boot = nativeFetch("file://boot.sys.dweb/open?origin=desktop.bfs.dweb")
-            println("startBootNMM# boot response: $boot")
+            open("boot.sys.dweb")
         }
     }
 
@@ -107,7 +118,6 @@ class DwebDNS(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
         } ?: -1
     }
 }
-
 
 
 

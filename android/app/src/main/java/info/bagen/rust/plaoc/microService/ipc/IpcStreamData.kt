@@ -13,12 +13,4 @@ data class IpcStreamData(val stream_id: String, val data: Any /*String or ByteAr
             IpcStreamData(stream_id, data.toBase64())
         }
     }
-
-    val u8a by lazy {
-        when (data) {
-            is ByteArray -> data
-            is String -> data.asBase64()
-            else -> throw Exception("invalid data type")
-        }
-    }
 }

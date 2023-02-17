@@ -1,8 +1,22 @@
 package info.bagen.rust.plaoc.microService.helper
 
-typealias Callback<Args> = (args: Args) -> Unit
-typealias CallbackWithOff<Args> = (args: Args, off: OffListener) -> Unit
+typealias Callback<Args> = (args: Args) -> Any?
+typealias SimpleCallback = Callback<Unit>
+typealias OffListener = () -> Boolean
 
+/** 控制器 */
+enum class SIGNAL_CTOR {
+    /**
+     * 返回该值，会解除监听
+     */
+    OFF,
+
+    /**
+     * 返回该值，会让接下来的其它监听函数不再触发
+     */
+    BREAK,
+    ;
+}
 
 open class Signal<Args>() {
     private val _cbs = mutableSetOf<Callback<Args>>();
@@ -12,24 +26,21 @@ open class Signal<Args>() {
         return { off(cb) }
     }
 
-    fun listenWithOff(cb: CallbackWithOff<Args>) {
-        var off = { false }
-        off = listen { args -> cb(args, off) }
-    }
-
     fun off(cb: Callback<Args>): Boolean {
         return _cbs.remove(cb)
     }
 
     fun emit(args: Args) {
-        for (cb in this._cbs) {
-            cb(args)
+        val iter = this._cbs.iterator()
+        for (cb in iter) {
+            when (cb(args)) {
+                SIGNAL_CTOR.OFF -> iter.remove()
+                SIGNAL_CTOR.BREAK -> break
+            }
         }
     }
 }
 
-typealias SimpleCallback = Callback<Unit>
-typealias  OffListener = () -> Boolean
 
 class SimpleSignal : Signal<Unit>() {
     fun emit() {

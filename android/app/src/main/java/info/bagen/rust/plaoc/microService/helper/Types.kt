@@ -20,6 +20,10 @@ enum class Method(val method: String, val http4kMethod: Http4kMethod) : JsonSeri
     HEAD("HEAD", Http4kMethod.HEAD),
     ;
 
+    companion object {
+        fun from(http4kMethod: Http4kMethod) = values().first { it.http4kMethod === http4kMethod }
+    }
+
     override fun serialize(
         src: Method,
         typeOfSrc: Type?,

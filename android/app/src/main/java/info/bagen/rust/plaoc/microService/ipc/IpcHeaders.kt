@@ -7,15 +7,14 @@ import java.lang.reflect.Type
 class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMapOf()) :
     JsonSerializer<IpcHeaders>, JsonDeserializer<IpcHeaders> {
     companion object {
-        fun from(headers: Map<String, String>) =
+        fun with(headers: Map<String, String>) =
             IpcHeaders().also { it.headersMap += headers }
+    }
 
-
-        fun from(headers: Headers) = IpcHeaders().also { ipcHeaders ->
-            for (header in headers) {
-                header.second?.let {
-                    ipcHeaders.headersMap[header.first.asKey()] = it
-                }
+    constructor(headers: Headers) : this() {
+        for (header in headers) {
+            header.second?.let {
+                headersMap[header.first.asKey()] = it
             }
         }
     }
@@ -34,6 +33,8 @@ class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMap
     fun get(key: String): String? {
         return headersMap[key.asKey()]
     }
+
+    fun getOrDefault(key: String, default: String) = headersMap[key.asKey()] ?: default
 
     fun has(key: String): Boolean {
         return headersMap.contains(key.asKey())

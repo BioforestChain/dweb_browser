@@ -23,7 +23,7 @@ class Gateway(
 
 }
 
-class HttpNMM(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
+class HttpNMM() : NativeMicroModule() {
     override val mmid: String = "http.sys.dweb"
     private val http1Server = Http1Server()
 

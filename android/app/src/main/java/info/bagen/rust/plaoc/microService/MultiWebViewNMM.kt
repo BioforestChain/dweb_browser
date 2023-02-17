@@ -5,16 +5,16 @@ import info.bagen.rust.plaoc.App.Companion.mainActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
 import org.http4k.routing.RoutingHttpHandler
 
-class MultiWebViewNMM(override var routes: RoutingHttpHandler?) : NativeMicroModule() {
+class MultiWebViewNMM : NativeMicroModule() {
     override val mmid: String = "mwebview.sys.dweb"
-    override val routers: Router = mutableMapOf<String, AppRun>()
 
     override fun _bootstrap() {
         // 打开webview
+        apiRouting
         routers["/open"] = put@{ options ->
             val origin = options["origin"] ?: return@put "Error not Found param origin"
             val processId = options["processId"]
-            return@put openDwebView(origin,processId)
+            return@put openDwebView(origin, processId)
         }
         routers["/evalJavascript"] = put@{
             return@put true
@@ -22,13 +22,13 @@ class MultiWebViewNMM(override var routes: RoutingHttpHandler?) : NativeMicroMod
     }
 
     override fun _shutdown() {
-        routers.clear()
+        apiRouting = null
     }
 
     private var viewTree: ViewTree = ViewTree()
 
 
-    fun openDwebView(origin: String,processId:String?): Any {
+    fun openDwebView(origin: String, processId: String?): Any {
         println("Kotlin#MultiWebViewNMM openDwebView $origin")
         /*val webViewNode = viewTree.createNode(origin,processId)
         val append = viewTree.appendTo(webViewNode)
@@ -41,7 +41,8 @@ class MultiWebViewNMM(override var routes: RoutingHttpHandler?) : NativeMicroMod
             openDWebWindow(activity = mainActivity!!.getContext(), url = origin)
         }
         return webViewNode.id*/
-        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId) ?: "Error: not found mount process!!!"
+        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId)
+            ?: "Error: not found mount process!!!"
     }
 
     private fun closeDwebView(nodeId: Int): Boolean {
@@ -60,7 +61,7 @@ class ViewTree {
         val children: MutableList<ViewTreeStruct?>
     )
 
-    fun createNode(origin: String,processId:String?): ViewTreeStruct {
+    fun createNode(origin: String, processId: String?): ViewTreeStruct {
         // 当前要挂载到哪个父级节点
         var cProcessId = currentProcess
         //  当用户传递了processId，即明确需要挂载到某个view下
