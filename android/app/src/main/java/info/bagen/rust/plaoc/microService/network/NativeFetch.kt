@@ -1,20 +1,38 @@
 package info.bagen.rust.plaoc.microService.network
 
+import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.microService.MicroModule
 import info.bagen.rust.plaoc.microService.NativeMicroModule
-import org.http4k.core.Request
-import org.http4k.core.Response
+import info.bagen.rust.plaoc.microService.helper.openInputStream
+import info.bagen.rust.plaoc.microService.helper.readLong
 import org.http4k.client.OkHttp
-import org.http4k.core.Method
-import org.http4k.core.Uri
+import org.http4k.core.*
+import java.io.File
+import kotlin.io.path.Path
 
 var fetchAdaptor: (suspend (remote: MicroModule, request: Request) -> Response?)? = null
 
 suspend fun localeFileFetch(remote: MicroModule, request: Request): Response? {
-    if (request.uri.scheme == "file:" && request.uri.host == "") {
-        /// TODO 从本地文件读取
+    val prefixUrl = ""
+    try {
+        val filePath = Path(prefixUrl, request.uri.path).toString()
+        println("NativeFetch#localeFileFetch====>$filePath")
+        val stats = filePath.openInputStream()
+            ?: return  Response(Status.NOT_FOUND).body("the ${request.uri.path} file not found ")
+
+//        val ext = stats.extension
+//        val mime: MimeTypeMap = MimeTypeMap.getSingleton()
+//        val type: String = mime.getExtensionFromMimeType(ext) ?: "application/octet-stream"
+        return  Response(status = Status.OK).body(stats)
+//            .headers(
+//                headers = listOf(
+//                    Pair("Content-Length", stats.readLong().toString()),
+//                    Pair("Content-Type", type)
+//                )
+//            )
+    }catch (e: Throwable) {
+        return  Response(Status.NOT_FOUND).body(e.message?:"the ${request.uri.path} file not found ")
     }
-    return null
 }
 
 val client = OkHttp()

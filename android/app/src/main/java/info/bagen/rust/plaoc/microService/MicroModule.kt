@@ -91,7 +91,7 @@ abstract class MicroModule {
         if (!running) {
             throw Exception("module no running");
         }
-        _bootstrapLock?.wait()
+        _bootstrapLock?.lock()
         return _connect(from);
     }
 

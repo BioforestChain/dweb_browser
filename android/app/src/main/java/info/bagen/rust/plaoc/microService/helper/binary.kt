@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.helper
 
+import info.bagen.rust.plaoc.App
 import java.io.InputStream
 import java.net.URLEncoder
 import java.util.*
@@ -25,4 +26,12 @@ fun String.asBase64(): ByteArray = Base64.getDecoder().decode(this)
 fun String.asUtf8(): ByteArray = this.toByteArray(Charsets.UTF_8)
 
 fun String.toURLQueryComponent(): String = URLEncoder.encode(this, "UTF-8")
+
+fun String.openInputStream(): InputStream? {
+    return try {
+        App.appContext.assets.open(this)
+    } catch (e: java.io.FileNotFoundException) {
+        null
+    }
+}
 

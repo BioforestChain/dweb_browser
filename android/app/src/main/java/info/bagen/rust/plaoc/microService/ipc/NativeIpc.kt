@@ -54,6 +54,8 @@ class NativePort<I, O>(
      */
     init {
         runBlocking {
+            closeMutex.lock()
+            // 等待之前需要锁住
             closeMutex.wait()
 
             closing = true

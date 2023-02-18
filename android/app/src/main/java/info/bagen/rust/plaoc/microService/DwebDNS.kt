@@ -60,28 +60,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
                     }
                     return@let ipc.request(request).asResponse()
                 }
-            } else if (request.uri.scheme == "file" && request.uri.host == "") {
-                val prefixUrl = ""
-                try {
-                    val filePath = Path(prefixUrl, request.uri.path).toString()
-                    val stats = File(filePath)
-                    if (stats.isDirectory) {
-                        throw Exception(stats.toString())
-                    }
-                    val ext = stats.extension
-                    val mime: MimeTypeMap = MimeTypeMap.getSingleton()
-                    val type: String = mime.getExtensionFromMimeType(ext) ?: "application/octet-stream"
-                    Response(status = Status.OK)
-                        .headers(
-                            headers = listOf(
-                                Pair("Content-Length", stats.length().toString()),
-                                Pair("Content-Type", type)
-                            )
-                        )
-                }catch (e: Throwable) {
-                    Response(Status.NOT_FOUND).body(e.message?:"the ${request.uri.path} file not found ")
-                }
-            } else null
+            }  else null
         }
         val query_app_id = Query.string().required("app_id")
 
