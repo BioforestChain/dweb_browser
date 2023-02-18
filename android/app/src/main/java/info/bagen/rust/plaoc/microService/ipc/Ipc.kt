@@ -1,9 +1,12 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.MicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.Signal
+import info.bagen.rust.plaoc.microService.helper.SimpleCallback
+import info.bagen.rust.plaoc.microService.helper.SimpleSignal
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
@@ -84,7 +87,7 @@ abstract class Ipc {
         val result = Channel<IpcResponse>();
         this.onMessage { args ->
             if (args.message is IpcResponse && args.message.req_id == req_id) {
-                runBlocking {
+                GlobalScope.launch {
                     result.send(args.message)
                 }
             }

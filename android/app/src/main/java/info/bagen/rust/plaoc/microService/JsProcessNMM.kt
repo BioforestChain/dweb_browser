@@ -13,10 +13,6 @@ import info.bagen.rust.plaoc.microService.ipc.ipcWeb.MessagePortIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.saveNative2JsIpcPort
 import info.bagen.rust.plaoc.microService.network.nativeFetch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import okhttp3.internal.notify
-import okhttp3.internal.wait
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.lens.Query

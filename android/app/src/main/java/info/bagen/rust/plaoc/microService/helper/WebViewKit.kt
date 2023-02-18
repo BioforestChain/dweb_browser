@@ -6,10 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import okhttp3.internal.notify
-import okhttp3.internal.wait
 
 typealias AsyncChannel = Channel<Result<String>>;
 
@@ -28,7 +25,7 @@ class WebViewAsyncEvalContext(
         GlobalScope.launch(Dispatchers.Main) {
             webView.addJavascriptInterface(object {
                 fun resolve(id: Int, data: String) {
-                    runBlocking {
+                    GlobalScope.launch {
                         channelMap.remove(id)?.also {
                             it.send(Result.success(data))
                             it.close()
@@ -37,7 +34,7 @@ class WebViewAsyncEvalContext(
                 }
 
                 fun reject(id: Int, reason: String) {
-                    runBlocking {
+                    GlobalScope.launch {
                         channelMap.remove(id)?.also {
                             it.send(Result.failure(Exception(reason)))
                             it.close()
@@ -45,9 +42,9 @@ class WebViewAsyncEvalContext(
                     }
                 }
             }, "__native_async_callback_kit__")
-            lock.notify()
+            lock.unlock()
         }
-        lock.wait()
+        lock.lock()
     }
 
     suspend fun evaluateJavascriptAsync(script: String): String {

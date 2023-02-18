@@ -31,7 +31,6 @@ import info.bagen.rust.plaoc.webView.openDWebWindow
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,7 +56,7 @@ class SplashActivity : AppCompatActivity() {
             }
         } else {
             /// TODO 这里启动 DNS？
-           runBlocking {
+            GlobalScope.launch {
                global_dns.bootstrap()
            }
             App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)

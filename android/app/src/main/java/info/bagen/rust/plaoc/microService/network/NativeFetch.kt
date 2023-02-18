@@ -1,36 +1,30 @@
 package info.bagen.rust.plaoc.microService.network
 
+import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.MicroModule
 import info.bagen.rust.plaoc.microService.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.openInputStream
+import info.bagen.rust.plaoc.microService.helper.*
 import org.http4k.client.OkHttp
 import org.http4k.core.*
+import org.http4k.core.Method
 import kotlin.io.path.Path
 
 var fetchAdaptor: (suspend (remote: MicroModule, request: Request) -> Response?)? = null
 
-suspend fun localeFileFetch(remote: MicroModule, request: Request): Response? {
-    val prefixUrl = ""
-    try {
-        val filePath = Path(prefixUrl, request.uri.path).toString()
-        println("NativeFetch#localeFileFetch====>$filePath")
-        val stats = filePath.openInputStream()
-            ?: return  Response(Status.NOT_FOUND).body("the ${request.uri.path} file not found ")
-
-//        val ext = stats.extension
-//        val mime: MimeTypeMap = MimeTypeMap.getSingleton()
-//        val type: String = mime.getExtensionFromMimeType(ext) ?: "application/octet-stream"
-        return  Response(status = Status.OK).body(stats)
-//            .headers(
-//                headers = listOf(
-//                    Pair("Content-Length", stats.readLong().toString()),
-//                    Pair("Content-Type", type)
-//                )
-//            )
-    }catch (e: Throwable) {
-        return  Response(Status.NOT_FOUND).body(e.message?:"the ${request.uri.path} file not found ")
+/**
+ * 加载本地文件
+ */
+private suspend fun localeFileFetch(remote: MicroModule, request: Request) =
+    when {
+        request.uri.scheme == "file" && request.uri.path == "" -> runCatching {
+            App.appContext.assets.open(request.uri.path).use {
+                Response(status = Status.OK).body(it)
+            }
+        }.getOrElse {
+            Response(Status.NOT_FOUND).body("the ${request.uri.path} file not found.")
+        }
+        else -> null
     }
-}
 
 val client = OkHttp()
 
@@ -40,6 +34,6 @@ suspend fun NativeMicroModule.nativeFetch(request: Request): Response {
         ?: client(request)
 }
 
-suspend fun NativeMicroModule.nativeFetch(url: Uri) = nativeFetch(Request(Method.GET, url))
-suspend fun NativeMicroModule.nativeFetch(url: String) = nativeFetch(Request(Method.GET, url))
+suspend inline fun NativeMicroModule.nativeFetch(url: Uri) = nativeFetch(Request(Method.GET, url))
+suspend inline fun NativeMicroModule.nativeFetch(url: String) = nativeFetch(Request(Method.GET, url))
 

@@ -3,12 +3,11 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.toURLQueryComponent
 import info.bagen.rust.plaoc.microService.network.nativeFetch
-import info.bagen.rust.plaoc.openHomeActivity
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import kotlin.collections.set
 
 class BootNMM : NativeMicroModule("boot.sys.dweb") {
     override val routers: Router = mutableMapOf()
@@ -26,7 +25,7 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
             }
         )
 
-        runBlocking {
+        GlobalScope.launch {
             for (mmid in registeredMmids) {
                 nativeFetch("file://dns.sys.dweb/open=${mmid.toURLQueryComponent()}")
             }

@@ -1,7 +1,8 @@
 package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 
 import info.bagen.rust.plaoc.microService.MicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.helper.moshiPack
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcMessage
@@ -9,7 +10,8 @@ import info.bagen.rust.plaoc.microService.ipc.IpcMessageArgs
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.InputStream
 
 
@@ -41,7 +43,7 @@ class ReadableStreamIpc(
         }
 
         _incomeStream = stream.toByteReadChannel().also { _income_stream ->
-            runBlocking {
+            GlobalScope.launch {
                 // 如果通道关闭并且没有剩余字节可供读取，则返回 true
                 while (!_income_stream.isClosedForRead) {
                     val size = _income_stream.readInt() // 读满一个Int
@@ -49,7 +51,7 @@ class ReadableStreamIpc(
                     val chunk = _income_stream.readPacket(size)
                     println("ReadableStreamIpc#bindIncomeStream ==> ${chunk.readBytes()}") // 准确读取 n 个字节（如果未指定 n，则消耗所有剩余字节
                     when (val message =
-                        messageToIpcMessage(chunk.readText(), this@ReadableStreamIpc)) {
+                        jsonToIpcMessage(chunk.readText(), this@ReadableStreamIpc)) {
                         "close" -> close()
                         is IpcMessage -> _messageSignal.emit(
                             IpcMessageArgs(

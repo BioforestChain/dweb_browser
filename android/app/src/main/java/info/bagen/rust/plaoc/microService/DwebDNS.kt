@@ -3,8 +3,11 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.network.fetchAdaptor
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -43,6 +46,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
 
                     /** 一个互联实例表 */
                     val ipcMap = connects.getOrPut(fromMM) { mutableMapOf() }
+
                     /**
                      * 一个互联实例
                      */
@@ -55,8 +59,8 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
                         }
                     }
                     return@let ipc.request(request).asResponse()
-                }
-            }  else null
+                } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())
+            } else null
         }
         val query_app_id = Query.string().required("app_id")
 
@@ -67,13 +71,16 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
                 open(query_app_id(request))
                 true
             },
+            /**
+             * TODO 能否关闭一个应该应该由应用自己决定
+             */
             "/close" bind Method.GET to defineHandler { request ->
                 close(query_app_id(request))
                 true
             }
         )
         /// 启动 boot 模块
-        runBlocking {
+        GlobalScope.launch {
             open("boot.sys.dweb")
         }
     }
@@ -94,7 +101,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
     }
 
     /** 查询应用 */
-    private suspend fun query(mmid: Mmid): MicroModule? {
+    private suspend inline fun query(mmid: Mmid): MicroModule? {
         return mmMap[mmid]
     }
 
@@ -111,12 +118,10 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
     /** 关闭应用 */
     private suspend fun close(mmid: Mmid): Int {
         return running_apps.remove(mmid)?.let {
-            try {
+            runCatching {
                 it.shutdown()
                 1
-            } catch (_: Throwable) {
-                0
-            }
+            }.getOrDefault(0)
         } ?: -1
     }
 }

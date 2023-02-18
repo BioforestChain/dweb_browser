@@ -8,6 +8,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.internal.notify
 import okhttp3.internal.notifyAll
 import okhttp3.internal.wait
@@ -17,6 +18,32 @@ class NativeIpc(
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
+    init {
+        port.onMessage { message ->
+            val ipcMessage = when (message.type) {
+                IPC_DATA_TYPE.REQUEST -> (message as IpcRequest).let { fromRequest ->
+                    /**
+                     * fromRequest 携带者远端的 ipc 对象，不是我们的 IpcRequest 对象。
+                     */
+                    IpcRequest.fromRequest(fromRequest.req_id, fromRequest.asRequest(), this)
+                }
+                IPC_DATA_TYPE.RESPONSE -> (message as IpcResponse).let { fromResponse ->
+                    /**
+                     * fromResponse 携带者远端的 ipc 对象，不是我们的 IpcResponse 对象。
+                     */
+                    IpcResponse.fromResponse(fromResponse.req_id, fromResponse.asResponse(), this)
+                }
+                /**
+                 * 其它情况的对象可以直接复用
+                 */
+                else -> message
+            }
+            _messageSignal.emit(IpcMessageArgs(ipcMessage, this))
+            null
+        }
+        port.start()
+    }
+
     override suspend fun _doPostMessage(data: IpcMessage) {
         port.postMessage(data)
     }
@@ -36,7 +63,7 @@ class NativePort<I, O>(
     fun start() {
         if (started || closing) return else started = true
 
-        runBlocking {
+        GlobalScope.launch {
             while (!channel_in.isClosedForReceive) {
                 _messageSignal.emit(channel_in.receive())
             }
@@ -51,7 +78,7 @@ class NativePort<I, O>(
     private var closing = false
     fun close() {
         if (closing) return else closing = true
-        closeMutex.notify()
+        closeMutex.unlock()
     }
 
     /**
@@ -59,12 +86,11 @@ class NativePort<I, O>(
      */
     init {
         GlobalScope.launch {
-            //TODO 等待之前需要锁住  这里为啥不直接移动到close函数里面呢
-            closeMutex.lock()
-//            closeMutex.wait()
-            closing = true
-            channel_out.close()
-            _closeSignal.emit()
+            closeMutex.withLock {
+                closing = true
+                channel_out.close()
+                _closeSignal.emit()
+            }
         }
 
     }
@@ -86,7 +112,10 @@ class NativePort<I, O>(
 }
 
 class NativeMessageChannel<T1, T2> {
-    private val closeMutex = Mutex()
+    /**
+     * 默认锁住，当它解锁的时候，意味着通道关闭
+     */
+    private val closeMutex = Mutex(true)
     private val channel1 = Channel<T1>()
     private val channel2 = Channel<T2>()
     val port1 = NativePort(channel1, channel2, closeMutex)

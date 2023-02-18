@@ -6,7 +6,8 @@ import info.bagen.rust.plaoc.microService.helper.asUtf8
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 
@@ -20,10 +21,10 @@ fun streamAsRawData(
     ipc.onMessage { args ->
         /// 对方申请数据拉取
         if ((args.message is IpcStreamPull) && (args.message.stream_id == stream_id)) {
-            runBlocking {
+            GlobalScope.launch {
                 channel.read(args.message.desiredSize) {
                     val binary = it.array()
-                    runBlocking {
+                    launch {
                         ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, binary))
                     }
                 }
@@ -32,6 +33,8 @@ fun streamAsRawData(
             withContext(Dispatchers.IO) {
                 stream.close()
             }
+        } else {
+
         }
     }
 
@@ -59,7 +62,7 @@ fun rawDataToBody(rawBody: RawData?, ipc: Ipc?): Any {
         val stream = ByteChannel();
         ipc.onMessage { args ->
             if (args.message is IpcStreamData && args.message.stream_id == stream_id) {
-                runBlocking {
+                GlobalScope.launch {
                     stream.write {
                         it.put(bodyEncoder(args.message.data))
                     }

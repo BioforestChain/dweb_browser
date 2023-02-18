@@ -4,9 +4,12 @@ import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import info.bagen.rust.plaoc.microService.MicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.helper.moshiPack
-import info.bagen.rust.plaoc.microService.ipc.*
-import kotlinx.coroutines.runBlocking
+import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcMessage
+import info.bagen.rust.plaoc.microService.ipc.IpcMessageArgs
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 open class MessagePortIpc(
     val port: WebMessagePort,
@@ -19,9 +22,9 @@ open class MessagePortIpc(
         port.setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
-                runBlocking {
+                GlobalScope.launch {
 //                    println("MessagePortIpc#port🍟message: ${event.data}")
-                    when (val message = messageToIpcMessage(event.data, ipc)) {
+                    when (val message = jsonToIpcMessage(event.data, ipc)) {
                         "close" -> close()
                         is IpcMessage -> _messageSignal.emit(IpcMessageArgs(message, ipc))
                     }
