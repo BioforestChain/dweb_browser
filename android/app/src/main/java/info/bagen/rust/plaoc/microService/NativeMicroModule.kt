@@ -15,7 +15,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
     private val _connectedIpcSet = mutableSetOf<Ipc>();
     override suspend fun _connect(from: MicroModule): NativeIpc {
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
-        val nativeIpc = NativeIpc(channel.port1, from, IPC_ROLE.SERVER, true);
+        val nativeIpc = NativeIpc(channel.port1, from, IPC_ROLE.SERVER);
 
         this._connectedIpcSet.add(nativeIpc);
         nativeIpc.onClose {
@@ -23,7 +23,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
         };
 
         this._connectSignal.emit(nativeIpc);
-        return NativeIpc(channel.port2, this, IPC_ROLE.CLIENT, true);
+        return NativeIpc(channel.port2, this, IPC_ROLE.CLIENT);
     }
 
 

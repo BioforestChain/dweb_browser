@@ -21,7 +21,7 @@ enum class Method(val method: String, val http4kMethod: Http4kMethod) : JsonSeri
     ;
 
     companion object {
-        fun from(http4kMethod: Http4kMethod) = values().first { it.http4kMethod === http4kMethod }
+        fun from(http4kMethod: Http4kMethod) = values().first { it.http4kMethod == http4kMethod }
     }
 
     override fun serialize(
@@ -34,6 +34,6 @@ enum class Method(val method: String, val http4kMethod: Http4kMethod) : JsonSeri
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ) = json.toString().let { method -> values().first { it.method === method } }
+    ) = json.toString().let { method -> values().first { it.method == method } }
 
 }

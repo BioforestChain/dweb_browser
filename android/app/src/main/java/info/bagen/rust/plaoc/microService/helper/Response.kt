@@ -23,4 +23,4 @@ fun Response.double() = ok().json<Double>(Double.javaClass);
 
 fun Response.float() = ok().json<Float>(Float.javaClass);
 
-fun Response.boolean() = text() === "true"
+fun Response.boolean() = text() == "true"

@@ -88,7 +88,7 @@ abstract class Ipc {
         this.postMessage(IpcRequest.fromRequest(req_id, request, this))
         val result = Channel<IpcResponse>();
         this.onMessage { args ->
-            if (args.message is IpcResponse && args.message.req_id === req_id) {
+            if (args.message is IpcResponse && args.message.req_id == req_id) {
                 runBlocking {
                     result.send(args.message)
                 }

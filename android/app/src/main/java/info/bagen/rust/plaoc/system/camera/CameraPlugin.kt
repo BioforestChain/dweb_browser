@@ -172,10 +172,10 @@ class CameraPlugin {
         if (methodName.equals("pickImages")) {
             openPhotos(true, true, onCallback)
         } else {
-            if (settings.source === CameraSource.CAMERA && getPermissionState(CAMERA) !== PackageManager.PERMISSION_GRANTED) {
+            if (settings.source == CameraSource.CAMERA && getPermissionState(CAMERA) !== PackageManager.PERMISSION_GRANTED) {
                 onCallback?.let { it(PERMISSION_DENIED_ERROR_CAMERA) }
                 return
-            } else if (settings.source === CameraSource.PHOTOS && getPermissionState(PHOTOS) !== PackageManager.PERMISSION_GRANTED) {
+            } else if (settings.source == CameraSource.PHOTOS && getPermissionState(PHOTOS) !== PackageManager.PERMISSION_GRANTED) {
                 onCallback?.let { it(PERMISSION_DENIED_ERROR_PHOTOS) }
                 return
             }
@@ -513,11 +513,11 @@ class CameraPlugin {
                 //Logger.error(getLogTag(), IMAGE_GALLERY_SAVE_ERROR, e)
             }
         }
-        if (settings.resultType === CameraResultType.BASE64) {
+        if (settings.resultType == CameraResultType.BASE64) {
             returnBase64(exif, bitmapOutputStream, onCallback)
-        } else if (settings.resultType === CameraResultType.URI) {
+        } else if (settings.resultType == CameraResultType.URI) {
             returnFileURI(exif, u, bitmapOutputStream, onCallback)
-        } else if (settings.resultType === CameraResultType.DATAURL) {
+        } else if (settings.resultType == CameraResultType.DATAURL) {
             returnDataUrl(exif, bitmapOutputStream, onCallback)
         } else {
             //call.reject(INVALID_RESULT_TYPE_ERROR)

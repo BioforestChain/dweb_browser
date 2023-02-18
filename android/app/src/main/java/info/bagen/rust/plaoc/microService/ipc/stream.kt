@@ -1,15 +1,14 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.helper.*
-import io.ktor.util.*
-import io.ktor.util.cio.*
+import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
+import info.bagen.rust.plaoc.microService.helper.asBase64
+import info.bagen.rust.plaoc.microService.helper.asUtf8
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.withContext
 import java.io.InputStream
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
 
 fun streamAsRawData(
     stream_id: String,
@@ -18,10 +17,9 @@ fun streamAsRawData(
 ) {
     val channel = stream.toByteReadChannel()
 
-    stream.close()
     ipc.onMessage { args ->
         /// 对方申请数据拉取
-        if (args.message is IpcStreamPull && args.message.stream_id === stream_id) {
+        if (args.message is IpcStreamPull && args.message.stream_id == stream_id) {
             runBlocking {
                 channel.read(args.message.desiredSize) {
                     val binary = it.array()
@@ -30,8 +28,10 @@ fun streamAsRawData(
                     }
                 }
             }
-        } else if (args.message is IpcStreamAbort && args.message.stream_id === stream_id) {
-            stream.close()
+        } else if (args.message is IpcStreamAbort && args.message.stream_id == stream_id) {
+            withContext(Dispatchers.IO) {
+                stream.close()
+            }
         }
     }
 
@@ -55,13 +55,13 @@ fun rawDataToBody(rawBody: RawData, ipc: Ipc): Any {
         val stream_id = rawBody.data as String;
         val stream = ByteChannel();
         ipc.onMessage { args ->
-            if (args.message is IpcStreamData && args.message.stream_id === stream_id) {
+            if (args.message is IpcStreamData && args.message.stream_id == stream_id) {
                 runBlocking {
                     stream.write {
                         it.put(bodyEncoder(args.message.data))
                     }
                 }
-            } else if (args.message is IpcStreamEnd && args.message.stream_id === stream_id) {
+            } else if (args.message is IpcStreamEnd && args.message.stream_id == stream_id) {
                 stream.close()
                 return@onMessage SIGNAL_CTOR.OFF
             } else {

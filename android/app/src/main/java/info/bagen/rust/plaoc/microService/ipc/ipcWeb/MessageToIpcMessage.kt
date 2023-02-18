@@ -4,7 +4,7 @@ import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.*
 
 fun messageToIpcMessage(data: String, ipc: Ipc): Any? {
-    if (data === "close") {
+    if (data == "close") {
         return data
     }
 

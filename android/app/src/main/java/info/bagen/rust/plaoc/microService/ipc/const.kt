@@ -43,7 +43,7 @@ enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ): IPC_DATA_TYPE = json.asInt.let { type -> values().first { it.type === type } }
+    ): IPC_DATA_TYPE = json.asInt.let { type -> values().first { it.type == type } }
 
 }
 
@@ -82,7 +82,7 @@ enum class IPC_RAW_BODY_TYPE(val type: Int) : JsonSerializer<IPC_RAW_BODY_TYPE>,
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ) = json.asInt.let { type -> values().find { it.type === type } }
+    ) = json.asInt.let { type -> values().find { it.type == type } }
 
     infix fun and(TYPE: IPC_RAW_BODY_TYPE) = type and TYPE.type
 }
@@ -110,7 +110,7 @@ enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>,
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ) = json.asString.let { role -> values().find { it.role === role } }
+    ) = json.asString.let { role -> values().find { it.role == role } }
 }
 
 class RawData(val type: IPC_RAW_BODY_TYPE, val data: Any) : JsonSerializer<RawData>,

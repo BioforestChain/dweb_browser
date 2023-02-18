@@ -25,13 +25,16 @@ abstract class MicroModule {
     private var _bootstrapLock: Mutex? = Mutex()
 
     private suspend fun beforeBootstrap() {
+        // TODO
+        println("MicroModule#beforeBootstrap===>${this.mmid}  ")
         if (this.running) {
-            throw  Error("module ${this.mmid} already running");
+            throw  Exception("module ${this.mmid} already running");
         }
         this.running = true;
     }
 
     protected suspend fun afterBootstrap() {
+//        println("MicroModule#afterBootstrap===>${this.mmid}  ")
     }
 
     suspend fun bootstrap() {
@@ -55,7 +58,7 @@ abstract class MicroModule {
 
     protected suspend fun beforeShutdown() {
         if (!running) {
-            throw  Error("module $mmid already shutdown");
+            throw  Exception("module $mmid already shutdown");
         }
         running = false;
         _afterShutdownSignal.emit()
@@ -85,7 +88,7 @@ abstract class MicroModule {
     /** 外部程序与内部程序建立链接的方法 */
     protected abstract suspend fun _connect(from: MicroModule): Ipc;
     suspend fun connect(from: MicroModule): Ipc {
-        if (running === false) {
+        if (!running) {
             throw Exception("module no running");
         }
         _bootstrapLock?.wait()
