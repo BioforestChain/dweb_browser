@@ -10,15 +10,10 @@ import info.bagen.rust.plaoc.microService.network.Http1Server
 import info.bagen.rust.plaoc.microService.network.Http1Server.Companion.PORT
 import info.bagen.rust.plaoc.microService.network.PortListener
 import info.bagen.rust.plaoc.microService.network.nativeFetch
-import org.http4k.core.*
-import org.http4k.lens.Path
-import org.http4k.routing.RoutingSseHandler
-import org.http4k.routing.bind
-import org.http4k.routing.sse
-import org.http4k.sse.Sse
-import org.http4k.sse.SseFilter
-import org.http4k.sse.SseMessage
-import org.http4k.sse.then
+import org.http4k.core.Filter
+import org.http4k.core.Status
+import org.http4k.core.Uri
+import org.http4k.core.query
 
 
 data class Origin(val origin: String)
@@ -90,7 +85,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 response.status(Status.BAD_GATEWAY).body("作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应")
                 println("HttpNMM#gateway222 ===> ${response.body}")
             } else {
-                gateway.listener.hookHttpRequest(request,response)
+                gateway.listener.hookHttpRequest(request, response)
             }
             response
         }
@@ -152,9 +147,8 @@ suspend fun NativeMicroModule.closeHttpDwebServer(options: DwebServerOptions) =
     ).boolean()
 
 class HttpDwebServer(private val nmm: NativeMicroModule, private val options: DwebServerOptions) {
-
     val start = suspendOnce { nmm.startHttpDwebServer(options) }
-    val listen = suspendOnce { nmm.listenHttpDwebServer(start().token) }
+    val listen = suspend { nmm.listenHttpDwebServer(start().token) }
     val close = suspendOnce { nmm.closeHttpDwebServer(options) }
 }
 

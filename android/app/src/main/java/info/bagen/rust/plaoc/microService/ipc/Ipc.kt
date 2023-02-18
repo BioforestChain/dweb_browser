@@ -99,5 +99,15 @@ abstract class Ipc {
 
     private var _req_id_acc: Int = 0;
     fun allocReqId() = _req_id_acc++;
+
+    suspend fun responseBy(byIpc:Ipc, myRequest: IpcRequest){
+        postMessage(
+            IpcResponse.fromResponse(
+                myRequest.req_id,
+                byIpc.request(myRequest.asRequest()).asResponse(),
+                byIpc
+            )
+        )
+    }
 }
 
