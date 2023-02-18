@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -219,6 +219,8 @@
 		F39DE5A9299B77110005B389 /* IpcResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39DE59A299B77110005B389 /* IpcResponse.swift */; };
 		F39DE5AB299B82D90005B389 /* urlHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39DE5AA299B82D90005B389 /* urlHelper.swift */; };
 		F39DE5AD299B92980005B389 /* streamAsRawData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39DE5AC299B92980005B389 /* streamAsRawData.swift */; };
+		F39DE5B2299CDE9D0005B389 /* PromiseOut.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39DE5B1299CDE9D0005B389 /* PromiseOut.swift */; };
+		F39DE5B829A079030005B389 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = F39DE5B729A079030005B389 /* Vapor */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -447,6 +449,7 @@
 		F39DE59A299B77110005B389 /* IpcResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IpcResponse.swift; sourceTree = "<group>"; };
 		F39DE5AA299B82D90005B389 /* urlHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = urlHelper.swift; sourceTree = "<group>"; };
 		F39DE5AC299B92980005B389 /* streamAsRawData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = streamAsRawData.swift; sourceTree = "<group>"; };
+		F39DE5B1299CDE9D0005B389 /* PromiseOut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromiseOut.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -455,6 +458,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A95784E17034B1A6095B4719 /* Pods_BFExplorer.framework in Frameworks */,
+				F39DE5B829A079030005B389 /* Vapor in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -988,6 +992,7 @@
 				F39DE58C299B77110005B389 /* binaryHelper.swift */,
 				F39DE58D299B77110005B389 /* createSignal.swift */,
 				F39DE58E299B77110005B389 /* types.swift */,
+				F39DE5B1299CDE9D0005B389 /* PromiseOut.swift */,
 				F39DE5AA299B82D90005B389 /* urlHelper.swift */,
 			);
 			path = helper;
@@ -1030,6 +1035,9 @@
 			dependencies = (
 			);
 			name = BFExplorer;
+			packageProductDependencies = (
+				F39DE5B729A079030005B389 /* Vapor */,
+			);
 			productName = OrionUI;
 			productReference = 1903641426EB427D00B82B1C /* BFExplorer.app */;
 			productType = "com.apple.product-type.application";
@@ -1058,6 +1066,9 @@
 				Base,
 			);
 			mainGroup = 1903640B26EB427D00B82B1C;
+			packageReferences = (
+				F39DE5B629A079020005B389 /* XCRemoteSwiftPackageReference "vapor" */,
+			);
 			productRefGroup = 1903641526EB427D00B82B1C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1251,6 +1262,7 @@
 				F091CB9B2951B92100FCE565 /* AlertConfiguration.swift in Sources */,
 				F091CB322951B8EE00FCE565 /* CustomConfirmPopView.swift in Sources */,
 				182EF46328B62DE4001E039E /* UIImage+Text.swift in Sources */,
+				F39DE5B2299CDE9D0005B389 /* PromiseOut.swift in Sources */,
 				F0292DA8297686CF00C2E464 /* AppVersionManager.swift in Sources */,
 				F091CB8F2951B91900FCE565 /* FileSystemManager.swift in Sources */,
 				F3088F3F298757AA008E7F82 /* FileOpenManager.swift in Sources */,
@@ -1551,6 +1563,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F39DE5B629A079020005B389 /* XCRemoteSwiftPackageReference "vapor" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/vapor.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F39DE5B729A079030005B389 /* Vapor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F39DE5B629A079020005B389 /* XCRemoteSwiftPackageReference "vapor" */;
+			productName = Vapor;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1903640C26EB427D00B82B1C /* Project object */;
 }

@@ -7,9 +7,21 @@
 
 import UIKit
 
-class IpcHeaders: NSObject {
+class IpcHeaders {
 
+    private var headerDict: [String: String] = [:]
+    
     init(key: String, value: String) {
-        
+        headerDict[key] = value
     }
+    
+    func set(key: String, value: String) {
+        headerDict[key] = value
+    }
+    
+    func getValue(forKey key: String) -> String {
+        return headerDict[key] ?? ""
+    }
+    
+    
 }

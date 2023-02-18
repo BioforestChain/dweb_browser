@@ -21,6 +21,7 @@ target 'BFExplorer' do
   pod 'EmptyDataSet-Swift'
   pod 'SwiftSoup'
   pod 'SwiftyTimer'
+  pod "PromiseKit"
 
   # Pods for BFExplorer
 

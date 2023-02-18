@@ -21,6 +21,7 @@ class rawDataToBody {
             let stream_ipc = ipc!
             let stream_id = rawBody.result as? String
             //TODO
+            body = InputStream()
         } else {
             body = raw_body_type == .TEXT ? rawBody.result : rawDataToBody.bodyEncoder(type: raw_body_type!, result: rawBody.result)
         }

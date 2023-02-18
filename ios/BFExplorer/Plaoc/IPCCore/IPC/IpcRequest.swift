@@ -13,6 +13,10 @@ class IpcRequest: IpcBody {
     var parsed_url: URL?
     private var urlString: String = ""
     
+    override init() {
+        super.init()
+    }
+    
     init(req_id: Int, method: String, url: String, rawBody: RawData, headers: [String:String], ipc: Ipc?) {
         super.init(rawBody: rawBody, ipc: ipc)
         self.urlString = url
@@ -20,7 +24,7 @@ class IpcRequest: IpcBody {
     
     
     func parsed_urlAction() -> URL? {
-        return self.parsed_url ?? urlHelper.parseUrl(urlString: self.urlString, base: urlHelper.URL_BASE(url: "base")) //TODO  base
+        return self.parsed_url ?? urlHelper.parseUrl(urlString: self.urlString)
     }
 
     
@@ -42,14 +46,14 @@ class IpcRequest: IpcBody {
         return IpcRequest(req_id: req_id, method: method, url: url, rawBody: rawBody, headers: headers, ipc: ipc)
     }
     
-    static func fromStream(stream: Data,req_id: Int,method: String,url: String,headers:[String:String], ipc: Ipc) -> IpcRequest {
+    static func fromStream(stream: InputStream,req_id: Int,method: String,url: String,headers:[String:String], ipc: Ipc) -> IpcRequest {
         
         var headDict = headers
-        headDict["Content-Type"] = "application/octet-strea"
+        headDict["Content-Type"] = "application/octet-stream"
         
         let stream_id = "res/\(req_id)/\(headDict["content-length"] ?? "-")"
-        //TODO streamAsRawData
         
+        streamAsRawData.streamAsRawData(streamId: stream_id, stream: stream, ipc: ipc)
         let rawBody = (ipc.support_message_pack ?? false) ? RawData(raw: .BINARY_STREAM_ID, content: stream_id) : RawData(raw: .BASE64_STREAM_ID, content: stream_id)
         
         return IpcRequest(req_id: req_id, method: method, url: url, rawBody: rawBody, headers: headDict, ipc: ipc)

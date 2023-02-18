@@ -8,39 +8,88 @@
 import UIKit
 import Network
 import Alamofire
+import Vapor
+import SwiftUI
+
 
 class IpcResponse: IpcBody {
 
+    var req_id: Int = 0
     private let type = IPC_DATA_TYPE.RESPONSE
     private var ipcHeaders: [String: Any] = [:]
     private var headers: [String:String] = [:]
+    private var statusCode: Int = 0
     
     init(req_id: Int, statusCode: Int, rawBody: RawData, headers: [String:String], ipc: Ipc?) {
         super.init(rawBody: rawBody, ipc: ipc)
         self.headers = headers
+        self.req_id = req_id
+        self.statusCode = statusCode
     }
     
     //TODO
-    func asResponse(url: String?) {
+    func asResponse(url: String?) -> Response {
         let body = self.bodyData()
         
+        var headers = HTTPHeaders()
         if body is [UInt8] {
+            for (key, value) in self.headers {
+                headers.add(name: key, value: value)
+            }
             if self.headers["content-length"] == nil {
-                self.headers["content-length"] = "\((body as! [UInt8]).count)"
+                headers.add(name: "content-length", value: "\((body as! [UInt8]).count)")
             }
         }
-       
-        //TODO
-        
-        if url != nil {
+        var responseBody = Response.Body()
+        if body is String {
+            responseBody = Response.Body.init(string: body as? String ?? "")
+        } else if body is [UInt8] {
+            let bodyData = body as! [UInt8]
+            let data = Data(bytes: bodyData, count: bodyData.count)
+            responseBody = Response.Body.init(data: data)
+        } else if body is InputStream {
             
+            let data = IpcResponse.fetchStreamData(stream: body as! InputStream)
+            responseBody = Response.Body.init(data: data)
         }
+        //TODO
+        let response = Response(status: HTTPResponseStatus(statusCode: self.statusCode), version: HTTPVersion.http1_0, headers: headers, body: responseBody)
+        return response
     }
     
-    static func fromResponse(req_id: Int, response: HTTPURLResponse, ipc: Ipc) {
+    static func fetchStreamData(stream: InputStream) -> Data {
+        
+        stream.open()
+        defer {
+            stream.close()
+        }
+
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer {
+            buffer.deallocate()
+        }
+        
+        var result: Data = Data()
+        while stream.hasBytesAvailable {
+            let length = stream.read(buffer, maxLength: bufferSize)
+            let data = Data(bytes: buffer, count: length)
+            result += data
+        }
+        return result
+    }
+    
+    static func fromResponse(req_id: Int, response: Response, ipc: Ipc) -> IpcResponse? {
         
         var ipcResponse: IpcResponse?
-        
+        guard response.body.data != nil else { return ipcResponse }
+        if response.body.count > 0 {
+            let stream = InputStream(data: response.body.data!)
+            ipcResponse = self.fromStream(req_id: req_id, statusCode: Int(response.status.code), stream: stream, headers: [:], ipc: ipc)
+        } else {
+            ipcResponse = self.fromBinary(req_id: req_id, statusCode: Int(response.status.code), binary: [UInt8](response.body.data!), headers: [:], ipc: ipc)
+        }
+        return ipcResponse
     }
     
     static func fromJson(req_id: Int,statusCode: Int,jsonable: Any,headers: [String:String])  -> IpcResponse {
@@ -73,13 +122,13 @@ class IpcResponse: IpcBody {
         return ipcResponse
     }
     
-    static func fromStream(req_id: Int,statusCode: Int,stream: Data,headers: [String:String],ipc: Ipc) -> IpcResponse {
+    static func fromStream(req_id: Int,statusCode: Int,stream: InputStream,headers: [String:String],ipc: Ipc) -> IpcResponse {
         
         let headerDict = ["Content-Type": "application/octet-stream"]
         let stream_id = "res/\(req_id)/\(headerDict["content-length"] ?? "-")"
         let ipcResponse = IpcResponse(req_id: req_id, statusCode: statusCode, rawBody: RawData(raw: .BINARY_STREAM_ID, content: stream_id), headers: headerDict, ipc: ipc)
-        //TODO
-        //streamAsRawData(stream_id, stream, ipc);
+        
+        streamAsRawData.streamAsRawData(streamId: stream_id, stream: stream, ipc: ipc)
         return ipcResponse
     }
 }

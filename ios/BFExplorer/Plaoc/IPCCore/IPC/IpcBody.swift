@@ -14,6 +14,10 @@ class IpcBody: NSObject {
     private var body: Body?
     private var rawData: RawData?
     
+    override init() {
+        
+    }
+    
     init(rawBody: RawData, ipc: Ipc?) {
         super.init()
         self.ipc = ipc
@@ -29,8 +33,8 @@ class IpcBody: NSObject {
             if self.rawData != nil, self.ipc != nil {
                 let data = rawDataToBody.rawDataToBodyResult(rawBody: self.rawData!, ipc: self.ipc!)
                 self.body = Body(data: data)
-                if data is Data {
-                    self.body?.stream = data as? Data
+                if data is InputStream {
+                    self.body?.stream = data as? InputStream
                 } else if data is [UInt8] {
                     self.body?.u8a = data as? [UInt8]
                 } else if data is String {
@@ -46,7 +50,7 @@ class IpcBody: NSObject {
         var body_u8a = body.u8a
         if body_u8a == nil {
             if body.stream != nil {
-                body_u8a = StreamFileManager.readData(data: body.stream)
+                body_u8a = StreamFileManager.readData(stream: body.stream!)
             } else if body.text != nil {
                 body_u8a = encoding.simpleEncoder(data: body.text!, encoding: .utf8)
             } else {
@@ -57,11 +61,14 @@ class IpcBody: NSObject {
         return body_u8a
     }
     
-    func stream() -> Data? {
+    func stream() -> InputStream? {
         guard let body = self.initBody() else { return nil }
-        let body_stream = body.stream
+        var body_stream = body.stream
         if body_stream == nil {
-            //TODO
+            let binary = self.u8a() ?? []
+            let data = Data(bytes: binary, count: binary.count)
+            body_stream = InputStream(data: data)
+            self.body?.stream = body_stream
         }
         return body_stream
     }
@@ -118,6 +125,6 @@ struct Body {
     
     var data: Any?  
     var u8a: [UInt8]?
-    var stream: Data?
+    var stream: InputStream?
     var text: String?
 }

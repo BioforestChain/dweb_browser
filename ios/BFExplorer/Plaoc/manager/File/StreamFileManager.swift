@@ -188,14 +188,14 @@ class StreamFileManager: NSObject {
     }
     
     //读取数据返回[UInt8]
-    static func readData(data: Data?) -> [UInt8]? {
-        guard data != nil else { return nil }
-        let stream = InputStream(data: data!)
+    static func readData(stream: InputStream) -> [UInt8]? {
+//        guard data != nil else { return nil }
+//        let stream = InputStream(data: data!)
         stream.open()
         defer {
             stream.close()
         }
-
+        
         let bufferSize = 1024
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
         defer {

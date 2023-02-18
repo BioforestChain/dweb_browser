@@ -8,21 +8,23 @@
 import UIKit
 import SwiftyJSON
 
+let URL_BASE = "http://localhost"
+
 class urlHelper: NSObject {
 
     
-    static func URL_BASE(url: String) -> String {
-        
-        if url.hasPrefix("http:")
-           || url.hasPrefix("https:")
-           || url.hasPrefix("file:")
-           || url.hasPrefix("chrome-extension:") {
-            return url
-        }
-        return "http://localhost"
-    }
+//    static func URL_BASE(url: String) -> String {
+//
+//        if url.hasPrefix("http:")
+//           || url.hasPrefix("https:")
+//           || url.hasPrefix("file:")
+//           || url.hasPrefix("chrome-extension:") {
+//            return url
+//        }
+//        return "http://localhost"
+//    }
     
-    static func parseUrl(urlString: Any, base: String) -> URL? {
+    static func parseUrl(urlString: Any, base: String = URL_BASE) -> URL? {
         
         guard urlString is String || urlString is URL else { return nil }
         
@@ -38,15 +40,15 @@ class urlHelper: NSObject {
         
         guard paramURLString.count > 0 else { return nil }
         
-        let baseURL = URL(string: urlHelper.URL_BASE(url: base))
+        let baseURL = URL(string: base)
         
         return URL(string: paramURLString, relativeTo: baseURL)?.absoluteURL
         
     }
     
-    static func updateUrlOrigin(url: Any, new_origin: String, base: String) -> URL? {
+    static func updateUrlOrigin(url: Any, new_origin: String) -> URL? {
         
-        let newUrl = urlHelper.parseUrl(urlString: url, base: base)
+        let newUrl = urlHelper.parseUrl(urlString: url)
         var urlString = newUrl?.absoluteString
         let origin = newUrl?.absoluteString.analysisURLFormat() ?? ""
         urlString = urlString?.replacingOccurrences(of: origin, with: new_origin)
@@ -55,8 +57,6 @@ class urlHelper: NSObject {
     
     static func buildUrl(url: URL, ext: Ext) -> URL? {
         
-        url.pathComponents
-        var resultURL: URL?
         var path: String = ""
         var query: String = ""
         

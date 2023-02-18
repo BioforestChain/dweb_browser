@@ -11,9 +11,11 @@ class IpcStreamPull: NSObject {
 
     let type = IPC_DATA_TYPE.STREAM_PULL
     private(set) var desiredSize: UInt8?
+    var stream_id: String?
     
     init(stream_id: String, desiredSize: UInt8?) {
         super.init()
+        self.stream_id = stream_id
         if desiredSize == nil {
             self.desiredSize = 1
         } else if (isPurnFloat(value: "\(desiredSize!)")) {

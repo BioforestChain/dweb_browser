@@ -49,15 +49,26 @@ enum IPC_ROLE: String {
     case CLIENT = "client"
 }
 
-enum IpcMessage {
-    case IpcRequest
-    case IpcResponse
-    case IpcStreamData
-    case IpcStreamPull
-    case IpcStreamEnd
-    case IpcStreamAbort
-    case none
-}
+//enum IpcMessage {
+//    case IpcRequest
+//    case IpcResponse
+//    case IpcStreamData
+//    case IpcStreamPull
+//    case IpcStreamEnd
+//    case IpcStreamAbort
+//    case none
+//}
 
-typealias OnIpcMessage = (_ message: IpcMessage? , _ ipc: Ipc?) -> Any
-typealias OnIpcrequestMessage = (_ message: IpcRequest? , _ ipc: Ipc?) -> Any
+protocol IpcMessage {}
+extension IpcRequest: IpcMessage {}
+extension IpcResponse: IpcMessage {}
+extension IpcStreamData: IpcMessage {}
+extension IpcStreamPull: IpcMessage {}
+extension IpcStreamEnd: IpcMessage {}
+extension IpcStreamAbort: IpcMessage {}
+
+
+//typealias IpcMessage = Any
+
+typealias OnIpcMessage = ((IpcMessage, Ipc)) -> Any
+typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Any
