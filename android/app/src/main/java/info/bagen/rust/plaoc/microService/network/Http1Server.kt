@@ -1,17 +1,13 @@
 package info.bagen.rust.plaoc.microService.network
 
-import info.bagen.rust.plaoc.microService.Gateway
-import io.ktor.server.netty.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.http4k.core.*
 import org.http4k.server.Http4kServer
 import org.http4k.server.Netty
-import org.http4k.server.PolyHandler
 import org.http4k.server.asServer
-import org.http4k.sse.SseFilter
-import org.http4k.sse.SseHandler
+
 
 
 class Http1Server {
