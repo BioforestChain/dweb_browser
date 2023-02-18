@@ -53,7 +53,7 @@ export class IpcRequest extends IpcBody {
   ) {
     headers.init("Content-Type", "application/octet-stream");
     headers.init("Content-Length", binary.byteLength + "");
-    const rawBody: $RawData = ipc.support_message_pack
+    const rawBody: $RawData = ipc.support_binary
       ? [IPC_RAW_BODY_TYPE.BINARY, binaryToU8a(binary)]
       : [IPC_RAW_BODY_TYPE.BASE64, simpleDecoder(binary, "base64")];
     return new IpcRequest(req_id, method, url, rawBody, headers.toJSON(), ipc);
@@ -76,7 +76,7 @@ export class IpcRequest extends IpcBody {
       req_id,
       method,
       url,
-      ipc.support_message_pack
+      ipc.support_binary
         ? [IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id]
         : [IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id],
       headers.toJSON(),
