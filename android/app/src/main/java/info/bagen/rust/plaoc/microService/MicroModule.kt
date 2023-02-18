@@ -42,7 +42,9 @@ abstract class MicroModule {
         try {
             this._bootstrap();
         } finally {
-            bootstrapLock.unlock();
+            if (bootstrapLock.isLocked) {
+                bootstrapLock.unlock();
+            }
             this._bootstrapLock = null;
 
             this.afterBootstrap();

@@ -23,7 +23,9 @@ class ReadableStreamIpc(
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
-    val context = this
+    private val writer = ByteChannel(true)
+    val stream get() = writer.toInputStream()
+
     private var _incomeStream: ByteReadChannel? = null
 
     /**
@@ -34,6 +36,9 @@ class ReadableStreamIpc(
         if (this._incomeStream !== null) {
             throw Exception("in come stream already binded.");
         }
+        if (supportMessagePack){
+            throw Exception("还未实现 MessagePack 的编解码能力")
+        }
 
         _incomeStream = stream.toByteReadChannel().also { _income_stream ->
             runBlocking {
@@ -43,9 +48,10 @@ class ReadableStreamIpc(
                     // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
                     val chunk = _income_stream.readPacket(size)
                     println("ReadableStreamIpc#bindIncomeStream ==> ${chunk.readBytes()}") // 准确读取 n 个字节（如果未指定 n，则消耗所有剩余字节
-                    when (val message = messageToIpcMessage(chunk.readText(), context)) {
-                        "close" -> context.close()
-                        is IpcMessage -> context._messageSignal.emit(
+                    when (val message =
+                        messageToIpcMessage(chunk.readText(), this@ReadableStreamIpc)) {
+                        "close" -> close()
+                        is IpcMessage -> _messageSignal.emit(
                             IpcMessageArgs(
                                 message,
                                 this@ReadableStreamIpc
@@ -58,21 +64,15 @@ class ReadableStreamIpc(
     }
 
     override suspend fun _doPostMessage(data: IpcMessage) {
-        val message = if (this.supportMessagePack) {
-            println("ReadableStreamIpc#_doPostMessage===>${moshiPack.pack(data)}")
-            moshiPack.packToByteArray(data)
-        } else {
-            println("ReadableStreamIpc#message===>$data")
-            data.toString().asBase64() // TODO data.toString?
+        val message = when {
+            supportMessagePack -> moshiPack.packToByteArray(data)
+            else -> gson.toJson(data).byteInputStream().readBytes()
         }
-        runBlocking {
-            context._incomeStream?.readFully(message)
-        }
+        writer.writeInt(message.size)
+        writer.writeFully(message)
     }
 
     override suspend fun _doClose() {
-        //  丢弃通道中的所有字节并暂停直到流结束。
-        context._incomeStream?.discard()
-        context._incomeStream = null
+        writer.close()
     }
 }

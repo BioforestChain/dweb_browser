@@ -20,18 +20,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import info.bagen.libappmgr.R
 import info.bagen.libappmgr.ui.splash.SplashPrivacyDialog
 import info.bagen.libappmgr.utils.KEY_APP_FIRST_LOAD
 import info.bagen.libappmgr.utils.getBoolean
 import info.bagen.libappmgr.utils.saveBoolean
 import info.bagen.rust.plaoc.microService.global_dns
-import info.bagen.rust.plaoc.microService.network.nativeFetch
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
-import info.bagen.rust.plaoc.webView.DWebViewActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +38,7 @@ class SplashActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onResume() {
         super.onResume()
         val first = this.getBoolean(KEY_APP_FIRST_LOAD, true)
@@ -56,7 +56,7 @@ class SplashActivity : AppCompatActivity() {
             }
         } else {
             /// TODO 这里启动 DNS？
-            runBlocking {
+            GlobalScope.launch {
                 global_dns.bootstrap()
             }
             App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)

@@ -108,7 +108,7 @@ export class IpcResponse extends IpcBody {
     return new IpcResponse(
       req_id,
       statusCode,
-      ipc.support_message_pack
+      ipc.support_binary
         ? [IPC_RAW_BODY_TYPE.BINARY, binaryToU8a(binary)]
         : [IPC_RAW_BODY_TYPE.BASE64, simpleDecoder(binary, "base64")],
       headers.toJSON(),
@@ -130,7 +130,7 @@ export class IpcResponse extends IpcBody {
     const ipcResponse = new IpcResponse(
       req_id,
       statusCode,
-      ipc.support_message_pack
+      ipc.support_binary
         ? [IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id]
         : [IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id],
       headers.toJSON(),
