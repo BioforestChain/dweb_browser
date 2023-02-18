@@ -28,6 +28,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
 
     override suspend fun _bootstrap() {
         install(this)
+        running_apps[this.mmid] = this
         install(bootNMM)
         install(jsProcessNMM)
         install(multiWebViewNMM)

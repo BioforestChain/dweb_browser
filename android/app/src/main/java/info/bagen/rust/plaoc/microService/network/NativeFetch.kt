@@ -11,7 +11,7 @@ import org.http4k.core.Uri
 var fetchAdaptor: (suspend (remote: MicroModule, request: Request) -> Response?)? = null
 
 suspend fun localeFileFetch(remote: MicroModule, request: Request): Response? {
-    if (request.uri.scheme == "file:" && request.uri.host == "/") {
+    if (request.uri.scheme == "file:" && request.uri.host == "") {
         /// TODO 从本地文件读取
     }
     return null

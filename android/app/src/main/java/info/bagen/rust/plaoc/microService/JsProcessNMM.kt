@@ -98,8 +98,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 apis.createIpc(query_process_id(request))
             }
         )
-
-
+        
     }
 
     override suspend fun _shutdown() {
