@@ -106,7 +106,7 @@ class SplashScreen(
         try {
             showWithAndroid12API(activity, settings)
             return
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e(TAG, "Android 12 Splash API failed... using previous method.")
             onPreDrawListener = null
         }

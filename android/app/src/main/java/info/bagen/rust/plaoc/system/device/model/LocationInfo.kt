@@ -58,7 +58,7 @@ class LocationInfo : LocationListener {
                 locationData.longitude = longitude
                 return locationData
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e("", "Unable connect to Geocoder", e)
         } finally {
             return locationData
@@ -110,7 +110,7 @@ class LocationInfo : LocationListener {
                     locationM.removeUpdates(this)
                     return latlong
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace()
             }
 

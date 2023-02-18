@@ -76,7 +76,7 @@ class AdAndroidWebView(context: Context) : WebView(context) {
             override fun onGetContentRect(mode: ActionMode?, view: View?, outRect: Rect?) {
                 try {
                     (callback as ActionMode.Callback2).onGetContentRect(mode, view, outRect)
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     super.onGetContentRect(mode, view, outRect)
                 }
             }

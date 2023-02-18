@@ -31,6 +31,7 @@ import info.bagen.rust.plaoc.microService.network.nativeFetch
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.DWebViewActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
+import kotlinx.coroutines.runBlocking
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +56,9 @@ class SplashActivity : AppCompatActivity() {
             }
         } else {
             /// TODO 这里启动 DNS？
-            global_dns.bootstrap()
+            runBlocking {
+                global_dns.bootstrap()
+            }
             App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
             finish()
         }

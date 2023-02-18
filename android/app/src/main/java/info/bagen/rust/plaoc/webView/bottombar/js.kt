@@ -53,7 +53,7 @@ class BottomBarFFI(
     fun setHeight(heightDp: String): String {
         try {
             state.height.value = heightDp.toFloat()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             println(e.message)
             return "setHeight:${e.message}"
         }

@@ -1,44 +1,32 @@
 package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 
+import com.google.gson.GsonBuilder
+import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.moshiPack
 import info.bagen.rust.plaoc.microService.ipc.*
 import okio.BufferedSource
 
-fun messageToIpcMessage(data: Any, ipc: Ipc): Any? {
-    var data = data
-    // 解码缓冲区中的单个 MessagePack 对象
-    if (data is ByteArray || data is BufferedSource) {
-        data = moshiPack.unpack(data as ByteArray) as IpcMessage
-    }
-
+fun messageToIpcMessage(data: String, ipc: Ipc): Any? {
     if (data === "close") {
         return data
     }
-    val message = data as IpcMessage
-    return when (data.type) {
-        IPC_DATA_TYPE.REQUEST -> {
-            val req = message as IpcRequest
-            IpcRequest(req.req_id, req.method, req.url,  req.headers ,req.rawBody, ipc)
+
+    try {
+        return when (gson.fromJson(data, IpcMessage::class.java).type) {
+            IPC_DATA_TYPE.REQUEST -> gson.fromJson(data, IpcRequestData::class.java).let {
+                IpcRequest(it.req_id, it.method, it.url, it.headers, it.rawBody, ipc)
+            }
+            IPC_DATA_TYPE.RESPONSE -> gson.fromJson(data, IpcResponseData::class.java).let {
+                IpcResponse(it.req_id, it.statusCode, it.headers, it.rawBody, ipc)
+            }
+            IPC_DATA_TYPE.STREAM_DATA -> gson.fromJson(data, IpcStreamData::class.java)
+            IPC_DATA_TYPE.STREAM_PULL -> gson.fromJson(data, IpcStreamPull::class.java)
+            IPC_DATA_TYPE.STREAM_END -> gson.fromJson(data, IpcStreamEnd::class.java)
+            IPC_DATA_TYPE.STREAM_ABORT -> gson.fromJson(data, IpcStreamAbort::class.java)
         }
-        IPC_DATA_TYPE.RESPONSE -> {
-            val res = message as IpcResponse
-            IpcResponse(res.req_id, res.statusCode, res.headers, res.rawBody, ipc)
-        }
-        IPC_DATA_TYPE.STREAM_DATA -> {
-            val streamData = message as IpcStreamData
-            IpcStreamData(streamData.stream_id, streamData.data)
-        }
-        IPC_DATA_TYPE.STREAM_PULL -> {
-            val streamData = message as IpcStreamPull
-            IpcStreamPull(streamData.stream_id, streamData.desiredSize)
-        }
-        IPC_DATA_TYPE.STREAM_END -> {
-            val streamData = message as IpcStreamEnd
-            IpcStreamEnd(streamData.stream_id)
-        }
-        else -> {
-            message
-        }
+    } catch (_: Throwable) {
+        return data
     }
+
 }
 

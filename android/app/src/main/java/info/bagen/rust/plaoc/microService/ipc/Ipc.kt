@@ -16,7 +16,21 @@ import java.io.InputStream
 var ipc_uid_acc = 0
 
 abstract class Ipc {
-    abstract val supportMessagePack: Boolean
+    /**
+     * 是否支持 messagePack 协议传输：
+     * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
+     */
+    val supportMessagePack: Boolean = false
+
+    /**
+     * 是否支持 Protobuf 协议传输：
+     * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 Protobuf 的编解码
+     */
+    val supportProtobuf: Boolean = false
+
+    /** 是否支持 二进制 传输 */
+    val supportBinary get() = supportMessagePack || supportProtobuf
+
     abstract val remote: MicroModule
     abstract val role: IPC_ROLE
     val uid = ipc_uid_acc++

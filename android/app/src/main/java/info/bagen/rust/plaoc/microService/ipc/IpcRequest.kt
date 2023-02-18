@@ -6,23 +6,28 @@ import info.bagen.rust.plaoc.microService.helper.toBase64
 import org.http4k.core.Uri
 import java.io.InputStream
 
-data class IpcRequest(
-    val req_id: Int,
-    val method: Method,
-    val url: String,
-    val headers: IpcHeaders,
-    override val rawBody: RawData,
+class IpcRequest(
+    req_id: Int,
+    method: Method,
+    url: String,
+    headers: IpcHeaders,
+    rawBody: RawData,
     override val ipc: Ipc
-) : IpcBody(rawBody, ipc), IpcMessage {
-    override val type = IPC_DATA_TYPE.REQUEST
+) : IpcRequestData(
+    req_id,
+    method,
+    url,
+    headers,
+    rawBody,
+) {
 
     val uri by lazy { Uri.of(url) }
 
     companion object {
 
         fun fromRequest(req_id: Int, request: Request, ipc: Ipc) =
-            if (request.body.length === null)
-                IpcRequest.fromStream(
+            when (request.body.length) {
+                null -> fromStream(
                     req_id,
                     Method.from(request.method),
                     request.uri.toString(),
@@ -30,16 +35,14 @@ data class IpcRequest(
                     request.body.stream,
                     ipc
                 )
-            else if (request.body.length === 0L)
-                IpcRequest.fromText(
+                0L -> fromText(
                     req_id,
                     Method.from(request.method),
                     request.uri.toString(),
                     IpcHeaders(request.headers),
                     "", ipc,
                 )
-            else
-                IpcRequest.fromBinary(
+                else -> fromBinary(
                     req_id,
                     Method.from(request.method),
                     request.uri.toString(),
@@ -47,6 +50,7 @@ data class IpcRequest(
                     request.body.payload.array(),
                     ipc
                 )
+            }
 
 
         fun fromText(
@@ -82,7 +86,7 @@ data class IpcRequest(
                 headers.init("Content-Type", "application/octet-stream");
                 headers.init("Content-Length", binary.size.toString());
             },
-            if (ipc.supportMessagePack)
+            if (ipc.supportBinary)
                 RawData(IPC_RAW_BODY_TYPE.BINARY, binary)
             else RawData(
                 IPC_RAW_BODY_TYPE.BASE64,
@@ -112,7 +116,7 @@ data class IpcRequest(
             },
             "res/$req_id/${headers.getOrDefault("Content-Length", "-")}".let { stream_id ->
                 streamAsRawData(stream_id, stream, ipc);
-                if (ipc.supportMessagePack)
+                if (ipc.supportBinary)
                     RawData(IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id)
                 else RawData(
                     IPC_RAW_BODY_TYPE.BASE64_STREAM_ID,
@@ -124,4 +128,14 @@ data class IpcRequest(
     }
 
     fun asRequest() = Request(method.http4kMethod, url).headers(headers.toList()).body(stream())
+}
+
+abstract class IpcRequestData(
+    val req_id: Int,
+    val method: Method,
+    val url: String,
+    val headers: IpcHeaders,
+    override val rawBody: RawData,
+) : IpcBody(), IpcMessage {
+    override val type = IPC_DATA_TYPE.REQUEST
 }

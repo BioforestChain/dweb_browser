@@ -112,7 +112,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
             try {
                 it.shutdown()
                 1
-            } catch (_: Exception) {
+            } catch (_: Throwable) {
                 0
             }
         } ?: -1

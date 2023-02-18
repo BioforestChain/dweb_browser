@@ -3,7 +3,9 @@ package info.bagen.rust.plaoc.microService.ipc
 import info.bagen.rust.plaoc.microService.helper.asBase64
 import java.io.InputStream
 
-open class IpcBody(open val rawBody: RawData, open val ipc: Ipc) {
+abstract class IpcBody {
+    abstract val rawBody: RawData
+    protected abstract val ipc: Ipc
     val body = run {
         rawDataToBody(rawBody, ipc).also { data ->
             when (data) {

@@ -34,7 +34,7 @@ fun MediaInfo.loadThumbnail() {
         } else {
             thumbnail = BitmapUtil.getImageThumbnail(path, 200, 200)?.toByteArray()
         }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         Log.e("MediaManager", "MediaInfo.loadThumbnail -> path=$path (fail->$e)")
     }
 }
@@ -61,7 +61,7 @@ fun MediaMetadataRetriever.getDurationOfMinute(): Int {
         extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.let {
             Integer.parseInt(it) / 1000
         } ?: 0
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         0
     }
 }

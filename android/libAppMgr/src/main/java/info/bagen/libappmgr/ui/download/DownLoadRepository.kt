@@ -29,7 +29,7 @@ class DownLoadRepository(private val api: ApiService = ApiService.instance) {
                 delay(1000)
                 emit(ApiResultData.success(file))
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             emit(ApiResultData.failure(e))
         }
     }
@@ -58,7 +58,7 @@ class DownLoadRepository(private val api: ApiService = ApiService.instance) {
                 delay(1000)
                 emit(ApiResultData.success(file))
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             emit(ApiResultData.failure(e))
         }
     }

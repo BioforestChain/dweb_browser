@@ -12,7 +12,6 @@ class NativeIpc(
     val port: NativePort<IpcMessage, IpcMessage>,
     override val remote: MicroModule,
     override val role: IPC_ROLE,
-    override val supportMessagePack: Boolean
 ) : Ipc() {
     override suspend fun _doPostMessage(data: IpcMessage) {
         port.postMessage(data)

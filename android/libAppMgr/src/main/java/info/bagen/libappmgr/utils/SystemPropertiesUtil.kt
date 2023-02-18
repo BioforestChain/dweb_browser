@@ -13,7 +13,7 @@ class SystemPropertiesUtil {
                 var c = Class.forName(CLASS_NAME)
                 var method = c.getMethod("get", String::class.java, String::class.java)
                 value = method.invoke(c, key, defaultValue) as String
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace();
             } finally {
                 return value;
@@ -25,7 +25,7 @@ class SystemPropertiesUtil {
                 var c = Class.forName(CLASS_NAME)
                 var method = c.getMethod("set", String::class.java, String::class.java)
                 method.invoke(c, key, value)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace();
             }
         }

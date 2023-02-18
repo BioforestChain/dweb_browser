@@ -79,7 +79,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
             try {
                 Response(Status.OK).body(gson.toJson(handler(request)))
                     .header("Content-Type", "application/json")
-            } catch (ex: Exception) {
+            } catch (ex: Throwable) {
                 Response(Status.INTERNAL_SERVER_ERROR).body(ex.message ?: "Unknown Error")
             }
         }

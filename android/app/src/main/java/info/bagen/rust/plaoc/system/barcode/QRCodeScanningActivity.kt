@@ -199,7 +199,7 @@ class QRCodeScanningActivity : QRCodeCameraScanActivity() {
                     }
                     //如果指定具体的识别条码类型，速度会更快
                 }, if (isQRCode) Barcode.FORMAT_QR_CODE else Barcode.FORMAT_ALL_FORMATS)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace()
                 Toast.makeText(getContext(), e.message, Toast.LENGTH_SHORT).show()
             }

@@ -188,7 +188,7 @@ class ExifWrapper(private val exif: ExifInterface?) {
                 }
             }
             destExif.saveAttributes()
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
         }
     }
 

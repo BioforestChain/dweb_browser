@@ -6,14 +6,18 @@ import org.http4k.core.Response
 import org.http4k.core.Status
 import java.io.InputStream
 
-data class IpcResponse(
-    val req_id: Int = 0,
-    val statusCode: Int = 200,
-    val headers: IpcHeaders,
-    override val rawBody: RawData,
+class IpcResponse(
+    req_id: Int,
+    statusCode: Int,
+    headers: IpcHeaders,
+    rawBody: RawData,
     override val ipc: Ipc
-) : IpcBody(rawBody, ipc), IpcMessage {
-    override val type = IPC_DATA_TYPE.RESPONSE
+) : IpcResponseData(
+    req_id,
+    statusCode,
+    headers,
+    rawBody
+) {
 
     companion object {
         fun fromJson(
@@ -57,7 +61,7 @@ data class IpcResponse(
                 req_id,
                 statusCode,
                 headers,
-                if (ipc.supportMessagePack) {
+                if (ipc.supportBinary) {
                     RawData(IPC_RAW_BODY_TYPE.BINARY, binary)
                 } else {
                     RawData(IPC_RAW_BODY_TYPE.BASE64, binary.toBase64())
@@ -79,7 +83,7 @@ data class IpcResponse(
                 req_id,
                 statusCode,
                 headers,
-                if (ipc.supportMessagePack) {
+                if (ipc.supportBinary) {
                     RawData(IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id)
                 } else {
                     RawData(IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id)
@@ -105,10 +109,23 @@ data class IpcResponse(
         }
     }
 
+    fun asResponse() =
+        Response(Status(this.statusCode, null))
+            .headers(this.headers.toList()).also { res ->
+                when (body) {
+                    is String -> res.body(body)
+                    is ByteArray -> res.body(body.inputStream(), body.size.toLong())
+                    is InputStream -> res.body(body)
+                    else -> throw Exception("invalid body to response: $body")
+                }
+            }
+}
 
-    suspend fun asResponse(): Response {
-        return Response(Status(this.statusCode, null))
-            .headers(this.headers.toList())
-            .body(this.stream())
-    }
+abstract class IpcResponseData(
+    val req_id: Int,
+    val statusCode: Int,
+    val headers: IpcHeaders,
+    override val rawBody: RawData,
+) : IpcBody(), IpcMessage {
+    override val type = IPC_DATA_TYPE.RESPONSE
 }

@@ -11,8 +11,6 @@ class MessagePortIpc(
     val port: WebMessagePort,
     override val remote: MicroModule,
     override val role: IPC_ROLE,
-    /** MessagePort 默认支持二进制传输 */
-    override val supportMessagePack: Boolean = false
 ) : Ipc() {
     val context = this
 

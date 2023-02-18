@@ -49,7 +49,7 @@ object Clipboard {
         return if (data != null) {
             try {
                 mClipboard.setPrimaryClip(data)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 return ClipboardWriteResponse(false, "Writing to the clipboard failed")
             }
             ClipboardWriteResponse(true)

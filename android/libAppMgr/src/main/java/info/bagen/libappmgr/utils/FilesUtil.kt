@@ -244,7 +244,7 @@ object FilesUtil {
             } else {
                 file.delete()
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
         }
     }
 
@@ -294,7 +294,7 @@ object FilesUtil {
                     inputStream.close()
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             e.printStackTrace()
         }
     }
@@ -458,7 +458,7 @@ object FilesUtil {
             fis.read(byte)
 
             return android.util.Base64.encodeToString(byte, android.util.Base64.DEFAULT)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
         } finally {
             try {
                 fis?.close()

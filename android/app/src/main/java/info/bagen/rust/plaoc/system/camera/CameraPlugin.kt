@@ -197,7 +197,7 @@ class CameraPlugin {
                     imageFileUri =
                         FileProvider.getUriForFile(App.appContext, "$appId.fileprovider", photoFile)
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri)
-                } catch (ex: Exception) {
+                } catch (ex: Throwable) {
                     onCallback?.let { it("$IMAGE_FILE_SAVE_ERROR -- $ex") }
                     return
                 }
@@ -687,7 +687,7 @@ class CameraPlugin {
                 }
             }
 
-        } catch (ex: Exception) {
+        } catch (ex: Throwable) {
             onCallback?.let { it("$IMAGE_EDIT_ERROR -- $ex") }
         }
     }
@@ -715,7 +715,7 @@ class CameraPlugin {
                 App.appContext.grantUriPermission(packageName, editUri, flags)
             }
             editIntent
-        } catch (ex: Exception) {
+        } catch (ex: Throwable) {
             null
         }
     }

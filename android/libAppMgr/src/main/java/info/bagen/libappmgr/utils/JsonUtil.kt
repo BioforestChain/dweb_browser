@@ -18,7 +18,7 @@ object JsonUtil {
             appInfo.appDirType = type
             appInfo.iconPath = FilesUtil.getAppIconPathName(appInfo)
             return appInfo
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.d(TAG, "getAppInfoFromLinkJson e->$e")
         }
         return null
@@ -38,7 +38,7 @@ object JsonUtil {
                 }
             }
             return appInfos
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.d(TAG, e.toString())
         }
         return null
@@ -47,7 +47,7 @@ object JsonUtil {
     fun getDAppInfoFromBFSA(content: String?): DAppInfo? { // bfsa-metadata.json
         try {
             content?.let { return Gson().fromJson(it, DAppInfo::class.java) }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.d(TAG, "getDAppInfoFromBFSA e->$e")
         }
         return null
