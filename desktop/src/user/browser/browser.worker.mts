@@ -3,14 +3,15 @@
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { createHttpDwebServer } from "../../sys/http-server/$listenHelper.cjs";
-import { CODE as CODE_desktop_web_mjs } from "./assets/browser.web.mjs.cjs";
-import { CODE as CODE_index_html } from "./assets/index.html.cjs";
+import { CODE as CODE_desktop_web_mjs } from "./assets/browser.web.cjs";
+import { CODE as CODE_index_html } from "./assets/index.html.js";
 
-console.log("ookkkkk, i'm in worker");
-
+/**
+ * 服务器
+ */
 export const main = async () => {
   debugger;
-  /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
+  /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人KWKW
   const { origin, start } = await createHttpDwebServer(jsProcess, {});
   (await start()).onRequest(async (request, httpServerIpc) => {
     if (
@@ -29,7 +30,7 @@ export const main = async () => {
           })
         )
       );
-    } else if (request.parsed_url.pathname === "/desktop.web.mjs") {
+    } else if (request.parsed_url.pathname === "/browser.web.mjs") {
       httpServerIpc.postMessage(
         IpcResponse.fromText(
           request.req_id,

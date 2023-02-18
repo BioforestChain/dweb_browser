@@ -10,7 +10,7 @@ import {
   mainApis,
 } from "../../../helper/openNativeWindow.preload.mjs";
 import { Webview } from "./multi-webview.mjs"
-import { MultiWebViewContent } from "./multi-webview-content.html.mjs"
+import "./multi-webview-content.html.mjs"
 import "./multi-webview-devtools.html.mjs"
 import WebviewTag = Electron.WebviewTag;
 import type { 
