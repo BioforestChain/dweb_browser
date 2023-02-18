@@ -12,20 +12,20 @@ export const createHttpDwebServer = async (
   options: Omit<$GetHostOptions, "ipc">
 ) => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
-  const { origin, token } = await listenHttpDwebServer(microModule, options);
+  const { origin, token } = await startHttpDwebServer(microModule, options);
   console.log("获得域名授权：", origin, token);
 
   /** 开始才处理请求 */
-  const start = () => handleHttpDwebServer(microModule, token);
+  const listen = () => listenHttpDwebServer(microModule, token);
 
   /** 关闭监听 */
-  const close = once(() => unlistenHttpDwebServer(microModule, options));
+  const close = once(() => closeHttpDwebServer(microModule, options));
 
-  return { origin, token, start, close };
+  return { origin, token, listen: listen, close };
 };
 
 /** 开始处理请求 */
-export const handleHttpDwebServer = async (
+export const listenHttpDwebServer = async (
   microModule: $MicroModule,
   token: string
 ) => {
@@ -38,7 +38,7 @@ export const handleHttpDwebServer = async (
   const httpIncomeRequestStream = await microModule
     .fetch(
       buildUrl(new URL(`file://http.sys.dweb`), {
-        pathname: "/on-request",
+        pathname: "/listen",
         search: {
           token,
           routes: [
@@ -70,13 +70,13 @@ export const handleHttpDwebServer = async (
 };
 
 /** 开始监听端口和域名 */
-export const listenHttpDwebServer = (
+export const startHttpDwebServer = (
   microModule: $MicroModule,
   options: Omit<$GetHostOptions, "ipc">
 ) => {
   return microModule
     .fetch(
-      buildUrl(new URL(`file://http.sys.dweb/listen`), {
+      buildUrl(new URL(`file://http.sys.dweb/start`), {
         search: options,
       })
     )
@@ -91,13 +91,13 @@ export const listenHttpDwebServer = (
 };
 
 /** 停止监听端口和域名 */
-export const unlistenHttpDwebServer = async (
+export const closeHttpDwebServer = async (
   microModule: $MicroModule,
   options: Omit<$GetHostOptions, "ipc">
 ) => {
   return microModule
     .fetch(
-      buildUrl(new URL(`file://http.sys.dweb/unlisten`), {
+      buildUrl(new URL(`file://http.sys.dweb/close`), {
         search: options,
       })
     )

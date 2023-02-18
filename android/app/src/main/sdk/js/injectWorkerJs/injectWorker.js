@@ -44,13 +44,12 @@ module.exports = __toCommonJS(js_process_worker_exports);
 // src/core/ipc.cts
 var _parsed_url;
 var IpcRequest = class {
-    constructor(req_id, method, url, body, headers) {
+    constructor(req_id, method, url, rawBody, headers) {
         this.req_id = req_id;
         this.method = method;
         this.url = url;
-        this.body = body;
+        this.rawBody = rawBody;
         this.headers = headers;
-        this.type = 0 /* REQUEST */;
         __privateAdd(this, _parsed_url, void 0);
     }
     get parsed_url() {
@@ -170,7 +169,7 @@ var $messageToIpcMessage = (data) => {
             data.req_id,
             data.method,
             data.url,
-            data.body,
+            data.rawBody,
             data.headers
         );
     } else if (data.type === 1 /* RESPONSE */) {
@@ -256,9 +255,9 @@ var installEnv = () => {
                 console.log("injectWorker:responseFactory==>", error)
             }
         }
-        console.log("injectWorker: webWorker get data", response, Object.prototype.toString.call(response))
+        // console.log("injectWorker: webWorker get data", response, Object.prototype.toString.call(response))
         if (Object.prototype.toString.call(response) === '[object Object]' && response.type === 1 /* RESPONSE */) {
-            console.log("injectWorker: in aaaa=>", response.req_id, response.body)
+            // console.log("injectWorker: in aaaa=>", response.req_id, response.body)
             const res_po = reqresMap.get(response.req_id);
             if (res_po !== void 0) {
                 reqresMap.delete(response.req_id);
@@ -284,7 +283,7 @@ var installEnv = () => {
                 if (registerFetchIpc) {
                     await registerFetchIpc_po.promise;
                 }
-                console.log("injectWorker:fetchIpc.postMessage:", url, fetchIpc)
+                console.log("injectWorker:fetchIpc.postMessage:", url, req_id2)
                 fetchIpc.postMessage(
                     new IpcRequest(req_id2, method, parsed_url.href, body, headers)
                 );
@@ -294,6 +293,9 @@ var installEnv = () => {
                     status: ipc_response.statusCode
                 });
             })();
+        }
+        if (parsed_url.hostname === "http.sys.dweb") {
+            url = url.replace(/http.sys.dweb/, "localhost:24433")
         }
         return native_fetch(url, init);
     };

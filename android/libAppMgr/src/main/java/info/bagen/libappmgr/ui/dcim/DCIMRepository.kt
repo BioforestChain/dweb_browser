@@ -67,6 +67,7 @@ class DCIMRepository(private val api: ApiService = ApiService.instance) {
                     DCIMType.VIDEO, DCIMType.IMAGE, DCIMType.GIF -> {
                         maps[defaultPicture]!!.add(dcimInfo)
                     }
+                    else -> {}
                 }
             } else if (file.isDirectory) {
                 var list = maps[name] ?: arrayListOf()
@@ -78,6 +79,7 @@ class DCIMRepository(private val api: ApiService = ApiService.instance) {
                             DCIMType.VIDEO, DCIMType.IMAGE, DCIMType.GIF -> {
                                 list.add(dcimInfo)
                             }
+                            else -> {}
                         }
                     }
                 }

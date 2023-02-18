@@ -29,7 +29,7 @@ class AppInfo {
             return try {
                 pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                 pInfo.versionName
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 "1.0.0"
             }
         }
@@ -41,7 +41,7 @@ class AppInfo {
             return try {
                 pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                 pInfo.versionCode
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 0
             }
         }

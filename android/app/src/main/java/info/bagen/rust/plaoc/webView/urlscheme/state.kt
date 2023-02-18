@@ -124,7 +124,7 @@ fun requestHandlerFromAssets(basePath: String): RequestHandler {
             val inputStream: FileInputStream
             try {
                 inputStream = File(urlPath).inputStream()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 val fileLists = File(urlPath).list() ?: return null
                 val indexName = fileLists.find { it == uri.toString() } ?: return null
                 // 如果加上 url.path 后 isFile 仍然是 false，那么返回 null

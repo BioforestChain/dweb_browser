@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.content.res.Resources.NotFoundException
 import android.os.Bundle
 import android.provider.MediaStore
@@ -37,17 +36,16 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
-import info.bagen.rust.plaoc.microService.httpNMM
-import info.bagen.rust.plaoc.microService.network.nativeFetch
+import info.bagen.rust.plaoc.microService.global_dns
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
 import info.bagen.rust.plaoc.microService.webview.MultiDWebBrowserView
-import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
 import info.bagen.rust.plaoc.system.initSystemFn
 import info.bagen.rust.plaoc.system.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.webView.network.dWebView_host
 import info.bagen.rust.plaoc.webView.openDWebWindow
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -92,7 +90,7 @@ class MainActivity : AppCompatActivity() {
                         LogUtils.d("搜索框内容响应：$action--$data")
                         when (action) {
                             SearchAction.Search -> {
-                                openDWebWindow(this@MainActivity, "http://localhost:24433")
+                                openDWebWindow(this@MainActivity, data)
                             }
                             SearchAction.OpenCamera -> {
                                 if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
@@ -106,15 +104,15 @@ class MainActivity : AppCompatActivity() {
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
-                        val workerResponse =
-                            nativeFetch("http://localhost:24433/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
-                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
+                        /// TODO 这里是点击桌面app触发的事件，因此要传递给我们运行在js.sys.dweb的代码，也就是后端代码
+//                        val workerResponse =
+//                            nativeFetch("file://js.sys.dweb/create-process?mainCode=https://objectjson.waterbang.top/desktop.worker.js")
+//                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                 }
             }
         }
-        httpNMM.bootstrap()
     }
 
 
@@ -179,6 +177,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        // 退出APP关闭服务
+//        global_dns.httpNMM.closeServer()
         super.onDestroy()
         unRegisterBFSBroadcastReceiver()
         App.mainActivity = null
@@ -234,7 +234,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     //如果指定具体的识别条码类型，速度会更快
                 }, if (isQRCode) Barcode.FORMAT_QR_CODE else Barcode.FORMAT_ALL_FORMATS)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace()
                 Toast.makeText(getContext(), e.message, Toast.LENGTH_SHORT).show()
             }

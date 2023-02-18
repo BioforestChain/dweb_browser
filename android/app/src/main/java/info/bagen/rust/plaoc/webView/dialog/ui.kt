@@ -32,6 +32,7 @@ fun JsAlertConfiguration.openAlertDialog(requestDismiss: () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JsPromptConfiguration.openPromptDialog(requestDismiss: () -> Unit) {
     val config = this

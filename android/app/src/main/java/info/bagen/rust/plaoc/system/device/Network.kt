@@ -49,7 +49,7 @@ class Network() {
             sInstance.mStatusChangeListener.forEach { listener ->
                 try {
                     listener.onNetworkStatusChanged(true)
-                } catch (_: Exception) {
+                } catch (_: Throwable) {
                 }
             }
         }
@@ -61,7 +61,7 @@ class Network() {
             sInstance.mStatusChangeListener.forEach { listener ->
                 try {
                     listener.onNetworkStatusChanged(false)
-                } catch (_: Exception) {
+                } catch (_: Throwable) {
                 }
             }
         }

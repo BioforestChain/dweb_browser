@@ -350,6 +350,7 @@ fun TestMainView(
                                 navType.clickable.value = navType.type == NavControllerType.Favorite
                             }
                         }
+                        else -> {}
                     }
                 }
             }
@@ -504,6 +505,7 @@ fun TestFavoritePop(viewModel: TestViewModel) {
                             }
                             AppContextUtil.sInstance!!.startActivity(sendIntent)
                         }
+                        else -> {}
                     }
                 },
                 icon = {

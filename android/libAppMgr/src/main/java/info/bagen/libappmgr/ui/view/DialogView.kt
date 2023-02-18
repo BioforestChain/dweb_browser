@@ -39,6 +39,7 @@ fun DialogView(
         DialogType.LOADING -> {
             LoadingDialog(dialogInfo = dialogInfo, onCancel = onCancel)
         }
+        else -> {}
     }
 }
 

@@ -62,7 +62,7 @@ fun TestWebView(
                                     }
                                     return true
                                 }
-                            } catch (e: Exception) {
+                            } catch (e: Throwable) {
                                 //没有安装和找到能打开(「xxxx://openlink.cc....」、「weixin://xxxxx」等)协议的应用
                                 return true
                             }

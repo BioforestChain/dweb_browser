@@ -21,7 +21,7 @@ fun Bitmap.drawBitmap(block: (canvas: Canvas, paint: Paint) -> Unit): Bitmap {
 
         canvas.save()
         canvas.restore()
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         LogUtils.w(e.message)
     }
     return result
@@ -41,7 +41,7 @@ fun Bitmap.drawRect(block: (canvas: Canvas, paint: Paint) -> Unit): Bitmap {
 
         canvas.save()
         canvas.restore()
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         LogUtils.w(e.message)
     }
     return result

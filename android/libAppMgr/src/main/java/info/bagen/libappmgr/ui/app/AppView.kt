@@ -220,7 +220,7 @@ private fun compareAppVersionHigh(localVersion: String, compareVersion: String):
             val compare = Integer.parseInt(compareSplit[i])
             if (compare > local) return true
         }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         Log.e("AppViewModel", "compareAppVersionHigh issue -> $localVersion, $compareVersion")
     }
     return false

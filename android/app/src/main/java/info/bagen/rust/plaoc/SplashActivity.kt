@@ -23,15 +23,17 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
 import info.bagen.libappmgr.R
 import info.bagen.libappmgr.ui.splash.SplashPrivacyDialog
+import info.bagen.libappmgr.utils.KEY_APP_FIRST_LOAD
 import info.bagen.libappmgr.utils.getBoolean
 import info.bagen.libappmgr.utils.saveBoolean
-import info.bagen.rust.plaoc.microService.startBootNMM
+import info.bagen.rust.plaoc.microService.global_dns
+import info.bagen.rust.plaoc.microService.network.nativeFetch
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.DWebViewActivity
 import info.bagen.rust.plaoc.webView.openDWebWindow
+import kotlinx.coroutines.runBlocking
 
 class SplashActivity : AppCompatActivity() {
-    private val keyAppFirstLoad = "App_First_Load"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -39,7 +41,7 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val first = this.getBoolean(keyAppFirstLoad, true)
+        val first = this.getBoolean(KEY_APP_FIRST_LOAD, true)
         if (first) {
             setContent {
                 RustApplicationTheme {
@@ -50,11 +52,14 @@ class SplashActivity : AppCompatActivity() {
                         closeApp = { finish() }
                     )
                 }
-                this.saveBoolean(keyAppFirstLoad, false)
+
             }
         } else {
-            openHomeActivity()
-            this.saveBoolean(keyAppFirstLoad, false)
+            /// TODO 这里启动 DNS？
+            runBlocking {
+                global_dns.bootstrap()
+            }
+            App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
             finish()
         }
     }
@@ -66,6 +71,7 @@ fun openHomeActivity(): Boolean {
         addFlags(FLAG_ACTIVITY_NEW_TASK)
     }
     App.appContext.startActivity(intent)
+    App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
     return true
 }
 

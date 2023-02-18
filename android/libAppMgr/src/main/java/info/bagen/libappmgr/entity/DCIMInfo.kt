@@ -66,7 +66,7 @@ fun DCIMInfo.updateDuration() {
             // artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
             // bitrate = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
             // date = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.d("DCIMInfo", "fail->$e")
         } finally {
             mmr?.release()

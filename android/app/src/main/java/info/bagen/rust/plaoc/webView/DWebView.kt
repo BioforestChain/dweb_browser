@@ -198,7 +198,7 @@ fun DWebView(
                                         title = host
                                     }
                                 }
-                            } catch (_: Exception) {
+                            } catch (_: Throwable) {
                             }
                             return "$title $label"
                         }

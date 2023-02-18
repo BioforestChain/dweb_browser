@@ -62,7 +62,7 @@ export class HttpServerNMM extends NativeMicroModule {
 
     /// 监听 IPC 请求
     this.registerCommonIpcOnMessageHanlder({
-      pathname: "/listen",
+      pathname: "/start",
       matchMode: "full",
       input: { port: "number?", subdomain: "string?" },
       output: { origin: "string", token: "string" },
@@ -71,7 +71,7 @@ export class HttpServerNMM extends NativeMicroModule {
       },
     });
     this.registerCommonIpcOnMessageHanlder({
-      pathname: "/unlisten",
+      pathname: "/close",
       matchMode: "full",
       input: { port: "number?", subdomain: "string?" },
       output: "boolean",
@@ -81,7 +81,7 @@ export class HttpServerNMM extends NativeMicroModule {
     });
     this.registerCommonIpcOnMessageHanlder({
       method: "POST",
-      pathname: "/on-request",
+      pathname: "/listen",
       matchMode: "full",
       input: { token: "string", routes: "object" },
       output: "object",

@@ -153,7 +153,7 @@ fun KLogger.jsonPrint(errorLevel: Boolean = true, message: () -> String) {
                 json.startsWith("[") && json.endsWith("]") -> JSONArray(json).toString(4)
                 else -> "bad json information: ($json)"
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             "${e.cause?.message}${System.getProperty("line.separator")}: $json"
         }
 

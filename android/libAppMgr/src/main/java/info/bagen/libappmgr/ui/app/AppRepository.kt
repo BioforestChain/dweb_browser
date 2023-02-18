@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.flow
 
 class AppRepository(private val api: ApiService = ApiService.instance) {
 
-    suspend fun loadAppInfoList() = FilesUtil.getAppInfoList() // loadAppInfoListTest()
+    suspend fun loadAppInfoList() =  FilesUtil.getAppInfoList() //loadAppInfoListTest()
 
     suspend fun loadDAppUrl(appInfo: AppInfo): DAppInfoUI? {
-        //return loadDAppUrlTest(appInfo)
+//        return loadDAppUrlTest(appInfo)
         val dAppInfo = FilesUtil.getDAppInfo(appInfo.bfsAppId)
         dAppInfo?.let { info ->
             val dAppUrl = FilesUtil.getAppDenoUrl(appInfo, info)
@@ -38,71 +38,16 @@ class AppRepository(private val api: ApiService = ApiService.instance) {
     }
 
     private fun loadAppInfoListTest(): List<AppInfo> {
-        val list = arrayListOf<AppInfo>()
-        list.add(
-            createTemp(
-                "douyu",
-                "斗鱼",
-                "http://linge.plaoc.com/douyu.png",
-                "https://www.douyu.com/",
-                "https://m.douyu.com/"
-            )
-        )
-        list.add(
-            createTemp(
-                "wangyi",
-                "网易",
-                "http://linge.plaoc.com/163.png",
-                "https://www.163.com/",
-                "https://3g.163.com/"
-            )
-        )
-        list.add(
-            createTemp(
-                "weibo",
-                "微博",
-                "http://linge.plaoc.com/weibo.png",
-                "https://weibo.com/",
-                "https://m.weibo.cn/"
-            )
-        )
-        list.add(
-            createTemp(
-                "douban",
-                "豆瓣",
-                "http://linge.plaoc.com/douban.png",
-                "https://movie.douban.com/",
-                "https://m.douban.com/movie/"
-            )
-        )
-        list.add(
-            createTemp(
-                "zhihu",
-                "知乎",
-                "http://linge.plaoc.com/zhihu.png",
-                "https://www.zhihu.com/",
-                "https://www.zhihu.com/"
-            )
-        )
-        list.add(
-            createTemp(
-                "bilibili",
-                "哔哩哔哩",
-                "http://linge.plaoc.com/bilibili.png",
-                "https://www.bilibili.com/",
-                "https://m.bilibili.com/"
-            )
-        )
-        list.add(
-            createTemp(
-                "tencent",
-                "腾讯新闻",
-                "http://linge.plaoc.com/tencent.png",
-                "https://www.qq.com/",
-                "https://xw.qq.com/?f=qqcom"
-            )
-        )
-        //list.add(createTemp("jingdong","京东", "http://linge.plaoc.com/jingdong.png", "https://www.jd.com/", "https://m.jd.com/"))
+        val list = arrayListOf<AppInfo>().apply {
+            add(createTemp("douyu", "斗鱼", "http://linge.plaoc.com/douyu.png", "https://www.douyu.com/", "https://m.douyu.com/"))
+            add(createTemp("wangyi", "网易", "http://linge.plaoc.com/163.png", "https://www.163.com/", "https://3g.163.com/"))
+            add(createTemp("weibo", "微博", "http://linge.plaoc.com/weibo.png", "https://weibo.com/", "https://m.weibo.cn/"))
+            add(createTemp("douban", "豆瓣", "http://linge.plaoc.com/douban.png", "https://movie.douban.com/", "https://m.douban.com/movie/"))
+            add(createTemp("zhihu", "知乎", "http://linge.plaoc.com/zhihu.png", "https://www.zhihu.com/", "https://www.zhihu.com/"))
+            add(createTemp("bilibili", "哔哩哔哩", "http://linge.plaoc.com/bilibili.png", "https://www.bilibili.com/", "https://m.bilibili.com/"))
+            add(createTemp("tencent", "腾讯新闻", "http://linge.plaoc.com/tencent.png", "https://www.qq.com/", "https://xw.qq.com/?f=qqcom"))
+            // add(createTemp("jingdong","京东", "http://linge.plaoc.com/jingdong.png", "https://www.jd.com/", "https://m.jd.com/"))
+        }
         return list
     }
 

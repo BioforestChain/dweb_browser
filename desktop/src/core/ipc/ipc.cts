@@ -22,7 +22,18 @@ export abstract class Ipc {
    * 二进制传输在网络相关的服务里被支持，里效率会更高，但前提是对方有 MessagePack 的编解码能力
    * 否则 JSON 是通用的传输协议
    */
-  abstract support_message_pack: boolean;
+  abstract readonly support_message_pack: boolean;
+  /**
+   * 是否支持使用 Protobuf 直接传输二进制
+   * 在网络环境里，protobuf 是更加高效的协议
+   */
+  readonly support_protobuf = false;
+  /**
+   * 是否支持二进制传输
+   */
+  get support_binary() {
+    return this.support_message_pack || this.support_protobuf;
+  }
   readonly uid = ipc_uid_acc++;
   abstract readonly remote: $MicroModule;
   abstract readonly role: IPC_ROLE;

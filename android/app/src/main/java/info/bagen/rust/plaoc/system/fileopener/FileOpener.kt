@@ -19,7 +19,7 @@ object FileOpener {
     ) {
         val fileName = try {
             Uri.parse(filePath).path
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             filePath
         }
 
@@ -50,7 +50,7 @@ object FileOpener {
                 } catch (exception: ActivityNotFoundException) {
                     Log.e("FileOpener", "FIleOpener::open ActivityNotFoundException->$exception")
                     onErrorCallback("Activity not found: ${exception.message} --> 8 $exception")
-                } catch (exception: Exception) {
+                } catch (exception: Throwable) {
                     Log.e("FileOpener", "FIleOpener::open Exception->$exception")
                     onErrorCallback("${exception.localizedMessage} --> 1 $exception")
                 }

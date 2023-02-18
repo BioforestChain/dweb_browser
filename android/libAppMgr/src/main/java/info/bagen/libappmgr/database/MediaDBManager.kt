@@ -123,7 +123,7 @@ object MediaDBManager {
                 null
             }
             MediaInfo(id, path, type, duration, time, thumbnail, bitmap)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             null
         }
     }

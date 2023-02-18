@@ -125,7 +125,7 @@ object Share {
                 intent.putExtra(Intent.EXTRA_STREAM, arrayListFiles)
             }
             intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             onErrorCallback(e.localizedMessage)
         }
     }

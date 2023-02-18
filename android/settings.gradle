@@ -15,3 +15,4 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
+include ':benchmark'

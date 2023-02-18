@@ -48,7 +48,7 @@ fun uiGateWay(
         println("uiGateWayFunction: $funName = $result")
         createBytesFactory(ExportNative.SetDWebViewUI, result.toString())
         return result.toString()
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         e.message?.let { Log.e("uiGateWay：", it) }
     }
     return ""
@@ -119,7 +119,7 @@ fun jsGateWay(
         }
         // createBytesFactory(ExportNative.SetDWebViewUI, result.toString())
         Log.e(TAG, "jsGateWay: $funName = $result")
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         e.message?.let { Log.e("jsGateWay", "err->$it") }
     }
 

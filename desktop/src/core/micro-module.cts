@@ -61,7 +61,7 @@ export abstract class MicroModule implements $MicroModule {
     if (this.running === false) {
       throw new Error("module no running");
     }
-    await this._shutdown_lock;
+    await this._bootstrap_lock;
     return this._connect(from);
   }
 

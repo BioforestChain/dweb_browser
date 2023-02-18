@@ -8,19 +8,19 @@ export class BootNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/register",
       matchMode: "full",
-      input: { app_id: "mmid" },
+      input: { },
       output: "boolean",
-      hanlder: async (args) => {
-        return await this.register(args.app_id);
+      hanlder: async (args,ipc) => {
+        return await this.register(ipc.remote.mmid);
       },
     });
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/unregister",
       matchMode: "full",
-      input: { app_id: "mmid" },
+      input: {},
       output: "boolean",
-      hanlder: async (args) => {
-        return await this.unregister(args.app_id);
+      hanlder: async (args,ipc) => {
+        return await this.unregister(ipc.remote.mmid);
       },
     });
 

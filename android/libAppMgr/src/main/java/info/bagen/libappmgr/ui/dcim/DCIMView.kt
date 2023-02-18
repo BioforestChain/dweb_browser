@@ -243,6 +243,7 @@ fun DCIMPager(dcimVM: DCIMViewModel, curDCIMInfo: DCIMInfo, page: Int) {
                             DCIMType.VIDEO -> add(VideoFrameDecoder.Factory())
                             DCIMType.GIF -> add(GifDecoder.Factory())
                             DCIMType.SVG -> add(SvgDecoder.Factory())
+                            else -> {}
                         }
                     }.build(),
                     contentScale = ContentScale.FillWidth,

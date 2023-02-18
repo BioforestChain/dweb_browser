@@ -31,7 +31,7 @@ class AppContextUtil {
                     activityThread.javaClass.getMethod("getApplication") ?: return null
 
                 return appMethod.invoke(activityThread) as Application
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace()
             }
             return null

@@ -64,7 +64,7 @@ class AppProvider : ContentProvider() {
             field.isAccessible = true
             val mb = 2
             field.set(null, mb * 1024 * 1024)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
         }
         return true
     }

@@ -1,71 +1,88 @@
 package info.bagen.rust.plaoc.microService
 
 import android.net.Uri
+import android.util.Log
 import android.webkit.*
-import com.fasterxml.jackson.core.JsonParser
 import info.bagen.libappmgr.network.ApiService
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.mapper
-import io.ktor.http.*
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import kotlinx.coroutines.*
+import org.http4k.routing.RoutingHttpHandler
 import java.util.*
 
-class JsMicroModule : MicroModule() {
+class JsMicroModule(override val mmid: Mmid) : MicroModule() {
     // 该程序的来源
-    override var mmid = "js.sys.dweb"
+    override val routers: Router = mutableMapOf<String, AppRun>()
+
+    override suspend fun _bootstrap() {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun _shutdown() {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun _connect(from: MicroModule): Ipc {
+        TODO("Not yet implemented")
+    }
 
     // 我们隐匿地启动单例webview视图，用它来动态创建 WebWorker，来实现 JavascriptContext 的功能
     private val jsProcess = JsProcess()
 
-
-
     // 创建一个webWorker
-     fun createProcess(mainCode: String): Any {
+    fun createProcess(mainCode: String): Any {
         return jsProcess.hiJackWorkerCode(mainCode)
     }
 
 }
 
-class JsProcess {
+class JsProcess : NativeMicroModule("js.sys.dweb") {
     // 存储每个worker的port 以此来建立每个worker的通信
     private val ALL_PROCESS_MAP = mutableMapOf<Number, WebMessagePort>()
     private var accProcessId = 0
 
     // 创建了一个后台运行的webView 用来运行webWorker
-    var view: WebView = WebView(App.appContext).also { view ->
-        WebView.setWebContentsDebuggingEnabled(true)
-        val settings = view.settings
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-        settings.useWideViewPort = true
-        settings.loadWithOverviewMode = true
-        settings.databaseEnabled = true
+    private var webView: WebView? = null
+
+    override suspend fun _bootstrap() {
+        webView = WebView(App.appContext).also { view ->
+            WebView.setWebContentsDebuggingEnabled(true)
+            val settings = view.settings
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
+            settings.databaseEnabled = true
+        }
     }
 
-    /** 处理ipc 请求的工厂 然后会转发到nativeFetch */
-    fun ipcFactory(webMessagePort: WebMessagePort, ipcString: String) {
-        mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true) //允许出现特殊字符和转义符
-        mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true) //允许使用单引号
-        val ipcRequest = mapper.readValue(ipcString, IpcRequest::class.java)
-        println("JavascriptContext#ipcFactory url: ${ipcRequest.url}")
-        // 处理请求
-//        val body = global_micro_dns.nativeFetch(ipcRequest.url)
-//        println("JavascriptContext#ipcFactory body: $body")
+
+//    /** 处理ipc 请求的工厂 然后会转发到nativeFetch */
+//    fun ipcFactory(webMessagePort: WebMessagePort, ipcString: String) {
+//        mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true) //允许出现特殊字符和转义符
+//        mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true) //允许使用单引号
+//        val ipcRequest = mapper.readValue(ipcString, IpcRequest::class.java)
+//        println("JavascriptContext#ipcFactory url: ${ipcRequest.url}")
+//        // 处理请求
+//        val response = nativeFetch(ipcRequest.url)
+//        println("JavascriptContext#ipcFactory body: ${response.bodyString()}")
 //        tranResponseWorker(
 //            webMessagePort,
-//            IpcResponse(
-//                statusCode = 200,
-//                req_id = ipcRequest.req_id,
-//                headers = ipcRequest.headers,
-//                body = body.toString()
+//            IpcResponse.fromResponse(
+//                ipcRequest.req_id,
+//                response,
+//                ipc,
 //            )
 //        )
-    }
+//    }
 
     /** 这里负责返回每个webWorker里的返回值
      * 注意每个worker的post都是不同的 */
     private fun tranResponseWorker(webMessagePort: WebMessagePort, res: IpcResponse) {
-        val jsonMessage = res.fromJson()
+        val jsonMessage = gson.toJson(res)
         println("JavascriptContext#tranResponseWorker: $jsonMessage")
         webMessagePort.postMessage(WebMessage(jsonMessage))
     }
@@ -93,19 +110,19 @@ class JsProcess {
 
     //    注入webView
     private fun injectJs(workerCode: String, workerHandle: String) {
+        val view = webView ?: return;
         // 为每一个webWorker都创建一个通道
         val channel = view.createWebMessageChannel()
         channel[0].setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, message: WebMessage) {
-                println("kotlin#JsMicroModuleport🍟message: ${message.data}")
-                ipcFactory(channel[0], message.data)
+                Log.i("JsProcess", "kotlin#JsMicroModuleport🍟message: ${message.data}")
+//                ipcFactory(channel[0], message.data)
             }
         })
         view.evaluateJavascript(
             "const $workerHandle = new Worker(`$workerCode`); \n" +
                     "onmessage = function (e) {\n" +
-                    "console.log(\"kotlin#DwebViewActivity port1111\", e.data, e.ports[0]); \n" +
                     "$workerHandle.postMessage([\"ipc-channel\", e.ports[0]], [e.ports[0]])\n" +
                     "}\n"
         ) {
@@ -117,7 +134,14 @@ class JsProcess {
         this.ALL_PROCESS_MAP[accProcessId] = channel[0]
         this.accProcessId++
     }
+
+
+    override suspend fun _shutdown() {
+        webView?.destroy()
+        webView = null
+    }
 }
+
 /**读取本地资源文件，并把内容转换为String */
 fun getInjectWorkerCode(jsAssets: String): String {
     val inputStream = App.appContext.assets.open(jsAssets)
