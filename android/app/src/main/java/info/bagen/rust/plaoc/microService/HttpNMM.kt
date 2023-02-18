@@ -57,24 +57,6 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
      * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
      * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
      */
-    // a filter allows us to intercept the call to the sse and do logging etc...
-    val sayHello = SseFilter { next ->
-        {
-            println("Hello from the sse!")
-            next(it)
-        }
-    }
-    val namePath = Path.of("name")
-    val sse: RoutingSseHandler = sayHello.then(
-        sse(
-            "/{name}" bind { sse: Sse ->
-                val name = namePath(sse.connectRequest)
-                sse.send(SseMessage.Data("hello"))
-                sse.onClose { println("$name is closing") }
-            }
-        )
-    )
-
     // 创建过滤
     val setContentType = Filter { nextHandler ->
         { request ->
@@ -102,12 +84,15 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
             }
             /** 30s 没有任何 body 写入的话，认为网关超时 */
             val gateway = gatewayMap[host]
+            val response = nextHandler(request)
             if (gateway == null) {
-                Response(Status.BAD_GATEWAY).body("作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应")
+                println("HttpNMM#gateway111 ===> ${response.body}")
+                response.status(Status.BAD_GATEWAY).body("作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应")
+                println("HttpNMM#gateway222 ===> ${response.body}")
             } else {
-//                gateway.listener.hookHttpRequest(request)
+                gateway.listener.hookHttpRequest(request,response)
             }
-            nextHandler(request)
+            response
         }
     }
     /// 在网关中寻址能够处理该 host 的监听者
@@ -115,7 +100,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
     public override suspend fun _bootstrap() {
         // 启动http后端服务
-        dwebServer.createServer(sse)
+        dwebServer.createServer(setContentType)
     }
 
     private fun getHost(port: String): String {

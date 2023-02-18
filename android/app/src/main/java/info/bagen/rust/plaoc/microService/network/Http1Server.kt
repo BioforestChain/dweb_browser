@@ -24,14 +24,14 @@ class Http1Server {
     private var bindingPort = 24433
 
     private var server: Http4kServer? = null
-    fun createServer(sse:  SseHandler) {
+    fun createServer(setContentType:  Filter) {
         if (server != null) {
             throw Exception("server alter created")
         }
         val app = { request: Request -> Response(Status.OK).body("Hello, ${request.query("name")}!") }
 
         CoroutineScope(Dispatchers.IO).launch {
-            PolyHandler(app, sse = sse).asServer(Netty(bindingPort)).start()
+            setContentType(app).asServer(Netty(bindingPort)).start()
         }
     }
 

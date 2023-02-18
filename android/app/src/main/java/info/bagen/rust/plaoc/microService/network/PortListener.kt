@@ -7,9 +7,12 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.http.HttpMethod
+import org.http4k.core.Method
+import org.http4k.core.Request
+import org.http4k.core.Response
 
 interface Router {
-    val routes: MutableList<ReqMatcher>
+    val routes: MutableList<Request>
     val streamIpc: ReadableStreamIpc
 }
 
@@ -28,7 +31,7 @@ class PortListener(
         }
     }
 
-    private fun isBindMatchReq(pathname: String, method:  HttpMethod): Pair<Router, ReqMatcher>? {
+    private fun isBindMatchReq(pathname: String, method: Method): Pair<Router, Request>? {
         for (bind in this._routers) {
             for (pathMatcher in bind.routes) {
                 if (isMatchReq(pathMatcher, pathname, method)) {
@@ -43,12 +46,10 @@ class PortListener(
      * 接收 nodejs-web 请求
      * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
      */
-    fun hookHttpRequest(req: ApplicationRequest, res:  ApplicationResponse) {
-        val url = req.location() ?: "/";
-        val method = req.httpMethod
-        val parsedUrl = Url(url)
-        println("hookHttpRequest==>url:$url,method:$method,parsedUrl:$parsedUrl")
-
+    fun hookHttpRequest(req: Request, res:  Response) {
+        val method = req.method
+        val parsedUrl = req.uri
+        println("hookHttpRequest==>method:$method,parsedUrl:$parsedUrl")
         val hasMatch = this.isBindMatchReq(parsedUrl.host, method);
         if (hasMatch == null) {
             DefaultErrorResponse(404, "no found");
@@ -65,21 +66,22 @@ interface ReqMatcher {
 }
 
 fun isMatchReq(
-    matcher: ReqMatcher,
+    matcher: Request,
     pathname: String,
-    method: HttpMethod = HttpMethod.Get
+    method: Method = Method.GET
 ): Boolean {
-    val matchMethod = if ((matcher.method == method || matcher.method == null)) {
-        matcher.method = method
+    val matchMethod = if (matcher.method == method) {
+        matcher.method(method)
         true
     } else {
         false
     }
-    val matchMode = if (matcher.matchMode.equals("full")) {
-        pathname == matcher.pathname
+    println("PortListener#isMatchReq===>${matcher.equals("full")},${matcher.uri.path} ")
+    val matchMode = if (matcher.equals("full")) {
+        pathname == matcher.uri.path
     } else {
-        if (matcher.matchMode.equals("prefix")) {
-            pathname.startsWith(matcher.pathname)
+        if (matcher.equals("prefix")) {
+            pathname.startsWith(matcher.uri.path)
         } else {
             false
         }
