@@ -1,7 +1,6 @@
 package info.bagen.libappmgr.network.base
 
-import io.ktor.client.call.*
-import io.ktor.client.statement.*
+import org.http4k.core.Response
 
 /**
  * 用于获取网络请求数据
@@ -16,10 +15,10 @@ data class BaseData<T>(
 /**
  * 直接返回最终值
  */
-suspend inline fun <reified T> HttpResponse.bodyData(): T =
-    if (this.status.value == 200) {
-        this.body() // body有做bodyNullable判断，导致会有exception打印，这边做过滤
+suspend inline fun <reified T> Response.bodyData(): T =
+    if (this.status.successful) {
+        this.body.payload as T // body有做bodyNullable判断，导致会有exception打印，这边做过滤
     } else {
-        BaseData(this.status.value, this.status.description, null) as T
+        BaseData(this.status.code, this.status.description, null) as T
     }
 
