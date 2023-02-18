@@ -49,16 +49,6 @@ enum IPC_ROLE: String {
     case CLIENT = "client"
 }
 
-//enum IpcMessage {
-//    case IpcRequest
-//    case IpcResponse
-//    case IpcStreamData
-//    case IpcStreamPull
-//    case IpcStreamEnd
-//    case IpcStreamAbort
-//    case none
-//}
-
 protocol IpcMessage {}
 extension IpcRequest: IpcMessage {}
 extension IpcResponse: IpcMessage {}

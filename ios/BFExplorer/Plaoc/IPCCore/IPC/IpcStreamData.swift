@@ -10,9 +10,12 @@ import UIKit
 class IpcStreamData: NSObject {
 
     let type = IPC_DATA_TYPE.STREAM_DATA
+    var data: Any?
+    var stream_id: String = ""
     init(stream_id: String, data: Any) {
         super.init()
-        
+        self.data = data
+        self.stream_id = stream_id
     }
     
     static func fromBinary(ipc: Ipc, stream_id: String, data: [UInt8]) -> IpcStreamData {

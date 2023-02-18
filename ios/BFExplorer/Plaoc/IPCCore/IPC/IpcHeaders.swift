@@ -6,10 +6,11 @@
 //
 
 import UIKit
+import CryptoKit
 
 class IpcHeaders {
 
-    private var headerDict: [String: String] = [:]
+    private(set) var headerDict: [String: String] = [:]
     
     init(key: String, value: String) {
         headerDict[key] = value
@@ -23,5 +24,11 @@ class IpcHeaders {
         return headerDict[key] ?? ""
     }
     
+    func has(key: String) -> Bool {
+        return headerDict.keys.contains(key)
+    }
     
+    func deleteValue(forKey key: String) {
+        headerDict.removeValue(forKey: key)
+    }
 }

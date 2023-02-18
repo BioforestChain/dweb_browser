@@ -52,7 +52,7 @@ class IpcResponse: IpcBody {
             let data = IpcResponse.fetchStreamData(stream: body as! InputStream)
             responseBody = Response.Body.init(data: data)
         }
-        //TODO
+        
         let response = Response(status: HTTPResponseStatus(statusCode: self.statusCode), version: HTTPVersion.http1_0, headers: headers, body: responseBody)
         return response
     }
@@ -74,7 +74,7 @@ class IpcResponse: IpcBody {
         while stream.hasBytesAvailable {
             let length = stream.read(buffer, maxLength: bufferSize)
             let data = Data(bytes: buffer, count: length)
-            result += data
+            result.append(data)
         }
         return result
     }
