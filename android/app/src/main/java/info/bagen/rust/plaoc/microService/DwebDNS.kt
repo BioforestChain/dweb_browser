@@ -1,19 +1,14 @@
 package info.bagen.rust.plaoc.microService
 
-import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.network.fetchAdaptor
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.io.File
-import kotlin.io.path.Path
 
 
 typealias Domain = String;
@@ -43,16 +38,17 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
         fetchAdaptor = { fromMM, request ->
             if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
                 val mmid = request.uri.host
+                println("DNS#fetchAdaptor===>$mmid  ${request.uri.path}")
                 mmMap[mmid]?.let {
 
                     /** 一个互联实例表 */
                     val ipcMap = connects.getOrPut(fromMM) { mutableMapOf() }
-
                     /**
                      * 一个互联实例
                      */
                     val ipc = ipcMap.getOrPut(mmid) {
                         val toMM = open(mmid);
+                        println("DNS#toMM===>$mmid  $toMM  $fromMM")
                         toMM.connect(fromMM).also { ipc ->
                             // 在 IPC 关闭的时候，从 ipcMap 中移除
                             ipc.onClose { ipcMap.remove(mmid); }
@@ -67,6 +63,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
         /// 定义路由功能
         apiRouting = routes(
             "/open" bind Method.GET to defineHandler { request ->
+                println("DNS#apiRouting===>$mmid  ${request.uri.path}")
                 open(query_app_id(request))
                 true
             },

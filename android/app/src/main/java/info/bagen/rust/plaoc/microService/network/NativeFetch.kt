@@ -1,13 +1,10 @@
 package info.bagen.rust.plaoc.microService.network
 
-import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.microService.MicroModule
 import info.bagen.rust.plaoc.microService.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.openInputStream
-import info.bagen.rust.plaoc.microService.helper.readLong
 import org.http4k.client.OkHttp
 import org.http4k.core.*
-import java.io.File
 import kotlin.io.path.Path
 
 var fetchAdaptor: (suspend (remote: MicroModule, request: Request) -> Response?)? = null

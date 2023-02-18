@@ -25,8 +25,6 @@ abstract class MicroModule {
     private var _bootstrapLock: Mutex? = Mutex()
 
     private suspend fun beforeBootstrap() {
-        // TODO
-        println("MicroModule#beforeBootstrap===>${this.mmid}  ")
         if (this.running) {
             throw  Exception("module ${this.mmid} already running");
         }

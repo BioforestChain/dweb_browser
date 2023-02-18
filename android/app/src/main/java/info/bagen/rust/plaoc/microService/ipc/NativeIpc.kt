@@ -2,9 +2,13 @@ package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
+import okhttp3.internal.notify
 import okhttp3.internal.notifyAll
 import okhttp3.internal.wait
 
@@ -22,6 +26,7 @@ class NativeIpc(
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 class NativePort<I, O>(
     private val channel_in: Channel<I>,
     private val channel_out: Channel<O>,
@@ -46,22 +51,22 @@ class NativePort<I, O>(
     private var closing = false
     fun close() {
         if (closing) return else closing = true
-        closeMutex.notifyAll()
+        closeMutex.notify()
     }
 
     /**
      * 等待 close 信号被发出，那么就关闭出口、触发事件
      */
     init {
-        runBlocking {
+        GlobalScope.launch {
+            //TODO 等待之前需要锁住  这里为啥不直接移动到close函数里面呢
             closeMutex.lock()
-            // 等待之前需要锁住
-            closeMutex.wait()
-
+//            closeMutex.wait()
             closing = true
             channel_out.close()
             _closeSignal.emit()
         }
+
     }
 
 

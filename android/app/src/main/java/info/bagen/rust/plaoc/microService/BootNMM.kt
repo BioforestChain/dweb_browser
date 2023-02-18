@@ -14,6 +14,10 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
     override val routers: Router = mutableMapOf()
     override suspend fun _bootstrap() {
         apiRouting = routes(
+            "/open" bind Method.GET to defineHandler { request ->
+                println("BootNMM#apiRouting===>$mmid  ${request.uri.path}")
+                true
+            },
             "/register" bind Method.GET to defineHandler { _, ipc ->
                 register(ipc.remote.mmid)
             },

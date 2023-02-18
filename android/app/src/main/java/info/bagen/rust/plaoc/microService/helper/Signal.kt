@@ -1,7 +1,7 @@
 package info.bagen.rust.plaoc.microService.helper
 
 typealias Callback<Args> = suspend (args: Args) -> Any?
-typealias SimpleCallback = Callback<Unit>
+typealias SimpleCallback = Callback<Any>
 typealias OffListener = () -> Boolean
 
 /** 控制器 */
@@ -42,8 +42,8 @@ open class Signal<Args>() {
 }
 
 
-class SimpleSignal : Signal<Unit>() {
+class SimpleSignal : Signal<Any>() {
     suspend fun emit() {
-        super.emit(null as Unit);
+        super.emit(1);
     }
 };

@@ -20,7 +20,6 @@ class IpcRequest(
     headers,
     rawBody,
 ) {
-
     val uri by lazy { Uri.of(url) }
 
     companion object {
@@ -35,13 +34,16 @@ class IpcRequest(
                     request.body.stream,
                     ipc
                 )
-                0L -> fromText(
-                    req_id,
-                    Method.from(request.method),
-                    request.uri.toString(),
-                    IpcHeaders(request.headers),
-                    "", ipc,
-                )
+                0L -> {
+                    fromText(
+                        req_id,
+                        Method.from(request.method),
+                        request.uri.toString(),
+                        IpcHeaders(request.headers),
+                        "",
+                        ipc,
+                    )
+                }
                 else -> fromBinary(
                     req_id,
                     Method.from(request.method),
@@ -58,7 +60,7 @@ class IpcRequest(
             method: Method,
             url: String,
             headers: IpcHeaders = IpcHeaders(),
-            text: String,
+            rawBody: String,
             ipc: Ipc
         ) = IpcRequest(
             req_id,
@@ -66,7 +68,7 @@ class IpcRequest(
             url,
             // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
             headers,
-            RawData(IPC_RAW_BODY_TYPE.TEXT, text),
+            RawData(IPC_RAW_BODY_TYPE.TEXT, rawBody),
             ipc
         );
 

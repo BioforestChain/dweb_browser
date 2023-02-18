@@ -9,6 +9,7 @@ fun messageToIpcMessage(data: String, ipc: Ipc): Any? {
     }
 
     try {
+
         return when (gson.fromJson(data, IpcMessage::class.java).type) {
             IPC_DATA_TYPE.REQUEST -> gson.fromJson(data, IpcRequestData::class.java).let {
                 IpcRequest(it.req_id, it.method, it.url, it.headers, it.rawBody, ipc)
