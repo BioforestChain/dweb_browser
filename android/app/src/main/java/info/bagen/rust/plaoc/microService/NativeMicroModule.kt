@@ -65,9 +65,11 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
         onConnect { clientIpc ->
             clientIpc.onRequest { args ->
                 apiRouting?.let { routes ->
-                    routes.withFilter(ipcApiFilter.then(Filter { next ->
+                    val routesWithContext = routes.withFilter(ipcApiFilter.then(Filter { next ->
                         { next(it.with(requestContextKey_ipc of clientIpc)) }
-                    }))(args.request.asRequest())
+                    }));
+                    val request = args.request.asRequest()
+                    routesWithContext(request)
                 }
             }
         }

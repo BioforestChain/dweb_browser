@@ -26,6 +26,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
     private val bootNMM = BootNMM()
     private val multiWebViewNMM = MultiWebViewNMM()
     private val httpNMM = HttpNMM()
+    private val desktopJMM = JsMicroModule("desktop.user.dweb", JmmMetadata(main_url = "file:///bundle/desktop.worker.js"))
 
     override suspend fun _bootstrap() {
         install(this)
@@ -34,6 +35,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
         install(jsProcessNMM)
         install(multiWebViewNMM)
         install(httpNMM)
+        install(desktopJMM)
 
         /// 对全局的自定义路由提供适配器
         /** 对等连接列表 */

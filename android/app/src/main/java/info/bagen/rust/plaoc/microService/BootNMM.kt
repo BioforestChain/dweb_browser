@@ -27,7 +27,7 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
 
         GlobalScope.launch {
             for (mmid in registeredMmids) {
-                nativeFetch("file://dns.sys.dweb/open=${mmid.toURLQueryComponent()}")
+                nativeFetch("file://dns.sys.dweb/open?app_id=${mmid.toURLQueryComponent()}")
             }
         }
 
@@ -43,7 +43,7 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
      */
     private val registeredMmids = mutableSetOf<Mmid>(
         // 初始化启动一个桌面系统程序
-        "desktop.bfs.dweb"
+        "desktop.user.dweb"
     )
 
     /**

@@ -13,16 +13,17 @@ import kotlinx.coroutines.*
 import org.http4k.routing.RoutingHttpHandler
 import java.util.*
 
-class JsMicroModule(override val mmid: Mmid) : MicroModule() {
+data class JmmMetadata(val main_url: String)
+
+class JsMicroModule(override val mmid: Mmid, val metadata: JmmMetadata) : MicroModule() {
     // 该程序的来源
     override val routers: Router = mutableMapOf<String, AppRun>()
 
     override suspend fun _bootstrap() {
-        TODO("Not yet implemented")
+        println("启动成功了 $mmid/$metadata")
     }
 
     override suspend fun _shutdown() {
-        TODO("Not yet implemented")
     }
 
     override suspend fun _connect(from: MicroModule): Ipc {
