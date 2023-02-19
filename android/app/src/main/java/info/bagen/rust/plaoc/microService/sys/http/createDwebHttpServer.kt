@@ -34,6 +34,8 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebServerOptions) =
             .query("port", options.port.toString())
             .query("subdomain", options.subdomain)
     ).let { response ->
+        val text  = response.text()
+        println("text: $text ${response.body.length} ${response.body.payload}")
         response.json<HttpDwebServerInfo>(HttpDwebServerInfo::class.java)
     }
 

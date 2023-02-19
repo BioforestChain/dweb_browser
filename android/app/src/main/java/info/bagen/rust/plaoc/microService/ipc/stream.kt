@@ -5,11 +5,8 @@ import info.bagen.rust.plaoc.microService.helper.asBase64
 import info.bagen.rust.plaoc.microService.helper.asUtf8
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.InputStream
 
 fun streamAsRawData(
@@ -17,23 +14,27 @@ fun streamAsRawData(
     stream: InputStream,
     ipc: Ipc
 ) {
-    val channel = stream.toByteReadChannel()
+
+    val binary = ByteArray(16000)// 每次最多传输16kb
 
     ipc.onMessage { args ->
         /// 对方申请数据拉取
         if ((args.message is IpcStreamPull) && (args.message.stream_id == stream_id)) {
             GlobalScope.launch {
-                channel.read(args.message.desiredSize) {
-                    val binary = it.array()
-                    launch {
-                        ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, binary))
-                    }
+                when (val len = stream.read(binary)) {
+                    -1, 0 -> ipc.postMessage(IpcStreamEnd(stream_id))
+                    binary.size -> ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, binary))
+                    else -> ipc.postMessage(
+                        IpcStreamData.fromBinary(
+                            ipc,
+                            stream_id,
+                            binary.slice(0..len).toByteArray()
+                        )
+                    )
                 }
             }
         } else if ((args.message is IpcStreamAbort) && (args.message.stream_id == stream_id)) {
-            withContext(Dispatchers.IO) {
-                stream.close()
-            }
+            stream.close()
         } else {
 
         }
