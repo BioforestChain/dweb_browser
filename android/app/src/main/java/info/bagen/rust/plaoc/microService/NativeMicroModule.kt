@@ -6,6 +6,7 @@ import info.bagen.rust.plaoc.microService.helper.Signal
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
@@ -77,13 +78,20 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
 
     protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
         runBlocking {
+//            coroutineScope {
             runCatching {
-                Response(Status.OK).body(gson.toJson(handler(request)))
-                    .header("Content-Type", "application/json")
+                when (val result = handler(request)) {
+                    is Response -> result
+                    else -> Response(Status.OK)
+                        .body(gson.toJson(handler(request)))
+                        .header("Content-Type", "application/json")
+                }
             }.getOrElse { ex ->
                 Response(Status.INTERNAL_SERVER_ERROR).body(ex.message ?: "Unknown Error")
             }
+//            }
         }
+
     }
 
     protected fun defineHandler(handler: suspend (request: Request, ipc: Ipc) -> Any?) =

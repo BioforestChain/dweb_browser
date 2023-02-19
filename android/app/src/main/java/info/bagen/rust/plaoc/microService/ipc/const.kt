@@ -4,10 +4,16 @@ import com.google.gson.*
 import info.bagen.rust.plaoc.microService.helper.Callback
 import java.lang.reflect.Type
 
-data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)
+data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
+    val component1 get() = message
+    val component2 get() = ipc
+}
 typealias OnIpcMessage = Callback<IpcMessageArgs>
 
-data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc)
+data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc) {
+    val component1 get() = request
+    val component2 get() = ipc
+}
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
 enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,

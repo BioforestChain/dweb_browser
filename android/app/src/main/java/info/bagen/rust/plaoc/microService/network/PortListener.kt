@@ -10,6 +10,7 @@ import io.ktor.http.HttpMethod
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
+import org.http4k.core.Status
 
 interface Router {
     val routes: MutableList<Request>
@@ -22,7 +23,6 @@ class PortListener(
     val host: String,
     val origin: String
 ) {
-
     private val _routers = mutableSetOf<Router>();
     fun addRouter(router: Router): () -> Any{
         this._routers.add(router)
@@ -46,15 +46,15 @@ class PortListener(
      * 接收 nodejs-web 请求
      * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
      */
-    fun hookHttpRequest(req: Request, res:  Response) {
+    suspend fun hookHttpRequest(req: Request):Response? {
         val method = req.method
         val parsedUrl = req.uri
         println("hookHttpRequest==>method:$method,parsedUrl:$parsedUrl")
         val hasMatch = this.isBindMatchReq(parsedUrl.host, method);
         if (hasMatch == null) {
-            DefaultErrorResponse(404, "no found");
-            return;
+            return Response(Status.NOT_FOUND);
         }
+        return null
     }
 }
 

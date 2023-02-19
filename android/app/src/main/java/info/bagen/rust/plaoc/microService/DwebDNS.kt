@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.network.fetchAdaptor
+import info.bagen.rust.plaoc.microService.user.DesktopJMM
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.http4k.core.Method
@@ -26,7 +27,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
     private val bootNMM = BootNMM()
     private val multiWebViewNMM = MultiWebViewNMM()
     private val httpNMM = HttpNMM()
-    private val desktopJMM = JsMicroModule("desktop.user.dweb", JmmMetadata(main_url = "file:///bundle/desktop.worker.js"))
+    private val desktopJMM = DesktopJMM()
 
     override suspend fun _bootstrap() {
         install(this)

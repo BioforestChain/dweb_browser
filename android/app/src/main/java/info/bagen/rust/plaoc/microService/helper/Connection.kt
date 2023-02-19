@@ -7,13 +7,6 @@ import com.google.gson.Gson
 val gson = Gson()
 val moshiPack = MoshiPack()
 
-// 构造返回
-data class DefaultErrorResponse(
-    var statusCode: Number = 502,
-    var errorMessage: String = "服务器异常",
-    var detailMessage: String? = ""
-)
-
 
 fun rand(start: Int, end: Int): Int {
     require(start <= end) { "Illegal Argument" }

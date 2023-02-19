@@ -72,6 +72,7 @@ class ReadableStreamIpc(
         }
         writer.writeInt(message.size)
         writer.writeFully(message)
+        writer.flush()
     }
 
     override suspend fun _doClose() {

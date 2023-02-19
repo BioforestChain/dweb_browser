@@ -67,7 +67,7 @@ export class HttpServerNMM extends NativeMicroModule {
       input: { port: "number?", subdomain: "string?" },
       output: { origin: "string", token: "string" },
       hanlder: async (args, ipc) => {
-        return await this.listen({ ipc, ...args });
+        return await this.start({ ipc, ...args });
       },
     });
     this.registerCommonIpcOnMessageHanlder({
@@ -76,7 +76,7 @@ export class HttpServerNMM extends NativeMicroModule {
       input: { port: "number?", subdomain: "string?" },
       output: "boolean",
       hanlder: async (args, ipc) => {
-        return await this.unlisten({ ipc, ...args });
+        return await this.close({ ipc, ...args });
       },
     });
     this.registerCommonIpcOnMessageHanlder({
@@ -87,7 +87,7 @@ export class HttpServerNMM extends NativeMicroModule {
       output: "object",
       hanlder: async (args, ipc, message) => {
         console.log("收到处理请求的双工通道");
-        return this.onRequest(
+        return this.listen(
           args.token,
           message,
           args.routes as $ReqMatcher[]
@@ -100,7 +100,7 @@ export class HttpServerNMM extends NativeMicroModule {
   }
 
   /** 申请监听，获得一个连接地址 */
-  private async listen(hostOptions: $GetHostOptions) {
+  private async start(hostOptions: $GetHostOptions) {
     const { ipc } = hostOptions;
     const { host, origin } = this._http1_server.getHost(hostOptions);
     if (this._gatewayMap.has(host)) {
@@ -110,7 +110,7 @@ export class HttpServerNMM extends NativeMicroModule {
     /// ipc 在关闭的时候，自动释放所有的绑定
     listener.onDestroy(
       ipc.onClose(() => {
-        this.unlisten(hostOptions);
+        this.close(hostOptions);
       })
     );
 
@@ -124,7 +124,7 @@ export class HttpServerNMM extends NativeMicroModule {
   }
 
   /** 远端监听请求，将提供一个 ReadableStreamIpc 流 */
-  private async onRequest(
+  private async listen(
     token: string,
     message: IpcRequest,
     routes: $ReqMatcher[]
@@ -151,7 +151,7 @@ export class HttpServerNMM extends NativeMicroModule {
   /**
    * 释放监听
    */
-  private unlisten(hostOptions: $GetHostOptions) {
+  private close(hostOptions: $GetHostOptions) {
     const { host } = this._http1_server.getHost(hostOptions);
 
     const gateway = this._gatewayMap.get(host);

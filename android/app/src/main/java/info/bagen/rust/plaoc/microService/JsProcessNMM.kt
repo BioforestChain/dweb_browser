@@ -15,6 +15,8 @@ import info.bagen.rust.plaoc.microService.ipc.ipcWeb.saveNative2JsIpcPort
 import info.bagen.rust.plaoc.microService.network.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Request
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.int
 import org.http4k.lens.string
@@ -27,7 +29,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
         /// 主页的网页服务
         val mainServer = this.createHttpDwebServer(DwebServerOptions()).also { server ->
-            // 在模块关机的时候，要关闭端口监听
+            // 在模块关停的时候，要关闭端口监听
             _afterShutdownSignal.listen { server.close() }
             // 提供基本的主页服务
             server.listen().onRequest { args ->
@@ -44,7 +46,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         /// WebWorker的环境服务
         val internalServer =
             this.createHttpDwebServer(DwebServerOptions(subdomain = "internal")).also { server ->
-                // 在模块关机的时候，要关闭端口监听
+                // 在模块关停的时候，要关闭端口监听
                 _afterShutdownSignal.listen { server.close() }
                 val JS_PROCESS_WORKER_CODE =
                     suspendOnce { nativeFetch("file:///bundle/js-process.worker.js").text() }
@@ -83,7 +85,8 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             /// 创建 web worker
             "/create-process" bind Method.POST to defineHandler { request, ipc ->
                 createProcessAndRun(
-                    ipc, apis,
+                    ipc,
+                    apis,
                     "${internalServerInfo.origin}/bootstrap.js?mmid=${ipc.remote.mmid}",
                     query_main_pathname(request),
                     request
@@ -94,7 +97,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 apis.createIpc(query_process_id(request))
             }
         )
-        
+
     }
 
     override suspend fun _shutdown() {
@@ -110,7 +113,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         bootstrap_url: String,
         main_pathname: String = "/index.js",
         requestMessage: Request
-    ) {
+    ): Response {
 
         /**
          * 用自己的域名的权限为它创建一个子域名
@@ -126,9 +129,41 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             it.bindIncomeStream(requestMessage.body.stream);
         }
 
+        /**
+         * 代理监听
+         * 让远端提供 esm 模块代码
+         * 这里我们将请求转发给对方，要求对方以一定的格式提供代码回来，
+         * 我们会对回来的代码进行处理，然后再执行
+         */
         httpDwebServer.listen().onRequest { args ->
-            args.ipc.responseBy(streamIpc, args.request) /// 转发请求给listen的服务
+            // TODO 对代码进行翻译处理
+            args.ipc.responseBy(streamIpc, args.request)
         }
+
+
+        /**
+         * 开始执行代码
+         */
+        val processHandler = apis.createProcess(bootstrap_url, ipc.remote);
+
+        /// 绑定销毁
+
+        /**
+         * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
+         *
+         * > 自己shutdown的时候，这些ipc会被关闭
+         */
+        ipc.onClose { streamIpc.close() }
+
+        /**
+         * “代码IPC流通道”关闭的时候，关闭这个子域名
+         */
+        streamIpc.onClose {
+            httpDwebServer.close();
+        }
+
+        /// 返回自定义的 Response，里头携带我们定义的 ipcStream
+        return Response(Status.OK).body(streamIpc.stream);
     }
 }
 

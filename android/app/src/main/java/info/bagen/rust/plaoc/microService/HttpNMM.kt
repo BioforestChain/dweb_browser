@@ -5,22 +5,24 @@ import info.bagen.rust.plaoc.microService.helper.json
 import info.bagen.rust.plaoc.microService.helper.stream
 import info.bagen.rust.plaoc.microService.helper.suspendOnce
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
+import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.network.Http1Server
 import info.bagen.rust.plaoc.microService.network.Http1Server.Companion.PORT
 import info.bagen.rust.plaoc.microService.network.PortListener
 import info.bagen.rust.plaoc.microService.network.nativeFetch
-import org.http4k.core.Filter
-import org.http4k.core.Status
-import org.http4k.core.Uri
-import org.http4k.core.query
+import org.http4k.core.*
+import org.http4k.lens.*
+import org.http4k.routing.RoutingHttpHandler
+import org.http4k.routing.bind
+import org.http4k.routing.routes
 
 
 data class Origin(val origin: String)
 
 
 class Gateway(
-    val listener: PortListener,
+    val listener: RoutingHttpHandler,
     val host: String,
     val token: String
 )
@@ -85,7 +87,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 response.status(Status.BAD_GATEWAY).body("作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应")
                 println("HttpNMM#gateway222 ===> ${response.body}")
             } else {
-                gateway.listener.hookHttpRequest(request, response)
+                gateway.listener(request)
             }
             response
         }
@@ -96,31 +98,64 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     public override suspend fun _bootstrap() {
         // 启动http后端服务
         dwebServer.createServer(setContentType)
+
+        val query_DwebServerOptions = Query.composite {
+            DwebServerOptions(
+                port = int().optional("port")(it),
+                subdomain = string().optional("subdomain")(it),
+            )
+        }
+
+        apiRouting = routes(
+            "/start" bind Method.GET to defineHandler { request, ipc -> }
+        )
     }
 
-    private fun getHost(port: String): String {
-        return "http://internal.js.sys.dweb-$port.localhost:${PORT}/js-process";
+    inner class HostInfo(val host: String, val origin: String)
+
+    private fun getHost(ipc: Ipc, options: DwebServerOptions): HostInfo {
+        val mmid = ipc.remote.mmid
+        val subdomainPrefix =
+            if (options.subdomain == "" || options.subdomain.endsWith(".")) options.subdomain else "${options.subdomain}."
+        val port = if (options.port <= 0 || options.port >= 65536) DwebServer.PORT else options.port
+        val host = "$subdomainPrefix$mmid-$port.localhost:${dwebServer.bindingPort}"
+        val origin = "${DwebServer.PREFIX}$host"
+        return HostInfo(host, origin)
     }
 
     public override suspend fun _shutdown() {
         dwebServer.closeServer()
     }
+
+    private fun start(ipc: Ipc, options: DwebServerOptions) {
+        val hostInfo = getHost(ipc, options)
+        if (gatewayMap.contains(hostInfo.host))
+            throw  Exception("already in listen: ${hostInfo.origin}")
+
+        val listener = PortListener(ipc,hostInfo.host,hostInfo.origin)
+    }
+
 }
 
 
 /// 对外提供一套建议的操作来创建、使用、维护这个http服务
 
 data class DwebServerOptions(
-    val port: Int = HttpNMM.DwebServer.PORT,
-    val subdomain: String = ""
-)
+    val port: Int,
+    val subdomain: String,
+) {
+    constructor(
+        port: Int?,
+        subdomain: String?
+    ) : this(port ?: HttpNMM.DwebServer.PORT, subdomain ?: "")
+}
 
 data class HttpDwebServerInfo(
     val origin: String,
     val token: String
 )
 
-suspend fun NativeMicroModule.startHttpDwebServer(options: DwebServerOptions) =
+suspend fun MicroModule.startHttpDwebServer(options: DwebServerOptions) =
     this.nativeFetch(
         Uri.of("file://http.sys.dweb/start")
             .query("port", options.port.toString())
@@ -128,7 +163,7 @@ suspend fun NativeMicroModule.startHttpDwebServer(options: DwebServerOptions) =
     ).json<HttpDwebServerInfo>(HttpDwebServerInfo::class.java)
 
 
-suspend fun NativeMicroModule.listenHttpDwebServer(token: String) =
+suspend fun MicroModule.listenHttpDwebServer(token: String) =
     ReadableStreamIpc(this, IPC_ROLE.CLIENT).also {
         it.bindIncomeStream(
             this.nativeFetch(
@@ -139,19 +174,19 @@ suspend fun NativeMicroModule.listenHttpDwebServer(token: String) =
     }
 
 
-suspend fun NativeMicroModule.closeHttpDwebServer(options: DwebServerOptions) =
+suspend fun MicroModule.closeHttpDwebServer(options: DwebServerOptions) =
     this.nativeFetch(
         Uri.of("file://http.sys.dweb/close")
             .query("port", options.port.toString())
             .query("subdomain", options.subdomain)
     ).boolean()
 
-class HttpDwebServer(private val nmm: NativeMicroModule, private val options: DwebServerOptions) {
+class HttpDwebServer(private val nmm: MicroModule, private val options: DwebServerOptions) {
     val start = suspendOnce { nmm.startHttpDwebServer(options) }
     val listen = suspend { nmm.listenHttpDwebServer(start().token) }
     val close = suspendOnce { nmm.closeHttpDwebServer(options) }
 }
 
-suspend fun NativeMicroModule.createHttpDwebServer(options: DwebServerOptions) =
+suspend fun MicroModule.createHttpDwebServer(options: DwebServerOptions) =
     HttpDwebServer(this, options).also { it.start() }
 
