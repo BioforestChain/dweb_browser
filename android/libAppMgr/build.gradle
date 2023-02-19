@@ -93,6 +93,11 @@ dependencies {
     api("io.ktor:ktor-serialization-gson:$ktor_version")
     api "io.ktor:ktor-client-logging:$ktor_version"
 
+  // http4k 网络请求
+  implementation platform("org.http4k:http4k-bom:4.39.0.0")
+  implementation "org.http4k:http4k-core"
+  implementation "org.http4k:http4k-client-okhttp"
+
     // 增加注入ViewModel // 将implementation改为api是为了让app主应用能够调用到
     //api('io.insert-koin:koin-core:3.2.2')
     //api('io.insert-koin:koin-core-ext:3.2.2')

@@ -2,45 +2,39 @@ package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort
-import info.bagen.rust.plaoc.microService.MicroModule
-import info.bagen.rust.plaoc.microService.helper.moshiPack
-import info.bagen.rust.plaoc.microService.ipc.*
-import kotlinx.coroutines.runBlocking
+import info.bagen.rust.plaoc.microService.core.MicroModule
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcMessage
+import info.bagen.rust.plaoc.microService.ipc.IpcMessageArgs
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-class MessagePortIpc(
+open class MessagePortIpc(
     val port: WebMessagePort,
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
-    val context = this
 
     init {
+        val ipc = this
         port.setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
-                runBlocking {
-                    println("MessagePortIpc#port🍟message: ${event.data}")
-                    val message = messageToIpcMessage(event.data, context) ?: return@runBlocking
-                    if (message === "close") {
-                        context.close();
-                    } else {
-                        context._messageSignal.emit(message as IpcMessageArgs)
+                GlobalScope.launch {
+//                    println("MessagePortIpc#port🍟message: ${event.data}")
+                    when (val message = jsonToIpcMessage(event.data, ipc)) {
+                        "close" -> close()
+                        is IpcMessage -> _messageSignal.emit(IpcMessageArgs(message, ipc))
                     }
                 }
-
             }
         })
     }
 
     override suspend fun _doPostMessage(data: IpcMessage) {
-        val webMessage = if (this.supportMessagePack) {
-            println("MessagePortIpc#_doPostMessage===>${moshiPack.pack(data)}")
-            WebMessage(moshiPack.pack(data).toString()) //TODO 要测试
-        } else {
-            println("MessagePortIpc#message===>$data")
-            WebMessage(data.toString())
-        }
-        this.port.postMessage(webMessage)
+        this.port.postMessage(WebMessage(gson.toJson(data)))
     }
 
     override suspend fun _doClose() {

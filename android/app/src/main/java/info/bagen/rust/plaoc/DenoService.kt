@@ -158,7 +158,7 @@ fun mathInputType(cmd: ExportNative, handle: RustHandle, headId: ByteArray) {
         return
     }
     // 处理ui
-    if (cmd === ExportNative.SetDWebViewUI) {
+    if (cmd == ExportNative.SetDWebViewUI) {
         handle.data.forEach { data ->
             println("kotlin#SetDWebViewUI:${PlaocToString.transHexString(data)}")
             callable_map[cmd]?.let { it -> it(PlaocToString.transHexString(data)) } // 执行函数

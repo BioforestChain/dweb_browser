@@ -20,6 +20,10 @@ export class JsMicroModule extends MicroModule {
     super();
   }
 
+  /**
+   * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起
+   * 所以不会和其它程序所使用的 pid 冲突
+   */
   private _process_id?: number;
 
   /** 每个 JMM 启动都要依赖于某一个js */
@@ -39,7 +43,10 @@ export class JsMicroModule extends MicroModule {
     void streamIpc.bindIncomeStream(
       this.fetch(
         buildUrl(new URL(`file://js.sys.dweb/create-process`), {
-          search: { main_pathname: "/index.js" },
+          search: {
+            main_pathname: "/index.js",
+            process_id: (this._process_id = Math.ceil(Math.random() * 1000)),
+          },
         }),
         {
           method: "POST",
@@ -47,8 +54,9 @@ export class JsMicroModule extends MicroModule {
         }
       ).stream()
     );
+    this._connecting_ipcs.add(streamIpc);
   }
-  private _connectting_ipcs = new Set<Ipc>();
+  private _connecting_ipcs = new Set<Ipc>();
   async _connect(from: MicroModule): Promise<Native2JsIpc> {
     const process_id = this._process_id;
     if (process_id === undefined) {
@@ -57,13 +65,20 @@ export class JsMicroModule extends MicroModule {
     const port_id = await this.fetch(
       `file://js.sys.dweb/create-ipc?process_id=${process_id}`
     ).number();
-    return new Native2JsIpc(port_id, this);
+    const outer_ipc = new Native2JsIpc(port_id, this);
+    this._connecting_ipcs.add(outer_ipc);
+    return outer_ipc;
   }
 
   _shutdown() {
-    for (const inner_ipc of this._connectting_ipcs) {
-      inner_ipc.close();
+    for (const outer_ipc of this._connecting_ipcs) {
+      outer_ipc.close();
     }
-    this._connectting_ipcs.clear();
+    this._connecting_ipcs.clear();
+
+    /**
+     * @TODO 发送指令，关停js进程
+     */
+    this._process_id = undefined
   }
 }

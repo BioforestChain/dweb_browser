@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DNS</title>
+</head>
+
+<body>
+  <style>
+    .do-bootstrap {
+      display: block;
+    }
+
+    .do-shutdown {
+      display: none;
+    }
+
+    :has(.booted) .do-bootstrap {
+      display: none;
+    }
+
+    :has(.booted) .do-shutdown {
+      display: block;
+    }
+
+  </style>
+  <button id="sys-boot-btn">
+    <span class="do-bootstrap"> 启动系统</span>
+    <span class="do-shutdown"> 关闭系统</span>
+  </button>
+  <script>
+    let booted = false;
+    const $btn = document.querySelector("#sys-boot-btn");
+    $btn.addEventListener("click", async () => {
+      try {
+        if (booted) {
+          const data = await fetch("file://dns.sys.dweb/open").then(res => res.text())
+          console.log("dns.sys.dweb/open ===> ", data)
+        } else {
+          const data = await fetch("file://dns.sys.dweb/close").then(res => res.text())
+          console.log("dns.sys.dweb/close ===> ", data)
+        }
+      } finally {
+        booted = !booted;
+        $btn.classList.toggle("booted", booted);
+      }
+    });
+  </script>
+</body>
+
+</html>

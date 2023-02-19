@@ -36,7 +36,6 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
-import info.bagen.rust.plaoc.microService.global_dns
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
 import info.bagen.rust.plaoc.microService.webview.MultiDWebBrowserView
@@ -178,7 +177,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         // 退出APP关闭服务
-//        global_dns.httpNMM.closeServer()
         super.onDestroy()
         unRegisterBFSBroadcastReceiver()
         App.mainActivity = null

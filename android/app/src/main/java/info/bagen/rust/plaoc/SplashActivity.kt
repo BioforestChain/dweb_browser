@@ -25,7 +25,7 @@ import info.bagen.libappmgr.ui.splash.SplashPrivacyDialog
 import info.bagen.libappmgr.utils.KEY_APP_FIRST_LOAD
 import info.bagen.libappmgr.utils.getBoolean
 import info.bagen.libappmgr.utils.saveBoolean
-import info.bagen.rust.plaoc.microService.global_dns
+import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.openDWebWindow
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -47,7 +47,7 @@ class SplashActivity : AppCompatActivity() {
                 RustApplicationTheme {
                     SplashMainView()
                     SplashPrivacyDialog(
-                        openHome = {  openHomeActivity() },
+                        openHome = { openHomeActivity() },
                         openWebView = { url -> openDWebWindow(this, url) },
                         closeApp = { finish() }
                     )
@@ -57,7 +57,7 @@ class SplashActivity : AppCompatActivity() {
         } else {
             /// TODO 这里启动 DNS？
             GlobalScope.launch {
-                global_dns.bootstrap()
+                startDwebBrowser()
             }
             App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
             finish()

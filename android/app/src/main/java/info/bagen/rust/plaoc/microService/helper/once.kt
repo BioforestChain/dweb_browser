@@ -4,7 +4,7 @@ package info.bagen.rust.plaoc.microService.helper
 //    var runned = false
 //    var result: Any? = null
 //    return {
-//        if (runned === false) {
+//        if (runned == false) {
 //            runned = true
 //            result = runnable()
 //        }
@@ -17,7 +17,7 @@ inline fun <R> suspendOnce(noinline runnable: suspend () -> R): suspend () -> R 
     var runned = false
     var result: Any? = null
     return {
-        if (runned === false) {
+        if (!runned) {
             runned = true
             result = runnable()
         }

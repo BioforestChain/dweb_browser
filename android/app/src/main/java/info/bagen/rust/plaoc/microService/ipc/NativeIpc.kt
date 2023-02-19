@@ -1,18 +1,48 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.MicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.core.MicroModule
+import info.bagen.rust.plaoc.microService.helper.Callback
+import info.bagen.rust.plaoc.microService.helper.Signal
+import info.bagen.rust.plaoc.microService.helper.SimpleCallback
+import info.bagen.rust.plaoc.microService.helper.SimpleSignal
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import okhttp3.internal.notifyAll
-import okhttp3.internal.wait
+import kotlinx.coroutines.sync.withLock
 
 class NativeIpc(
     val port: NativePort<IpcMessage, IpcMessage>,
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
+    init {
+        port.onMessage { message ->
+            val ipcMessage = when (message.type) {
+                IPC_DATA_TYPE.REQUEST -> (message as IpcRequest).let { fromRequest ->
+                    /**
+                     * fromRequest 携带者远端的 ipc 对象，不是我们的 IpcRequest 对象。
+                     */
+                    IpcRequest.fromRequest(fromRequest.req_id, fromRequest.asRequest(), this)
+                }
+                IPC_DATA_TYPE.RESPONSE -> (message as IpcResponse).let { fromResponse ->
+                    /**
+                     * fromResponse 携带者远端的 ipc 对象，不是我们的 IpcResponse 对象。
+                     */
+                    IpcResponse.fromResponse(fromResponse.req_id, fromResponse.asResponse(), this)
+                }
+                /**
+                 * 其它情况的对象可以直接复用
+                 */
+                else -> message
+            }
+            _messageSignal.emit(IpcMessageArgs(ipcMessage, this))
+            null
+        }
+        port.start()
+    }
+
     override suspend fun _doPostMessage(data: IpcMessage) {
         port.postMessage(data)
     }
@@ -22,6 +52,7 @@ class NativeIpc(
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 class NativePort<I, O>(
     private val channel_in: Channel<I>,
     private val channel_out: Channel<O>,
@@ -31,9 +62,9 @@ class NativePort<I, O>(
     fun start() {
         if (started || closing) return else started = true
 
-        runBlocking {
-            while (!channel_in.isClosedForReceive) {
-                _messageSignal.emit(channel_in.receive())
+        GlobalScope.launch {
+            for (message in channel_in) {
+                _messageSignal.emit(message)
             }
         }
     }
@@ -46,20 +77,21 @@ class NativePort<I, O>(
     private var closing = false
     fun close() {
         if (closing) return else closing = true
-        closeMutex.notifyAll()
+        closeMutex.unlock()
     }
 
     /**
      * 等待 close 信号被发出，那么就关闭出口、触发事件
      */
     init {
-        runBlocking {
-            closeMutex.wait()
-
-            closing = true
-            channel_out.close()
-            _closeSignal.emit()
+        GlobalScope.launch {
+            closeMutex.withLock {
+                closing = true
+                channel_out.close()
+                _closeSignal.emit()
+            }
         }
+
     }
 
 
@@ -79,7 +111,10 @@ class NativePort<I, O>(
 }
 
 class NativeMessageChannel<T1, T2> {
-    private val closeMutex = Mutex()
+    /**
+     * 默认锁住，当它解锁的时候，意味着通道关闭
+     */
+    private val closeMutex = Mutex(true)
     private val channel1 = Channel<T1>()
     private val channel2 = Channel<T2>()
     val port1 = NativePort(channel1, channel2, closeMutex)

@@ -1,19 +1,24 @@
-package info.bagen.rust.plaoc.microService
+package info.bagen.rust.plaoc.microService.sys.boot
 
+import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.core.Router
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.toURLQueryComponent
-import info.bagen.rust.plaoc.microService.network.nativeFetch
-import info.bagen.rust.plaoc.openHomeActivity
-import kotlinx.coroutines.runBlocking
+import info.bagen.rust.plaoc.microService.sys.http.net.nativeFetch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import kotlin.collections.set
 
 class BootNMM : NativeMicroModule("boot.sys.dweb") {
     override val routers: Router = mutableMapOf()
     override suspend fun _bootstrap() {
         apiRouting = routes(
+            "/open" bind Method.GET to defineHandler { request ->
+                println("BootNMM#apiRouting===>$mmid  ${request.uri.path}")
+                true
+            },
             "/register" bind Method.GET to defineHandler { _, ipc ->
                 register(ipc.remote.mmid)
             },
@@ -22,9 +27,9 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
             }
         )
 
-        runBlocking {
+        GlobalScope.launch {
             for (mmid in registeredMmids) {
-                nativeFetch("file://dns.sys.dweb/open=${mmid.toURLQueryComponent()}")
+                nativeFetch("file://dns.sys.dweb/open?app_id=${mmid.toURLQueryComponent()}")
             }
         }
 
@@ -40,7 +45,7 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
      */
     private val registeredMmids = mutableSetOf<Mmid>(
         // 初始化启动一个桌面系统程序
-        "desktop.bfs.dweb"
+        "desktop.user.dweb"
     )
 
     /**

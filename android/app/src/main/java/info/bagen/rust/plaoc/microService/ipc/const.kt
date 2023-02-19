@@ -4,10 +4,16 @@ import com.google.gson.*
 import info.bagen.rust.plaoc.microService.helper.Callback
 import java.lang.reflect.Type
 
-data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)
+data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
+    val component1 get() = message
+    val component2 get() = ipc
+}
 typealias OnIpcMessage = Callback<IpcMessageArgs>
 
-data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc)
+data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc) {
+    val component1 get() = request
+    val component2 get() = ipc
+}
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
 enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,
@@ -43,7 +49,7 @@ enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ): IPC_DATA_TYPE = json.asInt.let { type -> values().first { it.type === type } }
+    ): IPC_DATA_TYPE = json.asInt.let { type -> values().first { it.type == type } }
 
 }
 
@@ -82,16 +88,9 @@ enum class IPC_RAW_BODY_TYPE(val type: Int) : JsonSerializer<IPC_RAW_BODY_TYPE>,
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ) = json.asInt.let { type -> values().find { it.type === type } }
+    ) = json.asInt.let { type -> values().find { it.type == type } }
 
     infix fun and(TYPE: IPC_RAW_BODY_TYPE) = type and TYPE.type
-}
-
-
-enum class Method {
-    GET, POST, PUT, DELETE, OPTIONS, TRACE, PATCH, PURGE, HEAD;
-
-    companion object
 }
 
 enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>,
@@ -110,7 +109,7 @@ enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>,
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ) = json.asString.let { role -> values().find { it.role === role } }
+    ) = json.asString.let { role -> values().find { it.role == role } }
 }
 
 class RawData(val type: IPC_RAW_BODY_TYPE, val data: Any) : JsonSerializer<RawData>,

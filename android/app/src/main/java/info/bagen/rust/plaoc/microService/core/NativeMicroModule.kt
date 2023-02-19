@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService
+package info.bagen.rust.plaoc.microService.core
 
 import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Mmid
@@ -15,7 +15,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
     private val _connectedIpcSet = mutableSetOf<Ipc>();
     override suspend fun _connect(from: MicroModule): NativeIpc {
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
-        val nativeIpc = NativeIpc(channel.port1, from, IPC_ROLE.SERVER, true);
+        val nativeIpc = NativeIpc(channel.port1, from, IPC_ROLE.SERVER);
 
         this._connectedIpcSet.add(nativeIpc);
         nativeIpc.onClose {
@@ -23,7 +23,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
         };
 
         this._connectSignal.emit(nativeIpc);
-        return NativeIpc(channel.port2, this, IPC_ROLE.CLIENT, true);
+        return NativeIpc(channel.port2, this, IPC_ROLE.CLIENT);
     }
 
 
@@ -61,11 +61,20 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
      */
     init {
         onConnect { clientIpc ->
-            clientIpc.onRequest { args ->
+            clientIpc.onRequest { (ipcRequest) ->
                 apiRouting?.let { routes ->
-                    routes.withFilter(ipcApiFilter.then(Filter { next ->
+                    val routesWithContext = routes.withFilter(ipcApiFilter.then(Filter { next ->
                         { next(it.with(requestContextKey_ipc of clientIpc)) }
-                    }))(args.request.asRequest())
+                    }));
+                    val request = ipcRequest.asRequest()
+                    val response = routesWithContext(request)
+                    clientIpc.postMessage(
+                        IpcResponse.fromResponse(
+                            ipcRequest.req_id,
+                            response,
+                            clientIpc
+                        )
+                    )
                 }
             }
         }
@@ -73,13 +82,20 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
 
     protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
         runBlocking {
-            try {
-                Response(Status.OK).body(gson.toJson(handler(request)))
-                    .header("Content-Type", "application/json")
-            } catch (ex: Throwable) {
+//            coroutineScope {
+            runCatching {
+                when (val result = handler(request)) {
+                    is Response -> result
+                    else -> Response(Status.OK)
+                        .body(gson.toJson(result))
+                        .header("Content-Type", "application/json")
+                }
+            }.getOrElse { ex ->
                 Response(Status.INTERNAL_SERVER_ERROR).body(ex.message ?: "Unknown Error")
             }
+//            }
         }
+
     }
 
     protected fun defineHandler(handler: suspend (request: Request, ipc: Ipc) -> Any?) =

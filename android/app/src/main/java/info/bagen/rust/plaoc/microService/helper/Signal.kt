@@ -1,7 +1,7 @@
 package info.bagen.rust.plaoc.microService.helper
 
 typealias Callback<Args> = suspend (args: Args) -> Any?
-typealias SimpleCallback = Callback<Unit>
+typealias SimpleCallback = suspend () -> Any?
 typealias OffListener = () -> Boolean
 
 /** 控制器 */
@@ -42,8 +42,25 @@ open class Signal<Args>() {
 }
 
 
-class SimpleSignal : Signal<Unit>() {
+class SimpleSignal  {
+    private val _cbs = mutableSetOf<SimpleCallback>();
+
+    fun listen(cb: SimpleCallback): OffListener {
+        this._cbs.add(cb)
+        return { off(cb) }
+    }
+
+    fun off(cb: SimpleCallback): Boolean {
+        return _cbs.remove(cb)
+    }
+
     suspend fun emit() {
-        super.emit(null as Unit);
+        val iter = this._cbs.iterator()
+        for (cb in iter) {
+            when (cb()) {
+                SIGNAL_CTOR.OFF -> iter.remove()
+                SIGNAL_CTOR.BREAK -> break
+            }
+        }
     }
 };
