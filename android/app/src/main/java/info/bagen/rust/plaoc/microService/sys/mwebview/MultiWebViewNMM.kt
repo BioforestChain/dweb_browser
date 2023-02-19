@@ -1,9 +1,7 @@
-package info.bagen.rust.plaoc.microService
+package info.bagen.rust.plaoc.microService.sys.mwebview
 
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.App.Companion.mainActivity
-import info.bagen.rust.plaoc.webView.openDWebWindow
-import org.http4k.routing.RoutingHttpHandler
+import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 

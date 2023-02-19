@@ -1,6 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 
-import info.bagen.rust.plaoc.microService.MicroModule
+import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.moshiPack
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE

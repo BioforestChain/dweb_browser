@@ -2,7 +2,7 @@ package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort
-import info.bagen.rust.plaoc.microService.MicroModule
+import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc

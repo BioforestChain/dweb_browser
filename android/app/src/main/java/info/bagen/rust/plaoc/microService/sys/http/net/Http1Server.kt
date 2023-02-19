@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.network
+package info.bagen.rust.plaoc.microService.sys.http.net
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

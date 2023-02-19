@@ -1,9 +1,10 @@
-package info.bagen.rust.plaoc.microService
+package info.bagen.rust.plaoc.microService.sys.dns
 
+import info.bagen.rust.plaoc.microService.core.MicroModule
+import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.ipc.Ipc
-import info.bagen.rust.plaoc.microService.network.fetchAdaptor
-import info.bagen.rust.plaoc.microService.user.DesktopJMM
+import info.bagen.rust.plaoc.microService.sys.http.net.fetchAdaptor
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.http4k.core.Method
@@ -15,28 +16,12 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 
-typealias Domain = String;
-
-val global_dns = DwebDNS()
-
-class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
-    private val mmMap = mutableMapOf<Domain, MicroModule>()
-
-    private val jsProcessNMM = JsProcessNMM()
-
-    private val bootNMM = BootNMM()
-    private val multiWebViewNMM = MultiWebViewNMM()
-    private val httpNMM = HttpNMM()
-    private val desktopJMM = DesktopJMM()
+class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
+    private val mmMap = mutableMapOf<Mmid, MicroModule>()
 
     override suspend fun _bootstrap() {
         install(this)
         running_apps[this.mmid] = this
-        install(bootNMM)
-        install(jsProcessNMM)
-        install(multiWebViewNMM)
-        install(httpNMM)
-        install(desktopJMM)
 
         /// 对全局的自定义路由提供适配器
         /** 对等连接列表 */
@@ -99,7 +84,7 @@ class DwebDNS() : NativeMicroModule("dns.sys.dweb") {
     private val running_apps = mutableMapOf<Mmid, MicroModule>();
 
     /** 安装应用 */
-    private fun install(mm: MicroModule) {
+    fun install(mm: MicroModule) {
         mmMap[mm.mmid] = mm
     }
 
