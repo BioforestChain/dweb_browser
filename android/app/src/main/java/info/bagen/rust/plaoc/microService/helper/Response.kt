@@ -6,7 +6,7 @@ import java.io.InputStream
 import java.lang.reflect.Type
 
 
-fun Response.ok(): Response = if (this.status.code >= 400) throw Exception("") else this
+fun Response.ok(): Response = if (status.code >= 400) throw Exception("") else this
 
 @Throws(JsonSyntaxException::class)
 fun <T> Response.json(typeOfT: Type): T = gson.fromJson(ok().body.stream.reader(), typeOfT)

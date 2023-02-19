@@ -6,6 +6,7 @@ import java.net.URLEncoder
 import java.util.*
 
 inline fun ByteArray.toBase64(): String = Base64.getEncoder().encodeToString(this)
+inline fun ByteArray.toBase64Url(): String = Base64.getUrlEncoder().encodeToString(this)
 
 inline fun ByteArray.toLong() =
     (this[0].toLong() shl 24) or (this[1].toLong() shl 16) or (this[2].toLong() shl 8) or (this[3].toLong())

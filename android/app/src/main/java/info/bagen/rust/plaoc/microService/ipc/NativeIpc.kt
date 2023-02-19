@@ -63,8 +63,8 @@ class NativePort<I, O>(
         if (started || closing) return else started = true
 
         GlobalScope.launch {
-            while (!channel_in.isClosedForReceive) {
-                _messageSignal.emit(channel_in.receive())
+            for (message in channel_in) {
+                _messageSignal.emit(message)
             }
         }
     }

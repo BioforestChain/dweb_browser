@@ -81,12 +81,11 @@ abstract class Ipc {
     suspend fun request(url: Uri) =
         request(Request(Method.GET, url))
 
-    suspend fun request(request: Request): IpcResponse {
-        val req_id = allocReqId()
-        this.postMessage(IpcRequest.fromRequest(req_id, request, this))
+    suspend fun request(ipcRequest: IpcRequest): IpcResponse {
+        this.postMessage(ipcRequest)
         val result = Channel<IpcResponse>();
         this.onMessage { args ->
-            if (args.message is IpcResponse && args.message.req_id == req_id) {
+            if (args.message is IpcResponse && args.message.req_id == ipcRequest.req_id) {
                 GlobalScope.launch {
                     result.send(args.message)
                 }
@@ -95,14 +94,18 @@ abstract class Ipc {
         return result.receive()
     }
 
+    suspend fun request(request: Request) =
+        this.request(IpcRequest.fromRequest(allocReqId(), request, this)).asResponse()
+
     private var _req_id_acc: Int = 0;
     fun allocReqId() = _req_id_acc++;
 
-    suspend fun responseBy(byIpc:Ipc, myRequest: IpcRequest){
+    suspend fun responseBy(byIpc: Ipc, byIpcRequest: IpcRequest) {
         postMessage(
             IpcResponse.fromResponse(
-                myRequest.req_id,
-                byIpc.request(myRequest.asRequest()).asResponse(),
+                byIpcRequest.req_id,
+                // 找个 ipcRequest 对象不属于我的，不能直接用
+                byIpc.request(byIpcRequest.asRequest()),
                 byIpc
             )
         )

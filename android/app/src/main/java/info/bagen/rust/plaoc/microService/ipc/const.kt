@@ -93,13 +93,6 @@ enum class IPC_RAW_BODY_TYPE(val type: Int) : JsonSerializer<IPC_RAW_BODY_TYPE>,
     infix fun and(TYPE: IPC_RAW_BODY_TYPE) = type and TYPE.type
 }
 
-
-enum class Method {
-    GET, POST, PUT, DELETE, OPTIONS, TRACE, PATCH, PURGE, HEAD;
-
-    companion object
-}
-
 enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>,
     JsonDeserializer<IPC_ROLE> {
     SERVER("server"),

@@ -33,7 +33,7 @@ private suspend fun localeFileFetch(remote: MicroModule, request: Request) =
         else -> null
     }
 
-val client = OkHttp()
+val client = OkHttp(bodyMode = BodyMode.Stream)
 
 suspend fun MicroModule.nativeFetch(request: Request): Response {
     return fetchAdaptor?.let { it(this, request) }

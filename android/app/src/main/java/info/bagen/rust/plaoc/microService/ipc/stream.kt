@@ -7,6 +7,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.InputStream
@@ -59,21 +60,22 @@ fun rawDataToBody(rawBody: RawData?, ipc: Ipc?): Any {
 
     if (rawBody.type and IPC_RAW_BODY_TYPE.STREAM_ID != 0) {
         val stream_id = rawBody.data as String;
-        val stream = ByteChannel();
-        ipc.onMessage { args ->
-            if (args.message is IpcStreamData && args.message.stream_id == stream_id) {
-                GlobalScope.launch {
-                    stream.write {
-                        it.put(bodyEncoder(args.message.data))
+        val stream = ReadableStream(
+            onStart = { controller ->
+                ipc.onMessage { (message) ->
+                    if (message is IpcStreamData && message.stream_id == stream_id) {
+                        controller.enqueue(bodyEncoder(message.data))
+                    } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
+                        controller.close()
+                        return@onMessage SIGNAL_CTOR.OFF
+                    } else {
                     }
                 }
-            } else if (args.message is IpcStreamEnd && args.message.stream_id == stream_id) {
-                stream.close()
-                return@onMessage SIGNAL_CTOR.OFF
-            } else {
-            }
-        }
-        return stream.toInputStream()
+            }, onPull = {
+                ipc.postMessage(IpcStreamPull(stream_id))
+            });
+
+        return stream // as InputStream
     }
     /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
     return if (rawBody.type and IPC_RAW_BODY_TYPE.TEXT != 0) {

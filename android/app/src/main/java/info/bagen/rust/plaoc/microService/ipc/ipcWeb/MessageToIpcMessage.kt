@@ -11,7 +11,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
     return runCatching {
         when (gson.fromJson(data, IpcMessage::class.java).type) {
             IPC_DATA_TYPE.REQUEST -> gson.fromJson(data, IpcRequestData::class.java).let {
-                IpcRequest(it.req_id, it.method, it.url, it.headers, it.rawBody, ipc)
+                IpcRequest(it.req_id, it.ipcMethod, it.url, it.headers, it.rawBody, ipc)
             }
             IPC_DATA_TYPE.RESPONSE -> gson.fromJson(data, IpcResponseData::class.java).let {
                 IpcResponse(it.req_id, it.statusCode, it.headers, it.rawBody, ipc)

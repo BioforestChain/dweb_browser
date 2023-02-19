@@ -61,13 +61,20 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
      */
     init {
         onConnect { clientIpc ->
-            clientIpc.onRequest { args ->
+            clientIpc.onRequest { (ipcRequest) ->
                 apiRouting?.let { routes ->
                     val routesWithContext = routes.withFilter(ipcApiFilter.then(Filter { next ->
                         { next(it.with(requestContextKey_ipc of clientIpc)) }
                     }));
-                    val request = args.request.asRequest()
-                    routesWithContext(request)
+                    val request = ipcRequest.asRequest()
+                    val response = routesWithContext(request)
+                    clientIpc.postMessage(
+                        IpcResponse.fromResponse(
+                            ipcRequest.req_id,
+                            response,
+                            clientIpc
+                        )
+                    )
                 }
             }
         }
@@ -80,7 +87,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                 when (val result = handler(request)) {
                     is Response -> result
                     else -> Response(Status.OK)
-                        .body(gson.toJson(handler(request)))
+                        .body(gson.toJson(result))
                         .header("Content-Type", "application/json")
                 }
             }.getOrElse { ex ->

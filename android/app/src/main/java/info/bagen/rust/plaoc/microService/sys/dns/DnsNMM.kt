@@ -46,7 +46,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
                             ipc.onClose { ipcMap.remove(mmid); }
                         }
                     }
-                    return@let ipc.request(request).asResponse()
+                    return@let ipc.request(request)
                 } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())
             } else null
         }

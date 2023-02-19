@@ -1,18 +1,42 @@
 package info.bagen.rust.plaoc.microService.sys.http.net
 
+import com.google.gson.*
 import info.bagen.rust.plaoc.microService.helper.SimpleCallback
 import info.bagen.rust.plaoc.microService.helper.SimpleSignal
 import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.routing.*
+import java.lang.reflect.Type
 
-interface Router {
-    val routes: MutableList<Request>
-    val streamIpc: ReadableStreamIpc
+
+data class RouteConfig(
+    val pathname: String,
+    val method: IpcMethod,
+    val matchMode: MatchMode = MatchMode.PREFIX
+)
+
+class StreamIpcRouter(val config: RouteConfig, val streamIpc: ReadableStreamIpc) {
+    val router by lazy {
+        val pathname = if (config.matchMode == MatchMode.PREFIX) {
+            config.pathname
+        } else if (config.pathname.endsWith("*")) {
+            config.pathname
+        } else {
+            config.pathname + "*"
+        }
+        routes(pathname bind config.method.http4kMethod to { request ->
+            runBlocking {
+                streamIpc.request(request)
+            }
+        })
+    }
 }
 
 
@@ -21,44 +45,38 @@ class PortListener(
     val host: String,
     val origin: String
 ) {
-    private val _routers = mutableSetOf<Router>();
-    fun addRouter(router: Router): () -> Any {
-        this._routers.add(router)
-        return {
-            this._routers.remove(router)
-        }
-    }
+    private val _routerSet = mutableSetOf<StreamIpcRouter>();
 
-    private fun isBindMatchReq(pathname: String, method: Method): Pair<Router, Request>? {
-        for (bind in this._routers) {
-            for (pathMatcher in bind.routes) {
-                if (isMatchReq(pathMatcher, pathname, method)) {
-                    return Pair(bind, pathMatcher)
-                }
-            }
+    fun addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc): () -> Boolean {
+        val route = StreamIpcRouter(config, streamIpc);
+        this._routerSet.add(route)
+        return {
+            this._routerSet.remove(route)
         }
-        return null
     }
 
     /**
      * 接收 nodejs-web 请求
      * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
      */
-    suspend fun hookHttpRequest(req: Request): Response? {
-        val method = req.method
-        val parsedUrl = req.uri
-        println("hookHttpRequest==>method:$method,parsedUrl:$parsedUrl")
-        val hasMatch = this.isBindMatchReq(parsedUrl.host, method);
-        if (hasMatch == null) {
-            return Response(Status.NOT_FOUND);
+    suspend fun hookHttpRequest(request: Request): Response? {
+        for (router in _routerSet) {
+            val response = router.router(request)
+            if (response.status != Status.NOT_FOUND) {
+                return response
+            }
         }
         return null
     }
 
+    /// 销毁
     private val destroySignal = SimpleSignal()
     fun onDestroy(cb: SimpleCallback) = destroySignal.listen { cb }
 
-    suspend fun destroy() = destroySignal.emit()
+    suspend fun destroy() {
+        _routerSet.clear()
+        destroySignal.emit()
+    }
 }
 
 
@@ -92,7 +110,20 @@ fun isMatchReq(
     return matchMethod && matchMode
 };
 
-enum class MatchMode(type: String) {
-    full("full"),
-    prefix("prefix")
+enum class MatchMode(val mode: String) : JsonDeserializer<MatchMode>, JsonSerializer<MatchMode> {
+    FULL("full"),
+    PREFIX("prefix"),
+    ;
+
+    override fun deserialize(
+        json: JsonElement,
+        typeOfT: Type?,
+        context: JsonDeserializationContext?
+    ) = json.asString.let { mode -> values().first { it.mode == mode } }
+
+    override fun serialize(
+        src: MatchMode,
+        typeOfSrc: Type?,
+        context: JsonSerializationContext?
+    ) = JsonPrimitive(src.mode)
 }

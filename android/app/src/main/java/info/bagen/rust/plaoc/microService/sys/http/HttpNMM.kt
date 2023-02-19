@@ -1,23 +1,24 @@
 package info.bagen.rust.plaoc.microService.sys.http
 
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.helper.toBase64Url
+import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.http.net.Http1Server
 import info.bagen.rust.plaoc.microService.sys.http.net.PortListener
+import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
+import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
 import org.http4k.lens.*
-import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-
-
-data class Origin(val origin: String)
+import java.util.Random
 
 
 class Gateway(
-    val listener: RoutingHttpHandler,
-    val host: String,
-    val token: String
+    val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String
 )
 
 class HttpNMM() : NativeMicroModule("http.sys.dweb") {
@@ -48,84 +49,134 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
      * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
      */
     // 创建过滤
-    val setContentType = Filter { nextHandler ->
-        { request ->
-            var host = "*"
-            request.headers.forEach { (key, value) ->
-                when (key) {
-                    "X-Dweb-Host" -> {
-                        value?.let {
-                            host = it
-                        }
+    val httpHandler: HttpHandler = { request ->
+        var host = "*"
+        request.headers.forEach { (key, value) ->
+            when (key) {
+                "X-Dweb-Host" -> {
+                    value?.let {
+                        host = it
                     }
-                    "User-Agent" -> {
-                        value?.let { user_agent ->
-                            Regex("""\sdweb-host/(.+?)\s""").find(user_agent)?.let { matchResult ->
-                                println("headers#router User-Agent ====> ${matchResult.groupValues[1]}")
-                                host = matchResult.groupValues[1]
-                            }
+                }
+                "User-Agent" -> {
+                    value?.let { user_agent ->
+                        Regex("""\sdweb-host/(.+?)\s""").find(user_agent)?.let { matchResult ->
+                            println("headers#router User-Agent ====> ${matchResult.groupValues[1]}")
+                            host = matchResult.groupValues[1]
                         }
                     }
                 }
             }
-            /// 如果没有端口，补全端口
-            if (!host.contains(":")) {
-                host += ":" + Http1Server.PORT;
-            }
-            /** 30s 没有任何 body 写入的话，认为网关超时 */
-            val gateway = gatewayMap[host]
-            val response = nextHandler(request)
-            if (gateway == null) {
-                println("HttpNMM#gateway111 ===> ${response.body}")
-                response.status(Status.BAD_GATEWAY).body("作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应")
-                println("HttpNMM#gateway222 ===> ${response.body}")
-            } else {
-                gateway.listener(request)
-            }
-            response
         }
+        /// 如果没有端口，补全端口
+        if (!host.contains(":")) {
+            host += ":" + Http1Server.PORT;
+        }
+        /// TODO 30s 没有任何 body 写入的话，认为网关超时 ß
+        gatewayMap[host]?.let { gateway -> runBlocking { gateway.listener.hookHttpRequest(request) } }
+            ?: Response(
+                Status.NOT_FOUND
+            )
     }
     /// 在网关中寻址能够处理该 host 的监听者
 
 
     public override suspend fun _bootstrap() {
         // 启动http后端服务
-        dwebServer.createServer(setContentType)
+        dwebServer.createServer(httpHandler)
 
-        val query_DwebServerOptions = Query.composite {
+        val query_dwebServerOptions = Query.composite {
             DwebServerOptions(
                 port = int().optional("port")(it),
                 subdomain = string().optional("subdomain")(it),
             )
         }
 
+        val query_token = Query.string().required("token")
+        val query_routeConfig = Query.string().required("routes")
+
         apiRouting = routes(
-            "/start" bind Method.GET to defineHandler { request, ipc -> }
+            "/start" bind Method.GET to defineHandler { request, ipc ->
+                start(ipc, query_dwebServerOptions(request))
+            },
+            "/listen" bind Method.POST to defineHandler { request ->
+                listen(
+                    query_token(request),
+                    request,
+                    gson.fromJson(query_routeConfig(request), RouteConfig::class.java)
+                )
+            },
+            "/close" bind Method.GET to defineHandler { request, ipc ->
+                close(ipc, query_dwebServerOptions(request))
+            }
         )
     }
 
-    inner class HostInfo(val host: String, val origin: String)
+    inner class ServerUrlInfo(val host: String, val origin: String)
 
-    private fun getHost(ipc: Ipc, options: DwebServerOptions): HostInfo {
+    private fun getServerUrlInfo(ipc: Ipc, options: DwebServerOptions): ServerUrlInfo {
         val mmid = ipc.remote.mmid
         val subdomainPrefix =
             if (options.subdomain == "" || options.subdomain.endsWith(".")) options.subdomain else "${options.subdomain}."
         val port = if (options.port <= 0 || options.port >= 65536) DwebServer.PORT else options.port
         val host = "$subdomainPrefix$mmid-$port.localhost:${dwebServer.bindingPort}"
         val origin = "${DwebServer.PREFIX}$host"
-        return HostInfo(host, origin)
+        return ServerUrlInfo(host, origin)
     }
 
     public override suspend fun _shutdown() {
         dwebServer.closeServer()
     }
 
-    private fun start(ipc: Ipc, options: DwebServerOptions) {
-        val hostInfo = getHost(ipc, options)
-        if (gatewayMap.contains(hostInfo.host))
-            throw  Exception("already in listen: ${hostInfo.origin}")
+    data class ServerStartResult(val token: String, val origin: String)
 
-        val listener = PortListener(ipc,hostInfo.host,hostInfo.origin)
+    /**
+     * 监听端口，启动服务
+     */
+    private fun start(ipc: Ipc, options: DwebServerOptions): ServerStartResult {
+        val serverUrlInfo = getServerUrlInfo(ipc, options)
+        if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.origin}")
+
+        val listener = PortListener(ipc, serverUrlInfo.host, serverUrlInfo.origin)
+
+        /// ipc 在关闭的时候，自动释放所有的绑定
+        listener.onDestroy(ipc.onClose { close(ipc, options) })
+
+        val token = ByteArray(64).also { Random().nextBytes(it) }.toBase64Url()
+
+        val gateway = Gateway(listener, serverUrlInfo, token)
+        gatewayMap[serverUrlInfo.host] = gateway
+        tokenMap[token] = gateway
+
+        return ServerStartResult(token, serverUrlInfo.origin)
+    }
+
+    /**
+     *
+     */
+    private fun listen(
+        token: String,
+        message: Request,
+        routeConfig: RouteConfig
+    ): Response {
+        val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
+
+        val streamIpc = ReadableStreamIpc(
+            gateway.listener.ipc.remote,
+            IPC_ROLE.CLIENT
+        )
+        streamIpc.bindIncomeStream(message.body.stream)
+        streamIpc.onClose(gateway.listener.addRouter(routeConfig, streamIpc))
+
+        return Response(Status.OK).body(streamIpc.stream)
+    }
+
+    private suspend fun close(ipc: Ipc, options: DwebServerOptions) {
+        val serverUrlInfo = getServerUrlInfo(ipc, options)
+        gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
+            tokenMap.remove(gateway.token)
+            gateway.listener.destroy()
+        }
     }
 
 }

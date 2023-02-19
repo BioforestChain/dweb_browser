@@ -1,21 +1,20 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import org.http4k.core.Request
-import info.bagen.rust.plaoc.microService.helper.Method
 import info.bagen.rust.plaoc.microService.helper.toBase64
 import org.http4k.core.Uri
 import java.io.InputStream
 
 class IpcRequest(
     req_id: Int,
-    method: Method,
+    ipcMethod: IpcMethod,
     url: String,
     headers: IpcHeaders,
     rawBody: RawData,
     override val ipc: Ipc
 ) : IpcRequestData(
     req_id,
-    method,
+    ipcMethod,
     url,
     headers,
     rawBody,
@@ -28,7 +27,7 @@ class IpcRequest(
             when (request.body.length) {
                 null -> fromStream(
                     req_id,
-                    Method.from(request.method),
+                    IpcMethod.from(request.method),
                     request.uri.toString(),
                     IpcHeaders(request.headers),
                     request.body.stream,
@@ -37,7 +36,7 @@ class IpcRequest(
                 0L -> {
                     fromText(
                         req_id,
-                        Method.from(request.method),
+                        IpcMethod.from(request.method),
                         request.uri.toString(),
                         IpcHeaders(request.headers),
                         "",
@@ -46,7 +45,7 @@ class IpcRequest(
                 }
                 else -> fromBinary(
                     req_id,
-                    Method.from(request.method),
+                    IpcMethod.from(request.method),
                     request.uri.toString(),
                     IpcHeaders(request.headers),
                     request.body.payload.array(),
@@ -57,14 +56,14 @@ class IpcRequest(
 
         fun fromText(
             req_id: Int,
-            method: Method,
+            ipcMethod: IpcMethod,
             url: String,
             headers: IpcHeaders = IpcHeaders(),
             rawBody: String,
             ipc: Ipc
         ) = IpcRequest(
             req_id,
-            method,
+            ipcMethod,
             url,
             // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
             headers,
@@ -74,14 +73,14 @@ class IpcRequest(
 
         fun fromBinary(
             req_id: Int,
-            method: Method,
+            ipcMethod: IpcMethod,
             url: String,
             headers: IpcHeaders = IpcHeaders(),
             binary: ByteArray,
             ipc: Ipc
         ) = IpcRequest(
             req_id,
-            method,
+            ipcMethod,
             url,
             // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
             headers.also {
@@ -99,7 +98,7 @@ class IpcRequest(
 
         fun fromStream(
             req_id: Int,
-            method: Method,
+            ipcMethod: IpcMethod,
             url: String,
             headers: IpcHeaders = IpcHeaders(),
             stream: InputStream,
@@ -107,7 +106,7 @@ class IpcRequest(
             size: Long? = null
         ) = IpcRequest(
             req_id,
-            method,
+            ipcMethod,
             url,
             // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
             headers.also {
@@ -129,12 +128,12 @@ class IpcRequest(
         )
     }
 
-    fun asRequest() = Request(method.http4kMethod, url).headers(headers.toList()).body(stream())
+    fun asRequest() = Request(ipcMethod.http4kMethod, url).headers(headers.toList()).body(stream())
 }
 
 abstract class IpcRequestData(
     val req_id: Int,
-    val method: Method,
+    val ipcMethod: IpcMethod,
     val url: String,
     val headers: IpcHeaders,
     override val rawBody: RawData,

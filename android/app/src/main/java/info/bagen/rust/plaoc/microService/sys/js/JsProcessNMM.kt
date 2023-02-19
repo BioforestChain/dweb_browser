@@ -47,6 +47,8 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             }
         }
 
+        println("mainServer: ${mainServer.info}")
+
         /// WebWorker的环境服务
         val internalServer =
             this.createHttpDwebServer(DwebServerOptions(subdomain = "internal")).also { server ->
@@ -73,12 +75,14 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     }
                 }
             }
-        val internalServerInfo = internalServer.start()
+
+        println("internalServer: ${internalServer.info}")
+
 
         /// WebView 实例
         val webView = WebView(App.appContext).also {
             nww = it
-            it.loadUrl(mainServer.start().origin)
+            it.loadUrl(mainServer.info.origin)
         }
         val apis = JsProcessWebApi(webView)
 
@@ -91,7 +95,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 createProcessAndRun(
                     ipc,
                     apis,
-                    "${internalServerInfo.origin}/bootstrap.js?mmid=${ipc.remote.mmid}",
+                    "${internalServer.info.origin}/bootstrap.js?mmid=${ipc.remote.mmid}",
                     query_main_pathname(request),
                     request
                 )

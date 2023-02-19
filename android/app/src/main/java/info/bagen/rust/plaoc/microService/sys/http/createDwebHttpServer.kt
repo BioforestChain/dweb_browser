@@ -1,12 +1,11 @@
 package info.bagen.rust.plaoc.microService.sys.http
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.boolean
-import info.bagen.rust.plaoc.microService.helper.json
-import info.bagen.rust.plaoc.microService.helper.stream
-import info.bagen.rust.plaoc.microService.helper.suspendOnce
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
+import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
+import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
 import info.bagen.rust.plaoc.microService.sys.http.net.nativeFetch
 import org.http4k.core.Uri
 import org.http4k.core.query
@@ -34,15 +33,18 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebServerOptions) =
         Uri.of("file://http.sys.dweb/start")
             .query("port", options.port.toString())
             .query("subdomain", options.subdomain)
-    ).json<HttpDwebServerInfo>(HttpDwebServerInfo::class.java)
+    ).let { response ->
+        response.json<HttpDwebServerInfo>(HttpDwebServerInfo::class.java)
+    }
 
 
-suspend fun MicroModule.listenHttpDwebServer(token: String) =
+suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<RouteConfig>) =
     ReadableStreamIpc(this, IPC_ROLE.CLIENT).also {
         it.bindIncomeStream(
             this.nativeFetch(
                 Uri.of("file://http.sys.dweb/listen")
                     .query("token", token)
+                    .query("routes", gson.toJson(routes))
             ).stream()
         )
     }
@@ -55,12 +57,24 @@ suspend fun MicroModule.closeHttpDwebServer(options: DwebServerOptions) =
             .query("subdomain", options.subdomain)
     ).boolean()
 
-class HttpDwebServer(private val nmm: MicroModule, private val options: DwebServerOptions) {
-    val start = suspendOnce { nmm.startHttpDwebServer(options) }
-    val listen = suspend { nmm.listenHttpDwebServer(start().token) }
+class HttpDwebServer(
+    private val nmm: MicroModule,
+    private val options: DwebServerOptions,
+    val info: HttpDwebServerInfo
+) {
+    suspend fun listen(
+        routes: Array<RouteConfig> = arrayOf(
+            RouteConfig(pathname = "", method = IpcMethod.GET),
+            RouteConfig(pathname = "", method = IpcMethod.POST),
+            RouteConfig(pathname = "", method = IpcMethod.PUT),
+            RouteConfig(pathname = "", method = IpcMethod.DELETE)
+        )
+    ) = nmm.listenHttpDwebServer(info.token, routes)
+
+
     val close = suspendOnce { nmm.closeHttpDwebServer(options) }
 }
 
 suspend fun MicroModule.createHttpDwebServer(options: DwebServerOptions) =
-    HttpDwebServer(this, options).also { it.start() }
+    HttpDwebServer(this, options, startHttpDwebServer(options))
 
