@@ -4,7 +4,7 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.core.Router
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.toURLQueryComponent
-import info.bagen.rust.plaoc.microService.sys.http.net.nativeFetch
+import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.http4k.core.Method

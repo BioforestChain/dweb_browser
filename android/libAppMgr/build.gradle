@@ -44,33 +44,33 @@ dependencies {
     implementation composeBom
     androidTestImplementation composeBom
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.3.0'
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.core:core-ktx:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'com.google.android.material:material:1.6.1'
     implementation 'org.jsoup:jsoup:1.15.3'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
-    implementation 'androidx.activity:activity-compose:1.4.0'
+    implementation 'androidx.activity:activity-compose:1.5.1'
     implementation "androidx.compose.ui:ui"
     implementation "androidx.compose.material:material"
     implementation "androidx.compose.ui:ui-tooling-preview"
     androidTestImplementation "androidx.compose.ui:ui-test-junit4"
     debugImplementation "androidx.compose.ui:ui-tooling"
     debugImplementation "androidx.compose.ui:ui-test-manifest"
-    implementation 'androidx.navigation:navigation-ui-ktx:2.4.0-alpha04'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.5.1'
     // 加载图片 coil
     implementation 'io.coil-kt:coil:2.2.2'
     implementation 'io.coil-kt:coil-svg:2.2.2'
     implementation 'io.coil-kt:coil-compose:2.2.2'
     implementation 'io.coil-kt:coil-video:2.2.2'
     implementation 'io.coil-kt:coil-gif:2.2.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0' // 因为导入coil后，编译失败，duplicate
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1' // 因为导入coil后，编译失败，duplicate
     // 解压文件
     implementation 'org.apache.commons:commons-compress:1.21'
     // 网络请求 Retrofit
-    implementation 'com.google.code.gson:gson:2.9.1'
+    implementation 'com.google.code.gson:gson:2.10'
     /*implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation "com.squareup.retrofit2:converter-gson:2.9.0"
     implementation "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2"*/
@@ -83,7 +83,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07'
 
     // ktor 网络请求模块 // 将implementation改为api是为了让app主应用能够调用到
-    api "io.ktor:ktor-server-core:$ktor_version"
+    /*api "io.ktor:ktor-server-core:$ktor_version"
     api "io.ktor:ktor-server-netty:$ktor_version"
     api "io.ktor:ktor-client-core:$ktor_version"
     api "io.ktor:ktor-client-cio:$ktor_version"
@@ -91,7 +91,7 @@ dependencies {
     api "io.ktor:ktor-client-content-negotiation:$ktor_version"
     //api "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
     api("io.ktor:ktor-serialization-gson:$ktor_version")
-    api "io.ktor:ktor-client-logging:$ktor_version"
+    api "io.ktor:ktor-client-logging:$ktor_version"*/
 
   // http4k 网络请求
   implementation platform("org.http4k:http4k-bom:4.39.0.0")

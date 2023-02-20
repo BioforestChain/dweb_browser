@@ -15,7 +15,6 @@ import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.system.device.Device
-import io.ktor.client.engine.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*

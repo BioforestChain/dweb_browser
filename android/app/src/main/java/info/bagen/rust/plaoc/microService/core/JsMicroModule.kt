@@ -8,7 +8,7 @@ import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.Native2JsIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
-import info.bagen.rust.plaoc.microService.sys.http.net.nativeFetch
+import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import org.http4k.core.*
 
 data class JmmMetadata(val main_url: String)

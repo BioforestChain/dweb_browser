@@ -14,9 +14,9 @@ import info.bagen.rust.plaoc.microService.ipc.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.MessagePortIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.saveNative2JsIpcPort
+import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
-import info.bagen.rust.plaoc.microService.sys.http.net.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response

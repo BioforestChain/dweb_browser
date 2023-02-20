@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.microService.webview
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf

@@ -6,7 +6,6 @@ import info.bagen.rust.plaoc.microService.helper.SimpleSignal
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
-import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -83,7 +82,7 @@ class PortListener(
 interface ReqMatcher {
     val pathname: String;
     val matchMode: MatchMode
-    var method: HttpMethod?
+    var method: Method?
 }
 
 fun isMatchReq(

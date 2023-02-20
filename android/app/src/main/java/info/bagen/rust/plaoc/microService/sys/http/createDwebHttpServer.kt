@@ -5,8 +5,8 @@ import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
+import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
-import info.bagen.rust.plaoc.microService.sys.http.net.nativeFetch
 import org.http4k.core.Uri
 import org.http4k.core.query
 

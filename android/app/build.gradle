@@ -68,7 +68,7 @@ android {
     packagingOptions {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            // 添加 ktor 框架后，会有异常报错，需要添加如下内容
+            // 添加 http4k 框架后，会有异常报错，需要添加如下内容
             excludes += "/META-INF/INDEX.LIST"
             excludes += "/META-INF/io.netty.versions.properties"
         }
@@ -84,6 +84,7 @@ dependencies {
     implementation "org.http4k:http4k-core"
     implementation "org.http4k:http4k-client-okhttp"
     implementation "org.http4k:http4k-server-netty"
+    implementation "io.ktor:ktor-client-core:$ktor_version"
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
     implementation("androidx.core:core-ktx:1.8.0")

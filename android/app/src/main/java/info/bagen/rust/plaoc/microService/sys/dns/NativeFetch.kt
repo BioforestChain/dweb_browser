@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.sys.http.net
+package info.bagen.rust.plaoc.microService.sys.dns
 
 import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.App

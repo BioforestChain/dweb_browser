@@ -6,8 +6,6 @@ import info.bagen.rust.plaoc.microService.sys.http.HttpNMM
 import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 suspend fun startDwebBrowser() {
     val dnsNMM = DnsNMM()
