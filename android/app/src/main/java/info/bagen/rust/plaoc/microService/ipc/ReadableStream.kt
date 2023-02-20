@@ -49,7 +49,7 @@ class ReadableStream(
         }
         controlSignal.listen { signal ->
             when (signal) {
-                StreamControlSignal.PULL -> onPull(controller)
+                StreamControlSignal.PULL -> GlobalScope.launch { onPull(controller) }
             }
         }
         GlobalScope.launch {

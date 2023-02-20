@@ -7,6 +7,8 @@ import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
+import org.http4k.core.Method
+import org.http4k.core.Request
 import org.http4k.core.Uri
 import org.http4k.core.query
 
@@ -33,20 +35,19 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebServerOptions) =
         Uri.of("file://http.sys.dweb/start")
             .query("port", options.port.toString())
             .query("subdomain", options.subdomain)
-    ).let { response ->
-        val text  = response.text()
-        println("text: $text ${response.body.length} ${response.body.payload}")
-        response.json<HttpDwebServerInfo>(HttpDwebServerInfo::class.java)
-    }
+    ).json<HttpDwebServerInfo>(HttpDwebServerInfo::class.java)
 
 
 suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<RouteConfig>) =
     ReadableStreamIpc(this, IPC_ROLE.CLIENT).also {
         it.bindIncomeStream(
             this.nativeFetch(
-                Uri.of("file://http.sys.dweb/listen")
-                    .query("token", token)
-                    .query("routes", gson.toJson(routes))
+                Request(
+                    Method.POST,
+                    Uri.of("file://http.sys.dweb/listen")
+                        .query("token", token)
+                        .query("routes", gson.toJson(routes))
+                ).body(it.stream)
             ).stream()
         )
     }

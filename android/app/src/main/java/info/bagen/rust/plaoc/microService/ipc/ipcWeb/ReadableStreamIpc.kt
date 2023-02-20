@@ -3,6 +3,8 @@ package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.moshiPack
+import info.bagen.rust.plaoc.microService.helper.readByteArray
+import info.bagen.rust.plaoc.microService.helper.readInt
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcMessage
@@ -13,6 +15,7 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.InputStream
+import java.nio.charset.Charset
 
 
 /**
@@ -28,7 +31,7 @@ class ReadableStreamIpc(
     private val writer = ByteChannel(true)
     val stream get() = writer.toInputStream()
 
-    private var _incomeStream: ByteReadChannel? = null
+    private var _incomeStream: InputStream? = null
 
     /**
      * 输入流要额外绑定
@@ -38,28 +41,26 @@ class ReadableStreamIpc(
         if (this._incomeStream !== null) {
             throw Exception("in come stream already binded.");
         }
-        if (supportMessagePack){
+        if (supportMessagePack) {
             throw Exception("还未实现 MessagePack 的编解码能力")
         }
 
-        _incomeStream = stream.toByteReadChannel().also { _income_stream ->
-            GlobalScope.launch {
-                // 如果通道关闭并且没有剩余字节可供读取，则返回 true
-                while (!_income_stream.isClosedForRead) {
-                    val size = _income_stream.readInt() // 读满一个Int
-                    // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                    val chunk = _income_stream.readPacket(size)
-                    println("ReadableStreamIpc#bindIncomeStream ==> ${chunk.readBytes()}") // 准确读取 n 个字节（如果未指定 n，则消耗所有剩余字节
-                    when (val message =
-                        jsonToIpcMessage(chunk.readText(), this@ReadableStreamIpc)) {
-                        "close" -> close()
-                        is IpcMessage -> _messageSignal.emit(
-                            IpcMessageArgs(
-                                message,
-                                this@ReadableStreamIpc
-                            )
+        _incomeStream = stream
+        GlobalScope.launch {
+            // 如果通道关闭并且没有剩余字节可供读取，则返回 true
+            while (stream.available() > 0) {
+                val size = stream.readInt()
+                // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
+                val chunk = stream.readByteArray(size)
+                when (val message =
+                    jsonToIpcMessage(chunk.toString(Charsets.UTF_8), this@ReadableStreamIpc)) {
+                    "close" -> close()
+                    is IpcMessage -> _messageSignal.emit(
+                        IpcMessageArgs(
+                            message,
+                            this@ReadableStreamIpc
                         )
-                    }
+                    )
                 }
             }
         }

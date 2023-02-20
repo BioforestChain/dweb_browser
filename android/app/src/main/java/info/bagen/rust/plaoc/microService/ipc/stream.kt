@@ -17,7 +17,7 @@ fun streamAsRawData(
         if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {
             GlobalScope.launch {
                 when (val availableLen = stream.available()) {
-                    -1,0 -> ipc.postMessage(IpcStreamEnd(stream_id))
+                    -1, 0 -> ipc.postMessage(IpcStreamEnd(stream_id))
                     else -> {
                         // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
                         val binary = ByteArray(availableLen)

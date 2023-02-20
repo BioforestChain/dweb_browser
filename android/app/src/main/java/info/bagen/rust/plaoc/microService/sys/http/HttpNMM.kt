@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.http
 
+import com.google.gson.reflect.TypeToken
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.toBase64Url
@@ -11,10 +12,13 @@ import info.bagen.rust.plaoc.microService.sys.http.net.PortListener
 import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
-import org.http4k.lens.*
+import org.http4k.lens.Query
+import org.http4k.lens.composite
+import org.http4k.lens.int
+import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.util.Random
+import java.util.*
 
 
 class Gateway(
@@ -94,17 +98,17 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
         val query_token = Query.string().required("token")
         val query_routeConfig = Query.string().required("routes")
+        val type_routes = object : TypeToken<ArrayList<RouteConfig>>() {}.type
 
         apiRouting = routes(
             "/start" bind Method.GET to defineHandler { request, ipc ->
                 start(ipc, query_dwebServerOptions(request))
             },
             "/listen" bind Method.POST to defineHandler { request ->
-                listen(
-                    query_token(request),
-                    request,
-                    gson.fromJson(query_routeConfig(request), RouteConfig::class.java)
-                )
+                val token = query_token(request)
+                val routes: List<RouteConfig> =
+                    gson.fromJson(query_routeConfig(request), type_routes)
+                listen(token, request, routes)
             },
             "/close" bind Method.GET to defineHandler { request, ipc ->
                 close(ipc, query_dwebServerOptions(request))
@@ -157,7 +161,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     private fun listen(
         token: String,
         message: Request,
-        routeConfig: RouteConfig
+        routes: List<RouteConfig>
     ): Response {
         val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
 
@@ -166,7 +170,9 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
             IPC_ROLE.CLIENT
         )
         streamIpc.bindIncomeStream(message.body.stream)
-        streamIpc.onClose(gateway.listener.addRouter(routeConfig, streamIpc))
+        for (routeConfig in routes) {
+            streamIpc.onClose(gateway.listener.addRouter(routeConfig, streamIpc))
+        }
 
         return Response(Status.OK).body(streamIpc.stream)
     }

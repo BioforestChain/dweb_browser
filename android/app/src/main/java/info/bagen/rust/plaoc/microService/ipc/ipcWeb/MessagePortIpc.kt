@@ -23,7 +23,6 @@ open class MessagePortIpc(
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
                 GlobalScope.launch {
-//                    println("MessagePortIpc#port🍟message: ${event.data}")
                     when (val message = jsonToIpcMessage(event.data, ipc)) {
                         "close" -> close()
                         is IpcMessage -> _messageSignal.emit(IpcMessageArgs(message, ipc))

@@ -5,6 +5,8 @@ import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.Signal
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
 import org.http4k.filter.ServerFilters
@@ -61,11 +63,13 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
     init {
         onConnect { clientIpc ->
             clientIpc.onRequest { (ipcRequest) ->
-                apiRouting?.let { routes ->
+                val routes = apiRouting ?: return@onRequest null;
+                GlobalScope.launch {
                     val routesWithContext = routes.withFilter(ipcApiFilter.then(Filter { next ->
                         { next(it.with(requestContextKey_ipc of clientIpc)) }
                     }));
                     val request = ipcRequest.asRequest()
+                    println("request.uri: ${request.uri.toString()}")
                     val response = routesWithContext(request)
                     clientIpc.postMessage(
                         IpcResponse.fromResponse(
@@ -81,7 +85,6 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
 
     protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
         runBlocking {
-//            coroutineScope {
             runCatching {
                 when (val result = handler(request)) {
                     is Response -> result
@@ -92,7 +95,6 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
             }.getOrElse { ex ->
                 Response(Status.INTERNAL_SERVER_ERROR).body(ex.message ?: "Unknown Error")
             }
-//            }
         }
 
     }
