@@ -27,7 +27,6 @@ class IpcResponse: IpcBody {
         self.statusCode = statusCode
     }
     
-    //TODO
     func asResponse(url: String?) -> Response {
         let body = self.bodyData()
         
