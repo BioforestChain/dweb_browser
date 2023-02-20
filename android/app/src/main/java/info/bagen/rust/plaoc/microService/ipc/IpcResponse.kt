@@ -97,11 +97,25 @@ class IpcResponse(
             req_id: Int,
             response: Response,
             ipc: Ipc
-        ): IpcResponse {
-            return fromStream(
+        ) = when (response.body.length) {
+            0L -> IpcResponse(
+                req_id,
+                response.status.code,
+                IpcHeaders(response.headers),
+                RawData(IPC_RAW_BODY_TYPE.TEXT, ""),
+                ipc
+            )
+            null -> fromStream(
                 req_id,
                 response.status.code,
                 response.body.stream,
+                IpcHeaders(response.headers),
+                ipc
+            )
+            else -> fromBinary(
+                req_id,
+                response.status.code,
+                response.body.payload.array(),
                 IpcHeaders(response.headers),
                 ipc
             )
@@ -110,8 +124,8 @@ class IpcResponse(
 
     fun asResponse() =
         Response(Status(this.statusCode, null))
-            .headers(this.headers.toList()).also { res ->
-                when (body) {
+            .headers(this.headers.toList()).let { res ->
+                 when (val body = body) {
                     is String -> res.body(body)
                     is ByteArray -> res.body(body.inputStream(), body.size.toLong())
                     is InputStream -> res.body(body)

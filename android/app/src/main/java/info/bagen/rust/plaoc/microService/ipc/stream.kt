@@ -12,26 +12,27 @@ fun streamAsRawData(
     stream: InputStream,
     ipc: Ipc
 ) {
-
-    val binary = ByteArray(16000)// 每次最多传输16kb
-
-    ipc.onMessage { args ->
+    ipc.onMessage { (message) ->
         /// 对方申请数据拉取
-        if ((args.message is IpcStreamPull) && (args.message.stream_id == stream_id)) {
+        if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {
             GlobalScope.launch {
-                when (val len = stream.read(binary)) {
-                    -1, 0 -> ipc.postMessage(IpcStreamEnd(stream_id))
-                    binary.size -> ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, binary))
-                    else -> ipc.postMessage(
-                        IpcStreamData.fromBinary(
-                            ipc,
-                            stream_id,
-                            binary.slice(0..len).toByteArray()
+                when (val availableLen = stream.available()) {
+                    -1,0 -> ipc.postMessage(IpcStreamEnd(stream_id))
+                    else -> {
+                        // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
+                        val binary = ByteArray(availableLen)
+                        stream.read(binary)
+                        ipc.postMessage(
+                            IpcStreamData.fromBinary(
+                                ipc,
+                                stream_id,
+                                binary
+                            )
                         )
-                    )
+                    }
                 }
             }
-        } else if ((args.message is IpcStreamAbort) && (args.message.stream_id == stream_id)) {
+        } else if ((message is IpcStreamAbort) && (message.stream_id == stream_id)) {
             stream.close()
         } else {
 

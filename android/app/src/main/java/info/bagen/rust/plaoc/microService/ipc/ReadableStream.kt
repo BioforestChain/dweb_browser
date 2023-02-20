@@ -131,6 +131,7 @@ class ReadableStream(
 
     @Throws(IOException::class)
     override fun close() {
+        super.close()
         controller.close()
         ptr = _data.size
     }

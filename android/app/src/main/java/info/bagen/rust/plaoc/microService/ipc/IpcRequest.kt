@@ -128,7 +128,14 @@ class IpcRequest(
         )
     }
 
-    fun asRequest() = Request(ipcMethod.http4kMethod, url).headers(headers.toList()).body(stream())
+    fun asRequest() = Request(ipcMethod.http4kMethod, url).headers(headers.toList()).let { req ->
+        when (val body = body) {
+            is String -> req.body(body)
+            is ByteArray -> req.body(body.inputStream(), body.size.toLong())
+            is InputStream -> req.body(body)
+            else -> throw Exception("invalid body to request: $body")
+        }
+    }
 }
 
 abstract class IpcRequestData(

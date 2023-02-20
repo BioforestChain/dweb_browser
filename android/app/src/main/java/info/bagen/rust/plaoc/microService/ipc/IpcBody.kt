@@ -1,28 +1,41 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.asBase64
+import io.ktor.utils.io.core.*
 import java.io.InputStream
+
 
 abstract class IpcBody {
     abstract val rawBody: RawData
     protected abstract val ipc: Ipc
-    val body = run {
-        rawDataToBody(rawBody, ipc).also { data ->
+
+    private inner class BodyHub {
+        var text: String? = null
+        var stream: InputStream? = null
+        var u8a: ByteArray? = null
+        var data: Any? = null
+    }
+
+    /// 因为是 abstract，所以得用 lazy 来延迟得到这些属性
+    private val bodyHub by lazy {
+        BodyHub().also {
+            val data = rawDataToBody(rawBody, ipc)
+            it.data = data
             when (data) {
-                is String -> this._body_text = data
-                is ByteArray -> this._body_u8a = data
-                is InputStream -> this._body_stream = data
+                is String -> it.text = data;
+                is ByteArray -> it.u8a = data
+                is InputStream -> it.stream = data
             }
         }
     }
-    private var _body_u8a: ByteArray? = null;
-    private var _body_stream: InputStream? = null;
-    private var _body_text: String? = null;
+
+
+    val body get() = bodyHub.data
 
     private val _u8a by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-        _body_u8a ?: _body_stream?.let {
+        bodyHub.u8a ?: bodyHub.stream?.let {
             it.readBytes()
-        } ?: _body_text?.let {
+        } ?: bodyHub.text?.let {
             it.asBase64()
         } ?: throw Exception("invalid body type")
     }
@@ -30,7 +43,7 @@ abstract class IpcBody {
     suspend fun u8a() = this._u8a
 
     private val _stream by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-        _body_stream ?: _u8a.let {
+        bodyHub.stream ?: _u8a.let {
             it.inputStream()
         }
     }
@@ -38,7 +51,7 @@ abstract class IpcBody {
     fun stream() = this._stream
 
     private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-        _body_text ?: _u8a.let {
+        bodyHub.text ?: _u8a.let {
             it.toString()
         }
     }
