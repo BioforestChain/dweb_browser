@@ -9,7 +9,6 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.*
-import info.bagen.rust.plaoc.system.callable_map
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.RejectedExecutionHandler
 import java.util.concurrent.ThreadPoolExecutor
@@ -36,13 +35,13 @@ class DenoWorker(val appContext: Context, workerParams: WorkerParameters) :
         Log.i(TAG, "WorkerName=$funName,WorkerData=$data")
         if (funName !== null) {
             val calFn = ExportNative.valueOf(funName)
-            threadPoolExecutor.execute {
-                callable_map[calFn]?.let { it ->
-                    if (data != null) {
-                        it(data)
-                    }
-                }
-            }
+//            threadPoolExecutor.execute {
+//                callable_map[calFn]?.let { it ->
+//                    if (data != null) {
+//                        it(data)
+//                    }
+//                }
+//            }
         }
         return Result.success()
     }

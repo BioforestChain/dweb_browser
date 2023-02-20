@@ -5,8 +5,6 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
-//import info.bagen.rust.plaoc.microService.global_micro_dns
-import info.bagen.rust.plaoc.webView.network.jsGateWay
 
 class BFSApi {
 

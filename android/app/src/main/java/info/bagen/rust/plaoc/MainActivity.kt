@@ -36,13 +36,12 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
+import info.bagen.rust.plaoc.microService.sys.plugin.barcode.BarcodeScanningActivity
+import info.bagen.rust.plaoc.microService.sys.plugin.barcode.QRCodeScanningActivity
+import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
 import info.bagen.rust.plaoc.microService.webview.MultiDWebBrowserView
-import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
-import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
-import info.bagen.rust.plaoc.system.initSystemFn
-import info.bagen.rust.plaoc.system.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.webView.network.dWebView_host
@@ -72,8 +71,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         App.mainActivity = this
-        // 初始化系统函数map
-        initSystemFn(this)
         // 初始化广播
         registerBFSBroadcastReceiver()
         setContent {
