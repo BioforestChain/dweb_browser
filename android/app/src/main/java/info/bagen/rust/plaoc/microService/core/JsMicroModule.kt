@@ -42,6 +42,8 @@ open class JsMicroModule(override val mmid: Mmid, val metadata: JmmMetadata) : M
             ).stream()
         )
 
+        println("JS进程创建完成 $mmid")
+
         _connectingIpcSet.add(streamIpc);
     }
 

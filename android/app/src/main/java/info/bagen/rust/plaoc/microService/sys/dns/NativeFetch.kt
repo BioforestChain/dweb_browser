@@ -7,13 +7,30 @@ import org.http4k.client.OkHttp
 import org.http4k.core.*
 import org.http4k.core.Method
 
-var fetchAdaptor: (suspend (remote: MicroModule, request: Request) -> Response?)? = null
+typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Response?
 
-val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
+class NativeFetchAdaptersManager {
+    private val adapterOrderMap = mutableMapOf<FetchAdapter, Int>()
+    private var orderdAdapters = listOf<FetchAdapter>()
+    val adapters get() = orderdAdapters
+    fun append(order: Int = 0, adapter: FetchAdapter): () -> Boolean {
+        adapterOrderMap[adapter] = order
+        orderdAdapters =
+            adapterOrderMap.toList().sortedBy { (_, b) -> b }.map { (adapter) -> adapter }
+        return { remove(adapter) }
+    }
+
+    fun remove(adapter: FetchAdapter) = adapterOrderMap.remove(adapter) != null
+}
+
+val nativeFetchAdaptersManager = NativeFetchAdaptersManager()
+
+private val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
+
 /**
  * 加载本地文件
  */
-private suspend fun localeFileFetch(remote: MicroModule, request: Request) =
+private fun localeFileFetch(remote: MicroModule, request: Request) =
     when {
         request.uri.scheme == "file" && request.uri.path == "" -> runCatching {
             App.appContext.assets.open(request.uri.path).use {
@@ -33,12 +50,16 @@ private suspend fun localeFileFetch(remote: MicroModule, request: Request) =
         else -> null
     }
 
-val client = OkHttp(bodyMode = BodyMode.Stream)
+val networkFetch = OkHttp(bodyMode = BodyMode.Stream)
 
 suspend fun MicroModule.nativeFetch(request: Request): Response {
-    return fetchAdaptor?.let { it(this, request) }
-        ?: localeFileFetch(this, request)
-        ?: client(request)
+    for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
+        val response = fetchAdapter(this, request)
+        if (response != null) {
+            return response
+        }
+    }
+    return localeFileFetch(this, request) ?: networkFetch(request)
 }
 
 suspend inline fun MicroModule.nativeFetch(url: Uri) = nativeFetch(Request(Method.GET, url))

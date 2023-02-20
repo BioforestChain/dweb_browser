@@ -7,6 +7,8 @@ import info.bagen.rust.plaoc.microService.helper.toBase64Url
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
+import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
+import info.bagen.rust.plaoc.microService.sys.dns.networkFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.Http1Server
 import info.bagen.rust.plaoc.microService.sys.http.net.PortListener
 import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
@@ -27,7 +29,6 @@ class Gateway(
 
 class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     companion object {
-        val DwebServer = Http1Server;
         val dwebServer = Http1Server()
     }
 
@@ -54,30 +55,40 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
      */
     // 创建过滤
     val httpHandler: HttpHandler = { request ->
-        var host = "*"
-        request.headers.forEach { (key, value) ->
+        var header_host: String? = null
+        var x_dweb_host: String? = null
+        var user_agent_host: String? = null
+        for ((key, value) in request.headers) {
             when (key) {
-                "X-Dweb-Host" -> {
-                    value?.let {
-                        host = it
+                "Host" -> {
+                    header_host = value?.let { host ->
+                        /// 如果没有端口，补全端口
+                        if (!host.contains(":")) {
+                            host + ":" + Http1Server.PORT;
+                        } else host
                     }
                 }
+                "X-Dweb-Host" -> {
+                    x_dweb_host = value
+                }
                 "User-Agent" -> {
-                    value?.let { user_agent ->
-                        Regex("""\sdweb-host/(.+?)\s""").find(user_agent)?.let { matchResult ->
+                    if (value != null) {
+                        Regex("""\sdweb-host/(.+)\s*""").find(value)?.also { matchResult ->
                             println("headers#router User-Agent ====> ${matchResult.groupValues[1]}")
-                            host = matchResult.groupValues[1]
+                            user_agent_host = matchResult.groupValues[1]
                         }
                     }
                 }
             }
         }
-        /// 如果没有端口，补全端口
-        if (!host.contains(":")) {
-            host += ":" + Http1Server.PORT;
-        }
+        val host = x_dweb_host ?: user_agent_host ?: header_host ?: "*"
+
         /// TODO 30s 没有任何 body 写入的话，认为网关超时 ß
-        gatewayMap[host]?.let { gateway -> runBlocking { gateway.listener.hookHttpRequest(request) } }
+        gatewayMap[host]?.let { gateway ->
+            runBlocking {
+                gateway.listener.hookHttpRequest(request)
+            }
+        }
             ?: Response(
                 Status.NOT_FOUND
             )
@@ -89,8 +100,17 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         // 启动http后端服务
         dwebServer.createServer(httpHandler)
 
+        _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { _, request ->
+            if (request.uri.scheme == "http" && request.uri.host.endsWith(".dweb")) {
+                networkFetch(
+                    request.uri(Uri.of(dwebServer.origin))
+                        .header("X-Dweb-Host", request.uri.authority)
+                )
+            } else null
+        });
+
         val query_dwebServerOptions = Query.composite {
-            DwebServerOptions(
+            DwebHttpServerOptions(
                 port = int().optional("port")(it),
                 subdomain = string().optional("subdomain")(it),
             )
@@ -116,32 +136,48 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         )
     }
 
-    inner class ServerUrlInfo(val host: String, val origin: String)
+    data class ServerUrlInfo(
+        /**
+         * 标准host，是一个站点的key，只要站点过来时用某种我们认可的方式（x-host/user-agent）携带了这个信息，那么我们就依次作为进行网关路由
+         */
+        val host: String,
+        /**
+         * 内部链接，带有特殊的协议头，方便自定义解析器对其进行加工
+         */
+        val internal_origin: String,
+        /**
+         * 相对公网的链接（这里只是相对标准网络访问，当然目前本地只支持localhost链接，所以这里只是针对webview来使用）
+         */
+        val public_origin: String,
+    )
 
-    private fun getServerUrlInfo(ipc: Ipc, options: DwebServerOptions): ServerUrlInfo {
+    private fun getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions): ServerUrlInfo {
         val mmid = ipc.remote.mmid
         val subdomainPrefix =
             if (options.subdomain == "" || options.subdomain.endsWith(".")) options.subdomain else "${options.subdomain}."
-        val port = if (options.port <= 0 || options.port >= 65536) DwebServer.PORT else options.port
-        val host = "$subdomainPrefix$mmid-$port.localhost:${dwebServer.bindingPort}"
-        val origin = "${DwebServer.PREFIX}$host"
-        return ServerUrlInfo(host, origin)
+        val port =
+            if (options.port <= 0 || options.port >= 65536) throw Exception("invalid dweb http port: ${options.port}")
+            else options.port
+        val host = "$subdomainPrefix$mmid:$port"
+        val internal_origin = "http://$host"
+        val public_origin = dwebServer.origin
+        return ServerUrlInfo(host, internal_origin, public_origin)
     }
 
     public override suspend fun _shutdown() {
         dwebServer.closeServer()
     }
 
-    data class ServerStartResult(val token: String, val origin: String)
+    data class ServerStartResult(val token: String, val urlInfo: ServerUrlInfo)
 
     /**
      * 监听端口，启动服务
      */
-    private fun start(ipc: Ipc, options: DwebServerOptions): ServerStartResult {
+    private fun start(ipc: Ipc, options: DwebHttpServerOptions): ServerStartResult {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
-        if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.origin}")
+        if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
 
-        val listener = PortListener(ipc, serverUrlInfo.host, serverUrlInfo.origin)
+        val listener = PortListener(ipc, serverUrlInfo.host)
 
         /// ipc 在关闭的时候，自动释放所有的绑定
         listener.onDestroy(ipc.onClose { close(ipc, options) })
@@ -152,7 +188,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         gatewayMap[serverUrlInfo.host] = gateway
         tokenMap[token] = gateway
 
-        return ServerStartResult(token, serverUrlInfo.origin)
+        return ServerStartResult(token, serverUrlInfo)
     }
 
     /**
@@ -167,7 +203,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
         val streamIpc = ReadableStreamIpc(
             gateway.listener.ipc.remote,
-            IPC_ROLE.CLIENT
+            IPC_ROLE.SERVER
         )
         streamIpc.bindIncomeStream(message.body.stream)
         for (routeConfig in routes) {
@@ -177,7 +213,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         return Response(Status.OK).body(streamIpc.stream)
     }
 
-    private suspend fun close(ipc: Ipc, options: DwebServerOptions) {
+    private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions) {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
         gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
             tokenMap.remove(gateway.token)

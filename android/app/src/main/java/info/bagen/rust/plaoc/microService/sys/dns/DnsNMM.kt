@@ -18,6 +18,7 @@ import org.http4k.routing.routes
 class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     private val mmMap = mutableMapOf<Mmid, MicroModule>()
 
+
     override suspend fun _bootstrap() {
         install(this)
         running_apps[this.mmid] = this
@@ -25,15 +26,22 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
         /// 对全局的自定义路由提供适配器
         /** 对等连接列表 */
         val connects = mutableMapOf<MicroModule, MutableMap<Mmid, Ipc>>()
-        fetchAdaptor = { fromMM, request ->
+        /**
+         * 对 nativeFetch 定义 file://xxx.dweb的解析
+         */
+        _afterShutdownSignal.listen(nativeFetchAdaptersManager.append{ fromMM, request ->
             if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
                 val mmid = request.uri.host
                 println("DNS#fetchAdaptor===>$mmid  ${request.uri.path}")
                 mmMap[mmid]?.let {
 
                     /** 一个互联实例表 */
+                    /** 一个互联实例表 */
                     val ipcMap = connects.getOrPut(fromMM) { mutableMapOf() }
 
+                    /**
+                     * 一个互联实例
+                     */
                     /**
                      * 一个互联实例
                      */
@@ -48,7 +56,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
                     return@let ipc.request(request)
                 } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())
             } else null
-        }
+        })
         val query_app_id = Query.string().required("app_id")
 
         /// 定义路由功能
@@ -73,7 +81,6 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     }
 
     override suspend fun _shutdown() {
-        fetchAdaptor = null
         mmMap.forEach {
             it.value.shutdown()
         }

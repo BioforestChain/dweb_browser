@@ -69,7 +69,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                         { next(it.with(requestContextKey_ipc of clientIpc)) }
                     }));
                     val request = ipcRequest.asRequest()
-                    println("request.uri: ${request.uri.toString()}")
+                    println("request.uri: ${request.uri}")
                     val response = routesWithContext(request)
                     clientIpc.postMessage(
                         IpcResponse.fromResponse(

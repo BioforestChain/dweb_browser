@@ -15,8 +15,9 @@ import info.bagen.rust.plaoc.microService.ipc.ipcWeb.MessagePortIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.saveNative2JsIpcPort
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
-import info.bagen.rust.plaoc.microService.sys.http.DwebServerOptions
+import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
+import kotlinx.coroutines.*
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -32,7 +33,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     override suspend fun _bootstrap() {
 
         /// 主页的网页服务
-        val mainServer = this.createHttpDwebServer(DwebServerOptions()).also { server ->
+        val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
             // 在模块关停的时候，要关闭端口监听
             _afterShutdownSignal.listen { server.close() }
             // 提供基本的主页服务
@@ -47,11 +48,11 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             }
         }
 
-        println("mainServer: ${mainServer.info}")
+        println("mainServer: ${mainServer.startResult}")
 
         /// WebWorker的环境服务
         val internalServer =
-            this.createHttpDwebServer(DwebServerOptions(subdomain = "internal")).also { server ->
+            this.createHttpDwebServer(DwebHttpServerOptions(subdomain = "internal")).also { server ->
                 // 在模块关停的时候，要关闭端口监听
                 _afterShutdownSignal.listen { server.close() }
                 val JS_PROCESS_WORKER_CODE =
@@ -76,15 +77,19 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 }
             }
 
-        println("internalServer: ${internalServer.info}")
+        println("internalServer: ${internalServer.startResult}")
 
 
         /// WebView 实例
-        val webView = WebView(App.appContext).also {
-            nww = it
-            it.loadUrl(mainServer.info.origin)
+        val apis = withContext(Dispatchers.Main) {
+            val webView = WebView(App.appContext).also {
+                nww = it
+                val urlInfo = mainServer.startResult.urlInfo
+                it.settings.userAgentString += " dweb-host/${urlInfo.host}"
+                it.loadUrl(urlInfo.public_origin)
+            }
+            JsProcessWebApi(webView)
         }
-        val apis = JsProcessWebApi(webView)
 
         val query_main_pathname = Query.string().required("main_pathname")
         val query_process_id = Query.int().required("process_id")
@@ -95,7 +100,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 createProcessAndRun(
                     ipc,
                     apis,
-                    "${internalServer.info.origin}/bootstrap.js?mmid=${ipc.remote.mmid}",
+                    "${internalServer.startResult.urlInfo.internal_origin}/bootstrap.js?mmid=${ipc.remote.mmid}",
                     query_main_pathname(request),
                     request
                 )
@@ -127,7 +132,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          * 用自己的域名的权限为它创建一个子域名
          */
         val httpDwebServer = createHttpDwebServer(
-            DwebServerOptions(subdomain = ipc.remote.mmid),
+            DwebHttpServerOptions(subdomain = ipc.remote.mmid),
         );
 
         /**

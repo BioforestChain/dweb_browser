@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+import android.util.Log
 import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Signal
 import kotlinx.coroutines.GlobalScope
@@ -93,10 +94,12 @@ class ReadableStream(
         // 如果还能从控制端读取数据，那么等待数据写入
         if (!dataChannel.isClosedForSend) {
             runBlocking {
+                Log.e("REQUEST-DATA/START", this.toString())
                 // 数据不够了，发送拉取的信号
                 controlSignal.emit(StreamControlSignal.PULL)
                 dataLock.lock()
             }
+            Log.e("REQUEST-DATA/END", this.toString())
             return requestData(ptr)
         }
 

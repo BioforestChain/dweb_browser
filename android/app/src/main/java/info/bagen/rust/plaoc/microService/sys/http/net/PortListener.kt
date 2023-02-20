@@ -28,7 +28,7 @@ class StreamIpcRouter(val config: RouteConfig, val streamIpc: ReadableStreamIpc)
         } else if (config.pathname.endsWith("*")) {
             config.pathname
         } else {
-            config.pathname + "*"
+            config.pathname //+ "*"
         }
         routes(pathname bind config.method.http4kMethod to { request ->
             runBlocking {
@@ -41,8 +41,7 @@ class StreamIpcRouter(val config: RouteConfig, val streamIpc: ReadableStreamIpc)
 
 class PortListener(
     val ipc: Ipc,
-    val host: String,
-    val origin: String
+    val host: String
 ) {
     private val _routerSet = mutableSetOf<StreamIpcRouter>();
 
@@ -61,7 +60,7 @@ class PortListener(
     suspend fun hookHttpRequest(request: Request): Response? {
         for (router in _routerSet) {
             val response = router.router(request)
-            if (response.status != Status.NOT_FOUND) {
+            if (response.status.code != 404) {
                 return response
             }
         }

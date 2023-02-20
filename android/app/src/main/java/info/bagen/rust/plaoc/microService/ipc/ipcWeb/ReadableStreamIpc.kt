@@ -1,14 +1,8 @@
 package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.helper.moshiPack
-import info.bagen.rust.plaoc.microService.helper.readByteArray
-import info.bagen.rust.plaoc.microService.helper.readInt
-import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
-import info.bagen.rust.plaoc.microService.ipc.Ipc
-import info.bagen.rust.plaoc.microService.ipc.IpcMessage
-import info.bagen.rust.plaoc.microService.ipc.IpcMessageArgs
+import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.ipc.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -28,8 +22,12 @@ class ReadableStreamIpc(
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
-    private val writer = ByteChannel(true)
-    val stream get() = writer.toInputStream()
+    private lateinit var controller: ReadableStream.ReadableStreamController
+
+    val stream = ReadableStream(onStart = {
+        controller = it
+        null
+    })
 
     private var _incomeStream: InputStream? = null
 
@@ -71,12 +69,10 @@ class ReadableStreamIpc(
             supportMessagePack -> moshiPack.packToByteArray(data)
             else -> gson.toJson(data).byteInputStream().readBytes()
         }
-        writer.writeInt(message.size)
-        writer.writeFully(message)
-        writer.flush()
+        controller.enqueue(message.size.toByteArray()+message)
     }
 
     override suspend fun _doClose() {
-        writer.close()
+        controller.close()
     }
 }

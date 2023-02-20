@@ -15,27 +15,22 @@ import org.http4k.core.query
 
 /// 对外提供一套建议的操作来创建、使用、维护这个http服务
 
-data class DwebServerOptions(
+data class DwebHttpServerOptions(
     val port: Int,
     val subdomain: String,
 ) {
     constructor(
-        port: Int? = HttpNMM.DwebServer.PORT,
+        port: Int? = 80,
         subdomain: String? = "",
-    ) : this(port ?: HttpNMM.DwebServer.PORT, subdomain ?: "")
+    ) : this(port ?: 80, subdomain ?: "")
 }
 
-data class HttpDwebServerInfo(
-    val origin: String,
-    val token: String
-)
-
-suspend fun MicroModule.startHttpDwebServer(options: DwebServerOptions) =
+suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
     this.nativeFetch(
         Uri.of("file://http.sys.dweb/start")
             .query("port", options.port.toString())
             .query("subdomain", options.subdomain)
-    ).json<HttpDwebServerInfo>(HttpDwebServerInfo::class.java)
+    ).json<HttpNMM.ServerStartResult>(HttpNMM.ServerStartResult::class.java)
 
 
 suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<RouteConfig>) =
@@ -53,7 +48,7 @@ suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<RouteC
     }
 
 
-suspend fun MicroModule.closeHttpDwebServer(options: DwebServerOptions) =
+suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =
     this.nativeFetch(
         Uri.of("file://http.sys.dweb/close")
             .query("port", options.port.toString())
@@ -62,8 +57,8 @@ suspend fun MicroModule.closeHttpDwebServer(options: DwebServerOptions) =
 
 class HttpDwebServer(
     private val nmm: MicroModule,
-    private val options: DwebServerOptions,
-    val info: HttpDwebServerInfo
+    private val options: DwebHttpServerOptions,
+    val startResult: HttpNMM.ServerStartResult
 ) {
     suspend fun listen(
         routes: Array<RouteConfig> = arrayOf(
@@ -72,12 +67,12 @@ class HttpDwebServer(
             RouteConfig(pathname = "", method = IpcMethod.PUT),
             RouteConfig(pathname = "", method = IpcMethod.DELETE)
         )
-    ) = nmm.listenHttpDwebServer(info.token, routes)
+    ) = nmm.listenHttpDwebServer(startResult.token, routes)
 
 
     val close = suspendOnce { nmm.closeHttpDwebServer(options) }
 }
 
-suspend fun MicroModule.createHttpDwebServer(options: DwebServerOptions) =
+suspend fun MicroModule.createHttpDwebServer(options: DwebHttpServerOptions) =
     HttpDwebServer(this, options, startHttpDwebServer(options))
 
