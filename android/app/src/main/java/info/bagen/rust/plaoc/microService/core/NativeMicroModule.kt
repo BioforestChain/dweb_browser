@@ -21,7 +21,6 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
         nativeIpc.onClose {
             this._connectedIpcSet.remove(nativeIpc);
         };
-
         this._connectSignal.emit(nativeIpc);
         return NativeIpc(channel.port2, this, IPC_ROLE.CLIENT);
     }

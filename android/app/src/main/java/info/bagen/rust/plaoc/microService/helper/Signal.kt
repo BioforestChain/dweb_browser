@@ -1,5 +1,9 @@
 package info.bagen.rust.plaoc.microService.helper
 
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
 typealias Callback<Args> = suspend (args: Args) -> Any?
 typealias SimpleCallback = suspend () -> Any?
 typealias OffListener = () -> Boolean
@@ -20,29 +24,41 @@ enum class SIGNAL_CTOR {
 
 open class Signal<Args>() {
     private val _cbs = mutableSetOf<Callback<Args>>();
+    private var signalLock = Mutex()
 
     fun listen(cb: Callback<Args>): OffListener {
-        this._cbs.add(cb)
+        runBlocking {
+            signalLock.withLock {
+                _cbs.add(cb)
+            }
+        }
         return { off(cb) }
     }
 
     fun off(cb: Callback<Args>): Boolean {
-        return _cbs.remove(cb)
+        runBlocking {
+            signalLock.withLock {
+                return@withLock _cbs.remove(cb)
+            }
+        }
+        return false
     }
 
     suspend fun emit(args: Args) {
-        val iter = this._cbs.iterator()
-        for (cb in iter) {
-            when (cb(args)) {
-                SIGNAL_CTOR.OFF -> iter.remove()
-                SIGNAL_CTOR.BREAK -> break
+        signalLock.withLock {
+            val iter = this._cbs.iterator()
+            for (cb in iter) {
+                when (cb(args)) {
+                    SIGNAL_CTOR.OFF -> iter.remove()
+                    SIGNAL_CTOR.BREAK -> break
+                }
             }
         }
     }
 }
 
 
-class SimpleSignal  {
+class SimpleSignal {
     private val _cbs = mutableSetOf<SimpleCallback>();
 
     fun listen(cb: SimpleCallback): OffListener {
