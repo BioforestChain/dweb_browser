@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.helper
 
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.ByteBuffer
@@ -15,7 +16,7 @@ val base64UrlEncoder by lazy {
     Base64.getUrlEncoder()
 }
 
-
+inline fun ByteArray.byteArrayInputStream(): ByteArrayInputStream = ByteArrayInputStream(this)
 inline fun ByteArray.toBase64(): String = base64Encoder.encodeToString(this)
 inline fun ByteArray.toUtf8(): String = String(this, Charsets.UTF_8)
 inline fun ByteArray.toBase64Url(): String = base64UrlEncoder.encodeToString(this)

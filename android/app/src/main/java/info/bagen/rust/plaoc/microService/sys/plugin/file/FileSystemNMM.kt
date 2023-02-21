@@ -1,0 +1,108 @@
+package info.bagen.rust.plaoc.microService.sys.plugin.file
+
+import android.system.Os
+import androidx.core.net.toUri
+import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.byteArrayInputStream
+import info.bagen.rust.plaoc.microService.sys.file.FileSystemPlugin
+import org.http4k.core.*
+import org.http4k.lens.Query
+import org.http4k.lens.string
+import org.http4k.routing.bind
+import org.http4k.routing.routes
+import org.json.JSONObject
+import java.io.*
+
+
+class FileSystemNMM : NativeMicroModule("file.sys.dweb") {
+
+    val plugin = FileSystemPlugin()
+
+    override suspend fun _bootstrap() {
+        apiRouting = routes(
+            "/checkPermissions" bind Method.GET to defineHandler { request ->
+                val path = Query.string().required("path")(request)
+                println("FileSystemNMM#apiRouting checkPermissions===>$mmid  ${request.uri.path} ")
+                val check = checkPermissions(path)
+                val body = """{"permissions":"$check"}""".trimIndent()
+                Response(Status.OK).body(body)
+            },
+            "/requestPermissions" bind Method.GET to defineHandler { request ->
+                println("FileSystemNMM#apiRouting requestPermissions===>$mmid  ${request.uri.path} ")
+                val path = Query.string().required("path")(request)
+                requestPermissions(path,0)
+                Response(Status.OK)
+            },
+            "/read" bind Method.GET to defineHandler { request ->
+                println("FileSystemNMM#apiRouting read===>$mmid  ${request.uri.path} ")
+                val path = Query.string().required("path")(request)
+               // 不断的往客户端发流数据
+               plugin.read(path){ byteArray,index ->
+                   var status = Status.CREATED
+                   if(index != -1) {
+                       status = Status.PARTIAL_CONTENT // 部分内容
+                   } else {
+                       status = Status.OK // 内容发完了
+                   }
+                   Response(status).body(byteArray.byteArrayInputStream())
+               }
+            },
+            "/write" bind Method.GET to defineHandler { request ->
+                println("FileSystemNMM#apiRouting write===>$mmid  ${request.uri.path} ")
+                val path = Query.string().required("path")(request)
+                requestPermissions(path,0)
+                Response(Status.OK)
+            },
+            "/delete" bind Method.GET to defineHandler { request ->
+                println("FileSystemNMM#apiRouting write===>$mmid  ${request.uri.path} ")
+                val path = Query.string().required("path")(request)
+                requestPermissions(path,0)
+                Response(Status.OK)
+            },
+            "/append" bind Method.GET to defineHandler { request ->
+                println("FileSystemNMM#apiRouting write===>$mmid  ${request.uri.path} ")
+                val path = Query.string().required("path")(request)
+                requestPermissions(path,0)
+                Response(Status.OK)
+            },
+        )
+    }
+
+
+    fun stat(path: String): JSONObject {
+        val file = plugin.getFileByPath(path)
+        val statData = Os.stat(file.toString())
+        val data = JSONObject()
+        data.put("uri", File(path).toUri().toString()) // 文件路径
+        data.put("type", if (file.isDirectory) "directory" else "file") // 是文件还是目录
+        data.put("size", statData.st_size) // 文件大小
+        data.put("mtime", statData.st_mtime) // 上次数据修改时间的秒部分
+        data.put("ctime", statData.st_ctime) //上次状态更改的部分时间的秒数
+        data.put("atime", statData.st_atime) // 上次访问时间的秒部分
+        data.put("blksize", statData.st_blksize) // 此对象的特定于文件系统的首选 I/O 块大小。 对于某些文件系统类型，这可能因文件而异
+        data.put("blocks", statData.st_blocks) // 为此对象分配的块数
+        data.put("dev", statData.st_dev) // 包含文件的设备的设备 ID
+        data.put("gid", statData.st_gid) // 文件的组id
+        data.put("rdev", statData.st_rdev) // 设备 ID（如果文件是字符或块特殊）。
+        data.put("mode", statData.st_mode) //文件的模式（权限）。
+        data.put("ino", statData.st_ino) // 文件序列号（inode）
+        data.put("uid", statData.st_uid) // 文件的用户ID
+        data.put("nlink", statData.st_nlink) //文件的硬链接数。
+        return data
+    }
+
+    private fun checkPermissions(path: String): Boolean {
+        val file = plugin.getFileByPath(path)
+        return plugin.checkoutPermission(file.absolutePath)
+    }
+
+    // TODO 申请文件权限
+    private fun requestPermissions(path: String,state:Int) {
+        val file = plugin.addPermission(path,state)
+    }
+
+    override suspend fun _shutdown() {
+        TODO("Not yet implemented")
+    }
+
+}

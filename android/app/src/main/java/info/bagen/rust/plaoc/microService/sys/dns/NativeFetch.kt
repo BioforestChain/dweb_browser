@@ -32,7 +32,7 @@ private val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
  */
 private fun localeFileFetch(remote: MicroModule, request: Request) =
     when {
-        request.uri.scheme == "file" && request.uri.path == "" -> runCatching {
+        request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
             App.appContext.assets.open(request.uri.path).use {
                 Response(status = Status.OK).body(it).also { response ->
                     val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
