@@ -13,7 +13,7 @@ import info.bagen.rust.plaoc.ExportNative
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.util.lib.drawRect
 
-
+/** 条形码扫码*/
 class BarcodeScanningActivity : BarcodeCameraScanActivity() {
 
     override fun initCameraScan() {

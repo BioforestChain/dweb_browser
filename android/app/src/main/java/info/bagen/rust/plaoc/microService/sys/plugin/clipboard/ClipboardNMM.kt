@@ -11,6 +11,9 @@ import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.queries
+import org.http4k.lens.Query
+import org.http4k.lens.map
+import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
@@ -18,38 +21,27 @@ import org.http4k.routing.routes
 data class ClipboardWriteResponse(val success: Boolean, val errorManager: String = "")
 data class ClipboardData(val value: String, val type: String)
 
-enum class EWriteOptions(val value:String) {
-    EString("string"),
-    EImage("image"),
-    EUrl("url")
-}
-
 object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
     override suspend fun _bootstrap() {
         apiRouting = routes(
             "/read" bind Method.GET to defineHandler { request ->
                 println("Clipboard#apiRouting read===>$mmid  ${request.uri.path} ")
                 val read = read()
-                Response(Status.OK,read)
+                Response(Status.OK, read)
             },
+            // fetch("file://clipboard.sys.dweb/write?xxx=xxx")
             "/write" bind Method.GET to defineHandler { request ->
-                println("Clipboard#apiRouting write===>$mmid  ${request.uri.path} ${request.uri.queries()}")
-                for ((key,value) in request.uri.queries()) {
-                    // fetch("file://clipboard.sys.dweb/write?xxx=xxx")
-                    when(key) {
-                        EWriteOptions.EString.value -> write(string = value){
-                            Response(Status.OK,it)
-                        }
-                        EWriteOptions.EImage.value -> write(image = value){
-                            Response(Status.OK,it)
-                        }
-                        EWriteOptions.EUrl.value -> write(url = value){
-                            Response(Status.OK,it)
-                        }
-                        else -> {
-                            Response(Status.UNSATISFIABLE_PARAMETERS)
-                        }
-                    }
+                val string = Query.string().optional("string")(request)
+                val image = Query.string().optional("image")(request)
+                val url = Query.string().optional("url")(request)
+                val label = Query.string().optional("label")(request)
+                println("Clipboard#apiRouting write===>$mmid  string：$string label：$label")
+                // 如果都是空
+                if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {
+                    Response(Status.UNSATISFIABLE_PARAMETERS)
+                }
+                write(string,image,url,labelValue = label) {
+                    Response(Status.OK, it)
                 }
                 true
             }
@@ -58,9 +50,9 @@ object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
 
     fun write(
         string: String? = null,
-        image: String?= null,
-        url: String?= null,
-        labelValue: String = "OcrText",
+        image: String? = null,
+        url: String? = null,
+        labelValue: String? = "OcrText",
         onErrorCallback: (String) -> Unit
     ) {
         val response: ClipboardWriteResponse

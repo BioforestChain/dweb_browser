@@ -2,20 +2,40 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
+import org.http4k.core.queries
+import org.http4k.lens.Query
+import org.http4k.lens.int
+import org.http4k.lens.string
+import org.http4k.routing.bind
+import org.http4k.routing.routes
+
+
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 
     override suspend fun _bootstrap() {
         // 打开webview
-        apiRouting
-//        routers["/open"] = put@{ options ->
-//            val origin = options["origin"] ?: return@put "Error not Found param origin"
-//            val processId = options["processId"]
-//            return@put openDwebView(origin, processId)
-//        }
-//        routers["/evalJavascript"] = put@{
-//            return@put true
-//        }
+        apiRouting = routes(
+            "/open" bind Method.GET to defineHandler { request ->
+                val queryProcessId = Query.string().required("process_id")
+                val processId = queryProcessId(request)
+                val queryOrigin = Query.string().required("origin")
+                val origin = queryOrigin(request)
+                println("MultiWebViewNMM#apiRouting open===>$mmid  origin:$origin processId:$processId")
+                val webViewId =  openDwebView(origin,processId)
+                Response(Status.OK,webViewId)
+            },
+            "/close" bind Method.GET to defineHandler { request ->
+                val queryProcessId = Query.string().required("process_id")
+                val processId = queryProcessId(request)
+                println("MultiWebViewNMM#apiRouting close===>$mmid  processId$processId")
+                closeDwebView(processId)
+                true
+            }
+        )
     }
 
     override suspend fun _shutdown() {
@@ -25,9 +45,20 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     private var viewTree: ViewTree = ViewTree()
 
 
-    fun openDwebView(origin: String, processId: String?): Any {
+    fun openDwebView(origin: String, processId: String?): String {
         println("Kotlin#MultiWebViewNMM openDwebView $origin")
-        /*val webViewNode = viewTree.createNode(origin,processId)
+        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId)
+            ?: "Error: not found mount process!!!"
+    }
+
+    private fun closeDwebView(processId: String?) {
+//        return this.viewTree.removeNode(nodeId)
+        // TODO 关闭DwebView
+    }
+}
+
+/*
+val webViewNode = viewTree.createNode(origin,processId)
         val append = viewTree.appendTo(webViewNode)
         // 当传递了父进程id，但是父进程是不存在的时候
         if(append == 0) {
@@ -38,14 +69,6 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             openDWebWindow(activity = mainActivity!!.getContext(), url = origin)
         }
         return webViewNode.id*/
-        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId)
-            ?: "Error: not found mount process!!!"
-    }
-
-    private fun closeDwebView(nodeId: Int): Boolean {
-        return this.viewTree.removeNode(nodeId)
-    }
-}
 
 class ViewTree {
     private val root = ViewTreeStruct(0, 0, "", mutableListOf())

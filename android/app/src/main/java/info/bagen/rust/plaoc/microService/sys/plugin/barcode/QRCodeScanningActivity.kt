@@ -42,6 +42,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/** 二维码扫码*/
 class QRCodeScanningActivity : QRCodeCameraScanActivity() {
     var isQRCode = false
 
