@@ -12,14 +12,18 @@ fun streamAsRawData(
     ipc.onMessage { (message) ->
         /// 对方申请数据拉取
         if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {
-            debugStream("ON-PULL$stream", stream_id)
-            debugStream("READING$stream", stream_id)
+            debugStream("streamAsRawData/ON-PULL/$stream", stream_id)
+            debugStream("streamAsRawData/READING/$stream", stream_id)
             when (val availableLen = stream.available()) {
-                -1, 0 -> ipc.postMessage(IpcStreamEnd(stream_id))
+                -1, 0 -> {
+                    debugStream("streamAsRawData/END$stream", stream_id)
+                    ipc.postMessage(IpcStreamEnd(stream_id))
+                }
                 else -> {
                     // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
                     val binary = ByteArray(availableLen)
                     stream.read(binary)
+                    debugStream("streamAsRawData/READ/$stream", "$availableLen >> $stream_id")
                     ipc.postMessage(
                         IpcStreamData.fromBinary(
                             ipc, stream_id, binary
@@ -30,10 +34,8 @@ fun streamAsRawData(
         } else if ((message is IpcStreamAbort) && (message.stream_id == stream_id)) {
             stream.close()
         } else {
-
         }
     }
-
 }
 
 /**
@@ -57,6 +59,7 @@ fun rawDataToBody(rawBody: RawData?, ipc: Ipc?): Any {
         val stream_id = rawBody.data as String;
         val stream = ReadableStream(onStart = { controller ->
             ipc.onMessage { (message) ->
+                debugStream("rawDataToBody/onMessage", message)
                 if (message is IpcStreamData && message.stream_id == stream_id) {
                     controller.enqueue(bodyEncoder(message.data))
                 } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
@@ -66,7 +69,7 @@ fun rawDataToBody(rawBody: RawData?, ipc: Ipc?): Any {
                 }
             }
         }, onPull = {
-            debugStream("POST-PULL/${it.stream}", stream_id)
+            debugStream("rawDataToBody/POST-PULL/${it.stream}", stream_id)
             ipc.postMessage(IpcStreamPull(stream_id))
         });
 

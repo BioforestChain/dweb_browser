@@ -1,16 +1,15 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.Callback
-import info.bagen.rust.plaoc.microService.helper.Signal
-import info.bagen.rust.plaoc.microService.helper.SimpleCallback
-import info.bagen.rust.plaoc.microService.helper.SimpleSignal
-import kotlinx.coroutines.DelicateCoroutinesApi
+import info.bagen.rust.plaoc.microService.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+
+inline fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("native-ipc", tag, msg, err)
 
 class NativeIpc(
     val port: NativePort<IpcMessage, IpcMessage>,
@@ -18,7 +17,8 @@ class NativeIpc(
     override val role: IPC_ROLE,
 ) : Ipc() {
     init {
-        port.onMessage { message ->
+        GlobalScope.launch {
+            port.onMessage { message ->
 //            val ipcMessage = when (message.type) {
 //                IPC_DATA_TYPE.REQUEST -> (message as IpcRequest).let { fromRequest ->
 //                    /**
@@ -38,11 +38,14 @@ class NativeIpc(
 //                else -> message
 //            }
 //            _messageSignal.emit(IpcMessageArgs(ipcMessage, this))
-            _messageSignal.emit(IpcMessageArgs(message, this))
-            null
+                debugNativeIpc("onMessage $message")
+                _messageSignal.emit(IpcMessageArgs(message, this@NativeIpc))
+                null
+            }
+            port.start()
         }
-        port.start()
     }
+
 
     override suspend fun _doPostMessage(data: IpcMessage) {
         port.postMessage(data)
@@ -53,21 +56,28 @@ class NativeIpc(
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
 class NativePort<I, O>(
     private val channel_in: Channel<I>,
     private val channel_out: Channel<O>,
     private val closeMutex: Mutex
 ) {
+    companion object {
+        private var uid_acc = 200;
+    }
+
+    private val uid = uid_acc++
+    override fun toString() = "NativePort#$uid"
+
     private var started = false
-    fun start() {
+    suspend fun start() {
         if (started || closing) return else started = true
 
-        GlobalScope.launch {
-            for (message in channel_in) {
-                _messageSignal.emit(message)
-            }
+        debugNativeIpc("message-start/$uid")
+        for (message in channel_in) {
+            debugNativeIpc("message-in/$uid << $message")
+            _messageSignal.emit(message)
         }
+        debugNativeIpc("message-end/$uid")
     }
 
 
@@ -78,7 +88,10 @@ class NativePort<I, O>(
     private var closing = false
     fun close() {
         if (closing) return else closing = true
-        closeMutex.unlock()
+        if (closeMutex.isLocked) {
+            closeMutex.unlock()
+        }
+        debugNativeIpc("channel-do-close/$uid")
     }
 
     /**
@@ -90,6 +103,7 @@ class NativePort<I, O>(
                 closing = true
                 channel_out.close()
                 _closeSignal.emit()
+                debugNativeIpc("channel-been-closed/$uid")
             }
         }
 
@@ -102,6 +116,7 @@ class NativePort<I, O>(
      * 发送消息，这个默认会阻塞
      */
     suspend fun postMessage(msg: O) {
+        debugNativeIpc("message-out/$uid >> $msg")
         channel_out.send(msg)
     }
 

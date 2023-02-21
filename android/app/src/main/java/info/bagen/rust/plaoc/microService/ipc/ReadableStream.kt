@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Signal
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import kotlinx.coroutines.*
@@ -10,15 +9,15 @@ import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.io.InputStream
 
-inline fun debugStream(tag: String, msg: Any, err: Throwable? = null) =
+inline fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("stream", tag, msg, err)
 
 /**
  * 模拟Web的 ReadableStream
  */
 class ReadableStream(
-    val onStart: Callback<ReadableStreamController> = {},
-    val onPull: Callback<ReadableStreamController> = {}
+    val onStart: suspend (arg: ReadableStreamController) -> Unit = {},
+    val onPull: suspend (arg: ReadableStreamController) -> Unit = {}
 ) : InputStream() {
 
     private enum class StreamControlSignal {
@@ -69,6 +68,7 @@ class ReadableStream(
             // 一直等待数据
             for (chunk in dataChannel) {
                 _data += chunk
+                debugStream("DATA-IN/$uid", chunk.size)
                 // 收到数据了，尝试解锁通知等待者
                 tryUnlock()
             }
@@ -110,9 +110,11 @@ class ReadableStream(
             runBlocking(readDataScope.coroutineContext) {
                 debugStream("REQUEST-DATA/LOCK/${uid}", _data.size)
                 // 数据不够了，发送拉取的信号
-                controlSignal.emit(StreamControlSignal.PULL)
+                writeDataScope.async {
+                    controlSignal.emit(StreamControlSignal.PULL)
+                }
                 dataLock.lock()
-                debugStream("REQUEST-DATA/UNLOCK/${uid}", _data.size)
+                debugStream("REQUEST-DATA/UNLOCK/${uid}", "${_data.size}/${ptr + 1}")
             }
             return requestData(ptr)
         }
@@ -155,6 +157,7 @@ class ReadableStream(
 
     @Throws(IOException::class)
     override fun close() {
+        debugStream("CLOSE/${uid}")
         super.close()
         controller.close()
         ptr = _data.size

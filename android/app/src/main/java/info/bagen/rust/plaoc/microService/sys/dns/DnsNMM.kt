@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.dns
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -29,10 +30,10 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
         /**
          * 对 nativeFetch 定义 file://xxx.dweb的解析
          */
-        _afterShutdownSignal.listen(nativeFetchAdaptersManager.append{ fromMM, request ->
+        _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
             if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
                 val mmid = request.uri.host
-                println("DNS#fetchAdaptor===>$mmid  ${request.uri.path}")
+                printdebugln("fetch", "DNS/fetchAdapter", "$mmid >> ${request.uri.path}")
                 mmMap[mmid]?.let {
 
                     /** 一个互联实例表 */
@@ -102,10 +103,10 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     /** 打开应用 */
     private suspend fun open(mmid: Mmid): MicroModule {
         return running_apps.getOrPut(mmid) {
-            println("MicroModule#running_apps===>${mmid}  ")
+            printdebugln("dns", "open", mmid)
             query(mmid)?.also {
                 it.bootstrap()
-            } ?: throw  Exception("no found app: $mmid")
+            } ?: throw Exception("no found app: $mmid")
         }
     }
 

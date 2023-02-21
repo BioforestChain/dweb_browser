@@ -65,14 +65,12 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                     val routesWithContext = routes.withFilter(ipcApiFilter.then(Filter { next ->
                         { next(it.with(requestContextKey_ipc of clientIpc)) }
                     }));
+                    printdebugln("fetch", "NMM/Handler", ipcRequest.url)
                     val request = ipcRequest.asRequest()
-                    println("request.uri: ${request.uri}")
                     val response = routesWithContext(request)
                     clientIpc.postMessage(
                         IpcResponse.fromResponse(
-                            ipcRequest.req_id,
-                            response,
-                            clientIpc
+                            ipcRequest.req_id, response, clientIpc
                         )
                     )
                 }
@@ -85,12 +83,11 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
             runCatching {
                 when (val result = handler(request)) {
                     is Response -> result
-                    else -> Response(Status.OK)
-                        .body(gson.toJson(result))
+                    else -> Response(Status.OK).body(gson.toJson(result))
                         .header("Content-Type", "application/json")
                 }
             }.getOrElse { ex ->
-                printerrln("NMM/REQ-RES", request.uri.toString(), ex)
+                printdebugln("fetch", "NMM/Error", request.uri, ex)
                 Response(Status.INTERNAL_SERVER_ERROR).body(
                     """
                     <p>${request.uri}</p>

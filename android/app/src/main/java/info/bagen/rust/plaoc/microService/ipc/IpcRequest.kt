@@ -87,20 +87,23 @@ class IpcRequest(
             stream: InputStream,
             ipc: Ipc,
             size: Long? = null
-        ) = IpcRequest(req_id, ipcMethod, url,
+        ) = IpcRequest(
+            req_id, ipcMethod, url,
             // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
             headers.also {
                 headers.init("Content-Type", "application/octet-stream");
                 if (size !== null) {
                     headers.init("Content-Length", size.toString());
                 }
-            }, "res/$req_id/${headers.getOrDefault("Content-Length", "-")}".let { stream_id ->
+            },
+            "res/$req_id/${headers.getOrDefault("Content-Length", "-")}".let { stream_id ->
                 streamAsRawData(stream_id, stream, ipc);
                 if (ipc.supportBinary) RawData(IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id)
                 else RawData(
                     IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id
                 )
-            }, ipc
+            },
+            ipc
         )
     }
 

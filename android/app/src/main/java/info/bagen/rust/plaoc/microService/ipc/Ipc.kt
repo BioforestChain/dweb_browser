@@ -11,9 +11,13 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
 
-var ipc_uid_acc = 0
 
 abstract class Ipc {
+    companion object {
+        private var ipc_uid_acc = 0
+        private var _req_id_acc: Int = 0;
+    }
+
     /**
      * 是否支持 messagePack 协议传输：
      * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
@@ -97,7 +101,6 @@ abstract class Ipc {
     suspend fun request(request: Request) =
         this.request(IpcRequest.fromRequest(allocReqId(), request, this)).asResponse()
 
-    private var _req_id_acc: Int = 0;
     fun allocReqId() = _req_id_acc++;
 
     suspend fun responseBy(byIpc: Ipc, byIpcRequest: IpcRequest) {

@@ -6,7 +6,14 @@ inline fun printerrln(tag: String, msg: Any, err: Throwable? = null) {
     err?.printStackTrace()
 }
 
-val debugTags = setOf<String>()
+/**
+ * 可用值：
+ * "fetch", "stream", "native-ipc"
+ */
+val debugTags by lazy {
+    (System.getProperty("dweb-debug") ?: "").let { it.split(" ").filter { it.length > 0 }.toSet() }
+//    setOf<String>()
+}
 
 inline fun printdebugln(scope: String, tag: String, msg: Any, err: Throwable? = null) {
     if (!debugTags.contains(scope)) {

@@ -3,9 +3,8 @@ package info.bagen.rust.plaoc.microService.sys.dns
 import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
-import org.http4k.client.OkHttp
+import org.http4k.client.ApacheClient
 import org.http4k.core.*
-import org.http4k.core.Method
 
 typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Response?
 
@@ -50,7 +49,8 @@ private fun localeFileFetch(remote: MicroModule, request: Request) =
         else -> null
     }
 
-val networkFetch = OkHttp(bodyMode = BodyMode.Stream)
+val networkFetch =
+    ApacheClient(responseBodyMode = BodyMode.Stream, requestBodyMode = BodyMode.Stream)
 
 suspend fun MicroModule.nativeFetch(request: Request): Response {
     for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
