@@ -11,7 +11,7 @@ class IpcStreamPull: NSObject {
 
     let type = IPC_DATA_TYPE.STREAM_PULL
     private(set) var desiredSize: UInt8?
-    var stream_id: String?
+    private(set) var stream_id: String?
     
     init(stream_id: String, desiredSize: UInt8?) {
         super.init()

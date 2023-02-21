@@ -16,7 +16,7 @@ class IpcResponse: IpcBody {
 
     var req_id: Int = 0
     private let type = IPC_DATA_TYPE.RESPONSE
-    private var ipcHeaders: [String: Any] = [:]
+    private var ipcHeaders: [String: String] = [:]
     private var headers: [String:String] = [:]
     private var statusCode: Int = 0
     
@@ -25,6 +25,10 @@ class IpcResponse: IpcBody {
         self.headers = headers
         self.req_id = req_id
         self.statusCode = statusCode
+    }
+    
+    func getIpcHeaders() -> [String:String] {
+        return self.ipcHeaders
     }
     
     func asResponse(url: String?) -> Response {

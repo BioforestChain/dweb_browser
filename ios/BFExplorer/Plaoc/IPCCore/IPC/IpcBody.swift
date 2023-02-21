@@ -22,6 +22,7 @@ class IpcBody: NSObject {
         super.init()
         self.ipc = ipc
         self.rawData = rawBody
+        
     }
     
     func bodyData() -> Any {
@@ -30,8 +31,8 @@ class IpcBody: NSObject {
     
     private func initBody() -> Body? {
         if self.body == nil {
-            if self.rawData != nil, self.ipc != nil {
-                let data = rawDataToBody.rawDataToBodyResult(rawBody: self.rawData!, ipc: self.ipc!)
+            if self.rawData != nil {
+                let data = rawDataToBody.rawDataToBodyResult(rawBody: self.rawData!, ipc: self.ipc)
                 self.body = Body(data: data)
                 if data is InputStream {
                     self.body?.stream = data as? InputStream
@@ -91,9 +92,20 @@ struct RawData {
     
     private(set) var result: Any?
     private(set) var type: IPC_RAW_BODY_TYPE?
-    init(raw: IPC_RAW_BODY_TYPE, content: String) {
-        self.type = raw
-        analysisData(raw: raw, content: content)
+    init(raw: IPC_RAW_BODY_TYPE, content: Any) {
+        if raw == .BINARY {
+            if content is [UInt8] {
+                self.type = raw
+                self.result = content as? [UInt8]
+            }
+        } else {
+            if content is String {
+                self.type = raw
+                self.result = content as? String
+            }
+        }
+        
+//        analysisData(raw: raw, content: content)
     }
     
     private mutating func analysisData(raw: IPC_RAW_BODY_TYPE, content: String) {

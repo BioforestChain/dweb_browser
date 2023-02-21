@@ -22,8 +22,6 @@ class streamAsRawData {
         defer {
             buffer.deallocate()
         }
-        
-        var emptyResult: (() -> Bool)!
 
         _ = ipc.onMessage({ (request, ipc) in
             
@@ -40,8 +38,7 @@ class streamAsRawData {
             } else if let request = request as? IpcStreamAbort, request.stream_id == streamId {
                 stream.close()
             }
-
-            return emptyResult
+            return ipc.messageSignal?.closure
         })
         
     }

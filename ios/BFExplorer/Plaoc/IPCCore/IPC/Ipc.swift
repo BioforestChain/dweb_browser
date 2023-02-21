@@ -12,12 +12,31 @@ var ipc_uid_acc = 0
 
 class Ipc: NSObject {
 
+    /**
+       * 是否支持使用 MessagePack 直接传输二进制
+       * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
+       * 二进制传输在网络相关的服务里被支持，里效率会更高，但前提是对方有 MessagePack 的编解码能力
+       * 否则 JSON 是通用的传输协议
+       */
+    
+    
+    
     var support_message_pack: Bool?
     var uid: Int {
+        let tmp = ipc_uid_acc
         ipc_uid_acc = ipc_uid_acc + 1
-        return ipc_uid_acc
+        return tmp
     }
-//    var remote: MicroModule?
+    /**
+       * 是否支持使用 Protobuf 直接传输二进制
+       * 在网络环境里，protobuf 是更加高效的协议
+       */
+    var support_protobuf: Bool = false
+    
+    var support_binary: Bool {
+        return self.support_message_pack ?? false || self.support_protobuf
+    }
+    var remote: MicroModule?
     var role: IPC_ROLE?
     
     private var closed: Bool = false
@@ -26,25 +45,22 @@ class Ipc: NSObject {
     
     private var onIpcrequestMessage: OnIpcrequestMessage?
     
-    var messageSignal: Signal<(IpcMessage,Ipc),Any>?//Signal<OnIpcMessage>?
-    var onMessage: ((@escaping OnIpcMessage) -> () -> Bool)!
+    var messageSignal: Signal<(IpcMessage,Ipc)>?
+    var onMessage: ((@escaping OnIpcMessage) -> GenericsClosure<OnIpcMessage>)!
     
-    private var closeSignal: Signal<(), Any>?
-    private var onClose: ((@escaping (()) -> Any) -> () -> Bool)?
+    private var closeSignal: Signal<()>?
+    private var onClose: ((@escaping closeCallback) -> GenericsClosure<closeCallback>)!
     
     private(set) var reqresMap: [Int: PromiseOut<IpcResponse>] = [:]
     private var req_id_acc = 0
     private var inited_req_res: Bool = false
     
-    private var emptyResult: (() -> Bool)!
-    
     override init() {
         super.init()
-        messageSignal = Signal<(IpcMessage,Ipc),Any>.createSignal()
+        messageSignal = Signal<(IpcMessage,Ipc)>()
         onMessage = messageSignal!.listen
         
-        
-        closeSignal = Signal<(),Any>.createSignal()
+        closeSignal = Signal<()>()
         onClose = closeSignal?.listen
         
     }
@@ -52,18 +68,34 @@ class Ipc: NSObject {
     func postMessage(message: IpcMessage) {
         guard !closed else { return }
         doPostMessage(data: message)
+        
     }
     
     func doPostMessage(data: IpcMessage) { }
     
-    func getOnRequestListener() -> ((@escaping OnIpcrequestMessage) -> () -> Bool) {
+    lazy var getOnRequestListener: ((@escaping OnIpcrequestMessage) -> GenericsClosure<OnIpcrequestMessage>) = {
         
-        return onceCode
-    }
+        let signal = Signal<(IpcRequest, Ipc)>()
+        
+        _ = self.onMessage({ (request, ipc) in
+            if let request = request as? IpcRequest {
+                signal.emit((request, ipc))
+            }
+            return self.messageSignal?.closure
+        })
+
+        return signal.listen
+        
+    }()
+    
+//    func getOnRequestListener() -> ((@escaping OnIpcrequestMessage) -> () -> Bool) {
+//
+//        return onceCode
+//    }
     
     func onRequest(cb: @escaping OnIpcrequestMessage) -> Any {
-      
-        return self.getOnRequestListener()(cb)
+        
+        return self.getOnRequestListener(cb)
     }
     
     func doClose() { }
@@ -76,12 +108,11 @@ class Ipc: NSObject {
     }
     
     func allocReqId() -> Int {
+        let tmp = ipc_uid_acc
         req_id_acc = req_id_acc + 1
-        return req_id_acc
+        return tmp
     }
-    
-    
-    
+  
     private func initReqRes() {
         guard !inited_req_res else { return }
         self.inited_req_res = true
@@ -97,21 +128,20 @@ class Ipc: NSObject {
                     print("no found response by req_id: \(request.req_id)")
                 }
             }
-            return self.emptyResult
-        })()
+            return self.messageSignal?.closure
+        })
     }
     
     func request(url: String, obj: initObj) -> Promise<IpcResponse>? {
         let req_id = self.allocReqId()
         let method = obj.method ?? "GET"
-        let headers: [String:String] = [:]  //TODO
+        let headers = obj.headers ?? IpcHeaders()
         let ipcRequest: IpcRequest
         
         if obj.body is [UInt8] {
             ipcRequest = IpcRequest.fromBinary(binary: obj.body as! [UInt8], req_id: req_id, method: method, url: url, headers: headers, ipc: self)
-        } else if obj.body is Data {
-            let stream = InputStream(data: obj.body as! Data)
-            ipcRequest = IpcRequest.fromStream(stream: stream, req_id: req_id, method: method, url: url, headers: headers, ipc: self)
+        } else if obj.body is InputStream {
+            ipcRequest = IpcRequest.fromStream(stream: obj.body as! InputStream, req_id: req_id, method: method, url: url, headers: headers, ipc: self)
         } else {
             ipcRequest = IpcRequest.fromText(text: obj.body as? String ?? "", req_id: req_id, method: method, url: url, headers: headers)
         }
@@ -133,26 +163,11 @@ class Ipc: NSObject {
         return response_po
         
     }
-    
-    lazy var onceCode: ((@escaping OnIpcrequestMessage) -> () -> Bool) = {
-            
-        let signal = Signal<(IpcRequest,Ipc),Any>.createSignal()
-        let function = self.onMessage({ (request, ipc) in
-       
-            if let request = request as? IpcRequest {
-                signal.emit((request, ipc))
-            }
-            return self.emptyResult
-        })()
-        
-        return signal.listen
-        
-    }()
 }
 
 class initObj {
     
     var method: String?
     var body: Any?
-    var headers: [String: Any]?
+    var headers: IpcHeaders?
 }

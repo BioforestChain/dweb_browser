@@ -62,3 +62,4 @@ extension IpcStreamAbort: IpcMessage {}
 
 typealias OnIpcMessage = ((IpcMessage, Ipc)) -> Any
 typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Any
+typealias closeCallback = (()) -> Any

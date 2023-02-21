@@ -6,40 +6,35 @@
 //
 
 import Foundation
-import AVFoundation
 import UIKit
-import SwiftUI
-
-typealias Callback = (_ firstPara: Any?, _ secondPara: Any?) -> Void
 
 
-class Signal<T, R> {
+
+class Signal<T> {
     
-    typealias SignalClosure = (T) -> R
+    typealias SignalClosure = (T) -> Any
+    
     private var _cbs: Set<GenericsClosure<SignalClosure>> = []
     
-    func listen(_ cb: @escaping SignalClosure) -> () -> Bool {
+    private(set) var closure: GenericsClosure<SignalClosure>?
+    
+    func listen(_ cb: @escaping SignalClosure) -> GenericsClosure<SignalClosure> {
         let closureObj = GenericsClosure(closure: cb)
         self._cbs.insert(closureObj)
         
-        var result: () -> Bool
+        self.closure = closureObj
         
-        result = {
-            let item = self._cbs.remove(closureObj)
-            return item == nil ? false : true
-        }
-        
-        return result
+        return closureObj
+    }
+    
+    func removeCallback(cb: GenericsClosure<SignalClosure>) -> Bool {
+        return self._cbs.remove(cb) != nil
     }
     
     func emit(_ args: T) {
         for obj in self._cbs {
-            obj.closure(args)
+            obj.closure!(args)
         }
-    }
-    
-    static func createSignal() -> Signal<T, R> {
-        return Signal<T, R>()
     }
 }
 
@@ -47,7 +42,7 @@ class Signal<T, R> {
 struct GenericsClosure<C>: Hashable {
     
     var timestamp: Int = Date().milliStamp
-    var closure: C
+    var closure: C?
     
     static func == (lhs: GenericsClosure, rhs: GenericsClosure) -> Bool {
         return lhs.timestamp == rhs.timestamp
@@ -95,23 +90,23 @@ struct GenericsClosure<C>: Hashable {
  }
  }
  *//*
-struct GenericsClosure<T>: Hashable {
+    struct GenericsClosure<T>: Hashable {
     
     
     var type: String?
     var callback: Callback?
     
     init(type: String? = nil, callback: Callback? = nil) {
-        self.type = type
-        self.callback = callback
+    self.type = type
+    self.callback = callback
     }
     
     static func == (lhs: GenericsClosure<T>, rhs: GenericsClosure<T>) -> Bool {
-        return lhs.type == rhs.type
+    return lhs.type == rhs.type
     }
     
     func hash(into hasher: inout Hasher) {
-        hasher.combine(type)
+    hasher.combine(type)
     }
-}
-*/
+    }
+    */

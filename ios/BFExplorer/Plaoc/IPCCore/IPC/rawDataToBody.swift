@@ -13,15 +13,13 @@ class rawDataToBody {
         
         var body: Any?
         let raw_body_type = rawBody.type
-        var emptyResult: (() -> Bool)!
         if raw_body_type == .STREAM_ID {
             guard ipc != nil else {
                 print("miss ipc when ipc-response has stream-body")
                 return nil
             }
-            let stream_ipc = ipc!
             let stream_id = rawBody.result as? String
-            //TODO
+            
             var stream: InputStream?
             body = stream
             stream?.open()
@@ -30,7 +28,7 @@ class rawDataToBody {
                 stream?.close()
             }
             
-            let funct = ipc?.onMessage { (message,ipc) in
+            _ = ipc?.onMessage { (message,ipc) in
                 if let message = message as? IpcStreamData, message.stream_id == stream_id  {
                     
                     var resultData: [UInt8]?
@@ -46,9 +44,12 @@ class rawDataToBody {
                     }
                 } else if let message = message as? IpcStreamEnd, message.stream_id == stream_id  {
                     //TODO Signal.off
+                    if ipc.messageSignal != nil, ipc.messageSignal?.closure != nil {
+                        ipc.messageSignal?.removeCallback(cb: ipc.messageSignal!.closure!)
+                    }
                 }
-                return emptyResult
-            }()
+                return ipc.messageSignal?.closure
+            }
         } else {
             body = raw_body_type == .TEXT ? rawBody.result : rawDataToBody.bodyEncoder(type: raw_body_type!, result: rawBody.result)
         }

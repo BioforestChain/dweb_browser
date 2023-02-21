@@ -10,7 +10,7 @@ import UIKit
 class IpcStreamAbort: NSObject {
 
     let type = IPC_DATA_TYPE.STREAM_ABORT
-    var stream_id: String?
+    private(set) var stream_id: String?
     
     init(stream_id: String) {
         super.init()

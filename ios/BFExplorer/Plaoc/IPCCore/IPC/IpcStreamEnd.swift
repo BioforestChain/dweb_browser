@@ -10,7 +10,7 @@ import UIKit
 class IpcStreamEnd: NSObject {
 
     let type = IPC_DATA_TYPE.STREAM_END
-    var stream_id: String = ""
+    private(set) var stream_id: String = ""
     
     init(stream_id: String) {
         super.init()
