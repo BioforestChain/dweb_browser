@@ -61,7 +61,10 @@
     "mime": "^3.0.0",
     "node-fetch": "^3.3.0",
     "node-forge": "^1.3.1",
+    "request": "^2.88.2",
+    "request-progress": "^3.0.0",
     "shadowrealm-api": "^0.8.2",
+    "tar": "^6.1.13",
     "twind": "^0.16.19",
     "typescript": "^4.9.5"
   }

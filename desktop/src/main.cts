@@ -17,5 +17,11 @@ dns.install(desktopJmm);
 import { browserJMM } from "./user/browser/browser.main.cjs"
 dns.install(browserJMM)
 
+// 安装 file.sys.dweb
+import { FileNMM } from "./sys/file/file.cjs"
+dns.install(new FileNMM);
+
+ 
+
 
 Object.assign(globalThis, { dns: dns });

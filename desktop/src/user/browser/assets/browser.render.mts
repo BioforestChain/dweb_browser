@@ -1,7 +1,8 @@
 import {css, LitElement, html } from "lit";
+import { styleMap } from "lit/directives/style-map.js";
 import { property, state, query } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
-
+import type { $AppInfo } from "../../../sys/file/file-get-all-apps.cjs"
 const styles = [
     css `
         .page-container{
@@ -79,10 +80,16 @@ const styles = [
             align-items: center;
             flex-grow: 0;
             flex-shrink: 0;
+            box-sizing: border-box;
+            padding:10px;
             width: var(--size);
             height: var(--size);
             border-radius: 16px;
-            background-color: #ddd;
+            background-color: #ddd1;
+            background-position: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: pointer;
         }
 
         .item-container:nth-of-type(2n){
@@ -92,21 +99,27 @@ const styles = [
     `
 ]
 class HomePage extends LitElement{
-    @property() apps: any[] = []
+    @property() apps:  $AppInfo[] = []
 
     @query(".search-input") elInput: HTMLInputElement | undefined;
 
     static override styles = styles
+
+    constructor(){
+        super()
+        this.getAllAppsInfo()
+    }
+
     protected override render(){
-        const arr: any[][] = toTwoDimensionalArray(this.apps)
+        const arr:  $AppInfo[][] = toTwoDimensionalArray(this.apps)
         return html`
             <div 
                 class="page-container"
             >
-                <div class="logo-container">logo</div>
+                <div class="logo-container">logo---</div>
                 <div class="search-container">
-                   <input class="search-input" placeholder="search app"/>
-                   <button class="search-bottom" @click=${this.onSearch}>search</button>
+                   <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa"/>
+                   <button class="search-bottom" @click=${this.onSearch}>DOWNLOAD</button>
                 </div>
                 <div class="apps-container">
                     ${
@@ -114,11 +127,19 @@ class HomePage extends LitElement{
                             html `
                                 <div class="row-container">
                                     ${
-                                        repeat(rows, item => item.id, item => (
-                                            html `
-                                                <div class="item-container">${item.id}</div>
+                                        repeat(rows, item => item.bfsAppId, item => {
+                                            const _styleMap = styleMap({
+                                                backgroundImage: "url(./icon/"+ item.bfsAppId +"/sys"+ item.icon +")"
+                                            })
+                                            return  html `
+                                                <div 
+                                                    class="item-container"
+                                                    style="${_styleMap}"
+                                                    @click=${() => this.onOpenApp(item.bfsAppId)}
+                                                >
+                                                </div>
                                             `
-                                        ))
+                                        })
                                     }
                                 </div>
                             `
@@ -129,13 +150,42 @@ class HomePage extends LitElement{
         `
     }
 
+    // .style=${{
+    //     backgroundImage: "url(/icon?id="+ item.bfsAppId +"&name="+ item.icon +")",
+    //     backgroundColor: "red"
+    // }} 
+    //  style=${styleMap({backgroundImage: "url(./icon/"+ item.bfsAppId +"/sys"+ item.icon +")"})}
+
     override connectedCallback(){
         super.connectedCallback();
-        this.apps =  [0,1,2,3,4,5,6,7,8,9,10].map(id => ({id: id}))
     }
 
     onSearch(){
-        console.log('搜索的value： ', this.elInput?.value)
+        fetch(`./download?url=${this.elInput?.value}`)
+        .then(async (res) => {
+            console.log('下载成功了---res: ', await res.json())
+          
+        })
+        .then(this.getAllAppsInfo)
+        .catch(err => console.log('下载失败了'))
+    }
+
+    getAllAppsInfo(){
+        console.log('开始获取 全部 appsInfo')
+        fetch(`./appsinfo`)
+        .then(async (res) => {
+            console.log('res: ', res)
+            const _json = await res.json()
+            this.apps = JSON.parse(_json)
+
+        })
+        .catch(err => {
+            console.log('获取全部 appsInfo error: ', err)
+        })
+    }
+
+    onOpenApp(appId: string){
+        console.log('点击了打开： ', appId)
     }
 }
  
@@ -156,6 +206,9 @@ function toTwoDimensionalArray(items: unknown[]){
     })
     return twoDimensionalArr
 }
+
+
+
  
 
  

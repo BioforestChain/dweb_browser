@@ -68,11 +68,16 @@ export abstract class NativeMicroModule extends MicroModule {
         for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {
           if ($isMatchReq(hanlder_schema, pathname, request.method)) {
             try {
+            
               const result = await hanlder_schema.hanlder(
                 hanlder_schema.input(request),
                 client_ipc,
                 request
               );
+              if(pathname === "/download"){
+                console.log("result: ", result) 
+              }
+              
               if (result instanceof IpcResponse) {
                 response = result;
               } else {
@@ -83,6 +88,7 @@ export abstract class NativeMicroModule extends MicroModule {
                 );
               }
             } catch (err) {
+              console.log('err: ', err)
               let body: string;
               if (err instanceof Error) {
                 body = err.message;

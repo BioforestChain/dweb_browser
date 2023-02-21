@@ -4,7 +4,10 @@ import type { $MMID } from "../helper/types.cjs";
 export class BootNMM extends NativeMicroModule {
   mmid = "boot.sys.dweb" as const;
   // private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]); // 被优化
-  private registeredMmids = new Set<$MMID>(["browser.sys.dweb"]) // 升级后的结果
+  private registeredMmids = new Set<$MMID>([
+    "browser.sys.dweb",
+    "file.sys.dweb"
+  ]) // 升级后的结果
   async _bootstrap() {
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/register",
