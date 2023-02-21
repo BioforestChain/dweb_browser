@@ -1,9 +1,6 @@
 package info.bagen.rust.plaoc.microService.core
 
-import info.bagen.rust.plaoc.microService.helper.Callback
-import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.Signal
-import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -93,7 +90,14 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                         .header("Content-Type", "application/json")
                 }
             }.getOrElse { ex ->
-                Response(Status.INTERNAL_SERVER_ERROR).body(ex.message ?: "Unknown Error")
+                printerrln("NMM/REQ-RES", request.uri.toString(), ex)
+                Response(Status.INTERNAL_SERVER_ERROR).body(
+                    """
+                    <p>${request.uri}</p>
+                    <pre>${ex.message ?: "Unknown Error"}</pre>    
+                    """.trimIndent()
+
+                )
             }
         }
 

@@ -3,33 +3,28 @@ package info.bagen.rust.plaoc.microService.ipc
 import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
 import info.bagen.rust.plaoc.microService.helper.asBase64
 import info.bagen.rust.plaoc.microService.helper.asUtf8
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.InputStream
 
+
 fun streamAsRawData(
-    stream_id: String,
-    stream: InputStream,
-    ipc: Ipc
+    stream_id: String, stream: InputStream, ipc: Ipc
 ) {
     ipc.onMessage { (message) ->
         /// 对方申请数据拉取
         if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {
-            GlobalScope.launch {
-                when (val availableLen = stream.available()) {
-                    -1, 0 -> ipc.postMessage(IpcStreamEnd(stream_id))
-                    else -> {
-                        // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
-                        val binary = ByteArray(availableLen)
-                        stream.read(binary)
-                        ipc.postMessage(
-                            IpcStreamData.fromBinary(
-                                ipc,
-                                stream_id,
-                                binary
-                            )
+            debugStream("ON-PULL$stream", stream_id)
+            debugStream("READING$stream", stream_id)
+            when (val availableLen = stream.available()) {
+                -1, 0 -> ipc.postMessage(IpcStreamEnd(stream_id))
+                else -> {
+                    // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
+                    val binary = ByteArray(availableLen)
+                    stream.read(binary)
+                    ipc.postMessage(
+                        IpcStreamData.fromBinary(
+                            ipc, stream_id, binary
                         )
-                    }
+                    )
                 }
             }
         } else if ((message is IpcStreamAbort) && (message.stream_id == stream_id)) {
@@ -60,20 +55,20 @@ fun rawDataToBody(rawBody: RawData?, ipc: Ipc?): Any {
 
     if (rawBody.type and IPC_RAW_BODY_TYPE.STREAM_ID != 0) {
         val stream_id = rawBody.data as String;
-        val stream = ReadableStream(
-            onStart = { controller ->
-                ipc.onMessage { (message) ->
-                    if (message is IpcStreamData && message.stream_id == stream_id) {
-                        controller.enqueue(bodyEncoder(message.data))
-                    } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
-                        controller.close()
-                        return@onMessage SIGNAL_CTOR.OFF
-                    } else {
-                    }
+        val stream = ReadableStream(onStart = { controller ->
+            ipc.onMessage { (message) ->
+                if (message is IpcStreamData && message.stream_id == stream_id) {
+                    controller.enqueue(bodyEncoder(message.data))
+                } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
+                    controller.close()
+                    return@onMessage SIGNAL_CTOR.OFF
+                } else {
                 }
-            }, onPull = {
-                ipc.postMessage(IpcStreamPull(stream_id))
-            });
+            }
+        }, onPull = {
+            debugStream("POST-PULL/${it.stream}", stream_id)
+            ipc.postMessage(IpcStreamPull(stream_id))
+        });
 
         return stream // as InputStream
     }

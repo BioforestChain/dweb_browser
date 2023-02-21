@@ -3,13 +3,10 @@ package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.InputStream
-import java.nio.charset.Charset
 
 
 /**
@@ -35,7 +32,7 @@ class ReadableStreamIpc(
      * 输入流要额外绑定
      * 注意，非必要不要 await 这个promise
      */
-    fun bindIncomeStream(stream: InputStream) {
+    fun bindIncomeStream(stream: InputStream, coroutineName: String) {
         if (this._incomeStream !== null) {
             throw Exception("in come stream already binded.");
         }
@@ -44,7 +41,7 @@ class ReadableStreamIpc(
         }
 
         _incomeStream = stream
-        GlobalScope.launch {
+        CoroutineScope(CoroutineName(coroutineName)).launch {
             // 如果通道关闭并且没有剩余字节可供读取，则返回 true
             while (stream.available() > 0) {
                 val size = stream.readInt()
@@ -59,6 +56,7 @@ class ReadableStreamIpc(
                             this@ReadableStreamIpc
                         )
                     )
+                    else -> throw Exception("unknown message: $message")
                 }
             }
         }
@@ -67,9 +65,13 @@ class ReadableStreamIpc(
     override suspend fun _doPostMessage(data: IpcMessage) {
         val message = when {
             supportMessagePack -> moshiPack.packToByteArray(data)
-            else -> gson.toJson(data).byteInputStream().readBytes()
+            else -> when (data) {
+                is IpcRequest -> gson.toJson(data.data).asUtf8()
+                is IpcResponse -> gson.toJson(data.data).asUtf8()
+                else -> gson.toJson(data).asUtf8()
+            }
         }
-        controller.enqueue(message.size.toByteArray()+message)
+        controller.enqueue(message.size.toByteArray() + message)
     }
 
     override suspend fun _doClose() {

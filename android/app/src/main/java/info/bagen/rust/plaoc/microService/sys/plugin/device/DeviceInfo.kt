@@ -10,7 +10,8 @@ import android.telephony.TelephonyManager
 import info.bagen.libappmgr.utils.AppContextUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.sys.plugin.device.model.*
-import info.bagen.rust.plaoc.system.device.model.*
+
+//import info.bagen.rust.plaoc.system.device.model.*
 
 
 data class DeviceData(

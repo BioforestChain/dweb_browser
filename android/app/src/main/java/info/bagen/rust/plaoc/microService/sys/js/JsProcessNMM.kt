@@ -10,14 +10,18 @@ import info.bagen.rust.plaoc.microService.helper.WebViewAsyncEvalContext
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.suspendOnce
 import info.bagen.rust.plaoc.microService.helper.text
-import info.bagen.rust.plaoc.microService.ipc.*
+import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
+import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.MessagePortIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.saveNative2JsIpcPort
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -37,14 +41,16 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             // 在模块关停的时候，要关闭端口监听
             _afterShutdownSignal.listen { server.close() }
             // 提供基本的主页服务
-            server.listen().onRequest { args ->
-                args.ipc.postMessage(
-                    IpcResponse.fromResponse(
-                        args.request.req_id,
-                        nativeFetch("file:///bundle/js-process/${args.request.uri.path}"),
-                        args.ipc
+            server.listen { streamIpc ->
+                streamIpc.onRequest { (request, ipc) ->
+                    ipc.postMessage(
+                        IpcResponse.fromResponse(
+                            request.req_id,
+                            nativeFetch("file:///bundle/js-process/${request.uri.path}"),
+                            ipc
+                        )
                     )
-                )
+                }
             }
         }
 
@@ -52,30 +58,33 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
         /// WebWorker的环境服务
         val internalServer =
-            this.createHttpDwebServer(DwebHttpServerOptions(subdomain = "internal")).also { server ->
-                // 在模块关停的时候，要关闭端口监听
-                _afterShutdownSignal.listen { server.close() }
-                val JS_PROCESS_WORKER_CODE =
-                    suspendOnce { nativeFetch("file:///bundle/js-process.worker.js").text() }
-                // 提供基本的主页服务
-                server.listen().onRequest { args ->
-                    if (args.request.uri.path === "/bootstrap.js") {
-                        args.ipc.postMessage(
-                            IpcResponse.fromText(
-                                args.request.req_id,
-                                200, JS_PROCESS_WORKER_CODE(),
-                                IpcHeaders().also {
-                                    it.set(
-                                        "content-type",
-                                        "application/javascript"
+            this.createHttpDwebServer(DwebHttpServerOptions(subdomain = "internal"))
+                .also { server ->
+                    // 在模块关停的时候，要关闭端口监听
+                    _afterShutdownSignal.listen { server.close() }
+                    val JS_PROCESS_WORKER_CODE =
+                        suspendOnce { nativeFetch("file:///bundle/js-process.worker.js").text() }
+                    // 提供基本的主页服务
+                    server.listen { streamIpc ->
+                        streamIpc.onRequest { (request, ipc) ->
+                            if (request.uri.path === "/bootstrap.js") {
+                                ipc.postMessage(
+                                    IpcResponse.fromText(
+                                        request.req_id,
+                                        200, JS_PROCESS_WORKER_CODE(),
+                                        IpcHeaders().also {
+                                            it.set(
+                                                "content-type",
+                                                "application/javascript"
+                                            )
+                                        },
+                                        ipc
                                     )
-                                },
-                                args.ipc
-                            )
-                        )
+                                )
+                            }
+                        }
                     }
                 }
-            }
 
         println("internalServer: ${internalServer.startResult}")
 
@@ -86,7 +95,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 nww = it
                 val urlInfo = mainServer.startResult.urlInfo
                 it.settings.userAgentString += " dweb-host/${urlInfo.host}"
-                it.loadUrl(urlInfo.public_origin)
+                it.loadUrl(urlInfo.public_origin + "/index.html")
             }
             JsProcessWebApi(webView)
         }
@@ -139,7 +148,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          * 远端是代码服务，所以这里是 client 的身份
          */
         val streamIpc = ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT).also {
-            it.bindIncomeStream(requestMessage.body.stream);
+            it.bindIncomeStream(requestMessage.body.stream, "code-proxy-server");
         }
 
         /**
@@ -148,9 +157,11 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          * 这里我们将请求转发给对方，要求对方以一定的格式提供代码回来，
          * 我们会对回来的代码进行处理，然后再执行
          */
-        httpDwebServer.listen().onRequest { args ->
-            // TODO 对代码进行翻译处理
-            args.ipc.responseBy(streamIpc, args.request)
+        httpDwebServer.listen { streamIpc ->
+            streamIpc.onRequest { args ->
+                // TODO 对代码进行翻译处理
+                args.ipc.responseBy(streamIpc, args.request)
+            }
         }
 
 

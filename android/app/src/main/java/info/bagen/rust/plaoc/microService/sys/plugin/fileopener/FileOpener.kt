@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.printerrln
 import java.io.File
 
 
@@ -48,10 +49,10 @@ object FileOpener {
                         }
                     }
                 } catch (exception: ActivityNotFoundException) {
-                    Log.e("FileOpener", "FIleOpener::open ActivityNotFoundException->$exception")
+                    printerrln("FileOpener", "FIleOpener::open ActivityNotFoundException->$exception")
                     onErrorCallback("Activity not found: ${exception.message} --> 8 $exception")
                 } catch (exception: Throwable) {
-                    Log.e("FileOpener", "FIleOpener::open Exception->$exception")
+                    printerrln("FileOpener", "FIleOpener::open Exception->$exception")
                     onErrorCallback("${exception.localizedMessage} --> 1 $exception")
                 }
 

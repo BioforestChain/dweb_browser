@@ -16,7 +16,7 @@ data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc) {
 }
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
-enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,
+enum class IPC_DATA_TYPE(val type: Byte) : JsonSerializer<IPC_DATA_TYPE>,
     JsonDeserializer<IPC_DATA_TYPE> {
     /** 类型：请求 */
     REQUEST(0),
@@ -49,7 +49,7 @@ enum class IPC_DATA_TYPE(val type: Int) : JsonSerializer<IPC_DATA_TYPE>,
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ): IPC_DATA_TYPE = json.asInt.let { type -> values().first { it.type == type } }
+    ): IPC_DATA_TYPE = json.asByte.let { type -> values().first { it.type == type } }
 
 }
 

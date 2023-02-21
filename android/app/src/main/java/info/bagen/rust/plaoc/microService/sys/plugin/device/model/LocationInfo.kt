@@ -10,6 +10,7 @@ import android.os.Looper
 import android.util.Log
 import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.printerrln
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
@@ -59,7 +60,7 @@ class LocationInfo : LocationListener {
                 return locationData
             }
         } catch (e: Throwable) {
-            Log.e("", "Unable connect to Geocoder", e)
+            printerrln("", "Unable connect to Geocoder", e)
         } finally {
             return locationData
         }

@@ -39,7 +39,8 @@ open class JsMicroModule(override val mmid: Mmid, val metadata: JmmMetadata) : M
                         .query("main_pathname", "/index.js")
                         .query("process_id", pid.toString())
                 ).body(streamIpc.stream)
-            ).stream()
+            ).stream(),
+            "code-server"
         )
 
         println("JS进程创建完成 $mmid")

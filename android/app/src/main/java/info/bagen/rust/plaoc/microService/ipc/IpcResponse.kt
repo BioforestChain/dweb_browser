@@ -1,22 +1,18 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.helper.toBase64
 import org.http4k.core.Response
 import org.http4k.core.Status
 import java.io.InputStream
 
 class IpcResponse(
-    req_id: Int,
-    statusCode: Int,
-    headers: IpcHeaders,
+    val req_id: Int,
+    val statusCode: Int,
+    val headers: IpcHeaders,
     rawBody: RawData,
-    override val ipc: Ipc
-) : IpcResponseData(
-    req_id,
-    statusCode,
-    headers,
-    rawBody
-) {
+    ipc: Ipc
+) : IpcBody(IPC_DATA_TYPE.RESPONSE, rawBody, ipc) {
 
     companion object {
         fun fromJson(
@@ -125,20 +121,22 @@ class IpcResponse(
     fun asResponse() =
         Response(Status(this.statusCode, null))
             .headers(this.headers.toList()).let { res ->
-                 when (val body = body) {
+                when (val body = body) {
                     is String -> res.body(body)
                     is ByteArray -> res.body(body.inputStream(), body.size.toLong())
                     is InputStream -> res.body(body)
                     else -> throw Exception("invalid body to response: $body")
                 }
             }
+
+    val data by lazy {
+        IpcResponseData(req_id, statusCode, headers, rawBody)
+    }
 }
 
-abstract class IpcResponseData(
+class IpcResponseData(
     val req_id: Int,
     val statusCode: Int,
     val headers: IpcHeaders,
-    override val rawBody: RawData,
-) : IpcBody(), IpcMessage {
-    override val type = IPC_DATA_TYPE.RESPONSE
-}
+    val rawBody: RawData,
+) : IpcMessage(IPC_DATA_TYPE.RESPONSE)

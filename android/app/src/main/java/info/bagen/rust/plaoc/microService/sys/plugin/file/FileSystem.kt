@@ -7,6 +7,7 @@ import com.king.mlkit.vision.camera.util.LogUtils
 import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.ExportNative
+import info.bagen.rust.plaoc.microService.helper.printerrln
 import info.bagen.rust.plaoc.webView.network.dWebView_host
 import org.json.JSONObject
 import java.io.*
@@ -65,7 +66,7 @@ class FileSystem {
             }
         } catch (e: PatternSyntaxException) {
             val msg = "过滤表达式${errTag}语法错误"
-            Log.e("transformRegex: ", e.toString())
+            printerrln("transformRegex: ", e.toString())
             return msg
         }
         return "ok"

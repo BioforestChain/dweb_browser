@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.printerrln
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -137,7 +138,7 @@ object CameraUtils {
                 return ExifWrapper(exifInterface)
             }
         } catch (ex: IOException) {
-            Log.e("CameraUtils", "Error loading exif data from image", ex)
+            printerrln("CameraUtils", "Error loading exif data from image", ex)
         } finally {
             if (stream != null) {
                 try {

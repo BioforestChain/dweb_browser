@@ -205,7 +205,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
             gateway.listener.ipc.remote,
             IPC_ROLE.SERVER
         )
-        streamIpc.bindIncomeStream(message.body.stream)
+        streamIpc.bindIncomeStream(message.body.stream, "http-gateway")
         for (routeConfig in routes) {
             streamIpc.onClose(gateway.listener.addRouter(routeConfig, streamIpc))
         }

@@ -6,12 +6,9 @@ import info.bagen.rust.plaoc.microService.helper.SimpleSignal
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
-import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.routing.*
 import java.lang.reflect.Type
 
 
@@ -22,20 +19,23 @@ data class RouteConfig(
 )
 
 class StreamIpcRouter(val config: RouteConfig, val streamIpc: ReadableStreamIpc) {
-    val router by lazy {
-        val pathname = if (config.matchMode == MatchMode.PREFIX) {
-            config.pathname
-        } else if (config.pathname.endsWith("*")) {
-            config.pathname
-        } else {
-            config.pathname //+ "*"
-        }
-        routes(pathname bind config.method.http4kMethod to { request ->
-            runBlocking {
-                streamIpc.request(request)
+
+    val isMatch: (request: Request) -> Boolean by lazy {
+        when (config.matchMode) {
+            MatchMode.PREFIX -> { request ->
+                request.method == config.method.http4kMethod && request.uri.path.startsWith(
+                    config.pathname
+                )
             }
-        })
+            MatchMode.FULL -> { request ->
+                request.method == config.method.http4kMethod && request.uri.path == config.pathname
+            }
+        }
     }
+
+    suspend fun handler(request: Request) = if (isMatch(request)) {
+        streamIpc.request(request)
+    } else null
 }
 
 
@@ -59,8 +59,8 @@ class PortListener(
      */
     suspend fun hookHttpRequest(request: Request): Response? {
         for (router in _routerSet) {
-            val response = router.router(request)
-            if (response.status.code != 404) {
+            val response = router.handler(request)
+            if (response != null) {
                 return response
             }
         }

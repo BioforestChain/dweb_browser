@@ -1,13 +1,15 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.asBase64
-import io.ktor.utils.io.core.*
+import info.bagen.rust.plaoc.microService.helper.toUtf8
 import java.io.InputStream
 
 
-abstract class IpcBody {
-    abstract val rawBody: RawData
-    protected abstract val ipc: Ipc
+open class IpcBody(
+    type: IPC_DATA_TYPE,
+    val rawBody: RawData,
+    protected val ipc: Ipc
+) : IpcMessage(type) {
 
     private inner class BodyHub {
         var text: String? = null
@@ -52,11 +54,11 @@ abstract class IpcBody {
 
     private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
         bodyHub.text ?: _u8a.let {
-            it.toString()
+            it.toUtf8()
         }
     }
 
-    suspend fun text() = this._text
+    fun text() = this._text
 
 
 }

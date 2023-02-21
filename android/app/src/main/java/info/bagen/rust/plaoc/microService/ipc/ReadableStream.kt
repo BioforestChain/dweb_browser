@@ -1,17 +1,17 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import android.util.Log
 import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Signal
-import kotlinx.coroutines.GlobalScope
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.io.InputStream
 
+inline fun debugStream(tag: String, msg: Any, err: Throwable? = null) =
+    printdebugln("stream", tag, msg, err)
 
 /**
  * 模拟Web的 ReadableStream
@@ -21,13 +21,15 @@ class ReadableStream(
     val onPull: Callback<ReadableStreamController> = {}
 ) : InputStream() {
 
-    enum class StreamControlSignal {
+    private enum class StreamControlSignal {
         PULL,
     }
 
     class ReadableStreamController(
-        private val dataChannel: Channel<ByteArray>
+        private val dataChannel: Channel<ByteArray>,
+        val stream: ReadableStream
     ) {
+
         suspend fun enqueue(byteArray: ByteArray) =
             dataChannel.send(byteArray)
 
@@ -42,7 +44,13 @@ class ReadableStream(
     private val dataChannel = Channel<ByteArray>()
     private val controlSignal = Signal<StreamControlSignal>()
 
-    private val controller = ReadableStreamController(dataChannel)
+    private val controller = ReadableStreamController(dataChannel, this)
+
+    private val pullScope = CoroutineScope(CoroutineName("readableStream/pull") + Dispatchers.IO)
+    private val writeDataScope =
+        CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO)
+    private val readDataScope =
+        CoroutineScope(CoroutineName("readableStream/readData") + Dispatchers.IO)
 
     init {
         runBlocking {
@@ -50,10 +58,14 @@ class ReadableStream(
         }
         controlSignal.listen { signal ->
             when (signal) {
-                StreamControlSignal.PULL -> GlobalScope.launch { onPull(controller) }
+                StreamControlSignal.PULL -> {
+                    debugStream("PULL/START/${uid}", currentCoroutineContext().toString())
+                    onPull(controller)
+                    debugStream("PULL/END/${uid}", currentCoroutineContext().toString())
+                }
             }
         }
-        GlobalScope.launch {
+        writeDataScope.launch {
             // 一直等待数据
             for (chunk in dataChannel) {
                 _data += chunk
@@ -73,6 +85,7 @@ class ReadableStream(
     private inline fun tryUnlock() {
         if (dataLock.isLocked) {
             dataLock.unlock()
+            debugStream("TRY-UNLOCK/${uid}", _data.size)
         }
     }
 
@@ -93,19 +106,27 @@ class ReadableStream(
 
         // 如果还能从控制端读取数据，那么等待数据写入
         if (!dataChannel.isClosedForSend) {
-            runBlocking {
-                Log.e("REQUEST-DATA/START", this.toString())
+            // 数据不够了，发送拉取的信号
+            runBlocking(readDataScope.coroutineContext) {
+                debugStream("REQUEST-DATA/LOCK/${uid}", _data.size)
                 // 数据不够了，发送拉取的信号
                 controlSignal.emit(StreamControlSignal.PULL)
                 dataLock.lock()
+                debugStream("REQUEST-DATA/UNLOCK/${uid}", _data.size)
             }
-            Log.e("REQUEST-DATA/END", this.toString())
             return requestData(ptr)
         }
 
         // 控制端无法读取数据了，只能直接返回
         return _data
     }
+
+    companion object {
+        private var id_acc = 0
+    }
+
+    private val uid = "#${id_acc++}"
+    override fun toString() = uid
 
 
     // 数据源

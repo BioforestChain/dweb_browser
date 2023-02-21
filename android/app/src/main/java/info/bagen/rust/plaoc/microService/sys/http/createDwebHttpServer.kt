@@ -7,6 +7,11 @@ import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
@@ -43,7 +48,8 @@ suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<RouteC
                         .query("token", token)
                         .query("routes", gson.toJson(routes))
                 ).body(it.stream)
-            ).stream()
+            ).stream(),
+            "http-server"
         )
     }
 
@@ -66,8 +72,19 @@ class HttpDwebServer(
             RouteConfig(pathname = "", method = IpcMethod.POST),
             RouteConfig(pathname = "", method = IpcMethod.PUT),
             RouteConfig(pathname = "", method = IpcMethod.DELETE)
-        )
-    ) = nmm.listenHttpDwebServer(startResult.token, routes)
+        ),
+        onListen: (streamIpc: ReadableStreamIpc) -> Unit
+    ) = runBlocking {
+        val lock = Mutex(true)
+        lateinit var streamIpc: ReadableStreamIpc;
+        GlobalScope.launch {
+            streamIpc = nmm.listenHttpDwebServer(startResult.token, routes)
+            onListen(streamIpc)
+            lock.unlock()
+        }
+        lock.withLock { }
+        streamIpc
+    }
 
 
     val close = suspendOnce { nmm.closeHttpDwebServer(options) }
