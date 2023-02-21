@@ -57,3 +57,5 @@ class IpcRequest: IpcBody {
     }
     
 }
+
+extension IpcRequest: IpcMessage {}

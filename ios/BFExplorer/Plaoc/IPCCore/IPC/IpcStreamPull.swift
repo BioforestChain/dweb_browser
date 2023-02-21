@@ -7,14 +7,14 @@
 
 import UIKit
 
-class IpcStreamPull: NSObject {
+struct IpcStreamPull {
 
     let type = IPC_DATA_TYPE.STREAM_PULL
     private(set) var desiredSize: UInt8?
     private(set) var stream_id: String?
     
     init(stream_id: String, desiredSize: UInt8?) {
-        super.init()
+        
         self.stream_id = stream_id
         if desiredSize == nil {
             self.desiredSize = 1
@@ -33,3 +33,5 @@ class IpcStreamPull: NSObject {
         return scan.scanFloat(&val) && scan.isAtEnd
     }
 }
+
+extension IpcStreamPull: IpcMessage {}

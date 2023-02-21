@@ -55,7 +55,7 @@ class MicroModule: NSObject {
                                 }
                             }
                             
-                            let res = Response(status: HTTPResponseStatus(statusCode: response.statusCode), version: HTTPVersion.http1_0, headers: headers, body: Response.Body.init(data: data!))
+                            let res = Response(status: HTTPResponseStatus(statusCode: response.statusCode), headers: headers, body: Response.Body.init(data: data!))
                             success(res)
                         }
                     }

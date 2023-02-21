@@ -7,14 +7,13 @@
 
 import UIKit
 
-class IpcStreamData: NSObject {
+struct IpcStreamData {
 
     let type = IPC_DATA_TYPE.STREAM_DATA
     private(set) var data: Any?
     private(set) var stream_id: String = ""
     
     init(stream_id: String, data: Any) {
-        super.init()
         self.data = data
         self.stream_id = stream_id
     }
@@ -26,3 +25,5 @@ class IpcStreamData: NSObject {
         return IpcStreamData(stream_id: stream_id, data: encoding.simpleDecoder(data: data, encoding: .base64))
     }
 }
+
+extension IpcStreamData: IpcMessage {}

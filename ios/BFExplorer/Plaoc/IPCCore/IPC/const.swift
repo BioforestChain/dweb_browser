@@ -50,15 +50,6 @@ enum IPC_ROLE: String {
 }
 
 protocol IpcMessage {}
-extension IpcRequest: IpcMessage {}
-extension IpcResponse: IpcMessage {}
-extension IpcStreamData: IpcMessage {}
-extension IpcStreamPull: IpcMessage {}
-extension IpcStreamEnd: IpcMessage {}
-extension IpcStreamAbort: IpcMessage {}
-
-
-//typealias IpcMessage = Any
 
 typealias OnIpcMessage = ((IpcMessage, Ipc)) -> Any
 typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Any
