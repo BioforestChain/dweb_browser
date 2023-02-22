@@ -17,8 +17,7 @@ class NativeIpc(
     override val role: IPC_ROLE,
 ) : Ipc() {
     init {
-        GlobalScope.launch {
-            port.onMessage { message ->
+        port.onMessage { message ->
 //            val ipcMessage = when (message.type) {
 //                IPC_DATA_TYPE.REQUEST -> (message as IpcRequest).let { fromRequest ->
 //                    /**
@@ -37,11 +36,11 @@ class NativeIpc(
 //                 */
 //                else -> message
 //            }
-//            _messageSignal.emit(IpcMessageArgs(ipcMessage, this))
-                debugNativeIpc("onMessage $message")
-                _messageSignal.emit(IpcMessageArgs(message, this@NativeIpc))
-                null
-            }
+//            _messageSignal.emit(IpcMessageArgs(ipcMessage, this@NativeIpc))
+//                debugNativeIpc("onMessage/emitted $message")
+            _messageSignal.emit(IpcMessageArgs(message, this@NativeIpc))
+        }
+        GlobalScope.launch {
             port.start()
         }
     }

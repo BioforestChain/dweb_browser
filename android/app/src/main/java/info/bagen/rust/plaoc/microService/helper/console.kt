@@ -1,5 +1,9 @@
 package info.bagen.rust.plaoc.microService.helper
 
+import java.time.LocalDateTime
+
+inline fun now() = LocalDateTime.now().toString()
+
 inline fun printerrln(log: String) = System.err.println(log)
 inline fun printerrln(tag: String, msg: Any, err: Throwable? = null) {
     printerrln("$tag\t $msg")
@@ -11,7 +15,11 @@ inline fun printerrln(tag: String, msg: Any, err: Throwable? = null) {
  * "fetch", "stream", "native-ipc"
  */
 val debugTags by lazy {
-    (System.getProperty("dweb-debug") ?: "").let { it.split(" ").filter { it.length > 0 }.toSet() }
+    (System.getProperty("dweb-debug") ?: "").let {
+        it.split(" ")
+            .filter { s -> s.isNotEmpty() }
+            .toSet()
+    }
 //    setOf<String>()
 }
 
@@ -19,5 +27,5 @@ inline fun printdebugln(scope: String, tag: String, msg: Any, err: Throwable? = 
     if (!debugTags.contains(scope)) {
         return
     }
-    printerrln("$scope:$tag", msg, err)
+    printerrln("${now()}\t│ $scope\t│ $tag", msg, err)
 }

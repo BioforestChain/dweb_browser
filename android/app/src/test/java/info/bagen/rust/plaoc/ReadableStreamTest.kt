@@ -83,6 +83,6 @@ class ReadableStreamTest {
         }
         req_ipc.close()
 
-        req_ipc.stream.closed()
+        req_ipc.stream.afterClosed()
     }
 }

@@ -25,7 +25,7 @@ fun main() {
         }
     }
     runBlocking {
-        stream.closed()
+        stream.afterClosed()
     }
     println("DONE")
 }

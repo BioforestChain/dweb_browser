@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc
 
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.asUtf8
+import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
@@ -65,7 +66,7 @@ class NativeIpcTest {
 
     @Test
     fun sendStreamData() = runBlocking {
-        System.setProperty("dweb-debug", "native native-ipc")
+        System.setProperty("dweb-debug", "native-ipc stream")
         val m1 = object : NativeMicroModule("m1") {
             override suspend fun _bootstrap() {
             }
@@ -88,34 +89,52 @@ class NativeIpcTest {
 
         ipc1.onRequest { (req, ipc) ->
             delay(200)
-            ipc.postMessage(
-                IpcResponse.fromText(
-                    req.req_id,
-                    200,
-                    "ECHO:" + req.text(),
-                    IpcHeaders(),
-                    ipc
-                )
-            )
-        }
+            val req_stream = req.stream()
+            val res_stream = ReadableStream(onStart = { controller ->
+                launch {
+                    println("开始循环读取 req_stream $req_stream")
+                    while (true) {
+                        val byteLen = req_stream.available()
+                        println("available byte length: $byteLen")
+                        if (byteLen > 0) {
+                            controller.enqueue(req_stream.readByteArray(byteLen))
+                        } else break
+                    }
 
-
-        ipc1.onRequest { (req, ipc) ->
-            delay(200)
+                    controller.close()
+                }
+            })
             ipc.postMessage(
                 IpcResponse.fromStream(
                     req.req_id,
                     200,
-                    req.stream(),
+                    res_stream,
                     IpcHeaders(),
                     ipc
                 )
             )
         }
 
+//        ipc1.onRequest { (req, ipc) ->
+//            delay(200)
+//            val req_stream = req.stream()
+//            ipc.postMessage(
+//                IpcResponse.fromStream(
+//                    req.req_id,
+//                    200,
+//                    req_stream,
+//                    IpcHeaders(),
+//                    ipc
+//                )
+//            )
+//        }
+
+
         lateinit var controller: ReadableStream.ReadableStreamController
         val stream = ReadableStream(onStart = {
             controller = it
+        }, onPull = {
+            println("收到数据拉取请求 ${it.stream}")
         });
         var body = ""
         launch {
@@ -210,6 +229,6 @@ class NativeIpcTest {
 
         clientStreamIpc.close()
 
-        clientStreamIpc.stream.closed()
+        clientStreamIpc.stream.afterClosed()
     }
 }

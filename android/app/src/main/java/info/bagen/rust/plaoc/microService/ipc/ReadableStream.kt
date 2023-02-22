@@ -1,11 +1,11 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.Signal
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.*
 import java.io.IOException
 import java.io.InputStream
 
@@ -19,6 +19,12 @@ class ReadableStream(
     val onStart: suspend (arg: ReadableStreamController) -> Unit = {},
     val onPull: suspend (arg: ReadableStreamController) -> Unit = {}
 ) : InputStream() {
+
+    // 数据源
+    private var _data: ByteArray = byteArrayOf()
+    private var ptr = 0 // 当前指针
+    private var mark = 0 //标记
+
 
     private enum class StreamControlSignal {
         PULL,
@@ -68,31 +74,27 @@ class ReadableStream(
             // 一直等待数据
             for (chunk in dataChannel) {
                 _data += chunk
-                debugStream("DATA-IN/$uid", chunk.size)
+                debugStream("DATA-IN/$uid", "+${chunk.size} ~> ${_data.size}")
                 // 收到数据了，尝试解锁通知等待者
-                tryUnlock()
+                dataSizeState.emit(_data.size)
             }
             // 关闭数据通道了，尝试解锁通知等待者
-            tryUnlock()
-            closed = true
-            closeLock.unlock()
+            dataSizeState.emit(-1)
+            closePo.resolve(Unit)
         }
     }
 
-    private val closeLock = Mutex(true)
-    private var closed = false
-    private val dataLock = Mutex()
-    private inline fun tryUnlock() {
-        if (dataLock.isLocked) {
-            dataLock.unlock()
-            debugStream("TRY-UNLOCK/${uid}", _data.size)
-        }
+    private val closePo = PromiseOut<Unit>()
+
+    //    private val dataSizeChangeChannel = Channel<Int>()
+    private val dataSizeState = MutableStateFlow(_data.size)
+    private val dataSizeFlow = dataSizeState.asSharedFlow()
+
+    suspend fun afterClosed() {
+        closePo.waitPromise()
     }
 
-    suspend fun closed() {
-        if (closed) return
-        closeLock.withLock { }
-    }
+    val isClosed get() = closePo.finished
 
 
     /**
@@ -104,19 +106,21 @@ class ReadableStream(
             return _data
         }
 
-        // 如果还能从控制端读取数据，那么等待数据写入
-        if (!dataChannel.isClosedForSend) {
-            // 数据不够了，发送拉取的信号
-            runBlocking(readDataScope.coroutineContext) {
-                debugStream("REQUEST-DATA/LOCK/${uid}", _data.size)
-                // 数据不够了，发送拉取的信号
-                writeDataScope.async {
-                    controlSignal.emit(StreamControlSignal.PULL)
-                }
-                dataLock.lock()
-                debugStream("REQUEST-DATA/UNLOCK/${uid}", "${_data.size}/${ptr + 1}")
+        runBlocking {
+            writeDataScope.async {
+                controlSignal.emit(StreamControlSignal.PULL)
             }
-            return requestData(ptr)
+            val wait = PromiseOut<Unit>()
+            val c = launch {
+                dataSizeFlow.map { size ->
+                    when {
+                        size == -1 -> wait.resolve(Unit) // 不需要抛出错误
+                        ptr < size -> wait.resolve(Unit)
+                    }
+                }
+            }
+            wait.waitPromise()
+            debugStream("REQUEST-DATA/OK", _data.size)
         }
 
         // 控制端无法读取数据了，只能直接返回
@@ -129,12 +133,6 @@ class ReadableStream(
 
     private val uid = "#${id_acc++}"
     override fun toString() = uid
-
-
-    // 数据源
-    private var _data: ByteArray = byteArrayOf()
-    private var ptr = 0 // 当前指针
-    private var mark = 0 //标记
 
 
     /**

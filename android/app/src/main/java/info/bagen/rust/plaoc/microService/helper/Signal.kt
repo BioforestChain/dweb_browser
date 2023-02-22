@@ -31,11 +31,16 @@ open class Signal<Args>() {
     }
 
     suspend fun emit(args: Args) {
+
         val iter = this._cbs.iterator()
         for (cb in iter) {
-            when (cb(args)) {
-                SIGNAL_CTOR.OFF -> iter.remove()
-                SIGNAL_CTOR.BREAK -> break
+            try {
+                when (cb(args)) {
+                    SIGNAL_CTOR.OFF -> iter.remove()
+                    SIGNAL_CTOR.BREAK -> break
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
         }
     }
