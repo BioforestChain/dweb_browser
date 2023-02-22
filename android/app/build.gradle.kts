@@ -77,6 +77,7 @@ android {
             // 添加 http4k 框架后，会有异常报错，需要添加如下内容
             excludes += "/META-INF/INDEX.LIST"
             excludes += "/META-INF/io.netty.versions.properties"
+            excludes += "/META-INF/DEPENDENCIES"
         }
     }
 }

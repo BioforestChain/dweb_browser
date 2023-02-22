@@ -7,8 +7,10 @@ import info.bagen.rust.plaoc.microService.helper.byteArrayInputStream
 import info.bagen.rust.plaoc.microService.sys.file.FileSystemPlugin
 import org.http4k.core.*
 import org.http4k.lens.Query
+import org.http4k.lens.composite
 import org.http4k.lens.string
 import org.http4k.routing.bind
+import org.http4k.lens.boolean
 import org.http4k.routing.routes
 import org.json.JSONObject
 import java.io.*
@@ -30,40 +32,77 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb") {
             "/requestPermissions" bind Method.GET to defineHandler { request ->
                 println("FileSystemNMM#apiRouting requestPermissions===>$mmid  ${request.uri.path} ")
                 val path = Query.string().required("path")(request)
-                requestPermissions(path,0)
+                requestPermissions(path, 0)
                 Response(Status.OK)
             },
-            "/read" bind Method.GET to defineHandler { request ->
+            /** 不断返回buffer */
+            "/readBuffer" bind Method.GET to defineHandler { request ->
                 println("FileSystemNMM#apiRouting read===>$mmid  ${request.uri.path} ")
                 val path = Query.string().required("path")(request)
-               // 不断的往客户端发流数据
-               plugin.read(path){ byteArray,index ->
-                   var status = Status.CREATED
-                   if(index != -1) {
-                       status = Status.PARTIAL_CONTENT // 部分内容
-                   } else {
-                       status = Status.OK // 内容发完了
-                   }
-                   Response(status).body(byteArray.byteArrayInputStream())
-               }
+                // 不断的往客户端发流数据
+                plugin.readBuffer(path) { byteArray, index ->
+                    var status = Status.CREATED
+                    status = if (index != -1) {
+                        Status.PARTIAL_CONTENT // 部分内容
+                    } else {
+                        Status.OK // 内容发完了
+                    }
+                    Response(status).body(byteArray.byteArrayInputStream())
+                }
             },
-            "/write" bind Method.GET to defineHandler { request ->
+            /** 不断返回string*/
+            "/readString" bind Method.GET to defineHandler { request ->
+                println("FileSystemNMM#apiRouting read===>$mmid  ${request.uri.path} ")
+                val path = Query.string().required("path")(request)
+                // 不断的往客户端发流数据
+                plugin.readFile(path) { str, hasNextLine ->
+                    var status = Status.CREATED
+                    status = if (hasNextLine) {
+                        Status.PARTIAL_CONTENT // 部分内容
+                    } else {
+                        Status.OK // 内容发完了
+                    }
+                    Response(status).body(str)
+                }
+            },
+            /** 流写入*/
+            "/writeSteam" bind Method.POST to defineHandler { request ->
+                println("FileSystemNMM#apiRouting writeSteam===>$mmid  ${request.uri.path} ")
+                val path = Query.string().required("path")(request)
+                // 是否是追加内容 是否要自动创建文件
+                val writeOption = Query.composite {
+                    WriteOption(
+                        boolean().defaulted("append", false)(it),
+                        boolean().defaulted("autoCreate", true)(it),
+                    )
+                }
+                val option = writeOption(request)
+                val result = plugin.writeByteArray(path, request.body.stream, option)
+                Response(Status.OK).body(result)
+            },
+            /** 字符写入 可以不断调这个方法*/
+            "/writeString" bind Method.POST to defineHandler { request ->
+                println("FileSystemNMM#apiRouting writeString===>$mmid  ${request.uri.path} ")
+                val path = Query.string().required("path")(request)
+                val content = Query.string().required("content")(request)
+                // 是否是追加内容 是否要自动创建文件
+                val writeOption = Query.composite {
+                    WriteOption(
+                        boolean().defaulted("append", false)(it),
+                        boolean().defaulted("autoCreate", true)(it),
+                    )
+                }
+                val option = writeOption(request)
+                val result = plugin.write(path, content, option)
+                Response(Status.OK).body(result)
+            },
+            /** 删除*/
+            "/delete" bind Method.DELETE to defineHandler { request ->
                 println("FileSystemNMM#apiRouting write===>$mmid  ${request.uri.path} ")
                 val path = Query.string().required("path")(request)
-                requestPermissions(path,0)
-                Response(Status.OK)
-            },
-            "/delete" bind Method.GET to defineHandler { request ->
-                println("FileSystemNMM#apiRouting write===>$mmid  ${request.uri.path} ")
-                val path = Query.string().required("path")(request)
-                requestPermissions(path,0)
-                Response(Status.OK)
-            },
-            "/append" bind Method.GET to defineHandler { request ->
-                println("FileSystemNMM#apiRouting write===>$mmid  ${request.uri.path} ")
-                val path = Query.string().required("path")(request)
-                requestPermissions(path,0)
-                Response(Status.OK)
+                val deepDelete = Query.boolean().optional("deepDelete")(request)
+                val result = plugin.rm(path, deepDelete?:true)
+                Response(Status.OK).body(result)
             },
         )
     }
@@ -97,8 +136,8 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb") {
     }
 
     // TODO 申请文件权限
-    private fun requestPermissions(path: String,state:Int) {
-        val file = plugin.addPermission(path,state)
+    private fun requestPermissions(path: String, state: Int) {
+        val file = plugin.addPermission(path, state)
     }
 
     override suspend fun _shutdown() {

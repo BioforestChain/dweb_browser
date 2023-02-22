@@ -4,12 +4,18 @@ import android.util.Log
 import com.king.mlkit.vision.camera.util.LogUtils
 import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.readByteArray
+import info.bagen.rust.plaoc.microService.helper.readInt
+import info.bagen.rust.plaoc.microService.ipc.IpcMessage
+import info.bagen.rust.plaoc.microService.ipc.IpcMessageArgs
+import info.bagen.rust.plaoc.microService.ipc.ipcWeb.jsonToIpcMessage
 import info.bagen.rust.plaoc.microService.sys.plugin.file.Fs
 import info.bagen.rust.plaoc.microService.sys.plugin.file.LsFilter
 import info.bagen.rust.plaoc.microService.sys.plugin.file.WriteOption
 import info.bagen.rust.plaoc.webView.network.dWebView_host
+import kotlinx.coroutines.*
 import java.io.*
-import java.nio.charset.StandardCharsets
+import java.util.*
 import java.util.regex.PatternSyntaxException
 import kotlin.io.path.Path
 import kotlin.io.path.isSymbolicLink
@@ -147,39 +153,116 @@ class FileSystemPlugin {
         return bool
     }
 
-    fun write(path: String, content: String, options: WriteOption): String {
+    /**写文件利用BufferedWriter，可以保证内存不会溢出，而且会一直写入 */
+    fun write(path: String, fileContent: String, options: WriteOption): String {
         val file = getFileByPath(path)
-        if (!file.exists() && options.autoCreate) {
-            file.parentFile?.mkdirs()
-        }
-//    println("write  file->${file.absolutePath}，content->$content，append->$append，autoCreate->$autoCreate")
+        var fileWriter: FileWriter? = null
         try {
-            val fileWriter = FileWriter(file, options.append)
-            val bufferedWriter = BufferedWriter(fileWriter)
-            bufferedWriter.write(content)
-            bufferedWriter.close()
+            // 判断文件是否创建且需要自动创建
+            if (!file.exists() && options.autoCreate) {
+                file.parentFile?.mkdirs()
+            }
+            fileWriter = FileWriter(file, options.append)
+            val bw = BufferedWriter(fileWriter)
+            bw.write(fileContent)
+            bw.close()
         } catch (e: Throwable) {
             LogUtils.d("write fail -> ${e.message}")
             return e.message.toString()
+        } finally {
+            try {
+                fileWriter?.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
         }
         return "true"
     }
 
-    fun read(path: String, callStream: (byteArray:ByteArray,index:Int) -> Unit) {
+    /**
+     * 流写入
+     * @param path String
+     * @param content InputStream
+     * @param options WriteOption
+     */
+    fun writeByteArray(path: String, content: InputStream, options: WriteOption): String {
+        val file = getFileByPath(path)
+        // append=true,是不断增加的
+        var fileWriter: FileOutputStream? = null
+        try {
+            // 判断文件是否创建且需要自动创建
+            if (!file.exists() && options.autoCreate) {
+                file.parentFile?.mkdirs()
+            }
+            fileWriter = FileOutputStream(file, options.append)
+            // 如果通道关闭并且没有剩余字节可供读取，则返回 true
+            while (content.available() > 0) {
+                val size = content.readInt()
+                // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
+                val chunk = content.readByteArray(size)
+                fileWriter.write(chunk)
+            }
+        } catch (e: Throwable) {
+            LogUtils.d("FileSystem#writeByteArray fail -> ${e.message}")
+            return e.message.toString()
+        } finally {
+            fileWriter?.close()
+            content.close()
+        }
+        return "true"
+    }
+
+    /** 读文件buffer*/
+    @OptIn(DelicateCoroutinesApi::class)
+    fun readBuffer(path: String, callStream: (byteArray: ByteArray, index: Int) -> Unit) {
         println("read buffer.toString -> $path")
         val file = getFileByPath(path)
         val buffer = FileInputStream(file)
-        do {
-            var i = 0
-            val buf = ByteArray(1024)
-            try {
-                i = buffer.read(buf)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            callStream(buf,i)
-        } while (i != -1)
+        GlobalScope.launch(Dispatchers.IO) {
+            do {
+                var i = 0
+                val buf = ByteArray(1024)
+                try {
+                    i = buffer.read(buf)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                } finally {
+                    buffer.close()
+                }
+                callStream(buf, i)
+            } while (i != -1)
+        }
+    }
 
+    /**
+     * 读取大文件
+     * @param filePath
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    fun readFile(filePath: String?, callString: (str: String, hasNextLine: Boolean) -> Unit) {
+        GlobalScope.launch(Dispatchers.IO) {
+            var inputStream: FileInputStream? = null
+            var sc: Scanner? = null
+            try {
+                inputStream = FileInputStream(filePath)
+                sc = Scanner(inputStream, "UTF-8")
+                while (sc.hasNextLine()) {
+                    val line: String = sc.nextLine()
+                    callString(line, sc.hasNextLine())
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                }
+                sc?.close()
+            }
+        }
     }
 
     fun rename(path: String, newFilePath: String): String {
@@ -201,13 +284,18 @@ class FileSystemPlugin {
         }
     }
 
-    fun rm(path: String, deepDelete: Boolean = true): Boolean {
+    fun rm(path: String, deepDelete: Boolean = true): String {
         val file = getFileByPath(path)
-        val bool = when (deepDelete) {
-            true -> file.deleteRecursively()
-            false -> file.delete()
+        var bool = false
+        try {
+             bool = when (deepDelete) {
+                true -> file.deleteRecursively()
+                false -> file.delete()
+            }
+        } catch (e:Throwable) {
+            return  e.message.toString()
         }
-        return bool
+        return bool.toString()
     }
 
 }
