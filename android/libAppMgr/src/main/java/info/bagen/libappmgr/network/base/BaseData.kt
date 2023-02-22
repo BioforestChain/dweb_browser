@@ -1,6 +1,8 @@
 package info.bagen.libappmgr.network.base
 
 import org.http4k.core.Response
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
 
 /**
  * 用于获取网络请求数据
@@ -22,3 +24,8 @@ suspend inline fun <reified T> Response.bodyData(): T =
         BaseData(this.status.code, this.status.description, null) as T
     }
 
+fun byteBufferToString(byteBuffer: ByteBuffer) : String {
+    val charset = Charset.forName("utf-8")
+    val charBuffer = charset.decode(byteBuffer)
+    return charBuffer.toString()
+}
