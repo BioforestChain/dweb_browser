@@ -95,10 +95,10 @@ class NativeIpcTest {
             delay(200)
             val req_stream = req.stream()
             val res_stream = ReadableStream(onStart = { controller ->
-                launch {
+                GlobalScope.launch(Dispatchers.IO) {
                     debugStream("PIPE/START", "$req_stream >>> ${controller.stream}")
                     while (true) {
-                        val byteLen = req_stream.available()
+                        val byteLen = req_stream.available() // TODO 这里过一段时间会自己关闭，打个断点能发现这个行为
                         println("available byte length: $byteLen")
                         if (byteLen > 0) {
                             controller.enqueue(req_stream.readByteArray(byteLen))
