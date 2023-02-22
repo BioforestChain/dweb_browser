@@ -70,15 +70,12 @@ export class IpcRequest extends IpcBody {
     // headers["transfer-encoding"] ??= ipc.support_message_pack
     //   ? "base64"
     //   : "binary";
-    const stream_id = `res/${req_id}/${headers.get("content-length") ?? "-"}`;
-    $streamAsRawData(stream_id, stream, ipc);
+    
     return new IpcRequest(
       req_id,
       method,
       url,
-      ipc.support_binary
-        ? [IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id]
-        : [IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id],
+      $streamAsRawData(stream, ipc),
       headers.toJSON(),
       ipc
     );

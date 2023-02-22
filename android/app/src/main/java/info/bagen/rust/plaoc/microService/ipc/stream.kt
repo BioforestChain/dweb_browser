@@ -8,13 +8,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.InputStream
+import java.util.*
 
+val streamIdWM by lazy { WeakHashMap<InputStream, String>() }
+
+var stream_id_acc = 0;
+fun getStreamId(stream: InputStream): String = streamIdWM.getOrPut(stream) {
+    "rs-${stream_id_acc++}"
+};
 
 fun streamAsRawData(
-    stream_id: String, stream: InputStream, ipc: Ipc
-) {
+    stream: InputStream, ipc: Ipc
+): RawData {
+    val stream_id = getStreamId(stream)
     debugStream("streamAsRawData/$ipc/$stream")
-    val streamAsRawDataScope = CoroutineScope(CoroutineName("streamAsRawData/${ipc}/$stream") + Dispatchers.IO)
+    val streamAsRawDataScope =
+        CoroutineScope(CoroutineName("streamAsRawData/${ipc}/$stream") + Dispatchers.IO)
     ipc.onMessage { (message) ->
         /// 对方申请数据拉取
         if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {
@@ -29,7 +38,6 @@ fun streamAsRawData(
                             break
                         }
                         else -> {
-                            // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
                             debugStream(
                                 "streamAsRawData/READ/$ipc/$stream",
                                 "$availableLen >> $stream_id"
@@ -52,7 +60,12 @@ fun streamAsRawData(
         } else {
         }
     }
+    return when (ipc.supportBinary) {
+        true -> RawData(IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id)
+        false -> RawData(IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id)
+    }
 }
+
 
 /**
  * @return {String | ByteArray | InputStream}

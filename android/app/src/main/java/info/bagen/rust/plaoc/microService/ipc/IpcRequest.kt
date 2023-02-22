@@ -96,15 +96,10 @@ class IpcRequest(
                     headers.init("Content-Length", size.toString());
                 }
             },
-            "res/$req_id/${headers.getOrDefault("Content-Length", "-")}".let { stream_id ->
-                streamAsRawData(stream_id, stream, ipc);
-                if (ipc.supportBinary) RawData(IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id)
-                else RawData(
-                    IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id
-                )
-            },
+            streamAsRawData(stream, ipc),
             ipc
         )
+
     }
 
     fun asRequest() = Request(ipcMethod.http4kMethod, url).headers(headers.toList()).let { req ->

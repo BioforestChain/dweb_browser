@@ -27,8 +27,9 @@ class ReadableStream(
 
     class ReadableStreamController(
         private val dataChannel: Channel<ByteArray>,
-        val stream: ReadableStream
+        val getStream: () -> ReadableStream
     ) {
+        val stream get() = getStream()
 
         suspend fun enqueue(byteArray: ByteArray) =
             dataChannel.send(byteArray)
@@ -44,7 +45,7 @@ class ReadableStream(
     private val dataChannel = Channel<ByteArray>()
     private val pullSignal = Signal<Int>()
 
-    private val controller = ReadableStreamController(dataChannel, this)
+    private val controller by lazy { ReadableStreamController(dataChannel) { this@ReadableStream } }
 
     private val writeDataScope =
         CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO)
@@ -56,9 +57,9 @@ class ReadableStream(
             onStart(controller)
         }
         pullSignal.listen { desiredSize ->
-            debugStream("PULL/START/${uid}", currentCoroutineContext().toString())
+            debugStream("PULL/START/${uid}", desiredSize)
             onPull(Pair(desiredSize, controller))
-            debugStream("PULL/END/${uid}", currentCoroutineContext().toString())
+            debugStream("PULL/END/${uid}", desiredSize)
         }
         writeDataScope.launch {
             // 一直等待数据

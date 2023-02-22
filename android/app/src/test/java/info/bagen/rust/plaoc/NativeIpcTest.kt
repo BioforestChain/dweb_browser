@@ -95,11 +95,17 @@ class NativeIpcTest {
             delay(200)
             val req_stream = req.stream()
             val res_stream = ReadableStream(onStart = { controller ->
-                GlobalScope.launch(Dispatchers.IO) {
+                /// 这里不可以用上下文所使用的launch，而是要重新开一个，以确保和 postMessage-fromStream 所使用的分开
+//                GlobalScope.
+                launch {
+                    delay(100)
                     debugStream("PIPE/START", "$req_stream >>> ${controller.stream}")
                     while (true) {
                         val byteLen = req_stream.available() // TODO 这里过一段时间会自己关闭，打个断点能发现这个行为
-                        println("available byte length: $byteLen")
+                        debugStream(
+                            "PIPE/ON-DATA",
+                            "$req_stream >> $byteLen >> ${controller.stream}"
+                        )
                         if (byteLen > 0) {
                             controller.enqueue(req_stream.readByteArray(byteLen))
                         } else break
@@ -155,7 +161,7 @@ class NativeIpcTest {
     }
 
     @Test
-    fun withReadableStream() = runBlocking {
+    fun withReadableStreamIpc() = runBlocking {
         System.setProperty("dweb-debug", "native native-ipc")
 
         val mServer = object : NativeMicroModule("mServer") {
@@ -206,13 +212,8 @@ class NativeIpcTest {
         val clientStreamIpc = ReadableStreamIpc(mClient, IPC_ROLE.CLIENT)
         println("CLIENT STREAM-IPC/STREAM: ${clientStreamIpc.stream}")
 
-        val req_body = StreamBody(
-            clientStreamIpc.stream
-        )
         val res = mClient.nativeFetch(
-            Request(Method.POST, "http://mServer/listen", HTTP_2).body(
-                req_body
-            )
+            Request(Method.POST, "http://mServer/listen").body(clientStreamIpc.stream)
         )
         clientStreamIpc.bindIncomeStream(res.body.stream, "as-remote");
 

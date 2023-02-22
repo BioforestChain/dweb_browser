@@ -71,23 +71,15 @@ class IpcResponse(
             stream: InputStream,
             headers: IpcHeaders,
             ipc: Ipc
-        ): IpcResponse {
-            headers.init("Content-Type", "application/octet-stream");
-            val stream_id = "res/${req_id}/${headers.get("Content-Length") ?: "-"}";
-            val ipcResponse = IpcResponse(
-                req_id,
-                statusCode,
-                headers,
-                if (ipc.supportBinary) {
-                    RawData(IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id)
-                } else {
-                    RawData(IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id)
-                },
-                ipc
-            );
-            streamAsRawData(stream_id, stream, ipc);
-            return ipcResponse;
-        }
+        ) = IpcResponse(
+            req_id,
+            statusCode,
+            headers.also {
+                headers.init("Content-Type", "application/octet-stream");
+            },
+            streamAsRawData(stream, ipc),
+            ipc
+        )
 
         fun fromResponse(
             req_id: Int,
