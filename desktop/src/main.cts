@@ -19,9 +19,9 @@ dns.install(browserJMM)
 
 // 安装 file.sys.dweb
 import { FileNMM } from "./sys/file/file.cjs"
-dns.install(new FileNMM);
+dns.install(new FileNMM());
 
- 
-
+import { AppNMM } from "./sys/app/app.cjs"
+dns.install(new AppNMM())
 
 Object.assign(globalThis, { dns: dns });

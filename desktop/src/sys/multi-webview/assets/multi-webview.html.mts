@@ -36,12 +36,17 @@ export class ViewTree extends LitElement {
       }
       .layer {
         grid-area: layer;
-        flex: 1;
+        /* flex: 1; */
         display: grid;
         grid-template-areas: "layer-content";
-
         height: 100%;
         padding: 0.5em 1em;
+      }
+      .app-container{
+        flex-grow: 0;
+        flex-shrink: 0;
+        width: 375px;
+        height: 812px;
       }
       .webview-container {
         position: relative;
@@ -106,6 +111,9 @@ export class ViewTree extends LitElement {
         border-radius: 1em;
         overflow: hidden;
       }
+      .dev-tools-container{
+        min-width:500px;
+      }
       .toolbar {
         grid-area: toolbar;
 
@@ -159,9 +167,9 @@ export class ViewTree extends LitElement {
     `,
     css`
       .stack {
-        display: inline-grid;
+        /* display: inline-grid;
         place-items: center;
-        align-items: flex-end;
+        align-items: flex-end; */
       }
       .stack > * {
         grid-column-start: 1;
@@ -179,6 +187,8 @@ export class ViewTree extends LitElement {
       .stack > .closing {
         pointer-events: none;
       }
+      
+      
       /* 
       .stack > .opening {
         transform: translateY(min(10%, 10px)) translateZ(0) scale(0.9);
@@ -311,7 +321,7 @@ export class ViewTree extends LitElement {
   // Render the UI as a function of component state
   override render() {
     return html`
-      <div class="layer stack">
+      <div class="layer stack app-container">
         ${repeat(
           this.webviews,
           (dialog) => dialog.id,
@@ -340,7 +350,7 @@ export class ViewTree extends LitElement {
           }
         )}
       </div>
-      <div class="layer stack" style="flex: 2.5;">
+      <div class="layer stack dev-tools-container" style="flex: 2.5;">
         ${repeat(
           this.webviews,
           (dialog) => dialog.id,

@@ -186,6 +186,14 @@ class HomePage extends LitElement{
 
     onOpenApp(appId: string){
         console.log('点击了打开： ', appId)
+        fetch(`./open?appId=${appId}`)
+        .then(res => {
+            console.log('打开应用成功： ', res)
+        })
+        .catch(err => {
+            console.log('打开应用失败： ', err)
+        })
+        
     }
 }
  

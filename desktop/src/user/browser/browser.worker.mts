@@ -38,6 +38,7 @@ async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
     case "/download": onRequestPathNameDownload(request, httpServerIpc); break;
     case "/appsinfo": onRequestPathNameAppsInfo(request, httpServerIpc); break;
     case `${request.parsed_url.pathname.startsWith("/icon") ? request.parsed_url.pathname : "**eot**"}`: onRequestPathNameIcon(request, httpServerIpc); break;
+    case `/open`: onRequestPathNameOpen(request, httpServerIpc); break;
     default: onRequestPathNameNoMatch(request, httpServerIpc); break;
   }
 
@@ -160,6 +161,17 @@ async function onRequestPathNameIcon(request: IpcRequest, httpServerIpc: Ipc){
   })
 }
 
+async function onRequestPathNameOpen(request: IpcRequest, httpServerIpc: Ipc){
+  console.log('request.url: ', request, request.url)
+  const _url = `file://app.sys.dweb${request.url}`
+  console.log('url: ', _url)
+  jsProcess
+  fetch(_url)
+  .then(async(res: Response) => {
+    console.log('打开了 指定的应用')
+  })
+}
+
 /**
  * onRequest 事件处理器 pathname === no match" 
  * @param request 
@@ -179,6 +191,7 @@ async function onRequestPathNameNoMatch(request: IpcRequest, httpServerIpc: Ipc)
  * @returns 
  */
 async function openIndexHtmlAtMWebview(origin:string){
+  console.log('--------broser.worker.mts, origin: ', origin)
   const view_id = await jsProcess
                         .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
                         .text();
