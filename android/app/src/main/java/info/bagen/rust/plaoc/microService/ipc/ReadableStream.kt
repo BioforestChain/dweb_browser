@@ -17,7 +17,7 @@ inline fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
  */
 class ReadableStream(
     val onStart: suspend (arg: ReadableStreamController) -> Unit = {},
-    val onPull: suspend (arg: ReadableStreamController) -> Unit = {}
+    val onPull: suspend (arg: Pair<Int, ReadableStreamController>) -> Unit = {}
 ) : InputStream() {
 
     // 数据源
@@ -47,11 +47,10 @@ class ReadableStream(
 
 
     private val dataChannel = Channel<ByteArray>()
-    private val controlSignal = Signal<StreamControlSignal>()
+    private val pullSignal = Signal<Int>()
 
     private val controller = ReadableStreamController(dataChannel, this)
 
-    private val pullScope = CoroutineScope(CoroutineName("readableStream/pull") + Dispatchers.IO)
     private val writeDataScope =
         CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO)
     private val readDataScope =
@@ -61,14 +60,10 @@ class ReadableStream(
         runBlocking {
             onStart(controller)
         }
-        controlSignal.listen { signal ->
-            when (signal) {
-                StreamControlSignal.PULL -> {
-                    debugStream("PULL/START/${uid}", currentCoroutineContext().toString())
-                    onPull(controller)
-                    debugStream("PULL/END/${uid}", currentCoroutineContext().toString())
-                }
-            }
+        pullSignal.listen { desiredSize ->
+            debugStream("PULL/START/${uid}", currentCoroutineContext().toString())
+            onPull(Pair(desiredSize, controller))
+            debugStream("PULL/END/${uid}", currentCoroutineContext().toString())
         }
         writeDataScope.launch {
             // 一直等待数据
@@ -107,20 +102,25 @@ class ReadableStream(
         }
 
         runBlocking {
+            val desiredSize = ptr + 1
             writeDataScope.async {
-                controlSignal.emit(StreamControlSignal.PULL)
-            }
-            val wait = PromiseOut<Unit>()
-            val c = launch {
-                dataSizeFlow.map { size ->
-                    when {
-                        size == -1 -> wait.resolve(Unit) // 不需要抛出错误
-                        ptr < size -> wait.resolve(Unit)
+                pullSignal.emit(desiredSize)
+            }.join()
+            readDataScope.async {
+                val wait = PromiseOut<Unit>()
+                val c = launch {
+                    dataSizeFlow.collect { size ->
+                        debugStream("REQUEST-DATA/CHANGED/$uid", "$size/$desiredSize")
+                        when {
+                            size == -1 -> wait.resolve(Unit) // 不需要抛出错误
+                            ptr < size -> wait.resolve(Unit)
+                        }
                     }
                 }
-            }
-            wait.waitPromise()
-            debugStream("REQUEST-DATA/OK", _data.size)
+                wait.waitPromise()
+                c.cancel()
+                debugStream("REQUEST-DATA/OK/$uid", _data.size)
+            }.join()
         }
 
         // 控制端无法读取数据了，只能直接返回

@@ -75,6 +75,7 @@ class NativePort<I, O>(
         for (message in channel_in) {
             debugNativeIpc("message-in/$uid << $message")
             _messageSignal.emit(message)
+            debugNativeIpc("message-waiting/$uid")
         }
         debugNativeIpc("message-end/$uid")
     }

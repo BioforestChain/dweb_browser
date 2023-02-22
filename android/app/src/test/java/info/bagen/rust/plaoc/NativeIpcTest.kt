@@ -8,6 +8,7 @@ import info.bagen.rust.plaoc.microService.ipc.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -91,7 +92,7 @@ class NativeIpcTest {
             delay(200)
             val req_stream = req.stream()
             val res_stream = ReadableStream(onStart = { controller ->
-                launch {
+                async {
                     println("开始循环读取 req_stream $req_stream")
                     while (true) {
                         val byteLen = req_stream.available()
@@ -133,11 +134,11 @@ class NativeIpcTest {
         lateinit var controller: ReadableStream.ReadableStreamController
         val stream = ReadableStream(onStart = {
             controller = it
-        }, onPull = {
-            println("收到数据拉取请求 ${it.stream}")
+        }, onPull = {(desiredSize,controller)->
+            println("收到数据拉取请求 ${controller.stream} $desiredSize")
         });
         var body = ""
-        launch {
+        val job = launch {
             delay(100)
             for (i in 1..10) {
                 delay(200)
@@ -152,8 +153,9 @@ class NativeIpcTest {
         val res = ipc2.request(Request(Method.GET, "").body(stream))
         println("got res")
         assertEquals(res.text(), body)
-        ipc2.close()
-
+        println("got res.body: ${res.text()}")
+//        ipc2.close()
+        job.join()
     }
 
     @Test

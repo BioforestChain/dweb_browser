@@ -23,8 +23,8 @@ class ReadableStreamIpc(
 
     val stream = ReadableStream(onStart = {
         controller = it
-    }, onPull = {
-        debugStream("IPC-ON-PULL")
+    }, onPull = { (size) ->
+        debugStream("IPC-ON-PULL", size)
     })
 
     private var _incomeStream: InputStream? = null

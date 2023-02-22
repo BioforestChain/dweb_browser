@@ -9,7 +9,7 @@ import kotlinx.coroutines.runBlocking
  */
 fun main() {
     var b: Byte = 0
-    val stream = ReadableStream(onPull = { controller ->
+    val stream = ReadableStream(onPull = { (_, controller) ->
         Thread.sleep(500)
         controller.enqueue(byteArrayOf(b++))
         if (b > 10) {
@@ -20,7 +20,7 @@ fun main() {
 
     GlobalScope.launch {
         println("reading")
-        while (stream.available()>0) {
+        while (stream.available() > 0) {
             println("read ${stream.read()}")
         }
     }

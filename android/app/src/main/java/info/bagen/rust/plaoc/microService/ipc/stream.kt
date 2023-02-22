@@ -3,32 +3,52 @@ package info.bagen.rust.plaoc.microService.ipc
 import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
 import info.bagen.rust.plaoc.microService.helper.asBase64
 import info.bagen.rust.plaoc.microService.helper.asUtf8
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.InputStream
 
 
 fun streamAsRawData(
     stream_id: String, stream: InputStream, ipc: Ipc
 ) {
+    val streamAsRawDataScope = CoroutineScope(CoroutineName("streamAsRawData") + Dispatchers.IO)
+    debugStream("streamAsRawData/$stream")
     ipc.onMessage { (message) ->
         /// 对方申请数据拉取
         if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {
-            debugStream("streamAsRawData/ON-PULL/$stream", stream_id)
-            debugStream("streamAsRawData/READING/$stream", stream_id)
-            when (val availableLen = stream.available()) {
-                -1, 0 -> {
-                    debugStream("streamAsRawData/END$stream", stream_id)
-                    ipc.postMessage(IpcStreamEnd(stream_id))
-                }
-                else -> {
-                    // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
-                    val binary = ByteArray(availableLen)
-                    stream.read(binary)
-                    debugStream("streamAsRawData/READ/$stream", "$availableLen >> $stream_id")
-                    ipc.postMessage(
-                        IpcStreamData.fromBinary(
-                            ipc, stream_id, binary
-                        )
-                    )
+            streamAsRawDataScope.launch {
+                var desiredSize = message.desiredSize
+                while (desiredSize > 0) {
+                    debugStream("streamAsRawData/ON-PULL/$stream", stream_id)
+                    debugStream("streamAsRawData/READING/$stream", stream_id)
+                    when (val availableLen = stream.available()) {
+                        -1, 0 -> {
+                            debugStream("streamAsRawData/END$stream", stream_id)
+                            ipc.postMessage(IpcStreamEnd(stream_id))
+                            break
+                        }
+                        else -> {
+                            // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
+                            debugStream(
+                                "streamAsRawData/READ/$stream",
+                                "$availableLen >> $stream_id"
+                            )
+                            val binary = ByteArray(availableLen)
+                            stream.read(binary)
+                            ipc.postMessage(
+                                IpcStreamData.fromBinary(
+                                    ipc, stream_id, binary
+                                )
+                            )
+//                            debugStream(
+//                                "streamAsRawData/SEND/$stream",
+//                                "$availableLen >> $stream_id"
+//                            )
+                            desiredSize -= availableLen
+                        }
+                    }
                 }
             }
         } else if ((message is IpcStreamAbort) && (message.stream_id == stream_id)) {
@@ -68,10 +88,11 @@ fun rawDataToBody(rawBody: RawData?, ipc: Ipc?): Any {
                 } else {
                 }
             }
-        }, onPull = {
-            debugStream("rawDataToBody/POST-PULL/${it.stream}", stream_id)
-            ipc.postMessage(IpcStreamPull(stream_id))
+        }, onPull = { (desiredSize, controller) ->
+            debugStream("rawDataToBody/POST-PULL/${controller.stream}", stream_id)
+            ipc.postMessage(IpcStreamPull(stream_id, desiredSize))
         });
+        debugStream("rawDataToBody/$stream")
 
         return stream // as InputStream
     }
