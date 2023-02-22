@@ -123,4 +123,8 @@ dependencies {
     // 由于引入exoplayer后导致com.google.guava:listenablefuture not found -> https://github.com/google/ExoPlayer/issues/7993
     api 'com.google.guava:guava:29.0-android'
 
+    // 扫码核心库
+    implementation(project(":mlkit-camera-core"))
+    implementation(project(":mlkit-barcode-scanning"))
+
 }

@@ -2,6 +2,7 @@ package info.bagen.libappmgr.di
 
 import info.bagen.libappmgr.ui.app.AppRepository
 import info.bagen.libappmgr.ui.app.AppViewModel
+import info.bagen.libappmgr.ui.camera.QRCodeViewModel
 import info.bagen.libappmgr.ui.dcim.DCIMViewModel
 import info.bagen.libappmgr.ui.download.DownLoadRepository
 import info.bagen.libappmgr.ui.download.DownLoadViewModel
@@ -14,6 +15,7 @@ val libViewModelModule = module {
     viewModel { AppViewModel(get()) }
     viewModel { DownLoadViewModel(get()) }
     viewModel { DCIMViewModel(get()) }
+    viewModel { QRCodeViewModel() }
 }
 
 val libRepositoryModule = module {
