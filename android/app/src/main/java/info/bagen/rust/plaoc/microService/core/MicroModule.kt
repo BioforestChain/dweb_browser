@@ -1,9 +1,9 @@
 package info.bagen.rust.plaoc.microService.core
 
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.SimpleSignal
 import info.bagen.rust.plaoc.microService.ipc.Ipc
-import kotlinx.coroutines.sync.Mutex
 
 
 typealias Router = MutableMap<String, AppRun>
@@ -16,33 +16,26 @@ abstract class MicroModule {
     open val routers: Router? = null
     protected abstract suspend fun _bootstrap()
 
-    private var running = false;
-    private var _bootstrapLock: Mutex? = Mutex()
+    private var runningStateLock = PromiseOut.resolve(false)
+    val running get() = runningStateLock.value == true
 
     private suspend fun beforeBootstrap() {
-        if (this.running) {
-            throw  Exception("module ${this.mmid} already running");
+        if (this.runningStateLock.waitPromise()) {
+            throw Exception("module ${this.mmid} already running");
         }
-        this.running = true;
+        this.runningStateLock = PromiseOut()
     }
 
-    protected suspend fun afterBootstrap() {
-//        println("MicroModule#afterBootstrap===>${this.mmid}  ")
+    private suspend fun afterBootstrap() {
+        this.runningStateLock.resolve(true)
     }
 
     suspend fun bootstrap() {
         this.beforeBootstrap()
 
-        val bootstrapLock = Mutex()
-        this._bootstrapLock = bootstrapLock
         try {
             this._bootstrap();
         } finally {
-            if (bootstrapLock.isLocked) {
-                bootstrapLock.unlock();
-            }
-            this._bootstrapLock = null;
-
             this.afterBootstrap();
         }
     }
@@ -50,30 +43,24 @@ abstract class MicroModule {
     protected val _afterShutdownSignal = SimpleSignal();
 
     protected suspend fun beforeShutdown() {
-        if (!running) {
-            throw  Exception("module $mmid already shutdown");
+        if (!this.runningStateLock.waitPromise()) {
+            throw Exception("module $mmid already shutdown");
         }
-        running = false;
-        _afterShutdownSignal.emit()
+        this.runningStateLock = PromiseOut()
     }
 
-    private var _shutdownLock: Mutex? = null
     protected abstract suspend fun _shutdown()
-    protected open suspend fun afterShutdown() {}
+    protected open suspend fun afterShutdown() {
+        runningStateLock.resolve(false)
+    }
+
 
     suspend fun shutdown() {
-        if (this._bootstrapLock!!.isLocked) {
-            this._bootstrapLock
-        }
-
-        val shutdownLock = Mutex()
-        this._shutdownLock = shutdownLock
         this.beforeShutdown()
+
         try {
             this._shutdown()
         } finally {
-            shutdownLock.unlock()
-            this._shutdownLock = null
             this.afterShutdown()
         }
     }
@@ -81,10 +68,9 @@ abstract class MicroModule {
     /** 外部程序与内部程序建立链接的方法 */
     protected abstract suspend fun _connect(from: MicroModule): Ipc;
     suspend fun connect(from: MicroModule): Ipc {
-        if (!running) {
+        if (!runningStateLock.waitPromise()) {
             throw Exception("module no running");
         }
-        _bootstrapLock?.lock()
         return _connect(from);
     }
 

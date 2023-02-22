@@ -8,7 +8,7 @@ import info.bagen.rust.plaoc.microService.ipc.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -65,8 +65,12 @@ class NativeIpcTest {
         ipc2.close()
     }
 
+    private val catcher = CoroutineExceptionHandler { ctx, e ->
+        e.printStackTrace()
+    }
+
     @Test
-    fun sendStreamData() = runBlocking {
+    fun sendStreamData() = runBlocking(catcher) {
         System.setProperty("dweb-debug", "native-ipc stream")
         val m1 = object : NativeMicroModule("m1") {
             override suspend fun _bootstrap() {
@@ -82,6 +86,8 @@ class NativeIpcTest {
             override suspend fun _shutdown() {
             }
         }
+        m1.bootstrap()
+        m2.bootstrap()
 
 
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
@@ -92,7 +98,7 @@ class NativeIpcTest {
             delay(200)
             val req_stream = req.stream()
             val res_stream = ReadableStream(onStart = { controller ->
-                async {
+                launch {
                     println("开始循环读取 req_stream $req_stream")
                     while (true) {
                         val byteLen = req_stream.available()
@@ -116,25 +122,10 @@ class NativeIpcTest {
             )
         }
 
-//        ipc1.onRequest { (req, ipc) ->
-//            delay(200)
-//            val req_stream = req.stream()
-//            ipc.postMessage(
-//                IpcResponse.fromStream(
-//                    req.req_id,
-//                    200,
-//                    req_stream,
-//                    IpcHeaders(),
-//                    ipc
-//                )
-//            )
-//        }
-
-
         lateinit var controller: ReadableStream.ReadableStreamController
         val stream = ReadableStream(onStart = {
             controller = it
-        }, onPull = {(desiredSize,controller)->
+        }, onPull = { (desiredSize, controller) ->
             println("收到数据拉取请求 ${controller.stream} $desiredSize")
         });
         var body = ""
@@ -154,8 +145,10 @@ class NativeIpcTest {
         println("got res")
         assertEquals(res.text(), body)
         println("got res.body: ${res.text()}")
-//        ipc2.close()
-        job.join()
+        ipc2.close()
+        m1.shutdown()
+        m2.shutdown()
+        println("job.isCompleted: ${job.isCompleted}")
     }
 
     @Test
