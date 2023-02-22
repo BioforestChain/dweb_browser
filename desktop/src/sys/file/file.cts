@@ -103,25 +103,6 @@ export class FileNMM extends NativeMicroModule {
               "Content-Type": "image/svg+xml",
             })
           )
-
-
-          // file://file.sys.dweb/icon?url=/icon/W85DEFE5/sys/react.svg
-          // const appId = 
-
-
-          // // console.log('file.cts 开始获取 appsInfo---------------------------+++')
-          // const appsInfo = await getAllApps()
-          // // console.log('file.cts 获取到了 appsInfo---------------------------+++appsInfo： ', appsInfo)
-          // // console.log("JSON.stringify(appsInfo): ",JSON.stringify(appsInfo))
-          // return IpcResponse.fromJson(
-          //   request.req_id,
-          //   200,
-          //   JSON.stringify(appsInfo),
-          //   new IpcHeaders({
-          //     "Content-Type": "text/json",
-          //   })
-          // )
-          return true;
         },
       });
   
