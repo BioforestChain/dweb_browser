@@ -43,4 +43,37 @@ class PromiseOutTest {
             assertEquals(e.message, "QAQ")
         }
     }
+
+
+    @Test
+    fun testMultiAwait() = runBlocking {
+        val po = PromiseOut<Unit>()
+        val startTime = System.currentTimeMillis()
+
+        launch {
+            delay(1000)
+            po.resolve(Unit)
+        }
+        launch {
+            delay(1000)
+            po.resolve(Unit)
+        }
+        launch {
+            println("start wait 1")
+            po.waitPromise()
+            println("resolved 1")
+        }
+
+        launch {
+            println("start wait 2")
+            po.waitPromise()
+            println("resolved 2")
+        }
+
+        println("start wait 3")
+        po.waitPromise()
+        println("resolved 3")
+
+        assertEquals(System.currentTimeMillis() - startTime >= 1000L, true)
+    }
 }

@@ -67,7 +67,7 @@ class NativePort<I, O>(
 
     private var started = false
     suspend fun start() {
-        if (started || closePo.finished) return else started = true
+        if (started || closePo.isFinished) return else started = true
 
         debugNativeIpc("port-message-start/$this")
         for (message in channel_in) {
@@ -84,7 +84,7 @@ class NativePort<I, O>(
     fun onClose(cb: SimpleCallback) = _closeSignal.listen(cb)
 
     fun close() {
-        if (!closePo.finished) {
+        if (!closePo.isFinished) {
             closePo.resolve(Unit)
             debugNativeIpc("port-closing/$this")
         }
@@ -124,10 +124,9 @@ class NativeMessageChannel<T1, T2> {
     /**
      * 默认锁住，当它解锁的时候，意味着通道关闭
      */
-    private val closePo1 = PromiseOut<Unit>()
-    private val closePo2 = PromiseOut<Unit>()
+    private val closePo = PromiseOut<Unit>()
     private val channel1 = Channel<T1>()
     private val channel2 = Channel<T2>()
-    val port1 = NativePort(channel1, channel2, closePo1)
-    val port2 = NativePort(channel2, channel1, closePo2)
+    val port1 = NativePort(channel1, channel2, closePo)
+    val port2 = NativePort(channel2, channel1, closePo)
 }

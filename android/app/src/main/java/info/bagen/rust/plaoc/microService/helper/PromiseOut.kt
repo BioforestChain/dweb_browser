@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.helper
 
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class PromiseOut<T : Any> {
     companion object {
@@ -8,16 +9,6 @@ class PromiseOut<T : Any> {
         fun <T : Any> reject(e: Throwable) = PromiseOut<T>().also { it.reject(e) }
 //        fun reject(e: Throwable) = PromiseOut<Unit>().also { it.reject(e) }
     }
-
-    private val mutex = Mutex(true)
-    private inline fun finish(): Boolean {
-        if (mutex.isLocked) {
-            mutex.unlock()
-            return true
-        }
-        return false
-    }
-
 
     private lateinit var _value: T
 
@@ -36,18 +27,27 @@ class PromiseOut<T : Any> {
     }
 
 
-    val finished get() = !mutex.isLocked
-    val resolved get() = finished && _cause == null
-    val rejected get() = finished && _cause != null
-    val value get() = if (resolved) _value else null
+    private var _finished = false
+    private val mutex = Mutex(true)// 我们不能用 mutex.isLocked 来替代 _finished，因为它有可能同时被多个线程所处置
+    private inline fun finish(): Boolean {
+        if (!_finished) {
+            _finished = true
+            mutex.unlock()
+            return true
+        }
+        return false
+    }
+
+    val isFinished get() = _finished
+    val isResolved get() = _finished && _cause == null
+    val isRejected get() = _finished && _cause != null
+    val value get() = if (isResolved) _value else null
     val cause get() = _cause
 
     private suspend inline fun await() {
-        if (!finished) {
+        if (!_finished) {
             mutex.lock() // 卡住等待
-            if (mutex.isLocked) { // 可能是被其它给解锁了？
-                mutex.unlock()
-            }
+            mutex.unlock()
         }
     }
 

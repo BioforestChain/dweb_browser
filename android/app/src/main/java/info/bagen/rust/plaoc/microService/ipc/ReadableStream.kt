@@ -84,7 +84,7 @@ class ReadableStream(
         closePo.waitPromise()
     }
 
-    val isClosed get() = closePo.finished
+    val isClosed get() = closePo.isFinished
 
 
     /**
