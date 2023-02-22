@@ -26,6 +26,7 @@ main().catch(console.error);
  * request 事件处理器
  */
 async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
+  console.log('接受到了请求： request.parsed_url： ', request.parsed_url)
   switch(request.parsed_url.pathname){
     case "/": onRequestPathNameIndexHtml(request, httpServerIpc); break;
     case "/index.html": onRequestPathNameIndexHtml(request, httpServerIpc); break;
@@ -34,7 +35,7 @@ async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
     case "/appsinfo": onRequestPathNameAppsInfo(request, httpServerIpc); break;
     case `${request.parsed_url.pathname.startsWith("/icon") ? request.parsed_url.pathname : "**eot**"}`: onRequestPathNameIcon(request, httpServerIpc); break;
     case `/install`: onRequestPathNameInstall(request, httpServerIpc); break;
-    // case `/open`: onRequestPathNameOpen(request, httpServerIpc); break;
+    case `/open`: onRequestPathNameOpen(request, httpServerIpc); break;
     default: onRequestPathNameNoMatch(request, httpServerIpc); break;
   }
 
@@ -177,20 +178,25 @@ async function onRequestPathNameInstall(request: IpcRequest, httpServerIpc: Ipc)
   })
 }
 
-// async function onRequestPathNameOpen(request: IpcRequest, httpServerIpc: Ipc){
-//   const _url = `file://app.sys.dweb${request.url}`
-//   jsProcess
-//   fetch(_url)
-//   .then(async(res: Response) => {
-//     httpServerIpc.postMessage(
-//       await IpcResponse.fromResponse(
-//         request.req_id,
-//         res,
-//         httpServerIpc
-//       )
-//     );
-//   })
-// }
+/**
+ * onRequest 事件处理器 pathname ===  open" 
+ * @param request 
+ * @param httpServerIpc 
+ */
+async function onRequestPathNameOpen(request: IpcRequest, httpServerIpc: Ipc){
+  const _url = `file://app.sys.dweb${request.url}`
+  jsProcess
+  fetch(_url)
+  .then(async(res: Response) => {
+    httpServerIpc.postMessage(
+      await IpcResponse.fromResponse(
+        request.req_id,
+        res,
+        httpServerIpc
+      )
+    );
+  })
+}
 
 /**
  * onRequest 事件处理器 pathname === no match" 

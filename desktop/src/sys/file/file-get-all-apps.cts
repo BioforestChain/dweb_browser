@@ -20,12 +20,12 @@ export async function getAllApps(){
     return new Promise(async (resolve, reject) => {
         const appsPath = path.resolve(process.cwd(), "./apps")
         const foldersName: string[]= await fsPromises.readdir(appsPath)
-        console.log('foldersName: ', foldersName)
         const appsInfo: $AppInfo[] = []
         foldersName.forEach(async (folderName: string)=> {
-            const metaData= require(path.resolve(appsPath, `./${folderName}/boot/link.json`)) as unknown as $AppInfo
-            console.log('metaData: ', metaData)
+            const metaData= require(path.resolve(appsPath, `./${folderName}/boot/link.json`)) as unknown as $AppMetaData
             appsInfo.push({
+                folderName: folderName,
+                appId: metaData.bfsAppId.toLocaleLowerCase(),
                 version: metaData.version,
                 bfsAppId: metaData.bfsAppId,
                 name: metaData.name,
@@ -36,8 +36,21 @@ export async function getAllApps(){
     })
 }
 
-export interface $AppInfo{
-    version: string,
+
+export interface $AppMetaData{
+    version: string,    // 版本信息
+    bfsAppId: string,
+    name: string,
+    icon: string
+}
+
+/**
+ * 第三方应用的 app信息
+ */
+export interface $AppInfo{ 
+    folderName: string; // 目录
+    appId: string;      // 全部小写后的 bfsAppId
+    version: string,    // 版本信息
     bfsAppId: string,
     name: string,
     icon: string

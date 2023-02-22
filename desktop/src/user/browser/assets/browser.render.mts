@@ -112,6 +112,7 @@ class HomePage extends LitElement{
 
     protected override render(){
         const arr:  $AppInfo[][] = toTwoDimensionalArray(this.apps)
+        console.log("location: ", location)
         return html`
             <div 
                 class="page-container"
@@ -135,7 +136,7 @@ class HomePage extends LitElement{
                                                 <div 
                                                     class="item-container"
                                                     style="${_styleMap}"
-                                                    @click=${() => this.onOpenApp(item.bfsAppId)}
+                                                    @click=${() => this.onOpenApp(item.appId)}
                                                 >
                                                 </div>
                                             `
@@ -190,12 +191,15 @@ class HomePage extends LitElement{
             console.error('安装应用失败 appId: ', appId, response.text())
             return ;
         }  
-        console.log('开始打开应用:open:', open)
-
+        // console.log('开始打开应用:open:', open)
+        // 需要 open appId 指定的应用
+        // 通过 open 打开的 应用 location.host 应该是当前 域名下的  path 不同而已
+        // http://browser.sys.dweb-80.localhost:22605/ 还是会发送给 brower.worker.ts
+        // http://browser.sys.dweb-80.localhost:22605/index.html?qaq=1677033788241 可以理解为这一个应用下的多个子应用 附着应用？？？
         // open(`/index.html?qaq=${encodeURIComponent(Date.now())}`);
-        open("https://www.baidu.com")
-        
-        // response = await fetch(`./open?appId=${appId}`)
+         
+        // 打开一个新的 window 窗口
+        response = await fetch(`./open?appId=${appId}`)
     }
 
     
