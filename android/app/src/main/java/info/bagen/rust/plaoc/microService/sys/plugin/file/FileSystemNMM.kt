@@ -6,11 +6,14 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.byteArrayInputStream
 import info.bagen.rust.plaoc.microService.sys.file.FileSystemPlugin
 import org.http4k.core.*
-import org.http4k.lens.Query
-import org.http4k.lens.composite
-import org.http4k.lens.string
+import org.http4k.core.ContentType.Companion.APPLICATION_JSON
+import org.http4k.core.ContentType.Companion.TEXT_PLAIN
+import org.http4k.format.Jackson.asJsonArray
+import org.http4k.format.Jackson.asJsonObject
+import org.http4k.format.Jackson.auto
+import org.http4k.format.Jackson.json
+import org.http4k.lens.*
 import org.http4k.routing.bind
-import org.http4k.lens.boolean
 import org.http4k.routing.routes
 import org.json.JSONObject
 import java.io.*
@@ -77,22 +80,20 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb") {
                     )
                 }
                 val option = writeOption(request)
+                // TODO 这里的流获取消息需要验证，是否是具体内容
                 val result = plugin.writeByteArray(path, request.body.stream, option)
                 Response(Status.OK).body(result)
             },
             /** 字符写入 可以不断调这个方法*/
             "/writeString" bind Method.POST to defineHandler { request ->
                 println("FileSystemNMM#apiRouting writeString===>$mmid  ${request.uri.path} ")
-                val path = Query.string().required("path")(request)
-                val content = Query.string().required("content")(request)
-                // 是否是追加内容 是否要自动创建文件
-                val writeOption = Query.composite {
-                    WriteOption(
-                        boolean().defaulted("append", false)(it),
-                        boolean().defaulted("autoCreate", true)(it),
-                    )
-                }
-                val option = writeOption(request)
+                val payload = request.body.payload.asJsonObject()
+                val path = payload.get("path").asText()
+                val content = payload.get("content").asText()
+                // TODO 如果此方法可行，那就可以省略上面的path和context获取规则，一起整合成一个data class
+                val writeOptionLens = Body.auto<WriteOption>().toLens()
+                // 从正文中提取消息
+                val option  = writeOptionLens(request)
                 val result = plugin.write(path, content, option)
                 Response(Status.OK).body(result)
             },
@@ -102,6 +103,37 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb") {
                 val path = Query.string().required("path")(request)
                 val deepDelete = Query.boolean().optional("deepDelete")(request)
                 val result = plugin.rm(path, deepDelete?:true)
+                Response(Status.OK).body(result)
+            },
+            /** ls  */
+            "/ls" bind Method.GET to defineHandler { request ->
+                val path = Query.string().required("path")(request)
+                // TODO 这里是不是应该改成POST请求让LsFilter用body传递呢？ Body.auto<Array<LsFilter>>().toLens()
+                val lsFilter = Query.auto<Array<LsFilter>>().defaulted("lsFilter", arrayOf())
+                val filter = lsFilter(request)
+                println("FileSystemNMM#apiRouting ls===>$mmid  ${request.uri.path} filter=>$filter ")
+                val recursive = Query.boolean().optional("recursive")(request)
+                val result = plugin.ls(path,filter ,recursive?:false)
+                Response(Status.OK).body(result)
+            },
+            "/list" bind Method.GET to defineHandler { request ->
+                val path = Query.string().required("path")(request)
+                println("FileSystemNMM#apiRouting list===>$mmid  path: $path ")
+                val result = plugin.list(path)
+                Response(Status.OK).body(result)
+            },
+            "/mkdir" bind Method.GET to defineHandler { request ->
+                val path = Query.string().required("path")(request)
+                val recursive = Query.boolean().optional("recursive")(request) ?: false
+                println("FileSystemNMM#apiRouting mkdir===>$mmid  path: $path ")
+                val result = plugin.mkdir(path,recursive)
+                Response(Status.OK).body(result)
+            },
+            "/rename" bind Method.GET to defineHandler { request ->
+                val path = Query.string().required("path")(request)
+                val newFilePath = Query.string().required("newFilePath")(request)
+                println("FileSystemNMM#apiRouting rename===>$mmid  path: $path newFilePath: $newFilePath ")
+                val result = plugin.rename(path,newFilePath)
                 Response(Status.OK).body(result)
             },
         )

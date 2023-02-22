@@ -120,12 +120,11 @@ class FileSystemPlugin {
     }
 
     /** 获取文件entry列表*/
-    fun list(path: String) {
+    fun list(path: String): String {
         val rootPath = getRootPath()
         val file = getFileByPath(path)
         val fileList = arrayListOf<Fs>()
         file.listFiles()?.forEach {
-//    Log.i("FileSystemList, $rootPath", it.absolutePath)
             val fs = Fs(
                 it.name,
                 it.extension,
@@ -137,20 +136,24 @@ class FileSystemPlugin {
             )
             fileList.add(fs)
         }
-        // TODO return createBytesFactory(ExportNative.FileSystemList, JsonUtil.toJson(fileList))
+        return JsonUtil.toJson(fileList)
     }
 
-    fun mkdir(path: String, recursive: Boolean = false): Boolean {
+    fun mkdir(path: String, recursive: Boolean = false): String {
         val file = getFileByPath(path)
-        val bool = when (recursive) {
-            true -> {
-                file.mkdirs()
+        return try {
+            val bool = when (recursive) {
+                true -> {
+                    file.mkdirs()
+                }
+                false -> {
+                    file.mkdir()
+                }
             }
-            false -> {
-                file.mkdir()
-            }
+            bool.toString()
+        } catch (e:Throwable) {
+            e.message.toString()
         }
-        return bool
     }
 
     /**写文件利用BufferedWriter，可以保证内存不会溢出，而且会一直写入 */

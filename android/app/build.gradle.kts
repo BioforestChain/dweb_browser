@@ -91,6 +91,7 @@ dependencies {
 //    implementation("org.http4k:http4k-client-okhttp")
     implementation("org.http4k:http4k-client-apache")
     implementation("org.http4k:http4k-server-netty")
+    implementation("org.http4k:http4k-format-jackson") // payload to json
     implementation("io.ktor:ktor-client-core:$ktorVersion")
 
 
