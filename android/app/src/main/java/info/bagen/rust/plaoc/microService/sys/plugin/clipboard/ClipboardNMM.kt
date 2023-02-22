@@ -24,12 +24,16 @@ data class ClipboardData(val value: String, val type: String)
 object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
     override suspend fun _bootstrap() {
         apiRouting = routes(
+            /** 读取剪切板*/
             "/read" bind Method.GET to defineHandler { request ->
                 println("Clipboard#apiRouting read===>$mmid  ${request.uri.path} ")
                 val read = read()
                 Response(Status.OK, read)
             },
-            // fetch("file://clipboard.sys.dweb/write?xxx=xxx")
+            /**
+             * 写入剪切板
+             * fetch("file://clipboard.sys.dweb/write?xxx=xxx")
+             * */
             "/write" bind Method.GET to defineHandler { request ->
                 val string = Query.string().optional("string")(request)
                 val image = Query.string().optional("image")(request)
