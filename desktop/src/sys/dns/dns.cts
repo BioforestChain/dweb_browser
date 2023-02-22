@@ -31,12 +31,11 @@ export class DnsNMM extends NativeMicroModule {
         let appId = _url.searchParams.get("app_id")
         if(appId === null) return void 0;
         const mmid = `${appId}` as $MMID
+        // 动态安装模块
         const appJMM = new JsMicroModule(mmid, {
-          
           main_url: resolveToRootFile("bundle/common.worker.js").href,
         } as const);
         this.install(appJMM)
-        console.log('动态安装 JMM this.apps: resolveToRootFile("bundle/common.worker.js").href', resolveToRootFile("bundle/common.worker.js").href)
         return IpcResponse.fromText(
           request.req_id,
           200,

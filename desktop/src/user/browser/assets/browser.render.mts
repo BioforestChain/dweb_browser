@@ -184,17 +184,21 @@ class HomePage extends LitElement{
         })
     }
 
-    onOpenApp(appId: string){
-        console.log('点击了打开： ', appId)
-        fetch(`./open?appId=${appId}`)
-        .then(res => {
-            console.log('打开应用成功： ', res)
-        })
-        .catch(err => {
-            console.log('打开应用失败： ', err)
-        })
+    async onOpenApp(appId: string){
+        let response = await fetch(`./install?appId=${appId}`)
+        if(response.status !== 200){ // 安装成功
+            console.error('安装应用失败 appId: ', appId, response.text())
+            return ;
+        }  
+        console.log('开始打开应用:open:', open)
+
+        // open(`/index.html?qaq=${encodeURIComponent(Date.now())}`);
+        open("https://www.baidu.com")
         
+        // response = await fetch(`./open?appId=${appId}`)
     }
+
+    
 }
  
 customElements.define('home-page', HomePage)

@@ -5,8 +5,8 @@ const process = require('process')
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 // import type { $MMID } from "../../helper/types.cjs";
  
-// import { IpcResponse } from "../../core/ipc/IpcResponse.cjs"
-// import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
+import { IpcResponse } from "../../core/ipc/IpcResponse.cjs"
+import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
  
 import { resolveToRootFile } from "../../helper/createResolveTo.cjs";
 import { JsMicroModule } from "../../sys/micro-module.js.cjs";
@@ -27,7 +27,7 @@ export class AppNMM extends NativeMicroModule {
         // console.log('---------------------启动了 app.sys.dweb 应用')
       //   获取全部的 appsInfo
         this.registerCommonIpcOnMessageHanlder({
-            pathname: "/open",
+            pathname: "/install",
             matchMode: "full",
             input: {},
             output: "boolean",
@@ -41,22 +41,33 @@ export class AppNMM extends NativeMicroModule {
                 if(appId === null) return false;
                 // 注意全部需要小写
                 const mmid = `${appId.toLocaleLowerCase()}.app.dweb` as $MMID
-
-                this
-                .fetch(`file://dns.sys.dweb/install-js?app_id=${mmid}`)
-                .then(async (res) => {
-                    const str = await res.text()
-                    console.log('成功安装了 应用： ', mmid )
-                    if(str === "ok") return this.fetch(`file://dns.sys.dweb/open?app_id=${mmid}`) 
-                })
-                .then(res => {
-                    console.log('成功启动过了应用： ', res)
-                })
-                .catch(err => {
-                    console.log('err:', err)
-                })
-
-                return true;
+                await this.fetch(`file://dns.sys.dweb/install-js?app_id=${mmid}`)
+                return IpcResponse.fromText(
+                    request.req_id,
+                    200,
+                    "ok",
+                    new IpcHeaders({
+                        "Content-Type": "text/json"
+                    })
+                )
+                // return new Promise(async (resolve, reject) => {
+                //     const result = await this.fetch(`file://dns.sys.dweb/install-js?app_id=${mmid}error`)
+                //     console.log('------------------------- 安装失败的返回：', result)
+                //     resolve(true)
+                //                             // .then(async (res) => {
+                //                             //     const str = await res.text()
+                //                             //     console.log('成功安装了 应用： ', mmid )
+                //                             //     if(str === "ok") return 
+                //                             //     // this.fetch(`file://dns.sys.dweb/open?app_id=${mmid}`) 
+                //                             // })
+                //                             // .catch(err => {
+                //                             //     console.log('err:', err)
+                //                             // })
+                    
+                //     // IpcResponse.fromText()
+                // })
+                
+           
             },
         });;
 

@@ -327,6 +327,12 @@ export class ViewTree extends LitElement {
           (dialog) => dialog.id,
           (webview) => {
             console.log('content - webview:', webview)
+            const zIndexStr = `z-index: ${webview.state.zIndex};`
+            const _styleMap = styleMap({
+              zIndex: webview.state.zIndex + "",
+             
+            })
+  
             return html`
               <multi-webview-content
                 .customWebview=${webview}
@@ -336,6 +342,7 @@ export class ViewTree extends LitElement {
                 .opacity=${webview.state.opacity}
                 .customWebviewId=${webview.id}
                 .src=${webview.src}
+                style="${_styleMap}"
                 @animationend=${(event: CustomEvent<CustomEventAnimationendDetail>) => {
                    if (event.detail.event.animationName === "slideOut" && event.detail.customWebview.closing) {
                     this._removeWebview(webview);
@@ -355,6 +362,9 @@ export class ViewTree extends LitElement {
           this.webviews,
           (dialog) => dialog.id,
           (webview) => {
+            const _styleMap = styleMap({
+              zIndex: webview.state.zIndex + "",
+            })
             return html`
               <multi-webview-devtools
                 .customWebview=${webview}
@@ -363,6 +373,7 @@ export class ViewTree extends LitElement {
                 .scale=${webview.state.scale}
                 .opacity=${webview.state.opacity}
                 .customWebviewId=${webview.id}
+                style="${_styleMap}"
                 @dom-ready=${(event: CustomEvent & { target: WebviewTag }) => {
                   this.onDevtoolReady(webview, event.detail.event.target as WebviewTag);
                 }}
