@@ -13,26 +13,25 @@ import java.io.InputStream
 fun streamAsRawData(
     stream_id: String, stream: InputStream, ipc: Ipc
 ) {
-    val streamAsRawDataScope = CoroutineScope(CoroutineName("streamAsRawData") + Dispatchers.IO)
-    debugStream("streamAsRawData/$stream")
+    debugStream("streamAsRawData/$ipc/$stream")
+    val streamAsRawDataScope = CoroutineScope(CoroutineName("streamAsRawData/${ipc}/$stream") + Dispatchers.IO)
     ipc.onMessage { (message) ->
         /// 对方申请数据拉取
         if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {
             streamAsRawDataScope.launch {
                 var desiredSize = message.desiredSize
                 while (desiredSize > 0) {
-                    debugStream("streamAsRawData/ON-PULL/$stream", stream_id)
-                    debugStream("streamAsRawData/READING/$stream", stream_id)
+                    debugStream("streamAsRawData/ON-PULL/$ipc/$stream", stream_id)
+                    debugStream("streamAsRawData/READING/$ipc/$stream", stream_id)
                     when (val availableLen = stream.available()) {
                         -1, 0 -> {
-                            debugStream("streamAsRawData/END$stream", stream_id)
                             ipc.postMessage(IpcStreamEnd(stream_id))
                             break
                         }
                         else -> {
                             // TODO 这里可能要限制每次的传输数量吗，根据 message.desiredSize
                             debugStream(
-                                "streamAsRawData/READ/$stream",
+                                "streamAsRawData/READ/$ipc/$stream",
                                 "$availableLen >> $stream_id"
                             )
                             val binary = ByteArray(availableLen)
@@ -42,14 +41,11 @@ fun streamAsRawData(
                                     ipc, stream_id, binary
                                 )
                             )
-//                            debugStream(
-//                                "streamAsRawData/SEND/$stream",
-//                                "$availableLen >> $stream_id"
-//                            )
                             desiredSize -= availableLen
                         }
                     }
                 }
+                debugStream("streamAsRawData/END$ipc/$stream", stream_id)
             }
         } else if ((message is IpcStreamAbort) && (message.stream_id == stream_id)) {
             stream.close()

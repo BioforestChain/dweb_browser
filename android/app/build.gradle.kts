@@ -155,6 +155,9 @@ dependencies {
     /// 测试相关
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.4.0")
+
+
 
     testImplementation(platform("org.junit:junit-bom:5.9.2"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher") {
@@ -170,6 +173,7 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+
 }
 
 //val rustBasePath = "../../rust_lib"

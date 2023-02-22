@@ -8,10 +8,8 @@ import info.bagen.rust.plaoc.microService.ipc.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.DebugProbes
 import org.http4k.core.*
 import org.http4k.core.HttpMessage.Companion.HTTP_2
 import org.http4k.routing.bind
@@ -45,11 +43,7 @@ class NativeIpcTest {
             delay(200)
             ipc.postMessage(
                 IpcResponse.fromText(
-                    req.req_id,
-                    200,
-                    "ECHO:" + req.text(),
-                    IpcHeaders(),
-                    ipc
+                    req.req_id, 200, "ECHO:" + req.text(), IpcHeaders(), ipc
                 )
             )
         }
@@ -70,7 +64,10 @@ class NativeIpcTest {
     }
 
     @Test
+    @ExperimentalCoroutinesApi
     fun sendStreamData() = runBlocking(catcher) {
+        DebugProbes.install()
+
         System.setProperty("dweb-debug", "native-ipc stream")
         val m1 = object : NativeMicroModule("m1") {
             override suspend fun _bootstrap() {
@@ -99,7 +96,7 @@ class NativeIpcTest {
             val req_stream = req.stream()
             val res_stream = ReadableStream(onStart = { controller ->
                 launch {
-                    println("开始循环读取 req_stream $req_stream")
+                    debugStream("PIPE/START", "$req_stream >>> ${controller.stream}")
                     while (true) {
                         val byteLen = req_stream.available()
                         println("available byte length: $byteLen")
@@ -107,17 +104,13 @@ class NativeIpcTest {
                             controller.enqueue(req_stream.readByteArray(byteLen))
                         } else break
                     }
-
+                    debugStream("PIPE/END", "$req_stream >>> ${controller.stream}")
                     controller.close()
                 }
             })
             ipc.postMessage(
                 IpcResponse.fromStream(
-                    req.req_id,
-                    200,
-                    res_stream,
-                    IpcHeaders(),
-                    ipc
+                    req.req_id, 200, res_stream, IpcHeaders(), ipc
                 )
             )
         }
@@ -129,7 +122,7 @@ class NativeIpcTest {
             println("收到数据拉取请求 ${controller.stream} $desiredSize")
         });
         var body = ""
-        val job = launch {
+        launch {
             delay(100)
             for (i in 1..10) {
                 delay(200)
@@ -145,10 +138,20 @@ class NativeIpcTest {
         println("got res")
         assertEquals(res.text(), body)
         println("got res.body: ${res.text()}")
+        ipc1.close()
         ipc2.close()
         m1.shutdown()
         m2.shutdown()
-        println("job.isCompleted: ${job.isCompleted}")
+
+
+        delay(1000)
+        var i = 1
+        println("job.isCompleted: \n${
+            DebugProbes.dumpCoroutinesInfo().joinToString(separator = "\n") { it ->
+                "${i++}.\t| $it"
+            }
+        }")
+
     }
 
     @Test

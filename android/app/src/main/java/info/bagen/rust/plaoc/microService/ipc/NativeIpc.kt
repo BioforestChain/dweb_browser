@@ -5,8 +5,6 @@ import info.bagen.rust.plaoc.microService.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 inline fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("native-ipc", tag, msg, err)
@@ -58,26 +56,26 @@ class NativeIpc(
 class NativePort<I, O>(
     private val channel_in: Channel<I>,
     private val channel_out: Channel<O>,
-    private val closeMutex: Mutex
+    private val closePo: PromiseOut<Unit>
 ) {
     companion object {
-        private var uid_acc = 200;
+        private var uid_acc = 0;
     }
 
     private val uid = uid_acc++
-    override fun toString() = "NativePort#$uid"
+    override fun toString() = "#p$uid"
 
     private var started = false
     suspend fun start() {
-        if (started || closing) return else started = true
+        if (started || closePo.finished) return else started = true
 
-        debugNativeIpc("message-start/$uid")
+        debugNativeIpc("port-message-start/$this")
         for (message in channel_in) {
-            debugNativeIpc("message-in/$uid << $message")
+            debugNativeIpc("port-message-in/$this << $message")
             _messageSignal.emit(message)
-            debugNativeIpc("message-waiting/$uid")
+            debugNativeIpc("port-message-waiting/$this")
         }
-        debugNativeIpc("message-end/$uid")
+        debugNativeIpc("port-message-end/$this")
     }
 
 
@@ -85,13 +83,11 @@ class NativePort<I, O>(
 
     fun onClose(cb: SimpleCallback) = _closeSignal.listen(cb)
 
-    private var closing = false
     fun close() {
-        if (closing) return else closing = true
-        if (closeMutex.isLocked) {
-            closeMutex.unlock()
+        if (!closePo.finished) {
+            closePo.resolve(Unit)
+            debugNativeIpc("port-closing/$this")
         }
-        debugNativeIpc("channel-do-close/$uid")
     }
 
     /**
@@ -99,12 +95,10 @@ class NativePort<I, O>(
      */
     init {
         GlobalScope.launch {
-            closeMutex.withLock {
-                closing = true
-                channel_out.close()
-                _closeSignal.emit()
-                debugNativeIpc("channel-been-closed/$uid")
-            }
+            closePo.waitPromise()
+            channel_out.close()
+            _closeSignal.emit()
+            debugNativeIpc("port-closed/${this@NativePort}")
         }
 
     }
@@ -116,7 +110,7 @@ class NativePort<I, O>(
      * 发送消息，这个默认会阻塞
      */
     suspend fun postMessage(msg: O) {
-        debugNativeIpc("message-out/$uid >> $msg")
+        debugNativeIpc("message-out/$this >> $msg")
         channel_out.send(msg)
     }
 
@@ -130,9 +124,9 @@ class NativeMessageChannel<T1, T2> {
     /**
      * 默认锁住，当它解锁的时候，意味着通道关闭
      */
-    private val closeMutex = Mutex(true)
+    private val closePo = PromiseOut<Unit>()
     private val channel1 = Channel<T1>()
     private val channel2 = Channel<T2>()
-    val port1 = NativePort(channel1, channel2, closeMutex)
-    val port2 = NativePort(channel2, channel1, closeMutex)
+    val port1 = NativePort(channel1, channel2, closePo)
+    val port2 = NativePort(channel2, channel1, closePo)
 }

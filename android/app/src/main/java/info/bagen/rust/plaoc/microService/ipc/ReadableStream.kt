@@ -25,11 +25,6 @@ class ReadableStream(
     private var ptr = 0 // 当前指针
     private var mark = 0 //标记
 
-
-    private enum class StreamControlSignal {
-        PULL,
-    }
-
     class ReadableStreamController(
         private val dataChannel: Channel<ByteArray>,
         val stream: ReadableStream
@@ -131,7 +126,7 @@ class ReadableStream(
         private var id_acc = 0
     }
 
-    private val uid = "#${id_acc++}"
+    private val uid = "#s${id_acc++}"
     override fun toString() = uid
 
 

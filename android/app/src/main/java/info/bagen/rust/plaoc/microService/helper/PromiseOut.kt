@@ -44,8 +44,10 @@ class PromiseOut<T : Any> {
 
     private suspend inline fun await() {
         if (!finished) {
-            mutex.lock()// 卡住等待
-            mutex.unlock()
+            mutex.lock() // 卡住等待
+            if (mutex.isLocked) { // 可能是被其它给解锁了？
+                mutex.unlock()
+            }
         }
     }
 

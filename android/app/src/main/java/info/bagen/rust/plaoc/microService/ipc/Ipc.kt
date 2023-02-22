@@ -37,6 +37,8 @@ abstract class Ipc {
     abstract val role: IPC_ROLE
     val uid = ipc_uid_acc++
 
+    override fun toString() = "#i$uid"
+
     suspend fun postMessage(message: IpcMessage) {
         if (this._closed) {
             return;
