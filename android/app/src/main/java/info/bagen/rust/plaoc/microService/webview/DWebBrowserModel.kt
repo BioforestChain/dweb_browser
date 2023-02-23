@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,6 +23,7 @@ data class DWebBrowserItem(
     val url: String,
     val host: String,
     val dWebBrowser: DWebBrowser,
+    var systemUi: SystemUiPlugin? = null,
 )
 
 sealed class DWebBrowserIntent {
@@ -33,6 +35,8 @@ sealed class DWebBrowserIntent {
      * @param processId 表示当前分支号，类似夸克浏览器下面的新增按钮
      */
     class OpenDWebBrowser(val origin: String, val processId: String?) : DWebBrowserIntent()
+
+
 }
 
 class DWebBrowserModel : ViewModel() {
@@ -76,6 +80,13 @@ class DWebBrowserModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun getSystemUi():SystemUiPlugin? {
+        if (uiState.dWebBrowserList.isEmpty()) {
+            return  null
+        }
+        return uiState.dWebBrowserList.last().systemUi
     }
 
     fun openDWebBrowser(origin: String, processId: String? = null): String {

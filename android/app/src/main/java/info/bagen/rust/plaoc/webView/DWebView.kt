@@ -54,7 +54,7 @@ fun DWebView(
     onCreated: (AdAndroidWebView) -> Unit = {},
 ) {
 
-    var jsUtil by remember(state) { mutableStateOf<JsUtil?>(null) }
+    val jsUtil by remember(state) { mutableStateOf<JsUtil?>(null) }
     val hook = remember { AdWebViewHook() }
     val adNavigator = rememberAdWebViewNavigator()
     val adCaptureBackPresses by remember { mutableStateOf(true) }

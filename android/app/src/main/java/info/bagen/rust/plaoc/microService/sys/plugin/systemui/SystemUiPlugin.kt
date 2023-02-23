@@ -1,45 +1,24 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 
 
+import android.view.View
 import android.webkit.JavascriptInterface
-import android.webkit.WebView
-import androidx.activity.ComponentActivity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.core.graphics.Insets
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
-import info.bagen.rust.plaoc.webView.jsutil.BoolInt
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.keyboard.VirtualKeyboard
 import info.bagen.rust.plaoc.webView.jsutil.DataString_From
-import info.bagen.rust.plaoc.webView.jsutil.toBoolean
 import info.bagen.rust.plaoc.webView.network.getColorHex
 import info.bagen.rust.plaoc.webView.network.hexToIntColor
 import info.bagen.rust.plaoc.webkit.AdWebViewHook
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.routing.bind
-import org.http4k.routing.routes
 
-class SystemUiNMM(
-    private val activity: ComponentActivity,
+class SystemUiPlugin(
+    webView: View,
     private val hook: AdWebViewHook,
     private val systemUIState: SystemUIState,
-) : NativeMicroModule("ui.sys.dweb") {
+) {
 
-
-    override suspend fun _bootstrap() {
-        apiRouting = routes(
-            /** 读取剪切板*/
-            "/read" bind Method.GET to defineHandler { request ->
-                println("Clipboard#apiRouting read===>$mmid  ${request.uri.path} ")
-                val read = ClipboardNMM.read()
-                Response(Status.OK, read)
-            },
-        )
-    }
+    val virtualKeyboard = VirtualKeyboard(systemUIState.virtualKeyboard.overlay, webView)
 
     /**
      * @TODO 在未来，这里的disable与否，通过更加完善的声明来实现，比如可以声明多个rect
@@ -83,9 +62,9 @@ class SystemUiNMM(
     }
 
     /** 设置false为透明*/
-    fun setStatusBarVisible(visible: String): Boolean {
-        systemUIState.statusBar.visible.value = visible.toBoolean()
-        return visible.toBoolean()
+    fun setStatusBarVisible(visible: Boolean): Boolean {
+        systemUIState.statusBar.visible.value = visible
+        return visible
     }
 
     /**获取状态栏是否透明的状态*/
@@ -94,8 +73,8 @@ class SystemUiNMM(
     }
 
     /**设置状态栏是否透明*/
-    fun setStatusBarOverlay(isOverlay: String): Boolean {
-        systemUIState.statusBar.overlay.value = isOverlay.toBoolean()
+    fun setStatusBarOverlay(isOverlay: Boolean): Boolean {
+        systemUIState.statusBar.overlay.value = isOverlay
 //        Log.i(TAG, "isOverlayStatusBar.value:${systemUIState.statusBar.overlay.value}")
         return true
     }
@@ -114,16 +93,24 @@ class SystemUiNMM(
         return true
     }
 
+    /**获取系统导航栏颜色*/
+    fun getNavigationBarColor(
+    ): String {
+        val color = systemUIState.navigationBar.color.value
+        val colorInt = android.graphics.Color.argb(color.alpha, color.red, color.green, color.blue)
+        return getColorHex(colorInt)
+    }
+
     /**获取系统导航栏可见性*/
     fun getNavigationBarVisible(): Boolean {
         return systemUIState.navigationBar.visible.value
     }
 
     /**设置系统导航栏是否隐藏*/
-    fun setNavigationBarVisible(visible: String): Boolean {
+    fun setNavigationBarVisible(visible: Boolean): Boolean {
         systemUIState.navigationBar.visible.value =
-            visible.toBoolean()
-        return true
+            visible
+        return visible
     }
 
     /**获取系统导航栏是否透明*/
@@ -132,18 +119,18 @@ class SystemUiNMM(
     }
 
     /**设置系统导航栏是否透明*/
-    fun setNavigationBarOverlay(isOverlay: String): Boolean {
+    fun setNavigationBarOverlay(isOverlay: Boolean): Boolean {
         systemUIState.navigationBar.overlay.value =
-            isOverlay.toBoolean()
-        return isOverlay.toBoolean()
+            isOverlay
+        return isOverlay
     }
 
     /** 检索顶级窗口装饰视图（包含标准窗口框架/装饰和其中的客户端内容），可以将其作为窗口添加到窗口管理器 */
-    private val insetsCompat: WindowInsetsCompat by lazy {
-        WindowInsetsCompat.toWindowInsetsCompat(
-            activity.window.decorView.rootWindowInsets
-        )
-    }
+//    private val insetsCompat: WindowInsetsCompat by lazy {
+//        WindowInsetsCompat.toWindowInsetsCompat(
+//            activity.window.decorView.rootWindowInsets
+//        )
+//    }
 
     private fun Insets.toJson(): String {
         return """{"top":${top},"left":${left},"bottom":${bottom},"right":${right}}"""
@@ -173,21 +160,18 @@ class SystemUiNMM(
         val WINDOW_DECOR = LAST
     }
 
-    @JavascriptInterface
-    fun getInsetsRect(typeMask: Int, ignoreVisibility: BoolInt): String {
-        if (ignoreVisibility.toBoolean()) {
-            return insetsCompat.getInsetsIgnoringVisibility(typeMask).toJson()
-        }
-        return insetsCompat.getInsets(typeMask).toJson()
-    }
+//    @JavascriptInterface
+//    fun getInsetsRect(typeMask: Int, ignoreVisibility: BoolInt): String {
+//        if (ignoreVisibility.toBoolean()) {
+//            return insetsCompat.getInsetsIgnoringVisibility(typeMask).toJson()
+//        }
+//        return insetsCompat.getInsets(typeMask).toJson()
+//    }
 
-    @JavascriptInterface
-    fun showInsets(typeMask: Int) {
-        return WindowCompat.getInsetsController(activity.window, activity.window.decorView)
-            .show(typeMask)
-    }
+//    @JavascriptInterface
+//    fun showInsets(typeMask: Int) {
+//        return WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+//            .show(typeMask)
+//    }
 
-    override suspend fun _shutdown() {
-        TODO("Not yet implemented")
-    }
 }

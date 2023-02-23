@@ -4,64 +4,23 @@ import android.content.Context
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
-import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
+import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.webView.jsutil.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.routing.bind
-import org.http4k.routing.routes
 
 private const val TAG = "VirtualKeyboardFFI"
 
 class VirtualKeyboard(
     private val overlay: MutableState<Boolean>,
-    private val activity: ComponentActivity,
     private val view: View
-):NativeMicroModule("keyboard.sys.dweb") {
-
-//    val virtualKeyboard =
-//        VirtualKeyboard(systemUIState.virtualKeyboard.overlay, activity, webView)
-
-
-    override suspend fun _bootstrap() {
-        apiRouting = routes(
-            /** 显示键盘*/
-            "/show" bind Method.GET to defineHandler { request ->
-                println("v#apiRouting show===>$mmid  ${request.uri.path} ")
-                val result = show()
-                Response(Status.OK).body(result.toString())
-            },
-            /** 隐藏键盘*/
-            "/hide" bind Method.GET to defineHandler { request ->
-                println("VirtualKeyboard#apiRouting hide===>$mmid  ${request.uri.path} ")
-                val result = hide()
-                Response(Status.OK).body(result.toString())
-            },
-            /** 安全区域*/
-            "/safeArea" bind Method.GET to defineHandler { request ->
-                println("VirtualKeyboard#apiRouting safeArea===>$mmid  ${request.uri.path} ")
-                val result = getSafeArea()
-                Response(Status.OK).body(result)
-            },
-            /** 隐藏键盘*/
-            "/height" bind Method.GET to defineHandler { request ->
-                println("VirtualKeyboard#apiRouting height===>$mmid  ${request.uri.path} ")
-                val result = getHeight()
-                Response(Status.OK).body(result.toString())
-            },
-        )
-    }
-
+){
 
     companion object {
 
@@ -173,25 +132,22 @@ class VirtualKeyboard(
         return overlay.value
     }
 
-    private val imm by lazy { activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
+    private val imm by lazy { App.appContext.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
 
     fun show(): Boolean {
-        activity.runOnUiThread {
-            if (view.requestFocus()) {
-                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
-            }
-        }
+       GlobalScope.launch(Dispatchers.Main) {
+           if (view.requestFocus()) {
+               imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+           }
+       }
         return true
     }
 
     fun hide(): Boolean {
-        activity.runOnUiThread {
+        GlobalScope.launch(Dispatchers.Main)  {
             imm.hideSoftInputFromWindow(view.windowToken, 0)
         }
         return true
-    }
-    override suspend fun _shutdown() {
-        hide()
     }
 
 }
