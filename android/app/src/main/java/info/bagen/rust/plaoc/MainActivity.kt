@@ -58,9 +58,9 @@ class MainActivity : AppCompatActivity() {
     var isQRCode = false //是否是识别二维码
     fun getContext() = this
     val dWebBrowserModel: DWebBrowserModel by viewModel()
+    val qrCodeViewModel: QRCodeViewModel by viewModel()
     private val appViewModel: AppViewModel by viewModel()
     private val mainViewModel: MainViewModel by viewModel()
-    private val qrCodeViewModel: QRCodeViewModel by viewModel()
     private var bfsBroadcastReceiver: BFSBroadcastReceiver? = null
 
     @JvmName("getAppViewModel1")

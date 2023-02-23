@@ -1,6 +1,8 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.barcode
 
 import android.content.Intent
+import info.bagen.libappmgr.ui.camera.QRCodeIntent
+import info.bagen.libappmgr.ui.camera.ScanType
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.MainActivity
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
@@ -19,7 +21,7 @@ class ScanningNMM:NativeMicroModule("scanning.sys.dweb") {
             "/qr/start" bind Method.GET to defineHandler { request ->
                 println("ScanningNMM#apiRouting /qr/start===>$mmid  request:${request.uri.query} ")
                 App.mainActivity?.also {
-                    it.openScannerActivity()
+                    it.qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
                     Response(Status.OK)
                 }
                 Response(Status.CONNECTION_REFUSED)
@@ -28,7 +30,7 @@ class ScanningNMM:NativeMicroModule("scanning.sys.dweb") {
             "/qr/stop" bind Method.GET to defineHandler { request ->
                 println("ScanningNMM#apiRouting /qr/stop===>$mmid  request:${request.uri.query} ")
                 App.mainActivity?.also {
-                    it.openScannerActivity()
+                    it.qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(false))
                     Response(Status.OK)
                 }
                 Response(Status.CONNECTION_REFUSED)
@@ -37,7 +39,7 @@ class ScanningNMM:NativeMicroModule("scanning.sys.dweb") {
             "/barcode/start" bind Method.GET to defineHandler { request ->
                 println("ScanningNMM#apiRouting /barcode/start===>$mmid  request:${request.uri.query} ")
                 App.mainActivity?.also {
-                    it.openBarCodeScannerActivity()
+                    it.qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true, ScanType.BARCODE))
                     Response(Status.OK)
                 }
                 Response(Status.CONNECTION_REFUSED)
@@ -46,7 +48,7 @@ class ScanningNMM:NativeMicroModule("scanning.sys.dweb") {
             "/barcode/stop" bind Method.GET to defineHandler { request ->
                 println("ScanningNMM#apiRouting /barcode/stop===>$mmid  request:${request.uri.query} ")
                 App.mainActivity?.also {
-                    it.openBarCodeScannerActivity()
+                    it.qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(false, ScanType.BARCODE))
                     Response(Status.OK)
                 }
                 Response(Status.CONNECTION_REFUSED)
