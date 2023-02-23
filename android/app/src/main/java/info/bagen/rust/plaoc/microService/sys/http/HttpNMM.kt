@@ -83,17 +83,23 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         val host = x_dweb_host ?: user_agent_host ?: header_host ?: "*"
 
         /// TODO 30s 没有任何 body 写入的话，认为网关超时
-        gatewayMap[host]?.let { gateway ->
+
+        /**
+         * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
+         * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
+         */
+        val response = gatewayMap[host]?.let { gateway ->
             println("URL:${request.uri} => gateway: ${gateway.urlInfo}")
             runBlocking {
                 val response = gateway.listener.hookHttpRequest(request)
-                println("URL:${request.uri} => response: $response")
+//                println("URL:${request.uri} => response: $response")
                 response
             }
         }
-            ?: Response(
-                Status.NOT_FOUND
-            )
+
+        response ?: Response(
+            Status.NOT_FOUND
+        )
     }
     /// 在网关中寻址能够处理该 host 的监听者
 

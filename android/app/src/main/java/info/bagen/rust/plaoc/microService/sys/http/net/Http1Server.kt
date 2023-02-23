@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.http4k.core.HttpHandler
 import org.http4k.server.Http4kServer
-import org.http4k.server.Netty
+import org.http4k.server.KtorCIO
 import org.http4k.server.asServer
 
 
@@ -27,7 +27,7 @@ class Http1Server {
 
         val portPo = PromiseOut<Int>()
         CoroutineScope(Dispatchers.IO).launch {
-            server = handler.asServer(Netty(0/* 使用随机端口*/)).start().also { server ->
+            server = handler.asServer(KtorCIO(22206/* 使用随机端口*/)).start().also { server ->
                 bindingPort = server.port()
                 portPo.resolve(bindingPort)
             }

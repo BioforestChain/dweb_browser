@@ -90,10 +90,14 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
         /// WebView 实例
         val apis = withContext(Dispatchers.Main) {
+            WebView.setWebContentsDebuggingEnabled(true)
             val webView = WebView(App.appContext).also {
                 nww = it
                 val urlInfo = mainServer.startResult.urlInfo
                 it.settings.userAgentString += " dweb-host/${urlInfo.host}"
+                it.settings.javaScriptEnabled = true
+                it.settings.domStorageEnabled = true
+                it.settings.databaseEnabled = true
                 it.loadUrl(urlInfo.public_origin + "/index.html")
             }
             JsProcessWebApi(webView)

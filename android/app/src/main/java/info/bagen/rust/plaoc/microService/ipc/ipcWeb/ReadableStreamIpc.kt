@@ -38,12 +38,12 @@ class ReadableStreamIpc(
             throw Exception("还未实现 MessagePack 的编解码能力")
         }
 
-//        val j = GlobalScope.launch {
-//            while (true) {
-//                delay(1000)
-//                println("...$stream")
-//            }
-//        }
+        val j = GlobalScope.launch {
+            while (true) {
+                delay(10000)
+                println("...$stream")
+            }
+        }
         _incomeStream = stream
         CoroutineScope(CoroutineName(coroutineName) + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
             e.printStackTrace()
@@ -67,7 +67,7 @@ class ReadableStreamIpc(
                     else -> throw Exception("unknown message: $message")
                 }
             }
-//            j.cancel()
+            j.cancel()
             throw Exception("GGGGGGG/$coroutineName")
         }
     }

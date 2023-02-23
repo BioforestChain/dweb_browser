@@ -1,10 +1,7 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.toBase64
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.InputStream
 import java.util.*
 
@@ -37,7 +34,7 @@ class IpcBodySender(
             is String -> textAsRawData(body, ipc)
             is ByteArray -> binaryAsRawData(body, ipc)
             is InputStream -> streamAsRawData(body, ipc)
-            else -> throw  Exception("invalid body type $body")
+            else -> throw Exception("invalid body type $body")
         }
 
         private fun textAsRawData(text: String, ipc: Ipc) = MetaBody(IPC_RAW_BODY_TYPE.TEXT, text)
@@ -54,7 +51,9 @@ class IpcBodySender(
             val stream_id = getStreamId(stream)
             debugStream("streamAsRawData/$ipc/$stream", stream_id)
             val streamAsRawDataScope =
-                CoroutineScope(CoroutineName("streamAsRawData/$ipc/$stream/$stream_id") + Dispatchers.IO)
+                CoroutineScope(CoroutineName("streamAsRawData/$ipc/$stream/$stream_id") + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
+                    e.printStackTrace()
+                })
             ipc.onMessage { (message) ->
                 /// 对方申请数据拉取
                 if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {

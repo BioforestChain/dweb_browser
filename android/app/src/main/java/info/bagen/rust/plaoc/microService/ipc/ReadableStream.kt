@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.helper.Signal
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -26,13 +25,11 @@ class ReadableStream(
     private var mark = 0 //标记
 
     class ReadableStreamController(
-        private val dataChannel: Channel<ByteArray>,
-        val getStream: () -> ReadableStream
+        private val dataChannel: Channel<ByteArray>, val getStream: () -> ReadableStream
     ) {
         val stream get() = getStream()
 
-        suspend fun enqueue(byteArray: ByteArray) =
-            dataChannel.send(byteArray)
+        suspend fun enqueue(byteArray: ByteArray) = dataChannel.send(byteArray)
 
         fun close() {
             dataChannel.close()
@@ -47,9 +44,13 @@ class ReadableStream(
     private val controller by lazy { ReadableStreamController(dataChannel) { this@ReadableStream } }
 
     private val writeDataScope =
-        CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO)
+        CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
+            e.printStackTrace()
+        })
     private val readDataScope =
-        CoroutineScope(CoroutineName("readableStream/readData") + Dispatchers.IO)
+        CoroutineScope(CoroutineName("readableStream/readData") + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
+            e.printStackTrace()
+        })
 
     init {
         runBlocking {
