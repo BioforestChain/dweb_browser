@@ -13,7 +13,7 @@ class PromiseOut<T : Any> {
     private lateinit var _value: T
 
     fun resolve(value: T) {
-        if (finish()) {
+        finish {
             _value = value
         }
     }
@@ -21,7 +21,7 @@ class PromiseOut<T : Any> {
 
     private var _cause: Throwable? = null
     fun reject(e: Throwable) {
-        if (finish()) {
+        finish {
             _cause = e
         }
     }
@@ -29,8 +29,9 @@ class PromiseOut<T : Any> {
 
     private var _finished = false
     private val mutex = Mutex(true)// 我们不能用 mutex.isLocked 来替代 _finished，因为它有可能同时被多个线程所处置
-    private inline fun finish(): Boolean {
+    private inline fun finish(action: () -> Unit): Boolean {
         if (!_finished) {
+            action()
             _finished = true
             mutex.unlock()
             return true

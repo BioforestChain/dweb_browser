@@ -13,6 +13,8 @@ import kotlinx.coroutines.debug.DebugProbes
 import org.http4k.core.*
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -62,10 +64,29 @@ class NativeIpcTest {
         e.printStackTrace()
     }
 
+    @BeforeEach
+    fun debugInstall() {
+        DebugProbes.install()
+
+    }
+
+    @AfterEach
+    fun debugUninstall() {
+        DebugProbes.uninstall()
+    }
+
+    inline fun printDumpCoroutinesInfo() {
+        var i = 1
+        println("job.isCompleted: \n${
+            DebugProbes.dumpCoroutinesInfo().joinToString(separator = "\n") { it ->
+                "${i++}.\t| $it"
+            }
+        }")
+    }
+
     @Test
     @ExperimentalCoroutinesApi
     fun sendStreamData() = runBlocking(catcher) {
-        DebugProbes.install()
 
         System.setProperty("dweb-debug", "native-ipc stream")
         val m0 = object : NativeMicroModule("m0") {
@@ -149,18 +170,13 @@ class NativeIpcTest {
 
 
         delay(1000)
-        var i = 1
-        println("job.isCompleted: \n${
-            DebugProbes.dumpCoroutinesInfo().joinToString(separator = "\n") { it ->
-                "${i++}.\t| $it"
-            }
-        }")
-
+        printDumpCoroutinesInfo()
     }
+
 
     @Test
     fun withReadableStreamIpc() = runBlocking {
-        System.setProperty("dweb-debug", "native native-ipc")
+//        System.setProperty("dweb-debug", "stream native-ipc")
 
         val mServer = object : NativeMicroModule("mServer") {
             override suspend fun _bootstrap() {
@@ -174,7 +190,11 @@ class NativeIpcTest {
                         println("echo after 1s $request")
                         ipc.postMessage(
                             IpcResponse.fromText(
-                                request.req_id, 200, IpcHeaders(), "ECHO:" + request.body.text(), ipc
+                                request.req_id,
+                                200,
+                                IpcHeaders(),
+                                "ECHO:" + request.body.text(),
+                                ipc
                             )
                         )
                     }
@@ -217,15 +237,20 @@ class NativeIpcTest {
 
 
         delay(1000)
-        for (i in 0..10) {
+        for (i in 0..100) {
             println("开始发送 $i")
             val request = Request(Method.GET, "").body("hi-$i")
             val response = clientStreamIpc.request(request)
             assertEquals(response.text(), "ECHO:" + request.bodyString())
+            println("测试通过 $i: ${response.text()}")
         }
 
         clientStreamIpc.close()
 
         clientStreamIpc.stream.afterClosed()
+
+        delay(1000)
+        printDumpCoroutinesInfo()
+
     }
 }

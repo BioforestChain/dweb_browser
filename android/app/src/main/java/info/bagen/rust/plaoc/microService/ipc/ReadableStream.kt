@@ -43,7 +43,6 @@ class ReadableStream(
 
 
     private val dataChannel = Channel<ByteArray>()
-    private val pullSignal = Signal<Int>()
 
     private val controller by lazy { ReadableStreamController(dataChannel) { this@ReadableStream } }
 
@@ -55,11 +54,6 @@ class ReadableStream(
     init {
         runBlocking {
             onStart(controller)
-        }
-        pullSignal.listen { desiredSize ->
-            debugStream("PULL/START/${uid}", desiredSize)
-            onPull(Pair(desiredSize, controller))
-            debugStream("PULL/END/${uid}", desiredSize)
         }
         writeDataScope.launch {
             // 一直等待数据
@@ -92,35 +86,50 @@ class ReadableStream(
      * 读取数据，在尽可能满足下标读取的情况下
      */
     private fun requestData(ptr: Int): ByteArray {
+        val dataSize = _data.size
+//        println("ASK/$uid 1 ptr:$ptr/dataSize:$dataSize")
         // 如果下标满足条件，直接返回
-        if (ptr < _data.size) {
+        if (ptr < dataSize) {
             return _data
         }
 
+        val endSize = ptr + 1
+        val desiredSize = endSize - this.ptr
         runBlocking {
-            val desiredSize = ptr + 1
             writeDataScope.async {
-                pullSignal.emit(desiredSize)
+                debugStream("PULL/START/${uid}", desiredSize)
+                onPull(Pair(desiredSize, controller))
+                debugStream("PULL/END/${uid}", desiredSize)
             }.join()
             readDataScope.async {
                 val wait = PromiseOut<Unit>()
                 val c = launch {
-                    dataSizeFlow.collect { size ->
-                        debugStream("REQUEST-DATA/CHANGED/$uid", "$size/$desiredSize")
+                    dataSizeFlow.collect { newSize ->
                         when {
-                            size == -1 -> wait.resolve(Unit) // 不需要抛出错误
-                            ptr < size -> wait.resolve(Unit)
+                            newSize == dataSize -> {
+                                debugStream("REQUEST-DATA/WAITING/$uid", "$newSize/$endSize")
+                            }
+                            newSize == -1 -> {
+                                println("ASK/$uid CLOSED by -1")
+                                debugStream("REQUEST-DATA/END/$uid", "$newSize/$endSize")
+                                wait.resolve(Unit) // 不需要抛出错误
+                            }
+                            ptr < newSize -> {
+                                debugStream("REQUEST-DATA/CHANGED/$uid", "$newSize/$endSize")
+                                wait.resolve(Unit)
+                            }
                         }
                     }
                 }
                 wait.waitPromise()
                 c.cancel()
-                debugStream("REQUEST-DATA/OK/$uid", _data.size)
+                debugStream("REQUEST-DATA/END/$uid", _data.size)
             }.join()
         }
+//        println("ASK/$uid 3 ptr:$ptr/dataSize:${_data.size}")
 
-        // 控制端无法读取数据了，只能直接返回
-        return _data
+        /// 不能直接返回data，好像有bug，会出问题
+        return requestData(ptr) //_data
     }
 
     companion object {

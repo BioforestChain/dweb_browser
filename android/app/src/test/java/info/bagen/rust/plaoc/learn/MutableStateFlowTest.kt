@@ -49,6 +49,17 @@ class MutableStateFlowTest {
 
             delay(tm)
             stateFlow.emit(4)
+
+            val job4 = launch {
+                sharedFlow.collect {
+                    println("J4: $it")
+                }
+            }
+
+            delay(100)
+            job4.cancel()
+
+
         }
 
         println("END")
