@@ -65,8 +65,8 @@ class ReadableStreamTest {
                 IpcResponse.fromText(
                     request.req_id,
                     200,
-                    "ECHO:" + request.text(),
                     IpcHeaders(),
+                    "ECHO:" + request.body.text(),
                     ipc
                 )
             )

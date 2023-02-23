@@ -45,7 +45,7 @@ class PortListener(
 ) {
     private val _routerSet = mutableSetOf<StreamIpcRouter>();
 
-    fun addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc): () -> Boolean {
+    fun addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc): (Unit) -> Boolean {
         val route = StreamIpcRouter(config, streamIpc);
         this._routerSet.add(route)
         return {

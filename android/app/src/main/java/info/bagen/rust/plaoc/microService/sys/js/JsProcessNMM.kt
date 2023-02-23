@@ -6,10 +6,7 @@ import android.webkit.WebView
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.WebViewAsyncEvalContext
-import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.helper.suspendOnce
-import info.bagen.rust.plaoc.microService.helper.text
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
@@ -71,13 +68,14 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                                 ipc.postMessage(
                                     IpcResponse.fromText(
                                         request.req_id,
-                                        200, JS_PROCESS_WORKER_CODE(),
+                                        200,
                                         IpcHeaders().also {
                                             it.set(
                                                 "content-type",
                                                 "application/javascript"
                                             )
                                         },
+                                        JS_PROCESS_WORKER_CODE(),
                                         ipc
                                     )
                                 )

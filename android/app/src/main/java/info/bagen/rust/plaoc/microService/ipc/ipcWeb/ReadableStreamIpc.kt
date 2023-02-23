@@ -67,8 +67,8 @@ class ReadableStreamIpc(
         val message = when {
             supportMessagePack -> moshiPack.packToByteArray(data)
             else -> when (data) {
-                is IpcRequest -> gson.toJson(data.data).asUtf8()
-                is IpcResponse -> gson.toJson(data.data).asUtf8()
+                is IpcRequest -> gson.toJson(data.ipcReqMessage).asUtf8()
+                is IpcResponse -> gson.toJson(data.ipcResMessage).asUtf8()
                 else -> gson.toJson(data).asUtf8()
             }
         }

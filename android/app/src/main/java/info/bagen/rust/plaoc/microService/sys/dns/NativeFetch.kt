@@ -12,7 +12,7 @@ class NativeFetchAdaptersManager {
     private val adapterOrderMap = mutableMapOf<FetchAdapter, Int>()
     private var orderdAdapters = listOf<FetchAdapter>()
     val adapters get() = orderdAdapters
-    fun append(order: Int = 0, adapter: FetchAdapter): () -> Boolean {
+    fun append(order: Int = 0, adapter: FetchAdapter): (Unit) -> Boolean {
         adapterOrderMap[adapter] = order
         orderdAdapters =
             adapterOrderMap.toList().sortedBy { (_, b) -> b }.map { (adapter) -> adapter }

@@ -10,11 +10,22 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
 
     return runCatching {
         when (gson.fromJson(data, IpcMessage::class.java).type) {
-            IPC_DATA_TYPE.REQUEST -> gson.fromJson(data, IpcRequestData::class.java).let {
-                IpcRequest(it.req_id, it.ipcMethod, it.url, it.headers, it.rawBody, ipc)
+            IPC_DATA_TYPE.REQUEST -> gson.fromJson(data, IpcReqMessage::class.java).let {
+                IpcRequest(
+                    it.req_id,
+                    it.url,
+                    it.method,
+                    it.headers,
+                    IpcBodyReceiver(it.metaBody, ipc)
+                )
             }
-            IPC_DATA_TYPE.RESPONSE -> gson.fromJson(data, IpcResponseData::class.java).let {
-                IpcResponse(it.req_id, it.statusCode, it.headers, it.rawBody, ipc)
+            IPC_DATA_TYPE.RESPONSE -> gson.fromJson(data, IpcResMessage::class.java).let {
+                IpcResponse(
+                    it.req_id,
+                    it.statusCode,
+                    it.headers,
+                    IpcBodyReceiver(it.metaBody, ipc)
+                )
             }
             IPC_DATA_TYPE.STREAM_DATA -> gson.fromJson(data, IpcStreamData::class.java)
             IPC_DATA_TYPE.STREAM_PULL -> gson.fromJson(data, IpcStreamPull::class.java)

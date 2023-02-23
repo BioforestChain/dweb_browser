@@ -11,7 +11,6 @@ import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.DebugProbes
 import org.http4k.core.*
-import org.http4k.core.HttpMessage.Companion.HTTP_2
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import org.junit.jupiter.api.Test
@@ -43,7 +42,7 @@ class NativeIpcTest {
             delay(200)
             ipc.postMessage(
                 IpcResponse.fromText(
-                    req.req_id, 200, "ECHO:" + req.text(), IpcHeaders(), ipc
+                    req.req_id, 200, IpcHeaders(), "ECHO:" + req.body.text(), ipc
                 )
             )
         }
@@ -59,7 +58,7 @@ class NativeIpcTest {
         ipc2.close()
     }
 
-    private val catcher = CoroutineExceptionHandler { ctx, e ->
+    private val catcher = CoroutineExceptionHandler { _, e ->
         e.printStackTrace()
     }
 
@@ -69,6 +68,13 @@ class NativeIpcTest {
         DebugProbes.install()
 
         System.setProperty("dweb-debug", "native-ipc stream")
+        val m0 = object : NativeMicroModule("m0") {
+            override suspend fun _bootstrap() {
+            }
+
+            override suspend fun _shutdown() {
+            }
+        }
         val m1 = object : NativeMicroModule("m1") {
             override suspend fun _bootstrap() {
             }
@@ -76,27 +82,19 @@ class NativeIpcTest {
             override suspend fun _shutdown() {
             }
         }
-        val m2 = object : NativeMicroModule("m2") {
-            override suspend fun _bootstrap() {
-            }
-
-            override suspend fun _shutdown() {
-            }
-        }
+        m0.bootstrap()
         m1.bootstrap()
-        m2.bootstrap()
 
 
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
-        val ipc1 = NativeIpc(channel.port1, m1, IPC_ROLE.SERVER);
-        val ipc2 = NativeIpc(channel.port2, m2, IPC_ROLE.CLIENT);
+        val ipc0 = NativeIpc(channel.port1, m0, IPC_ROLE.SERVER);
+        val ipc1 = NativeIpc(channel.port2, m1, IPC_ROLE.CLIENT);
 
-        ipc1.onRequest { (req, ipc) ->
-            delay(200)
-            val req_stream = req.stream()
+        ipc0.onRequest { (req, ipc) ->
+//            delay(200)
+            val req_stream = req.body.stream()
             val res_stream = ReadableStream(onStart = { controller ->
                 /// 这里不可以用上下文所使用的launch，而是要重新开一个，以确保和 postMessage-fromStream 所使用的分开
-//                GlobalScope.
                 launch {
                     delay(100)
                     debugStream("PIPE/START", "$req_stream >>> ${controller.stream}")
@@ -140,14 +138,14 @@ class NativeIpcTest {
             controller.close()
         }
 
-        val res = ipc2.request(Request(Method.GET, "").body(stream))
+        val res = ipc1.request(Request(Method.GET, "").body(stream))
         println("got res")
         assertEquals(res.text(), body)
         println("got res.body: ${res.text()}")
+        ipc0.close()
         ipc1.close()
-        ipc2.close()
+        m0.shutdown()
         m1.shutdown()
-        m2.shutdown()
 
 
         delay(1000)
@@ -176,7 +174,7 @@ class NativeIpcTest {
                         println("echo after 1s $request")
                         ipc.postMessage(
                             IpcResponse.fromText(
-                                request.req_id, 200, "ECHO:" + request.text(), IpcHeaders(), ipc
+                                request.req_id, 200, IpcHeaders(), "ECHO:" + request.body.text(), ipc
                             )
                         )
                     }
@@ -200,7 +198,7 @@ class NativeIpcTest {
 
         val c2sIpc by lazy { runBlocking { mServer.connect(mClient) } }
 
-        nativeFetchAdaptersManager.append { mm, request ->
+        nativeFetchAdaptersManager.append { _, request ->
             if (request.uri.host == mServer.mmid) {
                 c2sIpc.request(request)
             } else null
@@ -221,9 +219,9 @@ class NativeIpcTest {
         delay(1000)
         for (i in 0..10) {
             println("开始发送 $i")
-            val req = Request(Method.GET, "").body("hi-$i")
-            val res = clientStreamIpc.request(req)
-            assertEquals(res.text(), "ECHO:" + req.bodyString())
+            val request = Request(Method.GET, "").body("hi-$i")
+            val response = clientStreamIpc.request(request)
+            assertEquals(response.text(), "ECHO:" + request.bodyString())
         }
 
         clientStreamIpc.close()

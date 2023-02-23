@@ -5,34 +5,20 @@ import info.bagen.rust.plaoc.microService.helper.toUtf8
 import java.io.InputStream
 
 
-open class IpcBody(
-    type: IPC_DATA_TYPE,
-    val rawBody: RawData,
-    protected val ipc: Ipc
-) : IpcMessage(type) {
+abstract class IpcBody {
 
-    private inner class BodyHub {
+    protected inner class BodyHub {
         var text: String? = null
         var stream: InputStream? = null
         var u8a: ByteArray? = null
         var data: Any? = null
     }
 
-    /// 因为是 abstract，所以得用 lazy 来延迟得到这些属性
-    private val bodyHub by lazy {
-        BodyHub().also {
-            val data = rawDataToBody(rawBody, ipc)
-            it.data = data
-            when (data) {
-                is String -> it.text = data;
-                is ByteArray -> it.u8a = data
-                is InputStream -> it.stream = data
-            }
-        }
-    }
+    protected abstract val bodyHub: BodyHub
+    abstract val metaBody: MetaBody
 
+    open val body get() = bodyHub.data
 
-    val body get() = bodyHub.data
 
     private val _u8a by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
         bodyHub.u8a ?: bodyHub.stream?.let {
@@ -59,6 +45,5 @@ open class IpcBody(
     }
 
     fun text() = this._text
-
 
 }

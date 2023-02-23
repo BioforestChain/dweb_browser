@@ -112,10 +112,10 @@ enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>,
     ) = json.asString.let { role -> values().find { it.role == role } }
 }
 
-class RawData(val type: IPC_RAW_BODY_TYPE, val data: Any) : JsonSerializer<RawData>,
-    JsonDeserializer<RawData> {
+class MetaBody(val type: IPC_RAW_BODY_TYPE, val data: Any) : JsonSerializer<MetaBody>,
+    JsonDeserializer<MetaBody> {
     override fun serialize(
-        src: RawData,
+        src: MetaBody,
         typeOfSrc: Type,
         context: JsonSerializationContext
     ) = JsonArray().also {
@@ -132,7 +132,7 @@ class RawData(val type: IPC_RAW_BODY_TYPE, val data: Any) : JsonSerializer<RawDa
             .let { type ->
                 when (type) {
                     IPC_RAW_BODY_TYPE.BINARY -> throw JsonParseException("json no support raw binary body")
-                    else -> RawData(type, list[0].asString)
+                    else -> MetaBody(type, list[0].asString)
                 }
             }
     }
