@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.file
+package info.bagen.rust.plaoc.microService.sys.plugin.fileSystem
 
 import android.system.Os
 import androidx.core.net.toUri
@@ -6,12 +6,8 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.byteArrayInputStream
 import info.bagen.rust.plaoc.microService.sys.file.FileSystemPlugin
 import org.http4k.core.*
-import org.http4k.core.ContentType.Companion.APPLICATION_JSON
-import org.http4k.core.ContentType.Companion.TEXT_PLAIN
-import org.http4k.format.Jackson.asJsonArray
 import org.http4k.format.Jackson.asJsonObject
 import org.http4k.format.Jackson.auto
-import org.http4k.format.Jackson.json
 import org.http4k.lens.*
 import org.http4k.routing.bind
 import org.http4k.routing.routes

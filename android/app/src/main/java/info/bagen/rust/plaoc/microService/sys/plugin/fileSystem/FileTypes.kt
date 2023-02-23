@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.file
+package info.bagen.rust.plaoc.microService.sys.plugin.fileSystem
 
 data class Fs(
     val name: String = "",

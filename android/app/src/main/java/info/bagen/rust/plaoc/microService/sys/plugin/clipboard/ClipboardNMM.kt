@@ -28,7 +28,7 @@ object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
             "/read" bind Method.GET to defineHandler { request ->
                 println("Clipboard#apiRouting read===>$mmid  ${request.uri.path} ")
                 val read = read()
-                Response(Status.OK, read)
+                Response(Status.OK).body(read)
             },
             /**
              * 写入剪切板
@@ -45,7 +45,7 @@ object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
                     Response(Status.UNSATISFIABLE_PARAMETERS)
                 }
                 write(string,image,url,labelValue = label) {
-                    Response(Status.OK, it)
+                    Response(Status.OK).body(it)
                 }
                 true
             }

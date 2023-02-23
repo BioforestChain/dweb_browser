@@ -28,8 +28,8 @@ import info.bagen.rust.plaoc.webView.dialog.*
 import info.bagen.rust.plaoc.webView.jsutil.JsUtil
 import info.bagen.rust.plaoc.webView.network.*
 import info.bagen.rust.plaoc.webView.openDWebWindow
-import info.bagen.rust.plaoc.webView.systemui.SystemUIState
-import info.bagen.rust.plaoc.webView.systemui.js.VirtualKeyboardFFI
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUIState
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.keyboard.VirtualKeyboard
 import info.bagen.rust.plaoc.webView.topbar.DWebTopBar
 import info.bagen.rust.plaoc.webView.topbar.TopBarState
 import info.bagen.rust.plaoc.webView.urlscheme.CustomUrlScheme
@@ -85,7 +85,7 @@ fun DWebView(
     val systemUIState = SystemUIState.Default(activity)
 
     jsUtil?.apply {
-        VirtualKeyboardFFI.injectVirtualKeyboardVars(
+        VirtualKeyboard.injectVirtualKeyboardVars(
             this,
             LocalDensity.current, LocalLayoutDirection.current,
             systemUIState.virtualKeyboard.overlay.value, WindowInsets.ime,

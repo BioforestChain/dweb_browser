@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.webView.systemui
+package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 
 
 import android.webkit.JavascriptInterface
@@ -9,28 +9,37 @@ import androidx.compose.ui.graphics.luminance
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
 import info.bagen.rust.plaoc.webView.jsutil.BoolInt
 import info.bagen.rust.plaoc.webView.jsutil.DataString_From
-import info.bagen.rust.plaoc.webView.jsutil.JsUtil
 import info.bagen.rust.plaoc.webView.jsutil.toBoolean
 import info.bagen.rust.plaoc.webView.network.getColorHex
 import info.bagen.rust.plaoc.webView.network.hexToIntColor
-import info.bagen.rust.plaoc.webView.systemui.js.VirtualKeyboardFFI
 import info.bagen.rust.plaoc.webkit.AdWebViewHook
+import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
+import org.http4k.routing.bind
+import org.http4k.routing.routes
 
-
-private const val TAG = "SystemUiFFI"
-
-class SystemUiFFI(
+class SystemUiNMM(
     private val activity: ComponentActivity,
-    private val webView: WebView,
     private val hook: AdWebViewHook,
-    private val jsUtil: JsUtil,
     private val systemUIState: SystemUIState,
-) {
-    //    @JavascriptInterface
-    val virtualKeyboard =
-        VirtualKeyboardFFI(systemUIState.virtualKeyboard.overlay, activity, webView)
+) : NativeMicroModule("ui.sys.dweb") {
+
+
+    override suspend fun _bootstrap() {
+        apiRouting = routes(
+            /** 读取剪切板*/
+            "/read" bind Method.GET to defineHandler { request ->
+                println("Clipboard#apiRouting read===>$mmid  ${request.uri.path} ")
+                val read = ClipboardNMM.read()
+                Response(Status.OK, read)
+            },
+        )
+    }
 
     /**
      * @TODO 在未来，这里的disable与否，通过更加完善的声明来实现，比如可以声明多个rect
@@ -129,7 +138,7 @@ class SystemUiFFI(
         return isOverlay.toBoolean()
     }
 
-
+    /** 检索顶级窗口装饰视图（包含标准窗口框架/装饰和其中的客户端内容），可以将其作为窗口添加到窗口管理器 */
     private val insetsCompat: WindowInsetsCompat by lazy {
         WindowInsetsCompat.toWindowInsetsCompat(
             activity.window.decorView.rootWindowInsets
@@ -176,5 +185,9 @@ class SystemUiFFI(
     fun showInsets(typeMask: Int) {
         return WindowCompat.getInsetsController(activity.window, activity.window.decorView)
             .show(typeMask)
+    }
+
+    override suspend fun _shutdown() {
+        TODO("Not yet implemented")
     }
 }

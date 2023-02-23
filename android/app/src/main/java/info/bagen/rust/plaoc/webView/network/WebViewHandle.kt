@@ -6,7 +6,6 @@ import info.bagen.rust.plaoc.webView.dialog.DialogFFI
 import info.bagen.rust.plaoc.webView.dialog.JsAlertConfiguration
 import info.bagen.rust.plaoc.webView.jsutil.CallbackString
 import info.bagen.rust.plaoc.webView.jsutil.DataString
-import info.bagen.rust.plaoc.webView.systemui.SystemUiFFI
 import info.bagen.rust.plaoc.webView.topbar.TopBarFFI
 
 val call_ui_map = mutableMapOf<ExportNativeUi, (data: String) -> Any>()
