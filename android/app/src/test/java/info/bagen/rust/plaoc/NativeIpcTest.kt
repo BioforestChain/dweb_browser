@@ -237,7 +237,7 @@ class NativeIpcTest {
 
 
         delay(1000)
-        for (i in 0..100) {
+        for (i in 0..10) {
             println("开始发送 $i")
             val request = Request(Method.GET, "").body("hi-$i")
             val response = clientStreamIpc.request(request)

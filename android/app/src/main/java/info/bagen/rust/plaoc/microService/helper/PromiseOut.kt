@@ -1,63 +1,34 @@
 package info.bagen.rust.plaoc.microService.helper
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.future.await
+import java.util.concurrent.CompletableFuture
 
 class PromiseOut<T : Any> {
     companion object {
         fun <T : Any> resolve(value: T) = PromiseOut<T>().also { it.resolve(value) }
         fun <T : Any> reject(e: Throwable) = PromiseOut<T>().also { it.reject(e) }
-//        fun reject(e: Throwable) = PromiseOut<Unit>().also { it.reject(e) }
     }
 
-    private lateinit var _value: T
+    private val _future = CompletableFuture<T>()
+
 
     fun resolve(value: T) {
-        finish {
-            _value = value
-        }
+        _future.complete(value)
     }
 
 
-    private var _cause: Throwable? = null
     fun reject(e: Throwable) {
-        finish {
-            _cause = e
-        }
+        _future.get()
+
+        _future.completeExceptionally(e)
     }
 
+    val isFinished get() = _future.isDone || _future.isCompletedExceptionally
+    val isResolved get() = _future.isDone
+    val isRejected get() = _future.isCompletedExceptionally
 
-    private var _finished = false
-    private val mutex = Mutex(true)// 我们不能用 mutex.isLocked 来替代 _finished，因为它有可能同时被多个线程所处置
-    private inline fun finish(action: () -> Unit): Boolean {
-        if (!_finished) {
-            action()
-            _finished = true
-            mutex.unlock()
-            return true
-        }
-        return false
-    }
+    val value get() = if (isResolved) _future.get() else null
 
-    val isFinished get() = _finished
-    val isResolved get() = _finished && _cause == null
-    val isRejected get() = _finished && _cause != null
-    val value get() = if (isResolved) _value else null
-    val cause get() = _cause
-
-    private suspend inline fun await() {
-        if (!_finished) {
-            mutex.lock() // 卡住等待
-            mutex.unlock()
-        }
-    }
-
-    suspend fun waitPromise(): T {
-        await()
-        return when (_cause) {
-            null -> _value
-            else -> throw _cause!!
-        }
-    }
+    suspend fun waitPromise(): T = _future.await()
 }
 

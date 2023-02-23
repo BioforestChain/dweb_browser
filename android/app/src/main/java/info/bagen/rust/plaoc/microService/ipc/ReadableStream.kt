@@ -128,8 +128,7 @@ class ReadableStream(
         }
 //        println("ASK/$uid 3 ptr:$ptr/dataSize:${_data.size}")
 
-        /// 不能直接返回data，好像有bug，会出问题
-        return requestData(ptr) //_data
+        return _data
     }
 
     companion object {
