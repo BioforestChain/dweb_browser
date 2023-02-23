@@ -26,7 +26,7 @@ android {
     sourceSets {
         named("main") {
             jniLibs.setSrcDirs(listOf("src/main/libs"))
-            assets.setSrcDirs(listOf("src/main/assets/system-app", "src/main/sdk/js"))
+            assets.setSrcDirs(listOf("src/main/assets"))
         }
     }
 

@@ -74,7 +74,6 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 "User-Agent" -> {
                     if (value != null) {
                         Regex("""\sdweb-host/(.+)\s*""").find(value)?.also { matchResult ->
-                            println("headers#router User-Agent ====> ${matchResult.groupValues[1]}")
                             user_agent_host = matchResult.groupValues[1]
                         }
                     }
@@ -83,10 +82,13 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         }
         val host = x_dweb_host ?: user_agent_host ?: header_host ?: "*"
 
-        /// TODO 30s 没有任何 body 写入的话，认为网关超时 ß
+        /// TODO 30s 没有任何 body 写入的话，认为网关超时
         gatewayMap[host]?.let { gateway ->
+            println("URL:${request.uri} => gateway: ${gateway.urlInfo}")
             runBlocking {
-                gateway.listener.hookHttpRequest(request)
+                val response = gateway.listener.hookHttpRequest(request)
+                println("URL:${request.uri} => response: $response")
+                response
             }
         }
             ?: Response(

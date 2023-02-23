@@ -6,7 +6,10 @@ import android.webkit.WebView
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.WebViewAsyncEvalContext
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.helper.suspendOnce
+import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
@@ -38,16 +41,15 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             // 在模块关停的时候，要关闭端口监听
             _afterShutdownSignal.listen { server.close() }
             // 提供基本的主页服务
-            server.listen { streamIpc ->
-                streamIpc.onRequest { (request, ipc) ->
-                    ipc.postMessage(
-                        IpcResponse.fromResponse(
-                            request.req_id,
-                            nativeFetch("file:///bundle/js-process/${request.uri.path}"),
-                            ipc
-                        )
+            val serverIpc = server.listen();
+            serverIpc.onRequest { (request, ipc) ->
+                ipc.postMessage(
+                    IpcResponse.fromResponse(
+                        request.req_id,
+                        nativeFetch("file:///bundle/js-process${request.uri.path}"),
+                        ipc
                     )
-                }
+                )
             }
         }
 
@@ -62,24 +64,23 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     val JS_PROCESS_WORKER_CODE =
                         suspendOnce { nativeFetch("file:///bundle/js-process.worker.js").text() }
                     // 提供基本的主页服务
-                    server.listen { streamIpc ->
-                        streamIpc.onRequest { (request, ipc) ->
-                            if (request.uri.path === "/bootstrap.js") {
-                                ipc.postMessage(
-                                    IpcResponse.fromText(
-                                        request.req_id,
-                                        200,
-                                        IpcHeaders().also {
-                                            it.set(
-                                                "content-type",
-                                                "application/javascript"
-                                            )
-                                        },
-                                        JS_PROCESS_WORKER_CODE(),
-                                        ipc
-                                    )
+                    val serverIpc = server.listen()
+                    serverIpc.onRequest { (request, ipc) ->
+                        if (request.uri.path === "/bootstrap.js") {
+                            ipc.postMessage(
+                                IpcResponse.fromText(
+                                    request.req_id,
+                                    200,
+                                    IpcHeaders().also {
+                                        it.set(
+                                            "content-type",
+                                            "application/javascript"
+                                        )
+                                    },
+                                    JS_PROCESS_WORKER_CODE(),
+                                    ipc
                                 )
-                            }
+                            )
                         }
                     }
                 }
@@ -155,11 +156,11 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          * 这里我们将请求转发给对方，要求对方以一定的格式提供代码回来，
          * 我们会对回来的代码进行处理，然后再执行
          */
-        httpDwebServer.listen { streamIpc ->
-            streamIpc.onRequest { args ->
-                // TODO 对代码进行翻译处理
-                args.ipc.responseBy(streamIpc, args.request)
-            }
+        val codeProxyServerIpc = httpDwebServer.listen()
+        codeProxyServerIpc.onRequest { (request, ipc) ->
+            // TODO 对代码进行翻译处理
+            // 转发给远端来处理
+            ipc.responseBy(streamIpc, request)
         }
 
 

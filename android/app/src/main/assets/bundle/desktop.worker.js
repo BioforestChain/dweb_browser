@@ -460,7 +460,18 @@ var IpcStreamEnd = class {
 };
 
 // src/core/ipc/$streamAsRawData.cts
-var $streamAsRawData = (stream_id, stream, ipc) => {
+var streamIdWM = /* @__PURE__ */ new WeakMap();
+var stream_id_acc = 0;
+var getStreamId = (stream) => {
+  let id = streamIdWM.get(stream);
+  if (id === void 0) {
+    id = `rs-${stream_id_acc++}`;
+    streamIdWM.set(stream, id);
+  }
+  return id;
+};
+var $streamAsRawData = (stream, ipc) => {
+  const stream_id = getStreamId(stream);
   const reader = streamRead(stream);
   const sender = _postStreamData(stream_id, reader, ipc, () => {
     off();
@@ -472,6 +483,7 @@ var $streamAsRawData = (stream_id, stream, ipc) => {
       reader.throw("abort");
     }
   });
+  return ipc.support_binary ? [24 /* BINARY_STREAM_ID */, stream_id] : [20 /* BASE64_STREAM_ID */, stream_id];
 };
 async function* _postStreamData(stream_id, reader, ipc, onDone) {
   for await (const data of reader) {
@@ -689,15 +701,13 @@ var _IpcResponse = class extends IpcBody {
   }
   static fromStream(req_id, statusCode, stream, headers = new IpcHeaders(), ipc) {
     headers.init("Content-Type", "application/octet-stream");
-    const stream_id = `res/${req_id}/${headers.get("Content-Length") ?? "-"}`;
     const ipcResponse = new _IpcResponse(
       req_id,
       statusCode,
-      ipc.support_binary ? [24 /* BINARY_STREAM_ID */, stream_id] : [20 /* BASE64_STREAM_ID */, stream_id],
+      $streamAsRawData(stream, ipc),
       headers.toJSON(),
       ipc
     );
-    $streamAsRawData(stream_id, stream, ipc);
     return ipcResponse;
   }
   // static fromBinaryStream(
@@ -2385,13 +2395,11 @@ var _IpcRequest = class extends IpcBody {
   }
   static fromStream(stream, req_id, method, url, headers = new IpcHeaders(), ipc) {
     headers.init("Content-Type", "application/octet-stream");
-    const stream_id = `res/${req_id}/${headers.get("content-length") ?? "-"}`;
-    $streamAsRawData(stream_id, stream, ipc);
     return new _IpcRequest(
       req_id,
       method,
       url,
-      ipc.support_binary ? [24 /* BINARY_STREAM_ID */, stream_id] : [20 /* BASE64_STREAM_ID */, stream_id],
+      $streamAsRawData(stream, ipc),
       headers.toJSON(),
       ipc
     );

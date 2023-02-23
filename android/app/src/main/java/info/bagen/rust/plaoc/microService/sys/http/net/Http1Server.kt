@@ -1,11 +1,10 @@
 package info.bagen.rust.plaoc.microService.sys.http.net
 
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import org.http4k.core.*
+import org.http4k.core.HttpHandler
 import org.http4k.server.Http4kServer
 import org.http4k.server.Netty
 import org.http4k.server.asServer
@@ -26,15 +25,14 @@ class Http1Server {
             throw Exception("server alter created")
         }
 
-        val lock = Mutex(true)
+        val portPo = PromiseOut<Int>()
         CoroutineScope(Dispatchers.IO).launch {
             server = handler.asServer(Netty(0/* 使用随机端口*/)).start().also { server ->
                 bindingPort = server.port()
-                lock.unlock()
+                portPo.resolve(bindingPort)
             }
         }
-        lock.withLock { }
-        bindingPort
+        portPo.waitPromise()
     }
 
     val origin get() = "${PREFIX}localhost:${bindingPort}"

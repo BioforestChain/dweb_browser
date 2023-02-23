@@ -32,16 +32,20 @@ private val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
 private fun localeFileFetch(remote: MicroModule, request: Request) =
     when {
         request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
-            App.appContext.assets.open(request.uri.path).use {
-                Response(status = Status.OK).body(it).also { response ->
-                    val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
-                    if (extension != null) {
-                        val type = mimeTypeMap.getMimeTypeFromExtension(extension)
-                        if (type != null) {
-                            response.header("Content-Type", type)
-                        }
+            Response(status = Status.OK).body(
+                App.appContext.assets.open(
+                    /** 移除开头的斜杠 */
+                    request.uri.path.substring(1)
+                )
+            ).let { response ->
+                val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
+                if (extension != null) {
+                    val type = mimeTypeMap.getMimeTypeFromExtension(extension)
+                    if (type != null) {
+                        return@let response.header("Content-Type", type)
                     }
                 }
+                response
             }
         }.getOrElse {
             Response(Status.NOT_FOUND).body("the ${request.uri.path} file not found.")

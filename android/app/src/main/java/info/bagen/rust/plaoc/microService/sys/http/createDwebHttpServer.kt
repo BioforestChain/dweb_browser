@@ -10,8 +10,6 @@ import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
@@ -73,17 +71,13 @@ class HttpDwebServer(
             RouteConfig(pathname = "", method = IpcMethod.PUT),
             RouteConfig(pathname = "", method = IpcMethod.DELETE)
         ),
-        onListen: (streamIpc: ReadableStreamIpc) -> Unit
     ) = runBlocking {
-        val lock = Mutex(true)
-        lateinit var streamIpc: ReadableStreamIpc;
+        val po = PromiseOut<ReadableStreamIpc>()
         GlobalScope.launch {
-            streamIpc = nmm.listenHttpDwebServer(startResult.token, routes)
-            onListen(streamIpc)
-            lock.unlock()
+            val streamIpc = nmm.listenHttpDwebServer(startResult.token, routes)
+            po.resolve(streamIpc)
         }
-        lock.withLock { }
-        streamIpc
+        po.waitPromise()
     }
 
 
