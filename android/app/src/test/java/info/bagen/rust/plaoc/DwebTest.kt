@@ -81,6 +81,8 @@ class DwebTest : AsyncBase() {
 
     @Test
     fun testHttp() = runBlocking {
+        enableDwebDebug(listOf("stream-ipc", "stream"))
+
         val dnsNMM = DnsNMM()
 
         /// 安装系统应用

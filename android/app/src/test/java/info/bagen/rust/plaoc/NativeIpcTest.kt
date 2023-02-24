@@ -66,8 +66,8 @@ class NativeIpcTest : AsyncBase() {
     @Test
     @ExperimentalCoroutinesApi
     fun sendStreamData() = runBlocking(catcher) {
+        enableDwebDebug(listOf("native-ipc", "stream"))
 
-        System.setProperty("dweb-debug", "native-ipc stream")
         val m0 = object : NativeMicroModule("m0") {
             override suspend fun _bootstrap() {
             }

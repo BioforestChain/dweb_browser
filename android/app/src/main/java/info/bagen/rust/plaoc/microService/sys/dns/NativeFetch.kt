@@ -3,10 +3,15 @@ package info.bagen.rust.plaoc.microService.sys.dns
 import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
 
 typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Response?
+
+
+inline fun debugFetch(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("fetch", tag, msg, err)
 
 class NativeFetchAdaptersManager {
     private val adapterOrderMap = mutableMapOf<FetchAdapter, Int>()

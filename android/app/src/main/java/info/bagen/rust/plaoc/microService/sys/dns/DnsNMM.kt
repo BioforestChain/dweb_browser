@@ -15,6 +15,8 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
+inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("fetch", tag, msg, err)
 
 class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     private val mmMap = mutableMapOf<Mmid, MicroModule>()
@@ -33,16 +35,17 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
         _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
             if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
                 val mmid = request.uri.host
-                printdebugln("fetch", "DNS/fetchAdapter", "$mmid >> ${request.uri.path}")
+                debugFetch("DNS/fetchAdapter", "$mmid >> ${request.uri.path}")
                 mmMap[mmid]?.let {
                     /** 一个互联实例表 */
                     val ipcMap = connects.getOrPut(fromMM) { mutableMapOf() }
+
                     /**
                      * 一个互联实例
                      */
                     val ipc = ipcMap.getOrPut(mmid) {
                         val toMM = open(mmid);
-                        println("DNS#toMM===> ${toMM.mmid} 🥑connect=> ${fromMM.mmid}")
+                        debugFetch("DNS/connect", "${toMM.mmid} 🥑 ${fromMM.mmid}")
                         toMM.connect(fromMM).also { ipc ->
                             // 在 IPC 关闭的时候，从 ipcMap 中移除
                             ipc.onClose { ipcMap.remove(mmid); }
@@ -57,7 +60,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
         /// 定义路由功能
         apiRouting = routes(
             "/open" bind Method.GET to defineHandler { request ->
-                println("DNS#apiRouting===>$mmid  ${request.uri.path}")
+                debugDNS("open/$mmid", request.uri.path)
                 open(query_app_id(request))
                 true
             },
@@ -72,7 +75,6 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
         /// 启动 boot 模块
         GlobalScope.launch {
             open("boot.sys.dweb")
-            open("browser.sys.dweb")
         }
     }
 
@@ -98,7 +100,6 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     /** 打开应用 */
     private suspend fun open(mmid: Mmid): MicroModule {
         return running_apps.getOrPut(mmid) {
-            printdebugln("dns", "open", mmid)
             query(mmid)?.also {
                 it.bootstrap()
             } ?: throw Exception("no found app: $mmid")

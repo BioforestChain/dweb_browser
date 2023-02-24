@@ -31,4 +31,8 @@ open class AsyncBase {
         }")
     }
 
+    inline fun enableDwebDebug(flags: List<String>) {
+        System.setProperty("dweb-debug", flags.joinToString(separator = " ") { it })
+    }
+
 }
