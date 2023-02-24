@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.printerrln
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -44,12 +45,12 @@ class ReadableStream(
     private val controller by lazy { ReadableStreamController(dataChannel) { this@ReadableStream } }
 
     private val writeDataScope =
-        CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
-            e.printStackTrace()
+        CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+            printerrln(ctx.toString(), e.message, e)
         })
     private val readDataScope =
-        CoroutineScope(CoroutineName("readableStream/readData") + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
-            e.printStackTrace()
+        CoroutineScope(CoroutineName("readableStream/readData") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+          printerrln(ctx.toString(), e.message, e)
         })
 
     init {
@@ -133,7 +134,7 @@ class ReadableStream(
     }
 
     companion object {
-        private var id_acc = 0
+        private var id_acc = 1
     }
 
     private val uid = "#s${id_acc++}"

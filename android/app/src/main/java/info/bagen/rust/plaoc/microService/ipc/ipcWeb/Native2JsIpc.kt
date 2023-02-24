@@ -6,7 +6,7 @@ import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 
 
 val ALL_IPC_CACHE = mutableMapOf<Int, WebMessagePort>();
-var all_ipc_id_acc = 0;
+var all_ipc_id_acc = 1;
 fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc++.also { port_id ->
     ALL_IPC_CACHE[port_id] = port;
 }

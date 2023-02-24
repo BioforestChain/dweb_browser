@@ -11,13 +11,15 @@ suspend fun startDwebBrowser() {
     val dnsNMM = DnsNMM()
 
     /// 安装系统应用
-    dnsNMM.install(JsProcessNMM())
-    dnsNMM.install(BootNMM())
-    dnsNMM.install(MultiWebViewNMM())
-    dnsNMM.install(HttpNMM())
+    val jsProcessNMM = JsProcessNMM().also { dnsNMM.install(it) }
+    val multiWebViewNMM = MultiWebViewNMM().also { dnsNMM.install(it) }
+    val httpNMM = HttpNMM().also { dnsNMM.install(it) }
 
     /// 安装用户应用
-    dnsNMM.install(DesktopJMM())
+    val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }
+
+    /// 启动程序
+    val bootNMM = BootNMM(listOf(desktopJMM.mmid)).also { dnsNMM.install(it) }
 
     /// 启动
     dnsNMM.bootstrap()

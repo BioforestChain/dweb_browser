@@ -45,8 +45,8 @@ class ReadableStreamIpc(
             }
         }
         _incomeStream = stream
-        CoroutineScope(CoroutineName(coroutineName) + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
-            e.printStackTrace()
+        CoroutineScope(CoroutineName(coroutineName) + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+            printerrln(ctx.toString(), e.message, e)
         }).launch {
 
             // 如果通道关闭并且没有剩余字节可供读取，则返回 true
