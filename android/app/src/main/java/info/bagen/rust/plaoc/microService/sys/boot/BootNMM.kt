@@ -40,10 +40,10 @@ class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb"
 
         GlobalScope.launch {
             for (mmid in registeredMmids) {
+                println("file://dns.sys.dweb/open?app_id111= $mmid  ${registeredMmids.size}")
                 nativeFetch("file://dns.sys.dweb/open?app_id=${mmid.toURLQueryComponent()}")
             }
         }
-
     }
 
     override suspend fun _shutdown() {

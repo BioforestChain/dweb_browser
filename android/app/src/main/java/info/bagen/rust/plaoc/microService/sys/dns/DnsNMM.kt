@@ -42,7 +42,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
                      */
                     val ipc = ipcMap.getOrPut(mmid) {
                         val toMM = open(mmid);
-                        println("DNS#toMM===>$mmid  $toMM  $fromMM")
+                        println("DNS#toMM===> ${toMM.mmid} 🥑connect=> ${fromMM.mmid}")
                         toMM.connect(fromMM).also { ipc ->
                             // 在 IPC 关闭的时候，从 ipcMap 中移除
                             ipc.onClose { ipcMap.remove(mmid); }
@@ -72,6 +72,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
         /// 启动 boot 模块
         GlobalScope.launch {
             open("boot.sys.dweb")
+            open("browser.sys.dweb")
         }
     }
 

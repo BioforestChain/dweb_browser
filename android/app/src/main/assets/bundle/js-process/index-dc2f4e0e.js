@@ -56,57 +56,7 @@ class Signal {
     };
   }
 }
-const electron = typeof require !== "undefined" ? require("electron") : function nodeIntegrationWarn() {
-  console.error(`If you need to use "electron" in the Renderer process, make sure that "nodeIntegration" is enabled in the Main process.`);
-  return {
-    // TODO: polyfill
-  };
-}();
-let _ipcRenderer;
-if (typeof document === "undefined") {
-  _ipcRenderer = {};
-  const keys = [
-    "invoke",
-    "postMessage",
-    "send",
-    "sendSync",
-    "sendTo",
-    "sendToHost",
-    // propertype
-    "addListener",
-    "emit",
-    "eventNames",
-    "getMaxListeners",
-    "listenerCount",
-    "listeners",
-    "off",
-    "on",
-    "once",
-    "prependListener",
-    "prependOnceListener",
-    "rawListeners",
-    "removeAllListeners",
-    "removeListener",
-    "setMaxListeners"
-  ];
-  for (const key of keys) {
-    _ipcRenderer[key] = () => {
-      throw new Error(
-        "ipcRenderer doesn't work in a Web Worker.\nYou can see https://github.com/electron-vite/vite-plugin-electron/issues/69"
-      );
-    };
-  }
-} else {
-  _ipcRenderer = electron.ipcRenderer;
-}
-electron.clipboard;
-electron.contextBridge;
-electron.crashReporter;
-const ipcRenderer = _ipcRenderer;
-electron.nativeImage;
-electron.shell;
-electron.webFrame;
-electron.deprecate;
+
 const updateRenderPort = (port) => {
   updateRenderMessageListener(port, "addEventListener", 1);
   updateRenderMessageListener(port, "removeEventListener", 1);
@@ -496,10 +446,6 @@ const export_channel = new MessageChannel();
 const import_channel = new MessageChannel();
 const export_port = export_channel.port1;
 const import_port = import_channel.port1;
-ipcRenderer.postMessage("renderPort", {}, [
-  export_channel.port2,
-  import_channel.port2
-]);
 updateRenderPort(export_port);
 updateRenderPort(import_port);
 const mainPort = export_port;

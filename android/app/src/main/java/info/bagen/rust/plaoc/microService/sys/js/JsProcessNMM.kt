@@ -236,7 +236,7 @@ class JsProcessWebApi(val webView: WebView) {
     suspend fun runProcessMain(process_id: Int, main_url: String) =
         asyncEvalContext.evaluateJavascriptAsync(
             """
-        runProcessMain($process_id, { main_url:$main_url s})
+        runProcessMain($process_id, { main_url:$main_url })
         """.trimIndent()
         ).let {}
 

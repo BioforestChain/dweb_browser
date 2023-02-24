@@ -204,7 +204,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     }
 
     /**
-     *
+     *  绑定流监听
      */
     private fun listen(
         token: String,
