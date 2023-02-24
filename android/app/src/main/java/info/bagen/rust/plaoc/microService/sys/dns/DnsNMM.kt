@@ -35,14 +35,8 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
                 val mmid = request.uri.host
                 printdebugln("fetch", "DNS/fetchAdapter", "$mmid >> ${request.uri.path}")
                 mmMap[mmid]?.let {
-
-                    /** 一个互联实例表 */
                     /** 一个互联实例表 */
                     val ipcMap = connects.getOrPut(fromMM) { mutableMapOf() }
-
-                    /**
-                     * 一个互联实例
-                     */
                     /**
                      * 一个互联实例
                      */

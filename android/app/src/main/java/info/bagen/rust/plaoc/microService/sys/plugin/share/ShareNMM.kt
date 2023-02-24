@@ -10,10 +10,46 @@ import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import org.http4k.core.Body
+import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
+import org.http4k.format.Jackson.array
+import org.http4k.format.Jackson.auto
+import org.http4k.lens.Query
+import org.http4k.lens.composite
+import org.http4k.lens.string
+import org.http4k.routing.bind
+import org.http4k.routing.routes
 import java.io.File
 
 
-object Share {
+data class ShareOptions(
+    val title: String?,
+    val text: String?,
+    val url: String?,
+    val files: Array<String>?,
+    val dialogTitle: String
+)
+
+
+object Share : NativeMicroModule("share.sys.dweb") {
+    override suspend fun _bootstrap() {
+        apiRouting = routes(
+            /** 分享*/
+            "/share" bind Method.POST to defineHandler { request ->
+                println("FileSystemNMM#apiRouting checkPermissions===>$mmid  ${request.uri.path} ")
+                val shareOptionLens = Body.auto<ShareOptions>().toLens()
+                val ext = shareOptionLens(request)
+                share(ext.title, ext.text, ext.url, ext.files, ext.dialogTitle) {
+                    Response(Status.OK).body(it)
+                }
+                Response(Status.INTERNAL_SERVER_ERROR)
+            },
+        )
+    }
+
 
     /**
      * 打开分享界面
@@ -75,13 +111,9 @@ object Share {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             flags = flags or PendingIntent.FLAG_MUTABLE
         }
-        val pi =
-            PendingIntent.getBroadcast(
-                App.appContext,
-                0,
-                Intent(Intent.EXTRA_CHOSEN_COMPONENT),
-                flags
-            )
+        val pi = PendingIntent.getBroadcast(
+            App.appContext, 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
+        )
         val chooserIntent = Intent.createChooser(intent, dialogTitle, pi.intentSender).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
         }
@@ -89,9 +121,7 @@ object Share {
     }
 
     private fun shareFiles(
-        files: Array<String>,
-        intent: Intent,
-        onErrorCallback: (String) -> Unit
+        files: Array<String>, intent: Intent, onErrorCallback: (String) -> Unit
     ) {
         val arrayListFiles = arrayListOf<Uri>()
         try {
@@ -322,6 +352,10 @@ object Share {
 
     private fun stringCheck(str: String?): Boolean {
         return str?.isNotEmpty() ?: false
+    }
+
+    override suspend fun _shutdown() {
+        TODO("Not yet implemented")
     }
 }
 
