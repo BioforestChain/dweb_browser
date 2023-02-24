@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.helper
 
 import android.annotation.SuppressLint
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -24,6 +25,7 @@ class WebViewAsyncEvalContext(
         val lock = Mutex(true)
         GlobalScope.launch(Dispatchers.Main) {
             webView.addJavascriptInterface(object {
+                @JavascriptInterface
                 fun resolve(id: Int, data: String) {
                     GlobalScope.launch {
                         channelMap.remove(id)?.also {
@@ -32,7 +34,7 @@ class WebViewAsyncEvalContext(
                         }
                     }
                 }
-
+                @JavascriptInterface
                 fun reject(id: Int, reason: String) {
                     GlobalScope.launch {
                         channelMap.remove(id)?.also {
