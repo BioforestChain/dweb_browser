@@ -4,6 +4,8 @@ import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.InputStream
 
 
@@ -27,6 +29,12 @@ class ReadableStreamIpc(
     }, onPull = { (size, controller) ->
         debugStream("IPC-ON-PULL/${controller.stream}", size)
     })
+
+    private val controllerMutex = Mutex()
+    private suspend inline fun enqueue(data: ByteArray) = controllerMutex.withLock {
+        controller.enqueue(data)
+    }
+
 
     private var _incomeStream: InputStream? = null
 
@@ -55,6 +63,9 @@ class ReadableStreamIpc(
             // 如果通道关闭并且没有剩余字节可供读取，则返回 true
             while (stream.available() > 0) {
                 val size = stream.readInt()
+                if (size <= 0) { // 心跳包？
+                    continue
+                }
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
                 val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
                 debugStreamIpc("size/$stream: $size")
@@ -87,7 +98,7 @@ class ReadableStreamIpc(
             }
         }
         debugStreamIpc("post/$stream", message.size)
-        controller.enqueue(message.size.toByteArray() + message)
+        enqueue(message.size.toByteArray() + message)
     }
 
     override suspend fun _doClose() {

@@ -17,6 +17,7 @@ import kotlin.test.assertEquals
 class DwebTest : AsyncBase() {
     companion object {
         var deferredList = mutableListOf<Deferred<Unit>>()
+        val prepareReady = CompletableDeferred<Unit>().also { deferredList += it }
     }
 
     class HttpTestNMM : NativeMicroModule("http.test.dweb") {
@@ -51,7 +52,7 @@ class DwebTest : AsyncBase() {
             }
             _afterShutdownSignal.listen { dwebServer.close() }
 
-            GlobalScope.launch {
+            deferredList += GlobalScope.async(context = catcher) {
                 for (i in 1..10) {
                     delay(20)
                     println("第 $i 次发送数据")
@@ -59,10 +60,8 @@ class DwebTest : AsyncBase() {
                     val res = nativeFetch(dwebServer.startResult.urlInfo.internal_origin + data)
                     assertEquals("ECHO: $data", res.text())
                 }
-            }.also {
-                deferredList += CompletableDeferred(it)
             }
-            GlobalScope.launch {
+            deferredList += GlobalScope.async(context = catcher) {
                 for (i in 1..10) {
                     delay(20)
                     println("第 $i 次发送数据")
@@ -70,9 +69,8 @@ class DwebTest : AsyncBase() {
                     val res = nativeFetch(internalServer.startResult.urlInfo.internal_origin + data)
                     assertEquals("ECHO/INTERNAL: $data", res.text())
                 }
-            }.also {
-                deferredList += CompletableDeferred(it)
             }
+            prepareReady.complete(Unit)
         }
 
         override suspend fun _shutdown() {
@@ -81,7 +79,7 @@ class DwebTest : AsyncBase() {
 
     @Test
     fun testHttp() = runBlocking {
-        enableDwebDebug(listOf("stream-ipc", "stream"))
+//        enableDwebDebug(listOf("stream-ipc", "stream"))
 
         val dnsNMM = DnsNMM()
 
@@ -98,11 +96,9 @@ class DwebTest : AsyncBase() {
         dnsNMM.bootstrap()
 
 
-        deferredList += CompletableDeferred(launch {
-            delay(10000)
-        })
-//        deferredList.awaitAll()
-//        println(deferredList.size)
-//        deferredList.awaitAll()
+        prepareReady.await()
+        for (def in deferredList) {
+            def.await()
+        }
     }
 }

@@ -7,8 +7,11 @@ import org.junit.jupiter.api.BeforeEach
 
 open class AsyncBase {
 
-    protected val catcher = CoroutineExceptionHandler { _, e ->
-        e.printStackTrace()
+    companion object {
+        @JvmStatic
+        protected val catcher = CoroutineExceptionHandler { _, e ->
+            e.printStackTrace()
+        }
     }
 
     @BeforeEach
