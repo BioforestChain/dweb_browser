@@ -89,7 +89,6 @@ class ReadableStream(
      */
     private fun requestData(ptr: Int): ByteArray {
         val dataSize = _data.size
-//        println("ASK/$uid 1 ptr:$ptr/dataSize:$dataSize")
         // 如果下标满足条件，直接返回
         if (ptr < dataSize) {
             return _data
@@ -112,7 +111,6 @@ class ReadableStream(
                                 debugStream("REQUEST-DATA/WAITING/$uid", "$newSize/$endSize")
                             }
                             newSize == -1 -> {
-                                println("ASK/$uid CLOSED by -1")
                                 debugStream("REQUEST-DATA/END/$uid", "$newSize/$endSize")
                                 wait.resolve(Unit) // 不需要抛出错误
                             }
@@ -128,7 +126,6 @@ class ReadableStream(
                 debugStream("REQUEST-DATA/END/$uid", _data.size)
             }.join()
         }
-//        println("ASK/$uid 3 ptr:$ptr/dataSize:${_data.size}")
 
         return _data
     }

@@ -1,15 +1,17 @@
 package info.bagen.rust.plaoc.microService.core
 
-import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.int
-import info.bagen.rust.plaoc.microService.helper.rand
-import info.bagen.rust.plaoc.microService.helper.stream
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.Native2JsIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import org.http4k.core.*
+
+
+inline fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("jmm", tag, msg, err)
+
 
 data class JmmMetadata(val main_url: String)
 
@@ -21,7 +23,7 @@ open class JsMicroModule(override val mmid: Mmid, val metadata: JmmMetadata) : M
      */
     private var processId: Int? = null
     override suspend fun _bootstrap() {
-        println("启动成功了 $mmid/$metadata")
+        debugJMM("bootstrap...", "$mmid/$metadata")
         val pid = rand(1, 1000)
         processId = pid
         val streamIpc = ReadableStreamIpc(this, IPC_ROLE.CLIENT)
@@ -43,7 +45,7 @@ open class JsMicroModule(override val mmid: Mmid, val metadata: JmmMetadata) : M
             "code-server"
         )
 
-        println("JS进程创建完成 $mmid")
+        debugJMM("running!!", mmid)
 
         _connectingIpcSet.add(streamIpc);
     }

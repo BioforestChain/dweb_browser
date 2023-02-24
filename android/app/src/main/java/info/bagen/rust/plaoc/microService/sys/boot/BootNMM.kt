@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.boot
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.core.Router
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.toURLQueryComponent
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
@@ -10,6 +11,10 @@ import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+
+
+inline fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("boot", tag, msg, err)
 
 class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb") {
     /**
@@ -23,13 +28,10 @@ class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb"
             registeredMmids += initMmids
         }
     }
+
     override val routers: Router = mutableMapOf()
     override suspend fun _bootstrap() {
         apiRouting = routes(
-            "/open" bind Method.GET to defineHandler { request ->
-                println("BootNMM#apiRouting===>$mmid  ${request.uri.path}")
-                true
-            },
             "/register" bind Method.GET to defineHandler { _, ipc ->
                 register(ipc.remote.mmid)
             },
@@ -40,7 +42,7 @@ class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb"
 
         GlobalScope.launch {
             for (mmid in registeredMmids) {
-                println("file://dns.sys.dweb/open?app_id111= $mmid  ${registeredMmids.size}")
+                debugBoot("launch", mmid)
                 nativeFetch("file://dns.sys.dweb/open?app_id=${mmid.toURLQueryComponent()}")
             }
         }
