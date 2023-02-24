@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.core
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.Native2JsIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
@@ -27,11 +28,12 @@ open class JsMicroModule(override val mmid: Mmid, val metadata: JmmMetadata) : M
         val pid = rand(1, 1000)
         processId = pid
         val streamIpc = ReadableStreamIpc(this, IPC_ROLE.CLIENT)
-        streamIpc.onRequest { (request) ->
-            when (request.uri.path) {
+        streamIpc.onRequest { (request, ipc) ->
+            val response = when (request.uri.path) {
                 "/index.js" -> nativeFetch(metadata.main_url)
                 else -> Response(Status.NOT_FOUND)
             }
+            ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
         }
         streamIpc.bindIncomeStream(
             nativeFetch(
