@@ -1,7 +1,7 @@
 package info.bagen.libappmgr.network.base
 
-import io.ktor.client.call.*
-import io.ktor.client.statement.*
+import com.google.gson.Gson
+import org.http4k.core.Response
 import java.io.File
 
 /*const val BASE_URL = "172.30.93.165"
@@ -26,91 +26,93 @@ typealias _SUCCESS<T> = suspend (result: T) -> Unit*/
 }*/
 
 interface IApiResult<T> {
-    fun onPrepare() {}// 网络请求前
-    fun onSuccess(errorCode: Int, errorMsg: String, data: T) {} // 网络请求成功，且返回数据
-    fun onError(errorCode: Int, errorMsg: String, exception: Throwable? = null) {}
-    fun downloadProgress(current: Long, total: Long, progress: Float) {} // 下载进度
-    fun downloadSuccess(file: File) {} // 下载完成
+  fun onPrepare() {}// 网络请求前
+  fun onSuccess(errorCode: Int, errorMsg: String, data: T) {} // 网络请求成功，且返回数据
+  fun onError(errorCode: Int, errorMsg: String, exception: Throwable? = null) {}
+  fun downloadProgress(current: Long, total: Long, progress: Float) {} // 下载进度
+  fun downloadSuccess(file: File) {} // 下载完成
 }
 
 //data class BaseData<T>(val errorCode: Int, val errorMsg: String, val data: T?)
 
 class ApiResultData<out T> constructor(val value: Any?) {
-    val isSuccess: Boolean get() = value !is Failure && value !is Progress && value !is Prepare
-    val isFailure: Boolean get() = value is Failure
-    val isLoading: Boolean get() = value is Progress
-    val isPrepare: Boolean get() = value is Prepare
+  val isSuccess: Boolean get() = value !is Failure && value !is Progress && value !is Prepare
+  val isFailure: Boolean get() = value is Failure
+  val isLoading: Boolean get() = value is Progress
+  val isPrepare: Boolean get() = value is Prepare
 
-    fun exceptionOrNull(): Throwable? = when (value) {
-        is Failure -> value.exception
-        else -> null
-    }
 
-    companion object {
-        fun <T> success(value: T): ApiResultData<T> = ApiResultData(value)
+  fun exceptionOrNull(): Throwable? = when (value) {
+    is Failure -> value.exception
+    else -> null
+  }
 
-        fun <T> failure(exception: Throwable): ApiResultData<T> =
-            ApiResultData(createFailure(exception))
+  companion object {
+    fun <T> success(value: T): ApiResultData<T> = ApiResultData(value)
 
-        fun <T> prepare(exception: Throwable? = null): ApiResultData<T> =
-            ApiResultData(createPrepare(exception))
+    fun <T> failure(exception: Throwable): ApiResultData<T> =
+      ApiResultData(createFailure(exception))
 
-        fun <T> progress(
-            currentLength: Long = 0L, length: Long = 0L, progress: Float = 0f
-        ): ApiResultData<T> = ApiResultData(createLoading(currentLength, length, progress))
-    }
+    fun <T> prepare(exception: Throwable? = null): ApiResultData<T> =
+      ApiResultData(createPrepare(exception))
 
-    data class Failure(val exception: Throwable)
+    fun <T> progress(
+      currentLength: Long = 0L, length: Long = 0L, progress: Float = 0f
+    ): ApiResultData<T> = ApiResultData(createLoading(currentLength, length, progress))
+  }
 
-    data class Progress(val currentLength: Long, val length: Long, val progress: Float)
+  data class Failure(val exception: Throwable)
 
-    data class Prepare(val exception: Throwable?)
+  data class Progress(val currentLength: Long, val length: Long, val progress: Float)
+
+  data class Prepare(val exception: Throwable?)
 
 }
 
 private fun createPrepare(exception: Throwable?): ApiResultData.Prepare =
-    ApiResultData.Prepare(exception)
+  ApiResultData.Prepare(exception)
 
 private fun createFailure(exception: Throwable): ApiResultData.Failure =
-    ApiResultData.Failure(exception)
+  ApiResultData.Failure(exception)
 
 
 private fun createLoading(currentLength: Long, length: Long, progress: Float) =
-    ApiResultData.Progress(currentLength, length, progress)
+  ApiResultData.Progress(currentLength, length, progress)
 
 
 inline fun <R, T> ApiResultData<T>.fold(
-    onSuccess: (value: T) -> R,
-    onLoading: (loading: ApiResultData.Progress) -> R,
-    onFailure: (exception: Throwable?) -> R,
-    onPrepare: (exception: Throwable?) -> R
+  onSuccess: (value: T) -> R,
+  onLoading: (loading: ApiResultData.Progress) -> R,
+  onFailure: (exception: Throwable?) -> R,
+  onPrepare: (exception: Throwable?) -> R
 ): R {
-    return when {
-        isFailure -> {
-            onFailure(exceptionOrNull())
-        }
-        isLoading -> {
-            onLoading(value as ApiResultData.Progress)
-        }
-        isPrepare -> {
-            onPrepare(exceptionOrNull())
-        }
-        else -> {
-            onSuccess(value as T)
-        }
+  return when {
+    isFailure -> {
+      onFailure(exceptionOrNull())
     }
+    isLoading -> {
+      onLoading(value as ApiResultData.Progress)
+    }
+    isPrepare -> {
+      onPrepare(exceptionOrNull())
+    }
+    else -> {
+      onSuccess(value as T)
+    }
+  }
 }
 
 inline fun <R> runCatching(block: () -> R): ApiResultData<R> {
-    return try {
-        ApiResultData.success(block())
-    } catch (e: Throwable) {
-        ApiResultData.failure(e)
-    }
+  return try {
+    ApiResultData.success(block())
+  } catch (e: Throwable) {
+    ApiResultData.failure(e)
+  }
 }
 
-suspend inline fun <reified T> HttpResponse.checkAndBody(): T = if (this.status.value == 200) {
-    this.body() // body有做bodyNullable判断，导致会有exception打印，这边做过滤
-} else {
-    BaseData(this.status.value, this.status.description, null) as T
-}
+suspend inline fun <reified T> Response.checkAndBody(): T =
+  if (this.status.successful) {
+    this.body.payload as T // body有做bodyNullable判断，导致会有exception打印，这边做过滤
+  } else {
+    BaseData(this.status.code, this.status.description, null) as T
+  }

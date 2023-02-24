@@ -1,28 +1,29 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.asBase64
+import info.bagen.rust.plaoc.microService.helper.toUtf8
 import java.io.InputStream
 
+
 abstract class IpcBody {
-    abstract val rawBody: RawData
-    protected abstract val ipc: Ipc
-    val body = run {
-        rawDataToBody(rawBody, ipc).also { data ->
-            when (data) {
-                is String -> this._body_text = data
-                is ByteArray -> this._body_u8a = data
-                is InputStream -> this._body_stream = data
-            }
-        }
+
+    protected inner class BodyHub {
+        var text: String? = null
+        var stream: InputStream? = null
+        var u8a: ByteArray? = null
+        var data: Any? = null
     }
-    private var _body_u8a: ByteArray? = null;
-    private var _body_stream: InputStream? = null;
-    private var _body_text: String? = null;
+
+    protected abstract val bodyHub: BodyHub
+    abstract val metaBody: MetaBody
+
+    open val body get() = bodyHub.data
+
 
     private val _u8a by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-        _body_u8a ?: _body_stream?.let {
+        bodyHub.u8a ?: bodyHub.stream?.let {
             it.readBytes()
-        } ?: _body_text?.let {
+        } ?: bodyHub.text?.let {
             it.asBase64()
         } ?: throw Exception("invalid body type")
     }
@@ -30,7 +31,7 @@ abstract class IpcBody {
     suspend fun u8a() = this._u8a
 
     private val _stream by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-        _body_stream ?: _u8a.let {
+        bodyHub.stream ?: _u8a.let {
             it.inputStream()
         }
     }
@@ -38,12 +39,11 @@ abstract class IpcBody {
     fun stream() = this._stream
 
     private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-        _body_text ?: _u8a.let {
-            it.toString()
+        bodyHub.text ?: _u8a.let {
+            it.toUtf8()
         }
     }
 
-    suspend fun text() = this._text
-
+    fun text() = this._text
 
 }

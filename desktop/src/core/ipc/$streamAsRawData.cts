@@ -1,9 +1,19 @@
 import { streamRead } from "../../helper/readableStreamHelper.cjs";
-import { IPC_DATA_TYPE } from "./const.cjs";
+import { $RawData, IPC_DATA_TYPE, IPC_RAW_BODY_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import { IpcStreamData } from "./IpcStreamData.cjs";
 import { IpcStreamEnd } from "./IpcStreamEnd.cjs";
 
+const streamIdWM = new WeakMap<ReadableStream<Uint8Array>, string>();
+let stream_id_acc = 0;
+const getStreamId = (stream: ReadableStream<Uint8Array>) => {
+  let id = streamIdWM.get(stream);
+  if (id === undefined) {
+    id = `rs-${stream_id_acc++}`;
+    streamIdWM.set(stream, id);
+  }
+  return id;
+};
 /**
  * 如果 rawData 是流模式，需要提供数据发送服务
  *
@@ -13,10 +23,10 @@ import { IpcStreamEnd } from "./IpcStreamEnd.cjs";
  * @param ipc
  */
 export const $streamAsRawData = (
-  stream_id: string,
   stream: ReadableStream<Uint8Array>,
   ipc: Ipc
-) => {
+): $RawData => {
+  const stream_id = getStreamId(stream);
   const reader = streamRead(stream);
 
   const sender = _postStreamData(stream_id, reader, ipc, () => {
@@ -43,6 +53,10 @@ export const $streamAsRawData = (
       reader.throw("abort");
     }
   });
+
+  return ipc.support_binary
+    ? [IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id]
+    : [IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id];
 };
 
 /**

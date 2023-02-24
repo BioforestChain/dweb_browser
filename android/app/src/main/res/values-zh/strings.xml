@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">DWeb Browser</string>
+  <string name="app_name">Dweb Browser</string>
   <string name="web_host">dweb.bfchain.org</string>
   <string name="title_activity_webview">WebviewActivity</string>
 

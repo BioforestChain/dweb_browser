@@ -1,21 +1,23 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.MicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.core.MicroModule
+import info.bagen.rust.plaoc.microService.helper.Signal
+import info.bagen.rust.plaoc.microService.helper.SimpleCallback
+import info.bagen.rust.plaoc.microService.helper.SimpleSignal
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.sync.Mutex
-import okhttp3.internal.notify
-import okhttp3.internal.wait
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
-import java.io.InputStream
 
-var ipc_uid_acc = 0
 
 abstract class Ipc {
+    companion object {
+        private var ipc_uid_acc = 0
+        private var _req_id_acc: Int = 0;
+    }
+
     /**
      * 是否支持 messagePack 协议传输：
      * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
@@ -34,6 +36,8 @@ abstract class Ipc {
     abstract val remote: MicroModule
     abstract val role: IPC_ROLE
     val uid = ipc_uid_acc++
+
+    override fun toString() = "#i$uid"
 
     suspend fun postMessage(message: IpcMessage) {
         if (this._closed) {
@@ -83,13 +87,12 @@ abstract class Ipc {
     suspend fun request(url: Uri) =
         request(Request(Method.GET, url))
 
-    suspend fun request(request: Request): IpcResponse {
-        val req_id = allocReqId()
-        this.postMessage(IpcRequest.fromRequest(req_id, request, this))
+    suspend fun request(ipcRequest: IpcRequest): IpcResponse {
+        this.postMessage(ipcRequest)
         val result = Channel<IpcResponse>();
         this.onMessage { args ->
-            if (args.message is IpcResponse && args.message.req_id === req_id) {
-                runBlocking {
+            if (args.message is IpcResponse && args.message.req_id == ipcRequest.req_id) {
+                GlobalScope.launch {
                     result.send(args.message)
                 }
             }
@@ -97,7 +100,20 @@ abstract class Ipc {
         return result.receive()
     }
 
-    private var _req_id_acc: Int = 0;
+    suspend fun request(request: Request) =
+        this.request(IpcRequest.fromRequest(allocReqId(), request, this)).asResponse()
+
     fun allocReqId() = _req_id_acc++;
+
+    suspend fun responseBy(byIpc: Ipc, byIpcRequest: IpcRequest) {
+        postMessage(
+            IpcResponse.fromResponse(
+                byIpcRequest.req_id,
+                // 找个 ipcRequest 对象不属于我的，不能直接用
+                byIpc.request(byIpcRequest.asRequest()),
+                byIpc
+            )
+        )
+    }
 }
 

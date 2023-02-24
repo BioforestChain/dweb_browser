@@ -1,13 +1,11 @@
 package info.bagen.rust.plaoc.webView.network
 
 import info.bagen.rust.plaoc.ExportNativeUi
-import info.bagen.rust.plaoc.mapper
 import info.bagen.rust.plaoc.webView.bottombar.BottomBarFFI
 import info.bagen.rust.plaoc.webView.dialog.DialogFFI
 import info.bagen.rust.plaoc.webView.dialog.JsAlertConfiguration
 import info.bagen.rust.plaoc.webView.jsutil.CallbackString
 import info.bagen.rust.plaoc.webView.jsutil.DataString
-import info.bagen.rust.plaoc.webView.systemui.SystemUiFFI
 import info.bagen.rust.plaoc.webView.topbar.TopBarFFI
 
 val call_ui_map = mutableMapOf<ExportNativeUi, (data: String) -> Any>()
@@ -15,74 +13,75 @@ val call_ui_map = mutableMapOf<ExportNativeUi, (data: String) -> Any>()
 /**
  * 初始化操作ui的请求
  */
-fun initSystemUiFn(systemUiFFI: SystemUiFFI) {
-    /**Navigation*/
-    call_ui_map[ExportNativeUi.SetNavigationBarVisible] = {
-        systemUiFFI.setNavigationBarVisible(it)
-    }
-    call_ui_map[ExportNativeUi.GetNavigationBarVisible] = {
-        systemUiFFI.getNavigationBarVisible()
-    }
-    call_ui_map[ExportNativeUi.SetNavigationBarColor] = {
-        val color = mapper.readValue(it, NavigationBarColor::class.java)
-        systemUiFFI.setNavigationBarColor(
-            color.colorHex,
-            color.darkIcons,
-            color.isNavigationBarContrastEnforced
-        )
-    }
-    call_ui_map[ExportNativeUi.GetNavigationBarOverlay] = {
-        systemUiFFI.getNavigationBarOverlay()
-    }
-    call_ui_map[ExportNativeUi.SetNavigationBarOverlay] = {
-        systemUiFFI.setNavigationBarOverlay(it)
-    }
-    /**Status Bar*/
-    call_ui_map[ExportNativeUi.GetStatusBarBackgroundColor] = {
-        systemUiFFI.getStatusBarBackgroundColor()
-    }
-    call_ui_map[ExportNativeUi.SetStatusBarBackgroundColor] = {
-        systemUiFFI.setStatusBarBackgroundColor(it)
-    }
-    call_ui_map[ExportNativeUi.GetStatusBarIsDark] = {
-        systemUiFFI.getStatusBarIsDark()
-    }
-    call_ui_map[ExportNativeUi.SetStatusBarOverlay] = {
-        systemUiFFI.setStatusBarOverlay(it)
-    }
-    call_ui_map[ExportNativeUi.GetStatusBarOverlay] = {
-        systemUiFFI.getStatusBarOverlay()
-    }
-    call_ui_map[ExportNativeUi.SetStatusBarVisible] = {
-        systemUiFFI.setStatusBarVisible(it)
-    }
-    call_ui_map[ExportNativeUi.GetStatusBarVisible] = {
-        systemUiFFI.getStatusBarVisible()
-    }
-    call_ui_map[ExportNativeUi.SetStatusBarStyle] = {
-        val isDark = it == "dark-content"
-        systemUiFFI.setStatusBarStyle(isDark)
-    }
-    /**keyboard*/
-    call_ui_map[ExportNativeUi.GetKeyBoardSafeArea] = {
-        systemUiFFI.virtualKeyboard.getSafeArea()
-    }
-    call_ui_map[ExportNativeUi.GetKeyBoardHeight] = {
-        systemUiFFI.virtualKeyboard.getHeight()
-    }
-    call_ui_map[ExportNativeUi.GetKeyBoardOverlay] = {
-        systemUiFFI.virtualKeyboard.getOverlay()
-    }
-    call_ui_map[ExportNativeUi.SetKeyBoardOverlay] = {
-        systemUiFFI.virtualKeyboard.setOverlay(it)
-    }
-    call_ui_map[ExportNativeUi.ShowKeyBoard] = {
-        systemUiFFI.virtualKeyboard.show()
-    }
-    call_ui_map[ExportNativeUi.HideKeyBoard] = {
-        systemUiFFI.virtualKeyboard.hide()
-    }
-}
+
+//fun initSystemUiFn(systemUiFFI: SystemUiFFI) {
+//    /**Navigation*/
+//    call_ui_map[ExportNativeUi.SetNavigationBarVisible] = {
+//        systemUiFFI.setNavigationBarVisible(it)
+//    }
+//    call_ui_map[ExportNativeUi.GetNavigationBarVisible] = {
+//        systemUiFFI.getNavigationBarVisible()
+//    }
+//    call_ui_map[ExportNativeUi.SetNavigationBarColor] = {
+//        val color = mapper.readValue(it, NavigationBarColor::class.java)
+//        systemUiFFI.setNavigationBarColor(
+//            color.colorHex,
+//            color.darkIcons,
+//            color.isNavigationBarContrastEnforced
+//        )
+//    }
+//    call_ui_map[ExportNativeUi.GetNavigationBarOverlay] = {
+//        systemUiFFI.getNavigationBarOverlay()
+//    }
+//    call_ui_map[ExportNativeUi.SetNavigationBarOverlay] = {
+//        systemUiFFI.setNavigationBarOverlay(it)
+//    }
+//    /**Status Bar*/
+//    call_ui_map[ExportNativeUi.GetStatusBarBackgroundColor] = {
+//        systemUiFFI.getStatusBarBackgroundColor()
+//    }
+//    call_ui_map[ExportNativeUi.SetStatusBarBackgroundColor] = {
+//        systemUiFFI.setStatusBarBackgroundColor(it)
+//    }
+//    call_ui_map[ExportNativeUi.GetStatusBarIsDark] = {
+//        systemUiFFI.getStatusBarIsDark()
+//    }
+//    call_ui_map[ExportNativeUi.SetStatusBarOverlay] = {
+//        systemUiFFI.setStatusBarOverlay(it)
+//    }
+//    call_ui_map[ExportNativeUi.GetStatusBarOverlay] = {
+//        systemUiFFI.getStatusBarOverlay()
+//    }
+//    call_ui_map[ExportNativeUi.SetStatusBarVisible] = {
+//        systemUiFFI.setStatusBarVisible(it)
+//    }
+//    call_ui_map[ExportNativeUi.GetStatusBarVisible] = {
+//        systemUiFFI.getStatusBarVisible()
+//    }
+//    call_ui_map[ExportNativeUi.SetStatusBarStyle] = {
+//        val isDark = it == "dark-content"
+//        systemUiFFI.setStatusBarStyle(isDark)
+//    }
+//    /**keyboard*/
+//    call_ui_map[ExportNativeUi.GetKeyBoardSafeArea] = {
+//        systemUiFFI.virtualKeyboard.getSafeArea()
+//    }
+//    call_ui_map[ExportNativeUi.GetKeyBoardHeight] = {
+//        systemUiFFI.virtualKeyboard.getHeight()
+//    }
+//    call_ui_map[ExportNativeUi.GetKeyBoardOverlay] = {
+//        systemUiFFI.virtualKeyboard.getOverlay()
+//    }
+//    call_ui_map[ExportNativeUi.SetKeyBoardOverlay] = {
+//        systemUiFFI.virtualKeyboard.setOverlay(it)
+//    }
+//    call_ui_map[ExportNativeUi.ShowKeyBoard] = {
+//        systemUiFFI.virtualKeyboard.show()
+//    }
+//    call_ui_map[ExportNativeUi.HideKeyBoard] = {
+//        systemUiFFI.virtualKeyboard.hide()
+//    }
+//}
 
 data class NavigationBarColor(
     val colorHex: String = "#ffffffff",
@@ -198,24 +197,24 @@ fun initBottomFn(bottomBarFFI: BottomBarFFI) {
 /**
  * 初始化Dialog ui的请求
  */
-fun initDialogFn(dialogFFI: DialogFFI) {
-    call_ui_map[ExportNativeUi.OpenDialogAlert] = {
-        val alert = mapper.readValue(it, OpenDialog::class.java)
-        dialogFFI.openAlert(alert.config, alert.cb)
-    }
-    call_ui_map[ExportNativeUi.OpenDialogConfirm] = {
-        val alert = mapper.readValue(it, OpenDialog::class.java)
-        dialogFFI.openConfirm(alert.config, alert.cb)
-    }
-    call_ui_map[ExportNativeUi.OpenDialogPrompt] = {
-        val alert = mapper.readValue(it, OpenDialog::class.java)
-        dialogFFI.openPrompt(alert.config, alert.cb)
-    }
-    call_ui_map[ExportNativeUi.OpenDialogWarning] = {
-        val alert = mapper.readValue(it, OpenDialog::class.java)
-        dialogFFI.openWarning(alert.config, alert.cb)
-    }
-}
+//fun initDialogFn(dialogFFI: DialogFFI) {
+//    call_ui_map[ExportNativeUi.OpenDialogAlert] = {
+//        val alert = mapper.readValue(it, OpenDialog::class.java)
+//        dialogFFI.openAlert(alert.config, alert.cb)
+//    }
+//    call_ui_map[ExportNativeUi.OpenDialogConfirm] = {
+//        val alert = mapper.readValue(it, OpenDialog::class.java)
+//        dialogFFI.openConfirm(alert.config, alert.cb)
+//    }
+//    call_ui_map[ExportNativeUi.OpenDialogPrompt] = {
+//        val alert = mapper.readValue(it, OpenDialog::class.java)
+//        dialogFFI.openPrompt(alert.config, alert.cb)
+//    }
+//    call_ui_map[ExportNativeUi.OpenDialogWarning] = {
+//        val alert = mapper.readValue(it, OpenDialog::class.java)
+//        dialogFFI.openWarning(alert.config, alert.cb)
+//    }
+//}
 
 data class OpenDialog(
     val config: DataString<JsAlertConfiguration> = "",

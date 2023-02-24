@@ -7,7 +7,7 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import info.bagen.rust.plaoc.R
-import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
+import info.bagen.rust.plaoc.microService.sys.plugin.barcode.QRCodeScanningActivity
 
 object PlaocUtil {
 

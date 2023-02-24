@@ -33,7 +33,7 @@ import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import info.bagen.rust.plaoc.App.Companion.dwebViewActivity
 import info.bagen.rust.plaoc.TASK
 import info.bagen.rust.plaoc.microService.DWebView
-import info.bagen.rust.plaoc.system.permission.PermissionManager
+import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.jsutil.emitListenBackButton
 import info.bagen.rust.plaoc.webView.urlscheme.CustomUrlScheme

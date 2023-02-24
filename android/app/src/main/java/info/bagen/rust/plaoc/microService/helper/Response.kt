@@ -6,7 +6,7 @@ import java.io.InputStream
 import java.lang.reflect.Type
 
 
-fun Response.ok(): Response = if (this.status.code >= 400) throw Exception("") else this
+fun Response.ok(): Response = if (status.code >= 400) throw Exception("") else this
 
 @Throws(JsonSyntaxException::class)
 fun <T> Response.json(typeOfT: Type): T = gson.fromJson(ok().body.stream.reader(), typeOfT)
@@ -23,4 +23,4 @@ fun Response.double() = ok().json<Double>(Double.javaClass);
 
 fun Response.float() = ok().json<Float>(Float.javaClass);
 
-fun Response.boolean() = text() === "true"
+fun Response.boolean() = text() == "true"

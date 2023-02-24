@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.res.Resources.NotFoundException
 import android.os.Bundle
 import android.provider.MediaStore
@@ -34,16 +35,18 @@ import info.bagen.libappmgr.ui.app.AppViewModel
 import info.bagen.libappmgr.ui.main.Home
 import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
+import info.bagen.libappmgr.ui.camera.QRCodeIntent
+import info.bagen.libappmgr.ui.camera.QRCodeScanning
+import info.bagen.libappmgr.ui.camera.QRCodeScanningView
+import info.bagen.libappmgr.ui.camera.QRCodeViewModel
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
-import info.bagen.rust.plaoc.microService.global_dns
+import info.bagen.rust.plaoc.microService.sys.plugin.barcode.BarcodeScanningActivity
+import info.bagen.rust.plaoc.microService.sys.plugin.barcode.QRCodeScanningActivity
+import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
 import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
 import info.bagen.rust.plaoc.microService.webview.MultiDWebBrowserView
-import info.bagen.rust.plaoc.system.barcode.BarcodeScanningActivity
-import info.bagen.rust.plaoc.system.barcode.QRCodeScanningActivity
-import info.bagen.rust.plaoc.system.initSystemFn
-import info.bagen.rust.plaoc.system.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.webView.network.dWebView_host
@@ -55,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     var isQRCode = false //是否是识别二维码
     fun getContext() = this
     val dWebBrowserModel: DWebBrowserModel by viewModel()
+    val qrCodeViewModel: QRCodeViewModel by viewModel()
     private val appViewModel: AppViewModel by viewModel()
     private val mainViewModel: MainViewModel by viewModel()
     private var bfsBroadcastReceiver: BFSBroadcastReceiver? = null
@@ -73,8 +77,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         App.mainActivity = this
-        // 初始化系统函数map
-        initSystemFn(this)
         // 初始化广播
         registerBFSBroadcastReceiver()
         setContent {
@@ -90,11 +92,13 @@ class MainActivity : AppCompatActivity() {
                         LogUtils.d("搜索框内容响应：$action--$data")
                         when (action) {
                             SearchAction.Search -> {
-                                openDWebWindow(this@MainActivity, data)
+                                //openDWebWindow(this@MainActivity, data)
+                                dWebBrowserModel.openDWebBrowser(data)
                             }
                             SearchAction.OpenCamera -> {
                                 if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
-                                    openScannerActivity()
+                                    //openScannerActivity()
+                                    qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
                                 } else {
                                     PermissionManager.requestPermissions(
                                         this@MainActivity, EPermission.PERMISSION_CAMERA.type
@@ -110,6 +114,7 @@ class MainActivity : AppCompatActivity() {
 //                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
+                    QRCodeScanningView(this@MainActivity, qrCodeViewModel)
                 }
             }
         }
@@ -141,7 +146,8 @@ class MainActivity : AppCompatActivity() {
                         override fun onPermissionGranted(
                             permissions: Array<out String>, grantResults: IntArray
                         ) {
-                            openScannerActivity()
+                            // openScannerActivity()
+                            qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
                         }
 
                         override fun onPermissionDismissed(permission: String) {
@@ -159,6 +165,11 @@ class MainActivity : AppCompatActivity() {
             )
         ) {
             startPickPhoto()
+        } else if (requestCode == QRCodeScanning.CAMERA_PERMISSION_REQUEST_CODE) {
+            grantResults.forEach {
+                if (it != PackageManager.PERMISSION_GRANTED) return
+            }
+            qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
         }
     }
 
@@ -178,7 +189,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         // 退出APP关闭服务
-//        global_dns.httpNMM.closeServer()
         super.onDestroy()
         unRegisterBFSBroadcastReceiver()
         App.mainActivity = null

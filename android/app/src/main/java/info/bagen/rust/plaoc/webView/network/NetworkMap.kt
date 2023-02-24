@@ -4,10 +4,7 @@ import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import com.fasterxml.jackson.databind.DeserializationFeature
-import info.bagen.libappmgr.utils.JsonUtil
-import info.bagen.rust.plaoc.mapper
 import info.bagen.rust.plaoc.webView.urlscheme.CustomUrlScheme
-import java.io.ByteArrayInputStream
 import java.net.URL
 import java.util.*
 
@@ -63,26 +60,26 @@ data class Response(
 
 
 /** 初始化app数据*/
-fun initMetaData(metaData: String) {
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    val metaJson = mapper.readValue(metaData, UserMetaData::class.java)
-    if (dWebView_host == "") return
-    // 设置路由
-    for (importMap in metaJson.dwebview.importmap) {
-        front_to_rear_map[resolveUrl(importMap.url)] = importMap.response
-    }
-    // 默认入口全部加上加载路径，用户不用配置
-    for (entry in metaJson.manifest.enters) {
-        val main = shakeUrl(entry)
-        Log.d(TAG, "initMetaData:entry=> ${resolveUrl(entry)} ,main=> $main")
-        front_to_rear_map[resolveUrl(entry)] = main
-    }
-    // 设置白名单
-    for (whitelist in metaJson.whitelist) {
-        network_whitelist += whitelist
-    }
-    Log.d(TAG, "this is metaData:$network_whitelist")
-}
+//fun initMetaData(metaData: String) {
+//    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+//    val metaJson = mapper.readValue(metaData, UserMetaData::class.java)
+//    if (dWebView_host == "") return
+//    // 设置路由
+//    for (importMap in metaJson.dwebview.importmap) {
+//        front_to_rear_map[resolveUrl(importMap.url)] = importMap.response
+//    }
+//    // 默认入口全部加上加载路径，用户不用配置
+//    for (entry in metaJson.manifest.enters) {
+//        val main = shakeUrl(entry)
+//        Log.d(TAG, "initMetaData:entry=> ${resolveUrl(entry)} ,main=> $main")
+//        front_to_rear_map[resolveUrl(entry)] = main
+//    }
+//    // 设置白名单
+//    for (whitelist in metaJson.whitelist) {
+//        network_whitelist += whitelist
+//    }
+//    Log.d(TAG, "this is metaData:$network_whitelist")
+//}
 
 // 跳过白名单（因为每次请求都会走这个方法，所以抛弃循环的方法，用contains进行模式匹配，保证了速度）
 fun jumpWhitelist(url: String): Boolean {
