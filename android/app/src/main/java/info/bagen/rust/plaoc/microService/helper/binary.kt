@@ -23,12 +23,12 @@ inline fun ByteArray.toBase64Url(): String = base64UrlEncoder.encodeToString(thi
 
 val bb4 = ByteBuffer.allocate(4)
 
-inline fun ByteArray.toInt(): Int {
+inline fun ByteArray.toInt(): Int = synchronized(bb4) {
     bb4.clear()
-    return bb4.put(this, 0, 4).getInt(0)
+    bb4.put(this, 0, 4).getInt(0)
 }
 
-inline fun Int.toByteArray() = bb4.putInt(0, this).array()
+inline fun Int.toByteArray(): ByteArray = synchronized(bb4) { bb4.putInt(0, this).array() }
 
 
 inline fun InputStream.readInt(): Int {

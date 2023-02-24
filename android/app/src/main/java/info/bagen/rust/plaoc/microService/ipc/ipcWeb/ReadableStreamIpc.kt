@@ -7,6 +7,9 @@ import kotlinx.coroutines.*
 import java.io.InputStream
 
 
+inline fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("stream-ipc", tag, msg, err)
+
 /**
  * 基于 WebReadableStream 的IPC
  *
@@ -41,7 +44,7 @@ class ReadableStreamIpc(
         val j = GlobalScope.launch {
             while (true) {
                 delay(10000)
-                println("...$stream")
+                debugStreamIpc("LIVE/$stream")
             }
         }
         _incomeStream = stream
@@ -53,9 +56,11 @@ class ReadableStreamIpc(
             while (stream.available() > 0) {
                 val size = stream.readInt()
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                val chunk = stream.readByteArray(size)
+                val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
+                debugStreamIpc("size/$stream: $size")
+
                 val message =
-                    jsonToIpcMessage(chunk.toString(Charsets.UTF_8), this@ReadableStreamIpc)
+                    jsonToIpcMessage(chunk, this@ReadableStreamIpc)
                 when (message) {
                     "close" -> close()
                     is IpcMessage -> _messageSignal.emit(
@@ -68,7 +73,7 @@ class ReadableStreamIpc(
                 }
             }
             j.cancel()
-            throw Exception("GGGGGGG/$coroutineName")
+            debugStreamIpc("END/$stream")
         }
     }
 
@@ -81,6 +86,7 @@ class ReadableStreamIpc(
                 else -> gson.toJson(data).asUtf8()
             }
         }
+        debugStreamIpc("post/$stream", message.size)
         controller.enqueue(message.size.toByteArray() + message)
     }
 

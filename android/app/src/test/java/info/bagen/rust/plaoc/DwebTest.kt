@@ -35,16 +35,44 @@ class DwebTest : AsyncBase() {
             }
             _afterShutdownSignal.listen { dwebServer.close() }
 
-            val job = GlobalScope.launch {
-                for (i in 1..100) {
-                    delay(1000)
+
+            val internalServer =
+                createHttpDwebServer(DwebHttpServerOptions(subdomain = "internal"));
+            internalServer.listen().onRequest { (request, ipc) ->
+                ipc.postMessage(
+                    IpcResponse.fromText(
+                        request.req_id,
+                        200,
+                        IpcHeaders(),
+                        "ECHO/INTERNAL: " + request.url,
+                        ipc
+                    )
+                )
+            }
+            _afterShutdownSignal.listen { dwebServer.close() }
+
+            GlobalScope.launch {
+                for (i in 1..10) {
+                    delay(20)
                     println("第 $i 次发送数据")
                     val data = "/hi-$i"
                     val res = nativeFetch(dwebServer.startResult.urlInfo.internal_origin + data)
                     assertEquals("ECHO: $data", res.text())
                 }
+            }.also {
+                deferredList += CompletableDeferred(it)
             }
-            deferredList += CompletableDeferred(job)
+            GlobalScope.launch {
+                for (i in 1..10) {
+                    delay(20)
+                    println("第 $i 次发送数据")
+                    val data = "/hi-$i"
+                    val res = nativeFetch(internalServer.startResult.urlInfo.internal_origin + data)
+                    assertEquals("ECHO/INTERNAL: $data", res.text())
+                }
+            }.also {
+                deferredList += CompletableDeferred(it)
+            }
         }
 
         override suspend fun _shutdown() {
