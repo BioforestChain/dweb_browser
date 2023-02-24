@@ -21,14 +21,15 @@ inline fun ByteArray.toBase64(): String = base64Encoder.encodeToString(this)
 inline fun ByteArray.toUtf8(): String = String(this, Charsets.UTF_8)
 inline fun ByteArray.toBase64Url(): String = base64UrlEncoder.encodeToString(this)
 
-val bb4 = ByteBuffer.allocate(4)
 
-inline fun ByteArray.toInt(): Int = synchronized(bb4) {
-    bb4.clear()
-    bb4.put(this, 0, 4).getInt(0)
+inline fun ByteArray.toInt(): Int {
+    return ByteBuffer.wrap(this).int
 }
 
-inline fun Int.toByteArray(): ByteArray = synchronized(bb4) { bb4.putInt(0, this).array() }
+inline fun Int.toByteArray(): ByteArray {
+    val bb4 = ByteBuffer.allocate(4)
+    return bb4.putInt(0, this).array()
+}
 
 
 inline fun InputStream.readInt(): Int {

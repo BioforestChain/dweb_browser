@@ -15,10 +15,6 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class DwebTest : AsyncBase() {
-    companion object {
-        var deferredList = mutableListOf<Deferred<Unit>>()
-        val prepareReady = CompletableDeferred<Unit>().also { deferredList += it }
-    }
 
     class HttpTestNMM : NativeMicroModule("http.test.dweb") {
         override suspend fun _bootstrap() {
@@ -79,7 +75,7 @@ class DwebTest : AsyncBase() {
 
     @Test
     fun testHttp() = runBlocking {
-//        enableDwebDebug(listOf("stream-ipc", "stream"))
+        enableDwebDebug(listOf("stream-ipc"))
 
         val dnsNMM = DnsNMM()
 

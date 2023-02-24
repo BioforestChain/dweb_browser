@@ -30,10 +30,8 @@ class ReadableStreamIpc(
         debugStream("IPC-ON-PULL/${controller.stream}", size)
     })
 
-    private val controllerMutex = Mutex()
-    private suspend inline fun enqueue(data: ByteArray) = controllerMutex.withLock {
-        controller.enqueue(data)
-    }
+    @Synchronized
+    private suspend inline fun enqueue(data: ByteArray) = controller.enqueue(data)
 
 
     private var _incomeStream: InputStream? = null
@@ -57,7 +55,7 @@ class ReadableStreamIpc(
         }
         _incomeStream = stream
         CoroutineScope(CoroutineName(coroutineName) + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
-            printerrln(ctx.toString(), e.message, e)
+            printerrln("$ctx/$stream", e.message, e)
         }).launch {
 
             // 如果通道关闭并且没有剩余字节可供读取，则返回 true
@@ -68,7 +66,7 @@ class ReadableStreamIpc(
                 }
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
                 val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
-                debugStreamIpc("size/$stream: $size")
+                debugStreamIpc("size/$stream", size)
 
                 val message =
                     jsonToIpcMessage(chunk, this@ReadableStreamIpc)
