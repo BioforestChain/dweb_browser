@@ -6,7 +6,6 @@ import info.bagen.rust.plaoc.openHomeActivity
 
 class BrowserNMM:NativeMicroModule("browser.sys.dweb") {
     override suspend fun _bootstrap() {
-        println("DesktopNMM#_bootstrap: 启动browser.sys.NMM 🍓")
         openHomeActivity()
 //        apiRouting = routes(
 //            "/open" bind Method.GET to defineHandler { request ->

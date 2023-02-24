@@ -21,7 +21,7 @@ class WebViewAsyncEvalContext(
 
     @SuppressLint("JavascriptInterface")
     private val doInitInterface = suspendOnce {
-        val lock = Mutex()
+        val lock = Mutex(true)
         GlobalScope.launch(Dispatchers.Main) {
             webView.addJavascriptInterface(object {
                 fun resolve(id: Int, data: String) {
@@ -56,7 +56,7 @@ class WebViewAsyncEvalContext(
             webView.evaluateJavascript(
                 """
             void (async()=>{return ($script)})()
-                .then(res=>__native_async_callback_kit__.resolve($id,JSON.stringify(res))
+                .then(res=>__native_async_callback_kit__.resolve($id,JSON.stringify(res)))
                 .catch(err=>__native_async_callback_kit__.reject($id,String(err)));
             """.trimMargin()
             ) {

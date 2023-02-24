@@ -216,14 +216,15 @@ class JsProcessWebApi(val webView: WebView) {
                     }
                 }
             }, { once: true })
-        });
+        })
         """.trimIndent()
         ).let {
+            println("createProcess#xxx=>$it")
             val info = gson.fromJson(it, ProcessInfo::class.java)
 
             val channel = webView.createWebMessageChannel()
             val port1 = channel[0]
-            val port2 = channel[0]
+            val port2 = channel[1]
             webView.postWebMessage(
                 WebMessage("js-process/create-process", arrayOf(port1)),
                 Uri.EMPTY
@@ -253,12 +254,12 @@ class JsProcessWebApi(val webView: WebView) {
                     }
                 }
             }, { once: true })
-        });
+        })
         """.trimIndent()
     ).let {
         val channel = webView.createWebMessageChannel()
         val port1 = channel[0]
-        val port2 = channel[0]
+        val port2 = channel[1]
         webView.postWebMessage(WebMessage("js-process/create-ipc", arrayOf(port1)), Uri.EMPTY);
 
         saveNative2JsIpcPort(port2)

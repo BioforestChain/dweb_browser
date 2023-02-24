@@ -7,6 +7,7 @@ import android.content.Context
 import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -26,7 +27,6 @@ object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
         apiRouting = routes(
             /** 读取剪切板*/
             "/read" bind Method.GET to defineHandler { request ->
-                println("Clipboard#apiRouting read===>$mmid  ${request.uri.path} ")
                 val read = read()
                 Response(Status.OK).body(read)
             },
@@ -39,7 +39,6 @@ object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
                 val image = Query.string().optional("image")(request)
                 val url = Query.string().optional("url")(request)
                 val label = Query.string().optional("label")(request)
-                println("Clipboard#apiRouting write===>$mmid  string：$string label：$label")
                 // 如果都是空
                 if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {
                     Response(Status.UNSATISFIABLE_PARAMETERS)

@@ -68,7 +68,6 @@ val networkFetch =
 suspend fun MicroModule.nativeFetch(request: Request): Response {
     for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
         val response = fetchAdapter(this, request)
-        debugFetch("response", response)
         if (response != null) {
             return response
         }

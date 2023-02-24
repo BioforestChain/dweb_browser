@@ -72,7 +72,7 @@ class MainViewModel : ViewModel() {
                     }
                 }, onFailure = { e ->
                     Log.d("MainViewModel", "fail->$e")
-                    e?.printStackTrace()
+//                    e?.printStackTrace()
                     apiResult?.onError(-1, "fail", e)
                 }, onLoading = {}, onPrepare = {})
             }
