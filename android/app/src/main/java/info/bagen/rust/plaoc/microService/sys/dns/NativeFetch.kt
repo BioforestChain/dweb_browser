@@ -10,7 +10,7 @@ import org.http4k.core.*
 typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Response?
 
 
-inline fun debugFetch(tag: String, msg: Any = "", err: Throwable? = null) =
+inline fun debugFetch(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("fetch", tag, msg, err)
 
 class NativeFetchAdaptersManager {
@@ -68,7 +68,7 @@ val networkFetch =
 suspend fun MicroModule.nativeFetch(request: Request): Response {
     for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
         val response = fetchAdapter(this, request)
-        println("NativeFetch#response: $response")
+        debugFetch("response", response)
         if (response != null) {
             return response
         }
