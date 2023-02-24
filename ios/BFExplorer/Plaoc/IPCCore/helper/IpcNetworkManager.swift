@@ -1,18 +1,17 @@
 //
-//  MicroModule.swift
+//  IpcNetworkManager.swift
 //  BFExplorer
 //
-//  Created by ui03 on 2023/2/20.
+//  Created by ui03 on 2023/2/24.
 //
 
 import UIKit
+import UIKit
 import PromiseKit
 import Vapor
-import SwiftUI
 
+class IpcNetworkManager: NSObject {
 
-class MicroModule: NSObject {
-    
     enum NetworkError: Error {
         case urlError(msg: String)
         

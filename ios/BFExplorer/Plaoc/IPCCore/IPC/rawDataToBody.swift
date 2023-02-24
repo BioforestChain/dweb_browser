@@ -20,14 +20,45 @@ class rawDataToBody {
             }
             let stream_id = rawBody.result as? String
             
-            var stream: InputStream?
-            body = stream
-            stream?.open()
+//            var stream: InputStream?
+//            body = stream
+//            stream?.open()
+//
+//            defer {
+//                stream?.close()
+//            }
             
-            defer {
-                stream?.close()
+            let stream = ReadableStream().startLoad { controller in
+                _ = ipc?.onMessage { (message,ipc) in
+                    if let message = message as? IpcStreamData, message.stream_id == stream_id  {
+                        
+                        var resultData: [UInt8]?
+                        if message.data is String {
+                            let dataString = message.data as? String ?? ""
+                            resultData = rawDataToBody.bodyEncoder(type: .TEXT, result: dataString)
+                        } else {
+                            resultData = message.data as? [UInt8]
+                        }
+                        if resultData != nil {
+                            controller.enqueue(byteArray: resultData!)
+                        }
+                    } else if let message = message as? IpcStreamEnd, message.stream_id == stream_id  {
+                        controller.close()
+                        if ipc.messageSignal != nil, ipc.messageSignal?.closure != nil {
+                            ipc.messageSignal?.removeCallback(cb: ipc.messageSignal!.closure!)
+                        }
+                    }
+                    return ipc.messageSignal?.closure
+                }
+            } onPull: { desiredSize, controller in
+                ipc?.postMessage(message: IpcStreamPull(stream_id: stream_id!, desiredSize: UInt8(desiredSize)))
             }
-            
+
+            defer {
+                stream.close()
+            }
+            body = stream
+            /*
             _ = ipc?.onMessage { (message,ipc) in
                 if let message = message as? IpcStreamData, message.stream_id == stream_id  {
                     
@@ -49,7 +80,7 @@ class rawDataToBody {
                     }
                 }
                 return ipc.messageSignal?.closure
-            }
+            }*/
         } else {
             body = raw_body_type == .TEXT ? rawBody.result : rawDataToBody.bodyEncoder(type: raw_body_type!, result: rawBody.result)
         }

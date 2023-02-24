@@ -36,7 +36,7 @@ class Ipc: NSObject {
     var support_binary: Bool {
         return self.support_message_pack ?? false || self.support_protobuf
     }
-    var remote: MicroModule?
+    var remote: IpcNetworkManager?
     var role: IPC_ROLE?
     
     private var closed: Bool = false

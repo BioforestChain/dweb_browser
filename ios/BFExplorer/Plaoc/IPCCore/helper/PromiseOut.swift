@@ -15,6 +15,12 @@ class PromiseOut<T> {
     
     public var promise: Promise<T>?
     
+    private var tmpValue: T?
+    
+    var value: T? {
+        return (promise?.isResolved ?? false) ? self.tmpValue : nil
+    }
+    
     init() {
         promise = Promise<T> { resolver in
             self.resolver = resolver
@@ -26,10 +32,23 @@ class PromiseOut<T> {
     
     func resolver(_ value: T) {
         resolver?.fulfill(value)
+        self.tmpValue = value
     }
     
     func reject(_ error: Error) {
         rejecter?(error)
+    }
+    
+    func waitPromise() {
+        //放异步执行
+        DispatchQueue.global().async {
+            let result = try? self.promise?.wait()
+            print(result as Any)
+        }
+    }
+    
+    func finished() -> Bool {
+        return promise?.isResolved ?? false
     }
 }
 
