@@ -15,8 +15,8 @@ export class BootNMM extends NativeMicroModule {
       matchMode: "full",
       input: { },
       output: "boolean",
-      handler: async (args) => {
-        return await this.register(args.app_id);
+      handler: async (args,ipc) => {
+        return await this.register(ipc.remote.mmid);
       },
     });
     this.registerCommonIpcOnMessageHandler({
@@ -24,8 +24,8 @@ export class BootNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: async (args) => {
-        return await this.unregister(args.app_id);
+      handler: async (args, ipc) => {
+        return await this.unregister(ipc.remote.mmid);
       },
     });
 
