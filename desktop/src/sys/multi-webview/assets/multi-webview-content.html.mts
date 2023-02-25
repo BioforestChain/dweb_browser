@@ -207,7 +207,6 @@ export class MultiWebViewContent extends LitElement{
     }
 }
 
-
 // 导出类型
 
 export interface CustomEventDomReadyDetail{
