@@ -61,12 +61,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         for ((key, value) in request.headers) {
             when (key) {
                 "Host" -> {
-                    header_host = value?.let { host ->
-                        /// 如果没有端口，补全端口
-                        if (!host.contains(":")) {
-                            host + ":" + Http1Server.PORT;
-                        } else host
-                    }
+                    header_host = value
                 }
                 "X-Dweb-Host" -> {
                     header_x_dweb_host = value
@@ -80,8 +75,14 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 }
             }
         }
-        val host =
-            query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host ?: header_host ?: "*"
+        val host = (
+                query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host
+                ?: header_host)?.let { host ->
+            /// 如果没有端口，补全端口
+            if (!host.contains(":")) {
+                host + ":" + Http1Server.PORT;
+            } else host
+        } ?: "*"
 
         /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
         /// TODO 30s 没有任何 body 写入的话，认为网关超时

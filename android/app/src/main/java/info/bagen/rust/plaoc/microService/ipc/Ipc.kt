@@ -22,16 +22,22 @@ abstract class Ipc {
      * 是否支持 messagePack 协议传输：
      * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
      */
-    val supportMessagePack: Boolean = false
+    open val supportMessagePack: Boolean = false
 
     /**
      * 是否支持 Protobuf 协议传输：
      * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 Protobuf 的编解码
      */
-    val supportProtobuf: Boolean = false
+    open val supportProtobuf: Boolean = false
+
+    /**
+     * 是否支持结构化内存协议传输：
+     * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
+     */
+    open val supportRaw: Boolean = false
 
     /** 是否支持 二进制 传输 */
-    val supportBinary get() = supportMessagePack || supportProtobuf
+    open val supportBinary: Boolean = false // get() = supportMessagePack || supportProtobuf
 
     abstract val remote: MicroModule
     abstract val role: IPC_ROLE

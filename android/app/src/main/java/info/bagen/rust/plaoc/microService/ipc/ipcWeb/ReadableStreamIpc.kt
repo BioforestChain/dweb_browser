@@ -22,6 +22,9 @@ class ReadableStreamIpc(
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
+    // 虽然 ReadableStreamIpc 支持 Binary 的传输，但是不支持结构化的传输，
+    // override val supportBinary: Boolean = true
+
     private lateinit var controller: ReadableStream.ReadableStreamController
 
     val stream = ReadableStream(onStart = {

@@ -50,7 +50,10 @@ class WebViewAsyncEvalContext(
         doInitInterface()
     }
 
-    suspend fun evaluateJavascriptSync(script: String) =
+    /**
+     * 执行同步JS代码
+     */
+    suspend fun evaluateSyncJavascriptCode(script: String) =
         withContext(Dispatchers.Main) {
             val po = PromiseOut<String>()
             webView.evaluateJavascript(script) {
@@ -59,7 +62,10 @@ class WebViewAsyncEvalContext(
             po.waitPromise()
         }
 
-    suspend fun evaluateJavascriptAsync(
+    /**
+     * 执行异步JS代码，需要传入一个表达式
+     */
+    suspend fun evaluateAsyncJavascriptCode(
         script: String,
         afterEval: suspend () -> Unit = {}
     ): String {

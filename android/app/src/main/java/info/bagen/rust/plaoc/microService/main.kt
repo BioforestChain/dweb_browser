@@ -25,7 +25,12 @@ suspend fun startDwebBrowser() {
     val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }
 
     /// 启动程序
-    val bootNMM = BootNMM(listOf(desktopJMM.mmid, browserNMM.mmid)).also { dnsNMM.install(it) }
+    val bootNMM = BootNMM(
+        listOf(
+            browserNMM.mmid,
+            desktopJMM.mmid,
+        )
+    ).also { dnsNMM.install(it) }
 
     /// 启动
     dnsNMM.bootstrap()

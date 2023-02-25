@@ -14,6 +14,9 @@ class NativeIpc(
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
+    override val supportRaw = true
+    override val supportBinary = true
+
     init {
         port.onMessage { message ->
             val ipcMessage = when (message.type) {
