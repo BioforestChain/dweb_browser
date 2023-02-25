@@ -51,12 +51,12 @@ export class StatusbarNMM extends NativeMicroModule {
   // 必须要通过这样启动才可以
   // jsProcess.fetch(`file://statusbar.sys.dweb/}`) 主要必须要有最后面的路径
   async _bootstrap() {
-    const { origin, start, close } = await createHttpDwebServer(this, {});
+    const { origin, listen, close } = await createHttpDwebServer(this, {});
     this._close_dweb_server = close;
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
     
-    ;(await start()).onRequest(async (request, ipc) => {
+    ;(await listen()).onRequest(async (request, ipc) => {
 
       // 监听 http:// 协议的请求
       // 通过 fetch("http://statusbar.sys.dweb-80.localhost:22605/") 访问的请求会被发送到这个位置

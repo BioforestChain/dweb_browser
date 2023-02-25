@@ -14,8 +14,8 @@ import type { Ipc } from "../../core/ipc/ipc.cjs"
  */
 export const main = async () => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人KWKW
-  const { origin, start } = await createHttpDwebServer(jsProcess, {});
-  ;(await start()).onRequest(async (request, httpServerIpc) => onRequest(request, httpServerIpc) );
+  const { origin, listen } = await createHttpDwebServer(jsProcess, {});
+  ;(await listen()).onRequest(async (request, httpServerIpc) => onRequest(request, httpServerIpc) );
   jsProcess.fetch(`file://statusbar.sys.dweb/}`) // 启动 statusbar.sys.dweb 服务
   await openIndexHtmlAtMWebview(origin)
 };

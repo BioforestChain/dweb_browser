@@ -9,9 +9,9 @@ export const main = async () => {
     console.log("[statusbar.worker.mts] main self: ", self)
     
     /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
-    const { origin, start } = await createHttpDwebServer(jsProcess, {});
+    const { origin, listen } = await createHttpDwebServer(jsProcess, {});
     console.log("[statusbar.worker.mts] origin:", origin)
-    ;(await start()).onRequest(async (request, httpServerIpc) => {
+    ;(await listen()).onRequest(async (request, httpServerIpc) => {
         console.log('[statusbar.worker.mts] 接受到了请求----： ', request)
         if (
             request.parsed_url.pathname === "/" ||

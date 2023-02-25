@@ -8,8 +8,8 @@ import { createHttpDwebServer } from "../../sys/http-server/$listenHelper.cjs";
 export const main = async () => {
     /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人KWKW
     // origin === http://app.w85defe5.dweb-80.localhost:22605
-    const { origin, start } = await createHttpDwebServer(jsProcess, {});
-    (await start()).onRequest(async (request, httpServerIpc) =>{
+    const { origin, listen } = await createHttpDwebServer(jsProcess, {});
+    (await listen()).onRequest(async (request, httpServerIpc) =>{
       console.log('common.worker.mts 接受到了请求 把请求转发出去 request', request)
       // request.parsed_url 可以拿到 w85defe5.app.dweb host
       // 把全部的请求发送给 app.sys.dweb 程序
