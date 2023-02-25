@@ -28,7 +28,6 @@ fun ByteArray.toHexString(): String {
 //) {
 //    Log.i(TAG, " messageGateWay: $stringData")
 //    denoService.backDataToRust(stringData.toByteArray())// 通知
-//    //  println("messageGeWay back_data-> $backData")
 //}
 
 /** 转发给ui*/

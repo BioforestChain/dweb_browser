@@ -4,8 +4,13 @@ import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.InputStream
 
+
+inline fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("stream-ipc", tag, msg, err)
 
 /**
  * 基于 WebReadableStream 的IPC
@@ -25,6 +30,10 @@ class ReadableStreamIpc(
         debugStream("IPC-ON-PULL/${controller.stream}", size)
     })
 
+    @Synchronized
+    private suspend inline fun enqueue(data: ByteArray) = controller.enqueue(data)
+
+
     private var _incomeStream: InputStream? = null
 
     /**
@@ -41,21 +50,26 @@ class ReadableStreamIpc(
         val j = GlobalScope.launch {
             while (true) {
                 delay(10000)
-                println("...$stream")
+                debugStreamIpc("LIVE/$stream")
             }
         }
         _incomeStream = stream
-        CoroutineScope(CoroutineName(coroutineName) + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
-            e.printStackTrace()
+        CoroutineScope(CoroutineName(coroutineName) + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+            printerrln("$ctx/$stream", e.message, e)
         }).launch {
 
             // 如果通道关闭并且没有剩余字节可供读取，则返回 true
             while (stream.available() > 0) {
                 val size = stream.readInt()
+                if (size <= 0) { // 心跳包？
+                    continue
+                }
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                val chunk = stream.readByteArray(size)
+                val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
+                debugStreamIpc("size/$stream", size)
+
                 val message =
-                    jsonToIpcMessage(chunk.toString(Charsets.UTF_8), this@ReadableStreamIpc)
+                    jsonToIpcMessage(chunk, this@ReadableStreamIpc)
                 when (message) {
                     "close" -> close()
                     is IpcMessage -> _messageSignal.emit(
@@ -68,7 +82,7 @@ class ReadableStreamIpc(
                 }
             }
             j.cancel()
-            throw Exception("GGGGGGG/$coroutineName")
+            debugStreamIpc("END/$stream")
         }
     }
 
@@ -81,7 +95,8 @@ class ReadableStreamIpc(
                 else -> gson.toJson(data).asUtf8()
             }
         }
-        controller.enqueue(message.size.toByteArray() + message)
+        debugStreamIpc("post/$stream", message.size)
+        enqueue(message.size.toByteArray() + message)
     }
 
     override suspend fun _doClose() {

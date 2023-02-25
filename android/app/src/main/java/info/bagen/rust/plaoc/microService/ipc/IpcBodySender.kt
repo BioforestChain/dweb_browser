@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+import info.bagen.rust.plaoc.microService.helper.printerrln
 import info.bagen.rust.plaoc.microService.helper.toBase64
 import kotlinx.coroutines.*
 import java.io.InputStream
@@ -25,7 +26,7 @@ class IpcBodySender(
 
         private val streamIdWM by lazy { WeakHashMap<InputStream, String>() }
 
-        private var stream_id_acc = 0;
+        private var stream_id_acc = 1;
         fun getStreamId(stream: InputStream): String = streamIdWM.getOrPut(stream) {
             "rs-${stream_id_acc++}"
         };
@@ -51,8 +52,8 @@ class IpcBodySender(
             val stream_id = getStreamId(stream)
             debugStream("streamAsRawData/$ipc/$stream", stream_id)
             val streamAsRawDataScope =
-                CoroutineScope(CoroutineName("streamAsRawData/$ipc/$stream/$stream_id") + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
-                    e.printStackTrace()
+                CoroutineScope(CoroutineName("streamAsRawData/$ipc/$stream/$stream_id") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+                    printerrln(ctx.toString(), e.message, e)
                 })
             ipc.onMessage { (message) ->
                 /// 对方申请数据拉取

@@ -59,7 +59,7 @@ class NativePort<I, O>(
     private val closePo: PromiseOut<Unit>
 ) {
     companion object {
-        private var uid_acc = 0;
+        private var uid_acc = 1;
     }
 
     private val uid = uid_acc++

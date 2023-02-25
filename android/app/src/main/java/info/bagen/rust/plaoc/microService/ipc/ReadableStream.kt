@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.printerrln
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -44,12 +45,12 @@ class ReadableStream(
     private val controller by lazy { ReadableStreamController(dataChannel) { this@ReadableStream } }
 
     private val writeDataScope =
-        CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
-            e.printStackTrace()
+        CoroutineScope(CoroutineName("readableStream/writeData") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+            printerrln(ctx.toString(), e.message, e)
         })
     private val readDataScope =
-        CoroutineScope(CoroutineName("readableStream/readData") + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
-            e.printStackTrace()
+        CoroutineScope(CoroutineName("readableStream/readData") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+          printerrln(ctx.toString(), e.message, e)
         })
 
     init {
@@ -88,7 +89,6 @@ class ReadableStream(
      */
     private fun requestData(ptr: Int): ByteArray {
         val dataSize = _data.size
-//        println("ASK/$uid 1 ptr:$ptr/dataSize:$dataSize")
         // 如果下标满足条件，直接返回
         if (ptr < dataSize) {
             return _data
@@ -111,7 +111,6 @@ class ReadableStream(
                                 debugStream("REQUEST-DATA/WAITING/$uid", "$newSize/$endSize")
                             }
                             newSize == -1 -> {
-                                println("ASK/$uid CLOSED by -1")
                                 debugStream("REQUEST-DATA/END/$uid", "$newSize/$endSize")
                                 wait.resolve(Unit) // 不需要抛出错误
                             }
@@ -127,13 +126,12 @@ class ReadableStream(
                 debugStream("REQUEST-DATA/END/$uid", _data.size)
             }.join()
         }
-//        println("ASK/$uid 3 ptr:$ptr/dataSize:${_data.size}")
 
         return _data
     }
 
     companion object {
-        private var id_acc = 0
+        private var id_acc = 1
     }
 
     private val uid = "#s${id_acc++}"

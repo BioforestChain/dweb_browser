@@ -10,7 +10,6 @@ class BFSApi {
 
     @JavascriptInterface
     fun BFSInstallApp(path: String) {
-        Log.d("BFSApi", "BFSInstallApp path=$path")
         val intent = Intent(BFSBroadcastAction.BFSInstallApp.action).apply {
             putExtra("path", path)
         }
@@ -19,7 +18,6 @@ class BFSApi {
 
     @JavascriptInterface
     fun BFSGetConnectChannel(url: String): String {
-        println("kotlin#BFSApi BFSGetConnectChannel url=$url")
         filtrationHandle(url)
         return url
     }
@@ -27,7 +25,6 @@ class BFSApi {
     @JavascriptInterface
     fun BFSPostConnectChannel(url: String, cmd: String, buf: String): String  {
         if (url.isNotEmpty()) return "request data undefined"
-        println("kotlin#BFSApi postConnectChannel cmd=$cmd,url=$url,buf=$buf")
         return url
     }
     private fun filtrationHandle(url: String) {

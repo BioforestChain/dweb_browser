@@ -9,16 +9,16 @@ import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
 import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.ReadableStream
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.junit.jupiter.api.Test
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 
-class ReadableStreamTest {
+class ReadableStreamTest : AsyncBase() {
     @Test
-    fun test1() = runBlocking {
+    fun base() = runBlocking {
         class Event(val target: ReadableStream.ReadableStreamController, val data: String)
 
         val i = 0
@@ -84,5 +84,33 @@ class ReadableStreamTest {
         req_ipc.close()
 
         req_ipc.stream.afterClosed()
+    }
+
+
+    @Test
+    fun doubleAvailable() = runBlocking {
+        println("start")
+        val stream = ReadableStream(onStart = { controller ->
+            launch {
+                delay(1000)
+                controller.enqueue(byteArrayOf(1, 2, 3))
+                println("enqueued")
+            }
+        })
+
+        var result = AtomicInteger(0)
+        for (i in 1..10) {
+            GlobalScope.launch {
+                delay(100)
+                val len = stream.available()
+                println("stream.available(): $len")
+                result.addAndGet(len)
+            }
+        }
+
+        async {
+            delay(2000)
+        }.join()
+        assertEquals(result.get(), 10 * 3)
     }
 }

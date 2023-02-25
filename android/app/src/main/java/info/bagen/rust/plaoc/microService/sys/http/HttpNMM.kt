@@ -34,8 +34,8 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
 
     /// 注册的域名与对应的 token
-    val tokenMap = mutableMapOf</* token */ String, Gateway>();
-    val gatewayMap = mutableMapOf</* host */ String, Gateway>();
+    private val tokenMap = mutableMapOf</* token */ String, Gateway>();
+    private val gatewayMap = mutableMapOf</* host */ String, Gateway>();
 
     /**
      * 监听请求
@@ -53,11 +53,11 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
      * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
      * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
      */
-    // 创建过滤
-    val httpHandler: HttpHandler = { request ->
+    private val httpHandler: HttpHandler = { request ->
         var header_host: String? = null
-        var x_dweb_host: String? = null
-        var user_agent_host: String? = null
+        var header_x_dweb_host: String? = null
+        var header_user_agent_host: String? = null
+        var query_x_web_host: String? = request.query("X-DWeb-Host")
         for ((key, value) in request.headers) {
             when (key) {
                 "Host" -> {
@@ -69,19 +69,21 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                     }
                 }
                 "X-Dweb-Host" -> {
-                    x_dweb_host = value
+                    header_x_dweb_host = value
                 }
                 "User-Agent" -> {
                     if (value != null) {
                         Regex("""\sdweb-host/(.+)\s*""").find(value)?.also { matchResult ->
-                            user_agent_host = matchResult.groupValues[1]
+                            header_user_agent_host = matchResult.groupValues[1]
                         }
                     }
                 }
             }
         }
-        val host = x_dweb_host ?: user_agent_host ?: header_host ?: "*"
+        val host =
+            query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host ?: header_host ?: "*"
 
+        /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
         /// TODO 30s 没有任何 body 写入的话，认为网关超时
 
         /**
@@ -105,25 +107,29 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
 
     public override suspend fun _bootstrap() {
-        // 启动http后端服务
+        /// 启动http后端服务
         dwebServer.createServer(httpHandler)
 
+        /// 为 nativeFetch 函数提供支持
         _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { _, request ->
             if (request.uri.scheme == "http" && request.uri.host.endsWith(".dweb")) {
                 networkFetch(
-                    request.uri(Uri.of(dwebServer.origin))
+                    request
+                        // 头部里添加 X-Dweb-Host
                         .header("X-Dweb-Host", request.uri.authority)
+                        // 替换 url 的 authority（host+port）
+                        .uri(request.uri.authority(dwebServer.authority))
                 )
             } else null
         });
 
+        /// 模块 API 接口
         val query_dwebServerOptions = Query.composite {
             DwebHttpServerOptions(
                 port = int().optional("port")(it),
                 subdomain = string().optional("subdomain")(it),
             )
         }
-
         val query_token = Query.string().required("token")
         val query_routeConfig = Query.string().required("routes")
         val type_routes = object : TypeToken<ArrayList<RouteConfig>>() {}.type
@@ -142,6 +148,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 close(ipc, query_dwebServerOptions(request))
             }
         )
+
     }
 
     data class ServerUrlInfo(
@@ -157,7 +164,10 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
          * 相对公网的链接（这里只是相对标准网络访问，当然目前本地只支持localhost链接，所以这里只是针对webview来使用）
          */
         val public_origin: String,
-    )
+    ) {
+        fun buildHttpUrl() = Uri.of(public_origin)
+            .query("X-DWeb-Host", host)
+    }
 
     private fun getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions): ServerUrlInfo {
         val mmid = ipc.remote.mmid
@@ -200,7 +210,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     }
 
     /**
-     *
+     *  绑定流监听
      */
     private fun listen(
         token: String,

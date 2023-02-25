@@ -35,7 +35,8 @@ class Http1Server {
         portPo.waitPromise()
     }
 
-    val origin get() = "${PREFIX}localhost:${bindingPort}"
+    val authority get() = "localhost:$bindingPort"
+    val origin get() = "$PREFIX$authority"
 
     fun closeServer() {
         server?.also {

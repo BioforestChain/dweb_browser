@@ -14,7 +14,7 @@ import org.http4k.core.Uri
 
 abstract class Ipc {
     companion object {
-        private var ipc_uid_acc = 0
+        private var ipc_uid_acc = 1
         private var _req_id_acc: Int = 0;
     }
 

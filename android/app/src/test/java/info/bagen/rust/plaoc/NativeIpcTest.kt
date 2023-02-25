@@ -8,17 +8,20 @@ import info.bagen.rust.plaoc.microService.ipc.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
-import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.DebugProbes
-import org.http4k.core.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.http4k.core.Method
+import org.http4k.core.Request
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class NativeIpcTest {
+class NativeIpcTest : AsyncBase() {
     @Test
     fun baseTest() = runBlocking {
         val m1 = object : NativeMicroModule("m1") {
@@ -60,35 +63,11 @@ class NativeIpcTest {
         ipc2.close()
     }
 
-    private val catcher = CoroutineExceptionHandler { _, e ->
-        e.printStackTrace()
-    }
-
-    @BeforeEach
-    fun debugInstall() {
-        DebugProbes.install()
-
-    }
-
-    @AfterEach
-    fun debugUninstall() {
-        DebugProbes.uninstall()
-    }
-
-    inline fun printDumpCoroutinesInfo() {
-        var i = 1
-        println("job.isCompleted: \n${
-            DebugProbes.dumpCoroutinesInfo().joinToString(separator = "\n") { it ->
-                "${i++}.\t| $it"
-            }
-        }")
-    }
-
     @Test
     @ExperimentalCoroutinesApi
     fun sendStreamData() = runBlocking(catcher) {
+        enableDwebDebug(listOf("native-ipc", "stream"))
 
-        System.setProperty("dweb-debug", "native-ipc stream")
         val m0 = object : NativeMicroModule("m0") {
             override suspend fun _bootstrap() {
             }
@@ -122,8 +101,7 @@ class NativeIpcTest {
                     while (true) {
                         val byteLen = req_stream.available() // TODO 这里过一段时间会自己关闭，打个断点能发现这个行为
                         debugStream(
-                            "PIPE/ON-DATA",
-                            "$req_stream >> $byteLen >> ${controller.stream}"
+                            "PIPE/ON-DATA", "$req_stream >> $byteLen >> ${controller.stream}"
                         )
                         if (byteLen > 0) {
                             controller.enqueue(req_stream.readByteArray(byteLen))

@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.boot
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.core.Router
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.toURLQueryComponent
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
@@ -11,14 +12,26 @@ import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class BootNMM : NativeMicroModule("boot.sys.dweb") {
+
+inline fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("boot", tag, msg, err)
+
+class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb") {
+    /**
+     * 开机启动项注册表
+     * TODO 这里需要从数据库中读取
+     */
+    private val registeredMmids = mutableSetOf<Mmid>()
+
+    init {
+        if (initMmids != null) {
+            registeredMmids += initMmids
+        }
+    }
+
     override val routers: Router = mutableMapOf()
     override suspend fun _bootstrap() {
         apiRouting = routes(
-            "/open" bind Method.GET to defineHandler { request ->
-                println("BootNMM#apiRouting===>$mmid  ${request.uri.path}")
-                true
-            },
             "/register" bind Method.GET to defineHandler { _, ipc ->
                 register(ipc.remote.mmid)
             },
@@ -29,24 +42,15 @@ class BootNMM : NativeMicroModule("boot.sys.dweb") {
 
         GlobalScope.launch {
             for (mmid in registeredMmids) {
+                debugBoot("launch", mmid)
                 nativeFetch("file://dns.sys.dweb/open?app_id=${mmid.toURLQueryComponent()}")
             }
         }
-
     }
 
     override suspend fun _shutdown() {
         routers.clear()
     }
-
-    /**
-     * 开机启动项注册表
-     * TODO 这里需要从数据库中读取
-     */
-    private val registeredMmids = mutableSetOf<Mmid>(
-        // 初始化启动一个桌面系统程序
-        "desktop.user.dweb"
-    )
 
     /**
      * 注册一个boot程序

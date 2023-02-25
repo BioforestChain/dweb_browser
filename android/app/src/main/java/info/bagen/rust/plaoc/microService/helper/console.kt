@@ -5,14 +5,14 @@ import java.time.LocalDateTime
 inline fun now() = LocalDateTime.now().toString().padEnd(26, '0').slice(0..25)
 
 inline fun printerrln(log: String) = System.err.println(log)
-inline fun printerrln(tag: String, msg: Any, err: Throwable? = null) {
+inline fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
     printerrln("$tag\t $msg")
     err?.printStackTrace()
 }
 
 /**
  * 可用值：
- * "fetch", "stream", "native-ipc"
+ * "fetch", "stream", "native-ipc", "stream-ipc", "jmm", "boot","js-process"
  */
 val debugTags by lazy {
     (System.getProperty("dweb-debug") ?: "").let {
@@ -23,7 +23,7 @@ val debugTags by lazy {
 //    setOf<String>()
 }
 
-inline fun printdebugln(scope: String, tag: String, msg: Any, err: Throwable? = null) {
+inline fun printdebugln(scope: String, tag: String, msg: Any?, err: Throwable? = null) {
     if (!debugTags.contains(scope)) {
         return
     }
