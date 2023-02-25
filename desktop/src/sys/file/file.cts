@@ -17,12 +17,12 @@ import type { $State } from "./file-download.cjs";
 export class FileNMM extends NativeMicroModule {
     mmid = "file.sys.dweb" as const;
     async _bootstrap() {
-      this.registerCommonIpcOnMessageHanlder({
+      this.registerCommonIpcOnMessageHandler({
         pathname: "/download",
         matchMode: "full",
         input: {url: "string"},
         output: "boolean",
-        hanlder: async (arg, client_ipc, request) => {
+        handler: async (arg, client_ipc, request) => {
             return new Promise((resolve, reject) => {
                 download(arg.url, _progressCallback)
                 .then((apkInfo) => {
@@ -58,12 +58,12 @@ export class FileNMM extends NativeMicroModule {
       });
 
       //   获取全部的 appsInfo
-      this.registerCommonIpcOnMessageHanlder({
+      this.registerCommonIpcOnMessageHandler({
         pathname: "/appsinfo",
         matchMode: "full",
         input: {},
         output: "boolean",
-        hanlder: async (args,client_ipc, request) => {
+        handler: async (args,client_ipc, request) => {
           // console.log('file.cts 开始获取 appsInfo---------------------------+++')
           const appsInfo = await getAllApps()
           // console.log('file.cts 获取到了 appsInfo---------------------------+++appsInfo： ', appsInfo)
@@ -80,12 +80,12 @@ export class FileNMM extends NativeMicroModule {
       });
 
       //   获取全部的 icon
-      this.registerCommonIpcOnMessageHanlder({
+      this.registerCommonIpcOnMessageHandler({
         pathname: "/icon",
         matchMode: "full",
         input: {},
         output: "boolean",
-        hanlder: async (args,client_ipc, request) => {
+        handler: async (args,client_ipc, request) => {
 
           // console.log('file.cts /icon request: ', args, client_ipc, request, )
           const url = new URL(request.url)

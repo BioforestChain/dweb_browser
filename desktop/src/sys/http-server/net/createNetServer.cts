@@ -32,7 +32,6 @@ export const httpCreateServer = async (
   const { port, hostname = "localhost" } = listenOptions;
   const host = `${hostname}:${port}`;
   const origin = `http://${host}`;
-  console.log('options: ', options)
   const server = http.createServer(options);
   await new Promise<void>((resolve, reject) => {
     server.on("error", reject).listen(port, hostname, resolve);

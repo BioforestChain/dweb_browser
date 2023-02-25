@@ -332,7 +332,7 @@ export class ViewTree extends LitElement {
               zIndex: webview.state.zIndex + "",
              
             })
-  
+            console.log('this.webvew.src: ', webview.src)
             return html`
               <multi-webview-content
                 .customWebview=${webview}
@@ -365,6 +365,7 @@ export class ViewTree extends LitElement {
             const _styleMap = styleMap({
               zIndex: webview.state.zIndex + "",
             })
+            
             return html`
               <multi-webview-devtools
                 .customWebview=${webview}

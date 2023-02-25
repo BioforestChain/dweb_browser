@@ -20,12 +20,12 @@ export class DnsNMM extends NativeMicroModule {
     this.install(this);
     this.running_apps.set(this.mmid, this);
 
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/install-js",
       matchMode: "full",
       input: {},
       output: "void",
-      hanlder: async (arg, client_ipc, request) => {
+      handler: async (arg, client_ipc, request) => {
         /// TODO 动态创建 JsMicroModule
         const _url = new URL(request.url)
         let appId = _url.searchParams.get("app_id")
@@ -47,24 +47,23 @@ export class DnsNMM extends NativeMicroModule {
         
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
       matchMode: "full",
       input: { app_id: "mmid" },
       output: "boolean",
-      hanlder: async (args) => {
-        console.log('dns.cts 启动应用： ', args)
+      handler: async (args) => {
         /// TODO 询问用户是否授权该行为
         await this.open(args.app_id);
         return true;
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
       matchMode: "full",
       input: { app_id: "mmid" },
       output: "boolean",
-      hanlder: async (args) => {
+      handler: async (args) => {
         /// TODO 关闭应用首先要确保该应用的 parentProcessId 在 processTree 中
         await this.close(args.app_id);
         return true;
@@ -95,9 +94,7 @@ export class DnsNMM extends NativeMicroModule {
   private running_apps = new Map<$MMID, MicroModule>();
   /** 打开应用 */
   async open(mmid: $MMID) {
-    console.log('dns 开始打开应用: ', mmid)
     let app = this.running_apps.get(mmid);
-    console.log('app: ', app?.mmid)
     if (app === undefined) {
       const mm = await this.query(mmid);
       if (mm === undefined) {
@@ -105,7 +102,6 @@ export class DnsNMM extends NativeMicroModule {
       }
       this.running_apps.set(mmid, mm);
       // @TODO bootstrap 函数应该是 $singleton 修饰
-      console.log('【dns.cts】 开始启动应用', mm.mmid)
       await mm.bootstrap();
       app = mm;
     }

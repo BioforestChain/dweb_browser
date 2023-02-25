@@ -113,6 +113,8 @@ class HomePage extends LitElement{
     protected override render(){
         const arr:  $AppInfo[][] = toTwoDimensionalArray(this.apps)
         console.log("location: ", location)
+        console.log('window: ', window)
+        
         return html`
             <div 
                 class="page-container"
@@ -147,6 +149,11 @@ class HomePage extends LitElement{
                         ))
                     }
                 </div>
+
+                <!-- 实验该改变状态栏 -->
+                <button @click=${() => this.setStatusbarBackground("#F00F")}>设置状态栏的颜色 === #F00F</button>
+                <button @click=${() => this.setStatusbarBackground("#0F0F")}>设置状态栏的颜色 === #0F0F</button>
+                <button @click=${() => this.setStatusbarBackground("#00FF")}>设置状态栏的颜色 === #00FF</button>
             </div>
         `
     }
@@ -159,6 +166,7 @@ class HomePage extends LitElement{
 
     override connectedCallback(){
         super.connectedCallback();
+        var bc = new BroadcastChannel('aaa');
     }
 
     onSearch(){
@@ -200,6 +208,23 @@ class HomePage extends LitElement{
          
         // 打开一个新的 window 窗口
         response = await fetch(`./open?appId=${appId}`)
+    }
+
+    setStatusbarBackground(color: string){
+        fetch(`./operation`, 
+            {
+                method: "PUT",
+                body:JSON.stringify({
+                    action: "set_background_color",
+                    value: color
+                }),
+                headers: {
+                    "Content-Type": "application/json; chartset=UTF-8"
+                }
+            }
+        )
+        .then(async (res: any) => console.log('设置成功', await res.text()))
+        .catch((err: Error) => console.error("设置失败", err))
     }
 
     

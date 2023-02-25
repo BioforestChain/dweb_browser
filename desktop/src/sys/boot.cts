@@ -10,22 +10,22 @@ export class BootNMM extends NativeMicroModule {
     "browser.sys.dweb",
   ]) // 升级后的结果
   async _bootstrap() {
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/register",
       matchMode: "full",
       input: { },
       output: "boolean",
-      hanlder: async (args,ipc) => {
-        return await this.register(ipc.remote.mmid);
+      handler: async (args) => {
+        return await this.register(args.app_id);
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/unregister",
       matchMode: "full",
       input: {},
       output: "boolean",
-      hanlder: async (args,ipc) => {
-        return await this.unregister(ipc.remote.mmid);
+      handler: async (args) => {
+        return await this.unregister(args.app_id);
       },
     });
 

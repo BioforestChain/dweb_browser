@@ -20,68 +20,23 @@ const allCss = [
         
         .container {
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
             box-sizing: border-box;
             width: 100%;
             height: 100%;
             border: 10px solid #333;
             border-radius:var(--border-radius);
             overflow: hidden;
-            border-radius:var(--border-radius);
         }
 
-        .camera-container{
-            position: absolute;
-            z-index: var(--cmera-container-zindex);
-            left: 0px;
-            top: 0px;
-            display: flex;
-            justify-content: center;
-            width:100%;
-            height:var(--status-bar-height);
-            background-color: transparent;
-        }
-
-        .camera-container::after{
-            --border-radius:10px;
-            content: "";
-            width: 56%;
-            height:100%;
-            border-bottom-left-radius: var(--border-radius);
-            border-bottom-right-radius: var(--border-radius);
-            background:#000;
-        }
-
-        .status-navigation-bar-container{
-            position: absolute;
-            z-index: 1;
-            left: 0px;
-            top: 0px;
-            width:100%;
-            height:auto;
-            /* border-top-left-radius: var(--border-radius);
-            border-top-right-radius:var(--border-radius); */
+        .iframe-statusbar{
             
-            overflow: hidden;
-        }
-
-        .status-bar-contaienr{
-            width:100%;
-            height: var(--status-bar-height);
-            background-color:#0002;
-        }
-
-        .navigation-bar-container{
-            width:100%;
-            height:var(--navigation-bar-height);
-            background-color: #0001;
-        }
-
-        .status-navigation-bar-container-statusbar-hidden{
-            background-color: transparent;
-        }
-
-        .status-navigation-bar-container-statusbar-show{
-            background-color: #0002;
+            // box-sizing: border-box;
+            // width:100%;
+            // height: 48px;
         }
 
         .bottom-line-container{
@@ -105,28 +60,22 @@ const allCss = [
         }
 
         .webview-container{
+            flex-grow: 100;
+            flex-shrink: 100;
             box-sizing: border-box;
             width:100%;
             height:100%;
-            /* border-radius:var(--border-radius); */
+            scrollbar-width: 2px;
             overflow: hidden;
+            overflow-y: auto;
             /* border: 1px solid red; */
         }
-
-        .webview-container-statusbar-hidden{
-            padding-top:0px;
-        }
-
-        .webview-container-statusbar-show{
-            padding-top:calc(var(--status-bar-height) + var(--navigation-bar-height));
-        }
-
         .webview{
             box-sizing: border-box;
             width:100%;
             min-height:100%;
             height: auto;
-            /* border: 10px solid blue; */
+            
         }
 
     `,
@@ -220,32 +169,29 @@ export class MultiWebViewContent extends LitElement{
         })
 
         const host = document.querySelector(":host")
-        console.log('host----------')
+        // 如何把状态栏 这个 自定义标签 <dweb-status-bar /> 这个 自定义标签注入进去
+        // 同时 如何把这个额dweb-status-bar 这个标签同 statusbar.sys.dweb NMM 模块关联起来；
+        // 是否可以通过多为 <webview> 标签实现 通过 jsMM 实现？？
+        // 
         return html`
             <div 
                 class="container ${ this.closing ? `closing-ani-view` : `opening-ani-view`}"
                 style="${containerStyleMap}"  
                 @animationend=${this.onAnimationend}  
             >
-                <div class="camera-container"></div>
-                <!-- 状态栏 + 导航栏 -->
-                <div 
-                    class="
-                        status-navigation-bar-container
-                        ${this.statusbarHidden ? "status-navigation-bar-container-statusbar-hidden" : "status-navigation-bar-container-statusbar-show"}
-                    "
-                >
-                    <div class="status-bar-contaienr"></div>
-                    <div class="navigation-bar-container"></div>
-                </div>
+                <!-- 启动了服务后确实能够显示内容 webview 请求状态栏的服务-->
+                <iframe
+                    id="statusbar"
+                    class="iframe-statusbar"
+                    style="width: 100%;height: 48px;border: none; flex-grow: 0; flex-shrink: 0; position: relative; left: 0px; top: 0px;"
+                    src="http://statusbar.sys.dweb-80.localhost:22605/"
+                    @load=${() => console.log('statusbar 载入完成')}
+                ></iframe>
                 <!-- 底部黑线 -->
                 <div class="bottom-line-container"></div>
                 <!-- 内容容器 -->
-                <div 
-                    class="
-                        webview-container 
-                        ${this.statusbarHidden ? "webview-container-statusbar-hidden" : "webview-container-statusbar-show"}
-                    ">
+                <div class="webview-container">
+                    <!-- 这个 webview 是如何载入的了？？？ -->
                     <webview
                         id="view-${this.customWebviewId}"
                         class="webview"

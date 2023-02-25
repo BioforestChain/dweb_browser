@@ -36,7 +36,7 @@ class ImportLinker {
     /** 我们将托管用户的代码，响应虚拟环境中的 import 请求 */
     readonly importMaps: Array<{
       pathMatcher: $ReqMatcher;
-      hanlder: (parsed_url: URL) => $PromiseMaybe<$Code>;
+      handler: (parsed_url: URL) => $PromiseMaybe<$Code>;
     }> = []
   ) {}
 
@@ -44,7 +44,7 @@ class ImportLinker {
     const parsed_url = new URL(url, this.origin);
     for (const item of this.importMaps) {
       if ($isMatchReq(item.pathMatcher, parsed_url.pathname)) {
-        return item.hanlder(parsed_url);
+        return item.handler(parsed_url);
       }
     }
   }
@@ -145,7 +145,7 @@ export class JsProcessNMM extends NativeMicroModule {
           pathname: "/bootstrap.js",
           matchMode: "full",
         },
-        hanlder(url) {
+        handler(url) {
           return {
             mime: "application/javascript",
             data: JS_PROCESS_WORKER_CODE,
@@ -174,13 +174,13 @@ export class JsProcessNMM extends NativeMicroModule {
 
     const apis = nww.getApis<$APIS>();
     /// 创建 web worker
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       method: "POST",
       pathname: "/create-process",
       matchMode: "full",
       input: { main_pathname: "string" },
       output: "object",
-      hanlder: (args, ipc, requestMessage) => {
+      handler: (args, ipc, requestMessage) => {
         return this.createProcessAndRun(
           ipc,
           apis,
@@ -191,12 +191,12 @@ export class JsProcessNMM extends NativeMicroModule {
       },
     });
     /// 创建 web 通讯管道
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/create-ipc",
       matchMode: "full",
       input: { process_id: "number" },
       output: "number",
-      hanlder: async (args) => {
+      handler: async (args) => {
         const port2 = await apis.createIpc(args.process_id);
         return saveNative2JsIpcPort(port2);
       },
@@ -240,7 +240,7 @@ export class JsProcessNMM extends NativeMicroModule {
           pathname: "/",
           matchMode: "prefix",
         },
-        async hanlder(url) {
+        async handler(url) {
           /// TODO 对代码进行翻译处理
           const response = await streamIpc.request(url.href);
 

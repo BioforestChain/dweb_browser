@@ -32,12 +32,12 @@ export class AppNMM extends NativeMicroModule {
     async _bootstrap() {
         
         //  获取全部的 appsInfo
-        this.registerCommonIpcOnMessageHanlder({
+        this.registerCommonIpcOnMessageHandler({
             pathname: "/install",
             matchMode: "full",
             input: {},
             output: "boolean",
-            hanlder: async (args,client_ipc, request) => {
+            handler: async (args,client_ipc, request) => {
                 // 需要动态的创建一个 jsMM 
                 // 启动它一个 http-server 服务器 只想对应的目录？？？如何注入 js 文件？？？
                 // 必须要启动一个 jsMM 类似于 browser.main.cts 那样的
@@ -57,12 +57,12 @@ export class AppNMM extends NativeMicroModule {
         });;
 
          // 专门用来做静态服务
-         this.registerCommonIpcOnMessageHanlder({
+         this.registerCommonIpcOnMessageHandler({
             pathname: "/open",
             matchMode: "full",
             input: {},
             output: "boolean",
-            hanlder: async (args,client_ipc, request) => {
+            handler: async (args,client_ipc, request) => {
                 const _url = new URL(request.url)
                 let appId = _url.searchParams.get("appId")
                 if(appId === null) return false;
@@ -79,12 +79,12 @@ export class AppNMM extends NativeMicroModule {
         });;
 
         // 专门用来做静态服务
-        this.registerCommonIpcOnMessageHanlder({
+        this.registerCommonIpcOnMessageHandler({
             pathname: "/server",
             matchMode: "full",
             input: {},
             output: "boolean",
-            hanlder: async (args,client_ipc, request) => {
+            handler: async (args,client_ipc, request) => {
                 // 在返回首页的时候需要注入 dweb-top-bar 这样的自定义组件, 要实现功能的访问
                 //把需要的文件内容返回去就可以了
                 // request.url === 'file://app.sys.dweb/server?url=http://app.w85defe5.dweb-80.localhost:22605/'

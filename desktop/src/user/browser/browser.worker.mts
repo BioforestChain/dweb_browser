@@ -15,7 +15,8 @@ import type { Ipc } from "../../core/ipc/ipc.cjs"
 export const main = async () => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人KWKW
   const { origin, start } = await createHttpDwebServer(jsProcess, {});
-  (await start()).onRequest(async (request, httpServerIpc) => onRequest(request, httpServerIpc) );
+  ;(await start()).onRequest(async (request, httpServerIpc) => onRequest(request, httpServerIpc) );
+  jsProcess.fetch(`file://statusbar.sys.dweb/}`) // 启动 statusbar.sys.dweb 服务
   await openIndexHtmlAtMWebview(origin)
 };
 
@@ -36,6 +37,7 @@ async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
     case `${request.parsed_url.pathname.startsWith("/icon") ? request.parsed_url.pathname : "**eot**"}`: onRequestPathNameIcon(request, httpServerIpc); break;
     case `/install`: onRequestPathNameInstall(request, httpServerIpc); break;
     case `/open`: onRequestPathNameOpen(request, httpServerIpc); break;
+    case "/operation": onRequestPathOperation(request, httpServerIpc); break;
     default: onRequestPathNameNoMatch(request, httpServerIpc); break;
   }
 
@@ -187,6 +189,27 @@ async function onRequestPathNameOpen(request: IpcRequest, httpServerIpc: Ipc){
   const _url = `file://app.sys.dweb${request.url}`
   jsProcess
   fetch(_url)
+  .then(async(res: Response) => {
+    httpServerIpc.postMessage(
+      await IpcResponse.fromResponse(
+        request.req_id,
+        res,
+        httpServerIpc
+      )
+    );
+  })
+}
+
+/**
+ * onRequest 事件处理器 pathname ===  /operation" 
+ * @param request 
+ * @param httpServerIpc 
+ */
+async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
+  const _url = `file://statusbar.sys.dweb${request.url}`
+  console.log('[browser.worker.mts onRequestPathOperation]', request.method, request.body, _url)
+  jsProcess
+  fetch(_url, {method: request.method, body: request.body, headers:request.headers})
   .then(async(res: Response) => {
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(
