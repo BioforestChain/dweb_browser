@@ -48,12 +48,16 @@ async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
  * onRequest 事件处理器 pathname === "/" | "index.html"
  */
 async function onRequestPathNameIndexHtml(request: IpcRequest, httpServerIpc: Ipc){
+  // 拼接 html 字符串
+  const url = `file://plugins.sys.dweb/get`
+  const result = `<body><script type="text/javascript">${await jsProcess.fetch(url).text()}</script>`
+  let html = (await CODE_index_html(request)).replace("<body>",result)
+ 
   httpServerIpc.postMessage(
     IpcResponse.fromText(
       request.req_id,
       200,
-      // code_index_html 是第三方的 内容 如何增加状态栏？？
-      await CODE_index_html(request),
+      html,
       new IpcHeaders({
         "Content-Type": "text/html",
       })

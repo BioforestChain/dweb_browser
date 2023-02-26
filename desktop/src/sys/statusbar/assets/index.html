@@ -220,10 +220,24 @@
             fetch("http://statusbar.sys.dweb-80.localhost:22605/operation?app_url="+appUrl)
             .then(async (res) => {
                 awaitOperation()
+                const id = res.headers.get('id')
                 const value = await res.json()
                 if(value.action === "set_background_color"){
                     setBackgroundColor(value.value)
+                    fetchReturn(value.value, id)
                     return ;
+                }
+
+                if(value.action === "set_style"){
+                    setStyle(value.value)
+                    fetchReturn(value.value, id)
+                    return;
+                }
+
+                if(value.action === 'get_style'){
+                    // 需要这个 style 的值发送出去
+                    fetchReturn(style, id)
+                    return;
                 }
             })
             .catch(err => {
@@ -231,6 +245,28 @@
             })
         }
         awaitOperation()
+
+
+        // 通过发送请求把数据传送回去
+        function fetchReturn(value,id){
+            console.log("返回数据： ", JSON.stringify({ value: value}))
+            fetch(
+                "http://statusbar.sys.dweb-80.localhost:22605/operation_return?app_url="+appUrl,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({ value: value}),
+                    headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                        "id": id
+                    }
+                     
+                }
+            )
+            .then(res =>{
+                console.log('statusbar.html 返回的数据成功', res)
+            })
+            .catch(err => console.error("fetchReturn 出错", err))
+        }
       
       
     </script>

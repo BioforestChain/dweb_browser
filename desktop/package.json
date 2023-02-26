@@ -36,6 +36,8 @@
     "dev:common.worker": "npm run bundle:common.worker -- --watch",
     "bundle:multi-webview.html": "vite build src/sys/multi-webview/assets/ --outDir=../../../../bundle/multi-webview --emptyOutDir -c electron-vite.config.ts",
     "dev:multi-webview.html": "npm run bundle:multi-webview.html -- --minify=false --watch",
+    "bundle:plugins": "esbuild ./src/plugins/index.mts --outfile=./bundle/plugins.txt --bundle --format=esm",
+    "dev:plugins": "npm run bundle:plugins -- --watch",
     "start:win": "chcp 65001 && electron .",
     "start": "electron ./"
   },
