@@ -47,7 +47,8 @@ export class StatusbarNMM extends NativeMicroModule {
 
   private _lastIpc: Ipc | undefined
   private _lastRequest: IpcRequest | undefined
-  private _operationQueue: ReadableStream[] = []
+  private _operationWaitResponses = new Map<string, $OperationWaitResponse>() // 状态栏等待设置的返回队列
+  private _operationQueue = new Map<string, $OperationQueue[]>() // 发起更改状态栏设置的请求队列
   // 必须要通过这样启动才可以
   // jsProcess.fetch(`file://statusbar.sys.dweb/}`) 主要必须要有最后面的路径
   async _bootstrap() {
@@ -76,16 +77,44 @@ export class StatusbarNMM extends NativeMicroModule {
         return ;
       }
 
-      // 最好有一个时间限定防止超时过期
+      // todo 最好有一个时间限定防止超时过期
       if(request.parsed_url.pathname === "/operation"){
         console.log('[statusbar.main.cts]接受到了 /operation http 请求')
+        // appUrl 标识 当前statusbar搭配的是哪个 app 显示的
+        // 因为 statusbar 会提供给任意个 browserWindow 使用
+        const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
+        console.log('[statusbar.main.cts]接受到了 /operation http 请求 appUrlFromStatusbarHtml === ',appUrlFromStatusbarHtml)
+        if(appUrlFromStatusbarHtml === null){
+          ipc.postMessage(
+            await IpcResponse.fromText(
+              request.req_id,
+              400,
+              "确实少 app_url 查询参数",
+              new IpcHeaders({
+                "Content-type": "text/plain"
+              }),
+            )
+          )
+          return 
+        }
 
-        if(this._operationQueue.length !== 0){
+        const operationQueue = this._operationQueue.get(appUrlFromStatusbarHtml)
+        // 如果队列中没有来自 app 的操作请求了 把 ipc 和 request 保存起来
+        console.log('[statusbar.main.cts]接受到了 /operation http 请求 operationQueue === ',operationQueue)
+        if(operationQueue === undefined || operationQueue.length === 0) {
+          
+          this._operationWaitResponses.set(appUrlFromStatusbarHtml, {ipc: ipc, request: request, appUrl: appUrlFromStatusbarHtml})
+          console.log('[statusbar.main.cts]接受到了 /operation http 请求 operationQueue === undefined 所以保存起来了 this._operationWaitResponses ===',this._operationWaitResponses)
+          return  ;
+        }
+
+        // 如果队列中有 来自 app de 操作请求
+        if(operationQueue !== undefined && operationQueue.length !== 0 ){
           ipc.postMessage(
             await IpcResponse.fromStream(
               request.req_id,
               200,
-              request.body as ReadableStream<Uint8Array>,
+              operationQueue.shift()?.body as ReadableStream<Uint8Array>,
               new IpcHeaders({
                 "Content-type": "application/json"
               }),
@@ -94,9 +123,6 @@ export class StatusbarNMM extends NativeMicroModule {
           )
           return ;
         }
-
-        this._lastIpc = ipc
-        this._lastRequest = request;
       } 
      
     });
@@ -133,32 +159,59 @@ export class StatusbarNMM extends NativeMicroModule {
       handler: async (args, client_ipc, request) => {
         console.log('[statusbar.main.cts 接受到了 /operation 操作]', args, request)
 
+        const appUrlFromApp = request.parsed_url.searchParams.get("app_url")
+        console.log('[statusbar.main.cts 接受到了 /operation 操作 appUrlFromApp]', appUrlFromApp)
+        if(appUrlFromApp === null){ /**已经测试走过了 */
+          return  IpcResponse.fromText(
+            request.req_id,
+            400,
+            "缺少 app_url 查询参数",
+            new IpcHeaders({
+              "Content-type": "text/html"
+            })
+          ) 
+        }
         
-        // console.log('[statusbar.main.cts 接受到了 /operation 操作]', await readStream(request.body as ReadableStream<Uint8Array>))
-        // 如果
-        console.log(this._lastIpc, this._lastRequest)
-        if(this._lastIpc === undefined || this._lastRequest === undefined){
-          // 把请求保存到队列中
-          this._operationQueue.push(request.body as ReadableStream<Uint8Array>)
+        const operationWatiResponse = this._operationWaitResponses.get(appUrlFromApp)
+        console.log('[statusbar.main.cts /operation 操作 operationWatiResponse: ]', this._operationWaitResponses, operationWatiResponse)
+        if(operationWatiResponse === undefined){
+          // 没有匹配的 表示之前statusbar.html 发来的操作请求已经返回了 需要把 第三方发过来的操作请求保存起来
+          let operationQueue = this._operationQueue.get(appUrlFromApp)
+          await new Promise(resolve => {
+            if(operationQueue === undefined) {
+              this._operationQueue.set(appUrlFromApp, [{
+                body: request.body as ReadableStream<Uint8Array>,
+                callback: () => {
+                  resolve(true)
+                }
+              }])
+            }else{
+              operationQueue.push({
+                body: request.body as ReadableStream<Uint8Array>,
+                callback: () => {
+                  resolve(true)
+                }
+              })
+            } 
+          })
           return true;
         }
 
-        this._lastIpc.postMessage(
+        // 如果还有有 statusbar.html 发送过来的操作请求 直接把请求转发给 statubar.html
+        
+        console.log('[statusbar.main.cts /operation 操作 向statusbar.html 发送了消息 ]', )
+        operationWatiResponse.ipc.postMessage(
           await IpcResponse.fromStream(
-            this._lastRequest.req_id,
+            operationWatiResponse.request.req_id,
             200,
             request.body as ReadableStream<Uint8Array>,
             new IpcHeaders({
               "Content-type": "application/json"
             }),
-            this._lastIpc
+            operationWatiResponse.ipc
           )
         )
-           
-        this._lastIpc = undefined 
-        this._lastRequest = undefined
-
-        // 直接调用 
+        this._operationWaitResponses.delete(appUrlFromApp)
         return true;
       }
     })
@@ -227,3 +280,16 @@ export interface $Operation{
   acction: string;
   value: string;
 }
+
+export interface $OperationQueue{
+  body: ReadableStream<Uint8Array>
+  callback: {(): void} ;
+}
+
+export interface $OperationWaitResponse{
+  ipc:Ipc;
+  request: IpcRequest;
+  appUrl: string;  // appUrl 标识 当前statusbar搭配的是哪个 app 显示的
+}
+
+ 

@@ -177,7 +177,9 @@
         // statusbar 所在挂在的iframe 对象
         // 一点 multi-webview 发生了改变，那么这里的代码也需要发生改变
         const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#statusbar');
+        const appUrl = iframe.dataset.appUrl
         if(!iframe) console.error('status-bar 发生错误, 没有找到挂在的 iframe')
+        console.log('dataAppSrc------------------------------------:', appUrl)
 
         // 设置主题
         // 通过设置 .container 的color 实现
@@ -211,6 +213,28 @@
             elContainer.setAttribute('class', classNames)
         }
 
+        /*
+            监听操作的方法
+        */
+        async function awaitOperation(){
+            fetch("http://statusbar.sys.dweb-80.localhost:22605/operation?app_url="+appUrl)
+            .then(async (res) => {
+                awaitOperation()
+                const value = await res.json()
+                if(value.action === "set_background_color"){
+                    setBackgroundColor(value.value)
+                    return ;
+                }
+            })
+            .catch(err => {
+                console.error('statusbar err： ', err)
+            })
+        }
+        awaitOperation()
+      
+      
+    </script>
+    <script type="text/javascript">
 
         // 测试代码---------------------------------------------
         // 测试 主题
@@ -240,26 +264,6 @@
         }
         // testBackgroundColor()
 
-
-
-        const div = document.body
-        async function awaitOperation(){
-            fetch("http://statusbar.sys.dweb-80.localhost:22605/operation")
-            .then(async (res) => {
-                awaitOperation()
-                const value = await res.json()
-                if(value.action === "set_background_color"){
-                    setBackgroundColor(value.value)
-                    return ;
-                }
-            })
-            .catch(err => {
-                console.error('statusbar err： ', err)
-            })
-        }
-        awaitOperation()
-      
-      
     </script>
 </body>
 </html>

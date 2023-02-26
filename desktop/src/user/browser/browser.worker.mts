@@ -211,6 +211,7 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
   jsProcess
   fetch(_url, {method: request.method, body: request.body, headers:request.headers})
   .then(async(res: Response) => {
+    console.log('[browser.worker.mts onRequestPathOperation res:]', res)
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(
         request.req_id,
@@ -218,6 +219,16 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
         httpServerIpc
       )
     );
+  })
+  .then( async (err) => {
+    console.log('[browser.worker.mts onRequestPathOperation err:]', err)
+    // httpServerIpc.postMessage(
+    //   await IpcResponse.fromText(
+    //     request.req_id,
+    //     err,
+    //     httpServerIpc
+    //   )
+    // );
   })
 }
 

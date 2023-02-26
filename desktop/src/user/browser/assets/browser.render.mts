@@ -211,7 +211,8 @@ class HomePage extends LitElement{
     }
 
     setStatusbarBackground(color: string){
-        fetch(`./operation`, 
+        console.log("发起设置statusbar 的操作： ", location.origin, location)
+        fetch(`./operation?app_url=${location.origin}`, 
             {
                 method: "PUT",
                 body:JSON.stringify({
@@ -223,7 +224,14 @@ class HomePage extends LitElement{
                 }
             }
         )
-        .then(async (res: any) => console.log('设置成功', await res.text()))
+        .then(async (res: any) => {
+            if(res.status !== 200){
+                console.log('设置失败', await res.text())
+            }else{
+                console.log('设置成功', await res.text())
+            }
+            
+        })
         .catch((err: Error) => console.error("设置失败", err))
     }
 
