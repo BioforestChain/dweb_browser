@@ -7,6 +7,7 @@ export class BootNMM extends NativeMicroModule {
   private registeredMmids = new Set<$MMID>([
     "file.sys.dweb",
     "app.sys.dweb",
+    "plugins.sys.dweb",
     "browser.sys.dweb",
   ]) // 升级后的结果
   async _bootstrap() {
