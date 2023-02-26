@@ -87,7 +87,7 @@ class IpcRequest(
 
     }
 
-    fun asRequest() = Request(method.http4kMethod, url).headers(headers.toList()).let { req ->
+    fun toRequest() = Request(method.http4kMethod, url).headers(headers.toList()).let { req ->
         when (val body = body.body) {
             is String -> req.body(body)
             is ByteArray -> req.body(body.inputStream(), body.size.toLong())
@@ -97,7 +97,7 @@ class IpcRequest(
     }
 
     val ipcReqMessage by lazy {
-        IpcReqMessage(req_id, method, url, headers, body.metaBody)
+        IpcReqMessage(req_id, method, url, headers.toMap(), body.metaBody)
     }
 }
 
@@ -105,6 +105,6 @@ class IpcReqMessage(
     val req_id: Int,
     val method: IpcMethod,
     val url: String,
-    val headers: IpcHeaders,
+    val headers: MutableMap<String, String>,
     val metaBody: MetaBody,
 ) : IpcMessage(IPC_DATA_TYPE.REQUEST)

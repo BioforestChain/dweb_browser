@@ -1,10 +1,20 @@
-import { simpleEncoder } from "../../helper/encoding.cjs";
-import { $RawData, IPC_DATA_TYPE, IPC_RAW_BODY_TYPE } from "./const.cjs";
+import type { $MetaBody } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
+import { $BodyData, BodyHub, IpcBody } from "./IpcBody.cjs";
+
+import { simpleEncoder } from "../../helper/encoding.cjs";
+import { IPC_DATA_TYPE, IPC_RAW_BODY_TYPE } from "./const.cjs";
 import { IpcStreamPull } from "./IpcStreamPull.cjs";
 
-export const $rawDataToBody = (rawBody: $RawData, ipc?: Ipc) => {
-  let body: string | Uint8Array | ReadableStream<Uint8Array>;
+export class IpcBodyReceiver extends IpcBody {
+  constructor(readonly metaBody: $MetaBody, private readonly ipc: Ipc) {
+    super();
+  }
+  protected _bodyHub = new BodyHub($rawDataToBody(this.metaBody, this.ipc));
+}
+
+const $rawDataToBody = (rawBody: $MetaBody, ipc?: Ipc) => {
+  let body: $BodyData;
 
   const raw_body_type = rawBody[0];
   const bodyEncoder =

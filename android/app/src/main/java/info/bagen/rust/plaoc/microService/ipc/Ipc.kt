@@ -118,7 +118,7 @@ abstract class Ipc {
     }
 
     suspend fun request(request: Request) =
-        this.request(IpcRequest.fromRequest(allocReqId(), request, this)).asResponse()
+        this.request(IpcRequest.fromRequest(allocReqId(), request, this)).toResponse()
 
     fun allocReqId() = _req_id_acc++;
 

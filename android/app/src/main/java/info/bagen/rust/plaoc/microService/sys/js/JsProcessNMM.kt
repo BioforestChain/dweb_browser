@@ -202,7 +202,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     request.req_id,
                     // 转发给远端来处理
                     // TODO 对代码进行翻译处理
-                    streamIpc.request(request.asRequest()).let {
+                    streamIpc.request(request.toRequest()).let {
                         /// 加入跨域配置
                         var response = it;
                         for ((key, value) in CORS_HEADERS) {
@@ -227,7 +227,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
         /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
         processHandler.ipc.onRequest { (request, ipc) ->
-            val response = ipc.remote.nativeFetch(request.asRequest());
+            val response = ipc.remote.nativeFetch(request.toRequest());
             ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
         }
         /**

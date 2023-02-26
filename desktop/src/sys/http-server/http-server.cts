@@ -200,7 +200,7 @@ export class HttpServerNMM extends NativeMicroModule {
       gateway.listener.ipc.remote,
       IPC_ROLE.CLIENT
     );
-    void streamIpc.bindIncomeStream(message.stream());
+    void streamIpc.bindIncomeStream(message.body.stream());
 
     streamIpc.onClose(
       gateway.listener.addRouter({

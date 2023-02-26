@@ -7,9 +7,56 @@ import { IPC_ROLE } from "../../core/ipc/index.cjs";
 import { fetchExtends } from "../../helper/$makeFetchExtends.cjs";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.cjs";
 import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.cjs";
-import type { $MicroModule, $MMID } from "../../helper/types.cjs";
+import type {
+  $IpcSupportProtocols,
+  $MicroModule,
+  $MMID,
+} from "../../helper/types.cjs";
 import { updateUrlOrigin } from "../../helper/urlHelper.cjs";
 import type { $RunMainConfig } from "./assets/js-process.web.mjs";
+
+class Metadata {
+  constructor(private source: URLSearchParams) {}
+  requiredString(key: string) {
+    const val = this.optionalString(key);
+    if (val === undefined) {
+      throw new Error(`no found ${key}`);
+    }
+    return val;
+  }
+  optionalString(key: string) {
+    const val = this.source.get(key);
+    if (val === null) {
+      return;
+    }
+    return val;
+  }
+  requiredBoolean(key: string) {
+    const val = this.optionalBoolean(key);
+    return val === true;
+  }
+  optionalBoolean(key: string) {
+    const val = this.optionalString(key);
+    if (val === null) {
+      return;
+    }
+    return val === "true";
+  }
+  stringArray(key: string) {
+    return this.source.getAll(key);
+  }
+}
+
+const metadata = new Metadata(new URL(import.meta.url).searchParams);
+
+const js_process_ipc_support_protocols = (() => {
+  const protocols = metadata.stringArray("ipc-support-protocols");
+  return {
+    raw: protocols.includes("raw"),
+    message_pack: protocols.includes("message_pack"),
+    protobuf: protocols.includes("protobuf"),
+  } satisfies $IpcSupportProtocols;
+})();
 
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
@@ -21,6 +68,7 @@ import type { $RunMainConfig } from "./assets/js-process.web.mjs";
  * 这个是虚假的 $MicroModule，这里只是一个影子，指代 native 那边的 micro_module
  */
 export class JsProcessMicroModule implements $MicroModule {
+  readonly ipc_support_protocols = js_process_ipc_support_protocols;
   constructor(readonly mmid: $MMID, readonly host: String) {}
   fetch(input: RequestInfo | URL, init?: RequestInit) {
     return Object.assign(fetch(input, init), fetchExtends);
@@ -39,12 +87,7 @@ const waitFetchIpc = (jsProcess: $MicroModule) => {
       /// 由 web 主线程代理传递过来
       if (data[0] === "fetch-ipc-channel") {
         /// 与原生互通讯息，默认只能支持字符串
-        const ipc = new MessagePortIpc(
-          data[1],
-          jsProcess,
-          IPC_ROLE.SERVER,
-          false
-        );
+        const ipc = new MessagePortIpc(data[1], jsProcess, IPC_ROLE.SERVER);
         resolve(ipc);
         // self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
       }
@@ -74,7 +117,7 @@ export const installEnv = async (mmid: $MMID, host: String) => {
           parsed_url.href,
           ipc_req_init
         );
-        return ipc_response.asResponse(parsed_url.href);
+        return ipc_response.toResponse(parsed_url.href);
       })();
     }
 
@@ -128,26 +171,6 @@ self.addEventListener("message", async (event) => {
     await import(config.main_url);
   }
 });
-
-class Metadata {
-  constructor(private source: URLSearchParams) {}
-  requiredString(key: string) {
-    const val = this.optionalString(key);
-    if (val === undefined) {
-      throw new Error(`no found ${key}`);
-    }
-    return val;
-  }
-  optionalString(key: string) {
-    const val = this.source.get(key);
-    if (val === null) {
-      return;
-    }
-    return val;
-  }
-}
-
-const metadata = new Metadata(new URL(import.meta.url).searchParams);
 
 installEnv(
   metadata.requiredString("mmid") as $MMID,

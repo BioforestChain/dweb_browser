@@ -1,9 +1,19 @@
+import { binaryToU8a } from "../../helper/binaryHelper.cjs";
+import { simpleDecoder } from "../../helper/encoding.cjs";
 import { streamRead } from "../../helper/readableStreamHelper.cjs";
-import { $RawData, IPC_DATA_TYPE, IPC_RAW_BODY_TYPE } from "./const.cjs";
+import { $MetaBody, IPC_DATA_TYPE, IPC_RAW_BODY_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
+import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.cjs";
 import { IpcStreamData } from "./IpcStreamData.cjs";
 import { IpcStreamEnd } from "./IpcStreamEnd.cjs";
 
+export class IpcBodySender extends IpcBody {
+  constructor(readonly data: $BodyData, private readonly ipc: Ipc) {
+    super();
+  }
+  protected _bodyHub = new BodyHub(this.data);
+  readonly metaBody = $bodyAsRawData(this.data, this.ipc);
+}
 const streamIdWM = new WeakMap<ReadableStream<Uint8Array>, string>();
 let stream_id_acc = 0;
 const getStreamId = (stream: ReadableStream<Uint8Array>) => {
@@ -22,10 +32,10 @@ const getStreamId = (stream: ReadableStream<Uint8Array>) => {
  * @param stream
  * @param ipc
  */
-export const $streamAsRawData = (
+const $streamAsRawData = (
   stream: ReadableStream<Uint8Array>,
   ipc: Ipc
-): $RawData => {
+): $MetaBody => {
   const stream_id = getStreamId(stream);
   const reader = streamRead(stream);
 
@@ -82,3 +92,15 @@ async function* _postStreamData(
 
   onDone();
 }
+
+const $bodyAsRawData = (body: $BodyData, ipc: Ipc): $MetaBody => {
+  if (typeof body === "string") {
+    return [IPC_RAW_BODY_TYPE.TEXT, body];
+  }
+  if (body instanceof ReadableStream) {
+    return $streamAsRawData(body, ipc);
+  }
+  return ipc.support_binary
+    ? [IPC_RAW_BODY_TYPE.BINARY, binaryToU8a(body)]
+    : [IPC_RAW_BODY_TYPE.BASE64, simpleDecoder(body, "base64")];
+};

@@ -1,10 +1,58 @@
 import type { Ipc } from "./ipc.cjs";
-import type { IpcRequest } from "./IpcRequest.cjs";
-import type { IpcResponse } from "./IpcResponse.cjs";
+import type { IpcReqMessage, IpcRequest } from "./IpcRequest.cjs";
+import type { IpcResMessage, IpcResponse } from "./IpcResponse.cjs";
 import type { IpcStreamAbort } from "./IpcStreamAbort.cjs";
 import type { IpcStreamData } from "./IpcStreamData.cjs";
 import type { IpcStreamEnd } from "./IpcStreamEnd.cjs";
 import type { IpcStreamPull } from "./IpcStreamPull.cjs";
+
+export const enum IPC_METHOD {
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+  OPTIONS = "OPTIONS",
+  TRACE = "TRACE",
+  PATCH = "PATCH",
+  PURGE = "PURGE",
+  HEAD = "HEAD",
+}
+export const toIpcMethod = (method?: string) => {
+  if (method == null) {
+    return IPC_METHOD.GET;
+  }
+
+  switch (method.toUpperCase()) {
+    case IPC_METHOD.GET: {
+      return IPC_METHOD.GET;
+    }
+    case IPC_METHOD.POST: {
+      return IPC_METHOD.POST;
+    }
+    case IPC_METHOD.PUT: {
+      return IPC_METHOD.PUT;
+    }
+    case IPC_METHOD.DELETE: {
+      return IPC_METHOD.DELETE;
+    }
+    case IPC_METHOD.OPTIONS: {
+      return IPC_METHOD.OPTIONS;
+    }
+    case IPC_METHOD.TRACE: {
+      return IPC_METHOD.TRACE;
+    }
+    case IPC_METHOD.PATCH: {
+      return IPC_METHOD.PATCH;
+    }
+    case IPC_METHOD.PURGE: {
+      return IPC_METHOD.PURGE;
+    }
+    case IPC_METHOD.HEAD: {
+      return IPC_METHOD.HEAD;
+    }
+  }
+  throw new Error(`invalid method: ${method}`);
+};
 
 export const enum IPC_DATA_TYPE {
   // /** 特殊位：结束符 */
@@ -25,7 +73,7 @@ export const enum IPC_DATA_TYPE {
   STREAM_ABORT,
 }
 
-export type $RawData = Readonly<
+export type $MetaBody = Readonly<
   | [typeof IPC_RAW_BODY_TYPE.TEXT, string]
   | [typeof IPC_RAW_BODY_TYPE.BASE64, string]
   | [typeof IPC_RAW_BODY_TYPE.TEXT_STREAM_ID, string]
@@ -55,6 +103,20 @@ export const enum IPC_ROLE {
   CLIENT = "client",
 }
 
+export class IpcMessage<T extends IPC_DATA_TYPE> {
+  constructor(readonly type: T) {}
+}
+
+/** 接收到的消息，可传输的数据 */
+export type $IpcTransferableMessage =
+  | IpcReqMessage
+  | IpcResMessage
+  | IpcStreamData
+  | IpcStreamPull
+  | IpcStreamEnd
+  | IpcStreamAbort;
+
+/** 发送的消息 */
 export type $IpcMessage =
   | IpcRequest
   | IpcResponse

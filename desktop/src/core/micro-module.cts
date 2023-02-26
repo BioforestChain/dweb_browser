@@ -1,10 +1,16 @@
 import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
 import { createSignal } from "../helper/createSignal.cjs";
 import { PromiseOut } from "../helper/PromiseOut.cjs";
-import type { $MicroModule, $MMID, $PromiseMaybe } from "../helper/types.cjs";
+import type {
+  $IpcSupportProtocols,
+  $MicroModule,
+  $MMID,
+  $PromiseMaybe,
+} from "../helper/types.cjs";
 import type { Ipc } from "./ipc/index.cjs";
 
 export abstract class MicroModule implements $MicroModule {
+  abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract mmid: $MMID;
   get isRunning() {
     return this._running_state_lock.promise;

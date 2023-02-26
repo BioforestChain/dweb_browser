@@ -24,13 +24,13 @@ class NativeIpc(
                     /**
                      * fromRequest 携带者远端的 ipc 对象，不是我们的 IpcRequest 对象。
                      */
-                    IpcRequest.fromRequest(fromRequest.req_id, fromRequest.asRequest(), this)
+                    IpcRequest.fromRequest(fromRequest.req_id, fromRequest.toRequest(), this)
                 }
                 IPC_DATA_TYPE.RESPONSE -> (message as IpcResponse).let { fromResponse ->
                     /**
                      * fromResponse 携带者远端的 ipc 对象，不是我们的 IpcResponse 对象。
                      */
-                    IpcResponse.fromResponse(fromResponse.req_id, fromResponse.asResponse(), this)
+                    IpcResponse.fromResponse(fromResponse.req_id, fromResponse.toResponse(), this)
                 }
                 /**
                  * 其它情况的对象可以直接复用

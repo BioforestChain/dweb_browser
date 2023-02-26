@@ -1,21 +1,19 @@
+import once from "lodash/once";
 import { $Binary, binaryToU8a } from "../../helper/binaryHelper.cjs";
-import { simpleDecoder } from "../../helper/encoding.cjs";
-import { $streamAsRawData } from "./$streamAsRawData.cjs";
-import { IPC_DATA_TYPE, IPC_RAW_BODY_TYPE, type $RawData } from "./const.cjs";
+import { $MetaBody, IpcMessage, IPC_DATA_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
-import { IpcBody } from "./IpcBody.cjs";
+import type { IpcBody } from "./IpcBody.cjs";
+import { IpcBodySender } from "./IpcBodySender.cjs";
 import { IpcHeaders } from "./IpcHeaders.cjs";
 
-export class IpcResponse extends IpcBody {
-  readonly type = IPC_DATA_TYPE.RESPONSE;
+export class IpcResponse extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
   constructor(
     readonly req_id: number,
     readonly statusCode: number,
-    rawBody: $RawData,
-    readonly headers: Record<string, string>,
-    ipc: Ipc
+    readonly headers: IpcHeaders,
+    readonly body: IpcBody
   ) {
-    super(rawBody, ipc);
+    super(IPC_DATA_TYPE.RESPONSE);
   }
 
   #ipcHeaders?: IpcHeaders;
@@ -23,12 +21,12 @@ export class IpcResponse extends IpcBody {
     return (this.#ipcHeaders ??= new IpcHeaders(this.headers));
   }
 
-  asResponse(url?: string) {
-    const body = this.body;
+  toResponse(url?: string) {
+    const body = this.body.body;
     if (body instanceof Uint8Array) {
-      this.headers["content-length"] ??= body.length + "";
+      this.headers.init("Content-Length", body.length + "");
     }
-    const response = new Response(this.body, {
+    const response = new Response(body, {
       headers: this.headers,
       status: this.statusCode,
     });
@@ -45,62 +43,64 @@ export class IpcResponse extends IpcBody {
 
   /** 将 response 对象进行转码变成 ipcResponse */
   static async fromResponse(req_id: number, response: Response, ipc: Ipc) {
-    let ipcResponse: IpcResponse;
-
+    let ipcBody: IpcBody;
     if (
       response.body /* &&
       /// 如果有 content-length，说明大小是明确的，不要走流，直接传输就好，减少 IPC 的触发次数
       response.headers.get("content-length") === null */
     ) {
-      ipcResponse = this.fromStream(
-        req_id,
-        response.status,
-        response.body,
-        new IpcHeaders(response.headers),
-        ipc
-      );
+      ipcBody = new IpcBodySender(response.body, ipc);
     } else {
-      ipcResponse = this.fromBinary(
-        req_id,
-        response.status,
-        await response.arrayBuffer(),
-        new IpcHeaders(response.headers),
+      ipcBody = new IpcBodySender(
+        binaryToU8a(await response.arrayBuffer()),
         ipc
       );
     }
 
-    return ipcResponse;
+    return new IpcResponse(
+      req_id,
+      response.status,
+      new IpcHeaders(response.headers),
+      ipcBody
+    );
   }
   static fromJson(
     req_id: number,
     statusCode: number,
+    headers = new IpcHeaders(),
     jsonable: unknown,
-    headers = new IpcHeaders()
+    ipc: Ipc
   ) {
     headers.init("Content-Type", "application/json");
-    return this.fromText(req_id, statusCode, JSON.stringify(jsonable), headers);
+    return this.fromText(
+      req_id,
+      statusCode,
+      headers,
+      JSON.stringify(jsonable),
+      ipc
+    );
   }
   static fromText(
     req_id: number,
     statusCode: number,
+    headers = new IpcHeaders(),
     text: string,
-    headers = new IpcHeaders()
+    ipc: Ipc
   ) {
     headers.init("Content-Type", "text/plain");
     // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
     return new IpcResponse(
       req_id,
       statusCode,
-      [IPC_RAW_BODY_TYPE.TEXT, text],
-      headers.toJSON(),
-      void 0 as never
+      headers,
+      new IpcBodySender(text, ipc)
     );
   }
   static fromBinary(
     req_id: number,
     statusCode: number,
-    binary: $Binary,
     headers: IpcHeaders,
+    binary: $Binary,
     ipc: Ipc
   ) {
     headers.init("Content-Type", "application/octet-stream");
@@ -108,38 +108,48 @@ export class IpcResponse extends IpcBody {
     return new IpcResponse(
       req_id,
       statusCode,
-      ipc.support_binary
-        ? [IPC_RAW_BODY_TYPE.BINARY, binaryToU8a(binary)]
-        : [IPC_RAW_BODY_TYPE.BASE64, simpleDecoder(binary, "base64")],
-      headers.toJSON(),
-      void 0 as never
+      headers,
+      new IpcBodySender(binaryToU8a(binary), ipc)
     );
   }
   static fromStream(
     req_id: number,
     statusCode: number,
-    stream: ReadableStream<Uint8Array>,
     headers = new IpcHeaders(),
+    stream: ReadableStream<Uint8Array>,
     ipc: Ipc
   ) {
     headers.init("Content-Type", "application/octet-stream");
-    // headers["transfer-encoding"] ??= ipc.support_message_pack
-    //   ? "base64"
-    //   : "binary";
     const ipcResponse = new IpcResponse(
       req_id,
       statusCode,
-      $streamAsRawData(stream, ipc),
-      headers.toJSON(),
-      ipc
+      headers,
+      new IpcBodySender(stream, ipc)
     );
     return ipcResponse;
   }
-  // static fromBinaryStream(
-  //   req_id: number,
-  //   statusCode: number,
-  //   binary: Uint8Array | ReadableStream<Uint8Array>,
-  //   headers=new IpcHeaders(),
-  //   ipc: Ipc
-  // ) {}
+
+  readonly ipcResMessage = once(
+    () =>
+      new IpcResMessage(
+        this.req_id,
+        this.statusCode,
+        this.headers.toJSON(),
+        this.body.metaBody
+      )
+  );
+  toJSON() {
+    return this.ipcResMessage();
+  }
+}
+
+export class IpcResMessage extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
+  constructor(
+    readonly req_id: number,
+    readonly statusCode: number,
+    readonly headers: Record<string, string>,
+    readonly metaBody: $MetaBody
+  ) {
+    super(IPC_DATA_TYPE.RESPONSE);
+  }
 }

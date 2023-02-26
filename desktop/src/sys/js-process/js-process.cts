@@ -63,8 +63,9 @@ const _ipcErrorResponse = (
     IpcResponse.fromText(
       requestMessage.req_id,
       statusCode,
+      headers,
       errorMessage,
-      headers
+      ipc
     )
   );
 };
@@ -79,12 +80,18 @@ const _ipcSuccessResponse = (
   headers.set("Content-Type", code.mime);
   ipc.postMessage(
     typeof code.data === "string"
-      ? IpcResponse.fromText(requestMessage.req_id, 200, code.data, headers)
+      ? IpcResponse.fromText(
+          requestMessage.req_id,
+          200,
+          headers,
+          code.data,
+          ipc
+        )
       : IpcResponse.fromBinary(
           requestMessage.req_id,
           200,
-          code.data,
           headers,
+          code.data,
           ipc
         )
   );
@@ -203,7 +210,7 @@ export class JsProcessNMM extends NativeMicroModule {
      * 远端是代码服务，所以这里是 client 的身份
      */
     const streamIpc = new ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT);
-    void streamIpc.bindIncomeStream(requestMessage.stream());
+    void streamIpc.bindIncomeStream(requestMessage.body.stream());
 
     /**
      * 让远端提供 esm 模块代码
@@ -236,7 +243,7 @@ export class JsProcessNMM extends NativeMicroModule {
             return {
               /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
               mime: "application/javascript",
-              data: await response.text(),
+              data: await response.body.text(),
             };
           },
         },
@@ -252,6 +259,9 @@ export class JsProcessNMM extends NativeMicroModule {
         url.pathname = `${this.INTERNAL_PATH}/bootstrap.js`;
         url.searchParams.set("mmid", ipc.remote.mmid);
         url.searchParams.set("host", httpDwebServer.startResult.urlInfo.host);
+        /// 这里是 nodejs 和 web-browser 的通讯，electorn 提供了 raw 的支持
+        url.searchParams.append("ipc-support-protocols", "raw");
+        url.searchParams.append("ipc-support-protocols", "message_pack");
       }
     ).href;
 
@@ -271,12 +281,11 @@ export class JsProcessNMM extends NativeMicroModule {
     const ipc_to_worker = new MessagePortIpc(
       channel_for_worker.port1,
       ipc.remote,
-      IPC_ROLE.CLIENT,
-      false
+      IPC_ROLE.CLIENT
     );
     /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
     ipc_to_worker.onRequest(async (ipcMessage, worker_ipc) => {
-      const response = await ipc.remote.fetch(ipcMessage.url, ipcMessage);
+      const response = await ipc.remote.fetch(ipcMessage.toRequest());
       worker_ipc.postMessage(
         await IpcResponse.fromResponse(ipcMessage.req_id, response, worker_ipc)
       );

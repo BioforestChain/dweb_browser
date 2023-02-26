@@ -34,7 +34,16 @@ export type $TypeName2 = `${$TypeName1}${"?" | ""}`;
 export type $Schema1 = Record<string, $TypeName2>;
 export type $Schema2 = Record<string, $TypeName2> | $TypeName2;
 
+/**
+ * 通讯支持的传输协议
+ */
+export interface $IpcSupportProtocols {
+  message_pack: boolean;
+  protobuf: boolean;
+  raw: boolean;
+}
 export interface $MicroModule {
+  readonly ipc_support_protocols: $IpcSupportProtocols;
   readonly mmid: $MMID;
   fetch(
     input: RequestInfo | URL,

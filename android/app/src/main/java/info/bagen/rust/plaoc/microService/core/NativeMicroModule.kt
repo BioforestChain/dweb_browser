@@ -66,7 +66,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                         { next(it.with(requestContextKey_ipc of clientIpc)) }
                     }));
                     printdebugln("fetch", "NMM/Handler", ipcRequest.url)
-                    val request = ipcRequest.asRequest()
+                    val request = ipcRequest.toRequest()
                     val response = routesWithContext(request)
                     clientIpc.postMessage(
                         IpcResponse.fromResponse(

@@ -25,15 +25,13 @@ export class Native2JsIpc extends MessagePortIpc {
   constructor(
     port_id: number,
     remote: NativeIpc["remote"],
-    role = IPC_ROLE.CLIENT,
-    /** 这里是native直接通往js线程里的通讯，所以默认只支持字符串 */
-    support_message_pack = false
+    role = IPC_ROLE.CLIENT
   ) {
     const port = ALL_IPC_CACHE.get(port_id);
     if (port === undefined) {
       throw new Error(`no found port2(js-process) by id: ${port_id}`);
     }
-    super(port, remote, role, support_message_pack);
+    super(port, remote, role);
     /// TODO 这里应该放在和 ALL_IPC_CACHE.set 同一个函数下，只是原生的 MessageChannel 没有 close 事件，这里没有给它模拟，所以有问题
     this.onClose(() => {
       ALL_IPC_CACHE.delete(port_id);

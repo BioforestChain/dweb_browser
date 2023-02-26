@@ -4,7 +4,7 @@ import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.*
 
 fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
-    if (data == "close") {
+    if (data == "close" || data == "ping" || data == "pong") {
         return data
     }
 
@@ -15,7 +15,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
                     it.req_id,
                     it.url,
                     it.method,
-                    it.headers,
+                    IpcHeaders(it.headers),
                     IpcBodyReceiver(it.metaBody, ipc)
                 )
             }
@@ -23,7 +23,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
                 IpcResponse(
                     it.req_id,
                     it.statusCode,
-                    it.headers,
+                    IpcHeaders(it.headers),
                     IpcBodyReceiver(it.metaBody, ipc)
                 )
             }

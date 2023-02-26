@@ -56,8 +56,8 @@ class IpcResponse(
         fun fromStream(
             req_id: Int,
             statusCode: Int = 200,
-            stream: InputStream,
             headers: IpcHeaders = IpcHeaders(),
+            stream: InputStream,
             ipc: Ipc
         ) = IpcResponse(
             req_id,
@@ -84,7 +84,7 @@ class IpcResponse(
         )
     }
 
-    fun asResponse() =
+    fun toResponse() =
         Response(Status(this.statusCode, null))
             .headers(this.headers.toList()).let { res ->
                 when (val body = body.body) {
@@ -96,13 +96,13 @@ class IpcResponse(
             }
 
     val ipcResMessage by lazy {
-        IpcResMessage(req_id, statusCode, headers, body.metaBody)
+        IpcResMessage(req_id, statusCode, headers.toMap(), body.metaBody)
     }
 }
 
 class IpcResMessage(
     val req_id: Int,
     val statusCode: Int,
-    val headers: IpcHeaders,
+    val headers: MutableMap<String,String>,
     val metaBody: MetaBody,
 ) : IpcMessage(IPC_DATA_TYPE.RESPONSE)

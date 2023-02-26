@@ -4,8 +4,6 @@ import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.io.InputStream
 
 
@@ -38,6 +36,11 @@ class ReadableStreamIpc(
 
 
     private var _incomeStream: InputStream? = null
+
+    private val PONG_DATA by lazy {
+        val pong = "pong".toByteArray()
+        pong.size.toByteArray() + pong
+    }
 
     /**
      * 输入流要额外绑定
@@ -75,6 +78,8 @@ class ReadableStreamIpc(
                     jsonToIpcMessage(chunk, this@ReadableStreamIpc)
                 when (message) {
                     "close" -> close()
+                    "ping" -> enqueue(PONG_DATA)
+                    "pong" -> debugStreamIpc("PONG/$stream")
                     is IpcMessage -> _messageSignal.emit(
                         IpcMessageArgs(
                             message,

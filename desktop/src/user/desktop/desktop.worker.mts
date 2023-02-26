@@ -10,6 +10,9 @@ console.log("ookkkkk, i'm in worker");
 
 export const main = async () => {
   debugger;
+  await new Promise((resolve) => {
+    Object.assign(self, { start_main: resolve });
+  });
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
   (await httpDwebServer.listen()).onRequest(async (request, httpServerIpc) => {
@@ -22,10 +25,11 @@ export const main = async () => {
         IpcResponse.fromText(
           request.req_id,
           200,
-          await CODE_index_html(request),
           new IpcHeaders({
             "Content-Type": "text/html",
-          })
+          }),
+          await CODE_index_html(request),
+          httpServerIpc
         )
       );
     } else if (request.parsed_url.pathname === "/desktop.web.mjs") {
@@ -33,15 +37,22 @@ export const main = async () => {
         IpcResponse.fromText(
           request.req_id,
           200,
-          await CODE_desktop_web_mjs(request),
           new IpcHeaders({
             "Content-Type": "application/javascript",
-          })
+          }),
+          await CODE_desktop_web_mjs(request),
+          httpServerIpc
         )
       );
     } else {
       httpServerIpc.postMessage(
-        IpcResponse.fromText(request.req_id, 404, "No Found")
+        IpcResponse.fromText(
+          request.req_id,
+          404,
+          undefined,
+          "No Found",
+          httpServerIpc
+        )
       );
     }
   });

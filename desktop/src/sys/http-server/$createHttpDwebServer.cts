@@ -63,11 +63,7 @@ export const listenHttpDwebServer = async (
   routes: $ReqMatcher[]
 ) => {
   /// 创建一个基于 二进制流的 ipc 信道
-  const httpServerIpc = new ReadableStreamIpc(
-    microModule,
-    IPC_ROLE.CLIENT,
-    true
-  );
+  const httpServerIpc = new ReadableStreamIpc(microModule, IPC_ROLE.CLIENT);
   const httpIncomeRequestStream = await microModule
     .fetch(
       buildUrl(new URL(`file://http.sys.dweb`), {

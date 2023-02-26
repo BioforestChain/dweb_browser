@@ -9,7 +9,7 @@ import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 
 suspend fun startDwebBrowser() {
-    System.setProperty("dweb-debug", listOf("jmm").joinToString(" ") { it })
+    System.setProperty("dweb-debug", listOf("message-port-ipc").joinToString(" ") { it })
 
     val dnsNMM = DnsNMM()
 

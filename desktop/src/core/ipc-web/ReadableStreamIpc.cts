@@ -1,14 +1,22 @@
 import { encode } from "@msgpack/msgpack";
+import once from "lodash/once";
 import { u8aConcat } from "../../helper/binaryHelper.cjs";
-import { simpleEncoder } from "../../helper/encoding.cjs";
+import { simpleDecoder, simpleEncoder } from "../../helper/encoding.cjs";
 import {
   ReadableStreamOut,
   streamRead,
 } from "../../helper/readableStreamHelper.cjs";
-import type { $MicroModule, $PromiseMaybe } from "../../helper/types.cjs";
-import type { $IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
+import type {
+  $IpcSupportProtocols,
+  $MicroModule,
+  $PromiseMaybe,
+} from "../../helper/types.cjs";
+import type { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
 import { Ipc } from "../ipc/ipc.cjs";
-import { $messageToIpcMessage } from "./$messageToIpcMessage.cjs";
+import { IpcRequest } from "../ipc/IpcRequest.cjs";
+import { IpcResponse } from "../ipc/IpcResponse.cjs";
+import { $jsonToIpcMessage } from "./$jsonToIpcMessage.cjs";
+import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.cjs";
 
 /**
  * 基于 WebReadableStream 的IPC
@@ -20,10 +28,17 @@ export class ReadableStreamIpc extends Ipc {
   constructor(
     readonly remote: $MicroModule,
     readonly role: IPC_ROLE,
-    /** MessagePort 默认支持二进制传输 */
-    readonly support_message_pack = true
+    readonly self_support_protocols: $IpcSupportProtocols = {
+      raw: false,
+      message_pack: true,
+      protobuf: false,
+    }
   ) {
     super();
+    /** JS 环境里支持 message_pack 协议 */
+    this._support_message_pack =
+      self_support_protocols.message_pack &&
+      remote.ipc_support_protocols.message_pack;
   }
   #rso = new ReadableStreamOut<Uint8Array>();
   /** 这是输出流，给外部读取用的 */
@@ -33,6 +48,12 @@ export class ReadableStreamIpc extends Ipc {
   get controller() {
     return this.#rso.controller;
   }
+
+  private PONG_DATA = once(() => {
+    const pong = simpleEncoder("pong", "utf8");
+    this._len[0] = pong.length;
+    return u8aConcat([this._len_u8a, pong]);
+  });
 
   private _incomne_stream?: ReadableStream<Uint8Array>;
   /**
@@ -57,16 +78,25 @@ export class ReadableStreamIpc extends Ipc {
       cache = cache.slice(len + 4);
 
       /// 开始处理数据并做响应
-      const message = $messageToIpcMessage(data, this);
+      const message = this.support_message_pack
+        ? $messagePackToIpcMessage(data, this)
+        : $jsonToIpcMessage(simpleDecoder(data, "utf8"), this);
 
       if (message === undefined) {
+        console.error("unkonwn message", data);
+        return;
+      }
+      if (message === "pong") {
         return;
       }
       if (message === "close") {
         this.close();
         return;
       }
-
+      if (message === "ping") {
+        this.controller.enqueue(this.PONG_DATA());
+        return;
+      }
       this._messageSignal.emit(message, this);
     }
   }
@@ -74,11 +104,20 @@ export class ReadableStreamIpc extends Ipc {
   private _len = new Uint32Array(1);
   private _len_u8a = new Uint8Array(this._len.buffer);
   _doPostMessage(message: $IpcMessage): void {
-    const data = this.support_message_pack
-      ? encode(message)
-      : simpleEncoder(JSON.stringify(message), "utf8");
-    this._len[0] = data.length;
-    const chunk = u8aConcat([this._len_u8a, data]);
+    var message_raw: IpcMessage<any>;
+    if (message instanceof IpcRequest) {
+      message_raw = message.ipcReqMessage();
+    } else if (message instanceof IpcResponse) {
+      message_raw = message.ipcResMessage();
+    } else {
+      message_raw = message;
+    }
+
+    const message_data = this.support_message_pack
+      ? encode(message_raw)
+      : simpleEncoder(JSON.stringify(message_raw), "utf8");
+    this._len[0] = message_data.length;
+    const chunk = u8aConcat([this._len_u8a, message_data]);
     this.controller.enqueue(chunk);
   }
 

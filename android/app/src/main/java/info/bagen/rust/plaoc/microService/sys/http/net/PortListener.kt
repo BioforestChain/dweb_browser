@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.http.net
 
 import com.google.gson.*
+import com.google.gson.annotations.JsonAdapter
 import info.bagen.rust.plaoc.microService.helper.SimpleCallback
 import info.bagen.rust.plaoc.microService.helper.SimpleSignal
 import info.bagen.rust.plaoc.microService.ipc.Ipc
@@ -108,6 +109,7 @@ fun isMatchReq(
     return matchMethod && matchMode
 };
 
+@JsonAdapter(MatchMode::class)
 enum class MatchMode(val mode: String) : JsonDeserializer<MatchMode>, JsonSerializer<MatchMode> {
     FULL("full"),
     PREFIX("prefix"),

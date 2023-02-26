@@ -25,7 +25,7 @@ export const CODE = async (request: IpcRequest) => html`
         <li>url:${request.url}</li>
         <li>method:${request.method}</li>
         <li>rawHeaders:${JSON.stringify(request.headers, null, 2)}</li>
-        <li>body:${await request.text()}</li>
+        <li>body:${await request.body.text()}</li>
       </ol>
       <div class="actions">
         <button id="open-btn">打开新窗口</button>

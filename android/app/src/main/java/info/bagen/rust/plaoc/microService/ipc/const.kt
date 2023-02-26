@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import com.google.gson.*
+import com.google.gson.annotations.JsonAdapter
 import info.bagen.rust.plaoc.microService.helper.Callback
 import java.lang.reflect.Type
 
@@ -16,6 +17,7 @@ data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc) {
 }
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
+@JsonAdapter(IPC_DATA_TYPE::class)
 enum class IPC_DATA_TYPE(val type: Byte) : JsonSerializer<IPC_DATA_TYPE>,
     JsonDeserializer<IPC_DATA_TYPE> {
     /** 类型：请求 */
@@ -45,6 +47,7 @@ enum class IPC_DATA_TYPE(val type: Byte) : JsonSerializer<IPC_DATA_TYPE>,
         context: JsonSerializationContext?
     ): JsonElement = JsonPrimitive(src.type)
 
+
     override fun deserialize(
         json: JsonElement,
         typeOfT: Type?,
@@ -54,6 +57,7 @@ enum class IPC_DATA_TYPE(val type: Byte) : JsonSerializer<IPC_DATA_TYPE>,
 }
 
 
+@JsonAdapter(IPC_RAW_BODY_TYPE::class)
 enum class IPC_RAW_BODY_TYPE(val type: Int) : JsonSerializer<IPC_RAW_BODY_TYPE>,
     JsonDeserializer<IPC_RAW_BODY_TYPE> {
     /** 文本 json html 等 */
@@ -93,6 +97,7 @@ enum class IPC_RAW_BODY_TYPE(val type: Int) : JsonSerializer<IPC_RAW_BODY_TYPE>,
     infix fun and(TYPE: IPC_RAW_BODY_TYPE) = type and TYPE.type
 }
 
+@JsonAdapter(IPC_ROLE::class)
 enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>,
     JsonDeserializer<IPC_ROLE> {
     SERVER("server"),
@@ -112,7 +117,8 @@ enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>,
     ) = json.asString.let { role -> values().find { it.role == role } }
 }
 
-class MetaBody(val type: IPC_RAW_BODY_TYPE, val data: Any) : JsonSerializer<MetaBody>,
+@JsonAdapter(MetaBody::class)
+data class MetaBody(val type: IPC_RAW_BODY_TYPE, val data: Any) : JsonSerializer<MetaBody>,
     JsonDeserializer<MetaBody> {
     override fun serialize(
         src: MetaBody,
@@ -132,7 +138,7 @@ class MetaBody(val type: IPC_RAW_BODY_TYPE, val data: Any) : JsonSerializer<Meta
             .let { type ->
                 when (type) {
                     IPC_RAW_BODY_TYPE.BINARY -> throw JsonParseException("json no support raw binary body")
-                    else -> MetaBody(type, list[0].asString)
+                    else -> MetaBody(type, list[1].asString)
                 }
             }
     }

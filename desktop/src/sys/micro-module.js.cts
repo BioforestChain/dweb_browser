@@ -1,7 +1,7 @@
 import { ReadableStreamIpc } from "../core/ipc-web/ReadableStreamIpc.cjs";
 import { Ipc, IpcResponse, IPC_ROLE } from "../core/ipc/index.cjs";
 import { MicroModule } from "../core/micro-module.cjs";
-import type { $MMID } from "../helper/types.cjs";
+import type { $IpcSupportProtocols, $MMID } from "../helper/types.cjs";
 import { buildUrl } from "../helper/urlHelper.cjs";
 import { Native2JsIpc } from "./js-process/ipc.native2js.cjs";
 
@@ -9,6 +9,11 @@ import { Native2JsIpc } from "./js-process/ipc.native2js.cjs";
  * 所有的js程序都只有这么一个动态的构造器
  */
 export class JsMicroModule extends MicroModule {
+  readonly ipc_support_protocols: $IpcSupportProtocols = {
+    message_pack: true,
+    protobuf: false,
+    raw: true,
+  };
   constructor(
     readonly mmid: $MMID,
     /**
@@ -34,10 +39,18 @@ export class JsMicroModule extends MicroModule {
         const main_code = await this.fetch(this.metadata.main_url).text();
 
         streamIpc.postMessage(
-          IpcResponse.fromText(request.req_id, 200, main_code)
+          IpcResponse.fromText(
+            request.req_id,
+            200,
+            undefined,
+            main_code,
+            streamIpc
+          )
         );
       } else {
-        streamIpc.postMessage(IpcResponse.fromText(request.req_id, 404, ""));
+        streamIpc.postMessage(
+          IpcResponse.fromText(request.req_id, 404, undefined, "", streamIpc)
+        );
       }
     });
     void streamIpc.bindIncomeStream(
@@ -79,6 +92,6 @@ export class JsMicroModule extends MicroModule {
     /**
      * @TODO 发送指令，关停js进程
      */
-    this._process_id = undefined
+    this._process_id = undefined;
   }
 }
