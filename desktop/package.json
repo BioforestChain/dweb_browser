@@ -22,6 +22,7 @@
   "scripts": {
     "dev": "concurrently npm:dev:*",
     "dev:tsc": "tsc -w",
+    "sync-to-android-assets": "node ./scripts/sync-to-android-assets.cjs",
     "bundle:js-process.worker": "esbuild ./src/sys/js-process/js-process.worker.mts --outfile=./bundle/js-process.worker.js --bundle --format=esm",
     "dev:js-process.worker": "npm run bundle:js-process.worker -- --watch",
     "bundle:js-process.html": "vite build src/sys/js-process/assets/ --outDir=../../../../bundle/js-process --emptyOutDir -c electron-vite.config.ts",

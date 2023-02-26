@@ -6,8 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>js process</title>
-
-    <script type="module" crossorigin src="./index-dc2f4e0e.js"></script>
+    
+    <script>
+      try {
+        const { ipcRenderer } = require("electron");
+        console.log(ipcRenderer);
+        Object.assign(globalThis, {
+          ipcRenderer,
+        });
+      } catch {}
+    </script>
+    
+    <script type="module" crossorigin src="./index-7de4246f.js"></script>
   </head>
   <body>
     <h1>这里运行着所有的 后端 JS 进程</h1>

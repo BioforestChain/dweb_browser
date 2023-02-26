@@ -166,8 +166,9 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
          */
         val public_origin: String,
     ) {
-        fun buildHttpUrl() = Uri.of(public_origin)
+        fun buildPublicUrl() = Uri.of(public_origin)
             .query("X-DWeb-Host", host)
+        fun buildInternalUrl() = Uri.of(internal_origin)
     }
 
     private fun getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions): ServerUrlInfo {

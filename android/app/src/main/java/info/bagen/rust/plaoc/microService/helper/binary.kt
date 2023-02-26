@@ -5,6 +5,8 @@ import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.ByteBuffer
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.toPath
 
 val base64Encoder by lazy {
     Base64.getEncoder()
@@ -52,5 +54,26 @@ inline fun String.asBase64(): ByteArray = base64Decoder.decode(this)
 
 inline fun String.asUtf8(): ByteArray = this.toByteArray(Charsets.UTF_8)
 
-inline fun String.toURLQueryComponent(): String = URLEncoder.encode(this, "UTF-8")
+inline fun String.encodeURIComponent(): String = URLEncoder.encode(this, "UTF-8")
+    .replace("\\+", "%20")
+    .replace("\\%21", "!")
+    .replace("\\%27", "'")
+    .replace("\\%28", "(")
+    .replace("\\%29", ")")
+    .replace("\\%7E", "~");
+
+inline fun String.encodeURI(): String = URLEncoder.encode(this, "UTF-8")
+    .replace("%3B", ";")
+    .replace("%2F", "/")
+    .replace("%3F", "?")
+    .replace("%3A", ":")
+    .replace("%40", "@")
+    .replace("%26", "&")
+    .replace("%3D", "=")
+    .replace("%2B", "+")
+    .replace("%24", "$")
+    .replace("%2C", ",")
+    .replace("%23", "#")
+
+
 

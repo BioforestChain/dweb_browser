@@ -31,6 +31,23 @@ inline fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 
 class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
+
+    private val JS_PROCESS_WORKER_CODE by lazy {
+        runBlocking {
+            nativeFetch("file:///bundle/js-process.worker.js").text()
+        }
+    }
+
+    private val CORS_HEADERS = mapOf(
+        Pair("Content-Type", "application/javascript"),
+        Pair("Access-Control-Allow-Origin", "*"),
+        Pair("Access-Control-Allow-Headers", "*"),// 要支持 X-Dweb-Host
+        Pair("Access-Control-Allow-Methods", "*"),
+    )
+
+    private val INTERNAL_PATH = "/<internal>".encodeURI()
+
+
     override suspend fun _bootstrap() {
 
         /// 主页的网页服务
@@ -48,43 +65,6 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         }
 
         println("mainServer: ${mainServer.startResult}")
-
-        /// WebWorker的环境服务
-        val internalServer =
-            this.createHttpDwebServer(DwebHttpServerOptions(subdomain = "internal"))
-                .also { server ->
-                    // 在模块关停的时候，要关闭端口监听
-                    _afterShutdownSignal.listen { server.close() }
-                    val JS_PROCESS_WORKER_CODE =
-                        suspendOnce { nativeFetch("file:///bundle/js-process.worker.js").text() }
-                    // 提供基本的主页服务
-                    val serverIpc = server.listen()
-                    serverIpc.onRequest { (request, ipc) ->
-                        if (request.uri.path == "/bootstrap.js") {
-                            ipc.postMessage(
-                                IpcResponse.fromText(
-                                    request.req_id,
-                                    200,
-                                    IpcHeaders(
-                                        mutableMapOf(
-                                            Pair("Content-Type", "application/javascript"),
-                                            Pair("Access-Control-Allow-Origin", "*"),
-                                            Pair(
-                                                "Access-Control-Allow-Headers",
-                                                "*"
-                                            ),// 要支持 X-Dweb-Host
-                                            Pair("Access-Control-Allow-Methods", "*"),
-                                        )
-                                    ),
-                                    JS_PROCESS_WORKER_CODE(),
-                                    ipc
-                                )
-                            )
-                        }
-                    }
-                }
-
-        println("internalServer: ${internalServer.startResult}")
 
 
         /// WebView 实例
@@ -135,7 +115,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     }
                 }
                 /// 开始加载
-                webView.loadUrl(urlInfo.public_origin + "/index.html")
+                webView.loadUrl(urlInfo.buildInternalUrl().path("/index.html").toString())
                 // 等待加载完成
                 isReady.waitPromise()
             }
@@ -150,8 +130,6 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 createProcessAndRun(
                     ipc,
                     apis,
-                    internalServer.startResult.urlInfo.buildHttpUrl().path("/bootstrap.js")
-                        .query("mmid", ipc.remote.mmid).toString(),
                     query_main_pathname(request),
                     request
                 )
@@ -171,11 +149,9 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     private suspend fun createProcessAndRun(
         ipc: Ipc,
         apis: JsProcessWebApi,
-        bootstrap_url: String,
         main_pathname: String = "/index.js",
         requestMessage: Request
     ): Response {
-
         /**
          * 用自己的域名的权限为它创建一个子域名
          */
@@ -197,12 +173,53 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          * 我们会对回来的代码进行处理，然后再执行
          */
         val codeProxyServerIpc = httpDwebServer.listen()
+
         codeProxyServerIpc.onRequest { (request, ipc) ->
-            // TODO 对代码进行翻译处理
-            // 转发给远端来处理
-            ipc.responseBy(streamIpc, request)
+            // <internal>开头的是特殊路径：交由内部处理，不会推给远端处理
+            if (request.uri.path.startsWith(INTERNAL_PATH)) {
+                val internalUri =
+                    request.uri.path(request.uri.path.substring(INTERNAL_PATH.length));
+                if (internalUri.path == "bootstrap.js") {
+                    ipc.postMessage(
+                        IpcResponse.fromText(
+                            request.req_id,
+                            200,
+                            IpcHeaders(CORS_HEADERS.toMutableMap()),
+                            JS_PROCESS_WORKER_CODE,
+                            ipc
+                        )
+                    )
+                } else {
+                    ipc.postMessage(
+                        IpcResponse.fromText(
+                            request.req_id,
+                            404,
+                            IpcHeaders(CORS_HEADERS.toMutableMap()),
+                            "// no found ${internalUri.path}",
+                            ipc
+                        )
+                    )
+                }
+            } else {
+                ipc.postResponse(
+                    request.req_id,
+                    // 转发给远端来处理
+                    // TODO 对代码进行翻译处理
+                    streamIpc.request(request.asRequest()).let {
+                        /// 加入跨域配置
+                        var response = it;
+                        for ((key, value) in CORS_HEADERS) {
+                            response = response.header(key, value)
+                        }
+                        response
+                    },
+                )
+            }
         }
 
+        val bootstrap_url =
+            httpDwebServer.startResult.urlInfo.buildInternalUrl().path("$INTERNAL_PATH/bootstrap.js")
+                .query("mmid", ipc.remote.mmid).toString()
 
         /**
          * 创建一个通往 worker 的消息通道
@@ -219,7 +236,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          */
         apis.runProcessMain(
             processHandler.info.process_id, JsProcessWebApi.RunProcessMainOptions(
-                main_url = httpDwebServer.startResult.urlInfo.buildHttpUrl()
+                main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
                     .path(main_pathname)
                     .toString()
             )

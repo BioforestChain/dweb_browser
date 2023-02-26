@@ -9,6 +9,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.core.Request
+import org.http4k.core.Response
 import org.http4k.core.Uri
 
 
@@ -50,6 +51,16 @@ abstract class Ipc {
             return;
         }
         this._doPostMessage(message);
+    }
+
+    suspend fun postResponse(req_id: Int, response: Response) {
+        postMessage(
+            IpcResponse.fromResponse(
+                req_id,
+                response,
+                this
+            )
+        )
     }
 
     protected val _messageSignal = Signal<IpcMessageArgs>();
@@ -111,15 +122,15 @@ abstract class Ipc {
 
     fun allocReqId() = _req_id_acc++;
 
-    suspend fun responseBy(byIpc: Ipc, byIpcRequest: IpcRequest) {
-        postMessage(
-            IpcResponse.fromResponse(
-                byIpcRequest.req_id,
-                // 找个 ipcRequest 对象不属于我的，不能直接用
-                byIpc.request(byIpcRequest.asRequest()),
-                byIpc
-            )
-        )
-    }
+//    suspend fun responseBy(byIpc: Ipc, byIpcRequest: IpcRequest) {
+//        postMessage(
+//            IpcResponse.fromResponse(
+//                byIpcRequest.req_id,
+//                // 找个 ipcRequest 对象不属于我的，不能直接用
+//                byIpc.request(byIpcRequest.asRequest()),
+//                this
+//            )
+//        )
+//    }
 }
 

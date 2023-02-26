@@ -1,62 +1,54 @@
-(function polyfill() {
-  const relList = document.createElement("link").relList;
-  if (relList && relList.supports && relList.supports("modulepreload")) {
-    return;
-  }
-  for (const link of document.querySelectorAll('link[rel="modulepreload"]')) {
-    processPreload(link);
-  }
-  new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type !== "childList") {
-        continue;
-      }
-      for (const node of mutation.addedNodes) {
-        if (node.tagName === "LINK" && node.rel === "modulepreload")
-          processPreload(node);
-      }
-    }
-  }).observe(document, { childList: true, subtree: true });
-  function getFetchOpts(script) {
-    const fetchOpts = {};
-    if (script.integrity)
-      fetchOpts.integrity = script.integrity;
-    if (script.referrerpolicy)
-      fetchOpts.referrerPolicy = script.referrerpolicy;
-    if (script.crossorigin === "use-credentials")
-      fetchOpts.credentials = "include";
-    else if (script.crossorigin === "anonymous")
-      fetchOpts.credentials = "omit";
-    else
-      fetchOpts.credentials = "same-origin";
-    return fetchOpts;
-  }
-  function processPreload(link) {
-    if (link.ep)
-      return;
-    link.ep = true;
-    const fetchOpts = getFetchOpts(link);
-    fetch(link.href, fetchOpts);
-  }
-})();
-const createSignal = () => {
-  return new Signal();
-};
-class Signal {
-  constructor() {
-    this._cbs = /* @__PURE__ */ new Set();
-    this.listen = (cb) => {
-      this._cbs.add(cb);
-      return () => this._cbs.delete(cb);
-    };
-    this.emit = (...args) => {
-      for (const cb of this._cbs) {
-        cb.apply(null, args);
-      }
+const electron = typeof require !== "undefined" ? require("electron") : function nodeIntegrationWarn() {
+  console.error(`If you need to use "electron" in the Renderer process, make sure that "nodeIntegration" is enabled in the Main process.`);
+  return {
+    // TODO: polyfill
+  };
+}();
+let _ipcRenderer;
+if (typeof document === "undefined") {
+  _ipcRenderer = {};
+  const keys = [
+    "invoke",
+    "postMessage",
+    "send",
+    "sendSync",
+    "sendTo",
+    "sendToHost",
+    // propertype
+    "addListener",
+    "emit",
+    "eventNames",
+    "getMaxListeners",
+    "listenerCount",
+    "listeners",
+    "off",
+    "on",
+    "once",
+    "prependListener",
+    "prependOnceListener",
+    "rawListeners",
+    "removeAllListeners",
+    "removeListener",
+    "setMaxListeners"
+  ];
+  for (const key of keys) {
+    _ipcRenderer[key] = () => {
+      throw new Error(
+        "ipcRenderer doesn't work in a Web Worker.\nYou can see https://github.com/electron-vite/vite-plugin-electron/issues/69"
+      );
     };
   }
+} else {
+  _ipcRenderer = electron.ipcRenderer;
 }
-
+electron.clipboard;
+electron.contextBridge;
+electron.crashReporter;
+const ipcRenderer = _ipcRenderer;
+electron.nativeImage;
+electron.shell;
+electron.webFrame;
+electron.deprecate;
 const updateRenderPort = (port) => {
   updateRenderMessageListener(port, "addEventListener", 1);
   updateRenderMessageListener(port, "removeEventListener", 1);
@@ -446,6 +438,10 @@ const export_channel = new MessageChannel();
 const import_channel = new MessageChannel();
 const export_port = export_channel.port1;
 const import_port = import_channel.port1;
+ipcRenderer.postMessage("renderPort", {}, [
+  export_channel.port2,
+  import_channel.port2
+]);
 updateRenderPort(export_port);
 updateRenderPort(import_port);
 const mainPort = export_port;
@@ -454,73 +450,13 @@ const start = () => {
   expose(apis, mainPort);
 };
 Object.assign(globalThis, { mainPort, start });
-const exportApis = once((APIS2) => {
-  apis = APIS2;
+const exportApis = once((APIS) => {
+  apis = APIS;
   start();
 });
-wrap(import_port);
-class PromiseOut {
-  constructor() {
-    this.promise = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    });
-  }
-}
-const ALL_PROCESS_MAP = /* @__PURE__ */ new Map();
-let acc_process_id = 0;
-const allocProcessId = () => acc_process_id++;
-const createProcess = async (env_script_url, fetch_port) => {
-  const process_id = allocProcessId();
-  const worker = new Worker(env_script_url, { type: "module" });
-  worker.postMessage(["fetch-ipc-channel", fetch_port], [fetch_port]);
-  const env_ready_po = new PromiseOut();
-  const onEnvReady = (event) => {
-    if (Array.isArray(event.data) && event.data[0] === "env-ready") {
-      env_ready_po.resolve();
-    }
-  };
-  worker.addEventListener("message", onEnvReady);
-  await env_ready_po.promise;
-  worker.removeEventListener("message", onEnvReady);
-  ALL_PROCESS_MAP.set(process_id, { worker, fetch_port });
-  on_create_process_signal.emit({
-    process_id,
-    env_script_url
-  });
-  return {
-    process_id
-  };
+const mainApis = wrap(import_port);
+export {
+  exportApis,
+  mainApis,
+  mainPort
 };
-const _forceGetProcess = (process_id) => {
-  const process = ALL_PROCESS_MAP.get(process_id);
-  if (process === void 0) {
-    throw new Error(`no found worker by id: ${process_id}`);
-  }
-  return process;
-};
-const runProcessMain = (process_id, config) => {
-  const process = _forceGetProcess(process_id);
-  process.worker.postMessage(["run-main", config]);
-};
-const createIpc = (process_id) => {
-  const process = _forceGetProcess(process_id);
-  const channel = new MessageChannel();
-  process.worker.postMessage(["ipc-channel", channel.port2], [channel.port2]);
-  return channel.port1;
-};
-const on_create_process_signal = createSignal();
-const APIS = {
-  createProcess,
-  runProcessMain,
-  createIpc
-};
-Object.assign(globalThis, APIS);
-const html = String.raw;
-on_create_process_signal.listen(({ process_id, env_script_url }) => {
-  document.body.innerHTML += html`<div>
-    <span>PID:${process_id}</span>
-    <span>URL:${env_script_url}</span>
-  </div>`;
-});
-exportApis(APIS);
