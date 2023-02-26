@@ -39,7 +39,8 @@
     "bundle:plugins": "esbuild ./src/plugins/index.mts --outfile=./bundle/plugins.txt --bundle --format=esm",
     "dev:plugins": "npm run bundle:plugins -- --watch",
     "start:win": "chcp 65001 && electron .",
-    "start": "electron ./"
+    "start": "electron ./",
+    "如果需要采用彩色的输出到终端":"FORCE_COLOR=true pnpm start"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",
@@ -59,6 +60,7 @@
     "@lit-labs/motion": "^1.0.3",
     "@msgpack/msgpack": "^2.8.0",
     "@types/chrome": "^0.0.210",
+    "chalk": "4",
     "comlink": "^4.4.1",
     "esbuild-plugin-html-modules": "^0.6.0",
     "lit": "^2.6.1",
