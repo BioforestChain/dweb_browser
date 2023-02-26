@@ -20,7 +20,7 @@ class Metadata {
   requiredString(key: string) {
     const val = this.optionalString(key);
     if (val === undefined) {
-      throw new Error(`no found ${key}`);
+      throw new Error(`no found (string) ${key}`);
     }
     return val;
   }
@@ -33,7 +33,10 @@ class Metadata {
   }
   requiredBoolean(key: string) {
     const val = this.optionalBoolean(key);
-    return val === true;
+    if (val === undefined) {
+      throw new Error(`no found (boolean) ${key}`);
+    }
+    return val;
   }
   optionalBoolean(key: string) {
     const val = this.optionalString(key);
@@ -69,7 +72,11 @@ const js_process_ipc_support_protocols = (() => {
  */
 export class JsProcessMicroModule implements $MicroModule {
   readonly ipc_support_protocols = js_process_ipc_support_protocols;
-  constructor(readonly mmid: $MMID, readonly host: String) {}
+  constructor(
+    readonly mmid: $MMID,
+    readonly host: String,
+    readonly meta: Metadata
+  ) {}
   fetch(input: RequestInfo | URL, init?: RequestInit) {
     return Object.assign(fetch(input, init), fetchExtends);
   }
@@ -99,7 +106,7 @@ const waitFetchIpc = (jsProcess: $MicroModule) => {
  * 安装上下文
  */
 export const installEnv = async (mmid: $MMID, host: String) => {
-  const jsProcess = new JsProcessMicroModule(mmid, host);
+  const jsProcess = new JsProcessMicroModule(mmid, host, metadata);
   const fetchIpc = await waitFetchIpc(jsProcess);
 
   const native_fetch = globalThis.fetch;

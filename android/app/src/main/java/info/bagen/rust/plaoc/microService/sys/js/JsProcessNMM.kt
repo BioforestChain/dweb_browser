@@ -1,12 +1,8 @@
 package info.bagen.rust.plaoc.microService.sys.js
 
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.encodeURI
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.text
@@ -18,6 +14,7 @@ import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
+import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -74,51 +71,19 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         val apis = withContext(Dispatchers.Main) {
             WebView.setWebContentsDebuggingEnabled(true)
 
-            JsProcessWebApi(WebView(App.appContext)).also { api ->
-                val webView = api.webView
-                val urlInfo = mainServer.startResult.urlInfo
-                /// 注册销毁
-                _afterShutdownSignal.listen {
-                    webView.destroy()
-                }
-                webView.settings.userAgentString += " dweb-host/${urlInfo.host}"
-                webView.settings.javaScriptEnabled = true
-                webView.settings.domStorageEnabled = true
-                webView.settings.databaseEnabled = true
-                val isReady = PromiseOut<Unit>()
-                webView.webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        super.onPageFinished(view, url)
-                        isReady.resolve(Unit)
-                    }
-
-                    override fun shouldInterceptRequest(
-                        view: WebView, request: WebResourceRequest
-                    ): WebResourceResponse? {
-                        if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && request.url.scheme == "http") {
-                            val response = runBlocking {
-                                nativeFetch(
-                                    Request(
-                                        Method.GET, request.url.toString()
-                                    ).headers(request.requestHeaders.toList())
-                                )
-                            }
-                            return WebResourceResponse(
-                                response.header("Content-Type") ?: "application/octet-stream",
-                                response.header("Content-Encoding") ?: "",
-                                response.status.code,
-                                response.status.description,
-                                response.headers.toMap(),
-                                response.body.stream
-                            )
-                        }
-                        return super.shouldInterceptRequest(view, request)
-                    }
-                }
-                /// 开始加载
-                webView.loadUrl(urlInfo.buildInternalUrl().path("/index.html").toString())
-                // 等待加载完成
-                isReady.waitPromise()
+            val urlInfo = mainServer.startResult.urlInfo
+            JsProcessWebApi(
+                DWebView(
+                    App.appContext,
+                    this@JsProcessNMM,
+                    DWebView.Options(
+                        dwebHost = urlInfo.host,
+                        loadUrl = urlInfo.buildInternalUrl().path("/index.html").toString()
+                    )
+                )
+            ).also { api ->
+                _afterShutdownSignal.listen { api.destroy() }
+                api.dWebView.afterReady()
             }
         }
 

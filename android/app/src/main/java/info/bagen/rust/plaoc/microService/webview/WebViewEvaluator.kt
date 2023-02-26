@@ -1,28 +1,30 @@
-package info.bagen.rust.plaoc.microService.helper
+package info.bagen.rust.plaoc.microService.webview
 
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 
 typealias AsyncChannel = Channel<Result<String>>;
 
 /**
+ * 代码执行器
  * 这个类的使用，务必在 Main 线程中
  */
-class WebViewAsyncEvalContext(
+class WebViewEvaluator(
     val webView: WebView,
 ) {
     companion object {
         private var idAcc = 0
-        const val JS_ASYNC_KIT = "native_async_callback_kit"
+        const val JS_ASYNC_KIT = "__native_async_callback_kit__"
     }
 
     private val channelMap = mutableMapOf<Int, AsyncChannel>()
 
     @SuppressLint("JavascriptInterface")
-    private fun doInitInterface() {
+    private fun initKit() {
         webView.addJavascriptInterface(object {
             @JavascriptInterface
             fun resolve(id: Int, data: String) {
@@ -47,7 +49,7 @@ class WebViewAsyncEvalContext(
     }
 
     init {
-        doInitInterface()
+        initKit()
     }
 
     /**
@@ -81,8 +83,11 @@ class WebViewAsyncEvalContext(
                 .catch(err=>$JS_ASYNC_KIT.reject($id,String(err)));
             """.trimMargin()
             ) {
+                runBlocking {
+                    afterEval()
+                }
             };
-            afterEval()
+
         }
         return channel.receive().getOrThrow()
     }

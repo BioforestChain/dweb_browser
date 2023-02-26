@@ -10,9 +10,11 @@ console.log("ookkkkk, i'm in worker");
 
 export const main = async () => {
   debugger;
-  await new Promise((resolve) => {
-    Object.assign(self, { start_main: resolve });
-  });
+  if (jsProcess.meta.optionalBoolean("debug")) {
+    await new Promise((resolve) => {
+      Object.assign(self, { start_main: resolve });
+    });
+  }
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
   (await httpDwebServer.listen()).onRequest(async (request, httpServerIpc) => {
