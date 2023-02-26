@@ -21,7 +21,7 @@ import type { $RunMainConfig } from "./assets/js-process.web.mjs";
  * 这个是虚假的 $MicroModule，这里只是一个影子，指代 native 那边的 micro_module
  */
 export class JsProcessMicroModule implements $MicroModule {
-  constructor(readonly mmid: $MMID) {}
+  constructor(readonly mmid: $MMID, readonly host: String) {}
   fetch(input: RequestInfo | URL, init?: RequestInit) {
     return Object.assign(fetch(input, init), fetchExtends);
   }
@@ -55,8 +55,8 @@ const waitFetchIpc = (jsProcess: $MicroModule) => {
 /**
  * 安装上下文
  */
-export const installEnv = async (mmid: $MMID) => {
-  const jsProcess = new JsProcessMicroModule(mmid);
+export const installEnv = async (mmid: $MMID, host: String) => {
+  const jsProcess = new JsProcessMicroModule(mmid, host);
   const fetchIpc = await waitFetchIpc(jsProcess);
 
   const native_fetch = globalThis.fetch;
@@ -99,7 +99,7 @@ self.addEventListener("message", async (event) => {
     const config = data[1] as $RunMainConfig;
     const main_parsed_url = updateUrlOrigin(
       config.main_url,
-      `file://${jsProcess.mmid}`
+      `http://${jsProcess.host}`
     );
     const location = {
       hash: main_parsed_url.hash,
@@ -129,8 +129,27 @@ self.addEventListener("message", async (event) => {
   }
 });
 
-const mmid = new URL(import.meta.url).searchParams.get("mmid");
-if (mmid === null) {
-  throw new Error("no found mmid");
+class Metadata {
+  constructor(private source: URLSearchParams) {}
+  requiredString(key: string) {
+    const val = this.optionalString(key);
+    if (val === undefined) {
+      throw new Error(`no found ${key}`);
+    }
+    return val;
+  }
+  optionalString(key: string) {
+    const val = this.source.get(key);
+    if (val === null) {
+      return;
+    }
+    return val;
+  }
 }
-installEnv(mmid as $MMID);
+
+const metadata = new Metadata(new URL(import.meta.url).searchParams);
+
+installEnv(
+  metadata.requiredString("mmid") as $MMID,
+  metadata.requiredString("host")
+);

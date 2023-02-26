@@ -30,7 +30,6 @@ open class Signal<Args> {
         return listenerSet.remove(cb)
     }
 
-
     suspend fun emit(args: Args) {
         // toList 是为了拷贝一份，避免中通对其读写的时候出问题
         val cbs = listenerSet.toList()
@@ -48,6 +47,10 @@ open class Signal<Args> {
                 e.printStackTrace()
             }
         }
+    }
+
+    fun clear() {
+        this.listenerSet.clear()
     }
 }
 

@@ -9,7 +9,7 @@ import {
   $NativeWindow,
   openNativeWindow,
 } from "../../helper/openNativeWindow.cjs";
-import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
+import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 const resolveTo = createResolveTo(__dirname);
 
 // @ts-ignore
@@ -26,14 +26,12 @@ export class MultiWebviewNMM extends NativeMicroModule {
     { nww: $NativeWindow; apis: Remote<$APIS> }
   >();
 
-  private _close_dweb_server?: () => unknown;
-
   async _bootstrap() {
-    const { origin, listen: start, close } = await createHttpDwebServer(this, {});
-    this._close_dweb_server = close;
+    const httpDwebServer = await createHttpDwebServer(this, {});
+    this._after_shutdown_signal.listen(() => httpDwebServer.close());
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
-    (await start()).onRequest(async (request, ipc) => {
+    (await httpDwebServer.listen()).onRequest(async (request, ipc) => {
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
@@ -51,7 +49,11 @@ export class MultiWebviewNMM extends NativeMicroModule {
       );
     });
 
-    const root_url = new URL("/index.html", origin).href;
+    const root_url = httpDwebServer.startResult.urlInfo.buildInternalUrl(
+      (url) => {
+        url.pathname = "/index.html";
+      }
+    ).href;
 
     this.registerCommonIpcOnMessageHanlder({
       pathname: "/open",
@@ -79,8 +81,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       wapi.nww.close();
     });
     this._uid_wapis_map.clear();
-    this._close_dweb_server?.();
-    this._close_dweb_server = undefined;
   }
   private forceGetWapis(ipc: Ipc, root_url: string) {
     return locks.request("multi-webview-get-window-" + ipc.uid, async () => {

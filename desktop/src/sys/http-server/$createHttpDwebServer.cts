@@ -4,30 +4,63 @@ import { IPC_ROLE } from "../../core/ipc/const.cjs";
 import type { $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
 import { buildUrl } from "../../helper/urlHelper.cjs";
-import type { $GetHostOptions } from "./net/createNetServer.cjs";
+import { ServerStartResult, ServerUrlInfo } from "./const.js";
+import type { $DwebHttpServerOptions } from "./net/createNetServer.cjs";
 
 /** 创建一个网络服务 */
 export const createHttpDwebServer = async (
   microModule: $MicroModule,
-  options: Omit<$GetHostOptions, "ipc">
+  options: $DwebHttpServerOptions
 ) => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
-  const { origin, token } = await startHttpDwebServer(microModule, options);
-  console.log("获得域名授权：", origin, token);
+  const startResult = await startHttpDwebServer(microModule, options);
+  console.log("获得域名授权：", startResult);
 
-  /** 开始才处理请求 */
-  const listen = () => listenHttpDwebServer(microModule, token);
-
-  /** 关闭监听 */
-  const close = once(() => closeHttpDwebServer(microModule, options));
-
-  return { origin, token, listen: listen, close };
+  return new HttpDwebServer(microModule, options, startResult);
 };
+
+class HttpDwebServer {
+  constructor(
+    private readonly nmm: $MicroModule,
+    private readonly options: $DwebHttpServerOptions,
+    readonly startResult: ServerStartResult
+  ) {}
+  /** 开始处理请求 */
+  async listen(
+    routes: $ReqMatcher[] = [
+      {
+        pathname: "/",
+        matchMode: "prefix",
+        method: "GET",
+      },
+      {
+        pathname: "/",
+        matchMode: "prefix",
+        method: "POST",
+      },
+      {
+        pathname: "/",
+        matchMode: "prefix",
+        method: "PUT",
+      },
+      {
+        pathname: "/",
+        matchMode: "prefix",
+        method: "DELETE",
+      },
+    ]
+  ) {
+    return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
+  }
+  /** 关闭监听 */
+  close = once(() => closeHttpDwebServer(this.nmm, this.options));
+}
 
 /** 开始处理请求 */
 export const listenHttpDwebServer = async (
   microModule: $MicroModule,
-  token: string
+  token: string,
+  routes: $ReqMatcher[]
 ) => {
   /// 创建一个基于 二进制流的 ipc 信道
   const httpServerIpc = new ReadableStreamIpc(
@@ -41,18 +74,7 @@ export const listenHttpDwebServer = async (
         pathname: "/listen",
         search: {
           token,
-          routes: [
-            {
-              pathname: "/",
-              matchMode: "prefix",
-              method: "GET",
-            },
-            {
-              pathname: "/",
-              matchMode: "prefix",
-              method: "POST",
-            },
-          ] satisfies $ReqMatcher[],
+          routes,
         },
       }),
       {
@@ -72,7 +94,7 @@ export const listenHttpDwebServer = async (
 /** 开始监听端口和域名 */
 export const startHttpDwebServer = (
   microModule: $MicroModule,
-  options: Omit<$GetHostOptions, "ipc">
+  options: $DwebHttpServerOptions
 ) => {
   return microModule
     .fetch(
@@ -80,20 +102,23 @@ export const startHttpDwebServer = (
         search: options,
       })
     )
-    .object<{
-      origin: string;
-      token: string;
-    }>()
+    .object<ServerStartResult>()
     .then((obj) => {
       console.log(obj);
-      return obj;
+      const { urlInfo, token } = obj;
+      const serverUrlInfo = new ServerUrlInfo(
+        urlInfo.host,
+        urlInfo.internal_origin,
+        urlInfo.public_origin
+      );
+      return new ServerStartResult(token, serverUrlInfo);
     });
 };
 
 /** 停止监听端口和域名 */
 export const closeHttpDwebServer = async (
   microModule: $MicroModule,
-  options: Omit<$GetHostOptions, "ipc">
+  options: $DwebHttpServerOptions
 ) => {
   return microModule
     .fetch(

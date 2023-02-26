@@ -1932,6 +1932,9 @@ var Signal = class {
         cb.apply(null, args);
       }
     };
+    this.clear = () => {
+      this._cbs.clear();
+    };
   }
 };
 
@@ -1941,7 +1944,18 @@ var PromiseOut = class {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = resolve;
       this.reject = reject;
+    }).then((res) => {
+      this._value = res;
+      return res;
     });
+  }
+  static resolve(v) {
+    const po = new PromiseOut();
+    po.resolve(v);
+    return po;
+  }
+  get value() {
+    return this._value;
   }
 };
 
@@ -2714,8 +2728,9 @@ var normalizeFetchArgs = (url, init) => {
 
 // src/sys/js-process/js-process.worker.mts
 var JsProcessMicroModule = class {
-  constructor(mmid2) {
-    this.mmid = mmid2;
+  constructor(mmid, host) {
+    this.mmid = mmid;
+    this.host = host;
   }
   fetch(input, init) {
     return Object.assign(fetch(input, init), fetchExtends);
@@ -2740,8 +2755,8 @@ var waitFetchIpc = (jsProcess2) => {
     });
   });
 };
-var installEnv = async (mmid2) => {
-  const jsProcess2 = new JsProcessMicroModule(mmid2);
+var installEnv = async (mmid, host) => {
+  const jsProcess2 = new JsProcessMicroModule(mmid, host);
   const fetchIpc = await waitFetchIpc(jsProcess2);
   const native_fetch = globalThis.fetch;
   function fetch2(url, init) {
@@ -2776,7 +2791,7 @@ self.addEventListener("message", async (event) => {
     const config = data[1];
     const main_parsed_url = updateUrlOrigin(
       config.main_url,
-      `file://${jsProcess.mmid}`
+      `http://${jsProcess.host}`
     );
     const location2 = {
       hash: main_parsed_url.hash,
@@ -2803,11 +2818,30 @@ self.addEventListener("message", async (event) => {
     await import(config.main_url);
   }
 });
-var mmid = new URL(import.meta.url).searchParams.get("mmid");
-if (mmid === null) {
-  throw new Error("no found mmid");
-}
-installEnv(mmid);
+var Metadata = class {
+  constructor(source) {
+    this.source = source;
+  }
+  requiredString(key) {
+    const val = this.optionalString(key);
+    if (val === void 0) {
+      throw new Error(`no found ${key}`);
+    }
+    return val;
+  }
+  optionalString(key) {
+    const val = this.source.get(key);
+    if (val === null) {
+      return;
+    }
+    return val;
+  }
+};
+var metadata = new Metadata(new URL(import.meta.url).searchParams);
+installEnv(
+  metadata.requiredString("mmid"),
+  metadata.requiredString("host")
+);
 export {
   JsProcessMicroModule,
   installEnv

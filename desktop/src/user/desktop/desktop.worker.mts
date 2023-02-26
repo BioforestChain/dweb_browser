@@ -2,7 +2,7 @@
 
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-import { createHttpDwebServer } from "../../sys/http-server/$listenHelper.cjs";
+import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
 import { CODE as CODE_desktop_web_mjs } from "./assets/desktop.web.mjs.cjs";
 import { CODE as CODE_index_html } from "./assets/index.html.cjs";
 
@@ -11,8 +11,8 @@ console.log("ookkkkk, i'm in worker");
 export const main = async () => {
   debugger;
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
-  const { origin, listen: start } = await createHttpDwebServer(jsProcess, {});
-  (await start()).onRequest(async (request, httpServerIpc) => {
+  const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+  (await httpDwebServer.listen()).onRequest(async (request, httpServerIpc) => {
     if (
       request.parsed_url.pathname === "/" ||
       request.parsed_url.pathname === "/index.html"
@@ -47,10 +47,15 @@ export const main = async () => {
   });
 
   console.log("http 服务创建成功");
-  console.log("打开浏览器页面", origin);
+
+  const main_url =
+    httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
+  console.log("打开浏览器页面", main_url);
   {
     const view_id = await jsProcess
-      .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
+      .fetch(
+        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
+      )
       .text();
   }
 };

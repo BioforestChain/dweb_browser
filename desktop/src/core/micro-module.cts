@@ -1,67 +1,66 @@
 import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
+import { createSignal } from "../helper/createSignal.cjs";
 import { PromiseOut } from "../helper/PromiseOut.cjs";
 import type { $MicroModule, $MMID, $PromiseMaybe } from "../helper/types.cjs";
 import type { Ipc } from "./ipc/index.cjs";
 
 export abstract class MicroModule implements $MicroModule {
   abstract mmid: $MMID;
-  running = false;
-  protected before_bootstrap() {
-    if (this.running) {
+  get isRunning() {
+    return this._running_state_lock.promise;
+  }
+  private _running_state_lock = PromiseOut.resolve(false);
+  protected async before_bootstrap() {
+    if (await this._running_state_lock.promise) {
       throw new Error(`module ${this.mmid} alreay running`);
     }
-    this.running = true;
+    this._running_state_lock = new PromiseOut();
   }
-  private _bootstrap_lock?: Promise<void>;
-  protected abstract _bootstrap(): unknown;
-  protected after_bootstrap() {}
-  async bootstrap() {
-    this.before_bootstrap();
 
-    const bootstrap_lock = new PromiseOut<void>();
-    this._bootstrap_lock = bootstrap_lock.promise;
+  protected abstract _bootstrap(): unknown;
+
+  protected async after_bootstrap() {
+    this._running_state_lock.resolve(true);
+  }
+  async bootstrap() {
+    await this.before_bootstrap();
+
     try {
       await this._bootstrap();
     } finally {
-      bootstrap_lock.resolve();
-      this._bootstrap_lock = undefined;
-
       this.after_bootstrap();
     }
   }
-  protected before_shutdown() {
-    if (this.running === false) {
-      throw new Error(`module ${this.mmid} alreay shutdown`);
+  protected async before_shutdown() {
+    if (false === (await this._running_state_lock.promise)) {
+      throw new Error(`module ${this.mmid} already shutdown`);
     }
-    this.running = false;
+    this._running_state_lock = new PromiseOut();
   }
-  private _shutdown_lock?: Promise<void>;
   protected abstract _shutdown(): unknown;
-  protected after_shutdown() {}
-  async shutdown() {
-    if (this._bootstrap_lock) {
-      await this._bootstrap_lock;
-    }
 
-    const shutdown_lock = new PromiseOut<void>();
-    this._shutdown_lock = shutdown_lock.promise;
-    this.before_shutdown();
+  protected readonly _after_shutdown_signal = createSignal<() => unknown>();
+
+  protected after_shutdown() {
+    this._after_shutdown_signal.emit();
+    this._after_shutdown_signal.clear();
+    this._running_state_lock.resolve(false);
+  }
+  async shutdown() {
+    await this.before_shutdown();
+
     try {
       await this._shutdown();
     } finally {
-      shutdown_lock.resolve();
-      this._shutdown_lock = undefined;
-
       this.after_shutdown();
     }
   }
   /** 外部程序与内部程序建立链接的方法 */
   protected abstract _connect(from: MicroModule): $PromiseMaybe<Ipc>;
   async connect(from: MicroModule) {
-    if (this.running === false) {
+    if ((await this.isRunning) === false) {
       throw new Error("module no running");
     }
-    await this._bootstrap_lock;
     return this._connect(from);
   }
 

@@ -1,5 +1,6 @@
 import type { Remote } from "comlink";
 import { transfer } from "comlink";
+import { once } from "lodash";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import {
@@ -15,14 +16,9 @@ import {
   createResolveTo,
   resolveToRootFile,
 } from "../../helper/createResolveTo.cjs";
-import { createSignal } from "../../helper/createSignal.cjs";
-import {
-  $NativeWindow,
-  openNativeWindow,
-} from "../../helper/openNativeWindow.cjs";
+import { openNativeWindow } from "../../helper/openNativeWindow.cjs";
 import type { $PromiseMaybe } from "../../helper/types.cjs";
-import { parseUrl } from "../../helper/urlHelper.cjs";
-import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
+import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 import { saveNative2JsIpcPort } from "./ipc.native2js.cjs";
 
 const resolveTo = createResolveTo(__dirname);
@@ -62,8 +58,14 @@ const _ipcErrorResponse = (
   statusCode: number,
   errorMessage: string
 ) => {
+  const headers = new IpcHeaders(CORS_HEADERS);
   ipc.postMessage(
-    IpcResponse.fromText(requestMessage.req_id, statusCode, errorMessage)
+    IpcResponse.fromText(
+      requestMessage.req_id,
+      statusCode,
+      errorMessage,
+      headers
+    )
   );
 };
 
@@ -73,7 +75,8 @@ const _ipcSuccessResponse = (
   ipc: Ipc,
   code: $Code
 ) => {
-  const headers = new IpcHeaders({ "Content-Type": code.mime });
+  const headers = new IpcHeaders(CORS_HEADERS);
+  headers.set("Content-Type", code.mime);
   ipc.postMessage(
     typeof code.data === "string"
       ? IpcResponse.fromText(requestMessage.req_id, 200, code.data, headers)
@@ -95,11 +98,17 @@ const _ipcResponseFromImportLinker = async (
 ) => {
   const code = await importLinker.link(request.url);
   if (code === undefined) {
-    _ipcErrorResponse(request, ipc, 404, "No Found");
+    _ipcErrorResponse(request, ipc, 404, "// No Found");
   } else {
     _ipcSuccessResponse(request, ipc, code);
   }
 };
+const CORS_HEADERS = [
+  ["Content-Type", "application/javascript"],
+  ["Access-Control-Allow-Origin", "*"],
+  ["Access-Control-Allow-Headers", "*"], // 要支持 X-Dweb-Host
+  ["Access-Control-Allow-Methods", "*"],
+] satisfies HeadersInit;
 
 /**
  * 将指定的js运行在后台的一个管理器，
@@ -107,12 +116,16 @@ const _ipcResponseFromImportLinker = async (
  */
 export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.sys.dweb` as const;
-  private nww?: $NativeWindow;
-  private _on_shutdown_signal = createSignal<() => unknown>();
+
+  private JS_PROCESS_WORKER_CODE = once(() => {
+    return this.fetch(resolveToRootFile("bundle/js-process.worker.js")).text();
+  });
+
+  private INTERNAL_PATH = encodeURI("/<internal>");
 
   async _bootstrap() {
-    const webServer = await createHttpDwebServer(this, {});
-    (await webServer.listen()).onRequest(async (request, ipc) => {
+    const mainServer = await createHttpDwebServer(this, {});
+    (await mainServer.listen()).onRequest(async (request, ipc) => {
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
@@ -123,56 +136,26 @@ export class JsProcessNMM extends NativeMicroModule {
         )
       );
     });
-    this._on_shutdown_signal.listen(webServer.close);
+    this._after_shutdown_signal.listen(mainServer.close);
 
-    const {
-      origin: internal_origin,
-      listen: internal_start,
-      close: internal_close,
-    } = await createHttpDwebServer(this, {
-      subdomain: "internal",
-    });
-
-    const JS_PROCESS_WORKER_CODE = await this.fetch(
-      resolveToRootFile("bundle/js-process.worker.js")
-    ).text();
-    /**
-     * 内部的代码
-     */
-    const internal_importLinker = new ImportLinker(internal_origin, [
-      {
-        pathMatcher: {
-          pathname: "/bootstrap.js",
-          matchMode: "full",
+    const apis = await (async () => {
+      const urlInfo = mainServer.startResult.urlInfo;
+      const nww = await openNativeWindow(
+        mainServer.startResult.urlInfo.buildPublicUrl((url) => {
+          url.pathname = "/index.html";
+        }).href,
+        {
+          /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
+          show: require.main?.filename.endsWith(".html"),
         },
-        hanlder(url) {
-          return {
-            mime: "application/javascript",
-            data: JS_PROCESS_WORKER_CODE,
-          };
-        },
-      },
-    ]);
-    (await internal_start()).onRequest(
-      async (request, internal_httpServerIpc) => {
-        void _ipcResponseFromImportLinker(
-          internal_httpServerIpc,
-          internal_importLinker,
-          request
-        );
-      }
-    );
-    this._on_shutdown_signal.listen(internal_close);
+        { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
+      );
+      this._after_shutdown_signal.listen(() => {
+        nww.close();
+      });
+      return nww.getApis<$APIS>();
+    })();
 
-    const nww = (this.nww = await openNativeWindow(
-      webServer.origin + "/index.html",
-      {
-        /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
-        show: require.main?.filename.endsWith(".html"),
-      }
-    ));
-
-    const apis = nww.getApis<$APIS>();
     /// 创建 web worker
     this.registerCommonIpcOnMessageHanlder({
       method: "POST",
@@ -184,7 +167,6 @@ export class JsProcessNMM extends NativeMicroModule {
         return this.createProcessAndRun(
           ipc,
           apis,
-          `${internal_importLinker.origin}/bootstrap.js?mmid=${ipc.remote.mmid}`,
           args.main_pathname,
           requestMessage
         );
@@ -202,17 +184,11 @@ export class JsProcessNMM extends NativeMicroModule {
       },
     });
   }
-  async _shutdown() {
-    this.nww?.close();
-    this.nww = undefined;
-
-    this._on_shutdown_signal.emit();
-  }
+  async _shutdown() {}
 
   private async createProcessAndRun(
     ipc: Ipc,
     apis: Remote<$APIS>,
-    bootstrap_url: string,
     main_pathname = "/index.js",
     requestMessage: IpcRequest
   ) {
@@ -234,28 +210,50 @@ export class JsProcessNMM extends NativeMicroModule {
      * 这里我们将请求转发给对方，要求对方以一定的格式提供代码回来，
      * 我们会对回来的代码进行处理，然后再执行
      */
-    const importLinker = new ImportLinker(httpDwebServer.origin, [
-      {
-        pathMatcher: {
-          pathname: "/",
-          matchMode: "prefix",
-        },
-        async hanlder(url) {
-          /// TODO 对代码进行翻译处理
-          const response = await streamIpc.request(url.href);
+    const importLinker = new ImportLinker(
+      httpDwebServer.startResult.urlInfo.internal_origin,
+      [
+        {
+          pathMatcher: {
+            pathname: "/",
+            matchMode: "prefix",
+          },
+          hanlder: async (url) => {
+            // <internal>开头的是特殊路径：交由内部处理，不会推给远端处理
+            if (url.pathname.startsWith(this.INTERNAL_PATH)) {
+              url.pathname = url.pathname.substring(this.INTERNAL_PATH.length);
+              if (url.pathname === "/bootstrap.js") {
+                return {
+                  mime: "application/javascript",
+                  data: await this.JS_PROCESS_WORKER_CODE(),
+                };
+              }
+            }
 
-          return {
-            /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
-            mime: "application/javascript",
-            data: await response.text(),
-          };
+            /// TODO 对代码进行翻译处理
+            const response = await streamIpc.request(url.href);
+
+            return {
+              /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
+              mime: "application/javascript",
+              data: await response.text(),
+            };
+          },
         },
-      },
-    ]);
+      ]
+    );
 
     (await httpDwebServer.listen()).onRequest((request, ipc) => {
       void _ipcResponseFromImportLinker(ipc, importLinker, request);
     });
+
+    const bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl(
+      (url) => {
+        url.pathname = `${this.INTERNAL_PATH}/bootstrap.js`;
+        url.searchParams.set("mmid", ipc.remote.mmid);
+        url.searchParams.set("host", httpDwebServer.startResult.urlInfo.host);
+      }
+    ).href;
 
     /**
      * 创建一个通往 worker 的消息通道
@@ -290,7 +288,9 @@ export class JsProcessNMM extends NativeMicroModule {
      * 开始执行代码
      */
     await apis.runProcessMain(processInfo.process_id, {
-      main_url: parseUrl(main_pathname, httpDwebServer.origin).href,
+      main_url: httpDwebServer.startResult.urlInfo.buildInternalUrl((url) => {
+        url.pathname = main_pathname;
+      }).href,
     });
 
     /// 绑定销毁

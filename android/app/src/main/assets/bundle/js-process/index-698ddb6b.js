@@ -71,12 +71,30 @@ const createProcess = async (env_script_url, fetch_port) => {
   console.log(env_script_url, fetch_port);
   const process_id = allocProcessId();
   const worker_url = URL.createObjectURL(
-    new Blob([`import("${env_script_url}")`], {
-      // esm 代码必须有正确的 mime
-      type: "application/javascript"
-    })
+    new Blob(
+      [
+        `import("${env_script_url}").then(()=>postMessage("ready"),(err)=>postMessage("ERROR:"+err))`
+      ],
+      {
+        // esm 代码必须有正确的 mime
+        type: "application/javascript"
+      }
+    )
   );
   const worker = new Worker(worker_url, { type: "module" });
+  await new Promise((resolve, reject) => {
+    worker.addEventListener(
+      "message",
+      (event) => {
+        if (event.data === "ready") {
+          resolve();
+        } else {
+          reject(event.data);
+        }
+      },
+      { once: true }
+    );
+  });
   worker.postMessage(["fetch-ipc-channel", fetch_port], [fetch_port]);
   const env_ready_po = new PromiseOut();
   const onEnvReady = (event) => {

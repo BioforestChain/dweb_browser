@@ -16,4 +16,7 @@ export class Signal<$Callback extends (...args: any[]) => unknown> {
       cb.apply(null, args);
     }
   };
+  clear = () => {
+    this._cbs.clear();
+  };
 }

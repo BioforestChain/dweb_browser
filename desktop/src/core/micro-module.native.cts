@@ -85,7 +85,7 @@ export abstract class NativeMicroModule extends MicroModule {
             } catch (err) {
               let body: string;
               if (err instanceof Error) {
-                body = err.message;
+                body = err.stack ?? err.message;
               } else {
                 body = String(err);
               }

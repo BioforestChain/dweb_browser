@@ -14,3 +14,7 @@ import { desktopJmm } from "./user/desktop/desktop.main.cjs";
 dns.install(desktopJmm);
 
 Object.assign(globalThis, { dns: dns });
+
+process.on("unhandledRejection", (error) => {
+  console.error("????", error);
+});

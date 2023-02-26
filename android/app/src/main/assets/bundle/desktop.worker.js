@@ -377,6 +377,9 @@ var Signal = class {
         cb.apply(null, args);
       }
     };
+    this.clear = () => {
+      this._cbs.clear();
+    };
   }
 };
 
@@ -721,7 +724,7 @@ var _IpcResponse = class extends IpcBody {
 var IpcResponse = _IpcResponse;
 _ipcHeaders = new WeakMap();
 
-// src/sys/http-server/$listenHelper.cts
+// src/sys/http-server/$createHttpDwebServer.cts
 var import_once2 = __toESM(require_once());
 
 // node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
@@ -2330,7 +2333,18 @@ var PromiseOut = class {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = resolve;
       this.reject = reject;
+    }).then((res) => {
+      this._value = res;
+      return res;
     });
+  }
+  static resolve(v) {
+    const po = new PromiseOut();
+    po.resolve(v);
+    return po;
+  }
+  get value() {
+    return this._value;
   }
 };
 
@@ -2619,15 +2633,71 @@ var ReadableStreamIpc = class extends Ipc {
 };
 _rso = new WeakMap();
 
-// src/sys/http-server/$listenHelper.cts
-var createHttpDwebServer = async (microModule, options) => {
-  const { origin, token } = await startHttpDwebServer(microModule, options);
-  console.log("\u83B7\u5F97\u57DF\u540D\u6388\u6743\uFF1A", origin, token);
-  const listen = () => listenHttpDwebServer(microModule, token);
-  const close2 = (0, import_once2.default)(() => closeHttpDwebServer(microModule, options));
-  return { origin, token, listen, close: close2 };
+// src/sys/http-server/const.ts
+var ServerUrlInfo = class {
+  constructor(host, internal_origin, public_origin) {
+    this.host = host;
+    this.internal_origin = internal_origin;
+    this.public_origin = public_origin;
+  }
+  buildPublicUrl(cb) {
+    const url = new URL(this.public_origin);
+    url.searchParams.set("X-DWeb-Host", this.host);
+    return cb(url) ?? url;
+  }
+  buildInternalUrl(cb) {
+    const url = new URL(this.internal_origin);
+    return cb(url) ?? url;
+  }
 };
-var listenHttpDwebServer = async (microModule, token) => {
+var ServerStartResult = class {
+  constructor(token, urlInfo) {
+    this.token = token;
+    this.urlInfo = urlInfo;
+  }
+};
+
+// src/sys/http-server/$createHttpDwebServer.cts
+var createHttpDwebServer = async (microModule, options) => {
+  const startResult = await startHttpDwebServer(microModule, options);
+  console.log("\u83B7\u5F97\u57DF\u540D\u6388\u6743\uFF1A", startResult);
+  return new HttpDwebServer(microModule, options, startResult);
+};
+var HttpDwebServer = class {
+  constructor(nmm, options, startResult) {
+    this.nmm = nmm;
+    this.options = options;
+    this.startResult = startResult;
+    /** 关闭监听 */
+    this.close = (0, import_once2.default)(() => closeHttpDwebServer(this.nmm, this.options));
+  }
+  /** 开始处理请求 */
+  async listen(routes = [
+    {
+      pathname: "/",
+      matchMode: "prefix",
+      method: "GET"
+    },
+    {
+      pathname: "/",
+      matchMode: "prefix",
+      method: "POST"
+    },
+    {
+      pathname: "/",
+      matchMode: "prefix",
+      method: "PUT"
+    },
+    {
+      pathname: "/",
+      matchMode: "prefix",
+      method: "DELETE"
+    }
+  ]) {
+    return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
+  }
+};
+var listenHttpDwebServer = async (microModule, token, routes) => {
   const httpServerIpc = new ReadableStreamIpc(
     microModule,
     "client" /* CLIENT */,
@@ -2638,18 +2708,7 @@ var listenHttpDwebServer = async (microModule, token) => {
       pathname: "/listen",
       search: {
         token,
-        routes: [
-          {
-            pathname: "/",
-            matchMode: "prefix",
-            method: "GET"
-          },
-          {
-            pathname: "/",
-            matchMode: "prefix",
-            method: "POST"
-          }
-        ]
+        routes
       }
     }),
     {
@@ -2669,7 +2728,13 @@ var startHttpDwebServer = (microModule, options) => {
     })
   ).object().then((obj) => {
     console.log(obj);
-    return obj;
+    const { urlInfo, token } = obj;
+    const serverUrlInfo = new ServerUrlInfo(
+      urlInfo.host,
+      urlInfo.internal_origin,
+      urlInfo.public_origin
+    );
+    return new ServerStartResult(token, serverUrlInfo);
   });
 };
 var closeHttpDwebServer = async (microModule, options) => {
@@ -2709,8 +2774,8 @@ var CODE2 = async (request) => html(_a2 || (_a2 = __template(['\n  <!DOCTYPE htm
 console.log("ookkkkk, i'm in worker");
 var main = async () => {
   debugger;
-  const { origin, listen: start } = await createHttpDwebServer(jsProcess, {});
-  (await start()).onRequest(async (request, httpServerIpc) => {
+  const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+  (await httpDwebServer.listen()).onRequest(async (request, httpServerIpc) => {
     if (request.parsed_url.pathname === "/" || request.parsed_url.pathname === "/index.html") {
       httpServerIpc.postMessage(
         IpcResponse.fromText(

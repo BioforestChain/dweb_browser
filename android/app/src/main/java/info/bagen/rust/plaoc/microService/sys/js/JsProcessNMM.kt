@@ -6,7 +6,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.encodeURI
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
@@ -90,15 +93,13 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     }
 
                     override fun shouldInterceptRequest(
-                        view: WebView,
-                        request: WebResourceRequest
+                        view: WebView, request: WebResourceRequest
                     ): WebResourceResponse? {
                         if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && request.url.scheme == "http") {
                             val response = runBlocking {
                                 nativeFetch(
                                     Request(
-                                        Method.GET,
-                                        request.url.toString()
+                                        Method.GET, request.url.toString()
                                     ).headers(request.requestHeaders.toList())
                                 )
                             }
@@ -128,17 +129,13 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             /// 创建 web worker
             "/create-process" bind Method.POST to defineHandler { request, ipc ->
                 createProcessAndRun(
-                    ipc,
-                    apis,
-                    query_main_pathname(request),
-                    request
+                    ipc, apis, query_main_pathname(request), request
                 )
             },
             /// 创建 web 通讯管道
             "/create-ipc" bind Method.GET to defineHandler { request ->
                 apis.createIpc(query_process_id(request))
-            }
-        )
+            })
 
     }
 
@@ -179,7 +176,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             if (request.uri.path.startsWith(INTERNAL_PATH)) {
                 val internalUri =
                     request.uri.path(request.uri.path.substring(INTERNAL_PATH.length));
-                if (internalUri.path == "bootstrap.js") {
+                if (internalUri.path == "/bootstrap.js") {
                     ipc.postMessage(
                         IpcResponse.fromText(
                             request.req_id,
@@ -217,9 +214,11 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             }
         }
 
-        val bootstrap_url =
-            httpDwebServer.startResult.urlInfo.buildInternalUrl().path("$INTERNAL_PATH/bootstrap.js")
-                .query("mmid", ipc.remote.mmid).toString()
+        val bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
+            .path("$INTERNAL_PATH/bootstrap.js")
+            .query("mmid", ipc.remote.mmid)
+            .query("host", httpDwebServer.startResult.urlInfo.host)
+            .toString()
 
         /**
          * 创建一个通往 worker 的消息通道
@@ -236,8 +235,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          */
         apis.runProcessMain(
             processHandler.info.process_id, JsProcessWebApi.RunProcessMainOptions(
-                main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
-                    .path(main_pathname)
+                main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl().path(main_pathname)
                     .toString()
             )
         )

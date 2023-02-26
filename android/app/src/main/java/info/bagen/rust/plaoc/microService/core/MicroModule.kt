@@ -51,6 +51,8 @@ abstract class MicroModule {
 
     protected abstract suspend fun _shutdown()
     protected open suspend fun afterShutdown() {
+        _afterShutdownSignal.emit()
+        _afterShutdownSignal.clear()
         runningStateLock.resolve(false)
     }
 

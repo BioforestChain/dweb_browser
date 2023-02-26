@@ -168,6 +168,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     ) {
         fun buildPublicUrl() = Uri.of(public_origin)
             .query("X-DWeb-Host", host)
+
         fun buildInternalUrl() = Uri.of(internal_origin)
     }
 
@@ -233,12 +234,13 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         return Response(Status.OK).body(streamIpc.stream)
     }
 
-    private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions) {
+    private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
-        gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
+        return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
             tokenMap.remove(gateway.token)
             gateway.listener.destroy()
-        }
+            true
+        } ?: false
     }
 
 }
