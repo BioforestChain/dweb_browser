@@ -2,6 +2,11 @@ import type { MicroModule } from "../../core/micro-module.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import type { $MMID } from "../../helper/types.cjs";
 import { hookFetch } from "./hookFetch.cjs";
+import { JsMicroModule } from "../../sys/micro-module.js.cjs"
+import { resolveToRootFile } from "../../helper/createResolveTo.cjs"
+import { IpcResponse } from "../../core/ipc/IpcResponse.cjs"
+import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
+
 
 /** DNS 服务，内核！
  * 整个系统都围绕这个 DNS 服务来展开互联
@@ -15,37 +20,56 @@ export class DnsNMM extends NativeMicroModule {
     this.install(this);
     this.running_apps.set(this.mmid, this);
 
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/install-js",
       matchMode: "full",
       input: {},
       output: "void",
-      hanlder: () => {
+      handler: async (arg, client_ipc, request) => {
         /// TODO 动态创建 JsMicroModule
+        const _url = new URL(request.url)
+        let appId = _url.searchParams.get("app_id")
+        if(appId === null) return void 0;
+        const mmid = `${appId}` as $MMID
+        // 动态安装模块
+        const appJMM = new JsMicroModule(mmid, {
+          main_url: resolveToRootFile("bundle/common.worker.js").href,
+        } as const);
+        this.install(appJMM)
+        return IpcResponse.fromText(
+          request.req_id,
+          200,
+          "ok",
+          new IpcHeaders({
+            "Content-Type": "text/json"
+          })
+        )
+        
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
       matchMode: "full",
       input: { app_id: "mmid" },
       output: "boolean",
-      hanlder: async (args) => {
+      handler: async (args) => {
         /// TODO 询问用户是否授权该行为
         await this.open(args.app_id);
         return true;
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
       matchMode: "full",
       input: { app_id: "mmid" },
       output: "boolean",
-      hanlder: async (args) => {
+      handler: async (args) => {
         /// TODO 关闭应用首先要确保该应用的 parentProcessId 在 processTree 中
         await this.close(args.app_id);
         return true;
       },
     });
+
 
     // 重写 fetch
     hookFetch(this);
@@ -81,6 +105,7 @@ export class DnsNMM extends NativeMicroModule {
       await mm.bootstrap();
       app = mm;
     }
+   
     return app;
   }
   /** 关闭应用 */

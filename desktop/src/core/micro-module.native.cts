@@ -68,11 +68,13 @@ export abstract class NativeMicroModule extends MicroModule {
         for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {
           if ($isMatchReq(hanlder_schema, pathname, request.method)) {
             try {
-              const result = await hanlder_schema.hanlder(
+            
+              const result = await hanlder_schema.handler(
                 hanlder_schema.input(request),
                 client_ipc,
                 request
               );
+              
               if (result instanceof IpcResponse) {
                 response = result;
               } else {
@@ -83,6 +85,7 @@ export abstract class NativeMicroModule extends MicroModule {
                 );
               }
             } catch (err) {
+              console.log('err: ', err)
               let body: string;
               if (err instanceof Error) {
                 body = err.message;
@@ -94,18 +97,21 @@ export abstract class NativeMicroModule extends MicroModule {
             break;
           }
         }
+
+
+
         if (response === undefined) {
           response = IpcResponse.fromText(
             request.req_id,
             404,
-            `no found hanlder for '${pathname}'`
+            `no found handler for '${pathname}'`
           );
         }
         client_ipc.postMessage(response);
       });
     });
   }
-  protected registerCommonIpcOnMessageHanlder<
+  protected registerCommonIpcOnMessageHandler<
     I extends $Schema1,
     O extends $Schema2
   >(common_hanlder_schema: $RequestCommonHanlderSchema<I, O>) {
@@ -123,7 +129,7 @@ export abstract class NativeMicroModule extends MicroModule {
 }
 
 interface $RequestHanlderSchema<ARGS, RES> extends $ReqMatcher {
-  readonly hanlder: (
+  readonly handler: (
     args: ARGS,
     client_ipc: Ipc,
     ipc_request: IpcRequest

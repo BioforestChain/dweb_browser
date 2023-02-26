@@ -41,17 +41,16 @@ export const listenHttpDwebServer = async (
         pathname: "/listen",
         search: {
           token,
-          routes: [
-            {
-              pathname: "/",
-              matchMode: "prefix",
-              method: "GET",
-            },
-            {
-              pathname: "/",
-              matchMode: "prefix",
-              method: "POST",
-            },
+          routes: [ /** 定义了路由的方法 */
+            { pathname: "/", matchMode: "prefix", method: "GET", },
+            { pathname: "/", matchMode: "prefix", method: "POST", },
+            { pathname: "/", matchMode: 'prefix',  method:'PUT'},
+            { pathname: "/", matchMode: 'prefix', method: "DELETE"},
+            { pathname: "/", matchMode: 'prefix', method: "PATCH"},
+            { pathname: "/", matchMode: 'prefix', method: "OPTIONS"},
+            { pathname: "/", matchMode: 'prefix', method: "HEAD"},
+            { pathname: "/", matchMode: 'prefix', method: "CONNECT"},
+            { pathname: "/", matchMode: 'prefix', method: "TRACE"},
           ] satisfies $ReqMatcher[],
         },
       }),

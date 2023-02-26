@@ -8,6 +8,7 @@ export const httpsCreateServer = async (
   const origin = `https://${host}`;
 
   const server = https.createServer(options);
+
   await new Promise<void>((resolve, reject) => {
     server.on("error", reject).listen(port, hostname, resolve);
   });
@@ -31,7 +32,6 @@ export const httpCreateServer = async (
   const { port, hostname = "localhost" } = listenOptions;
   const host = `${hostname}:${port}`;
   const origin = `http://${host}`;
-
   const server = http.createServer(options);
   await new Promise<void>((resolve, reject) => {
     server.on("error", reject).listen(port, hostname, resolve);

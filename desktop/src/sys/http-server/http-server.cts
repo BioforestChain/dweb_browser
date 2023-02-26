@@ -28,6 +28,8 @@ export class HttpServerNMM extends NativeMicroModule {
   protected async _bootstrap() {
     const info = await this._http1_server.create();
     info.server.on("request", (req, res) => {
+      // console.log('[http-server.cts 接受到了 http 请求：]', req)
+
       /// 获取 host
       /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
       let host = "*";
@@ -50,6 +52,7 @@ export class HttpServerNMM extends NativeMicroModule {
           "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
         );
       }
+      // gateway.listener.ipc.request("/on-connect")
 
       // const gateway_timeout = setTimeout(() => {
       //   if (res.writableLength === 0) {
@@ -61,31 +64,31 @@ export class HttpServerNMM extends NativeMicroModule {
     });
 
     /// 监听 IPC 请求
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/start",
       matchMode: "full",
       input: { port: "number?", subdomain: "string?" },
       output: { origin: "string", token: "string" },
-      hanlder: async (args, ipc) => {
+      handler: async (args, ipc) => {
         return await this.start({ ipc, ...args });
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
       matchMode: "full",
       input: { port: "number?", subdomain: "string?" },
       output: "boolean",
-      hanlder: async (args, ipc) => {
+      handler: async (args, ipc) => {
         return await this.close({ ipc, ...args });
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       method: "POST",
       pathname: "/listen",
       matchMode: "full",
       input: { token: "string", routes: "object" },
       output: "object",
-      hanlder: async (args, ipc, message) => {
+      handler: async (args, ipc, message) => {
         console.log("收到处理请求的双工通道");
         return this.listen(
           args.token,
@@ -133,7 +136,7 @@ export class HttpServerNMM extends NativeMicroModule {
     if (gateway === undefined) {
       throw new Error(`no gateway with token: ${token}`);
     }
-
+ 
     const streamIpc = new ReadableStreamIpc(
       gateway.listener.ipc.remote,
       IPC_ROLE.CLIENT

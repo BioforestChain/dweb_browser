@@ -7,7 +7,6 @@ export const $deserializeRequestToParams = <S extends $Schema1>(schema: S) => {
   return (request: IpcRequest) => {
     const url = request.parsed_url;
     const params = {} as I;
-
     for (const [key, typeName2] of Object.entries(schema) as [
       keyof I & string,
       $TypeName2

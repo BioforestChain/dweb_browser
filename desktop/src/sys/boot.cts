@@ -3,23 +3,28 @@ import type { $MMID } from "../helper/types.cjs";
 
 export class BootNMM extends NativeMicroModule {
   mmid = "boot.sys.dweb" as const;
-  private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]);
+  // private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]); // 被优化
+  private registeredMmids = new Set<$MMID>([
+    "file.sys.dweb",
+    "app.sys.dweb",
+    "browser.sys.dweb",
+  ]) // 升级后的结果
   async _bootstrap() {
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/register",
       matchMode: "full",
       input: { },
       output: "boolean",
-      hanlder: async (args,ipc) => {
+      handler: async (args,ipc) => {
         return await this.register(ipc.remote.mmid);
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/unregister",
       matchMode: "full",
       input: {},
       output: "boolean",
-      hanlder: async (args,ipc) => {
+      handler: async (args, ipc) => {
         return await this.unregister(ipc.remote.mmid);
       },
     });

@@ -58,7 +58,6 @@ export class ReadableStreamIpc extends Ipc {
 
       /// 开始处理数据并做响应
       const message = $messageToIpcMessage(data, this);
-
       if (message === undefined) {
         return;
       }

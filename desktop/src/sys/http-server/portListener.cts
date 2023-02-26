@@ -34,6 +34,12 @@ export class PortListener {
     return () => this._routers.delete(router);
   }
 
+  /**
+   * 判断是否有绑定的请求
+   * @param pathname 
+   * @param method 
+   * @returns 
+   */
   private _isBindMatchReq(pathname: string, method: string) {
     for (const bind of this._routers) {
       for (const pathMatcher of bind.routes) {
@@ -55,7 +61,7 @@ export class PortListener {
 
     const { url = "/", method = "GET" } = req;
     const parsed_url = parseUrl(url, this.origin);
-
+    // console.log('parsed_url: ', parsed_url, method)
     const hasMatch = this._isBindMatchReq(parsed_url.pathname, method);
     if (hasMatch === undefined) {
       defaultErrorResponse(req, res, 404, "no found");

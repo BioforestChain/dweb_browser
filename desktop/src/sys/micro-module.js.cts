@@ -28,8 +28,12 @@ export class JsMicroModule extends MicroModule {
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap() {
+    // console.log("[micro-module.js.cts _bootstrap:]", this.mmid)
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
+    // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
     streamIpc.onRequest(async (request) => {
+      
+      // console.log("[micro-module.js.cts 监听到了请求:]", this.mmid)
       if (request.parsed_url.pathname === "/index.js") {
         const main_code = await this.fetch(this.metadata.main_url).text();
 
@@ -40,6 +44,7 @@ export class JsMicroModule extends MicroModule {
         streamIpc.postMessage(IpcResponse.fromText(request.req_id, 404, ""));
       }
     });
+    // console.log("[micro-module.js.cts 执行 bindIncomeStream:]", this.mmid)
     void streamIpc.bindIncomeStream(
       this.fetch(
         buildUrl(new URL(`file://js.sys.dweb/create-process`), {

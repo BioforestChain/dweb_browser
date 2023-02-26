@@ -102,6 +102,7 @@ export abstract class Ipc {
   }
 
   /** 发起请求并等待响应 */
+  // 会提供给 http-server模块的 gateway.listener.hookHttpRequest
   request(
     url: string,
     init: {

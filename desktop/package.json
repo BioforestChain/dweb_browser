@@ -28,6 +28,13 @@
     "dev:js-process.html": "npm run bundle:js-process.html -- --minify=false --watch",
     "bundle:desktop.worker": "esbuild ./src/user/desktop/desktop.worker.mts --outfile=./bundle/desktop.worker.js --bundle --format=esm",
     "dev:desktop.worker": "npm run bundle:desktop.worker -- --watch",
+    "bundle:browser.worker": "esbuild ./src/user/browser/browser.worker.mts --outfile=./bundle/browser.worker.js --bundle --format=esm",
+    "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
+    "bundle:browser.render": "esbuild ./src/user/browser/assets/browser.render.mts --outfile=./bundle/browser.render.txt --bundle --format=esm",
+    "dev:browser.render": "npm run bundle:browser.render -- --watch",
+    "bundle:common.worker": "esbuild ./src/sys/app/common.worker.mts --outfile=./bundle/common.worker.js --bundle --format=esm",
+    "dev:common.worker": "npm run bundle:common.worker -- --watch",
+    "bundle:statusbar.worker":"node ./esbuild.statusbar.worker.js",
     "bundle:multi-webview.html": "vite build src/sys/multi-webview/assets/ --outDir=../../../../bundle/multi-webview --emptyOutDir -c electron-vite.config.ts",
     "dev:multi-webview.html": "npm run bundle:multi-webview.html -- --minify=false --watch",
     "start:win": "chcp 65001 && electron .",
@@ -52,12 +59,17 @@
     "@msgpack/msgpack": "^2.8.0",
     "@types/chrome": "^0.0.210",
     "comlink": "^4.4.1",
+    "esbuild-plugin-html-modules": "^0.6.0",
     "lit": "^2.6.1",
     "lodash": "^4.17.21",
     "mime": "^3.0.0",
     "node-fetch": "^3.3.0",
     "node-forge": "^1.3.1",
+    "request": "^2.88.2",
+    "request-progress": "^3.0.0",
     "shadowrealm-api": "^0.8.2",
-    "twind": "^0.16.19"
+    "tar": "^6.1.13",
+    "twind": "^0.16.19",
+    "typescript": "^4.9.5"
   }
 }
