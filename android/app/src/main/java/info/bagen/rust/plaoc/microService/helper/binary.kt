@@ -5,8 +5,6 @@ import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.ByteBuffer
 import java.util.*
-import kotlin.io.path.Path
-import kotlin.io.path.toPath
 
 val base64Encoder by lazy {
     Base64.getEncoder()

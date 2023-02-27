@@ -9,7 +9,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.*
-import info.bagen.rust.plaoc.microService.android.BrowserActivity
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.RejectedExecutionHandler
 import java.util.concurrent.ThreadPoolExecutor

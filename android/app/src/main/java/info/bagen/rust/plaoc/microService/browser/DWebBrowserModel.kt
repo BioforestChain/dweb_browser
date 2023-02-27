@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.webview
+package info.bagen.rust.plaoc.microService.browser
 
 import android.net.Uri
 import androidx.compose.runtime.MutableState

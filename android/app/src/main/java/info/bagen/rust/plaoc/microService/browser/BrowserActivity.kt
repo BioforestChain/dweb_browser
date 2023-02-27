@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.android
+package info.bagen.rust.plaoc.microService.browser
 
 import android.Manifest
 import android.content.DialogInterface
@@ -45,9 +45,6 @@ import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.QRCodeScanningActivity
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
-import info.bagen.rust.plaoc.microService.webview.DWebBrowserIntent
-import info.bagen.rust.plaoc.microService.webview.DWebBrowserModel
-import info.bagen.rust.plaoc.microService.webview.MultiDWebBrowserView
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.webView.network.dWebView_host

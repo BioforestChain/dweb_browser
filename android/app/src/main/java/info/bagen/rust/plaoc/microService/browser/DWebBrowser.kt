@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.webview
+package info.bagen.rust.plaoc.microService.browser
 
 import android.annotation.SuppressLint
 import android.content.Context

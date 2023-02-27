@@ -1,14 +1,14 @@
 package info.bagen.rust.plaoc.microService.sys.mwebview
 
+import android.content.Intent
+import android.os.Bundle
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.core.queries
 import org.http4k.lens.Query
-import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -18,28 +18,30 @@ inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null
 
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
+    companion object {
+
+        val activityMap = mutableMapOf<Mmid, PromiseOut<MutilWebViewActivity>>()
+    }
 
     override suspend fun _bootstrap() {
         // 打开webview
+
+        val query_url = Query.string().required("url")
+        val query_webviewId = Query.string().required("webview_id")
+
         apiRouting = routes(
-            "/open" bind Method.GET to defineHandler { request ->
+            "/open" bind Method.GET to defineHandler { request, ipc ->
                 // 接收process_id 用于区分应用内多页面，如果传递process_id 就是要去打开旧页面
-                val queryProcessId = Query.string().optional("process_id")
-                val processId = queryProcessId(request)
-                val queryOrigin = Query.string().required("url")
-                val origin = queryOrigin(request)
-                debugMultiWebView("MultiWebViewNMM#apiRouting open","mmid:$mmid  origin:$origin processId:$processId")
-                val webViewId = openDwebView(origin, processId)
-                Response(Status.OK, webViewId)
+                val url = query_url(request)
+                val remoteMmid = ipc.remote.mmid
+                openDwebView(remoteMmid, url)
             },
-            "/close" bind Method.GET to defineHandler { request ->
-                val queryProcessId = Query.string().required("process_id")
-                val processId = queryProcessId(request)
-                debugMultiWebView("MultiWebViewNMM#apiRouting close","mmid:$mmid  processId:$processId")
-                closeDwebView(processId)
-                true
-            }
-        )
+            "/close" bind Method.GET to defineHandler { request, ipc ->
+                val webviewId = query_webviewId(request)
+                val remoteMmid = ipc.remote.mmid
+
+                closeDwebView(remoteMmid, webviewId)
+            })
     }
 
     override suspend fun _shutdown() {
@@ -49,14 +51,31 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     private var viewTree: ViewTree = ViewTree()
 
 
-    fun openDwebView(origin: String, processId: String?): String {
-        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId)
-            ?: "Error: not found mount process!!!"
+    @Synchronized
+    private fun openMutilWebViewActivity(remoteMmid: Mmid) = activityMap.getOrPut(remoteMmid) {
+        debugMultiWebView("OPEN-ACTIVITY", "remote-mmid: $remoteMmid")
+        App.startActivity(MutilWebViewActivity::class.java) { intent ->
+            intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            intent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT)
+            val b = Bundle();
+            b.putString("mmid", remoteMmid);
+            intent.putExtras(b);
+        }
+        PromiseOut()
     }
 
-    private fun closeDwebView(processId: String?) {
-//        return this.viewTree.removeNode(nodeId)
-        // TODO 关闭DwebView
+    private suspend fun openDwebView(remoteMmid: Mmid, url: String): String {
+        debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")
+        val activity = openMutilWebViewActivity(remoteMmid).waitPromise()
+        return activity.openWebView(url)
+    }
+
+    private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
+        debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / webview-id:$webviewId")
+        val activity = activityMap[remoteMmid]?.waitPromise()
+            ?: throw Exception("no found activity for mmid: $remoteMmid")
+
+        return activity.closeWebView(webviewId)
     }
 }
 
@@ -78,10 +97,8 @@ class ViewTree {
     private var currentProcess = 0
 
     data class ViewTreeStruct(
-        val id: Int,
-        val processId: Int, //processId as parentId
-        val origin: String,
-        val children: MutableList<ViewTreeStruct?>
+        val id: Int, val processId: Int, //processId as parentId
+        val origin: String, val children: MutableList<ViewTreeStruct?>
     )
 
     fun createNode(origin: String, processId: String?): ViewTreeStruct {
@@ -92,10 +109,8 @@ class ViewTree {
             cProcessId = processId.toInt()
         }
         return ViewTreeStruct(
-            id = cProcessId + 1,
-            processId = cProcessId, // self add node id
-            origin = origin,
-            children = mutableListOf()
+            id = cProcessId + 1, processId = cProcessId, // self add node id
+            origin = origin, children = mutableListOf()
         )
     }
 

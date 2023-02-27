@@ -9,7 +9,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.android.BrowserActivity
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.microService.sys.plugin.deepLink.DWebReceiver
 

@@ -34,7 +34,7 @@ import com.king.mlkit.vision.camera.CameraScan
 import com.king.mlkit.vision.camera.analyze.Analyzer
 import com.king.mlkit.vision.camera.util.LogUtils
 import com.king.mlkit.vision.camera.util.PermissionUtils
-import info.bagen.rust.plaoc.microService.android.BrowserActivity
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.util.lib.drawRect
 import kotlinx.coroutines.GlobalScope

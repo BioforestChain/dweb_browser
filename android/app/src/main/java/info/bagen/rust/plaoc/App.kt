@@ -3,12 +3,13 @@ package info.bagen.rust.plaoc
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import info.bagen.libappmgr.di.libRepositoryModule
 import info.bagen.libappmgr.di.libViewModelModule
 import info.bagen.libappmgr.utils.ClipboardUtil
 import info.bagen.rust.plaoc.di.appModules
-import info.bagen.rust.plaoc.microService.android.BrowserActivity
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
 import kotlinx.coroutines.GlobalScope
@@ -26,6 +27,12 @@ class App : Application() {
 
         var browserActivity: BrowserActivity? = null
         var dwebViewActivity: DWebViewActivity? = null
+
+        fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
+            val intent = Intent(appContext.applicationContext, cls)
+            onIntent(intent)
+            appContext.startActivity(intent)
+        }
     }
 
     override fun onCreate() {
