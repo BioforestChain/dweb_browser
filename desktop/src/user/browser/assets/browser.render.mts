@@ -166,15 +166,8 @@ class HomePage extends LitElement{
         `
     }
 
-    // .style=${{
-    //     backgroundImage: "url(/icon?id="+ item.bfsAppId +"&name="+ item.icon +")",
-    //     backgroundColor: "red"
-    // }} 
-    //  style=${styleMap({backgroundImage: "url(./icon/"+ item.bfsAppId +"/sys"+ item.icon +")"})}
-
     override connectedCallback(){
         super.connectedCallback();
-        var bc = new BroadcastChannel('aaa');
     }
 
     onSearch(){

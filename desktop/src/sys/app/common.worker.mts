@@ -1,7 +1,10 @@
 // 全部 dweb_app 提供 基础worker
-import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { createHttpDwebServer } from "../../sys/http-server/$listenHelper.cjs";
+
+import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs"
+import type { Ipc } from "../../core/ipc/ipc.cjs"
+ 
 /**
  * 执行入口函数
  */
@@ -10,25 +13,12 @@ export const main = async () => {
     // origin === http://app.w85defe5.dweb-80.localhost:22605
     const { origin, listen } = await createHttpDwebServer(jsProcess, {});
     (await listen()).onRequest(async (request, httpServerIpc) =>{
-      console.log('common.worker.mts 接受到了请求 把请求转发出去 request', request)
-      // request.parsed_url 可以拿到 w85defe5.app.dweb host
-      // 把全部的请求发送给 app.sys.dweb 程序
-      // app.sys.dweb 提供全全部的请求处理
-      // 请求的处理必须要添加 appId
-      const host = new URL(origin).host.split(".")
-      const _url = `file://app.sys.dweb/server?url=${origin}${request.url}`
-      console.log('[]common.worker.mts:_url: ', _url)
-      const response = await jsProcess.fetch(_url)
-      httpServerIpc.postMessage(
-        await IpcResponse.fromResponse(
-          request.req_id,
-          response,
-          httpServerIpc
-        )
-      );
+      switch(request.url){
+        case (request.url.startsWith("/operation_from_plugins?") ? request.url : "**eot**"): onRequestAtOperationFromPlugins(request, httpServerIpc); break;
+        default: onRequestDefault(origin,request, httpServerIpc); break;
+      }
     });
-    console.log('执行了 common.worker.mts main 载入 html origin:', origin)
-    // 这里有问题，不需要打开一个新的window
+    
     await openIndexHtmlAtMWebview(origin)
 };
 
@@ -40,9 +30,37 @@ main().catch(console.error);
  * @returns 
  */
 async function openIndexHtmlAtMWebview(origin:string){
-  console.log('--------common.worker.mts, origin: ', origin)
   const view_id = await jsProcess
                         .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
                         .text();
   return view_id
+}
+
+async function onRequestAtOperationFromPlugins(request: IpcRequest, ipc: Ipc){
+  const _path = request.headers["plugin-target"]
+  const _appUrl = request.parsed_url.searchParams.get("app_url")
+  const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`
+  jsProcess
+  .fetch(_url, {method: request.method, body: request.body, headers:request.headers})
+  .then(async(res: Response) => {
+    ipc.postMessage(
+      await IpcResponse.fromResponse(
+        request.req_id,
+        res,
+        ipc
+      )
+    );
+  })
+}
+
+async function onRequestDefault(origin: string, request: IpcRequest, ipc: Ipc){
+  const _url = `file://www.sys.dweb/server?url=${origin}${request.url}`
+  const response = await jsProcess.fetch(_url)
+  ipc.postMessage(
+    await IpcResponse.fromResponse(
+      request.req_id,
+      response,
+      ipc
+    )
+  );
 }

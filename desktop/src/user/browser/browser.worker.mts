@@ -114,12 +114,10 @@ async function onRequestPathNameDownload(request: IpcRequest, httpServerIpc: Ipc
  */
 async function onRequestPathNameAppsInfo(request: IpcRequest, httpServerIpc: Ipc){
   const url = `file://file.sys.dweb/appsinfo`
-  
   jsProcess
   fetch(url)
   .then(async(res: Response) => {
     // 转发给 html
-    console.log("转发给 html 成功")
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(
         request.req_id,
@@ -211,8 +209,9 @@ async function onRequestPathNameOpen(request: IpcRequest, httpServerIpc: Ipc){
  * @param httpServerIpc 
  */
 async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
-  const _url = `file://statusbar.sys.dweb${request.url}`
-  console.log('[browser.worker.mts onRequestPathOperation]', request.method, request.body, _url)
+  const _path = request.headers["plugin-target"]
+  const _appUrl = request.parsed_url.searchParams.get("app_url")
+  const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`
   jsProcess
   fetch(_url, {method: request.method, body: request.body, headers:request.headers})
   .then(async(res: Response) => {
@@ -227,13 +226,6 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
   })
   .then( async (err) => {
     console.log('[browser.worker.mts onRequestPathOperation err:]', err)
-    // httpServerIpc.postMessage(
-    //   await IpcResponse.fromText(
-    //     request.req_id,
-    //     err,
-    //     httpServerIpc
-    //   )
-    // );
   })
 }
 

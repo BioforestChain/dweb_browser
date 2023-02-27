@@ -24,6 +24,12 @@ dns.install(new FileNMM());
 import { AppNMM } from "./sys/app/app.cjs"
 dns.install(new AppNMM())
 
+import { WWWNMM } from "./sys/www/www.cjs";
+dns.install(new WWWNMM());
+
+import { ApiNMM } from "./sys/api/api.cjs";
+dns.install(new ApiNMM())
+
 // 安装 statusbar.sys.dweb 
 import { StatusbarNMM } from "./sys/statusbar/statusbar.main.cjs"
 dns.install(new StatusbarNMM())
@@ -31,5 +37,6 @@ dns.install(new StatusbarNMM())
 // 安装 plugins.sys.dweb 服务
 import { PluginsNMM } from "./sys/plugins/plugins.main.cjs";
 dns.install(new PluginsNMM()) 
+
 
 Object.assign(globalThis, { dns: dns });
