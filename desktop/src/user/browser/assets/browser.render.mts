@@ -217,7 +217,8 @@ class HomePage extends LitElement{
         // 打开一个新的 window 窗口
         response = await fetch(`./open?appId=${appId}`)
     }
- 
+     
+    
     async setStatusbarBackground(color: string){
         // 测试是否可以通过直接向 statusbar.sys.dweb 发送消息实现了？？
         const el = document.querySelector('statusbar-dweb') 
@@ -246,6 +247,7 @@ class HomePage extends LitElement{
         // @ts-ignore
         const result = await el.setOverlaysWebview(value)
     }
+    
 }
  
 customElements.define('home-page', HomePage)
