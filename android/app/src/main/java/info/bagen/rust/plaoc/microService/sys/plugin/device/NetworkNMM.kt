@@ -4,10 +4,19 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
 import android.net.NetworkCapabilities
+import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.sys.plugin.device.model.NetWorkInfo
+import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
+import org.http4k.format.Jackson.asJsonObject
+import org.http4k.routing.bind
+import org.http4k.routing.routes
 
 
-class Network() {
+class NetworkNMM():NativeMicroModule("network.sys.dweb") {
     private val mStatusChangeListener: ArrayList<NetworkStatusChangeListener> = arrayListOf()
 
     private var mConnectivityCallback: ConnectivityCallback? = null
@@ -16,11 +25,29 @@ class Network() {
     // private var mReceiver: BroadcastReceiver? = null
     private var mNetworkStatus: NetworkStatus? = null
 
+    val networkInfo = NetWorkInfo()
+
+    override suspend fun _bootstrap() {
+        apiRouting = routes(
+            /** 获取当前网络状态*/
+            "/status" bind Method.GET to defineHandler { request ->
+                val result = JsonUtil.toJson(getNetworkStatus())
+                Response(Status.OK).body(result)
+            },
+            /** 获取当前网络信息*/
+            "/info" bind Method.GET to defineHandler { request ->
+                val result = networkInfo.getNetWorkInfo()
+                Response(Status.OK).body(result)
+            },
+        )
+    }
+
     companion object {
         val sInstance by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-            Network()
+            NetworkNMM()
         }
     }
+
 
     init {
         mConnectivityManager =
@@ -78,22 +105,10 @@ class Network() {
     fun removeAllListeners() {
         mStatusChangeListener.clear()
     }
-
     fun getNetworkStatus(): NetworkStatus {
         return mNetworkStatus ?: getNetworkInfo()
     }
-
     private fun getNetworkInfo(): NetworkStatus {
-        /* // 软件版本比N高，所以无需判断版本号
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-          getNetworkInfoAfterN()
-        } else {
-          getNetworkInfoBeforeN()
-        }*/
-        return getNetworkInfoAfterN()
-    }
-
-    private fun getNetworkInfoAfterN(): NetworkStatus {
         val networkStatus = NetworkStatus()
         mConnectivityManager?.let { connectivityManager ->
             val activeNetwork = connectivityManager.activeNetwork
@@ -128,6 +143,11 @@ class Network() {
             }
         }
         return networkStatus
+    }
+
+
+    override suspend fun _shutdown() {
+        TODO("Not yet implemented")
     }
 
     /*fun startMonitoring() {

@@ -2984,6 +2984,35 @@ var main = async () => {
     const view_id = await jsProcess.fetch(
       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
     ).text();
+    console.log("view_id:", view_id)
+
+    const clWrite = await jsProcess.fetch(`file://clipboard.sys.dweb/write?string="我是复制到剪切板的内容🍅"&label="🥥"`).text()
+    console.log("clipboard:write", clWrite)
+    const clRead = await jsProcess.fetch(`file://clipboard.sys.dweb/read`).text()
+    console.log("clipboard:read", clRead)
+
+    const deviceInfo = await jsProcess.fetch(`file://device.sys.dweb/info`).text()
+    console.log("device:Info ", deviceInfo)
+    const deviceAppInfo = await jsProcess.fetch(`file://device.sys.dweb/appInfo`).text()
+    console.log("device:AppInfo ", deviceAppInfo)
+    const deviceVersion = await jsProcess.fetch(`file://device.sys.dweb/mobileVersion`).text()
+    console.log("device:Version ", deviceVersion)
+    const deviceBattery = await jsProcess.fetch(`file://device.sys.dweb/batteryInfo`).text()
+    console.log("device:Battery ", deviceBattery)
+    const deviceStorage = await jsProcess.fetch(`file://device.sys.dweb/storage`).text()
+    console.log("device:Storage ", deviceStorage)
+    const deviceModule = await jsProcess.fetch(`file://device.sys.dweb/module`).text()
+    console.log("device:Module ", deviceModule)
+
+    const location = await jsProcess.fetch(`file://location.sys.dweb/info`).text()
+    console.log("location:info ", location)
+
+    const networkInfo = await jsProcess.fetch(`file://network.sys.dweb/info`).text()
+    console.log("network:info ", networkInfo)
+    const networkStatus = await jsProcess.fetch(`file://network.sys.dweb/status`).text()
+    console.log("network:status ", networkStatus)
+
+
   }
 };
 main().catch(console.error);

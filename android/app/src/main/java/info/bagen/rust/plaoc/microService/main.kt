@@ -8,6 +8,12 @@ import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.device.DeviceNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.device.LocationNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.device.NetworkNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.FileSystemNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionsNMM
 
 suspend fun startDwebBrowser() {
     System.setProperty("dweb-debug", listOf("message-port-ipc").joinToString(" ") { it })
@@ -24,6 +30,18 @@ suspend fun startDwebBrowser() {
 
     ///安装剪切板
     val clipboardNMM  = ClipboardNMM().also { dnsNMM.install(it) }
+    ///设备信息
+    val deviceNMM = DeviceNMM().also { dnsNMM.install(it) }
+    ///位置
+    val locationNMM = LocationNMM().also { dnsNMM.install(it)}
+    /// 蓝牙
+    val bluetoothNMM = BluetoothNMM().also { dnsNMM.install(it) }
+    /// 网络
+    val networkNMM = NetworkNMM().also { dnsNMM.install(it) }
+    ///权限
+    val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
+    ///文件系统
+    val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
 
     /// 安装用户应用
     val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }
