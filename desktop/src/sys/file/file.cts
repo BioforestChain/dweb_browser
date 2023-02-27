@@ -86,14 +86,11 @@ export class FileNMM extends NativeMicroModule {
         input: {},
         output: "boolean",
         handler: async (args,client_ipc, request) => {
-
-          // console.log('file.cts /icon request: ', args, client_ipc, request, )
           const url = new URL(request.url)
           const searchParams = url.searchParams
-          // console.log('searchParams: ', searchParams)
           const appId = searchParams.get('appId')
           const name = searchParams.get("name")
-          const _path = path.resolve(process.cwd(), `./apps/${appId}/sys/assets/react.svg`)
+          const _path = path.resolve(process.cwd(), `./apps/${appId}/sys/assets/${name}`)
           const svgStr = await fsPromises.readFile(_path, {encoding: "utf8"})
           return IpcResponse.fromText(
             request.req_id,

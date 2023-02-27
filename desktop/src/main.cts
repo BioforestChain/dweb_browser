@@ -24,6 +24,9 @@ dns.install(new FileNMM());
 import { AppNMM } from "./sys/app/app.cjs"
 dns.install(new AppNMM())
 
+import { WWWNMM } from "./sys/www/www.cjs";
+dns.install(new WWWNMM());
+
 // 安装 statusbar.sys.dweb 
 import { StatusbarNMM } from "./sys/statusbar/statusbar.main.cjs"
 dns.install(new StatusbarNMM())

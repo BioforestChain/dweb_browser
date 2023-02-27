@@ -15,11 +15,9 @@ export class DnsNMM extends NativeMicroModule {
   mmid = "dns.sys.dweb" as const;
   private apps = new Map<$MMID, MicroModule>();
   override _bootstrap() {
-    // const parseArgs_open = $parseRequestToParams({ app_id: "mmid" });
-    // const parseArgs_close = $parseRequestToParams({ app_id: "mmid" });
     this.install(this);
     this.running_apps.set(this.mmid, this);
-
+    // 注册动态安装模块的事件监听器
     this.registerCommonIpcOnMessageHandler({
       pathname: "/install-js",
       matchMode: "full",
@@ -44,9 +42,9 @@ export class DnsNMM extends NativeMicroModule {
             "Content-Type": "text/json"
           })
         )
-        
       },
     });
+
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
       matchMode: "full",
@@ -58,6 +56,7 @@ export class DnsNMM extends NativeMicroModule {
         return true;
       },
     });
+    
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
       matchMode: "full",
