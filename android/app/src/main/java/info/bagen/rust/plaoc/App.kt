@@ -12,8 +12,7 @@ import info.bagen.rust.plaoc.di.appModules
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidFileProperties
 import org.koin.android.ext.koin.androidLogger
@@ -29,9 +28,13 @@ class App : Application() {
         var dwebViewActivity: DWebViewActivity? = null
 
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
-            val intent = Intent(appContext.applicationContext, cls)
-            onIntent(intent)
-            appContext.startActivity(intent)
+            runBlocking {
+                withContext(Dispatchers.Main) {
+                    val intent = Intent(appContext.applicationContext, cls)
+                    onIntent(intent)
+                    appContext.startActivity(intent)
+                }
+            }
         }
     }
 

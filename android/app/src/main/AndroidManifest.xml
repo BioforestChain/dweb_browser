@@ -69,33 +69,7 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.plaoc" />
         <activity
-            android:name=".system.barcode.MultipleQRCodeScanningActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/CameraScanTheme" />
-        <activity
-            android:name=".system.barcode.QRCodeScanningActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/CameraScanTheme">
-            <intent-filter>
-                <action android:name="info.bagen.rust.plaoc.qrcodescan" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".system.barcode.BarcodeScanningActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/CameraScanTheme" />
-
-        <service
-            android:name=".DenoService"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="info.bagen.rust.plaoc.DenoService" />
-            </intent-filter>
-        </service>
+            android:name=".microService.sys.mwebview.MutilWebViewActivity" />
 
         <meta-data
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"

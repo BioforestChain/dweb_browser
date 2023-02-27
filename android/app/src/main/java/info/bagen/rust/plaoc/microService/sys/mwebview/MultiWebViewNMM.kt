@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
@@ -27,14 +28,15 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         // 打开webview
 
         val query_url = Query.string().required("url")
+        val query_dwebHost = Query.string().optional("dweb-host")
         val query_webviewId = Query.string().required("webview_id")
 
         apiRouting = routes(
             "/open" bind Method.GET to defineHandler { request, ipc ->
                 // 接收process_id 用于区分应用内多页面，如果传递process_id 就是要去打开旧页面
                 val url = query_url(request)
-                val remoteMmid = ipc.remote.mmid
-                openDwebView(remoteMmid, url)
+                val dwebHost = query_dwebHost(request)
+                openDwebView(ipc.remote, url, dwebHost)
             },
             "/close" bind Method.GET to defineHandler { request, ipc ->
                 val webviewId = query_webviewId(request)
@@ -56,7 +58,10 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         debugMultiWebView("OPEN-ACTIVITY", "remote-mmid: $remoteMmid")
         App.startActivity(MutilWebViewActivity::class.java) { intent ->
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
             intent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
             val b = Bundle();
             b.putString("mmid", remoteMmid);
             intent.putExtras(b);
@@ -64,10 +69,15 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         PromiseOut()
     }
 
-    private suspend fun openDwebView(remoteMmid: Mmid, url: String): String {
+    private suspend fun openDwebView(
+        remoteMm: MicroModule,
+        url: String,
+        dwebHost: String?
+    ): String {
+        val remoteMmid = remoteMm.mmid
         debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")
         val activity = openMutilWebViewActivity(remoteMmid).waitPromise()
-        return activity.openWebView(url)
+        return activity.openWebView(remoteMm, url, dwebHost)
     }
 
     private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {

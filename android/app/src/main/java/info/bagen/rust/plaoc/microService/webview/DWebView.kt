@@ -77,7 +77,9 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
     private val evaluator = WebViewEvaluator(this)
 
     init {
-        settings.userAgentString += " dweb-host/${options.dwebHost}"
+        if (options.dwebHost.isNotEmpty()) {
+            settings.userAgentString += " dweb-host/${options.dwebHost}"
+        }
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.databaseEnabled = true

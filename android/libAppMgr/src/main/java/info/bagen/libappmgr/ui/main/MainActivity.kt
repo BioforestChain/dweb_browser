@@ -70,7 +70,7 @@ fun Home(
         // AppContextUtil.appInfoList.clear()
         // AppContextUtil.appInfoList.addAll(FilesUtil.getAppInfoList())
         appViewModel.handleIntent(AppViewIntent.LoadAppInfoList) // 新增的加载
-        CoroutineUpdateTask().scheduleUpdate(1000 * 60) // 轮询执行
+//        CoroutineUpdateTask().scheduleUpdate(1000 * 60) // 轮询执行
     }
     //AppInfoGridView(appInfoList = AppContextUtil.appInfoList, downModeDialog = true, onOpenApp = onOpenDWebview)
     //AppInfoGridView(appViewModel, onOpenApp = onOpenDWebview)

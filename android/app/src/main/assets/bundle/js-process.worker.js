@@ -2889,7 +2889,7 @@ var Metadata = class {
   requiredString(key) {
     const val = this.optionalString(key);
     if (val === void 0) {
-      throw new Error(`no found ${key}`);
+      throw new Error(`no found (string) ${key}`);
     }
     return val;
   }
@@ -2902,7 +2902,10 @@ var Metadata = class {
   }
   requiredBoolean(key) {
     const val = this.optionalBoolean(key);
-    return val === true;
+    if (val === void 0) {
+      throw new Error(`no found (boolean) ${key}`);
+    }
+    return val;
   }
   optionalBoolean(key) {
     const val = this.optionalString(key);
@@ -2925,9 +2928,10 @@ var js_process_ipc_support_protocols = (() => {
   };
 })();
 var JsProcessMicroModule = class {
-  constructor(mmid, host) {
+  constructor(mmid, host, meta) {
     this.mmid = mmid;
     this.host = host;
+    this.meta = meta;
     this.ipc_support_protocols = js_process_ipc_support_protocols;
   }
   fetch(input, init) {
@@ -2949,7 +2953,7 @@ var waitFetchIpc = (jsProcess2) => {
   });
 };
 var installEnv = async (mmid, host) => {
-  const jsProcess2 = new JsProcessMicroModule(mmid, host);
+  const jsProcess2 = new JsProcessMicroModule(mmid, host, metadata);
   const fetchIpc = await waitFetchIpc(jsProcess2);
   const native_fetch = globalThis.fetch;
   function fetch2(url, init) {
