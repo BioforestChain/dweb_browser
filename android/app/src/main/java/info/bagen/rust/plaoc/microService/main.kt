@@ -7,6 +7,7 @@ import info.bagen.rust.plaoc.microService.sys.http.HttpNMM
 import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
+import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
 
 suspend fun startDwebBrowser() {
     System.setProperty("dweb-debug", listOf("message-port-ipc").joinToString(" ") { it })
@@ -20,6 +21,9 @@ suspend fun startDwebBrowser() {
 
     /// 安装系统桌面
     val browserNMM = BrowserNMM().also { dnsNMM.install(it) }
+
+    ///安装剪切板
+    val clipboardNMM  = ClipboardNMM().also { dnsNMM.install(it) }
 
     /// 安装用户应用
     val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }

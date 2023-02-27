@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -12,6 +13,8 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
+inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("MultiWebViewNMM", tag, msg, err)
 
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
@@ -20,18 +23,19 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         // 打开webview
         apiRouting = routes(
             "/open" bind Method.GET to defineHandler { request ->
-                val queryProcessId = Query.string().required("process_id")
+                // 接收process_id 用于区分应用内多页面，如果传递process_id 就是要去打开旧页面
+                val queryProcessId = Query.string().optional("process_id")
                 val processId = queryProcessId(request)
-                val queryOrigin = Query.string().required("origin")
+                val queryOrigin = Query.string().required("url")
                 val origin = queryOrigin(request)
-                println("MultiWebViewNMM#apiRouting open===>$mmid  origin:$origin processId:$processId")
-                val webViewId =  openDwebView(origin,processId)
-                Response(Status.OK,webViewId)
+                debugMultiWebView("MultiWebViewNMM#apiRouting open","mmid:$mmid  origin:$origin processId:$processId")
+                val webViewId = openDwebView(origin, processId)
+                Response(Status.OK, webViewId)
             },
             "/close" bind Method.GET to defineHandler { request ->
                 val queryProcessId = Query.string().required("process_id")
                 val processId = queryProcessId(request)
-                println("MultiWebViewNMM#apiRouting close===>$mmid  processId$processId")
+                debugMultiWebView("MultiWebViewNMM#apiRouting close","mmid:$mmid  processId:$processId")
                 closeDwebView(processId)
                 true
             }
@@ -46,10 +50,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 
 
     fun openDwebView(origin: String, processId: String?): String {
-        println("Kotlin#MultiWebViewNMM openDwebView $origin")
-        return ""
-//        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId)
-//            ?: "Error: not found mount process!!!"
+        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId)
+            ?: "Error: not found mount process!!!"
     }
 
     private fun closeDwebView(processId: String?) {
@@ -104,7 +106,7 @@ class ViewTree {
             if (node.id == processId) {
                 // 因为节点已经加入了，所以当前节点进程移动到新创建的节点
                 currentProcess = webViewNode.id
-                println("multiWebView#currentProcess:$currentProcess")
+//                println("multiWebView#currentProcess:$currentProcess")
                 node.children.add(webViewNode)
                 return webViewNode.id
             }
