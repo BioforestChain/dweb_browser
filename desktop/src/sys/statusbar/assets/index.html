@@ -170,8 +170,8 @@
         let backgroundColor="#FFFF"
         // 是否覆盖 
         // 可能的值 boolean
-        // 默认的值 true
-        let isOverlays = true; 
+        // 默认的值 false 不覆盖
+        let isOverlays = false; 
 
         const elContainer = document.querySelector('.container')
         // statusbar 所在挂在的iframe 对象
@@ -213,6 +213,12 @@
             elContainer.setAttribute('class', classNames)
         }
 
+        // 设置 statusbar 是否覆盖
+        function setOverlays(value){
+            this.isOverlays = value == "0" ? false : true;
+            iframe.style.position = this.isOverlays ? "absolute" : "relative";
+        }
+
         /*
             监听操作的方法
         */
@@ -237,6 +243,13 @@
                 if(value.action === 'get_style'){
                     // 需要这个 style 的值发送出去
                     fetchReturn(style, id)
+                    return;
+                }
+
+                if(value.action === "set_overlays"){
+                    fetchReturn(value.value, id)
+                    console.log("接受到了 set_overlays",value)
+                    setOverlays(value.value);
                     return;
                 }
             })
