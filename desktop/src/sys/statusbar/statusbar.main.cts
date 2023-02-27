@@ -1,4 +1,4 @@
-// 状态栏模块-用来提供状态UI和操作状态栏UI的模块
+// 模拟状态栏模块-用来提供状态UI的模块
 import fsPromises from "node:fs/promises"
 import path from "node:path"
 import process from "node:process";
@@ -30,7 +30,7 @@ export class StatusbarNMM extends NativeMicroModule {
   private _statusbarPluginsNoReleaseRequestMap = new Map<string, $StatusbarPluginsRequestQueueItem[]>()    // statusbar.plugins 发起更改状态栏设置已经出发更改但是还没有返回结果的队列
   private _allocId = 0;
   // 必须要通过这样启动才可以
-  // jsProcess.fetch(`file://statusbar.sys.dweb/}`) 主要必须要有最后面的路径
+  
   async _bootstrap() {
     const { origin, listen, close } = await createHttpDwebServer(this, {});
     this._close_dweb_server = close;
@@ -54,6 +54,7 @@ export class StatusbarNMM extends NativeMicroModule {
         );
         return ;
       }
+      
 
       // 处理操作完成后 statusbar.html 发送过来的数据
       if(request.parsed_url.pathname === '/operation_return'){
@@ -144,9 +145,7 @@ export class StatusbarNMM extends NativeMicroModule {
         // 添加到队列中
         this._statusbarHtmlRequestMap.set(appUrlFromStatusbarHtml, {ipc: ipc, request: request, appUrl: appUrlFromStatusbarHtml})
         this._sendToStatusbarHtml(appUrlFromStatusbarHtml)
-       
       } 
-     
     });
 
     // const root_url = new URL("/index.html", origin).href;
@@ -154,7 +153,7 @@ export class StatusbarNMM extends NativeMicroModule {
     // jsProcess.fetch(`file://statusbar.sys.dweb/open?***}`) 事件监听器 
     // 监听启动请求 - 必须要有一个注册否则调用的地方 wati 就死了;
     // 监听请求页面
-    console.log('[statusbar.main.cts registerCommonIpcOnMessageHandler path /]')
+    // console.log('[statusbar.main.cts registerCommonIpcOnMessageHandler path /]')
     this.registerCommonIpcOnMessageHandler({
       pathname: "/",
       matchMode: "full",
@@ -196,7 +195,6 @@ export class StatusbarNMM extends NativeMicroModule {
         // 把 ststusbar.plugings 的请求保存到队列
         // 调用这个执行发送国的函数 执行发送的函数必须是await 
         // 等待这个调用的函数执行完毕后在返回？？
-
         let statusbarPluginRequest = this._statusbarPluginsRequestMap.get(appUrlFromApp)
         const result = await new Promise<IpcResponse>(resolve => {
           if(statusbarPluginRequest === undefined){

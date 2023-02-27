@@ -37,9 +37,11 @@ async function openIndexHtmlAtMWebview(origin:string){
 }
 
 async function onRequestAtOperationFromPlugins(request: IpcRequest, ipc: Ipc){
-  const _url = `file://statusbar.sys.dweb${request.url}`
+  const _path = request.headers["plugin-target"]
+  const _appUrl = request.parsed_url.searchParams.get("app_url")
+  const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`
   jsProcess
-  fetch(_url, {method: request.method, body: request.body, headers:request.headers})
+  .fetch(_url, {method: request.method, body: request.body, headers:request.headers})
   .then(async(res: Response) => {
     ipc.postMessage(
       await IpcResponse.fromResponse(

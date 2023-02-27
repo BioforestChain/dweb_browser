@@ -12,6 +12,7 @@ import type {
 import { NativeIpc } from "./ipc.native.cjs";
 import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.cjs";
 import { MicroModule } from "./micro-module.cjs";
+import chalk from "chalk";
 
 export abstract class NativeMicroModule extends MicroModule {
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
@@ -65,8 +66,11 @@ export abstract class NativeMicroModule extends MicroModule {
       client_ipc.onRequest(async (request) => {
         const { pathname } = request.parsed_url;
         let response: IpcResponse | undefined;
+        // 添加了一个判断 如果没有注册匹配请求的监听器会有信息弹出到 终端;
+        let has = false;
         for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {
           if ($isMatchReq(hanlder_schema, pathname, request.method)) {
+            has = true;
             try {
             
               const result = await hanlder_schema.handler(
@@ -98,7 +102,9 @@ export abstract class NativeMicroModule extends MicroModule {
           }
         }
 
-
+        if(!has) { /** 没有匹配的事件处理器 弹出终端 优化了开发体验 */
+          console.log(chalk.red('[micro-module.native.cts 没有匹配的注册方法 mmid===]',this.mmid), "请求的方法是",request);
+        }
 
         if (response === undefined) {
           response = IpcResponse.fromText(

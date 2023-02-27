@@ -44,8 +44,8 @@ export class PluginsNMM extends NativeMicroModule {
     
     // 下面注册的是 
     // jsProcess.fetch(`file://plugins.sys.dweb/get}`) 事件监听器 
-    // 监听启动请求 - 必须要有一个注册否则调用的地方 wati 就死了;
-    // 监听请求页面
+    // 提供 plugins webComponent 的代码文本
+    // 是 src/plugins 目录下的文件打包后的内容 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/get",
       matchMode: "full",
