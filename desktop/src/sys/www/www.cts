@@ -53,14 +53,25 @@ export class WWWNMM extends NativeMicroModule{
 async function onServerAtIndexHtml(args: unknown, client_ipc: Ipc, ipc_request: IpcRequest, folderName: string){
     const targetPath = path.resolve(process.cwd(), `./apps/${folderName}/sys/index.html`)
     const content = await fsPromises.readFile(targetPath)
-    console.log("[app.cts onServerAtIndexHtml]:", content)
-    return IpcResponse.fromBinary(
+    let contentStr = new TextDecoder().decode(content)
+        contentStr = await injectPluginsToHTML(contentStr)
+    return IpcResponse.fromText(
         ipc_request.req_id,
         200,
-        content,
+        contentStr,
         new IpcHeaders({ "Content-Type": "text/html" }),
-        client_ipc
     )
+}
+
+/**
+ * 向html字符串中插入 plugins 代码
+ * @param html 
+ */
+async function injectPluginsToHTML(html: string): Promise<string>{
+    const targetPath = path.resolve(process.cwd(), "./bundle/plugins.txt");
+    const pluginsBuffer = await fsPromises.readFile(targetPath)
+    const pluginsText = new TextDecoder().decode(pluginsBuffer);
+    return html.replace("<body>",`<body><script type="text/javascript">${pluginsText}</script>`)
 }
 
 /**
