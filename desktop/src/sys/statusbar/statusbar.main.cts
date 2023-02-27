@@ -1,41 +1,22 @@
-// 状态栏 主程序
-// import { resolveToRootFile } from "../../helper/createResolveTo.cjs";
-// import { JsMicroModule } from "../../sys/micro-module.js.cjs";
-
-// export const statusbarJMM = new JsMicroModule("statusbar.sys.dweb", {
-//   main_url: resolveToRootFile("bundle/statusbar.worker.js").href,
-// } as const);
+// 状态栏模块-用来提供状态UI和操作状态栏UI的模块
 import fsPromises from "node:fs/promises"
 import path from "node:path"
 import process from "node:process";
-import { pathToFileURL } from "node:url";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { createResolveTo } from "../../helper/createResolveTo.cjs";
 import { locks } from "../../helper/locksManager.cjs";
 import {
   $NativeWindow,
   openNativeWindow,
 } from "../../helper/openNativeWindow.cjs";
 import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
-const resolveTo = createResolveTo(__dirname);
-
-
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { Remote } from "comlink";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs"
- 
- 
-
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
-/**
- * 构建一个视图树
- * 如果是桌面版，所以不用去管树的概念，直接生成生成就行了
- * 但这里是模拟手机版，所以还是构建一个层级视图
- */
 export class StatusbarNMM extends NativeMicroModule {
   mmid = "statusbar.sys.dweb" as const;
   private _uid_wapis_map = new Map<
@@ -55,10 +36,7 @@ export class StatusbarNMM extends NativeMicroModule {
     this._close_dweb_server = close;
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
-    
-    console.log("[statusbar.main.cts 注册了 onRequest]")
     ;(await listen()).onRequest(async (request, ipc) => {
-
       // 监听 http:// 协议的请求
       // 通过 fetch("http://statusbar.sys.dweb-80.localhost:22605/") 访问的请求会被发送到这个位置
       // console.log('[statusbar.main.cts onRequest---]: ', request)
@@ -115,18 +93,9 @@ export class StatusbarNMM extends NativeMicroModule {
         let itemIndex = statusbarPluginsNoReleaseRequest.findIndex(_item => _item.id === id)
         let item = statusbarPluginsNoReleaseRequest[itemIndex]
                   statusbarPluginsNoReleaseRequest.splice(itemIndex, 1)
-        //           console.log('[statusbar.main.cts /operation_return appUrlFromStatusbarHtml]', appUrlFromStatusbarHtml)
-        //           console.log('[statusbar.main.cts /operation_return request.body]', request.body)
-        // console.log('[statusbar.main.cts /operation_return item]', item)
-        // console.log('[statusbar.main.cts /operation_return statusbarPluginsNoReleaseRequest]', statusbarPluginsNoReleaseRequest)
         // 返回的就是一个 json
         const data = await readStream(request.body as ReadableStream)
-        // console.log('[statusbar.main.cts /operation_return data]', data)
-
-        // 多次设置失效的问题主要是返回的 req_id 出现了问题， 
-        // 需要查看req_id 同 ipc 里面保存的req_id 之间有什么区别？？
         
-        console.log('[statusbar.main.cts /operation_return 返回的 req_id]', item.req_id)
         item
         .callback(
           await IpcResponse.fromJson(
@@ -203,7 +172,6 @@ export class StatusbarNMM extends NativeMicroModule {
       },
     });
 
-    console.log('[statusbar.main.cts registerCommonIpcOnMessageHandler path /operation_from_plugins]')
     // 监听设置状态栏
     this.registerCommonIpcOnMessageHandler({
       pathname: "/operation_from_plugins",
@@ -212,8 +180,6 @@ export class StatusbarNMM extends NativeMicroModule {
       input: {},
       output: "boolean",
       handler: async (args, client_ipc, request) => {
-        // console.log('[statusbar.main.cts 接受到了 /operation 操作]', args, request)
-
         const appUrlFromApp = request.parsed_url.searchParams.get("app_url")
         // console.log('[statusbar.main.cts 接受到了 /operation 操作 appUrlFromApp]', appUrlFromApp)
         if(appUrlFromApp === null){ /**已经测试走过了 */
@@ -232,13 +198,11 @@ export class StatusbarNMM extends NativeMicroModule {
         // 等待这个调用的函数执行完毕后在返回？？
 
         let statusbarPluginRequest = this._statusbarPluginsRequestMap.get(appUrlFromApp)
-       
         const result = await new Promise<IpcResponse>(resolve => {
           if(statusbarPluginRequest === undefined){
             statusbarPluginRequest = []
             this._statusbarPluginsRequestMap.set(appUrlFromApp, statusbarPluginRequest)
           }
-          console.log('[statusbar.main.cts /operation_from_plugins 添加到 statusbarPluginRequest对象中的 req_id]', request.req_id)
           statusbarPluginRequest.push({
             body: request.body as ReadableStream<Uint8Array>,
             callback: (reponse: IpcResponse) => {
@@ -252,61 +216,7 @@ export class StatusbarNMM extends NativeMicroModule {
           this._sendToStatusbarHtml(appUrlFromApp)
         })
 
-        // console.log("-------------------------------------------------------------- 返回了", result)
         return result;
-
-
-
-
-
-
-
-
-
-        // if(statusbarHtmlRequest === undefined){ // 这里是有问题的
-        //   // 没有匹配的 表示之前statusbar.html 发来的操作请求已经返回了 需要把 第三方发过来的操作请求保存起来
-        //   let statusbarPluginRequest = this._operationQueue.get(appUrlFromApp)
-        //   const result = await new Promise(resolve => {
-        //     if(statusbarPluginRequest === undefined) {
-        //       this._operationQueue.set(appUrlFromApp, [{
-        //         body: request.body as ReadableStream<Uint8Array>,
-        //         callback: () => {
-        //           resolve(true)
-        //         },
-        //         id: this._allocId++
-        //       }])
-        //     }else{
-        //       statusbarPluginRequest.push({
-        //         body: request.body as ReadableStream<Uint8Array>,
-        //         callback: () => {
-        //           resolve(true)
-        //         },
-        //         id: this._allocId++
-        //       })
-        //     } 
-        //   })
-        //   return true;
-        // }
-
-        // // 如果还有有 statusbar.html 发送过来的操作请求 直接把请求转发给 statubar.html
-        // console.log('[statusbar.main.cts /operation 操作 向statusbar.html 发送了消息 ]', )
-        // statusbarHtmlRequest.ipc.postMessage(
-        //   await IpcResponse.fromStream(
-        //     statusbarHtmlRequest.request.req_id,
-        //     200,
-        //     request.body as ReadableStream<Uint8Array>,
-        //     new IpcHeaders({
-        //       "Content-type": "application/json"
-        //     }),
-        //     statusbarHtmlRequest.ipc
-        //   )
-        // )
-        // this._operationWaitResponses.delete(appUrlFromApp)
-
-        // // 如果statusbar.plugin 发送过来的请求是action === get_style 那么需要等待 statusbar.html 把style值发送过来在返回
-      
-
-        // return true;
       }
     })
   }
@@ -320,15 +230,12 @@ export class StatusbarNMM extends NativeMicroModule {
     if(statusbarPluginRequest === undefined) return;
     const operationQueueItem = statusbarPluginRequest.shift();
     if(operationQueueItem === undefined) return;
-    console.log('[statusbar.main.cts _sendToStatusbarHtml 把消息发送给了 statusbar.html]')
     if(statusbarPluginsNoReleaseRequest === undefined){
       statusbarPluginsNoReleaseRequest = [];
       this._statusbarPluginsNoReleaseRequestMap.set(appUrl, statusbarPluginsNoReleaseRequest)
       
     }
     statusbarPluginsNoReleaseRequest.push(operationQueueItem)
-    console.log('[statusbar.main.cts _sendToStatusbarHtml 把消息发送给了 statusbar.html] 发送的 req_id ===',statusbarHtmlRequest.request.req_id)
-    console.log('[statusbar.main.cts _sendToStatusbarHtml 把statysbarPluginsNoReleaseRequest 保存起来] 保存的 req_id ===', operationQueueItem.req_id)
 
     statusbarHtmlRequest.ipc.postMessage(
       await IpcResponse.fromStream(

@@ -52,7 +52,6 @@ export abstract class Ipc {
   private _getOnRequestListener = once(() => {
     const signal = createSignal<$OnIpcRequestMessage>();
     this.onMessage((request, ipc) => {
-      // console.log(chalk.red("[ipc.cts. onMessage callback]", this.remote.mmid))
       if (request.type === IPC_DATA_TYPE.REQUEST) {
         
         signal.emit(request, ipc);
@@ -82,24 +81,7 @@ export abstract class Ipc {
   private readonly _reqresMap = new Map<number, PromiseOut<IpcResponse>>();
   private _req_id_acc = 0;
   allocReqId(url?: string) {
-    
-    let base = 0;
-    if(url?.startsWith("/operation_from_html")){
-      base = 10000
-    }
-    
-    if(url?.startsWith("/operation_return")){
-      base = 20000
-    }
-    if(url?.startsWith("file://statusbar.sys.dweb/operation_from_plugins")){
-      base = 90000
-    }
-    const id =  base + this._req_id_acc++;
-    if(this.remote.mmid === "statusbar.sys.dweb"){
-      console.log(chalk.yellow('[ipc.cts allocReqId] url===', url, "[req_id===]",id))
-    }
-
-    return id
+    return this._req_id_acc++
   }
 
   private _inited_req_res = false;
@@ -111,22 +93,11 @@ export abstract class Ipc {
     this.onMessage((message) => {
       if (message.type === IPC_DATA_TYPE.RESPONSE) {
         // 查看这里的 keys 之前的区别
-        if(this.remote.mmid === "statusbar.sys.dweb"){
-          console.log(chalk.blue('[ipc.cts onMessage]',this.remote.mmid, JSON.stringify(Array.from(this._reqresMap.keys()))), message.req_id)
-        }
-        
         const response_po = this._reqresMap.get(message.req_id);
         if (response_po) {
-          if(this.remote.mmid === "statusbar.sys.dweb"){
-            console.log(chalk.red('[ipc.cts onMessage 删除了 req_id]',this.remote.mmid, '  删除前 this._reqresMap ===',JSON.stringify(Array.from(this._reqresMap.keys()))), message.req_id)
-          }
           this._reqresMap.delete(message.req_id);
           response_po.resolve(message);
-          if(this.remote.mmid === "statusbar.sys.dweb"){
-            console.log(chalk.red('[ipc.cts onMessage 删除了 req_id]',this.remote.mmid, '  删除后 this._reqresMap ===',JSON.stringify(Array.from(this._reqresMap.keys()))), message.req_id)
-          }
         } else {
-          console.log(chalk.red("没有匹配的 req_id: ", message.req_id, this.remote.mmid))
           throw new Error(`no found response by req_id: ${message.req_id}`);
         }
       }
@@ -186,18 +157,11 @@ export abstract class Ipc {
         headers
       );
     }
-    if(this.remote.mmid === "statusbar.sys.dweb"){
-      console.log(chalk.cyan('[ipc.cts onRequest url===]', url, '      req_id===', req_id));
-    }
-    
     this.postMessage(ipcRequest);
     return this.registerReqId(req_id).promise;
   }
   /** 自定义注册 请求与响应 的id */
   registerReqId(req_id = this.allocReqId()) {
-    if(this.remote.mmid === "statusbar.sys.dweb"){
-      console.log(chalk.green("[ipc 注册了请求和响应的id]===",this.remote.mmid,  req_id))
-    }
     const response_po = new PromiseOut<IpcResponse>();
     this._reqresMap.set(req_id, response_po);
     this._initReqRes();
