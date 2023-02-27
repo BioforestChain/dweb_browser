@@ -31,6 +31,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
             IPC_DATA_TYPE.STREAM_PULL -> gson.fromJson(data, IpcStreamPull::class.java)
             IPC_DATA_TYPE.STREAM_END -> gson.fromJson(data, IpcStreamEnd::class.java)
             IPC_DATA_TYPE.STREAM_ABORT -> gson.fromJson(data, IpcStreamAbort::class.java)
+            IPC_DATA_TYPE.STREAM_EVENT -> gson.fromJson(data, IpcEvent::class.java)
         }
     }.onFailure { e ->
         e.printStackTrace()

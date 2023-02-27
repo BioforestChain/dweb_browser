@@ -92,6 +92,8 @@ abstract class Ipc {
         this._closeSignal.emit();
     }
 
+    val isClosed get() = _closed
+
     private val _closeSignal = SimpleSignal();
     fun onClose(cb: SimpleCallback) = this._closeSignal.listen(cb)
 

@@ -39,7 +39,11 @@ enum class IPC_DATA_TYPE(val type: Byte) : JsonSerializer<IPC_DATA_TYPE>,
 
     /** 类型：流中断，请求方 */
     STREAM_ABORT(5),
+
+    /** 类型：事件 */
+    STREAM_EVENT(6),
     ;
+
 
     override fun serialize(
         src: IPC_DATA_TYPE,

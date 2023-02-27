@@ -1,5 +1,6 @@
-package info.bagen.rust.plaoc.microService.core
+package info.bagen.rust.plaoc.microService.sys.jmm
 
+import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
@@ -13,8 +14,6 @@ import org.http4k.core.*
 inline fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("jmm", tag, msg, err)
 
-
-data class JmmMetadata(val main_url: String)
 
 open class JsMicroModule(override val mmid: Mmid, val metadata: JmmMetadata) : MicroModule() {
 

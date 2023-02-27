@@ -192,6 +192,8 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
         /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
         processHandler.ipc.onRequest { (request, ipc) ->
+            // TODO 跟 dns 要 jmmMetadata 信息
+            // jmmMetadata.permissions.contains(request.uri.host) // ["camera.sys.dweb"]
             val response = ipc.remote.nativeFetch(request.toRequest());
             ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
         }

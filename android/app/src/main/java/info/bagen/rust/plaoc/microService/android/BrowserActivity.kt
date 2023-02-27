@@ -73,6 +73,9 @@ class BrowserActivity : AppCompatActivity() {
 
     @JvmName("getAppViewModel1")
     fun getAppViewModel(): AppViewModel {
+        // tansocc.com
+        // ua dweb-host/browser.android.dweb
+        // file://dns.sys.dweb/install?url=.zip
         return appViewModel
     }
     override fun onCreate(savedInstanceState: Bundle?) {
