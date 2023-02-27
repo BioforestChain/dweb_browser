@@ -27,6 +27,7 @@ main().catch(console.error);
  * request 事件处理器
  */
 async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
+   
   console.log('接受到了请求： request.parsed_url： ', request.parsed_url)
   switch(request.parsed_url.pathname){
     case "/": onRequestPathNameIndexHtml(request, httpServerIpc); break;
@@ -37,7 +38,7 @@ async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
     case `${request.parsed_url.pathname.startsWith("/icon") ? request.parsed_url.pathname : "**eot**"}`: onRequestPathNameIcon(request, httpServerIpc); break;
     case `/install`: onRequestPathNameInstall(request, httpServerIpc); break;
     case `/open`: onRequestPathNameOpen(request, httpServerIpc); break;
-    case "/operation": onRequestPathOperation(request, httpServerIpc); break;
+    case "/operation_from_plugins": onRequestPathOperation(request, httpServerIpc); break;
     default: onRequestPathNameNoMatch(request, httpServerIpc); break;
   }
 
@@ -48,12 +49,16 @@ async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
  * onRequest 事件处理器 pathname === "/" | "index.html"
  */
 async function onRequestPathNameIndexHtml(request: IpcRequest, httpServerIpc: Ipc){
+  // 拼接 html 字符串
+  const url = `file://plugins.sys.dweb/get`
+  const result = `<body><script type="text/javascript">${await jsProcess.fetch(url).text()}</script>`
+  let html = (await CODE_index_html(request)).replace("<body>",result)
+ 
   httpServerIpc.postMessage(
     IpcResponse.fromText(
       request.req_id,
       200,
-      // code_index_html 是第三方的 内容 如何增加状态栏？？
-      await CODE_index_html(request),
+      html,
       new IpcHeaders({
         "Content-Type": "text/html",
       })
@@ -211,6 +216,7 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
   jsProcess
   fetch(_url, {method: request.method, body: request.body, headers:request.headers})
   .then(async(res: Response) => {
+    console.log('[browser.worker.mts onRequestPathOperation res:]', res)
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(
         request.req_id,
@@ -218,6 +224,16 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
         httpServerIpc
       )
     );
+  })
+  .then( async (err) => {
+    console.log('[browser.worker.mts onRequestPathOperation err:]', err)
+    // httpServerIpc.postMessage(
+    //   await IpcResponse.fromText(
+    //     request.req_id,
+    //     err,
+    //     httpServerIpc
+    //   )
+    // );
   })
 }
 

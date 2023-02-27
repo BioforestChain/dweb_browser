@@ -28,7 +28,8 @@ dns.install(new AppNMM())
 import { StatusbarNMM } from "./sys/statusbar/statusbar.main.cjs"
 dns.install(new StatusbarNMM())
 
-// import { statusbarJMM } from "./sys/statusbar/statusbar.main.cjs"
-// dns.install(statusbarJMM)
+// 安装 plugins.sys.dweb 服务
+import { PluginsNMM } from "./sys/plugins/plugins.main.cjs";
+dns.install(new PluginsNMM()) 
 
 Object.assign(globalThis, { dns: dns });

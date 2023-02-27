@@ -30,37 +30,59 @@ export const listenHttpDwebServer = async (
   token: string
 ) => {
   /// 创建一个基于 二进制流的 ipc 信道
-  const httpServerIpc = new ReadableStreamIpc(
-    microModule,
-    IPC_ROLE.CLIENT,
-    true
-  );
-  const httpIncomeRequestStream = await microModule
-    .fetch(
-      buildUrl(new URL(`file://http.sys.dweb`), {
-        pathname: "/listen",
-        search: {
-          token,
-          routes: [ /** 定义了路由的方法 */
-            { pathname: "/", matchMode: "prefix", method: "GET", },
-            { pathname: "/", matchMode: "prefix", method: "POST", },
-            { pathname: "/", matchMode: 'prefix',  method:'PUT'},
-            { pathname: "/", matchMode: 'prefix', method: "DELETE"},
-            { pathname: "/", matchMode: 'prefix', method: "PATCH"},
-            { pathname: "/", matchMode: 'prefix', method: "OPTIONS"},
-            { pathname: "/", matchMode: 'prefix', method: "HEAD"},
-            { pathname: "/", matchMode: 'prefix', method: "CONNECT"},
-            { pathname: "/", matchMode: 'prefix', method: "TRACE"},
-          ] satisfies $ReqMatcher[],
-        },
-      }),
-      {
-        method: "POST",
-        /// 这是上行的通道
-        body: httpServerIpc.stream,
-      }
-    )
-    .stream();
+  const httpServerIpc = new ReadableStreamIpc(microModule,IPC_ROLE.CLIENT,true);
+  const routes = [ /** 定义了路由的方法 */
+    { pathname: "/", matchMode: "prefix", method: "GET", },
+    { pathname: "/", matchMode: "prefix", method: "POST", },
+    { pathname: "/", matchMode: 'prefix',  method:'PUT'},
+    { pathname: "/", matchMode: 'prefix', method: "DELETE"},
+    { pathname: "/", matchMode: 'prefix', method: "PATCH"},
+    { pathname: "/", matchMode: 'prefix', method: "OPTIONS"},
+    { pathname: "/", matchMode: 'prefix', method: "HEAD"},
+    { pathname: "/", matchMode: 'prefix', method: "CONNECT"},
+    { pathname: "/", matchMode: 'prefix', method: "TRACE"},
+  ] satisfies $ReqMatcher[]
+  const url = new URL(`file://http.sys.dweb`);
+  const ext = {
+    pathname: "/listen",
+    search: {
+      token,
+      routes,
+    },
+  }
+  const buildUrlValue = buildUrl(url, ext);
+  const int = {method: "POST", body: httpServerIpc.stream}
+  const httpIncomeRequestStream = await microModule.fetch(buildUrlValue, int).stream()
+
+  // const httpIncomeRequestStream = await microModule
+  // .fetch(
+  //     buildUrl(
+  //       new URL(`file://http.sys.dweb`), 
+  //       {
+  //         pathname: "/listen",
+  //         search: {
+  //           token,
+  //           routes: [ /** 定义了路由的方法 */
+  //             { pathname: "/", matchMode: "prefix", method: "GET", },
+  //             { pathname: "/", matchMode: "prefix", method: "POST", },
+  //             { pathname: "/", matchMode: 'prefix',  method:'PUT'},
+  //             { pathname: "/", matchMode: 'prefix', method: "DELETE"},
+  //             { pathname: "/", matchMode: 'prefix', method: "PATCH"},
+  //             { pathname: "/", matchMode: 'prefix', method: "OPTIONS"},
+  //             { pathname: "/", matchMode: 'prefix', method: "HEAD"},
+  //             { pathname: "/", matchMode: 'prefix', method: "CONNECT"},
+  //             { pathname: "/", matchMode: 'prefix', method: "TRACE"},
+  //           ] satisfies $ReqMatcher[],
+  //         },
+  //       }
+  //     ),
+  //     {
+  //       method: "POST",
+  //       /// 这是上行的通道
+  //       body: httpServerIpc.stream,
+  //     }
+  //   )
+  //   .stream();
 
   console.log("开始响应服务请求");
 

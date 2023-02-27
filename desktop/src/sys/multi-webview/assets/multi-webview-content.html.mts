@@ -183,9 +183,10 @@ export class MultiWebViewContent extends LitElement{
                 <iframe
                     id="statusbar"
                     class="iframe-statusbar"
-                    style="width: 100%;height: 48px;border: none; flex-grow: 0; flex-shrink: 0; position: relative; left: 0px; top: 0px;"
+                    style="width: 100%;height: 48px;border: none; flex-grow: 0; flex-shrink: 0; position:relative; left: 0px; top: 0px;"
                     src="http://statusbar.sys.dweb-80.localhost:22605/"
                     @load=${() => console.log('statusbar 载入完成')}
+                    data-app-url=${this.src}
                 ></iframe>
                 <!-- 底部黑线 -->
                 <div class="bottom-line-container"></div>

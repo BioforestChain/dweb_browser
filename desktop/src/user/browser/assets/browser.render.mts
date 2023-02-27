@@ -154,6 +154,14 @@ class HomePage extends LitElement{
                 <button @click=${() => this.setStatusbarBackground("#F00F")}>设置状态栏的颜色 === #F00F</button>
                 <button @click=${() => this.setStatusbarBackground("#0F0F")}>设置状态栏的颜色 === #0F0F</button>
                 <button @click=${() => this.setStatusbarBackground("#00FF")}>设置状态栏的颜色 === #00FF</button>
+                <button @click=${() => this.setStatusbarStyle("light")}>设置状态栏的风格 === light</button>
+                <button @click=${() => this.setStatusbarStyle("dark")}>设置状态栏的风格 === dark</button>
+                <button @click=${() => this.setStatusbarStyle("default")}>设置状态栏的风格 === default</button>
+                <button @click=${() => this.getStatusbarStyle()}>获取状态栏的风格</button>
+                <button @click=${() => this.setStatusbarOverlays("0")}>获取状态栏的overlays 不覆盖</button>
+                <button @click=${() => this.setStatusbarOverlays("1")}>获取状态栏的overlays 覆盖</button>
+             
+
             </div>
         `
     }
@@ -209,24 +217,36 @@ class HomePage extends LitElement{
         // 打开一个新的 window 窗口
         response = await fetch(`./open?appId=${appId}`)
     }
-
-    setStatusbarBackground(color: string){
-        fetch(`./operation`, 
-            {
-                method: "PUT",
-                body:JSON.stringify({
-                    action: "set_background_color",
-                    value: color
-                }),
-                headers: {
-                    "Content-Type": "application/json; chartset=UTF-8"
-                }
-            }
-        )
-        .then(async (res: any) => console.log('设置成功', await res.text()))
-        .catch((err: Error) => console.error("设置失败", err))
+     
+    
+    async setStatusbarBackground(color: string){
+        // 测试是否可以通过直接向 statusbar.sys.dweb 发送消息实现了？？
+        const el = document.querySelector('statusbar-dweb') 
+        if(el === null) return console.error('设置 statusbar错误 el === null')
+        // @ts-ignore
+        const result = await el.setBackgroundColor(color)
     }
 
+    async setStatusbarStyle(value: string){
+        const el = document.querySelector('statusbar-dweb') 
+        if(el === null) return console.error('设置 statusbar错误 el === null')
+        // @ts-ignore
+        const result = await el.setStyle(value)
+    }
+ 
+    async getStatusbarStyle(){
+        const el = document.querySelector('statusbar-dweb') 
+        if(el === null) return console.error('设置 statusbar错误 el === null')
+        // @ts-ignore
+        const result = await el.getStyle()
+    }
+
+    async setStatusbarOverlays(value: string){
+        const el = document.querySelector('statusbar-dweb') 
+        if(el === null) return console.error('设置 statusbar错误 el === null')
+        // @ts-ignore
+        const result = await el.setOverlaysWebview(value)
+    }
     
 }
  

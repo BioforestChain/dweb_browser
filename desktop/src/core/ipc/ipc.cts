@@ -12,6 +12,7 @@ import {
 } from "./const.cjs";
 import { IpcHeaders } from "./IpcHeaders.cjs";
 import { IpcRequest } from "./IpcRequest.cjs";
+import chalk from "chalk"
 import type { IpcResponse } from "./IpcResponse.cjs";
 
 let ipc_uid_acc = 0;
@@ -52,6 +53,7 @@ export abstract class Ipc {
     const signal = createSignal<$OnIpcRequestMessage>();
     this.onMessage((request, ipc) => {
       if (request.type === IPC_DATA_TYPE.REQUEST) {
+        
         signal.emit(request, ipc);
       }
     });
@@ -78,8 +80,8 @@ export abstract class Ipc {
 
   private readonly _reqresMap = new Map<number, PromiseOut<IpcResponse>>();
   private _req_id_acc = 0;
-  allocReqId() {
-    return this._req_id_acc++;
+  allocReqId(url?: string) {
+    return this._req_id_acc++
   }
 
   private _inited_req_res = false;
@@ -90,6 +92,7 @@ export abstract class Ipc {
     this._inited_req_res = true;
     this.onMessage((message) => {
       if (message.type === IPC_DATA_TYPE.RESPONSE) {
+        // 查看这里的 keys 之前的区别
         const response_po = this._reqresMap.get(message.req_id);
         if (response_po) {
           this._reqresMap.delete(message.req_id);
@@ -100,6 +103,10 @@ export abstract class Ipc {
       }
     });
   }
+  // 先找到错误的位置
+  // 需要确定两个问题 
+  // 是否是应为报错导致无法响应后面的请求
+  // 如果是是否可以避免报错？？
 
   /** 发起请求并等待响应 */
   // 会提供给 http-server模块的 gateway.listener.hookHttpRequest
@@ -116,7 +123,7 @@ export abstract class Ipc {
       headers?: IpcHeaders | HeadersInit;
     } = {}
   ) {
-    const req_id = this.allocReqId();
+    const req_id = this.allocReqId(url);
     const method = init.method ?? "GET";
     const headers =
       init.headers instanceof IpcHeaders
@@ -150,7 +157,6 @@ export abstract class Ipc {
         headers
       );
     }
-
     this.postMessage(ipcRequest);
     return this.registerReqId(req_id).promise;
   }
