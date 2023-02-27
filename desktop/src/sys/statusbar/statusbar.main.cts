@@ -56,6 +56,7 @@ export class StatusbarNMM extends NativeMicroModule {
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
     
+    console.log("[statusbar.main.cts 注册了 onRequest]")
     ;(await listen()).onRequest(async (request, ipc) => {
 
       // 监听 http:// 协议的请求
@@ -78,7 +79,7 @@ export class StatusbarNMM extends NativeMicroModule {
 
       // 处理操作完成后 statusbar.html 发送过来的数据
       if(request.parsed_url.pathname === '/operation_return'){
-        console.log('[statusbar.main.cts /operation_return request.headers]', request.headers)
+        // console.log('[statusbar.main.cts /operation_return request.headers]', request.headers)
         const id = request.headers.id
         const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
 
@@ -114,14 +115,18 @@ export class StatusbarNMM extends NativeMicroModule {
         let itemIndex = statusbarPluginsNoReleaseRequest.findIndex(_item => _item.id === id)
         let item = statusbarPluginsNoReleaseRequest[itemIndex]
                   statusbarPluginsNoReleaseRequest.splice(itemIndex, 1)
-                  console.log('[statusbar.main.cts /operation_return appUrlFromStatusbarHtml]', appUrlFromStatusbarHtml)
-                  console.log('[statusbar.main.cts /operation_return request.body]', request.body)
-        console.log('[statusbar.main.cts /operation_return item]', item)
-        console.log('[statusbar.main.cts /operation_return statusbarPluginsNoReleaseRequest]', statusbarPluginsNoReleaseRequest)
+        //           console.log('[statusbar.main.cts /operation_return appUrlFromStatusbarHtml]', appUrlFromStatusbarHtml)
+        //           console.log('[statusbar.main.cts /operation_return request.body]', request.body)
+        // console.log('[statusbar.main.cts /operation_return item]', item)
+        // console.log('[statusbar.main.cts /operation_return statusbarPluginsNoReleaseRequest]', statusbarPluginsNoReleaseRequest)
         // 返回的就是一个 json
         const data = await readStream(request.body as ReadableStream)
-        console.log('[statusbar.main.cts /operation_return data]', data)
+        // console.log('[statusbar.main.cts /operation_return data]', data)
 
+        // 多次设置失效的问题主要是返回的 req_id 出现了问题， 
+        // 需要查看req_id 同 ipc 里面保存的req_id 之间有什么区别？？
+        
+        console.log('[statusbar.main.cts /operation_return 返回的 req_id]', item.req_id)
         item
         .callback(
           await IpcResponse.fromJson(
@@ -133,15 +138,26 @@ export class StatusbarNMM extends NativeMicroModule {
             }),
           )
         )
+        // 返回 /operation_return 的请求
+        ipc.postMessage(
+          await IpcResponse.fromText(
+            request.req_id,
+            200,
+            "ok",
+            new IpcHeaders({
+              "Content-type": "text/plain"
+            }),
+          )
+        )
       }
 
       // todo 最好有一个时间限定防止超时过期
-      if(request.parsed_url.pathname === "/operation"){
-        console.log('[statusbar.main.cts]接受到了 /operation http 请求')
+      if(request.parsed_url.pathname === "/operation_from_html"){
+        // console.log('[statusbar.main.cts]接受到了 /operation http 请求')
         // appUrl 标识 当前statusbar搭配的是哪个 app 显示的
         // 因为 statusbar 会提供给任意个 browserWindow 使用
         const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
-        console.log('[statusbar.main.cts]接受到了 /operation http 请求 appUrlFromStatusbarHtml === ',appUrlFromStatusbarHtml)
+        // console.log('[statusbar.main.cts]接受到了 /operation http 请求 appUrlFromStatusbarHtml === ',appUrlFromStatusbarHtml)
         if(appUrlFromStatusbarHtml === null){
           ipc.postMessage(
             await IpcResponse.fromText(
@@ -159,32 +175,7 @@ export class StatusbarNMM extends NativeMicroModule {
         // 添加到队列中
         this._statusbarHtmlRequestMap.set(appUrlFromStatusbarHtml, {ipc: ipc, request: request, appUrl: appUrlFromStatusbarHtml})
         this._sendToStatusbarHtml(appUrlFromStatusbarHtml)
-
-        // const statusbarPluginRequest = this._statusbarPluginsRequestMap.get(appUrlFromStatusbarHtml)
-        // // 如果队列中没有来自 app 的操作请求了 把 ipc 和 request 保存起来
-        // console.log('[statusbar.main.cts]接受到了 /operation http 请求 statusbarPluginRequest === ',statusbarPluginRequest)
-        // if(statusbarPluginRequest === undefined || statusbarPluginRequest.length === 0) {
-          
-        //   this._statusbarHtmlRequestMap.set(appUrlFromStatusbarHtml, {ipc: ipc, request: request, appUrl: appUrlFromStatusbarHtml})
-        //   console.log('[statusbar.main.cts]接受到了 /operation http 请求 statusbarPluginRequest === undefined 所以保存起来了 this._operationWaitResponses ===',this._operationWaitResponses)
-        //   return  ;
-        // }
-
-        // // 如果队列中有 来自 app de 操作请求
-        // if(statusbarPluginRequest !== undefined && statusbarPluginRequest.length !== 0 ){
-        //   ipc.postMessage(
-        //     await IpcResponse.fromStream(
-        //       request.req_id,
-        //       200,
-        //       statusbarPluginRequest.shift()?.body as ReadableStream<Uint8Array>,
-        //       new IpcHeaders({
-        //         "Content-type": "application/json"
-        //       }),
-        //       ipc
-        //     )
-        //   )
-        //   return ;
-        // }
+       
       } 
      
     });
@@ -194,6 +185,7 @@ export class StatusbarNMM extends NativeMicroModule {
     // jsProcess.fetch(`file://statusbar.sys.dweb/open?***}`) 事件监听器 
     // 监听启动请求 - 必须要有一个注册否则调用的地方 wati 就死了;
     // 监听请求页面
+    console.log('[statusbar.main.cts registerCommonIpcOnMessageHandler path /]')
     this.registerCommonIpcOnMessageHandler({
       pathname: "/",
       matchMode: "full",
@@ -211,18 +203,19 @@ export class StatusbarNMM extends NativeMicroModule {
       },
     });
 
+    console.log('[statusbar.main.cts registerCommonIpcOnMessageHandler path /operation_from_plugins]')
     // 监听设置状态栏
     this.registerCommonIpcOnMessageHandler({
-      pathname: "/operation",
+      pathname: "/operation_from_plugins",
       method: "PUT",
       matchMode: "full", // 是需要匹配整个pathname 还是 前缀匹配即可
       input: {},
       output: "boolean",
       handler: async (args, client_ipc, request) => {
-        console.log('[statusbar.main.cts 接受到了 /operation 操作]', args, request)
+        // console.log('[statusbar.main.cts 接受到了 /operation 操作]', args, request)
 
         const appUrlFromApp = request.parsed_url.searchParams.get("app_url")
-        console.log('[statusbar.main.cts 接受到了 /operation 操作 appUrlFromApp]', appUrlFromApp)
+        // console.log('[statusbar.main.cts 接受到了 /operation 操作 appUrlFromApp]', appUrlFromApp)
         if(appUrlFromApp === null){ /**已经测试走过了 */
           return  IpcResponse.fromText(
             request.req_id,
@@ -245,6 +238,7 @@ export class StatusbarNMM extends NativeMicroModule {
             statusbarPluginRequest = []
             this._statusbarPluginsRequestMap.set(appUrlFromApp, statusbarPluginRequest)
           }
+          console.log('[statusbar.main.cts /operation_from_plugins 添加到 statusbarPluginRequest对象中的 req_id]', request.req_id)
           statusbarPluginRequest.push({
             body: request.body as ReadableStream<Uint8Array>,
             callback: (reponse: IpcResponse) => {
@@ -258,7 +252,7 @@ export class StatusbarNMM extends NativeMicroModule {
           this._sendToStatusbarHtml(appUrlFromApp)
         })
 
-        console.log("-------------------------------------------------------------- 返回了", result)
+        // console.log("-------------------------------------------------------------- 返回了", result)
         return result;
 
 
@@ -326,13 +320,16 @@ export class StatusbarNMM extends NativeMicroModule {
     if(statusbarPluginRequest === undefined) return;
     const operationQueueItem = statusbarPluginRequest.shift();
     if(operationQueueItem === undefined) return;
+    console.log('[statusbar.main.cts _sendToStatusbarHtml 把消息发送给了 statusbar.html]')
     if(statusbarPluginsNoReleaseRequest === undefined){
       statusbarPluginsNoReleaseRequest = [];
       this._statusbarPluginsNoReleaseRequestMap.set(appUrl, statusbarPluginsNoReleaseRequest)
       
     }
     statusbarPluginsNoReleaseRequest.push(operationQueueItem)
-    
+    console.log('[statusbar.main.cts _sendToStatusbarHtml 把消息发送给了 statusbar.html] 发送的 req_id ===',statusbarHtmlRequest.request.req_id)
+    console.log('[statusbar.main.cts _sendToStatusbarHtml 把statysbarPluginsNoReleaseRequest 保存起来] 保存的 req_id ===', operationQueueItem.req_id)
+
     statusbarHtmlRequest.ipc.postMessage(
       await IpcResponse.fromStream(
         statusbarHtmlRequest.request.req_id,
@@ -345,6 +342,9 @@ export class StatusbarNMM extends NativeMicroModule {
         statusbarHtmlRequest.ipc
       )
     )
+    // 需要删除map里面保存的数据 如果不删除可能导致 多次来至 statusbar.plugins 发送过来请求，会使用
+    // 同一个  statusbarHtmlRequest 发生错误
+    this._statusbarHtmlRequestMap.delete(appUrl);
   }
 
 

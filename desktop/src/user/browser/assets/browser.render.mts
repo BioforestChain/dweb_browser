@@ -234,13 +234,22 @@ class HomePage extends LitElement{
         console.log('dweb.render.mts 设置了样式返回： ', result)
     }
 
+    account = 0;
     async getStatusbarStyle(){
+        console.log('this.account: ', this.account)
         console.log('dweb.render.mts 点击获取样式返回： ')
         const el = document.querySelector('statusbar-dweb') 
         if(el === null) return console.error('设置 statusbar错误 el === null')
-          // @ts-ignore
-        const result = await el.getStyle()
-        console.log('dweb.render.mts 获取样式返回： ', await result.json())
+        // @ts-ignore
+        // const result = await el.getStyle()
+        // console.log('dweb.render.mts 获取样式返回： ', await result.json())
+        el.getStyle().then(async (res) => console.log(await res.json()))
+
+        
+        // 测试快速获取 样式
+        if(this.account >= 100)return;
+        this.account++;
+        this.getStatusbarStyle()
     }
 }
  
