@@ -43,6 +43,10 @@ class DWebBrowserModel : ViewModel() {
     val uiState = DWebBrowserUIState()
     private val dWebBrowserTree: HashMap<String, ArrayList<DWebBrowserItem>> = hashMapOf()
 
+    class DWebBrowser(val viewId:String, val instance:DWebBrowserItem)
+
+    private val dWebBrowserList = listOf<DWebBrowser>()
+
     fun handleIntent(action: DWebBrowserIntent) {
         viewModelScope.launch {
             when (action) {

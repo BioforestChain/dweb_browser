@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc
+package info.bagen.rust.plaoc.microService.android
 
 import android.Manifest
 import android.content.DialogInterface
@@ -32,13 +32,14 @@ import com.king.mlkit.vision.camera.util.PermissionUtils
 import info.bagen.libappmgr.system.permission.EPermission
 import info.bagen.libappmgr.system.permission.PermissionUtil
 import info.bagen.libappmgr.ui.app.AppViewModel
-import info.bagen.libappmgr.ui.main.Home
-import info.bagen.libappmgr.ui.main.MainViewModel
-import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.libappmgr.ui.camera.QRCodeIntent
 import info.bagen.libappmgr.ui.camera.QRCodeScanning
 import info.bagen.libappmgr.ui.camera.QRCodeScanningView
 import info.bagen.libappmgr.ui.camera.QRCodeViewModel
+import info.bagen.libappmgr.ui.main.Home
+import info.bagen.libappmgr.ui.main.MainViewModel
+import info.bagen.libappmgr.ui.main.SearchAction
+import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.BarcodeScanningActivity
@@ -54,7 +55,14 @@ import info.bagen.rust.plaoc.webView.openDWebWindow
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class BrowserActivity : AppCompatActivity() {
+    companion object {
+        var instance: BrowserActivity? = null
+        const val REQUEST_CODE_PHOTO = 1
+        const val REQUEST_CODE_REQUEST_EXTERNAL_STORAGE = 2
+        const val REQUEST_CODE_SCAN_CODE = 3
+    }
+
     var isQRCode = false //是否是识别二维码
     fun getContext() = this
     val dWebBrowserModel: DWebBrowserModel by viewModel()
@@ -67,16 +75,9 @@ class MainActivity : AppCompatActivity() {
     fun getAppViewModel(): AppViewModel {
         return appViewModel
     }
-
-    companion object {
-        const val REQUEST_CODE_PHOTO = 1
-        const val REQUEST_CODE_REQUEST_EXTERNAL_STORAGE = 2
-        const val REQUEST_CODE_SCAN_CODE = 3
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        App.mainActivity = this
+        BrowserActivity.instance = this
         // 初始化广播
         registerBFSBroadcastReceiver()
         setContent {
@@ -101,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                                     qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
                                 } else {
                                     PermissionManager.requestPermissions(
-                                        this@MainActivity, EPermission.PERMISSION_CAMERA.type
+                                        this@BrowserActivity, EPermission.PERMISSION_CAMERA.type
                                     )
                                 }
                             }
@@ -114,7 +115,7 @@ class MainActivity : AppCompatActivity() {
 //                        println("kotlin#onCreate 启动了DwebView ：$dWebView_host,worker_id：$workerResponse")
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
-                    QRCodeScanningView(this@MainActivity, qrCodeViewModel)
+                    QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
                 }
             }
         }
@@ -137,7 +138,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == info.bagen.libappmgr.system.permission.PermissionManager.MY_PERMISSIONS) {
-            info.bagen.libappmgr.system.permission.PermissionManager(this@MainActivity)
+            info.bagen.libappmgr.system.permission.PermissionManager(this@BrowserActivity)
                 .onRequestPermissionsResult(requestCode,
                     permissions,
                     grantResults,
@@ -191,7 +192,7 @@ class MainActivity : AppCompatActivity() {
         // 退出APP关闭服务
         super.onDestroy()
         unRegisterBFSBroadcastReceiver()
-        App.mainActivity = null
+        BrowserActivity.instance = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
     }
 

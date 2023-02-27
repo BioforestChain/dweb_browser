@@ -34,8 +34,7 @@ import com.king.mlkit.vision.camera.CameraScan
 import com.king.mlkit.vision.camera.analyze.Analyzer
 import com.king.mlkit.vision.camera.util.LogUtils
 import com.king.mlkit.vision.camera.util.PermissionUtils
-import info.bagen.rust.plaoc.ExportNative
-import info.bagen.rust.plaoc.MainActivity
+import info.bagen.rust.plaoc.microService.android.BrowserActivity
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.util.lib.drawRect
 import kotlinx.coroutines.GlobalScope
@@ -147,8 +146,8 @@ class QRCodeScanningActivity : QRCodeCameraScanActivity() {
 
         if (resultCode == RESULT_OK) {
             when (requestCode) {
-                MainActivity.REQUEST_CODE_PHOTO -> processPhoto(data)
-                MainActivity.REQUEST_CODE_SCAN_CODE -> processScanResult(data)
+                BrowserActivity.REQUEST_CODE_PHOTO -> processPhoto(data)
+                BrowserActivity.REQUEST_CODE_SCAN_CODE -> processScanResult(data)
             }
         }
     }
@@ -219,7 +218,7 @@ class QRCodeScanningActivity : QRCodeCameraScanActivity() {
             PermissionUtils.requestPermission(
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                MainActivity.REQUEST_CODE_REQUEST_EXTERNAL_STORAGE
+                BrowserActivity.REQUEST_CODE_REQUEST_EXTERNAL_STORAGE
             )
         }
     }
@@ -230,7 +229,7 @@ class QRCodeScanningActivity : QRCodeCameraScanActivity() {
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
         pickIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
-        startActivityForResult(pickIntent, MainActivity.REQUEST_CODE_PHOTO)
+        startActivityForResult(pickIntent, BrowserActivity.REQUEST_CODE_PHOTO)
     }
 
 

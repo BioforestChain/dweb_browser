@@ -20,7 +20,7 @@ class BFSBroadcastReceiver : BroadcastReceiver() {
             Log.d("BFSBroadcastReceiver", "onReceive action=${it.action}")
             when (it.action) {
                 BFSBroadcastAction.BFSInstallApp.action -> {
-                    App.mainActivity?.let { mainActivity ->
+                    App.browserActivity?.let { mainActivity ->
                         val path = it.getStringExtra("path") ?: ""
                         mainActivity.getAppViewModel()
                             .handleIntent(AppViewIntent.BFSInstallApp(path))

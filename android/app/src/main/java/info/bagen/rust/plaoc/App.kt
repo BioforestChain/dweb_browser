@@ -8,6 +8,7 @@ import info.bagen.libappmgr.di.libRepositoryModule
 import info.bagen.libappmgr.di.libViewModelModule
 import info.bagen.libappmgr.utils.ClipboardUtil
 import info.bagen.rust.plaoc.di.appModules
+import info.bagen.rust.plaoc.microService.android.BrowserActivity
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
 import kotlinx.coroutines.GlobalScope
@@ -23,7 +24,7 @@ class App : Application() {
     companion object {
         lateinit var appContext: Context
 
-        var mainActivity: MainActivity? = null
+        var browserActivity: BrowserActivity? = null
         var dwebViewActivity: DWebViewActivity? = null
     }
 

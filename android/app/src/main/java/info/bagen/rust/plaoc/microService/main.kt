@@ -1,6 +1,6 @@
 package info.bagen.rust.plaoc.microService
 
-import info.bagen.rust.plaoc.microService.sys.base.BrowserNMM
+import info.bagen.rust.plaoc.microService.android.BrowserNMM
 import info.bagen.rust.plaoc.microService.sys.boot.BootNMM
 import info.bagen.rust.plaoc.microService.sys.dns.DnsNMM
 import info.bagen.rust.plaoc.microService.sys.http.HttpNMM

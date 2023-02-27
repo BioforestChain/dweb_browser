@@ -63,7 +63,7 @@ fun DWebBrowserView(dWebBrowserModel: DWebBrowserModel, item: DWebBrowserItem) {
         visible = item.show.value, enter = enterAnimator, exit = exitAnimator
     ) {
         val hook = remember { AdWebViewHook() }
-        val systemUIState = App.mainActivity?.let { SystemUIState.Default(it) }
+        val systemUIState = App.browserActivity?.let { SystemUIState.Default(it) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -73,7 +73,7 @@ fun DWebBrowserView(dWebBrowserModel: DWebBrowserModel, item: DWebBrowserItem) {
             AndroidView(factory = {
                 item.dWebBrowser.adWebViewHook = hook
                 if (systemUIState != null) {
-                    item.systemUi = SystemUiPlugin(item.dWebBrowser.mWebView,hook,systemUIState)
+                    item.systemUi = SystemUiPlugin(item.dWebBrowser.mWebView, hook, systemUIState)
                 }
                 item.dWebBrowser
             })
@@ -87,13 +87,14 @@ class DWebBrowser(context: Context, url: String) : FrameLayout(context) {
 
     var adWebViewHook: AdWebViewHook? = null
 
-     override fun onTouchEvent(event: MotionEvent?): Boolean {
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
         return adWebViewHook?.onTouchEvent?.let { it(event) } ?: super.onTouchEvent(event)
     }
 
     override fun startActionMode(callback: ActionMode.Callback?, type: Int): ActionMode {
         val myCallback = object : ActionMode.Callback2() {
             var customMenu: CustomMenu? = null
+
             /** 报告用户单击操作按钮。*/
             override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
                 println("2==============onActionItemClicked===" + item.title)
@@ -106,6 +107,7 @@ class DWebBrowser(context: Context, url: String) : FrameLayout(context) {
                 }
                 return res
             }
+
             /** 首次创建动作模式时调用。 提供的菜单将用于为动作模式生成动作按钮。*/
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                 val res = adWebViewHook?.onCreateMenu?.let {
@@ -118,6 +120,7 @@ class DWebBrowser(context: Context, url: String) : FrameLayout(context) {
                 println("2==============onCreateActionMode===" + menu.size())
                 return res
             }
+
             /** 调用以在操作模式无效时刷新操作模式的操作菜单*/
             override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
                 val res = this.customMenu?.let {
@@ -139,6 +142,7 @@ class DWebBrowser(context: Context, url: String) : FrameLayout(context) {
 
                 return res
             }
+
             /** */
             override fun onDestroyActionMode(mode: ActionMode) {
                 this.customMenu = null

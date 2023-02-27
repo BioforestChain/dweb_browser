@@ -9,7 +9,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.MainActivity
+import info.bagen.rust.plaoc.microService.android.BrowserActivity
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.microService.sys.plugin.deepLink.DWebReceiver
 
@@ -46,7 +46,7 @@ class NotifyManager {
         var requestCode = 1 // 用于通知栏点击时，避免都是点击到最后一个
 
         fun getDefaultPendingIntent(): PendingIntent {
-            var intent = Intent(App.appContext, MainActivity::class.java).apply {
+            var intent = Intent(App.appContext, BrowserActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
             return PendingIntent.getActivity(

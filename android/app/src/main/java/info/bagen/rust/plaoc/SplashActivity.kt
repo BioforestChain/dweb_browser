@@ -1,7 +1,5 @@
 package info.bagen.rust.plaoc
 
-import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
@@ -28,26 +26,23 @@ import info.bagen.libappmgr.utils.saveBoolean
 import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.openDWebWindow
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-    }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    override fun onResume() {
-        super.onResume()
         val first = this.getBoolean(KEY_APP_FIRST_LOAD, true)
         if (first) {
             setContent {
                 RustApplicationTheme {
                     SplashMainView()
                     SplashPrivacyDialog(
-                        openHome = { openHomeActivity() },
+                        openHome = {
+                            App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
+                            openHomeActivity()
+                        },
                         openWebView = { url -> openDWebWindow(this, url) },
                         closeApp = { finish() }
                     )
@@ -55,23 +50,19 @@ class SplashActivity : AppCompatActivity() {
 
             }
         } else {
-            /// TODO 这里启动 DNS？
-            GlobalScope.launch {
-                startDwebBrowser()
-            }
-            App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
+            openHomeActivity()
             finish()
         }
     }
 
 }
 
-fun openHomeActivity(): Boolean {
-    val intent = Intent(App.appContext.applicationContext, MainActivity::class.java).apply {
-        addFlags(FLAG_ACTIVITY_NEW_TASK)
+private fun openHomeActivity(): Boolean {
+
+    runBlocking {
+        startDwebBrowser()
     }
-    App.appContext.startActivity(intent)
-    App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
+
     return true
 }
 

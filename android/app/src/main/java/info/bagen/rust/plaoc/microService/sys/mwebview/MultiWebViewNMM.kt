@@ -47,8 +47,9 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 
     fun openDwebView(origin: String, processId: String?): String {
         println("Kotlin#MultiWebViewNMM openDwebView $origin")
-        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId)
-            ?: "Error: not found mount process!!!"
+        return ""
+//        return App.mainActivity?.dWebBrowserModel?.openDWebBrowser(origin, processId)
+//            ?: "Error: not found mount process!!!"
     }
 
     private fun closeDwebView(processId: String?) {
