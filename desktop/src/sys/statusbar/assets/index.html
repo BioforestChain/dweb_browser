@@ -217,7 +217,7 @@
             监听操作的方法
         */
         async function awaitOperation(){
-            fetch("http://statusbar.sys.dweb-80.localhost:22605/operation?app_url="+appUrl)
+            fetch("http://statusbar.sys.dweb-80.localhost:22605/operation_from_html?app_url="+appUrl)
             .then(async (res) => {
                 awaitOperation()
                 const id = res.headers.get('id')

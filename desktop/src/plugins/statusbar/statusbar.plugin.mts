@@ -1,7 +1,7 @@
 import type {$StatusbarStyle, $isOverlays} from "../../sys/statusbar/statusbar.main.cjs"
 class StatusbarPlugin extends HTMLElement{
     // private _statusbarHttpAddress: string | undefined = "http://status.sys.dweb-80.localhost:22605/from_plugins"
-    private _statusbarHttpAddress: string | undefined = "./operation"
+    private _statusbarHttpAddress: string | undefined = "./operation_from_plugins"
     private _appUrl: string | undefined = undefined
 
     constructor(){
@@ -20,6 +20,8 @@ class StatusbarPlugin extends HTMLElement{
         return this._set('set_style', style)
     }
 
+    // 可能的问题，如果 两次操作之间间隔额太近了 前一次操作还没有返回，那么就会导致
+    // 执行出现问题？？
     getStyle( ){
         return fetch(
             `${this._statusbarHttpAddress}?app_url=${this._appUrl}`,
