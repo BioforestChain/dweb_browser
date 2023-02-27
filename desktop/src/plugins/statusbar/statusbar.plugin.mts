@@ -35,8 +35,13 @@ class StatusbarPlugin extends HTMLElement{
         )
     }
 
+    /**
+     * 设置状态栏是否覆盖
+     * @param value 
+     */
     setOverlaysWebview(value: $isOverlays){
-        this._set('set_overlays', value)
+        if(value !== "0" && value !== "1") throw new Error('setOverlaysWebview 非法的参数 参数范围 "0" | "1" 当前参数==='+value)
+        return this._set('set_overlays', value)
     }
 
     private async _set(action: string, value: string){
@@ -52,7 +57,6 @@ class StatusbarPlugin extends HTMLElement{
             }
         )
     }
-
 
 };
 

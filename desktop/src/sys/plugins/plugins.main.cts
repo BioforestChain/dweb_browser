@@ -1,10 +1,6 @@
-// plugins 主程序 用来提供 bundle/plugins.txt的内容服务器
-// import { resolveToRootFile } from "../../helper/createResolveTo.cjs";
-// import { JsMicroModule } from "../../sys/micro-module.js.cjs";
-
-// export const statusbarJMM = new JsMicroModule("statusbar.sys.dweb", {
-//   main_url: resolveToRootFile("bundle/statusbar.worker.js").href,
-// } as const);
+// plugins 主程序 用来提供 bundle/plugins.txt的内容服务器 
+// 这个内容需要插入到 html内部执行，创建 webcomponent 
+ 
 import fsPromises from "node:fs/promises"
 import path from "node:path"
 import process from "node:process";

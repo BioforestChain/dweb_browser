@@ -158,6 +158,9 @@ class HomePage extends LitElement{
                 <button @click=${() => this.setStatusbarStyle("dark")}>设置状态栏的风格 === dark</button>
                 <button @click=${() => this.setStatusbarStyle("default")}>设置状态栏的风格 === default</button>
                 <button @click=${() => this.getStatusbarStyle()}>获取状态栏的风格</button>
+                <button @click=${() => this.setStatusbarOverlays("0")}>获取状态栏的overlays 不覆盖</button>
+                <button @click=${() => this.setStatusbarOverlays("1")}>获取状态栏的overlays 覆盖</button>
+             
 
             </div>
         `
@@ -250,6 +253,15 @@ class HomePage extends LitElement{
         if(this.account >= 100)return;
         this.account++;
         this.getStatusbarStyle()
+    }
+
+    async setStatusbarOverlays(value: string){
+        console.log('点击了 设置 overlays',value)
+        const el = document.querySelector('statusbar-dweb') 
+        if(el === null) return console.error('设置 statusbar错误 el === null')
+        // @ts-ignore
+        const result = await el.setOverlaysWebview(value)
+        console.log('result: ', await result)
     }
 }
  
