@@ -59,7 +59,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { url: "string" },
       output: "number",
       handler: async (args, client_ipc) => {
-        console.log('multi-webview.mobile.cts 接收到了 /open')
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         return wapis.apis.openWebview(args.url);
       },
@@ -88,9 +87,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       let wapi = this._uid_wapis_map.get(ipc.uid);
       if (wapi === undefined) {
         const nww = await openNativeWindow(root_url, {
-          // id: "multi-webview",
-          // show_in_taskbar: true,
-          // new_instance: true,
           webPreferences: {
             webviewTag: true,
           },

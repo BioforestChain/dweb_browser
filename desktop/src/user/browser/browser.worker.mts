@@ -114,12 +114,10 @@ async function onRequestPathNameDownload(request: IpcRequest, httpServerIpc: Ipc
  */
 async function onRequestPathNameAppsInfo(request: IpcRequest, httpServerIpc: Ipc){
   const url = `file://file.sys.dweb/appsinfo`
-  
   jsProcess
   fetch(url)
   .then(async(res: Response) => {
     // 转发给 html
-    console.log("转发给 html 成功")
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(
         request.req_id,
