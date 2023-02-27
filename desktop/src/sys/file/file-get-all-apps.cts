@@ -32,7 +32,6 @@ export async function getAllApps(){
                 icon: metaData.icon
             })
         })
-        console.log('[file-get-all.cts appsInfo]: ', appsInfo)
         resolve(appsInfo)
     })
 }
