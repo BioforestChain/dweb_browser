@@ -209,8 +209,9 @@ async function onRequestPathNameOpen(request: IpcRequest, httpServerIpc: Ipc){
  * @param httpServerIpc 
  */
 async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
-  const _url = `file://statusbar.sys.dweb${request.url}`
-  console.log('[browser.worker.mts onRequestPathOperation]', request.method, request.body, _url)
+  const _path = request.headers["plugin-target"]
+  const _appUrl = request.parsed_url.searchParams.get("app_url")
+  const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`
   jsProcess
   fetch(_url, {method: request.method, body: request.body, headers:request.headers})
   .then(async(res: Response) => {
@@ -225,13 +226,6 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
   })
   .then( async (err) => {
     console.log('[browser.worker.mts onRequestPathOperation err:]', err)
-    // httpServerIpc.postMessage(
-    //   await IpcResponse.fromText(
-    //     request.req_id,
-    //     err,
-    //     httpServerIpc
-    //   )
-    // );
   })
 }
 

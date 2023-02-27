@@ -29,7 +29,8 @@ class StatusbarPlugin extends HTMLElement{
                 method: "PUT",
                 body: JSON.stringify({action: "get_style", value: ""}),
                 headers: {
-                    "Content-Type": "application/json; charset=UTF-8"
+                    "Content-Type": "application/json; charset=UTF-8",
+                    "Plugin-Target": "statusbar"
                 }
             } 
         )
@@ -52,7 +53,8 @@ class StatusbarPlugin extends HTMLElement{
                 method: "PUT",
                 body: JSON.stringify({action: action, value: value}),
                 headers: {
-                    "Content-Type": "application/json; charset=UTF-8"
+                    "Content-Type": "application/json; charset=UTF-8",
+                    "Plugin-Target": "statusbar"
                 }
             }
         )

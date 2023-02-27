@@ -6,6 +6,7 @@ import process from "node:process"
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs"
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
+import chalk from "chalk";
 import type { $AppInfo } from "../file/file-get-all-apps.cjs";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs"
@@ -22,6 +23,7 @@ export class WWWNMM extends NativeMicroModule{
             input: {},
             output: "boolean",
             handler: async (args,client_ipc, request) => {
+                console.log(chalk.cyan('[www.cts 接受到了 /server 请求]'))
                 // 在返回首页的时候需要注入 dweb-top-bar 这样的自定义组件, 要实现功能的访问
                 //把需要的文件内容返回去就可以了
                 // request.url === 'file://app.sys.dweb/server?url=http://app.w85defe5.dweb-80.localhost:22605/'

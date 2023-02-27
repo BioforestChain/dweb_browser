@@ -1,9 +1,10 @@
 import once from "lodash/once";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import { IPC_ROLE } from "../../core/ipc/const.cjs";
+import { buildUrl } from "../../helper/urlHelper.cjs";
+import chalk from "chalk"
 import type { $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
-import { buildUrl } from "../../helper/urlHelper.cjs";
 import type { $GetHostOptions } from "./net/createNetServer.cjs";
 
 /** 创建一个网络服务 */
@@ -13,7 +14,7 @@ export const createHttpDwebServer = async (
 ) => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const { origin, token } = await startHttpDwebServer(microModule, options);
-  console.log("获得域名授权：", origin, token);
+  console.log(chalk.green("获得域名授权 origin===]",origin, "  [token===]",token));
 
   /** 开始才处理请求 */
   const listen = () => listenHttpDwebServer(microModule, token);
@@ -106,7 +107,7 @@ export const startHttpDwebServer = (
       token: string;
     }>()
     .then((obj) => {
-      console.log(obj);
+      // console.log(obj);
       return obj;
     });
 };
