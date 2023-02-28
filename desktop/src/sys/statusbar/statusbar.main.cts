@@ -5,13 +5,9 @@ import process from "node:process";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { locks } from "../../helper/locksManager.cjs";
-import {
-  $NativeWindow,
-  openNativeWindow,
-} from "../../helper/openNativeWindow.cjs";
 import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
-import chalk from "chalk"
+ 
+import type { $NativeWindow } from "../../helper/openNativeWindow.cjs";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { Remote } from "comlink";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs"
@@ -254,30 +250,6 @@ export class StatusbarNMM extends NativeMicroModule {
     this._uid_wapis_map.clear();
     this._close_dweb_server?.();
     this._close_dweb_server = undefined;
-  }
-  private forceGetWapis(ipc: Ipc, root_url: string) {
-    return locks.request("multi-webview-get-window-" + ipc.uid, async () => {
-      let wapi = this._uid_wapis_map.get(ipc.uid);
-      if (wapi === undefined) {
-        const nww = await openNativeWindow(root_url, {
-          // id: "multi-webview",
-          // show_in_taskbar: true,
-          // new_instance: true,
-          webPreferences: {
-            webviewTag: true,
-          },
-          autoHideMenuBar: true,
-        });
-        nww.maximize();
-
-        // 打开 开发工具
-        nww.webContents.openDevTools()
-
-        const apis = nww.getApis<$APIS>();
-        this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));
-      }
-      return wapi;
-    });
   }
 }
 
