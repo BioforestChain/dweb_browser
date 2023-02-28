@@ -36,6 +36,23 @@ class StatusbarPlugin extends HTMLElement{
         )
     }
 
+    // 获取statusbar的高度
+    async getHeight(){
+        const res = await fetch(
+                `${this._statusbarHttpAddress}?app_url=${this._appUrl}`,
+                {
+                    method: "PUT",
+                    body: JSON.stringify({action: "get_height", value: ""}),
+                    headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                        "Plugin-Target": "statusbar"
+                    }
+                } 
+            )
+        
+        return Promise.resolve(JSON.parse(await res.json()).value)
+    }
+
     /**
      * 设置状态栏是否覆盖
      * @param value 

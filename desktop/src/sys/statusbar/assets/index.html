@@ -219,6 +219,11 @@
             iframe.style.position = this.isOverlays ? "absolute" : "relative";
         }
 
+        // 获取 状态栏的高度
+        function getHeight(){
+            return elContainer.getBoundingClientRect().height;
+        }
+
         /*
             监听操作的方法
         */
@@ -228,6 +233,7 @@
                 awaitOperation()
                 const id = res.headers.get('id')
                 const value = await res.json()
+                console.log('statusbar.html index.html 获取到了 操作 statusbar 的请求 ', value)
                 if(value.action === "set_background_color"){
                     setBackgroundColor(value.value)
                     fetchReturn(value.value, id)
@@ -243,6 +249,13 @@
                 if(value.action === 'get_style'){
                     // 需要这个 style 的值发送出去
                     fetchReturn(style, id)
+                    return;
+                }
+
+                if(value.action === "get_height"){
+                    const height = getHeight()
+                    console.log('获取到了 高度:', height)
+                    fetchReturn(height, id)
                     return;
                 }
 
@@ -262,7 +275,7 @@
 
         // 通过发送请求把数据传送回去
         function fetchReturn(value,id){
-            console.log("返回数据： ", JSON.stringify({ value: value}))
+            console.log("stausbar.html 返回数据： ", JSON.stringify({ value: value}))
             fetch(
                 "http://statusbar.sys.dweb-80.localhost:22605/operation_return?app_url="+appUrl,
                 {

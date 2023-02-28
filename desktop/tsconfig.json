@@ -101,6 +101,7 @@
   },
   "exclude": [
     "electron-vite.config.ts",
-    "proxy"
+    "proxy",
+    "doc"
   ]
 }
