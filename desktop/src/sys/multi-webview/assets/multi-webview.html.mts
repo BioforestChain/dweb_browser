@@ -342,7 +342,7 @@ export class ViewTree extends LitElement {
                 .opacity=${webview.state.opacity}
                 .customWebviewId=${webview.id}
                 .src=${webview.src}
-                style="${_styleMap}"
+                style=${_styleMap}
                 @animationend=${(event: CustomEvent<CustomEventAnimationendDetail>) => {
                    if (event.detail.event.animationName === "slideOut" && event.detail.customWebview.closing) {
                     this._removeWebview(webview);
