@@ -52,61 +52,11 @@ struct GenericsClosure<C>: Hashable {
         hasher.combine(timestamp)
     }
 }
-/*
- class Signal<Element> {
- 
- var items = Set<GenericsClosure<Element>>()
- 
- private var type: String = ""
- 
- 
- init(type: String) {
- self.type = type
- 
- }
- 
- func listen(callback: GenericsClosure<Element>) -> () -> Bool {
- 
- items.insert(callback)
- 
- var result: () -> Bool
- 
- result = {
- let item = self.items.remove(callback)
- return item == nil ? false : true
- }
- return result
- 
- }
- 
- func emit(firstPara: Any?, secondPara: Any?) {
- for cb in items {
- cb.callback?(firstPara, secondPara)
- }
- }
- 
- static func createSignal(type: String) -> Signal {
- return Signal(type: type)
- }
- }
- *//*
-    struct GenericsClosure<T>: Hashable {
+
+
+class SimpleSignal: Signal<()> {
     
-    
-    var type: String?
-    var callback: Callback?
-    
-    init(type: String? = nil, callback: Callback? = nil) {
-    self.type = type
-    self.callback = callback
+    override func emit(_ args: Void) {
+        super.emit(args)
     }
-    
-    static func == (lhs: GenericsClosure<T>, rhs: GenericsClosure<T>) -> Bool {
-    return lhs.type == rhs.type
-    }
-    
-    func hash(into hasher: inout Hasher) {
-    hasher.combine(type)
-    }
-    }
-    */
+}

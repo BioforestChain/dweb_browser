@@ -18,4 +18,8 @@ struct IpcStreamEnd {
     }
 }
 
-extension IpcStreamEnd: IpcMessage {}
+extension IpcStreamEnd: IpcMessage {
+    init() {
+        
+    }
+}

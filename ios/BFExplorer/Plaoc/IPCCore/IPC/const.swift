@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import HandyJSON
 
 enum IPC_DATA_TYPE {
     
@@ -49,8 +50,28 @@ enum IPC_ROLE: String {
     case CLIENT = "client"
 }
 
-protocol IpcMessage {}
+struct MetaBody: HandyJSON {
+    
+    var type: IPC_RAW_BODY_TYPE?
+    var data: Any?
+    
+    init() {
+        
+    }
+    
+    init(type: IPC_RAW_BODY_TYPE?, data: Any?) {
+        self.type = type
+        self.data = data
+    }
+
+}
+
+
+
+protocol IpcMessage: HandyJSON { }
 
 typealias OnIpcMessage = ((IpcMessage, Ipc)) -> Any
 typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Any
 typealias closeCallback = (()) -> Any
+typealias SimpleCallbcak = (()) -> Any
+

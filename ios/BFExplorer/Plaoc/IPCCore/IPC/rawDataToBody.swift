@@ -8,7 +8,7 @@
 import UIKit
 
 class rawDataToBody {
-
+/*
     static func rawDataToBodyResult(rawBody: RawData, ipc: Ipc?) -> Any? {
         
         var body: Any?
@@ -86,7 +86,7 @@ class rawDataToBody {
         }
         return body
     }
-    
+    */
     static func bodyEncoder(type: IPC_RAW_BODY_TYPE, result: Any) -> [UInt8]? {
         if type == .BINARY {
             return result as? [UInt8]

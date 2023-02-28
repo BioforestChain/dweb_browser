@@ -17,4 +17,9 @@ struct IpcStreamAbort {
     }
 }
 
-extension IpcStreamAbort: IpcMessage {}
+extension IpcStreamAbort: IpcMessage {
+    
+    init() {
+        
+    }
+}

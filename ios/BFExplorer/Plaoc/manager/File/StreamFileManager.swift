@@ -210,6 +210,33 @@ class StreamFileManager: NSObject {
         return result
     }
     
+    //读取流的数据返回长度 和 data
+    static func readStreamLengthAndData(stream: InputStream) -> (Int,Data) {
+
+        stream.open()
+        defer {
+            stream.close()
+        }
+        
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer {
+            buffer.deallocate()
+        }
+        var length: Int = 0
+        var resuleData: Data = Data()
+        while stream.hasBytesAvailable {
+            let leng = stream.read(buffer, maxLength: bufferSize)
+            if leng <= 0 {
+                break
+            }
+            let data = Data(bytes: buffer, count: leng)
+            length += leng
+            resuleData.append(data)
+        }
+        return (length,resuleData)
+    }
+    
     //写数据进入文件
     func writeFileContent(fileName: String, path: String, content: String?,append: Bool = false, autoCreate: Bool = true) {
         

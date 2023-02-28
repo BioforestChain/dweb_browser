@@ -39,16 +39,18 @@ class PromiseOut<T> {
         rejecter?(error)
     }
     
-    func waitPromise() {
+    func waitPromise() -> T? {
         //放异步执行
-        DispatchQueue.global().async {
-            let result = try? self.promise?.wait()
-            print(result as Any)
-        }
+        let result = try? self.promise?.wait()
+        return result
     }
     
     func finished() -> Bool {
         return promise?.isResolved ?? false
+    }
+    
+    func hasResult() -> Bool {
+        return promise?.result != nil
     }
 }
 

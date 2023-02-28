@@ -8,6 +8,12 @@
 import UIKit
 import Network
 import Vapor
+import SwiftUI
+import Moya
+import AsyncHTTPClient
+import PromiseKit
+import SwiftyJSON
+import HandyJSON
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -20,9 +26,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         sharedCachesMgr.cacheNews()
         appVersionMgr.startCheck()
-        window?.rootViewController = UINavigationController(rootViewController: BrowserContainerViewController())
+        window?.rootViewController = UINavigationController(rootViewController: FirstViewController())   
         
         return true
+    }
+    
+  
+    
+    func sendCodeContinuation() async -> Data {
+        
+        await withCheckedContinuation({ continuation in
+            let request = URLRequest(url: URL(string: "https://www.jianshu.com/p/69f06a0d757b")!)
+            let tash = URLSession.shared.dataTask(with: request) { data, response, error in
+                continuation.resume(returning: data!)
+            }
+            tash.resume()
+        })
     }
 }
 
