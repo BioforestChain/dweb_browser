@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.fileopener
+package info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.fileopener
 
 import android.content.ActivityNotFoundException
 import android.content.Intent

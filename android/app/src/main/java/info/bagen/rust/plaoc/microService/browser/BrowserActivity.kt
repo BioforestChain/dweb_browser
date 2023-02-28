@@ -1,9 +1,8 @@
 package info.bagen.rust.plaoc.microService.browser
 
 import android.Manifest
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.IntentFilter
+import android.bluetooth.BluetoothDevice
+import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.Resources.NotFoundException
 import android.os.Bundle
@@ -20,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import androidx.core.app.ActivityCompat
 import androidx.core.view.ViewCompat
 import com.google.mlkit.vision.barcode.Barcode
 import com.king.app.dialog.AppDialog
@@ -39,11 +39,17 @@ import info.bagen.libappmgr.ui.camera.QRCodeViewModel
 import info.bagen.libappmgr.ui.main.Home
 import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
+import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.QRCodeScanningActivity
+import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_CAN_BE_FOUND
+import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_REQUEST
+import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetoothOp
+import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.lib.drawRect
@@ -125,12 +131,30 @@ class BrowserActivity : AppCompatActivity() {
     // 选择图片后回调到这
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        // 申请蓝牙启动的返回
+        if (requestCode == BLUETOOTH_REQUEST) {
+            when(resultCode) {
+                RESULT_OK -> bluetoothOp.resolve("success")
+                RESULT_CANCELED -> bluetoothOp.resolve("Application for bluetooth rejected")
+                else -> bluetoothOp.resolve("Application for bluetooth rejected")
+            }
+        }
+        // 启动蓝牙可以发现的返回
+        if (requestCode == BLUETOOTH_CAN_BE_FOUND) {
+            when(resultCode) {
+                RESULT_OK -> bluetooth_found.resolve("success")
+                RESULT_CANCELED -> bluetooth_found.resolve("rejected")
+                else -> bluetooth_found.resolve("rejected")
+            }
+        }
+        // 相册返回
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 REQUEST_CODE_PHOTO -> processPhoto(data)
                 REQUEST_CODE_SCAN_CODE -> processScanResult(data)
             }
         }
+
     }
 
     override fun onRequestPermissionsResult(
@@ -194,13 +218,13 @@ class BrowserActivity : AppCompatActivity() {
         unRegisterBFSBroadcastReceiver()
         BrowserActivity.instance = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
+        unregisterReceiver(receiver)
     }
 
     // 扫码后显示一下Toast
     private fun processScanResult(data: Intent?) {
         val text = CameraScan.parseScanResult(data)
         // Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
-        Log.d("MainActivity", "processScanResult text=$text")
         if (text?.startsWith("http") == true) {
             dWebView_host = "http"
             openDWebViewActivity(text)
@@ -303,4 +327,31 @@ class BrowserActivity : AppCompatActivity() {
             activity = getContext(), url = path // url
         )
     }
+    // 创建查找对象
+    val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val result = mutableListOf<BluetoothNMM.BluetoothTargets>()
+            when (intent.action) {
+                // 查找设备
+                BluetoothDevice.ACTION_FOUND -> {
+                    val device: BluetoothDevice? =
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    // 权限判断
+                    if (ActivityCompat.checkSelfPermission(
+                            App.appContext,
+                            Manifest.permission.BLUETOOTH_CONNECT
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        // TODO: 处理没有权限的情况
+                        return
+                    }
+                    device?.let {
+                        result.add(BluetoothNMM.BluetoothTargets(it.name, it.address,it.uuids[0].uuid))
+                    }
+                }
+            }
+            BluetoothNMM.findBluetoothResult.resolve(result)
+        }
+    }
+
 }

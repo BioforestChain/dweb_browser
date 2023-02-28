@@ -15,6 +15,8 @@ inline fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) 
 class PermissionsNMM:NativeMicroModule("permission.sys.dweb") {
     /** 存储每个微应用的权限*/
     val permissionMap = mutableMapOf<Mmid,MutableList<Mmid>>()
+    /** 存储系统的权限*/
+    val systemPermissions = mutableMapOf<Mmid,String>()
 
     override suspend fun _bootstrap() {
         apiRouting = routes(
