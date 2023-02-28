@@ -11,4 +11,7 @@
 - 通过向 / || /index.html 的请求中 respoonse.body 直接加入返回
 
 
-## 返回的数据必须是 Promise<boolean | string | number>
+## 调用方法返回的数据必须是 
+- Promise<boolean | string | number>
+
+## 

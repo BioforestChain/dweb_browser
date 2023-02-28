@@ -59,7 +59,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { url: "string" },
       output: "number",
       handler: async (args, client_ipc, request) => {
-        // console.log('[multi-webview.mobile.cts registerCommonIpcOnMessageHandler /open]',args, client_ipc, request )
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         return wapis.apis.openWebview(args.url);
       },

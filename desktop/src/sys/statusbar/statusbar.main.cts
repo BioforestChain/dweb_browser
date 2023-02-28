@@ -11,6 +11,7 @@ import {
   openNativeWindow,
 } from "../../helper/openNativeWindow.cjs";
 import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
+import chalk from "chalk"
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { Remote } from "comlink";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs"
@@ -58,10 +59,8 @@ export class StatusbarNMM extends NativeMicroModule {
 
       // 处理操作完成后 statusbar.html 发送过来的数据
       if(request.parsed_url.pathname === '/operation_return'){
-        // console.log('[statusbar.main.cts /operation_return request.headers]', request.headers)
         const id = request.headers.id
         const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
-
         if(!id){
           ipc.postMessage(
             await IpcResponse.fromText(
@@ -96,7 +95,6 @@ export class StatusbarNMM extends NativeMicroModule {
                   statusbarPluginsNoReleaseRequest.splice(itemIndex, 1)
         // 返回的就是一个 json
         const data = await readStream(request.body as ReadableStream)
-        
         item
         .callback(
           await IpcResponse.fromJson(
@@ -123,11 +121,7 @@ export class StatusbarNMM extends NativeMicroModule {
 
       // todo 最好有一个时间限定防止超时过期
       if(request.parsed_url.pathname === "/operation_from_html"){
-        // console.log('[statusbar.main.cts]接受到了 /operation http 请求')
-        // appUrl 标识 当前statusbar搭配的是哪个 app 显示的
-        // 因为 statusbar 会提供给任意个 browserWindow 使用
         const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
-        // console.log('[statusbar.main.cts]接受到了 /operation http 请求 appUrlFromStatusbarHtml === ',appUrlFromStatusbarHtml)
         if(appUrlFromStatusbarHtml === null){
           ipc.postMessage(
             await IpcResponse.fromText(

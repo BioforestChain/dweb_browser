@@ -37,14 +37,12 @@ async function openIndexHtmlAtMWebview(origin:string){
 }
 
 async function onRequestAtOperationFromPlugins(request: IpcRequest, ipc: Ipc){
-  console.log('[common.worker.mts onRequestAtOperationFromPlugins]')
   const _path = request.headers["plugin-target"]
   const _appUrl = request.parsed_url.searchParams.get("app_url")
   const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`
   jsProcess
   .fetch(_url, {method: request.method, body: request.body, headers:request.headers})
   .then(async(res: Response) => {
-    console.log('[common.worker.mts response:]', res)
     ipc.postMessage(
       await IpcResponse.fromResponse(
         request.req_id,
