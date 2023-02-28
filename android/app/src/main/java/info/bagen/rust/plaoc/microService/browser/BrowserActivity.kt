@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.content.res.Resources.NotFoundException
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -41,8 +40,6 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
-import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
-import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.BarcodeScanningActivity
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.QRCodeScanningActivity
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
@@ -72,7 +69,6 @@ class BrowserActivity : AppCompatActivity() {
     val qrCodeViewModel: QRCodeViewModel by viewModel()
     private val appViewModel: AppViewModel by viewModel()
     private val mainViewModel: MainViewModel by viewModel()
-    private var bfsBroadcastReceiver: BFSBroadcastReceiver? = null
 
     @JvmName("getAppViewModel1")
     fun getAppViewModel(): AppViewModel {
@@ -84,8 +80,6 @@ class BrowserActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         BrowserActivity.instance = this
-        // 初始化广播
-        registerBFSBroadcastReceiver()
         setContent {
             ViewCompat.getWindowInsetsController(LocalView.current)?.isAppearanceLightStatusBars =
                 !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
@@ -198,25 +192,11 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * 注册广播，在 onDestroy 的时候需要手动取消注册
-     */
-    private fun registerBFSBroadcastReceiver() {
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(BFSBroadcastAction.BFSInstallApp.action)
-        bfsBroadcastReceiver = BFSBroadcastReceiver()
-        registerReceiver(bfsBroadcastReceiver, intentFilter)
-    }
-
-    private fun unRegisterBFSBroadcastReceiver() {
-        bfsBroadcastReceiver?.let { unregisterReceiver(it) }
-    }
 
     override fun onDestroy() {
         // 退出APP关闭服务
         super.onDestroy()
-        unRegisterBFSBroadcastReceiver()
-        BrowserActivity.instance = null
+        instance = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
         unregisterReceiver(receiver)
     }

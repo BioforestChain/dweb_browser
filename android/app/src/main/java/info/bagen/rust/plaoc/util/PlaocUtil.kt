@@ -22,7 +22,7 @@ object PlaocUtil {
                 .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_scan))
                 .setIntent(
                     Intent(
-                        "info.bagen.rust.plaoc.qrcodescan",
+                        "info.bagen.dwebbrowser.qrcodescan",
                         null,
                         context,
                         QRCodeScanningActivity::class.java

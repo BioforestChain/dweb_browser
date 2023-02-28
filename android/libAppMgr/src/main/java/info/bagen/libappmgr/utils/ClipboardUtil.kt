@@ -53,9 +53,9 @@ object ClipboardUtil {
                 val apiResultData = ApiService.instance.getAppVersion(content)
                 if (apiResultData.isSuccess) {
                     val bb = apiResultData.value as BaseData<AppVersion>
-                    Log.d("lin.huang", "readAndParsingClipboard -> ${bb.data?.version}")
+                    Log.d("ClipboardUtil", "readAndParsingClipboard -> ${bb.data?.version}")
                 } else {
-                    Log.d("lin.huang", "readAndParsingClipboard -> load fail->$apiResultData")
+                    Log.d("ClipboardUtil", "readAndParsingClipboard -> load fail->$apiResultData")
                 }
             }
         }

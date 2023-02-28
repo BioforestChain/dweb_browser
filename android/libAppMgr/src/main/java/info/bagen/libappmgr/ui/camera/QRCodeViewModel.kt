@@ -55,7 +55,6 @@ class QRCodeViewModel: ViewModel() {
           scanCallBack = action.scanCallBack
         }
         is QRCodeIntent.ReleaseCamera -> {
-          Log.e("lin.huang", "QRCodeViewModel::handleIntent::ReleaseCamera -> $qrCodeScanning")
           qrCodeScanning?.releaseCamera()
           qrCodeScanning = null
         }

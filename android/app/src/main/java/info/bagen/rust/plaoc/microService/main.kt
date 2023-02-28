@@ -4,6 +4,7 @@ import info.bagen.rust.plaoc.microService.browser.BrowserNMM
 import info.bagen.rust.plaoc.microService.sys.boot.BootNMM
 import info.bagen.rust.plaoc.microService.sys.dns.DnsNMM
 import info.bagen.rust.plaoc.microService.sys.http.HttpNMM
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
@@ -42,6 +43,9 @@ suspend fun startDwebBrowser() {
     val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
     ///文件系统
     val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
+
+    /// 安装Jmm
+    val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
 
     /// 安装用户应用
     val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }

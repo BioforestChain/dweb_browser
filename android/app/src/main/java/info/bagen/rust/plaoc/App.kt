@@ -10,6 +10,8 @@ import info.bagen.libappmgr.di.libViewModelModule
 import info.bagen.libappmgr.utils.ClipboardUtil
 import info.bagen.rust.plaoc.di.appModules
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
+import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
+import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
 import kotlinx.coroutines.*
@@ -20,12 +22,12 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 
 class App : Application() {
-
     companion object {
         lateinit var appContext: Context
 
         var browserActivity: BrowserActivity? = null
         var dwebViewActivity: DWebViewActivity? = null
+        var jmmManagerActivity: JmmManagerActivity? = null
 
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
             runBlocking {
@@ -50,6 +52,8 @@ class App : Application() {
             )
         }
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
+        // startService(Intent(this@App, DwebBrowserService::class.java))
+        DwebBrowserUtil.INSTANCE.bindDwebBrowserService()
     }
 
     private class ActivityLifecycleCallbacksImp : ActivityLifecycleCallbacks {
