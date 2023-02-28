@@ -70,7 +70,7 @@ async function onServerAtIndexHtml(args: unknown, client_ipc: Ipc, ipc_request: 
  * @param html 
  */
 async function injectPluginsToHTML(html: string): Promise<string>{
-    const targetPath = path.resolve(process.cwd(), "./bundle/plugins.txt");
+    const targetPath = path.resolve(process.cwd(), "./bundle/plugins.components.js");
     const pluginsBuffer = await fsPromises.readFile(targetPath)
     const pluginsText = new TextDecoder().decode(pluginsBuffer);
     return html.replace("<body>",`<body><script type="text/javascript">${pluginsText}</script>`)

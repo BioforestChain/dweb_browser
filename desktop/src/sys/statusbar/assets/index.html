@@ -168,6 +168,7 @@
         // 默认的值是 #FFF
         // 备注 必须是大写的 十六进制的值
         let backgroundColor="#FFFF"
+        
         // 是否覆盖 
         // 可能的值 boolean
         // 默认的值 false 不覆盖
@@ -179,7 +180,6 @@
         const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#statusbar');
         const appUrl = iframe.dataset.appUrl
         if(!iframe) console.error('status-bar 发生错误, 没有找到挂在的 iframe')
-        console.log('dataAppSrc------------------------------------:', appUrl)
 
         // 设置主题
         // 通过设置 .container 的color 实现
@@ -215,42 +215,33 @@
 
         // 设置 statusbar 是否覆盖
         function setOverlays(value){
-            this.isOverlays = value == "0" ? false : true;
-            iframe.style.position = this.isOverlays ? "absolute" : "relative";
+            isOverlays = value == "0" ? false : true;
+            iframe.style.position = isOverlays ? "absolute" : "relative";
+        }
+
+        // 获取 状态栏的高度
+        function getHeight(){
+            return elContainer.getBoundingClientRect().height;
         }
 
         /*
             监听操作的方法
         */
         async function awaitOperation(){
+          
             fetch("http://statusbar.sys.dweb-80.localhost:22605/operation_from_html?app_url="+appUrl)
             .then(async (res) => {
                 awaitOperation()
                 const id = res.headers.get('id')
                 const value = await res.json()
-                if(value.action === "set_background_color"){
-                    setBackgroundColor(value.value)
-                    fetchReturn(value.value, id)
-                    return ;
-                }
-
-                if(value.action === "set_style"){
-                    setStyle(value.value)
-                    fetchReturn(value.value, id)
-                    return;
-                }
-
-                if(value.action === 'get_style'){
-                    // 需要这个 style 的值发送出去
-                    fetchReturn(style, id)
-                    return;
-                }
-
-                if(value.action === "set_overlays"){
-                    fetchReturn(value.value, id)
-                    console.log("接受到了 set_overlays",value)
-                    setOverlays(value.value);
-                    return;
+                switch(value.action){
+                    case "set_background_color":  setBackgroundColor(value.value);fetchReturn(value.value, id);break;
+                    case "set_style": setStyle(value.value);fetchReturn(value.value, id); break;
+                    case "get_style": fetchReturn(style, id); break;
+                    case "get_height": fetchReturn(getHeight(), id);break;
+                    case "set_overlays": setOverlays(value.value);fetchReturn(value.value, id); break;
+                    case "get_overlays": fetchReturn(isOverlays ? "1" : "0", id);break;
+                    default: fetchReturn(new Error('没有匹配功能'));
                 }
             })
             .catch(err => {
@@ -262,7 +253,6 @@
 
         // 通过发送请求把数据传送回去
         function fetchReturn(value,id){
-            console.log("返回数据： ", JSON.stringify({ value: value}))
             fetch(
                 "http://statusbar.sys.dweb-80.localhost:22605/operation_return?app_url="+appUrl,
                 {
@@ -275,9 +265,9 @@
                      
                 }
             )
-            .then(res =>{
-                console.log('statusbar.html 返回的数据成功', res)
-            })
+            // .then(res =>{
+            //     console.log('statusbar.html 返回的数据成功', res)
+            // })
             .catch(err => console.error("fetchReturn 出错", err))
         }
       

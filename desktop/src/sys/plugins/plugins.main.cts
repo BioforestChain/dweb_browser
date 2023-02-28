@@ -22,24 +22,25 @@ export class PluginsNMM extends NativeMicroModule {
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
     
-    ;(await listen()).onRequest(async (request, ipc) => {
-      // 监听 http:// 协议的请求
-      // 通过 fetch("http://plugins.sys.dweb-80.localhost:22605/") 访问的请求会被发送到这个位置
-      if(request.parsed_url.pathname === "/" || request.parsed_url.pathname === "/index.html"){
-        ipc.postMessage(
-          await IpcResponse.fromText(
-            request.req_id,
-            200,
-            await reqadHtmlFile(),
-            new IpcHeaders({
-              "Content-type": "text/html"
-            })
-          )
-        );
-        return ;
-      }
+    // ;(await listen()).onRequest(async (request, ipc) => {
+    //   // 监听 http:// 协议的请求
+    //   // 通过 fetch("http://plugins.sys.dweb-80.localhost:22605/") 访问的请求会被发送到这个位置
+    //   console.log('--------------- plugins.main.cts 通过 onRequest 访问')
+    //   if(request.parsed_url.pathname === "/" || request.parsed_url.pathname === "/index.html"){
+    //     ipc.postMessage(
+    //       await IpcResponse.fromText(
+    //         request.req_id,
+    //         200,
+    //         await reqadHtmlFile(),
+    //         new IpcHeaders({
+    //           "Content-type": "text/html"
+    //         })
+    //       )
+    //     );
+    //     return ;
+    //   }
      
-    });
+    // });
 
     
     // 下面注册的是 
@@ -73,7 +74,7 @@ export class PluginsNMM extends NativeMicroModule {
 
 // 读取 html 文件
 async function reqadHtmlFile(){
-  const targetPath = path.resolve(process.cwd(), "./bundle/plugins.txt")
+  const targetPath = path.resolve(process.cwd(), "./bundle/plugins.components.js")
   const content = await fsPromises.readFile(targetPath)
   return new TextDecoder().decode(content)
 }

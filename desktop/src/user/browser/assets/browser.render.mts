@@ -2,6 +2,7 @@ import {css, LitElement, html } from "lit";
 import { styleMap } from "lit/directives/style-map.js";
 import { property, state, query } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
+import { customElement } from "lit/decorators.js";
 import type { $AppInfo } from "../../../sys/file/file-get-all-apps.cjs"
 const styles = [
     css `
@@ -98,6 +99,7 @@ const styles = [
          
     `
 ]
+@customElement('home-page')
 class HomePage extends LitElement{
     @property() apps:  $AppInfo[] = []
 
@@ -112,9 +114,6 @@ class HomePage extends LitElement{
 
     protected override render(){
         const arr:  $AppInfo[][] = toTwoDimensionalArray(this.apps)
-        console.log("location: ", location)
-        console.log('window: ', window)
-        
         return html`
             <div 
                 class="page-container"
@@ -122,7 +121,7 @@ class HomePage extends LitElement{
                 <div class="logo-container">logo---</div>
                 <div class="search-container">
                    <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa"/>
-                   <button class="search-bottom" @click=${this.onSearch}>DOWNLOAD</button>
+                   <button class="search-bottom" @click=${this.onSearch} >DOWNLOAD</button>
                 </div>
                 <div class="apps-container">
                     ${
@@ -131,16 +130,8 @@ class HomePage extends LitElement{
                                 <div class="row-container">
                                     ${
                                         repeat(rows, item => item.bfsAppId, item => {
-                                            const _styleMap = styleMap({
-                                                backgroundImage: "url(./icon/"+ item.bfsAppId +"/sys"+ item.icon +")"
-                                            })
                                             return  html `
-                                                <div 
-                                                    class="item-container"
-                                                    style="${_styleMap}"
-                                                    @click=${() => this.onOpenApp(item.appId)}
-                                                >
-                                                </div>
+                                                <app-col .item=${item} class="item-container" @click=${() => this.onOpenApp(item.appId)}></app-col>
                                             `
                                         })
                                     }
@@ -160,8 +151,6 @@ class HomePage extends LitElement{
                 <button @click=${() => this.getStatusbarStyle()}>获取状态栏的风格</button>
                 <button @click=${() => this.setStatusbarOverlays("0")}>获取状态栏的overlays 不覆盖</button>
                 <button @click=${() => this.setStatusbarOverlays("1")}>获取状态栏的overlays 覆盖</button>
-             
-
             </div>
         `
     }
@@ -200,13 +189,6 @@ class HomePage extends LitElement{
             console.error('安装应用失败 appId: ', appId, response.text())
             return ;
         }  
-        // console.log('开始打开应用:open:', open)
-        // 需要 open appId 指定的应用
-        // 通过 open 打开的 应用 location.host 应该是当前 域名下的  path 不同而已
-        // http://browser.sys.dweb-80.localhost:22605/ 还是会发送给 brower.worker.ts
-        // http://browser.sys.dweb-80.localhost:22605/index.html?qaq=1677033788241 可以理解为这一个应用下的多个子应用 附着应用？？？
-        // open(`/index.html?qaq=${encodeURIComponent(Date.now())}`);
-         
         // 打开一个新的 window 窗口
         response = await fetch(`./open?appId=${appId}`)
     }
@@ -242,8 +224,6 @@ class HomePage extends LitElement{
     }
     
 }
- 
-customElements.define('home-page', HomePage)
 
 /**
  * 把一维数组转化为二位数组
@@ -259,6 +239,37 @@ function toTwoDimensionalArray(items: unknown[]){
         twoDimensionalArr[rowIndex][colIndex] = item
     })
     return twoDimensionalArr
+}
+
+@customElement('app-col')
+class AppCol extends LitElement{
+    @property() item: $AppInfo | undefined = undefined
+    static override styles = [
+        css`
+            .container{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-sizing: border-box;
+                padding:10px;
+                width: 100%;
+                height: 100%;
+                border-radius: 16px;
+                background-color: #ddd1;
+                background-position: center;
+                background-size: contain;
+                background-repeat: no-repeat;
+                cursor: pointer;
+            }
+        `
+    ]
+
+    protected override render() {
+        const _styleMap = styleMap({
+            backgroundImage: "url(./icon/"+ this.item?.bfsAppId +"/sys"+ this.item?.icon +")"
+        })
+        return html`<div class="container" style=${_styleMap} ></div>`
+    }
 }
 
 

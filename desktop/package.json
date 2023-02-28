@@ -36,8 +36,8 @@
     "dev:common.worker": "npm run bundle:common.worker -- --watch",
     "bundle:multi-webview.html": "vite build src/sys/multi-webview/assets/ --outDir=../../../../bundle/multi-webview --emptyOutDir -c electron-vite.config.ts",
     "dev:multi-webview.html": "npm run bundle:multi-webview.html -- --minify=false --watch",
-    "bundle:plugins.index": "esbuild ./src/plugins/index.mts --outfile=./bundle/plugins.txt --bundle --format=esm",
-    "dev:plugins.index": "npm run bundle:plugins.index -- --watch",
+    "bundle:plugins.components": "esbuild ./src/sys/plugins/components/index.mts --outfile=./bundle/plugins.components.js --bundle --format=esm",
+    "dev:plugins.components": "npm run bundle:plugins.components -- --watch",
     "start:win": "chcp 65001 && electron .",
     "start": "electron ./",
     "如果需要采用彩色的输出到终端":"FORCE_COLOR=true pnpm start"

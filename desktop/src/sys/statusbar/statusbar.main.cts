@@ -5,12 +5,9 @@ import process from "node:process";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { locks } from "../../helper/locksManager.cjs";
-import {
-  $NativeWindow,
-  openNativeWindow,
-} from "../../helper/openNativeWindow.cjs";
 import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
+ 
+import type { $NativeWindow } from "../../helper/openNativeWindow.cjs";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { Remote } from "comlink";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs"
@@ -58,10 +55,8 @@ export class StatusbarNMM extends NativeMicroModule {
 
       // 处理操作完成后 statusbar.html 发送过来的数据
       if(request.parsed_url.pathname === '/operation_return'){
-        // console.log('[statusbar.main.cts /operation_return request.headers]', request.headers)
         const id = request.headers.id
         const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
-
         if(!id){
           ipc.postMessage(
             await IpcResponse.fromText(
@@ -96,7 +91,6 @@ export class StatusbarNMM extends NativeMicroModule {
                   statusbarPluginsNoReleaseRequest.splice(itemIndex, 1)
         // 返回的就是一个 json
         const data = await readStream(request.body as ReadableStream)
-        
         item
         .callback(
           await IpcResponse.fromJson(
@@ -123,11 +117,7 @@ export class StatusbarNMM extends NativeMicroModule {
 
       // todo 最好有一个时间限定防止超时过期
       if(request.parsed_url.pathname === "/operation_from_html"){
-        // console.log('[statusbar.main.cts]接受到了 /operation http 请求')
-        // appUrl 标识 当前statusbar搭配的是哪个 app 显示的
-        // 因为 statusbar 会提供给任意个 browserWindow 使用
         const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
-        // console.log('[statusbar.main.cts]接受到了 /operation http 请求 appUrlFromStatusbarHtml === ',appUrlFromStatusbarHtml)
         if(appUrlFromStatusbarHtml === null){
           ipc.postMessage(
             await IpcResponse.fromText(
@@ -157,7 +147,7 @@ export class StatusbarNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/",
       matchMode: "full",
-      input: { url: "string" },
+      input: {},
       output: "number",
       handler: async (args, client_ipc, request) => {
         return  IpcResponse.fromText(
@@ -260,30 +250,6 @@ export class StatusbarNMM extends NativeMicroModule {
     this._uid_wapis_map.clear();
     this._close_dweb_server?.();
     this._close_dweb_server = undefined;
-  }
-  private forceGetWapis(ipc: Ipc, root_url: string) {
-    return locks.request("multi-webview-get-window-" + ipc.uid, async () => {
-      let wapi = this._uid_wapis_map.get(ipc.uid);
-      if (wapi === undefined) {
-        const nww = await openNativeWindow(root_url, {
-          // id: "multi-webview",
-          // show_in_taskbar: true,
-          // new_instance: true,
-          webPreferences: {
-            webviewTag: true,
-          },
-          autoHideMenuBar: true,
-        });
-        nww.maximize();
-
-        // 打开 开发工具
-        nww.webContents.openDevTools()
-
-        const apis = nww.getApis<$APIS>();
-        this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));
-      }
-      return wapi;
-    });
   }
 }
 
