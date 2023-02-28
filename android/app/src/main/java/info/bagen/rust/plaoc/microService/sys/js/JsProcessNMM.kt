@@ -181,6 +181,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
         val bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
             .path("$INTERNAL_PATH/bootstrap.js")
+            .query("debug", "true")
             .query("mmid", ipc.remote.mmid)
             .query("host", httpDwebServer.startResult.urlInfo.host)
             .toString()
@@ -191,11 +192,13 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         val processHandler = apis.createProcess(bootstrap_url, ipc.remote);
 
         /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
-        processHandler.ipc.onRequest { (request, ipc) ->
-            // TODO 跟 dns 要 jmmMetadata 信息
-            // jmmMetadata.permissions.contains(request.uri.host) // ["camera.sys.dweb"]
-            val response = ipc.remote.nativeFetch(request.toRequest());
-            ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
+        /// TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
+        processHandler.ipc.onRequest { (ipcRequest, ipc) ->
+            val request = ipcRequest.toRequest()
+            // 转发请求
+            val response = ipc.remote.nativeFetch(request);
+            val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
+            ipc.postMessage(ipcResponse)
         }
         /**
          * 开始执行代码

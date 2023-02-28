@@ -268,7 +268,7 @@ var require_before = __commonJS({
         throw new TypeError(FUNC_ERROR_TEXT);
       }
       n = toInteger(n);
-      return function () {
+      return function() {
         if (--n > 0) {
           result = func.apply(this, arguments);
         }
@@ -338,6 +338,32 @@ var u8aConcat = (binaryList) => {
   return result;
 };
 
+// src/helper/encoding.cts
+var textEncoder = new TextEncoder();
+var simpleEncoder = (data, encoding) => {
+  if (encoding === "base64") {
+    const byteCharacters = atob(data);
+    const binary = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      binary[i] = byteCharacters.charCodeAt(i);
+    }
+    return binary;
+  }
+  return textEncoder.encode(data);
+};
+var textDecoder = new TextDecoder();
+var simpleDecoder = (data, encoding) => {
+  if (encoding === "base64") {
+    let binary = "";
+    const bytes = binaryToU8a(data);
+    for (const byte of bytes) {
+      binary += String.fromCharCode(byte);
+    }
+    return btoa(binary);
+  }
+  return textDecoder.decode(data);
+};
+
 // src/core/ipc/const.cts
 var toIpcMethod = (method) => {
   if (method == null) {
@@ -374,36 +400,33 @@ var toIpcMethod = (method) => {
   }
   throw new Error(`invalid method: ${method}`);
 };
+var $metaBodyToBinary = (metaBody) => {
+  const [type, data] = metaBody;
+  switch (type) {
+    case IPC_META_BODY_TYPE.BINARY: {
+      return data;
+    }
+    case IPC_META_BODY_TYPE.BASE64: {
+      return simpleEncoder(data, "base64");
+    }
+    case IPC_META_BODY_TYPE.TEXT: {
+      return simpleEncoder(data, "utf8");
+    }
+  }
+  throw new Error(`invalid metaBody.type :${type}`);
+};
+var IPC_META_BODY_TYPE = /* @__PURE__ */ ((IPC_META_BODY_TYPE2) => {
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["STREAM_ID"] = 0] = "STREAM_ID";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["INLINE"] = 1] = "INLINE";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["TEXT"] = 3] = "TEXT";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BASE64"] = 5] = "BASE64";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BINARY"] = 9] = "BINARY";
+  return IPC_META_BODY_TYPE2;
+})(IPC_META_BODY_TYPE || {});
 var IpcMessage = class {
   constructor(type) {
     this.type = type;
   }
-};
-
-// src/helper/encoding.cts
-var textEncoder = new TextEncoder();
-var simpleEncoder = (data, encoding) => {
-  if (encoding === "base64") {
-    const byteCharacters = atob(data);
-    const binary = new Uint8Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      binary[i] = byteCharacters.charCodeAt(i);
-    }
-    return binary;
-  }
-  return textEncoder.encode(data);
-};
-var textDecoder = new TextDecoder();
-var simpleDecoder = (data, encoding) => {
-  if (encoding === "base64") {
-    let binary = "";
-    const bytes = binaryToU8a(data);
-    for (const byte of bytes) {
-      binary += String.fromCharCode(byte);
-    }
-    return btoa(binary);
-  }
-  return textDecoder.decode(data);
 };
 
 // src/helper/createSignal.cts
@@ -485,7 +508,7 @@ var ReadableStreamOut = class {
 };
 
 // src/core/ipc/IpcBody.cts
-var IpcBody = class {
+var _IpcBody = class {
   get body() {
     return this._bodyHub.data;
   }
@@ -501,6 +524,7 @@ var IpcBody = class {
         throw new Error(`invalid body type`);
       }
       bodyHub.u8a = body_u8a;
+      _IpcBody.wm.set(body_u8a, this);
     }
     return body_u8a;
   }
@@ -510,6 +534,7 @@ var IpcBody = class {
     if (body_stream === void 0) {
       body_stream = new Blob([await this.u8a()]).stream();
       bodyHub.stream = body_stream;
+      _IpcBody.wm.set(body_stream, this);
     }
     return body_stream;
   }
@@ -523,6 +548,8 @@ var IpcBody = class {
     return body_text;
   }
 };
+var IpcBody = _IpcBody;
+IpcBody.wm = /* @__PURE__ */ new WeakMap();
 var BodyHub = class {
   constructor(data) {
     this.data = data;
@@ -536,18 +563,51 @@ var BodyHub = class {
   }
 };
 
+// src/core/ipc/IpcStreamAbort.cts
+var IpcStreamAbort = class extends IpcMessage {
+  constructor(stream_id) {
+    super(5 /* STREAM_ABORT */);
+    this.stream_id = stream_id;
+  }
+};
+
 // src/core/ipc/IpcStreamData.cts
 var IpcStreamData = class extends IpcMessage {
-  constructor(stream_id, data) {
+  constructor(stream_id, data, encoding) {
     super(2 /* STREAM_DATA */);
     this.stream_id = stream_id;
     this.data = data;
+    this.encoding = encoding;
   }
-  static fromBinary(ipc, stream_id, data) {
-    if (ipc.support_binary) {
-      return new IpcStreamData(stream_id, data);
+  static asBase64(stream_id, data) {
+    return new IpcStreamData(
+      stream_id,
+      simpleDecoder(data, "base64"),
+      4 /* BASE64 */
+    );
+  }
+  static asBinary(stream_id, data) {
+    return new IpcStreamData(stream_id, data, 8 /* BINARY */);
+  }
+  static asUtf8(stream_id, data) {
+    return new IpcStreamData(
+      stream_id,
+      simpleDecoder(data, "utf8"),
+      2 /* UTF8 */
+    );
+  }
+  get binary() {
+    switch (this.encoding) {
+      case 8 /* BINARY */: {
+        return this.data;
+      }
+      case 4 /* BASE64 */: {
+        return simpleEncoder(this.data, "base64");
+      }
+      case 2 /* UTF8 */: {
+        return simpleEncoder(this.data, "utf8");
+      }
     }
-    return new IpcStreamData(stream_id, simpleDecoder(data, "base64"));
   }
 };
 
@@ -559,14 +619,218 @@ var IpcStreamEnd = class extends IpcMessage {
   }
 };
 
+// src/core/ipc/IpcStreamPull.cts
+var IpcStreamPull = class extends IpcMessage {
+  constructor(stream_id, desiredSize) {
+    super(3 /* STREAM_PULL */);
+    this.stream_id = stream_id;
+    if (desiredSize == null) {
+      desiredSize = 1;
+    } else if (Number.isFinite(desiredSize) === false) {
+      desiredSize = 1;
+    } else if (desiredSize < 1) {
+      desiredSize = 1;
+    }
+    this.desiredSize = desiredSize;
+  }
+};
+
 // src/core/ipc/IpcBodySender.cts
-var IpcBodySender = class extends IpcBody {
+var _IpcBodySender = class extends IpcBody {
   constructor(data, ipc) {
     super();
     this.data = data;
     this.ipc = ipc;
+    this.isStream = this.data instanceof ReadableStream;
+    this.pullSignal = createSignal();
+    this.abortSignal = createSignal();
+    /**
+     * 被哪些 ipc 所真正使用，使用的进度分别是多少
+     *
+     * 这个进度 用于 类似流的 多发
+     */
+    this.usedIpcMap = /* @__PURE__ */ new Map();
+    /**
+     * 当前分发到多少字节
+     */
+    this.maxPulledSize = 0;
+    this.closeSignal = createSignal();
+    this.openSignal = createSignal();
+    this._isStreamOpened = false;
+    this._isStreamClosed = false;
+    /// bodyAsMeta
     this._bodyHub = new BodyHub(this.data);
-    this.metaBody = $bodyAsRawData(this.data, this.ipc);
+    this.metaBody = this.$bodyAsMeta(this.data, this.ipc);
+    if (typeof data !== "string") {
+      IpcBody.wm.set(data, this);
+    }
+    _IpcBodySender.$usableByIpc(ipc, this);
+  }
+  static from(data, ipc) {
+    if (typeof data !== "string") {
+      const cache = IpcBody.wm.get(data);
+      if (cache !== void 0) {
+        return cache;
+      }
+    }
+    return new _IpcBodySender(data, ipc);
+  }
+  /**
+   * 绑定使用
+   */
+  useByIpc(ipc) {
+    if (this.usedIpcMap.has(ipc)) {
+      return true;
+    }
+    if (this.isStream && !this._isStreamOpened) {
+      this.usedIpcMap.set(ipc, 0);
+      this.closeSignal.listen(() => {
+        this.unuseByIpc(ipc);
+      });
+      return true;
+    }
+    return false;
+  }
+  /**
+   * 拉取数据
+   */
+  emitStreamPull(message, ipc) {
+    const pulledSize = this.usedIpcMap.get(ipc) + message.desiredSize;
+    this.usedIpcMap.set(ipc, pulledSize);
+    if (this.maxPulledSize < pulledSize) {
+      const desiredSize = pulledSize - this.maxPulledSize;
+      this.maxPulledSize = pulledSize;
+      this.pullSignal.emit(desiredSize);
+    }
+  }
+  /**
+   * 解绑使用
+   */
+  unuseByIpc(ipc) {
+    if (this.usedIpcMap.delete(ipc) != null) {
+      if (this.usedIpcMap.size === 0) {
+        this.abortSignal.emit();
+      }
+    }
+  }
+  onStreamClose(cb) {
+    return this.closeSignal.listen(cb);
+  }
+  onStreamOpen(cb) {
+    return this.openSignal.listen(cb);
+  }
+  get isStreamOpened() {
+    return this._isStreamOpened;
+  }
+  set isStreamOpened(value) {
+    this._isStreamOpened = value;
+    if (value) {
+      this.openSignal.emit();
+      this.openSignal.clear();
+    }
+  }
+  get isStreamClosed() {
+    return this._isStreamClosed;
+  }
+  set isStreamClosed(value) {
+    this._isStreamClosed = value;
+    if (value) {
+      this.closeSignal.emit();
+      this.closeSignal.clear();
+    }
+  }
+  emitStreamClose() {
+    this.isStreamOpened = true;
+    this.isStreamClosed = true;
+  }
+  $bodyAsMeta(body, ipc) {
+    if (typeof body === "string") {
+      return [3 /* TEXT */, body, ipc.uid];
+    }
+    if (body instanceof ReadableStream) {
+      return this.$streamAsMeta(body, ipc);
+    }
+    return ipc.support_binary ? [9 /* BINARY */, binaryToU8a(body), ipc.uid] : [5 /* BASE64 */, simpleDecoder(body, "base64"), ipc.uid];
+  }
+  /**
+   * 如果 rawData 是流模式，需要提供数据发送服务
+   *
+   * 这里不会一直无脑发，而是对方有需要的时候才发
+   * @param stream_id
+   * @param stream
+   * @param ipc
+   */
+  $streamAsMeta(stream, ipc) {
+    const stream_id = getStreamId(stream);
+    const reader = streamRead(stream);
+    const sender = (
+      /**
+       * 这里的数据发送是按需迭代，而不是马上发
+       * 马上发会有一定的问题，需要确保对方收到 IpcResponse 对象后，并且开始接收数据时才能开始
+       * 否则发过去的数据 IpcResponse 如果还没构建完，就导致 IpcStreamData 无法认领，为了内存安全必然要被抛弃
+       * 所以整体上来说，我们使用 pull 的逻辑，让远端来要求我们去发送数据
+       */
+      async function* _postStreamData() {
+        try {
+          for await (const data of reader) {
+            let binary_message;
+            let base64_message;
+            for (const ipc2 of this.usedIpcMap.keys()) {
+              const message = ipc2.support_binary ? binary_message ??= IpcStreamData.asBinary(stream_id, data) : base64_message ??= IpcStreamData.asBase64(stream_id, data);
+              ipc2.postMessage(message);
+            }
+            yield;
+          }
+        } finally {
+          const message = new IpcStreamEnd(stream_id);
+          for (const ipc2 of this.usedIpcMap.keys()) {
+            ipc2.postMessage(message);
+          }
+          this.emitStreamClose();
+        }
+      }.call(this)
+    );
+    this.pullSignal.listen(
+      async (desiredSize) => {
+        await sender.next();
+      }
+    );
+    this.abortSignal.listen(() => {
+      reader.throw("abort");
+      this.emitStreamClose();
+    });
+    return [0 /* STREAM_ID */, stream_id, ipc.uid];
+  }
+};
+var IpcBodySender = _IpcBodySender;
+/**
+ * ipc 将会使用它
+ */
+IpcBodySender.$usableByIpc = (ipc, ipcBody) => {
+  if (ipcBody.isStream && !ipcBody._isStreamOpened) {
+    const streamId = ipcBody.metaBody[1];
+    let usableIpcBodyMapper = IpcUsableIpcBodyMap.get(ipc);
+    if (usableIpcBodyMapper === void 0) {
+      const mapper = new UsableIpcBodyMapper();
+      mapper.onDestroy(
+        ipc.onMessage((message) => {
+          if (message instanceof IpcStreamPull) {
+            const ipcBody2 = mapper.get(message.stream_id);
+            if (ipcBody2?.useByIpc(ipc)) {
+              ipcBody2.emitStreamPull(message, ipc);
+            }
+          } else if (message instanceof IpcStreamAbort) {
+            const ipcBody2 = mapper.get(message.stream_id);
+            ipcBody2?.unuseByIpc(ipc);
+          }
+        })
+      );
+      mapper.onDestroy(() => IpcUsableIpcBodyMap.delete(ipc));
+      usableIpcBodyMapper = mapper;
+    }
+    if (usableIpcBodyMapper.add(streamId, ipcBody)) {
+      ipcBody.onStreamClose(() => usableIpcBodyMapper.remove(streamId));
+    }
   }
 };
 var streamIdWM = /* @__PURE__ */ new WeakMap();
@@ -579,48 +843,47 @@ var getStreamId = (stream) => {
   }
   return id;
 };
-var $streamAsRawData = (stream, ipc) => {
-  const stream_id = getStreamId(stream);
-  const reader = streamRead(stream);
-  const sender = _postStreamData(stream_id, reader, ipc, () => {
-    off();
-  });
-  const off = ipc.onMessage(async (message) => {
-    if (message.type === 3 /* STREAM_PULL */ && message.stream_id === stream_id) {
-      await sender.next();
-    } else if (message.type === 5 /* STREAM_ABORT */ && message.stream_id === stream_id) {
-      reader.throw("abort");
+var UsableIpcBodyMapper = class {
+  constructor() {
+    this.map = /* @__PURE__ */ new Map();
+    this.destroySignal = createSignal();
+  }
+  add(streamId, ipcBody) {
+    if (this.map.has(streamId)) {
+      return true;
     }
-  });
-  return ipc.support_binary ? [24 /* BINARY_STREAM_ID */, stream_id] : [20 /* BASE64_STREAM_ID */, stream_id];
+    this.map.set(streamId, ipcBody);
+    return false;
+  }
+  get(streamId) {
+    return this.map.get(streamId);
+  }
+  remove(streamId) {
+    const ipcBody = this.map.get(streamId);
+    if (ipcBody !== void 0) {
+      this.map.delete(streamId);
+      if (this.map.size === 0) {
+        this.destroySignal.emit();
+        this.destroySignal.clear();
+      }
+    }
+  }
+  onDestroy(cb) {
+    this.destroySignal.listen(cb);
+  }
 };
-async function* _postStreamData(stream_id, reader, ipc, onDone) {
-  for await (const data of reader) {
-    ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, data));
-    yield;
-  }
-  ipc.postMessage(new IpcStreamEnd(stream_id));
-  onDone();
-}
-var $bodyAsRawData = (body, ipc) => {
-  if (typeof body === "string") {
-    return [2 /* TEXT */, body];
-  }
-  if (body instanceof ReadableStream) {
-    return $streamAsRawData(body, ipc);
-  }
-  return ipc.support_binary ? [8 /* BINARY */, binaryToU8a(body)] : [4 /* BASE64 */, simpleDecoder(body, "base64")];
-};
+var IpcUsableIpcBodyMap = /* @__PURE__ */ new WeakMap();
 
 // src/core/ipc/IpcResponse.cts
 var _ipcHeaders;
 var _IpcResponse = class extends IpcMessage {
-  constructor(req_id, statusCode, headers, body) {
+  constructor(req_id, statusCode, headers, body, ipc) {
     super(1 /* RESPONSE */);
     this.req_id = req_id;
     this.statusCode = statusCode;
     this.headers = headers;
     this.body = body;
+    this.ipc = ipc;
     __privateAdd(this, _ipcHeaders, void 0);
     this.ipcResMessage = (0, import_once.default)(
       () => new IpcResMessage(
@@ -630,6 +893,9 @@ var _IpcResponse = class extends IpcMessage {
         this.body.metaBody
       )
     );
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc, body);
+    }
   }
   get ipcHeaders() {
     return __privateGet(this, _ipcHeaders) ?? __privateSet(this, _ipcHeaders, new IpcHeaders(this.headers));
@@ -657,9 +923,9 @@ var _IpcResponse = class extends IpcMessage {
   static async fromResponse(req_id, response, ipc) {
     let ipcBody;
     if (response.body) {
-      ipcBody = new IpcBodySender(response.body, ipc);
+      ipcBody = IpcBodySender.from(response.body, ipc);
     } else {
-      ipcBody = new IpcBodySender(
+      ipcBody = IpcBodySender.from(
         binaryToU8a(await response.arrayBuffer()),
         ipc
       );
@@ -668,7 +934,8 @@ var _IpcResponse = class extends IpcMessage {
       req_id,
       response.status,
       new IpcHeaders(response.headers),
-      ipcBody
+      ipcBody,
+      ipc
     );
   }
   static fromJson(req_id, statusCode, headers = new IpcHeaders(), jsonable, ipc) {
@@ -687,7 +954,8 @@ var _IpcResponse = class extends IpcMessage {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(text, ipc)
+      IpcBodySender.from(text, ipc),
+      ipc
     );
   }
   static fromBinary(req_id, statusCode, headers, binary, ipc) {
@@ -697,7 +965,8 @@ var _IpcResponse = class extends IpcMessage {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(binaryToU8a(binary), ipc)
+      IpcBodySender.from(binaryToU8a(binary), ipc),
+      ipc
     );
   }
   static fromStream(req_id, statusCode, headers = new IpcHeaders(), stream, ipc) {
@@ -706,7 +975,8 @@ var _IpcResponse = class extends IpcMessage {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(stream, ipc)
+      IpcBodySender.from(stream, ipc),
+      ipc
     );
     return ipcResponse;
   }
@@ -882,7 +1152,7 @@ function utf8DecodeTD(bytes, inputOffset, byteLength) {
 // node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
 var ExtData = (
   /** @class */
-  function () {
+  function() {
     function ExtData2(type, data) {
       this.type = type;
       this.data = data;
@@ -892,18 +1162,18 @@ var ExtData = (
 );
 
 // node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
-var __extends = function () {
-  var extendStatics = function (d, b) {
-    extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d2, b2) {
+var __extends = function() {
+  var extendStatics = function(d, b) {
+    extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
       d2.__proto__ = b2;
-    } || function (d2, b2) {
+    } || function(d2, b2) {
       for (var p in b2)
         if (Object.prototype.hasOwnProperty.call(b2, p))
           d2[p] = b2[p];
     };
     return extendStatics(d, b);
   };
-  return function (d, b) {
+  return function(d, b) {
     if (typeof b !== "function" && b !== null)
       throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
     extendStatics(d, b);
@@ -915,7 +1185,7 @@ var __extends = function () {
 }();
 var DecodeError = (
   /** @class */
-  function (_super) {
+  function(_super) {
     __extends(DecodeError2, _super);
     function DecodeError2(message) {
       var _this = _super.call(this, message) || this;
@@ -1016,7 +1286,7 @@ var timestampExtension = {
 // node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
 var ExtensionCodec = (
   /** @class */
-  function () {
+  function() {
     function ExtensionCodec2() {
       this.builtInEncoders = [];
       this.builtInDecoders = [];
@@ -1024,7 +1294,7 @@ var ExtensionCodec = (
       this.decoders = [];
       this.register(timestampExtension);
     }
-    ExtensionCodec2.prototype.register = function (_a3) {
+    ExtensionCodec2.prototype.register = function(_a3) {
       var type = _a3.type, encode2 = _a3.encode, decode2 = _a3.decode;
       if (type >= 0) {
         this.encoders[type] = encode2;
@@ -1035,7 +1305,7 @@ var ExtensionCodec = (
         this.builtInDecoders[index] = decode2;
       }
     };
-    ExtensionCodec2.prototype.tryToEncode = function (object, context) {
+    ExtensionCodec2.prototype.tryToEncode = function(object, context) {
       for (var i = 0; i < this.builtInEncoders.length; i++) {
         var encodeExt = this.builtInEncoders[i];
         if (encodeExt != null) {
@@ -1061,7 +1331,7 @@ var ExtensionCodec = (
       }
       return null;
     };
-    ExtensionCodec2.prototype.decode = function (data, type, context) {
+    ExtensionCodec2.prototype.decode = function(data, type, context) {
       var decodeExt = type < 0 ? this.builtInDecoders[-1 - type] : this.decoders[type];
       if (decodeExt) {
         return decodeExt(data, type, context);
@@ -1099,7 +1369,7 @@ var DEFAULT_MAX_DEPTH = 100;
 var DEFAULT_INITIAL_BUFFER_SIZE = 2048;
 var Encoder = (
   /** @class */
-  function () {
+  function() {
     function Encoder2(extensionCodec, context, maxDepth, initialBufferSize, sortKeys, forceFloat32, ignoreUndefined, forceIntegerToFloat) {
       if (extensionCodec === void 0) {
         extensionCodec = ExtensionCodec.defaultCodec;
@@ -1137,20 +1407,20 @@ var Encoder = (
       this.view = new DataView(new ArrayBuffer(this.initialBufferSize));
       this.bytes = new Uint8Array(this.view.buffer);
     }
-    Encoder2.prototype.reinitializeState = function () {
+    Encoder2.prototype.reinitializeState = function() {
       this.pos = 0;
     };
-    Encoder2.prototype.encodeSharedRef = function (object) {
+    Encoder2.prototype.encodeSharedRef = function(object) {
       this.reinitializeState();
       this.doEncode(object, 1);
       return this.bytes.subarray(0, this.pos);
     };
-    Encoder2.prototype.encode = function (object) {
+    Encoder2.prototype.encode = function(object) {
       this.reinitializeState();
       this.doEncode(object, 1);
       return this.bytes.slice(0, this.pos);
     };
-    Encoder2.prototype.doEncode = function (object, depth) {
+    Encoder2.prototype.doEncode = function(object, depth) {
       if (depth > this.maxDepth) {
         throw new Error("Too deep objects in depth ".concat(depth));
       }
@@ -1166,13 +1436,13 @@ var Encoder = (
         this.encodeObject(object, depth);
       }
     };
-    Encoder2.prototype.ensureBufferSizeToWrite = function (sizeToWrite) {
+    Encoder2.prototype.ensureBufferSizeToWrite = function(sizeToWrite) {
       var requiredSize = this.pos + sizeToWrite;
       if (this.view.byteLength < requiredSize) {
         this.resizeBuffer(requiredSize * 2);
       }
     };
-    Encoder2.prototype.resizeBuffer = function (newSize) {
+    Encoder2.prototype.resizeBuffer = function(newSize) {
       var newBuffer = new ArrayBuffer(newSize);
       var newBytes = new Uint8Array(newBuffer);
       var newView = new DataView(newBuffer);
@@ -1180,17 +1450,17 @@ var Encoder = (
       this.view = newView;
       this.bytes = newBytes;
     };
-    Encoder2.prototype.encodeNil = function () {
+    Encoder2.prototype.encodeNil = function() {
       this.writeU8(192);
     };
-    Encoder2.prototype.encodeBoolean = function (object) {
+    Encoder2.prototype.encodeBoolean = function(object) {
       if (object === false) {
         this.writeU8(194);
       } else {
         this.writeU8(195);
       }
     };
-    Encoder2.prototype.encodeNumber = function (object) {
+    Encoder2.prototype.encodeNumber = function(object) {
       if (Number.isSafeInteger(object) && !this.forceIntegerToFloat) {
         if (object >= 0) {
           if (object < 128) {
@@ -1235,7 +1505,7 @@ var Encoder = (
         }
       }
     };
-    Encoder2.prototype.writeStringHeader = function (byteLength) {
+    Encoder2.prototype.writeStringHeader = function(byteLength) {
       if (byteLength < 32) {
         this.writeU8(160 + byteLength);
       } else if (byteLength < 256) {
@@ -1251,7 +1521,7 @@ var Encoder = (
         throw new Error("Too long string: ".concat(byteLength, " bytes in UTF-8"));
       }
     };
-    Encoder2.prototype.encodeString = function (object) {
+    Encoder2.prototype.encodeString = function(object) {
       var maxHeaderSize = 1 + 4;
       var strLength = object.length;
       if (strLength > TEXT_ENCODER_THRESHOLD) {
@@ -1268,7 +1538,7 @@ var Encoder = (
         this.pos += byteLength;
       }
     };
-    Encoder2.prototype.encodeObject = function (object, depth) {
+    Encoder2.prototype.encodeObject = function(object, depth) {
       var ext = this.extensionCodec.tryToEncode(object, this.context);
       if (ext != null) {
         this.encodeExtension(ext);
@@ -1282,7 +1552,7 @@ var Encoder = (
         throw new Error("Unrecognized object: ".concat(Object.prototype.toString.apply(object)));
       }
     };
-    Encoder2.prototype.encodeBinary = function (object) {
+    Encoder2.prototype.encodeBinary = function(object) {
       var size = object.byteLength;
       if (size < 256) {
         this.writeU8(196);
@@ -1299,7 +1569,7 @@ var Encoder = (
       var bytes = ensureUint8Array(object);
       this.writeU8a(bytes);
     };
-    Encoder2.prototype.encodeArray = function (object, depth) {
+    Encoder2.prototype.encodeArray = function(object, depth) {
       var size = object.length;
       if (size < 16) {
         this.writeU8(144 + size);
@@ -1317,7 +1587,7 @@ var Encoder = (
         this.doEncode(item, depth + 1);
       }
     };
-    Encoder2.prototype.countWithoutUndefined = function (object, keys) {
+    Encoder2.prototype.countWithoutUndefined = function(object, keys) {
       var count = 0;
       for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
         var key = keys_1[_i];
@@ -1327,7 +1597,7 @@ var Encoder = (
       }
       return count;
     };
-    Encoder2.prototype.encodeMap = function (object, depth) {
+    Encoder2.prototype.encodeMap = function(object, depth) {
       var keys = Object.keys(object);
       if (this.sortKeys) {
         keys.sort();
@@ -1353,7 +1623,7 @@ var Encoder = (
         }
       }
     };
-    Encoder2.prototype.encodeExtension = function (ext) {
+    Encoder2.prototype.encodeExtension = function(ext) {
       var size = ext.data.length;
       if (size === 1) {
         this.writeU8(212);
@@ -1380,58 +1650,58 @@ var Encoder = (
       this.writeI8(ext.type);
       this.writeU8a(ext.data);
     };
-    Encoder2.prototype.writeU8 = function (value) {
+    Encoder2.prototype.writeU8 = function(value) {
       this.ensureBufferSizeToWrite(1);
       this.view.setUint8(this.pos, value);
       this.pos++;
     };
-    Encoder2.prototype.writeU8a = function (values) {
+    Encoder2.prototype.writeU8a = function(values) {
       var size = values.length;
       this.ensureBufferSizeToWrite(size);
       this.bytes.set(values, this.pos);
       this.pos += size;
     };
-    Encoder2.prototype.writeI8 = function (value) {
+    Encoder2.prototype.writeI8 = function(value) {
       this.ensureBufferSizeToWrite(1);
       this.view.setInt8(this.pos, value);
       this.pos++;
     };
-    Encoder2.prototype.writeU16 = function (value) {
+    Encoder2.prototype.writeU16 = function(value) {
       this.ensureBufferSizeToWrite(2);
       this.view.setUint16(this.pos, value);
       this.pos += 2;
     };
-    Encoder2.prototype.writeI16 = function (value) {
+    Encoder2.prototype.writeI16 = function(value) {
       this.ensureBufferSizeToWrite(2);
       this.view.setInt16(this.pos, value);
       this.pos += 2;
     };
-    Encoder2.prototype.writeU32 = function (value) {
+    Encoder2.prototype.writeU32 = function(value) {
       this.ensureBufferSizeToWrite(4);
       this.view.setUint32(this.pos, value);
       this.pos += 4;
     };
-    Encoder2.prototype.writeI32 = function (value) {
+    Encoder2.prototype.writeI32 = function(value) {
       this.ensureBufferSizeToWrite(4);
       this.view.setInt32(this.pos, value);
       this.pos += 4;
     };
-    Encoder2.prototype.writeF32 = function (value) {
+    Encoder2.prototype.writeF32 = function(value) {
       this.ensureBufferSizeToWrite(4);
       this.view.setFloat32(this.pos, value);
       this.pos += 4;
     };
-    Encoder2.prototype.writeF64 = function (value) {
+    Encoder2.prototype.writeF64 = function(value) {
       this.ensureBufferSizeToWrite(8);
       this.view.setFloat64(this.pos, value);
       this.pos += 8;
     };
-    Encoder2.prototype.writeU64 = function (value) {
+    Encoder2.prototype.writeU64 = function(value) {
       this.ensureBufferSizeToWrite(8);
       setUint64(this.view, this.pos, value);
       this.pos += 8;
     };
-    Encoder2.prototype.writeI64 = function (value) {
+    Encoder2.prototype.writeI64 = function(value) {
       this.ensureBufferSizeToWrite(8);
       setInt64(this.view, this.pos, value);
       this.pos += 8;
@@ -1460,7 +1730,7 @@ var DEFAULT_MAX_KEY_LENGTH = 16;
 var DEFAULT_MAX_LENGTH_PER_KEY = 16;
 var CachedKeyDecoder = (
   /** @class */
-  function () {
+  function() {
     function CachedKeyDecoder2(maxKeyLength, maxLengthPerKey) {
       if (maxKeyLength === void 0) {
         maxKeyLength = DEFAULT_MAX_KEY_LENGTH;
@@ -1477,25 +1747,25 @@ var CachedKeyDecoder = (
         this.caches.push([]);
       }
     }
-    CachedKeyDecoder2.prototype.canBeCached = function (byteLength) {
+    CachedKeyDecoder2.prototype.canBeCached = function(byteLength) {
       return byteLength > 0 && byteLength <= this.maxKeyLength;
     };
-    CachedKeyDecoder2.prototype.find = function (bytes, inputOffset, byteLength) {
+    CachedKeyDecoder2.prototype.find = function(bytes, inputOffset, byteLength) {
       var records = this.caches[byteLength - 1];
       FIND_CHUNK:
-      for (var _i = 0, records_1 = records; _i < records_1.length; _i++) {
-        var record = records_1[_i];
-        var recordBytes = record.bytes;
-        for (var j = 0; j < byteLength; j++) {
-          if (recordBytes[j] !== bytes[inputOffset + j]) {
-            continue FIND_CHUNK;
+        for (var _i = 0, records_1 = records; _i < records_1.length; _i++) {
+          var record = records_1[_i];
+          var recordBytes = record.bytes;
+          for (var j = 0; j < byteLength; j++) {
+            if (recordBytes[j] !== bytes[inputOffset + j]) {
+              continue FIND_CHUNK;
+            }
           }
+          return record.str;
         }
-        return record.str;
-      }
       return null;
     };
-    CachedKeyDecoder2.prototype.store = function (bytes, value) {
+    CachedKeyDecoder2.prototype.store = function(bytes, value) {
       var records = this.caches[bytes.length - 1];
       var record = { bytes, str: value };
       if (records.length >= this.maxLengthPerKey) {
@@ -1504,7 +1774,7 @@ var CachedKeyDecoder = (
         records.push(record);
       }
     };
-    CachedKeyDecoder2.prototype.decode = function (bytes, inputOffset, byteLength) {
+    CachedKeyDecoder2.prototype.decode = function(bytes, inputOffset, byteLength) {
       var cachedValue = this.find(bytes, inputOffset, byteLength);
       if (cachedValue != null) {
         this.hit++;
@@ -1521,13 +1791,13 @@ var CachedKeyDecoder = (
 );
 
 // node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
-var __awaiter = function (thisArg, _arguments, P, generator) {
+var __awaiter = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function (resolve) {
+    return value instanceof P ? value : new P(function(resolve) {
       resolve(value);
     });
   }
-  return new (P || (P = Promise))(function (resolve, reject) {
+  return new (P || (P = Promise))(function(resolve, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -1548,19 +1818,17 @@ var __awaiter = function (thisArg, _arguments, P, generator) {
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
 };
-var __generator = function (thisArg, body) {
-  var _ = {
-    label: 0, sent: function () {
-      if (t[0] & 1)
-        throw t[1];
-      return t[1];
-    }, trys: [], ops: []
-  }, f, y, t, g;
-  return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+var __generator = function(thisArg, body) {
+  var _ = { label: 0, sent: function() {
+    if (t[0] & 1)
+      throw t[1];
+    return t[1];
+  }, trys: [], ops: [] }, f, y, t, g;
+  return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
     return this;
   }), g;
   function verb(n) {
-    return function (v) {
+    return function(v) {
       return step([n, v]);
     };
   }
@@ -1626,40 +1894,40 @@ var __generator = function (thisArg, body) {
     return { value: op[0] ? op[1] : void 0, done: true };
   }
 };
-var __asyncValues = function (o) {
+var __asyncValues = function(o) {
   if (!Symbol.asyncIterator)
     throw new TypeError("Symbol.asyncIterator is not defined.");
   var m = o[Symbol.asyncIterator], i;
-  return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () {
+  return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
     return this;
   }, i);
   function verb(n) {
-    i[n] = o[n] && function (v) {
-      return new Promise(function (resolve, reject) {
+    i[n] = o[n] && function(v) {
+      return new Promise(function(resolve, reject) {
         v = o[n](v), settle(resolve, reject, v.done, v.value);
       });
     };
   }
   function settle(resolve, reject, d, v) {
-    Promise.resolve(v).then(function (v2) {
+    Promise.resolve(v).then(function(v2) {
       resolve({ value: v2, done: d });
     }, reject);
   }
 };
-var __await = function (v) {
+var __await = function(v) {
   return this instanceof __await ? (this.v = v, this) : new __await(v);
 };
-var __asyncGenerator = function (thisArg, _arguments, generator) {
+var __asyncGenerator = function(thisArg, _arguments, generator) {
   if (!Symbol.asyncIterator)
     throw new TypeError("Symbol.asyncIterator is not defined.");
   var g = generator.apply(thisArg, _arguments || []), i, q = [];
-  return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () {
+  return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
     return this;
   }, i;
   function verb(n) {
     if (g[n])
-      i[n] = function (v) {
-        return new Promise(function (a, b) {
+      i[n] = function(v) {
+        return new Promise(function(a, b) {
           q.push([n, v, a, b]) > 1 || resume(n, v);
         });
       };
@@ -1685,14 +1953,14 @@ var __asyncGenerator = function (thisArg, _arguments, generator) {
       resume(q[0][0], q[0][1]);
   }
 };
-var isValidMapKeyType = function (key) {
+var isValidMapKeyType = function(key) {
   var keyType = typeof key;
   return keyType === "string" || keyType === "number";
 };
 var HEAD_BYTE_REQUIRED = -1;
 var EMPTY_VIEW = new DataView(new ArrayBuffer(0));
 var EMPTY_BYTES = new Uint8Array(EMPTY_VIEW.buffer);
-var DataViewIndexOutOfBoundsError = function () {
+var DataViewIndexOutOfBoundsError = function() {
   try {
     EMPTY_VIEW.getInt8(0);
   } catch (e) {
@@ -1704,7 +1972,7 @@ var MORE_DATA = new DataViewIndexOutOfBoundsError("Insufficient data");
 var sharedCachedKeyDecoder = new CachedKeyDecoder();
 var Decoder = (
   /** @class */
-  function () {
+  function() {
     function Decoder2(extensionCodec, context, maxStrLength, maxBinLength, maxArrayLength, maxMapLength, maxExtLength, keyDecoder) {
       if (extensionCodec === void 0) {
         extensionCodec = ExtensionCodec.defaultCodec;
@@ -1745,17 +2013,17 @@ var Decoder = (
       this.headByte = HEAD_BYTE_REQUIRED;
       this.stack = [];
     }
-    Decoder2.prototype.reinitializeState = function () {
+    Decoder2.prototype.reinitializeState = function() {
       this.totalPos = 0;
       this.headByte = HEAD_BYTE_REQUIRED;
       this.stack.length = 0;
     };
-    Decoder2.prototype.setBuffer = function (buffer) {
+    Decoder2.prototype.setBuffer = function(buffer) {
       this.bytes = ensureUint8Array(buffer);
       this.view = createDataView(this.bytes);
       this.pos = 0;
     };
-    Decoder2.prototype.appendBuffer = function (buffer) {
+    Decoder2.prototype.appendBuffer = function(buffer) {
       if (this.headByte === HEAD_BYTE_REQUIRED && !this.hasRemaining(1)) {
         this.setBuffer(buffer);
       } else {
@@ -1767,14 +2035,14 @@ var Decoder = (
         this.setBuffer(newBuffer);
       }
     };
-    Decoder2.prototype.hasRemaining = function (size) {
+    Decoder2.prototype.hasRemaining = function(size) {
       return this.view.byteLength - this.pos >= size;
     };
-    Decoder2.prototype.createExtraByteError = function (posToShow) {
+    Decoder2.prototype.createExtraByteError = function(posToShow) {
       var _a3 = this, view = _a3.view, pos = _a3.pos;
       return new RangeError("Extra ".concat(view.byteLength - pos, " of ").concat(view.byteLength, " byte(s) found at buffer[").concat(posToShow, "]"));
     };
-    Decoder2.prototype.decode = function (buffer) {
+    Decoder2.prototype.decode = function(buffer) {
       this.reinitializeState();
       this.setBuffer(buffer);
       var object = this.doDecodeSync();
@@ -1783,8 +2051,8 @@ var Decoder = (
       }
       return object;
     };
-    Decoder2.prototype.decodeMulti = function (buffer) {
-      return __generator(this, function (_a3) {
+    Decoder2.prototype.decodeMulti = function(buffer) {
+      return __generator(this, function(_a3) {
         switch (_a3.label) {
           case 0:
             this.reinitializeState();
@@ -1805,12 +2073,12 @@ var Decoder = (
         }
       });
     };
-    Decoder2.prototype.decodeAsync = function (stream) {
+    Decoder2.prototype.decodeAsync = function(stream) {
       var stream_1, stream_1_1;
       var e_1, _a3;
-      return __awaiter(this, void 0, void 0, function () {
+      return __awaiter(this, void 0, void 0, function() {
         var decoded, object, buffer, e_1_1, _b2, headByte, pos, totalPos;
-        return __generator(this, function (_c2) {
+        return __generator(this, function(_c2) {
           switch (_c2.label) {
             case 0:
               decoded = false;
@@ -1882,17 +2150,17 @@ var Decoder = (
         });
       });
     };
-    Decoder2.prototype.decodeArrayStream = function (stream) {
+    Decoder2.prototype.decodeArrayStream = function(stream) {
       return this.decodeMultiAsync(stream, true);
     };
-    Decoder2.prototype.decodeStream = function (stream) {
+    Decoder2.prototype.decodeStream = function(stream) {
       return this.decodeMultiAsync(stream, false);
     };
-    Decoder2.prototype.decodeMultiAsync = function (stream, isArray) {
+    Decoder2.prototype.decodeMultiAsync = function(stream, isArray) {
       return __asyncGenerator(this, arguments, function decodeMultiAsync_1() {
         var isArrayHeaderRequired, arrayItemsLeft, stream_2, stream_2_1, buffer, e_2, e_3_1;
         var e_3, _a3;
-        return __generator(this, function (_b2) {
+        return __generator(this, function(_b2) {
           switch (_b2.label) {
             case 0:
               isArrayHeaderRequired = isArray;
@@ -1983,27 +2251,75 @@ var Decoder = (
         });
       });
     };
-    Decoder2.prototype.doDecodeSync = function () {
+    Decoder2.prototype.doDecodeSync = function() {
       DECODE:
-      while (true) {
-        var headByte = this.readHeadByte();
-        var object = void 0;
-        if (headByte >= 224) {
-          object = headByte - 256;
-        } else if (headByte < 192) {
-          if (headByte < 128) {
-            object = headByte;
-          } else if (headByte < 144) {
-            var size = headByte - 128;
-            if (size !== 0) {
-              this.pushMapState(size);
-              this.complete();
-              continue DECODE;
+        while (true) {
+          var headByte = this.readHeadByte();
+          var object = void 0;
+          if (headByte >= 224) {
+            object = headByte - 256;
+          } else if (headByte < 192) {
+            if (headByte < 128) {
+              object = headByte;
+            } else if (headByte < 144) {
+              var size = headByte - 128;
+              if (size !== 0) {
+                this.pushMapState(size);
+                this.complete();
+                continue DECODE;
+              } else {
+                object = {};
+              }
+            } else if (headByte < 160) {
+              var size = headByte - 144;
+              if (size !== 0) {
+                this.pushArrayState(size);
+                this.complete();
+                continue DECODE;
+              } else {
+                object = [];
+              }
             } else {
-              object = {};
+              var byteLength = headByte - 160;
+              object = this.decodeUtf8String(byteLength, 0);
             }
-          } else if (headByte < 160) {
-            var size = headByte - 144;
+          } else if (headByte === 192) {
+            object = null;
+          } else if (headByte === 194) {
+            object = false;
+          } else if (headByte === 195) {
+            object = true;
+          } else if (headByte === 202) {
+            object = this.readF32();
+          } else if (headByte === 203) {
+            object = this.readF64();
+          } else if (headByte === 204) {
+            object = this.readU8();
+          } else if (headByte === 205) {
+            object = this.readU16();
+          } else if (headByte === 206) {
+            object = this.readU32();
+          } else if (headByte === 207) {
+            object = this.readU64();
+          } else if (headByte === 208) {
+            object = this.readI8();
+          } else if (headByte === 209) {
+            object = this.readI16();
+          } else if (headByte === 210) {
+            object = this.readI32();
+          } else if (headByte === 211) {
+            object = this.readI64();
+          } else if (headByte === 217) {
+            var byteLength = this.lookU8();
+            object = this.decodeUtf8String(byteLength, 1);
+          } else if (headByte === 218) {
+            var byteLength = this.lookU16();
+            object = this.decodeUtf8String(byteLength, 2);
+          } else if (headByte === 219) {
+            var byteLength = this.lookU32();
+            object = this.decodeUtf8String(byteLength, 4);
+          } else if (headByte === 220) {
+            var size = this.readU16();
             if (size !== 0) {
               this.pushArrayState(size);
               this.complete();
@@ -2011,161 +2327,113 @@ var Decoder = (
             } else {
               object = [];
             }
-          } else {
-            var byteLength = headByte - 160;
-            object = this.decodeUtf8String(byteLength, 0);
-          }
-        } else if (headByte === 192) {
-          object = null;
-        } else if (headByte === 194) {
-          object = false;
-        } else if (headByte === 195) {
-          object = true;
-        } else if (headByte === 202) {
-          object = this.readF32();
-        } else if (headByte === 203) {
-          object = this.readF64();
-        } else if (headByte === 204) {
-          object = this.readU8();
-        } else if (headByte === 205) {
-          object = this.readU16();
-        } else if (headByte === 206) {
-          object = this.readU32();
-        } else if (headByte === 207) {
-          object = this.readU64();
-        } else if (headByte === 208) {
-          object = this.readI8();
-        } else if (headByte === 209) {
-          object = this.readI16();
-        } else if (headByte === 210) {
-          object = this.readI32();
-        } else if (headByte === 211) {
-          object = this.readI64();
-        } else if (headByte === 217) {
-          var byteLength = this.lookU8();
-          object = this.decodeUtf8String(byteLength, 1);
-        } else if (headByte === 218) {
-          var byteLength = this.lookU16();
-          object = this.decodeUtf8String(byteLength, 2);
-        } else if (headByte === 219) {
-          var byteLength = this.lookU32();
-          object = this.decodeUtf8String(byteLength, 4);
-        } else if (headByte === 220) {
-          var size = this.readU16();
-          if (size !== 0) {
-            this.pushArrayState(size);
-            this.complete();
-            continue DECODE;
-          } else {
-            object = [];
-          }
-        } else if (headByte === 221) {
-          var size = this.readU32();
-          if (size !== 0) {
-            this.pushArrayState(size);
-            this.complete();
-            continue DECODE;
-          } else {
-            object = [];
-          }
-        } else if (headByte === 222) {
-          var size = this.readU16();
-          if (size !== 0) {
-            this.pushMapState(size);
-            this.complete();
-            continue DECODE;
-          } else {
-            object = {};
-          }
-        } else if (headByte === 223) {
-          var size = this.readU32();
-          if (size !== 0) {
-            this.pushMapState(size);
-            this.complete();
-            continue DECODE;
-          } else {
-            object = {};
-          }
-        } else if (headByte === 196) {
-          var size = this.lookU8();
-          object = this.decodeBinary(size, 1);
-        } else if (headByte === 197) {
-          var size = this.lookU16();
-          object = this.decodeBinary(size, 2);
-        } else if (headByte === 198) {
-          var size = this.lookU32();
-          object = this.decodeBinary(size, 4);
-        } else if (headByte === 212) {
-          object = this.decodeExtension(1, 0);
-        } else if (headByte === 213) {
-          object = this.decodeExtension(2, 0);
-        } else if (headByte === 214) {
-          object = this.decodeExtension(4, 0);
-        } else if (headByte === 215) {
-          object = this.decodeExtension(8, 0);
-        } else if (headByte === 216) {
-          object = this.decodeExtension(16, 0);
-        } else if (headByte === 199) {
-          var size = this.lookU8();
-          object = this.decodeExtension(size, 1);
-        } else if (headByte === 200) {
-          var size = this.lookU16();
-          object = this.decodeExtension(size, 2);
-        } else if (headByte === 201) {
-          var size = this.lookU32();
-          object = this.decodeExtension(size, 4);
-        } else {
-          throw new DecodeError("Unrecognized type byte: ".concat(prettyByte(headByte)));
-        }
-        this.complete();
-        var stack = this.stack;
-        while (stack.length > 0) {
-          var state = stack[stack.length - 1];
-          if (state.type === 0) {
-            state.array[state.position] = object;
-            state.position++;
-            if (state.position === state.size) {
-              stack.pop();
-              object = state.array;
-            } else {
+          } else if (headByte === 221) {
+            var size = this.readU32();
+            if (size !== 0) {
+              this.pushArrayState(size);
+              this.complete();
               continue DECODE;
-            }
-          } else if (state.type === 1) {
-            if (!isValidMapKeyType(object)) {
-              throw new DecodeError("The type of key must be string or number but " + typeof object);
-            }
-            if (object === "__proto__") {
-              throw new DecodeError("The key __proto__ is not allowed");
-            }
-            state.key = object;
-            state.type = 2;
-            continue DECODE;
-          } else {
-            state.map[state.key] = object;
-            state.readCount++;
-            if (state.readCount === state.size) {
-              stack.pop();
-              object = state.map;
             } else {
-              state.key = null;
-              state.type = 1;
+              object = [];
+            }
+          } else if (headByte === 222) {
+            var size = this.readU16();
+            if (size !== 0) {
+              this.pushMapState(size);
+              this.complete();
               continue DECODE;
+            } else {
+              object = {};
+            }
+          } else if (headByte === 223) {
+            var size = this.readU32();
+            if (size !== 0) {
+              this.pushMapState(size);
+              this.complete();
+              continue DECODE;
+            } else {
+              object = {};
+            }
+          } else if (headByte === 196) {
+            var size = this.lookU8();
+            object = this.decodeBinary(size, 1);
+          } else if (headByte === 197) {
+            var size = this.lookU16();
+            object = this.decodeBinary(size, 2);
+          } else if (headByte === 198) {
+            var size = this.lookU32();
+            object = this.decodeBinary(size, 4);
+          } else if (headByte === 212) {
+            object = this.decodeExtension(1, 0);
+          } else if (headByte === 213) {
+            object = this.decodeExtension(2, 0);
+          } else if (headByte === 214) {
+            object = this.decodeExtension(4, 0);
+          } else if (headByte === 215) {
+            object = this.decodeExtension(8, 0);
+          } else if (headByte === 216) {
+            object = this.decodeExtension(16, 0);
+          } else if (headByte === 199) {
+            var size = this.lookU8();
+            object = this.decodeExtension(size, 1);
+          } else if (headByte === 200) {
+            var size = this.lookU16();
+            object = this.decodeExtension(size, 2);
+          } else if (headByte === 201) {
+            var size = this.lookU32();
+            object = this.decodeExtension(size, 4);
+          } else {
+            throw new DecodeError("Unrecognized type byte: ".concat(prettyByte(headByte)));
+          }
+          this.complete();
+          var stack = this.stack;
+          while (stack.length > 0) {
+            var state = stack[stack.length - 1];
+            if (state.type === 0) {
+              state.array[state.position] = object;
+              state.position++;
+              if (state.position === state.size) {
+                stack.pop();
+                object = state.array;
+              } else {
+                continue DECODE;
+              }
+            } else if (state.type === 1) {
+              if (!isValidMapKeyType(object)) {
+                throw new DecodeError("The type of key must be string or number but " + typeof object);
+              }
+              if (object === "__proto__") {
+                throw new DecodeError("The key __proto__ is not allowed");
+              }
+              state.key = object;
+              state.type = 2;
+              continue DECODE;
+            } else {
+              state.map[state.key] = object;
+              state.readCount++;
+              if (state.readCount === state.size) {
+                stack.pop();
+                object = state.map;
+              } else {
+                state.key = null;
+                state.type = 1;
+                continue DECODE;
+              }
             }
           }
+          return object;
         }
-        return object;
-      }
     };
-    Decoder2.prototype.readHeadByte = function () {
+    Decoder2.prototype.readHeadByte = function() {
       if (this.headByte === HEAD_BYTE_REQUIRED) {
         this.headByte = this.readU8();
       }
       return this.headByte;
     };
-    Decoder2.prototype.complete = function () {
+    Decoder2.prototype.complete = function() {
       this.headByte = HEAD_BYTE_REQUIRED;
     };
-    Decoder2.prototype.readArraySize = function () {
+    Decoder2.prototype.readArraySize = function() {
       var headByte = this.readHeadByte();
       switch (headByte) {
         case 220:
@@ -2181,7 +2449,7 @@ var Decoder = (
         }
       }
     };
-    Decoder2.prototype.pushMapState = function (size) {
+    Decoder2.prototype.pushMapState = function(size) {
       if (size > this.maxMapLength) {
         throw new DecodeError("Max length exceeded: map length (".concat(size, ") > maxMapLengthLength (").concat(this.maxMapLength, ")"));
       }
@@ -2193,7 +2461,7 @@ var Decoder = (
         map: {}
       });
     };
-    Decoder2.prototype.pushArrayState = function (size) {
+    Decoder2.prototype.pushArrayState = function(size) {
       if (size > this.maxArrayLength) {
         throw new DecodeError("Max length exceeded: array length (".concat(size, ") > maxArrayLength (").concat(this.maxArrayLength, ")"));
       }
@@ -2204,7 +2472,7 @@ var Decoder = (
         position: 0
       });
     };
-    Decoder2.prototype.decodeUtf8String = function (byteLength, headerOffset) {
+    Decoder2.prototype.decodeUtf8String = function(byteLength, headerOffset) {
       var _a3;
       if (byteLength > this.maxStrLength) {
         throw new DecodeError("Max length exceeded: UTF-8 byte length (".concat(byteLength, ") > maxStrLength (").concat(this.maxStrLength, ")"));
@@ -2224,14 +2492,14 @@ var Decoder = (
       this.pos += headerOffset + byteLength;
       return object;
     };
-    Decoder2.prototype.stateIsMapKey = function () {
+    Decoder2.prototype.stateIsMapKey = function() {
       if (this.stack.length > 0) {
         var state = this.stack[this.stack.length - 1];
         return state.type === 1;
       }
       return false;
     };
-    Decoder2.prototype.decodeBinary = function (byteLength, headOffset) {
+    Decoder2.prototype.decodeBinary = function(byteLength, headOffset) {
       if (byteLength > this.maxBinLength) {
         throw new DecodeError("Max length exceeded: bin length (".concat(byteLength, ") > maxBinLength (").concat(this.maxBinLength, ")"));
       }
@@ -2243,7 +2511,7 @@ var Decoder = (
       this.pos += headOffset + byteLength;
       return object;
     };
-    Decoder2.prototype.decodeExtension = function (size, headOffset) {
+    Decoder2.prototype.decodeExtension = function(size, headOffset) {
       if (size > this.maxExtLength) {
         throw new DecodeError("Max length exceeded: ext length (".concat(size, ") > maxExtLength (").concat(this.maxExtLength, ")"));
       }
@@ -2255,61 +2523,61 @@ var Decoder = (
       );
       return this.extensionCodec.decode(data, extType, this.context);
     };
-    Decoder2.prototype.lookU8 = function () {
+    Decoder2.prototype.lookU8 = function() {
       return this.view.getUint8(this.pos);
     };
-    Decoder2.prototype.lookU16 = function () {
+    Decoder2.prototype.lookU16 = function() {
       return this.view.getUint16(this.pos);
     };
-    Decoder2.prototype.lookU32 = function () {
+    Decoder2.prototype.lookU32 = function() {
       return this.view.getUint32(this.pos);
     };
-    Decoder2.prototype.readU8 = function () {
+    Decoder2.prototype.readU8 = function() {
       var value = this.view.getUint8(this.pos);
       this.pos++;
       return value;
     };
-    Decoder2.prototype.readI8 = function () {
+    Decoder2.prototype.readI8 = function() {
       var value = this.view.getInt8(this.pos);
       this.pos++;
       return value;
     };
-    Decoder2.prototype.readU16 = function () {
+    Decoder2.prototype.readU16 = function() {
       var value = this.view.getUint16(this.pos);
       this.pos += 2;
       return value;
     };
-    Decoder2.prototype.readI16 = function () {
+    Decoder2.prototype.readI16 = function() {
       var value = this.view.getInt16(this.pos);
       this.pos += 2;
       return value;
     };
-    Decoder2.prototype.readU32 = function () {
+    Decoder2.prototype.readU32 = function() {
       var value = this.view.getUint32(this.pos);
       this.pos += 4;
       return value;
     };
-    Decoder2.prototype.readI32 = function () {
+    Decoder2.prototype.readI32 = function() {
       var value = this.view.getInt32(this.pos);
       this.pos += 4;
       return value;
     };
-    Decoder2.prototype.readU64 = function () {
+    Decoder2.prototype.readU64 = function() {
       var value = getUint64(this.view, this.pos);
       this.pos += 8;
       return value;
     };
-    Decoder2.prototype.readI64 = function () {
+    Decoder2.prototype.readI64 = function() {
       var value = getInt64(this.view, this.pos);
       this.pos += 8;
       return value;
     };
-    Decoder2.prototype.readF32 = function () {
+    Decoder2.prototype.readF32 = function() {
       var value = this.view.getFloat32(this.pos);
       this.pos += 4;
       return value;
     };
-    Decoder2.prototype.readF64 = function () {
+    Decoder2.prototype.readF64 = function() {
       var value = this.view.getFloat64(this.pos);
       this.pos += 8;
       return value;
@@ -2389,13 +2657,14 @@ var buildUrl = (url, ext) => {
 // src/core/ipc/IpcRequest.cts
 var _parsed_url;
 var _IpcRequest = class extends IpcMessage {
-  constructor(req_id, url, method, headers, body) {
+  constructor(req_id, url, method, headers, body, ipc) {
     super(0 /* REQUEST */);
     this.req_id = req_id;
     this.url = url;
     this.method = method;
     this.headers = headers;
     this.body = body;
+    this.ipc = ipc;
     __privateAdd(this, _parsed_url, void 0);
     this.ipcReqMessage = (0, import_once2.default)(
       () => new IpcReqMessage(
@@ -2406,6 +2675,9 @@ var _IpcRequest = class extends IpcMessage {
         this.body.metaBody
       )
     );
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc, body);
+    }
   }
   get parsed_url() {
     return __privateGet(this, _parsed_url) ?? __privateSet(this, _parsed_url, parseUrl(this.url));
@@ -2416,7 +2688,8 @@ var _IpcRequest = class extends IpcMessage {
       url,
       method,
       headers,
-      new IpcBodySender(text, ipc)
+      IpcBodySender.from(text, ipc),
+      ipc
     );
   }
   static fromBinary(req_id, url, method = "GET" /* GET */, headers = new IpcHeaders(), binary, ipc) {
@@ -2427,7 +2700,8 @@ var _IpcRequest = class extends IpcMessage {
       url,
       method,
       headers,
-      new IpcBodySender(binaryToU8a(binary), ipc)
+      IpcBodySender.from(binaryToU8a(binary), ipc),
+      ipc
     );
   }
   static fromStream(req_id, url, method = "GET" /* GET */, headers = new IpcHeaders(), stream, ipc) {
@@ -2437,7 +2711,8 @@ var _IpcRequest = class extends IpcMessage {
       url,
       method,
       headers,
-      new IpcBodySender(stream, ipc)
+      IpcBodySender.from(stream, ipc),
+      ipc
     );
   }
   static fromRequest(req_id, ipc, url, init = {}) {
@@ -2445,13 +2720,13 @@ var _IpcRequest = class extends IpcMessage {
     const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
     let ipcBody;
     if (isBinary(init.body)) {
-      ipcBody = new IpcBodySender(init.body, ipc);
+      ipcBody = IpcBodySender.from(init.body, ipc);
     } else if (init.body instanceof ReadableStream) {
-      ipcBody = new IpcBodySender(init.body, ipc);
+      ipcBody = IpcBodySender.from(init.body, ipc);
     } else {
-      ipcBody = new IpcBodySender(init.body ?? "", ipc);
+      ipcBody = IpcBodySender.from(init.body ?? "", ipc);
     }
-    return new _IpcRequest(req_id, url, method, headers, ipcBody);
+    return new _IpcRequest(req_id, url, method, headers, ipcBody, ipc);
   }
   toRequest() {
     const { method } = this;
@@ -2486,11 +2761,11 @@ var IpcReqMessage = class extends IpcMessage {
 var ipc_uid_acc = 0;
 var Ipc = class {
   constructor() {
+    this.uid = ipc_uid_acc++;
     this._support_message_pack = false;
     this._support_protobuf = false;
     this._support_raw = false;
     this._support_binary = false;
-    this.uid = ipc_uid_acc++;
     this._messageSignal = createSignal();
     this.onMessage = this._messageSignal.listen;
     this._getOnRequestListener = (0, import_once3.default)(() => {
@@ -2554,6 +2829,7 @@ var Ipc = class {
     this._closed = true;
     this._doClose();
     this._closeSignal.emit();
+    this._closeSignal.clear();
   }
   allocReqId() {
     return this._req_id_acc++;
@@ -2591,72 +2867,74 @@ var Ipc = class {
   }
 };
 
-// src/core/ipc/IpcStreamPull.cts
-var IpcStreamPull = class extends IpcMessage {
-  constructor(stream_id, desiredSize) {
-    super(3 /* STREAM_PULL */);
-    this.stream_id = stream_id;
-    if (desiredSize == null) {
-      desiredSize = 1;
-    } else if (Number.isFinite(desiredSize) === false) {
-      desiredSize = 1;
-    } else if (desiredSize < 1) {
-      desiredSize = 1;
-    }
-    this.desiredSize = desiredSize;
-  }
-};
-
 // src/core/ipc/IpcBodyReceiver.cts
-var IpcBodyReceiver = class extends IpcBody {
+var _IpcBodyReceiver = class extends IpcBody {
   constructor(metaBody, ipc) {
     super();
     this.metaBody = metaBody;
-    this.ipc = ipc;
-    this._bodyHub = new BodyHub($rawDataToBody(this.metaBody, this.ipc));
+    switch (metaBody[0]) {
+      case 0 /* STREAM_ID */:
+        {
+          const streamId = metaBody[1];
+          const senderIpcUid = metaBody[2];
+          const metaId = `${senderIpcUid}/${streamId}`;
+          if (_IpcBodyReceiver.metaIdIpcMap.has(metaId) === false) {
+            ipc.onClose(() => {
+              _IpcBodyReceiver.metaIdIpcMap.delete(metaId);
+            });
+            _IpcBodyReceiver.metaIdIpcMap.set(metaId, ipc);
+          }
+          const receiver = _IpcBodyReceiver.metaIdIpcMap.get(metaId);
+          if (receiver === void 0) {
+            throw new Error(`no found ipc by metaId:${metaId}`);
+          }
+          ipc = receiver;
+          this._bodyHub = new BodyHub($metaToStream(this.metaBody, ipc));
+        }
+        break;
+      case 3 /* TEXT */:
+        {
+          this._bodyHub = new BodyHub(metaBody[1]);
+        }
+        break;
+      default:
+        {
+          this._bodyHub = new BodyHub($metaBodyToBinary(metaBody));
+        }
+        break;
+    }
   }
 };
-var $rawDataToBody = (rawBody, ipc) => {
-  let body;
-  const raw_body_type = rawBody[0];
-  const bodyEncoder = raw_body_type & 8 /* BINARY */ ? (data) => data : raw_body_type & 4 /* BASE64 */ ? (data) => simpleEncoder(data, "base64") : raw_body_type & 2 /* TEXT */ ? (data) => simpleEncoder(data, "utf8") : () => {
-    throw raw_body_type;
-  };
-  if (raw_body_type & 16 /* STREAM_ID */) {
-    if (ipc == null) {
-      throw new Error(`miss ipc when ipc-response has stream-body`);
-    }
-    const stream_ipc = ipc;
-    const stream_id = rawBody[1];
-    body = new ReadableStream({
-      start(controller) {
-        const off = ipc.onMessage((message) => {
-          if ("stream_id" in message && message.stream_id === stream_id) {
-            if (message.type === 2 /* STREAM_DATA */) {
-              controller.enqueue(
-                typeof message.data === "string" ? bodyEncoder(message.data) : message.data
-              );
-            } else if (message.type === 4 /* STREAM_END */) {
-              controller.close();
-              off();
-            }
-          }
-        });
-      },
-      pull(controller) {
-        stream_ipc.postMessage(
-          new IpcStreamPull(stream_id, controller.desiredSize)
-        );
-      }
-    });
-  } else {
-    body = /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
-      raw_body_type & 2 /* TEXT */ ? rawBody[1] : (
-        /// 其它模式
-        bodyEncoder(rawBody[1])
-      );
+var IpcBodyReceiver = _IpcBodyReceiver;
+IpcBodyReceiver.metaIdIpcMap = /* @__PURE__ */ new Map();
+var $metaToStream = (rawBody, ipc) => {
+  if (ipc == null) {
+    throw new Error(`miss ipc when ipc-response has stream-body`);
   }
-  return body;
+  const stream_ipc = ipc;
+  const stream_id = rawBody[1];
+  const stream = new ReadableStream({
+    start(controller) {
+      const off = ipc.onMessage((message) => {
+        if ("stream_id" in message && message.stream_id === stream_id) {
+          if (message.type === 2 /* STREAM_DATA */) {
+            console.log("getStreamDataMessage", stream_id);
+            controller.enqueue(message.binary);
+          } else if (message.type === 4 /* STREAM_END */) {
+            controller.close();
+            off();
+          }
+        }
+      });
+    },
+    pull(controller) {
+      console.log("postStreamPullMessage", stream_id);
+      stream_ipc.postMessage(
+        new IpcStreamPull(stream_id, controller.desiredSize)
+      );
+    }
+  });
+  return stream;
 };
 
 // src/core/ipc-web/$messageToIpcMessage.cts
@@ -2672,17 +2950,19 @@ var $messageToIpcMessage = (data, ipc) => {
       data.url,
       data.method,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(data.metaBody, ipc)
+      new IpcBodyReceiver(data.metaBody, ipc),
+      ipc
     );
   } else if (data.type === 1 /* RESPONSE */) {
     message = new IpcResponse(
       data.req_id,
       data.statusCode,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(data.metaBody, ipc)
+      new IpcBodyReceiver(data.metaBody, ipc),
+      ipc
     );
   } else if (data.type === 2 /* STREAM_DATA */) {
-    message = new IpcStreamData(data.stream_id, data.data);
+    message = new IpcStreamData(data.stream_id, data.data, data.encoding);
   } else if (data.type === 3 /* STREAM_PULL */) {
     message = new IpcStreamPull(data.stream_id, data.desiredSize);
   } else if (data.type === 4 /* STREAM_END */) {
@@ -2935,12 +3215,13 @@ var CODE2 = async (request) => html(_a2 || (_a2 = __template(['\n  <!DOCTYPE htm
 console.log("ookkkkk, i'm in worker");
 var main = async () => {
   debugger;
+  const httpDwebServer = await createHttpDwebServer(jsProcess, {});
   if (jsProcess.meta.optionalBoolean("debug")) {
     await new Promise((resolve) => {
       Object.assign(self, { start_main: resolve });
     });
   }
-  const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+  console.log("will do listen!!", httpDwebServer.startResult.urlInfo.host);
   (await httpDwebServer.listen()).onRequest(async (request, httpServerIpc) => {
     console.log("worker on request", request.parsed_url);
     if (request.parsed_url.pathname === "/" || request.parsed_url.pathname === "/index.html") {
@@ -2981,56 +3262,8 @@ var main = async () => {
   });
   console.log("http \u670D\u52A1\u521B\u5EFA\u6210\u529F");
   const main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
-  console.log("\u6253\u5F00\u6D4F\u89C8\u5668\u9875\u9762", main_url);
-  {
-    const view_id = await jsProcess.fetch(
-      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
-    ).text();
-    console.log("view_id:", view_id)
-
-    const clWrite = await jsProcess.fetch(`file://clipboard.sys.dweb/write?string="我是复制到剪切板的内容🍅"&label="🥥"`).text()
-    console.log("clipboard:write", clWrite)
-    const clRead = await jsProcess.fetch(`file://clipboard.sys.dweb/read`).text()
-    console.log("clipboard:read", clRead)
-
-    const deviceInfo = await jsProcess.fetch(`file://device.sys.dweb/info`).text()
-    console.log("device:Info ", deviceInfo)
-    const deviceAppInfo = await jsProcess.fetch(`file://device.sys.dweb/appInfo`).text()
-    console.log("device:AppInfo ", deviceAppInfo)
-    const deviceVersion = await jsProcess.fetch(`file://device.sys.dweb/mobileVersion`).text()
-    console.log("device:Version ", deviceVersion)
-    const deviceBattery = await jsProcess.fetch(`file://device.sys.dweb/batteryInfo`).text()
-    console.log("device:Battery ", deviceBattery)
-    const deviceStorage = await jsProcess.fetch(`file://device.sys.dweb/storage`).text()
-    console.log("device:Storage ", deviceStorage)
-    const deviceModule = await jsProcess.fetch(`file://device.sys.dweb/module`).text()
-    console.log("device:Module ", deviceModule)
-
-    const location = await jsProcess.fetch(`file://location.sys.dweb/info`).text()
-    console.log("location:info ", location)
-
-    const bluetoothOpen = await jsProcess.fetch(`file://bluetooth.sys.dweb/open`).text()
-    console.log("bluetooth:open ", bluetoothOpen)
-    const bluetoothCheck = await jsProcess.fetch(`file://bluetooth.sys.dweb/check`).text()
-    console.log("bluetooth:check ", bluetoothCheck)
-    const bluetoothQuery = await jsProcess.fetch(`file://bluetooth.sys.dweb/query`).text()
-    console.log("bluetooth:query ", bluetoothQuery)
-    const bluetoothFind = await jsProcess.fetch(`file://bluetooth.sys.dweb/find`).text()
-    console.log("bluetooth:find ", bluetoothFind)
-
-    const bluetoothConnect = await jsProcess.fetch(`file://bluetooth.sys.dweb/connect/server?name="玉米饼"&uuid="00001000-0000-1000-8000-00805f9b34fb"`).text().catch(e => e)
-    console.log("bluetooth:connect ", bluetoothConnect)
-
-    const bluetoothCanBeFound = await jsProcess.fetch(`file://bluetooth.sys.dweb/canBeFound`).text()
-    console.log("bluetooth:canBeFound ", bluetoothCanBeFound)
-
-    const networkInfo = await jsProcess.fetch(`file://network.sys.dweb/info`).text()
-    console.log("network:info ", networkInfo)
-    const networkStatus = await jsProcess.fetch(`file://network.sys.dweb/status`).text()
-    console.log("network:status ", networkStatus)
-
-
-  }
+  console.log("\u8BF7\u6C42\u6D4F\u89C8\u5668\u9875\u9762", main_url);
+  console.log(await jsProcess.fetch(main_url, { mode: "no-cors" }).text());
 };
 main().catch(console.error);
 export {

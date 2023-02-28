@@ -4,7 +4,7 @@ import { parseUrl } from "../../helper/urlHelper.cjs";
 import {
   $MetaBody,
   IpcMessage,
-  IPC_DATA_TYPE,
+  IPC_MESSAGE_TYPE,
   IPC_METHOD,
   toIpcMethod,
 } from "./const.cjs";
@@ -13,15 +13,19 @@ import type { $BodyData, IpcBody } from "./IpcBody.cjs";
 import { IpcBodySender } from "./IpcBodySender.cjs";
 import { IpcHeaders } from "./IpcHeaders.cjs";
 
-export class IpcRequest extends IpcMessage<IPC_DATA_TYPE.REQUEST> {
+export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   constructor(
     readonly req_id: number,
     readonly url: string,
     readonly method: IPC_METHOD,
     readonly headers: IpcHeaders,
-    readonly body: IpcBody
+    readonly body: IpcBody,
+    readonly ipc: Ipc
   ) {
-    super(IPC_DATA_TYPE.REQUEST);
+    super(IPC_MESSAGE_TYPE.REQUEST);
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc, body);
+    }
   }
 
   #parsed_url?: URL;
@@ -43,7 +47,8 @@ export class IpcRequest extends IpcMessage<IPC_DATA_TYPE.REQUEST> {
       url,
       method,
       headers,
-      new IpcBodySender(text, ipc)
+      IpcBodySender.from(text, ipc),
+      ipc
     );
   }
   static fromBinary(
@@ -62,7 +67,8 @@ export class IpcRequest extends IpcMessage<IPC_DATA_TYPE.REQUEST> {
       url,
       method,
       headers,
-      new IpcBodySender(binaryToU8a(binary), ipc)
+      IpcBodySender.from(binaryToU8a(binary), ipc),
+      ipc
     );
   }
   static fromStream(
@@ -80,7 +86,8 @@ export class IpcRequest extends IpcMessage<IPC_DATA_TYPE.REQUEST> {
       url,
       method,
       headers,
-      new IpcBodySender(stream, ipc)
+      IpcBodySender.from(stream, ipc),
+      ipc
     );
   }
 
@@ -107,14 +114,14 @@ export class IpcRequest extends IpcMessage<IPC_DATA_TYPE.REQUEST> {
 
     let ipcBody: IpcBody;
     if (isBinary(init.body)) {
-      ipcBody = new IpcBodySender(init.body, ipc);
+      ipcBody = IpcBodySender.from(init.body, ipc);
     } else if (init.body instanceof ReadableStream) {
-      ipcBody = new IpcBodySender(init.body, ipc);
+      ipcBody = IpcBodySender.from(init.body, ipc);
     } else {
-      ipcBody = new IpcBodySender(init.body ?? "", ipc);
+      ipcBody = IpcBodySender.from(init.body ?? "", ipc);
     }
 
-    return new IpcRequest(req_id, url, method, headers, ipcBody);
+    return new IpcRequest(req_id, url, method, headers, ipcBody, ipc);
   }
 
   toRequest() {
@@ -145,7 +152,7 @@ export class IpcRequest extends IpcMessage<IPC_DATA_TYPE.REQUEST> {
   }
 }
 
-export class IpcReqMessage extends IpcMessage<IPC_DATA_TYPE.REQUEST> {
+export class IpcReqMessage extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   constructor(
     readonly req_id: number,
     readonly method: IPC_METHOD,
@@ -153,6 +160,6 @@ export class IpcReqMessage extends IpcMessage<IPC_DATA_TYPE.REQUEST> {
     readonly headers: Record<string, string>,
     readonly metaBody: $MetaBody
   ) {
-    super(IPC_DATA_TYPE.REQUEST);
+    super(IPC_MESSAGE_TYPE.REQUEST);
   }
 }

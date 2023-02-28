@@ -1,9 +1,9 @@
-import { IpcMessage, IPC_DATA_TYPE } from "./const.cjs";
+import { IpcMessage, IPC_MESSAGE_TYPE } from "./const.cjs";
 
-export class IpcStreamPull extends IpcMessage<IPC_DATA_TYPE.STREAM_PULL> {
+export class IpcStreamPull extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_PULL> {
   readonly desiredSize: number;
   constructor(readonly stream_id: string, desiredSize?: number | null) {
-    super(IPC_DATA_TYPE.STREAM_PULL);
+    super(IPC_MESSAGE_TYPE.STREAM_PULL);
     if (desiredSize == null) {
       desiredSize = 1;
     } else if (Number.isFinite(desiredSize) === false) {

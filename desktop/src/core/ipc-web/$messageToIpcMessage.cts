@@ -1,7 +1,7 @@
 import {
   $IpcMessage,
   $IpcTransferableMessage,
-  IPC_DATA_TYPE,
+  IPC_MESSAGE_TYPE,
 } from "../ipc/const.cjs";
 import type { Ipc } from "../ipc/ipc.cjs";
 import { IpcBodyReceiver } from "../ipc/IpcBodyReceiver.cjs";
@@ -29,26 +29,28 @@ export const $messageToIpcMessage = (
   }
   let message: undefined | $IpcMessage | $IpcSignalMessage;
 
-  if (data.type === IPC_DATA_TYPE.REQUEST) {
+  if (data.type === IPC_MESSAGE_TYPE.REQUEST) {
     message = new IpcRequest(
       data.req_id,
       data.url,
       data.method,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(data.metaBody, ipc)
+      new IpcBodyReceiver(data.metaBody, ipc),
+      ipc
     );
-  } else if (data.type === IPC_DATA_TYPE.RESPONSE) {
+  } else if (data.type === IPC_MESSAGE_TYPE.RESPONSE) {
     message = new IpcResponse(
       data.req_id,
       data.statusCode,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(data.metaBody, ipc)
+      new IpcBodyReceiver(data.metaBody, ipc),
+      ipc
     );
-  } else if (data.type === IPC_DATA_TYPE.STREAM_DATA) {
-    message = new IpcStreamData(data.stream_id, data.data);
-  } else if (data.type === IPC_DATA_TYPE.STREAM_PULL) {
+  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_DATA) {
+    message = new IpcStreamData(data.stream_id, data.data, data.encoding);
+  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_PULL) {
     message = new IpcStreamPull(data.stream_id, data.desiredSize);
-  } else if (data.type === IPC_DATA_TYPE.STREAM_END) {
+  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_END) {
     message = new IpcStreamEnd(data.stream_id);
   }
   return message;

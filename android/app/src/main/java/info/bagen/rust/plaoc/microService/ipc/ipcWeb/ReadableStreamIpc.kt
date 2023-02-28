@@ -20,6 +20,9 @@ class ReadableStreamIpc(
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
+    override fun toString(): String {
+        return super.toString() + "@ReadableStreamIpc"
+    }
     // 虽然 ReadableStreamIpc 支持 Binary 的传输，但是不支持结构化的传输，
     // override val supportBinary: Boolean = true
 
@@ -80,12 +83,15 @@ class ReadableStreamIpc(
                     "close" -> close()
                     "ping" -> enqueue(PONG_DATA)
                     "pong" -> debugStreamIpc("PONG/$stream")
-                    is IpcMessage -> _messageSignal.emit(
-                        IpcMessageArgs(
-                            message,
-                            this@ReadableStreamIpc
+                    is IpcMessage -> {
+                        debugStreamIpc("ON-MESSAGE/${this@ReadableStreamIpc}", message)
+                        _messageSignal.emit(
+                            IpcMessageArgs(
+                                message,
+                                this@ReadableStreamIpc
+                            )
                         )
-                    )
+                    }
                     else -> throw Exception("unknown message: $message")
                 }
             }

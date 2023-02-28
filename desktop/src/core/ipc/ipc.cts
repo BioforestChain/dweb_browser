@@ -3,12 +3,11 @@ import { createSignal } from "../../helper/createSignal.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
 import {
+  $IpcMessage,
   $OnIpcRequestMessage,
-  IPC_DATA_TYPE,
-  type IpcMessage,
+  IPC_MESSAGE_TYPE,
   type $OnIpcMessage,
   type IPC_ROLE,
-  $IpcMessage,
 } from "./const.cjs";
 import type { IpcHeaders } from "./IpcHeaders.cjs";
 import { IpcRequest } from "./IpcRequest.cjs";
@@ -16,6 +15,8 @@ import type { IpcResponse } from "./IpcResponse.cjs";
 
 let ipc_uid_acc = 0;
 export abstract class Ipc {
+  readonly uid = ipc_uid_acc++;
+
   /**
    * 是否支持使用 MessagePack 直接传输二进制
    * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
@@ -55,7 +56,6 @@ export abstract class Ipc {
 
   protected _support_binary = false;
 
-  readonly uid = ipc_uid_acc++;
   abstract readonly remote: $MicroModule;
   abstract readonly role: IPC_ROLE;
 
@@ -72,7 +72,7 @@ export abstract class Ipc {
   private _getOnRequestListener = once(() => {
     const signal = createSignal<$OnIpcRequestMessage>();
     this.onMessage((request, ipc) => {
-      if (request.type === IPC_DATA_TYPE.REQUEST) {
+      if (request.type === IPC_MESSAGE_TYPE.REQUEST) {
         signal.emit(request, ipc);
       }
     });
@@ -93,6 +93,7 @@ export abstract class Ipc {
     this._closed = true;
     this._doClose();
     this._closeSignal.emit();
+    this._closeSignal.clear();
   }
   private _closeSignal = createSignal<() => unknown>();
   onClose = this._closeSignal.listen;
@@ -110,7 +111,7 @@ export abstract class Ipc {
     }
     this._inited_req_res = true;
     this.onMessage((message) => {
-      if (message.type === IPC_DATA_TYPE.RESPONSE) {
+      if (message.type === IPC_MESSAGE_TYPE.RESPONSE) {
         const response_po = this._reqresMap.get(message.req_id);
         if (response_po) {
           this._reqresMap.delete(message.req_id);

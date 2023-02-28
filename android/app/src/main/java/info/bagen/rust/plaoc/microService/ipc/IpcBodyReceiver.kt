@@ -1,20 +1,31 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
-import info.bagen.rust.plaoc.microService.helper.asBase64
-import info.bagen.rust.plaoc.microService.helper.asUtf8
 import java.io.InputStream
 
 
+/**
+ * metaBody 可能会被多次转发，
+ * 但只有第一次得到这个 metaBody 的 ipc 才是它真正意义上的 Receiver
+ */
 class IpcBodyReceiver(
     override val metaBody: MetaBody,
-    private val ipc: Ipc
+    ipc: Ipc,
 ) : IpcBody() {
 
     /// 因为是 abstract，所以得用 lazy 来延迟得到这些属性
     override val bodyHub by lazy {
         BodyHub().also {
-            val data = rawDataToBody(metaBody, ipc)
+            val data = when (metaBody.type) {
+                IPC_META_BODY_TYPE.STREAM_ID -> {
+                    val ipc =
+                        metaIdIpcMap[metaId] ?: throw Exception("no found ipc by metaId:$metaId")
+                    metaToStream(metaBody, ipc)
+                }
+                /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
+                IPC_META_BODY_TYPE.TEXT -> metaBody.data as String
+                else -> metaBody.binary
+            }
             it.data = data
             when (data) {
                 is String -> it.text = data;
@@ -24,54 +35,52 @@ class IpcBodyReceiver(
         }
     }
 
+    private val metaId by lazy { "${metaBody.ipcUid}/${metaBody.data}" }
+
+    init {
+        /// 将第一次得到这个metaBody的 ipc 保存起来
+        if (metaBody.type == IPC_META_BODY_TYPE.STREAM_ID) {
+            metaIdIpcMap.getOrPut(metaId) {
+                ipc.onClose {
+                    metaIdIpcMap.remove(metaId)
+                }
+                ipc
+            }
+        }
+    }
+
     companion object {
 
+        private val metaIdIpcMap = mutableMapOf<String, Ipc>()
 
         /**
          * @return {String | ByteArray | InputStream}
          */
-        fun rawDataToBody(metaBody: MetaBody?, ipc: Ipc?): Any {
-            if (metaBody == null || ipc == null) {
-                return ""
-            }
-            val bodyEncoder =
-                /// 二进制模式，直接返回即可
-                if (metaBody.type and IPC_RAW_BODY_TYPE.BINARY != 0) {
-                    { data: Any -> data as ByteArray }
-                } else if (metaBody.type and IPC_RAW_BODY_TYPE.BASE64 != 0) {
-                    { data: Any -> (data as String).asBase64() }
-                } else if (metaBody.type and IPC_RAW_BODY_TYPE.TEXT != 0) {
-                    { data: Any -> (data as String).asUtf8() }
-                } else throw Exception("invalid metaBody.type :${metaBody.type}")
-
-            if (metaBody.type and IPC_RAW_BODY_TYPE.STREAM_ID != 0) {
-                val stream_id = metaBody.data as String;
-                val stream = ReadableStream(onStart = { controller ->
-                    ipc.onMessage { (message) ->
-                        debugStream("rawDataToBody/onMessage/$ipc/${controller.stream}", message)
-                        if (message is IpcStreamData && message.stream_id == stream_id) {
-                            controller.enqueue(bodyEncoder(message.data))
-                        } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
-                            controller.close()
-                            return@onMessage SIGNAL_CTOR.OFF
-                        } else {
-                        }
-                    }
-                }, onPull = { (desiredSize, controller) ->
+        fun metaToStream(metaBody: MetaBody, ipc: Ipc): InputStream {
+            /// metaToStream
+            val stream_id = metaBody.data as String;
+            val stream = ReadableStream(onStart = { controller ->
+                ipc.onMessage { (message) ->
                     debugStream(
-                        "rawDataToBody/postPullMessage/$ipc/${controller.stream}",
-                        stream_id
+                        "receiver/metaToStream/onMessage/$ipc/${controller.stream}", message
                     )
-                    ipc.postMessage(IpcStreamPull(stream_id, desiredSize))
-                });
-                debugStream("rawDataToBody/$ipc/$stream", stream_id)
+                    if (message is IpcStreamData && message.stream_id == stream_id) {
+                        controller.enqueue(message.binary)
+                    } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
+                        controller.close()
+                        return@onMessage SIGNAL_CTOR.OFF
+                    } else {
+                    }
+                }
+            }, onPull = { (desiredSize, controller) ->
+                debugStream(
+                    "receiver/metaToStream/postPullMessage/$ipc/${controller.stream}", stream_id
+                )
+                ipc.postMessage(IpcStreamPull(stream_id, desiredSize))
+            });
+            debugStream("receiver/metaToStream/$ipc/$stream", stream_id)
 
-                return stream // as InputStream
-            }
-            /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
-            return if (metaBody.type and IPC_RAW_BODY_TYPE.TEXT != 0) {
-                return metaBody.data as String
-            } else bodyEncoder(metaBody.data)
+            return stream
 
         }
     }

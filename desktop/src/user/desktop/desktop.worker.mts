@@ -10,14 +10,17 @@ console.log("ookkkkk, i'm in worker");
 
 export const main = async () => {
   debugger;
+  /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
+  const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+
   if (jsProcess.meta.optionalBoolean("debug")) {
     await new Promise((resolve) => {
       Object.assign(self, { start_main: resolve });
     });
   }
-  /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
-  const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+  console.log("will do listen!!", httpDwebServer.startResult.urlInfo.host);
   (await httpDwebServer.listen()).onRequest(async (request, httpServerIpc) => {
+    console.log("worker on request", request.parsed_url);
     if (
       request.parsed_url.pathname === "/" ||
       request.parsed_url.pathname === "/index.html"
@@ -63,13 +66,17 @@ export const main = async () => {
 
   const main_url =
     httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
-  console.log("打开浏览器页面", main_url);
-  {
-    const view_id = await jsProcess
-      .fetch(
-        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
-      )
-      .text();
-  }
+
+  console.log("请求浏览器页面", main_url);
+
+  console.log(await jsProcess.fetch(main_url, { mode: "no-cors" }).text());
+  // console.log("打开浏览器页面", main_url);
+  // {
+  //   const view_id = await jsProcess
+  //     .fetch(
+  //       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
+  //     )
+  //     .text();
+  // }
 };
 main().catch(console.error);

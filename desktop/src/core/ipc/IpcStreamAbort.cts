@@ -1,7 +1,7 @@
-import { IpcMessage, IPC_DATA_TYPE } from "./const.cjs";
+import { IpcMessage, IPC_MESSAGE_TYPE } from "./const.cjs";
 
-export class IpcStreamAbort extends IpcMessage<IPC_DATA_TYPE.STREAM_ABORT> {
+export class IpcStreamAbort extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_ABORT> {
   constructor(readonly stream_id: string) {
-    super(IPC_DATA_TYPE.STREAM_ABORT);
+    super(IPC_MESSAGE_TYPE.STREAM_ABORT);
   }
 }

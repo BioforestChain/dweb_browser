@@ -1,18 +1,241 @@
 import { binaryToU8a } from "../../helper/binaryHelper.cjs";
+import { $Callback, createSignal } from "../../helper/createSignal.cjs";
 import { simpleDecoder } from "../../helper/encoding.cjs";
 import { streamRead } from "../../helper/readableStreamHelper.cjs";
-import { $MetaBody, IPC_DATA_TYPE, IPC_RAW_BODY_TYPE } from "./const.cjs";
+import { $MetaBody, IPC_META_BODY_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.cjs";
+import { IpcStreamAbort } from "./IpcStreamAbort.cjs";
 import { IpcStreamData } from "./IpcStreamData.cjs";
 import { IpcStreamEnd } from "./IpcStreamEnd.cjs";
+import { IpcStreamPull } from "./IpcStreamPull.cjs";
 
 export class IpcBodySender extends IpcBody {
+  static from(data: $BodyData, ipc: Ipc) {
+    if (typeof data !== "string") {
+      const cache = IpcBody.wm.get(data);
+      if (cache !== undefined) {
+        return cache;
+      }
+    }
+    return new IpcBodySender(data, ipc);
+  }
   constructor(readonly data: $BodyData, private readonly ipc: Ipc) {
     super();
+    if (typeof data !== "string") {
+      IpcBody.wm.set(data, this);
+    }
+    /// 作为 "生产者"，第一持有这个 IpcBodySender
+    IpcBodySender.$usableByIpc(ipc, this);
   }
+
+  readonly isStream = this.data instanceof ReadableStream;
+
+  private pullSignal = createSignal<(desiredSize: number) => unknown>();
+  private abortSignal = createSignal();
+
+  /**
+   * 被哪些 ipc 所真正使用，使用的进度分别是多少
+   *
+   * 这个进度 用于 类似流的 多发
+   */
+  private readonly usedIpcMap = new Map<Ipc, /* PulledSize */ number>();
+  /**
+   * 当前分发到多少字节
+   */
+  private maxPulledSize = 0;
+
+  /**
+   * 绑定使用
+   */
+  private useByIpc(ipc: Ipc) {
+    if (this.usedIpcMap.has(ipc)) {
+      return true;
+    }
+    if (this.isStream && !this._isStreamOpened) {
+      this.usedIpcMap.set(ipc, 0);
+      this.closeSignal.listen(() => {
+        this.unuseByIpc(ipc);
+      });
+      return true;
+    }
+    return false;
+  }
+  /**
+   * 拉取数据
+   */
+  private emitStreamPull(message: IpcStreamPull, ipc: Ipc) {
+    const pulledSize = this.usedIpcMap.get(ipc)! + message.desiredSize;
+    this.usedIpcMap.set(ipc, pulledSize);
+    if (this.maxPulledSize < pulledSize) {
+      const desiredSize = pulledSize - this.maxPulledSize;
+      this.maxPulledSize = pulledSize;
+      this.pullSignal.emit(desiredSize);
+    }
+  }
+
+  /**
+   * 解绑使用
+   */
+  private unuseByIpc(ipc: Ipc) {
+    if (this.usedIpcMap.delete(ipc) != null) {
+      /// 如果没有任何消费者了，那么真正意义上触发 abort
+      if (this.usedIpcMap.size === 0) {
+        this.abortSignal.emit();
+      }
+    }
+  }
+
+  private readonly closeSignal = createSignal();
+  onStreamClose(cb: $Callback) {
+    return this.closeSignal.listen(cb);
+  }
+
+  private readonly openSignal = createSignal();
+  onStreamOpen(cb: $Callback) {
+    return this.openSignal.listen(cb);
+  }
+
+  private _isStreamOpened = false;
+  public get isStreamOpened() {
+    return this._isStreamOpened;
+  }
+  public set isStreamOpened(value) {
+    this._isStreamOpened = value;
+    if (value) {
+      this.openSignal.emit();
+      this.openSignal.clear();
+    }
+  }
+  private _isStreamClosed = false;
+  public get isStreamClosed() {
+    return this._isStreamClosed;
+  }
+  public set isStreamClosed(value) {
+    this._isStreamClosed = value;
+    if (value) {
+      this.closeSignal.emit();
+      this.closeSignal.clear();
+    }
+  }
+  private emitStreamClose() {
+    this.isStreamOpened = true;
+    this.isStreamClosed = true;
+  }
+
+  /// bodyAsMeta
+
   protected _bodyHub = new BodyHub(this.data);
-  readonly metaBody = $bodyAsRawData(this.data, this.ipc);
+  readonly metaBody = this.$bodyAsMeta(this.data, this.ipc);
+
+  private $bodyAsMeta(body: $BodyData, ipc: Ipc): $MetaBody {
+    if (typeof body === "string") {
+      return [IPC_META_BODY_TYPE.TEXT, body, ipc.uid];
+    }
+    if (body instanceof ReadableStream) {
+      return this.$streamAsMeta(body, ipc);
+    }
+    return ipc.support_binary
+      ? [IPC_META_BODY_TYPE.BINARY, binaryToU8a(body), ipc.uid]
+      : [IPC_META_BODY_TYPE.BASE64, simpleDecoder(body, "base64"), ipc.uid];
+  }
+  /**
+   * 如果 rawData 是流模式，需要提供数据发送服务
+   *
+   * 这里不会一直无脑发，而是对方有需要的时候才发
+   * @param stream_id
+   * @param stream
+   * @param ipc
+   */
+  private $streamAsMeta(
+    stream: ReadableStream<Uint8Array>,
+    ipc: Ipc
+  ): $MetaBody {
+    const stream_id = getStreamId(stream);
+    const reader = streamRead(stream);
+
+    const sender =
+      /**
+       * 这里的数据发送是按需迭代，而不是马上发
+       * 马上发会有一定的问题，需要确保对方收到 IpcResponse 对象后，并且开始接收数据时才能开始
+       * 否则发过去的数据 IpcResponse 如果还没构建完，就导致 IpcStreamData 无法认领，为了内存安全必然要被抛弃
+       * 所以整体上来说，我们使用 pull 的逻辑，让远端来要求我们去发送数据
+       */
+      async function* _postStreamData(this: IpcBodySender) {
+        try {
+          /// 这里我们没有遵循 desiredSize 的要求，属于是能发多少算多少，效果几乎是一样的
+          for await (const data of reader) {
+            let binary_message: undefined | IpcStreamData;
+            let base64_message: undefined | IpcStreamData;
+            for (const ipc of this.usedIpcMap.keys()) {
+              const message = ipc.support_binary
+                ? (binary_message ??= IpcStreamData.asBinary(stream_id, data))
+                : (base64_message ??= IpcStreamData.asBase64(stream_id, data));
+
+              ipc.postMessage(message);
+            }
+            yield;
+          }
+        } finally {
+          /// 不论是不是被 aborted，都发送结束信号
+          const message = new IpcStreamEnd(stream_id);
+          for (const ipc of this.usedIpcMap.keys()) {
+            ipc.postMessage(message);
+          }
+
+          this.emitStreamClose();
+        }
+      }.call(this);
+
+    this.pullSignal.listen(
+      async (
+        /// 预期值仅供参考
+        desiredSize
+      ) => {
+        await sender.next();
+      }
+    );
+    this.abortSignal.listen(() => {
+      reader.throw("abort");
+      this.emitStreamClose();
+    });
+
+    return [IPC_META_BODY_TYPE.STREAM_ID, stream_id, ipc.uid];
+  }
+
+  /**
+   * ipc 将会使用它
+   */
+  static $usableByIpc = (ipc: Ipc, ipcBody: IpcBodySender) => {
+    if (ipcBody.isStream && !ipcBody._isStreamOpened) {
+      const streamId = ipcBody.metaBody[1] as string;
+      let usableIpcBodyMapper = IpcUsableIpcBodyMap.get(ipc);
+      if (usableIpcBodyMapper === undefined) {
+        const mapper = new UsableIpcBodyMapper();
+        mapper.onDestroy(
+          ipc.onMessage((message) => {
+            if (message instanceof IpcStreamPull) {
+              const ipcBody = mapper.get(message.stream_id);
+              // 一个流一旦开启了，那么就无法再被外部使用了
+              if (ipcBody?.useByIpc(ipc)) {
+                // ipc 将使用这个 body，也就是说接下来的 MessageData 也要通知一份给这个 ipc
+                ipcBody.emitStreamPull(message, ipc);
+              }
+            } else if (message instanceof IpcStreamAbort) {
+              const ipcBody = mapper.get(message.stream_id);
+              ipcBody?.unuseByIpc(ipc);
+            }
+          })
+        );
+        mapper.onDestroy(() => IpcUsableIpcBodyMap.delete(ipc));
+        usableIpcBodyMapper = mapper;
+      }
+      if (usableIpcBodyMapper.add(streamId, ipcBody)) {
+        // 一个流一旦关闭，那么就将不再会与它有主动通讯上的可能
+        ipcBody.onStreamClose(() => usableIpcBodyMapper!.remove(streamId));
+      }
+    }
+  };
 }
 const streamIdWM = new WeakMap<ReadableStream<Uint8Array>, string>();
 let stream_id_acc = 0;
@@ -24,83 +247,35 @@ const getStreamId = (stream: ReadableStream<Uint8Array>) => {
   }
   return id;
 };
-/**
- * 如果 rawData 是流模式，需要提供数据发送服务
- *
- * 这里不会一直无脑发，而是对方有需要的时候才发
- * @param stream_id
- * @param stream
- * @param ipc
- */
-const $streamAsRawData = (
-  stream: ReadableStream<Uint8Array>,
-  ipc: Ipc
-): $MetaBody => {
-  const stream_id = getStreamId(stream);
-  const reader = streamRead(stream);
 
-  const sender = _postStreamData(stream_id, reader, ipc, () => {
-    /// 解除对请求方的请求监听绑定
-    off();
-  });
-
-  /// 来自请求方的数据
-  const off = ipc.onMessage(async (message) => {
-    /// 申请数据拉取
-    if (
-      message.type === IPC_DATA_TYPE.STREAM_PULL &&
-      message.stream_id === stream_id
-    ) {
-      /// 预期值仅供参考
-      // message.desiredSize
-      await sender.next();
+class UsableIpcBodyMapper {
+  private map = new Map<String, IpcBodySender>();
+  add(streamId: string, ipcBody: IpcBodySender) {
+    if (this.map.has(streamId)) {
+      return true;
     }
-    /// 告知数据流中断
-    else if (
-      message.type === IPC_DATA_TYPE.STREAM_ABORT &&
-      message.stream_id === stream_id
-    ) {
-      reader.throw("abort");
-    }
-  });
-
-  return ipc.support_binary
-    ? [IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id]
-    : [IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id];
-};
-
-/**
- * 这里的数据发送是按需迭代，而不是马上发
- * 马上发会有一定的问题，需要确保对方收到 IpcResponse 对象后，并且开始接收数据时才能开始
- * 否则发过去的数据 IpcResponse 如果还没构建完，就导致 IpcStreamData 无法认领，为了内存安全必然要被抛弃
- * 所以整体上来说，我们使用 pull 的逻辑，让远端来要求我们去发送数据
- */
-async function* _postStreamData(
-  stream_id: string,
-  reader: AsyncGenerator<Uint8Array>,
-  ipc: Ipc,
-  onDone: () => unknown
-) {
-  for await (const data of reader) {
-    ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, data));
-    yield;
+    this.map.set(streamId, ipcBody);
+    return false;
   }
-  /// 不论是不是被 aborted，都发送结束信号
-  // if (reader.abort_controller.signal.aborted === false) {
-  ipc.postMessage(new IpcStreamEnd(stream_id));
-  // }
 
-  onDone();
+  get(streamId: string) {
+    return this.map.get(streamId);
+  }
+  remove(streamId: string) {
+    const ipcBody = this.map.get(streamId);
+    if (ipcBody !== undefined) {
+      this.map.delete(streamId);
+      /// 如果都删除完了，那么就触发事件解绑
+      if (this.map.size === 0) {
+        this.destroySignal.emit();
+        this.destroySignal.clear();
+      }
+    }
+  }
+  private destroySignal = createSignal();
+  onDestroy(cb: $Callback) {
+    this.destroySignal.listen(cb);
+  }
 }
 
-const $bodyAsRawData = (body: $BodyData, ipc: Ipc): $MetaBody => {
-  if (typeof body === "string") {
-    return [IPC_RAW_BODY_TYPE.TEXT, body];
-  }
-  if (body instanceof ReadableStream) {
-    return $streamAsRawData(body, ipc);
-  }
-  return ipc.support_binary
-    ? [IPC_RAW_BODY_TYPE.BINARY, binaryToU8a(body)]
-    : [IPC_RAW_BODY_TYPE.BASE64, simpleDecoder(body, "base64")];
-};
+const IpcUsableIpcBodyMap = new WeakMap<Ipc, UsableIpcBodyMapper>();

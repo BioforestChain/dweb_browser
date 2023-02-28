@@ -1,19 +1,23 @@
 import once from "lodash/once";
 import { $Binary, binaryToU8a } from "../../helper/binaryHelper.cjs";
-import { $MetaBody, IpcMessage, IPC_DATA_TYPE } from "./const.cjs";
+import { $MetaBody, IpcMessage, IPC_MESSAGE_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import type { IpcBody } from "./IpcBody.cjs";
 import { IpcBodySender } from "./IpcBodySender.cjs";
 import { IpcHeaders } from "./IpcHeaders.cjs";
 
-export class IpcResponse extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
+export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
   constructor(
     readonly req_id: number,
     readonly statusCode: number,
     readonly headers: IpcHeaders,
-    readonly body: IpcBody
+    readonly body: IpcBody,
+    readonly ipc: Ipc
   ) {
-    super(IPC_DATA_TYPE.RESPONSE);
+    super(IPC_MESSAGE_TYPE.RESPONSE);
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc, body);
+    }
   }
 
   #ipcHeaders?: IpcHeaders;
@@ -49,9 +53,9 @@ export class IpcResponse extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
       /// 如果有 content-length，说明大小是明确的，不要走流，直接传输就好，减少 IPC 的触发次数
       response.headers.get("content-length") === null */
     ) {
-      ipcBody = new IpcBodySender(response.body, ipc);
+      ipcBody = IpcBodySender.from(response.body, ipc);
     } else {
-      ipcBody = new IpcBodySender(
+      ipcBody = IpcBodySender.from(
         binaryToU8a(await response.arrayBuffer()),
         ipc
       );
@@ -61,7 +65,8 @@ export class IpcResponse extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
       req_id,
       response.status,
       new IpcHeaders(response.headers),
-      ipcBody
+      ipcBody,
+      ipc
     );
   }
   static fromJson(
@@ -93,7 +98,8 @@ export class IpcResponse extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(text, ipc)
+      IpcBodySender.from(text, ipc),
+      ipc
     );
   }
   static fromBinary(
@@ -109,7 +115,8 @@ export class IpcResponse extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(binaryToU8a(binary), ipc)
+      IpcBodySender.from(binaryToU8a(binary), ipc),
+      ipc
     );
   }
   static fromStream(
@@ -124,7 +131,8 @@ export class IpcResponse extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(stream, ipc)
+      IpcBodySender.from(stream, ipc),
+      ipc
     );
     return ipcResponse;
   }
@@ -143,13 +151,13 @@ export class IpcResponse extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
   }
 }
 
-export class IpcResMessage extends IpcMessage<IPC_DATA_TYPE.RESPONSE> {
+export class IpcResMessage extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
   constructor(
     readonly req_id: number,
     readonly statusCode: number,
     readonly headers: Record<string, string>,
     readonly metaBody: $MetaBody
   ) {
-    super(IPC_DATA_TYPE.RESPONSE);
+    super(IPC_MESSAGE_TYPE.RESPONSE);
   }
 }

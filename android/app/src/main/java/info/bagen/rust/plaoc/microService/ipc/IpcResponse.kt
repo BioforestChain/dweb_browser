@@ -10,7 +10,14 @@ class IpcResponse(
     val statusCode: Int,
     val headers: IpcHeaders,
     val body: IpcBody,
-) : IpcMessage(IPC_DATA_TYPE.RESPONSE) {
+    val ipc: Ipc,
+) : IpcMessage(IPC_MESSAGE_TYPE.RESPONSE) {
+
+    init {
+        if (body is IpcBodySender) {
+            IpcBodySender.usableByIpc(ipc, body)
+        }
+    }
 
     companion object {
         fun fromJson(
@@ -33,7 +40,8 @@ class IpcResponse(
             req_id,
             statusCode,
             headers.also { headers.init("Content-Type", "text/plain") },
-            IpcBodySender(text, ipc)
+            IpcBodySender.from(text, ipc),
+            ipc,
         )
 
         fun fromBinary(
@@ -49,7 +57,8 @@ class IpcResponse(
                 headers.init("Content-Type", "application/octet-stream");
                 headers.init("Content-Length", binary.size.toString());
             },
-            IpcBodySender(binary, ipc)
+            IpcBodySender.from(binary, ipc),
+            ipc,
         );
 
 
@@ -65,7 +74,8 @@ class IpcResponse(
             headers.also {
                 headers.init("Content-Type", "application/octet-stream");
             },
-            IpcBodySender(stream, ipc)
+            IpcBodySender.from(stream, ipc),
+            ipc,
         )
 
         fun fromResponse(
@@ -77,17 +87,18 @@ class IpcResponse(
             response.status.code,
             IpcHeaders(response.headers),
             when (response.body.length) {
-                0L -> IpcBodySender("", ipc)
-                null -> IpcBodySender(response.body.stream, ipc)
-                else -> IpcBodySender(response.body.payload.array(), ipc)
-            }
+                0L -> IpcBodySender.from("", ipc)
+                null -> IpcBodySender.from(response.body.stream, ipc)
+                else -> IpcBodySender.from(response.body.payload.array(), ipc)
+            },
+            ipc,
         )
     }
 
     fun toResponse() =
         Response(Status(this.statusCode, null))
             .headers(this.headers.toList()).let { res ->
-                when (val body = body.body) {
+                when (val body = body.raw) {
                     is String -> res.body(body)
                     is ByteArray -> res.body(body.inputStream(), body.size.toLong())
                     is InputStream -> res.body(body)
@@ -103,6 +114,6 @@ class IpcResponse(
 class IpcResMessage(
     val req_id: Int,
     val statusCode: Int,
-    val headers: MutableMap<String,String>,
+    val headers: MutableMap<String, String>,
     val metaBody: MetaBody,
-) : IpcMessage(IPC_DATA_TYPE.RESPONSE)
+) : IpcMessage(IPC_MESSAGE_TYPE.RESPONSE)

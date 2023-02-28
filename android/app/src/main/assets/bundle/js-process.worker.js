@@ -1934,6 +1934,57 @@ var PromiseOut = class {
   }
 };
 
+// src/helper/binaryHelper.cts
+var isBinary = (data) => data instanceof ArrayBuffer || ArrayBuffer.isView(data);
+var binaryToU8a = (binary) => {
+  if (binary instanceof ArrayBuffer) {
+    return new Uint8Array(binary);
+  }
+  if (binary instanceof Uint8Array) {
+    return binary;
+  }
+  return new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength);
+};
+var u8aConcat = (binaryList) => {
+  let totalLength = 0;
+  for (const binary of binaryList) {
+    totalLength += binary.byteLength;
+  }
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const binary of binaryList) {
+    result.set(binary, offset);
+    offset += binary.byteLength;
+  }
+  return result;
+};
+
+// src/helper/encoding.cts
+var textEncoder = new TextEncoder();
+var simpleEncoder = (data, encoding) => {
+  if (encoding === "base64") {
+    const byteCharacters = atob(data);
+    const binary = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      binary[i] = byteCharacters.charCodeAt(i);
+    }
+    return binary;
+  }
+  return textEncoder.encode(data);
+};
+var textDecoder = new TextDecoder();
+var simpleDecoder = (data, encoding) => {
+  if (encoding === "base64") {
+    let binary = "";
+    const bytes = binaryToU8a(data);
+    for (const byte of bytes) {
+      binary += String.fromCharCode(byte);
+    }
+    return btoa(binary);
+  }
+  return textDecoder.decode(data);
+};
+
 // src/core/ipc/const.cts
 var toIpcMethod = (method) => {
   if (method == null) {
@@ -1970,6 +2021,29 @@ var toIpcMethod = (method) => {
   }
   throw new Error(`invalid method: ${method}`);
 };
+var $metaBodyToBinary = (metaBody) => {
+  const [type, data] = metaBody;
+  switch (type) {
+    case IPC_META_BODY_TYPE.BINARY: {
+      return data;
+    }
+    case IPC_META_BODY_TYPE.BASE64: {
+      return simpleEncoder(data, "base64");
+    }
+    case IPC_META_BODY_TYPE.TEXT: {
+      return simpleEncoder(data, "utf8");
+    }
+  }
+  throw new Error(`invalid metaBody.type :${type}`);
+};
+var IPC_META_BODY_TYPE = /* @__PURE__ */ ((IPC_META_BODY_TYPE2) => {
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["STREAM_ID"] = 0] = "STREAM_ID";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["INLINE"] = 1] = "INLINE";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["TEXT"] = 3] = "TEXT";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BASE64"] = 5] = "BASE64";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BINARY"] = 9] = "BINARY";
+  return IPC_META_BODY_TYPE2;
+})(IPC_META_BODY_TYPE || {});
 var IpcMessage = class {
   constructor(type) {
     this.type = type;
@@ -1979,31 +2053,6 @@ var IpcMessage = class {
 // src/core/ipc/IpcRequest.cts
 var import_once = __toESM(require_once());
 
-// src/helper/binaryHelper.cts
-var isBinary = (data) => data instanceof ArrayBuffer || ArrayBuffer.isView(data);
-var binaryToU8a = (binary) => {
-  if (binary instanceof ArrayBuffer) {
-    return new Uint8Array(binary);
-  }
-  if (binary instanceof Uint8Array) {
-    return binary;
-  }
-  return new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength);
-};
-var u8aConcat = (binaryList) => {
-  let totalLength = 0;
-  for (const binary of binaryList) {
-    totalLength += binary.byteLength;
-  }
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const binary of binaryList) {
-    result.set(binary, offset);
-    offset += binary.byteLength;
-  }
-  return result;
-};
-
 // src/helper/urlHelper.cts
 var URL_BASE = "document" in globalThis ? document.baseURI : "location" in globalThis && (location.protocol === "http:" || location.protocol === "https:" || location.protocol === "file:" || location.protocol === "chrome-extension:") ? location.href : "file:///";
 var parseUrl = (url, base = URL_BASE) => {
@@ -2012,32 +2061,6 @@ var parseUrl = (url, base = URL_BASE) => {
 var updateUrlOrigin = (url, new_origin) => {
   const { origin, href } = parseUrl(url);
   return new URL(new_origin + href.slice(origin.length));
-};
-
-// src/helper/encoding.cts
-var textEncoder = new TextEncoder();
-var simpleEncoder = (data, encoding) => {
-  if (encoding === "base64") {
-    const byteCharacters = atob(data);
-    const binary = new Uint8Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      binary[i] = byteCharacters.charCodeAt(i);
-    }
-    return binary;
-  }
-  return textEncoder.encode(data);
-};
-var textDecoder = new TextDecoder();
-var simpleDecoder = (data, encoding) => {
-  if (encoding === "base64") {
-    let binary = "";
-    const bytes = binaryToU8a(data);
-    for (const byte of bytes) {
-      binary += String.fromCharCode(byte);
-    }
-    return btoa(binary);
-  }
-  return textDecoder.decode(data);
 };
 
 // src/helper/readableStreamHelper.cts
@@ -2082,7 +2105,7 @@ var streamReadAllBuffer = async (stream) => {
 };
 
 // src/core/ipc/IpcBody.cts
-var IpcBody = class {
+var _IpcBody = class {
   get body() {
     return this._bodyHub.data;
   }
@@ -2098,6 +2121,7 @@ var IpcBody = class {
         throw new Error(`invalid body type`);
       }
       bodyHub.u8a = body_u8a;
+      _IpcBody.wm.set(body_u8a, this);
     }
     return body_u8a;
   }
@@ -2107,6 +2131,7 @@ var IpcBody = class {
     if (body_stream === void 0) {
       body_stream = new Blob([await this.u8a()]).stream();
       bodyHub.stream = body_stream;
+      _IpcBody.wm.set(body_stream, this);
     }
     return body_stream;
   }
@@ -2120,6 +2145,8 @@ var IpcBody = class {
     return body_text;
   }
 };
+var IpcBody = _IpcBody;
+IpcBody.wm = /* @__PURE__ */ new WeakMap();
 var BodyHub = class {
   constructor(data) {
     this.data = data;
@@ -2133,18 +2160,51 @@ var BodyHub = class {
   }
 };
 
+// src/core/ipc/IpcStreamAbort.cts
+var IpcStreamAbort = class extends IpcMessage {
+  constructor(stream_id) {
+    super(5 /* STREAM_ABORT */);
+    this.stream_id = stream_id;
+  }
+};
+
 // src/core/ipc/IpcStreamData.cts
 var IpcStreamData = class extends IpcMessage {
-  constructor(stream_id, data) {
+  constructor(stream_id, data, encoding) {
     super(2 /* STREAM_DATA */);
     this.stream_id = stream_id;
     this.data = data;
+    this.encoding = encoding;
   }
-  static fromBinary(ipc, stream_id, data) {
-    if (ipc.support_binary) {
-      return new IpcStreamData(stream_id, data);
+  static asBase64(stream_id, data) {
+    return new IpcStreamData(
+      stream_id,
+      simpleDecoder(data, "base64"),
+      4 /* BASE64 */
+    );
+  }
+  static asBinary(stream_id, data) {
+    return new IpcStreamData(stream_id, data, 8 /* BINARY */);
+  }
+  static asUtf8(stream_id, data) {
+    return new IpcStreamData(
+      stream_id,
+      simpleDecoder(data, "utf8"),
+      2 /* UTF8 */
+    );
+  }
+  get binary() {
+    switch (this.encoding) {
+      case 8 /* BINARY */: {
+        return this.data;
+      }
+      case 4 /* BASE64 */: {
+        return simpleEncoder(this.data, "base64");
+      }
+      case 2 /* UTF8 */: {
+        return simpleEncoder(this.data, "utf8");
+      }
     }
-    return new IpcStreamData(stream_id, simpleDecoder(data, "base64"));
   }
 };
 
@@ -2156,14 +2216,218 @@ var IpcStreamEnd = class extends IpcMessage {
   }
 };
 
+// src/core/ipc/IpcStreamPull.cts
+var IpcStreamPull = class extends IpcMessage {
+  constructor(stream_id, desiredSize) {
+    super(3 /* STREAM_PULL */);
+    this.stream_id = stream_id;
+    if (desiredSize == null) {
+      desiredSize = 1;
+    } else if (Number.isFinite(desiredSize) === false) {
+      desiredSize = 1;
+    } else if (desiredSize < 1) {
+      desiredSize = 1;
+    }
+    this.desiredSize = desiredSize;
+  }
+};
+
 // src/core/ipc/IpcBodySender.cts
-var IpcBodySender = class extends IpcBody {
+var _IpcBodySender = class extends IpcBody {
   constructor(data, ipc) {
     super();
     this.data = data;
     this.ipc = ipc;
+    this.isStream = this.data instanceof ReadableStream;
+    this.pullSignal = createSignal();
+    this.abortSignal = createSignal();
+    /**
+     * 被哪些 ipc 所真正使用，使用的进度分别是多少
+     *
+     * 这个进度 用于 类似流的 多发
+     */
+    this.usedIpcMap = /* @__PURE__ */ new Map();
+    /**
+     * 当前分发到多少字节
+     */
+    this.maxPulledSize = 0;
+    this.closeSignal = createSignal();
+    this.openSignal = createSignal();
+    this._isStreamOpened = false;
+    this._isStreamClosed = false;
+    /// bodyAsMeta
     this._bodyHub = new BodyHub(this.data);
-    this.metaBody = $bodyAsRawData(this.data, this.ipc);
+    this.metaBody = this.$bodyAsMeta(this.data, this.ipc);
+    if (typeof data !== "string") {
+      IpcBody.wm.set(data, this);
+    }
+    _IpcBodySender.$usableByIpc(ipc, this);
+  }
+  static from(data, ipc) {
+    if (typeof data !== "string") {
+      const cache = IpcBody.wm.get(data);
+      if (cache !== void 0) {
+        return cache;
+      }
+    }
+    return new _IpcBodySender(data, ipc);
+  }
+  /**
+   * 绑定使用
+   */
+  useByIpc(ipc) {
+    if (this.usedIpcMap.has(ipc)) {
+      return true;
+    }
+    if (this.isStream && !this._isStreamOpened) {
+      this.usedIpcMap.set(ipc, 0);
+      this.closeSignal.listen(() => {
+        this.unuseByIpc(ipc);
+      });
+      return true;
+    }
+    return false;
+  }
+  /**
+   * 拉取数据
+   */
+  emitStreamPull(message, ipc) {
+    const pulledSize = this.usedIpcMap.get(ipc) + message.desiredSize;
+    this.usedIpcMap.set(ipc, pulledSize);
+    if (this.maxPulledSize < pulledSize) {
+      const desiredSize = pulledSize - this.maxPulledSize;
+      this.maxPulledSize = pulledSize;
+      this.pullSignal.emit(desiredSize);
+    }
+  }
+  /**
+   * 解绑使用
+   */
+  unuseByIpc(ipc) {
+    if (this.usedIpcMap.delete(ipc) != null) {
+      if (this.usedIpcMap.size === 0) {
+        this.abortSignal.emit();
+      }
+    }
+  }
+  onStreamClose(cb) {
+    return this.closeSignal.listen(cb);
+  }
+  onStreamOpen(cb) {
+    return this.openSignal.listen(cb);
+  }
+  get isStreamOpened() {
+    return this._isStreamOpened;
+  }
+  set isStreamOpened(value) {
+    this._isStreamOpened = value;
+    if (value) {
+      this.openSignal.emit();
+      this.openSignal.clear();
+    }
+  }
+  get isStreamClosed() {
+    return this._isStreamClosed;
+  }
+  set isStreamClosed(value) {
+    this._isStreamClosed = value;
+    if (value) {
+      this.closeSignal.emit();
+      this.closeSignal.clear();
+    }
+  }
+  emitStreamClose() {
+    this.isStreamOpened = true;
+    this.isStreamClosed = true;
+  }
+  $bodyAsMeta(body, ipc) {
+    if (typeof body === "string") {
+      return [3 /* TEXT */, body, ipc.uid];
+    }
+    if (body instanceof ReadableStream) {
+      return this.$streamAsMeta(body, ipc);
+    }
+    return ipc.support_binary ? [9 /* BINARY */, binaryToU8a(body), ipc.uid] : [5 /* BASE64 */, simpleDecoder(body, "base64"), ipc.uid];
+  }
+  /**
+   * 如果 rawData 是流模式，需要提供数据发送服务
+   *
+   * 这里不会一直无脑发，而是对方有需要的时候才发
+   * @param stream_id
+   * @param stream
+   * @param ipc
+   */
+  $streamAsMeta(stream, ipc) {
+    const stream_id = getStreamId(stream);
+    const reader = streamRead(stream);
+    const sender = (
+      /**
+       * 这里的数据发送是按需迭代，而不是马上发
+       * 马上发会有一定的问题，需要确保对方收到 IpcResponse 对象后，并且开始接收数据时才能开始
+       * 否则发过去的数据 IpcResponse 如果还没构建完，就导致 IpcStreamData 无法认领，为了内存安全必然要被抛弃
+       * 所以整体上来说，我们使用 pull 的逻辑，让远端来要求我们去发送数据
+       */
+      async function* _postStreamData() {
+        try {
+          for await (const data of reader) {
+            let binary_message;
+            let base64_message;
+            for (const ipc2 of this.usedIpcMap.keys()) {
+              const message = ipc2.support_binary ? binary_message ??= IpcStreamData.asBinary(stream_id, data) : base64_message ??= IpcStreamData.asBase64(stream_id, data);
+              ipc2.postMessage(message);
+            }
+            yield;
+          }
+        } finally {
+          const message = new IpcStreamEnd(stream_id);
+          for (const ipc2 of this.usedIpcMap.keys()) {
+            ipc2.postMessage(message);
+          }
+          this.emitStreamClose();
+        }
+      }.call(this)
+    );
+    this.pullSignal.listen(
+      async (desiredSize) => {
+        await sender.next();
+      }
+    );
+    this.abortSignal.listen(() => {
+      reader.throw("abort");
+      this.emitStreamClose();
+    });
+    return [0 /* STREAM_ID */, stream_id, ipc.uid];
+  }
+};
+var IpcBodySender = _IpcBodySender;
+/**
+ * ipc 将会使用它
+ */
+IpcBodySender.$usableByIpc = (ipc, ipcBody) => {
+  if (ipcBody.isStream && !ipcBody._isStreamOpened) {
+    const streamId = ipcBody.metaBody[1];
+    let usableIpcBodyMapper = IpcUsableIpcBodyMap.get(ipc);
+    if (usableIpcBodyMapper === void 0) {
+      const mapper = new UsableIpcBodyMapper();
+      mapper.onDestroy(
+        ipc.onMessage((message) => {
+          if (message instanceof IpcStreamPull) {
+            const ipcBody2 = mapper.get(message.stream_id);
+            if (ipcBody2?.useByIpc(ipc)) {
+              ipcBody2.emitStreamPull(message, ipc);
+            }
+          } else if (message instanceof IpcStreamAbort) {
+            const ipcBody2 = mapper.get(message.stream_id);
+            ipcBody2?.unuseByIpc(ipc);
+          }
+        })
+      );
+      mapper.onDestroy(() => IpcUsableIpcBodyMap.delete(ipc));
+      usableIpcBodyMapper = mapper;
+    }
+    if (usableIpcBodyMapper.add(streamId, ipcBody)) {
+      ipcBody.onStreamClose(() => usableIpcBodyMapper.remove(streamId));
+    }
   }
 };
 var streamIdWM = /* @__PURE__ */ new WeakMap();
@@ -2176,38 +2440,36 @@ var getStreamId = (stream) => {
   }
   return id;
 };
-var $streamAsRawData = (stream, ipc) => {
-  const stream_id = getStreamId(stream);
-  const reader = streamRead(stream);
-  const sender = _postStreamData(stream_id, reader, ipc, () => {
-    off();
-  });
-  const off = ipc.onMessage(async (message) => {
-    if (message.type === 3 /* STREAM_PULL */ && message.stream_id === stream_id) {
-      await sender.next();
-    } else if (message.type === 5 /* STREAM_ABORT */ && message.stream_id === stream_id) {
-      reader.throw("abort");
+var UsableIpcBodyMapper = class {
+  constructor() {
+    this.map = /* @__PURE__ */ new Map();
+    this.destroySignal = createSignal();
+  }
+  add(streamId, ipcBody) {
+    if (this.map.has(streamId)) {
+      return true;
     }
-  });
-  return ipc.support_binary ? [24 /* BINARY_STREAM_ID */, stream_id] : [20 /* BASE64_STREAM_ID */, stream_id];
+    this.map.set(streamId, ipcBody);
+    return false;
+  }
+  get(streamId) {
+    return this.map.get(streamId);
+  }
+  remove(streamId) {
+    const ipcBody = this.map.get(streamId);
+    if (ipcBody !== void 0) {
+      this.map.delete(streamId);
+      if (this.map.size === 0) {
+        this.destroySignal.emit();
+        this.destroySignal.clear();
+      }
+    }
+  }
+  onDestroy(cb) {
+    this.destroySignal.listen(cb);
+  }
 };
-async function* _postStreamData(stream_id, reader, ipc, onDone) {
-  for await (const data of reader) {
-    ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, data));
-    yield;
-  }
-  ipc.postMessage(new IpcStreamEnd(stream_id));
-  onDone();
-}
-var $bodyAsRawData = (body, ipc) => {
-  if (typeof body === "string") {
-    return [2 /* TEXT */, body];
-  }
-  if (body instanceof ReadableStream) {
-    return $streamAsRawData(body, ipc);
-  }
-  return ipc.support_binary ? [8 /* BINARY */, binaryToU8a(body)] : [4 /* BASE64 */, simpleDecoder(body, "base64")];
-};
+var IpcUsableIpcBodyMap = /* @__PURE__ */ new WeakMap();
 
 // src/core/ipc/IpcHeaders.cts
 var IpcHeaders = class extends Headers {
@@ -2229,13 +2491,14 @@ var IpcHeaders = class extends Headers {
 // src/core/ipc/IpcRequest.cts
 var _parsed_url;
 var _IpcRequest = class extends IpcMessage {
-  constructor(req_id, url, method, headers, body) {
+  constructor(req_id, url, method, headers, body, ipc) {
     super(0 /* REQUEST */);
     this.req_id = req_id;
     this.url = url;
     this.method = method;
     this.headers = headers;
     this.body = body;
+    this.ipc = ipc;
     __privateAdd(this, _parsed_url, void 0);
     this.ipcReqMessage = (0, import_once.default)(
       () => new IpcReqMessage(
@@ -2246,6 +2509,9 @@ var _IpcRequest = class extends IpcMessage {
         this.body.metaBody
       )
     );
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc, body);
+    }
   }
   get parsed_url() {
     return __privateGet(this, _parsed_url) ?? __privateSet(this, _parsed_url, parseUrl(this.url));
@@ -2256,7 +2522,8 @@ var _IpcRequest = class extends IpcMessage {
       url,
       method,
       headers,
-      new IpcBodySender(text, ipc)
+      IpcBodySender.from(text, ipc),
+      ipc
     );
   }
   static fromBinary(req_id, url, method = "GET" /* GET */, headers = new IpcHeaders(), binary, ipc) {
@@ -2267,7 +2534,8 @@ var _IpcRequest = class extends IpcMessage {
       url,
       method,
       headers,
-      new IpcBodySender(binaryToU8a(binary), ipc)
+      IpcBodySender.from(binaryToU8a(binary), ipc),
+      ipc
     );
   }
   static fromStream(req_id, url, method = "GET" /* GET */, headers = new IpcHeaders(), stream, ipc) {
@@ -2277,7 +2545,8 @@ var _IpcRequest = class extends IpcMessage {
       url,
       method,
       headers,
-      new IpcBodySender(stream, ipc)
+      IpcBodySender.from(stream, ipc),
+      ipc
     );
   }
   static fromRequest(req_id, ipc, url, init = {}) {
@@ -2285,13 +2554,13 @@ var _IpcRequest = class extends IpcMessage {
     const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
     let ipcBody;
     if (isBinary(init.body)) {
-      ipcBody = new IpcBodySender(init.body, ipc);
+      ipcBody = IpcBodySender.from(init.body, ipc);
     } else if (init.body instanceof ReadableStream) {
-      ipcBody = new IpcBodySender(init.body, ipc);
+      ipcBody = IpcBodySender.from(init.body, ipc);
     } else {
-      ipcBody = new IpcBodySender(init.body ?? "", ipc);
+      ipcBody = IpcBodySender.from(init.body ?? "", ipc);
     }
-    return new _IpcRequest(req_id, url, method, headers, ipcBody);
+    return new _IpcRequest(req_id, url, method, headers, ipcBody, ipc);
   }
   toRequest() {
     const { method } = this;
@@ -2326,11 +2595,11 @@ var IpcReqMessage = class extends IpcMessage {
 var ipc_uid_acc = 0;
 var Ipc = class {
   constructor() {
+    this.uid = ipc_uid_acc++;
     this._support_message_pack = false;
     this._support_protobuf = false;
     this._support_raw = false;
     this._support_binary = false;
-    this.uid = ipc_uid_acc++;
     this._messageSignal = createSignal();
     this.onMessage = this._messageSignal.listen;
     this._getOnRequestListener = (0, import_once2.default)(() => {
@@ -2394,6 +2663,7 @@ var Ipc = class {
     this._closed = true;
     this._doClose();
     this._closeSignal.emit();
+    this._closeSignal.clear();
   }
   allocReqId() {
     return this._req_id_acc++;
@@ -2435,12 +2705,13 @@ var Ipc = class {
 var import_once3 = __toESM(require_once());
 var _ipcHeaders;
 var _IpcResponse = class extends IpcMessage {
-  constructor(req_id, statusCode, headers, body) {
+  constructor(req_id, statusCode, headers, body, ipc) {
     super(1 /* RESPONSE */);
     this.req_id = req_id;
     this.statusCode = statusCode;
     this.headers = headers;
     this.body = body;
+    this.ipc = ipc;
     __privateAdd(this, _ipcHeaders, void 0);
     this.ipcResMessage = (0, import_once3.default)(
       () => new IpcResMessage(
@@ -2450,6 +2721,9 @@ var _IpcResponse = class extends IpcMessage {
         this.body.metaBody
       )
     );
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc, body);
+    }
   }
   get ipcHeaders() {
     return __privateGet(this, _ipcHeaders) ?? __privateSet(this, _ipcHeaders, new IpcHeaders(this.headers));
@@ -2477,9 +2751,9 @@ var _IpcResponse = class extends IpcMessage {
   static async fromResponse(req_id, response, ipc) {
     let ipcBody;
     if (response.body) {
-      ipcBody = new IpcBodySender(response.body, ipc);
+      ipcBody = IpcBodySender.from(response.body, ipc);
     } else {
-      ipcBody = new IpcBodySender(
+      ipcBody = IpcBodySender.from(
         binaryToU8a(await response.arrayBuffer()),
         ipc
       );
@@ -2488,7 +2762,8 @@ var _IpcResponse = class extends IpcMessage {
       req_id,
       response.status,
       new IpcHeaders(response.headers),
-      ipcBody
+      ipcBody,
+      ipc
     );
   }
   static fromJson(req_id, statusCode, headers = new IpcHeaders(), jsonable, ipc) {
@@ -2507,7 +2782,8 @@ var _IpcResponse = class extends IpcMessage {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(text, ipc)
+      IpcBodySender.from(text, ipc),
+      ipc
     );
   }
   static fromBinary(req_id, statusCode, headers, binary, ipc) {
@@ -2517,7 +2793,8 @@ var _IpcResponse = class extends IpcMessage {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(binaryToU8a(binary), ipc)
+      IpcBodySender.from(binaryToU8a(binary), ipc),
+      ipc
     );
   }
   static fromStream(req_id, statusCode, headers = new IpcHeaders(), stream, ipc) {
@@ -2526,7 +2803,8 @@ var _IpcResponse = class extends IpcMessage {
       req_id,
       statusCode,
       headers,
-      new IpcBodySender(stream, ipc)
+      IpcBodySender.from(stream, ipc),
+      ipc
     );
     return ipcResponse;
   }
@@ -2546,72 +2824,74 @@ var IpcResMessage = class extends IpcMessage {
   }
 };
 
-// src/core/ipc/IpcStreamPull.cts
-var IpcStreamPull = class extends IpcMessage {
-  constructor(stream_id, desiredSize) {
-    super(3 /* STREAM_PULL */);
-    this.stream_id = stream_id;
-    if (desiredSize == null) {
-      desiredSize = 1;
-    } else if (Number.isFinite(desiredSize) === false) {
-      desiredSize = 1;
-    } else if (desiredSize < 1) {
-      desiredSize = 1;
-    }
-    this.desiredSize = desiredSize;
-  }
-};
-
 // src/core/ipc/IpcBodyReceiver.cts
-var IpcBodyReceiver = class extends IpcBody {
+var _IpcBodyReceiver = class extends IpcBody {
   constructor(metaBody, ipc) {
     super();
     this.metaBody = metaBody;
-    this.ipc = ipc;
-    this._bodyHub = new BodyHub($rawDataToBody(this.metaBody, this.ipc));
+    switch (metaBody[0]) {
+      case 0 /* STREAM_ID */:
+        {
+          const streamId = metaBody[1];
+          const senderIpcUid = metaBody[2];
+          const metaId = `${senderIpcUid}/${streamId}`;
+          if (_IpcBodyReceiver.metaIdIpcMap.has(metaId) === false) {
+            ipc.onClose(() => {
+              _IpcBodyReceiver.metaIdIpcMap.delete(metaId);
+            });
+            _IpcBodyReceiver.metaIdIpcMap.set(metaId, ipc);
+          }
+          const receiver = _IpcBodyReceiver.metaIdIpcMap.get(metaId);
+          if (receiver === void 0) {
+            throw new Error(`no found ipc by metaId:${metaId}`);
+          }
+          ipc = receiver;
+          this._bodyHub = new BodyHub($metaToStream(this.metaBody, ipc));
+        }
+        break;
+      case 3 /* TEXT */:
+        {
+          this._bodyHub = new BodyHub(metaBody[1]);
+        }
+        break;
+      default:
+        {
+          this._bodyHub = new BodyHub($metaBodyToBinary(metaBody));
+        }
+        break;
+    }
   }
 };
-var $rawDataToBody = (rawBody, ipc) => {
-  let body;
-  const raw_body_type = rawBody[0];
-  const bodyEncoder = raw_body_type & 8 /* BINARY */ ? (data) => data : raw_body_type & 4 /* BASE64 */ ? (data) => simpleEncoder(data, "base64") : raw_body_type & 2 /* TEXT */ ? (data) => simpleEncoder(data, "utf8") : () => {
-    throw raw_body_type;
-  };
-  if (raw_body_type & 16 /* STREAM_ID */) {
-    if (ipc == null) {
-      throw new Error(`miss ipc when ipc-response has stream-body`);
-    }
-    const stream_ipc = ipc;
-    const stream_id = rawBody[1];
-    body = new ReadableStream({
-      start(controller) {
-        const off = ipc.onMessage((message) => {
-          if ("stream_id" in message && message.stream_id === stream_id) {
-            if (message.type === 2 /* STREAM_DATA */) {
-              controller.enqueue(
-                typeof message.data === "string" ? bodyEncoder(message.data) : message.data
-              );
-            } else if (message.type === 4 /* STREAM_END */) {
-              controller.close();
-              off();
-            }
-          }
-        });
-      },
-      pull(controller) {
-        stream_ipc.postMessage(
-          new IpcStreamPull(stream_id, controller.desiredSize)
-        );
-      }
-    });
-  } else {
-    body = /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
-    raw_body_type & 2 /* TEXT */ ? rawBody[1] : (
-      /// 其它模式
-      bodyEncoder(rawBody[1])
-    );
+var IpcBodyReceiver = _IpcBodyReceiver;
+IpcBodyReceiver.metaIdIpcMap = /* @__PURE__ */ new Map();
+var $metaToStream = (rawBody, ipc) => {
+  if (ipc == null) {
+    throw new Error(`miss ipc when ipc-response has stream-body`);
   }
-  return body;
+  const stream_ipc = ipc;
+  const stream_id = rawBody[1];
+  const stream = new ReadableStream({
+    start(controller) {
+      const off = ipc.onMessage((message) => {
+        if ("stream_id" in message && message.stream_id === stream_id) {
+          if (message.type === 2 /* STREAM_DATA */) {
+            console.log("getStreamDataMessage", stream_id);
+            controller.enqueue(message.binary);
+          } else if (message.type === 4 /* STREAM_END */) {
+            controller.close();
+            off();
+          }
+        }
+      });
+    },
+    pull(controller) {
+      console.log("postStreamPullMessage", stream_id);
+      stream_ipc.postMessage(
+        new IpcStreamPull(stream_id, controller.desiredSize)
+      );
+    }
+  });
+  return stream;
 };
 
 // src/core/ipc-web/$messageToIpcMessage.cts
@@ -2627,17 +2907,19 @@ var $messageToIpcMessage = (data, ipc) => {
       data.url,
       data.method,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(data.metaBody, ipc)
+      new IpcBodyReceiver(data.metaBody, ipc),
+      ipc
     );
   } else if (data.type === 1 /* RESPONSE */) {
     message = new IpcResponse(
       data.req_id,
       data.statusCode,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(data.metaBody, ipc)
+      new IpcBodyReceiver(data.metaBody, ipc),
+      ipc
     );
   } else if (data.type === 2 /* STREAM_DATA */) {
-    message = new IpcStreamData(data.stream_id, data.data);
+    message = new IpcStreamData(data.stream_id, data.data, data.encoding);
   } else if (data.type === 3 /* STREAM_PULL */) {
     message = new IpcStreamPull(data.stream_id, data.desiredSize);
   } else if (data.type === 4 /* STREAM_END */) {
@@ -2693,6 +2975,7 @@ var MessagePortIpc = class extends Ipc {
         this.port.postMessage("pong");
         return;
       }
+      console.log("MessagePortIpc/onMessage", message);
       this._messageSignal.emit(message, this);
     });
     port.start();

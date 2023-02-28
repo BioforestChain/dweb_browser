@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.*
 
 val base64Encoder by lazy {
@@ -22,12 +23,13 @@ inline fun ByteArray.toUtf8(): String = String(this, Charsets.UTF_8)
 inline fun ByteArray.toBase64Url(): String = base64UrlEncoder.encodeToString(this)
 
 
+///
 inline fun ByteArray.toInt(): Int {
-    return ByteBuffer.wrap(this).int
+    return ByteBuffer.wrap(this).order(ByteOrder.LITTLE_ENDIAN).int
 }
 
 inline fun Int.toByteArray(): ByteArray {
-    val bb4 = ByteBuffer.allocate(4)
+    val bb4 = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
     return bb4.putInt(0, this).array()
 }
 
@@ -42,8 +44,9 @@ inline fun InputStream.readInt(): Int {
 
 inline fun InputStream.readByteArray(size: Int): ByteArray {
     val bytes = ByteArray(size)
-    if (read(bytes) != bytes.size) {
-        throw Exception("fail to read bytes($size byte) in stream")
+    val readedSize = read(bytes)
+    if (readedSize != bytes.size) {
+        throw Exception("fail to read bytes($readedSize/$size byte) in stream")
     }
     return bytes
 }

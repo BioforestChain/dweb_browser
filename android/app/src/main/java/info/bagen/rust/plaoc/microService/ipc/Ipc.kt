@@ -1,12 +1,7 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.Signal
-import info.bagen.rust.plaoc.microService.helper.SimpleCallback
-import info.bagen.rust.plaoc.microService.helper.SimpleSignal
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
+import info.bagen.rust.plaoc.microService.helper.*
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -15,9 +10,11 @@ import org.http4k.core.Uri
 
 abstract class Ipc {
     companion object {
-        private var ipc_uid_acc = 1
-        private var _req_id_acc: Int = 0;
+        private var uid_acc = 1
+        private var req_id_acc = 0;
     }
+
+    val uid = uid_acc++
 
     /**
      * 是否支持 messagePack 协议传输：
@@ -42,7 +39,6 @@ abstract class Ipc {
 
     abstract val remote: MicroModule
     abstract val role: IPC_ROLE
-    val uid = ipc_uid_acc++
 
     override fun toString() = "#i$uid"
 
@@ -52,6 +48,7 @@ abstract class Ipc {
         }
         this._doPostMessage(message);
     }
+
 
     suspend fun postResponse(req_id: Int, response: Response) {
         postMessage(
@@ -90,6 +87,7 @@ abstract class Ipc {
         this._closed = true;
         this._doClose();
         this._closeSignal.emit();
+        this._closeSignal.clear();
     }
 
     val isClosed get() = _closed
@@ -108,31 +106,21 @@ abstract class Ipc {
 
     suspend fun request(ipcRequest: IpcRequest): IpcResponse {
         this.postMessage(ipcRequest)
-        val result = Channel<IpcResponse>();
+        val result = PromiseOut<IpcResponse>();
         this.onMessage { args ->
             if (args.message is IpcResponse && args.message.req_id == ipcRequest.req_id) {
-                GlobalScope.launch {
-                    result.send(args.message)
-                }
+                result.resolve(args.message)
+                return@onMessage SIGNAL_CTOR.OFF
+            } else {
             }
         }
-        return result.receive()
+        return result.waitPromise()
     }
 
     suspend fun request(request: Request) =
         this.request(IpcRequest.fromRequest(allocReqId(), request, this)).toResponse()
 
-    fun allocReqId() = _req_id_acc++;
+    fun allocReqId() = req_id_acc++;
 
-//    suspend fun responseBy(byIpc: Ipc, byIpcRequest: IpcRequest) {
-//        postMessage(
-//            IpcResponse.fromResponse(
-//                byIpcRequest.req_id,
-//                // 找个 ipcRequest 对象不属于我的，不能直接用
-//                byIpc.request(byIpcRequest.asRequest()),
-//                this
-//            )
-//        )
-//    }
 }
 

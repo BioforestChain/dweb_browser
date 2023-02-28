@@ -3,6 +3,8 @@ import { streamReadAllBuffer } from "../../helper/readableStreamHelper.cjs";
 import type { $MetaBody } from "./const.cjs";
 
 export abstract class IpcBody {
+  static wm = new WeakMap<Uint8Array | ReadableStream, IpcBody>();
+
   abstract readonly metaBody: $MetaBody;
   protected abstract _bodyHub: BodyHub;
   get body() {
@@ -22,6 +24,7 @@ export abstract class IpcBody {
         throw new Error(`invalid body type`);
       }
       bodyHub.u8a = body_u8a;
+      IpcBody.wm.set(body_u8a, this);
     }
     return body_u8a;
   }
@@ -32,6 +35,7 @@ export abstract class IpcBody {
     if (body_stream === undefined) {
       body_stream = new Blob([await this.u8a()]).stream();
       bodyHub.stream = body_stream;
+      IpcBody.wm.set(body_stream, this);
     }
     return body_stream;
   }

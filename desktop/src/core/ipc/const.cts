@@ -1,3 +1,4 @@
+import { simpleEncoder } from "../../helper/encoding.cjs";
 import type { Ipc } from "./ipc.cjs";
 import type { IpcReqMessage, IpcRequest } from "./IpcRequest.cjs";
 import type { IpcResMessage, IpcResponse } from "./IpcResponse.cjs";
@@ -54,7 +55,7 @@ export const toIpcMethod = (method?: string) => {
   throw new Error(`invalid method: ${method}`);
 };
 
-export const enum IPC_DATA_TYPE {
+export const enum IPC_MESSAGE_TYPE {
   // /** 特殊位：结束符 */
   // END = 1,
   /** 类型：请求 */
@@ -74,28 +75,49 @@ export const enum IPC_DATA_TYPE {
 }
 
 export type $MetaBody = Readonly<
-  | [typeof IPC_RAW_BODY_TYPE.TEXT, string]
-  | [typeof IPC_RAW_BODY_TYPE.BASE64, string]
-  | [typeof IPC_RAW_BODY_TYPE.TEXT_STREAM_ID, string]
-  | [typeof IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, string]
-  | [typeof IPC_RAW_BODY_TYPE.BINARY, Uint8Array]
-  | [typeof IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, string]
+  | [typeof IPC_META_BODY_TYPE.STREAM_ID, string, number]
+  | [typeof IPC_META_BODY_TYPE.TEXT, string, number]
+  | [typeof IPC_META_BODY_TYPE.BASE64, string, number]
+  | [typeof IPC_META_BODY_TYPE.BINARY, Uint8Array, number]
 >;
-export enum IPC_RAW_BODY_TYPE {
+export const $metaBodyToBinary = (metaBody: $MetaBody) => {
+  const [type, data] = metaBody;
+  switch (type) {
+    case IPC_META_BODY_TYPE.BINARY: {
+      return data as Uint8Array;
+    }
+    case IPC_META_BODY_TYPE.BASE64: {
+      return simpleEncoder(data as string, "base64");
+    }
+    case IPC_META_BODY_TYPE.TEXT: {
+      return simpleEncoder(data as string, "utf8");
+    }
+  }
+  throw new Error(`invalid metaBody.type :${type}`);
+};
+
+/**
+ * 数据编码格式
+ */
+export enum IPC_DATA_ENCODING {
   /** 文本 json html 等 */
-  TEXT = 1 << 1,
+  UTF8 = 1 << 1,
   /** 使用文本表示的二进制 */
   BASE64 = 1 << 2,
   /** 二进制 */
   BINARY = 1 << 3,
+}
+export enum IPC_META_BODY_TYPE {
   /** 流 */
-  STREAM_ID = 1 << 4,
-  /** 文本流 */
-  TEXT_STREAM_ID = IPC_RAW_BODY_TYPE.STREAM_ID | IPC_RAW_BODY_TYPE.TEXT,
-  /** 文本二进制流 */
-  BASE64_STREAM_ID = IPC_RAW_BODY_TYPE.STREAM_ID | IPC_RAW_BODY_TYPE.BASE64,
-  /** 二进制流 */
-  BINARY_STREAM_ID = IPC_RAW_BODY_TYPE.STREAM_ID | IPC_RAW_BODY_TYPE.BINARY,
+  STREAM_ID = 0,
+  /** 内联数据 */
+  INLINE = 1,
+  /** 内联 UTF8 数据 */
+  TEXT = IPC_META_BODY_TYPE.INLINE | IPC_DATA_ENCODING.UTF8,
+  /** 内联 BASE64 数据 */
+  BASE64 = IPC_META_BODY_TYPE.INLINE | IPC_DATA_ENCODING.BASE64,
+  /** 内联 BINARY 数据 */
+  BINARY = IPC_META_BODY_TYPE.INLINE | IPC_DATA_ENCODING.BINARY,
 }
 
 export const enum IPC_ROLE {
@@ -103,7 +125,7 @@ export const enum IPC_ROLE {
   CLIENT = "client",
 }
 
-export class IpcMessage<T extends IPC_DATA_TYPE> {
+export class IpcMessage<T extends IPC_MESSAGE_TYPE> {
   constructor(readonly type: T) {}
 }
 

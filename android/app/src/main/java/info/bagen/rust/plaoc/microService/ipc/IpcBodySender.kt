@@ -1,102 +1,317 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.helper.printerrln
-import info.bagen.rust.plaoc.microService.helper.toBase64
+import info.bagen.rust.plaoc.microService.helper.*
 import kotlinx.coroutines.*
 import java.io.InputStream
 import java.util.*
 
+/**
+ * IpcBodySender 本质上是对 ReadableStream 的再次封装。
+ * 我们知道 ReadableStream 本质上是由 stream 与 controller 组成。二者分别代表着 reader 与 writer 两个角色。
+ *
+ * 而 IpcBodySender 则是将 controller 给一个 ipc 来做写入，将 stream 给另一个 ipc 来做接收。
+ * 而关键点就在于这两个 ipc 很可能不是对等关系
+ *
+ * 因为 IpcBodySender 会被 IpcRequest/http4kRequest、IpcResponse/http4kResponse 对象转换的时候传递，
+ * 中间被很多个 ipc 所持有过，而每一个持有过它的人都有可能是这个 stream 的读取者。
+ *
+ * 因此我们定义了两个集合，一个是 ipc 的 usableIpcBodyMap；一个是 ipcBodySender 这边的 usedIpcMap
+ *
+ */
 class IpcBodySender(
-    override val body: Any,
+    override val raw: Any,
     ipc: Ipc,
 ) : IpcBody() {
-    override val metaBody = bodyAsRawData(body, ipc)
-    override val bodyHub by lazy {
-        BodyHub().also {
-            it.data = body
-            when (body) {
-                is String -> it.text = body;
-                is ByteArray -> it.u8a = body
-                is InputStream -> it.stream = body
+    val isStream by lazy { raw is InputStream }
+    val isStreamClosed get() = if (isStream) _isStreamClosed else true
+    val isStreamOpened get() = if (isStream) _isStreamOpened else true
+
+    private val pullSignal = Signal</* desiredSize */Int>()
+    private val abortSignal = SimpleSignal()
+
+
+    /**
+     * 被哪些 ipc 所真正使用，使用的进度分别是多少
+     *
+     * 这个进度 用于 类似流的 多发
+     */
+    private val usedIpcMap = mutableMapOf<Ipc, /* PulledSize */ Int>()
+
+    /**
+     * 当前分发到多少字节
+     */
+    private var maxPulledSize = 0
+
+    /**
+     * 当前已经拉取的数据量
+     */
+    private var curPulledSize = 0;
+
+    /**
+     * 绑定使用
+     */
+    private fun useByIpc(ipc: Ipc): Boolean {
+        if (usedIpcMap.contains(ipc)) {
+            return true
+        }
+        if (isStream && !_isStreamOpened) {
+            usedIpcMap[ipc] = 0
+            closeSignal.listen {
+                unuseByIpc(ipc)
+            }
+            return true
+        }
+        return false
+    }
+
+    /**
+     * 拉取数据
+     */
+    private suspend fun emitStreamPull(message: IpcStreamPull, ipc: Ipc) {
+        val pulledSize = usedIpcMap[ipc]!! + message.desiredSize
+        usedIpcMap[ipc] = pulledSize
+        if (maxPulledSize < pulledSize) {
+            val desiredSize = pulledSize - maxPulledSize
+            maxPulledSize = pulledSize
+            pullSignal.emit(desiredSize)
+        }
+    }
+
+    /**
+     * 解绑使用
+     */
+    private suspend fun unuseByIpc(ipc: Ipc) {
+        if (usedIpcMap.remove(ipc) != null) {
+            /// 如果没有任何消费者了，那么真正意义上触发 abort
+            if (usedIpcMap.isEmpty()) {
+                abortSignal.emit(Unit)
             }
         }
+    }
+
+    private val closeSignal = SimpleSignal()
+    fun onStreamClose(cb: SimpleCallback) = closeSignal.listen(cb)
+
+    private val openSignal = SimpleSignal()
+    fun onStreamOpen(cb: SimpleCallback) = openSignal.listen(cb)
+
+    private var _isStreamOpened = false
+        set(value) {
+            if (field != value) {
+                field = value
+                runBlocking {
+                    openSignal.emit(Unit)
+                    openSignal.clear()
+                }
+            }
+        }
+    private var _isStreamClosed = false
+        set(value) {
+            if (field != value) {
+                field = value
+                runBlocking {
+                    closeSignal.emit(Unit)
+                    closeSignal.clear()
+                }
+            }
+        }
+
+    private inline fun emitStreamClose() {
+        _isStreamOpened = true
+        _isStreamClosed = true
+    }
+
+
+    override val metaBody = bodyAsMeta(raw, ipc)
+    override val bodyHub by lazy {
+        BodyHub().also {
+            it.data = raw
+            when (raw) {
+                is String -> it.text = raw;
+                is ByteArray -> it.u8a = raw
+                is InputStream -> it.stream = raw
+            }
+        }
+    }
+
+    init {
+        wm[raw] = this
+
+        /// 作为 "生产者"，第一持有这个 IpcBodySender
+        usableByIpc(ipc, this)
     }
 
     companion object {
 
+        data class UsableIpcBodyMapper(
+
+            private val map: MutableMap<String, IpcBodySender> = mutableMapOf()
+        ) {
+            fun add(streamId: String, ipcBody: IpcBodySender): Boolean {
+                if (map.contains(streamId)) {
+                    return false
+                }
+                map[streamId] = ipcBody
+                return true
+            }
+
+            fun get(streamId: String) = map[streamId]
+            suspend fun remove(streamId: String) = map.remove(streamId)?.also {
+                /// 如果都删除完了，那么就触发事件解绑
+                if (map.isEmpty()) {
+                    this.destroySignal.emit(Unit)
+                    this.destroySignal.clear()
+                }
+            }
+
+            private val destroySignal = SimpleSignal()
+            fun onDestroy(cb: SimpleCallback) = destroySignal.listen(cb)
+        }
+
+        private val IpcUsableIpcBodyMap = WeakHashMap<Ipc, UsableIpcBodyMapper>()
+
+        /**
+         * ipc 将会使用它
+         */
+        fun usableByIpc(ipc: Ipc, ipcBody: IpcBodySender) {
+            if (ipcBody.isStream && !ipcBody._isStreamOpened) {
+                val streamId = ipcBody.metaBody.data as String
+                val usableIpcBodyMapper = IpcUsableIpcBodyMap.getOrPut(ipc) {
+                    debugStream("ipcBodySenderUsableByIpc/OPEN/$ipc")
+                    UsableIpcBodyMapper().also { mapper ->
+                        val off = ipc.onMessage { (message) ->
+                            when (message) {
+                                is IpcStreamPull -> {
+                                    mapper.get(message.stream_id)?.also { ipcBody ->
+                                        // 一个流一旦开启了，那么就无法再被外部使用了
+                                        if (ipcBody.useByIpc(ipc)) { // ipc 将使用这个 body，也就是说接下来的 MessageData 也要通知一份给这个 ipc
+                                            ipcBody.emitStreamPull(message, ipc)
+                                        }
+                                    }
+                                }
+                                is IpcStreamAbort -> {
+                                    // 一个流一旦开启了，那么就无法再被外部使用了
+                                    mapper.get(message.stream_id)?.also { ipcBody ->
+                                        ipcBody.unuseByIpc(ipc)
+                                    }
+                                }
+                                else -> {}
+                            }
+                        }
+                        mapper.onDestroy(off)
+                        mapper.onDestroy {
+                            debugStream("ipcBodySenderUsableByIpc/CLOSE/$ipc")
+                            IpcUsableIpcBodyMap.remove(ipc)
+                        }
+                    }
+                }
+                if (usableIpcBodyMapper.add(streamId, ipcBody)) {
+                    // 一个流一旦关闭，那么就将不再会与它有主动通讯上的可能
+                    ipcBody.onStreamClose {
+                        usableIpcBodyMapper.remove(streamId)
+                    }
+                }
+
+            }
+        }
+
+        fun from(raw: Any, ipc: Ipc) = wm[raw] ?: IpcBodySender(raw, ipc)
+
+
         private val streamIdWM by lazy { WeakHashMap<InputStream, String>() }
 
         private var stream_id_acc = 1;
-        fun getStreamId(stream: InputStream): String = streamIdWM.getOrPut(stream) {
+        private fun getStreamId(stream: InputStream): String = streamIdWM.getOrPut(stream) {
             "rs-${stream_id_acc++}"
         };
 
-        private fun bodyAsRawData(body: Any, ipc: Ipc) = when (body) {
-            is String -> textAsRawData(body, ipc)
-            is ByteArray -> binaryAsRawData(body, ipc)
-            is InputStream -> streamAsRawData(body, ipc)
-            else -> throw Exception("invalid body type $body")
-        }
+    }
 
-        private fun textAsRawData(text: String, ipc: Ipc) = MetaBody(IPC_RAW_BODY_TYPE.TEXT, text)
 
-        private fun binaryAsRawData(binary: ByteArray, ipc: Ipc) = if (ipc.supportBinary) {
-            MetaBody(IPC_RAW_BODY_TYPE.BINARY, binary)
-        } else {
-            MetaBody(IPC_RAW_BODY_TYPE.BASE64, binary.toBase64())
-        }
+    private fun bodyAsMeta(body: Any, ipc: Ipc) = when (body) {
+        is String -> textAsMeta(body, ipc)
+        is ByteArray -> binaryAsMeta(body, ipc)
+        is InputStream -> streamAsMeta(body, ipc)
+        else -> throw Exception("invalid body type $body")
+    }
 
-        private fun streamAsRawData(
-            stream: InputStream, ipc: Ipc
-        ): MetaBody {
-            val stream_id = getStreamId(stream)
-            debugStream("streamAsRawData/$ipc/$stream", stream_id)
-            val streamAsRawDataScope =
-                CoroutineScope(CoroutineName("streamAsRawData/$ipc/$stream/$stream_id") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
-                    printerrln(ctx.toString(), e.message, e)
-                })
-            ipc.onMessage { (message) ->
-                /// 对方申请数据拉取
-                if ((message is IpcStreamPull) && (message.stream_id == stream_id)) {
-                    streamAsRawDataScope.launch {
-                        var desiredSize = message.desiredSize
-                        while (desiredSize > 0) {
-                            debugStream("streamAsRawData/ON-PULL/$ipc/$stream", stream_id)
-                            debugStream("streamAsRawData/READING/$ipc/$stream", stream_id)
-                            when (val availableLen = stream.available()) {
-                                -1, 0 -> {
-                                    ipc.postMessage(IpcStreamEnd(stream_id))
-                                    break
-                                }
-                                else -> {
-                                    debugStream(
-                                        "streamAsRawData/READ/$ipc/$stream",
-                                        "$availableLen >> $stream_id"
-                                    )
-                                    val binary = ByteArray(availableLen)
-                                    stream.read(binary)
-                                    ipc.postMessage(
-                                        IpcStreamData.fromBinary(
-                                            ipc, stream_id, binary
-                                        )
-                                    )
-                                    desiredSize -= availableLen
-                                }
-                            }
+    private fun textAsMeta(text: String, ipc: Ipc) =
+        MetaBody(IPC_META_BODY_TYPE.TEXT, text, ipc.uid)
+
+    private fun binaryAsMeta(binary: ByteArray, ipc: Ipc) = if (ipc.supportBinary) {
+        MetaBody(IPC_META_BODY_TYPE.BINARY, binary, ipc.uid)
+    } else {
+        MetaBody(IPC_META_BODY_TYPE.BASE64, binary.toBase64(), ipc.uid)
+    }
+
+    private fun streamAsMeta(stream: InputStream, ipc: Ipc): MetaBody {
+        val stream_id = getStreamId(stream)
+        debugStream("sender/StreamAsMeta/INIT/$stream", stream_id)
+        val streamAsMetaScope =
+            CoroutineScope(CoroutineName("sender/StreamAsMeta/$stream/$stream_id") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+                printerrln(ctx.toString(), e.message, e)
+            })
+
+        var pulling = false
+        val sender = suspend {
+            while (curPulledSize < maxPulledSize) {
+                pulling = true
+                val desiredSize = maxPulledSize - curPulledSize
+                debugStream(
+                    "sender/StreamAsMeta/PULLING/$stream", "$stream_id desiredSize:$desiredSize"
+                )
+                when (val availableLen = stream.available()) {
+                    -1, 0 -> {
+                        debugStream(
+                            "sender/StreamAsMeta/END/$stream", "$availableLen >> $stream_id"
+                        )
+                        /// 不论是不是被 aborted，都发送结束信号
+                        val message = IpcStreamEnd(stream_id)
+                        for (ipc in usedIpcMap.keys) {
+                            ipc.postMessage(message)
                         }
-                        debugStream("streamAsRawData/END$ipc/$stream", stream_id)
+
+                        emitStreamClose()
+                        break
                     }
-                } else if ((message is IpcStreamAbort) && (message.stream_id == stream_id)) {
-                    stream.close()
-                } else {
+                    else -> {
+                        // 开光了，流已经开始被读取
+                        _isStreamOpened = true
+                        debugStream(
+                            "sender/StreamAsMeta/READ/$stream", "$availableLen >> $stream_id"
+                        )
+                        val binary = stream.readByteArray(availableLen)
+                        val binary_mesage by lazy {
+                            IpcStreamData.asBinary(stream_id, binary)
+                        }
+                        val base64_mesage by lazy {
+                            IpcStreamData.asBase64(stream_id, binary)
+                        }
+                        for (ipc in usedIpcMap.keys) {
+                            ipc.postMessage(
+                                if (ipc.supportBinary) binary_mesage else base64_mesage
+                            )
+                        }
+                        curPulledSize += availableLen
+                    }
                 }
             }
-            return when (ipc.supportBinary) {
-                true -> MetaBody(IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, stream_id)
-                false -> MetaBody(IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, stream_id)
+            debugStream("sender/StreamAsMeta/PULL-END/$stream", stream_id)
+            pulling = false
+        }
+        pullSignal.listen { desiredSize ->
+            streamAsMetaScope.launch {
+                if (!pulling) {
+                    sender()
+                }
             }
         }
-
-
+        abortSignal.listen {
+            stream.close()
+            emitStreamClose()
+        }
+        return MetaBody(IPC_META_BODY_TYPE.STREAM_ID, stream_id, ipc.uid)
     }
+
+
 }

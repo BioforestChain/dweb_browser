@@ -18,14 +18,18 @@ open class MessagePortIpc(
     override val role: IPC_ROLE,
 ) : Ipc() {
 
+    override fun toString(): String {
+        return super.toString() + "@MessagePortIpc"
+    }
+
     init {
         val ipc = this;
-        GlobalScope.launch {
-            while (true) {
-                port.postMessage(WebMessage("ping"))
-                delay(30000)
-            }
-        }
+//        GlobalScope.launch {
+//            while (true) {
+//                port.postMessage(WebMessage("ping"))
+//                delay(30000)
+//            }
+//        }
         port.setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
