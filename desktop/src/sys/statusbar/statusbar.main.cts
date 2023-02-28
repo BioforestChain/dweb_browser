@@ -151,7 +151,7 @@ export class StatusbarNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/",
       matchMode: "full",
-      input: { url: "string" },
+      input: {},
       output: "number",
       handler: async (args, client_ipc, request) => {
         return  IpcResponse.fromText(
