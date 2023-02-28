@@ -1,5 +1,4 @@
-import type {$StatusbarStyle, $isOverlays} from "../../sys/statusbar/statusbar.main.cjs"
-
+import type {$StatusbarStyle, $isOverlays} from "../../../statusbar/statusbar.main.cjs"
 /**
  * 访问 statusbar 能力的插件
  * 

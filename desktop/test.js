@@ -1,12 +1,12 @@
-const  fsPromises = require("node:fs/promises")
+  
 
+// function fn(v){
+//     return v ? Promise.resolve(true) : Promise.reject("reject");
+// }
 
-fsPromises
-.readFile("./src/sys/statusbar/assets/index.html")
-.then(content => {
-    console.log('content: ', content)
-    let _cotnent = new TextDecoder().decode(content)
-    console.log(_cotnent)
+// async function main(){
+//     const result = await fn(true)
+//     console.log('result: ', result)
+// }
 
-})
-.catch(err => console.log('error: ', err))
+// main()
