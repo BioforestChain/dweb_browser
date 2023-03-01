@@ -66,7 +66,6 @@ suspend fun startDwebBrowser() {
     ///navigation
     val navigationBarNMM = NavigationBarNMM().also { dnsNMM.install(it) }
 
-
     /// 安装Jmm
     val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
 
@@ -77,7 +76,7 @@ suspend fun startDwebBrowser() {
     val bootNMM = BootNMM(
         listOf(
             browserNMM.mmid,
-            desktopJMM.mmid,
+//            desktopJMM.mmid,
         )
     ).also { dnsNMM.install(it) }
 

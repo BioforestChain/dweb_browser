@@ -1,7 +1,10 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.int
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.rand
+import info.bagen.rust.plaoc.microService.helper.stream
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcResponse
@@ -15,7 +18,8 @@ inline fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("jmm", tag, msg, err)
 
 
-open class JsMicroModule(override val mmid: Mmid, val metadata: JmmMetadata) : MicroModule() {
+open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
+    override val mmid get() = metadata.id
 
     /**
      * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起

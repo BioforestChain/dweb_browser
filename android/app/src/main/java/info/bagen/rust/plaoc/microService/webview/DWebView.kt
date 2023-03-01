@@ -63,9 +63,9 @@ import org.http4k.core.Uri
 class DWebView(context: Context, val mm: MicroModule, val options: Options) : WebView(context) {
     data class Options(
         /**
-         * 初始化加载的页面
+         * 要加载的页面
          */
-        val loadUrl: String
+        val url: String
     )
 
     private var readyPo = PromiseOut<Boolean>()
@@ -82,7 +82,7 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
         val baseDwebHost = mm.mmid
         var dwebHost = baseDwebHost
         // 初始化设置 ua，这个是无法动态修改的
-        val uri = Uri.of(options.loadUrl)
+        val uri = Uri.of(options.url)
         if (uri.scheme == "http" && uri.host.endsWith(".dweb")) {
             dwebHost = uri.authority
         }
@@ -176,9 +176,9 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
                 super.onCloseWindow(window)
             }
         }
-        if (options.loadUrl.isNotEmpty()) {
+        if (options.url.isNotEmpty()) {
             /// 开始加载
-            loadUrl(options.loadUrl)
+            loadUrl(options.url)
         }
 
     }

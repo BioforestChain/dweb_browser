@@ -52,14 +52,11 @@ import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.lib.drawRect
 import info.bagen.rust.plaoc.webView.network.dWebView_host
 import info.bagen.rust.plaoc.webView.openDWebWindow
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
 class BrowserActivity : AppCompatActivity() {
     companion object {
-        var instance: BrowserActivity? = null
         const val REQUEST_CODE_PHOTO = 1
         const val REQUEST_CODE_REQUEST_EXTERNAL_STORAGE = 2
         const val REQUEST_CODE_SCAN_CODE = 3
@@ -79,9 +76,11 @@ class BrowserActivity : AppCompatActivity() {
         // file://dns.sys.dweb/install?url=.zip
         return appViewModel
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        BrowserActivity.instance = this
+        BrowserNMM.activityPo?.resolve(this)
+
         setContent {
             ViewCompat.getWindowInsetsController(LocalView.current)?.isAppearanceLightStatusBars =
                 !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
@@ -127,7 +126,7 @@ class BrowserActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         // 申请蓝牙启动的返回
         if (requestCode == BLUETOOTH_REQUEST) {
-            when(resultCode) {
+            when (resultCode) {
                 RESULT_OK -> bluetoothOp.resolve("success")
                 RESULT_CANCELED -> bluetoothOp.resolve("Application for bluetooth rejected")
                 else -> bluetoothOp.resolve("Application for bluetooth rejected")
@@ -135,7 +134,7 @@ class BrowserActivity : AppCompatActivity() {
         }
         // 启动蓝牙可以发现的返回
         if (requestCode == BLUETOOTH_CAN_BE_FOUND) {
-            when(resultCode) {
+            when (resultCode) {
                 RESULT_OK -> bluetooth_found.resolve("success")
                 RESULT_CANCELED -> bluetooth_found.resolve("rejected")
                 else -> bluetooth_found.resolve("rejected")
@@ -196,7 +195,6 @@ class BrowserActivity : AppCompatActivity() {
     override fun onDestroy() {
         // 退出APP关闭服务
         super.onDestroy()
-        instance = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
         unregisterReceiver(receiver)
     }
@@ -307,6 +305,7 @@ class BrowserActivity : AppCompatActivity() {
             activity = getContext(), url = path // url
         )
     }
+
     // 创建查找对象
     val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -326,7 +325,13 @@ class BrowserActivity : AppCompatActivity() {
                         return
                     }
                     device?.let {
-                        result.add(BluetoothNMM.BluetoothTargets(it.name, it.address,it.uuids[0].uuid))
+                        result.add(
+                            BluetoothNMM.BluetoothTargets(
+                                it.name,
+                                it.address,
+                                it.uuids[0].uuid
+                            )
+                        )
                     }
                 }
             }

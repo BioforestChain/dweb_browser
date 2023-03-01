@@ -121,6 +121,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:$constraintlayout_version")
     val core_version = "1.9.0"
     implementation("androidx.core:core-ktx:$core_version")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     /// Compose 相关
     val composeBom = platform("androidx.compose:compose-bom:2023.01.00")

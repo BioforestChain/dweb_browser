@@ -22,7 +22,6 @@ import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.ipc.IpcStreamData
 import info.bagen.rust.plaoc.microService.ipc.IpcStreamEnd
-import info.bagen.rust.plaoc.microService.ipc.debugStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.http4k.core.Method
@@ -135,7 +134,7 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                     val socket = acceptThread.mySocket
                         ?: return@defineHandler Response(Status.INTERNAL_SERVER_ERROR).body("Bluetooth socket creation failed")
                     // 建立socket连接
-//                    socket.connect()
+
                     ipc.postMessage(
                         IpcStreamData.fromBinary(
                             strName,
@@ -151,9 +150,9 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                         )
                         // TODO 未测试
                         withContext(Dispatchers.IO) {
-                            if (message is IpcStreamData ) {
+                            if (message is IpcStreamData) {
                                 bufferedWriter.write(request.body.stream.readByteArray())
-                            } else if (message is IpcStreamEnd ) {
+                            } else if (message is IpcStreamEnd) {
                                 bufferedWriter.close()
                                 return@withContext SIGNAL_CTOR.OFF
                             } else {

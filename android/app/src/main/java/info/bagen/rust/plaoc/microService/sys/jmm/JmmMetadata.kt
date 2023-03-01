@@ -1,11 +1,24 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import org.http4k.core.Method
-import org.http4k.core.Request
+import java.io.Serializable
 
 data class JmmMetadata(
+    val id: Mmid,
     val main_url: String,
+    /**
+     * 静态网络服务
+     */
+    val staticWebServers: List<StaticWebServer> = listOf(),
+    /**
+     * 应用启动时会打开的网页
+     * 要求 http/https 协议。
+     * 它们会依此打开，越往后的层级越高
+     *
+     * TODO httpNMM 网关那边，遇到未知的请求，会等待一段时间，如果这段时间内这个域名被监听了，那么会将请求分发过去
+     * 所以如果是 staticWebServers 定义的链接，那么自然而然地，页面会等到 staticWebServer 启动后得到响应，不会错过请求。
+     */
+    val openWebViewList: List<OpenWebView> = listOf(),
     val permissions: List<Mmid> = listOf(),
     /*var fromRequest: Request = Request(
         Method.GET,
@@ -16,9 +29,28 @@ data class JmmMetadata(
     // (Method.Get, "http://tansocc.com?xxx=d").headers()
     val introduction: String = "", // 应用描述
     val size: String = "", // 应用大小
-    val version:String = "", // 应用版本
+    val version: String = "", // 应用版本
     val appCaptures: List<String> = listOf() // 应用截图
-) : java.io.Serializable
+) : Serializable {
+    /**
+     * 静态网络服务定义
+     * 它将按配置托管一个静态网页服务
+     */
+    data class StaticWebServer(
+        /**
+         * 应用文件夹的目录
+         */
+        val root: String,
+        /**
+         * 入口文件
+         */
+        val entry: String = "index.html",
+        val subdomain: String = "",
+        val port: Int = 80,
+    )
+
+    data class OpenWebView(val url: String)
+}
 
 val temp = """
     哔哩哔哩旗下产品，全部内容均可免费观看，边看视频边赚零花钱，邀请好友一起看更有大额现金奖励哦~
@@ -60,9 +92,10 @@ val temp = """
     3. 今日宜加油、浮图缘、卿卿日常、人世间、叛逆者、想见你、种地吧热播中
 """.trimIndent()
 
-val defaultJmmMetadata  = JmmMetadata(
+val defaultJmmMetadata = JmmMetadata(
+    id = "app.bilibili.dweb",
     main_url = "https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa",
-    permissions = arrayListOf("camera.sys.dweb", "jmm.sys.dweb","???.sys.dweb"),
+    permissions = arrayListOf("camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb"),
     iconUrl = "http://linge.plaoc.com/bilibili.png",
     title = "测试哔哩哔哩",
     introduction = temp,

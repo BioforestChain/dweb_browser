@@ -46,7 +46,7 @@ class MutilWebViewActivity : AppCompatActivity() {
             val dWebView = DWebView(
                 App.appContext,
                 module,
-                DWebView.Options(loadUrl = url)
+                DWebView.Options(url = url)
             )
             dWebView.onOpen { message ->
                 val dWebViewChild = openWebView(
