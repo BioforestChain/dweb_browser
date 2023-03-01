@@ -32,7 +32,6 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 
         apiRouting = routes(
             "/open" bind Method.GET to defineHandler { request, ipc ->
-                // 接收process_id 用于区分应用内多页面，如果传递process_id 就是要去打开旧页面
                 val url = query_url(request)
                 openDwebView(ipc.remote, url)
             },
