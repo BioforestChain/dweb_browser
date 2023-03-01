@@ -102,12 +102,13 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
                                 .headers(request.requestHeaders.toList())
                         )
                     }
+                    val headersMap = response.headers.toMap().toMutableMap()
                     return WebResourceResponse(
-                        response.header("Content-Type") ?: "application/octet-stream",
-                        response.header("Content-Encoding") ?: "",
+                        null,
+                        null,
                         response.status.code,
                         response.status.description,
-                        response.headers.toMap(),
+                        headersMap,
                         response.body.stream
                     )
                 }

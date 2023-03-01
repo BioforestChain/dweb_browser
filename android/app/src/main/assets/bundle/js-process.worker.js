@@ -3365,15 +3365,10 @@ var ReadableStreamIpc = class extends Ipc {
       throw new Error("in come stream alreay binded.");
     }
     this._incomne_stream = await stream;
-    let cache = new Uint8Array(0);
-    for await (const chunk of streamRead(this._incomne_stream)) {
-      cache = u8aConcat([cache, chunk]);
-      const len = new Uint32Array(cache.buffer, 0, 1)[0];
-      if (cache.length - 4 < len) {
-        continue;
-      }
-      const data = cache.slice(4, len + 4);
-      cache = cache.slice(len + 4);
+    const reader = binaryStreamRead(this._incomne_stream);
+    while (await reader.available() > 0) {
+      const size = await reader.readInt();
+      const data = await reader.readBinary(size);
       const message = this.support_message_pack ? $messagePackToIpcMessage(data, this) : $jsonToIpcMessage(simpleDecoder(data, "utf8"), this);
       if (message === void 0) {
         console.error("unkonwn message", data);

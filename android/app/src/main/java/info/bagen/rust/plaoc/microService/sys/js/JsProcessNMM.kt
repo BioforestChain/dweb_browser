@@ -181,7 +181,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
         val bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
             .path("$INTERNAL_PATH/bootstrap.js")
-            .query("debug", "true")
+//            .query("debug", "true")
             .query("mmid", ipc.remote.mmid)
             .query("host", httpDwebServer.startResult.urlInfo.host)
             .toString()

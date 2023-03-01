@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
 import java.io.InputStream
@@ -88,7 +89,9 @@ class IpcRequest(
             request.uri.toString(),
             IpcMethod.from(request.method),
             IpcHeaders(request.headers),
-            when (request.body.length) {
+            if (request.method == Method.GET || request.method == Method.HEAD) {
+                IpcBodySender.from("", ipc)
+            } else when (request.body.length) {
                 0L -> IpcBodySender.from("", ipc)
                 null -> IpcBodySender.from(request.body.stream, ipc)
                 else -> IpcBodySender.from(request.body.payload.array(), ipc)
@@ -99,7 +102,9 @@ class IpcRequest(
     }
 
     fun toRequest() = Request(method.http4kMethod, url).headers(headers.toList()).let { req ->
-        when (val body = body.raw) {
+        if (req.method == Method.GET || req.method == Method.HEAD) {
+            req
+        } else when (val body = body.raw) {
             is String -> req.body(body)
             is ByteArray -> req.body(body.inputStream(), body.size.toLong())
             is InputStream -> req.body(body)

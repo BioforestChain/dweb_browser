@@ -3,8 +3,8 @@ import once from "lodash/once";
 import { u8aConcat } from "../../helper/binaryHelper.cjs";
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.cjs";
 import {
+  binaryStreamRead,
   ReadableStreamOut,
-  streamRead,
 } from "../../helper/readableStreamHelper.cjs";
 import type {
   $IpcSupportProtocols,
@@ -65,17 +65,10 @@ export class ReadableStreamIpc extends Ipc {
       throw new Error("in come stream alreay binded.");
     }
     this._incomne_stream = await stream;
-    let cache = new Uint8Array(0);
-    for await (const chunk of streamRead(this._incomne_stream)) {
-      cache = u8aConcat([cache, chunk]);
-      const len = new Uint32Array(cache.buffer, 0, 1)[0];
-      // 数据不够，继续等待
-      if (cache.length - 4 < len) {
-        continue;
-      }
-      // 数据够了，截断出来使用
-      const data = cache.slice(4, len + 4);
-      cache = cache.slice(len + 4);
+    const reader = binaryStreamRead(this._incomne_stream);
+    while ((await reader.available()) > 0) {
+      const size = await reader.readInt();
+      const data = await reader.readBinary(size);
 
       /// 开始处理数据并做响应
       const message = this.support_message_pack

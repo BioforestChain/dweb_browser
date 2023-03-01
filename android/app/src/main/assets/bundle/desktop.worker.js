@@ -2,6 +2,10 @@ var __freeze = Object.freeze;
 var __defProp = Object.defineProperty;
 var __template = (cooked, raw) => __freeze(__defProp(cooked, "raw", { value: __freeze(raw || cooked.slice()) }));
 
+// src/helper/encoding.cts
+var textEncoder = new TextEncoder();
+var textDecoder = new TextDecoder();
+
 // src/user/desktop/assets/desktop.web.mjs.cts
 var script = () => {
   const logEle = document.querySelector(
@@ -49,7 +53,11 @@ var main = async () => {
           request.req_id,
           200,
           new IpcHeaders({
-            "Content-Type": "text/html"
+            "Content-Type": "text/html",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            // 要支持 X-Dweb-Host
+            "Access-Control-Allow-Methods": "*"
           }),
           await CODE2(request),
           httpServerIpc
@@ -82,7 +90,14 @@ var main = async () => {
   console.log("http \u670D\u52A1\u521B\u5EFA\u6210\u529F");
   const main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
   console.log("\u8BF7\u6C42\u6D4F\u89C8\u5668\u9875\u9762", main_url);
-  console.log(await jsProcess.fetch(main_url, { mode: "no-cors" }).text());
+  const response = await jsProcess.fetch(main_url);
+  console.log("html content:", response.status, await response.text());
+  console.log("\u6253\u5F00\u6D4F\u89C8\u5668\u9875\u9762", main_url);
+  {
+    const view_id = await jsProcess.fetch(
+      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
+    ).text();
+  }
 };
 main().catch(console.error);
 export {

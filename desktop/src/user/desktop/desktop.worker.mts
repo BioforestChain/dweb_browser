@@ -1,5 +1,6 @@
 /// <reference path="../../sys/js-process/js-process.worker.d.ts"/>
 
+import { simpleEncoder } from "../../helper/encoding.cjs";
 import { CODE as CODE_desktop_web_mjs } from "./assets/desktop.web.mjs.cjs";
 import { CODE as CODE_index_html } from "./assets/index.html.cjs";
 
@@ -33,6 +34,9 @@ export const main = async () => {
           200,
           new IpcHeaders({
             "Content-Type": "text/html",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*", // 要支持 X-Dweb-Host
+            "Access-Control-Allow-Methods": "*",
           }),
           await CODE_index_html(request),
           httpServerIpc
@@ -70,14 +74,15 @@ export const main = async () => {
 
   console.log("请求浏览器页面", main_url);
 
-  console.log(await jsProcess.fetch(main_url, { mode: "no-cors" }).text());
-  // console.log("打开浏览器页面", main_url);
-  // {
-  //   const view_id = await jsProcess
-  //     .fetch(
-  //       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
-  //     )
-  //     .text();
-  // }
+  const response = await jsProcess.fetch(main_url);
+  console.log("html content:", response.status, await response.text());
+  console.log("打开浏览器页面", main_url);
+  {
+    const view_id = await jsProcess
+      .fetch(
+        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
+      )
+      .text();
+  }
 };
 main().catch(console.error);
