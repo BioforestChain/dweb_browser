@@ -13,6 +13,8 @@ data class IpcStreamData(
     IpcMessage(IPC_MESSAGE_TYPE.STREAM_MESSAGE) {
 
     companion object {
+        inline fun fromBinary(stream_id: String, data: ByteArray, ipc: Ipc) =
+            if (ipc.supportBinary) asBinary(stream_id, data) else asBase64(stream_id, data)
 
         inline fun asBinary(stream_id: String, data: ByteArray) =
             IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY)

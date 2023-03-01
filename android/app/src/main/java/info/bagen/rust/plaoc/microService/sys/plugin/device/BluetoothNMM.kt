@@ -6,11 +6,9 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
-
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.ParcelUuid
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.ContextCompat
@@ -20,6 +18,7 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.ipc.IpcStreamData
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -27,7 +26,6 @@ import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.int
 import org.http4k.lens.string
-import org.http4k.lens.uuid
 import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
@@ -133,7 +131,7 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                         ?: return@defineHandler Response(Status.INTERNAL_SERVER_ERROR).body("Bluetooth socket creation failed")
                     // 建立socket连接
 //                    socket.connect()
-                    ipc.postMessage(IpcStreamData(strName, socket.inputStream))
+                    ipc.postMessage(IpcStreamData.fromBinary(strName, socket.inputStream.readByteArray(), ipc))
                     ipc.onMessage {
                         // TODO 接收worker的消息并且发送信息
 //                        val bufferedWriter =  socket.outputStream.bufferedWriter()

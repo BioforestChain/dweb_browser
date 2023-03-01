@@ -51,6 +51,18 @@ inline fun InputStream.readByteArray(size: Int): ByteArray {
     return bytes
 }
 
+inline fun InputStream.readByteArray(): ByteArray {
+    var bytes = ByteArray(0)
+    while (true) {
+        val availableSize = available()
+        if (availableSize <= 0) {
+            break
+        }
+        bytes+= readByteArray(availableSize)
+    }
+    return bytes
+}
+
 inline fun String.asBase64(): ByteArray = base64Decoder.decode(this)
 
 inline fun String.asUtf8(): ByteArray = this.toByteArray(Charsets.UTF_8)
