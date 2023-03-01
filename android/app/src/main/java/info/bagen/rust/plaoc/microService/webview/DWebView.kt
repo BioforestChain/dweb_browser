@@ -6,6 +6,7 @@ import android.webkit.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -193,4 +194,8 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
      */
     suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) =
         evaluator.evaluateAsyncJavascriptCode(script, afterEval)
+
+    override fun destroy() {
+        runBlocking(Dispatchers.Main) { super.destroy() }
+    }
 }

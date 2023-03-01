@@ -6,8 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.ReusableContent
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import info.bagen.rust.plaoc.App
@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 
 class MutilWebViewActivity : AppCompatActivity() {
-    private val webViewList = mutableStateMapOf<String, DWebView>()
+    private val webViewList = mutableStateListOf<ViewItem>()
 
     private lateinit var remoteMmid: Mmid
 
@@ -28,9 +28,19 @@ class MutilWebViewActivity : AppCompatActivity() {
     }
 
     //    val dWebBrowserModel
-    data class OpenResult(val webviewId: String, val dWebView: DWebView)
+    data class ViewItem(
+        val webviewId: String,
+        val dWebView: DWebView,
+        var hidden: Boolean = false
+    ) {
 
-    fun openWebView(module: MicroModule, url: String): OpenResult {
+    }
+
+    /**
+     * 打开WebView
+     */
+    @Synchronized
+    fun openWebView(module: MicroModule, url: String): ViewItem {
         val webviewId = "#w${webviewId_acc++}"
         val dWebView = runBlocking(Dispatchers.Main) {
             val dWebView = DWebView(
@@ -38,7 +48,6 @@ class MutilWebViewActivity : AppCompatActivity() {
                 module,
                 DWebView.Options(loadUrl = url)
             )
-            webViewList[webviewId] = dWebView
             dWebView.onOpen { message ->
                 val dWebViewChild = openWebView(
                     module,
@@ -56,13 +65,33 @@ class MutilWebViewActivity : AppCompatActivity() {
 
             dWebView
         }
-        return OpenResult(webviewId, dWebView)
+        return ViewItem(webviewId, dWebView).also {
+            webViewList.add(it)
+        }
     }
 
+    /**
+     * 关闭WebView
+     */
     fun closeWebView(webviewId: String): Boolean {
-        return webViewList.remove(webviewId)?.also {
-            it.destroy()
-        } != null
+        return webViewList.removeIf {
+            if (it.webviewId == webviewId) {
+                it.dWebView.destroy()
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    /**
+     * 将指定WebView移动到顶部显示
+     */
+    fun moveToTopWebView(webviewId: String): Boolean {
+        val viewItem = webViewList.find { it.webviewId == webviewId } ?: return false
+        webViewList.remove(viewItem)
+        webViewList.add(viewItem)
+        return true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,20 +105,19 @@ class MutilWebViewActivity : AppCompatActivity() {
 
         setContent {
             RustApplicationTheme {
-                for (viewEntry in webViewList) {
-                    ReusableContent(key = viewEntry.key) {
-                        Box(
+                val viewItem = webViewList.lastOrNull()
+                if (viewItem != null) key(viewItem.webviewId) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        AndroidView(
+                            factory = { ctx ->
+                                viewItem.dWebView
+                            },
                             modifier = Modifier
-                                .fillMaxSize()
-                        ) {
-                            AndroidView(
-                                factory = { ctx ->
-                                    viewEntry.value
-                                },
-                                modifier = Modifier
-                                    .fillMaxSize()
-                            )
-                        }
+                                .fillMaxSize(),
+                        )
                     }
                 }
 
