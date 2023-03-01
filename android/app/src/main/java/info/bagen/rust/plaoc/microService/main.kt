@@ -17,10 +17,10 @@ import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionsNMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 
 suspend fun startDwebBrowser() {
-    System.setProperty("dweb-debug", listOf(
-        "message-port-ipc",
-        "stream-ipc",
-        "stream",
+    System.setProperty("dweb-debug", listOf<String>(
+//        "message-port-ipc",
+//        "stream-ipc",
+//        "stream",
     ).joinToString(" ") { it })
 
     val dnsNMM = DnsNMM()

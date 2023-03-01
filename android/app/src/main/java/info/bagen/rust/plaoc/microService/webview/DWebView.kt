@@ -1,16 +1,17 @@
 package info.bagen.rust.plaoc.microService.webview
 
 import android.content.Context
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.os.Message
+import android.webkit.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
 import org.http4k.core.Request
+import org.http4k.core.Uri
 
 
 /**
@@ -61,10 +62,6 @@ import org.http4k.core.Request
 class DWebView(context: Context, val mm: MicroModule, val options: Options) : WebView(context) {
     data class Options(
         /**
-         * module 通过 http.sys.dweb 模块申请下来的 host-key
-         */
-        val dwebHost: String,
-        /**
          * 初始化加载的页面
          */
         val loadUrl: String
@@ -76,14 +73,53 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
 
     private val evaluator = WebViewEvaluator(this)
 
-    init {
-        if (options.dwebHost.isNotEmpty()) {
-            settings.userAgentString += " dweb-host/${options.dwebHost}"
+    /**
+     * 初始化设置 userAgent
+     */
+    private inline fun setUA() {
+        val baseUserAgentString = settings.userAgentString
+        val baseDwebHost = mm.mmid
+        var dwebHost = baseDwebHost
+        // 初始化设置 ua，这个是无法动态修改的
+        val uri = Uri.of(options.loadUrl)
+        if (uri.scheme == "http" && uri.host.endsWith(".dweb")) {
+            dwebHost = uri.authority
         }
+        // 加入默认端口
+        if (!dwebHost.contains(":")) {
+            dwebHost += ":80"
+        }
+        settings.userAgentString = "$baseUserAgentString dweb-host/${dwebHost}"
+    }
+
+    private inline fun hookWindowClose() {
+        addJavascriptInterface(object {
+            @JavascriptInterface
+            fun close() {
+                println("CCCCCLOSE!!")
+            }
+
+            @JavascriptInterface
+            fun close2() {
+                println("CCCCCLOSE!!")
+            }
+        }, "__hook_window__")
+    }
+
+    private val openSignal = Signal<Message>()
+    fun onOpen(cb: Callback<Message>) = openSignal.listen(cb)
+    private val closeSignal = SimpleSignal()
+    fun onClose(cb: SimpleCallback) = closeSignal.listen(cb)
+
+    init {
+
+        setUA()
+        hookWindowClose()
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
         webViewClient = object : WebViewClient() {
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 // TODO 这里需要注入脚本，对 fetch、XMLHttpRequest 这些网络请求进行拦截
@@ -115,8 +151,34 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
                 return super.shouldInterceptRequest(view, request)
             }
         }
-        /// 开始加载
-        loadUrl(options.loadUrl)
+
+        settings.setSupportMultipleWindows(true)
+        webChromeClient = object : WebChromeClient() {
+            override fun onCreateWindow(
+                view: WebView,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: Message
+            ): Boolean {
+                println("open $isDialog $isUserGesture ${resultMsg?.data} ${resultMsg?.obj}")
+                GlobalScope.launch {
+                    openSignal.emit(resultMsg)
+                }
+                return true
+            }
+
+            override fun onCloseWindow(window: WebView?) {
+                println("close")
+                GlobalScope.launch {
+                    closeSignal.emit()
+                }
+                super.onCloseWindow(window)
+            }
+        }
+        if (options.loadUrl.isNotEmpty()) {
+            /// 开始加载
+            loadUrl(options.loadUrl)
+        }
 
     }
 

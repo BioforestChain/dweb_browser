@@ -28,15 +28,13 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         // 打开webview
 
         val query_url = Query.string().required("url")
-        val query_dwebHost = Query.string().optional("dweb-host")
         val query_webviewId = Query.string().required("webview_id")
 
         apiRouting = routes(
             "/open" bind Method.GET to defineHandler { request, ipc ->
                 // 接收process_id 用于区分应用内多页面，如果传递process_id 就是要去打开旧页面
                 val url = query_url(request)
-                val dwebHost = query_dwebHost(request)
-                openDwebView(ipc.remote, url, dwebHost)
+                openDwebView(ipc.remote, url)
             },
             "/close" bind Method.GET to defineHandler { request, ipc ->
                 val webviewId = query_webviewId(request)
@@ -72,12 +70,11 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     private suspend fun openDwebView(
         remoteMm: MicroModule,
         url: String,
-        dwebHost: String?
     ): String {
         val remoteMmid = remoteMm.mmid
         debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")
         val activity = openMutilWebViewActivity(remoteMmid).waitPromise()
-        return activity.openWebView(remoteMm, url, dwebHost)
+        return activity.openWebView(remoteMm, url).webviewId
     }
 
     private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {

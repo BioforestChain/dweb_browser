@@ -29,6 +29,7 @@ export const CODE = async (request: IpcRequest) => html`
       </ol>
       <div class="actions">
         <button id="open-btn">打开新窗口</button>
+        <a href="/index.html?qaq=666" target="_blank">打开新窗口</a>
         <button id="close-btn">关闭当前窗口</button>
       </div>
     </body>

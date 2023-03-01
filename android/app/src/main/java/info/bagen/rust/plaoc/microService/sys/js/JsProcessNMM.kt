@@ -77,7 +77,6 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     App.appContext,
                     this@JsProcessNMM,
                     DWebView.Options(
-                        dwebHost = urlInfo.host,
                         loadUrl = urlInfo.buildInternalUrl().path("/index.html").toString()
                     )
                 )

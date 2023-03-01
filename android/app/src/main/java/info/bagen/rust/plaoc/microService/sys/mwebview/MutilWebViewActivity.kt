@@ -1,12 +1,11 @@
 package info.bagen.rust.plaoc.microService.sys.mwebview
 
 import android.os.Bundle
+import android.webkit.WebView
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -28,17 +27,35 @@ class MutilWebViewActivity : AppCompatActivity() {
     }
 
     //    val dWebBrowserModel
-    fun openWebView(module: MicroModule, url: String, dwebHost: String? = null): String {
+    data class OpenResult(val webviewId: String, val dWebView: DWebView)
+
+    fun openWebView(module: MicroModule, url: String): OpenResult {
         val webviewId = "#w${webviewId_acc++}"
-        runBlocking(Dispatchers.Main) {
-            webViewList[webviewId] =
-                DWebView(
-                    App.appContext,
+        val dWebView = runBlocking(Dispatchers.Main) {
+            val dWebView = DWebView(
+                App.appContext,
+                module,
+                DWebView.Options(loadUrl = url)
+            )
+            webViewList[webviewId] = dWebView
+            dWebView.onOpen { message ->
+                val dWebViewChild = openWebView(
                     module,
-                    DWebView.Options(dwebHost = dwebHost ?: "", loadUrl = url)
-                )
+                    ""
+                ).dWebView
+                val transport = message.obj;
+                if (transport is WebView.WebViewTransport) {
+                    transport.webView = dWebViewChild;
+                    message.sendToTarget();
+                }
+            }
+            dWebView.onClose {
+                closeWebView(webviewId)
+            }
+
+            dWebView
         }
-        return url
+        return OpenResult(webviewId, dWebView)
     }
 
     fun closeWebView(webviewId: String): Boolean {
@@ -62,11 +79,14 @@ class MutilWebViewActivity : AppCompatActivity() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colors.primary)
                     ) {
-                        AndroidView(factory = { ctx ->
-                            viewEntry.value
-                        })
+                        AndroidView(
+                            factory = { ctx ->
+                                viewEntry.value
+                            },
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
                     }
                 }
             }
