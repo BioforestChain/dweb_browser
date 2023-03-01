@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.ReusableContent
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -76,21 +77,26 @@ class MutilWebViewActivity : AppCompatActivity() {
         setContent {
             RustApplicationTheme {
                 for (viewEntry in webViewList) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        AndroidView(
-                            factory = { ctx ->
-                                viewEntry.value
-                            },
+                    ReusableContent(key = viewEntry.key) {
+                        Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                        )
+                        ) {
+                            AndroidView(
+                                factory = { ctx ->
+                                    viewEntry.value
+                                },
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            )
+                        }
                     }
                 }
+
             }
 
         }
     }
+
+
 }
