@@ -75,8 +75,21 @@ protocol IpcMessage: Codable {
 struct IpcMessageData: IpcMessage {
     var type: IPC_DATA_TYPE = .unknown
 }
+struct IpcMessageString: IpcMessage {
+    var type: IPC_DATA_TYPE = .unknown
+    var data: String
+}
 
 /** message: 只会有两种类型的数据 */
 typealias OnIpcMessage = ((IpcMessage, Ipc)) -> SIGNAL_CTOR?
+typealias OnIpcRequestMessage = ((IpcRequest, Ipc)) -> SIGNAL_CTOR?
 typealias Callback<T, R> = (T) -> R?
 
+struct S_MetaBody: Codable {
+    var string: String?
+    var data: Data?
+}
+struct MetaBody: Codable {
+    let type: IPC_RAW_BODY_TYPE
+    let data: S_MetaBody
+}

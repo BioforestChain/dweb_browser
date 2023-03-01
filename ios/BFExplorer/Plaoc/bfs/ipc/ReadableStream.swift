@@ -7,81 +7,89 @@
 
 import Foundation
 import Combine
+import Vapor
 
 class ReadableStream: InputStream {
-    private let dataChannel = PassthroughSubject<Data, Never>()
-    private let controlSignal = Signal<(StreamControlSignal)>()
-    private lazy var controller = ReadableStreamController(dataChannel)
+    private let dataChannel = PassthroughSubject<ByteBuffer, Never>()
+    private lazy var controller = ReadableStreamController(dataChannel, getStream: { self })
     
-    enum StreamControlSignal {
-        case PULL
-    }
-    
+    // 数据源
+    private var _data: Data = Data()
+
     class ReadableStreamController {
-        private let dataChannel: PassthroughSubject<Data, Never>
-        private var cancellable: AnyCancellable?
-        
-        init(_ dataCannel: PassthroughSubject<Data, Never>) {
-            self.dataChannel = dataCannel
-            
+        private let dataChannel: PassthroughSubject<ByteBuffer, Never>
+        private let getStream: () -> ReadableStream
+        var stream: ReadableStream {
+            get {
+                getStream()
+            }
         }
-        
-        func enqueue(_ data: Data) {
+
+        init(_ dataCannel: PassthroughSubject<ByteBuffer, Never>, getStream: @escaping () -> ReadableStream) {
+            self.dataChannel = dataCannel
+            self.getStream = getStream
+        }
+
+        func enqueue(_ data: ByteBuffer) {
             dataChannel.send(data)
         }
-        
-        func close() {
-//            dataChannel
-        }
-        
-        func error() {
-            
-        }
     }
     
-    init(onStart: ((ReadableStreamController)) -> Any?, onPull: ((ReadableStreamController)) -> Any?) {
+    private let semaphore = DispatchSemaphore(value: -1)
+    private var dataSize = 0
+    private var dataSizeState: Int {
+        get {
+            self.dataSize
+        }
+        set {
+            if newValue == -1 {
+                self.semaphore.signal()
+            }
+            
+            self.dataSize = newValue
+        }
+    }
+
+    private var pullSignal = Signal<(Int)>()
+    
+    init(onStart: ((ReadableStreamController)) -> Void, onPull: @escaping ((Int, ReadableStreamController)) -> Void) {
+        super.init(data: self._data)
         _ = onStart(controller)
         
-        _ = controlSignal.listen { signal in
-            switch signal {
-            case .PULL:
-                Task {
-                    onPull(self.controller)
-                }
-            }
+        _ = pullSignal.listen { size in
+            onPull((size, self.controller))
+            return nil
         }
         
         Task {
-            dataChannel.sink(receiveCompletion: { complete in
-                switch complete {
-                case .finished:
-                    self.closed = true
-                    self.closeLock.signal()
-                }
-            }, receiveValue: { value in
-                
-            })
+            for await value in dataChannel.values {
+                var buffer = value
+                self._data.append(buffer.readData(length: buffer.readableBytes)!)
+                self.dataSizeState = self._data.count
+            }
+            
+            self.dataSizeState = -1
         }
     }
     
-    private var closeLock = DispatchSemaphore(value: -1)
-    private var closed = false
-    private var dataLock = DispatchSemaphore(value: 0)
-    
-    func doclosed() {
-        if closed { return }
-        
-        closeLock.wait()
-        
+    private var id_acc = 0
+    private var uid: String {
+        return "#\(id_acc++)"
     }
     
-    
-    private func requestData(ptr: Int) -> Data {
-//        if ptr < _
+    override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+        // 如果长度满足条件，直接返回
+        if len <= _data.count {
+            return super.read(buffer, maxLength: len)
+        }
         
+        dataSizeState = len - _data.count
+        pullSignal.emit((dataSizeState))
+        semaphore.wait()
+        
+        let len = _data.count
+        _ = super.read(buffer, maxLength: len)
+        
+        return len
     }
-    
-    private var _data: Data = Data()
-    private var ptr = 0
-    private var mark = 0
 }

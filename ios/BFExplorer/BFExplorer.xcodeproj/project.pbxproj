@@ -196,6 +196,17 @@
 		F334FCC229A3819E00DA520C /* Native2JsIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCC129A3819E00DA520C /* Native2JsIpc.swift */; };
 		F334FCC429A3830300DA520C /* ReadableStreamIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCC329A3830300DA520C /* ReadableStreamIpc.swift */; };
 		F334FCC629A44F2B00DA520C /* ReadableStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCC529A44F2B00DA520C /* ReadableStream.swift */; };
+		F334FCC829A4CAE100DA520C /* NativeFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCC729A4CAE100DA520C /* NativeFetch.swift */; };
+		F334FCCB29A7553E00DA520C /* PortListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCCA29A7553E00DA520C /* PortListener.swift */; };
+		F334FCCD29A75CFD00DA520C /* Http1Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCCC29A75CFD00DA520C /* Http1Server.swift */; };
+		F334FCCF29A85A8E00DA520C /* WebViewKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCCE29A85A8E00DA520C /* WebViewKit.swift */; };
+		F334FCD129A8A60500DA520C /* DesktopJMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCD029A8A60500DA520C /* DesktopJMM.swift */; };
+		F334FCD329AC3DE500DA520C /* JsProcessWebApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCD229AC3DE500DA520C /* JsProcessWebApi.swift */; };
+		F334FCD629AC3F7200DA520C /* DWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCD529AC3F7200DA520C /* DWebView.swift */; };
+		F334FCD829ACBCCA00DA520C /* IpcBodyReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCD729ACBCCA00DA520C /* IpcBodyReceiver.swift */; };
+		F334FCDA29ACBCD800DA520C /* IpcBodySender.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCD929ACBCD800DA520C /* IpcBodySender.swift */; };
+		F334FCDD29AD939700DA520C /* BrowserNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCDC29AD939700DA520C /* BrowserNMM.swift */; };
+		F334FCE129AF550D00DA520C /* PromiseOut.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCE029AF550C00DA520C /* PromiseOut.swift */; };
 		F33A570729598A1E00000037 /* ShareManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33A570629598A1E00000037 /* ShareManager.swift */; };
 		F33B31E4295A858B000EB302 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33B31E3295A858B000EB302 /* ToastManager.swift */; };
 		F33B31E6295A8AA6000EB302 /* SplashScreenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33B31E5295A8AA6000EB302 /* SplashScreenManager.swift */; };
@@ -205,7 +216,6 @@
 		F359A49B299DB1830080EAD7 /* IpcHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A49A299DB1830080EAD7 /* IpcHeaders.swift */; };
 		F359A49D299DCB4D0080EAD7 /* BinaryHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A49C299DCB4D0080EAD7 /* BinaryHelper.swift */; };
 		F359A49F299DD4750080EAD7 /* EncodingHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A49E299DD4750080EAD7 /* EncodingHelper.swift */; };
-		F359A4A1299E007B0080EAD7 /* StreamAsRawData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A4A0299E007B0080EAD7 /* StreamAsRawData.swift */; };
 		F359A4A329A2F7050080EAD7 /* IpcMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A4A229A2F7050080EAD7 /* IpcMethod.swift */; };
 		F359A4A529A311640080EAD7 /* JsonHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A4A429A311640080EAD7 /* JsonHelper.swift */; };
 		F359A4A729A3195F0080EAD7 /* NativeIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A4A629A3195F0080EAD7 /* NativeIpc.swift */; };
@@ -215,7 +225,6 @@
 		F39A87172970F53E00CC7126 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39A87162970F53E00CC7126 /* CameraManager.swift */; };
 		F39A87192970F88C00CC7126 /* CameraExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39A87182970F88C00CC7126 /* CameraExtensions.swift */; };
 		F39A871D2971312300CC7126 /* ImageSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39A871C2971312300CC7126 /* ImageSaver.swift */; };
-		F39F45A62994DD9000F7967F /* Web in Resources */ = {isa = PBXBuildFile; fileRef = F39F45A52994DD9000F7967F /* Web */; };
 		F3A74E882987B505008614BD /* DnsNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74E872987B505008614BD /* DnsNMM.swift */; };
 		F3A74E8C2987BA99008614BD /* NativeMicroModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74E8B2987BA99008614BD /* NativeMicroModule.swift */; };
 		F3A74E902987C581008614BD /* ViewTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74E8F2987C581008614BD /* ViewTree.swift */; };
@@ -227,7 +236,7 @@
 		F3A74EAA298BB6C0008614BD /* URL_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74EA9298BB6C0008614BD /* URL_extension.swift */; };
 		F3A74EAE298BC21D008614BD /* JsProcessNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74EAD298BC21D008614BD /* JsProcessNMM.swift */; };
 		F3A74EB029933227008614BD /* Operator_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74EAF29933227008614BD /* Operator_extension.swift */; };
-		F3A74EB2299388B4008614BD /* HttpServerNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74EB1299388B4008614BD /* HttpServerNMM.swift */; };
+		F3A74EB2299388B4008614BD /* HttpNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74EB1299388B4008614BD /* HttpNMM.swift */; };
 		F3D953F72999CDFF00ED08C1 /* CommonStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EB2999CDFF00ED08C1 /* CommonStruct.swift */; };
 		F3D953F82999CDFF00ED08C1 /* CreateSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EC2999CDFF00ED08C1 /* CreateSignal.swift */; };
 		F3D953F92999CDFF00ED08C1 /* ipcConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EE2999CDFF00ED08C1 /* ipcConst.swift */; };
@@ -444,6 +453,17 @@
 		F334FCC129A3819E00DA520C /* Native2JsIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Native2JsIpc.swift; sourceTree = "<group>"; };
 		F334FCC329A3830300DA520C /* ReadableStreamIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadableStreamIpc.swift; sourceTree = "<group>"; };
 		F334FCC529A44F2B00DA520C /* ReadableStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadableStream.swift; sourceTree = "<group>"; };
+		F334FCC729A4CAE100DA520C /* NativeFetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFetch.swift; sourceTree = "<group>"; };
+		F334FCCA29A7553E00DA520C /* PortListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListener.swift; sourceTree = "<group>"; };
+		F334FCCC29A75CFD00DA520C /* Http1Server.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Http1Server.swift; sourceTree = "<group>"; };
+		F334FCCE29A85A8E00DA520C /* WebViewKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewKit.swift; sourceTree = "<group>"; };
+		F334FCD029A8A60500DA520C /* DesktopJMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopJMM.swift; sourceTree = "<group>"; };
+		F334FCD229AC3DE500DA520C /* JsProcessWebApi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsProcessWebApi.swift; sourceTree = "<group>"; };
+		F334FCD529AC3F7200DA520C /* DWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebView.swift; sourceTree = "<group>"; };
+		F334FCD729ACBCCA00DA520C /* IpcBodyReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcBodyReceiver.swift; sourceTree = "<group>"; };
+		F334FCD929ACBCD800DA520C /* IpcBodySender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcBodySender.swift; sourceTree = "<group>"; };
+		F334FCDC29AD939700DA520C /* BrowserNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserNMM.swift; sourceTree = "<group>"; };
+		F334FCE029AF550C00DA520C /* PromiseOut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromiseOut.swift; sourceTree = "<group>"; };
 		F33A570629598A1E00000037 /* ShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareManager.swift; sourceTree = "<group>"; };
 		F33B31E3295A858B000EB302 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
 		F33B31E5295A8AA6000EB302 /* SplashScreenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenManager.swift; sourceTree = "<group>"; };
@@ -452,7 +472,6 @@
 		F359A49A299DB1830080EAD7 /* IpcHeaders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcHeaders.swift; sourceTree = "<group>"; };
 		F359A49C299DCB4D0080EAD7 /* BinaryHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryHelper.swift; sourceTree = "<group>"; };
 		F359A49E299DD4750080EAD7 /* EncodingHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingHelper.swift; sourceTree = "<group>"; };
-		F359A4A0299E007B0080EAD7 /* StreamAsRawData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamAsRawData.swift; sourceTree = "<group>"; };
 		F359A4A229A2F7050080EAD7 /* IpcMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcMethod.swift; sourceTree = "<group>"; };
 		F359A4A429A311640080EAD7 /* JsonHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonHelper.swift; sourceTree = "<group>"; };
 		F359A4A629A3195F0080EAD7 /* NativeIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeIpc.swift; sourceTree = "<group>"; };
@@ -462,7 +481,6 @@
 		F39A87162970F53E00CC7126 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		F39A87182970F88C00CC7126 /* CameraExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraExtensions.swift; sourceTree = "<group>"; };
 		F39A871C2971312300CC7126 /* ImageSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSaver.swift; sourceTree = "<group>"; };
-		F39F45A52994DD9000F7967F /* Web */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Web; sourceTree = "<group>"; };
 		F3A74E872987B505008614BD /* DnsNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DnsNMM.swift; sourceTree = "<group>"; };
 		F3A74E8B2987BA99008614BD /* NativeMicroModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeMicroModule.swift; sourceTree = "<group>"; };
 		F3A74E8F2987C581008614BD /* ViewTree.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewTree.swift; sourceTree = "<group>"; };
@@ -474,7 +492,7 @@
 		F3A74EA9298BB6C0008614BD /* URL_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL_extension.swift; sourceTree = "<group>"; };
 		F3A74EAD298BC21D008614BD /* JsProcessNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsProcessNMM.swift; sourceTree = "<group>"; };
 		F3A74EAF29933227008614BD /* Operator_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operator_extension.swift; sourceTree = "<group>"; };
-		F3A74EB1299388B4008614BD /* HttpServerNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpServerNMM.swift; sourceTree = "<group>"; };
+		F3A74EB1299388B4008614BD /* HttpNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpNMM.swift; sourceTree = "<group>"; };
 		F3D953EB2999CDFF00ED08C1 /* CommonStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonStruct.swift; sourceTree = "<group>"; };
 		F3D953EC2999CDFF00ED08C1 /* CreateSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateSignal.swift; sourceTree = "<group>"; };
 		F3D953EE2999CDFF00ED08C1 /* ipcConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ipcConst.swift; sourceTree = "<group>"; };
@@ -743,7 +761,6 @@
 		F05C41F42907F0E30082CC75 /* Plaoc */ = {
 			isa = PBXGroup;
 			children = (
-				F39F45A02994D3B700F7967F /* HTTPServer */,
 				F3A74E862987B4F1008614BD /* bfs */,
 				F0292D832975502700C2E464 /* PhotoHandle */,
 				F33BE3CC2966DE1B006D30B9 /* app */,
@@ -990,9 +1007,35 @@
 			path = ipcWeb;
 			sourceTree = "<group>";
 		};
+		F334FCC929A7552B00DA520C /* net */ = {
+			isa = PBXGroup;
+			children = (
+				F334FCCA29A7553E00DA520C /* PortListener.swift */,
+				F334FCCC29A75CFD00DA520C /* Http1Server.swift */,
+			);
+			path = net;
+			sourceTree = "<group>";
+		};
+		F334FCD429AC3EF300DA520C /* webview */ = {
+			isa = PBXGroup;
+			children = (
+				F334FCD529AC3F7200DA520C /* DWebView.swift */,
+			);
+			path = webview;
+			sourceTree = "<group>";
+		};
+		F334FCDB29AD938900DA520C /* base */ = {
+			isa = PBXGroup;
+			children = (
+				F334FCDC29AD939700DA520C /* BrowserNMM.swift */,
+			);
+			path = base;
+			sourceTree = "<group>";
+		};
 		F359A4A829A35B430080EAD7 /* user */ = {
 			isa = PBXGroup;
 			children = (
+				F334FCD029A8A60500DA520C /* DesktopJMM.swift */,
 			);
 			path = user;
 			sourceTree = "<group>";
@@ -1000,6 +1043,7 @@
 		F359A4A929A35B430080EAD7 /* sys */ = {
 			isa = PBXGroup;
 			children = (
+				F334FCDB29AD938900DA520C /* base */,
 				F359A4AA29A35B430080EAD7 /* boot */,
 				F359A4AE29A35B430080EAD7 /* dns */,
 				F359A4AD29A35B430080EAD7 /* http */,
@@ -1021,6 +1065,7 @@
 			isa = PBXGroup;
 			children = (
 				F3A74EAD298BC21D008614BD /* JsProcessNMM.swift */,
+				F334FCD229AC3DE500DA520C /* JsProcessWebApi.swift */,
 			);
 			path = js;
 			sourceTree = "<group>";
@@ -1037,7 +1082,9 @@
 		F359A4AD29A35B430080EAD7 /* http */ = {
 			isa = PBXGroup;
 			children = (
-				F3A74EB1299388B4008614BD /* HttpServerNMM.swift */,
+				F334FCC929A7552B00DA520C /* net */,
+				F359A496299A109B0080EAD7 /* HttpServer.swift */,
+				F3A74EB1299388B4008614BD /* HttpNMM.swift */,
 			);
 			path = http;
 			sourceTree = "<group>";
@@ -1046,6 +1093,7 @@
 			isa = PBXGroup;
 			children = (
 				F3A74E872987B505008614BD /* DnsNMM.swift */,
+				F334FCC729A4CAE100DA520C /* NativeFetch.swift */,
 			);
 			path = dns;
 			sourceTree = "<group>";
@@ -1096,15 +1144,6 @@
 			path = camera;
 			sourceTree = "<group>";
 		};
-		F39F45A02994D3B700F7967F /* HTTPServer */ = {
-			isa = PBXGroup;
-			children = (
-				F39F45A52994DD9000F7967F /* Web */,
-				F359A496299A109B0080EAD7 /* HttpServer.swift */,
-			);
-			path = HTTPServer;
-			sourceTree = "<group>";
-		};
 		F3A74E862987B4F1008614BD /* bfs */ = {
 			isa = PBXGroup;
 			children = (
@@ -1121,6 +1160,7 @@
 				F359A4AF29A35BE30080EAD7 /* core */,
 				F359A4A929A35B430080EAD7 /* sys */,
 				F359A4A829A35B430080EAD7 /* user */,
+				F334FCD429AC3EF300DA520C /* webview */,
 			);
 			path = microModule;
 			sourceTree = "<group>";
@@ -1133,6 +1173,8 @@
 				F359A49C299DCB4D0080EAD7 /* BinaryHelper.swift */,
 				F359A49E299DD4750080EAD7 /* EncodingHelper.swift */,
 				F359A4A429A311640080EAD7 /* JsonHelper.swift */,
+				F334FCCE29A85A8E00DA520C /* WebViewKit.swift */,
+				F334FCE029AF550C00DA520C /* PromiseOut.swift */,
 			);
 			path = helper;
 			sourceTree = "<group>";
@@ -1145,6 +1187,8 @@
 				F3D953EF2999CDFF00ED08C1 /* Ipc.swift */,
 				F359A49A299DB1830080EAD7 /* IpcHeaders.swift */,
 				F3D953F02999CDFF00ED08C1 /* IpcBody.swift */,
+				F334FCD729ACBCCA00DA520C /* IpcBodyReceiver.swift */,
+				F334FCD929ACBCD800DA520C /* IpcBodySender.swift */,
 				F3D953F12999CDFF00ED08C1 /* IpcStreamEnd.swift */,
 				F3D953F22999CDFF00ED08C1 /* IpcStreamData.swift */,
 				F3D953F32999CDFF00ED08C1 /* IpcStreamAbort.swift */,
@@ -1152,7 +1196,6 @@
 				F3D953F42999CDFF00ED08C1 /* IpcRequest.swift */,
 				F3D953F62999CDFF00ED08C1 /* IpcResponse.swift */,
 				F359A4A229A2F7050080EAD7 /* IpcMethod.swift */,
-				F359A4A0299E007B0080EAD7 /* StreamAsRawData.swift */,
 				F359A4A629A3195F0080EAD7 /* NativeIpc.swift */,
 				F334FCC529A44F2B00DA520C /* ReadableStream.swift */,
 			);
@@ -1237,7 +1280,6 @@
 				F0E4B66A29713E78005ECC4C /* guid in Resources */,
 				F01ABAEB28D2C7AC0038AF9C /* SourceHanSansCN-ExtraLight.otf in Resources */,
 				F01ABAEF28D2C9650038AF9C /* SourceHanSansCN-Medium.ttf in Resources */,
-				F39F45A62994DD9000F7967F /* Web in Resources */,
 				F01ABAE828D2C7AC0038AF9C /* SourceHanSansCN-Light.otf in Resources */,
 				F01ABAEA28D2C7AC0038AF9C /* SourceHanSansCN-Heavy.otf in Resources */,
 				F01ABAE728D2C7AC0038AF9C /* SourceHanSansCN-Bold.otf in Resources */,
@@ -1295,6 +1337,7 @@
 			files = (
 				F091CB172951B8E400FCE565 /* FirstViewController.swift in Sources */,
 				F091CB542951B90A00FCE565 /* RecommendAppManager.swift in Sources */,
+				F334FCD129A8A60500DA520C /* DesktopJMM.swift in Sources */,
 				F0BADEB42986820100B8DCCF /* TopBarEntites.swift in Sources */,
 				F334FCC229A3819E00DA520C /* Native2JsIpc.swift in Sources */,
 				F033021B28C73E1700BC0266 /* UIScreen+PKExtensions.swift in Sources */,
@@ -1339,7 +1382,7 @@
 				F091CB812951B91900FCE565 /* DiskManager.swift in Sources */,
 				F0292DA32975502700C2E464 /* FWPopupSWindow.swift in Sources */,
 				F3D953FC2999CDFF00ED08C1 /* IpcStreamEnd.swift in Sources */,
-				F3A74EB2299388B4008614BD /* HttpServerNMM.swift in Sources */,
+				F3A74EB2299388B4008614BD /* HttpNMM.swift in Sources */,
 				F0BADEB02986820100B8DCCF /* BottomBarEntites.swift in Sources */,
 				F091CBBA2951B92D00FCE565 /* NSFileManager+NVHFileSize.m in Sources */,
 				F091CB462951B90200FCE565 /* NotificationName.swift in Sources */,
@@ -1349,9 +1392,11 @@
 				F359A49B299DB1830080EAD7 /* IpcHeaders.swift in Sources */,
 				F3D953F92999CDFF00ED08C1 /* ipcConst.swift in Sources */,
 				F091CB2F2951B8EE00FCE565 /* StatusView.swift in Sources */,
+				F334FCC829A4CAE100DA520C /* NativeFetch.swift in Sources */,
 				F359A497299A109B0080EAD7 /* HttpServer.swift in Sources */,
 				F091CB482951B90200FCE565 /* Date_extension.swift in Sources */,
 				F091CBD12951B93B00FCE565 /* LeadScriptHandle.swift in Sources */,
+				F334FCDA29ACBCD800DA520C /* IpcBodySender.swift in Sources */,
 				F091CB9A2951B92100FCE565 /* FileModel.swift in Sources */,
 				F0A3C3DB2953FA3B00C78D1A /* WKWebViewJavascriptBridgeJS.swift in Sources */,
 				F05C43B62907F3410082CC75 /* brige.m in Sources */,
@@ -1360,12 +1405,12 @@
 				F091CB152951B8E400FCE565 /* ViewController.swift in Sources */,
 				19F17A1B26F3F59800D4F9DE /* NSNotification+Helpers.swift in Sources */,
 				F091CB4B2951B90200FCE565 /* UIImage_extension.swift in Sources */,
+				F334FCD829ACBCCA00DA520C /* IpcBodyReceiver.swift in Sources */,
 				F091CBD02951B93B00FCE565 /* ChangeTools.swift in Sources */,
 				F091CB882951B91900FCE565 /* ClipboardManager.swift in Sources */,
 				F091CB8D2951B91900FCE565 /* LocationManager.swift in Sources */,
 				F0BADEB32986820100B8DCCF /* AlertEntites.swift in Sources */,
 				F01ABACE28D07AE30038AF9C /* LinkListPageVC.swift in Sources */,
-				F359A4A1299E007B0080EAD7 /* StreamAsRawData.swift in Sources */,
 				F091CBBB2951B92D00FCE565 /* NVHFile.m in Sources */,
 				F3A74E902987C581008614BD /* ViewTree.swift in Sources */,
 				F091CB532951B90A00FCE565 /* AppManager.swift in Sources */,
@@ -1378,12 +1423,14 @@
 				19EE04C426FA0EC400C41C1B /* BrowserContainerViewModel.swift in Sources */,
 				F359A49F299DD4750080EAD7 /* EncodingHelper.swift in Sources */,
 				F091CB802951B91900FCE565 /* MemoryManager.swift in Sources */,
+				F334FCCF29A85A8E00DA520C /* WebViewKit.swift in Sources */,
 				F33B31E6295A8AA6000EB302 /* SplashScreenManager.swift in Sources */,
 				F091CBCC2951B93B00FCE565 /* HPKWebViewPool.swift in Sources */,
 				F091CBB82951B92D00FCE565 /* NVHGzipFile.m in Sources */,
 				F091CB302951B8EE00FCE565 /* CustomPromptPopView.swift in Sources */,
 				F091CB7E2951B91900FCE565 /* ReachabilityManager.swift in Sources */,
 				F033020328C73E1700BC0266 /* CGGeometry+PKExtensions.swift in Sources */,
+				F334FCD629AC3F7200DA520C /* DWebView.swift in Sources */,
 				F03301DA28C735DC00BC0266 /* OverlayBalloonView.swift in Sources */,
 				F3A74E882987B505008614BD /* DnsNMM.swift in Sources */,
 				F03301FD28C73E1700BC0266 /* UIButton+PKExtensions.swift in Sources */,
@@ -1418,6 +1465,7 @@
 				F3A74EA6298B90E5008614BD /* Dictionary_extension.swift in Sources */,
 				F091CB9B2951B92100FCE565 /* AlertConfiguration.swift in Sources */,
 				F091CB322951B8EE00FCE565 /* CustomConfirmPopView.swift in Sources */,
+				F334FCE129AF550D00DA520C /* PromiseOut.swift in Sources */,
 				F3A74E8C2987BA99008614BD /* NativeMicroModule.swift in Sources */,
 				182EF46328B62DE4001E039E /* UIImage+Text.swift in Sources */,
 				F3D953FD2999CDFF00ED08C1 /* IpcStreamData.swift in Sources */,
@@ -1438,6 +1486,7 @@
 				F091CBCB2951B93B00FCE565 /* Schemehandler.swift in Sources */,
 				F0292D9B2975502700C2E464 /* LBXScanViewStyle.swift in Sources */,
 				F033021E28C73E1700BC0266 /* UIControl+PKExtensions.swift in Sources */,
+				F334FCDD29AD939700DA520C /* BrowserNMM.swift in Sources */,
 				F091CB192951B8E400FCE565 /* WebViewViewController.swift in Sources */,
 				F091CC5A28E6994800B2D6CD /* HoverView.swift in Sources */,
 				F091CB1B2951B8E400FCE565 /* SecondViewController.swift in Sources */,
@@ -1476,7 +1525,9 @@
 				F091CB332951B8EE00FCE565 /* CustomAlertPopView.swift in Sources */,
 				F033023028C73E1800BC0266 /* Double+PKExtensions.swift in Sources */,
 				19EE04C826FA525700C41C1B /* Array+Helpers.swift in Sources */,
+				F334FCCB29A7553E00DA520C /* PortListener.swift in Sources */,
 				F091CBCF2951B93B00FCE565 /* LeadReplyHandle.swift in Sources */,
+				F334FCD329AC3DE500DA520C /* JsProcessWebApi.swift in Sources */,
 				F033020628C73E1700BC0266 /* UIView+PKExtensions.swift in Sources */,
 				F0BADEBE2990DA8F00B8DCCF /* AppManager.swift in Sources */,
 				F091CB552951B90A00FCE565 /* UserAppManager.swift in Sources */,
@@ -1504,6 +1555,7 @@
 				F3A74EAA298BB6C0008614BD /* URL_extension.swift in Sources */,
 				F39A87172970F53E00CC7126 /* CameraManager.swift in Sources */,
 				F0292DA62975502700C2E464 /* FWPColorCategory.swift in Sources */,
+				F334FCCD29A75CFD00DA520C /* Http1Server.swift in Sources */,
 				F01ABAC528D020BA0038AF9C /* Date+Famatter.swift in Sources */,
 				F03301D828C730DE00BC0266 /* OverlayController.swift in Sources */,
 				F091CB9C2951B92100FCE565 /* BottomBarModel.swift in Sources */,
@@ -1656,7 +1708,7 @@
 				DEVELOPMENT_TEAM = F9M4UWUYYN;
 				INFOPLIST_FILE = BFExplorer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BFExplorer;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1686,7 +1738,7 @@
 				DEVELOPMENT_TEAM = F9M4UWUYYN;
 				INFOPLIST_FILE = BFExplorer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BFExplorer;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

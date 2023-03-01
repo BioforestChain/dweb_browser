@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IpcStreamPull {
+struct IpcStreamPull: Codable {
     var type: IPC_DATA_TYPE = .stream_pull
     let stream_id: String
     var desiredSize: Int?
@@ -21,6 +21,7 @@ struct IpcStreamPull {
         }
         
         self.desiredSize = _deisredSize
+        self.stream_id = stream_id
     }
 }
 

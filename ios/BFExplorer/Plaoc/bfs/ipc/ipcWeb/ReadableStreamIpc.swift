@@ -8,6 +8,7 @@
 import Foundation
 import MessagePacker
 import Combine
+import Vapor
 
 class ReadableStreamIpc: Ipc {
     init(remote: MicroModule, role: IPC_ROLE) {
@@ -24,6 +25,10 @@ class ReadableStreamIpc: Ipc {
     }
     
     private var _incomeStream: InputStream? = nil
+    
+    private lazy var PONG_DATA: ByteBuffer = {
+        ByteBuffer.init(string: "pong")
+    }()
     
     func bindIncomeStream(stream: InputStream) async {
         if _incomeStream != nil {
@@ -51,11 +56,18 @@ class ReadableStreamIpc: Ipc {
             
             if message != nil {
                 let result = jsonToIpcMessage(data: message!, ipc: self)
-                
-                if result is String {
-                    await self.close()
-                } else if result is IpcMessage {
-                    self._messageSignal.emit((result as! IpcMessage, self))
+                if result != nil {
+                    if result!.type == .unknown, let result = result as? IpcMessageString {
+                        if result.data == "close" {
+                            await self.close()
+                        } else if result.data == "ping" {
+                            
+                        } else if result.data == "pong" {
+                            print("PONG/\(stream)")
+                        }
+                    } else {
+                        self._messageSignal.emit((result!, self))
+                    }
                 }
             }
         }
@@ -79,9 +91,7 @@ class ReadableStreamIpc: Ipc {
         }
     }
     
-    override func _doClose() async {
-        
-    }
+    override func _doClose() async {}
 }
 
 

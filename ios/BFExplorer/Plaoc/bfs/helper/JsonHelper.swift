@@ -15,7 +15,6 @@ func JSONStringify<T: Codable>(_ data: T) -> String? {
     } catch {
         fatalError("data JSONStringify error: \(data)")
     }
-    return nil
 }
 
 /// 反序列化
@@ -31,14 +30,11 @@ func JSONParse<T: Codable>(_ str: String) -> T? {
     } catch {
         fatalError("data JSONParse error: \(str)")
     }
-    
-    
-    return nil
 }
 
-func jsonToIpcMessage(data: String, ipc: Ipc) -> Any? {
-    if data == "close" {
-        return data
+func jsonToIpcMessage(data: String, ipc: Ipc) -> IpcMessage? {
+    if data == "close" || data == "ping" || data == "pong" {
+        return IpcMessageString(data: data)
     }
     
     let jsonData = data.utf8Data()
@@ -52,28 +48,24 @@ func jsonToIpcMessage(data: String, ipc: Ipc) -> Any? {
         let message = try decoder.decode(IpcMessageData.self, from: jsonData!)
         
         if message.type == .request {
-            let req = try decoder.decode(IpcRequest.self, from: jsonData!)
-            return IpcRequest(req_id: req.req_id, method: req.method, url: req.url, rawBody: req.rawBody, headers: req.headers, ipc: ipc)
+            let req = try decoder.decode(IpcReqMessage.self, from: jsonData!)
+            return req
         } else if message.type == .response {
-            let res = try decoder.decode(IpcResponse.self, from: jsonData!)
-            return IpcResponse(req_id: res.req_id, statusCode: res.statusCode, rawBody: res.rawBody, headers: res.headers, ipc: ipc)
+            let res = try decoder.decode(IpcResMessage.self, from: jsonData!)
+            return res
         } else if message.type == .stream_data {
-            let sdata = try decoder.decode(IpcStreamData.self, from: jsonData!)
-            return IpcStreamData(stream_id: sdata.stream_id, data: sdata.data)
+            return try decoder.decode(IpcStreamData.self, from: jsonData!)
         } else if message.type == .stream_pull {
-            let pdata = try decoder.decode(IpcStreamPull.self, from: jsonData!)
-            return IpcStreamPull(stream_id: pdata.stream_id, desiredSize: pdata.desiredSize)
+            return try decoder.decode(IpcStreamPull.self, from: jsonData!)
         } else if message.type == .stream_end {
-            let edata = try decoder.decode(IpcStreamEnd.self, from: jsonData!)
-            return IpcStreamEnd(stream_id: edata.stream_id)
+            return try decoder.decode(IpcStreamEnd.self, from: jsonData!)
         } else if message.type == .stream_abort {
-            let adata = try decoder.decode(IpcStreamAbort.self, from: jsonData!)
-            return IpcStreamAbort(stream_id: adata.stream_id)
+            return try decoder.decode(IpcStreamAbort.self, from: jsonData!)
         }
         
-        return data
+        return nil
     } catch {
-        return data
+        return nil
     }
 }
 

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IpcStreamAbort {
+struct IpcStreamAbort: Codable {
     var type: IPC_DATA_TYPE = .stream_abort
     let stream_id: String
     

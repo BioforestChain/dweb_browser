@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IpcStreamData {
+struct IpcStreamData: Codable {
     var type: IPC_DATA_TYPE = .stream_data
     let stream_id: String
     let data: S_RawData

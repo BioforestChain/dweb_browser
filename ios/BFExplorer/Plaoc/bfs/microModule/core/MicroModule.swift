@@ -7,73 +7,92 @@
 
 import Foundation
 
+typealias NativeOptions = [String:String]
+typealias AppRun = (_ options: NativeOptions) -> Any
+typealias Router = [String:AppRun]
+typealias Mmid = String
+
 /** 微组件抽象类 */
-class MicroModule: NSObject {
-    var mmid: MMID
-    var running = false
-    
-    init(mmid: MMID = ".dweb") {
-        self.mmid = mmid
-    }
-
-    internal func before_bootstrap() throws {
-        if running {
-            throw MicroModuleError.moduleError("module \(mmid) already running")
+class MicroModule {
+    var mmid: Mmid = ""
+    var routers: Router? {
+        get {
+            nil
         }
-        running = true
-    }
-
-    internal func _bootstrap() -> Any {
-        return ""
-    }
-    internal func after_bootstrap() {}
-
-    func bootstrap() {
-        do {
-            try before_bootstrap()
-
-            let _ = _bootstrap()
-
-            after_bootstrap()
-        } catch {
-            print(error)
-        }
-    }
-
-    internal func before_shutdown() throws {
-        if !running {
-            throw MicroModuleError.moduleError("module \(mmid) already shutdown")
-        }
-        running = false
-    }
-    internal func _shutdown() -> Any {
-        return ""
-    }
-    internal func after_shutdown() {}
-    func shutdown() -> Void {
-        do {
-            try before_shutdown()
-
-            let _ = _shutdown()
-
-            after_shutdown()
-        } catch {
-            print(error)
-        }
-    }
-
-    func _connect(from: MicroModule) throws -> NativeIpc? {
-        return nil
     }
     
-    func connect(from: MicroModule) throws -> NativeIpc? {
-        if !running {
-            throw MicroModuleError.moduleError("module no running")
-        }
-        return try _connect(from: from)
-    }
+    internal func _bootstrap() async throws {}
+    private var running = false
     
-    func fetch(req: IpcRequest, res: IpcResponse) {
+    private func beforeBootstrap() async {
+        if self.running {
+            fatalError("module \(self.mmid) already running")
+        }
         
+        self.running = true
+    }
+    
+    internal func afterBootstrap() async {}
+    
+    func bootstrap() async {
+        await beforeBootstrap()
+        
+        do {
+            try await self._bootstrap()
+        } catch {
+            
+        }
+        
+        await self.afterBootstrap()
+    }
+    
+    internal let _afterShutdownSignal = Signal<()>()
+    
+    internal func beforeShutdown() async {
+        if !running {
+            fatalError("module \(mmid) already shutdown")
+        }
+        
+        running = false
+        _afterShutdownSignal.emit(())
+    }
+    
+    internal func _shutdown() async throws {}
+    
+    internal func afterShutdown() async {}
+    
+    func shutdown() async {
+        await beforeShutdown()
+        
+        do {
+            try await _shutdown()
+        } catch {
+            
+        }
+        
+        await afterShutdown()
+    }
+    
+    internal func _connect(from: MicroModule) async -> Ipc {
+        return Ipc()
+    }
+    
+    func connect(from: MicroModule) async -> Ipc {
+        if !running {
+            fatalError("module no running")
+        }
+        
+        return await _connect(from: from)
+    }
+}
+
+// 用于字典存储key区分
+extension MicroModule: Hashable {
+    static func ==(lhs: MicroModule, rhs: MicroModule) -> Bool {
+        return lhs.mmid == rhs.mmid
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(mmid)
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UniformTypeIdentifiers
 
 extension URL {
     var urlParameters: [String: String]? {
@@ -13,6 +14,14 @@ extension URL {
         let queryItems = components.queryItems else { return nil }
         return queryItems.reduce(into: [String: String]()) { (result, item) in
             result[item.name] = item.value
+        }
+    }
+    
+    func mimeType() -> String {
+        if let mimeType = UTType(filenameExtension: self.pathExtension)?.preferredMIMEType {
+            return mimeType
+        } else {
+            return "application/octet-stream"
         }
     }
 }

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import NIOHTTP1
+import Vapor
 
 enum IpcMethod: String, Codable {
     case GET = "GET"

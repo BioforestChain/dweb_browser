@@ -19,10 +19,10 @@ class NativeIpc: Ipc {
         
         _ = port.onMessage { message in
             var ipcMessage: IpcMessage
-            if let fromRequest = message as? IpcRequest {
-                ipcMessage = IpcRequest.fromRequest(req_id: fromRequest.req_id, request: fromRequest.asRequest(method: fromRequest.method, url: fromRequest.url), ipc: self)
-            } else if let fromResponse = message as? IpcResponse {
-                ipcMessage = IpcResponse.fromResponse(req_id: fromResponse.req_id, response: fromResponse.asResponse(), ipc: self)
+            if let fromRequest = message as? IpcReqMessage {
+                ipcMessage = fromRequest
+            } else if let fromResponse = message as? IpcResMessage {
+                ipcMessage = fromResponse
             } else {
                 ipcMessage = message
             }
@@ -87,6 +87,7 @@ class NativePort<I, O> {
         if closing {
             return
         } else {
+            semaphore.signal()
             closing = true
         }
     }

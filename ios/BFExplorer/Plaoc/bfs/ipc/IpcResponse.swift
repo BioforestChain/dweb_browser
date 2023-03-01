@@ -8,29 +8,75 @@
 import Foundation
 import Vapor
 
-final class IpcResponse: IpcBody {
+final class IpcResponse {
     var type: IPC_DATA_TYPE = .response
     var req_id: Int
     var statusCode: Int
     var headers: IpcHeaders
+    var body: IpcBody
     
-    init(req_id: Int, statusCode: Int, rawBody: RawData, headers: IpcHeaders, ipc: Ipc) {
+    init(req_id: Int, statusCode: Int, headers: IpcHeaders, body: IpcBody) {
         self.req_id = req_id
         self.statusCode = statusCode
         self.headers = headers
-        super.init(rawBody: rawBody, ipc: ipc)
+        self.body = body
     }
     
-    func asResponse() -> Response {
-        var body: Response.Body
+    static func fromJson(req_id: Int, statusCode: Int = 200, jsonAble: [String:Any], headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
+        return fromText(req_id: req_id, statusCode: statusCode, text: ChangeTools.dicValueString(jsonAble)!, headers: headers, ipc: ipc)
+    }
+    
+    static func fromText(req_id: Int, statusCode: Int = 200, text: String, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: .init(text: text), ipc: ipc))
+    }
+    
+    static func fromBinary(req_id: Int, statusCode: Int = 200, binary: Data, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
+        var headers = headers
+        headers.set(key: "Content-Type", value: "application/octet-stream")
+        headers.set(key: "Content-Length", value: "\(binary.count)")
         
-        if self.body is String {
-            body = .init(string: self.body as! String)
-        } else if self.body is Data {
-            body = .init(data: self.body as! Data)
-        } else if self.body is InputStream {
-            body = .init(stream: { writer in
-                var stream = self.body as! InputStream
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: .init(u8a: binary), ipc: ipc))
+    }
+    
+    static func fromStream(req_id: Int, statusCode: Int = 200, stream: IpcBody.StreamData, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
+        var headers = headers
+        headers.set(key: "Content-Type", value: "application/octet-stream")
+       
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: .init(stream: stream), ipc: ipc))
+    }
+    
+    static func fromResponse(req_id: Int, response: Response, ipc: Ipc) -> IpcResponse {
+        if response.body.string != nil {
+            return fromText(req_id: req_id, text: response.body.string!, headers: IpcHeaders(response.headers), ipc: ipc)
+        } else if response.body.buffer != nil {
+            var buffer = response.body.buffer!
+            return fromBinary(req_id: req_id, binary: buffer.readData(length: buffer.readableBytes)!, headers: IpcHeaders(response.headers), ipc: ipc)
+        } else if response.body.data != nil {
+            return fromBinary(req_id: req_id, binary: response.body.data!, headers: IpcHeaders(response.headers), ipc: ipc)
+        } else if response.body.count == -1 {
+            var data = Data()
+            _ = response.body.collect(on: HttpServer.app.eventLoopGroup.next()).map { bytebuffer in
+                if var buffer = bytebuffer, buffer.readableBytes > 0 {
+                    data.append(buffer.readData(length: buffer.readableBytes)!)
+                }
+            }
+            
+            return fromStream(req_id: req_id, stream: .init(stream: data), headers: IpcHeaders(response.headers), ipc: ipc)
+        } else {
+            return fromText(req_id: req_id, text: "", headers: IpcHeaders(response.headers), ipc: ipc)
+        }
+    }
+    
+    func toResponse() -> Response {
+        var _body: Response.Body
+        
+        if body.body.text != nil {
+            _body = .init(string: body.body.text!)
+        } else if body.body.u8a != nil {
+            _body = .init(data: body.body.u8a!)
+        } else if body.body.stream != nil {
+            _body = .init(stream: { writer in
+                var stream = InputStream(data: self.body.body.stream!.stream)
                 let bufferSize = 1024
                 stream.open()
                 
@@ -51,73 +97,23 @@ final class IpcResponse: IpcBody {
                 }
             })
         } else {
-            fatalError("invalid body to response: \(self.body)")
+            fatalError("invalid body to response: \(body)")
         }
         
-        return Response(status: HTTPResponseStatus(statusCode: statusCode), headers: headers.toHTTPHeaders(), body: body)
+        return Response(status: HTTPResponseStatus(statusCode: statusCode), headers: headers.toHTTPHeaders(), body: _body)
     }
     
-    static func fromJson(req_id: Int, statusCode: Int, jsonAble: [String:Any], headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
-        return fromText(req_id: req_id, statusCode: statusCode, text: ChangeTools.dicValueString(jsonAble)!, headers: headers, ipc: ipc)
-    }
-    
-    static func fromText(req_id: Int, statusCode: Int, text: String, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
-        return IpcResponse(req_id: req_id, statusCode: statusCode, rawBody: RawData(type: .text, data: S_RawData(string: text)), headers: headers, ipc: ipc)
-    }
-    
-    static func fromBinary(req_id: Int, statusCode: Int, binary: Data, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
-        var headers = headers
-        headers.set(key: "Content-Type", value: "application/octet-stream")
-        headers.set(key: "Content-Length", value: "\(binary.count)")
-        
-        return IpcResponse(req_id: req_id, statusCode: statusCode, rawBody: ipc.suport_bianry ? RawData(type:.binary, data:S_RawData(data:binary)) : RawData(type:.base64, data: S_RawData(string: binary.base64EncodedString())), headers: headers, ipc: ipc)
-    }
-    
-    static func fromStream(req_id: Int, statusCode: Int, stream: InputStream, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
-        var headers = headers
-        headers.set(key: "Content-Type", value: "application/octet-stream")
-        let stream_id = "res/\(req_id)/\(headers.getOrDefault(key: "Content-Length", defaultValue: "-"))"
-        let ipcResponse = IpcResponse(req_id: req_id, statusCode: statusCode, rawBody: ipc.suport_bianry ? RawData(type:.binary_stream_id, data: S_RawData(string: stream_id)) : RawData(type: .base64_stream_id, data: S_RawData(string: stream_id)), headers: headers, ipc: ipc)
-        
-        Task.init {
-            await streamAsRawData(stream_id: stream_id, stream: stream, ipc: ipc)
-        }
-        
-        
-        return ipcResponse
-    }
-    
-    static func fromResponse(req_id: Int, response: Response, ipc: Ipc) -> IpcResponse {
-        return fromStream(req_id: req_id, statusCode: Int(response.status.code), stream: InputStream(data: response.body.data!), headers: IpcHeaders(response.headers), ipc: ipc)
-    }
+    lazy var ipcResMessage: IpcResMessage = IpcResMessage(req_id: req_id, statusCode: statusCode, headers: headers, metaBody: body.metaBody)
 }
 
-extension IpcResponse: IpcMessage {}
-
-extension IpcResponse: Codable {
-    private enum CodeKey: CodingKey {
-        case type
-        case req_id
-        case statusCode
-        case headers
-        case rawBody
-    }
+struct IpcResMessage: IpcMessage {
+    var type: IPC_DATA_TYPE = .response
+    let req_id: Int
+    let statusCode: Int
+    let headers: IpcHeaders
+    let metaBody: MetaBody
     
-    convenience init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodeKey.self)
-        type = try values.decode(IPC_DATA_TYPE.self, forKey: .type)
-        req_id = try values.decode(Int.self, forKey: .req_id)
-        statusCode = try values.decode(Int.self, forKey: .statusCode)
-        headers = try values.decode(IpcHeaders.self, forKey: .headers)
-        rawBody = try values.decode(RawData.self, forKey: .rawBody)
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodeKey.self)
-        try container.encode(type, forKey: .type)
-        try container.encode(req_id, forKey: .req_id)
-        try container.encode(statusCode, forKey: .statusCode)
-        try container.encode(headers, forKey: .headers)
-        try container.encode(rawBody, forKey: .rawBody)
+    func toIpcResponse() -> IpcResponse {
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: .init(metaBody: metaBody, body: nil))
     }
 }
