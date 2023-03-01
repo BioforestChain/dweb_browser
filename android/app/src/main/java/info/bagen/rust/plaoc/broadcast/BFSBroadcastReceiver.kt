@@ -34,7 +34,7 @@ class BFSBroadcastReceiver : BroadcastReceiver() {
                     }
                     BFSBroadcastAction.DownLoadStatusChanged.action -> {
                         it.getStringExtra("url")?.let { url ->
-                            DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadPaused(url)
+                            DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadStatusChange(url)
                         }
                     }
                     else -> {}

@@ -17,6 +17,7 @@ data class JmmMetadata(
     val introduction: String = "", // 应用描述
     val size: String = "", // 应用大小
     val version:String = "", // 应用版本
+    val appCaptures: List<String> = listOf() // 应用截图
 ) : java.io.Serializable
 
 val temp = """
@@ -66,6 +67,12 @@ val defaultJmmMetadata  = JmmMetadata(
     title = "测试哔哩哔哩",
     introduction = temp,
     size = "2342398472",
-    version = "1.0.1.1"
+    version = "1.0.1.1",
+    appCaptures = listOf(
+        "http://linge.plaoc.com/bilibili/bilibili1.jpg",
+        "http://linge.plaoc.com/bilibili/bilibili2.jpg",
+        "http://linge.plaoc.com/bilibili/bilibili3.jpg",
+        "http://linge.plaoc.com/bilibili/bilibili4.jpg"
+    )
 )
 

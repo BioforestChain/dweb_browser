@@ -161,7 +161,8 @@ class NotificationUtil {
    * 2.下载完成：总进度与当前进度都设置为0即可，同时更新文案
    */
   fun updateNotificationForProgress(
-    progress: Int, notificationId: Int = mProgressNotificationId, text: String = "下载中"
+    progress: Int, notificationId: Int = mProgressNotificationId, text: String = "下载中",
+    pendingIntent: PendingIntent? = null
   ) {
     if (::mBuilder.isInitialized) {
       val progressMax = 100
@@ -169,6 +170,10 @@ class NotificationUtil {
       mBuilder.setContentText("$text：$progress%").setProgress(progressMax, progress, false)
       // 2.下载完成
       //mBuilder.setContentText("下载完成！").setProgress(0, 0, false)
+      // 3.如果是下载完成，跳转到下载
+      if (progress == 100 && pendingIntent != null) {
+        mBuilder.setContentIntent(pendingIntent)
+      }
       mManager.notify(notificationId, mBuilder.build())
       // Toast.makeText(App.appContext, "已更新进度到$progress%", Toast.LENGTH_SHORT).show()
     } else {

@@ -20,6 +20,10 @@ data class JmmUIState(
   val downloadInfo: MutableState<DownLoadInfo> = mutableStateOf(DownLoadInfo())
 )
 
+enum class DownLoadStatus {
+  IDLE, DownLoading, Install, PAUSE, OPEN, FAIL
+}
+
 data class DownLoadInfo(
   var url: String = "", // 文件下载地址
   var name: String = "", // 文件名字
@@ -28,7 +32,7 @@ data class DownLoadInfo(
   var size: Long = 0L, // 文件大小
   var dSize: Long = 0L, // 已下载大小
   // var progress: Float = 0f, // 进度 0~1
-  var pause: Boolean = false, // 用于标记当前下载状态
+  var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
 )
 
 enum class TYPE { MALL/*应用商店*/, INSTALL, UNINSTALL }
@@ -37,7 +41,7 @@ sealed class JmmIntent {
   object DownLoadAndSave : JmmIntent()
   class SetTypeAndJmmMetaData(val type: TYPE, val jmmMetadata: JmmMetadata?) : JmmIntent()
   class UpdateDownLoadProgress(val current: Long, val total: Long) : JmmIntent()
-  class UpdateDownLoadStatus(val pause: Boolean) : JmmIntent()
+  class UpdateDownLoadStatus(val downLoadStatus: DownLoadStatus) : JmmIntent()
 }
 
 class JmmManagerViewModel : ViewModel() {
@@ -47,7 +51,6 @@ class JmmManagerViewModel : ViewModel() {
     viewModelScope.launch(Dispatchers.IO) {
       when (action) {
         is JmmIntent.SetTypeAndJmmMetaData -> {
-          Log.e("lin.huang", "JmmManagerViewModel:SetTypeAndJmmMetaData -> ${action.jmmMetadata}")
           action.jmmMetadata?.let {
             uiState.jmmMetadata = it
             val simpleDateFormat = SimpleDateFormat("yyyy-mm-dd-hh:MM:ss")
@@ -58,24 +61,20 @@ class JmmManagerViewModel : ViewModel() {
               path = "${App.appContext.cacheDir}/download_${it.title}-$time.bfsa",
               notificationId = (NotificationUtil.notificationId++)
             )
-            Log.e(
-              "lin.huang",
-              "JmmManagerViewModel:SetTypeAndJmmMetaData downloadInfo-> ${uiState.downloadInfo}"
-            )
           }
           uiState.currentType.value = action.type
         }
         is JmmIntent.DownLoadAndSave -> {
-          Log.e("lin.huang", "JmmManagerViewModel:DownLoadAndSave -> ${uiState.downloadInfo}")
           DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
         }
         is JmmIntent.UpdateDownLoadProgress -> {
-          Log.d("JmmManagerViewModel", "UpdateDownLoadProgress->${action.current},${action.total}")
           uiState.downloadInfo.value =
             uiState.downloadInfo.value.copy(size = action.total, dSize = action.current)
+          Log.e("lin.huang", "JmmViewModel::UpdateDownLoadProgress--${this@JmmManagerViewModel} -- ${uiState.downloadInfo}")
         }
         is JmmIntent.UpdateDownLoadStatus -> {
-          uiState.downloadInfo.value = uiState.downloadInfo.value.copy(pause = action.pause)
+          uiState.downloadInfo.value =
+            uiState.downloadInfo.value.copy(downLoadStatus = action.downLoadStatus)
         }
       }
     }

@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.jmm.ui
 
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.Composable
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.base.BaseActivity
@@ -25,27 +26,26 @@ class JmmManagerActivity : BaseActivity() {
     }
   }
 
-  private var screenType : TYPE = TYPE.MALL
-  private var jmmMetadata: JmmMetadata? = null
   val jmmManagerViewModel : JmmManagerViewModel = JmmManagerViewModel()//by viewModel()
 
   override fun initData() {
     App.jmmManagerActivity = this
-    screenType = intent.getSerializableExtra(KEY_INSTALL_TYPE) as TYPE
-    jmmMetadata = intent.getSerializableExtra(KEY_JMM_METADATA) as JmmMetadata
+    val screenType = intent.getSerializableExtra(KEY_INSTALL_TYPE)?.let { it as TYPE } ?: TYPE.MALL
+    val jmmMetadata = intent.getSerializableExtra(KEY_JMM_METADATA)?.let { it as JmmMetadata }
     jmmManagerViewModel.handlerIntent(JmmIntent.SetTypeAndJmmMetaData(screenType, jmmMetadata))
   }
 
   @Composable
   override fun InitViews() {
-    when (screenType) {
+    Log.e("lin.huang", "JmmManagerActivity::InitViews -> ${jmmManagerViewModel}")
+    when (jmmManagerViewModel.uiState.currentType.value) {
       TYPE.MALL -> MALLBrowserView(jmmManagerViewModel) { url, name ->
         // DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(url, name)
         jmmManagerViewModel.handlerIntent(JmmIntent.DownLoadAndSave)
         // this@JmmManagerActivity.finish() // 点击下载后可以直接关闭当前界面，或者同步更新按钮的状态
       }
       TYPE.INSTALL -> {
-        InstallBrowserView(jmmManagerViewModel)
+          InstallBrowserView(jmmManagerViewModel)
       }
       TYPE.UNINSTALL -> {
         UninstallBrowserView(jmmManagerViewModel)
@@ -58,14 +58,22 @@ class JmmManagerActivity : BaseActivity() {
     // 该方法被执行，说明当前的activity是打开状态的，这边需要看下是否修改显示
     (intent?.getSerializableExtra(KEY_INSTALL_TYPE))?.let {
       val type = it as TYPE
-      screenType = type
-      jmmManagerViewModel.handlerIntent(JmmIntent.SetTypeAndJmmMetaData(type, null))
+      val jmmMetadata = intent.getSerializableExtra(KEY_JMM_METADATA)?.let { it as JmmMetadata }
+      jmmManagerViewModel.handlerIntent(JmmIntent.SetTypeAndJmmMetaData(type, jmmMetadata))
     }
+    val ttt = when (intent?.getIntExtra("lin.huang", -1)) {
+      0 -> TYPE.MALL
+      1 -> TYPE.INSTALL
+      2 -> TYPE.UNINSTALL
+      else -> null
+    }
+    ttt?.let { jmmManagerViewModel.handlerIntent(JmmIntent.SetTypeAndJmmMetaData(it, null)) }
+
   }
 
-  override fun onPause() {
-    super.onPause()
-    finish() // 安装界面不需要一直存在，进入pause直接消失
+  override fun onStop() {
+    super.onStop()
+    finish() // 安装界面不需要一直存在，进入stop直接消失
   }
 
   override fun onDestroy() {
