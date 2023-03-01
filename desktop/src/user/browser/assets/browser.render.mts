@@ -271,9 +271,4 @@ class AppCol extends LitElement{
         return html`<div class="container" style=${_styleMap} ></div>`
     }
 }
-
-
-
- 
-
  
