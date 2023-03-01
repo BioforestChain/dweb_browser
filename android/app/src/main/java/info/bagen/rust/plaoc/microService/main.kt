@@ -8,12 +8,15 @@ import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.device.DeviceNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.device.LocationNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.device.NetworkNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.device.*
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.FileSystemNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.haptics.HapticsNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.notification.NotificationNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionsNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.share.ShareNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.KeyboardNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.NavigationBarNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.StatusBarNMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 
 suspend fun startDwebBrowser() {
@@ -47,6 +50,22 @@ suspend fun startDwebBrowser() {
     val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
     ///文件系统
     val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
+    /// NFC
+    val nfcNMM = NfcNMM().also { dnsNMM.install(it) }
+    /// 通知
+    val notificationNMM = NotificationNMM().also { dnsNMM.install(it) }
+    /// 分享
+    val shareNMM = ShareNMM().also { dnsNMM.install(it) }
+    /// 振动效果
+    val hapticsNMM = HapticsNMM().also { dnsNMM.install(it) }
+
+    /// keyboard
+    val keyboardNMM = KeyboardNMM().also { dnsNMM.install(it) }
+    /// statusBar
+    val statusBarNMM = StatusBarNMM().also { dnsNMM.install(it) }
+    ///navigation
+    val navigationBarNMM = NavigationBarNMM().also { dnsNMM.install(it) }
+
 
     /// 安装Jmm
     val jmmNMM = JmmNMM().also { dnsNMM.install(it) }

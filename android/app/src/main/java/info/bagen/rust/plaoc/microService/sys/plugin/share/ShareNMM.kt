@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Body
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -33,13 +34,15 @@ data class ShareOptions(
     val dialogTitle: String
 )
 
+inline fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("Share", tag, msg, err)
 
-object Share : NativeMicroModule("share.sys.dweb") {
+class ShareNMM : NativeMicroModule("share.sys.dweb") {
     override suspend fun _bootstrap() {
         apiRouting = routes(
             /** 分享*/
             "/share" bind Method.POST to defineHandler { request ->
-                println("FileSystemNMM#apiRouting checkPermissions===>$mmid  ${request.uri.path} ")
+                debugShare("FileSystemNMM#apiRouting","checkPermissions===>$mmid  ${request.uri.path} ")
                 val shareOptionLens = Body.auto<ShareOptions>().toLens()
                 val ext = shareOptionLens(request)
                 share(ext.title, ext.text, ext.url, ext.files, ext.dialogTitle) {

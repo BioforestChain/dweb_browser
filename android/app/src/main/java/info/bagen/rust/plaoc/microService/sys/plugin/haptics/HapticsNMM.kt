@@ -13,7 +13,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 class HapticsNMM: NativeMicroModule("haptics.sys.dweb") {
-    val vibrateManage = VibrateManage()
+    private val vibrateManage = VibrateManage()
     override suspend fun _bootstrap() {
         apiRouting = routes(
             /** 触碰轻质量物体 */

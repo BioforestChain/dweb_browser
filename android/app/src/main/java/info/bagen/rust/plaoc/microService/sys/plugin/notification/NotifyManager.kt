@@ -1,11 +1,14 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.notification
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import info.bagen.rust.plaoc.App
@@ -120,6 +123,14 @@ class NotifyManager {
         }
 
         with(NotificationManagerCompat.from(context)) {
+            if (ActivityCompat.checkSelfPermission(
+                    App.appContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: 权限申请
+                return
+            }
             notify(notifyId++, builder.build())
         }
     }
