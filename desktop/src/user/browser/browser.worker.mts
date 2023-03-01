@@ -17,7 +17,8 @@ export const main = async () => {
   const { origin, listen } = await createHttpDwebServer(jsProcess, {});
   ;(await listen()).onRequest(async (request, httpServerIpc) => onRequest(request, httpServerIpc) );
  
-  jsProcess.fetch(`file://statusbar.sys.dweb/`)  
+  // jsProcess.fetch(`file://statusbar.sys.dweb/`)  
+
   await openIndexHtmlAtMWebview(origin)
 };
 
@@ -141,7 +142,7 @@ async function onRequestPathNameIcon(request: IpcRequest, httpServerIpc: Ipc){
   console.log("获取icon")
   const path = request.parsed_url.pathname
   const arr = path.split("/")
-  console.log('arr:', arr)
+  console.log('arr:', arr, path)
   const id = arr[2];
   const iconname= arr[4];
   const url =  `file://file.sys.dweb/icon?appId=${id}&name=${iconname}`

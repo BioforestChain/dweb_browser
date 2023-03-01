@@ -34,6 +34,11 @@ dns.install(new ApiNMM())
 import { StatusbarNMM } from "./sys/statusbar/statusbar.main.cjs"
 dns.install(new StatusbarNMM())
 
+// 安装 navigatorbar.sys.dweb
+import { NavigatorbarNMM } from "./sys/navigator-bar/navigator-bar.cjs";
+dns.install(new NavigatorbarNMM())
+ 
+
 // 安装 plugins.sys.dweb 服务
 import { PluginsNMM } from "./sys/plugins/plugins.main.cjs";
 dns.install(new PluginsNMM()) 

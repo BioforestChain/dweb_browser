@@ -12,9 +12,8 @@ import chalk from "chalk";
 export class ApiNMM extends NativeMicroModule{
     mmid = "api.sys.dweb" as const;
     async _bootstrap(){
-        console.log(chalk.red('[api.cts 启动了]'))
+ 
         // 注册通过 jsProcess 发送过来的访问请求
-        // 专门用来做静态服务
         this.registerCommonIpcOnMessageHandler({
             method: "PUT",
             pathname: "/statusbar",
@@ -26,6 +25,18 @@ export class ApiNMM extends NativeMicroModule{
                 return this.fetch(_url, {method: request.method, body: request.body, headers:request.headers})
             },
         });;
+
+        this.registerCommonIpcOnMessageHandler({
+            method: "PUT",
+            pathname: "/navigatorbar",
+            matchMode: "full",
+            input: {},
+            output: {},
+            handler: async (args,client_ipc, request) => {
+                const _url= `file://navigatorbar.sys.dweb/operation_from_plugins?app_url=${request.parsed_url.searchParams.get('app_url')}`
+                return this.fetch(_url, {method: request.method, body: request.body, headers:request.headers})
+            },
+        })
     }
 
     protected _shutdown(): unknown {

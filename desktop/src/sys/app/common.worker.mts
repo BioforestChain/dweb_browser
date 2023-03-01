@@ -18,7 +18,8 @@ export const main = async () => {
         default: onRequestDefault(origin,request, httpServerIpc); break;
       }
     });
-    
+    // 启动底部导航栏
+    // jsProcess.fetch(`file://navigatorbar.sys.dweb/`)
     await openIndexHtmlAtMWebview(origin)
 };
 
@@ -36,6 +37,11 @@ async function openIndexHtmlAtMWebview(origin:string){
   return view_id
 }
 
+/**
+ * 把操作请求发送给api.sys.dweb 服务
+ * @param request 
+ * @param ipc 
+ */
 async function onRequestAtOperationFromPlugins(request: IpcRequest, ipc: Ipc){
   const _path = request.headers["plugin-target"]
   const _appUrl = request.parsed_url.searchParams.get("app_url")
@@ -53,6 +59,12 @@ async function onRequestAtOperationFromPlugins(request: IpcRequest, ipc: Ipc){
   })
 }
 
+/**
+ * 把数据请求发送给 www.sys.dweb 服务
+ * @param origin 
+ * @param request 
+ * @param ipc 
+ */
 async function onRequestDefault(origin: string, request: IpcRequest, ipc: Ipc){
   const _url = `file://www.sys.dweb/server?url=${origin}${request.url}`
   const response = await jsProcess.fetch(_url)
