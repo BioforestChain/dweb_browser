@@ -19,7 +19,7 @@ import info.bagen.rust.plaoc.microService.user.DesktopJMM
 suspend fun startDwebBrowser() {
     System.setProperty("dweb-debug", listOf(
         "message-port-ipc",
-//        "stream-ipc",
+        "stream-ipc",
         "stream",
     ).joinToString(" ") { it })
 

@@ -76,7 +76,7 @@ class IpcBodyReceiver(
                 debugStream(
                     "receiver/metaToStream/postPullMessage/$ipc/${controller.stream}", stream_id
                 )
-                ipc.postMessage(IpcStreamPull(stream_id, desiredSize))
+                ipc.postMessage(IpcStreamPull(stream_id, 1))
             });
             debugStream("receiver/metaToStream/$ipc/$stream", stream_id)
 

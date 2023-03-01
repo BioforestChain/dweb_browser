@@ -10,8 +10,6 @@ import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
 import info.bagen.rust.plaoc.microService.sys.dns.networkFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.Http1Server
-import info.bagen.rust.plaoc.microService.sys.http.net.PortListener
-import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
 import org.http4k.lens.Query
@@ -22,10 +20,6 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.util.*
 
-
-class Gateway(
-    val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String
-)
 
 class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     companion object {
@@ -133,7 +127,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         }
         val query_token = Query.string().required("token")
         val query_routeConfig = Query.string().required("routes")
-        val type_routes = object : TypeToken<ArrayList<RouteConfig>>() {}.type
+        val type_routes = object : TypeToken<ArrayList<Gateway.RouteConfig>>() {}.type
 
         apiRouting = routes(
             "/start" bind Method.GET to defineHandler { request, ipc ->
@@ -141,7 +135,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
             },
             "/listen" bind Method.POST to defineHandler { request ->
                 val token = query_token(request)
-                val routes: List<RouteConfig> =
+                val routes: List<Gateway.RouteConfig> =
                     gson.fromJson(query_routeConfig(request), type_routes)
                 listen(token, request, routes)
             },
@@ -198,7 +192,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
         if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
 
-        val listener = PortListener(ipc, serverUrlInfo.host)
+        val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
 
         /// ipc 在关闭的时候，自动释放所有的绑定
         listener.onDestroy(ipc.onClose { close(ipc, options) })
@@ -218,7 +212,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     private fun listen(
         token: String,
         message: Request,
-        routes: List<RouteConfig>
+        routes: List<Gateway.RouteConfig>
     ): Response {
         val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
 

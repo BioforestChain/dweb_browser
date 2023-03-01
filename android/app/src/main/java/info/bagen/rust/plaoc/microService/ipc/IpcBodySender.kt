@@ -4,6 +4,7 @@ import info.bagen.rust.plaoc.microService.helper.*
 import kotlinx.coroutines.*
 import java.io.InputStream
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * IpcBodySender 本质上是对 ReadableStream 的再次封装。
@@ -26,7 +27,7 @@ class IpcBodySender(
     val isStreamClosed get() = if (isStream) _isStreamClosed else true
     val isStreamOpened get() = if (isStream) _isStreamOpened else true
 
-    private val pullSignal = Signal</* desiredSize */Int>()
+    private val pullSignal = SimpleSignal()
     private val abortSignal = SimpleSignal()
 
 
@@ -35,17 +36,12 @@ class IpcBodySender(
      *
      * 这个进度 用于 类似流的 多发
      */
-    private val usedIpcMap = mutableMapOf<Ipc, /* PulledSize */ Int>()
+    private val usedIpcMap = mutableMapOf<Ipc, /* desiredSize */ Int>()
 
     /**
-     * 当前分发到多少字节
+     * 当前收到拉取的请求数
      */
-    private var maxPulledSize = 0
-
-    /**
-     * 当前已经拉取的数据量
-     */
-    private var curPulledSize = 0;
+    private var curPulledTimes = AtomicInteger(0);
 
     /**
      * 绑定使用
@@ -68,13 +64,10 @@ class IpcBodySender(
      * 拉取数据
      */
     private suspend fun emitStreamPull(message: IpcStreamPull, ipc: Ipc) {
+        /// desiredSize 仅作参考，我们以发过来的拉取次数为准
         val pulledSize = usedIpcMap[ipc]!! + message.desiredSize
         usedIpcMap[ipc] = pulledSize
-        if (maxPulledSize < pulledSize) {
-            val desiredSize = pulledSize - maxPulledSize
-            maxPulledSize = pulledSize
-            pullSignal.emit(desiredSize)
-        }
+        pullSignal.emit(Unit)
     }
 
     /**
@@ -252,14 +245,13 @@ class IpcBodySender(
                 printerrln(ctx.toString(), e.message, e)
             })
 
-        var pulling = false
-        val sender = suspend {
-            while (curPulledSize < maxPulledSize) {
-                pulling = true
-                val desiredSize = maxPulledSize - curPulledSize
-                debugStream(
-                    "sender/StreamAsMeta/PULLING/$stream", "$stream_id desiredSize:$desiredSize"
-                )
+        suspend fun sender() {
+            /// 如果原本就不为0，那么就说明已经在运行中了
+            if (curPulledTimes.getAndAdd(1) > 0) {
+                return
+            }
+            while (curPulledTimes.get() > 0) {
+                debugStream("sender/StreamAsMeta/PULLING/$stream", stream_id)
                 when (val availableLen = stream.available()) {
                     -1, 0 -> {
                         debugStream(
@@ -292,18 +284,18 @@ class IpcBodySender(
                                 if (ipc.supportBinary) binary_mesage else base64_mesage
                             )
                         }
-                        curPulledSize += availableLen
                     }
                 }
+
+                /// 只要发送过一次，那么就把所有请求指控，根据协议，我能发多少是多少，你不够的话，再来要
+                curPulledTimes.set(0)
+                debugStream("sender/StreamAsMeta/PULL-END/$stream", stream_id)
             }
-            debugStream("sender/StreamAsMeta/PULL-END/$stream", stream_id)
-            pulling = false
+
         }
-        pullSignal.listen { desiredSize ->
+        pullSignal.listen {
             streamAsMetaScope.launch {
-                if (!pulling) {
-                    sender()
-                }
+                sender()
             }
         }
         abortSignal.listen {

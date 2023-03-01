@@ -66,7 +66,7 @@ const $metaToStream = (rawBody: $MetaBody, ipc: Ipc) => {
       });
     },
     pull(controller) {
-      console.log("postStreamPullMessage", stream_id);
+      console.log("postStreamPullMessage", stream_id, controller.desiredSize);
       stream_ipc.postMessage(
         new IpcStreamPull(stream_id, controller.desiredSize)
       );

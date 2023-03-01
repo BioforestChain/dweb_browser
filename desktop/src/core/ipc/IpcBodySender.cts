@@ -1,7 +1,7 @@
 import { binaryToU8a } from "../../helper/binaryHelper.cjs";
 import { $Callback, createSignal } from "../../helper/createSignal.cjs";
 import { simpleDecoder } from "../../helper/encoding.cjs";
-import { streamRead } from "../../helper/readableStreamHelper.cjs";
+import { binaryStreamRead } from "../../helper/readableStreamHelper.cjs";
 import { $MetaBody, IPC_META_BODY_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.cjs";
@@ -31,7 +31,7 @@ export class IpcBodySender extends IpcBody {
 
   readonly isStream = this.data instanceof ReadableStream;
 
-  private pullSignal = createSignal<(desiredSize: number) => unknown>();
+  private pullSignal = createSignal();
   private abortSignal = createSignal();
 
   /**
@@ -40,10 +40,11 @@ export class IpcBodySender extends IpcBody {
    * 这个进度 用于 类似流的 多发
    */
   private readonly usedIpcMap = new Map<Ipc, /* PulledSize */ number>();
+
   /**
-   * 当前分发到多少字节
+   * 当前收到拉取的请求数
    */
-  private maxPulledSize = 0;
+  private curPulledTimes = 0;
 
   /**
    * 绑定使用
@@ -65,13 +66,10 @@ export class IpcBodySender extends IpcBody {
    * 拉取数据
    */
   private emitStreamPull(message: IpcStreamPull, ipc: Ipc) {
+    /// desiredSize 仅作参考，我们以发过来的拉取次数为准
     const pulledSize = this.usedIpcMap.get(ipc)! + message.desiredSize;
     this.usedIpcMap.set(ipc, pulledSize);
-    if (this.maxPulledSize < pulledSize) {
-      const desiredSize = pulledSize - this.maxPulledSize;
-      this.maxPulledSize = pulledSize;
-      this.pullSignal.emit(desiredSize);
-    }
+    this.pullSignal.emit();
   }
 
   /**
@@ -101,10 +99,12 @@ export class IpcBodySender extends IpcBody {
     return this._isStreamOpened;
   }
   public set isStreamOpened(value) {
-    this._isStreamOpened = value;
-    if (value) {
-      this.openSignal.emit();
-      this.openSignal.clear();
+    if (this._isStreamOpened !== value) {
+      this._isStreamOpened = value;
+      if (value) {
+        this.openSignal.emit();
+        this.openSignal.clear();
+      }
     }
   }
   private _isStreamClosed = false;
@@ -112,10 +112,12 @@ export class IpcBodySender extends IpcBody {
     return this._isStreamClosed;
   }
   public set isStreamClosed(value) {
-    this._isStreamClosed = value;
-    if (value) {
-      this.closeSignal.emit();
-      this.closeSignal.clear();
+    if (this._isStreamClosed !== value) {
+      this._isStreamClosed = value;
+      if (value) {
+        this.closeSignal.emit();
+        this.closeSignal.clear();
+      }
     }
   }
   private emitStreamClose() {
@@ -152,19 +154,35 @@ export class IpcBodySender extends IpcBody {
     ipc: Ipc
   ): $MetaBody {
     const stream_id = getStreamId(stream);
-    const reader = streamRead(stream);
+    const reader = binaryStreamRead(stream);
 
-    const sender =
-      /**
-       * 这里的数据发送是按需迭代，而不是马上发
-       * 马上发会有一定的问题，需要确保对方收到 IpcResponse 对象后，并且开始接收数据时才能开始
-       * 否则发过去的数据 IpcResponse 如果还没构建完，就导致 IpcStreamData 无法认领，为了内存安全必然要被抛弃
-       * 所以整体上来说，我们使用 pull 的逻辑，让远端来要求我们去发送数据
-       */
-      async function* _postStreamData(this: IpcBodySender) {
-        try {
-          /// 这里我们没有遵循 desiredSize 的要求，属于是能发多少算多少，效果几乎是一样的
-          for await (const data of reader) {
+    const sender = async () => {
+      /// 如果原本就不为0，那么就说明已经在运行中了
+      if (this.curPulledTimes++ > 0) {
+        return;
+      }
+      /// 读满预期值
+      while (this.curPulledTimes > 0) {
+        // const desiredSize = this.maxPulledSize - this.curPulledSize;
+        const availableLen = await reader.available();
+        switch (availableLen) {
+          case -1:
+          case 0:
+            {
+              /// 不论是不是被 aborted，都发送结束信号
+              const message = new IpcStreamEnd(stream_id);
+              for (const ipc of this.usedIpcMap.keys()) {
+                ipc.postMessage(message);
+              }
+
+              this.emitStreamClose();
+            }
+            break;
+          default: {
+            // 开光了，流已经开始被读取
+            this.isStreamOpened = true;
+
+            const data = await reader.readBinary(availableLen);
             let binary_message: undefined | IpcStreamData;
             let base64_message: undefined | IpcStreamData;
             for (const ipc of this.usedIpcMap.keys()) {
@@ -174,27 +192,16 @@ export class IpcBodySender extends IpcBody {
 
               ipc.postMessage(message);
             }
-            yield;
           }
-        } finally {
-          /// 不论是不是被 aborted，都发送结束信号
-          const message = new IpcStreamEnd(stream_id);
-          for (const ipc of this.usedIpcMap.keys()) {
-            ipc.postMessage(message);
-          }
-
-          this.emitStreamClose();
         }
-      }.call(this);
 
-    this.pullSignal.listen(
-      async (
-        /// 预期值仅供参考
-        desiredSize
-      ) => {
-        await sender.next();
+        /// 只要发送过一次，那么就把所有请求指控，根据协议，我能发多少是多少，你不够的话，再来要
+        this.curPulledTimes = 0;
       }
-    );
+    };
+    this.pullSignal.listen(() => {
+      void sender();
+    });
     this.abortSignal.listen(() => {
       reader.throw("abort");
       this.emitStreamClose();

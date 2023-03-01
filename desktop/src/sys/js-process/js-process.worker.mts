@@ -15,6 +15,9 @@ import type {
 import { updateUrlOrigin } from "../../helper/urlHelper.cjs";
 import type { $RunMainConfig } from "./assets/js-process.web.mjs";
 
+import * as ipc from "../../core/ipc/index.cjs";
+import * as http from "../http-server/$createHttpDwebServer.cjs";
+
 class Metadata {
   constructor(private source: URLSearchParams) {}
   requiredString(key: string) {
@@ -134,6 +137,8 @@ export const installEnv = async (mmid: $MMID, host: String) => {
     fetch,
     jsProcess,
     JsProcessMicroModule,
+    http,
+    ipc,
   });
   /// 安装完成，告知外部
   self.postMessage(["env-ready"]);

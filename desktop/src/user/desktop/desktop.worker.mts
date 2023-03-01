@@ -1,14 +1,14 @@
 /// <reference path="../../sys/js-process/js-process.worker.d.ts"/>
 
-import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
-import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
 import { CODE as CODE_desktop_web_mjs } from "./assets/desktop.web.mjs.cjs";
 import { CODE as CODE_index_html } from "./assets/index.html.cjs";
 
 console.log("ookkkkk, i'm in worker");
 
 export const main = async () => {
+  const { IpcHeaders, IpcResponse } = ipc;
+  const { createHttpDwebServer } = http;
+
   debugger;
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
@@ -25,6 +25,7 @@ export const main = async () => {
       request.parsed_url.pathname === "/" ||
       request.parsed_url.pathname === "/index.html"
     ) {
+      console.log("request body text:", await request.body.text());
       /// 收到请求
       httpServerIpc.postMessage(
         IpcResponse.fromText(
