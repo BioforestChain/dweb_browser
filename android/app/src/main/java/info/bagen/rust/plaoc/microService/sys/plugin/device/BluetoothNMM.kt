@@ -17,9 +17,14 @@ import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.ipc.IpcStreamData
+import info.bagen.rust.plaoc.microService.ipc.IpcStreamEnd
+import info.bagen.rust.plaoc.microService.ipc.debugStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -112,7 +117,7 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
              * 作为服务端连接 /connect/server
              * 关闭连接 /connect/close
              * */
-            "/connect/{target}" bind Method.GET to defineHandler { request, ipc ->
+            "/connect/{target}" bind Method.POST to defineHandler { request, ipc ->
                 // 默认作为服务器连接
                 val target = request.path("target") ?: "server"
                 // 如果传递的是关闭消息
@@ -131,11 +136,29 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                         ?: return@defineHandler Response(Status.INTERNAL_SERVER_ERROR).body("Bluetooth socket creation failed")
                     // 建立socket连接
 //                    socket.connect()
-                    ipc.postMessage(IpcStreamData.fromBinary(strName, socket.inputStream.readByteArray(), ipc))
-                    ipc.onMessage {
+                    ipc.postMessage(
+                        IpcStreamData.fromBinary(
+                            strName,
+                            socket.inputStream.readByteArray(),
+                            ipc
+                        )
+                    )
+                    ipc.onMessage { (message) ->
                         // TODO 接收worker的消息并且发送信息
-//                        val bufferedWriter =  socket.outputStream.bufferedWriter()
-//                        bufferedWriter.write(it.message)
+                        val bufferedWriter = socket.outputStream
+                        debugBluetooth(
+                            "/connect", message
+                        )
+                        // TODO 未测试
+                        withContext(Dispatchers.IO) {
+                            if (message is IpcStreamData ) {
+                                bufferedWriter.write(request.body.stream.readByteArray())
+                            } else if (message is IpcStreamEnd ) {
+                                bufferedWriter.close()
+                                return@withContext SIGNAL_CTOR.OFF
+                            } else {
+                            }
+                        }
                     }
                 } catch (e: Throwable) {
                     debugBluetooth("error connect: ${e.message}")

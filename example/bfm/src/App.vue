@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import Protal from "./components/protal.vue"
+import Clipboard from "./components/clipboard.vue";
 </script>
 
 <template>
   <h1 class="title">BFM</h1>
 
-  <Protal></Protal>
+  <div class="content">
+    <div class="item">
+      <Protal></Protal>
+    </div>
+    <div class="item">
+      <Clipboard></Clipboard>
+    </div>
+  </div>
 
   <RouterView />
 </template>
@@ -39,5 +47,24 @@ header {
     margin: 0 2rem 0 0;
   }
 
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.item {
+  margin: 10px;
+}
+
+.item::after {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+  content: "---";
 }
 </style>
