@@ -17,14 +17,17 @@ import type { $State } from "./file-download.cjs";
 export class FileNMM extends NativeMicroModule {
     mmid = "file.sys.dweb" as const;
     async _bootstrap() {
+
+      let downloadProcess: number = 0;
       this.registerCommonIpcOnMessageHandler({
         pathname: "/download",
         matchMode: "full",
-        input: {url: "string"},
+        input: {url: "string", app_id: "string"},
         output: "boolean",
         handler: async (arg, client_ipc, request) => {
+          console.log('[file.cts]arg==',arg)
             return new Promise((resolve, reject) => {
-                download(arg.url, _progressCallback)
+                download(arg.url,arg.app_id, _progressCallback)
                 .then((apkInfo) => {
                   resolve(IpcResponse.fromJson(request.req_id, 200, apkInfo))
                 })
@@ -33,29 +36,33 @@ export class FileNMM extends NativeMicroModule {
                   console.log('下载出错： ',err)
                 })
             })
+           
             function _progressCallback(state: $State){
-                // console.log('state: ', state)
-                // request.req_id:  0
-                // console.log('request.req_id: ', request.req_id)
-                // client_ipc.postMessage(
-                //     IpcResponse.fromText(
-                //         request.req_id,
-                //         200,
-                //         JSON.stringify(state),
-                //         new IpcHeaders({
-                //           "Content-Type": "text/json",
-                //         })
-                //     )
-                // )
-                // 不通过这个 下载进度先不考虑
+              downloadProcess = state.percent
+              console.log('file.cts state.percent: ', state.percent)
             }
-
-            // return true;
-
-            // 测试地址： https://bfm-prd-download.oss-cn-hongkong.aliyuncs.com/cot/COT-beta-202302091839.apk
-            // console.log('接受到了下载的信息 执行下载的程序: ', arg)
         },
       });
+
+      //   获取下载的进度
+      this.registerCommonIpcOnMessageHandler({
+        pathname: "/download_process",
+        matchMode: "full",
+        input: {},
+        output: "boolean",
+        handler: async (args,client_ipc, request) => {
+          return IpcResponse.fromText(
+            request.req_id,
+            200,
+            downloadProcess + "",
+            new IpcHeaders({
+              "Content-Type": "text/json",
+            })
+          )
+        }
+      })
+
+
 
       //   获取全部的 appsInfo
       this.registerCommonIpcOnMessageHandler({

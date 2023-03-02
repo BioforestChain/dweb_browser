@@ -120,7 +120,7 @@ class HomePage extends LitElement{
             >
                 <div class="logo-container">logo---</div>
                 <div class="search-container">
-                   <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa"/>
+                   <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/bfs-metadata.json"/>
                    <button class="search-bottom" @click=${this.onView} >view</button>
                 </div>
                 <div class="apps-container">
@@ -168,7 +168,9 @@ class HomePage extends LitElement{
             console.log('res', res)
             const result = JSON.parse(await res.json())
             const origin = result.origin;
-            open(origin)
+            const url = `${origin}?url=${this.elInput?.value}`
+            console.log('url: ', url)
+            open(url)
             
         })
         .catch(err => console.log('err')) 
