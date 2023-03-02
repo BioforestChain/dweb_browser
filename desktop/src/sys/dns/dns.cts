@@ -1,12 +1,11 @@
+import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
+import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import type { MicroModule } from "../../core/micro-module.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
+import { resolveToRootFile } from "../../helper/createResolveTo.cjs";
 import type { $MMID } from "../../helper/types.cjs";
+import { JsMicroModule } from "../../sys/micro-module.js.cjs";
 import { hookFetch } from "./hookFetch.cjs";
-import { JsMicroModule } from "../../sys/micro-module.js.cjs"
-import { resolveToRootFile } from "../../helper/createResolveTo.cjs"
-import { IpcResponse } from "../../core/ipc/IpcResponse.cjs"
-import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
-
 
 /** DNS 服务，内核！
  * 整个系统都围绕这个 DNS 服务来展开互联
@@ -25,23 +24,22 @@ export class DnsNMM extends NativeMicroModule {
       output: "void",
       handler: async (arg, client_ipc, request) => {
         /// TODO 动态创建 JsMicroModule
-        const _url = new URL(request.url)
-        let appId = _url.searchParams.get("app_id")
-        if(appId === null) return void 0;
-        const mmid = `${appId}` as $MMID
+        const _url = new URL(request.url);
+        let appId = _url.searchParams.get("app_id");
+        if (appId === null) return void 0;
+        const mmid = `${appId}` as $MMID;
         // 动态安装模块
         const appJMM = new JsMicroModule(mmid, {
           main_url: resolveToRootFile("bundle/common.worker.js").href,
         } as const);
-        this.install(appJMM)
+        this.install(appJMM);
         return IpcResponse.fromText(
           request.req_id,
           200,
+          undefined,
           "ok",
-          new IpcHeaders({
-            "Content-Type": "text/plain"
-          })
-        )
+          client_ipc
+        );
       },
     });
 
@@ -56,14 +54,15 @@ export class DnsNMM extends NativeMicroModule {
         return IpcResponse.fromJson(
           request.req_id,
           200,
-          JSON.stringify(app),
           new IpcHeaders({
             "Content-Type": "application/json; charset=UTF-8"
-          })
+          }),
+          JSON.stringify(app),
+          client_ipc
         );
       },
     });
-    
+
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
       matchMode: "full",
@@ -75,7 +74,6 @@ export class DnsNMM extends NativeMicroModule {
         return true;
       },
     });
-
 
     // 重写 fetch
     hookFetch(this);

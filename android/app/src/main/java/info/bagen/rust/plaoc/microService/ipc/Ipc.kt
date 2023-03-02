@@ -1,41 +1,44 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.Signal
-import info.bagen.rust.plaoc.microService.helper.SimpleCallback
-import info.bagen.rust.plaoc.microService.helper.SimpleSignal
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
+import info.bagen.rust.plaoc.microService.helper.*
 import org.http4k.core.Method
 import org.http4k.core.Request
+import org.http4k.core.Response
 import org.http4k.core.Uri
 
 
 abstract class Ipc {
     companion object {
-        private var ipc_uid_acc = 1
-        private var _req_id_acc: Int = 0;
+        private var uid_acc = 1
+        private var req_id_acc = 0;
     }
+
+    val uid = uid_acc++
 
     /**
      * 是否支持 messagePack 协议传输：
      * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
      */
-    val supportMessagePack: Boolean = false
+    open val supportMessagePack: Boolean = false
 
     /**
      * 是否支持 Protobuf 协议传输：
      * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 Protobuf 的编解码
      */
-    val supportProtobuf: Boolean = false
+    open val supportProtobuf: Boolean = false
+
+    /**
+     * 是否支持结构化内存协议传输：
+     * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
+     */
+    open val supportRaw: Boolean = false
 
     /** 是否支持 二进制 传输 */
-    val supportBinary get() = supportMessagePack || supportProtobuf
+    open val supportBinary: Boolean = false // get() = supportMessagePack || supportProtobuf
 
     abstract val remote: MicroModule
     abstract val role: IPC_ROLE
-    val uid = ipc_uid_acc++
 
     override fun toString() = "#i$uid"
 
@@ -44,6 +47,17 @@ abstract class Ipc {
             return;
         }
         this._doPostMessage(message);
+    }
+
+
+    suspend fun postResponse(req_id: Int, response: Response) {
+        postMessage(
+            IpcResponse.fromResponse(
+                req_id,
+                response,
+                this
+            )
+        )
     }
 
     protected val _messageSignal = Signal<IpcMessageArgs>();
@@ -73,7 +87,10 @@ abstract class Ipc {
         this._closed = true;
         this._doClose();
         this._closeSignal.emit();
+        this._closeSignal.clear();
     }
+
+    val isClosed get() = _closed
 
     private val _closeSignal = SimpleSignal();
     fun onClose(cb: SimpleCallback) = this._closeSignal.listen(cb)
@@ -89,31 +106,21 @@ abstract class Ipc {
 
     suspend fun request(ipcRequest: IpcRequest): IpcResponse {
         this.postMessage(ipcRequest)
-        val result = Channel<IpcResponse>();
+        val result = PromiseOut<IpcResponse>();
         this.onMessage { args ->
             if (args.message is IpcResponse && args.message.req_id == ipcRequest.req_id) {
-                GlobalScope.launch {
-                    result.send(args.message)
-                }
+                result.resolve(args.message)
+                return@onMessage SIGNAL_CTOR.OFF
+            } else {
             }
         }
-        return result.receive()
+        return result.waitPromise()
     }
 
     suspend fun request(request: Request) =
-        this.request(IpcRequest.fromRequest(allocReqId(), request, this)).asResponse()
+        this.request(IpcRequest.fromRequest(allocReqId(), request, this)).toResponse()
 
-    fun allocReqId() = _req_id_acc++;
+    fun allocReqId() = req_id_acc++;
 
-    suspend fun responseBy(byIpc: Ipc, byIpcRequest: IpcRequest) {
-        postMessage(
-            IpcResponse.fromResponse(
-                byIpcRequest.req_id,
-                // 找个 ipcRequest 对象不属于我的，不能直接用
-                byIpc.request(byIpcRequest.asRequest()),
-                byIpc
-            )
-        )
-    }
 }
 

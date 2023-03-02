@@ -7,13 +7,13 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Looper
-import android.util.Log
 import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.printerrln
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
+
 
 data class LocationData(
     var latitude: Double? = null,
@@ -122,8 +122,9 @@ class LocationInfo : LocationListener {
         private const val MIN_DISTANCE_CHANGE_FOR_UPDATES: Long = 0
         private const val MIN_TIME_BW_UPDATES: Long = 0
     }
-
+    /** 当最后一次获取的位置与当前位置不匹配时，会触发该函数*/
     override fun onLocationChanged(location: Location) {
-        TODO("Not yet implemented")
+        locationLatLong[0] = location.latitude
+        locationLatLong[1] = location.longitude
     }
 }

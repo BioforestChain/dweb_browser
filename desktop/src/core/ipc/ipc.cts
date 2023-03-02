@@ -1,41 +1,61 @@
 import once from "lodash/once";
-import { isBinary } from "../../helper/binaryHelper.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
 import {
+  $IpcMessage,
   $OnIpcRequestMessage,
-  IPC_DATA_TYPE,
-  type $IpcMessage,
+  IPC_MESSAGE_TYPE,
   type $OnIpcMessage,
   type IPC_ROLE,
 } from "./const.cjs";
-import { IpcHeaders } from "./IpcHeaders.cjs";
+import type { IpcHeaders } from "./IpcHeaders.cjs";
 import { IpcRequest } from "./IpcRequest.cjs";
-import chalk from "chalk"
 import type { IpcResponse } from "./IpcResponse.cjs";
 
 let ipc_uid_acc = 0;
 export abstract class Ipc {
+  readonly uid = ipc_uid_acc++;
+
   /**
    * 是否支持使用 MessagePack 直接传输二进制
    * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
    * 二进制传输在网络相关的服务里被支持，里效率会更高，但前提是对方有 MessagePack 的编解码能力
    * 否则 JSON 是通用的传输协议
    */
-  abstract readonly support_message_pack: boolean;
+  get support_message_pack() {
+    return this._support_message_pack;
+  }
+  protected _support_message_pack = false;
   /**
    * 是否支持使用 Protobuf 直接传输二进制
    * 在网络环境里，protobuf 是更加高效的协议
    */
-  readonly support_protobuf = false;
+  get support_protobuf() {
+    return this._support_protobuf;
+  }
+  protected _support_protobuf = false;
+
+  /**
+   * 是否支持结构化内存协议传输：
+   * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
+   */
+  get support_raw() {
+    return this._support_raw;
+  }
+  protected _support_raw = false;
   /**
    * 是否支持二进制传输
    */
   get support_binary() {
-    return this.support_message_pack || this.support_protobuf;
+    return (
+      this._support_binary ??
+      (this.support_message_pack || this.support_protobuf || this.support_raw)
+    );
   }
-  readonly uid = ipc_uid_acc++;
+
+  protected _support_binary = false;
+
   abstract readonly remote: $MicroModule;
   abstract readonly role: IPC_ROLE;
 
@@ -52,8 +72,7 @@ export abstract class Ipc {
   private _getOnRequestListener = once(() => {
     const signal = createSignal<$OnIpcRequestMessage>();
     this.onMessage((request, ipc) => {
-      if (request.type === IPC_DATA_TYPE.REQUEST) {
-        
+      if (request.type === IPC_MESSAGE_TYPE.REQUEST) {
         signal.emit(request, ipc);
       }
     });
@@ -74,6 +93,7 @@ export abstract class Ipc {
     this._closed = true;
     this._doClose();
     this._closeSignal.emit();
+    this._closeSignal.clear();
   }
   private _closeSignal = createSignal<() => unknown>();
   onClose = this._closeSignal.listen;
@@ -81,7 +101,7 @@ export abstract class Ipc {
   private readonly _reqresMap = new Map<number, PromiseOut<IpcResponse>>();
   private _req_id_acc = 0;
   allocReqId(url?: string) {
-    return this._req_id_acc++
+    return this._req_id_acc++;
   }
 
   private _inited_req_res = false;
@@ -91,8 +111,7 @@ export abstract class Ipc {
     }
     this._inited_req_res = true;
     this.onMessage((message) => {
-      if (message.type === IPC_DATA_TYPE.RESPONSE) {
-        // 查看这里的 keys 之前的区别
+      if (message.type === IPC_MESSAGE_TYPE.RESPONSE) {
         const response_po = this._reqresMap.get(message.req_id);
         if (response_po) {
           this._reqresMap.delete(message.req_id);
@@ -104,7 +123,7 @@ export abstract class Ipc {
     });
   }
   // 先找到错误的位置
-  // 需要确定两个问题 
+  // 需要确定两个问题
   // 是否是应为报错导致无法响应后面的请求
   // 如果是是否可以避免报错？？
 
@@ -112,51 +131,20 @@ export abstract class Ipc {
   // 会提供给 http-server模块的 gateway.listener.hookHttpRequest
   request(
     url: string,
-    init: {
+    init?: {
       method?: string;
       body?: /* json+text */
       | string
-      /* base64 */
-      | Uint8Array
-      /* stream+base64 */
-      | ReadableStream<Uint8Array>;
+        /* base64 */
+        | Uint8Array
+        /* stream+base64 */
+        | ReadableStream<Uint8Array>;
       headers?: IpcHeaders | HeadersInit;
-    } = {}
-  ) {
-    const req_id = this.allocReqId(url);
-    const method = init.method ?? "GET";
-    const headers =
-      init.headers instanceof IpcHeaders
-        ? init.headers
-        : new IpcHeaders(init.headers);
-    let ipcRequest: IpcRequest;
-    if (isBinary(init.body)) {
-      ipcRequest = IpcRequest.fromBinary(
-        init.body,
-        req_id,
-        method,
-        url,
-        headers,
-        this
-      );
-    } else if (init.body instanceof ReadableStream) {
-      ipcRequest = IpcRequest.fromStream(
-        init.body,
-        req_id,
-        method,
-        url,
-        headers,
-        this
-      );
-    } else {
-      ipcRequest = IpcRequest.fromText(
-        init.body ?? "",
-        req_id,
-        method,
-        url,
-        headers
-      );
     }
+  ) {
+    const req_id = this.allocReqId();
+    const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
+
     this.postMessage(ipcRequest);
     return this.registerReqId(req_id).promise;
   }

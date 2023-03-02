@@ -4,12 +4,13 @@ import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
-import info.bagen.rust.plaoc.microService.ipc.Ipc
-import info.bagen.rust.plaoc.microService.ipc.IpcMessage
-import info.bagen.rust.plaoc.microService.ipc.IpcMessageArgs
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.printerrln
+import info.bagen.rust.plaoc.microService.ipc.*
+import kotlinx.coroutines.*
+
+inline fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("message-port-ipc", tag, msg, err)
 
 open class MessagePortIpc(
     val port: WebMessagePort,
@@ -17,15 +18,35 @@ open class MessagePortIpc(
     override val role: IPC_ROLE,
 ) : Ipc() {
 
+    override fun toString(): String {
+        return super.toString() + "@MessagePortIpc"
+    }
+
     init {
-        val ipc = this
+        val ipc = this;
+//        GlobalScope.launch {
+//            while (true) {
+//                port.postMessage(WebMessage("ping"))
+//                delay(30000)
+//            }
+//        }
         port.setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
-                GlobalScope.launch {
+                CoroutineScope(CoroutineName(this.toString()) + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
+                    printerrln("$ctx/$ipc", e.message, e)
+                }).launch {
                     when (val message = jsonToIpcMessage(event.data, ipc)) {
                         "close" -> close()
-                        is IpcMessage -> _messageSignal.emit(IpcMessageArgs(message, ipc))
+                        "ping" -> port.postMessage(WebMessage("pong"))
+                        "pong" -> debugMessagePortIpc("PONG/$ipc")
+                        is IpcMessage -> {
+                            debugMessagePortIpc("ON-MESSAGE/$ipc", message)
+                            _messageSignal.emit(
+                                IpcMessageArgs(message, ipc)
+                            )
+                        }
+                        else -> throw Exception("unknown message: $message")
                     }
                 }
             }
@@ -33,7 +54,12 @@ open class MessagePortIpc(
     }
 
     override suspend fun _doPostMessage(data: IpcMessage) {
-        this.port.postMessage(WebMessage(gson.toJson(data)))
+        val message = when (data) {
+            is IpcRequest -> gson.toJson(data.ipcReqMessage)
+            is IpcResponse -> gson.toJson(data.ipcResMessage)
+            else -> gson.toJson(data)
+        }
+        this.port.postMessage(WebMessage(message))
     }
 
     override suspend fun _doClose() {

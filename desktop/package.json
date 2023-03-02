@@ -4,14 +4,14 @@
   "main": "./index.js",
   "domain": "dweb",
   "webview": {
-    "partitions": [
-      {
-        "name": "trusted",
-        "accessible_resources": [
-          "<all_urls>"
+      "partitions": [
+          {
+              "name": "trusted",
+              "accessible_resources": [
+                  "<all_urls>"
+              ]
+          }
         ]
-      }
-    ]
   },
   "node-remote": "<all_urls>",
   "crash_report_url": "http://localhost:11270",

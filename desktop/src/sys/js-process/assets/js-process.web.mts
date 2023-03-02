@@ -1,15 +1,5 @@
 import { createSignal } from "../../../helper/createSignal.mjs";
-import { exportApis } from "../../../helper/openNativeWindow.preload.mjs";
 import { PromiseOut } from "../../../helper/PromiseOut.mjs";
-
-// /** 将一个 MessagePort 变成一个真正的 MessagePort */
-// const asMessagePort = (origin: MessagePort) => {
-//   if (origin instanceof MessagePort) {
-//     return origin;
-//   }
-//   origin = new
-
-// };
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 const ALL_PROCESS_MAP = new Map<
@@ -26,10 +16,34 @@ const createProcess = async (
   env_script_url: string,
   fetch_port: MessagePort
 ) => {
+  console.log(env_script_url, fetch_port);
   const process_id = allocProcessId();
-
+  const worker_url = URL.createObjectURL(
+    new Blob(
+      [
+        `import("${env_script_url}").then(()=>postMessage("ready"),(err)=>postMessage("ERROR:"+err))`,
+      ],
+      {
+        // esm 代码必须有正确的 mime
+        type: "application/javascript",
+      }
+    )
+  );
   /// https://caniuse.com/mdn-api_worker_worker_ecmascript_modules 需要 2019 年之后的 WebView 支持： Safari 15+ || Chrome 80+
-  const worker = new Worker(env_script_url, { type: "module" });
+  const worker = new Worker(worker_url, { type: "module" });
+  await new Promise<void>((resolve, reject) => {
+    worker.addEventListener(
+      "message",
+      (event) => {
+        if (event.data === "ready") {
+          resolve();
+        } else {
+          reject(event.data);
+        }
+      },
+      { once: true }
+    );
+  });
 
   worker.postMessage(["fetch-ipc-channel", fetch_port], [fetch_port]);
   /// 等待启动任务完成
@@ -102,5 +116,3 @@ on_create_process_signal.listen(({ process_id, env_script_url }) => {
     <span>URL:${env_script_url}</span>
   </div>`;
 });
-
-exportApis(APIS);

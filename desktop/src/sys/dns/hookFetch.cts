@@ -75,7 +75,7 @@ export const hookFetch = (app_mm: DnsNMM) => {
           );
           const ipc_response = await ipc.request(parsed_url.href, ipc_req_init);
 
-          return ipc_response.asResponse(parsed_url.href);
+          return ipc_response.toResponse(parsed_url.href);
         })();
       }
       /// fetch("file:///*")

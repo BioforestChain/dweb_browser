@@ -1,69 +1,70 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.barcode
 
-import android.content.Intent
-import info.bagen.libappmgr.ui.camera.QRCodeIntent
-import info.bagen.libappmgr.ui.camera.ScanType
-import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.MainActivity
+import android.graphics.BitmapFactory
+import android.graphics.Point
+import android.graphics.Rect
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import io.ktor.util.*
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.lens.Query
-import org.http4k.lens.string
+import org.http4k.lens.int
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class ScanningNMM:NativeMicroModule("scanning.sys.dweb") {
-    override suspend fun _bootstrap() {
-        apiRouting = routes(
-            // 二维码扫码
-            "/qr/start" bind Method.GET to defineHandler { request ->
-                println("ScanningNMM#apiRouting /qr/start===>$mmid  request:${request.uri.query} ")
-                App.mainActivity?.also {
-                    it.qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
-                    Response(Status.OK)
-                }
-                Response(Status.CONNECTION_REFUSED)
-            },
-            // 二维码关闭
-            "/qr/stop" bind Method.GET to defineHandler { request ->
-                println("ScanningNMM#apiRouting /qr/stop===>$mmid  request:${request.uri.query} ")
-                App.mainActivity?.also {
-                    it.qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(false))
-                    Response(Status.OK)
-                }
-                Response(Status.CONNECTION_REFUSED)
-            },
-            // 条形码开启
-            "/barcode/start" bind Method.GET to defineHandler { request ->
-                println("ScanningNMM#apiRouting /barcode/start===>$mmid  request:${request.uri.query} ")
-                App.mainActivity?.also {
-                    it.qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true, ScanType.BARCODE))
-                    Response(Status.OK)
-                }
-                Response(Status.CONNECTION_REFUSED)
-            },
-            // 条形码关闭
-            "/barcode/stop" bind Method.GET to defineHandler { request ->
-                println("ScanningNMM#apiRouting /barcode/stop===>$mmid  request:${request.uri.query} ")
-                App.mainActivity?.also {
-                    it.qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(false, ScanType.BARCODE))
-                    Response(Status.OK)
-                }
-                Response(Status.CONNECTION_REFUSED)
-            },
-        )
-    }
+inline fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("Scanning", tag, msg, err)
 
-    // 打开二维码
-    fun openScannerActivity() {
-        QRCodeScanningActivity().initCameraScan()
+class ScanningNMM() : NativeMicroModule("scanning.sys.dweb") {
+
+    override suspend fun _bootstrap() {
+        val query_rotationDegrees = Query.int().defaulted("rotation", 0)
+
+        apiRouting = routes(
+            // 处理二维码图像
+            "/process" bind Method.POST to defineHandler { request, ipc ->
+                val image = InputImage.fromBitmap(
+                    request.body.payload.moveToByteArray().let { byteArray ->
+                        BitmapFactory.decodeByteArray(
+                            byteArray,
+                            0,
+                            byteArray.size
+                        )
+                    },
+                    query_rotationDegrees(request)
+                )
+                return@defineHandler process(image)
+            },
+
+            )
     }
 
 
     override suspend fun _shutdown() {
-        TODO("Not yet implemented")
     }
 
+    class BarcodeResult(val data: ByteArray, val boundingBox: Rect, val cornerPoints: List<Point>)
+
+    private suspend fun process(image: InputImage): List<BarcodeResult> {
+        val task = PromiseOut<List<BarcodeResult>>()
+        BarcodeScanning.getClient().process(image)
+            .addOnSuccessListener { barcodes ->
+                task.resolve(barcodes.map {
+                    BarcodeResult(
+                        it.rawBytes,
+                        it.boundingBox,
+                        it.cornerPoints.toList()
+                    )
+                })
+
+
+            }
+            .addOnFailureListener { err ->
+                task.reject(err)
+            }
+        return task.waitPromise()
+    }
 }

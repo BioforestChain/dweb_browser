@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.*
 
 val base64Encoder by lazy {
@@ -22,12 +23,13 @@ inline fun ByteArray.toUtf8(): String = String(this, Charsets.UTF_8)
 inline fun ByteArray.toBase64Url(): String = base64UrlEncoder.encodeToString(this)
 
 
+///
 inline fun ByteArray.toInt(): Int {
-    return ByteBuffer.wrap(this).int
+    return ByteBuffer.wrap(this).order(ByteOrder.LITTLE_ENDIAN).int
 }
 
 inline fun Int.toByteArray(): ByteArray {
-    val bb4 = ByteBuffer.allocate(4)
+    val bb4 = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
     return bb4.putInt(0, this).array()
 }
 
@@ -42,8 +44,21 @@ inline fun InputStream.readInt(): Int {
 
 inline fun InputStream.readByteArray(size: Int): ByteArray {
     val bytes = ByteArray(size)
-    if (read(bytes) != bytes.size) {
-        throw Exception("fail to read bytes($size byte) in stream")
+    val readedSize = read(bytes)
+    if (readedSize != bytes.size) {
+        throw Exception("fail to read bytes($readedSize/$size byte) in stream")
+    }
+    return bytes
+}
+
+inline fun InputStream.readByteArray(): ByteArray {
+    var bytes = ByteArray(0)
+    while (true) {
+        val availableSize = available()
+        if (availableSize <= 0) {
+            break
+        }
+        bytes+= readByteArray(availableSize)
     }
     return bytes
 }
@@ -52,5 +67,26 @@ inline fun String.asBase64(): ByteArray = base64Decoder.decode(this)
 
 inline fun String.asUtf8(): ByteArray = this.toByteArray(Charsets.UTF_8)
 
-inline fun String.toURLQueryComponent(): String = URLEncoder.encode(this, "UTF-8")
+inline fun String.encodeURIComponent(): String = URLEncoder.encode(this, "UTF-8")
+    .replace("\\+", "%20")
+    .replace("\\%21", "!")
+    .replace("\\%27", "'")
+    .replace("\\%28", "(")
+    .replace("\\%29", ")")
+    .replace("\\%7E", "~");
+
+inline fun String.encodeURI(): String = URLEncoder.encode(this, "UTF-8")
+    .replace("%3B", ";")
+    .replace("%2F", "/")
+    .replace("%3F", "?")
+    .replace("%3A", ":")
+    .replace("%40", "@")
+    .replace("%26", "&")
+    .replace("%3D", "=")
+    .replace("%2B", "+")
+    .replace("%24", "$")
+    .replace("%2C", ",")
+    .replace("%23", "#")
+
+
 

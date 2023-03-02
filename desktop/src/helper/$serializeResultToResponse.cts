@@ -17,11 +17,11 @@ export const $serializeResultToResponse = <S extends $Schema2>(schema: S) => {
       return IpcResponse.fromBinary(
         request.req_id,
         200,
-        result,
         new IpcHeaders({}),
+        result,
         ipc
       );
     }
-    return IpcResponse.fromJson(request.req_id, 200, result);
+    return IpcResponse.fromJson(request.req_id, 200, undefined, result, ipc);
   };
 };

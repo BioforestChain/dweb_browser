@@ -1,9 +1,11 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import com.google.gson.*
+import com.google.gson.annotations.JsonAdapter
 import org.http4k.core.Headers
 import java.lang.reflect.Type
 
+@JsonAdapter(IpcHeaders::class)
 class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMapOf()) :
     JsonSerializer<IpcHeaders>, JsonDeserializer<IpcHeaders> {
     companion object {

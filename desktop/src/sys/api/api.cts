@@ -6,8 +6,8 @@
 // -> common.worker.mts 模块把请求发送给 昂前 api.sys.dweb 模块
 // -> api.sys.dweb 模块把请求发送刚给对应的 模拟系统功能的模块【类似 statusbar这样的】
 // 从而实现对 系统功能的调用
-import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import chalk from "chalk";
+import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 
 export class ApiNMM extends NativeMicroModule{
     mmid = "api.sys.dweb" as const;
@@ -39,7 +39,7 @@ export class ApiNMM extends NativeMicroModule{
         })
     }
 
-    protected _shutdown(): unknown {
-        throw new Error("Method not implemented.");
-    }
+  protected _shutdown(): unknown {
+    throw new Error("Method not implemented.");
+  }
 }

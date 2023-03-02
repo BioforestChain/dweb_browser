@@ -1,12 +1,61 @@
+import { simpleEncoder } from "../../helper/encoding.cjs";
 import type { Ipc } from "./ipc.cjs";
-import type { IpcRequest } from "./IpcRequest.cjs";
-import type { IpcResponse } from "./IpcResponse.cjs";
+import type { IpcReqMessage, IpcRequest } from "./IpcRequest.cjs";
+import type { IpcResMessage, IpcResponse } from "./IpcResponse.cjs";
 import type { IpcStreamAbort } from "./IpcStreamAbort.cjs";
 import type { IpcStreamData } from "./IpcStreamData.cjs";
 import type { IpcStreamEnd } from "./IpcStreamEnd.cjs";
 import type { IpcStreamPull } from "./IpcStreamPull.cjs";
 
-export const enum IPC_DATA_TYPE {
+export const enum IPC_METHOD {
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+  OPTIONS = "OPTIONS",
+  TRACE = "TRACE",
+  PATCH = "PATCH",
+  PURGE = "PURGE",
+  HEAD = "HEAD",
+}
+export const toIpcMethod = (method?: string) => {
+  if (method == null) {
+    return IPC_METHOD.GET;
+  }
+
+  switch (method.toUpperCase()) {
+    case IPC_METHOD.GET: {
+      return IPC_METHOD.GET;
+    }
+    case IPC_METHOD.POST: {
+      return IPC_METHOD.POST;
+    }
+    case IPC_METHOD.PUT: {
+      return IPC_METHOD.PUT;
+    }
+    case IPC_METHOD.DELETE: {
+      return IPC_METHOD.DELETE;
+    }
+    case IPC_METHOD.OPTIONS: {
+      return IPC_METHOD.OPTIONS;
+    }
+    case IPC_METHOD.TRACE: {
+      return IPC_METHOD.TRACE;
+    }
+    case IPC_METHOD.PATCH: {
+      return IPC_METHOD.PATCH;
+    }
+    case IPC_METHOD.PURGE: {
+      return IPC_METHOD.PURGE;
+    }
+    case IPC_METHOD.HEAD: {
+      return IPC_METHOD.HEAD;
+    }
+  }
+  throw new Error(`invalid method: ${method}`);
+};
+
+export const enum IPC_MESSAGE_TYPE {
   // /** 特殊位：结束符 */
   // END = 1,
   /** 类型：请求 */
@@ -25,29 +74,50 @@ export const enum IPC_DATA_TYPE {
   STREAM_ABORT,
 }
 
-export type $RawData = Readonly<
-  | [typeof IPC_RAW_BODY_TYPE.TEXT, string]
-  | [typeof IPC_RAW_BODY_TYPE.BASE64, string]
-  | [typeof IPC_RAW_BODY_TYPE.TEXT_STREAM_ID, string]
-  | [typeof IPC_RAW_BODY_TYPE.BASE64_STREAM_ID, string]
-  | [typeof IPC_RAW_BODY_TYPE.BINARY, Uint8Array]
-  | [typeof IPC_RAW_BODY_TYPE.BINARY_STREAM_ID, string]
+export type $MetaBody = Readonly<
+  | [typeof IPC_META_BODY_TYPE.STREAM_ID, string, number]
+  | [typeof IPC_META_BODY_TYPE.TEXT, string, number]
+  | [typeof IPC_META_BODY_TYPE.BASE64, string, number]
+  | [typeof IPC_META_BODY_TYPE.BINARY, Uint8Array, number]
 >;
-export enum IPC_RAW_BODY_TYPE {
+export const $metaBodyToBinary = (metaBody: $MetaBody) => {
+  const [type, data] = metaBody;
+  switch (type) {
+    case IPC_META_BODY_TYPE.BINARY: {
+      return data as Uint8Array;
+    }
+    case IPC_META_BODY_TYPE.BASE64: {
+      return simpleEncoder(data as string, "base64");
+    }
+    case IPC_META_BODY_TYPE.TEXT: {
+      return simpleEncoder(data as string, "utf8");
+    }
+  }
+  throw new Error(`invalid metaBody.type :${type}`);
+};
+
+/**
+ * 数据编码格式
+ */
+export enum IPC_DATA_ENCODING {
   /** 文本 json html 等 */
-  TEXT = 1 << 1,
+  UTF8 = 1 << 1,
   /** 使用文本表示的二进制 */
   BASE64 = 1 << 2,
   /** 二进制 */
   BINARY = 1 << 3,
+}
+export enum IPC_META_BODY_TYPE {
   /** 流 */
-  STREAM_ID = 1 << 4,
-  /** 文本流 */
-  TEXT_STREAM_ID = IPC_RAW_BODY_TYPE.STREAM_ID | IPC_RAW_BODY_TYPE.TEXT,
-  /** 文本二进制流 */
-  BASE64_STREAM_ID = IPC_RAW_BODY_TYPE.STREAM_ID | IPC_RAW_BODY_TYPE.BASE64,
-  /** 二进制流 */
-  BINARY_STREAM_ID = IPC_RAW_BODY_TYPE.STREAM_ID | IPC_RAW_BODY_TYPE.BINARY,
+  STREAM_ID = 0,
+  /** 内联数据 */
+  INLINE = 1,
+  /** 内联 UTF8 数据 */
+  TEXT = IPC_META_BODY_TYPE.INLINE | IPC_DATA_ENCODING.UTF8,
+  /** 内联 BASE64 数据 */
+  BASE64 = IPC_META_BODY_TYPE.INLINE | IPC_DATA_ENCODING.BASE64,
+  /** 内联 BINARY 数据 */
+  BINARY = IPC_META_BODY_TYPE.INLINE | IPC_DATA_ENCODING.BINARY,
 }
 
 export const enum IPC_ROLE {
@@ -55,6 +125,20 @@ export const enum IPC_ROLE {
   CLIENT = "client",
 }
 
+export class IpcMessage<T extends IPC_MESSAGE_TYPE> {
+  constructor(readonly type: T) {}
+}
+
+/** 接收到的消息，可传输的数据 */
+export type $IpcTransferableMessage =
+  | IpcReqMessage
+  | IpcResMessage
+  | IpcStreamData
+  | IpcStreamPull
+  | IpcStreamEnd
+  | IpcStreamAbort;
+
+/** 发送的消息 */
 export type $IpcMessage =
   | IpcRequest
   | IpcResponse

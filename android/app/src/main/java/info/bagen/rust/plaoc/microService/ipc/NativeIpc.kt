@@ -14,29 +14,36 @@ class NativeIpc(
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
+    override fun toString(): String {
+        return super.toString() + "@NativeIpc"
+    }
+
+    override val supportRaw = true
+    override val supportBinary = true
+
     init {
         port.onMessage { message ->
-            val ipcMessage = when (message.type) {
-                IPC_DATA_TYPE.REQUEST -> (message as IpcRequest).let { fromRequest ->
-                    /**
-                     * fromRequest 携带者远端的 ipc 对象，不是我们的 IpcRequest 对象。
-                     */
-                    IpcRequest.fromRequest(fromRequest.req_id, fromRequest.asRequest(), this)
-                }
-                IPC_DATA_TYPE.RESPONSE -> (message as IpcResponse).let { fromResponse ->
-                    /**
-                     * fromResponse 携带者远端的 ipc 对象，不是我们的 IpcResponse 对象。
-                     */
-                    IpcResponse.fromResponse(fromResponse.req_id, fromResponse.asResponse(), this)
-                }
-                /**
-                 * 其它情况的对象可以直接复用
-                 */
-                else -> message
-            }
-            _messageSignal.emit(IpcMessageArgs(ipcMessage, this@NativeIpc))
+//            val ipcMessage = when (message.type) {
+//                IPC_DATA_TYPE.REQUEST -> (message as IpcRequest).let { fromRequest ->
+//                    /**
+//                     * fromRequest 携带者远端的 ipc 对象，不是我们的 IpcRequest 对象。
+//                     */
+//                    IpcRequest.fromRequest(fromRequest.req_id, fromRequest.toRequest(), this)
+//                }
+//                IPC_DATA_TYPE.RESPONSE -> (message as IpcResponse).let { fromResponse ->
+//                    /**
+//                     * fromResponse 携带者远端的 ipc 对象，不是我们的 IpcResponse 对象。
+//                     */
+//                    IpcResponse.fromResponse(fromResponse.req_id, fromResponse.toResponse(), this)
+//                }
+//                /**
+//                 * 其它情况的对象可以直接复用
+//                 */
+//                else -> message
+//            }
+//            _messageSignal.emit(IpcMessageArgs(ipcMessage, this@NativeIpc))
 //                debugNativeIpc("onMessage/emitted $message")
-//            _messageSignal.emit(IpcMessageArgs(message, this@NativeIpc))
+            _messageSignal.emit(IpcMessageArgs(message, this@NativeIpc))
         }
         GlobalScope.launch {
             port.start()

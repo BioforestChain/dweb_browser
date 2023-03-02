@@ -1,16 +1,16 @@
 // 模拟状态栏模块-用来提供状态UI的模块
-import fsPromises from "node:fs/promises"
-import path from "node:path"
+import fsPromises from "node:fs/promises";
+import path from "node:path";
 import process from "node:process";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
- 
-import type { $NativeWindow } from "../../helper/openNativeWindow.cjs";
-import type { Ipc } from "../../core/ipc/ipc.cjs";
+import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
+
 import type { Remote } from "comlink";
-import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs"
+import type { Ipc } from "../../core/ipc/ipc.cjs";
+import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
+import type { $NativeWindow } from "../../helper/openNativeWindow.cjs";
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
@@ -22,125 +22,148 @@ export class StatusbarNMM extends NativeMicroModule {
   >();
 
   private _close_dweb_server?: () => unknown;
-  private _statusbarHtmlRequestMap = new Map<string, $StatusbarHtmlRequest>() // statusbar.html 状态栏等待设置的返回队列
-  private _statusbarPluginsRequestMap = new Map<string, $StatusbarPluginsRequestQueueItem[]>()              // statusbar.plugins发起更改状态栏设置的请求队列
-  private _statusbarPluginsNoReleaseRequestMap = new Map<string, $StatusbarPluginsRequestQueueItem[]>()    // statusbar.plugins 发起更改状态栏设置已经出发更改但是还没有返回结果的队列
+  private _statusbarHtmlRequestMap = new Map<string, $StatusbarHtmlRequest>(); // statusbar.html 状态栏等待设置的返回队列
+  private _statusbarPluginsRequestMap = new Map<
+    string,
+    $StatusbarPluginsRequestQueueItem[]
+  >(); // statusbar.plugins发起更改状态栏设置的请求队列
+  private _statusbarPluginsNoReleaseRequestMap = new Map<
+    string,
+    $StatusbarPluginsRequestQueueItem[]
+  >(); // statusbar.plugins 发起更改状态栏设置已经出发更改但是还没有返回结果的队列
   private _allocId = 0;
   // 必须要通过这样启动才可以
-  
+
   async _bootstrap() {
-    const { origin, listen, close } = await createHttpDwebServer(this, {});
+    const dwebServer = await createHttpDwebServer(this, {});
     this._close_dweb_server = close;
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
-    ;(await listen()).onRequest(async (request, ipc) => {
+    (await dwebServer.listen()).onRequest(async (request, ipc) => {
       // 监听 http:// 协议的请求
       // 通过 fetch("http://statusbar.sys.dweb-80.localhost:22605/") 访问的请求会被发送到这个位置
       // console.log('[statusbar.main.cts onRequest---]: ', request)
-      if(request.parsed_url.pathname === "/" || request.parsed_url.pathname === "/index.html"){
+      if (
+        request.parsed_url.pathname === "/" ||
+        request.parsed_url.pathname === "/index.html"
+      ) {
         ipc.postMessage(
           await IpcResponse.fromText(
             request.req_id,
             200,
-            await reqadHtmlFile(),
             new IpcHeaders({
-              "Content-type": "text/html"
-            })
+              "Content-type": "text/html",
+            }),
+            await reqadHtmlFile(),
+            ipc
           )
-        
         );
-        return ;
+        return;
       }
-      
 
       // 处理操作完成后 statusbar.html 发送过来的数据
-      if(request.parsed_url.pathname === '/operation_return'){
-        const id = request.headers.id
-        const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
-        if(!id){
+      if (request.parsed_url.pathname === "/operation_return") {
+        const id = request.headers.get("id");
+        const appUrlFromStatusbarHtml =
+          request.parsed_url.searchParams.get("app_url");
+        if (!id) {
           ipc.postMessage(
             await IpcResponse.fromText(
               request.req_id,
               400,
+              new IpcHeaders({
+                "Content-type": "text/plain",
+              }),
               "headers 缺少了 id 标识符",
-              new IpcHeaders({
-                "Content-type": "text/plain"
-              }),
+              ipc
             )
-          )
+          );
           return;
         }
 
-        if(appUrlFromStatusbarHtml === null){
+        if (appUrlFromStatusbarHtml === null) {
           ipc.postMessage(
             await IpcResponse.fromText(
               request.req_id,
               400,
-              "确实少 app_url 查询参数",
               new IpcHeaders({
-                "Content-type": "text/plain"
+                "Content-type": "text/plain",
               }),
+              "确实少 app_url 查询参数",
+              ipc
             )
-          )
+          );
           return;
         }
 
-        let statusbarPluginsNoReleaseRequest = this._statusbarPluginsNoReleaseRequestMap.get(appUrlFromStatusbarHtml) as $StatusbarPluginsRequestQueueItem[]
-        let itemIndex = statusbarPluginsNoReleaseRequest.findIndex(_item => _item.id === id)
-        let item = statusbarPluginsNoReleaseRequest[itemIndex]
-                  statusbarPluginsNoReleaseRequest.splice(itemIndex, 1)
+        let statusbarPluginsNoReleaseRequest =
+          this._statusbarPluginsNoReleaseRequestMap.get(
+            appUrlFromStatusbarHtml
+          ) as $StatusbarPluginsRequestQueueItem[];
+        let itemIndex = statusbarPluginsNoReleaseRequest.findIndex(
+          (_item) => _item.id === id
+        );
+        let item = statusbarPluginsNoReleaseRequest[itemIndex];
+        statusbarPluginsNoReleaseRequest.splice(itemIndex, 1);
         // 返回的就是一个 json
-        const data = await readStream(request.body as ReadableStream)
-        item
-        .callback(
+        const data = await readStream(request.body.raw as ReadableStream);
+        item.callback(
           await IpcResponse.fromJson(
             item.req_id,
             200,
-            data,
             new IpcHeaders({
-              "Content-type": "text/plain"
+              "Content-type": "text/plain",
             }),
+            data,
+            ipc
           )
-        )
+        );
         // 返回 /operation_return 的请求
         ipc.postMessage(
           await IpcResponse.fromText(
             request.req_id,
             200,
-            "ok",
             new IpcHeaders({
-              "Content-type": "text/plain"
+              "Content-type": "text/plain",
             }),
+            "ok",
+            ipc
           )
-        )
+        );
       }
 
       // todo 最好有一个时间限定防止超时过期
-      if(request.parsed_url.pathname === "/operation_from_html"){
-        const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
-        if(appUrlFromStatusbarHtml === null){
+      if (request.parsed_url.pathname === "/operation_from_html") {
+        const appUrlFromStatusbarHtml =
+          request.parsed_url.searchParams.get("app_url");
+        if (appUrlFromStatusbarHtml === null) {
           ipc.postMessage(
             await IpcResponse.fromText(
               request.req_id,
               400,
-              "确实少 app_url 查询参数",
               new IpcHeaders({
-                "Content-type": "text/plain"
+                "Content-type": "text/plain",
               }),
+              "确实少 app_url 查询参数",
+              ipc
             )
-          )
-          return 
+          );
+          return;
         }
 
         // 添加到队列中
-        this._statusbarHtmlRequestMap.set(appUrlFromStatusbarHtml, {ipc: ipc, request: request, appUrl: appUrlFromStatusbarHtml})
-        this._sendToStatusbarHtml(appUrlFromStatusbarHtml)
-      } 
+        this._statusbarHtmlRequestMap.set(appUrlFromStatusbarHtml, {
+          ipc: ipc,
+          request: request,
+          appUrl: appUrlFromStatusbarHtml,
+        });
+        this._sendToStatusbarHtml(appUrlFromStatusbarHtml);
+      }
     });
 
     // const root_url = new URL("/index.html", origin).href;
-    // 下面注册的是 
-    // jsProcess.fetch(`file://statusbar.sys.dweb/open?***}`) 事件监听器 
+    // 下面注册的是
+    // jsProcess.fetch(`file://statusbar.sys.dweb/open?***}`) 事件监听器
     // 监听启动请求 - 必须要有一个注册否则调用的地方 wati 就死了;
     // 监听请求页面
     // console.log('[statusbar.main.cts registerCommonIpcOnMessageHandler path /]')
@@ -150,14 +173,15 @@ export class StatusbarNMM extends NativeMicroModule {
       input: {},
       output: "number",
       handler: async (args, client_ipc, request) => {
-        return  IpcResponse.fromText(
+        return IpcResponse.fromText(
           request.req_id,
           200,
-          await reqadHtmlFile(),
           new IpcHeaders({
-            "Content-type": "text/html"
-          })
-        )
+            "Content-type": "text/html",
+          }),
+          await reqadHtmlFile(),
+          client_ipc
+        );
       },
     });
 
@@ -169,79 +193,88 @@ export class StatusbarNMM extends NativeMicroModule {
       input: {},
       output: "boolean",
       handler: async (args, client_ipc, request) => {
-        const appUrlFromApp = request.parsed_url.searchParams.get("app_url")
+        const appUrlFromApp = request.parsed_url.searchParams.get("app_url");
         // console.log('[statusbar.main.cts 接受到了 /operation 操作 appUrlFromApp]', appUrlFromApp)
-        if(appUrlFromApp === null){ /**已经测试走过了 */
-          return  IpcResponse.fromText(
+        if (appUrlFromApp === null) {
+          /**已经测试走过了 */
+          return IpcResponse.fromText(
             request.req_id,
             400,
-            "缺少 app_url 查询参数",
             new IpcHeaders({
-              "Content-type": "text/plain"
-            })
-          ) 
+              "Content-type": "text/plain",
+            }),
+            "缺少 app_url 查询参数",
+            client_ipc
+          );
         }
-        
+
         // 把 ststusbar.plugings 的请求保存到队列
-        // 调用这个执行发送国的函数 执行发送的函数必须是await 
+        // 调用这个执行发送国的函数 执行发送的函数必须是await
         // 等待这个调用的函数执行完毕后在返回？？
-        let statusbarPluginRequest = this._statusbarPluginsRequestMap.get(appUrlFromApp)
-        const result = await new Promise<IpcResponse>(resolve => {
-          if(statusbarPluginRequest === undefined){
-            statusbarPluginRequest = []
-            this._statusbarPluginsRequestMap.set(appUrlFromApp, statusbarPluginRequest)
+        let statusbarPluginRequest =
+          this._statusbarPluginsRequestMap.get(appUrlFromApp);
+        const result = await new Promise<IpcResponse>((resolve) => {
+          if (statusbarPluginRequest === undefined) {
+            statusbarPluginRequest = [];
+            this._statusbarPluginsRequestMap.set(
+              appUrlFromApp,
+              statusbarPluginRequest
+            );
           }
           statusbarPluginRequest.push({
-            body: request.body as ReadableStream<Uint8Array>,
+            body: request.body.raw as ReadableStream<Uint8Array>,
             callback: (reponse: IpcResponse) => {
-              resolve(reponse)
+              resolve(reponse);
             },
             req_id: request.req_id,
-            id: `${this._allocId++}`
-          })
-          
+            id: `${this._allocId++}`,
+          });
+
           // 执行发送的函数
-          this._sendToStatusbarHtml(appUrlFromApp)
-        })
+          this._sendToStatusbarHtml(appUrlFromApp);
+        });
 
         return result;
-      }
-    })
+      },
+    });
   }
 
-  private async _sendToStatusbarHtml(appUrl: string){
-    const statusbarHtmlRequest = this._statusbarHtmlRequestMap.get(appUrl)
-    const statusbarPluginRequest = this._statusbarPluginsRequestMap.get(appUrl)
-    let statusbarPluginsNoReleaseRequest = this._statusbarPluginsNoReleaseRequestMap.get(appUrl)
+  private async _sendToStatusbarHtml(appUrl: string) {
+    const statusbarHtmlRequest = this._statusbarHtmlRequestMap.get(appUrl);
+    const statusbarPluginRequest = this._statusbarPluginsRequestMap.get(appUrl);
+    let statusbarPluginsNoReleaseRequest =
+      this._statusbarPluginsNoReleaseRequestMap.get(appUrl);
 
-    if(statusbarHtmlRequest === undefined) return ;
-    if(statusbarPluginRequest === undefined) return;
+    if (statusbarHtmlRequest === undefined) return;
+    if (statusbarPluginRequest === undefined) return;
     const operationQueueItem = statusbarPluginRequest.shift();
-    if(operationQueueItem === undefined) return;
-    if(statusbarPluginsNoReleaseRequest === undefined){
+    if (operationQueueItem === undefined) return;
+    if (statusbarPluginsNoReleaseRequest === undefined) {
       statusbarPluginsNoReleaseRequest = [];
-      this._statusbarPluginsNoReleaseRequestMap.set(appUrl, statusbarPluginsNoReleaseRequest)
-      
+      this._statusbarPluginsNoReleaseRequestMap.set(
+        appUrl,
+        statusbarPluginsNoReleaseRequest
+      );
     }
-    statusbarPluginsNoReleaseRequest.push(operationQueueItem)
+    statusbarPluginsNoReleaseRequest.push(operationQueueItem);
 
     statusbarHtmlRequest.ipc.postMessage(
       await IpcResponse.fromStream(
         statusbarHtmlRequest.request.req_id,
         200,
-        operationQueueItem.body as ReadableStream<Uint8Array>,
         new IpcHeaders({
           "Content-type": "application/json",
-          "id": operationQueueItem.id,
+          id: operationQueueItem.id,
         }),
+        operationQueueItem.body as ReadableStream<Uint8Array>,
+
         statusbarHtmlRequest.ipc
       )
-    )
+    );
     // 需要删除map里面保存的数据 如果不删除可能导致 多次来至 statusbar.plugins 发送过来请求，会使用
     // 同一个  statusbarHtmlRequest 发生错误
     this._statusbarHtmlRequestMap.delete(appUrl);
   }
-
 
   _shutdown() {
     this._uid_wapis_map.forEach((wapi) => {
@@ -255,7 +288,10 @@ export class StatusbarNMM extends NativeMicroModule {
 
 // 读取 html 文件
 async function reqadHtmlFile(){
-  const targetPath = path.resolve(process.cwd(), "./assets/html/statusbar.html")
+  const targetPath = path.resolve(
+    process.cwd(),
+    "./assets/html/statusbar.html"
+  );
   const content = await fsPromises.readFile(targetPath)
   return new TextDecoder().decode(content)
 }
@@ -263,45 +299,43 @@ async function reqadHtmlFile(){
 /**
  * 读取 ReadableStream
  */
-async function readStream(stream:ReadableStream){
-  let data: Uint8Array = new Uint8Array() 
-  const reader = stream.getReader()
+async function readStream(stream: ReadableStream) {
+  let data: Uint8Array = new Uint8Array();
+  const reader = stream.getReader();
   let loop: boolean;
-  do{
-    const {value, done} = await reader.read()
-    value ? data = Uint8Array.from([...data, ...value]) : null;
-    loop = !done
-  }while(loop)
-  reader.releaseLock()
-  return new TextDecoder().decode(data)
+  do {
+    const { value, done } = await reader.read();
+    value ? (data = Uint8Array.from([...data, ...value])) : null;
+    loop = !done;
+  } while (loop);
+  reader.releaseLock();
+  return new TextDecoder().decode(data);
 }
 
-
-export interface $Operation{
+export interface $Operation {
   acction: string;
   value: string;
 }
 
-export interface $StatusbarPluginsRequestQueueItem{
-  body: ReadableStream<Uint8Array>
-  callback: {(response: IpcResponse): void} ;
+export interface $StatusbarPluginsRequestQueueItem {
+  body: ReadableStream<Uint8Array>;
+  callback: { (response: IpcResponse): void };
   req_id: number;
   id: string; // 队列项的标识符
 }
 
-export interface $StatusbarHtmlRequest{
-  ipc:Ipc;
+export interface $StatusbarHtmlRequest {
+  ipc: Ipc;
   request: IpcRequest;
-  appUrl: string;  // appUrl 标识 当前statusbar搭配的是哪个 app 显示的
+  appUrl: string; // appUrl 标识 当前statusbar搭配的是哪个 app 显示的
 }
 
-export enum $StatusbarStyle{
+export enum $StatusbarStyle {
   light = "light",
   dark = "dark",
-  default = 'default',
+  default = "default",
 }
 
-export type $isOverlays = "0"  // 不覆盖
-                         | "1" // 覆盖
-
- 
+export type $isOverlays =
+  | "0" // 不覆盖
+  | "1"; // 覆盖

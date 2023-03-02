@@ -113,7 +113,7 @@ class NativeIpcTest : AsyncBase() {
             })
             ipc.postMessage(
                 IpcResponse.fromStream(
-                    req.req_id, 200, res_stream, IpcHeaders(), ipc
+                    req.req_id, 200, IpcHeaders(), res_stream, ipc
                 )
             )
         }

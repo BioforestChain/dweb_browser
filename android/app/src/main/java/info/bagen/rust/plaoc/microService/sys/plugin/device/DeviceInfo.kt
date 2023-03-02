@@ -8,10 +8,9 @@ import android.os.Build.MODEL
 import android.provider.Settings
 import android.telephony.TelephonyManager
 import info.bagen.libappmgr.utils.AppContextUtil
+import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.sys.plugin.device.model.*
-
-//import info.bagen.rust.plaoc.system.device.model.*
 
 
 data class DeviceData(
@@ -23,7 +22,6 @@ data class DeviceData(
     var storage: StorageSize? = null, // 存储
     var screen: String = "", // 屏幕
     var module: String = "default", // 手机模式(silentMode,doNotDisturb,default)
-    var isDeno: Boolean = true
 )
 
 class DeviceInfo {
@@ -40,9 +38,18 @@ class DeviceInfo {
         return BatteryInfo().getBatteryInfo()
     }
 
-    fun getDeviceInfo() {
-        // TODO return  createBytesFactory(ExportNative.GetDeviceInfo, JsonUtil.toJson(deviceData))
+    fun getDeviceInfo(): String {
+        return JsonUtil.toJson(deviceData)
     }
+
+    fun getMemory(): String {
+        return MemoryInfo().getMemoryInfo()
+    }
+
+    fun getStorage():String {
+        return JsonUtil.toJson(deviceData.storage)
+    }
+
 
     val deviceData: DeviceData
         get() {

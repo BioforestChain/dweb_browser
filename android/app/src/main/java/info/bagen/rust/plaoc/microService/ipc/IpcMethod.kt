@@ -1,12 +1,14 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import com.google.gson.*
+import com.google.gson.annotations.JsonAdapter
 import org.http4k.core.Method
 import java.lang.reflect.Type
 
 /**
  * Ipc 使用的 Method
  */
+@JsonAdapter(IpcMethod::class)
 enum class IpcMethod(val method: String, val http4kMethod: Method) : JsonSerializer<IpcMethod>,
     JsonDeserializer<IpcMethod> {
     GET("GET", Method.GET),
@@ -34,6 +36,6 @@ enum class IpcMethod(val method: String, val http4kMethod: Method) : JsonSeriali
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ) = json.toString().let { method -> values().first { it.method == method } }
+    ) = json.asString.let { method -> values().first { it.method == method } }
 
 }

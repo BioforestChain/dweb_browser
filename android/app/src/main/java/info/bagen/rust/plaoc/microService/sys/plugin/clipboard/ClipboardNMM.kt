@@ -22,12 +22,17 @@ import org.http4k.routing.routes
 data class ClipboardWriteResponse(val success: Boolean, val errorManager: String = "")
 data class ClipboardData(val value: String, val type: String)
 
-object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
+inline fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("Clipboard", tag, msg, err)
+
+/** 剪切板微模块*/
+class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
     override suspend fun _bootstrap() {
         apiRouting = routes(
             /** 读取剪切板*/
             "/read" bind Method.GET to defineHandler { request ->
                 val read = read()
+                debugClipboard("/read",read)
                 Response(Status.OK).body(read)
             },
             /**
@@ -39,6 +44,7 @@ object ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
                 val image = Query.string().optional("image")(request)
                 val url = Query.string().optional("url")(request)
                 val label = Query.string().optional("label")(request)
+                debugClipboard("/write","string:${string},image:${image},url:${url},label:${label}")
                 // 如果都是空
                 if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {
                     Response(Status.UNSATISFIABLE_PARAMETERS)

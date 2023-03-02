@@ -12,7 +12,16 @@ inline fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
 
 /**
  * 可用值：
- * "fetch", "stream", "native-ipc", "stream-ipc", "jmm", "boot","js-process"
+ *
+ * "fetch"
+ * "stream"
+ * "native-ipc"
+ * "stream-ipc"
+ * "jmm"
+ * "boot"
+ * "js-process"
+ * "message-port-ipc"
+ *
  */
 val debugTags by lazy {
     (System.getProperty("dweb-debug") ?: "").let {

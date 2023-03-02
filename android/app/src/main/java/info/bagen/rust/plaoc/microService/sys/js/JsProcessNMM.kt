@@ -1,23 +1,22 @@
 package info.bagen.rust.plaoc.microService.sys.js
 
-import android.webkit.WebMessage
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.encodeURI
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
 import info.bagen.rust.plaoc.microService.ipc.IpcResponse
-import info.bagen.rust.plaoc.microService.ipc.ipcWeb.MessagePortIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
-import info.bagen.rust.plaoc.microService.ipc.ipcWeb.saveNative2JsIpcPort
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
+import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.http4k.core.*
 import org.http4k.lens.Query
@@ -32,6 +31,23 @@ inline fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 
 class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
+
+    private val JS_PROCESS_WORKER_CODE by lazy {
+        runBlocking {
+            nativeFetch("file:///bundle/js-process.worker.js").text()
+        }
+    }
+
+    private val CORS_HEADERS = mapOf(
+        Pair("Content-Type", "application/javascript"),
+        Pair("Access-Control-Allow-Origin", "*"),
+        Pair("Access-Control-Allow-Headers", "*"),// 要支持 X-Dweb-Host
+        Pair("Access-Control-Allow-Methods", "*"),
+    )
+
+    private val INTERNAL_PATH = "/<internal>".encodeURI()
+
+
     override suspend fun _bootstrap() {
 
         /// 主页的网页服务
@@ -41,77 +57,32 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             // 提供基本的主页服务
             val serverIpc = server.listen();
             serverIpc.onRequest { (request, ipc) ->
+                val response = nativeFetch("file:///bundle/js-process${request.uri.path}")
                 ipc.postMessage(
-                    IpcResponse.fromResponse(
-                        request.req_id,
-                        nativeFetch("file:///bundle/js-process${request.uri.path}"),
-                        ipc
-                    )
+                    IpcResponse.fromResponse(request.req_id, response, ipc)
                 )
             }
         }
 
         println("mainServer: ${mainServer.startResult}")
 
-        /// WebWorker的环境服务
-        val internalServer =
-            this.createHttpDwebServer(DwebHttpServerOptions(subdomain = "internal"))
-                .also { server ->
-                    // 在模块关停的时候，要关闭端口监听
-                    _afterShutdownSignal.listen { server.close() }
-                    val JS_PROCESS_WORKER_CODE =
-                        suspendOnce { nativeFetch("file:///bundle/js-process.worker.js").text() }
-                    // 提供基本的主页服务
-                    val serverIpc = server.listen()
-                    serverIpc.onRequest { (request, ipc) ->
-                        if (request.uri.path == "/bootstrap.js") {
-                            ipc.postMessage(
-                                IpcResponse.fromText(
-                                    request.req_id,
-                                    200,
-                                    IpcHeaders().also {
-                                        it.set(
-                                            "content-type",
-                                            "application/javascript"
-                                        )
-                                    },
-                                    JS_PROCESS_WORKER_CODE(),
-                                    ipc
-                                )
-                            )
-                        }
-                    }
-                }
-
-        println("internalServer: ${internalServer.startResult}")
-
 
         /// WebView 实例
         val apis = withContext(Dispatchers.Main) {
             WebView.setWebContentsDebuggingEnabled(true)
 
-            JsProcessWebApi(WebView(App.appContext)).also {
-                val webView = it.webView
-                val urlInfo = mainServer.startResult.urlInfo
-                /// 注册销毁
-                _afterShutdownSignal.listen {
-                    webView.destroy()
-                }
-                webView.settings.userAgentString += " dweb-host/${urlInfo.host}"
-                webView.settings.javaScriptEnabled = true
-                webView.settings.domStorageEnabled = true
-                webView.settings.databaseEnabled = true
-                val isReady = PromiseOut<Unit>()
-                webView.webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        super.onPageFinished(view, url)
-                        isReady.resolve(Unit)
-                    }
-                }
-                /// 开始加载
-                webView.loadUrl(urlInfo.public_origin + "/index.html")
-                // 等待加载完成
-                isReady.waitPromise()
+            val urlInfo = mainServer.startResult.urlInfo
+            JsProcessWebApi(
+                DWebView(
+                    App.appContext,
+                    this@JsProcessNMM,
+                    DWebView.Options(
+                        url = urlInfo.buildInternalUrl().path("/index.html").toString()
+                    )
+                )
+            ).also { api ->
+                _afterShutdownSignal.listen { api.destroy() }
+                api.dWebView.afterReady()
             }
         }
 
@@ -122,19 +93,13 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             /// 创建 web worker
             "/create-process" bind Method.POST to defineHandler { request, ipc ->
                 createProcessAndRun(
-                    ipc,
-                    apis,
-                    internalServer.startResult.urlInfo.buildHttpUrl().path("/bootstrap.js")
-                        .query("mmid", ipc.remote.mmid).toString(),
-                    query_main_pathname(request),
-                    request
+                    ipc, apis, query_main_pathname(request), request
                 )
             },
             /// 创建 web 通讯管道
             "/create-ipc" bind Method.GET to defineHandler { request ->
                 apis.createIpc(query_process_id(request))
-            }
-        )
+            })
 
     }
 
@@ -145,11 +110,9 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     private suspend fun createProcessAndRun(
         ipc: Ipc,
         apis: JsProcessWebApi,
-        bootstrap_url: String,
         main_pathname: String = "/index.js",
         requestMessage: Request
     ): Response {
-
         /**
          * 用自己的域名的权限为它创建一个子域名
          */
@@ -171,12 +134,56 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          * 我们会对回来的代码进行处理，然后再执行
          */
         val codeProxyServerIpc = httpDwebServer.listen()
+
         codeProxyServerIpc.onRequest { (request, ipc) ->
-            // TODO 对代码进行翻译处理
-            // 转发给远端来处理
-            ipc.responseBy(streamIpc, request)
+            // <internal>开头的是特殊路径：交由内部处理，不会推给远端处理
+            if (request.uri.path.startsWith(INTERNAL_PATH)) {
+                val internalUri =
+                    request.uri.path(request.uri.path.substring(INTERNAL_PATH.length));
+                if (internalUri.path == "/bootstrap.js") {
+                    ipc.postMessage(
+                        IpcResponse.fromText(
+                            request.req_id,
+                            200,
+                            IpcHeaders(CORS_HEADERS.toMutableMap()),
+                            JS_PROCESS_WORKER_CODE,
+                            ipc
+                        )
+                    )
+                } else {
+                    ipc.postMessage(
+                        IpcResponse.fromText(
+                            request.req_id,
+                            404,
+                            IpcHeaders(CORS_HEADERS.toMutableMap()),
+                            "// no found ${internalUri.path}",
+                            ipc
+                        )
+                    )
+                }
+            } else {
+                ipc.postResponse(
+                    request.req_id,
+                    // 转发给远端来处理
+                    // TODO 对代码进行翻译处理
+                    streamIpc.request(request.toRequest()).let {
+                        /// 加入跨域配置
+                        var response = it;
+                        for ((key, value) in CORS_HEADERS) {
+                            response = response.header(key, value)
+                        }
+                        response
+                    },
+                )
+            }
         }
 
+        val bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
+            .path("$INTERNAL_PATH/bootstrap.js")
+//            .query("debug", "true")
+            .query("mmid", ipc.remote.mmid)
+            .query("host", httpDwebServer.startResult.urlInfo.host)
+            .toString()
 
         /**
          * 创建一个通往 worker 的消息通道
@@ -184,17 +191,20 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         val processHandler = apis.createProcess(bootstrap_url, ipc.remote);
 
         /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
-        processHandler.ipc.onRequest { (request, ipc) ->
-            val response = ipc.remote.nativeFetch(request.asRequest());
-            ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
+        /// TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
+        processHandler.ipc.onRequest { (ipcRequest, ipc) ->
+            val request = ipcRequest.toRequest()
+            // 转发请求
+            val response = ipc.remote.nativeFetch(request);
+            val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
+            ipc.postMessage(ipcResponse)
         }
         /**
          * 开始执行代码
          */
         apis.runProcessMain(
             processHandler.info.process_id, JsProcessWebApi.RunProcessMainOptions(
-                main_url = httpDwebServer.startResult.urlInfo.buildHttpUrl()
-                    .path(main_pathname)
+                main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl().path(main_pathname)
                     .toString()
             )
         )
@@ -220,85 +230,3 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 }
 
 
-class JsProcessWebApi(val webView: WebView) {
-
-    val asyncEvalContext = WebViewAsyncEvalContext(webView)
-
-    suspend fun isReady() =
-        asyncEvalContext.evaluateJavascriptAsync("typeof createProcess") == "function"
-
-
-    data class ProcessInfo(val process_id: Int) {}
-    inner class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
-
-    suspend fun createProcess(env_script_url: String, remoteModule: MicroModule) =
-        withContext(Dispatchers.Main) {
-            val channel = webView.createWebMessageChannel()
-            val port1 = channel[0]
-            val port2 = channel[1]
-
-            val processInfo_json = asyncEvalContext.evaluateJavascriptAsync(
-                """
-            new Promise((resolve,reject)=>{
-                addEventListener("message", async event => {
-                    if (event.data === "js-process/create-process") {
-                        const fetch_port = event.ports[0];
-//                        await new Promise((resolve)=>{self.createProcess_start = resolve})
-                        try{
-                            resolve(await createProcess(`$env_script_url`, fetch_port))
-                        }catch(err){
-                            reject(err)
-                        }
-                    }
-                }, { once: true })
-            })
-            """.trimIndent(),
-                afterEval = {
-                    webView.postWebMessage(
-                        WebMessage("js-process/create-process", arrayOf(port1)),
-                        android.net.Uri.EMPTY
-                    );
-                }
-            )
-            debugJsProcess("processInfo", processInfo_json)
-            val info = gson.fromJson(processInfo_json, ProcessInfo::class.java)
-            ProcessHandler(info, MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT))
-        }
-
-
-    data class RunProcessMainOptions(val main_url: String)
-
-    suspend fun runProcessMain(process_id: Int, options: RunProcessMainOptions) =
-        asyncEvalContext.evaluateJavascriptAsync(
-            """
-        runProcessMain($process_id, { main_url:`${options.main_url}` })
-        """.trimIndent()
-        ).let {}
-
-    suspend fun createIpc(process_id: Int) = asyncEvalContext.evaluateJavascriptAsync(
-        """
-        new Promise((resolve,reject)=>{
-            addEventListener("message", async event => {
-                if (event.data === "js-process/create-ipc") {
-                    const ipc_port = event.port[0];
-                    try{
-                        resolve(await createIpc($process_id, ipc_port))
-                    }catch(err){
-                        reject(err)
-                    }
-                }
-            }, { once: true })
-        })
-        """.trimIndent()
-    ).let {
-        val channel = webView.createWebMessageChannel()
-        val port1 = channel[0]
-        val port2 = channel[1]
-        webView.postWebMessage(
-            WebMessage("js-process/create-ipc", arrayOf(port1)),
-            android.net.Uri.EMPTY
-        );
-
-        saveNative2JsIpcPort(port2)
-    }
-}
