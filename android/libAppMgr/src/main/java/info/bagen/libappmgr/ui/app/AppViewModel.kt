@@ -350,7 +350,7 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
         appViewState: AppViewState, appInfo: AppInfo, downloadFile: String
     ) {
         uiState.appViewStateList.remove(appViewState)
-        val unzip = ZipUtil.decompress(downloadFile, FilesUtil.getAppUnzipPath())
+        val unzip = ZipUtil.ergodicDecompress(downloadFile, FilesUtil.getAppUnzipPath())
         if (unzip) {
             uiState.appViewStateList.forEach { item ->
                 if (item.appInfo?.bfsAppId == appInfo.bfsAppId) {
