@@ -81,7 +81,7 @@ export class FileNMM extends NativeMicroModule {
             }),
             JSON.stringify(appsInfo),
             client_ipc
-          ),
+          )
         }
       });
 
