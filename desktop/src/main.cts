@@ -40,3 +40,7 @@ dns.install(new PluginsNMM())
 
 
 Object.assign(globalThis, { dns: dns });
+
+process.on("unhandledRejection", (error) => {
+  console.error("????", error);
+});

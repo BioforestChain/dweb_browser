@@ -9,6 +9,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.*
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.RejectedExecutionHandler
 import java.util.concurrent.ThreadPoolExecutor
@@ -68,7 +69,7 @@ class DenoWorker(val appContext: Context, workerParams: WorkerParameters) :
                 PendingIntent.getActivity(
                     appContext,
                     0,
-                    Intent(appContext, MainActivity::class.java),
+                    Intent(appContext, BrowserActivity::class.java),
                     PENDING_INTENT_FLAG_MUTABLE
                 )
             )

@@ -206,7 +206,6 @@ class QRCodeScanning(val activity: FragmentActivity, val scanType: ScanType) :
    */
   private fun toggleTorchState() {
     val isTorch: Boolean = mCameraScan.isTorchEnabled
-    Log.e("lin.huang", "toggleTorchState -> $isTorch")
     mCameraScan.enableTorch(!isTorch)
     ivFlashlight.isSelected = !isTorch
   }

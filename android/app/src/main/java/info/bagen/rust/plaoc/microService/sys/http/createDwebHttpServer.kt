@@ -6,7 +6,6 @@ import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
-import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -36,7 +35,7 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
     ).json<HttpNMM.ServerStartResult>(HttpNMM.ServerStartResult::class.java)
 
 
-suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<RouteConfig>) =
+suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<Gateway.RouteConfig>) =
     ReadableStreamIpc(this, IPC_ROLE.CLIENT).also {
         it.bindIncomeStream(
             this.nativeFetch(
@@ -65,11 +64,11 @@ class HttpDwebServer(
     val startResult: HttpNMM.ServerStartResult
 ) {
     suspend fun listen(
-        routes: Array<RouteConfig> = arrayOf(
-            RouteConfig(pathname = "", method = IpcMethod.GET),
-            RouteConfig(pathname = "", method = IpcMethod.POST),
-            RouteConfig(pathname = "", method = IpcMethod.PUT),
-            RouteConfig(pathname = "", method = IpcMethod.DELETE)
+        routes: Array<Gateway.RouteConfig> = arrayOf(
+            Gateway.RouteConfig(pathname = "", method = IpcMethod.GET),
+            Gateway.RouteConfig(pathname = "", method = IpcMethod.POST),
+            Gateway.RouteConfig(pathname = "", method = IpcMethod.PUT),
+            Gateway.RouteConfig(pathname = "", method = IpcMethod.DELETE)
         ),
     ) = runBlocking {
         val po = PromiseOut<ReadableStreamIpc>()

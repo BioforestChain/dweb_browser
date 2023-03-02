@@ -11,7 +11,7 @@ import org.http4k.routing.routes
 class KeyboardNMM: NativeMicroModule("keyboard.sys.dweb")  {
 
     private val virtualKeyboard = run {
-        App.mainActivity?.dWebBrowserModel?.getSystemUi()?.virtualKeyboard
+        App.browserActivity?.dWebBrowserModel?.getSystemUi()?.virtualKeyboard
     }
 
     override suspend fun _bootstrap() {

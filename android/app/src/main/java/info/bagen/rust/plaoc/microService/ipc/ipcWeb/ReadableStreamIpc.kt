@@ -4,8 +4,6 @@ import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.io.InputStream
 
 
@@ -22,6 +20,12 @@ class ReadableStreamIpc(
     override val remote: MicroModule,
     override val role: IPC_ROLE,
 ) : Ipc() {
+    override fun toString(): String {
+        return super.toString() + "@ReadableStreamIpc"
+    }
+    // 虽然 ReadableStreamIpc 支持 Binary 的传输，但是不支持结构化的传输，
+    // override val supportBinary: Boolean = true
+
     private lateinit var controller: ReadableStream.ReadableStreamController
 
     val stream = ReadableStream(onStart = {
@@ -35,6 +39,11 @@ class ReadableStreamIpc(
 
 
     private var _incomeStream: InputStream? = null
+
+    private val PONG_DATA by lazy {
+        val pong = "pong".toByteArray()
+        pong.size.toByteArray() + pong
+    }
 
     /**
      * 输入流要额外绑定
@@ -72,12 +81,17 @@ class ReadableStreamIpc(
                     jsonToIpcMessage(chunk, this@ReadableStreamIpc)
                 when (message) {
                     "close" -> close()
-                    is IpcMessage -> _messageSignal.emit(
-                        IpcMessageArgs(
-                            message,
-                            this@ReadableStreamIpc
+                    "ping" -> enqueue(PONG_DATA)
+                    "pong" -> debugStreamIpc("PONG/$stream")
+                    is IpcMessage -> {
+                        debugStreamIpc("ON-MESSAGE/${this@ReadableStreamIpc}", message)
+                        _messageSignal.emit(
+                            IpcMessageArgs(
+                                message,
+                                this@ReadableStreamIpc
+                            )
                         )
-                    )
+                    }
                     else -> throw Exception("unknown message: $message")
                 }
             }

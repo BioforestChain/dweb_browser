@@ -2,7 +2,6 @@ package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -15,7 +14,7 @@ import org.http4k.routing.routes
 class NavigationBarNMM : NativeMicroModule("navigationBar.sys.dweb") {
 
     private val nav = run {
-        App.mainActivity?.dWebBrowserModel?.getSystemUi()
+        App.browserActivity?.dWebBrowserModel?.getSystemUi()
     }
 
     override suspend fun _bootstrap() {

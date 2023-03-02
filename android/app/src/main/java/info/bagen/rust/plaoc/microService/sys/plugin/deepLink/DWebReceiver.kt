@@ -7,7 +7,7 @@ import android.widget.Toast
 import info.bagen.libappmgr.utils.APP_DIR_TYPE
 import info.bagen.libappmgr.utils.FilesUtil
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.MainActivity
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.WorkerNative
 import info.bagen.rust.plaoc.createWorker
 import java.io.File
@@ -27,7 +27,7 @@ class DWebReceiver : BroadcastReceiver() {
                 if (File(callUrl).exists()) {
                     createWorker(WorkerNative.valueOf("DenoRuntime"), callUrl)
                 } else {
-                    context?.let { cc -> cc.startActivity(Intent(cc, MainActivity::class.java)) }
+                    context?.let { cc -> cc.startActivity(Intent(cc, BrowserActivity::class.java)) }
                     Toast.makeText(context, "请安装应用<$appName>", Toast.LENGTH_SHORT).show()
                 }
             }

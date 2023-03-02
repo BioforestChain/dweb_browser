@@ -10,8 +10,6 @@ import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
 import info.bagen.rust.plaoc.microService.sys.dns.networkFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.Http1Server
-import info.bagen.rust.plaoc.microService.sys.http.net.PortListener
-import info.bagen.rust.plaoc.microService.sys.http.net.RouteConfig
 import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
 import org.http4k.lens.Query
@@ -22,10 +20,6 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.util.*
 
-
-class Gateway(
-    val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String
-)
 
 class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     companion object {
@@ -61,12 +55,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         for ((key, value) in request.headers) {
             when (key) {
                 "Host" -> {
-                    header_host = value?.let { host ->
-                        /// 如果没有端口，补全端口
-                        if (!host.contains(":")) {
-                            host + ":" + Http1Server.PORT;
-                        } else host
-                    }
+                    header_host = value
                 }
                 "X-Dweb-Host" -> {
                     header_x_dweb_host = value
@@ -80,8 +69,14 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 }
             }
         }
-        val host =
-            query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host ?: header_host ?: "*"
+        val host = (
+                query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host
+                ?: header_host)?.let { host ->
+            /// 如果没有端口，补全端口
+            if (!host.contains(":")) {
+                host + ":" + Http1Server.PORT;
+            } else host
+        } ?: "*"
 
         /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
         /// TODO 30s 没有任何 body 写入的话，认为网关超时
@@ -132,7 +127,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         }
         val query_token = Query.string().required("token")
         val query_routeConfig = Query.string().required("routes")
-        val type_routes = object : TypeToken<ArrayList<RouteConfig>>() {}.type
+        val type_routes = object : TypeToken<ArrayList<Gateway.RouteConfig>>() {}.type
 
         apiRouting = routes(
             "/start" bind Method.GET to defineHandler { request, ipc ->
@@ -140,7 +135,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
             },
             "/listen" bind Method.POST to defineHandler { request ->
                 val token = query_token(request)
-                val routes: List<RouteConfig> =
+                val routes: List<Gateway.RouteConfig> =
                     gson.fromJson(query_routeConfig(request), type_routes)
                 listen(token, request, routes)
             },
@@ -165,8 +160,10 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
          */
         val public_origin: String,
     ) {
-        fun buildHttpUrl() = Uri.of(public_origin)
+        fun buildPublicUrl() = Uri.of(public_origin)
             .query("X-DWeb-Host", host)
+
+        fun buildInternalUrl() = Uri.of(internal_origin)
     }
 
     private fun getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions): ServerUrlInfo {
@@ -195,7 +192,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
         if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
 
-        val listener = PortListener(ipc, serverUrlInfo.host)
+        val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
 
         /// ipc 在关闭的时候，自动释放所有的绑定
         listener.onDestroy(ipc.onClose { close(ipc, options) })
@@ -215,7 +212,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     private fun listen(
         token: String,
         message: Request,
-        routes: List<RouteConfig>
+        routes: List<Gateway.RouteConfig>
     ): Response {
         val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
 
@@ -231,12 +228,13 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         return Response(Status.OK).body(streamIpc.stream)
     }
 
-    private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions) {
+    private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
-        gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
+        return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
             tokenMap.remove(gateway.token)
             gateway.listener.destroy()
-        }
+            true
+        } ?: false
     }
 
 }

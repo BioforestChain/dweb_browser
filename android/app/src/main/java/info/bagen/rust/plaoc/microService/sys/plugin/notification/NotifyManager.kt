@@ -1,15 +1,18 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.notification
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.MainActivity
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.microService.sys.plugin.deepLink.DWebReceiver
 
@@ -46,7 +49,7 @@ class NotifyManager {
         var requestCode = 1 // 用于通知栏点击时，避免都是点击到最后一个
 
         fun getDefaultPendingIntent(): PendingIntent {
-            var intent = Intent(App.appContext, MainActivity::class.java).apply {
+            var intent = Intent(App.appContext, BrowserActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
             return PendingIntent.getActivity(
@@ -120,6 +123,14 @@ class NotifyManager {
         }
 
         with(NotificationManagerCompat.from(context)) {
+            if (ActivityCompat.checkSelfPermission(
+                    App.appContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: 权限申请
+                return
+            }
             notify(notifyId++, builder.build())
         }
     }

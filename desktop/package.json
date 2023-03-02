@@ -1,78 +1,80 @@
 {
-  "name": "dweb-browser",
-  "main-": "index.html",
-  "main": "./index.js",
-  "domain": "dweb",
-  "webview": {
-    "partitions": [
-      {
-        "name": "trusted",
-        "accessible_resources": [
-          "<all_urls>"
+    "name": "dweb-browser",
+    "main-": "index.html",
+    "main": "./index.js",
+    "domain": "dweb",
+    "webview": {
+        "partitions": [
+            {
+                "name": "trusted",
+                "accessible_resources": [
+                    "<all_urls>"
+                ]
+            }
         ]
-      }
-    ]
-  },
-  "node-remote": "<all_urls>",
-  "crash_report_url": "http://localhost:11270",
-  "additional_trust_anchors": [
-    "-----BEGIN CERTIFICATE-----\nMIIEwjCCAyqgAwIBAgIRAKfjNbdJpnBouHhuM4G4qzIwDQYJKoZIhvcNAQELBQAw\neTEeMBwGA1UEChMVbWtjZXJ0IGRldmVsb3BtZW50IENBMScwJQYDVQQLDB5HQVVC\nRUUtWU9HQVxHYXViZWVAR2F1YmVlLVlPR0ExLjAsBgNVBAMMJW1rY2VydCBHQVVC\nRUUtWU9HQVxHYXViZWVAR2F1YmVlLVlPR0EwHhcNMjIwNjA3MDYzMzU5WhcNMzIw\nNjA3MDYzMzU5WjB5MR4wHAYDVQQKExVta2NlcnQgZGV2ZWxvcG1lbnQgQ0ExJzAl\nBgNVBAsMHkdBVUJFRS1ZT0dBXEdhdWJlZUBHYXViZWUtWU9HQTEuMCwGA1UEAwwl\nbWtjZXJ0IEdBVUJFRS1ZT0dBXEdhdWJlZUBHYXViZWUtWU9HQTCCAaIwDQYJKoZI\nhvcNAQEBBQADggGPADCCAYoCggGBAMaiegph8PFhyNASVn/R+iJDYKPZSsrc2xwN\nJQzecqLxJ7fwPasR9ZQkVPx/8bRz9w8XU4nWNYUSohPLTNfiSbmVZ0KsSwGUwGx3\n5u3lXJDpckKO39jcPsu7k/M5+YXhy+AlnfKzByS/vGti7TyGrkXHKvxR7MKglWKy\nSTjvFH9iaUl9wHkGawC3+lpEr12Vp9h0/fhZ4CUHIObYoN/WWcYi89U+B38rrScW\nUuwr0UybsEyGjf6OK7mLUOFh2THuovtjE0bSbnodAyunYPqgKId4dDX6uVi6BbrW\nXUypuGAsUoZ/2TznFYfuhRwy9g1XN6ghD437V/ORMVhUfVYaYYuMwh1C7RXoJD/Q\nqsiFA0TeqAF7bsk6vRLuOzh6pFNmqNydktkyW23go4QIvCbfOvlN1sHF8szwBbAj\no8Nr8XZyZSWMlDQa8VTtvQqM4RzJQRy0pra83ebPyvefoD8rZ+Su5NVmThyFWIp1\nZxMkVmKrXWYYzI3g7bYwq7UzrKBUIwIDAQABo0UwQzAOBgNVHQ8BAf8EBAMCAgQw\nEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUrpkSEz8YN3fiwtrYA8qyJDA/\nhNswDQYJKoZIhvcNAQELBQADggGBAGWF7x4NTnMJyokgjYd/waEVIFL5MhubMI2H\nyQRbJCzoOR/RJJd1wuGzY6gHHzpx0lUB+7CSF0bEqiAfIdER9HQRn+ucH5tMq3uz\nuDoFY5Qhl1LNOeWtcGgDv34ao2tMTbr4yRCJ+4O9FLu5P4vwNEIdhZZEcVwUrO94\nMPzKT7NgADJCYqAYBcuxEZLaSUQKrSTbTQN/KIQYeaHAslsuDmnEMCE5xWGAzWlp\n2hgVkwyqjUVrQ6uX+umdID45dnqcMsx6VZ3EQM1E2hNGX2xsnJI4zU6EfPkSPgOQ\nOCssF6+YXFw/CnXYvCuxg2EnglsVb5NHDP8HIfjT3PpUUDRBhGewq3Hjf0fAll9/\nVPIQ9cdj2AQuRheVqA/TaFxT8AsXiU50JZEyki7WMhq43QSI2ZRMlT1PIuubR8Hg\ndPou1+QqA3balmQaiOpTnmjHc8l8aYGNeqP34K7jGmmJj/G93jSKqsHO02yvl7dq\nVY9tiOzVDrdaAgN5N98fUmre/+CJhg==\n-----END CERTIFICATE-----",
-    "-----BEGIN CERTIFICATE-----\nMIIENTCCAp2gAwIBAgIQfurSKeYRgAZBrLbgrQaJrzANBgkqhkiG9w0BAQsFADB5\nMR4wHAYDVQQKExVta2NlcnQgZGV2ZWxvcG1lbnQgQ0ExJzAlBgNVBAsMHkdBVUJF\nRS1ZT0dBXEdhdWJlZUBHYXViZWUtWU9HQTEuMCwGA1UEAwwlbWtjZXJ0IEdBVUJF\nRS1ZT0dBXEdhdWJlZUBHYXViZWUtWU9HQTAeFw0yMzAyMDYwNjIzMzhaFw0yNTA1\nMDYwNjIzMzhaMFIxJzAlBgNVBAoTHm1rY2VydCBkZXZlbG9wbWVudCBjZXJ0aWZp\nY2F0ZTEnMCUGA1UECwweR0FVQkVFLVlPR0FcR2F1YmVlQEdhdWJlZS1ZT0dBMIIB\nIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu2QVKscK2yM0rQmI8HT8A1uZ\nHmB2Aepirp4/XtGEK1tDKKFSDBN9+BCD5u3uSdkoX/bVoTKtONY70amHEZWJSu4g\nIdJJzgrb5rO2GzNr8nahjxX06sQBeCVc/+oALSqLIxnKJt72JBiLKqVkKdjykg02\nsCzkIsH9er9m1I8dxi/5/lV2oPCESjyxF3xsimzIMJ2b5BWNGvwuOGCKxKWZv4oW\nCAMEYzQvHvppPbq+kW9IzROhgSFiMEuuA6j8R+tqeVDq55tPsmfMWWYw6WenPgVo\nSj5QazjQnwDTTIiG0agmR8VAp1Rdqctioz/Gd48a0CLXJccOIXAKu3tyDwi4+QID\nAQABo2AwXjAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwHwYD\nVR0jBBgwFoAUrpkSEz8YN3fiwtrYA8qyJDA/hNswFgYDVR0RBA8wDYILKi5sb2Nh\nbGhvc3QwDQYJKoZIhvcNAQELBQADggGBALR6KaIVY6b7ej3u1jiOLOxJsvTuuZkG\nf7H78yElbTx3z+0D+Y/YhBv8hkjpYfGXn7rIHPDr1VXOTHvx6uWcfJVjDFcSC7Bg\nmSBmjyzEWEYVGjpdw83gBwrLbpSAxrSlZTCF1b4gIrZncLvuM059tXq73L4884yi\nJyjAtYLgAzmFfsvWVRY/EJ7/IBcvOFw+eZ+bld0w1fzSrm0OWbeL7f27GMozkvKy\nMSklejzrUcqZw2VtWrVNTgBUgYdI6IMR2qn/aitDo48390zYpuuwVy6JfNKWdRAY\nSlRGIqZSzKBl6e1y33eShHFhEbF9MuIL9DPZ94htbYF5fVC7JGOXtkbGvF9TzCTW\nufdK+kXTLA/l+8rNQlf+ZJsSn5iqcLYI32ScRR5Rz9+PIxklGdJWKFGQecQFKKwF\ng3PBltW84d3BlY4xwOwyt8CPORu0BweUdY835e/tf+b3vAU1difBEim0Tj2CaZ2/\n6tLi3sO2Y9TQ7VL7Xr9wAZ+3ESPWL7fOWw==\n-----END CERTIFICATE-----"
-  ],
-  "scripts": {
-    "dev": "concurrently npm:dev:*",
-    "dev:tsc": "tsc -w",
-    "bundle:js-process.worker": "esbuild ./src/sys/js-process/js-process.worker.mts --outfile=./bundle/js-process.worker.js --bundle --format=esm",
-    "dev:js-process.worker": "npm run bundle:js-process.worker -- --watch",
-    "bundle:js-process.html": "vite build src/sys/js-process/assets/ --outDir=../../../../bundle/js-process --emptyOutDir -c electron-vite.config.ts",
-    "dev:js-process.html": "npm run bundle:js-process.html -- --minify=false --watch",
-    "bundle:desktop.worker": "esbuild ./src/user/desktop/desktop.worker.mts --outfile=./bundle/desktop.worker.js --bundle --format=esm",
-    "dev:desktop.worker": "npm run bundle:desktop.worker -- --watch",
-    "bundle:browser.worker": "esbuild ./src/user/browser/browser.worker.mts --outfile=./bundle/browser.worker.js --bundle --format=esm",
-    "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
-    "bundle:browser.render": "esbuild ./src/user/browser/assets/browser.render.mts --outfile=./bundle/browser.render.txt --bundle --format=esm",
-    "dev:browser.render": "npm run bundle:browser.render -- --watch",
-    "bundle:common.worker": "esbuild ./src/sys/app/common.worker.mts --outfile=./bundle/common.worker.js --bundle --format=esm",
-    "dev:common.worker": "npm run bundle:common.worker -- --watch",
-    "bundle:multi-webview.html": "vite build src/sys/multi-webview/assets/ --outDir=../../../../bundle/multi-webview --emptyOutDir -c electron-vite.config.ts",
-    "dev:multi-webview.html": "npm run bundle:multi-webview.html -- --minify=false --watch",
-    "bundle:plugins.components": "esbuild ./src/sys/plugins/components/index.mts --outfile=./bundle/plugins.components.js --bundle --format=esm",
-    "dev:plugins.components": "npm run bundle:plugins.components -- --watch",
-    "start:win": "chcp 65001 && electron .",
-    "start": "electron ./",
-    "如果需要采用彩色的输出到终端":"FORCE_COLOR=true pnpm start"
-  },
-  "devDependencies": {
-    "@types/lodash": "^4.14.191",
-    "@types/mime": "^3.0.1",
-    "@types/node": "^18.11.18",
-    "@types/node-forge": "^1.3.1",
-    "concurrently": "^7.6.0",
-    "electron": "^23.0.0",
-    "esbuild": "^0.17.5",
-    "nwjs-types": "^1.0.0",
-    "prettier": "^2.8.3",
-    "prettier-plugin-organize-imports": "^3.2.2",
-    "vite": "^4.1.1",
-    "vite-plugin-electron-renderer": "^0.12.1"
-  },
-  "dependencies": {
-    "@lit-labs/motion": "^1.0.3",
-    "@msgpack/msgpack": "^2.8.0",
-    "@types/chrome": "^0.0.210",
-    "chalk": "4",
-    "comlink": "^4.4.1",
-    "esbuild-plugin-html-modules": "^0.6.0",
-    "lit": "^2.6.1",
-    "lodash": "^4.17.21",
-    "mime": "^3.0.0",
-    "node-fetch": "^3.3.0",
-    "node-forge": "^1.3.1",
-    "request": "^2.88.2",
-    "request-progress": "^3.0.0",
-    "shadowrealm-api": "^0.8.2",
-    "tar": "^6.1.13",
-    "twind": "^0.16.19",
-    "typescript": "^4.9.5"
-  }
+    },
+    "node-remote": "<all_urls>",
+    "crash_report_url": "http://localhost:11270",
+    "additional_trust_anchors": [
+        "-----BEGIN CERTIFICATE-----\nMIIEwjCCAyqgAwIBAgIRAKfjNbdJpnBouHhuM4G4qzIwDQYJKoZIhvcNAQELBQAw\neTEeMBwGA1UEChMVbWtjZXJ0IGRldmVsb3BtZW50IENBMScwJQYDVQQLDB5HQVVC\nRUUtWU9HQVxHYXViZWVAR2F1YmVlLVlPR0ExLjAsBgNVBAMMJW1rY2VydCBHQVVC\nRUUtWU9HQVxHYXViZWVAR2F1YmVlLVlPR0EwHhcNMjIwNjA3MDYzMzU5WhcNMzIw\nNjA3MDYzMzU5WjB5MR4wHAYDVQQKExVta2NlcnQgZGV2ZWxvcG1lbnQgQ0ExJzAl\nBgNVBAsMHkdBVUJFRS1ZT0dBXEdhdWJlZUBHYXViZWUtWU9HQTEuMCwGA1UEAwwl\nbWtjZXJ0IEdBVUJFRS1ZT0dBXEdhdWJlZUBHYXViZWUtWU9HQTCCAaIwDQYJKoZI\nhvcNAQEBBQADggGPADCCAYoCggGBAMaiegph8PFhyNASVn/R+iJDYKPZSsrc2xwN\nJQzecqLxJ7fwPasR9ZQkVPx/8bRz9w8XU4nWNYUSohPLTNfiSbmVZ0KsSwGUwGx3\n5u3lXJDpckKO39jcPsu7k/M5+YXhy+AlnfKzByS/vGti7TyGrkXHKvxR7MKglWKy\nSTjvFH9iaUl9wHkGawC3+lpEr12Vp9h0/fhZ4CUHIObYoN/WWcYi89U+B38rrScW\nUuwr0UybsEyGjf6OK7mLUOFh2THuovtjE0bSbnodAyunYPqgKId4dDX6uVi6BbrW\nXUypuGAsUoZ/2TznFYfuhRwy9g1XN6ghD437V/ORMVhUfVYaYYuMwh1C7RXoJD/Q\nqsiFA0TeqAF7bsk6vRLuOzh6pFNmqNydktkyW23go4QIvCbfOvlN1sHF8szwBbAj\no8Nr8XZyZSWMlDQa8VTtvQqM4RzJQRy0pra83ebPyvefoD8rZ+Su5NVmThyFWIp1\nZxMkVmKrXWYYzI3g7bYwq7UzrKBUIwIDAQABo0UwQzAOBgNVHQ8BAf8EBAMCAgQw\nEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUrpkSEz8YN3fiwtrYA8qyJDA/\nhNswDQYJKoZIhvcNAQELBQADggGBAGWF7x4NTnMJyokgjYd/waEVIFL5MhubMI2H\nyQRbJCzoOR/RJJd1wuGzY6gHHzpx0lUB+7CSF0bEqiAfIdER9HQRn+ucH5tMq3uz\nuDoFY5Qhl1LNOeWtcGgDv34ao2tMTbr4yRCJ+4O9FLu5P4vwNEIdhZZEcVwUrO94\nMPzKT7NgADJCYqAYBcuxEZLaSUQKrSTbTQN/KIQYeaHAslsuDmnEMCE5xWGAzWlp\n2hgVkwyqjUVrQ6uX+umdID45dnqcMsx6VZ3EQM1E2hNGX2xsnJI4zU6EfPkSPgOQ\nOCssF6+YXFw/CnXYvCuxg2EnglsVb5NHDP8HIfjT3PpUUDRBhGewq3Hjf0fAll9/\nVPIQ9cdj2AQuRheVqA/TaFxT8AsXiU50JZEyki7WMhq43QSI2ZRMlT1PIuubR8Hg\ndPou1+QqA3balmQaiOpTnmjHc8l8aYGNeqP34K7jGmmJj/G93jSKqsHO02yvl7dq\nVY9tiOzVDrdaAgN5N98fUmre/+CJhg==\n-----END CERTIFICATE-----",
+        "-----BEGIN CERTIFICATE-----\nMIIENTCCAp2gAwIBAgIQfurSKeYRgAZBrLbgrQaJrzANBgkqhkiG9w0BAQsFADB5\nMR4wHAYDVQQKExVta2NlcnQgZGV2ZWxvcG1lbnQgQ0ExJzAlBgNVBAsMHkdBVUJF\nRS1ZT0dBXEdhdWJlZUBHYXViZWUtWU9HQTEuMCwGA1UEAwwlbWtjZXJ0IEdBVUJF\nRS1ZT0dBXEdhdWJlZUBHYXViZWUtWU9HQTAeFw0yMzAyMDYwNjIzMzhaFw0yNTA1\nMDYwNjIzMzhaMFIxJzAlBgNVBAoTHm1rY2VydCBkZXZlbG9wbWVudCBjZXJ0aWZp\nY2F0ZTEnMCUGA1UECwweR0FVQkVFLVlPR0FcR2F1YmVlQEdhdWJlZS1ZT0dBMIIB\nIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu2QVKscK2yM0rQmI8HT8A1uZ\nHmB2Aepirp4/XtGEK1tDKKFSDBN9+BCD5u3uSdkoX/bVoTKtONY70amHEZWJSu4g\nIdJJzgrb5rO2GzNr8nahjxX06sQBeCVc/+oALSqLIxnKJt72JBiLKqVkKdjykg02\nsCzkIsH9er9m1I8dxi/5/lV2oPCESjyxF3xsimzIMJ2b5BWNGvwuOGCKxKWZv4oW\nCAMEYzQvHvppPbq+kW9IzROhgSFiMEuuA6j8R+tqeVDq55tPsmfMWWYw6WenPgVo\nSj5QazjQnwDTTIiG0agmR8VAp1Rdqctioz/Gd48a0CLXJccOIXAKu3tyDwi4+QID\nAQABo2AwXjAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwHwYD\nVR0jBBgwFoAUrpkSEz8YN3fiwtrYA8qyJDA/hNswFgYDVR0RBA8wDYILKi5sb2Nh\nbGhvc3QwDQYJKoZIhvcNAQELBQADggGBALR6KaIVY6b7ej3u1jiOLOxJsvTuuZkG\nf7H78yElbTx3z+0D+Y/YhBv8hkjpYfGXn7rIHPDr1VXOTHvx6uWcfJVjDFcSC7Bg\nmSBmjyzEWEYVGjpdw83gBwrLbpSAxrSlZTCF1b4gIrZncLvuM059tXq73L4884yi\nJyjAtYLgAzmFfsvWVRY/EJ7/IBcvOFw+eZ+bld0w1fzSrm0OWbeL7f27GMozkvKy\nMSklejzrUcqZw2VtWrVNTgBUgYdI6IMR2qn/aitDo48390zYpuuwVy6JfNKWdRAY\nSlRGIqZSzKBl6e1y33eShHFhEbF9MuIL9DPZ94htbYF5fVC7JGOXtkbGvF9TzCTW\nufdK+kXTLA/l+8rNQlf+ZJsSn5iqcLYI32ScRR5Rz9+PIxklGdJWKFGQecQFKKwF\ng3PBltW84d3BlY4xwOwyt8CPORu0BweUdY835e/tf+b3vAU1difBEim0Tj2CaZ2/\n6tLi3sO2Y9TQ7VL7Xr9wAZ+3ESPWL7fOWw==\n-----END CERTIFICATE-----"
+    ],
+    "scripts": {
+        "dev": "concurrently npm:dev:*",
+        "dev:tsc": "tsc -w",
+        "sync-to-android-assets": "node ./scripts/sync-to-android-assets.cjs",
+        "dev:sync-to-android-assets": "npm run sync-to-android-assets -- --watch",
+        "bundle:js-process.worker": "esbuild ./src/sys/js-process/js-process.worker.mts --outfile=./bundle/js-process.worker.js --bundle --format=esm",
+        "dev:js-process.worker": "npm run bundle:js-process.worker -- --watch",
+        "bundle:js-process.html": "vite build src/sys/js-process/assets/ --outDir=../../../../bundle/js-process --emptyOutDir -c electron-vite.config.ts",
+        "dev:js-process.html": "npm run bundle:js-process.html -- --minify=false --watch",
+        "bundle:desktop.worker": "esbuild ./src/user/desktop/desktop.worker.mts --outfile=./bundle/desktop.worker.js --bundle --format=esm",
+        "dev:desktop.worker": "npm run bundle:desktop.worker -- --watch",
+        "bundle:browser.worker": "esbuild ./src/user/browser/browser.worker.mts --outfile=./bundle/browser.worker.js --bundle --format=esm",
+        "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
+        "bundle:browser.render": "esbuild ./src/user/browser/assets/browser.render.mts --outfile=./bundle/browser.render.txt --bundle --format=esm",
+        "dev:browser.render": "npm run bundle:browser.render -- --watch",
+        "bundle:common.worker": "esbuild ./src/sys/app/common.worker.mts --outfile=./bundle/common.worker.js --bundle --format=esm",
+        "dev:common.worker": "npm run bundle:common.worker -- --watch",
+        "bundle:multi-webview.html": "vite build src/sys/multi-webview/assets/ --outDir=../../../../bundle/multi-webview --emptyOutDir -c electron-vite.config.ts",
+        "dev:multi-webview.html": "npm run bundle:multi-webview.html -- --minify=false --watch",
+        "bundle:plugins.components": "esbuild ./src/sys/plugins/components/index.mts --outfile=./bundle/plugins.components.js --bundle --format=esm",
+        "dev:plugins.components": "npm run bundle:plugins.components -- --watch",
+        "start:win": "chcp 65001 && electron .",
+        "start": "electron ./",
+        "如果需要采用彩色的输出到终端": "FORCE_COLOR=true pnpm start"
+    },
+    "devDependencies": {
+        "@types/lodash": "^4.14.191",
+        "@types/mime": "^3.0.1",
+        "@types/node": "^18.11.18",
+        "@types/node-forge": "^1.3.1",
+        "concurrently": "^7.6.0",
+        "electron": "^23.0.0",
+        "esbuild": "^0.17.5",
+        "nwjs-types": "^1.0.0",
+        "prettier": "^2.8.3",
+        "prettier-plugin-organize-imports": "^3.2.2",
+        "vite": "^4.1.1",
+        "vite-plugin-electron-renderer": "^0.12.1"
+    },
+    "dependencies": {
+        "@lit-labs/motion": "^1.0.3",
+        "@msgpack/msgpack": "^2.8.0",
+        "@types/chrome": "^0.0.210",
+        "chalk": "4",
+        "comlink": "^4.4.1",
+        "esbuild-plugin-html-modules": "^0.6.0",
+        "lit": "^2.6.1",
+        "lodash": "^4.17.21",
+        "mime": "^3.0.0",
+        "node-fetch": "^3.3.0",
+        "node-forge": "^1.3.1",
+        "request": "^2.88.2",
+        "request-progress": "^3.0.0",
+        "shadowrealm-api": "^0.8.2",
+        "tar": "^6.1.13",
+        "twind": "^0.16.19",
+        "typescript": "^4.9.5"
+    }
 }

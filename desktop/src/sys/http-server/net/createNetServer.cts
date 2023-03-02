@@ -112,7 +112,7 @@ export interface $Protocol {
 export interface $NetServer<S extends $ServerInfo<any>> {
   create(): Promise<S>;
   destroy(): unknown;
-  getHost(options: $GetHostOptions): { host: string; origin: string };
+  // getHost(options: $DwebHttpServerOptions): { host: string; origin: string };
 }
 export abstract class NetServer<S extends $ServerInfo<any>>
   implements $NetServer<S>
@@ -120,35 +120,33 @@ export abstract class NetServer<S extends $ServerInfo<any>>
   abstract create(): Promise<S>;
   abstract destroy(): unknown;
   abstract readonly info: S | undefined;
-  getHost(options: $GetHostOptions) {
-    const info = this.info;
-    if (info === undefined) {
-      throw new Error("no created server info");
-    }
-    const { mmid } = options.ipc.remote;
-    const { port = info.protocol.port } = options;
-    let subdomain = options.subdomain?.trim() ?? "";
-    if (subdomain.length > 0 && subdomain.endsWith(".") === false) {
-      subdomain = subdomain + ".";
-    }
-    const host = this._getHost(subdomain, mmid, port, info);
-    const origin = `${info.protocol.prefix}${host}`;
-    return {
-      origin,
-      host,
-    };
-  }
-  abstract _getHost(
-    subdomain: string,
-    mmid: string,
-    port: number,
-    info: S
-  ): string;
+  // getHost(ipc: Ipc, options: $DwebHttpServerOptions) {
+  //   const info = this.info;
+  //   if (info === undefined) {
+  //     throw new Error("no created server info");
+  //   }
+  //   const { mmid } = options.ipc.remote;
+  //   const { port = info.protocol.port } = options;
+  //   let subdomain = options.subdomain?.trim() ?? "";
+  //   if (subdomain.length > 0 && subdomain.endsWith(".") === false) {
+  //     subdomain = subdomain + ".";
+  //   }
+  //   const host = this._getHost(subdomain, mmid, port, info);
+  //   const origin = `${info.protocol.prefix}${host}`;
+  //   return {
+  //     origin,
+  //     host,
+  //   };
+  // }
+  // abstract _getHost(
+  //   subdomain: string,
+  //   mmid: string,
+  //   port: number,
+  //   info: S
+  // ): string;
 }
 
-import type { Ipc } from "../../../core/ipc/ipc.cjs";
-export interface $GetHostOptions {
-  ipc: Ipc;
+export interface $DwebHttpServerOptions {
   port?: number;
   subdomain?: string;
 }

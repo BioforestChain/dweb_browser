@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
 import java.io.InputStream
@@ -10,8 +11,15 @@ class IpcRequest(
     val method: IpcMethod,
     val headers: IpcHeaders,
     val body: IpcBody,
-) : IpcMessage(IPC_DATA_TYPE.REQUEST) {
+    val ipc: Ipc,
+) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST) {
     val uri by lazy { Uri.of(url) }
+
+    init {
+        if (body is IpcBodySender) {
+            IpcBodySender.usableByIpc(ipc, body)
+        }
+    }
 
     companion object {
 
@@ -27,7 +35,8 @@ class IpcRequest(
             url,
             method,
             headers,// 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
-            IpcBodySender(text, ipc)
+            IpcBodySender.from(text, ipc),
+            ipc,
         );
 
         fun fromBinary(
@@ -45,7 +54,8 @@ class IpcRequest(
                 headers.init("Content-Type", "application/octet-stream");
                 headers.init("Content-Length", binary.size.toString());
             },
-            IpcBodySender(binary, ipc)
+            IpcBodySender.from(binary, ipc),
+            ipc,
         )
 
         fun fromStream(
@@ -66,7 +76,8 @@ class IpcRequest(
                     headers.init("Content-Length", size.toString());
                 }
             },
-            IpcBodySender(stream, ipc),
+            IpcBodySender.from(stream, ipc),
+            ipc,
         )
 
         fun fromRequest(
@@ -78,17 +89,22 @@ class IpcRequest(
             request.uri.toString(),
             IpcMethod.from(request.method),
             IpcHeaders(request.headers),
-            when (request.body.length) {
-                0L -> IpcBodySender("", ipc)
-                null -> IpcBodySender(request.body.stream, ipc)
-                else -> IpcBodySender(request.body.payload.array(), ipc)
-            }
+            if (request.method == Method.GET || request.method == Method.HEAD) {
+                IpcBodySender.from("", ipc)
+            } else when (request.body.length) {
+                0L -> IpcBodySender.from("", ipc)
+                null -> IpcBodySender.from(request.body.stream, ipc)
+                else -> IpcBodySender.from(request.body.payload.array(), ipc)
+            },
+            ipc,
         )
 
     }
 
-    fun asRequest() = Request(method.http4kMethod, url).headers(headers.toList()).let { req ->
-        when (val body = body.body) {
+    fun toRequest() = Request(method.http4kMethod, url).headers(headers.toList()).let { req ->
+        if (req.method == Method.GET || req.method == Method.HEAD) {
+            req
+        } else when (val body = body.raw) {
             is String -> req.body(body)
             is ByteArray -> req.body(body.inputStream(), body.size.toLong())
             is InputStream -> req.body(body)
@@ -97,14 +113,16 @@ class IpcRequest(
     }
 
     val ipcReqMessage by lazy {
-        IpcReqMessage(req_id, method, url, headers, body.metaBody)
+        IpcReqMessage(req_id, method, url, headers.toMap(), body.metaBody)
     }
+
+    override fun toString() = "#IpcRequest/$method/$url"
 }
 
 class IpcReqMessage(
     val req_id: Int,
     val method: IpcMethod,
     val url: String,
-    val headers: IpcHeaders,
+    val headers: MutableMap<String, String>,
     val metaBody: MetaBody,
-) : IpcMessage(IPC_DATA_TYPE.REQUEST)
+) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST)

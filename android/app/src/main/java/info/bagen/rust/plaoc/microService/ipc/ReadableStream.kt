@@ -50,7 +50,7 @@ class ReadableStream(
         })
     private val readDataScope =
         CoroutineScope(CoroutineName("readableStream/readData") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
-          printerrln(ctx.toString(), e.message, e)
+            printerrln(ctx.toString(), e.message, e)
         })
 
     init {
@@ -95,21 +95,12 @@ class ReadableStream(
         }
 
         val endSize = ptr + 1
-        val desiredSize = endSize - this.ptr
         runBlocking {
-            writeDataScope.async {
-                debugStream("PULL/START/${uid}", desiredSize)
-                onPull(Pair(desiredSize, controller))
-                debugStream("PULL/END/${uid}", desiredSize)
-            }.join()
             readDataScope.async {
                 val wait = PromiseOut<Unit>()
                 val c = launch {
                     dataSizeFlow.collect { newSize ->
                         when {
-                            newSize == dataSize -> {
-                                debugStream("REQUEST-DATA/WAITING/$uid", "$newSize/$endSize")
-                            }
                             newSize == -1 -> {
                                 debugStream("REQUEST-DATA/END/$uid", "$newSize/$endSize")
                                 wait.resolve(Unit) // 不需要抛出错误
@@ -117,6 +108,15 @@ class ReadableStream(
                             ptr < newSize -> {
                                 debugStream("REQUEST-DATA/CHANGED/$uid", "$newSize/$endSize")
                                 wait.resolve(Unit)
+                            }
+                            newSize >= dataSize -> {
+                                debugStream("REQUEST-DATA/WAITING/$uid", "$newSize/$endSize")
+                                val desiredSize = endSize - ptr
+                                writeDataScope.launch {
+                                    debugStream("PULL/START/${uid}", desiredSize)
+                                    onPull(Pair(desiredSize, controller))
+                                    debugStream("PULL/END/${uid}", desiredSize)
+                                }
                             }
                         }
                     }

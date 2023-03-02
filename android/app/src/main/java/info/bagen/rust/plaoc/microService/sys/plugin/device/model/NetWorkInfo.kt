@@ -12,6 +12,8 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
+import java.lang.reflect.Field
+import java.lang.reflect.Method
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.util.*
@@ -98,23 +100,24 @@ class NetWorkInfo {
         get() {
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 Settings.Secure.getString(App.appContext.contentResolver, "bluetooth_address")
-                    ?: "01"
+                    ?: "01:00:00:00:00:00"
             } else {
                 val bta = BluetoothAdapter.getDefaultAdapter()
-                bta?.address ?: "02"
+                bta?.address ?: "02:00:00:00:00:00"
             }
         }
-
+    /**获取网络中的ip地址 */
     val ipAddrOfInternet: String
         get() {
             return getIPFromHardware(NetType.INTERNET)
         }
+    /** 获取wifi中的ip地址*/
     val ipAddrOfWifi: String
         get() {
             return getIPFromHardware(NetType.WIFI)
         }
 
-    // 获取本地
+    // 获取本地mac 地址
     private fun getEthMacAddress(): String {
         var mac = "02:00:00:00:00:00"
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) { // android 6.0 以下 基础Mac获取方法
@@ -151,7 +154,7 @@ class NetWorkInfo {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        } else  {
             mac = getMacFromHardware(NetType.WIFI)
         }
         return mac
@@ -183,7 +186,7 @@ class NetWorkInfo {
         }
         return "02:00:00:00:00:00"
     }
-
+    /***/
     private fun getIPFromHardware(netType: NetType): String {
         try {
             val niList: List<NetworkInterface> =

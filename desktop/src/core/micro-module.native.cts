@@ -3,6 +3,7 @@ import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
 import { $serializeResultToResponse } from "../helper/$serializeResultToResponse.cjs";
 import { createSignal } from "../helper/createSignal.cjs";
 import type {
+  $IpcSupportProtocols,
   $PromiseMaybe,
   $Schema1,
   $Schema1ToType,
@@ -15,6 +16,11 @@ import { MicroModule } from "./micro-module.cjs";
 import chalk from "chalk";
 
 export abstract class NativeMicroModule extends MicroModule {
+  readonly ipc_support_protocols: $IpcSupportProtocols = {
+    message_pack: true,
+    protobuf: true,
+    raw: true,
+  };
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
   private _connectting_ipcs = new Set<Ipc>();
   _connect(from: MicroModule): NativeIpc {
@@ -92,11 +98,17 @@ export abstract class NativeMicroModule extends MicroModule {
               console.log('err: ', err)
               let body: string;
               if (err instanceof Error) {
-                body = err.message;
+                body = err.stack ?? err.message;
               } else {
                 body = String(err);
               }
-              response = IpcResponse.fromJson(request.req_id, 500, body);
+              response = IpcResponse.fromJson(
+                request.req_id,
+                500,
+                undefined,
+                body,
+                client_ipc
+              );
             }
             break;
           }
@@ -110,7 +122,9 @@ export abstract class NativeMicroModule extends MicroModule {
           response = IpcResponse.fromText(
             request.req_id,
             404,
-            `no found handler for '${pathname}'`
+            undefined,
+            `no found hanlder for '${pathname}'`,
+            client_ipc
           );
         }
         client_ipc.postMessage(response);

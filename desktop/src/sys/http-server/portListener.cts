@@ -127,16 +127,16 @@ export class PortListener {
 
     /// 写回 res 对象
     res.statusCode = http_response_info.statusCode;
-    for (const [name, value] of Object.entries(http_response_info.headers)) {
+    http_response_info.headers.forEach((value, name) => {
       res.setHeader(name, value);
-    }
+    });
     /// 204 和 304 不可以包含 body
     if (
       http_response_info.statusCode !== 204 &&
       http_response_info.statusCode !== 304
     ) {
       // await (await http_response_info.stream()).pipeTo(res)
-      const http_response_body = http_response_info.body;
+      const http_response_body = http_response_info.body.body;
       if (http_response_body instanceof ReadableStream) {
         streamReadAll(http_response_body, {
           map(chunk) {
