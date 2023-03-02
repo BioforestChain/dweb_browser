@@ -107,13 +107,16 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
         /// 为 nativeFetch 函数提供支持
         _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { _, request ->
-            if (request.uri.scheme == "http" && request.uri.host.endsWith(".dweb")) {
+            if (
+                (request.uri.scheme == "http" || request.uri.scheme == "https")
+                && request.uri.host.endsWith(".dweb")
+            ) {
                 networkFetch(
                     request
                         // 头部里添加 X-Dweb-Host
                         .header("X-Dweb-Host", request.uri.authority)
                         // 替换 url 的 authority（host+port）
-                        .uri(request.uri.authority(dwebServer.authority))
+                        .uri(request.uri.scheme("http").authority(dwebServer.authority))
                 )
             } else null
         });
@@ -174,7 +177,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
             if (options.port <= 0 || options.port >= 65536) throw Exception("invalid dweb http port: ${options.port}")
             else options.port
         val host = "$subdomainPrefix$mmid:$port"
-        val internal_origin = "http://$host"
+        val internal_origin = "https://$host"
         val public_origin = dwebServer.origin
         return ServerUrlInfo(host, internal_origin, public_origin)
     }
