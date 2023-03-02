@@ -61,12 +61,13 @@ export class PortListener {
 
     const { url = "/", method = "GET" } = req;
     const parsed_url = parseUrl(url, this.origin);
-    // console.log('parsed_url: ', parsed_url, method)
+    // console.log('parsed_url: ', parsed_url.href)
     const hasMatch = this._isBindMatchReq(parsed_url.pathname, method);
     if (hasMatch === undefined) {
       defaultErrorResponse(req, res, 404, "no found");
       return;
     }
+    // console.log('parsed_url-2: ')
 
     /**
      * 要通过 ipc 传输过去的 req.body
@@ -124,6 +125,7 @@ export class PortListener {
       body: ipc_req_body_stream,
       headers: req.headers as Record<string, string>,
     });
+    // console.log('parsed_url-3: ')
 
     /// 写回 res 对象
     res.statusCode = http_response_info.statusCode;

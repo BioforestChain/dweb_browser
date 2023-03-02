@@ -8,6 +8,7 @@ import { defaultErrorResponse } from "./defaultErrorResponse.cjs";
 import type { $GetHostOptions } from "./net/createNetServer.cjs";
 import { Http1Server } from "./net/Http1Server.cjs";
 import { PortListener } from "./portListener.cjs";
+import chalk from "chalk"
 
 interface $Gateway {
   listener: PortListener;
@@ -28,7 +29,7 @@ export class HttpServerNMM extends NativeMicroModule {
   protected async _bootstrap() {
     const info = await this._http1_server.create();
     info.server.on("request", (req, res) => {
-      // console.log('[http-server.cts 接受到了 http 请求：]', req)
+      // console.log('[http-server.cts 接受到了 http 请求：]', req.headers.host)
 
       /// 获取 host
       /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
@@ -43,7 +44,9 @@ export class HttpServerNMM extends NativeMicroModule {
 
       /// 在网关中寻址能够处理该 host 的监听者
       const gateway = this._gatewayMap.get(host);
+      // console.log('[http-server.cts 接受到了 http 请求：gateway]',gateway)
       if (gateway == undefined) {
+        console.log(chalk.yellow('[http-server.cts 接受到了没有匹配的 gateway host===]'),host)
         return defaultErrorResponse(
           req,
           res,
@@ -104,6 +107,7 @@ export class HttpServerNMM extends NativeMicroModule {
 
   /** 申请监听，获得一个连接地址 */
   private async start(hostOptions: $GetHostOptions) {
+   
     const { ipc } = hostOptions;
     const { host, origin } = this._http1_server.getHost(hostOptions);
     if (this._gatewayMap.has(host)) {
@@ -116,12 +120,14 @@ export class HttpServerNMM extends NativeMicroModule {
         this.close(hostOptions);
       })
     );
-
+    // jmmMetadata.sys.dweb-80.localhost:22605
+    // jmmmetadata.sys.dweb-80.localhost:22605
     const token = Buffer.from(
       crypto.getRandomValues(new Uint8Array(64))
     ).toString("base64url");
     const gateway: $Gateway = { listener, host, token };
     this._tokenMap.set(token, gateway);
+    // console.log(chalk.red('[http-server.cts 设置了gateway]'), host)
     this._gatewayMap.set(host, gateway);
     return { token, origin: listener.origin };
   }

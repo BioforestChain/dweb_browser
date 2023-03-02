@@ -64,12 +64,12 @@ export class NavigatorbarNMM extends NativeMicroModule {
             output: "number",
             handler: async (args, client_ipc, request) => {
                 return  IpcResponse.fromText(
-                request.req_id,
-                200,
-                await reqadHtmlFile(),
-                new IpcHeaders({
-                    "Content-type": "text/html"
-                })
+                    request.req_id,
+                    200,
+                    await reqadHtmlFile(),
+                    new IpcHeaders({
+                        "Content-type": "text/html"
+                    })
                 )
             },
         });

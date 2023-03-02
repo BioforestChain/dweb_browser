@@ -68,8 +68,9 @@ const allCss = [
             scrollbar-width: 2px;
             overflow: hidden;
             overflow-y: auto;
-            /* border: 1px solid red; */
+            background: #fff;
         }
+
         .webview{
             box-sizing: border-box;
             width:100%;

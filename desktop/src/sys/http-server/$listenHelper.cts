@@ -54,39 +54,7 @@ export const listenHttpDwebServer = async (
   const buildUrlValue = buildUrl(url, ext);
   const int = {method: "POST", body: httpServerIpc.stream}
   const httpIncomeRequestStream = await microModule.fetch(buildUrlValue, int).stream()
-
-  // const httpIncomeRequestStream = await microModule
-  // .fetch(
-  //     buildUrl(
-  //       new URL(`file://http.sys.dweb`), 
-  //       {
-  //         pathname: "/listen",
-  //         search: {
-  //           token,
-  //           routes: [ /** 定义了路由的方法 */
-  //             { pathname: "/", matchMode: "prefix", method: "GET", },
-  //             { pathname: "/", matchMode: "prefix", method: "POST", },
-  //             { pathname: "/", matchMode: 'prefix',  method:'PUT'},
-  //             { pathname: "/", matchMode: 'prefix', method: "DELETE"},
-  //             { pathname: "/", matchMode: 'prefix', method: "PATCH"},
-  //             { pathname: "/", matchMode: 'prefix', method: "OPTIONS"},
-  //             { pathname: "/", matchMode: 'prefix', method: "HEAD"},
-  //             { pathname: "/", matchMode: 'prefix', method: "CONNECT"},
-  //             { pathname: "/", matchMode: 'prefix', method: "TRACE"},
-  //           ] satisfies $ReqMatcher[],
-  //         },
-  //       }
-  //     ),
-  //     {
-  //       method: "POST",
-  //       /// 这是上行的通道
-  //       body: httpServerIpc.stream,
-  //     }
-  //   )
-  //   .stream();
-
   console.log("开始响应服务请求");
-
   httpServerIpc.bindIncomeStream(httpIncomeRequestStream);
   return httpServerIpc;
 };

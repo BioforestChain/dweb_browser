@@ -39,7 +39,7 @@ export class DnsNMM extends NativeMicroModule {
           200,
           "ok",
           new IpcHeaders({
-            "Content-Type": "text/json"
+            "Content-Type": "text/plain"
           })
         )
       },
@@ -50,10 +50,17 @@ export class DnsNMM extends NativeMicroModule {
       matchMode: "full",
       input: { app_id: "mmid" },
       output: "boolean",
-      handler: async (args) => {
+      handler: async (args, client_ipc, request) => {
         /// TODO 询问用户是否授权该行为
-        await this.open(args.app_id);
-        return true;
+        const app = await this.open(args.app_id);
+        return IpcResponse.fromJson(
+          request.req_id,
+          200,
+          JSON.stringify(app),
+          new IpcHeaders({
+            "Content-Type": "application/json; charset=UTF-8"
+          })
+        );
       },
     });
     
@@ -104,7 +111,6 @@ export class DnsNMM extends NativeMicroModule {
       await mm.bootstrap();
       app = mm;
     }
-   
     return app;
   }
   /** 关闭应用 */

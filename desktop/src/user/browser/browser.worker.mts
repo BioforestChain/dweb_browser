@@ -16,9 +16,6 @@ export const main = async () => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人KWKW
   const { origin, listen } = await createHttpDwebServer(jsProcess, {});
   ;(await listen()).onRequest(async (request, httpServerIpc) => onRequest(request, httpServerIpc) );
- 
-  // jsProcess.fetch(`file://statusbar.sys.dweb/`)  
-
   await openIndexHtmlAtMWebview(origin)
 };
 
@@ -41,6 +38,7 @@ async function onRequest(request: IpcRequest, httpServerIpc: Ipc){
     case `/install`: onRequestPathNameInstall(request, httpServerIpc); break;
     case `/open`: onRequestPathNameOpen(request, httpServerIpc); break;
     case "/operation_from_plugins": onRequestPathOperation(request, httpServerIpc); break;
+    case "/open_webview": onRequestPathOpenWebview(request, httpServerIpc); break;
     default: onRequestPathNameNoMatch(request, httpServerIpc); break;
   }
 
@@ -151,7 +149,6 @@ async function onRequestPathNameIcon(request: IpcRequest, httpServerIpc: Ipc){
   .then(async(res: Response) => {
     // "image/svg+xml"
     // 转发给 html
-    console.log("转发图片资源: ", res)
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(
         request.req_id,
@@ -229,6 +226,49 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc){
   .then( async (err) => {
     console.log('[browser.worker.mts onRequestPathOperation err:]', err)
   })
+}
+
+/**
+ * onRequest 事件处理器 pathname ===  /open_webview" 
+ * @param request 
+ * @param httpServerIpc 
+ */
+async function onRequestPathOpenWebview(request: IpcRequest, httpServerIpc: Ipc){
+  const mmid = request.parsed_url.searchParams.get('mmid')
+  // this.fetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
+  // 启动
+  jsProcess
+  .fetch(`file://dns.sys.dweb/open?app_id=${mmid}`)
+  .then(async (res: any) => {
+    httpServerIpc.postMessage(
+      await IpcResponse.fromResponse(
+        request.req_id,
+        res,
+        httpServerIpc
+      )
+    );
+  })
+  .catch((err: any) => console.log('err:', err))
+
+
+  // const _path = request.headers["plugin-target"]
+  // const _appUrl = request.parsed_url.searchParams.get("app_url")
+  // const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`
+  // jsProcess
+  // fetch(_url, {method: request.method, body: request.body, headers:request.headers})
+  // .then(async(res: Response) => {
+  //   console.log('[browser.worker.mts onRequestPathOperation res:]', res)
+  //   httpServerIpc.postMessage(
+  //     await IpcResponse.fromResponse(
+  //       request.req_id,
+  //       res,
+  //       httpServerIpc
+  //     )
+  //   );
+  // })
+  // .then( async (err) => {
+  //   console.log('[browser.worker.mts onRequestPathOperation err:]', err)
+  // })
 }
 
 /**
