@@ -40,8 +40,6 @@ import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
-import info.bagen.rust.plaoc.microService.sys.plugin.barcode.BarcodeScanningActivity
-import info.bagen.rust.plaoc.microService.sys.plugin.barcode.QRCodeScanningActivity
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_CAN_BE_FOUND
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_REQUEST
@@ -282,19 +280,6 @@ class BrowserActivity : AppCompatActivity() {
         startActivityForResult(pickIntent, REQUEST_CODE_PHOTO)
     }
 
-    // 打开条形码（现在这里的效果是不断扫二维码,还需要修改）
-    fun openBarCodeScannerActivity() {
-        startActivityForResult(
-            Intent(this, BarcodeScanningActivity::class.java), REQUEST_CODE_SCAN_CODE
-        )
-    }
-
-    // 打开二维码
-    fun openScannerActivity() {
-        startActivityForResult(
-            Intent(this, QRCodeScanningActivity::class.java), REQUEST_CODE_SCAN_CODE
-        )
-    }
 
     fun openDWebViewActivity(path: String) {
         // 存储一下host，用来判断是远程的还是本地的

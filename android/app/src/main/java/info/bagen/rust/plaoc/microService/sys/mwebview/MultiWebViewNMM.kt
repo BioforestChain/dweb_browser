@@ -6,7 +6,6 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Method
 import org.http4k.lens.Query
@@ -19,9 +18,16 @@ inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null
 
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
+    data class ActivityClass(var mmid: Mmid, val ctor: Class<out MutilWebViewActivity>)
     companion object {
-
-        val activityMap = mutableMapOf<Mmid, PromiseOut<MutilWebViewActivity>>()
+        val activityClassList = mutableListOf(
+            ActivityClass("", MutilWebViewPlaceholder1Activity::class.java),
+            ActivityClass("", MutilWebViewPlaceholder2Activity::class.java),
+            ActivityClass("", MutilWebViewPlaceholder3Activity::class.java),
+            ActivityClass("", MutilWebViewPlaceholder4Activity::class.java),
+            ActivityClass("", MutilWebViewPlaceholder5Activity::class.java),
+        )
+        val controllerMap = mutableMapOf<Mmid, MutilWebViewController>()
     }
 
     override suspend fun _bootstrap() {
@@ -49,9 +55,15 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     }
 
     @Synchronized
-    private fun openMutilWebViewActivity(remoteMmid: Mmid) = activityMap.getOrPut(remoteMmid) {
-        debugMultiWebView("OPEN-ACTIVITY", "remote-mmid: $remoteMmid")
-        App.startActivity(MutilWebViewActivity::class.java) { intent ->
+    private fun openMutilWebViewActivity(remoteMmid: Mmid) {
+        val activityClass =
+            activityClassList.find { it.mmid == remoteMmid } ?:
+            // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
+            activityClassList.removeAt(0).also {
+                it.mmid = remoteMmid
+                activityClassList.add(it)
+            }
+        App.startActivity(activityClass.ctor) { intent ->
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
             intent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT)
@@ -61,24 +73,21 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             b.putString("mmid", remoteMmid);
             intent.putExtras(b);
         }
-        PromiseOut()
     }
 
-    private suspend fun openDwebView(
+    private fun openDwebView(
         remoteMm: MicroModule,
         url: String,
     ): String {
         val remoteMmid = remoteMm.mmid
         debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")
-        val activity = openMutilWebViewActivity(remoteMmid).waitPromise()
-        return activity.openWebView(remoteMm, url).webviewId
+        val controller = controllerMap.getOrPut(remoteMmid) { MutilWebViewController(remoteMmid) }
+        openMutilWebViewActivity(remoteMmid)
+        return controller.openWebView(remoteMm, url).webviewId
     }
 
-    private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
-        debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / webview-id:$webviewId")
-        val activity = activityMap[remoteMmid]?.waitPromise()
-            ?: throw Exception("no found activity for mmid: $remoteMmid")
-
-        return activity.closeWebView(webviewId)
-    }
+    private fun closeDwebView(remoteMmid: String, webviewId: String) =
+        controllerMap[remoteMmid]?.let {
+            it.closeWebView(webviewId)
+        } ?: false
 }

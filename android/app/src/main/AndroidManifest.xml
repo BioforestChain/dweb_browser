@@ -73,18 +73,11 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.plaoc" />
-        <activity android:name=".microService.sys.mwebview.MutilWebViewActivity" />
-        <activity
-            android:name=".microService.sys.plugin.barcode.QRCodeScanningActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/CameraScanTheme">
-            <intent-filter>
-                <action android:name="info.bagen.dwebbrowser.qrcodescan" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <activity android:name=".microService.sys.mwebview.MutilWebViewPlaceholder1Activity" />
+        <activity android:name=".microService.sys.mwebview.MutilWebViewPlaceholder2Activity" />
+        <activity android:name=".microService.sys.mwebview.MutilWebViewPlaceholder3Activity" />
+        <activity android:name=".microService.sys.mwebview.MutilWebViewPlaceholder4Activity" />
+        <activity android:name=".microService.sys.mwebview.MutilWebViewPlaceholder5Activity" />
 
         <meta-data
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"

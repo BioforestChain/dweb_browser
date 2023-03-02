@@ -7,7 +7,6 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import info.bagen.rust.plaoc.R
-import info.bagen.rust.plaoc.microService.sys.plugin.barcode.QRCodeScanningActivity
 
 object PlaocUtil {
 
@@ -15,22 +14,22 @@ object PlaocUtil {
      * 增加桌面长按图标时显示的快捷列表
      */
     fun addShortcut(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            val shortcutInfoList = arrayListOf<ShortcutInfoCompat>()
-            val builder = ShortcutInfoCompat.Builder(context, "plaoc")
-            builder.setShortLabel("扫一扫")
-                .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_scan))
-                .setIntent(
-                    Intent(
-                        "info.bagen.dwebbrowser.qrcodescan",
-                        null,
-                        context,
-                        QRCodeScanningActivity::class.java
-                    )
-                )
-            shortcutInfoList.add(builder.build())
-            ShortcutManagerCompat.addDynamicShortcuts(context, shortcutInfoList)
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+//            val shortcutInfoList = arrayListOf<ShortcutInfoCompat>()
+//            val builder = ShortcutInfoCompat.Builder(context, "plaoc")
+//            builder.setShortLabel("扫一扫")
+//                .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_scan))
+//                .setIntent(
+//                    Intent(
+//                        "info.bagen.dwebbrowser.qrcodescan",
+//                        null,
+//                        context,
+//                        QRCodeScanningActivity::class.java
+//                    )
+//                )
+//            shortcutInfoList.add(builder.build())
+//            ShortcutManagerCompat.addDynamicShortcuts(context, shortcutInfoList)
+//        }
     }
 
     /**生成零拷贝key*/
