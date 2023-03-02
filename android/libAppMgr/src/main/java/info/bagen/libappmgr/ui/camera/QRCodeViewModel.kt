@@ -22,18 +22,20 @@ sealed class QRCodeIntent {
   object ReleaseCamera : QRCodeIntent()
   class OpenOrHide(val show: Boolean, val scanType: ScanType = ScanType.QRCODE) : QRCodeIntent()
   class SetQRCodeScanning(val qrCodeScanning:QRCodeScanning) : QRCodeIntent()
-  class SetOnScanCallBack(val scanCallBack: OnScanCallBack) : QRCodeIntent()
+  open class SetOnScanCallBack(val scanCallBack: QrCodeCallBack) : QRCodeIntent()
 }
 
 interface OnScanCallBack {
   fun scanCallBack(value: String)
 }
 
+typealias QrCodeCallBack = (String)->Unit
+
 class QRCodeViewModel: ViewModel() {
   val uiState = QRCodeUIState()
   @SuppressLint("StaticFieldLeak")
   private var qrCodeScanning: QRCodeScanning? = null
-  private var scanCallBack: OnScanCallBack? = null
+  private var qrCodeCallBack: QrCodeCallBack? = null
 
   fun handleIntent(action: QRCodeIntent) {
     viewModelScope.launch(Dispatchers.IO) {
@@ -41,18 +43,22 @@ class QRCodeViewModel: ViewModel() {
         is QRCodeIntent.OpenOrHide -> {
           uiState.show.value = action.show
           uiState.scanType = action.scanType
+          // 如果关闭扫码页面
+          if (!action.show){
+            qrCodeCallBack?.let { it1 -> it1("") }
+          }
         }
         is QRCodeIntent.SetQRCodeScanning -> {
           qrCodeScanning = action.qrCodeScanning.also {
             it.setCallBack(object : OnScanCallBack{
               override fun scanCallBack(value: String) {
-                scanCallBack?.scanCallBack(value)
+                qrCodeCallBack?.let { it1 -> it1(value) }
               }
             })
           }
         }
         is QRCodeIntent.SetOnScanCallBack -> {
-          scanCallBack = action.scanCallBack
+          qrCodeCallBack = action.scanCallBack
         }
         is QRCodeIntent.ReleaseCamera -> {
           qrCodeScanning?.releaseCamera()

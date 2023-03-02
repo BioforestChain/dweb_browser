@@ -33,6 +33,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         apiRouting = routes(
             "/open" bind Method.GET to defineHandler { request, ipc ->
                 val url = query_url(request)
+                println("MultiWebViewNMM $url")
                 openDwebView(ipc.remote, url)
             },
             "/close" bind Method.GET to defineHandler { request, ipc ->

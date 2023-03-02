@@ -18,6 +18,8 @@ package info.bagen.rust.plaoc.microService.sys.plugin.barcode
 import android.Manifest
 import android.content.Intent
 import android.graphics.Point
+import android.os.Bundle
+import android.os.PersistableBundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -36,6 +38,7 @@ import com.king.mlkit.vision.camera.util.LogUtils
 import com.king.mlkit.vision.camera.util.PermissionUtils
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.R
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.util.lib.drawRect
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -47,6 +50,20 @@ class QRCodeScanningActivity : QRCodeCameraScanActivity() {
 
     private lateinit var ivResult: ImageView
     private lateinit var ivPhoto: View
+    private var onDisplay:String = ""
+    companion object {
+        var promise_op = PromiseOut<String>()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        promise_op.resolve(onDisplay)
+    }
+
     override fun initUI() {
         super.initUI()
 
@@ -109,6 +126,7 @@ class QRCodeScanningActivity : QRCodeCameraScanActivity() {
             intent.putExtra(CameraScan.SCAN_RESULT, data)
             data?.let { displayValue ->
                 Log.d("1.2.xxxxxxxx", displayValue)
+                onDisplay = displayValue
                 // 拿到扫完的数据，传递给rust方法
 //                createBytesFactory(ExportNative.OpenQrScanner, displayValue)   // TODO
             }
@@ -131,6 +149,7 @@ class QRCodeScanningActivity : QRCodeCameraScanActivity() {
                 intent.putExtra(CameraScan.SCAN_RESULT, results[0].displayValue)
                 results[0].displayValue?.let {
                     Log.d("2.xxxxxxxx", it)
+                    onDisplay = it
 //                    createBytesFactory(ExportNative.OpenQrScanner, it)  // TODO
                 }
                 setResult(RESULT_OK, intent)

@@ -80,7 +80,7 @@ class BrowserActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         BrowserNMM.activityPo?.resolve(this)
-
+        App.browserActivity = this
         setContent {
             ViewCompat.getWindowInsetsController(LocalView.current)?.isAppearanceLightStatusBars =
                 !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
@@ -195,6 +195,7 @@ class BrowserActivity : AppCompatActivity() {
     override fun onDestroy() {
         // 退出APP关闭服务
         super.onDestroy()
+        App.browserActivity = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
         unregisterReceiver(receiver)
     }

@@ -7,6 +7,7 @@ import info.bagen.rust.plaoc.microService.sys.http.HttpNMM
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.barcode.ScanningNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.*
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.FileSystemNMM
@@ -36,6 +37,8 @@ suspend fun startDwebBrowser() {
     /// 安装系统桌面
     val browserNMM = BrowserNMM().also { dnsNMM.install(it) }
 
+    /// 扫码
+    val scannerNMM = ScanningNMM().also { dnsNMM.install(it) }
     ///安装剪切板
     val clipboardNMM = ClipboardNMM().also { dnsNMM.install(it) }
     ///设备信息
