@@ -53,7 +53,7 @@ class ChangeTools: NSObject {
         return String(data: data, encoding: .utf8) ?? ""
     }
     
-    static func tempAnyToString(value: Any) -> String {
+    static func tempAnyToString(value: Any) -> String? {
         
         if value is Int || value is Float || value is Double || value is Bool {
             return "\(value)"
@@ -66,6 +66,6 @@ class ChangeTools: NSObject {
         if value is [String:Any] {
             return ChangeTools.dicValueString(value as! [String : Any]) ?? ""
         }
-        return ""
+        return nil
     }
 }

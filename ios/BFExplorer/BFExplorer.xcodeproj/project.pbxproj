@@ -202,6 +202,8 @@
 		F33BE3CD2966DE1B006D30B9 /* app in Resources */ = {isa = PBXBuildFile; fileRef = F33BE3CC2966DE1B006D30B9 /* app */; };
 		F383C6B42955378800BD4FE5 /* FileEntites.swift in Sources */ = {isa = PBXBuildFile; fileRef = F383C6B32955378800BD4FE5 /* FileEntites.swift */; };
 		F383C6C029557B0D00BD4FE5 /* AdapterHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F383C6BF29557B0D00BD4FE5 /* AdapterHandle.swift */; };
+		F384E5DB29B02C4200F9493B /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5DA29B02C4200F9493B /* NetworkManager.swift */; };
+		F384E5DD29B076BC00F9493B /* URL_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5DC29B076BC00F9493B /* URL_extension.swift */; };
 		F394B8D129A88D6F002B14AA /* IpcNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */; };
 		F394B8D329A891BF002B14AA /* MicroModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F394B8D229A891BF002B14AA /* MicroModule.swift */; };
 		F399907A29A9AC64007C5403 /* NativeIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399907929A9AC64007C5403 /* NativeIpc.swift */; };
@@ -233,6 +235,10 @@
 		F39DE5AD299B92980005B389 /* streamAsRawData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39DE5AC299B92980005B389 /* streamAsRawData.swift */; };
 		F39DE5B2299CDE9D0005B389 /* PromiseOut.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39DE5B1299CDE9D0005B389 /* PromiseOut.swift */; };
 		F39DE5B829A079030005B389 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = F39DE5B729A079030005B389 /* Vapor */; };
+		F3A5A04C29AF2E990017F41D /* BootNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A04B29AF2E990017F41D /* BootNMM.swift */; };
+		F3A5A04F29AF35270017F41D /* RoutesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A04E29AF35270017F41D /* RoutesManager.swift */; };
+		F3A5A05129AF3F7E0017F41D /* NativeFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A05029AF3F7E0017F41D /* NativeFetch.swift */; };
+		F3A5A05329AF3F8F0017F41D /* DnsNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A05229AF3F8F0017F41D /* DnsNMM.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -444,6 +450,8 @@
 		F33BE3CC2966DE1B006D30B9 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app; sourceTree = "<group>"; };
 		F383C6B32955378800BD4FE5 /* FileEntites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileEntites.swift; sourceTree = "<group>"; };
 		F383C6BF29557B0D00BD4FE5 /* AdapterHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdapterHandle.swift; sourceTree = "<group>"; };
+		F384E5DA29B02C4200F9493B /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
+		F384E5DC29B076BC00F9493B /* URL_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL_extension.swift; sourceTree = "<group>"; };
 		F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcNetworkManager.swift; sourceTree = "<group>"; };
 		F394B8D229A891BF002B14AA /* MicroModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicroModule.swift; sourceTree = "<group>"; };
 		F399907929A9AC64007C5403 /* NativeIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeIpc.swift; sourceTree = "<group>"; };
@@ -474,6 +482,10 @@
 		F39DE5AA299B82D90005B389 /* urlHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = urlHelper.swift; sourceTree = "<group>"; };
 		F39DE5AC299B92980005B389 /* streamAsRawData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = streamAsRawData.swift; sourceTree = "<group>"; };
 		F39DE5B1299CDE9D0005B389 /* PromiseOut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromiseOut.swift; sourceTree = "<group>"; };
+		F3A5A04B29AF2E990017F41D /* BootNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootNMM.swift; sourceTree = "<group>"; };
+		F3A5A04E29AF35270017F41D /* RoutesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutesManager.swift; sourceTree = "<group>"; };
+		F3A5A05029AF3F7E0017F41D /* NativeFetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFetch.swift; sourceTree = "<group>"; };
+		F3A5A05229AF3F8F0017F41D /* DnsNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DnsNMM.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -815,6 +827,7 @@
 				F091CB422951B90200FCE565 /* UIDevice_extension.swift */,
 				F091CB432951B90200FCE565 /* UIImage_extension.swift */,
 				F091CB442951B90200FCE565 /* UIView_extension.swift */,
+				F384E5DC29B076BC00F9493B /* URL_extension.swift */,
 			);
 			path = extension;
 			sourceTree = "<group>";
@@ -1070,11 +1083,72 @@
 			path = IPC;
 			sourceTree = "<group>";
 		};
+		F3A5A04D29AF35180017F41D /* routes */ = {
+			isa = PBXGroup;
+			children = (
+				F3A5A04E29AF35270017F41D /* RoutesManager.swift */,
+				F384E5DA29B02C4200F9493B /* NetworkManager.swift */,
+			);
+			path = routes;
+			sourceTree = "<group>";
+		};
 		F3B0134629AE09B300F10504 /* sys */ = {
 			isa = PBXGroup;
 			children = (
+				F3A5A04D29AF35180017F41D /* routes */,
+				F3B0134C29AE0AEE00F10504 /* mwebview */,
+				F3B0134B29AE0AE600F10504 /* js */,
+				F3B0134A29AE0AE000F10504 /* http */,
+				F3B0134929AE0ADA00F10504 /* dns */,
+				F3B0134829AE0AD400F10504 /* boot */,
+				F3B0134729AE0ACE00F10504 /* base */,
 			);
 			path = sys;
+			sourceTree = "<group>";
+		};
+		F3B0134729AE0ACE00F10504 /* base */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = base;
+			sourceTree = "<group>";
+		};
+		F3B0134829AE0AD400F10504 /* boot */ = {
+			isa = PBXGroup;
+			children = (
+				F3A5A04B29AF2E990017F41D /* BootNMM.swift */,
+			);
+			path = boot;
+			sourceTree = "<group>";
+		};
+		F3B0134929AE0ADA00F10504 /* dns */ = {
+			isa = PBXGroup;
+			children = (
+				F3A5A05029AF3F7E0017F41D /* NativeFetch.swift */,
+				F3A5A05229AF3F8F0017F41D /* DnsNMM.swift */,
+			);
+			path = dns;
+			sourceTree = "<group>";
+		};
+		F3B0134A29AE0AE000F10504 /* http */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = http;
+			sourceTree = "<group>";
+		};
+		F3B0134B29AE0AE600F10504 /* js */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = js;
+			sourceTree = "<group>";
+		};
+		F3B0134C29AE0AEE00F10504 /* mwebview */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = mwebview;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1243,6 +1317,7 @@
 				F01ABAD728D1745E0038AF9C /* Configuration.swift in Sources */,
 				F0BADEB62986820100B8DCCF /* JSCoreManager.swift in Sources */,
 				F091CB9E2951B92100FCE565 /* PromptConfiguration.swift in Sources */,
+				F384E5DD29B076BC00F9493B /* URL_extension.swift in Sources */,
 				F39DE5A8299B77110005B389 /* rawDataToBody.swift in Sources */,
 				F091CBCA2951B93B00FCE565 /* Snowflake.swift in Sources */,
 				F01ABACF28D07AE30038AF9C /* CustomTableViewCell.swift in Sources */,
@@ -1266,6 +1341,7 @@
 				F05C43B62907F3410082CC75 /* brige.m in Sources */,
 				F091CB162951B8E400FCE565 /* ThirdViewController.swift in Sources */,
 				1891945428895E34009242B9 /* BrowserTabViewController+CollectionView.swift in Sources */,
+				F384E5DB29B02C4200F9493B /* NetworkManager.swift in Sources */,
 				F091CB152951B8E400FCE565 /* ViewController.swift in Sources */,
 				F3274D8729ACB336007210D2 /* IpcBodySender.swift in Sources */,
 				19F17A1B26F3F59800D4F9DE /* NSNotification+Helpers.swift in Sources */,
@@ -1343,6 +1419,7 @@
 				F39A8713297013CB00CC7126 /* CameraType.swift in Sources */,
 				F091CB392951B8EE00FCE565 /* ScanNetAnimationImageView.swift in Sources */,
 				19128CE526FC0BCE0057E46D /* BrowserTabHomeView.swift in Sources */,
+				F3A5A05129AF3F7E0017F41D /* NativeFetch.swift in Sources */,
 				F39DE59B299B77110005B389 /* encoding.swift in Sources */,
 				F091CBCB2951B93B00FCE565 /* Schemehandler.swift in Sources */,
 				F0292D9B2975502700C2E464 /* LBXScanViewStyle.swift in Sources */,
@@ -1356,6 +1433,7 @@
 				F033023628C73E1800BC0266 /* UIKit+PKOverride.swift in Sources */,
 				F033023328C73E1800BC0266 /* UIDevice+PKExtensions.swift in Sources */,
 				F0BADEB22986820100B8DCCF /* StatusBarEntites.swift in Sources */,
+				F3A5A04C29AF2E990017F41D /* BootNMM.swift in Sources */,
 				F091CB872951B91900FCE565 /* FeedbackGenerator.swift in Sources */,
 				F033021528C73E1700BC0266 /* UILabel+PKExtensions.swift in Sources */,
 				F091CB9D2951B92100FCE565 /* ButtonModel.swift in Sources */,
@@ -1386,6 +1464,7 @@
 				F091CB562951B90A00FCE565 /* AppInfoMgr.swift in Sources */,
 				F091CB332951B8EE00FCE565 /* CustomAlertPopView.swift in Sources */,
 				F033023028C73E1800BC0266 /* Double+PKExtensions.swift in Sources */,
+				F3A5A05329AF3F8F0017F41D /* DnsNMM.swift in Sources */,
 				19EE04C826FA525700C41C1B /* Array+Helpers.swift in Sources */,
 				F091CBCF2951B93B00FCE565 /* LeadReplyHandle.swift in Sources */,
 				F033020628C73E1700BC0266 /* UIView+PKExtensions.swift in Sources */,
@@ -1406,6 +1485,7 @@
 				F0292D9E2975502700C2E464 /* PhotoHandler.swift in Sources */,
 				F091CB3A2951B8EE00FCE565 /* ProgressAnimationView.swift in Sources */,
 				F091CBCE2951B93B00FCE565 /* XXWebView.swift in Sources */,
+				F3A5A04F29AF35270017F41D /* RoutesManager.swift in Sources */,
 				F0292DA42975502700C2E464 /* FWPopupCategory.swift in Sources */,
 				F39DE59D299B77110005B389 /* createSignal.swift in Sources */,
 				F0292D9D2975502700C2E464 /* LBXScanWrapper.swift in Sources */,
@@ -1568,7 +1648,7 @@
 				DEVELOPMENT_TEAM = 36GFDG5D55;
 				INFOPLIST_FILE = BFExplorer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BFExplorer;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1598,7 +1678,7 @@
 				DEVELOPMENT_TEAM = F9M4UWUYYN;
 				INFOPLIST_FILE = BFExplorer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BFExplorer;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

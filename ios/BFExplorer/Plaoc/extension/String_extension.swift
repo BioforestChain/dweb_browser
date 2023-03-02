@@ -135,4 +135,10 @@ extension String {
         return host
         
     }
+    
+    //urlString 编码
+    func urlEncoder() -> String {
+        let characterSet = NSMutableCharacterSet.urlQueryAllowed
+        return self.addingPercentEncoding(withAllowedCharacters: characterSet) ?? ""
+    }
 }

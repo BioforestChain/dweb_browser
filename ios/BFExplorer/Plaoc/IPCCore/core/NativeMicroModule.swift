@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import Network
+import Vapor
 
 class NativeMicroModule: MicroModule {
 
@@ -27,8 +29,9 @@ class NativeMicroModule: MicroModule {
     //TODO
 //    private var  apiRouting: RoutingHttpHandler?
     
-    override init() {
+    init(mmid: String) {
         super.init()
+        self.mmid = mmid
         onConnect(cb: { clientIpc in
             clientIpc.onRequest { request,ipc in
                 
@@ -59,15 +62,46 @@ class NativeMicroModule: MicroModule {
             ipc.closeAction()
         }
         self.connectedIpcSet.removeAll()
-    }
-    
-    private func defineHandler(handler: (URLRequest) -> Any?) {
         
     }
     
-    private func defineHandler(handler: (URLRequest, Ipc) -> Any?) {
-        defineHandler { request, ipc in
-            handler(request, ipc)
+    
+    internal func defineHandler( request: URLRequest, handler: (URLRequest) -> Any?) -> Response {
+        
+        var response: Response?
+        let result = handler(request)
+        if let res = result as? Response {
+            response = res
+        } else {
+            var headers = HTTPHeaders()
+            headers.add(name: "Content-Type", value: "application/json")
+            
+            let status = HTTPResponseStatus(statusCode: 200)
+            
+            let content = ChangeTools.tempAnyToString(value: result)
+            if content != nil {
+                let body = Response.Body.init(string: content!)
+                
+                response = Response(status: status, headers: headers, body: body)
+            } else {
+                let status = HTTPResponseStatus(statusCode: 500)
+                let whitespace = NSCharacterSet.whitespacesAndNewlines
+                let content = """
+                            <p>${request.uri}</p>
+                            <pre>${ex.message ?: "Unknown Error"}</pre>
+                            """.trimmingCharacters(in: whitespace)
+                let body = Response.Body.init(string: content)
+                response = Response(status: status, headers: HTTPHeaders(), body: body)
+            }
+        }
+        return response!
+   
+    }
+    
+    internal func defineHandler(req: URLRequest, handler: (URLRequest, Ipc) -> Any?) -> Response {
+        
+        return defineHandler(request: req) { request in
+            return handler(request, Ipc())
         }
     }
 }

@@ -8,6 +8,7 @@
 import UIKit
 import RxSwift
 import SDWebImage
+import Combine
 
 class FirstViewController: UIViewController {
 
@@ -16,6 +17,13 @@ class FirstViewController: UIViewController {
     private var labels: [UILabel] = []
     private let disposeBag = DisposeBag()
     private var jsCore: JSCoreManager!
+    
+    private var writeDataScope = DispatchQueue.init(label: "write")
+    private var readDataScope = DispatchQueue.init(label: "read")
+    
+    let dataSizeChangeChannel = PassthroughSubject<Int, Never>()
+    let passThroughSubject = PassthroughSubject<String, Error>()
+    var subscription: AnyCancellable?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,6 +77,42 @@ class FirstViewController: UIViewController {
                 }
             }
         }).disposed(by: disposeBag)
+        
+        
+        
+        let wait = PromiseOut<UInt>()
+//        dataSizeChangeChannel.sink { complete in
+//            print("complete")
+//        } receiveValue: { value in
+////            wait.resolver(UInt(value))
+//            print(value)
+//        }
+        
+        
+        
+        
+        subscription = passThroughSubject.sink(
+            receiveCompletion: { completion in
+                print("Received completion (sink)", completion)
+            },
+            receiveValue: { value in
+                print("Received value (sink)", value)
+                wait.resolver(2)
+            })
+        
+        DispatchQueue.global().async {
+            let result = wait.waitPromise()
+            print(result)
+        }
+        
+        Task {
+            print(Thread.current)
+            print("start")
+            try? await Task.sleep(nanoseconds:50000)
+            print("sleep")
+        }
+        print("end")
+       
     }
     
     @objc func update(noti: Notification) {
@@ -102,9 +146,23 @@ class FirstViewController: UIViewController {
         
     }
     var manager: BrowserManager!
-    @objc func tap(sender: UIButton) {
-      
+    @objc func tap(sender: UIButton) throws {
         
+//        dataSizeChangeChannel.send(2)
+        
+        passThroughSubject.send("Hello")
+//        let semaphore = DispatchSemaphore(value: 0)
+        
+//        print("1")
+//        test1(semaphore: semaphore)
+//        test2(sem: semaphore)
+//        semaphore.wait()
+////        print("2")
+//
+//        semaphore.wait()
+        
+        print("3")
+        return
         if sender.tag == 2 {
             var config = SplashScreenConfig()
             config.backgroundColor = .red
@@ -161,6 +219,69 @@ class FirstViewController: UIViewController {
         sharedNetworkMgr.downloadApp(appId: name, urlString: scanURLString)
         let button = self.view.viewWithTag(3) as? UIButton
         button!.setupForAppleReveal()
+    }
+    
+    func test1(semaphore: DispatchSemaphore) {
+        
+        
+        writeDataScope.async {
+//            semaphore.wait()//当信号量为0时，阻塞在此
+            Thread.sleep(forTimeInterval: 2)
+            print("test1")
+            semaphore.signal()//信号量加1
+        }
+        
+
+        
+        
+    }
+    
+    func test2(sem: DispatchSemaphore) {
+        
+        
+        readDataScope.async {
+//            sem.wait()//当信号量为0时，阻塞在此
+            Thread.sleep(forTimeInterval: 1)
+            print("test2")
+            sem.signal()//信号量加1
+        }
+    }
+    
+    func test() async {
+        
+        let add = { (min: Int,max: Int) -> Int in
+            var sum = 0
+            for i in min..<max {
+                sum += i
+            }
+            return sum
+        }
+        
+        let seg = 10
+        
+        let n = Int(arc4random_uniform(10))
+        
+        let result = await withTaskGroup(of: Int.self, body: { group -> Int in
+            
+            for i in 1...(n / seg) {
+                group.addTask {
+                    add(seg * (i - 1), seg * i)
+                }
+            }
+            
+            if n % seg > 0 {
+                group.addTask {
+                    add(n - n % seg, n + 1)
+                }
+            }
+            
+            var totalSum = 0
+            for await result in group {
+                totalSum += result
+            }
+            return totalSum
+        })
+        print(result)
     }
 
 }

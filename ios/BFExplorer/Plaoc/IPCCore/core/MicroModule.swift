@@ -7,19 +7,21 @@
 
 import UIKit
 import RoutingKit
+import Vapor
 
 typealias AppRun = ([String:String]) -> Any
+typealias Routers = [String:AppRun]
 
 class MicroModule: NSObject {
     
     var mmid: String = ""
-    var routers: [String:AppRun]?
+    var routers: Routers?
     private var runningStateLock = PromiseOut<Bool>()
     private var running: Bool {
         return runningStateLock.value == true
     }
     
-    private var afterShutdownSignal = SimpleSignal()
+    internal var afterShutdownSignal = SimpleSignal()
     
     override init() {
         super.init()
@@ -71,7 +73,7 @@ class MicroModule: NSObject {
         runningStateLock.resolver(false)
     }
     
-    func shutdown() {
+    func shutdown() throws {
         self.beforeShutdown()
         
         defer {
@@ -97,3 +99,27 @@ class MicroModule: NSObject {
     }
 }
 
+extension MicroModule {
+    
+    func nativeFetch(url: URL) -> Response? {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        return nativeFetch(request: request)
+    }
+    
+    func nativeFetch(urlstring: String) -> Response? {
+        guard let url = URL(string: urlstring) else { return nil }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        return nativeFetch(request: request)
+    }
+    
+    func nativeFetch(request: URLRequest) -> Response? {
+        for generics in nativeFetchAdaptersManager.adapters {
+            if let response = generics.closure?(self, request) {
+                return response
+            }
+        }
+        return NativeFetch.localeFileFetch(remote: self, request: request) ?? NetworkManager.downLoadBodyByRequest(request: request)
+    }
+}

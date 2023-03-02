@@ -100,7 +100,7 @@ class IpcResponse {
     static func fromJson(req_id: Int,statusCode: Int = 200,jsonable: Any,headers: IpcHeaders = IpcHeaders(),ipc: Ipc)  -> IpcResponse {
         
         headers.set(key: "Content-Type", value: "application/json")
-        let ipcResponse = self.fromText(req_id: req_id, statusCode: statusCode, text: ChangeTools.tempAnyToString(value:jsonable), headers: headers, ipc: ipc)
+        let ipcResponse = self.fromText(req_id: req_id, statusCode: statusCode, text: ChangeTools.tempAnyToString(value:jsonable) ?? "", headers: headers, ipc: ipc)
         return ipcResponse
     }
     

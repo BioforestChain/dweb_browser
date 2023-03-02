@@ -14,6 +14,7 @@ import AsyncHTTPClient
 import PromiseKit
 import SwiftyJSON
 import HandyJSON
+import Alamofire
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -31,8 +32,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-  
-    
     func sendCodeContinuation() async -> Data {
         
         await withCheckedContinuation({ continuation in
@@ -42,6 +41,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
             tash.resume()
         })
+        
+        
     }
 }
 

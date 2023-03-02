@@ -19,5 +19,5 @@ class OperateMonitor: NSObject {
     let startAnimationMonitor = PublishSubject<String>()
     let backMonitor = PublishSubject<String>()
     let scanMonitor = PublishSubject<(String,[String:Any])>()
-    
+    let routeMonitor = PublishSubject<(String, URLRequest)>()
 }
