@@ -253,10 +253,9 @@ export class StatusbarNMM extends NativeMicroModule {
   }
 }
 
-
 // 读取 html 文件
 async function reqadHtmlFile(){
-  const targetPath = path.resolve(process.cwd(), "./src/sys/statusbar/assets/index.html")
+  const targetPath = path.resolve(process.cwd(), "./assets/html/statusbar.html")
   const content = await fsPromises.readFile(targetPath)
   return new TextDecoder().decode(content)
 }
