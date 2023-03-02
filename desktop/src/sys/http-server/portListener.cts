@@ -136,7 +136,7 @@ export class PortListener {
       http_response_info.statusCode !== 304
     ) {
       // await (await http_response_info.stream()).pipeTo(res)
-      const http_response_body = http_response_info.body.body;
+      const http_response_body = http_response_info.body.raw;
       if (http_response_body instanceof ReadableStream) {
         streamReadAll(http_response_body, {
           map(chunk) {

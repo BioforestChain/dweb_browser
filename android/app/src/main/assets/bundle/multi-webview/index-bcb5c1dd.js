@@ -358,7 +358,7 @@ function generateUUID() {
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t$2 = window, e$5 = t$2.ShadowRoot && (void 0 === t$2.ShadyCSS || t$2.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, s$4 = Symbol(), n$4 = /* @__PURE__ */ new WeakMap();
+const t$3 = window, e$5 = t$3.ShadowRoot && (void 0 === t$3.ShadyCSS || t$3.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, s$4 = Symbol(), n$4 = /* @__PURE__ */ new WeakMap();
 let o$3 = class o {
   constructor(t2, e2, n2) {
     if (this._$cssResult$ = true, n2 !== s$4)
@@ -389,7 +389,7 @@ const r$3 = (t2) => new o$3("string" == typeof t2 ? t2 : t2 + "", void 0, s$4), 
   return new o$3(n2, t2, s$4);
 }, S$1 = (s3, n2) => {
   e$5 ? s3.adoptedStyleSheets = n2.map((t2) => t2 instanceof CSSStyleSheet ? t2 : t2.styleSheet) : n2.forEach((e2) => {
-    const n3 = document.createElement("style"), o3 = t$2.litNonce;
+    const n3 = document.createElement("style"), o3 = t$3.litNonce;
     void 0 !== o3 && n3.setAttribute("nonce", o3), n3.textContent = e2.cssText, s3.appendChild(n3);
   });
 }, c$3 = e$5 ? (t2) => t2 : (t2) => t2 instanceof CSSStyleSheet ? ((t3) => {
@@ -432,7 +432,7 @@ const e$4 = window, r$2 = e$4.trustedTypes, h$1 = r$2 ? r$2.emptyScript : "", o$
       }
   }
   return s3;
-} }, a$1 = (t2, i3) => i3 !== t2 && (i3 == i3 || t2 == t2), l$3 = { attribute: true, type: String, converter: n$3, reflect: false, hasChanged: a$1 };
+} }, a$1 = (t2, i3) => i3 !== t2 && (i3 == i3 || t2 == t2), l$4 = { attribute: true, type: String, converter: n$3, reflect: false, hasChanged: a$1 };
 let d$1 = class d extends HTMLElement {
   constructor() {
     super(), this._$Ei = /* @__PURE__ */ new Map(), this.isUpdatePending = false, this.hasUpdated = false, this._$El = null, this.u();
@@ -449,7 +449,7 @@ let d$1 = class d extends HTMLElement {
       void 0 !== e2 && (this._$Ev.set(e2, s3), t2.push(e2));
     }), t2;
   }
-  static createProperty(t2, i3 = l$3) {
+  static createProperty(t2, i3 = l$4) {
     if (i3.state && (i3.attribute = false), this.finalize(), this.elementProperties.set(t2, i3), !i3.noAccessor && !this.prototype.hasOwnProperty(t2)) {
       const s3 = "symbol" == typeof t2 ? Symbol() : "__" + t2, e2 = this.getPropertyDescriptor(t2, s3, i3);
       void 0 !== e2 && Object.defineProperty(this.prototype, t2, e2);
@@ -464,7 +464,7 @@ let d$1 = class d extends HTMLElement {
     }, configurable: true, enumerable: true };
   }
   static getPropertyOptions(t2) {
-    return this.elementProperties.get(t2) || l$3;
+    return this.elementProperties.get(t2) || l$4;
   }
   static finalize() {
     if (this.hasOwnProperty("finalized"))
@@ -533,7 +533,7 @@ let d$1 = class d extends HTMLElement {
   attributeChangedCallback(t2, i3, s3) {
     this._$AK(t2, s3);
   }
-  _$EO(t2, i3, s3 = l$3) {
+  _$EO(t2, i3, s3 = l$4) {
     var e2;
     const r2 = this.constructor._$Ep(t2, s3);
     if (void 0 !== r2 && true === s3.reflect) {
@@ -618,8 +618,8 @@ d$1.finalized = true, d$1.elementProperties = /* @__PURE__ */ new Map(), d$1.ele
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t$1;
-const i$3 = window, s$2 = i$3.trustedTypes, e$3 = s$2 ? s$2.createPolicy("lit-html", { createHTML: (t2) => t2 }) : void 0, o$1 = `lit$${(Math.random() + "").slice(9)}$`, n$2 = "?" + o$1, l$2 = `<${n$2}>`, h = document, r$1 = (t2 = "") => h.createComment(t2), d2 = (t2) => null === t2 || "object" != typeof t2 && "function" != typeof t2, u$2 = Array.isArray, c$2 = (t2) => u$2(t2) || "function" == typeof (null == t2 ? void 0 : t2[Symbol.iterator]), v = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, a = /-->/g, f$1 = />/g, _ = RegExp(`>|[ 	
+var t$2;
+const i$3 = window, s$2 = i$3.trustedTypes, e$3 = s$2 ? s$2.createPolicy("lit-html", { createHTML: (t2) => t2 }) : void 0, o$1 = `lit$${(Math.random() + "").slice(9)}$`, n$2 = "?" + o$1, l$3 = `<${n$2}>`, h = document, r$1 = (t2 = "") => h.createComment(t2), d2 = (t2) => null === t2 || "object" != typeof t2 && "function" != typeof t2, u$2 = Array.isArray, c$2 = (t2) => u$2(t2) || "function" == typeof (null == t2 ? void 0 : t2[Symbol.iterator]), v = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, a = /-->/g, f$1 = />/g, _ = RegExp(`>|[ 	
 \f\r](?:([^\\s"'>=/]+)([ 	
 \f\r]*=[ 	
 \f\r]*(?:[^ 	
@@ -632,7 +632,7 @@ const i$3 = window, s$2 = i$3.trustedTypes, e$3 = s$2 ? s$2.createPolicy("lit-ht
     for (; g2 < s4.length && (d3.lastIndex = g2, u3 = d3.exec(s4), null !== u3); )
       g2 = d3.lastIndex, d3 === v ? "!--" === u3[1] ? d3 = a : void 0 !== u3[1] ? d3 = f$1 : void 0 !== u3[2] ? ($.test(u3[2]) && (h2 = RegExp("</" + u3[2], "g")), d3 = _) : void 0 !== u3[3] && (d3 = _) : d3 === _ ? ">" === u3[0] ? (d3 = null != h2 ? h2 : v, c2 = -1) : void 0 === u3[1] ? c2 = -2 : (c2 = d3.lastIndex - u3[2].length, e2 = u3[1], d3 = void 0 === u3[3] ? _ : '"' === u3[3] ? p$1 : m$1) : d3 === p$1 || d3 === m$1 ? d3 = _ : d3 === a || d3 === f$1 ? d3 = v : (d3 = _, h2 = void 0);
     const y2 = d3 === _ && t2[i4 + 1].startsWith("/>") ? " " : "";
-    r2 += d3 === v ? s4 + l$2 : c2 >= 0 ? (n2.push(e2), s4.slice(0, c2) + "$lit$" + s4.slice(c2) + o$1 + y2) : s4 + o$1 + (-2 === c2 ? (n2.push(void 0), i4) : y2);
+    r2 += d3 === v ? s4 + l$3 : c2 >= 0 ? (n2.push(e2), s4.slice(0, c2) + "$lit$" + s4.slice(c2) + o$1 + y2) : s4 + o$1 + (-2 === c2 ? (n2.push(void 0), i4) : y2);
   }
   const u2 = r2 + (t2[s3] || "<?>") + (2 === i3 ? "</svg>" : "");
   if (!Array.isArray(t2) || !t2.hasOwnProperty("raw"))
@@ -866,7 +866,7 @@ class I {
   }
 }
 const L = { P: "$lit$", A: o$1, M: n$2, C: 1, L: E, R: V, D: c$2, V: P, I: N, H: S, N: k, U: H, B: M, F: I }, z = i$3.litHtmlPolyfillSupport;
-null == z || z(C, N), (null !== (t$1 = i$3.litHtmlVersions) && void 0 !== t$1 ? t$1 : i$3.litHtmlVersions = []).push("2.6.1");
+null == z || z(C, N), (null !== (t$2 = i$3.litHtmlVersions) && void 0 !== t$2 ? t$2 : i$3.litHtmlVersions = []).push("2.6.1");
 const Z = (t2, i3, s3) => {
   var e2, o3;
   const n2 = null !== (e2 = null == s3 ? void 0 : s3.renderBefore) && void 0 !== e2 ? e2 : i3;
@@ -882,7 +882,7 @@ const Z = (t2, i3, s3) => {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var l$1, o2;
+var l$2, o2;
 let s$1 = class s extends d$1 {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
@@ -908,7 +908,7 @@ let s$1 = class s extends d$1 {
     return x;
   }
 };
-s$1.finalized = true, s$1._$litElement$ = true, null === (l$1 = globalThis.litElementHydrateSupport) || void 0 === l$1 || l$1.call(globalThis, { LitElement: s$1 });
+s$1.finalized = true, s$1._$litElement$ = true, null === (l$2 = globalThis.litElementHydrateSupport) || void 0 === l$2 || l$2.call(globalThis, { LitElement: s$1 });
 const n$1 = globalThis.litElementPolyfillSupport;
 null == n$1 || n$1({ LitElement: s$1 });
 (null !== (o2 = globalThis.litElementVersions) && void 0 !== o2 ? o2 : globalThis.litElementVersions = []).push("3.2.2");
@@ -939,6 +939,14 @@ function e$1(e2) {
   return (n2, t2) => void 0 !== t2 ? ((i3, e3, n3) => {
     e3.constructor.createProperty(n3, i3);
   })(e2, n2, t2) : i$2(e2, n2);
+}
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+function t$1(t2) {
+  return e$1({ ...t2, state: true });
 }
 /**
  * @license
@@ -974,12 +982,12 @@ let i$1 = class i {
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { I: l } = L, c$1 = () => document.createComment(""), r = (o3, t2, i3) => {
+const { I: l$1 } = L, c$1 = () => document.createComment(""), r = (o3, t2, i3) => {
   var n2;
   const d3 = o3._$AA.parentNode, v2 = void 0 === t2 ? o3._$AB : t2._$AA;
   if (void 0 === i3) {
     const t3 = d3.insertBefore(c$1(), v2), n3 = d3.insertBefore(c$1(), v2);
-    i3 = new l(t3, n3, o3, o3.options);
+    i3 = new l$1(t3, n3, o3, o3.options);
   } else {
     const l2 = i3._$AB.nextSibling, t3 = i3._$AM, e2 = t3 !== o3;
     if (e2) {
@@ -1262,6 +1270,420 @@ class PromiseOut {
     });
   }
 }
+class Webview {
+  constructor(id, src) {
+    this.id = id;
+    this.src = src;
+    this.webContentId = -1;
+    this.webContentId_devTools = -1;
+    this._api_po = new PromiseOut();
+    this.closing = false;
+    this.state = {
+      zIndex: 0,
+      openingIndex: 0,
+      closingIndex: 0,
+      scale: 1,
+      opacity: 1
+      // translateY: 0,
+    };
+  }
+  get api() {
+    return this._api;
+  }
+  doReady(value) {
+    this._api = value;
+    this._api_po.resolve(value);
+    console.log("执行了 doReady");
+  }
+  ready() {
+    return this._api_po.promise;
+  }
+}
+/**
+ * @license
+ * Copyright 2018 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const l = (l2) => null != l2 ? l2 : b;
+var __defProp$2 = Object.defineProperty;
+var __getOwnPropDesc$2 = Object.getOwnPropertyDescriptor;
+var __decorateClass$2 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$2(target, key) : target;
+  for (var i3 = decorators.length - 1, decorator; i3 >= 0; i3--)
+    if (decorator = decorators[i3])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result)
+    __defProp$2(target, key, result);
+  return result;
+};
+const allCss$1 = [
+  i$4`
+        :host{
+            --status-bar-height: 47px;
+            --navigation-bar-height: 64px;
+            --border-radius: 46px;
+            --cmera-container-zindex: 999;
+            --bottom-line-container-height:20px;
+            width:100%;
+            height:100%;
+        }
+        
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            border: 10px solid #333;
+            border-radius:var(--border-radius);
+            overflow: hidden;
+        }
+
+        .iframe-statusbar{
+            
+            // box-sizing: border-box;
+            // width:100%;
+            // height: 48px;
+        }
+
+        .bottom-line-container{
+            position: absolute;
+            z-index: 1;
+            left:0px;
+            bottom:0px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width:100%;
+            height: var(--bottom-line-container-height);
+        }
+
+        .bottom-line-container::after{
+            content: "";
+            width: 50%;
+            height:4px;
+            border-radius:4px;
+            background: #000;
+        }
+
+        .webview-container{
+            flex-grow: 100;
+            flex-shrink: 100;
+            box-sizing: border-box;
+            width:100%;
+            height:100%;
+            scrollbar-width: 2px;
+            overflow: hidden;
+            overflow-y: auto;
+            /* border: 1px solid red; */
+        }
+        .webview{
+            box-sizing: border-box;
+            width:100%;
+            min-height:100%;
+            height: auto;
+            
+        }
+
+    `,
+  // 需要啊全部的custom.属性传递进来
+  // 动画相关
+  i$4`
+        :host {
+            --easing: cubic-bezier(0.36, 0.66, 0.04, 1);
+        }
+        .opening-ani-view {
+            animation: slideIn 520ms var(--easing) forwards;
+        }
+        .closing-ani-view {
+            animation: slideOut 830ms var(--easing) forwards;
+        }
+        @keyframes slideIn {
+            0% {
+                transform: translateY(60%) translateZ(0);
+                opacity: 0.4;
+            }
+            100% {
+                transform: translateY(0%) translateZ(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            0% {
+                transform: translateY(0%) translateZ(0);
+                opacity: 1;
+            }
+            30% {
+                transform: translateY(-30%) translateZ(0) scale(0.4);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100%) translateZ(0) scale(0.3);
+                opacity: 0.5;
+            }
+        }
+    `
+];
+let MultiWebViewContent = class extends s$1 {
+  constructor() {
+    super(...arguments);
+    this.customWebview = void 0;
+    this.closing = false;
+    this.zIndex = 0;
+    this.scale = 0;
+    this.opacity = 1;
+    this.customWebviewId = 0;
+    this.src = "";
+    this.statusbarHidden = false;
+  }
+  onDomReady(event) {
+    this.dispatchEvent(new CustomEvent(
+      "dom-ready",
+      {
+        bubbles: true,
+        detail: {
+          customWebview: this.customWebview,
+          event,
+          from: event.target
+        }
+      }
+    ));
+  }
+  onAnimationend(event) {
+    this.dispatchEvent(new CustomEvent(
+      "animationend",
+      {
+        bubbles: true,
+        detail: {
+          customWebview: this.customWebview,
+          event,
+          from: event.target
+        }
+      }
+    ));
+  }
+  render() {
+    const containerStyleMap = i2({
+      "--z-index": this.zIndex + "",
+      "--scale": this.scale + "",
+      "--opacity": this.opacity + ""
+    });
+    document.querySelector(":host");
+    return y`
+            <div 
+                class="container ${this.closing ? `closing-ani-view` : `opening-ani-view`}"
+                style="${containerStyleMap}"  
+                @animationend=${this.onAnimationend}  
+            >
+                <!-- 启动了服务后确实能够显示内容 webview 请求状态栏的服务-->
+                <iframe
+                    id="statusbar"
+                    class="iframe-statusbar"
+                    style="width: 100%;height: 48px;border: none; flex-grow: 0; flex-shrink: 0; position:relative; left: 0px; top: 0px;"
+                    src="http://statusbar.sys.dweb-80.localhost:22605/"
+                    @load=${() => console.log("statusbar 载入完成")}
+                    data-app-url=${this.src}
+                ></iframe>
+                <!-- 底部黑线 -->
+                <div class="bottom-line-container"></div>
+                <!-- 内容容器 -->
+                <div class="webview-container">
+                    <!-- 这个 webview 是如何载入的了？？？ -->
+                    <webview
+                        id="view-${this.customWebviewId}"
+                        class="webview"
+                        src=${l(this.src)}
+                        partition="trusted"
+                        allownw
+                        allowpopups
+                        @dom-ready=${this.onDomReady}
+                    ></webview>
+                </div>
+            </div>
+        `;
+  }
+};
+MultiWebViewContent.styles = allCss$1;
+__decorateClass$2([
+  e$1({ type: Webview })
+], MultiWebViewContent.prototype, "customWebview", 2);
+__decorateClass$2([
+  e$1({ type: Boolean })
+], MultiWebViewContent.prototype, "closing", 2);
+__decorateClass$2([
+  e$1({ type: Number })
+], MultiWebViewContent.prototype, "zIndex", 2);
+__decorateClass$2([
+  e$1({ type: Number })
+], MultiWebViewContent.prototype, "scale", 2);
+__decorateClass$2([
+  e$1({ type: Number })
+], MultiWebViewContent.prototype, "opacity", 2);
+__decorateClass$2([
+  e$1({ type: Number })
+], MultiWebViewContent.prototype, "customWebviewId", 2);
+__decorateClass$2([
+  e$1({ type: String })
+], MultiWebViewContent.prototype, "src", 2);
+__decorateClass$2([
+  t$1()
+], MultiWebViewContent.prototype, "statusbarHidden", 2);
+MultiWebViewContent = __decorateClass$2([
+  e$2("multi-webview-content")
+], MultiWebViewContent);
+var __defProp$1 = Object.defineProperty;
+var __getOwnPropDesc$1 = Object.getOwnPropertyDescriptor;
+var __decorateClass$1 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$1(target, key) : target;
+  for (var i3 = decorators.length - 1, decorator; i3 >= 0; i3--)
+    if (decorator = decorators[i3])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result)
+    __defProp$1(target, key, result);
+  return result;
+};
+const allCss = [
+  i$4`
+        :host{
+            width:100%;
+            height:100%;
+           
+        }
+
+        .container{
+            width:100%;
+            height:100%;
+        }
+
+        .toolbar{
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            width:100%;
+            height:60px;
+        }
+
+        .devtool{
+            width:100%;
+            height:calc(100% - 60px);
+            border:1px solid #ddd;
+        }
+    `,
+  // 需要啊全部的custom.属性传递进来
+  // 动画相关
+  i$4`
+        :host {
+            --easing: cubic-bezier(0.36, 0.66, 0.04, 1);
+        }
+        .opening-ani-devtools {
+            animation: slideIn 520ms var(--easing) forwards;
+        }
+        .closing-ani-devtools {
+            animation: slideOut 830ms var(--easing) forwards;
+        }
+        @keyframes slideIn {
+            0% {
+                transform: translateY(60%) translateZ(0);
+                opacity: 0.4;
+            }
+            100% {
+                transform: translateY(0%) translateZ(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            0% {
+                transform: translateY(0%) translateZ(0);
+                opacity: 1;
+            }
+            30% {
+                transform: translateY(-30%) translateZ(0) scale(0.4);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100%) translateZ(0) scale(0.3);
+                opacity: 0.5;
+            }
+        }
+    `
+];
+let MultiWebviewDevtools = class extends s$1 {
+  constructor() {
+    super(...arguments);
+    this.customWebview = void 0;
+    this.closing = false;
+    this.zIndex = 0;
+    this.scale = 0;
+    this.opacity = 1;
+    this.customWebviewId = 0;
+  }
+  onDomReady(event) {
+    this.dispatchEvent(new CustomEvent(
+      "dom-ready",
+      {
+        bubbles: true,
+        detail: {
+          customWebview: this.customWebview,
+          event,
+          from: event.target
+        }
+      }
+    ));
+  }
+  onDestroy() {
+    this.dispatchEvent(new CustomEvent("destroy-webview", { cancelable: true }));
+  }
+  render() {
+    console.log("this.closing: ", this.closing);
+    const containerStyleMap = i2({
+      "--z-index": this.zIndex + "",
+      "--scale": this.scale + "",
+      "--opacity": this.opacity + ""
+    });
+    return y`
+            <div 
+                class="container ${this.closing ? "closing-ani-devtools" : "opening-ani-devtools"}" 
+                style=${containerStyleMap}
+            >
+                <div class="toolbar">
+                    <button @click=${this.onDestroy}>销毁</button>
+                </div>
+                <webview
+                  id="tool-${this.customWebviewId}"
+                  class="devtool"
+                  src="about:blank"
+                  partition="trusted"
+                  @dom-ready=${this.onDomReady}
+                ></webview>
+            </div>
+        `;
+  }
+};
+MultiWebviewDevtools.styles = allCss;
+__decorateClass$1([
+  e$1({ type: Webview })
+], MultiWebviewDevtools.prototype, "customWebview", 2);
+__decorateClass$1([
+  e$1({ type: Boolean })
+], MultiWebviewDevtools.prototype, "closing", 2);
+__decorateClass$1([
+  e$1({ type: Number })
+], MultiWebviewDevtools.prototype, "zIndex", 2);
+__decorateClass$1([
+  e$1({ type: Number })
+], MultiWebviewDevtools.prototype, "scale", 2);
+__decorateClass$1([
+  e$1({ type: Number })
+], MultiWebviewDevtools.prototype, "opacity", 2);
+__decorateClass$1([
+  e$1({ type: Number })
+], MultiWebviewDevtools.prototype, "customWebviewId", 2);
+MultiWebviewDevtools = __decorateClass$1([
+  e$2("multi-webview-devtools")
+], MultiWebviewDevtools);
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __decorateClass = (decorators, target, key, kind) => {
@@ -1335,6 +1757,7 @@ let ViewTree = class extends s$1 {
   }
   async onWebviewReady(webview, ele) {
     webview.webContentId = ele.getWebContentsId();
+    console.log("-开支执行doReady");
     webview.doReady(ele);
     mainApis.denyWindowOpenHandler(
       webview.webContentId,
@@ -1359,6 +1782,7 @@ let ViewTree = class extends s$1 {
       return;
     }
     webview.webContentId_devTools = ele_devTool.getWebContentsId();
+    console.log(" webview.webContentId_devTools: ", webview.webContentId_devTools);
     await mainApis.openDevTools(
       webview.webContentId,
       void 0,
@@ -1371,75 +1795,63 @@ let ViewTree = class extends s$1 {
   // Render the UI as a function of component state
   render() {
     return y`
-      <div class="layer stack">
+      <div class="layer stack app-container">
         ${c(
       this.webviews,
       (dialog) => dialog.id,
       (webview) => {
+        console.log("content - webview:", webview);
+        `z-index: ${webview.state.zIndex};`;
+        const _styleMap = i2({
+          zIndex: webview.state.zIndex + ""
+        });
+        console.log("this.webvew.src: ", webview.src);
         return y`
-              <div
-                class="webview-container ${webview.closing ? `closing` : `opening`}"
-                style=${i2({
-          "--z-index": webview.state.zIndex + "",
-          "--scale": webview.state.scale + "",
-          "--opacity": webview.state.opacity + ""
-        })}
-              >
-                <webview
-                  id="view-${webview.id}"
-                  class="webview ani-view"
-                  src=${webview.src}
-                  partition="trusted"
-                  allownw
-                  allowpopups
-                  @animationend=${(event) => {
-          if (event.animationName === "slideOut" && webview.closing) {
+              <multi-webview-content
+                .customWebview=${webview}
+                .closing=${webview.closing}
+                .zIndex=${webview.state.zIndex}
+                .scale=${webview.state.scale}
+                .opacity=${webview.state.opacity}
+                .customWebviewId=${webview.id}
+                .src=${webview.src}
+                style=${_styleMap}
+                @animationend=${(event) => {
+          if (event.detail.event.animationName === "slideOut" && event.detail.customWebview.closing) {
             this._removeWebview(webview);
           }
+        }} 
+                @dom-ready=${(event) => {
+          console.log("内容准备完毕");
+          this.onWebviewReady(webview, event.detail.event.target);
         }}
-                  @dom-ready=${(event) => {
-          this.onWebviewReady(webview, event.target);
-        }}
-                ></webview>
-              </div>
+              ></multi-webview-content>
             `;
       }
     )}
       </div>
-      <div class="layer stack" style="flex: 2.5;">
+      <div class="layer stack dev-tools-container" style="flex: 2.5;">
         ${c(
       this.webviews,
       (dialog) => dialog.id,
       (webview) => {
+        const _styleMap = i2({
+          zIndex: webview.state.zIndex + ""
+        });
         return y`
-              <div
-                class="devtool-container ${webview.closing ? `closing` : `opening`}"
-                style=${i2({
-          "--z-index": webview.state.zIndex + "",
-          "--scale": webview.state.scale + "",
-          "--opacity": webview.state.opacity + ""
-        })}
-              >
-                <fieldset class="toolbar" .disabled=${webview.closing}>
-                  <button
-                    @click=${() => {
-          this.destroyWebview(webview);
+              <multi-webview-devtools
+                .customWebview=${webview}
+                .closing=${webview.closing}
+                .zIndex=${webview.state.zIndex}
+                .scale=${webview.state.scale}
+                .opacity=${webview.state.opacity}
+                .customWebviewId=${webview.id}
+                style="${_styleMap}"
+                @dom-ready=${(event) => {
+          this.onDevtoolReady(webview, event.detail.event.target);
         }}
-                  >
-                    销毁Webview
-                  </button>
-                </fieldset>
-                <webview
-                  id="tool-${webview.id}"
-                  class="devtool ani-view"
-                  src="about:blank"
-                  partition="trusted"
-                  @dom-ready=${(event) => {
-          console.log("DevtoolReady", event.target);
-          this.onDevtoolReady(webview, event.target);
-        }}
-                ></webview>
-              </div>
+                @destroy-webview=${() => this.destroyWebview(webview)}
+              ></multi-webview-devtools>
             `;
       }
     )}
@@ -1462,16 +1874,20 @@ ViewTree.styles = [
       }
       .layer {
         grid-area: layer;
-
-        flex: 1;
-
+        /* flex: 1; */
         display: grid;
         grid-template-areas: "layer-content";
-
         height: 100%;
         padding: 0.5em 1em;
       }
+      .app-container{
+        flex-grow: 0;
+        flex-shrink: 0;
+        width: 375px;
+        height: 812px;
+      }
       .webview-container {
+        position: relative;
         grid-area: layer-content;
 
         height: 100%;
@@ -1480,6 +1896,28 @@ ViewTree.styles = [
         grid-template-areas: "webview";
         grid-template-rows: 1fr;
       }
+
+      .webview-statusbar{
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: 100;
+        width: 100%;
+        height: 80px;
+        background: #9993;
+      }
+
+      .webview-content{
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 100%;
+        z-index: 0;
+        border: 10px solid blue;
+      }
+
       .devtool-container {
         grid-area: layer-content;
 
@@ -1511,6 +1949,9 @@ ViewTree.styles = [
         border-radius: 1em;
         overflow: hidden;
       }
+      .dev-tools-container{
+        min-width:500px;
+      }
       .toolbar {
         grid-area: toolbar;
 
@@ -1532,7 +1973,7 @@ ViewTree.styles = [
         --easing: cubic-bezier(0.36, 0.66, 0.04, 1);
       }
       .opening > .ani-view {
-        animation: slideIn 520ms var(--easing) forwards;
+        animation: slideIn 3520ms var(--easing) forwards;
       }
       .closing > .ani-view {
         animation: slideOut 830ms var(--easing) forwards;
@@ -1564,9 +2005,9 @@ ViewTree.styles = [
     `,
   i$4`
       .stack {
-        display: inline-grid;
+        /* display: inline-grid;
         place-items: center;
-        align-items: flex-end;
+        align-items: flex-end; */
       }
       .stack > * {
         grid-column-start: 1;
@@ -1584,6 +2025,8 @@ ViewTree.styles = [
       .stack > .closing {
         pointer-events: none;
       }
+      
+      
       /* 
       .stack > .opening {
         transform: translateY(min(10%, 10px)) translateZ(0) scale(0.9);
@@ -1609,37 +2052,8 @@ __decorateClass([
 ViewTree = __decorateClass([
   e$2("view-tree")
 ], ViewTree);
-class Webview {
-  constructor(id, src) {
-    this.id = id;
-    this.src = src;
-    this.webContentId = -1;
-    this.webContentId_devTools = -1;
-    this._api_po = new PromiseOut();
-    this.closing = false;
-    this.state = {
-      zIndex: 0,
-      openingIndex: 0,
-      closingIndex: 0,
-      scale: 1,
-      opacity: 1
-      // translateY: 0,
-    };
-  }
-  get api() {
-    return this._api;
-  }
-  doReady(value) {
-    this._api = value;
-    this._api_po.resolve(value);
-  }
-  ready() {
-    return this._api_po.promise;
-  }
-}
 const viewTree = new ViewTree();
 document.body.appendChild(viewTree);
-console.log(viewTree);
 const APIS = {
   openWebview: viewTree.openWebview.bind(viewTree),
   closeWebview: viewTree.closeWebview.bind(viewTree)

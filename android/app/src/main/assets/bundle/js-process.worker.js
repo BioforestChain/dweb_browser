@@ -2230,7 +2230,7 @@ var ReadableStreamOut = class {
 
 // src/core/ipc/IpcBody.cts
 var _IpcBody = class {
-  get body() {
+  get raw() {
     return this._bodyHub.data;
   }
   async u8a() {
@@ -2692,7 +2692,7 @@ var _IpcRequest = class extends IpcMessage {
     const { method } = this;
     let body;
     if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
-      body = this.body.body;
+      body = this.body.raw;
     }
     return new Request(this.url, {
       method,
@@ -2791,7 +2791,7 @@ var Ipc = class {
     this._closeSignal.emit();
     this._closeSignal.clear();
   }
-  allocReqId() {
+  allocReqId(url) {
     return this._req_id_acc++;
   }
   _initReqRes() {
@@ -2811,7 +2811,12 @@ var Ipc = class {
       }
     });
   }
+  // 先找到错误的位置
+  // 需要确定两个问题
+  // 是否是应为报错导致无法响应后面的请求
+  // 如果是是否可以避免报错？？
   /** 发起请求并等待响应 */
+  // 会提供给 http-server模块的 gateway.listener.hookHttpRequest
   request(url, init) {
     const req_id = this.allocReqId();
     const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
@@ -2855,7 +2860,7 @@ var _IpcResponse = class extends IpcMessage {
     return __privateGet(this, _ipcHeaders) ?? __privateSet(this, _ipcHeaders, new IpcHeaders(this.headers));
   }
   toResponse(url) {
-    const body = this.body.body;
+    const body = this.body.raw;
     if (body instanceof Uint8Array) {
       this.headers.init("Content-Length", body.length + "");
     }
@@ -3477,22 +3482,30 @@ var HttpDwebServer = class {
     return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
   }
 };
-var listenHttpDwebServer = async (microModule, token, routes) => {
+var listenHttpDwebServer = async (microModule, token, routes = [
+  /** 定义了路由的方法 */
+  { pathname: "/", matchMode: "prefix", method: "GET" },
+  { pathname: "/", matchMode: "prefix", method: "POST" },
+  { pathname: "/", matchMode: "prefix", method: "PUT" },
+  { pathname: "/", matchMode: "prefix", method: "DELETE" },
+  { pathname: "/", matchMode: "prefix", method: "PATCH" },
+  { pathname: "/", matchMode: "prefix", method: "OPTIONS" },
+  { pathname: "/", matchMode: "prefix", method: "HEAD" },
+  { pathname: "/", matchMode: "prefix", method: "CONNECT" },
+  { pathname: "/", matchMode: "prefix", method: "TRACE" }
+]) => {
   const httpServerIpc = new ReadableStreamIpc(microModule, "client" /* CLIENT */);
-  const httpIncomeRequestStream = await microModule.fetch(
-    buildUrl(new URL(`file://http.sys.dweb`), {
-      pathname: "/listen",
-      search: {
-        token,
-        routes
-      }
-    }),
-    {
-      method: "POST",
-      /// 这是上行的通道
-      body: httpServerIpc.stream
+  const url = new URL(`file://http.sys.dweb`);
+  const ext = {
+    pathname: "/listen",
+    search: {
+      token,
+      routes
     }
-  ).stream();
+  };
+  const buildUrlValue = buildUrl(url, ext);
+  const int = { method: "POST", body: httpServerIpc.stream };
+  const httpIncomeRequestStream = await microModule.fetch(buildUrlValue, int).stream();
   console.log("\u5F00\u59CB\u54CD\u5E94\u670D\u52A1\u8BF7\u6C42");
   httpServerIpc.bindIncomeStream(httpIncomeRequestStream);
   return httpServerIpc;

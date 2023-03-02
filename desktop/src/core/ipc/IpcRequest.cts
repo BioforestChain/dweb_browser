@@ -128,7 +128,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     const { method } = this;
     let body: undefined | $BodyData;
     if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
-      body = this.body.body;
+      body = this.body.raw;
     }
     return new Request(this.url, {
       method,

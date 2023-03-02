@@ -26,7 +26,7 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
   }
 
   toResponse(url?: string) {
-    const body = this.body.body;
+    const body = this.body.raw;
     if (body instanceof Uint8Array) {
       this.headers.init("Content-Length", body.length + "");
     }

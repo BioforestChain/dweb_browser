@@ -7,7 +7,7 @@ export abstract class IpcBody {
 
   abstract readonly metaBody: $MetaBody;
   protected abstract _bodyHub: BodyHub;
-  get body() {
+  get raw() {
     return this._bodyHub.data;
   }
 
