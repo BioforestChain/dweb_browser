@@ -79,6 +79,10 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb"), DnsMicroModule {
             "/close" bind Method.GET to defineHandler { request ->
                 close(query_app_id(request))
                 true
+            },
+            "/install" bind Method.GET to defineHandler { request ->
+//                install(mm)
+                true
             }
         )
         /// 启动 boot 模块

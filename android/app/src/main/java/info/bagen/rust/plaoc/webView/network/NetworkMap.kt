@@ -1,14 +1,11 @@
 package info.bagen.rust.plaoc.webView.network
 
-import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
-import com.fasterxml.jackson.databind.DeserializationFeature
 import info.bagen.rust.plaoc.webView.urlscheme.CustomUrlScheme
 import java.net.URL
 import java.util.*
 
-private const val TAG = "NetworkMap"
 
 // 这里是存储客户端的映射规则的，这样才知道需要如何转发给后端 <String,ImportMap>
 val front_to_rear_map = mutableMapOf<String, String>()

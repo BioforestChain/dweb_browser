@@ -43,6 +43,10 @@ import info.bagen.libappmgr.ui.download.DownLoadState
 import info.bagen.libappmgr.ui.download.DownloadAppMaskView
 import info.bagen.libappmgr.ui.download.DownloadDialogView
 import info.bagen.libappmgr.ui.view.DialogView
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.http4k.client.OkHttp
+import java.lang.reflect.Method
 
 @Composable
 private fun BoxScope.AppIcon(appViewState: AppViewState) {
@@ -84,7 +88,14 @@ private fun BoxScope.AppName(appViewState: AppViewState) {
             .align(Alignment.BottomCenter)
     )
 }
+private val client = OkHttp()
 
+fun run() {
+    val request = org.http4k.core.Request(org.http4k.core.Method.GET,"https://shop.plaoc.com/KEJPMHLA/appversion.json")
+    client(request) { response ->
+        println(response.body)
+    }
+}
 /**
  * AppView 只存放App的信息，包括图标，字段
  */
@@ -100,6 +111,9 @@ fun BoxScope.AppInfoItem(
         .pointerInput(appViewState) {
             detectTapGestures(onPress = {}, // 触摸事件
                 onTap = { // 点击事件
+                    GlobalScope.launch {
+                        run()
+                    }
                     appViewState.appInfo?.dAppUrl?.let {
                         onOpenApp?.let { it() }
                     } ?: run {

@@ -140,15 +140,22 @@ class DwebBrowserService : Service() {
           pendingIntent
         }
         App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
-          JmmIntent.UpdateDownLoadStatus(DownLoadStatus.Install)
+          JmmIntent.UpdateDownLoadStatus(DownLoadStatus.DownLoadComplete)
         ) ?: { // 如果完成后发现下载界面没有打开，手动打开
           JmmManagerActivity.startActivity(jmmMetadata)
         }
         runBlocking { delay(2000) }
         val unzip = ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath())
-        App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
-          JmmIntent.UpdateDownLoadStatus(if (unzip) DownLoadStatus.OPEN else DownLoadStatus.FAIL)
-        )
+        if (unzip) {
+          App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
+            JmmIntent.UpdateDownLoadStatus(DownLoadStatus.INSTALLED) )
+          JmmManagerActivity.downLoadStatus[jmmMetadata.id]?.resolve(DownLoadStatus.INSTALLED)
+        } else {
+          App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
+            JmmIntent.UpdateDownLoadStatus(DownLoadStatus.FAIL) )
+          JmmManagerActivity.downLoadStatus[jmmMetadata.id]?.resolve(DownLoadStatus.FAIL)
+        }
+        JmmManagerActivity.downLoadStatus.remove(jmmMetadata.id)
       }
     }
   }
