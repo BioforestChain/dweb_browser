@@ -57,7 +57,7 @@ export class JMMMetadata extends NativeMicroModule {
             return;
         }
 
-        const result = JSON.stringify(await (await this.fetch(metadataUrl)).json())
+        const result = JSON.stringify(await (await this.nativeFetch(metadataUrl)).json())
 
         let content = await readHtml()
             content = content.replace("<body>", `<body><script type="text/javascript"> 
@@ -86,7 +86,7 @@ export class JMMMetadata extends NativeMicroModule {
         ipc.postMessage(
             await IpcResponse.fromResponse(
                 request.req_id,
-                await this.fetch(
+                await this.nativeFetch(
                     `file://file.sys.dweb/download?url=${url}&app_id=${app_id}`,
                     {
                         method: "POST",
@@ -106,7 +106,7 @@ export class JMMMetadata extends NativeMicroModule {
         ipc.postMessage(
             await IpcResponse.fromResponse(
                 request.req_id,
-                await this.fetch(`file://file.sys.dweb/download_process?url=${url}&app_id=${app_id}`),
+                await this.nativeFetch(`file://file.sys.dweb/download_process?url=${url}&app_id=${app_id}`),
                 ipc,
             )
         )

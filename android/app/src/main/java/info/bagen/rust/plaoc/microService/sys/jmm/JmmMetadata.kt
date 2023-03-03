@@ -5,10 +5,10 @@ import java.io.Serializable
 
 data class JmmMetadata(
     val id: Mmid,
+    val server: MainServer, // 打开应用地址
     val title: String = "", // 应用名称
     val subtitle: String = "", // 应用副标题
     val icon: String = "", // 应用图标
-    val mainUrl: String = "", // 打开应用地址
     val downloadUrl: String = "", // 下载应用地址
     val images: List<String>? = null, // 应用截图
     val introduction: String = "", // 应用描述
@@ -20,7 +20,7 @@ data class JmmMetadata(
     val fileHash: String = "",
     val permissions: List<String>? = null,
     val plugins: List<String>? = null,
-    val releaseDate:String = "", // 发布时间
+    val releaseDate: String = "", // 发布时间
     /**
      * 静态网络服务
      */
@@ -35,6 +35,17 @@ data class JmmMetadata(
      */
     val openWebViewList: List<OpenWebView> = listOf(),
 ) : Serializable {
+
+    data class MainServer(
+        /**
+         * 应用文件夹的目录
+         */
+        val root: String,
+        /**
+         * 入口文件
+         */
+        val entry: String
+    )
 
     /**
      * 静态网络服务定义
@@ -112,6 +123,6 @@ val defaultJmmMetadata = JmmMetadata(
         "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ),
     home = "https://www.bfmeta.info/",
-    mainUrl = "/assets/bfs.bfm.js"
+    server = JmmMetadata.MainServer(root = "/assets", entry = "/bfs.bfm.js")
 )
 

@@ -88,14 +88,14 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             }
         }
 
-        val query_main_pathname = Query.string().required("main_pathname")
+        val query_entry = Query.string().required("entry")
         val query_process_id = Query.int().required("process_id")
 
         apiRouting = routes(
             /// 创建 web worker
             "/create-process" bind Method.POST to defineHandler { request, ipc ->
                 createProcessAndRun(
-                    ipc, apis, query_main_pathname(request), request
+                    ipc, apis, query_entry(request), request
                 )
             },
             /// 创建 web 通讯管道
@@ -112,7 +112,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     private suspend fun createProcessAndRun(
         ipc: Ipc,
         apis: JsProcessWebApi,
-        main_pathname: String = "/index.js",
+        entry: String = "/index.js",
         requestMessage: Request
     ): Response {
         /**
@@ -206,7 +206,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          */
         apis.runProcessMain(
             processHandler.info.process_id, JsProcessWebApi.RunProcessMainOptions(
-                main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl().path(main_pathname)
+                main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl().path(entry)
                     .toString()
             )
         )

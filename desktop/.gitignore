@@ -4,5 +4,6 @@ bundle
 git-sim_media
 .*.bak
 temp
+cot
 
 proxy/src/index.cjs

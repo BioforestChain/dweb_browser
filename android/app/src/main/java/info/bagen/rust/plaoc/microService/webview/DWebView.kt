@@ -126,6 +126,7 @@ class DWebView(
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
+        settings.safeBrowsingEnabled = true
         webViewClient = object : WebViewClient() {
 
             override fun onPageFinished(view: WebView?, url: String?) {

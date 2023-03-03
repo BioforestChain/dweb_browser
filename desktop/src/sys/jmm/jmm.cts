@@ -1,5 +1,6 @@
 //  jmm.sys.dweb 负责启动 第三方应用程序
 
+import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { $JmmMetadata, JmmMetadata } from "./JmmMetadata.cjs";
@@ -10,7 +11,10 @@ export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.sys.dweb" as const;
   readonly apps = new Map<$MMID, JsMicroModule>();
 
-  async _bootstrap() {
+  async _bootstrap(context: $BootstrapContext) {
+    for (const app of this.apps.values()) {
+      context.dns.install(app);
+    }
     //  安装 第三方 app
     this.registerCommonIpcOnMessageHandler({
       pathname: "/install",

@@ -3,12 +3,12 @@ package info.bagen.rust.plaoc.microService.user
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.JsMicroModule
 
-class DesktopJMM : JsMicroModule(
+class CotJMM : JsMicroModule(
     JmmMetadata(
-        id = "desktop.user.dweb",
+        id = "cot.bfs.dweb",
         server = JmmMetadata.MainServer(
             root = "file:///bundle",
-            entry = "/desktop.worker.js"
+            entry = "/cot.worker.js"
         ),
     )
 ) {}

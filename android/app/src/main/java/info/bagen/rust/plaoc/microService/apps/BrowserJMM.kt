@@ -6,6 +6,9 @@ import info.bagen.rust.plaoc.microService.sys.jmm.JsMicroModule
 class BrowserJMM : JsMicroModule(
     JmmMetadata(
         id = "browser.sys.dweb",
-        mainUrl = "file:///bundle/browser/server/index.js"
+        server = JmmMetadata.MainServer(
+            root = "file:///bundle/browser/server",
+            entry = "/index.js"
+        ),
     )
 ) {}

@@ -72,6 +72,7 @@ suspend fun MicroModule.nativeFetch(request: Request): Response {
             return response
         }
     }
+    println("request.uri: ${request.uri}")
     return localeFileFetch(this, request) ?: networkFetch(request)
 }
 

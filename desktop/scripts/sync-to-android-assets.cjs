@@ -8,7 +8,7 @@ const android_assets_dir = path.join(
 );
 const origin_dir = path.join(__dirname, "../");
 
-const tasks = ["bundle"].map((dirname) => {
+const tasks = ["bundle", "cot"].map((dirname) => {
   return {
     from: path.join(origin_dir, dirname),
     to: path.join(android_assets_dir, dirname),
@@ -17,7 +17,9 @@ const tasks = ["bundle"].map((dirname) => {
 
 const doSync = () => {
   for (const task of tasks) {
-    fs.rmSync(task.to, { recursive: true });
+    if (fs.existsSync(task.to)) {
+      fs.rmSync(task.to, { recursive: true });
+    }
     fs.cpSync(task.from, task.to, { recursive: true });
   }
   console.log("synced");

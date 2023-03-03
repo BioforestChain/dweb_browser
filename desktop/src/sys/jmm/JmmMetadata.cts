@@ -3,5 +3,12 @@ export class JmmMetadata {
 }
 export interface $JmmMetadata {
   id: $MMID;
-  main_url: string;
+  server: $JmmMetadata.$MainServer;
+}
+
+export namespace $JmmMetadata {
+  export interface $MainServer {
+    root: string;
+    entry: string;
+  }
 }

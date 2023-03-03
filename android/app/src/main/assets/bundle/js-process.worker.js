@@ -3450,33 +3450,33 @@ var HttpDwebServer = class {
     this.nmm = nmm;
     this.options = options;
     this.startResult = startResult;
+    /** 开始处理请求 */
+    this.listen = async (routes = [
+      {
+        pathname: "/",
+        matchMode: "prefix",
+        method: "GET"
+      },
+      {
+        pathname: "/",
+        matchMode: "prefix",
+        method: "POST"
+      },
+      {
+        pathname: "/",
+        matchMode: "prefix",
+        method: "PUT"
+      },
+      {
+        pathname: "/",
+        matchMode: "prefix",
+        method: "DELETE"
+      }
+    ]) => {
+      return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
+    };
     /** 关闭监听 */
     this.close = (0, import_once5.default)(() => closeHttpDwebServer(this.nmm, this.options));
-  }
-  /** 开始处理请求 */
-  async listen(routes = [
-    {
-      pathname: "/",
-      matchMode: "prefix",
-      method: "GET"
-    },
-    {
-      pathname: "/",
-      matchMode: "prefix",
-      method: "POST"
-    },
-    {
-      pathname: "/",
-      matchMode: "prefix",
-      method: "PUT"
-    },
-    {
-      pathname: "/",
-      matchMode: "prefix",
-      method: "DELETE"
-    }
-  ]) {
-    return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
   }
 };
 var listenHttpDwebServer = async (microModule, token, routes = [
@@ -3578,17 +3578,36 @@ var js_process_ipc_support_protocols = (() => {
   };
 })();
 var JsProcessMicroModule = class {
-  constructor(mmid, host, meta) {
+  constructor(mmid, host, meta, nativeFetchPort) {
     this.mmid = mmid;
     this.host = host;
     this.meta = meta;
+    this.nativeFetchPort = nativeFetchPort;
     this.ipc_support_protocols = js_process_ipc_support_protocols;
+    this.fetchIpc = new MessagePortIpc(
+      this.nativeFetchPort,
+      this,
+      "server" /* SERVER */
+    );
   }
-  nativeFetch(input, init) {
-    return Object.assign(fetch(input, init), fetchExtends);
+  async _nativeFetch(url, init) {
+    const args = normalizeFetchArgs(url, init);
+    const { parsed_url } = args;
+    if (parsed_url.protocol === "file:" && (parsed_url.hostname === "" || parsed_url.hostname.endsWith(".dweb"))) {
+      const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+      const ipc_response = await this.fetchIpc.request(
+        parsed_url.href,
+        ipc_req_init
+      );
+      return ipc_response.toResponse(parsed_url.href);
+    }
+    return fetch(args.parsed_url, args.request_init);
+  }
+  nativeFetch(url, init) {
+    return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 };
-var waitFetchIpc = (jsProcess2) => {
+var waitFetchPort = () => {
   return new Promise((resolve) => {
     self.addEventListener("message", (event) => {
       const data = event.data;
@@ -3596,33 +3615,19 @@ var waitFetchIpc = (jsProcess2) => {
         return;
       }
       if (data[0] === "fetch-ipc-channel") {
-        const ipc = new MessagePortIpc(data[1], jsProcess2, "server" /* SERVER */);
-        resolve(ipc);
+        resolve(data[1]);
       }
     });
   });
 };
 var installEnv = async (mmid, host) => {
-  const jsProcess2 = new JsProcessMicroModule(mmid, host, metadata);
-  const fetchIpc = await waitFetchIpc(jsProcess2);
-  const native_fetch = globalThis.fetch;
-  function fetch2(url, init) {
-    const args = normalizeFetchArgs(url, init);
-    const { parsed_url } = args;
-    if (parsed_url.protocol === "file:" && parsed_url.hostname.endsWith(".dweb")) {
-      return (async () => {
-        const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
-        const ipc_response = await fetchIpc.request(
-          parsed_url.href,
-          ipc_req_init
-        );
-        return ipc_response.toResponse(parsed_url.href);
-      })();
-    }
-    return native_fetch(url, init);
-  }
+  const jsProcess2 = new JsProcessMicroModule(
+    mmid,
+    host,
+    metadata,
+    await waitFetchPort()
+  );
   Object.assign(globalThis, {
-    fetch: fetch2,
     jsProcess: jsProcess2,
     JsProcessMicroModule,
     http: createHttpDwebServer_exports,

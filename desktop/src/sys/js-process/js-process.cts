@@ -165,15 +165,10 @@ export class JsProcessNMM extends NativeMicroModule {
       method: "POST",
       pathname: "/create-process",
       matchMode: "full",
-      input: { main_pathname: "string" },
+      input: { entry: "string" },
       output: "object",
       handler: (args, ipc, requestMessage) => {
-        return this.createProcessAndRun(
-          ipc,
-          apis,
-          args.main_pathname,
-          requestMessage
-        );
+        return this.createProcessAndRun(ipc, apis, args.entry, requestMessage);
       },
     });
     /// 创建 web 通讯管道
@@ -193,7 +188,7 @@ export class JsProcessNMM extends NativeMicroModule {
   private async createProcessAndRun(
     ipc: Ipc,
     apis: Remote<$APIS>,
-    main_pathname = "/index.js",
+    entry = "/index.js",
     requestMessage: IpcRequest
   ) {
     /**
@@ -295,7 +290,7 @@ export class JsProcessNMM extends NativeMicroModule {
      */
     await apis.runProcessMain(processInfo.process_id, {
       main_url: httpDwebServer.startResult.urlInfo.buildInternalUrl((url) => {
-        url.pathname = main_pathname;
+        url.pathname = entry;
       }).href,
     });
 

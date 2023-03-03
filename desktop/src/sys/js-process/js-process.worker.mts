@@ -78,16 +78,43 @@ export class JsProcessMicroModule implements $MicroModule {
   constructor(
     readonly mmid: $MMID,
     readonly host: String,
-    readonly meta: Metadata
+    readonly meta: Metadata,
+    private nativeFetchPort: MessagePort
   ) {}
-  nativeFetch(input: RequestInfo | URL, init?: RequestInit) {
-    return Object.assign(fetch(input, init), fetchExtends);
+  readonly fetchIpc = new MessagePortIpc(
+    this.nativeFetchPort,
+    this,
+    IPC_ROLE.SERVER
+  );
+
+  private async _nativeFetch(
+    url: RequestInfo | URL,
+    init?: RequestInit
+  ): Promise<Response> {
+    const args = normalizeFetchArgs(url, init);
+    const { parsed_url } = args;
+    /// 进入特殊的解析模式
+    if (
+      parsed_url.protocol === "file:" &&
+      (parsed_url.hostname === "" || parsed_url.hostname.endsWith(".dweb"))
+    ) {
+      const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+      const ipc_response = await this.fetchIpc.request(
+        parsed_url.href,
+        ipc_req_init
+      );
+      return ipc_response.toResponse(parsed_url.href);
+    }
+    return fetch(args.parsed_url, args.request_init);
+  }
+  nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 }
 
 /// 消息通道构造器
-const waitFetchIpc = (jsProcess: $MicroModule) => {
-  return new Promise<MessagePortIpc>((resolve) => {
+const waitFetchPort = () => {
+  return new Promise<MessagePort>((resolve) => {
     self.addEventListener("message", (event) => {
       const data = event.data as any[];
       if (Array.isArray(event.data) === false) {
@@ -96,10 +123,7 @@ const waitFetchIpc = (jsProcess: $MicroModule) => {
       /// 这是来自 原生接口 WebMessageChannel 创建出来的通道
       /// 由 web 主线程代理传递过来
       if (data[0] === "fetch-ipc-channel") {
-        /// 与原生互通讯息，默认只能支持字符串
-        const ipc = new MessagePortIpc(data[1], jsProcess, IPC_ROLE.SERVER);
-        resolve(ipc);
-        // self.dispatchEvent(new MessageEvent("connect", { data: ipc }));
+        resolve(data[1]);
       }
     });
   });
@@ -109,32 +133,14 @@ const waitFetchIpc = (jsProcess: $MicroModule) => {
  * 安装上下文
  */
 export const installEnv = async (mmid: $MMID, host: String) => {
-  const jsProcess = new JsProcessMicroModule(mmid, host, metadata);
-  const fetchIpc = await waitFetchIpc(jsProcess);
+  const jsProcess = new JsProcessMicroModule(
+    mmid,
+    host,
+    metadata,
+    await waitFetchPort()
+  );
 
-  const native_fetch = globalThis.fetch;
-  function fetch(url: RequestInfo | URL, init?: RequestInit) {
-    const args = normalizeFetchArgs(url, init);
-    const { parsed_url } = args;
-    /// 进入特殊的解析模式
-    if (
-      parsed_url.protocol === "file:" &&
-      parsed_url.hostname.endsWith(".dweb")
-    ) {
-      return (async () => {
-        const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
-        const ipc_response = await fetchIpc.request(
-          parsed_url.href,
-          ipc_req_init
-        );
-        return ipc_response.toResponse(parsed_url.href);
-      })();
-    }
-
-    return native_fetch(url, init);
-  }
   Object.assign(globalThis, {
-    fetch,
     jsProcess,
     JsProcessMicroModule,
     http,

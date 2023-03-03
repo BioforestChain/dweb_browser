@@ -59,6 +59,7 @@ console.log("ookkkkk, i'm in worker");
 var main = async () => {
   const { IpcHeaders, IpcResponse } = ipc;
   const { createHttpDwebServer } = http;
+  debugger;
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
   if (jsProcess.meta.optionalBoolean("debug")) {
     await new Promise((resolve) => {

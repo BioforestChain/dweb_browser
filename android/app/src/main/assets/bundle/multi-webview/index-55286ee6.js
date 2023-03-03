@@ -1323,7 +1323,7 @@ const allCss$1 = [
             --navigation-bar-height: 64px;
             --border-radius: 46px;
             --cmera-container-zindex: 999;
-            --bottom-line-container-height:20px;
+            --bottom-line-container-height:10px;
             width:100%;
             height:100%;
         }
@@ -1378,8 +1378,9 @@ const allCss$1 = [
             scrollbar-width: 2px;
             overflow: hidden;
             overflow-y: auto;
-            /* border: 1px solid red; */
+            background: #fff;
         }
+
         .webview{
             box-sizing: border-box;
             width:100%;
@@ -1487,8 +1488,6 @@ let MultiWebViewContent = class extends s$1 {
                     @load=${() => console.log("statusbar 载入完成")}
                     data-app-url=${this.src}
                 ></iframe>
-                <!-- 底部黑线 -->
-                <div class="bottom-line-container"></div>
                 <!-- 内容容器 -->
                 <div class="webview-container">
                     <!-- 这个 webview 是如何载入的了？？？ -->
@@ -1502,6 +1501,17 @@ let MultiWebViewContent = class extends s$1 {
                         @dom-ready=${this.onDomReady}
                     ></webview>
                 </div>
+                <!-- navigator-bar -->
+                <iframe 
+                    id="navigator-bar"
+                    class="iframe-navigator-bar"
+                    style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden;"
+                    src="http://navigatorbar.sys.dweb-80.localhost:22605"
+                    @load=${() => console.log("navigator-bar 载入完成")}
+                    data-app-url=${this.src}
+                ></iframe>
+                <!-- 底部黑线 -->
+                <div class="bottom-line-container"></div>
             </div>
         `;
   }
@@ -1731,6 +1741,8 @@ let ViewTree = class extends s$1 {
     }
     this.requestUpdate("webviews");
   }
+  // 打开一个新的webview标签
+  // 在html中执行 open() 也会调用这个方法
   openWebview(src) {
     const webview_id = this._id_acc++;
     this.webviews.unshift(new Webview(webview_id, src));
@@ -1757,12 +1769,10 @@ let ViewTree = class extends s$1 {
   }
   async onWebviewReady(webview, ele) {
     webview.webContentId = ele.getWebContentsId();
-    console.log("-开支执行doReady");
     webview.doReady(ele);
     mainApis.denyWindowOpenHandler(
       webview.webContentId,
       proxy((detail) => {
-        console.log(detail);
         this.openWebview(detail.url);
       })
     );
@@ -1773,8 +1783,7 @@ let ViewTree = class extends s$1 {
         console.log("Destroy!!");
       })
     );
-    const webcontents = await mainApis.getWenContents(webview.webContentId);
-    console.log("webcontents", webcontents);
+    await mainApis.getWenContents(webview.webContentId);
   }
   async onDevtoolReady(webview, ele_devTool) {
     await webview.ready();
@@ -1782,7 +1791,6 @@ let ViewTree = class extends s$1 {
       return;
     }
     webview.webContentId_devTools = ele_devTool.getWebContentsId();
-    console.log(" webview.webContentId_devTools: ", webview.webContentId_devTools);
     await mainApis.openDevTools(
       webview.webContentId,
       void 0,
@@ -1800,12 +1808,10 @@ let ViewTree = class extends s$1 {
       this.webviews,
       (dialog) => dialog.id,
       (webview) => {
-        console.log("content - webview:", webview);
         `z-index: ${webview.state.zIndex};`;
         const _styleMap = i2({
           zIndex: webview.state.zIndex + ""
         });
-        console.log("this.webvew.src: ", webview.src);
         return y`
               <multi-webview-content
                 .customWebview=${webview}
@@ -1822,7 +1828,6 @@ let ViewTree = class extends s$1 {
           }
         }} 
                 @dom-ready=${(event) => {
-          console.log("内容准备完毕");
           this.onWebviewReady(webview, event.detail.event.target);
         }}
               ></multi-webview-content>

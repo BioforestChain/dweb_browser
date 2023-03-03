@@ -2,25 +2,29 @@ import { NativeMicroModule } from "../core/micro-module.native.cjs";
 import type { $MMID } from "../helper/types.cjs";
 
 export class BootNMM extends NativeMicroModule {
+  constructor(private initMmids?: Iterable<$MMID>) {
+    super();
+  }
   mmid = "boot.sys.dweb" as const;
   // private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]); // 被优化
-  private registeredMmids = new Set<$MMID>([
-    "file.sys.dweb",
-    "jmm.sys.dweb",
-    "www.sys.dweb",
-    "api.sys.dweb",
-    "plugins.sys.dweb",
-    "statusbar.sys.dweb",
-    "navigatorbar.sys.dweb",
-    "browser.sys.dweb"
-  ])  
+  private registeredMmids = new Set<$MMID>(
+    this.initMmids
+    // [
+    // "file.sys.dweb",
+    // "jmm.sys.dweb",
+    // "www.sys.dweb",
+    // "api.sys.dweb",
+    // "plugins.sys.dweb",
+    // "browser.sys.dweb",
+    // ]
+  );
   async _bootstrap() {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/register",
       matchMode: "full",
-      input: { },
+      input: {},
       output: "boolean",
-      handler: async (args,ipc) => {
+      handler: async (args, ipc) => {
         return await this.register(ipc.remote.mmid);
       },
     });

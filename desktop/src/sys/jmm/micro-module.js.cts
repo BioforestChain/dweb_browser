@@ -41,8 +41,20 @@ export class JsMicroModule extends MicroModule {
     // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
     streamIpc.onRequest(async (request) => {
       // console.log("[micro-module.js.cts 监听到了请求:]", this.mmid)
-      if (request.parsed_url.pathname === "/index.js") {
-        const main_code = await this.nativeFetch(this.metadata.config.main_url).text();
+      if (request.parsed_url.pathname.endsWith("/")) {
+        streamIpc.postMessage(
+          IpcResponse.fromText(
+            request.req_id,
+            403,
+            undefined,
+            "Forbidden",
+            streamIpc
+          )
+        );
+      } else {
+        const main_code = await this.nativeFetch(
+          this.metadata.config.server.root + request.parsed_url.pathname
+        ).text();
 
         streamIpc.postMessage(
           IpcResponse.fromText(
@@ -53,10 +65,6 @@ export class JsMicroModule extends MicroModule {
             streamIpc
           )
         );
-      } else {
-        streamIpc.postMessage(
-          IpcResponse.fromText(request.req_id, 404, undefined, "", streamIpc)
-        );
       }
     });
     // console.log("[micro-module.js.cts 执行 bindIncomeStream:]", this.mmid)
@@ -64,7 +72,7 @@ export class JsMicroModule extends MicroModule {
       this.nativeFetch(
         buildUrl(new URL(`file://js.sys.dweb/create-process`), {
           search: {
-            main_pathname: "/index.js",
+            entry: this.metadata.config.server.entry,
             process_id: (this._process_id = Math.ceil(Math.random() * 1000)),
           },
         }),

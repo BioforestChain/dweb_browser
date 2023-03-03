@@ -32,6 +32,8 @@
         "dev:js-process.html": "npm run bundle:js-process.html -- --minify=false --watch",
         "bundle:desktop.worker": "esbuild ./src/user/desktop/desktop.worker.mts --outfile=./bundle/desktop.worker.js --bundle --format=esm",
         "dev:desktop.worker": "npm run bundle:desktop.worker -- --watch",
+        "bundle:cot.worker": "esbuild ./src/user/cot/cot.worker.mts --outfile=./bundle/cot.worker.js --bundle --format=esm",
+        "dev:cot.worker": "npm run bundle:cot.worker -- --watch",
         "bundle:browser.worker": "node ./esbuild.browser.worker.js",
         "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
         "bundle:browser.render": "esbuild ./src/user/browser/assets/browser.render.mts --outfile=./bundle/browser.render.txt --bundle --format=esm",

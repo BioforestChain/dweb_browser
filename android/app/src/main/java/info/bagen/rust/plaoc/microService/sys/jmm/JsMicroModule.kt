@@ -33,10 +33,12 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
         processId = pid
         val streamIpc = ReadableStreamIpc(this, IPC_ROLE.CLIENT)
         streamIpc.onRequest { (request, ipc) ->
-            val response = when (request.uri.path) {
-                "/index.js" -> nativeFetch(metadata.downloadUrl)
-                else -> Response(Status.NOT_FOUND)
+            val response = if (request.uri.path.endsWith("/")) {
+                Response(Status.FORBIDDEN)
+            } else {
+                nativeFetch(metadata.server.root + request.uri.path)
             }
+
             ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
         }
         streamIpc.bindIncomeStream(
@@ -44,7 +46,7 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                 Request(
                     Method.POST,
                     Uri.of("file://js.sys.dweb/create-process")
-                        .query("main_pathname", "/index.js")
+                        .query("entry", metadata.server.entry)
                         .query("process_id", pid.toString())
                 ).body(streamIpc.stream)
             ).stream(),

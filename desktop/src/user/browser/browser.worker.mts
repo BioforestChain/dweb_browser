@@ -272,7 +272,7 @@ async function onRequestPathOpenWebview(request: IpcRequest, httpServerIpc: Ipc)
   const mmid = request.parsed_url.searchParams.get('mmid')
   // 启动
   jsProcess
-  .fetch(`file://dns.sys.dweb/open?app_id=${mmid}`)
+  .nativeFetch(`file://dns.sys.dweb/open?app_id=${mmid}`)
   .then(async (res: any) => {
     console.log('返回跳转到下载页面')
     const json = await res.json()
