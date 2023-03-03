@@ -2983,7 +2983,6 @@ var $metaToStream = (rawBody, ipc) => {
       const off = ipc.onMessage((message) => {
         if ("stream_id" in message && message.stream_id === stream_id) {
           if (message.type === 2 /* STREAM_DATA */) {
-            console.log("getStreamDataMessage", stream_id);
             controller.enqueue(message.binary);
           } else if (message.type === 4 /* STREAM_END */) {
             controller.close();
@@ -2993,7 +2992,6 @@ var $metaToStream = (rawBody, ipc) => {
       });
     },
     pull(controller) {
-      console.log("postStreamPullMessage", stream_id, controller.desiredSize);
       stream_ipc.postMessage(
         new IpcStreamPull(stream_id, controller.desiredSize)
       );
@@ -3140,11 +3138,11 @@ var ServerUrlInfo = class {
     this.internal_origin = internal_origin;
     this.public_origin = public_origin;
   }
-  buildUrl(origin2, builder) {
+  buildUrl(origin, builder) {
     if (typeof builder === "string") {
-      return new URL(builder, origin2);
+      return new URL(builder, origin);
     }
-    const url = new URL(origin2);
+    const url = new URL(origin);
     url.searchParams.set("X-Dweb-Host", this.host);
     return builder(url) ?? url;
   }
@@ -3271,15 +3269,18 @@ var main = async () => {
     async (request, httpServerIpc) => onRequest(request, httpServerIpc)
   );
   jsProcess.fetch(`file://statusbar.sys.dweb/`);
-  await openIndexHtmlAtMWebview(origin);
+  await openIndexHtmlAtMWebview(
+    dwebServer.startResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/index.html";
+    }).href
+  );
 };
 main().catch(console.error);
 async function onRequest(request, httpServerIpc) {
   console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42\uFF1A request.parsed_url\uFF1A ", request.parsed_url);
+  debugger;
   switch (request.parsed_url.pathname) {
     case "/":
-      onRequestPathNameIndexHtml(request, httpServerIpc);
-      break;
     case "/index.html":
       onRequestPathNameIndexHtml(request, httpServerIpc);
       break;
@@ -3376,7 +3377,7 @@ async function onRequestPathNameIcon(request, httpServerIpc) {
   });
 }
 async function onRequestPathNameInstall(request, httpServerIpc) {
-  const _url = `file://app.sys.dweb${request.url}`;
+  const _url = `file://jmm.sys.dweb${request.url}`;
   jsProcess;
   fetch(_url).then(async (res) => {
     httpServerIpc.postMessage(
@@ -3385,7 +3386,7 @@ async function onRequestPathNameInstall(request, httpServerIpc) {
   });
 }
 async function onRequestPathNameOpen(request, httpServerIpc) {
-  const _url = `file://app.sys.dweb${request.url}`;
+  const _url = `file://jmm.sys.dweb${request.url}`;
   jsProcess;
   fetch(_url).then(async (res) => {
     httpServerIpc.postMessage(
@@ -3422,9 +3423,10 @@ async function onRequestPathNameNoMatch(request, httpServerIpc) {
     )
   );
 }
-async function openIndexHtmlAtMWebview(origin2) {
-  console.log("--------broser.worker.mts, origin: ", origin2);
-  const view_id = await jsProcess.fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin2)}`).text();
+async function openIndexHtmlAtMWebview(origin) {
+  console.log("--------broser.worker.mts, origin: ", origin);
+  debugger;
+  const view_id = await jsProcess.fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`).text();
   return view_id;
 }
 export {

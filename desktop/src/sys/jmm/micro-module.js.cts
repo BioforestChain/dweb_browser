@@ -1,9 +1,10 @@
-import { ReadableStreamIpc } from "../core/ipc-web/ReadableStreamIpc.cjs";
-import { Ipc, IpcResponse, IPC_ROLE } from "../core/ipc/index.cjs";
-import { MicroModule } from "../core/micro-module.cjs";
-import type { $IpcSupportProtocols, $MMID } from "../helper/types.cjs";
-import { buildUrl } from "../helper/urlHelper.cjs";
-import { Native2JsIpc } from "./js-process/ipc.native2js.cjs";
+import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
+import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
+import { MicroModule } from "../../core/micro-module.cjs";
+import type { $IpcSupportProtocols } from "../../helper/types.cjs";
+import { buildUrl } from "../../helper/urlHelper.cjs";
+import { Native2JsIpc } from "../js-process/ipc.native2js.cjs";
+import type { JmmMetadata } from "./JmmMetadata.cjs";
 
 /**
  * 所有的js程序都只有这么一个动态的构造器
@@ -15,14 +16,16 @@ export class JsMicroModule extends MicroModule {
     raw: true,
   };
   constructor(
-    readonly mmid: $MMID,
     /**
      * js程序是动态外挂的
      * 所以需要传入一份配置信息
      */
-    readonly metadata: Readonly<{ main_url: string }>
+    readonly metadata: JmmMetadata
   ) {
     super();
+  }
+  get mmid() {
+    return this.metadata.config.id;
   }
 
   /**
@@ -37,10 +40,9 @@ export class JsMicroModule extends MicroModule {
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
     streamIpc.onRequest(async (request) => {
-      
       // console.log("[micro-module.js.cts 监听到了请求:]", this.mmid)
       if (request.parsed_url.pathname === "/index.js") {
-        const main_code = await this.fetch(this.metadata.main_url).text();
+        const main_code = await this.fetch(this.metadata.config.main_url).text();
 
         streamIpc.postMessage(
           IpcResponse.fromText(

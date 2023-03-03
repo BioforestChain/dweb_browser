@@ -36,6 +36,7 @@ main().catch(console.error);
  * @returns
  */
 async function openIndexHtmlAtMWebview(origin: string) {
+  debugger
   const view_id = await jsProcess
     .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
     .text();

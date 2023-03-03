@@ -1,6 +1,10 @@
 import { resolveToRootFile } from "../../helper/createResolveTo.cjs";
-import { JsMicroModule } from "../../sys/micro-module.js.cjs";
+import { JmmMetadata } from "../../sys/jmm/JmmMetadata.cjs";
+import { JsMicroModule } from "../../sys/jmm/micro-module.js.cjs";
 
-export const browserJMM = new JsMicroModule("browser.sys.dweb", {
-  main_url: resolveToRootFile("bundle/browser.worker.js").href,
-} as const);
+export const browserJMM = new JsMicroModule(
+  new JmmMetadata({
+    id: "browser.sys.dweb",
+    main_url: resolveToRootFile("bundle/browser.worker.js").href,
+  })
+);

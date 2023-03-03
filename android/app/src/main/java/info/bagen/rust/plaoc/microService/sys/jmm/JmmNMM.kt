@@ -20,7 +20,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     }
 
 
-    val queryMetadataUrl = Query.string().required("metadata-url")
+    val queryMetadataUrl = Query.string().required("metadataUrl")
     val queryMmid = Query.string().required("mmid")
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
@@ -40,7 +40,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 //openJmmMatadataInstallPage(jmmMetadata)
                 openJmmMatadataInstallPage(defaultJmmMetadata)
 
-                return@defineHandler jmmMetadata
+                true
             },
             "/uninstall" bind Method.GET to defineHandler { request, ipc ->
                 val mmid = queryMmid(request)

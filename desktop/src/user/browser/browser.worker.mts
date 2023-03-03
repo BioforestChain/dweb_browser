@@ -20,7 +20,11 @@ export const main = async () => {
   );
 
   jsProcess.fetch(`file://statusbar.sys.dweb/`);
-  await openIndexHtmlAtMWebview(origin);
+  await openIndexHtmlAtMWebview(
+    dwebServer.startResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/index.html";
+    }).href
+  );
 };
 
 // 执行
@@ -31,10 +35,9 @@ main().catch(console.error);
  */
 async function onRequest(request: IpcRequest, httpServerIpc: Ipc) {
   console.log("接受到了请求： request.parsed_url： ", request.parsed_url);
+  debugger
   switch (request.parsed_url.pathname) {
     case "/":
-      onRequestPathNameIndexHtml(request, httpServerIpc);
-      break;
     case "/index.html":
       onRequestPathNameIndexHtml(request, httpServerIpc);
       break;
@@ -199,7 +202,7 @@ async function onRequestPathNameInstall(
   request: IpcRequest,
   httpServerIpc: Ipc
 ) {
-  const _url = `file://app.sys.dweb${request.url}`;
+  const _url = `file://jmm.sys.dweb${request.url}`;
   jsProcess;
   fetch(_url).then(async (res: Response) => {
     httpServerIpc.postMessage(
@@ -214,7 +217,7 @@ async function onRequestPathNameInstall(
  * @param httpServerIpc
  */
 async function onRequestPathNameOpen(request: IpcRequest, httpServerIpc: Ipc) {
-  const _url = `file://app.sys.dweb${request.url}`;
+  const _url = `file://jmm.sys.dweb${request.url}`;
   jsProcess;
   fetch(_url).then(async (res: Response) => {
     httpServerIpc.postMessage(
@@ -276,6 +279,7 @@ async function onRequestPathNameNoMatch(
  */
 async function openIndexHtmlAtMWebview(origin: string) {
   console.log("--------broser.worker.mts, origin: ", origin);
+  debugger;
   const view_id = await jsProcess
     .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
     .text();

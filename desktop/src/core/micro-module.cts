@@ -7,6 +7,7 @@ import type {
   $MMID,
   $PromiseMaybe,
 } from "../helper/types.cjs";
+import type { $BootstrapContext } from "./bootstrapContext.cjs";
 import type { Ipc } from "./ipc/index.cjs";
 
 export abstract class MicroModule implements $MicroModule {
@@ -16,25 +17,25 @@ export abstract class MicroModule implements $MicroModule {
     return this._running_state_lock.promise;
   }
   private _running_state_lock = PromiseOut.resolve(false);
-  protected async before_bootstrap() {
+  protected async before_bootstrap(context: $BootstrapContext) {
     if (await this._running_state_lock.promise) {
       throw new Error(`module ${this.mmid} alreay running`);
     }
     this._running_state_lock = new PromiseOut();
   }
 
-  protected abstract _bootstrap(): unknown;
+  protected abstract _bootstrap(context: $BootstrapContext): unknown;
 
-  protected async after_bootstrap() {
+  protected async after_bootstrap(context: $BootstrapContext) {
     this._running_state_lock.resolve(true);
   }
-  async bootstrap() {
-    await this.before_bootstrap();
+  async bootstrap(context: $BootstrapContext) {
+    await this.before_bootstrap(context);
 
     try {
-      await this._bootstrap();
+      await this._bootstrap(context);
     } finally {
-      this.after_bootstrap();
+      this.after_bootstrap(context);
     }
   }
   protected async before_shutdown() {
