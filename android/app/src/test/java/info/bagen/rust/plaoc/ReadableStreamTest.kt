@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Signal
 import info.bagen.rust.plaoc.microService.helper.text
@@ -32,7 +33,7 @@ class ReadableStreamTest : AsyncBase() {
         }
 
         val m1 = object : NativeMicroModule("m1") {
-            override suspend fun _bootstrap() {
+            override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
                 TODO("Not yet implemented")
             }
 
@@ -43,7 +44,7 @@ class ReadableStreamTest : AsyncBase() {
 
 
         val m2 = object : NativeMicroModule("m2") {
-            override suspend fun _bootstrap() {
+            override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
                 TODO("Not yet implemented")
             }
 

@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.sys.plugin.fileSystem
 
 import android.system.Os
 import androidx.core.net.toUri
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.byteArrayInputStream
 import info.bagen.rust.plaoc.microService.sys.file.FileSystemPlugin
@@ -19,7 +20,8 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb") {
 
     val plugin = FileSystemPlugin()
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             "/checkPermissions" bind Method.GET to defineHandler { request ->
                 val path = Query.string().required("path")(request)

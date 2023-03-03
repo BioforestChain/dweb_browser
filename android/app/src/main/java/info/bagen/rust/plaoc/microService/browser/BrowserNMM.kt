@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.browser
 
 import android.content.Intent
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 
@@ -12,7 +13,7 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
 
     }
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val activity = PromiseOut<BrowserActivity>().also {
             activityPo = it
             App.startActivity(BrowserActivity::class.java) { intent ->

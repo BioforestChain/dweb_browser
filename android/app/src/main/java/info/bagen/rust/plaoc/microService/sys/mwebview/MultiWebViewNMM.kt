@@ -3,10 +3,10 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Method
 import org.http4k.lens.Query
@@ -32,7 +32,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val controllerMap = mutableMapOf<Mmid, MutilWebViewController>()
     }
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         // 打开webview
 
         val query_url = Query.string().required("url")

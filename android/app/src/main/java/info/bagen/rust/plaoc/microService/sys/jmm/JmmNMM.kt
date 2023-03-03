@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.json
@@ -22,7 +23,10 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     val queryMetadataUrl = Query.string().required("metadata-url")
     val queryMmid = Query.string().required("mmid")
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+        for (app in apps.values) {
+            bootstrapContext.dns.install(app)
+        }
 
         apiRouting = routes(
             "/install" bind Method.GET to defineHandler { request ->

@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -14,7 +15,8 @@ class KeyboardNMM: NativeMicroModule("keyboard.sys.dweb")  {
         App.browserActivity?.dWebBrowserModel?.getSystemUi()?.virtualKeyboard
     }
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 显示键盘*/
             "/show" bind Method.GET to defineHandler { request ->

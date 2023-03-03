@@ -1,7 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.haptics
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -14,7 +14,8 @@ import org.http4k.routing.routes
 
 class HapticsNMM: NativeMicroModule("haptics.sys.dweb") {
     private val vibrateManage = VibrateManage()
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 触碰轻质量物体 */
             "/impactLight" bind Method.GET to defineHandler { request ->

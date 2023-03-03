@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
@@ -10,14 +11,17 @@ import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.HttpNMM
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
-import kotlinx.coroutines.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class DwebTest : AsyncBase() {
 
     class HttpTestNMM : NativeMicroModule("http.test.dweb") {
-        override suspend fun _bootstrap() {
+        override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             val dwebServer = createHttpDwebServer(DwebHttpServerOptions());
             dwebServer.listen().onRequest { (request, ipc) ->
                 ipc.postMessage(
@@ -89,7 +93,7 @@ class DwebTest : AsyncBase() {
         val bootNMM = BootNMM(listOf(httpTestNMM.mmid)).also { dnsNMM.install(it) }
 
         /// 启动
-        dnsNMM.bootstrap()
+        dnsNMM.bootstrap(dnsNMM)
 
 
         prepareReady.await()

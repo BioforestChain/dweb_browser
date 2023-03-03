@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.http
 
 import com.google.gson.reflect.TypeToken
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.toBase64Url
@@ -101,7 +102,8 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     /// 在网关中寻址能够处理该 host 的监听者
 
 
-    public override suspend fun _bootstrap() {
+    public override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         /// 启动http后端服务
         dwebServer.createServer(httpHandler)
 

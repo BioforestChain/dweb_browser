@@ -5,6 +5,7 @@ import android.graphics.Point
 import android.graphics.Rect
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
@@ -20,7 +21,7 @@ inline fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class ScanningNMM() : NativeMicroModule("scanning.sys.dweb") {
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_rotationDegrees = Query.int().defaulted("rotation", 0)
 
         apiRouting = routes(

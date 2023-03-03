@@ -6,14 +6,13 @@ import android.content.ClipboardManager
 import android.content.Context
 import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.core.queries
 import org.http4k.lens.Query
-import org.http4k.lens.map
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -27,7 +26,8 @@ inline fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 /** 剪切板微模块*/
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 读取剪切板*/
             "/read" bind Method.GET to defineHandler { request ->

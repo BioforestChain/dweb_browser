@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.notification
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -11,7 +12,8 @@ import org.http4k.routing.routes
 
 class NotificationNMM : NativeMicroModule("notification.sys.dweb") {
     private val notifyManager = NotifyManager()
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 创建消息*/
             "/create" bind Method.GET to defineHandler { request ->

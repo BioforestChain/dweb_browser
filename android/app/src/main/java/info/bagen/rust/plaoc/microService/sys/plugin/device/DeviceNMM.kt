@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.device
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Method
@@ -14,7 +15,8 @@ inline fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
 class DeviceNMM:NativeMicroModule("device.sys.dweb") {
 
     val deviceInfo = DeviceInfo()
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 获取手机基本信息*/
             "/info" bind Method.GET to defineHandler { request ->

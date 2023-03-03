@@ -203,7 +203,7 @@ export class IpcBodySender extends IpcBody {
       void sender();
     });
     this.abortSignal.listen(() => {
-      reader.throw("abort");
+      reader.return();
       this.emitStreamClose();
     });
 

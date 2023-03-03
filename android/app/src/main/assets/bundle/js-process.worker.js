@@ -2519,7 +2519,7 @@ var _IpcBodySender = class extends IpcBody {
       void sender();
     });
     this.abortSignal.listen(() => {
-      reader.throw("abort");
+      reader.return();
       this.emitStreamClose();
     });
     return [0 /* STREAM_ID */, stream_id, ipc.uid];
@@ -3425,7 +3425,7 @@ var ServerUrlInfo = class {
       return new URL(builder, origin);
     }
     const url = new URL(origin);
-    url.searchParams.set("X-DWeb-Host", this.host);
+    url.searchParams.set("X-Dweb-Host", this.host);
     return builder(url) ?? url;
   }
   buildPublicUrl(builder) {
