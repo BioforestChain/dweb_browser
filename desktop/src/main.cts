@@ -52,6 +52,6 @@ dns.install(new JMMMetadata())
 Object.assign(globalThis, { dns: dns });
 
 process.on("unhandledRejection", (error) => {
-  debugger
   console.error("????", error);
+  debugger
 });

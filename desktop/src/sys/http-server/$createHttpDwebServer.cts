@@ -86,7 +86,7 @@ export const listenHttpDwebServer = async (
   const buildUrlValue = buildUrl(url, ext);
   const int = { method: "POST", body: httpServerIpc.stream };
   const httpIncomeRequestStream = await microModule
-    .fetch(buildUrlValue, int)
+    .nativeFetch(buildUrlValue, int)
     .stream();
 
   console.log("开始响应服务请求");
@@ -101,7 +101,7 @@ export const startHttpDwebServer = (
   options: $DwebHttpServerOptions
 ) => {
   return microModule
-    .fetch(
+    .nativeFetch(
       buildUrl(new URL(`file://http.sys.dweb/start`), {
         search: options,
       })
@@ -125,7 +125,7 @@ export const closeHttpDwebServer = async (
   options: $DwebHttpServerOptions
 ) => {
   return microModule
-    .fetch(
+    .nativeFetch(
       buildUrl(new URL(`file://http.sys.dweb/close`), {
         search: options,
       })

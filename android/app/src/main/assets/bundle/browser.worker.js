@@ -3223,13 +3223,13 @@ var listenHttpDwebServer = async (microModule, token, routes = [
   };
   const buildUrlValue = buildUrl(url, ext);
   const int = { method: "POST", body: httpServerIpc.stream };
-  const httpIncomeRequestStream = await microModule.fetch(buildUrlValue, int).stream();
+  const httpIncomeRequestStream = await microModule.nativeFetch(buildUrlValue, int).stream();
   console.log("\u5F00\u59CB\u54CD\u5E94\u670D\u52A1\u8BF7\u6C42");
   httpServerIpc.bindIncomeStream(httpIncomeRequestStream);
   return httpServerIpc;
 };
 var startHttpDwebServer = (microModule, options) => {
-  return microModule.fetch(
+  return microModule.nativeFetch(
     buildUrl(new URL(`file://http.sys.dweb/start`), {
       search: options
     })
@@ -3245,7 +3245,7 @@ var startHttpDwebServer = (microModule, options) => {
   });
 };
 var closeHttpDwebServer = async (microModule, options) => {
-  return microModule.fetch(
+  return microModule.nativeFetch(
     buildUrl(new URL(`file://http.sys.dweb/close`), {
       search: options
     })
@@ -3268,7 +3268,7 @@ var main = async () => {
   (await dwebServer.listen()).onRequest(
     async (request, httpServerIpc) => onRequest(request, httpServerIpc)
   );
-  jsProcess.fetch(`file://statusbar.sys.dweb/`);
+  jsProcess.nativeFetch(`file://statusbar.sys.dweb/`);
   await openIndexHtmlAtMWebview(
     dwebServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
@@ -3278,7 +3278,6 @@ var main = async () => {
 main().catch(console.error);
 async function onRequest(request, httpServerIpc) {
   console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42\uFF1A request.parsed_url\uFF1A ", request.parsed_url);
-  debugger;
   switch (request.parsed_url.pathname) {
     case "/":
     case "/index.html":
@@ -3312,7 +3311,7 @@ async function onRequest(request, httpServerIpc) {
 }
 async function onRequestPathNameIndexHtml(request, httpServerIpc) {
   const url = `file://plugins.sys.dweb/get`;
-  const result = `<body><script type="text/javascript">${await jsProcess.fetch(url).text()}<\/script>`;
+  const result = `<body><script type="text/javascript">${await jsProcess.nativeFetch(url).text()}<\/script>`;
   let html = (await CODE2(request)).replace("<body>", result);
   httpServerIpc.postMessage(
     IpcResponse.fromText(
@@ -3341,7 +3340,7 @@ async function onRequestPathNameBroserWebMjs(request, httpServerIpc) {
 }
 async function onRequestPathNameDownload(request, httpServerIpc) {
   const url = `file://file.sys.dweb${request.url}`;
-  jsProcess.fetch(url).then(async (res) => {
+  jsProcess.nativeFetch(url).then(async (res) => {
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
     );
@@ -3349,8 +3348,7 @@ async function onRequestPathNameDownload(request, httpServerIpc) {
 }
 async function onRequestPathNameAppsInfo(request, httpServerIpc) {
   const url = `file://file.sys.dweb/appsinfo`;
-  jsProcess;
-  fetch(url).then(async (res) => {
+  jsProcess.nativeFetch(url).then(async (res) => {
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
     );
@@ -3366,8 +3364,7 @@ async function onRequestPathNameIcon(request, httpServerIpc) {
   const id = arr[2];
   const iconname = arr[4];
   const url = `file://file.sys.dweb/icon?appId=${id}&name=${iconname}`;
-  jsProcess;
-  fetch(url).then(async (res) => {
+  jsProcess.nativeFetch(url).then(async (res) => {
     console.log("\u8F6C\u53D1\u56FE\u7247\u8D44\u6E90: ", res);
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
@@ -3378,8 +3375,7 @@ async function onRequestPathNameIcon(request, httpServerIpc) {
 }
 async function onRequestPathNameInstall(request, httpServerIpc) {
   const _url = `file://jmm.sys.dweb${request.url}`;
-  jsProcess;
-  fetch(_url).then(async (res) => {
+  jsProcess.nativeFetch(_url).then(async (res) => {
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
     );
@@ -3387,8 +3383,7 @@ async function onRequestPathNameInstall(request, httpServerIpc) {
 }
 async function onRequestPathNameOpen(request, httpServerIpc) {
   const _url = `file://jmm.sys.dweb${request.url}`;
-  jsProcess;
-  fetch(_url).then(async (res) => {
+  jsProcess.nativeFetch(_url).then(async (res) => {
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
     );
@@ -3398,8 +3393,7 @@ async function onRequestPathOperation(request, httpServerIpc) {
   const _path = request.headers.get("plugin-target");
   const _appUrl = request.parsed_url.searchParams.get("app_url");
   const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`;
-  jsProcess;
-  fetch(_url, {
+  jsProcess.nativeFetch(_url, {
     method: request.method,
     body: request.body.raw,
     headers: request.headers
@@ -3423,10 +3417,11 @@ async function onRequestPathNameNoMatch(request, httpServerIpc) {
     )
   );
 }
-async function openIndexHtmlAtMWebview(origin) {
-  console.log("--------broser.worker.mts, origin: ", origin);
-  debugger;
-  const view_id = await jsProcess.fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`).text();
+async function openIndexHtmlAtMWebview(url) {
+  console.log("--------broser.worker.mts, url: ", url);
+  const view_id = await jsProcess.nativeFetch(
+    `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
+  ).text();
   return view_id;
 }
 export {

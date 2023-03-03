@@ -80,7 +80,7 @@ export class JsProcessMicroModule implements $MicroModule {
     readonly host: String,
     readonly meta: Metadata
   ) {}
-  fetch(input: RequestInfo | URL, init?: RequestInit) {
+  nativeFetch(input: RequestInfo | URL, init?: RequestInit) {
     return Object.assign(fetch(input, init), fetchExtends);
   }
 }

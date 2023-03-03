@@ -3502,13 +3502,13 @@ var listenHttpDwebServer = async (microModule, token, routes = [
   };
   const buildUrlValue = buildUrl(url, ext);
   const int = { method: "POST", body: httpServerIpc.stream };
-  const httpIncomeRequestStream = await microModule.fetch(buildUrlValue, int).stream();
+  const httpIncomeRequestStream = await microModule.nativeFetch(buildUrlValue, int).stream();
   console.log("\u5F00\u59CB\u54CD\u5E94\u670D\u52A1\u8BF7\u6C42");
   httpServerIpc.bindIncomeStream(httpIncomeRequestStream);
   return httpServerIpc;
 };
 var startHttpDwebServer = (microModule, options) => {
-  return microModule.fetch(
+  return microModule.nativeFetch(
     buildUrl(new URL(`file://http.sys.dweb/start`), {
       search: options
     })
@@ -3524,7 +3524,7 @@ var startHttpDwebServer = (microModule, options) => {
   });
 };
 var closeHttpDwebServer = async (microModule, options) => {
-  return microModule.fetch(
+  return microModule.nativeFetch(
     buildUrl(new URL(`file://http.sys.dweb/close`), {
       search: options
     })
@@ -3584,7 +3584,7 @@ var JsProcessMicroModule = class {
     this.meta = meta;
     this.ipc_support_protocols = js_process_ipc_support_protocols;
   }
-  fetch(input, init) {
+  nativeFetch(input, init) {
     return Object.assign(fetch(input, init), fetchExtends);
   }
 };

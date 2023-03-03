@@ -35,7 +35,7 @@ export class JmmNMM extends NativeMicroModule {
         if (appId === null) return false;
         // 注意全部需要小写
         const mmid = createMMIDFromAppID(appId);
-        const response = await this.fetch(
+        const response = await this.nativeFetch(
           `file://dns.sys.dweb/open?app_id=${mmid}`
         );
         return IpcResponse.fromResponse(request.req_id, response, client_ipc);
@@ -48,7 +48,7 @@ export class JmmNMM extends NativeMicroModule {
   }
 
   private async openInstallPage(metadataUrl: string) {
-    const config = await this.fetch(metadataUrl).object<$JmmMetadata>();
+    const config = await this.nativeFetch(metadataUrl).object<$JmmMetadata>();
     // TODO 打开安装页面
 
     /// 成功安装

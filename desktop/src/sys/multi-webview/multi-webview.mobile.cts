@@ -1,5 +1,4 @@
 import type { Remote } from "comlink";
-import { pathToFileURL } from "node:url";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
@@ -36,14 +35,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
-          await this.fetch(
-            pathToFileURL(
-              resolveTo(
-                "../../../" +
-                  "/bundle/multi-webview" +
-                  request.parsed_url.pathname
-              )
-            )
+          await this.nativeFetch(
+            "file:///bundle/multi-webview" + request.parsed_url.pathname
           ),
           ipc
         )
@@ -105,7 +98,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
         nww.maximize();
 
         // 打开 开发工具
-        nww.webContents.openDevTools()
+        nww.webContents.openDevTools();
 
         const apis = nww.getApis<$APIS>();
         this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));

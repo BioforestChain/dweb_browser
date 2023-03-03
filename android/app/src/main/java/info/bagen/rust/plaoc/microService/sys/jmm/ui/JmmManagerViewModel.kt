@@ -15,7 +15,7 @@ data class JmmUIState(
 )
 
 enum class DownLoadStatus {
-  IDLE, DownLoading, Install, PAUSE, OPEN, FAIL
+  IDLE, DownLoading, DownLoadComplete, PAUSE, INSTALLED, FAIL
 }
 
 data class DownLoadInfo(
@@ -68,7 +68,7 @@ class JmmManagerViewModel : ViewModel() {
           DownLoadStatus.IDLE -> {
             DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
           }
-          DownLoadStatus.Install -> { /* TODO 无需响应 */ }
+          DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */ }
           DownLoadStatus.DownLoading, DownLoadStatus.PAUSE -> {
             DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadStatusChange(
               uiState.downloadInfo.value.jmmMetadata?.downloadUrl ?: ""
@@ -77,8 +77,7 @@ class JmmManagerViewModel : ViewModel() {
           DownLoadStatus.FAIL -> { // 按钮显示重新下载
             DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
           }
-          DownLoadStatus.OPEN -> {
-
+          DownLoadStatus.INSTALLED -> { // 点击打开app触发的事件
           }
         }
       }

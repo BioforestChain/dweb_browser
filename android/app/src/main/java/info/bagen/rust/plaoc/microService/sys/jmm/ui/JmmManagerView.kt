@@ -143,8 +143,8 @@ private fun BoxScope.DownLoadButton(jmmViewModel: JmmManagerViewModel) {
         showLinearProgress = true
         "暂停".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
       }
-      DownLoadStatus.Install -> "安装中..."
-      DownLoadStatus.OPEN -> "打开"
+      DownLoadStatus.DownLoadComplete -> "安装中..."
+      DownLoadStatus.INSTALLED -> "打开"
       DownLoadStatus.FAIL -> "重新下载"
     }
     val boxModifier = Modifier

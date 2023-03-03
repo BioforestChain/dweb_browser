@@ -36,9 +36,8 @@ main().catch(console.error);
  * @returns
  */
 async function openIndexHtmlAtMWebview(origin: string) {
-  debugger
   const view_id = await jsProcess
-    .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
+    .nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
     .text();
   return view_id;
 }
@@ -48,7 +47,7 @@ async function onRequestAtOperationFromPlugins(request: IpcRequest, ipc: Ipc) {
   const _appUrl = request.parsed_url.searchParams.get("app_url");
   const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`;
   jsProcess
-    .fetch(_url, {
+    .nativeFetch(_url, {
       method: request.method,
       body: request.body.raw,
       headers: request.headers,
@@ -60,7 +59,7 @@ async function onRequestAtOperationFromPlugins(request: IpcRequest, ipc: Ipc) {
 
 async function onRequestDefault(origin: string, request: IpcRequest, ipc: Ipc) {
   const _url = `file://www.sys.dweb/server?url=${origin}${request.url}`;
-  const response = await jsProcess.fetch(_url);
+  const response = await jsProcess.nativeFetch(_url);
   ipc.postMessage(
     await IpcResponse.fromResponse(request.req_id, response, ipc)
   );

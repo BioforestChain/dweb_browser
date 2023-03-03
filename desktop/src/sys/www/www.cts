@@ -39,7 +39,7 @@ export class WWWNMM extends NativeMicroModule {
         const targetUrl = new URL(fromUrl);
         const appId = targetUrl.hostname.split(".")[1];
         const appsInfo = JSON.parse(
-          await (await this.fetch("file://file.sys.dweb/appsinfo")).json()
+          await (await this.nativeFetch("file://file.sys.dweb/appsinfo")).json()
         );
         const appInfo: $AppInfo = appsInfo.find(
           (item: $AppInfo) => item.appId === appId
