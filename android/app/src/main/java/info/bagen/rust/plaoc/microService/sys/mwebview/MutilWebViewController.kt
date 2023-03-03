@@ -23,6 +23,14 @@ class MutilWebViewController(val mmid: Mmid) {
         var hidden: Boolean = false
     )
 
+    var activity: MutilWebViewActivity? = null
+        set(value) {
+            field = value
+            for (webview in webViewList) {
+                webview.dWebView.activity = value
+            }
+        }
+
 
     /**
      * 打开WebView
@@ -34,7 +42,8 @@ class MutilWebViewController(val mmid: Mmid) {
             val dWebView = DWebView(
                 App.appContext,
                 module,
-                DWebView.Options(url = url)
+                DWebView.Options(url = url),
+                activity
             )
             dWebView.onOpen { message ->
                 val dWebViewChild = openWebView(

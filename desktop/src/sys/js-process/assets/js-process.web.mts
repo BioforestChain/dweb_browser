@@ -85,7 +85,7 @@ const _forceGetProcess = (process_id: number) => {
   return process;
 };
 const runProcessMain = (process_id: number, config: $RunMainConfig) => {
-  const process = _forceGetProcess(process_id);
+  const process = _forceGetProcess(process_id);debugger
   process.worker.postMessage(["run-main", config]);
 };
 

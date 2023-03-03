@@ -26,7 +26,7 @@ export class WWWNMM extends NativeMicroModule {
         console.log(chalk.cyan("[www.cts 接受到了 /server 请求]"));
         // 在返回首页的时候需要注入 dweb-top-bar 这样的自定义组件, 要实现功能的访问
         //把需要的文件内容返回去就可以了
-        // request.url === 'file://app.sys.dweb/server?url=http://app.w85defe5.dweb-80.localhost:22605/'
+        // request.url === 'file://jmm.sys.dweb/server?url=http://app.w85defe5.dweb-80.localhost:22605/'
         const fromUrl = request.parsed_url.searchParams.get("url");
         if (fromUrl === null)
           return IpcResponse.fromText(

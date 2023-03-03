@@ -51,7 +51,7 @@ class MainViewModel : ViewModel() {
         appInfo: AppInfo, apiResult: IApiResult<AppVersion>? = null
     ) {
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             flow {
                 emit(ApiResultData.prepare())
                 try {

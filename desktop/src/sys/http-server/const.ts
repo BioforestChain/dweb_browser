@@ -19,7 +19,7 @@ export class ServerUrlInfo {
       return new URL(builder, origin);
     }
     const url = new URL(origin);
-    url.searchParams.set("X-DWeb-Host", this.host);
+    url.searchParams.set("X-Dweb-Host", this.host);
     return builder(url) ?? url;
   }
   buildPublicUrl(builder: $UrlBuilder) {

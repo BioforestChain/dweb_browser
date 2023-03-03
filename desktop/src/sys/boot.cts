@@ -6,7 +6,7 @@ export class BootNMM extends NativeMicroModule {
   // private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]); // 被优化
   private registeredMmids = new Set<$MMID>([
     "file.sys.dweb",
-    "app.sys.dweb",
+    "jmm.sys.dweb",
     "www.sys.dweb",
     "api.sys.dweb",
     "plugins.sys.dweb",

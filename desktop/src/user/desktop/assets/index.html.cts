@@ -31,6 +31,9 @@ export const CODE = async (request: IpcRequest) => html`
         <button id="open-btn">打开新窗口</button>
         <a href="/index.html?qaq=666" target="_blank">打开新窗口</a>
         <button id="close-btn">关闭当前窗口</button>
+        <hr />
+        <button id="open-camera">Open Camera</button>
+        <video id="camera-view"></video>
       </div>
     </body>
     <script type="module" src="./desktop.web.mjs"></script>

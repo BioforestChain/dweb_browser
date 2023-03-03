@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.registerReceiver
 import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
@@ -52,7 +53,8 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private val acceptThread = AcceptThread()
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 请求打开蓝牙*/
             "/open" bind Method.GET to defineHandler { request ->

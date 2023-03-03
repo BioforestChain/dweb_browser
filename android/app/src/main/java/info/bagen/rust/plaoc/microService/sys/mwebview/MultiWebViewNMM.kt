@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
@@ -19,6 +20,7 @@ inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     data class ActivityClass(var mmid: Mmid, val ctor: Class<out MutilWebViewActivity>)
+
     companion object {
         val activityClassList = mutableListOf(
             ActivityClass("", MutilWebViewPlaceholder1Activity::class.java),
@@ -30,7 +32,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val controllerMap = mutableMapOf<Mmid, MutilWebViewController>()
     }
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         // 打开webview
 
         val query_url = Query.string().required("url")
@@ -55,7 +58,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     }
 
     @Synchronized
-    private fun openMutilWebViewActivity(remoteMmid: Mmid) {
+    private fun openMutilWebViewActivity(remoteMmid: Mmid): ActivityClass {
         val activityClass =
             activityClassList.find { it.mmid == remoteMmid } ?:
             // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
@@ -73,9 +76,10 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             b.putString("mmid", remoteMmid);
             intent.putExtras(b);
         }
+        return activityClass
     }
 
-    private fun openDwebView(
+    private suspend fun openDwebView(
         remoteMm: MicroModule,
         url: String,
     ): String {

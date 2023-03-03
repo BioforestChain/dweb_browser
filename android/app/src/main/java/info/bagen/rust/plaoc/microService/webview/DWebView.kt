@@ -6,6 +6,7 @@ import android.webkit.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
+import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -60,7 +61,13 @@ import org.http4k.core.Uri
  * 某些情况可能是平台接口无法很好地覆盖的，这时候需要开发者手动进行修改，
  * DWebView 会提供基本的修改脚本，来方便开发者定制这些情况（比方说在一些 iframe、WebWorker 中，或者一些沙盒API中需要额外的定制化服务）
  */
-class DWebView(context: Context, val mm: MicroModule, val options: Options) : WebView(context) {
+class DWebView(
+    context: Context,
+    val mm: MicroModule,
+    val options: Options,
+    var activity: PermissionActivity? = null
+) : WebView(context) {
+
     data class Options(
         /**
          * 要加载的页面
@@ -83,7 +90,7 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
         var dwebHost = baseDwebHost
         // 初始化设置 ua，这个是无法动态修改的
         val uri = Uri.of(options.url)
-        if (uri.scheme == "http" && uri.host.endsWith(".dweb")) {
+        if ((uri.scheme == "http" || uri.scheme == "https") && uri.host.endsWith(".dweb")) {
             dwebHost = uri.authority
         }
         // 加入默认端口
@@ -131,7 +138,7 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
             override fun shouldInterceptRequest(
                 view: WebView, request: WebResourceRequest
             ): WebResourceResponse? {
-                if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && request.url.scheme == "http") {
+                if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
                     /// http://*.dweb 由 MicroModule 来处理请求
                     val response = runBlocking {
                         mm.nativeFetch(
@@ -174,6 +181,32 @@ class DWebView(context: Context, val mm: MicroModule, val options: Options) : We
                     closeSignal.emit()
                 }
                 super.onCloseWindow(window)
+            }
+
+            override fun onPermissionRequest(request: PermissionRequest) {
+                println("activity:$activity request.resources:${request.resources.joinToString { it }}")
+                activity?.also {
+//                    PermissionManager.requestPermissions(it,request.resources[0])
+                    GlobalScope.launch {
+                        val permissions = mutableListOf<String>()
+                        for (res in request.resources) {
+                            if (res == "android.webkit.resource.VIDEO_CAPTURE") {
+                                permissions.add("android.permission.CAMERA")
+                            } else if (res == "android.webkit.resource.AUDIO_CAPTURE") {
+                                permissions.add("android.permission.RECORD_AUDIO")
+                            }
+                        }
+                        val result = it.requestPermissions(permissions.toTypedArray())
+                        println("activity:$activity result:${result.grants.joinToString()}")
+                        it.runOnUiThread {
+                            if (result.denied.size == 0) {
+                                request.grant(request.resources)
+                            } else {
+                                request.deny()
+                            }
+                        }
+                    }
+                } ?: request.deny()
             }
         }
         if (options.url.isNotEmpty()) {

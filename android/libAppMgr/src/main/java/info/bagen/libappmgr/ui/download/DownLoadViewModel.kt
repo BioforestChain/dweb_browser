@@ -99,7 +99,7 @@ class DownLoadViewModel(
     }
 
     fun handleIntent(action: DownLoadIntent) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             /* channel.send(action) // 进行发送操作，可以根据传参进行发送 */
             when (action) {
                 is DownLoadIntent.LoadDownLoadStateAndDownLoad -> {
@@ -211,7 +211,7 @@ class DownLoadViewModel(
     private suspend fun decompressFile() {
         // 解压文件
         val enableUnzip =
-            ZipUtil.decompress(mDownLoadProgress.downloadFile, FilesUtil.getAppUnzipPath())
+            ZipUtil.ergodicDecompress(mDownLoadProgress.downloadFile, FilesUtil.getAppUnzipPath())
         if (enableUnzip) {
             uiState.value.downLoadState.value = DownLoadState.COMPLETED
             uiState.value.dialogInfo =

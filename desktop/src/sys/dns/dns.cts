@@ -1,47 +1,27 @@
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
+import type {
+  $BootstrapContext,
+  $DnsMicroModule,
+} from "../../core/bootstrapContext.cjs";
 import type { MicroModule } from "../../core/micro-module.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { resolveToRootFile } from "../../helper/createResolveTo.cjs";
 import type { $MMID } from "../../helper/types.cjs";
-import { JsMicroModule } from "../../sys/micro-module.js.cjs";
 import { hookFetch } from "./hookFetch.cjs";
 
 /** DNS 服务，内核！
  * 整个系统都围绕这个 DNS 服务来展开互联
  */
-export class DnsNMM extends NativeMicroModule {
+export class DnsNMM extends NativeMicroModule implements $DnsMicroModule {
   mmid = "dns.sys.dweb" as const;
   private apps = new Map<$MMID, MicroModule>();
+  private context: $BootstrapContext = {
+    dns: this,
+  };
+
   override _bootstrap() {
     this.install(this);
     this.running_apps.set(this.mmid, this);
-    // 注册动态安装模块的事件监听器
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/install-js",
-      matchMode: "full",
-      input: {},
-      output: "void",
-      handler: async (arg, client_ipc, request) => {
-        /// TODO 动态创建 JsMicroModule
-        const _url = new URL(request.url);
-        let appId = _url.searchParams.get("app_id");
-        if (appId === null) return void 0;
-        const mmid = `${appId}` as $MMID;
-        // 动态安装模块
-        const appJMM = new JsMicroModule(mmid, {
-          main_url: resolveToRootFile("bundle/common.worker.js").href,
-        } as const);
-        this.install(appJMM);
-        return IpcResponse.fromText(
-          request.req_id,
-          200,
-          undefined,
-          "ok",
-          client_ipc
-        );
-      },
-    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
@@ -91,6 +71,10 @@ export class DnsNMM extends NativeMicroModule {
   install(mm: MicroModule) {
     this.apps.set(mm.mmid, mm);
   }
+  /** 卸载应用 */
+  uninstall(mm: MicroModule) {
+    this.apps.delete(mm.mmid);
+  }
   /** 查询应用 */
   async query(mmid: $MMID) {
     return this.apps.get(mmid);
@@ -106,7 +90,7 @@ export class DnsNMM extends NativeMicroModule {
       }
       this.running_apps.set(mmid, mm);
       // @TODO bootstrap 函数应该是 $singleton 修饰
-      await mm.bootstrap();
+      await mm.bootstrap(this.context);
       app = mm;
     }
     return app;

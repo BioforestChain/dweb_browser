@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService.sys.jmm.ui
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,7 +11,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,10 +27,8 @@ import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import java.text.DecimalFormat
 
 @Composable
-fun MALLBrowserView(
-  jmmViewModel: JmmManagerViewModel, onDownLoad: (String, String) -> Unit
-) {
-  jmmViewModel.uiState.jmmMetadata?.let { jmmMetadata ->
+fun MALLBrowserView(jmmViewModel: JmmManagerViewModel) {
+  jmmViewModel.uiState.downloadInfo.value.jmmMetadata?.let { jmmMetadata ->
     Box(
       modifier = Modifier.fillMaxSize()
     ) {
@@ -48,10 +43,18 @@ fun MALLBrowserView(
         item { CaptureListView(jmmMetadata = jmmMetadata) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
         item { AppIntroductionView(jmmMetadata = jmmMetadata) }
+        jmmMetadata.permissions?.let { permissions ->
+          item { Spacer(modifier = Modifier.height(16.dp)) }
+          item { Text(text = "权限列表", fontSize = 24.sp, fontStyle = FontStyle.Normal) }
+          item { Spacer(modifier = Modifier.height(16.dp)) }
+          itemsIndexed(permissions) { index, mmid ->
+            InstallItemPermissionView(index, mmid, permissions.size)
+          }
+        }
         item { Spacer(modifier = Modifier.height(60.dp)) }
       }
 
-      DownLoadButton(jmmViewModel, onDownLoad)
+      DownLoadButton(jmmViewModel)
     }
   }
 }
@@ -72,7 +75,7 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
       item { Spacer(modifier = Modifier.height(16.dp)) }
       item { Text(text = "权限", fontSize = 16.sp, color = Color.Gray) }
       item { Spacer(modifier = Modifier.height(16.dp)) }
-      jmmViewModel.uiState.jmmMetadata?.permissions?.let { permissions ->
+      jmmViewModel.uiState.downloadInfo.value.jmmMetadata?.permissions?.let { permissions ->
         itemsIndexed(permissions) { index, mmid ->
           InstallItemPermissionView(index, mmid, permissions.size)
         }
@@ -90,8 +93,7 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
           .align(Alignment.CenterHorizontally)
           .width(300.dp),
         colors = ButtonDefaults.buttonColors(
-          backgroundColor = Color.Gray,
-          contentColor = Color.Black
+          backgroundColor = Color.Gray, contentColor = Color.Black
         ),
         shape = RoundedCornerShape(32.dp)
       ) {
@@ -103,8 +105,7 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
           .align(Alignment.CenterHorizontally)
           .width(300.dp),
         colors = ButtonDefaults.buttonColors(
-          backgroundColor = Color.Blue,
-          contentColor = Color.White
+          backgroundColor = Color.Blue, contentColor = Color.White
         ),
         shape = RoundedCornerShape(32.dp)
       ) {
@@ -122,10 +123,7 @@ fun UninstallBrowserView(jmmViewModel: JmmManagerViewModel) {
 }
 
 @Composable
-private fun BoxScope.DownLoadButton(
-  jmmViewModel: JmmManagerViewModel, onDownLoad: (String, String) -> Unit
-) {
-  Log.e("lin.huang", "JmmManagerView::DownLoadButton $jmmViewModel")
+private fun BoxScope.DownLoadButton(jmmViewModel: JmmManagerViewModel) {
   val downLoadInfo = jmmViewModel.uiState.downloadInfo.value
   Box(
     modifier = Modifier
@@ -134,33 +132,68 @@ private fun BoxScope.DownLoadButton(
       .align(Alignment.BottomCenter)
       .background(Color.White.copy(0.8f))
   ) {
-    Button(
-      onClick = {
-        onDownLoad(
-          jmmViewModel.uiState.jmmMetadata!!.main_url, jmmViewModel.uiState.jmmMetadata!!.title
-        )
-      },
-      modifier = Modifier
-        .padding(8.dp)
-        .width(300.dp)
-        .align(Alignment.Center),
-      colors = ButtonDefaults.buttonColors(
-        backgroundColor = Color.Blue,
-        contentColor = Color.White
-      ),
-      shape = RoundedCornerShape(32.dp)
-    ) {
-      val text = when (downLoadInfo.downLoadStatus) {
-        DownLoadStatus.IDLE -> "下载 (${jmmViewModel.uiState.jmmMetadata!!.size.toSpaceSize()})"
-        DownLoadStatus.DownLoading -> "下载中 (${downLoadInfo.dSize} / ${downLoadInfo.size}) "
-        DownLoadStatus.PAUSE -> "暂停 (${downLoadInfo.dSize} / ${downLoadInfo.size}) "
-        DownLoadStatus.Install -> "安装中..."
-        DownLoadStatus.OPEN -> "打开"
-        DownLoadStatus.FAIL -> "重新下载"
+    var showLinearProgress = false
+    val text = when (downLoadInfo.downLoadStatus) {
+      DownLoadStatus.IDLE -> "下载 (${downLoadInfo.jmmMetadata!!.size.toSpaceSize()})"
+      DownLoadStatus.DownLoading -> {
+        showLinearProgress = true
+        "下载中".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
       }
-      Text(text = text, fontSize = 20.sp)
+      DownLoadStatus.PAUSE -> {
+        showLinearProgress = true
+        "暂停".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
+      }
+      DownLoadStatus.Install -> "安装中..."
+      DownLoadStatus.OPEN -> "打开"
+      DownLoadStatus.FAIL -> "重新下载"
+    }
+    val boxModifier = Modifier
+      .size(300.dp, 50.dp)
+      .align(Alignment.Center)
+      .clip(RoundedCornerShape(32.dp))
+      .clickable { jmmViewModel.handlerIntent(JmmIntent.ButtonFunction) }
+      .background(if (showLinearProgress) Color.Gray else Color.Blue)
+
+
+    Box(modifier = boxModifier) {
+      if (showLinearProgress) {
+        LinearProgressIndicator(
+          progress = 1.0f * downLoadInfo.dSize / downLoadInfo.size,
+          modifier = Modifier.fillMaxSize(),
+          backgroundColor = Color.Gray,
+          color = Color.Blue
+        )
+      }
+      Text(
+        text = text,
+        fontSize = 20.sp,
+        color = Color.White,
+        modifier = Modifier.align(Alignment.Center)
+      )
     }
   }
+}
+
+private fun String.displayDownLoad(total: Long, progress: Long): String {
+  val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
+  val MB = 1024 * 1024 // 定义MB的计算常量
+  val KB = 1024 // 定义KB的计算常量
+  val df = DecimalFormat("0.0");//格式化小数
+  var dValue: String
+  val totalValue = if (total / GB >= 1) {
+    dValue = df.format(1.0 * progress / GB)
+    df.format(total / GB) + " GB";
+  } else if (total / MB >= 1) {
+    dValue = df.format(1.0 * progress / MB)
+    df.format(total / MB) + " MB";
+  } else if (total / KB >= 1) { //如果当前Byte的值大于等于1KB
+    dValue = df.format(1.0 * progress / KB)
+    df.format(total / KB) + " KB";
+  } else {
+    dValue = "$progress"
+    "$total B";
+  }
+  return if (dValue.isEmpty()) "$this ($totalValue)" else "$this ($dValue/$totalValue)"
 }
 
 private fun String.toSpaceSize(): String {
@@ -168,16 +201,15 @@ private fun String.toSpaceSize(): String {
   val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
   val MB = 1024 * 1024 // 定义MB的计算常量
   val KB = 1024 // 定义KB的计算常量
-  val df = DecimalFormat("0.00");//格式化小数
+  val df = DecimalFormat("0.0");//格式化小数
   return if (size / GB >= 1) {
-    df.format(size / GB) + " GB ";
+    df.format(size / GB) + " GB";
   } else if (size / MB >= 1) {
-    df.format(size / MB) + " MB ";
-  } else if (size / KB >= 1) {
-    //如果当前Byte的值大于等于1KB
-    df.format(size / KB) + " KB ";
+    df.format(size / MB) + " MB";
+  } else if (size / KB >= 1) { //如果当前Byte的值大于等于1KB
+    df.format(size / KB) + " KB";
   } else {
-    "$size B ";
+    "$size B";
   }
 }
 
@@ -189,7 +221,7 @@ private fun HeadContent(jmmMetadata: JmmMetadata) {
       .height(80.dp)
   ) {
     AsyncImage(
-      model = jmmMetadata.iconUrl,
+      model = jmmMetadata.icon,
       contentDescription = null,
       modifier = Modifier
         .size(80.dp)
@@ -201,14 +233,20 @@ private fun HeadContent(jmmMetadata: JmmMetadata) {
     Box(
       modifier = Modifier.fillMaxSize()
     ) {
-      Text(
-        text = jmmMetadata.title, fontSize = 24.sp, modifier = Modifier.align(Alignment.TopStart)
-      )
+      Column(modifier = Modifier.align(Alignment.TopStart)) {
+        Text(text = jmmMetadata.title, fontSize = 24.sp)
+        Text(text = jmmMetadata.subtitle, fontSize = 12.sp, color = Color.Gray)
+      }
 
       Column(modifier = Modifier.align(Alignment.BottomStart)) {
-        Text(text = "广告检测 人工复检 绿色应用", fontSize = 12.sp, color = Color.Gray)
 
-        Text(text = "版本：1.0.0", fontSize = 12.sp, color = Color.Gray)
+        Row {
+          Text(text = "版本：${jmmMetadata.version}", fontSize = 12.sp, color = Color.Gray)
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = "大小：${jmmMetadata.size.toSpaceSize()}", fontSize = 12.sp, color = Color.Gray)
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = "作者：${jmmMetadata.author}", fontSize = 12.sp, color = Color.Gray)
+        }
       }
     }
 
@@ -219,14 +257,16 @@ private fun HeadContent(jmmMetadata: JmmMetadata) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun CaptureListView(jmmMetadata: JmmMetadata) {
-  LazyRow {
-    items(jmmMetadata.appCaptures) {
-      Card(
-        onClick = { /*TODO*/ }, modifier = Modifier
-          .padding(end = 16.dp)
-          .size(135.dp, 240.dp)
-      ) {
-        AsyncImage(model = it, contentDescription = null)
+  jmmMetadata.images?.let { images ->
+    LazyRow {
+      items(images) {
+        Card(
+          onClick = { /*TODO*/ }, modifier = Modifier
+            .padding(end = 16.dp)
+            .size(135.dp, 240.dp)
+        ) {
+          AsyncImage(model = it, contentDescription = null)
+        }
       }
     }
   }
@@ -234,9 +274,9 @@ private fun CaptureListView(jmmMetadata: JmmMetadata) {
 
 @Composable
 private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
-  val expanded = remember { mutableStateOf(true) }
+  val expanded = remember { mutableStateOf(false) }
   Column {
-    Text(text = "应用介绍", fontSize = 24.sp, fontStyle = FontStyle.Italic)
+    Text(text = "应用介绍", fontSize = 24.sp, fontStyle = FontStyle.Normal)
 
     Box(modifier = Modifier
       .animateContentSize()
@@ -295,7 +335,8 @@ fun InstallItemPermissionView(index: Int, mmid: String, size: Int) {
   ) {
     Row {
       AsyncImage(
-        model = R.mipmap.ic_launcher_round, contentDescription = null,
+        model = R.mipmap.ic_launcher_round,
+        contentDescription = null,
         modifier = Modifier
           .align(Alignment.CenterVertically)
           .size(20.dp)

@@ -14,29 +14,29 @@ typealias NativeOptions = MutableMap<String, String>
 abstract class MicroModule {
     open val mmid: Mmid = ""
     open val routers: Router? = null
-    protected abstract suspend fun _bootstrap()
 
     private var runningStateLock = PromiseOut.resolve(false)
     val running get() = runningStateLock.value == true
 
-    private suspend fun beforeBootstrap() {
+    private suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
         if (this.runningStateLock.waitPromise()) {
             throw Exception("module ${this.mmid} already running");
         }
         this.runningStateLock = PromiseOut()
     }
 
-    private suspend fun afterBootstrap() {
+    protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+    private suspend fun afterBootstrap(dnsMM: BootstrapContext) {
         this.runningStateLock.resolve(true)
     }
 
-    suspend fun bootstrap() {
-        this.beforeBootstrap()
+    suspend fun bootstrap(bootstrapContext: BootstrapContext) {
+        this.beforeBootstrap(bootstrapContext)
 
         try {
-            this._bootstrap();
+            this._bootstrap(bootstrapContext);
         } finally {
-            this.afterBootstrap();
+            this.afterBootstrap(bootstrapContext);
         }
     }
 

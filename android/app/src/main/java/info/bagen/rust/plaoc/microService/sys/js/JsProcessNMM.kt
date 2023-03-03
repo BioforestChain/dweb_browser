@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.sys.js
 
 import android.webkit.WebView
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.encodeURI
 import info.bagen.rust.plaoc.microService.helper.printdebugln
@@ -48,7 +49,8 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     private val INTERNAL_PATH = "/<internal>".encodeURI()
 
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
 
         /// 主页的网页服务
         val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->

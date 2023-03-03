@@ -56,7 +56,6 @@ const $metaToStream = (rawBody: $MetaBody, ipc: Ipc) => {
       const off = ipc.onMessage((message) => {
         if ("stream_id" in message && message.stream_id === stream_id) {
           if (message.type === IPC_MESSAGE_TYPE.STREAM_DATA) {
-            console.log("getStreamDataMessage", stream_id);
             controller.enqueue(message.binary);
           } else if (message.type === IPC_MESSAGE_TYPE.STREAM_END) {
             controller.close();
@@ -66,7 +65,6 @@ const $metaToStream = (rawBody: $MetaBody, ipc: Ipc) => {
       });
     },
     pull(controller) {
-      console.log("postStreamPullMessage", stream_id, controller.desiredSize);
       stream_ipc.postMessage(
         new IpcStreamPull(stream_id, controller.desiredSize)
       );

@@ -16,6 +16,7 @@ import info.bagen.libappmgr.ui.download.DownLoadViewModel
 import info.bagen.libappmgr.ui.view.DialogInfo
 import info.bagen.libappmgr.ui.view.DialogType
 import info.bagen.libappmgr.utils.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -115,7 +116,7 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
     }*/
 
     fun handleIntent(action: AppViewIntent) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             /* channel.send(action) // 进行发送操作，可以根据传参进行发送 */
             when (action) {
                 is AppViewIntent.LoadAppInfoList -> loadAppInfoList()
@@ -350,7 +351,7 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
         appViewState: AppViewState, appInfo: AppInfo, downloadFile: String
     ) {
         uiState.appViewStateList.remove(appViewState)
-        val unzip = ZipUtil.decompress(downloadFile, FilesUtil.getAppUnzipPath())
+        val unzip = ZipUtil.ergodicDecompress(downloadFile, FilesUtil.getAppUnzipPath())
         if (unzip) {
             uiState.appViewStateList.forEach { item ->
                 if (item.appInfo?.bfsAppId == appInfo.bfsAppId) {

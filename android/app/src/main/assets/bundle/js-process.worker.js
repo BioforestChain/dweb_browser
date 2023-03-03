@@ -2519,7 +2519,7 @@ var _IpcBodySender = class extends IpcBody {
       void sender();
     });
     this.abortSignal.listen(() => {
-      reader.throw("abort");
+      reader.return();
       this.emitStreamClose();
     });
     return [0 /* STREAM_ID */, stream_id, ipc.uid];
@@ -3006,7 +3006,6 @@ var $metaToStream = (rawBody, ipc) => {
       const off = ipc.onMessage((message) => {
         if ("stream_id" in message && message.stream_id === stream_id) {
           if (message.type === 2 /* STREAM_DATA */) {
-            console.log("getStreamDataMessage", stream_id);
             controller.enqueue(message.binary);
           } else if (message.type === 4 /* STREAM_END */) {
             controller.close();
@@ -3016,7 +3015,6 @@ var $metaToStream = (rawBody, ipc) => {
       });
     },
     pull(controller) {
-      console.log("postStreamPullMessage", stream_id, controller.desiredSize);
       stream_ipc.postMessage(
         new IpcStreamPull(stream_id, controller.desiredSize)
       );
@@ -3106,7 +3104,6 @@ var MessagePortIpc = class extends Ipc {
         this.port.postMessage("pong");
         return;
       }
-      console.log("MessagePortIpc/onMessage", message);
       this._messageSignal.emit(message, this);
     });
     port.start();
@@ -3425,7 +3422,7 @@ var ServerUrlInfo = class {
       return new URL(builder, origin);
     }
     const url = new URL(origin);
-    url.searchParams.set("X-DWeb-Host", this.host);
+    url.searchParams.set("X-Dweb-Host", this.host);
     return builder(url) ?? url;
   }
   buildPublicUrl(builder) {

@@ -10,17 +10,14 @@ import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Body
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.format.Jackson.array
 import org.http4k.format.Jackson.auto
-import org.http4k.lens.Query
-import org.http4k.lens.composite
-import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.io.File
@@ -38,7 +35,8 @@ inline fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Share", tag, msg, err)
 
 class ShareNMM : NativeMicroModule("share.sys.dweb") {
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 分享*/
             "/share" bind Method.POST to defineHandler { request ->

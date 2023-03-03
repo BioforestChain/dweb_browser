@@ -55,7 +55,6 @@ export class MessagePortIpc extends Ipc {
       }
 
 
-      console.log("MessagePortIpc/onMessage",message)
       this._messageSignal.emit(message, this);
     });
     port.start();

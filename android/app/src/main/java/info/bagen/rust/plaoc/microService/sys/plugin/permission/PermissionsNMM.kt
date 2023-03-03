@@ -1,11 +1,11 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.permission
 
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
-import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -29,7 +29,8 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
         val permission_op = PromiseOut<Boolean>()
     }
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 申请权限*/
             "/apply" bind Method.GET to defineHandler { request, ipc ->

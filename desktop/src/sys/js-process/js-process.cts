@@ -148,7 +148,7 @@ export class JsProcessNMM extends NativeMicroModule {
     const apis = await (async () => {
       const urlInfo = mainServer.startResult.urlInfo;
       const nww = await openNativeWindow(
-        mainServer.startResult.urlInfo.buildPublicUrl((url) => {
+        mainServer.startResult.urlInfo.buildInternalUrl((url) => {
           url.pathname = "/index.html";
         }).href,
         {

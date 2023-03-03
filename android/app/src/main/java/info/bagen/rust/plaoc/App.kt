@@ -31,7 +31,7 @@ class App : Application() {
 
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
             runBlocking {
-                withContext(Dispatchers.Main) {
+                withContext(Dispatchers.IO) {
                     val intent = Intent(appContext.applicationContext, cls)
                     onIntent(intent)
                     appContext.startActivity(intent)

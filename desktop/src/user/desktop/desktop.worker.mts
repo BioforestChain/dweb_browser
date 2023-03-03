@@ -1,9 +1,8 @@
 /// <reference path="../../sys/js-process/js-process.worker.d.ts"/>
 
-import { simpleEncoder } from "../../helper/encoding.cjs";
 import { CODE as CODE_desktop_web_mjs } from "./assets/desktop.web.mjs.cjs";
 import { CODE as CODE_index_html } from "./assets/index.html.cjs";
-
+debugger
 console.log("ookkkkk, i'm in worker");
 
 export const main = async () => {
@@ -71,7 +70,7 @@ export const main = async () => {
 
   const main_url =
     httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
-
+debugger
   console.log("请求浏览器页面", main_url);
 
   const response = await jsProcess.fetch(main_url);

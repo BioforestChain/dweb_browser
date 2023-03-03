@@ -1,10 +1,11 @@
 package info.bagen.rust.plaoc.microService.sys.boot
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.core.Router
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.encodeURIComponent
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb"
     }
 
     override val routers: Router = mutableMapOf()
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
             "/register" bind Method.GET to defineHandler { _, ipc ->
                 register(ipc.remote.mmid)

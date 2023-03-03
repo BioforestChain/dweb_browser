@@ -1,11 +1,13 @@
 package info.bagen.rust.plaoc
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.asUtf8
 import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
+import info.bagen.rust.plaoc.microService.sys.dns.DnsNMM
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,14 +27,14 @@ class NativeIpcTest : AsyncBase() {
     @Test
     fun baseTest() = runBlocking {
         val m1 = object : NativeMicroModule("m1") {
-            override suspend fun _bootstrap() {
+            override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             }
 
             override suspend fun _shutdown() {
             }
         }
         val m2 = object : NativeMicroModule("m2") {
-            override suspend fun _bootstrap() {
+            override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             }
 
             override suspend fun _shutdown() {
@@ -67,23 +69,24 @@ class NativeIpcTest : AsyncBase() {
     @ExperimentalCoroutinesApi
     fun sendStreamData() = runBlocking(catcher) {
         enableDwebDebug(listOf("native-ipc", "stream"))
+        val dns = DnsNMM()
 
         val m0 = object : NativeMicroModule("m0") {
-            override suspend fun _bootstrap() {
+            override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             }
 
             override suspend fun _shutdown() {
             }
         }
         val m1 = object : NativeMicroModule("m1") {
-            override suspend fun _bootstrap() {
+            override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             }
 
             override suspend fun _shutdown() {
             }
         }
-        m0.bootstrap()
-        m1.bootstrap()
+        m0.bootstrap(dns)
+        m1.bootstrap(dns)
 
 
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
@@ -155,9 +158,9 @@ class NativeIpcTest : AsyncBase() {
     @Test
     fun withReadableStreamIpc() = runBlocking {
 //        System.setProperty("dweb-debug", "stream native-ipc")
-
+        val dnsNMM = DnsNMM()
         val mServer = object : NativeMicroModule("mServer") {
-            override suspend fun _bootstrap() {
+            override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
                 apiRouting = routes("/listen" bind Method.POST to defineHandler { request, ipc ->
                     val streamIpc = ReadableStreamIpc(ipc.remote, IPC_ROLE.SERVER)
                     println("SERVER STREAM-IPC/STREAM: ${streamIpc.stream}")
@@ -187,7 +190,7 @@ class NativeIpcTest : AsyncBase() {
 
 
         val mClient = object : NativeMicroModule("mClient") {
-            override suspend fun _bootstrap() {
+            override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             }
 
             override suspend fun _shutdown() {
@@ -201,8 +204,8 @@ class NativeIpcTest : AsyncBase() {
                 c2sIpc.request(request)
             } else null
         }
-        mServer.bootstrap()
-        mClient.bootstrap()
+        mServer.bootstrap(dnsNMM)
+        mClient.bootstrap(dnsNMM)
 
 
         val clientStreamIpc = ReadableStreamIpc(mClient, IPC_ROLE.CLIENT)

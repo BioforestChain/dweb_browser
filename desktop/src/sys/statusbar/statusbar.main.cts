@@ -21,7 +21,6 @@ export class StatusbarNMM extends NativeMicroModule {
     { nww: $NativeWindow; apis: Remote<$APIS> }
   >();
 
-  private _close_dweb_server?: () => unknown;
   private _statusbarHtmlRequestMap = new Map<string, $StatusbarHtmlRequest>(); // statusbar.html 状态栏等待设置的返回队列
   private _statusbarPluginsRequestMap = new Map<
     string,
@@ -36,7 +35,7 @@ export class StatusbarNMM extends NativeMicroModule {
 
   async _bootstrap() {
     const dwebServer = await createHttpDwebServer(this, {});
-    this._close_dweb_server = close;
+    this._after_shutdown_signal.listen(() => dwebServer.close());
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
     (await dwebServer.listen()).onRequest(async (request, ipc) => {
@@ -281,8 +280,6 @@ export class StatusbarNMM extends NativeMicroModule {
       wapi.nww.close();
     });
     this._uid_wapis_map.clear();
-    this._close_dweb_server?.();
-    this._close_dweb_server = undefined;
   }
 }
 

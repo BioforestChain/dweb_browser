@@ -6,12 +6,12 @@ import android.net.ConnectivityManager.NetworkCallback
 import android.net.NetworkCapabilities
 import info.bagen.libappmgr.utils.JsonUtil
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.sys.plugin.device.model.NetWorkInfo
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.format.Jackson.asJsonObject
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
@@ -27,7 +27,8 @@ class NetworkNMM():NativeMicroModule("network.sys.dweb") {
 
     val networkInfo = NetWorkInfo()
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 获取当前网络状态*/
             "/status" bind Method.GET to defineHandler { request ->

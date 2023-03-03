@@ -21,8 +21,8 @@ dns.install(browserJMM)
 import { FileNMM } from "./sys/file/file.cjs"
 dns.install(new FileNMM());
 
-import { AppNMM } from "./sys/app/app.cjs"
-dns.install(new AppNMM())
+import { JmmNMM } from "./sys/jmm/jmm.cjs"
+dns.install(new JmmNMM())
 
 import { WWWNMM } from "./sys/www/www.cjs";
 dns.install(new WWWNMM());
@@ -50,5 +50,6 @@ dns.install(new JMMMetadata())
 Object.assign(globalThis, { dns: dns });
 
 process.on("unhandledRejection", (error) => {
+  debugger
   console.error("????", error);
 });

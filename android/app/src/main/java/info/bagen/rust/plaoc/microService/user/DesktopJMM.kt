@@ -6,6 +6,6 @@ import info.bagen.rust.plaoc.microService.sys.jmm.JsMicroModule
 class DesktopJMM : JsMicroModule(
     JmmMetadata(
         id = "desktop.user.dweb",
-        main_url = "file:///bundle/desktop.worker.js"
+        mainUrl = "file:///bundle/desktop.worker.js"
     )
 ) {}

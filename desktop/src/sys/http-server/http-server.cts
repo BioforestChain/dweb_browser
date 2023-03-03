@@ -202,7 +202,7 @@ export class HttpServerNMM extends NativeMicroModule {
     if (gateway === undefined) {
       throw new Error(`no gateway with token: ${token}`);
     }
- 
+
     const streamIpc = new ReadableStreamIpc(
       gateway.listener.ipc.remote,
       IPC_ROLE.CLIENT

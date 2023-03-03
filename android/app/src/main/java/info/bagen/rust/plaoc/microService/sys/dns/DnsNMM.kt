@@ -1,5 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.dns
 
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
+import info.bagen.rust.plaoc.microService.core.DnsMicroModule
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
@@ -18,11 +20,18 @@ import org.http4k.routing.routes
 inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("fetch", tag, msg, err)
 
-class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
+
+class DnsNMM() : NativeMicroModule("dns.sys.dweb"), DnsMicroModule {
     private val mmMap = mutableMapOf<Mmid, MicroModule>()
+    private val bootstrapContext by lazy { DnsNMMBootstrapContext(this) }
 
+    private class DnsNMMBootstrapContext(override val dns: DnsMicroModule) : BootstrapContext
 
-    override suspend fun _bootstrap() {
+    suspend fun bootstrap() {
+        super.bootstrap(bootstrapContext)
+    }
+
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         install(this)
         running_apps[this.mmid] = this
 
@@ -88,8 +97,13 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     private val running_apps = mutableMapOf<Mmid, MicroModule>();
 
     /** 安装应用 */
-    fun install(mm: MicroModule) {
+    override fun install(mm: MicroModule) {
         mmMap[mm.mmid] = mm
+    }
+
+    /** 卸载应用 */
+    override fun uninstall(mm: MicroModule) {
+        mmMap.remove(mm.mmid)
     }
 
     /** 查询应用 */
@@ -101,7 +115,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     private suspend fun open(mmid: Mmid): MicroModule {
         return running_apps.getOrPut(mmid) {
             query(mmid)?.also {
-                it.bootstrap()
+                it.bootstrap(bootstrapContext)
             } ?: throw Exception("no found app: $mmid")
         }
     }

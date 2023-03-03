@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.service
 
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.IntentFilter
@@ -14,14 +15,13 @@ import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.*
 import info.bagen.rust.plaoc.util.NotificationUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
 
 internal interface IDwebBrowserBinder {
   fun invokeDownloadAndSaveZip(downLoadInfo: DownLoadInfo)
   fun invokeDownloadStatusChange(url: String)
+  fun invokeGetDownLoadInfo(url: String): DownLoadInfo?
 }
 
 class DwebBrowserService : Service() {
@@ -53,6 +53,14 @@ class DwebBrowserService : Service() {
     override fun invokeDownloadStatusChange(url: String) {
       downloadStatusChange(url)
     }
+
+    override fun invokeGetDownLoadInfo(url: String): DownLoadInfo? {
+      return getDownLoadInfo(url)
+    }
+  }
+
+  private fun getDownLoadInfo(url: String): DownLoadInfo? {
+    return downloadMap[url]
   }
 
   private fun registerBFSBroadcastReceiver() {
@@ -67,19 +75,25 @@ class DwebBrowserService : Service() {
     bfsBroadcastReceiver?.let { unregisterReceiver(it) }
   }
 
+  @OptIn(DelicateCoroutinesApi::class)
   fun downloadAndSaveZip(downLoadInfo: DownLoadInfo): Boolean {
     // 1. 根据path进行下载，并且创建notification
-    if (downloadMap.containsKey(downLoadInfo.url)) {
-      // Toast.makeText(this, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
+    if (downloadMap.containsKey(downLoadInfo.jmmMetadata!!.downloadUrl)) {
+      Toast.makeText(this, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
       return true
     }
-    downloadMap[downLoadInfo.url] = downLoadInfo
+    downloadMap[downLoadInfo.jmmMetadata!!.downloadUrl] = downLoadInfo
     NotificationUtil.INSTANCE.createNotificationForProgress(
-      downLoadInfo.url, downLoadInfo.notificationId, downLoadInfo.name
+      downLoadInfo.jmmMetadata!!.downloadUrl,
+      downLoadInfo.notificationId,
+      downLoadInfo.jmmMetadata!!.title
     ) // 显示通知
+    App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
+      JmmIntent.UpdateDownLoadStatus(DownLoadStatus.DownLoading)
+    )
     GlobalScope.launch(Dispatchers.IO) {
       ApiService.instance.downloadAndSave(
-        downLoadInfo.url, File(downLoadInfo.path),
+        downLoadInfo.jmmMetadata!!.downloadUrl, File(downLoadInfo.path),
         isStop = { downLoadInfo.downLoadStatus == DownLoadStatus.PAUSE },
         DLProgress = { current, total ->
           downLoadInfo.callDownLoadProgress(current, total)
@@ -89,10 +103,11 @@ class DwebBrowserService : Service() {
     return true
   }
 
+  @OptIn(DelicateCoroutinesApi::class)
   private fun breakPointDownLoadAndSave(downLoadInfo: DownLoadInfo) {
     GlobalScope.launch(Dispatchers.IO) {
       ApiService.instance.breakpointDownloadAndSave(
-        downLoadInfo.url, File(downLoadInfo.path), downLoadInfo.size,
+        downLoadInfo.jmmMetadata!!.downloadUrl, File(downLoadInfo.path), downLoadInfo.size,
         isStop = { downLoadInfo.downLoadStatus == DownLoadStatus.PAUSE },
         DLProgress = { current, total ->
           downLoadInfo.callDownLoadProgress(current, total)
@@ -112,20 +127,29 @@ class DwebBrowserService : Service() {
     )
 
     if (current == total) {
-      downloadMap.remove(url) // 移除该下载
-      NotificationUtil.INSTANCE.updateNotificationForProgress(
-        100, notificationId, "下载完成"
-      )
-      // NotificationUtil.INSTANCE.cancelNotification(notificationId) // 移除消息
-      // TODO 弹出安装界面
-      // JmmManagerActivity.startActivity(type = TYPE.MALL)
-      App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
-        JmmIntent.UpdateDownLoadStatus(DownLoadStatus.Install)
-      )
-      val unzip = ZipUtil.decompress(this.path, FilesUtil.getAppUnzipPath())
-      App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
-        JmmIntent.UpdateDownLoadStatus(if(unzip) DownLoadStatus.OPEN else DownLoadStatus.FAIL)
-      )
+      jmmMetadata?.let { jmmMetadata ->
+        downloadMap.remove(jmmMetadata.downloadUrl)
+        NotificationUtil.INSTANCE.updateNotificationForProgress(
+          100, notificationId, "下载完成"
+        ) {
+          val intent = Intent(App.appContext, JmmManagerActivity::class.java).apply {
+            putExtra(JmmManagerActivity.KEY_JMM_METADATA, jmmMetadata)
+          }
+          val pendingIntent =
+            PendingIntent.getActivity(App.appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+          pendingIntent
+        }
+        App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
+          JmmIntent.UpdateDownLoadStatus(DownLoadStatus.Install)
+        ) ?: { // 如果完成后发现下载界面没有打开，手动打开
+          JmmManagerActivity.startActivity(jmmMetadata)
+        }
+        runBlocking { delay(2000) }
+        val unzip = ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath())
+        App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
+          JmmIntent.UpdateDownLoadStatus(if (unzip) DownLoadStatus.OPEN else DownLoadStatus.FAIL)
+        )
+      }
     }
   }
 
@@ -137,6 +161,9 @@ class DwebBrowserService : Service() {
           this.downLoadStatus = DownLoadStatus.DownLoading
           NotificationUtil.INSTANCE.updateNotificationForProgress(
             (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "下载中"
+          )
+          App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
+            JmmIntent.UpdateDownLoadStatus(this.downLoadStatus)
           )
           breakPointDownLoadAndSave(this)
         }

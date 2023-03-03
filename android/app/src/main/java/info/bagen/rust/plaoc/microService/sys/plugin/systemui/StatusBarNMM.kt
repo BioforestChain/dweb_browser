@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -17,7 +18,8 @@ class StatusBarNMM:NativeMicroModule("statusBar.sys.dweb") {
         App.browserActivity?.dWebBrowserModel?.getSystemUi()
     }
 
-    override suspend fun _bootstrap() {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
+ {
         apiRouting = routes(
             /** 设置状态栏背景色*/
             "/setBackgroundColor" bind Method.GET to defineHandler { request ->

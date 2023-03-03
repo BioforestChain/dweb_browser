@@ -12,6 +12,7 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 
 class NotificationUtil {
   private val mNormalChannelId = "渠道id" // 唯一性
@@ -75,7 +76,7 @@ class NotificationUtil {
       mManager.createNotificationChannel(channel)
     }
     // 点击意图 // setDeleteIntent 移除意图
-    val intent = Intent(App.appContext, BFSBroadcastReceiver::class.java)
+    val intent = Intent(App.appContext, BrowserActivity::class.java)
     val pendingIntent =
       PendingIntent.getActivity(App.appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     // 构建配置
@@ -162,7 +163,7 @@ class NotificationUtil {
    */
   fun updateNotificationForProgress(
     progress: Int, notificationId: Int = mProgressNotificationId, text: String = "下载中",
-    pendingIntent: PendingIntent? = null
+    pendingIntent: (() -> PendingIntent)? = null
   ) {
     if (::mBuilder.isInitialized) {
       val progressMax = 100
@@ -172,7 +173,7 @@ class NotificationUtil {
       //mBuilder.setContentText("下载完成！").setProgress(0, 0, false)
       // 3.如果是下载完成，跳转到下载
       if (progress == 100 && pendingIntent != null) {
-        mBuilder.setContentIntent(pendingIntent)
+        mBuilder.setContentIntent(pendingIntent())
       }
       mManager.notify(notificationId, mBuilder.build())
       // Toast.makeText(App.appContext, "已更新进度到$progress%", Toast.LENGTH_SHORT).show()
