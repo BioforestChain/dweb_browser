@@ -18,7 +18,7 @@ data class JmmMetadata(
     val home: String = "", // 首页地址
     val size: String = "", // 应用大小
     val fileHash: String = "",
-    val permissions: List<Mmid>? = null,
+    val permissions: List<String>? = null,
     val plugins: List<String>? = null,
     val releaseDate:String = "", // 发布时间
     /**
@@ -35,6 +35,7 @@ data class JmmMetadata(
      */
     val openWebViewList: List<OpenWebView> = listOf(),
 ) : Serializable {
+
     /**
      * 静态网络服务定义
      * 它将按配置托管一个静态网页服务
@@ -50,9 +51,9 @@ data class JmmMetadata(
         val entry: String = "index.html",
         val subdomain: String = "",
         val port: Int = 80,
-    )
+    ): Serializable
 
-    data class OpenWebView(val url: String)
+    data class OpenWebView(val url: String = ""): Serializable
 }
 
 val temp = """
