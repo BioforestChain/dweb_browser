@@ -79,7 +79,7 @@ suspend fun startDwebBrowser() {
     val bootNMM = BootNMM(
         listOf(
             browserNMM.mmid,
-//            desktopJMM.mmid,
+            desktopJMM.mmid,
         )
     ).also { dnsNMM.install(it) }
 

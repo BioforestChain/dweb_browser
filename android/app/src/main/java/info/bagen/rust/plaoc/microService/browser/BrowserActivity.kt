@@ -48,7 +48,6 @@ class BrowserActivity : AppCompatActivity() {
         const val REQUEST_CODE_REQUEST_EXTERNAL_STORAGE = 2
     }
 
-    var isQRCode = false //是否是识别二维码
     fun getContext() = this
     val dWebBrowserModel: DWebBrowserModel by viewModel()
     val qrCodeViewModel: QRCodeViewModel by viewModel()
@@ -81,7 +80,7 @@ class BrowserActivity : AppCompatActivity() {
                         when (action) {
                             SearchAction.Search -> {
                                 //openDWebWindow(this@MainActivity, data)
-                                dWebBrowserModel.openDWebBrowser(data)
+                                dWebBrowserModel.openDWebBrowser("https://shop.plaoc.com/bfs-metadata.json")
                             }
                             SearchAction.OpenCamera -> {
                                 if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
@@ -97,7 +96,6 @@ class BrowserActivity : AppCompatActivity() {
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
                         /// TODO 这里是点击桌面app触发的事件
-//                        BrowserJMM()
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                     QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)

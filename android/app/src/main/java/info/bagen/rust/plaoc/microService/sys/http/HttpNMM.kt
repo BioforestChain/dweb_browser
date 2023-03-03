@@ -52,7 +52,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         var header_host: String? = null
         var header_x_dweb_host: String? = null
         var header_user_agent_host: String? = null
-        var query_x_web_host: String? = request.query("X-DWeb-Host")
+        val query_x_web_host: String? = request.query("X-Dweb-Host")
         for ((key, value) in request.headers) {
             when (key) {
                 "Host" -> {
@@ -166,7 +166,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         val public_origin: String,
     ) {
         fun buildPublicUrl() = Uri.of(public_origin)
-            .query("X-DWeb-Host", host)
+            .query("X-Dweb-Host", host)
 
         fun buildInternalUrl() = Uri.of(internal_origin)
     }
