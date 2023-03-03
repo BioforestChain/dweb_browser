@@ -65,7 +65,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       handler: async (args, client_ipc, request) => {
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         const webview_id = await wapis.apis.openWebview(args.url);
-        return wapis.apis.openWebview(args.url);
+        console.log('multi-webview.mobile.cts /open args.url:', args.url)
+        return webview_id
       },
     });
 

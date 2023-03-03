@@ -14,10 +14,10 @@ import { desktopJmm } from "./user/desktop/desktop.main.cjs";
 dns.install(desktopJmm);
 
 // 安装 browser 
-import { BrowserNMM } from "./sys/browser/browser.main.cjs"
-dns.install(new BrowserNMM())
-// import { browserJMM } from "./user/browser/browser.main.cjs"
-// dns.install(browserJMM)
+// import { BrowserNMM } from "./sys/browser/browser.main.cjs"
+// dns.install(new BrowserNMM())
+import { browserJMM } from "./user/browser/browser.main.cjs"
+dns.install(browserJMM)
 
 // 安装 file.sys.dweb
 import { FileNMM } from "./sys/file/file.cjs"

@@ -10,7 +10,6 @@ export async function getAllApps(){
         const appsPath = path.resolve(process.cwd(), "./apps/infos")
         const foldersName: string[]= await fsPromises.readdir(appsPath)
         const appsInfo: $AppMetaData[] = []
-        console.log(chalk.red("file-get"))
         foldersName.forEach(async (folderName: string)=> {
             const metaData= require(path.resolve(appsPath, `./${folderName}`)) as unknown as $AppMetaData;
             appsInfo.push(metaData)

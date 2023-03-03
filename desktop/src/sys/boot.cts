@@ -13,7 +13,6 @@ export class BootNMM extends NativeMicroModule {
     "statusbar.sys.dweb",
     "navigatorbar.sys.dweb",
     "browser.sys.dweb"
-  
   ])  
   async _bootstrap() {
     this.registerCommonIpcOnMessageHandler({

@@ -116,7 +116,6 @@
                     this._awaitOperation()
                     const id = res.headers.get('id')
                     const value = await res.json()
-                    console.log('navigatorbar 接受到了操作的请求----', value)
                     switch(value.action){
                         case "set_content": this.setNavigatorbarContent(JSON.parse(value.value)); this._fetchReturn(value.value, id);break;
                         case "show": this._show(); this._fetchReturn("ok", id);break;

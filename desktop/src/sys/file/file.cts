@@ -79,7 +79,7 @@ export class FileNMM extends NativeMicroModule {
             new IpcHeaders({
               "Content-Type": "text/json",
             }),
-            JSON.stringify(appsInfo),
+            appsInfo,
             client_ipc
           )
         }
