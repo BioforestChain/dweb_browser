@@ -292,6 +292,7 @@ var require_once = __commonJS({
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // bundle/browser.render.txt
 var require_browser_render = __commonJS({
   "bundle/browser.render.txt"(exports, module) {
@@ -301,6 +302,8 @@ var require_browser_render = __commonJS({
 
 =======
 >>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
+=======
+>>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
 // src/core/ipc/IpcHeaders.cts
 var IpcHeaders = class extends Headers {
   init(key, value) {
@@ -3246,6 +3249,7 @@ var closeHttpDwebServer = async (microModule, options) => {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // src/user/browser/assets/browser.web.cts
 var txt = require_browser_render();
 var CODE = async (require2) => {
@@ -3439,6 +3443,8 @@ var browser_default = `<html lang="en">
     <\/script>
 </body>
 =======
+=======
+>>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
 // assets/html/browser.html
 var browser_default = `<html lang="en">\r
 <head>\r
@@ -3630,7 +3636,10 @@ var browser_default = `<html lang="en">\r
       \r
     <\/script>\r
 </body>\r
+<<<<<<< HEAD
 >>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
+=======
+>>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
 </html>`;
 
 // src/user/browser/browser.worker.mts
@@ -3692,6 +3701,7 @@ async function onRequestPathNameIndexHtml(request, httpServerIpc) {
       }),
       _html,
 <<<<<<< HEAD
+<<<<<<< HEAD
       httpServerIpc
     )
   );
@@ -3707,6 +3717,8 @@ async function onRequestPathNameBroserWebMjs(request, httpServerIpc) {
       await CODE(request),
 =======
 >>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
+=======
+>>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
       httpServerIpc
     )
   );
@@ -3725,6 +3737,7 @@ async function onRequestPathNameAppsInfo(request, httpServerIpc) {
   fetch(url).then(async (res) => {
     httpServerIpc.postMessage(
 <<<<<<< HEAD
+<<<<<<< HEAD
       await IpcResponse.fromJson(
         request.req_id,
         200,
@@ -3733,6 +3746,8 @@ async function onRequestPathNameAppsInfo(request, httpServerIpc) {
         }),
         await res.json(),
 =======
+=======
+>>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
       // await IpcResponse.fromJson(
       //   request.req_id, 
       //   200,
@@ -3745,7 +3760,10 @@ async function onRequestPathNameAppsInfo(request, httpServerIpc) {
       await IpcResponse.fromResponse(
         request.req_id,
         res,
+<<<<<<< HEAD
 >>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
+=======
+>>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
         httpServerIpc
       )
     );

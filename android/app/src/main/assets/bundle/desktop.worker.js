@@ -5,6 +5,7 @@ var html = String.raw;
 console.log("ookkkkk, i'm in worker");
 var main = async () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
   const { IpcHeaders, IpcResponse } = ipc;
   const { createHttpDwebServer } = http;
   debugger;
@@ -71,6 +72,8 @@ var main = async () => {
   }
 =======
 >>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
+=======
+>>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
 };
 main().catch(console.error);
 export {
