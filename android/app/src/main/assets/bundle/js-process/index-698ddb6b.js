@@ -123,7 +123,6 @@ const _forceGetProcess = (process_id) => {
 };
 const runProcessMain = (process_id, config) => {
   const process = _forceGetProcess(process_id);
-  debugger;
   process.worker.postMessage(["run-main", config]);
 };
 const createIpc = (process_id) => {

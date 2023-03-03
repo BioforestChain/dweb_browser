@@ -45,7 +45,7 @@ export interface $IpcSupportProtocols {
 export interface $MicroModule {
   readonly ipc_support_protocols: $IpcSupportProtocols;
   readonly mmid: $MMID;
-  fetch(
+  nativeFetch(
     input: RequestInfo | URL,
     init?: RequestInit
   ): Promise<Response> &

@@ -25,7 +25,7 @@ export class ApiNMM extends NativeMicroModule {
         const _url = `file://statusbar.sys.dweb/operation_from_plugins?app_url=${request.parsed_url.searchParams.get(
           "app_url"
         )}`;
-        return this.fetch(_url, {
+        return this.nativeFetch(_url, {
           method: request.method,
           body: request.body.raw,
           headers: request.headers,

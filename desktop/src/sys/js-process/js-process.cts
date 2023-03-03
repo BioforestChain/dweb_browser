@@ -12,10 +12,7 @@ import {
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { $isMatchReq, $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
-import {
-  createResolveTo,
-  resolveToRootFile,
-} from "../../helper/createResolveTo.cjs";
+import { createResolveTo } from "../../helper/createResolveTo.cjs";
 import { openNativeWindow } from "../../helper/openNativeWindow.cjs";
 import type { $PromiseMaybe } from "../../helper/types.cjs";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
@@ -125,7 +122,7 @@ export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.sys.dweb` as const;
 
   private JS_PROCESS_WORKER_CODE = once(() => {
-    return this.fetch(resolveToRootFile("bundle/js-process.worker.js")).text();
+    return this.nativeFetch("file:///bundle/js-process.worker.js").text();
   });
 
   private INTERNAL_PATH = encodeURI("/<internal>");
@@ -136,8 +133,8 @@ export class JsProcessNMM extends NativeMicroModule {
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
-          await this.fetch(
-            resolveToRootFile("bundle/js-process" + request.parsed_url.pathname)
+          await this.nativeFetch(
+            "file:///bundle/js-process" + request.parsed_url.pathname
           ),
           ipc
         )
@@ -285,7 +282,7 @@ export class JsProcessNMM extends NativeMicroModule {
     );
     /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
     ipc_to_worker.onRequest(async (ipcMessage, worker_ipc) => {
-      const response = await ipc.remote.fetch(ipcMessage.toRequest());
+      const response = await ipc.remote.nativeFetch(ipcMessage.toRequest());
       worker_ipc.postMessage(
         await IpcResponse.fromResponse(ipcMessage.req_id, response, worker_ipc)
       );

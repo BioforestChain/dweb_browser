@@ -55,12 +55,10 @@ var _a;
 var CODE2 = async (request) => html(_a || (_a = __template(['\n  <!DOCTYPE html>\n  <html lang="en">\n    <head>\n      <meta charset="UTF-8" />\n      <meta http-equiv="X-UA-Compatible" content="IE=edge" />\n      <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n      <title>Desktop</title>\n      <style>\n        :root {\n          background: rgba(255, 255, 255, 0.9);\n        }\n        li {\n          word-break: break-all;\n        }\n      </style>\n    </head>\n    <body>\n      <h1>\u4F60\u597D\uFF0C\u8FD9\u662F\u6765\u81EA WebWorker \u7684\u54CD\u5E94\uFF01</h1>\n      <ol>\n        <li>url:', "</li>\n        <li>method:", "</li>\n        <li>rawHeaders:", "</li>\n        <li>body:", '</li>\n      </ol>\n      <div class="actions">\n        <button id="open-btn">\u6253\u5F00\u65B0\u7A97\u53E3</button>\n        <a href="/index.html?qaq=666" target="_blank">\u6253\u5F00\u65B0\u7A97\u53E3</a>\n        <button id="close-btn">\u5173\u95ED\u5F53\u524D\u7A97\u53E3</button>\n        <hr />\n        <button id="open-camera">Open Camera</button>\n        <video id="camera-view"></video>\n      </div>\n    </body>\n    <script type="module" src="./desktop.web.mjs"><\/script>\n  </html>\n'])), request.url, request.method, JSON.stringify(request.headers, null, 2), await request.body.text());
 
 // src/user/desktop/desktop.worker.mts
-debugger;
 console.log("ookkkkk, i'm in worker");
 var main = async () => {
   const { IpcHeaders, IpcResponse } = ipc;
   const { createHttpDwebServer } = http;
-  debugger;
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
   if (jsProcess.meta.optionalBoolean("debug")) {
     await new Promise((resolve) => {
@@ -113,13 +111,12 @@ var main = async () => {
   });
   console.log("http \u670D\u52A1\u521B\u5EFA\u6210\u529F");
   const main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
-  debugger;
   console.log("\u8BF7\u6C42\u6D4F\u89C8\u5668\u9875\u9762", main_url);
-  const response = await jsProcess.fetch(main_url);
+  const response = await jsProcess.nativeFetch(main_url);
   console.log("html content:", response.status, await response.text());
   console.log("\u6253\u5F00\u6D4F\u89C8\u5668\u9875\u9762", main_url);
   {
-    const view_id = await jsProcess.fetch(
+    const view_id = await jsProcess.nativeFetch(
       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
     ).text();
   }

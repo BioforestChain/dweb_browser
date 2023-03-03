@@ -5,9 +5,8 @@ export const createResolveTo =
   (...paths: string[]) =>
     path.resolve(__dirname, ...paths);
 
-export const resolveToRoot = createResolveTo(
-  createResolveTo(__dirname)("../../")
-);
+export const ROOT = createResolveTo(__dirname)("../../");
+export const resolveToRoot = createResolveTo(ROOT);
 
 export const resolveToRootFile = (...paths: string[]) =>
   pathToFileURL(resolveToRoot(...paths));

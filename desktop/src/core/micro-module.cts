@@ -1,5 +1,6 @@
 import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
 import { createSignal } from "../helper/createSignal.cjs";
+import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
 import { PromiseOut } from "../helper/PromiseOut.cjs";
 import type {
   $IpcSupportProtocols,
@@ -7,6 +8,10 @@ import type {
   $MMID,
   $PromiseMaybe,
 } from "../helper/types.cjs";
+import {
+  localeFileFetch,
+  nativeFetchAdaptersManager,
+} from "../sys/dns/nativeFetch.cjs";
 import type { $BootstrapContext } from "./bootstrapContext.cjs";
 import type { Ipc } from "./ipc/index.cjs";
 
@@ -71,8 +76,21 @@ export abstract class MicroModule implements $MicroModule {
     return this._connect(from);
   }
 
-  fetch(url: RequestInfo | URL, init?: RequestInit) {
-    /// 强制注入上下文
-    return Object.assign(fetch.call(this, url, init), fetchExtends);
+  private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    const args = normalizeFetchArgs(url, init);
+
+    for (const adapter of nativeFetchAdaptersManager.adapters) {
+      const response = await adapter(this, args.parsed_url, args.request_init);
+      if (response !== undefined) {
+        return response;
+      }
+    }
+    return (
+      (await localeFileFetch(this, args.parsed_url, args.request_init)) ??
+      fetch(args.parsed_url, args.request_init)
+    );
+  }
+  nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 }

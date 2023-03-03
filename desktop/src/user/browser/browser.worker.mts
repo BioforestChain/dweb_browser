@@ -19,7 +19,7 @@ export const main = async () => {
     onRequest(request, httpServerIpc)
   );
 
-  jsProcess.fetch(`file://statusbar.sys.dweb/`);
+  jsProcess.nativeFetch(`file://statusbar.sys.dweb/`);
   await openIndexHtmlAtMWebview(
     dwebServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
@@ -35,7 +35,6 @@ main().catch(console.error);
  */
 async function onRequest(request: IpcRequest, httpServerIpc: Ipc) {
   console.log("接受到了请求： request.parsed_url： ", request.parsed_url);
-  debugger
   switch (request.parsed_url.pathname) {
     case "/":
     case "/index.html":
@@ -82,7 +81,7 @@ async function onRequestPathNameIndexHtml(
   // 拼接 html 字符串
   const url = `file://plugins.sys.dweb/get`;
   const result = `<body><script type="text/javascript">${await jsProcess
-    .fetch(url)
+    .nativeFetch(url)
     .text()}</script>`;
   let html = (await CODE_index_html(request)).replace("<body>", result);
 
@@ -132,7 +131,7 @@ async function onRequestPathNameDownload(
 ) {
   const url = `file://file.sys.dweb${request.url}`;
   jsProcess
-    .fetch(url)
+    .nativeFetch(url)
     .then(async (res: Response) => {
       // 这里要做修改 改为 IpcResponse.fromResponse
       httpServerIpc.postMessage(
@@ -152,8 +151,8 @@ async function onRequestPathNameAppsInfo(
   httpServerIpc: Ipc
 ) {
   const url = `file://file.sys.dweb/appsinfo`;
-  jsProcess;
-  fetch(url)
+  jsProcess
+    .nativeFetch(url)
     .then(async (res: Response) => {
       // 转发给 html
       httpServerIpc.postMessage(
@@ -178,8 +177,8 @@ async function onRequestPathNameIcon(request: IpcRequest, httpServerIpc: Ipc) {
   const id = arr[2];
   const iconname = arr[4];
   const url = `file://file.sys.dweb/icon?appId=${id}&name=${iconname}`;
-  jsProcess;
-  fetch(url)
+  jsProcess
+    .nativeFetch(url)
     .then(async (res: Response) => {
       // "image/svg+xml"
       // 转发给 html
@@ -203,8 +202,7 @@ async function onRequestPathNameInstall(
   httpServerIpc: Ipc
 ) {
   const _url = `file://jmm.sys.dweb${request.url}`;
-  jsProcess;
-  fetch(_url).then(async (res: Response) => {
+  jsProcess.nativeFetch(_url).then(async (res: Response) => {
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
     );
@@ -218,8 +216,7 @@ async function onRequestPathNameInstall(
  */
 async function onRequestPathNameOpen(request: IpcRequest, httpServerIpc: Ipc) {
   const _url = `file://jmm.sys.dweb${request.url}`;
-  jsProcess;
-  fetch(_url).then(async (res: Response) => {
+  jsProcess.nativeFetch(_url).then(async (res: Response) => {
     httpServerIpc.postMessage(
       await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
     );
@@ -235,12 +232,12 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc) {
   const _path = request.headers.get("plugin-target");
   const _appUrl = request.parsed_url.searchParams.get("app_url");
   const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`;
-  jsProcess;
-  fetch(_url, {
-    method: request.method,
-    body: request.body.raw,
-    headers: request.headers,
-  })
+  jsProcess
+    .nativeFetch(_url, {
+      method: request.method,
+      body: request.body.raw,
+      headers: request.headers,
+    })
     .then(async (res: Response) => {
       console.log("[browser.worker.mts onRequestPathOperation res:]", res);
       httpServerIpc.postMessage(
@@ -274,14 +271,15 @@ async function onRequestPathNameNoMatch(
 
 /**
  * 打开对应的 html
- * @param origin
+ * @param url
  * @returns
  */
-async function openIndexHtmlAtMWebview(origin: string) {
-  console.log("--------broser.worker.mts, origin: ", origin);
-  debugger;
+async function openIndexHtmlAtMWebview(url: string) {
+  console.log("--------broser.worker.mts, url: ", url);
   const view_id = await jsProcess
-    .fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`)
+    .nativeFetch(
+      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
+    )
     .text();
   return view_id;
 }

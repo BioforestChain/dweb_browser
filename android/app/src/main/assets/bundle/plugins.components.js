@@ -1,5 +1,9 @@
+// src/sys/plugins/components/basePlugin.ts
+var BasePlugin = class extends HTMLElement {
+};
+
 // src/sys/plugins/components/statusbar/statusbar.plugin.mts
-var StatusbarPlugin = class extends HTMLElement {
+var StatusbarPlugin = class extends BasePlugin {
   constructor() {
     super();
     this._statusbarHttpAddress = "./operation_from_plugins";

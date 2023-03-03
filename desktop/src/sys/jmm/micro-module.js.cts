@@ -42,7 +42,7 @@ export class JsMicroModule extends MicroModule {
     streamIpc.onRequest(async (request) => {
       // console.log("[micro-module.js.cts 监听到了请求:]", this.mmid)
       if (request.parsed_url.pathname === "/index.js") {
-        const main_code = await this.fetch(this.metadata.config.main_url).text();
+        const main_code = await this.nativeFetch(this.metadata.config.main_url).text();
 
         streamIpc.postMessage(
           IpcResponse.fromText(
@@ -61,7 +61,7 @@ export class JsMicroModule extends MicroModule {
     });
     // console.log("[micro-module.js.cts 执行 bindIncomeStream:]", this.mmid)
     void streamIpc.bindIncomeStream(
-      this.fetch(
+      this.nativeFetch(
         buildUrl(new URL(`file://js.sys.dweb/create-process`), {
           search: {
             main_pathname: "/index.js",
@@ -82,7 +82,7 @@ export class JsMicroModule extends MicroModule {
     if (process_id === undefined) {
       throw new Error("process_id no found.");
     }
-    const port_id = await this.fetch(
+    const port_id = await this.nativeFetch(
       `file://js.sys.dweb/create-ipc?process_id=${process_id}`
     ).number();
     const outer_ipc = new Native2JsIpc(port_id, this);

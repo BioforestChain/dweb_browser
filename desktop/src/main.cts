@@ -42,6 +42,6 @@ dns.install(new PluginsNMM())
 Object.assign(globalThis, { dns: dns });
 
 process.on("unhandledRejection", (error) => {
-  debugger
   console.error("????", error);
+  debugger
 });
