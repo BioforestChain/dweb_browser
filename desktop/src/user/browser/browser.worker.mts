@@ -14,10 +14,11 @@ import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
  */
 export const main = async () => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人KWKW
+  // 如何启动这个？？ 现在是个问题
   const dwebServer = await createHttpDwebServer(jsProcess, {});
-  (await dwebServer.listen()).onRequest(async (request, httpServerIpc) =>
-    onRequest(request, httpServerIpc)
-  );
+  // (await dwebServer.listen()).onRequest(async (request, httpServerIpc) =>
+  //   onRequest(request, httpServerIpc)
+  // );
 
   // jsProcess.fetch(`file://statusbar.sys.dweb/`);
   await openIndexHtmlAtMWebview(

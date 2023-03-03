@@ -4,9 +4,7 @@ const fsPromises = require('node:fs/promises')
 const path = require('path')
 const request = require('request');
 const progress = require('request-progress');
-const tar = require('tar')
 const extract = require('extract-zip')
-let allocId = 0;
 /**
  * 
  * @param url 
@@ -14,14 +12,13 @@ let allocId = 0;
  * @param target 文件保存的地址
  * @returns 
  */
-export function download(url: string, app_id: string,  progress_callback: $ProgressCallback): Promise<Boolean>{
+export function download(url: string, app_id: string,  progress_callback: $ProgressCallback, appInfo: string): Promise<Boolean>{
     const tempPath = path.resolve(__dirname, `../../../temp/${app_id}.zip`)
-    console.log('tempPath: ', tempPath)
     return new Promise((resolve, reject)=> {
         progress(request(url), {})
         .on('progress', createOnProgress(progress_callback))
         .on('error', createErrorCallback(reject))
-        .on('end',() => createEndCallback(resolve, reject)(tempPath, app_id))
+        .on('end',() => createEndCallback(resolve, reject)(tempPath, app_id, appInfo))
         .pipe(fs.createWriteStream(tempPath, {flags: "wx"})) 
     })
 }
@@ -33,7 +30,6 @@ export function download(url: string, app_id: string,  progress_callback: $Progr
  */
 function createOnProgress(progress_callback: $ProgressCallback){
     return (state:$State) => {
-        console.log('下载文件的进度： ', state.percent)
         progress_callback(state)
     }
 }
@@ -45,10 +41,16 @@ function createOnProgress(progress_callback: $ProgressCallback){
  * @returns 
  */
 function createEndCallback(resolve: $Resolve<boolean>, reject: $Reject<Error>){
-    return async (tempPath: string, app_id: string) => {
+    return async (tempPath: string, app_id: string, appInfo: string) => {
+        const _appInfo = JSON.parse(appInfo);
         try {
             await extract(tempPath, { dir: path.resolve(process.cwd(), `./apps/${app_id}`) })
             await fsPromises.unlink(tempPath)
+            await fsPromises.writeFile(
+                path.resolve(process.cwd(), `./apps/infos/${_appInfo.id}.json`),
+                appInfo,
+                {encoding: "utf8", flag: "w"}
+            )
             resolve(true)
         } catch (err) {
             reject(err as Error)

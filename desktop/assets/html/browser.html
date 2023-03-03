@@ -1,0 +1,185 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>browser.sys.dweb html</title>
+    <style type="text/css">
+        body{
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            box-sizing: border-box;
+            height:100%;
+        }
+        .logo-container{
+            display: flex;
+            justify-content: center;
+            align-items:flex-start;
+            margin-top: 30px;
+            width: 100px;
+            height: 60px;
+            background: #0001;
+        }
+
+        .search-container{
+            display: flex;
+            justify-content: center;
+            margin-top: 66px;
+            width: 80%;
+            height: 48px;
+            border-radius: 50px;
+            background: #0001;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .search-input{
+            box-sizing: border-box;
+            padding: 0px 16px;
+            flex-grow: 1;
+            width: 10px;
+            height: 100%;
+            outline: none;
+            border: none;
+        }
+
+        .search-input::placeholder {
+            color: #ddd;
+            text-align: center;
+        }
+
+        .search-bottom{
+            flex: 0 0 88px;
+            height: 48px;
+            line-height: 48px;
+            text-align: center;
+            color: #666;
+            border: none;
+        }
+
+        .apps-container{
+            width: 80%;
+            height: auto;
+        }
+        .row-container{
+            --size: 60px;
+            display: flex;
+            justify-content: flex-start;
+            padding-top: 30px;
+            height: var(--size);
+        }
+
+        .item-container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 0;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            padding:10px;
+            width: var(--size);
+            height: var(--size);
+            border-radius: 16px;
+            background-color: #ddd1;
+            background-position: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: pointer;
+        }
+
+        .item-container:nth-of-type(2n){
+            margin: 0px calc((100% - var(--size) * 3) / 2);
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">logo---</div>
+    <div class="search-container">
+       <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/bfs-metadata.json"/>
+       <button class="search-bottom" @click=${this.onView} >view</button>
+    </div>
+    <div class="apps-container">
+
+    </div>
+    <script type="text/javascript">
+        const elInput = document.querySelector('.search-input')
+        const elView = document.querySelector('.search-bottom')
+        const elAppsContainer = document.querySelector('.apps-container')
+
+        // 执行
+        getAllAppsInfo()
+
+        // 声明函数
+        elView.addEventListener('click', ()=> {
+            fetch("/open_webview?mmid=jmmmetadata.sys.dweb")
+            .then(async (res) => {
+                const result = JSON.parse(await res.json())
+                const origin = result.origin;
+                const url = `${origin}?url=${elInput?.value}`
+                open(url)
+            })
+            .catch(err => console.log('err')) 
+        })
+
+        // 查询 apps 列表
+        async function getAllAppsInfo(){
+            console.log('开始获取 全部 appsInfo')
+            elAppsContainer.innerHTML = ""
+            fetch(`./appsinfo`)
+            .then(async (res) => {
+                console.log('res: ', res)
+                const _json = await res.json()
+                toTwoDimensionalArray(JSON.parse(_json)).forEach((rows, index) => {
+                    let elRow = document.createElement('div')
+                        elRow.setAttribute('class'," row-container")
+                    rows.forEach(col => {
+                        let elCol = document.createElement('div')
+                            elCol.setAttribute('class', "item-container");
+                            elCol.style.backgroundImage = `url('${col.icon}')`
+                            elCol.addEventListener('click', () => onClickIcon(col.id))
+                        elRow.appendChild(elCol)
+                    })
+                    elAppsContainer.appendChild(elRow)
+                })
+                
+                console.log("获取到了全部的应用列表： ", _json)
+
+            })
+            .catch(err => {
+                console.log('获取全部 appsInfo error: ', err)
+            })
+        }
+
+        // 点击 应用图片事件处理器
+        async function onClickIcon(id){
+            const installResponse = await fetch(`/install?app_id=${id}`, {method: "get"})
+            if(installResponse.status !== 200){
+                console.error('安装应用失败 appId: ', id, installResponse.text())
+                return;
+            }
+            const openResponse = await fetch(`./open?app_id=${id}`)
+        }
+        
+        
+
+        /**
+         * 把一维数组转化为二位数组
+         * @param items 
+         * @returns 
+         */
+        function toTwoDimensionalArray(items){
+            let twoDimensionalArr = []
+            items.forEach((item, index) => {
+                const rowIndex = Math.floor(index / 3)
+                const colIndex = index % 3
+                twoDimensionalArr[rowIndex] = twoDimensionalArr[rowIndex] ? twoDimensionalArr[rowIndex] : [];
+                twoDimensionalArr[rowIndex][colIndex] = item
+            })
+            return twoDimensionalArr
+}
+      
+    </script>
+</body>
+</html>

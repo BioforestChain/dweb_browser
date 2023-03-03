@@ -30,7 +30,7 @@ export class NavigatorbarNMM extends NativeMicroModule {
     private _allocId = 0;
     // 必须要通过这样启动才可以
     
-    async _bootstrap() {
+    _bootstrap = async () => {
         console.log(chalk.green('[navigatorbar.sys.dweb 启动了]'))
         const {listen, close } = await createHttpDwebServer(this, {});
         this._close_dweb_server = close;
@@ -90,7 +90,7 @@ export class NavigatorbarNMM extends NativeMicroModule {
                         request.req_id,
                         400,
                         new IpcHeaders({
-                        "Content-type": "text/plain"
+                            "Content-type": "text/plain"
                         }),
                         "缺少 app_url 查询参数",
                         client_ipc
@@ -149,7 +149,7 @@ export class NavigatorbarNMM extends NativeMicroModule {
         htmlRequest.ipc.postMessage(
             await IpcResponse.fromStream(
                 htmlRequest.request.req_id,
-                200, new IpcHeaders({
+                200,new IpcHeaders({
                     "Content-type": "application/json",
                     "id": operationQueueItem.id,
                 }),
@@ -193,7 +193,7 @@ async function onRequestAtIndexHtml(request: IpcRequest, ipc: Ipc){
         
     );
 }
-
+// 4006077777
 /**
  * 通过 fetch("http://navigatorbar.sys.dweb-80.localhost:22605/") 请求的事件监听器
  * pathname === "/operation_return"  
@@ -259,7 +259,6 @@ async function onRequestatOperationReturn(
             }),
             data,
             ipc
-            
         )
     )
 
@@ -301,7 +300,7 @@ async function onRequestOperationFromHtml(
                     "Content-type": "text/plain"
                 }),
                 "确实少 app_url 查询参数",
-                ipc
+                ipc,
             )
         )
         return 

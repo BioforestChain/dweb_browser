@@ -53,8 +53,6 @@ export class MessagePortIpc extends Ipc {
         this.port.postMessage("pong");
         return;
       }
-
-
       this._messageSignal.emit(message, this);
     });
     port.start();

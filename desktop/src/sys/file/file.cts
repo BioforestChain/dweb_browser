@@ -10,6 +10,8 @@ import type { $State } from "./file-download.cjs";
 import { download } from "./file-download.cjs";
 import { getAllApps } from "./file-get-all-apps.cjs";
 
+import chalk from "chalk"
+
 // 运行在 node 环境
 export class FileNMM extends NativeMicroModule {
     mmid = "file.sys.dweb" as const;
@@ -17,27 +19,28 @@ export class FileNMM extends NativeMicroModule {
 
       let downloadProcess: number = 0;
       this.registerCommonIpcOnMessageHandler({
+        method:"POST",
         pathname: "/download",
         matchMode: "full",
         input: {url: "string", app_id: "string"},
         output: "boolean",
         handler: async (arg, client_ipc, request) => {
-          console.log('[file.cts]arg==',arg)
-            return new Promise((resolve, reject) => {
-                download(arg.url,arg.app_id, _progressCallback)
-                .then((apkInfo) => {
-                  resolve(IpcResponse.fromJson(request.req_id, 200, undefined, apkInfo, client_ipc))
-                })
-                .catch((err: Error) => {
-                  resolve(IpcResponse.fromJson(request.req_id, 500, undefined, JSON.stringify(err), client_ipc))
-                  console.log('下载出错： ',err)
-                })
-            })
-           
-            function _progressCallback(state: $State){
-              downloadProcess = state.percent
-              console.log('file.cts state.percent: ', state.percent)
-            }
+          const appInfo = await request.body.text()
+          console.log(chalk.red('file.cts /download appInfo === ',appInfo))
+          return new Promise((resolve, reject) => {
+              download(arg.url,arg.app_id, _progressCallback, appInfo)
+              .then((apkInfo) => {
+                resolve(IpcResponse.fromJson(request.req_id, 200, undefined, apkInfo, client_ipc))
+              })
+              .catch((err: Error) => {
+                resolve(IpcResponse.fromJson(request.req_id, 500, undefined, JSON.stringify(err), client_ipc))
+                console.log('下载出错： ',err)
+              })
+          })
+          
+          function _progressCallback(state: $State){
+            downloadProcess = state.percent
+          }
         },
       });
 
@@ -69,10 +72,7 @@ export class FileNMM extends NativeMicroModule {
         input: {},
         output: "boolean",
         handler: async (args,client_ipc, request) => {
-          // console.log('file.cts 开始获取 appsInfo---------------------------+++')
           const appsInfo = await getAllApps()
-          // console.log('file.cts 获取到了 appsInfo---------------------------+++appsInfo： ', appsInfo)
-          // console.log("JSON.stringify(appsInfo): ",JSON.stringify(appsInfo))
           return IpcResponse.fromJson(
             request.req_id,
             200,

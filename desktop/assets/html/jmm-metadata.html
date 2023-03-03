@@ -322,11 +322,15 @@
             close()
         })
 
+        // 下载按钮事件处理器
         elBtnDownload.addEventListener('click', (e) => {
             console.log('e.target.dataset.dataFn: ', e.target.dataset.fn)
             isDownloaded = false;
             elBtnDownloadMask.style.width = "0%"
-            fetch(`./donwload?url=${window.metadataInfo.downloadUrl}&app_id=${window.metadataInfo.title}`)
+            fetch(
+                `./donwload?url=${window.metadataInfo.downloadUrl}&app_id=${window.metadataInfo.id}`,
+                { method: "POST", body: JSON.stringify(window.metadataInfo) }    
+            )
             .then(res => {
                 isDownloaded = true;
                 if(res.status === 200){
