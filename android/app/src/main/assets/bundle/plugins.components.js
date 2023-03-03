@@ -1,3 +1,61 @@
+// src/sys/plugins/components/navigator-bar/navigator-bar.mts
+var Navigatorbar = class extends HTMLElement {
+  constructor() {
+    super();
+    this._navigatorbarHttpAddress = "./operation_from_plugins";
+    this._appUrl = void 0;
+    this._addClickNavigatorbarItem = async () => {
+      console.log("\u53D1\u8D77\u4E86\u4E00\u4E2A\u76D1\u542C\u70B9\u51FB\u4E8B\u4EF6");
+      const result = await this._set("listener_click", "");
+      if (result === null)
+        return console.error("\u76D1\u542C\u64CD\u4F5C\u5931\u8D25");
+      this.dispatchEvent(new CustomEvent("click-item", { cancelable: true, detail: result }));
+      this._addClickNavigatorbarItem();
+    };
+    this._appUrl = location.origin;
+  }
+  connectedCallback() {
+    this._addClickNavigatorbarItem();
+  }
+  /**
+   * 设置 navigatorbar 的内容
+   * @param arr 
+   * @returns 
+   */
+  setNavigatorbarContent(arr) {
+    return this._set("set_content", JSON.stringify(arr));
+  }
+  show() {
+    return this._set("show", "");
+  }
+  hide() {
+    return this._set("hide", "");
+  }
+  async _set(action, value) {
+    if (this._navigatorbarHttpAddress === void 0)
+      return console.error("this._navigatorbarHttpAddress === undefined");
+    const result = await fetch(
+      `${this._navigatorbarHttpAddress}?app_url=${this._appUrl}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ action, value }),
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+          "Plugin-Target": "navigatorbar"
+        }
+      }
+    );
+    return Promise.resolve(JSON.parse(await result.json()).value);
+  }
+};
+customElements.define("navigatorbar-dweb", Navigatorbar);
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
+function documentOnDOMContentLoaded() {
+  const el = new Navigatorbar();
+  document.body.append(el);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
+}
+
 // src/sys/plugins/components/basePlugin.ts
 var BasePlugin = class extends HTMLElement {
 };
@@ -62,11 +120,11 @@ var StatusbarPlugin = class extends BasePlugin {
   }
 };
 customElements.define("statusbar-dweb", StatusbarPlugin);
-document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
-function documentOnDOMContentLoaded() {
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
+function documentOnDOMContentLoaded2() {
   const el = new StatusbarPlugin();
   document.body.append(el);
-  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
 }
 
 // src/sys/plugins/components/toast/toast.plugin.mts
@@ -139,11 +197,11 @@ var ToastPlugin = class extends HTMLElement {
   }
 };
 customElements.define("toast-dweb", ToastPlugin);
-document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
-function documentOnDOMContentLoaded2() {
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
+function documentOnDOMContentLoaded3() {
   const el = new ToastPlugin();
   document.body.append(el);
-  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
 }
 function createCssText() {
   return `

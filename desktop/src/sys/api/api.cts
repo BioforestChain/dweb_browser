@@ -23,7 +23,7 @@ export class ApiNMM extends NativeMicroModule{
             handler: async (args,client_ipc, request) => {
               const _body = request.body.raw;
                 const _url= `file://statusbar.sys.dweb/operation_from_plugins?app_url=${request.parsed_url.searchParams.get('app_url')}`
-                return this.fetch(_url, {method: request.method, body: request.body.raw, headers:request.headers})
+                return this.nativeFetch(_url, {method: request.method, body: request.body.raw, headers:request.headers})
             },
         });;
 
@@ -35,7 +35,7 @@ export class ApiNMM extends NativeMicroModule{
             output: {},
             handler: async (args,client_ipc, request) => {
                 const _url= `file://navigatorbar.sys.dweb/operation_from_plugins?app_url=${request.parsed_url.searchParams.get('app_url')}`
-                return this.fetch(_url, {method: request.method, body: request.body.raw, headers:request.headers})
+                return this.nativeFetch(_url, {method: request.method, body: request.body.raw, headers:request.headers})
             },
         })
     }
