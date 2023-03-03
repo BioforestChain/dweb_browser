@@ -99,7 +99,7 @@ class DownLoadViewModel(
     }
 
     fun handleIntent(action: DownLoadIntent) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             /* channel.send(action) // 进行发送操作，可以根据传参进行发送 */
             when (action) {
                 is DownLoadIntent.LoadDownLoadStateAndDownLoad -> {

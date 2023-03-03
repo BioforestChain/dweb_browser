@@ -1,5 +1,6 @@
 package info.bagen.libappmgr.network
 
+import android.util.Log
 import com.google.gson.Gson
 import info.bagen.libappmgr.entity.AppVersion
 import info.bagen.libappmgr.network.base.*

@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.service
 
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.IntentFilter
@@ -126,20 +127,29 @@ class DwebBrowserService : Service() {
     )
 
     if (current == total) {
-      jmmMetadata?.downloadUrl?.let { url -> downloadMap.remove(url) }
-      NotificationUtil.INSTANCE.updateNotificationForProgress(
-        100, notificationId, "下载完成"
-      )
-      App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
-        JmmIntent.UpdateDownLoadStatus(DownLoadStatus.Install)
-      ) ?: { // 如果完成后发现下载界面没有打开，手动打开
-        jmmMetadata?.let { JmmManagerActivity.startActivity(it)  }
+      jmmMetadata?.let { jmmMetadata ->
+        downloadMap.remove(jmmMetadata.downloadUrl)
+        NotificationUtil.INSTANCE.updateNotificationForProgress(
+          100, notificationId, "下载完成"
+        ) {
+          val intent = Intent(App.appContext, JmmManagerActivity::class.java).apply {
+            putExtra(JmmManagerActivity.KEY_JMM_METADATA, jmmMetadata)
+          }
+          val pendingIntent =
+            PendingIntent.getActivity(App.appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+          pendingIntent
+        }
+        App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
+          JmmIntent.UpdateDownLoadStatus(DownLoadStatus.Install)
+        ) ?: { // 如果完成后发现下载界面没有打开，手动打开
+          JmmManagerActivity.startActivity(jmmMetadata)
+        }
+        runBlocking { delay(2000) }
+        val unzip = ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath())
+        App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
+          JmmIntent.UpdateDownLoadStatus(if (unzip) DownLoadStatus.OPEN else DownLoadStatus.FAIL)
+        )
       }
-      runBlocking { delay(2000) }
-      val unzip = ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath())
-      App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
-        JmmIntent.UpdateDownLoadStatus(if (unzip) DownLoadStatus.OPEN else DownLoadStatus.FAIL)
-      )
     }
   }
 

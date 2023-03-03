@@ -8,8 +8,8 @@ import java.nio.charset.Charset
  * 用于获取网络请求数据
  */
 data class BaseData<T>(
-    val errorCode: Int, // ==0 为成功
-    val errorMsg: String,
+    val errorCode: Int = 0, // ==0 为成功
+    val errorMsg: String = "",
     val data: T?,
     var isSuccess: Boolean = errorCode == 0 && data != null
 )

@@ -8,7 +8,7 @@ data class JmmMetadata(
     val title: String = "", // 应用名称
     val subtitle: String = "", // 应用副标题
     val icon: String = "", // 应用图标
-    val main_url: String = "", // 打开应用地址
+    val mainUrl: String = "", // 打开应用地址
     val downloadUrl: String = "", // 下载应用地址
     val images: List<String>? = null, // 应用截图
     val introduction: String = "", // 应用描述
@@ -97,18 +97,20 @@ val temp = """
 
 val defaultJmmMetadata = JmmMetadata(
     id = "app.bilibili.dweb",
-    downloadUrl = "https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa",
+    downloadUrl = "https://shop.plaoc.com/KEJPMHLA/KEJPMHLA.bfsa",
     permissions = arrayListOf("camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb"),
-    icon = "http://linge.plaoc.com/bilibili.png",
-    title = "测试哔哩哔哩",
+    icon = "https://www.bfmeta.info/imgs/logo3.webp",
+    title = "bfmeta",
+    subtitle = "bfmeta",
     introduction = temp,
-    size = "2342398472",
+    size = "337408",
     version = "1.0.1.1",
     images = listOf(
-        "http://linge.plaoc.com/bilibili/bilibili1.jpg",
-        "http://linge.plaoc.com/bilibili/bilibili2.jpg",
-        "http://linge.plaoc.com/bilibili/bilibili3.jpg",
-        "http://linge.plaoc.com/bilibili/bilibili4.jpg"
-    )
+        "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
+        "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
+        "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
+    ),
+    home = "https://www.bfmeta.info/",
+    mainUrl = "/assets/bfs.bfm.js"
 )
 

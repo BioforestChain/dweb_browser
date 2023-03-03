@@ -50,7 +50,7 @@ class DCIMViewModel(private val repository: DCIMRepository = DCIMRepository()) :
     val uiState: MutableState<DCIMUIState> = mutableStateOf(DCIMUIState())
 
     fun handlerIntent(action: DCIMIntent) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             when (action) {
                 is DCIMIntent.UpdateSpinnerState -> {
                     uiState.value.showSpinner.value =

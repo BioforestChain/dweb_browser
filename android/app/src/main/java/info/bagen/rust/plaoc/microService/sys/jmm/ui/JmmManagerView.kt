@@ -27,9 +27,7 @@ import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import java.text.DecimalFormat
 
 @Composable
-fun MALLBrowserView(
-  jmmViewModel: JmmManagerViewModel, onDownLoad: (String, String) -> Unit
-) {
+fun MALLBrowserView(jmmViewModel: JmmManagerViewModel) {
   jmmViewModel.uiState.downloadInfo.value.jmmMetadata?.let { jmmMetadata ->
     Box(
       modifier = Modifier.fillMaxSize()
@@ -56,7 +54,7 @@ fun MALLBrowserView(
         item { Spacer(modifier = Modifier.height(60.dp)) }
       }
 
-      DownLoadButton(jmmViewModel, onDownLoad)
+      DownLoadButton(jmmViewModel)
     }
   }
 }
@@ -95,8 +93,7 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
           .align(Alignment.CenterHorizontally)
           .width(300.dp),
         colors = ButtonDefaults.buttonColors(
-          backgroundColor = Color.Gray,
-          contentColor = Color.Black
+          backgroundColor = Color.Gray, contentColor = Color.Black
         ),
         shape = RoundedCornerShape(32.dp)
       ) {
@@ -108,8 +105,7 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
           .align(Alignment.CenterHorizontally)
           .width(300.dp),
         colors = ButtonDefaults.buttonColors(
-          backgroundColor = Color.Blue,
-          contentColor = Color.White
+          backgroundColor = Color.Blue, contentColor = Color.White
         ),
         shape = RoundedCornerShape(32.dp)
       ) {
@@ -127,9 +123,7 @@ fun UninstallBrowserView(jmmViewModel: JmmManagerViewModel) {
 }
 
 @Composable
-private fun BoxScope.DownLoadButton(
-  jmmViewModel: JmmManagerViewModel, onDownLoad: (String, String) -> Unit
-) {
+private fun BoxScope.DownLoadButton(jmmViewModel: JmmManagerViewModel) {
   val downLoadInfo = jmmViewModel.uiState.downloadInfo.value
   Box(
     modifier = Modifier
@@ -138,36 +132,49 @@ private fun BoxScope.DownLoadButton(
       .align(Alignment.BottomCenter)
       .background(Color.White.copy(0.8f))
   ) {
-    Button(
-      onClick = {
-        onDownLoad(
-          downLoadInfo.jmmMetadata!!.downloadUrl, downLoadInfo.jmmMetadata!!.title
-        )
-      },
-      modifier = Modifier
-        .padding(8.dp)
-        .width(300.dp)
-        .align(Alignment.Center),
-      colors = ButtonDefaults.buttonColors(
-        backgroundColor = Color.Blue,
-        contentColor = Color.White
-      ),
-      shape = RoundedCornerShape(32.dp)
-    ) {
-      val text = when (downLoadInfo.downLoadStatus) {
-        DownLoadStatus.IDLE -> "下载 (${downLoadInfo.jmmMetadata!!.size.toSpaceSize()})"
-        DownLoadStatus.DownLoading -> "下载中".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
-        DownLoadStatus.PAUSE -> "暂停".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
-        DownLoadStatus.Install -> "安装中..."
-        DownLoadStatus.OPEN -> "打开"
-        DownLoadStatus.FAIL -> "重新下载"
+    var showLinearProgress = false
+    val text = when (downLoadInfo.downLoadStatus) {
+      DownLoadStatus.IDLE -> "下载 (${downLoadInfo.jmmMetadata!!.size.toSpaceSize()})"
+      DownLoadStatus.DownLoading -> {
+        showLinearProgress = true
+        "下载中".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
       }
-      Text(text = text, fontSize = 20.sp)
+      DownLoadStatus.PAUSE -> {
+        showLinearProgress = true
+        "暂停".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
+      }
+      DownLoadStatus.Install -> "安装中..."
+      DownLoadStatus.OPEN -> "打开"
+      DownLoadStatus.FAIL -> "重新下载"
+    }
+    val boxModifier = Modifier
+      .size(300.dp, 50.dp)
+      .align(Alignment.Center)
+      .clip(RoundedCornerShape(32.dp))
+      .clickable { jmmViewModel.handlerIntent(JmmIntent.ButtonFunction) }
+      .background(if (showLinearProgress) Color.Gray else Color.Blue)
+
+
+    Box(modifier = boxModifier) {
+      if (showLinearProgress) {
+        LinearProgressIndicator(
+          progress = 1.0f * downLoadInfo.dSize / downLoadInfo.size,
+          modifier = Modifier.fillMaxSize(),
+          backgroundColor = Color.Gray,
+          color = Color.Blue
+        )
+      }
+      Text(
+        text = text,
+        fontSize = 20.sp,
+        color = Color.White,
+        modifier = Modifier.align(Alignment.Center)
+      )
     }
   }
 }
 
-private fun String.displayDownLoad(total:Long, progress: Long): String {
+private fun String.displayDownLoad(total: Long, progress: Long): String {
   val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
   val MB = 1024 * 1024 // 定义MB的计算常量
   val KB = 1024 // 定义KB的计算常量
@@ -175,16 +182,16 @@ private fun String.displayDownLoad(total:Long, progress: Long): String {
   var dValue: String
   val totalValue = if (total / GB >= 1) {
     dValue = df.format(1.0 * progress / GB)
-    df.format(total / GB) + " GB ";
+    df.format(total / GB) + " GB";
   } else if (total / MB >= 1) {
     dValue = df.format(1.0 * progress / MB)
-    df.format(total / MB) + " MB ";
+    df.format(total / MB) + " MB";
   } else if (total / KB >= 1) { //如果当前Byte的值大于等于1KB
     dValue = df.format(1.0 * progress / KB)
-    df.format(total / KB) + " KB ";
+    df.format(total / KB) + " KB";
   } else {
     dValue = "$progress"
-    "$total B ";
+    "$total B";
   }
   return if (dValue.isEmpty()) "$this ($totalValue)" else "$this ($dValue/$totalValue)"
 }
@@ -196,13 +203,13 @@ private fun String.toSpaceSize(): String {
   val KB = 1024 // 定义KB的计算常量
   val df = DecimalFormat("0.0");//格式化小数
   return if (size / GB >= 1) {
-    df.format(size / GB) + " GB ";
+    df.format(size / GB) + " GB";
   } else if (size / MB >= 1) {
-    df.format(size / MB) + " MB ";
+    df.format(size / MB) + " MB";
   } else if (size / KB >= 1) { //如果当前Byte的值大于等于1KB
-    df.format(size / KB) + " KB ";
+    df.format(size / KB) + " KB";
   } else {
-    "$size B ";
+    "$size B";
   }
 }
 
@@ -226,14 +233,20 @@ private fun HeadContent(jmmMetadata: JmmMetadata) {
     Box(
       modifier = Modifier.fillMaxSize()
     ) {
-      Text(
-        text = jmmMetadata.title, fontSize = 24.sp, modifier = Modifier.align(Alignment.TopStart)
-      )
+      Column(modifier = Modifier.align(Alignment.TopStart)) {
+        Text(text = jmmMetadata.title, fontSize = 24.sp)
+        Text(text = jmmMetadata.subtitle, fontSize = 12.sp, color = Color.Gray)
+      }
 
       Column(modifier = Modifier.align(Alignment.BottomStart)) {
-        Text(text = "广告检测 人工复检 绿色应用", fontSize = 12.sp, color = Color.Gray)
 
-        Text(text = "版本：1.0.0", fontSize = 12.sp, color = Color.Gray)
+        Row {
+          Text(text = "版本：${jmmMetadata.version}", fontSize = 12.sp, color = Color.Gray)
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = "大小：${jmmMetadata.size.toSpaceSize()}", fontSize = 12.sp, color = Color.Gray)
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = "作者：${jmmMetadata.author}", fontSize = 12.sp, color = Color.Gray)
+        }
       }
     }
 
@@ -322,7 +335,8 @@ fun InstallItemPermissionView(index: Int, mmid: String, size: Int) {
   ) {
     Row {
       AsyncImage(
-        model = R.mipmap.ic_launcher_round, contentDescription = null,
+        model = R.mipmap.ic_launcher_round,
+        contentDescription = null,
         modifier = Modifier
           .align(Alignment.CenterVertically)
           .size(20.dp)

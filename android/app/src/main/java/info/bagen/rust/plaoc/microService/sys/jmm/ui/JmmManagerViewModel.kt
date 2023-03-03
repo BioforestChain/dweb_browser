@@ -11,7 +11,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 data class JmmUIState(
-  val currentType: MutableState<TYPE> = mutableStateOf(TYPE.MALL),
   var downloadInfo: MutableState<DownLoadInfo> = mutableStateOf(DownLoadInfo())
 )
 
@@ -24,16 +23,14 @@ data class DownLoadInfo(
   var path: String = "", // 文件下载路径
   var notificationId: Int = 0, // 通知栏的id
   var size: Long = 0L, // 文件大小
-  var dSize: Long = 0L, // 已下载大小
+  var dSize: Long = 1L, // 已下载大小
   // var progress: Float = 0f, // 进度 0~1
   var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
 )
 
-enum class TYPE { MALL/*应用商店*/, INSTALL, UNINSTALL }
-
 sealed class JmmIntent {
-  object DownLoadAndSave : JmmIntent()
-  class SetTypeAndJmmMetaData(val type: TYPE, val jmmMetadata: JmmMetadata) : JmmIntent()
+  object ButtonFunction : JmmIntent()
+  class SetTypeAndJmmMetaData(val jmmMetadata: JmmMetadata) : JmmIntent()
   class UpdateDownLoadProgress(val current: Long, val total: Long) : JmmIntent()
   class UpdateDownLoadStatus(val downLoadStatus: DownLoadStatus) : JmmIntent()
 }
@@ -50,7 +47,6 @@ class JmmManagerViewModel : ViewModel() {
 
     when (action) {
       is JmmIntent.SetTypeAndJmmMetaData -> {
-
         val downLoadInfo = DwebBrowserUtil.INSTANCE.mBinderService?.invokeGetDownLoadInfo(
           action.jmmMetadata.downloadUrl
         ) ?: DownLoadInfo(
@@ -66,9 +62,8 @@ class JmmManagerViewModel : ViewModel() {
           dSize = downLoadInfo.dSize,
           downLoadStatus = downLoadInfo.downLoadStatus,
         )
-        uiState.currentType.value = action.type
       }
-      is JmmIntent.DownLoadAndSave -> {
+      is JmmIntent.ButtonFunction -> {
         when (uiState.downloadInfo.value.downLoadStatus) {
           DownLoadStatus.IDLE -> {
             DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
@@ -83,7 +78,7 @@ class JmmManagerViewModel : ViewModel() {
             DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
           }
           DownLoadStatus.OPEN -> {
-            // TODO 打开 app
+
           }
         }
       }
