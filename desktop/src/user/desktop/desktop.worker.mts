@@ -9,9 +9,15 @@ export const main = async () => {
   const { createHttpDwebServer } = http;
 
 
+<<<<<<< HEAD
   debugger;
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+=======
+  // debugger;
+  /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
+  // const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+>>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
 
 
   if (jsProcess.meta.optionalBoolean("debug")) {
@@ -69,20 +75,20 @@ export const main = async () => {
 
   console.log("http 服务创建成功");
 
-  const main_url =
-    httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
+  // const main_url =
+  //   httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
 
-  console.log("请求浏览器页面", main_url);
+  // console.log("请求浏览器页面", main_url);
 
-  const response = await jsProcess.nativeFetch(main_url);
-  console.log("html content:", response.status, await response.text());
-  console.log("打开浏览器页面", main_url);
-  {
-    const view_id = await jsProcess
-      .nativeFetch(
-        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
-      )
-      .text();
-  }
+  // const response = await jsProcess.nativeFetch(main_url);
+  // console.log("html content:", response.status, await response.text());
+  // console.log("打开浏览器页面", main_url);
+  // {
+  //   const view_id = await jsProcess
+  //     .nativeFetch(
+  //       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
+  //     )
+  //     .text();
+  // }
 };
 main().catch(console.error);

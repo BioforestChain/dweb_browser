@@ -70,18 +70,10 @@ export class FileNMM extends NativeMicroModule {
         pathname: "/appsinfo",
         matchMode: "full",
         input: {},
-        output: "boolean",
+        output: "object",
         handler: async (args,client_ipc, request) => {
           const appsInfo = await getAllApps()
-          return IpcResponse.fromJson(
-            request.req_id,
-            200,
-            new IpcHeaders({
-              "Content-Type": "text/json",
-            }),
-            appsInfo,
-            client_ipc
-          )
+          return appsInfo
         }
       });
 

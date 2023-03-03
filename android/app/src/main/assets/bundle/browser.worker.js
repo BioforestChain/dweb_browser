@@ -42,9 +42,9 @@ var __privateSet = (obj, member, value, setter) => {
   return value;
 };
 
-// node_modules/lodash/_trimmedEndIndex.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js
 var require_trimmedEndIndex = __commonJS({
-  "node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
     var reWhitespace = /\s/;
     function trimmedEndIndex(string) {
       var index = string.length;
@@ -56,9 +56,9 @@ var require_trimmedEndIndex = __commonJS({
   }
 });
 
-// node_modules/lodash/_baseTrim.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js
 var require_baseTrim = __commonJS({
-  "node_modules/lodash/_baseTrim.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js"(exports, module) {
     var trimmedEndIndex = require_trimmedEndIndex();
     var reTrimStart = /^\s+/;
     function baseTrim(string) {
@@ -68,9 +68,9 @@ var require_baseTrim = __commonJS({
   }
 });
 
-// node_modules/lodash/isObject.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js
 var require_isObject = __commonJS({
-  "node_modules/lodash/isObject.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js"(exports, module) {
     function isObject(value) {
       var type = typeof value;
       return value != null && (type == "object" || type == "function");
@@ -79,17 +79,17 @@ var require_isObject = __commonJS({
   }
 });
 
-// node_modules/lodash/_freeGlobal.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js
 var require_freeGlobal = __commonJS({
-  "node_modules/lodash/_freeGlobal.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js"(exports, module) {
     var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
     module.exports = freeGlobal;
   }
 });
 
-// node_modules/lodash/_root.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js
 var require_root = __commonJS({
-  "node_modules/lodash/_root.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js"(exports, module) {
     var freeGlobal = require_freeGlobal();
     var freeSelf = typeof self == "object" && self && self.Object === Object && self;
     var root = freeGlobal || freeSelf || Function("return this")();
@@ -97,18 +97,18 @@ var require_root = __commonJS({
   }
 });
 
-// node_modules/lodash/_Symbol.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js
 var require_Symbol = __commonJS({
-  "node_modules/lodash/_Symbol.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js"(exports, module) {
     var root = require_root();
     var Symbol2 = root.Symbol;
     module.exports = Symbol2;
   }
 });
 
-// node_modules/lodash/_getRawTag.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js
 var require_getRawTag = __commonJS({
-  "node_modules/lodash/_getRawTag.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var objectProto = Object.prototype;
     var hasOwnProperty = objectProto.hasOwnProperty;
@@ -135,9 +135,9 @@ var require_getRawTag = __commonJS({
   }
 });
 
-// node_modules/lodash/_objectToString.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js
 var require_objectToString = __commonJS({
-  "node_modules/lodash/_objectToString.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js"(exports, module) {
     var objectProto = Object.prototype;
     var nativeObjectToString = objectProto.toString;
     function objectToString(value) {
@@ -147,9 +147,9 @@ var require_objectToString = __commonJS({
   }
 });
 
-// node_modules/lodash/_baseGetTag.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js
 var require_baseGetTag = __commonJS({
-  "node_modules/lodash/_baseGetTag.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var getRawTag = require_getRawTag();
     var objectToString = require_objectToString();
@@ -166,9 +166,9 @@ var require_baseGetTag = __commonJS({
   }
 });
 
-// node_modules/lodash/isObjectLike.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js
 var require_isObjectLike = __commonJS({
-  "node_modules/lodash/isObjectLike.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js"(exports, module) {
     function isObjectLike(value) {
       return value != null && typeof value == "object";
     }
@@ -176,9 +176,9 @@ var require_isObjectLike = __commonJS({
   }
 });
 
-// node_modules/lodash/isSymbol.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js
 var require_isSymbol = __commonJS({
-  "node_modules/lodash/isSymbol.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js"(exports, module) {
     var baseGetTag = require_baseGetTag();
     var isObjectLike = require_isObjectLike();
     var symbolTag = "[object Symbol]";
@@ -189,9 +189,9 @@ var require_isSymbol = __commonJS({
   }
 });
 
-// node_modules/lodash/toNumber.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js
 var require_toNumber = __commonJS({
-  "node_modules/lodash/toNumber.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js"(exports, module) {
     var baseTrim = require_baseTrim();
     var isObject = require_isObject();
     var isSymbol = require_isSymbol();
@@ -222,9 +222,9 @@ var require_toNumber = __commonJS({
   }
 });
 
-// node_modules/lodash/toFinite.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js
 var require_toFinite = __commonJS({
-  "node_modules/lodash/toFinite.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js"(exports, module) {
     var toNumber = require_toNumber();
     var INFINITY = 1 / 0;
     var MAX_INTEGER = 17976931348623157e292;
@@ -243,9 +243,9 @@ var require_toFinite = __commonJS({
   }
 });
 
-// node_modules/lodash/toInteger.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js
 var require_toInteger = __commonJS({
-  "node_modules/lodash/toInteger.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js"(exports, module) {
     var toFinite = require_toFinite();
     function toInteger(value) {
       var result = toFinite(value), remainder = result % 1;
@@ -255,9 +255,9 @@ var require_toInteger = __commonJS({
   }
 });
 
-// node_modules/lodash/before.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js
 var require_before = __commonJS({
-  "node_modules/lodash/before.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js"(exports, module) {
     var toInteger = require_toInteger();
     var FUNC_ERROR_TEXT = "Expected a function";
     function before(n, func) {
@@ -280,9 +280,9 @@ var require_before = __commonJS({
   }
 });
 
-// node_modules/lodash/once.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js
 var require_once = __commonJS({
-  "node_modules/lodash/once.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js"(exports, module) {
     var before = require_before();
     function once6(func) {
       return before(2, func);
@@ -291,6 +291,7 @@ var require_once = __commonJS({
   }
 });
 
+<<<<<<< HEAD
 // bundle/browser.render.txt
 var require_browser_render = __commonJS({
   "bundle/browser.render.txt"(exports, module) {
@@ -298,6 +299,8 @@ var require_browser_render = __commonJS({
   }
 });
 
+=======
+>>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
 // src/core/ipc/IpcHeaders.cts
 var IpcHeaders = class extends Headers {
   init(key, value) {
@@ -408,26 +411,18 @@ var toIpcMethod = (method) => {
 var $metaBodyToBinary = (metaBody) => {
   const [type, data] = metaBody;
   switch (type) {
-    case IPC_META_BODY_TYPE.BINARY: {
+    case 9 /* BINARY */: {
       return data;
     }
-    case IPC_META_BODY_TYPE.BASE64: {
+    case 5 /* BASE64 */: {
       return simpleEncoder(data, "base64");
     }
-    case IPC_META_BODY_TYPE.TEXT: {
+    case 3 /* TEXT */: {
       return simpleEncoder(data, "utf8");
     }
   }
   throw new Error(`invalid metaBody.type :${type}`);
 };
-var IPC_META_BODY_TYPE = /* @__PURE__ */ ((IPC_META_BODY_TYPE2) => {
-  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["STREAM_ID"] = 0] = "STREAM_ID";
-  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["INLINE"] = 1] = "INLINE";
-  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["TEXT"] = 3] = "TEXT";
-  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BASE64"] = 5] = "BASE64";
-  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BINARY"] = 9] = "BINARY";
-  return IPC_META_BODY_TYPE2;
-})(IPC_META_BODY_TYPE || {});
 var IpcMessage = class {
   constructor(type) {
     this.type = type;
@@ -1057,7 +1052,7 @@ var IpcResMessage = class extends IpcMessage {
 // src/sys/http-server/$createHttpDwebServer.cts
 var import_once5 = __toESM(require_once());
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
 var UINT32_MAX = 4294967295;
 function setUint64(view, offset, value) {
   var high = value / 4294967296;
@@ -1082,7 +1077,7 @@ function getUint64(view, offset) {
   return high * 4294967296 + low;
 }
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/utils/utf8.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/utf8.mjs
 var _a;
 var _b;
 var _c;
@@ -1207,7 +1202,7 @@ function utf8DecodeTD(bytes, inputOffset, byteLength) {
   return sharedTextDecoder.decode(stringBytes);
 }
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
 var ExtData = (
   /** @class */
   function() {
@@ -1219,7 +1214,7 @@ var ExtData = (
   }()
 );
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
 var __extends = function() {
   var extendStatics = function(d, b) {
     extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
@@ -1260,7 +1255,7 @@ var DecodeError = (
   }(Error)
 );
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/timestamp.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/timestamp.mjs
 var EXT_TIMESTAMP = -1;
 var TIMESTAMP32_MAX_SEC = 4294967296 - 1;
 var TIMESTAMP64_MAX_SEC = 17179869184 - 1;
@@ -1341,7 +1336,7 @@ var timestampExtension = {
   decode: decodeTimestampExtension
 };
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
 var ExtensionCodec = (
   /** @class */
   function() {
@@ -1402,7 +1397,7 @@ var ExtensionCodec = (
   }()
 );
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/utils/typedArrays.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/typedArrays.mjs
 function ensureUint8Array(buffer) {
   if (buffer instanceof Uint8Array) {
     return buffer;
@@ -1422,7 +1417,7 @@ function createDataView(buffer) {
   return new DataView(bufferView.buffer, bufferView.byteOffset, bufferView.byteLength);
 }
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/Encoder.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/Encoder.mjs
 var DEFAULT_MAX_DEPTH = 100;
 var DEFAULT_INITIAL_BUFFER_SIZE = 2048;
 var Encoder = (
@@ -1768,7 +1763,7 @@ var Encoder = (
   }()
 );
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/encode.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/encode.mjs
 var defaultEncodeOptions = {};
 function encode(value, options) {
   if (options === void 0) {
@@ -1778,12 +1773,12 @@ function encode(value, options) {
   return encoder.encodeSharedRef(value);
 }
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/utils/prettyByte.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/prettyByte.mjs
 function prettyByte(byte) {
   return "".concat(byte < 0 ? "-" : "", "0x").concat(Math.abs(byte).toString(16).padStart(2, "0"));
 }
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/CachedKeyDecoder.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/CachedKeyDecoder.mjs
 var DEFAULT_MAX_KEY_LENGTH = 16;
 var DEFAULT_MAX_LENGTH_PER_KEY = 16;
 var CachedKeyDecoder = (
@@ -1848,7 +1843,7 @@ var CachedKeyDecoder = (
   }()
 );
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
 var __awaiter = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve) {
@@ -2644,7 +2639,7 @@ var Decoder = (
   }()
 );
 
-// node_modules/@msgpack/msgpack/dist.es5+esm/decode.mjs
+// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/decode.mjs
 var defaultDecodeOptions = {};
 function decode(buffer, options) {
   if (options === void 0) {
@@ -3250,6 +3245,7 @@ var closeHttpDwebServer = async (microModule, options) => {
   ).boolean();
 };
 
+<<<<<<< HEAD
 // src/user/browser/assets/browser.web.cts
 var txt = require_browser_render();
 var CODE = async (require2) => {
@@ -3442,6 +3438,199 @@ var browser_default = `<html lang="en">
       
     <\/script>
 </body>
+=======
+// assets/html/browser.html
+var browser_default = `<html lang="en">\r
+<head>\r
+    <meta charset="UTF-8">\r
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">\r
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">\r
+    <title>browser.sys.dweb html</title>\r
+    <style type="text/css">\r
+        body{\r
+            display: flex;\r
+            flex-direction: column;\r
+            justify-content: flex-start;\r
+            align-items: center;\r
+            box-sizing: border-box;\r
+            height:100%;\r
+        }\r
+        .logo-container{\r
+            display: flex;\r
+            justify-content: center;\r
+            align-items:flex-start;\r
+            margin-top: 30px;\r
+            width: 100px;\r
+            height: 60px;\r
+            background: #0001;\r
+        }\r
+\r
+        .search-container{\r
+            display: flex;\r
+            justify-content: center;\r
+            margin-top: 66px;\r
+            width: 80%;\r
+            height: 48px;\r
+            border-radius: 50px;\r
+            background: #0001;\r
+            overflow: hidden;\r
+            border: 1px solid #ddd;\r
+        }\r
+\r
+        .search-input{\r
+            box-sizing: border-box;\r
+            padding: 0px 16px;\r
+            flex-grow: 1;\r
+            width: 10px;\r
+            height: 100%;\r
+            outline: none;\r
+            border: none;\r
+        }\r
+\r
+        .search-input::placeholder {\r
+            color: #ddd;\r
+            text-align: center;\r
+        }\r
+\r
+        .search-bottom{\r
+            flex: 0 0 88px;\r
+            height: 48px;\r
+            line-height: 48px;\r
+            text-align: center;\r
+            color: #666;\r
+            border: none;\r
+        }\r
+\r
+        .apps-container{\r
+            width: 80%;\r
+            height: auto;\r
+        }\r
+        .row-container{\r
+            --size: 60px;\r
+            display: flex;\r
+            justify-content: flex-start;\r
+            padding-top: 30px;\r
+            height: var(--size);\r
+        }\r
+\r
+        .item-container{\r
+            display: flex;\r
+            justify-content: center;\r
+            align-items: center;\r
+            flex-grow: 0;\r
+            flex-shrink: 0;\r
+            box-sizing: border-box;\r
+            padding:10px;\r
+            width: var(--size);\r
+            height: var(--size);\r
+            border-radius: 16px;\r
+            background-color: #ddd1;\r
+            background-position: center;\r
+            background-size: contain;\r
+            background-repeat: no-repeat;\r
+            cursor: pointer;\r
+        }\r
+\r
+        .item-container:nth-of-type(2n){\r
+            margin: 0px calc((100% - var(--size) * 3) / 2);\r
+        }\r
+    </style>\r
+</head>\r
+<body>\r
+    <div class="logo-container">logo---</div>\r
+    <div class="search-container">\r
+       <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/bfs-metadata.json"/>\r
+       <button class="search-bottom" @click=\${this.onView} >view</button>\r
+    </div>\r
+    <div class="apps-container">\r
+\r
+    </div>\r
+    <script type="text/javascript">\r
+        const elInput = document.querySelector('.search-input')\r
+        const elView = document.querySelector('.search-bottom')\r
+        const elAppsContainer = document.querySelector('.apps-container')\r
+\r
+        // \u6267\u884C\r
+        getAllAppsInfo()\r
+\r
+        // \u58F0\u660E\u51FD\u6570\r
+        elView.addEventListener('click', ()=> {\r
+            console.log('\u5F00\u59CB\u8DF3\u8F6C\u5230\u4E0B\u8F7D\u9875\u9762')\r
+            fetch("/open_webview?mmid=jmmmetadata.sys.dweb")\r
+            .then(async (res) => {\r
+                console.log('res: ', res)\r
+                const result = JSON.parse(await res.json())\r
+                const origin = result.origin;\r
+                const url = \`\${origin}?url=\${elInput?.value}\`\r
+                open(url)\r
+            })\r
+            .catch(err => console.log('err', err)) \r
+        })\r
+\r
+        // \u67E5\u8BE2 apps \u5217\u8868\r
+        async function getAllAppsInfo(){\r
+            elAppsContainer.innerHTML = ""\r
+            fetch(\`./appsinfo\`)\r
+            .then(async (res) => {\r
+                console.log('res: ', res)\r
+\r
+                res.josn()\r
+                .then(res => console.log('\u83B7\u53D6\u5230\u4E86\u6570\u636E\uFF1A ',res))\r
+                .catch(err => console.log('err: ', err))\r
+\r
+                // const _json = await res.text()\r
+                // toTwoDimensionalArray(JSON.parse(_json)).forEach((rows, index) => {\r
+                //     let elRow = document.createElement('div')\r
+                //         elRow.setAttribute('class'," row-container")\r
+                //     rows.forEach(col => {\r
+                //         let elCol = document.createElement('div')\r
+                //             elCol.setAttribute('class', "item-container");\r
+                //             elCol.style.backgroundImage = \`url('\${col.icon}')\`\r
+                //             elCol.addEventListener('click', () => onClickIcon(col.id))\r
+                //         elRow.appendChild(elCol)\r
+                //     })\r
+                //     elAppsContainer.appendChild(elRow)\r
+                // })\r
+                \r
+                console.log("\u83B7\u53D6\u5230\u4E86\u5168\u90E8\u7684\u5E94\u7528\u5217\u8868\uFF1A ", _json)\r
+\r
+            })\r
+            .catch(err => {\r
+                console.log('\u83B7\u53D6\u5168\u90E8 appsInfo error: ', err)\r
+            })\r
+        }\r
+\r
+        // \u70B9\u51FB \u5E94\u7528\u56FE\u7247\u4E8B\u4EF6\u5904\u7406\u5668\r
+        async function onClickIcon(id){\r
+            const installResponse = await fetch(\`/install?app_id=\${id}\`, {method: "get"})\r
+            if(installResponse.status !== 200){\r
+                console.error('\u5B89\u88C5\u5E94\u7528\u5931\u8D25 appId: ', id, installResponse.text())\r
+                return;\r
+            }\r
+            const openResponse = await fetch(\`./open?app_id=\${id}\`)\r
+        }\r
+        \r
+        \r
+\r
+        /**\r
+         * \u628A\u4E00\u7EF4\u6570\u7EC4\u8F6C\u5316\u4E3A\u4E8C\u4F4D\u6570\u7EC4\r
+         * @param items \r
+         * @returns \r
+         */\r
+        function toTwoDimensionalArray(items){\r
+            let twoDimensionalArr = []\r
+            items.forEach((item, index) => {\r
+                const rowIndex = Math.floor(index / 3)\r
+                const colIndex = index % 3\r
+                twoDimensionalArr[rowIndex] = twoDimensionalArr[rowIndex] ? twoDimensionalArr[rowIndex] : [];\r
+                twoDimensionalArr[rowIndex][colIndex] = item\r
+            })\r
+            return twoDimensionalArr\r
+        }\r
+      \r
+    <\/script>\r
+</body>\r
+>>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
 </html>`;
 
 // src/user/browser/browser.worker.mts
@@ -3463,9 +3652,6 @@ async function onRequest(request, httpServerIpc) {
     case "/":
     case "/index.html":
       onRequestPathNameIndexHtml(request, httpServerIpc);
-      break;
-    case "/browser.web.mjs":
-      onRequestPathNameBroserWebMjs(request, httpServerIpc);
       break;
     case "/download":
       onRequestPathNameDownload(request, httpServerIpc);
@@ -3505,6 +3691,7 @@ async function onRequestPathNameIndexHtml(request, httpServerIpc) {
         "Content-Type": "text/html"
       }),
       _html,
+<<<<<<< HEAD
       httpServerIpc
     )
   );
@@ -3518,6 +3705,8 @@ async function onRequestPathNameBroserWebMjs(request, httpServerIpc) {
         "Content-Type": "application/javascript"
       }),
       await CODE(request),
+=======
+>>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
       httpServerIpc
     )
   );
@@ -3535,6 +3724,7 @@ async function onRequestPathNameAppsInfo(request, httpServerIpc) {
   jsProcess;
   fetch(url).then(async (res) => {
     httpServerIpc.postMessage(
+<<<<<<< HEAD
       await IpcResponse.fromJson(
         request.req_id,
         200,
@@ -3542,6 +3732,20 @@ async function onRequestPathNameAppsInfo(request, httpServerIpc) {
           "content-type": "application/json"
         }),
         await res.json(),
+=======
+      // await IpcResponse.fromJson(
+      //   request.req_id, 
+      //   200,
+      //   new IpcHeaders({
+      //     "content-type": "application/json"
+      //   }),
+      //   await res.json(), 
+      //   httpServerIpc
+      // )
+      await IpcResponse.fromResponse(
+        request.req_id,
+        res,
+>>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
         httpServerIpc
       )
     );

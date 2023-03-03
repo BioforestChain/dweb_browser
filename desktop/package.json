@@ -36,8 +36,6 @@
         "dev:cot.worker": "npm run bundle:cot.worker -- --watch",
         "bundle:browser.worker": "node ./esbuild.browser.worker.js",
         "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
-        "bundle:browser.render": "esbuild ./src/user/browser/assets/browser.render.mts --outfile=./bundle/browser.render.txt --bundle --format=esm",
-        "dev:browser.render": "npm run bundle:browser.render -- --watch",
         "bundle:common.worker": "esbuild ./src/sys/app/common.worker.mts --outfile=./bundle/common.worker.js --bundle --format=esm",
         "dev:common.worker": "npm run bundle:common.worker -- --watch",
         "bundle:multi-webview.html": "vite build src/sys/multi-webview/assets/ --outDir=../../../../bundle/multi-webview --emptyOutDir -c electron-vite.config.ts",
@@ -46,7 +44,7 @@
         "dev:plugins.components": "npm run bundle:plugins.components -- --watch",
         "start:win": "chcp 65001 && electron .",
         "start": "electron ./",
-        "备注":"如果出现一些莫名的问题，请删除 dis 重新编译和 bundle ",
+        "备注":"如果出现一些莫名的问题，请删除 dis 重新编译和 bundle 运行 pnpm dev",
         "如果需要采用彩色的输出到终端": "FORCE_COLOR=true pnpm start"
     },
     "devDependencies": {
