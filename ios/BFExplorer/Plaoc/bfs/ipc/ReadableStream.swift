@@ -72,9 +72,12 @@ class ReadableStream: InputStream {
         }
     }
     
-    private var id_acc = 0
+    private static var id_acc = 0
     private var uid: String {
-        return "#\(id_acc++)"
+        return "#s\(ReadableStream.id_acc++)"
+    }
+    func toString() -> String {
+        return uid
     }
     
     override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {

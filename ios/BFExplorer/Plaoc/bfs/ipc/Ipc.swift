@@ -51,6 +51,10 @@ class Ipc {
         self._doPostMessage(data: message)
     }
     
+    func postResponse(req_id: Int, response: Response) {
+        postMessage(message: IpcResponse.fromResponse(req_id: req_id, response: response, ipc: self).ipcResMessage)
+    }
+    
 //    var onMessage: ((@escaping OnIpcMessage) -> IpcTupleBool)
     func onMessage(cb: @escaping OnIpcMessage) -> IpcTupleBool {
         return _messageSignal.listen(cb)

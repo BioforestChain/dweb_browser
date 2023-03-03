@@ -43,7 +43,3 @@ class HttpServer: ObservableObject {
         app.server.shutdown()
     }
 }
-
-extension Application {
-    
-}

@@ -8,14 +8,6 @@
 import Foundation
 import Vapor
 
-struct Gateway {
-    var listener: PortListener
-    var urlInfo: HttpNMM.ServerUrlInfo
-    var token: String
-}
-
-
-
 struct DwebHttpServerOptions {
     var port: Int = 80
     var subdomain: String = ""
@@ -30,8 +22,129 @@ class HttpNMM: NativeMicroModule {
         mmid = "http.sys.dweb"
     }
     
+    struct RequestMiddleware: AsyncMiddleware {
+        let httpNMM: HttpNMM
+        init(httpNMM: HttpNMM) {
+            self.httpNMM = httpNMM
+        }
+        
+        func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
+            var header_host: String? = nil
+            var header_x_dweb_host: String? = nil
+            var header_user_agent_host: String? = nil
+            var query_x_web_host: String? = request.query[String.self, at: "X-Dweb-Host"]
+
+            for (key, value) in request.headers {
+                switch key {
+                case "Host":
+                    header_host = value
+                case "X-Dweb-Host":
+                    header_x_dweb_host = value
+                case "User-Agent":
+//                    // iOS 16之后的写法
+//                    do {
+//                        if let result = try /\sdweb-host\/(.+)\s*/.firstMatch(in: value) {
+//                            header_user_agent_host = result.output.1
+//                        }
+//                    } catch {
+//
+//                    }
+                    let result = value.getMatches(regex: #"\sdweb-host\/(.+)\s*"#)
+                    if !result.isEmpty {
+                        header_user_agent_host = result[0]
+                    }
+                default:
+                    break
+                }
+            }
+            
+            var host = query_x_web_host ?? header_x_dweb_host ?? header_user_agent_host ?? header_host ?? "*"
+            
+            if !host.contains(":") && host != "*" {
+                host += ":\(HttpServer.PORT)"
+            }
+            
+            var response: Response?
+            var gateway = httpNMM.gatewayMap[host]
+            if gateway != nil {
+                response = await gateway!.listener.hookHttpRequest(request: request)
+            }
+
+
+//            // 网关未找到判断
+//            let gateway = DnsNMM.shared.httpServerNMM.gatewayMap[host]
+//            if gateway == nil && !request.url.path.hasPrefix("/http.sys.dweb") {
+//                return await DnsNMM.shared.httpServerNMM.defaultErrorResponse(
+//                    req: request,
+//                    statusCode: .badGateway,
+//                    errorMessage: "Bad Gateway",
+//                    detailMessage: "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
+//                )
+//            }
+//
+//            // 未找到路由判断
+//            let app = HttpServer.app
+//            let routes = app.routes.all
+//            if !routes.contains(where: { route in
+//                let routePath = "/" + route.path.map { "\($0)" }.joined(separator: "/")
+//                if routePath == request.url.path && route.method == request.method {
+//                    return true
+//                } else {
+//                    return false
+//                }
+//            }) {
+//                return await DnsNMM.shared.httpServerNMM.defaultErrorResponse(
+//                    req: request,
+//                    statusCode: .notFound,
+//                    errorMessage: "not found",
+//                    detailMessage: "未找到"
+//                )
+//            }
+
+            return try await next.respond(to: request)
+        }
+    }
+
+    /// 网关错误，默认返回
+    func defaultErrorResponse(req: Request, statusCode: HTTPResponseStatus, errorMessage: String, detailMessage: String) async -> Response {
+        var headerJsonString = ""
+        _ = req.headers.map { item in
+            headerJsonString += "\(item.name): \(item.value)\n"
+        }
+        var headers = HTTPHeaders()
+        headers.add(name: .contentType, value: "text/html")
+
+        return Response(status: statusCode, headers: headers, body: .init(string: """
+            <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset="UTF-8" />
+                        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                        <title>\(statusCode.code)</title>
+                    </head>
+                    <body>
+                        <h1 style="color:red;margin-top:50px;">[\(statusCode.code)] \(errorMessage)</h1>
+                        <blockquote>\(detailMessage)</blockquote>
+                        <div>
+                          <h2>URL:</h2>
+                          <pre>\(req.url)</pre>
+                        </div>
+                        <div>
+                          <h2>METHOD:</h2>
+                          <pre>\(req.method)</pre>
+                        </div>
+                        <div>
+                          <h2>HEADERS:</h2>
+                          <pre>\(headerJsonString)</pre>
+                        </div>
+                  </body>
+            </html>
+        """))
+    }
+    
     override func _bootstrap() async throws {
-        HttpServer.createServer(22605)
+        HttpServer.createServer(22206)
         let app = HttpServer.app
         
 //        _afterShutdownSignal
@@ -74,13 +187,30 @@ class HttpNMM: NativeMicroModule {
         return ServerUrlInfo(host: host, internal_origin: internal_origin, public_origin: public_origin)
     }
     
-    struct ServerUrlInfo {
+    struct ServerUrlInfo: Codable {
+        /**
+         * 标准host，是一个站点的key，只要站点过来时用某种我们认可的方式（x-host/user-agent）携带了这个信息，那么我们就依次作为进行网关路由
+         */
         var host: String
+        /**
+         * 内部链接，带有特殊的协议头，方便自定义解析器对其进行加工
+         */
         var internal_origin: String
+        /**
+         * 相对公网的链接（这里只是相对标准网络访问，当然目前本地只支持localhost链接，所以这里只是针对webview来使用）
+         */
         var public_origin: String
+        
+        func buildPublicUrl() -> URL {
+            URL(string: public_origin)!.appending("X-DWeb-Host", value: host)
+        }
+        
+        func buildInternalUrl() -> URL {
+            URL(string: internal_origin)!
+        }
     }
     
-    struct ServerStartResult {
+    struct ServerStartResult: Codable {
         var token: String
         var urlInfo: ServerUrlInfo
     }
@@ -92,7 +222,7 @@ class HttpNMM: NativeMicroModule {
             fatalError("already in listen: \(serverUrlInfo.internal_origin)")
         }
         
-        let listener = PortListener(ipc: ipc, host: serverUrlInfo.host)
+        let listener = Gateway.PortListener(ipc: ipc, host: serverUrlInfo.host)
         _ = listener.onDestroy {
             _ = ipc.onClose {
                 Task {
@@ -122,6 +252,7 @@ class HttpNMM: NativeMicroModule {
         let streamIpc = ReadableStreamIpc(remote: gateway!.listener.ipc.remote, role: .server)
 
         var data = Data()
+        var sequential = message.eventLoop.makeSucceededFuture(())
         message.body.drain {
             switch $0 {
             case .buffer(var buffer):
@@ -129,8 +260,9 @@ class HttpNMM: NativeMicroModule {
                 if _data != nil {
                     data.append(_data!)
                 }
+                return sequential
             case .error, .end:
-                break
+                return sequential
             }
         }
         

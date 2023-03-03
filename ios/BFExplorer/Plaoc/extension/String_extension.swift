@@ -123,4 +123,37 @@ extension String {
     func to_utf8_data() -> Data? {
         self.data(using: .utf8)
     }
+    
+    /// 正则匹配字符串
+    func getMatches(regex: String) -> [String] {
+        guard let regex = try? NSRegularExpression(pattern: regex) else {
+            return []
+        }
+        let results = regex.matches(in: self,
+                                range: NSRange(self.startIndex..., in: self))
+        let finalResult = results.map { match in
+            return (0..<match.numberOfRanges).map { range -> String in
+                let rangeBounds = match.range(at: range)
+                guard let range = Range(rangeBounds, in: self) else {
+                    return ""
+                }
+                return String(self[range])
+            }
+        }.filter { !$0.isEmpty }
+        var allMatches: [String] = []
+        
+        // Iterate over the final result which includes all the matches and groups
+        // We will store all the matching strings
+        for result in finalResult {
+            for (index, resultText) in result.enumerated() {
+                // Skip the match. Go to the next elements which represent matching groups
+                if index == 0 {
+                    continue
+                }
+                allMatches.append(resultText)
+            }
+        }
+
+        return allMatches
+    }
 }

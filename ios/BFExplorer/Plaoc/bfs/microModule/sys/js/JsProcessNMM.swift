@@ -10,23 +10,194 @@ import Foundation
 import Vapor
 
 class JsProcessNMM: NativeMicroModule {
-    private var nww: WKWebView? = nil
-    private lazy var webView: WKWebView = {
-        return WKWebView(frame: .zero)
-    }()
+//    private var nww: WKWebView? = nil
+//    private lazy var webView: WKWebView = {
+//        return WKWebView(frame: .zero)
+//    }()
     
     override init() {
         super.init()
         mmid = "js.sys.dweb"
     }
     
+//    private lazy var JS_PROCESS_WORKER_CODE: String = {
+//        nativeFetch(url: "file:///bundle/js-process.worker.js").text()!
+//    }()
+    
+    private let CORS_HEADERS = [
+        "Content-Type": "application/javascript",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "*"
+    ]
+    
+    private let INTERNAL_PATH = "/<internal>".encodeURIComponent()
+    
     override func _bootstrap() async throws {
         // 必须要为每个js空间注册，否则无法使用
-        nww = webView
+//        nww = webView
+        let mainServer = await self.createHttpDwebServer(options: DwebHttpServerOptions())
+        _ = _afterShutdownSignal.listen {
+            mainServer.close()
+            return nil
+        }
         
+        let serverIpc = await mainServer.listen()
+        _ = serverIpc.onRequest { request, ipc in
+            Task {
+                let response = await self.nativeFetch(url: "file:///bundle/js-process\(request.uri!.path)")
+                ipc.postMessage(message: IpcResponse.fromResponse(req_id: request.req_id, response: response, ipc: ipc).ipcResMessage)
+            }
+            return nil
+        }
+        
+//        let apis =
+//        let apis = 
+        
+        let app = HttpServer.app
+        let group = app.grouped("\(self.mmid)")
+        group.on(.POST, ["create-process"]) { request, ipc in
+            let main_pathname = request.query[Int.self, at: "main_pathname"]
+            createProcessAndRun(ipc: ipc, apis: apis, main_pathname: main_pathname, requestMessage: request)
+        }
     }
     
-    
+    private func createProcessAndRun(
+        ipc: Ipc,
+        apis: JsProcessWebApi,
+        main_pathname: String = "/index.js",
+        requestMessage: Request
+    ) async -> Response {
+        /**
+         * 用自己的域名的权限为它创建一个子域名
+         */
+        let httpDwebServer = await createHttpDwebServer(options: DwebHttpServerOptions(subdomain: ipc.remote.mmid))
+        
+        /**
+         * 远端是代码服务，所以这里是 client 的身份
+         */
+        let streamIpc = ReadableStreamIpc(remote: ipc.remote, role: .client)
+        var data = Data()
+        var sequential = requestMessage.eventLoop.makeSucceededFuture(())
+        requestMessage.body.drain {
+            switch $0 {
+            case .buffer(var buffer):
+                let _data = buffer.readData(length: buffer.readableBytes)
+                if _data != nil {
+                    data.append(_data!)
+                }
+                return sequential
+            case .error, .end:
+                return sequential
+            }
+        }
+        
+        let stream = InputStream(data: data)
+        await streamIpc.bindIncomeStream(stream: stream)
+        
+        /**
+         * 代理监听
+         * 让远端提供 esm 模块代码
+         * 这里我们将请求转发给对方，要求对方以一定的格式提供代码回来，
+         * 我们会对回来的代码进行处理，然后再执行
+         */
+        let codeProxyServerIpc = await httpDwebServer.listen()
+        let JS_PROCESS_WORKER_CODE = await nativeFetch(url: "file:///bundle/js-process.worker.js").text()!
+        _ = codeProxyServerIpc.onRequest { request, ipc in
+            if request.uri!.path.hasPrefix(self.INTERNAL_PATH) {
+                let internalUri = request.uri!.path.slice(0, self.INTERNAL_PATH.count).pathComponents.string
+                
+                if internalUri == "/bootstrap.js" {
+                    ipc.postMessage(message: IpcResponse.fromText(req_id: request.req_id, statusCode: 200, text: JS_PROCESS_WORKER_CODE, headers: IpcHeaders(self.CORS_HEADERS), ipc: ipc).ipcResMessage)
+                } else {
+                    ipc.postMessage(message: IpcResponse.fromText(req_id: request.req_id, statusCode: 404, text: "// no found \(internalUri)", headers: IpcHeaders(self.CORS_HEADERS), ipc: ipc).ipcResMessage)
+                }
+            } else {
+                Task {
+                    var response = await streamIpc.request(request: request.toRequest())
+                    for (key, value) in self.CORS_HEADERS {
+                        response.headers.add(name: key, value: value)
+                    }
+                    
+                    ipc.postResponse(req_id: request.req_id, response: response)
+                }
+            }
+        }
+        
+        let bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
+            .replacePath("\(INTERNAL_PATH)/bootstrap.js")
+            .appending("mmid", value: ipc.remote.mmid)
+            .appending("host", value: httpDwebServer.startResult.urlInfo.host)
+            .absoluteString
+        
+        /**
+         * 创建一个通往 worker 的消息通道
+         */
+        let processHandler = await apis.createProcess(env_script_url: bootstrap_url, remoteModule: ipc.remote)
+        
+        /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
+        // TODO: 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
+        _ = processHandler.ipc.onRequest { ipcRequest, ipc in
+            Task {
+                let request = ipcRequest.toRequest()
+                let response = await ipc.remote.nativeFetch(request: request)
+                let ipcResponse = IpcResponse.fromResponse(req_id: ipcRequest.req_id, response: response, ipc: ipc)
+                
+                ipc.postMessage(message: ipcResponse.ipcResMessage)
+            }
+            
+            return nil
+        }
+        
+        /**
+         * 开始执行代码
+         */
+        await apis.runProcessMain(process_id: processHandler.info.process_id, options: JsProcessWebApi.RunProcessMainOptions(main_url: httpDwebServer.startResult.urlInfo.buildInternalUrl().replacePath(main_pathname).absoluteString))
+        
+        /// 绑定销毁
+        /**
+         * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
+         *
+         * > 自己shutdown的时候，这些ipc会被关闭
+         */
+        _ = ipc.onClose {
+            Task {
+                await streamIpc.close()
+            }
+            return .OFF
+        }
+
+        /**
+         * “代码IPC流通道”关闭的时候，关闭这个子域名
+         */
+        _ = streamIpc.onClose {
+            httpDwebServer.close()
+            return .OFF
+        }
+
+        /// 返回自定义的 Response，里头携带我们定义的 ipcStream
+        return Response(status: .ok, body: .init(stream: { writer in
+            let stream = streamIpc.stream
+            let bufferSize = 1024
+            stream.open()
+            
+            while stream.hasBytesAvailable {
+                var data = Data()
+                var buffer = [UInt8](repeating: 0, count: bufferSize)
+                let bytesRead = stream.read(&buffer, maxLength: bufferSize)
+                if bytesRead < 0 {
+                    stream.close()
+                    _ = writer.write(.error("Error reading from stream" as! Error))
+                } else if bytesRead == 0 {
+                    stream.close()
+                    _ = writer.write(.end)
+                }
+                data.append(buffer, count: bytesRead)
+                var byteBuffer = ByteBuffer(data: data)
+                _ = writer.write(.buffer(byteBuffer))
+            }
+        }))
+    }
 }
 
 class HttpDwebServer {
@@ -40,30 +211,49 @@ class HttpDwebServer {
         self.startResult = startResult
     }
     
-    func listen() async -> ReadableStreamIpc {
-        return await withCheckedContinuation { continuation in
-            
+    func listen(routes: [Gateway.RouteConfig] = [
+        Gateway.RouteConfig(pathname: "", method: .GET),
+        Gateway.RouteConfig(pathname: "", method: .POST),
+        Gateway.RouteConfig(pathname: "", method: .PUT),
+        Gateway.RouteConfig(pathname: "", method: .DELETE),
+    ]) async -> ReadableStreamIpc {
+        let po = PromiseOut<ReadableStreamIpc>()
+        
+        Task {
+            let streamIpc = await nmm.listenHttpDwebServer(token: startResult.token, routes: routes)
+            po.resolve(streamIpc)
+        }
+        
+        return await po.waitPromise()
+    }
+    
+    func close() {
+        Task {
+            await nmm.closeHttpDwebServer(options: options)
         }
     }
 }
 
 
 extension MicroModule {
-    func createHttpDwebServer(options: DwebHttpServerOptions) {
-        //        Http
+    func createHttpDwebServer(options: DwebHttpServerOptions) async -> HttpDwebServer {
+        HttpDwebServer(nmm: self, options: options, startResult: await startHttpDwebServer(options: options))
     }
     
-    func startHttpDwebServer(options: DwebHttpServerOptions) {
-        self.nativeFetch(url: URI(string: "file://http.sys.dweb/start?port=\(options.port)&subdomain=\(options.subdomain)"))
+    func startHttpDwebServer(options: DwebHttpServerOptions) async -> HttpNMM.ServerStartResult {
+        await nativeFetch(url: URI(string: "file://http.sys.dweb/start?port=\(options.port)&subdomain=\(options.subdomain)")).json(HttpNMM.ServerStartResult.self)
     }
     
-    func listenHttpDwebServer(token: String) {
+    func listenHttpDwebServer(token: String, routes: [Gateway.RouteConfig]) async -> ReadableStreamIpc {
         let ipc = ReadableStreamIpc(remote: self, role: .client)
-        ipc.bindIncomeStream(stream: self.nativeFetch(request: Request(application: HttpServer.app, url: URI(string: "file://http.sys.dweb/listen?token=\(token)&routes="), on: HttpServer.app.eventLoopGroup.next())))
+        await ipc.bindIncomeStream(stream: await nativeFetch(request: Request(application: HttpServer.app,
+                                                                              url: URI(string: "file://http.sys.dweb/listen?token=\(token)&routes=\(ChangeTools.arrayValueString(routes)!)"),
+                                                                        on: HttpServer.app.eventLoopGroup.next())).stream())
+        return ipc
     }
     
-    func closeHttpDwebServer(options: DwebHttpServerOptions) {
-        
+    func closeHttpDwebServer(options: DwebHttpServerOptions) async -> Bool {
+        await nativeFetch(url: URI(string: "file://http.sys.dweb/close?port=\(options.port)&subdomain=\(options.subdomain)")).boolean()
     }
 }
 

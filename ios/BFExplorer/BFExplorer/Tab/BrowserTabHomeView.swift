@@ -185,21 +185,15 @@ class CategoryView: UIView{
         let type = sharedAppInfoMgr.currentAppType(appId: info.appId)
         if type == .system {
             
-//            let second = WebViewViewController()
-//            second.appId = info.appId
-//            second.urlString = sharedInnerAppFileMgr.systemWebAPPURLString(appId: info.appId) ?? "" //":/index.html"
-//            let type = sharedInnerAppFileMgr.systemAPPType(appId: info.appId)
-//            let url = sharedInnerAppFileMgr.systemWebAPPURLString(appId: info.appId) ?? ""
-//
-//            second.urlString = url
-//
-//            NotificationCenter.default.post(name: openAnAppNotification, object: second)
-            
-            let testJMM = JsMicroModule(mmid: "test.sys.dweb", metadata: Metadata(main_url: "/app/injectWebView/desktop.worker.js"))
-            DnsNMM.shared.install(mm: testJMM)
-            DnsNMM.shared.nativeFetch(urlString: "file://dns.sys.dweb/open?app_id=test.sys.dweb", microModule: testJMM)
-//            testJMM.bootstrap()
-            
+            let second = WebViewViewController()
+            second.appId = info.appId
+            second.urlString = sharedAppInfoMgr.systemWebAPPURLString(appId: info.appId) ?? "" //":/index.html"
+            let type = sharedAppInfoMgr.systemAPPType(appId: info.appId)
+            let url = sharedAppInfoMgr.systemWebAPPURLString(appId: info.appId) ?? ""
+
+            second.urlString = url
+
+            NotificationCenter.default.post(name: openAnAppNotification, object: second)
         } else if type == .recommend {
             clickedAppAction(appId: info.appId)
         } else if type == .user {

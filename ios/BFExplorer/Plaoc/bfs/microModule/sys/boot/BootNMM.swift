@@ -35,7 +35,7 @@ class BootNMM: NativeMicroModule {
         
         Task {
             for mmid in registerdMmids {
-                _ = nativeFetch(url: "file://dns.sys.dweb/open?app_id=\(mmid.encodeURIComponent())")
+                _ = await nativeFetch(url: "file://dns.sys.dweb/open?app_id=\(mmid.encodeURIComponent())")
             }
         }
     }
@@ -50,8 +50,7 @@ class BootNMM: NativeMicroModule {
         if mmid == nil {
             return false
         }
-        registerdMmids.insert(mmid!)
-        return true
+        return registerdMmids.insert(mmid!).inserted
     }
     
     /**
@@ -63,8 +62,7 @@ class BootNMM: NativeMicroModule {
             return false
         }
         
-        registerdMmids.remove(mmid!)
-        return true
+        return registerdMmids.remove(mmid!) != nil
     }
 }
 

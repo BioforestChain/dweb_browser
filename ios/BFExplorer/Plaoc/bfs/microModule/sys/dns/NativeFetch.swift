@@ -115,7 +115,7 @@ func alamofireFetch(request: Vapor.Request) -> Vapor.Response? {
 }
 
 extension MicroModule {
-    func nativeFetch(request: Vapor.Request) -> Vapor.Response {
+    func nativeFetch(request: Vapor.Request) async -> Vapor.Response {
         for fetchAdapter in nativeFetchAdaptersManager.adapters {
             let response = fetchAdapter.fetchAdaptor(self, request)
             if response != nil {
@@ -126,13 +126,12 @@ extension MicroModule {
         return localeFileFetch(remote: self, request:request) ?? alamofireFetch(request: request)!
     }
     
-    func nativeFetch(url: URI) -> Vapor.Response {
-        
-        nativeFetch(request: Vapor.Request(application: HttpServer.app, method: .GET, url: url, on: HttpServer.app.eventLoopGroup.next()))
+    func nativeFetch(url: URI) async -> Vapor.Response {
+        await nativeFetch(request: Vapor.Request(application: HttpServer.app, method: .GET, url: url, on: HttpServer.app.eventLoopGroup.next()))
     }
     
-    func nativeFetch(url: String) -> Vapor.Response {
-        nativeFetch(request: Vapor.Request(application: HttpServer.app, method: .GET, url: URI(string: url), on: HttpServer.app.eventLoopGroup.next()))
+    func nativeFetch(url: String) async -> Vapor.Response {
+        await nativeFetch(request: Vapor.Request(application: HttpServer.app, method: .GET, url: URI(string: url), on: HttpServer.app.eventLoopGroup.next()))
     }
 }
 

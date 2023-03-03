@@ -18,16 +18,16 @@ class NativeIpc: Ipc {
         self.role = role
         
         _ = port.onMessage { message in
-            var ipcMessage: IpcMessage
-            if let fromRequest = message as? IpcReqMessage {
-                ipcMessage = fromRequest
-            } else if let fromResponse = message as? IpcResMessage {
-                ipcMessage = fromResponse
-            } else {
-                ipcMessage = message
-            }
+//            var ipcMessage: IpcMessage
+//            if let fromRequest = message as? IpcReqMessage {
+//                ipcMessage = fromRequest
+//            } else if let fromResponse = message as? IpcResMessage {
+//                ipcMessage = fromResponse
+//            } else {
+//                ipcMessage = message
+//            }
             
-            self._messageSignal.emit((ipcMessage, self))
+            self._messageSignal.emit((message, self))
             return nil
         }
         
@@ -47,18 +47,18 @@ class NativeIpc: Ipc {
 class NativePort<I, O> {
     private let channel_in: PassthroughSubject<I, Never>
     private let channel_out: PassthroughSubject<O, Never>
-    private let semaphore: DispatchSemaphore
-    private var cancellable: AnyCancellable?
+    private let closePo: PromiseOut<()>
+//    private var cancellable: AnyCancellable?
     
-    init(channel_in: PassthroughSubject<I, Never>, channel_out: PassthroughSubject<O, Never>, semaphore: DispatchSemaphore) {
+    init(channel_in: PassthroughSubject<I, Never>, channel_out: PassthroughSubject<O, Never>, closePo: PromiseOut<()>) {
         self.channel_in = channel_in
         self.channel_out = channel_out
-        self.semaphore = semaphore
+        self.closePo = closePo
         
         Task {
-            semaphore.wait()
+            await closePo.waitPromise()
             closing = true
-            cancellable?.cancel()
+//            cancellable?.cancel()
             _closeSignal.emit(())
         }
     }
@@ -73,7 +73,10 @@ class NativePort<I, O> {
         }
         
         Task {
-            cancellable = channel_in.sink { message in
+//            cancellable = channel_in.sink { message in
+//                self._messageSignal.emit(message)
+//            }
+            for await message in channel_in.values {
                 self._messageSignal.emit(message)
             }
         }
@@ -84,11 +87,9 @@ class NativePort<I, O> {
     private var closing = false
     
     func close() {
-        if closing {
-            return
-        } else {
-            semaphore.signal()
-            closing = true
+        if !closePo.isFinished {
+            closePo.resolve(())
+            print("port-closing/\(self)")
         }
     }
     
@@ -105,14 +106,14 @@ class NativePort<I, O> {
 
 
 struct NativeMessageChannel<T1, T2> {
-    private let semaphore = DispatchSemaphore(value: 0)
+    private let closePo = PromiseOut<()>()
     private let channel1 = PassthroughSubject<T1, Never>()
     private let channel2 = PassthroughSubject<T2, Never>()
     let port1: NativePort<T1, T2>
     let port2: NativePort<T2, T1>
     
     init() {
-        port1 = NativePort(channel_in: channel1, channel_out: channel2, semaphore: semaphore)
-        port2 = NativePort(channel_in: channel2, channel_out: channel1, semaphore: semaphore)
+        port1 = NativePort(channel_in: channel1, channel_out: channel2, closePo: closePo)
+        port2 = NativePort(channel_in: channel2, channel_out: channel1, closePo: closePo)
     }
 }

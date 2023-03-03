@@ -32,7 +32,9 @@ class JsMicroModule: MicroModule {
             let request = item.0
             
             if request.uri?.path == "/index.js" {
-                _ = self.nativeFetch(url: self.metadata.main_url)
+                Task {
+                    _ = await self.nativeFetch(url: self.metadata.main_url)
+                }
             } else {
                 _ = Response(status: .notFound)
             }
@@ -40,17 +42,10 @@ class JsMicroModule: MicroModule {
             return nil
         }
         
-        let data = await withCheckedContinuation { continuation in
-            let request = Request(application: HttpServer.app, method: .POST, url: URI(string: "file://js.sys.dweb/create-process?main_pathname=/index.js&process_id=\(pid)"), on: HttpServer.app.eventLoopGroup.next())
-            _ = nativeFetch(request: request).body.collect(on: request.eventLoop).map { buffer in
-                if buffer != nil {
-                    var bytebuffer = buffer!
-                    continuation.resume(returning: bytebuffer.readData(length: bytebuffer.readableBytes)!)
-                }
-            }
-        }
+        let request = Request(application: HttpServer.app, method: .POST, url: URI(string: "file://js.sys.dweb/create-process?main_pathname=/index.js&process_id=\(pid)"), on: HttpServer.app.eventLoopGroup.next())
+        let inputStream = await nativeFetch(request: request).stream()
         
-        await streamIpc.bindIncomeStream(stream: InputStream(data: data))
+        await streamIpc.bindIncomeStream(stream: inputStream)
         
         print("JS进程创建完成 \(mmid)")
         
@@ -62,19 +57,8 @@ class JsMicroModule: MicroModule {
         if pid == nil {
             fatalError("\(mmid) process_id no found, should bootstrap first")
         }
-        
-        let portId = await withCheckedContinuation { continuation in
-            let request = Request(application: HttpServer.app, method: .POST, url: URI(string: "file://js.sys.dweb/create-ipc?process_id=\(pid!)"), on: HttpServer.app.eventLoopGroup.next())
-            
-            let str = nativeFetch(request: request).body.string
-            
-            if str == nil {
-                fatalError("create-ipc process_id return nil")
-            }
-            
-            let portId = Int(str!)
-            continuation.resume(returning: portId)
-        }
+        let request = Request(application: HttpServer.app, method: .POST, url: URI(string: "file://js.sys.dweb/create-ipc?process_id=\(pid!)"), on: HttpServer.app.eventLoopGroup.next())
+        let portId = await nativeFetch(request: request).int()
         
         if portId == nil {
             fatalError("create-ipc process_id return portId not int type")

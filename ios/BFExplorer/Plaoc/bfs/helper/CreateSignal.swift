@@ -50,6 +50,10 @@ class Signal<T> {
             }
         }
     }
+    
+    func clear() {
+        _cbs.removeAll()
+    }
 }
 
 
