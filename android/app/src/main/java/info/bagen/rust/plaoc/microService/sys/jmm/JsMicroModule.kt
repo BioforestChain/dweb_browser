@@ -33,7 +33,7 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
         val streamIpc = ReadableStreamIpc(this, IPC_ROLE.CLIENT)
         streamIpc.onRequest { (request, ipc) ->
             val response = when (request.uri.path) {
-                "/index.js" -> nativeFetch(metadata.main_url)
+                "/index.js" -> nativeFetch(metadata.downloadUrl)
                 else -> Response(Status.NOT_FOUND)
             }
             ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))

@@ -5,7 +5,22 @@ import java.io.Serializable
 
 data class JmmMetadata(
     val id: Mmid,
-    val main_url: String,
+    val title: String = "", // 应用名称
+    val subtitle: String = "", // 应用副标题
+    val icon: String = "", // 应用图标
+    val main_url: String = "", // 打开应用地址
+    val downloadUrl: String = "", // 下载应用地址
+    val images: List<String>? = null, // 应用截图
+    val introduction: String = "", // 应用描述
+    val author: List<String>? = null, // 开发者，作者
+    val version: String = "", // 应用版本
+    val keywords: List<String>? = null, // 关键词
+    val home: String = "", // 首页地址
+    val size: String = "", // 应用大小
+    val fileHash: String = "",
+    val permissions: List<Mmid>? = null,
+    val plugins: List<String>? = null,
+    val releaseDate:String = "", // 发布时间
     /**
      * 静态网络服务
      */
@@ -19,18 +34,6 @@ data class JmmMetadata(
      * 所以如果是 staticWebServers 定义的链接，那么自然而然地，页面会等到 staticWebServer 启动后得到响应，不会错过请求。
      */
     val openWebViewList: List<OpenWebView> = listOf(),
-    val permissions: List<Mmid> = listOf(),
-    /*var fromRequest: Request = Request(
-        Method.GET,
-        ""
-    ),*/
-    val iconUrl: String = "",
-    val title: String = "",
-    // (Method.Get, "http://tansocc.com?xxx=d").headers()
-    val introduction: String = "", // 应用描述
-    val size: String = "", // 应用大小
-    val version: String = "", // 应用版本
-    val appCaptures: List<String> = listOf() // 应用截图
 ) : Serializable {
     /**
      * 静态网络服务定义
@@ -94,14 +97,14 @@ val temp = """
 
 val defaultJmmMetadata = JmmMetadata(
     id = "app.bilibili.dweb",
-    main_url = "https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa",
+    downloadUrl = "https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa",
     permissions = arrayListOf("camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb"),
-    iconUrl = "http://linge.plaoc.com/bilibili.png",
+    icon = "http://linge.plaoc.com/bilibili.png",
     title = "测试哔哩哔哩",
     introduction = temp,
     size = "2342398472",
     version = "1.0.1.1",
-    appCaptures = listOf(
+    images = listOf(
         "http://linge.plaoc.com/bilibili/bilibili1.jpg",
         "http://linge.plaoc.com/bilibili/bilibili2.jpg",
         "http://linge.plaoc.com/bilibili/bilibili3.jpg",

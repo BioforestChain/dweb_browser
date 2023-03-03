@@ -211,7 +211,7 @@ class DownLoadViewModel(
     private suspend fun decompressFile() {
         // 解压文件
         val enableUnzip =
-            ZipUtil.decompress(mDownLoadProgress.downloadFile, FilesUtil.getAppUnzipPath())
+            ZipUtil.ergodicDecompress(mDownLoadProgress.downloadFile, FilesUtil.getAppUnzipPath())
         if (enableUnzip) {
             uiState.value.downLoadState.value = DownLoadState.COMPLETED
             uiState.value.dialogInfo =

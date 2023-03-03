@@ -1,13 +1,10 @@
 package info.bagen.libappmgr.network
 
-import android.util.Log
 import com.google.gson.Gson
 import info.bagen.libappmgr.entity.AppVersion
 import info.bagen.libappmgr.network.base.*
-import kotlinx.coroutines.delay
 import org.http4k.core.BodyMode.Stream
 import org.http4k.core.Request
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
@@ -46,7 +43,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
             currentLength += length
             fileOutputStream?.write(byteArray, 0, length)
             DLProgress(currentLength.toLong(), contentLength.toLong()) // 将下载进度回调
-            delay(1000)
+            //delay(1000)
             length = inputStream.read(byteArray)
           }
           // Log.e("ApiServiceImpl", "downloadAndSave-> $contentLength,$currentLength,${file?.length()}")
@@ -91,7 +88,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
           currentLength += length
           fileOutputStream?.write(byteArray, 0, length)
           DLProgress(currentLength, contentLength) // 将下载进度回调
-          delay(1000)
+          //delay(1000)
           length = inputStream.read(byteArray)
         }
       } catch (e: Exception) {
