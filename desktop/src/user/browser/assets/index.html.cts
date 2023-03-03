@@ -20,6 +20,9 @@ export const CODE = async (request: IpcRequest) => String.raw`
     <body>
       <script type="text/javascript" src="./browser.web.mjs"></script>
       <home-page></home-pagep>
+      <script type="text/javascript">
+        console.log('browser.index.html')
+      </script>
     </body>
   </html>
 `;

@@ -45,6 +45,7 @@ export const openNativeWindow = async (
     import_port: MessagePort;
     export_port: MessagePort;
   }>();
+
   win.webContents.ipc.once("renderPort", (event) => {
     const [import_port, export_port] = event.ports;
 
@@ -53,6 +54,7 @@ export const openNativeWindow = async (
       export_port: MainPortToRenderPort(export_port),
     });
   });
+  
   console.log("url", url);
   await win.loadURL(url);
   await show_po.promise;

@@ -1,3 +1,5 @@
+import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
+import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import type {
   $BootstrapContext,
   $DnsMicroModule,
@@ -28,10 +30,18 @@ export class DnsNMM extends NativeMicroModule implements $DnsMicroModule {
       matchMode: "full",
       input: { app_id: "mmid" },
       output: "boolean",
-      handler: async (args) => {
+      handler: async (args, client_ipc, request) => {
         /// TODO 询问用户是否授权该行为
-        await this.open(args.app_id);
-        return true;
+        const app = await this.open(args.app_id);
+        return IpcResponse.fromJson(
+          request.req_id,
+          200,
+          new IpcHeaders({
+            "Content-Type": "application/json; charset=UTF-8"
+          }),
+          JSON.stringify(app),
+          client_ipc
+        );
       },
     });
 
@@ -140,7 +150,6 @@ export class DnsNMM extends NativeMicroModule implements $DnsMicroModule {
       await mm.bootstrap(this.context);
       app = mm;
     }
-
     return app;
   }
   /** 关闭应用 */

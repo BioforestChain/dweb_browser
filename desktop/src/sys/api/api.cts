@@ -9,30 +9,36 @@
 import chalk from "chalk";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 
-export class ApiNMM extends NativeMicroModule {
-  mmid = "api.sys.dweb" as const;
-  async _bootstrap() {
-    console.log(chalk.red("[api.cts 启动了]"));
-    // 注册通过 jsProcess 发送过来的访问请求
-    // 专门用来做静态服务
-    this.registerCommonIpcOnMessageHandler({
-      method: "PUT",
-      pathname: "/statusbar",
-      matchMode: "full",
-      input: {},
-      output: {},
-      handler: async (args, client_ipc, request) => {
-        const _url = `file://statusbar.sys.dweb/operation_from_plugins?app_url=${request.parsed_url.searchParams.get(
-          "app_url"
-        )}`;
-        return this.nativeFetch(_url, {
-          method: request.method,
-          body: request.body.raw,
-          headers: request.headers,
-        });
-      },
-    });
-  }
+export class ApiNMM extends NativeMicroModule{
+    mmid = "api.sys.dweb" as const;
+    async _bootstrap(){
+ 
+        // 注册通过 jsProcess 发送过来的访问请求
+        this.registerCommonIpcOnMessageHandler({
+            method: "PUT",
+            pathname: "/statusbar",
+            matchMode: "full",
+            input: {},
+            output: {},
+            handler: async (args,client_ipc, request) => {
+              const _body = request.body.raw;
+                const _url= `file://statusbar.sys.dweb/operation_from_plugins?app_url=${request.parsed_url.searchParams.get('app_url')}`
+                return this.fetch(_url, {method: request.method, body: request.body.raw, headers:request.headers})
+            },
+        });;
+
+        this.registerCommonIpcOnMessageHandler({
+            method: "PUT",
+            pathname: "/navigatorbar",
+            matchMode: "full",
+            input: {},
+            output: {},
+            handler: async (args,client_ipc, request) => {
+                const _url= `file://navigatorbar.sys.dweb/operation_from_plugins?app_url=${request.parsed_url.searchParams.get('app_url')}`
+                return this.fetch(_url, {method: request.method, body: request.body.raw, headers:request.headers})
+            },
+        })
+    }
 
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");

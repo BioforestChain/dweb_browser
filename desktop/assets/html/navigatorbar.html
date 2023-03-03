@@ -1,0 +1,192 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>navigator-bar</title>
+    <style type="text/css">
+        body{
+            box-sizing: border-box;
+            margin: 0px;
+            width: 100%;
+            height: 70px;
+            border-top: 1px solid #0001;
+        }
+        
+    </style>
+</head>
+<body>
+    <template id="template">
+        <div class="item-container">
+            <div class="icon-container"></div>
+            <div class="label-container"></div>
+        </div>
+    </template>
+    <navigator-bar></navigator-bar>
+    
+    <!-- 创建一个WebComponent -->
+    <script type="text/javascript">
+        class NavigatorBar extends HTMLElement{
+            _root
+            _fragement = document.createDocumentFragment()
+            _elStyle = document.createElement('style')
+            _appUrl = "" // 发起请求的plugins 所在的 origin
+            _template;
+            _iframe
+            _iframeHeightShow = "70px";
+            _iframeHeightHide = "0px"
+            _listenerClickId = null // plugins 发起监听点击事件请求的 id
+
+            constructor(){
+                super()
+                this._root = this.attachShadow({mode: "open"})
+                this._init()
+            }
+
+            connectedCallback(){
+                this._iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#navigator-bar');
+                this._appUrl = this._iframe.dataset.appUrl
+                this._awaitOperation()
+                console.log('this._appUrl: ', this._appUrl)
+            }
+
+            _init(){
+                this
+                ._initStyle()
+                ._initTemplate()
+            }
+
+            _initStyle = () => {
+                this._elStyle.setAttribute('type', "text/css")
+                this._elStyle.innerText = createStyle()
+                return this;
+            }
+
+            _initTemplate = () => {
+                this._template = document.querySelector('#template');
+                return this;
+            }
+
+            /**
+             * 设置 内容
+            */
+            setNavigatorbarContent = (arr) => {
+                this._fragement
+                const host = new URL(this._appUrl).host
+                arr.forEach(item => {
+                    const el = this._template.content.firstElementChild.cloneNode(true)
+                    el.addEventListener('click', () => this._clickItem(item))
+                    el.firstElementChild.style.backgroundImage=`url('http://${host}${item.icon}')`
+                    el.lastElementChild.innerText = item.label;
+                    this._fragement.append(el)
+                })
+                this._fragement.append(this._elStyle);
+                this._root.append(this._fragement);
+                this._show()
+            }
+
+            _show = () =>{
+                this._iframe.style.height = this._iframeHeightShow;
+            }
+
+            _hide = () => {
+                this._iframe.style.height = this._iframeHeightHide;
+            }
+
+            // 点击事件的触发
+            _clickItem = (item) => {
+                if(this._listenerClickId === null) console.error('navigatorbar 点击事件还没有监听')
+                this._fetchReturn(item.id, this. _listenerClickId)
+                this._listenerClickId = null;
+            }
+            
+            /**
+             * req_id 
+             */ 
+            _listenerClick = async (req_id/*plugins 发起请求的标识符*/) => {
+                this._listenerClickId = req_id
+            }
+
+            /*
+            监听操作的方法
+            */
+            _awaitOperation = async () =>{
+                fetch("http://navigatorbar.sys.dweb-80.localhost:22605/operation_from_html?app_url="+this._appUrl)
+                .then(async (res) => {
+                    this._awaitOperation()
+                    const id = res.headers.get('id')
+                    const value = await res.json()
+                    switch(value.action){
+                        case "set_content": this.setNavigatorbarContent(JSON.parse(value.value)); this._fetchReturn(value.value, id);break;
+                        case "show": this._show(); this._fetchReturn("ok", id);break;
+                        case "hide": this._hide(); this._fetchReturn('ok', id);break;
+                        case "listener_click": this._listenerClick(id); break;
+                        default: this._fetchReturn(null, id);
+                    }
+                })
+                .catch(err => {
+                    console.error('statusbar err： ', err)
+                })
+            }
+
+            // 用来发送返回的数据
+            _fetchReturn = (value,id) => {
+                fetch(
+                    "http://navigatorbar.sys.dweb-80.localhost:22605/operation_return?app_url="+this._appUrl,
+                    {
+                        method: 'POST',
+                        body: JSON.stringify({ value: value}),
+                        headers: {
+                            "Content-Type": "application/json; charset=UTF-8",
+                            "id": id
+                        }
+                        
+                    }
+                )
+                .catch(err => console.error("fetchReturn 出错", err))
+            }
+        }
+
+        customElements.define('navigator-bar', NavigatorBar)
+
+        function createStyle(){
+            return `
+                :host{
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: center;
+                    width: 100%;
+                    height: 100%;
+                    
+                }
+                .item-container{
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    align-items: center;
+                    width: 50px;
+                    height: 60px;
+                    // background: #0002;
+                }
+
+                .icon-container{
+                    width: 30px;
+                    height: 30px;
+                    background-size: contain;
+                    background-position: center;
+                }
+
+                .label-container{
+                    width: 100%;
+                    height:20px;
+                    line-height: 20px;
+                    font-size: 10px;
+                    font-weight: 100;
+                    text-align: center;
+                }
+            `
+        }
+
+    </script>
+</body>
+</html>

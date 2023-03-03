@@ -1,12 +1,31 @@
-  
+const fs = require('fs')
 
-// function fn(v){
-//     return v ? Promise.resolve(true) : Promise.reject("reject");
-// }
+const a = {
+    a: "aaa"
+}
 
-// async function main(){
-//     const result = await fn(true)
-//     console.log('result: ', result)
-// }
+const b = {
+    a:'aaa',
+    b: 'bbb',
+    c: 'ccc'
+}
+const main = async ()=> {
+     fs.writeFile(
+        "./test.json",
+        JSON.stringify(b),
+        {flag: "w"},
+        () => {
+            console.log('写入1')
+             fs.writeFile(
+                "./test.json",
+                JSON.stringify(a),
+                {flag: "w"},
+                () => console.log('写入2')
+            )
+        }
+    )
+    
+    
+}
 
-// main()
+main()

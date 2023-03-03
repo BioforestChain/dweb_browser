@@ -35,7 +35,7 @@ export class StatusbarNMM extends NativeMicroModule {
 
   async _bootstrap() {
     const dwebServer = await createHttpDwebServer(this, {});
-    this._after_shutdown_signal.listen(() => dwebServer.close());
+    // this._close_dweb_server = close;
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
     (await dwebServer.listen()).onRequest(async (request, ipc) => {
@@ -284,13 +284,13 @@ export class StatusbarNMM extends NativeMicroModule {
 }
 
 // 读取 html 文件
-async function reqadHtmlFile() {
+async function reqadHtmlFile(){
   const targetPath = path.resolve(
     process.cwd(),
-    "./src/sys/statusbar/assets/index.html"
+    "./assets/html/statusbar.html"
   );
-  const content = await fsPromises.readFile(targetPath);
-  return new TextDecoder().decode(content);
+  const content = await fsPromises.readFile(targetPath)
+  return new TextDecoder().decode(content)
 }
 
 /**

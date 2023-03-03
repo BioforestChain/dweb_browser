@@ -253,12 +253,15 @@ export class ViewTree extends LitElement {
 
   private _id_acc = 0;
 
+  // 打开一个新的webview标签
+  // 在html中执行 open() 也会调用这个方法
   openWebview(src: string) {
     const webview_id = this._id_acc++;
     this.webviews.unshift(new Webview(webview_id, src));
     this._restateWebviews();
     return webview_id;
   }
+
   closeWebview(webview_id: number) {
     const webview = this.webviews.find((dialog) => dialog.id === webview_id);
     if (webview === undefined) {
@@ -268,6 +271,7 @@ export class ViewTree extends LitElement {
     this._restateWebviews();
     return true;
   }
+  
   private _removeWebview(webview: Webview) {
     const index = this.webviews.indexOf(webview);
     if (index === -1) {
@@ -280,12 +284,10 @@ export class ViewTree extends LitElement {
 
   private async onWebviewReady(webview: Webview, ele: WebviewTag) {
     webview.webContentId = ele.getWebContentsId();
-    console.log('-开支执行doReady')
     webview.doReady(ele);
     mainApis.denyWindowOpenHandler(
       webview.webContentId,
       proxy((detail) => {
-        console.log(detail);
         this.openWebview(detail.url);
       })
     );
@@ -297,7 +299,6 @@ export class ViewTree extends LitElement {
       })
     );
     const webcontents = await mainApis.getWenContents(webview.webContentId);
-    console.log("webcontents", webcontents);
   }
 
   private async onDevtoolReady(webview: Webview, ele_devTool: WebviewTag) {
@@ -306,7 +307,6 @@ export class ViewTree extends LitElement {
       return;
     }
     webview.webContentId_devTools = ele_devTool.getWebContentsId();
-    console.log(" webview.webContentId_devTools: ",  webview.webContentId_devTools)
     await mainApis.openDevTools(
       webview.webContentId,
       undefined,
@@ -326,13 +326,11 @@ export class ViewTree extends LitElement {
           this.webviews,
           (dialog) => dialog.id,
           (webview) => {
-            console.log('content - webview:', webview)
             const zIndexStr = `z-index: ${webview.state.zIndex};`
             const _styleMap = styleMap({
               zIndex: webview.state.zIndex + "",
              
             })
-            console.log('this.webvew.src: ', webview.src)
             return html`
               <multi-webview-content
                 .customWebview=${webview}
@@ -349,7 +347,6 @@ export class ViewTree extends LitElement {
                   }
                 }} 
                 @dom-ready=${(event: CustomEvent<CustomEventDomReadyDetail>) => {
-                  console.log('内容准备完毕')
                   this.onWebviewReady(webview, event.detail.event.target as WebviewTag);
                 }}
               ></multi-webview-content>

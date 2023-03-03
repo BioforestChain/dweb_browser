@@ -10,116 +10,80 @@ import type { $State } from "./file-download.cjs";
 import { download } from "./file-download.cjs";
 import { getAllApps } from "./file-get-all-apps.cjs";
 
+import chalk from "chalk"
+
 // 运行在 node 环境
 export class FileNMM extends NativeMicroModule {
-  mmid = "file.sys.dweb" as const;
-  async _bootstrap() {
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/download",
-      matchMode: "full",
-      input: { url: "string" },
-      output: "boolean",
-      handler: async (arg, client_ipc, request) => {
-        return new Promise((resolve, reject) => {
-          download(arg.url, _progressCallback)
-            .then((apkInfo) => {
-              resolve(
-                IpcResponse.fromJson(
-                  request.req_id,
-                  200,
-                  undefined,
-                  apkInfo,
-                  client_ipc
-                )
-              );
-            })
-            .catch((err: Error) => {
-              resolve(
-                IpcResponse.fromJson(
-                  request.req_id,
-                  500,
-                  undefined,
-                  err,
-                  client_ipc
-                )
-              );
-              console.log("下载出错： ", err);
-            });
-        });
-        function _progressCallback(state: $State) {
-          // console.log('state: ', state)
-          // request.req_id:  0
-          // console.log('request.req_id: ', request.req_id)
-          // client_ipc.postMessage(
-          //     IpcResponse.fromText(
-          //         request.req_id,
-          //         200,
-          //         JSON.stringify(state),
-          //         new IpcHeaders({
-          //           "Content-Type": "text/json",
-          //         })
-          //     )
-          // )
-          // 不通过这个 下载进度先不考虑
+    mmid = "file.sys.dweb" as const;
+    async _bootstrap() {
+
+      let downloadProcess: number = 0;
+      this.registerCommonIpcOnMessageHandler({
+        method:"POST",
+        pathname: "/download",
+        matchMode: "full",
+        input: {url: "string", app_id: "string"},
+        output: "boolean",
+        handler: async (arg, client_ipc, request) => {
+          const appInfo = await request.body.text()
+          console.log(chalk.red('file.cts /download appInfo === ',appInfo))
+          return new Promise((resolve, reject) => {
+              download(arg.url,arg.app_id, _progressCallback, appInfo)
+              .then((apkInfo) => {
+                resolve(IpcResponse.fromJson(request.req_id, 200, undefined, apkInfo, client_ipc))
+              })
+              .catch((err: Error) => {
+                resolve(IpcResponse.fromJson(request.req_id, 500, undefined, JSON.stringify(err), client_ipc))
+                console.log('下载出错： ',err)
+              })
+          })
+          
+          function _progressCallback(state: $State){
+            downloadProcess = state.percent
+          }
+        },
+      });
+
+      //   获取下载的进度
+      this.registerCommonIpcOnMessageHandler({
+        pathname: "/download_process",
+        matchMode: "full",
+        input: {},
+        output: "boolean",
+        handler: async (args,client_ipc, request) => {
+          return IpcResponse.fromText(
+            request.req_id,
+            200,
+            new IpcHeaders({
+              "Content-Type": "text/plain",
+            }),
+            downloadProcess + "",
+            client_ipc
+          )
         }
+      })
 
-        // return true;
 
-        // 测试地址： https://bfm-prd-download.oss-cn-hongkong.aliyuncs.com/cot/COT-beta-202302091839.apk
-        // console.log('接受到了下载的信息 执行下载的程序: ', arg)
-      },
-    });
 
-    //   获取全部的 appsInfo
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/appsinfo",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: async (args, client_ipc, request) => {
-        // console.log('file.cts 开始获取 appsInfo---------------------------+++')
-        const appsInfo = await getAllApps();
-        // console.log('file.cts 获取到了 appsInfo---------------------------+++appsInfo： ', appsInfo)
-        // console.log("JSON.stringify(appsInfo): ",JSON.stringify(appsInfo))
-        return IpcResponse.fromJson(
-          request.req_id,
-          200,
-          new IpcHeaders({
-            "Content-Type": "text/json",
-          }),
-          JSON.stringify(appsInfo),
-          client_ipc
-        );
-      },
-    });
-
-    //   获取全部的 icon
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/icon",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: async (args, client_ipc, request) => {
-        const url = new URL(request.url);
-        const searchParams = url.searchParams;
-        const appId = searchParams.get("appId");
-        const name = searchParams.get("name");
-        const _path = path.resolve(
-          process.cwd(),
-          `./apps/${appId}/sys/assets/${name}`
-        );
-        const svgStr = await fsPromises.readFile(_path, { encoding: "utf8" });
-        return IpcResponse.fromText(
-          request.req_id,
-          200,
-          new IpcHeaders({
-            "Content-Type": "image/svg+xml",
-          }),
-          svgStr,
-          client_ipc
-        );
-      },
-    });
+      //   获取全部的 appsInfo
+      this.registerCommonIpcOnMessageHandler({
+        pathname: "/appsinfo",
+        matchMode: "full",
+        input: {},
+        output: "boolean",
+        handler: async (args,client_ipc, request) => {
+          const appsInfo = await getAllApps()
+          return IpcResponse.fromJson(
+            request.req_id,
+            200,
+            new IpcHeaders({
+              "Content-Type": "text/json",
+            }),
+            appsInfo,
+            client_ipc
+          )
+        }
+      });
 
     //   /// 开始启动开机项
     //   for (const mmid of this.registeredMmids) {

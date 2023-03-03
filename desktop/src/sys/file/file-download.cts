@@ -1,10 +1,10 @@
 // 下载
 const fs = require('fs');
+const fsPromises = require('node:fs/promises')
 const path = require('path')
 const request = require('request');
 const progress = require('request-progress');
-const tar = require('tar')
-let allocId = 0;
+const extract = require('extract-zip')
 /**
  * 
  * @param url 
@@ -12,14 +12,13 @@ let allocId = 0;
  * @param target 文件保存的地址
  * @returns 
  */
-export function download(url: string, progress_callback: $ProgressCallback): Promise<Boolean>{
-    const tempPath = path.resolve(__dirname, `../../../temp/${Date.now()+allocId++}.gz`)
-    console.log('tempPath: ', tempPath)
+export function download(url: string, app_id: string,  progress_callback: $ProgressCallback, appInfo: string): Promise<Boolean>{
+    const tempPath = path.resolve(__dirname, `../../../temp/${app_id}.zip`)
     return new Promise((resolve, reject)=> {
         progress(request(url), {})
         .on('progress', createOnProgress(progress_callback))
         .on('error', createErrorCallback(reject))
-        .on('end',() => createEndCallback(resolve, reject)(tempPath))
+        .on('end',() => createEndCallback(resolve, reject)(tempPath, app_id, appInfo))
         .pipe(fs.createWriteStream(tempPath, {flags: "wx"})) 
     })
 }
@@ -42,17 +41,20 @@ function createOnProgress(progress_callback: $ProgressCallback){
  * @returns 
  */
 function createEndCallback(resolve: $Resolve<boolean>, reject: $Reject<Error>){
-    return async (tempPath: string) => {
-        const target = `${path.resolve(__dirname, "../../../apps")}`
-        tar.x({
-            file:tempPath,
-            C: target
-        })
-        .then(() => {
-            console.log('解压完成-')
+    return async (tempPath: string, app_id: string, appInfo: string) => {
+        const _appInfo = JSON.parse(appInfo);
+        try {
+            await extract(tempPath, { dir: path.resolve(process.cwd(), `./apps/${app_id}`) })
+            await fsPromises.unlink(tempPath)
+            await fsPromises.writeFile(
+                path.resolve(process.cwd(), `./apps/infos/${_appInfo.id}.json`),
+                appInfo,
+                {encoding: "utf8", flag: "w"}
+            )
             resolve(true)
-        })
-        .catch((err: Error) => console.log('解压失败', err))
+        } catch (err) {
+            reject(err as Error)
+        }
     }
 }
 

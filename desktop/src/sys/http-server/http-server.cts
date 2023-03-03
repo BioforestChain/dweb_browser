@@ -10,6 +10,7 @@ import { defaultErrorResponse } from "./defaultErrorResponse.cjs";
 import type { $DwebHttpServerOptions } from "./net/createNetServer.cjs";
 import { Http1Server } from "./net/Http1Server.cjs";
 import { PortListener } from "./portListener.cjs";
+import chalk from "chalk"
 
 interface $Gateway {
   listener: PortListener;
@@ -30,7 +31,7 @@ export class HttpServerNMM extends NativeMicroModule {
   protected async _bootstrap() {
     const info = await this._dwebServer.create();
     info.server.on("request", (req, res) => {
-      // console.log('[http-server.cts 接受到了 http 请求：]', req)
+      // console.log('[http-server.cts 接受到了 http 请求：]', req.headers.host)
 
       /// 获取 host
       var header_host: string | null = null;
@@ -89,7 +90,9 @@ export class HttpServerNMM extends NativeMicroModule {
 
       /// 在网关中寻址能够处理该 host 的监听者
       const gateway = this._gatewayMap.get(host);
+      // console.log('[http-server.cts 接受到了 http 请求：gateway]',gateway)
       if (gateway == undefined) {
+        console.log(chalk.yellow('[http-server.cts 接受到了没有匹配的 gateway host===]'),host)
         return defaultErrorResponse(
           req,
           res,
@@ -178,7 +181,8 @@ export class HttpServerNMM extends NativeMicroModule {
         this.close(ipc, hostOptions);
       })
     );
-
+    // jmmMetadata.sys.dweb-80.localhost:22605
+    // jmmmetadata.sys.dweb-80.localhost:22605
     const token = Buffer.from(
       crypto.getRandomValues(new Uint8Array(64))
     ).toString("base64url");

@@ -5,7 +5,7 @@ import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
 import { CODE as CODE_desktop_web_mjs } from "./assets/browser.web.cjs";
 import { CODE as CODE_index_html } from "./assets/index.html.cjs";
-
+import html from "../../../assets/html/browser.html"
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 
@@ -14,12 +14,12 @@ import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
  */
 export const main = async () => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人KWKW
+  // 如何启动这个？？ 现在是个问题
   const dwebServer = await createHttpDwebServer(jsProcess, {});
   (await dwebServer.listen()).onRequest(async (request, httpServerIpc) =>
     onRequest(request, httpServerIpc)
   );
 
-  jsProcess.nativeFetch(`file://statusbar.sys.dweb/`);
   await openIndexHtmlAtMWebview(
     dwebServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
@@ -34,39 +34,42 @@ main().catch(console.error);
  * request 事件处理器
  */
 async function onRequest(request: IpcRequest, httpServerIpc: Ipc) {
-  console.log("接受到了请求： request.parsed_url： ", request.parsed_url);
+  console.log("接受到了请求： request.parsed_url.pathname： ", request.parsed_url.pathname);
   switch (request.parsed_url.pathname) {
     case "/":
     case "/index.html":
       onRequestPathNameIndexHtml(request, httpServerIpc);
       break;
-    case "/browser.web.mjs":
-      onRequestPathNameBroserWebMjs(request, httpServerIpc);
+    case "/browser.web.mjs": 
+      onRequestPathNameBroserWebMjs(request, httpServerIpc); 
       break;
-    case "/download":
-      onRequestPathNameDownload(request, httpServerIpc);
+    case "/download": 
+      onRequestPathNameDownload(request, httpServerIpc); 
       break;
-    case "/appsinfo":
-      onRequestPathNameAppsInfo(request, httpServerIpc);
+    case "/appsinfo": 
+      onRequestPathNameAppsInfo(request, httpServerIpc); 
       break;
     case `${
-      request.parsed_url.pathname.startsWith("/icon")
-        ? request.parsed_url.pathname
-        : "**eot**"
-    }`:
-      onRequestPathNameIcon(request, httpServerIpc);
+      request.parsed_url.pathname.startsWith("/icon") 
+      ? request.parsed_url.pathname 
+      : "**eot**"
+    }`: 
+      onRequestPathNameIcon(request, httpServerIpc); 
       break;
-    case `/install`:
-      onRequestPathNameInstall(request, httpServerIpc);
+    case `/install`: 
+      onRequestPathNameInstall(request, httpServerIpc); 
       break;
     case `/open`:
-      onRequestPathNameOpen(request, httpServerIpc);
+      onRequestPathNameOpen(request, httpServerIpc); 
       break;
-    case "/operation_from_plugins":
-      onRequestPathOperation(request, httpServerIpc);
+    case "/operation_from_plugins": 
+      onRequestPathOperation(request, httpServerIpc); 
       break;
-    default:
-      onRequestPathNameNoMatch(request, httpServerIpc);
+    case "/open_webview": 
+      onRequestPathOpenWebview(request, httpServerIpc); 
+      break;
+    default: 
+      onRequestPathNameNoMatch(request, httpServerIpc); 
       break;
   }
 }
@@ -83,8 +86,8 @@ async function onRequestPathNameIndexHtml(
   const result = `<body><script type="text/javascript">${await jsProcess
     .nativeFetch(url)
     .text()}</script>`;
-  let html = (await CODE_index_html(request)).replace("<body>", result);
-
+    // let html = (await CODE_index_html(request)).replace("<body>", result);
+  let _html = html.replace("<body>", result)
   httpServerIpc.postMessage(
     IpcResponse.fromText(
       request.req_id,
@@ -92,7 +95,7 @@ async function onRequestPathNameIndexHtml(
       new IpcHeaders({
         "Content-Type": "text/html",
       }),
-      html,
+      _html,
       httpServerIpc
     )
   );
@@ -150,18 +153,30 @@ async function onRequestPathNameAppsInfo(
   request: IpcRequest,
   httpServerIpc: Ipc
 ) {
+
   const url = `file://file.sys.dweb/appsinfo`;
-  jsProcess
-    .nativeFetch(url)
-    .then(async (res: Response) => {
-      // 转发给 html
-      httpServerIpc.postMessage(
-        await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
-      );
-    })
-    .catch((err) => {
-      console.log("获取全部的 appsInfo 失败： ", err);
-    });
+
+  jsProcess;
+  fetch(url)
+  .then(async (res: Response) => {
+    // 转发给 html
+    httpServerIpc.postMessage(
+      await IpcResponse.fromJson(
+        request.req_id, 
+        200,
+        new IpcHeaders({
+          "content-type": "application/json"
+        }),
+        await res.json(), 
+        httpServerIpc
+      )
+    );
+    console.log('browser.worker.mts 接受到了 appsifo2: ')
+  })
+  .catch((err) => {
+    console.log("获取全部的 appsInfo 失败： ", err);
+  });
+
 }
 
 /**
@@ -169,27 +184,26 @@ async function onRequestPathNameAppsInfo(
  * @param request
  * @param httpServerIpc
  */
-async function onRequestPathNameIcon(request: IpcRequest, httpServerIpc: Ipc) {
-  console.log("获取icon");
-  const path = request.parsed_url.pathname;
-  const arr = path.split("/");
-  console.log("arr:", arr);
+async function onRequestPathNameIcon(request: IpcRequest, httpServerIpc: Ipc){
+  console.log("获取icon")
+  const path = request.parsed_url.pathname
+  const arr = path.split("/")
+  console.log('arr:', arr, path)
   const id = arr[2];
   const iconname = arr[4];
   const url = `file://file.sys.dweb/icon?appId=${id}&name=${iconname}`;
-  jsProcess
-    .nativeFetch(url)
-    .then(async (res: Response) => {
-      // "image/svg+xml"
-      // 转发给 html
-      console.log("转发图片资源: ", res);
-      httpServerIpc.postMessage(
-        await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
-      );
-    })
-    .catch((err) => {
-      console.log("获取icon 资源 失败： ", err);
-    });
+  jsProcess;
+  fetch(url)
+  .then(async(res: Response) => {
+    // "image/svg+xml"
+    // 转发给 html
+    httpServerIpc.postMessage(
+      await IpcResponse.fromResponse(request.req_id,res,httpServerIpc)
+    );
+  })
+  .catch(err => {
+    console.log('获取icon 资源 失败： ', err)
+  })
 }
 
 /**
@@ -250,9 +264,37 @@ async function onRequestPathOperation(request: IpcRequest, httpServerIpc: Ipc) {
 }
 
 /**
- * onRequest 事件处理器 pathname === no match"
- * @param request
- * @param httpServerIpc
+ * onRequest 事件处理器 pathname ===  /open_webview" 
+ * @param request 
+ * @param httpServerIpc 
+ */
+async function onRequestPathOpenWebview(request: IpcRequest, httpServerIpc: Ipc){
+  const mmid = request.parsed_url.searchParams.get('mmid')
+  // 启动
+  jsProcess
+  .fetch(`file://dns.sys.dweb/open?app_id=${mmid}`)
+  .then(async (res: any) => {
+    console.log('返回跳转到下载页面')
+    const json = await res.json()
+    httpServerIpc.postMessage(
+      IpcResponse.fromJson(
+        request.req_id,
+        res.status,
+        new IpcHeaders({
+          'content-type': "appliction/json; chrset=UTF-8"
+        }),
+        json,
+        httpServerIpc
+      )
+    );
+  })
+  .catch((err: any) => console.log('err:', err))
+}
+
+/**
+ * onRequest 事件处理器 pathname === no match" 
+ * @param request 
+ * @param httpServerIpc 
  */
 async function onRequestPathNameNoMatch(
   request: IpcRequest,

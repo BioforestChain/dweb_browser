@@ -26,7 +26,7 @@ class HttpDwebServer {
     readonly startResult: ServerStartResult
   ) {}
   /** 开始处理请求 */
-  async listen(
+  listen = async (
     routes: $ReqMatcher[] = [
       {
         pathname: "/",
@@ -49,7 +49,7 @@ class HttpDwebServer {
         method: "DELETE",
       },
     ]
-  ) {
+  ) => {
     return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
   }
   /** 关闭监听 */

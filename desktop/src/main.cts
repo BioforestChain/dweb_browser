@@ -14,6 +14,8 @@ import { desktopJmm } from "./user/desktop/desktop.main.cjs";
 dns.install(desktopJmm);
 
 // 安装 browser 
+// import { BrowserNMM } from "./sys/browser/browser.main.cjs"
+// dns.install(new BrowserNMM())
 import { browserJMM } from "./user/browser/browser.main.cjs"
 dns.install(browserJMM)
 
@@ -34,9 +36,17 @@ dns.install(new ApiNMM())
 import { StatusbarNMM } from "./sys/statusbar/statusbar.main.cjs"
 dns.install(new StatusbarNMM())
 
+// 安装 navigatorbar.sys.dweb
+import { NavigatorbarNMM } from "./sys/navigator-bar/navigator-bar.cjs";
+dns.install(new NavigatorbarNMM())
+
 // 安装 plugins.sys.dweb 服务
 import { PluginsNMM } from "./sys/plugins/plugins.main.cjs";
 dns.install(new PluginsNMM()) 
+
+// 安装 jmmMetadata.sys.dweb
+import { JMMMetadata } from "./sys/jmm-metadata/jmm-metadata.cjs";
+dns.install(new JMMMetadata())
 
 
 Object.assign(globalThis, { dns: dns });

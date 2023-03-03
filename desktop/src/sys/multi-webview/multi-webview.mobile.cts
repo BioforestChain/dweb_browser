@@ -10,6 +10,7 @@ import {
 } from "../../helper/openNativeWindow.cjs";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 const resolveTo = createResolveTo(__dirname);
+import chalk from "chalk"
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
@@ -48,6 +49,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       }
     ).href;
 
+    // 打开一个新的window对象
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
       matchMode: "full",
@@ -55,9 +57,14 @@ export class MultiWebviewNMM extends NativeMicroModule {
       output: "number",
       handler: async (args, client_ipc, request) => {
         const wapis = await this.forceGetWapis(client_ipc, root_url);
-        return wapis.apis.openWebview(args.url);
+        const webview_id = await wapis.apis.openWebview(args.url);
+        console.log('multi-webview.mobile.cts /open args.url:', args.url)
+        return webview_id
       },
     });
+
+    // 关闭 ？？ 这个是关闭整个window  还是关闭一个 webview 标签
+    // 用来关闭webview标签
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
       matchMode: "full",
@@ -69,12 +76,15 @@ export class MultiWebviewNMM extends NativeMicroModule {
       },
     });
   }
+  
   _shutdown() {
     this._uid_wapis_map.forEach((wapi) => {
       wapi.nww.close();
     });
     this._uid_wapis_map.clear();
   }
+
+  // 是不是可以获取 multi-webviw.html 中的全部api
   private forceGetWapis(ipc: Ipc, root_url: string) {
     return locks.request("multi-webview-get-window-" + ipc.uid, async () => {
       let wapi = this._uid_wapis_map.get(ipc.uid);

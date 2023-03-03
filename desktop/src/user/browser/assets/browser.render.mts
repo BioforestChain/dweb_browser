@@ -120,8 +120,8 @@ class HomePage extends LitElement{
             >
                 <div class="logo-container">logo---</div>
                 <div class="search-container">
-                   <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa"/>
-                   <button class="search-bottom" @click=${this.onSearch} >DOWNLOAD</button>
+                   <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/bfs-metadata.json"/>
+                   <button class="search-bottom" @click=${this.onView} >view</button>
                 </div>
                 <div class="apps-container">
                     ${
@@ -142,15 +142,17 @@ class HomePage extends LitElement{
                 </div>
 
                 <!-- 实验该改变状态栏 -->
-                <button @click=${() => this.setStatusbarBackground("#F00F")}>设置状态栏的颜色 === #F00F</button>
+                <!-- <button @click=${() => this.setStatusbarBackground("#F00F")}>设置状态栏的颜色 === #F00F</button>
                 <button @click=${() => this.setStatusbarBackground("#0F0F")}>设置状态栏的颜色 === #0F0F</button>
                 <button @click=${() => this.setStatusbarBackground("#00FF")}>设置状态栏的颜色 === #00FF</button>
-                <button @click=${() => this.setStatusbarStyle("light")}>设置状态栏的风格 === light</button>
+                <button @click=${() => this.setStatusbarStyle("light")}>设置状态栏的风格 === light</button>onSearch
                 <button @click=${() => this.setStatusbarStyle("dark")}>设置状态栏的风格 === dark</button>
                 <button @click=${() => this.setStatusbarStyle("default")}>设置状态栏的风格 === default</button>
                 <button @click=${() => this.getStatusbarStyle()}>获取状态栏的风格</button>
                 <button @click=${() => this.setStatusbarOverlays("0")}>获取状态栏的overlays 不覆盖</button>
-                <button @click=${() => this.setStatusbarOverlays("1")}>获取状态栏的overlays 覆盖</button>
+                <button @click=${() => this.setStatusbarOverlays("1")}>获取状态栏的overlays 覆盖</button>  -->
+                <!-- <button @click=${() => { open(`/index.html?qaq=${encodeURIComponent(Date.now())}`)}}>open</button>
+               
             </div>
         `
     }
@@ -159,15 +161,31 @@ class HomePage extends LitElement{
         super.connectedCallback();
     }
 
-    onSearch(){
-        fetch(`./download?url=${this.elInput?.value}`)
+    // 查看信息
+    onView = () => {
+        fetch("/open_webview?mmid=jmmmetadata.sys.dweb")
         .then(async (res) => {
-            console.log('下载成功了---res: ', await res.json())
-          
+            console.log('res', res)
+            const result = JSON.parse(await res.json())
+            const origin = result.origin;
+            const url = `${origin}?url=${this.elInput?.value}`
+            console.log('url: ', url)
+            open(url)
+            
         })
-        .then(this.getAllAppsInfo)
-        .catch(err => console.log('下载失败了'))
+        .catch(err => console.log('err')) 
     }
+
+    // // 下载的功能
+    // onSearch(){
+    //     fetch(`./download?url=${this.elInput?.value}`)
+    //     .then(async (res) => {
+    //         console.log('下载成功了---res: ', await res.json())
+          
+    //     })
+    //     .then(this.getAllAppsInfo)
+    //     .catch(err => console.log('下载失败了'))
+    // }
 
     getAllAppsInfo(){
         console.log('开始获取 全部 appsInfo')
@@ -271,9 +289,4 @@ class AppCol extends LitElement{
         return html`<div class="container" style=${_styleMap} ></div>`
     }
 }
-
-
-
- 
-
  

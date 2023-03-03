@@ -13,7 +13,7 @@ const allCss = [
             --navigation-bar-height: 64px;
             --border-radius: 46px;
             --cmera-container-zindex: 999;
-            --bottom-line-container-height:20px;
+            --bottom-line-container-height:10px;
             width:100%;
             height:100%;
         }
@@ -68,8 +68,9 @@ const allCss = [
             scrollbar-width: 2px;
             overflow: hidden;
             overflow-y: auto;
-            /* border: 1px solid red; */
+            background: #fff;
         }
+
         .webview{
             box-sizing: border-box;
             width:100%;
@@ -188,8 +189,6 @@ export class MultiWebViewContent extends LitElement{
                     @load=${() => console.log('statusbar 载入完成')}
                     data-app-url=${this.src}
                 ></iframe>
-                <!-- 底部黑线 -->
-                <div class="bottom-line-container"></div>
                 <!-- 内容容器 -->
                 <div class="webview-container">
                     <!-- 这个 webview 是如何载入的了？？？ -->
@@ -203,6 +202,17 @@ export class MultiWebViewContent extends LitElement{
                         @dom-ready=${this.onDomReady}
                     ></webview>
                 </div>
+                <!-- navigator-bar -->
+                <iframe 
+                    id="navigator-bar"
+                    class="iframe-navigator-bar"
+                    style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden;"
+                    src="http://navigatorbar.sys.dweb-80.localhost:22605"
+                    @load=${() => console.log('navigator-bar 载入完成')}
+                    data-app-url=${this.src}
+                ></iframe>
+                <!-- 底部黑线 -->
+                <div class="bottom-line-container"></div>
             </div>
         `
     }
