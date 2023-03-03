@@ -8,17 +8,18 @@ data class JmmMetadata(
     val title: String = "", // 应用名称
     val subtitle: String = "", // 应用副标题
     val icon: String = "", // 应用图标
-    val downloadUrl: String, // 下载应用地址
-    val images: List<String> = listOf(), // 应用截图
+    val main_url: String = "", // 打开应用地址
+    val downloadUrl: String = "", // 下载应用地址
+    val images: List<String>? = null, // 应用截图
     val introduction: String = "", // 应用描述
-    val author: List<String> = listOf(), // 开发者，作者
+    val author: List<String>? = null, // 开发者，作者
     val version: String = "", // 应用版本
-    val keywords: List<String> = listOf(), // 关键词
+    val keywords: List<String>? = null, // 关键词
     val home: String = "", // 首页地址
     val size: String = "", // 应用大小
     val fileHash: String = "",
-    val permissions: List<Mmid> = listOf(),
-    val plugins: List<String> = listOf(),
+    val permissions: List<Mmid>? = null,
+    val plugins: List<String>? = null,
     val releaseDate:String = "", // 发布时间
     /**
      * 静态网络服务

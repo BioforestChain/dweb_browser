@@ -133,7 +133,7 @@ class DwebBrowserService : Service() {
       App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
         JmmIntent.UpdateDownLoadStatus(DownLoadStatus.Install)
       ) ?: { // 如果完成后发现下载界面没有打开，手动打开
-        JmmManagerActivity.startActivity(jmmMetadata)
+        jmmMetadata?.let { JmmManagerActivity.startActivity(it)  }
       }
       runBlocking { delay(2000) }
       val unzip = ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath())

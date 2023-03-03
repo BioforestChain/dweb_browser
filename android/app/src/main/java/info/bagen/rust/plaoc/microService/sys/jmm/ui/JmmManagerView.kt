@@ -45,12 +45,12 @@ fun MALLBrowserView(
         item { CaptureListView(jmmMetadata = jmmMetadata) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
         item { AppIntroductionView(jmmMetadata = jmmMetadata) }
-        if (jmmMetadata.permissions.isNotEmpty()) {
+        jmmMetadata.permissions?.let { permissions ->
           item { Spacer(modifier = Modifier.height(16.dp)) }
           item { Text(text = "权限列表", fontSize = 24.sp, fontStyle = FontStyle.Normal) }
           item { Spacer(modifier = Modifier.height(16.dp)) }
-          itemsIndexed(jmmMetadata.permissions) { index, mmid ->
-            InstallItemPermissionView(index, mmid, jmmMetadata.permissions.size)
+          itemsIndexed(permissions) { index, mmid ->
+            InstallItemPermissionView(index, mmid, permissions.size)
           }
         }
         item { Spacer(modifier = Modifier.height(60.dp)) }
@@ -244,14 +244,16 @@ private fun HeadContent(jmmMetadata: JmmMetadata) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun CaptureListView(jmmMetadata: JmmMetadata) {
-  LazyRow {
-    items(jmmMetadata.images) {
-      Card(
-        onClick = { /*TODO*/ }, modifier = Modifier
-          .padding(end = 16.dp)
-          .size(135.dp, 240.dp)
-      ) {
-        AsyncImage(model = it, contentDescription = null)
+  jmmMetadata.images?.let { images ->
+    LazyRow {
+      items(images) {
+        Card(
+          onClick = { /*TODO*/ }, modifier = Modifier
+            .padding(end = 16.dp)
+            .size(135.dp, 240.dp)
+        ) {
+          AsyncImage(model = it, contentDescription = null)
+        }
       }
     }
   }
