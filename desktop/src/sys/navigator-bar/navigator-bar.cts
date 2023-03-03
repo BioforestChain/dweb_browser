@@ -5,7 +5,7 @@ import process from "node:process";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
+import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 import chalk from "chalk";
  
 import type { $NativeWindow } from "../../helper/openNativeWindow.cjs";
@@ -32,7 +32,7 @@ export class NavigatorbarNMM extends NativeMicroModule {
     
     async _bootstrap() {
         console.log(chalk.green('[navigatorbar.sys.dweb 启动了]'))
-        const { origin, listen, close } = await createHttpDwebServer(this, {});
+        const {listen, close } = await createHttpDwebServer(this, {});
         this._close_dweb_server = close;
         /// 从本地文件夹中读取数据返回，
         /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
@@ -66,10 +66,11 @@ export class NavigatorbarNMM extends NativeMicroModule {
                 return  IpcResponse.fromText(
                     request.req_id,
                     200,
-                    await reqadHtmlFile(),
                     new IpcHeaders({
                         "Content-type": "text/html"
-                    })
+                    }),
+                    await reqadHtmlFile(),
+                    client_ipc
                 )
             },
         });
@@ -88,10 +89,11 @@ export class NavigatorbarNMM extends NativeMicroModule {
                     return  IpcResponse.fromText(
                         request.req_id,
                         400,
-                        "缺少 app_url 查询参数",
                         new IpcHeaders({
                         "Content-type": "text/plain"
-                        })
+                        }),
+                        "缺少 app_url 查询参数",
+                        client_ipc
                     ) 
                 }
                 
@@ -105,7 +107,7 @@ export class NavigatorbarNMM extends NativeMicroModule {
                         this._pluginsReqestMap.set(appUrlFromApp, statusbarPluginRequest)
                     }
                     statusbarPluginRequest.push({
-                        body: request.body as ReadableStream<Uint8Array>,
+                        body: request.body.raw as ReadableStream<Uint8Array>,
                         callback: (reponse: IpcResponse) => {
                             resolve(reponse)
                         },
@@ -147,12 +149,11 @@ export class NavigatorbarNMM extends NativeMicroModule {
         htmlRequest.ipc.postMessage(
             await IpcResponse.fromStream(
                 htmlRequest.request.req_id,
-                200,
-                operationQueueItem.body as ReadableStream<Uint8Array>,
-                new IpcHeaders({
+                200, new IpcHeaders({
                     "Content-type": "application/json",
                     "id": operationQueueItem.id,
                 }),
+                operationQueueItem.body as ReadableStream<Uint8Array>,
                 htmlRequest.ipc
             )
         )
@@ -183,10 +184,11 @@ async function onRequestAtIndexHtml(request: IpcRequest, ipc: Ipc){
         await IpcResponse.fromText(
             request.req_id,
             200,
-            await reqadHtmlFile(),
             new IpcHeaders({
-            "Content-type": "text/html"
-            })
+                "Content-type": "text/html"
+            }),
+            await reqadHtmlFile(),
+            ipc
         )
         
     );
@@ -204,17 +206,18 @@ async function onRequestatOperationReturn(
     request: IpcRequest,
     ipc: Ipc,
 ){
-    const id = request.headers.id
+    const id = request.headers.get('id')
     const appUrlFromStatusbarHtml = request.parsed_url.searchParams.get("app_url")
     if(!id){
         ipc.postMessage(
             await IpcResponse.fromText(
-            request.req_id,
-            400,
-            "headers 缺少了 id 标识符",
-            new IpcHeaders({
-                "Content-type": "text/plain"
-            }),
+                request.req_id,
+                400,
+                new IpcHeaders({
+                    "Content-type": "text/plain"
+                }),
+                "headers 缺少了 id 标识符",
+                ipc
             )
         )
         return;
@@ -223,12 +226,13 @@ async function onRequestatOperationReturn(
     if(appUrlFromStatusbarHtml === null){
         ipc.postMessage(
             await IpcResponse.fromText(
-            request.req_id,
-            400,
-            "确实少 app_url 查询参数",
-            new IpcHeaders({
-                "Content-type": "text/plain"
-            }),
+                request.req_id,
+                400,
+                new IpcHeaders({
+                    "Content-type": "text/plain"
+                }),
+                "确实少 app_url 查询参数",
+                ipc
             )
         )
         return;
@@ -243,17 +247,19 @@ async function onRequestatOperationReturn(
     let item = pluginsNoReleaseRequest[itemIndex]
                 pluginsNoReleaseRequest.splice(itemIndex, 1)
     // 返回的就是一个 json
-    const data = await readStream(request.body as ReadableStream)
+    const data = await readStream(request.body.raw as ReadableStream)
     console.log('[navigator-bar.cts onRequestatOperationReturn item]', item)
     item
     .callback(
         await IpcResponse.fromJson(
             item.req_id,
             200,
-            data,
             new IpcHeaders({
                 "Content-type": "text/plain"
             }),
+            data,
+            ipc
+            
         )
     )
 
@@ -262,10 +268,11 @@ async function onRequestatOperationReturn(
         await IpcResponse.fromText(
             request.req_id,
             200,
-            "ok",
             new IpcHeaders({
-            "Content-type": "text/plain"
+                "Content-type": "text/plain"
             }),
+            "ok",
+            ipc
         )
     )
 
@@ -288,12 +295,13 @@ async function onRequestOperationFromHtml(
     if(appUrlFromStatusbarHtml === null){
         ipc.postMessage(
             await IpcResponse.fromText(
-            request.req_id,
-            400,
-            "确实少 app_url 查询参数",
-            new IpcHeaders({
-                "Content-type": "text/plain"
-            }),
+                request.req_id,
+                400,
+                new IpcHeaders({
+                    "Content-type": "text/plain"
+                }),
+                "确实少 app_url 查询参数",
+                ipc
             )
         )
         return 

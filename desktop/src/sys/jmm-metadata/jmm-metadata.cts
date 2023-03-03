@@ -3,7 +3,7 @@ const fsPromises = require("fs/promises")
 const path = require('path')
 const process = require('process')
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
+import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import chalk from "chalk"
@@ -19,7 +19,7 @@ export class JMMMetadata extends NativeMicroModule {
 
     async _bootstrap() {
         console.log(chalk.red('[jmm-metadata.cts _bootstramp]'))
-        const { origin, listen, close } = await createHttpDwebServer(this, {});
+        const {listen, close,startResult } = await createHttpDwebServer(this, {});
         this.origin = origin;
         this._close_dweb_server = close;
         ;(await listen()).onRequest(this._onRequestFromHtml)
@@ -43,16 +43,16 @@ export class JMMMetadata extends NativeMicroModule {
         const metadataUrl = request.parsed_url.searchParams.get('url')
         console.log('[jmm-metadata.cts metadataUrl:] ', metadataUrl)
         if(metadataUrl === null) {
-            ipc.postMessage(
-                await IpcResponse.fromText(
-                  request.req_id,
-                  412,
-                  "确实是 查询 metadata.json 的url 参数",
-                  new IpcHeaders({
-                    "Content-type": "text/html"
-                  })
-                )
-            )
+            // ipc.postMessage(
+            //     await IpcResponse.fromText(
+            //       request.req_id,
+            //       412,
+            //       "确实是 查询 metadata.json 的url 参数",
+            //       new IpcHeaders({
+            //         "Content-type": "text/html"
+            //       })
+            //     )
+            // )
             return;
         }
 
@@ -64,16 +64,16 @@ export class JMMMetadata extends NativeMicroModule {
                 window.metadataInfo = ${result};
                 console.log('window', window) </script>
             `) 
-        ipc.postMessage(
-            await IpcResponse.fromText(
-              request.req_id,
-              200,
-              content,
-              new IpcHeaders({
-                "Content-type": "text/html"
-              })
-            )
-        )
+        // ipc.postMessage(
+        //     // await IpcResponse.fromText(
+        //     //   request.req_id,
+        //     //   200,
+        //     //   content,
+        //     //   new IpcHeaders({
+        //     //     "Content-type": "text/html"
+        //     //   })
+        //     // )
+        // )
     }
 
     // 下载
@@ -110,16 +110,16 @@ export class JMMMetadata extends NativeMicroModule {
 
     private _onRequestFromHtmlDefualt = async (request: IpcRequest, ipc: Ipc) => {
         console.log(chalk.red('jmm-metadata onRequest 出错没有匹配的处理器'), request)
-        ipc.postMessage(
-            await IpcResponse.fromText(
-              request.req_id,
-              500,
-              "没有注册匹配的监听器",
-              new IpcHeaders({
-                "Content-type": "text/plain"
-              })
-            )
-        )
+        // ipc.postMessage(
+        //     await IpcResponse.fromText(
+        //       request.req_id,
+        //       500,
+        //       "没有注册匹配的监听器",
+        //       new IpcHeaders({
+        //         "Content-type": "text/plain"
+        //       })
+        //     )
+        // )
         return;
     }
 
@@ -130,15 +130,15 @@ export class JMMMetadata extends NativeMicroModule {
             input: {},
             output: {},
             handler: async (args,client_ipc, request) => {
-                const content = await readHtml()
-                return IpcResponse.fromText(
-                            request.req_id,
-                            200,
-                            content,
-                            new IpcHeaders({
-                                "Content-type": "text/html"
-                            })
-                        )
+                // const content = await readHtml()
+                // return IpcResponse.fromText(
+                //             request.req_id,
+                //             200,
+                //             content,
+                //             new IpcHeaders({
+                //                 "Content-type": "text/html"
+                //             })
+                //         )
                  
             },
         });

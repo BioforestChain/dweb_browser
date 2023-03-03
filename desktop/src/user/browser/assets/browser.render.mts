@@ -150,8 +150,8 @@ class HomePage extends LitElement{
                 <button @click=${() => this.setStatusbarStyle("default")}>设置状态栏的风格 === default</button>
                 <button @click=${() => this.getStatusbarStyle()}>获取状态栏的风格</button>
                 <button @click=${() => this.setStatusbarOverlays("0")}>获取状态栏的overlays 不覆盖</button>
-                <button @click=${() => this.setStatusbarOverlays("1")}>获取状态栏的overlays 覆盖</button> -->
-                <!-- <button @click=${() => { open(`/index.html?qaq=${encodeURIComponent(Date.now())}`)}}>open</button> -->
+                <button @click=${() => this.setStatusbarOverlays("1")}>获取状态栏的overlays 覆盖</button>  -->
+                <!-- <button @click=${() => { open(`/index.html?qaq=${encodeURIComponent(Date.now())}`)}}>open</button>
                
             </div>
         `

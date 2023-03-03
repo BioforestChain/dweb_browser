@@ -19,7 +19,7 @@ export const main = async () => {
     onRequest(request, httpServerIpc)
   );
 
-  jsProcess.fetch(`file://statusbar.sys.dweb/`);
+  // jsProcess.fetch(`file://statusbar.sys.dweb/`);
   await openIndexHtmlAtMWebview(
     dwebServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
