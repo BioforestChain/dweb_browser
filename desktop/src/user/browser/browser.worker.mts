@@ -3,11 +3,11 @@
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
-import { CODE as CODE_desktop_web_mjs } from "./assets/browser.web.cjs";
-import { CODE as CODE_index_html } from "./assets/index.html.cjs";
 import html from "../../../assets/html/browser.html"
+
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
+import { streamReadAll } from "../../helper/readableStreamHelper.cjs";
 
 /**
  * 执行入口函数
@@ -39,9 +39,6 @@ async function onRequest(request: IpcRequest, httpServerIpc: Ipc) {
     case "/":
     case "/index.html":
       onRequestPathNameIndexHtml(request, httpServerIpc);
-      break;
-    case "/browser.web.mjs": 
-      onRequestPathNameBroserWebMjs(request, httpServerIpc); 
       break;
     case "/download": 
       onRequestPathNameDownload(request, httpServerIpc); 
@@ -102,28 +99,6 @@ async function onRequestPathNameIndexHtml(
 }
 
 /**
- * onRequest 事件处理器 pathname === "/browser.web.mjs"
- * @param request
- * @param httpServerIpc
- */
-async function onRequestPathNameBroserWebMjs(
-  request: IpcRequest,
-  httpServerIpc: Ipc
-) {
-  httpServerIpc.postMessage(
-    IpcResponse.fromText(
-      request.req_id,
-      200,
-      new IpcHeaders({
-        "Content-Type": "application/javascript",
-      }),
-      await CODE_desktop_web_mjs(request),
-      httpServerIpc
-    )
-  );
-}
-
-/**
  * onRequest 事件处理器 pathname === "/download"
  * @param request
  * @param httpServerIpc
@@ -159,17 +134,48 @@ async function onRequestPathNameAppsInfo(
   jsProcess;
   fetch(url)
   .then(async (res: Response) => {
+    // 可以正常的读取完整的数据
+    // console.log('res: ', res)
+    // const reader = res.body?.getReader()
+    // let loop = false
+    // let arr: Uint8Array | undefined;
+    // do{
+    //     const {value, done} = await reader?.read() as any;
+    //     loop = !done;
+    //     console.log('done', done)
+    //     console.log('value: ', value)
+    //     if(value){
+    //       if(arr){
+    //         arr = Uint8Array.from([...arr, ...value])
+    //       }else{
+    //         arr = Uint8Array.from([...value])
+    //       }
+    //     }
+    //     // console.log(new TextDecoder().decode(value.buffer))
+    // }while(loop)
+    // console.log('读取完毕', new TextDecoder().decode(arr))
     // 转发给 html
+
+    const ipcResponse = await IpcResponse.fromResponse(
+      request.req_id,
+      res,
+      httpServerIpc
+    )
+    console.log("stream id:",ipcResponse.body.metaBody[1])
+    
+
+    // fromResponse 无法读取完成的数据
     httpServerIpc.postMessage(
-      await IpcResponse.fromJson(
-        request.req_id, 
-        200,
-        new IpcHeaders({
-          "content-type": "application/json"
-        }),
-        await res.json(), 
-        httpServerIpc
-      )
+      // await IpcResponse.fromJson(
+      //   request.req_id, 
+      //   200,
+      //   new IpcHeaders({
+      //     "content-type": "application/json"
+      //   }),
+      //   await res.json(), 
+      //   httpServerIpc
+      // )
+      ipcResponse
     );
     console.log('browser.worker.mts 接受到了 appsifo2: ')
   })

@@ -131,21 +131,43 @@
             fetch(`./appsinfo`)
             .then(async (res) => {
                 console.log('res: ', res)
-                const _json = await res.text()
-                toTwoDimensionalArray(JSON.parse(_json)).forEach((rows, index) => {
-                    let elRow = document.createElement('div')
-                        elRow.setAttribute('class'," row-container")
-                    rows.forEach(col => {
-                        let elCol = document.createElement('div')
-                            elCol.setAttribute('class', "item-container");
-                            elCol.style.backgroundImage = `url('${col.icon}')`
-                            elCol.addEventListener('click', () => onClickIcon(col.id))
-                        elRow.appendChild(elCol)
-                    })
-                    elAppsContainer.appendChild(elRow)
-                })
+                const reader = res.body?.getReader()
+                let loop = false
+                let arr
+                do{
+                    const {value, done} = await reader?.read();
+                    loop = !done;
+                    console.log('done', done)
+                    console.log('value: ', value)
+                    if(value){
+                        if(arr){
+                            arr = Uint8Array.from([...arr, ...value])
+                        }else{
+                            arr = Uint8Array.from([...value])
+                        }
+                    }
+                }while(loop)
+                console.log('读取完毕', new TextDecoder().decode(arr))
+
+                // res.json()
+                // .then(res => console.log('获取到了数据： ',res))
+                // .catch(err => console.log('err: ', err))
+
+                // const _json = await res.text()
+                // toTwoDimensionalArray(JSON.parse(_json)).forEach((rows, index) => {
+                //     let elRow = document.createElement('div')
+                //         elRow.setAttribute('class'," row-container")
+                //     rows.forEach(col => {
+                //         let elCol = document.createElement('div')
+                //             elCol.setAttribute('class', "item-container");
+                //             elCol.style.backgroundImage = `url('${col.icon}')`
+                //             elCol.addEventListener('click', () => onClickIcon(col.id))
+                //         elRow.appendChild(elCol)
+                //     })
+                //     elAppsContainer.appendChild(elRow)
+                // })
                 
-                console.log("获取到了全部的应用列表： ", _json)
+                console.log("获取到了全部的应用列表： ")
 
             })
             .catch(err => {
