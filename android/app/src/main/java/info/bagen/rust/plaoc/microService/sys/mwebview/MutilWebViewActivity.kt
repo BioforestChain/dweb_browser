@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import androidx.core.view.WindowCompat
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 
@@ -113,7 +116,14 @@ open class MutilWebViewActivity : PermissionActivity() {
         upsetRemoteMmid()
 
 
+        // This will lay out our app behind the system bars
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
+
+            val systemUiController = rememberSystemUiController()
+            systemUiController.setSystemBarsColor(Color.Transparent)
+
             RustApplicationTheme {
                 val wc by remember(remoteMmid) { mutableStateOf(controller) }
 
