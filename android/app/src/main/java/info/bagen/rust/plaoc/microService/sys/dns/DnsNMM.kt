@@ -23,9 +23,9 @@ inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
 
 class DnsNMM() : NativeMicroModule("dns.sys.dweb"), DnsMicroModule {
     private val mmMap = mutableMapOf<Mmid, MicroModule>()
-    private val bootstrapContext by lazy { DnsNMMBootstrapContext(this) }
+    val bootstrapContext by lazy { DnsNMMBootstrapContext(this) }
 
-    private class DnsNMMBootstrapContext(override val dns: DnsMicroModule) : BootstrapContext
+    class DnsNMMBootstrapContext(override val dns: DnsMicroModule) : BootstrapContext
 
     suspend fun bootstrap() {
         super.bootstrap(bootstrapContext)
@@ -48,6 +48,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb"), DnsMicroModule {
                 mmMap[mmid]?.let {
                     /** 一个互联实例表 */
                     val ipcMap = connects.getOrPut(fromMM) { mutableMapOf() }
+
                     /**
                      * 一个互联实例
                      */
@@ -115,7 +116,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb"), DnsMicroModule {
     }
 
     /** 打开应用 */
-    private suspend fun open(mmid: Mmid): MicroModule {
+    suspend fun open(mmid: Mmid): MicroModule {
         return running_apps.getOrPut(mmid) {
             query(mmid)?.also {
                 it.bootstrap(bootstrapContext)
@@ -124,7 +125,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb"), DnsMicroModule {
     }
 
     /** 关闭应用 */
-    private suspend fun close(mmid: Mmid): Int {
+    suspend fun close(mmid: Mmid): Int {
         return running_apps.remove(mmid)?.let {
             runCatching {
                 it.shutdown()

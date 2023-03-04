@@ -93,7 +93,7 @@ class DwebTest : AsyncBase() {
         val bootNMM = BootNMM(listOf(httpTestNMM.mmid)).also { dnsNMM.install(it) }
 
         /// 启动
-        dnsNMM.bootstrap(dnsNMM)
+        dnsNMM.bootstrap()
 
 
         prepareReady.await()

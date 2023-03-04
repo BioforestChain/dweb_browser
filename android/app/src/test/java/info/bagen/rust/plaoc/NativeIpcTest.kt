@@ -85,8 +85,8 @@ class NativeIpcTest : AsyncBase() {
             override suspend fun _shutdown() {
             }
         }
-        m0.bootstrap(dns)
-        m1.bootstrap(dns)
+        m0.bootstrap(dns.bootstrapContext)
+        m1.bootstrap(dns.bootstrapContext)
 
 
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
@@ -204,8 +204,9 @@ class NativeIpcTest : AsyncBase() {
                 c2sIpc.request(request)
             } else null
         }
-        mServer.bootstrap(dnsNMM)
-        mClient.bootstrap(dnsNMM)
+
+        mServer.bootstrap(dnsNMM.bootstrapContext)
+        mClient.bootstrap(dnsNMM.bootstrapContext)
 
 
         val clientStreamIpc = ReadableStreamIpc(mClient, IPC_ROLE.CLIENT)

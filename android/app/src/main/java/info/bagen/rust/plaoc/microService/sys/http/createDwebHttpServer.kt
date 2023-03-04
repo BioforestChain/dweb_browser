@@ -4,7 +4,7 @@ import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
-import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
+import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -36,7 +36,7 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
 
 
 suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<Gateway.RouteConfig>) =
-    ReadableStreamIpc(this, IPC_ROLE.CLIENT).also {
+    ReadableStreamIpc(this, IPC_ROLE.CLIENT.role).also {
         it.bindIncomeStream(
             this.nativeFetch(
                 Request(

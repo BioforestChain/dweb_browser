@@ -4,10 +4,12 @@ import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
-import info.bagen.rust.plaoc.microService.helper.printerrln
 import info.bagen.rust.plaoc.microService.ipc.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 inline fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("message-port-ipc", tag, msg, err)
@@ -15,9 +17,9 @@ inline fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = nul
 open class MessagePortIpc(
     val port: WebMessagePort,
     override val remote: MicroModule,
-    override val role: IPC_ROLE,
+    private val role_type: IPC_ROLE,
 ) : Ipc() {
-
+    override val role get() = role_type.role
     override fun toString(): String {
         return super.toString() + "@MessagePortIpc"
     }
@@ -33,9 +35,7 @@ open class MessagePortIpc(
         port.setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
-                CoroutineScope(CoroutineName(this.toString()) + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
-                    printerrln("$ctx/$ipc", e.message, e)
-                }).launch {
+                CoroutineScope(CoroutineName(this.toString()) + ioAsyncExceptionHandler).launch {
                     when (val message = jsonToIpcMessage(event.data, ipc)) {
                         "close" -> close()
                         "ping" -> port.postMessage(WebMessage("pong"))

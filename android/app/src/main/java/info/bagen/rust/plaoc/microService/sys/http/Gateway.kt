@@ -4,7 +4,7 @@ import info.bagen.rust.plaoc.microService.helper.SimpleCallback
 import info.bagen.rust.plaoc.microService.helper.SimpleSignal
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
-import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
+import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import org.http4k.core.Request
 import org.http4k.core.Response
 

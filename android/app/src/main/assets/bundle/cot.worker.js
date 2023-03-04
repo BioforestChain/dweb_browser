@@ -1,6 +1,6 @@
 // src/user/cot/cot.worker.mts
 var main = async () => {
-  const { IpcResponse } = ipc;
+  const { IpcResponse, IpcHeaders } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443
@@ -21,12 +21,17 @@ var main = async () => {
     if (pathname.startsWith("/assets/") === false) {
       pathname = "/locales/zh-Hans" + pathname;
     }
+    console.time(`open file ${pathname}`);
+    const remoteIpcResponse = await jsProcess.nativeRequest(
+      `file:///cot/COT-beta-202302222200${pathname}`
+    );
+    console.timeEnd(`open file ${pathname}`, remoteIpcResponse.body.metaBody);
     ipc2.postMessage(
-      await IpcResponse.fromResponse(
+      new IpcResponse(
         request.req_id,
-        await jsProcess.nativeFetch(
-          `file:///cot/COT-beta-202302222200${pathname}`
-        ),
+        remoteIpcResponse.statusCode,
+        remoteIpcResponse.headers,
+        remoteIpcResponse.body,
         ipc2
       )
     );

@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService
 
 import info.bagen.rust.plaoc.microService.browser.BrowserNMM
+import info.bagen.rust.plaoc.microService.helper.debugTags
 import info.bagen.rust.plaoc.microService.sys.boot.BootNMM
 import info.bagen.rust.plaoc.microService.sys.dns.DnsNMM
 import info.bagen.rust.plaoc.microService.sys.http.HttpNMM
@@ -22,11 +23,14 @@ import info.bagen.rust.plaoc.microService.user.CotJMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 
 suspend fun startDwebBrowser() {
-    System.setProperty("dweb-debug", listOf<String>(
-//        "message-port-ipc",
-//        "stream-ipc",
-//        "stream",
-    ).joinToString(" ") { it })
+    debugTags.addAll(
+        listOf<String>(
+             "message-port-ipc",
+             "stream-ipc",
+             "stream",
+            "TIME-DURATION"
+        )
+    )
 
     val dnsNMM = DnsNMM()
 

@@ -62,6 +62,40 @@ private fun localeFileFetch(remote: MicroModule, request: Request) =
         else -> null
     }
 
+
+
+// /**
+//  * 加载本地文件
+//  */
+// private fun localeFileFetch(remote: MicroModule, request: Request) = when {
+//     request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
+//         timeStart("assets.open: ${request.uri.path}")
+//         /**
+//          * 打开一个读取流
+//          */
+//         val bodyContent = App.appContext.assets.open(
+//             /** 移除开头的斜杠 */
+//             request.uri.path.substring(1)
+//         )
+//         timeEnd("assets.open: ${request.uri.path}")
+
+//         var response = Response(status = Status.OK).body(bodyContent)
+//         /// 尝试加入 Content-Type
+//         val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
+//         if (extension != null) {
+//             val type = mimeTypeMap.getMimeTypeFromExtension(extension)
+//             if (type != null) {
+//                 response = response.header("Content-Type", type)
+//             }
+//         }
+
+//         response
+//     }.getOrElse {
+//         Response(Status.NOT_FOUND).body("the ${request.uri.path} file not found.")
+//     }
+//     else -> null
+// }
+
 val networkFetch =
     ApacheClient(responseBodyMode = BodyMode.Stream, requestBodyMode = BodyMode.Stream)
 

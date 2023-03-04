@@ -3592,19 +3592,24 @@ var JsProcessMicroModule = class {
   }
   async _nativeFetch(url, init) {
     const args = normalizeFetchArgs(url, init);
-    const { parsed_url } = args;
-    if (parsed_url.protocol === "file:" && (parsed_url.hostname === "" || parsed_url.hostname.endsWith(".dweb"))) {
-      const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
-      const ipc_response = await this.fetchIpc.request(
-        parsed_url.href,
-        ipc_req_init
-      );
-      return ipc_response.toResponse(parsed_url.href);
-    }
-    return fetch(args.parsed_url, args.request_init);
+    const ipc_response = await this._nativeRequest(
+      args.parsed_url,
+      args.request_init
+    );
+    return await ipc_response.toResponse(args.parsed_url.href);
   }
+  /** 模拟fetch的返回值 */
   nativeFetch(url, init) {
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
+  }
+  async _nativeRequest(parsed_url, request_init) {
+    const ipc_req_init = await $readRequestAsIpcRequest(request_init);
+    return await this.fetchIpc.request(parsed_url.href, ipc_req_init);
+  }
+  /** 同 ipc.request，只不过使用 fetch 接口的输入参数 */
+  nativeRequest(url, init) {
+    const args = normalizeFetchArgs(url, init);
+    return this._nativeRequest(args.parsed_url, args.request_init);
   }
 };
 var waitFetchPort = () => {

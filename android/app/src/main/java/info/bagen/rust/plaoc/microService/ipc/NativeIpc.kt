@@ -12,8 +12,9 @@ inline fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
 class NativeIpc(
     val port: NativePort<IpcMessage, IpcMessage>,
     override val remote: MicroModule,
-    override val role: IPC_ROLE,
+    private val role_type: IPC_ROLE,
 ) : Ipc() {
+    override val role get() = role_type.role
     override fun toString(): String {
         return super.toString() + "@NativeIpc"
     }

@@ -57,7 +57,7 @@ export abstract class Ipc {
   protected _support_binary = false;
 
   abstract readonly remote: $MicroModule;
-  abstract readonly role: IPC_ROLE;
+  abstract readonly role: string;
 
   protected _messageSignal = createSignal<$OnIpcMessage>();
   postMessage(message: $IpcMessage): void {

@@ -1,7 +1,10 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -127,6 +130,7 @@ class IpcBodySender(
         }
     }
 
+
     init {
         wm[raw] = this
 
@@ -241,9 +245,7 @@ class IpcBodySender(
         val stream_id = getStreamId(stream)
         debugStream("sender/StreamAsMeta/INIT/$stream", stream_id)
         val streamAsMetaScope =
-            CoroutineScope(CoroutineName("sender/StreamAsMeta/$stream/$stream_id") + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
-                printerrln(ctx.toString(), e.message, e)
-            })
+            CoroutineScope(CoroutineName("sender/StreamAsMeta/$stream/$stream_id") + ioAsyncExceptionHandler)
 
         suspend fun sender() {
             /// 如果原本就不为0，那么就说明已经在运行中了

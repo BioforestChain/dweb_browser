@@ -1,8 +1,8 @@
-package info.bagen.rust.plaoc.microService.ipc.ipcWeb
+package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
-import info.bagen.rust.plaoc.microService.ipc.*
+import info.bagen.rust.plaoc.microService.ipc.ipcWeb.jsonToIpcMessage
 import kotlinx.coroutines.*
 import java.io.InputStream
 
@@ -18,7 +18,7 @@ inline fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
  */
 class ReadableStreamIpc(
     override val remote: MicroModule,
-    override val role: IPC_ROLE,
+    override val role: String,
 ) : Ipc() {
     override fun toString(): String {
         return super.toString() + "@ReadableStreamIpc"
@@ -63,9 +63,7 @@ class ReadableStreamIpc(
             }
         }
         _incomeStream = stream
-        CoroutineScope(CoroutineName(coroutineName) + Dispatchers.IO + CoroutineExceptionHandler { ctx, e ->
-            printerrln("$ctx/$stream", e.message, e)
-        }).launch {
+        CoroutineScope(CoroutineName(coroutineName) + ioAsyncExceptionHandler).launch {
 
             // 如果通道关闭并且没有剩余字节可供读取，则返回 true
             while (stream.available() > 0) {
@@ -77,8 +75,7 @@ class ReadableStreamIpc(
                 val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
                 debugStreamIpc("size/$stream", size)
 
-                val message =
-                    jsonToIpcMessage(chunk, this@ReadableStreamIpc)
+                val message = jsonToIpcMessage(chunk, this@ReadableStreamIpc)
                 when (message) {
                     "close" -> close()
                     "ping" -> enqueue(PONG_DATA)
@@ -87,8 +84,7 @@ class ReadableStreamIpc(
                         debugStreamIpc("ON-MESSAGE/${this@ReadableStreamIpc}", message)
                         _messageSignal.emit(
                             IpcMessageArgs(
-                                message,
-                                this@ReadableStreamIpc
+                                message, this@ReadableStreamIpc
                             )
                         )
                     }

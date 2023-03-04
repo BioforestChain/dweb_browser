@@ -9,8 +9,8 @@ import info.bagen.rust.plaoc.microService.helper.stream
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcResponse
+import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.Native2JsIpc
-import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import org.http4k.core.*
 
@@ -31,7 +31,7 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
         debugJMM("bootstrap...", "$mmid/$metadata")
         val pid = rand(1, 1000)
         processId = pid
-        val streamIpc = ReadableStreamIpc(this, IPC_ROLE.CLIENT)
+        val streamIpc = ReadableStreamIpc(this, IPC_ROLE.CLIENT.role)
         streamIpc.onRequest { (request, ipc) ->
             val response = if (request.uri.path.endsWith("/")) {
                 Response(Status.FORBIDDEN)

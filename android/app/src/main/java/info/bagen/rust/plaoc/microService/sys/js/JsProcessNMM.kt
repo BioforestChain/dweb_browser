@@ -7,11 +7,7 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.encodeURI
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.text
-import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
-import info.bagen.rust.plaoc.microService.ipc.Ipc
-import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
-import info.bagen.rust.plaoc.microService.ipc.IpcResponse
-import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
+import info.bagen.rust.plaoc.microService.ipc.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
@@ -49,8 +45,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     private val INTERNAL_PATH = "/<internal>".encodeURI()
 
 
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
- {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
 
         /// 主页的网页服务
         val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
@@ -125,7 +120,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         /**
          * 远端是代码服务，所以这里是 client 的身份
          */
-        val streamIpc = ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT).also {
+        val streamIpc = ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT.role).also {
             it.bindIncomeStream(requestMessage.body.stream, "code-proxy-server");
         }
 

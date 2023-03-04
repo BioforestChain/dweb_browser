@@ -7,7 +7,7 @@ import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.toBase64Url
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
-import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
+import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
 import info.bagen.rust.plaoc.microService.sys.dns.networkFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.Http1Server
@@ -222,7 +222,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
         val streamIpc = ReadableStreamIpc(
             gateway.listener.ipc.remote,
-            IPC_ROLE.SERVER
+            IPC_ROLE.SERVER.role
         )
         streamIpc.bindIncomeStream(message.body.stream, "http-gateway")
         for (routeConfig in routes) {

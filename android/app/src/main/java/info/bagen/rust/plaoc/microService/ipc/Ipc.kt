@@ -38,7 +38,7 @@ abstract class Ipc {
     open val supportBinary: Boolean = false // get() = supportMessagePack || supportProtobuf
 
     abstract val remote: MicroModule
-    abstract val role: IPC_ROLE
+    abstract val role: String
 
     override fun toString() = "#i$uid"
 
