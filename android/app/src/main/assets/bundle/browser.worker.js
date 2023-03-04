@@ -42,9 +42,9 @@ var __privateSet = (obj, member, value, setter) => {
   return value;
 };
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js
+// node_modules/lodash/_trimmedEndIndex.js
 var require_trimmedEndIndex = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
+  "node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
     var reWhitespace = /\s/;
     function trimmedEndIndex(string) {
       var index = string.length;
@@ -56,9 +56,9 @@ var require_trimmedEndIndex = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js
+// node_modules/lodash/_baseTrim.js
 var require_baseTrim = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js"(exports, module) {
+  "node_modules/lodash/_baseTrim.js"(exports, module) {
     var trimmedEndIndex = require_trimmedEndIndex();
     var reTrimStart = /^\s+/;
     function baseTrim(string) {
@@ -68,9 +68,9 @@ var require_baseTrim = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js
+// node_modules/lodash/isObject.js
 var require_isObject = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js"(exports, module) {
+  "node_modules/lodash/isObject.js"(exports, module) {
     function isObject(value) {
       var type = typeof value;
       return value != null && (type == "object" || type == "function");
@@ -79,17 +79,17 @@ var require_isObject = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js
+// node_modules/lodash/_freeGlobal.js
 var require_freeGlobal = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js"(exports, module) {
+  "node_modules/lodash/_freeGlobal.js"(exports, module) {
     var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
     module.exports = freeGlobal;
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js
+// node_modules/lodash/_root.js
 var require_root = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js"(exports, module) {
+  "node_modules/lodash/_root.js"(exports, module) {
     var freeGlobal = require_freeGlobal();
     var freeSelf = typeof self == "object" && self && self.Object === Object && self;
     var root = freeGlobal || freeSelf || Function("return this")();
@@ -97,18 +97,18 @@ var require_root = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js
+// node_modules/lodash/_Symbol.js
 var require_Symbol = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js"(exports, module) {
+  "node_modules/lodash/_Symbol.js"(exports, module) {
     var root = require_root();
     var Symbol2 = root.Symbol;
     module.exports = Symbol2;
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js
+// node_modules/lodash/_getRawTag.js
 var require_getRawTag = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js"(exports, module) {
+  "node_modules/lodash/_getRawTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var objectProto = Object.prototype;
     var hasOwnProperty = objectProto.hasOwnProperty;
@@ -135,9 +135,9 @@ var require_getRawTag = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js
+// node_modules/lodash/_objectToString.js
 var require_objectToString = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js"(exports, module) {
+  "node_modules/lodash/_objectToString.js"(exports, module) {
     var objectProto = Object.prototype;
     var nativeObjectToString = objectProto.toString;
     function objectToString(value) {
@@ -147,9 +147,9 @@ var require_objectToString = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js
+// node_modules/lodash/_baseGetTag.js
 var require_baseGetTag = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js"(exports, module) {
+  "node_modules/lodash/_baseGetTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var getRawTag = require_getRawTag();
     var objectToString = require_objectToString();
@@ -166,9 +166,9 @@ var require_baseGetTag = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js
+// node_modules/lodash/isObjectLike.js
 var require_isObjectLike = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js"(exports, module) {
+  "node_modules/lodash/isObjectLike.js"(exports, module) {
     function isObjectLike(value) {
       return value != null && typeof value == "object";
     }
@@ -176,9 +176,9 @@ var require_isObjectLike = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js
+// node_modules/lodash/isSymbol.js
 var require_isSymbol = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js"(exports, module) {
+  "node_modules/lodash/isSymbol.js"(exports, module) {
     var baseGetTag = require_baseGetTag();
     var isObjectLike = require_isObjectLike();
     var symbolTag = "[object Symbol]";
@@ -189,9 +189,9 @@ var require_isSymbol = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js
+// node_modules/lodash/toNumber.js
 var require_toNumber = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js"(exports, module) {
+  "node_modules/lodash/toNumber.js"(exports, module) {
     var baseTrim = require_baseTrim();
     var isObject = require_isObject();
     var isSymbol = require_isSymbol();
@@ -222,9 +222,9 @@ var require_toNumber = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js
+// node_modules/lodash/toFinite.js
 var require_toFinite = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js"(exports, module) {
+  "node_modules/lodash/toFinite.js"(exports, module) {
     var toNumber = require_toNumber();
     var INFINITY = 1 / 0;
     var MAX_INTEGER = 17976931348623157e292;
@@ -243,9 +243,9 @@ var require_toFinite = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js
+// node_modules/lodash/toInteger.js
 var require_toInteger = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js"(exports, module) {
+  "node_modules/lodash/toInteger.js"(exports, module) {
     var toFinite = require_toFinite();
     function toInteger(value) {
       var result = toFinite(value), remainder = result % 1;
@@ -255,9 +255,9 @@ var require_toInteger = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js
+// node_modules/lodash/before.js
 var require_before = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js"(exports, module) {
+  "node_modules/lodash/before.js"(exports, module) {
     var toInteger = require_toInteger();
     var FUNC_ERROR_TEXT = "Expected a function";
     function before(n, func) {
@@ -280,9 +280,9 @@ var require_before = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js
+// node_modules/lodash/once.js
 var require_once = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js"(exports, module) {
+  "node_modules/lodash/once.js"(exports, module) {
     var before = require_before();
     function once6(func) {
       return before(2, func);
@@ -291,19 +291,6 @@ var require_once = __commonJS({
   }
 });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-// bundle/browser.render.txt
-var require_browser_render = __commonJS({
-  "bundle/browser.render.txt"(exports, module) {
-    module.exports = 'var __defProp = Object.defineProperty;\nvar __getOwnPropDesc = Object.getOwnPropertyDescriptor;\nvar __decorateClass = (decorators, target, key, kind) => {\n  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;\n  for (var i7 = decorators.length - 1, decorator; i7 >= 0; i7--)\n    if (decorator = decorators[i7])\n      result = (kind ? decorator(target, key, result) : decorator(result)) || result;\n  if (kind && result)\n    __defProp(target, key, result);\n  return result;\n};\n\n// node_modules/@lit/reactive-element/css-tag.js\nvar t = window;\nvar e = t.ShadowRoot && (void 0 === t.ShadyCSS || t.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype;\nvar s = Symbol();\nvar n = /* @__PURE__ */ new WeakMap();\nvar o = class {\n  constructor(t4, e8, n6) {\n    if (this._$cssResult$ = true, n6 !== s)\n      throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");\n    this.cssText = t4, this.t = e8;\n  }\n  get styleSheet() {\n    let t4 = this.o;\n    const s6 = this.t;\n    if (e && void 0 === t4) {\n      const e8 = void 0 !== s6 && 1 === s6.length;\n      e8 && (t4 = n.get(s6)), void 0 === t4 && ((this.o = t4 = new CSSStyleSheet()).replaceSync(this.cssText), e8 && n.set(s6, t4));\n    }\n    return t4;\n  }\n  toString() {\n    return this.cssText;\n  }\n};\nvar r = (t4) => new o("string" == typeof t4 ? t4 : t4 + "", void 0, s);\nvar i = (t4, ...e8) => {\n  const n6 = 1 === t4.length ? t4[0] : e8.reduce((e9, s6, n7) => e9 + ((t5) => {\n    if (true === t5._$cssResult$)\n      return t5.cssText;\n    if ("number" == typeof t5)\n      return t5;\n    throw Error("Value passed to \'css\' function must be a \'css\' function result: " + t5 + ". Use \'unsafeCSS\' to pass non-literal values, but take care to ensure page security.");\n  })(s6) + t4[n7 + 1], t4[0]);\n  return new o(n6, t4, s);\n};\nvar S = (s6, n6) => {\n  e ? s6.adoptedStyleSheets = n6.map((t4) => t4 instanceof CSSStyleSheet ? t4 : t4.styleSheet) : n6.forEach((e8) => {\n    const n7 = document.createElement("style"), o6 = t.litNonce;\n    void 0 !== o6 && n7.setAttribute("nonce", o6), n7.textContent = e8.cssText, s6.appendChild(n7);\n  });\n};\nvar c = e ? (t4) => t4 : (t4) => t4 instanceof CSSStyleSheet ? ((t5) => {\n  let e8 = "";\n  for (const s6 of t5.cssRules)\n    e8 += s6.cssText;\n  return r(e8);\n})(t4) : t4;\n\n// node_modules/@lit/reactive-element/reactive-element.js\nvar s2;\nvar e2 = window;\nvar r2 = e2.trustedTypes;\nvar h = r2 ? r2.emptyScript : "";\nvar o2 = e2.reactiveElementPolyfillSupport;\nvar n2 = { toAttribute(t4, i7) {\n  switch (i7) {\n    case Boolean:\n      t4 = t4 ? h : null;\n      break;\n    case Object:\n    case Array:\n      t4 = null == t4 ? t4 : JSON.stringify(t4);\n  }\n  return t4;\n}, fromAttribute(t4, i7) {\n  let s6 = t4;\n  switch (i7) {\n    case Boolean:\n      s6 = null !== t4;\n      break;\n    case Number:\n      s6 = null === t4 ? null : Number(t4);\n      break;\n    case Object:\n    case Array:\n      try {\n        s6 = JSON.parse(t4);\n      } catch (t5) {\n        s6 = null;\n      }\n  }\n  return s6;\n} };\nvar a = (t4, i7) => i7 !== t4 && (i7 == i7 || t4 == t4);\nvar l = { attribute: true, type: String, converter: n2, reflect: false, hasChanged: a };\nvar d = class extends HTMLElement {\n  constructor() {\n    super(), this._$Ei = /* @__PURE__ */ new Map(), this.isUpdatePending = false, this.hasUpdated = false, this._$El = null, this.u();\n  }\n  static addInitializer(t4) {\n    var i7;\n    this.finalize(), (null !== (i7 = this.h) && void 0 !== i7 ? i7 : this.h = []).push(t4);\n  }\n  static get observedAttributes() {\n    this.finalize();\n    const t4 = [];\n    return this.elementProperties.forEach((i7, s6) => {\n      const e8 = this._$Ep(s6, i7);\n      void 0 !== e8 && (this._$Ev.set(e8, s6), t4.push(e8));\n    }), t4;\n  }\n  static createProperty(t4, i7 = l) {\n    if (i7.state && (i7.attribute = false), this.finalize(), this.elementProperties.set(t4, i7), !i7.noAccessor && !this.prototype.hasOwnProperty(t4)) {\n      const s6 = "symbol" == typeof t4 ? Symbol() : "__" + t4, e8 = this.getPropertyDescriptor(t4, s6, i7);\n      void 0 !== e8 && Object.defineProperty(this.prototype, t4, e8);\n    }\n  }\n  static getPropertyDescriptor(t4, i7, s6) {\n    return { get() {\n      return this[i7];\n    }, set(e8) {\n      const r5 = this[t4];\n      this[i7] = e8, this.requestUpdate(t4, r5, s6);\n    }, configurable: true, enumerable: true };\n  }\n  static getPropertyOptions(t4) {\n    return this.elementProperties.get(t4) || l;\n  }\n  static finalize() {\n    if (this.hasOwnProperty("finalized"))\n      return false;\n    this.finalized = true;\n    const t4 = Object.getPrototypeOf(this);\n    if (t4.finalize(), void 0 !== t4.h && (this.h = [...t4.h]), this.elementProperties = new Map(t4.elementProperties), this._$Ev = /* @__PURE__ */ new Map(), this.hasOwnProperty("properties")) {\n      const t5 = this.properties, i7 = [...Object.getOwnPropertyNames(t5), ...Object.getOwnPropertySymbols(t5)];\n      for (const s6 of i7)\n        this.createProperty(s6, t5[s6]);\n    }\n    return this.elementStyles = this.finalizeStyles(this.styles), true;\n  }\n  static finalizeStyles(i7) {\n    const s6 = [];\n    if (Array.isArray(i7)) {\n      const e8 = new Set(i7.flat(1 / 0).reverse());\n      for (const i8 of e8)\n        s6.unshift(c(i8));\n    } else\n      void 0 !== i7 && s6.push(c(i7));\n    return s6;\n  }\n  static _$Ep(t4, i7) {\n    const s6 = i7.attribute;\n    return false === s6 ? void 0 : "string" == typeof s6 ? s6 : "string" == typeof t4 ? t4.toLowerCase() : void 0;\n  }\n  u() {\n    var t4;\n    this._$E_ = new Promise((t5) => this.enableUpdating = t5), this._$AL = /* @__PURE__ */ new Map(), this._$Eg(), this.requestUpdate(), null === (t4 = this.constructor.h) || void 0 === t4 || t4.forEach((t5) => t5(this));\n  }\n  addController(t4) {\n    var i7, s6;\n    (null !== (i7 = this._$ES) && void 0 !== i7 ? i7 : this._$ES = []).push(t4), void 0 !== this.renderRoot && this.isConnected && (null === (s6 = t4.hostConnected) || void 0 === s6 || s6.call(t4));\n  }\n  removeController(t4) {\n    var i7;\n    null === (i7 = this._$ES) || void 0 === i7 || i7.splice(this._$ES.indexOf(t4) >>> 0, 1);\n  }\n  _$Eg() {\n    this.constructor.elementProperties.forEach((t4, i7) => {\n      this.hasOwnProperty(i7) && (this._$Ei.set(i7, this[i7]), delete this[i7]);\n    });\n  }\n  createRenderRoot() {\n    var t4;\n    const s6 = null !== (t4 = this.shadowRoot) && void 0 !== t4 ? t4 : this.attachShadow(this.constructor.shadowRootOptions);\n    return S(s6, this.constructor.elementStyles), s6;\n  }\n  connectedCallback() {\n    var t4;\n    void 0 === this.renderRoot && (this.renderRoot = this.createRenderRoot()), this.enableUpdating(true), null === (t4 = this._$ES) || void 0 === t4 || t4.forEach((t5) => {\n      var i7;\n      return null === (i7 = t5.hostConnected) || void 0 === i7 ? void 0 : i7.call(t5);\n    });\n  }\n  enableUpdating(t4) {\n  }\n  disconnectedCallback() {\n    var t4;\n    null === (t4 = this._$ES) || void 0 === t4 || t4.forEach((t5) => {\n      var i7;\n      return null === (i7 = t5.hostDisconnected) || void 0 === i7 ? void 0 : i7.call(t5);\n    });\n  }\n  attributeChangedCallback(t4, i7, s6) {\n    this._$AK(t4, s6);\n  }\n  _$EO(t4, i7, s6 = l) {\n    var e8;\n    const r5 = this.constructor._$Ep(t4, s6);\n    if (void 0 !== r5 && true === s6.reflect) {\n      const h3 = (void 0 !== (null === (e8 = s6.converter) || void 0 === e8 ? void 0 : e8.toAttribute) ? s6.converter : n2).toAttribute(i7, s6.type);\n      this._$El = t4, null == h3 ? this.removeAttribute(r5) : this.setAttribute(r5, h3), this._$El = null;\n    }\n  }\n  _$AK(t4, i7) {\n    var s6;\n    const e8 = this.constructor, r5 = e8._$Ev.get(t4);\n    if (void 0 !== r5 && this._$El !== r5) {\n      const t5 = e8.getPropertyOptions(r5), h3 = "function" == typeof t5.converter ? { fromAttribute: t5.converter } : void 0 !== (null === (s6 = t5.converter) || void 0 === s6 ? void 0 : s6.fromAttribute) ? t5.converter : n2;\n      this._$El = r5, this[r5] = h3.fromAttribute(i7, t5.type), this._$El = null;\n    }\n  }\n  requestUpdate(t4, i7, s6) {\n    let e8 = true;\n    void 0 !== t4 && (((s6 = s6 || this.constructor.getPropertyOptions(t4)).hasChanged || a)(this[t4], i7) ? (this._$AL.has(t4) || this._$AL.set(t4, i7), true === s6.reflect && this._$El !== t4 && (void 0 === this._$EC && (this._$EC = /* @__PURE__ */ new Map()), this._$EC.set(t4, s6))) : e8 = false), !this.isUpdatePending && e8 && (this._$E_ = this._$Ej());\n  }\n  async _$Ej() {\n    this.isUpdatePending = true;\n    try {\n      await this._$E_;\n    } catch (t5) {\n      Promise.reject(t5);\n    }\n    const t4 = this.scheduleUpdate();\n    return null != t4 && await t4, !this.isUpdatePending;\n  }\n  scheduleUpdate() {\n    return this.performUpdate();\n  }\n  performUpdate() {\n    var t4;\n    if (!this.isUpdatePending)\n      return;\n    this.hasUpdated, this._$Ei && (this._$Ei.forEach((t5, i8) => this[i8] = t5), this._$Ei = void 0);\n    let i7 = false;\n    const s6 = this._$AL;\n    try {\n      i7 = this.shouldUpdate(s6), i7 ? (this.willUpdate(s6), null === (t4 = this._$ES) || void 0 === t4 || t4.forEach((t5) => {\n        var i8;\n        return null === (i8 = t5.hostUpdate) || void 0 === i8 ? void 0 : i8.call(t5);\n      }), this.update(s6)) : this._$Ek();\n    } catch (t5) {\n      throw i7 = false, this._$Ek(), t5;\n    }\n    i7 && this._$AE(s6);\n  }\n  willUpdate(t4) {\n  }\n  _$AE(t4) {\n    var i7;\n    null === (i7 = this._$ES) || void 0 === i7 || i7.forEach((t5) => {\n      var i8;\n      return null === (i8 = t5.hostUpdated) || void 0 === i8 ? void 0 : i8.call(t5);\n    }), this.hasUpdated || (this.hasUpdated = true, this.firstUpdated(t4)), this.updated(t4);\n  }\n  _$Ek() {\n    this._$AL = /* @__PURE__ */ new Map(), this.isUpdatePending = false;\n  }\n  get updateComplete() {\n    return this.getUpdateComplete();\n  }\n  getUpdateComplete() {\n    return this._$E_;\n  }\n  shouldUpdate(t4) {\n    return true;\n  }\n  update(t4) {\n    void 0 !== this._$EC && (this._$EC.forEach((t5, i7) => this._$EO(i7, this[i7], t5)), this._$EC = void 0), this._$Ek();\n  }\n  updated(t4) {\n  }\n  firstUpdated(t4) {\n  }\n};\nd.finalized = true, d.elementProperties = /* @__PURE__ */ new Map(), d.elementStyles = [], d.shadowRootOptions = { mode: "open" }, null == o2 || o2({ ReactiveElement: d }), (null !== (s2 = e2.reactiveElementVersions) && void 0 !== s2 ? s2 : e2.reactiveElementVersions = []).push("1.6.1");\n\n// node_modules/lit-html/lit-html.js\nvar t2;\nvar i2 = window;\nvar s3 = i2.trustedTypes;\nvar e3 = s3 ? s3.createPolicy("lit-html", { createHTML: (t4) => t4 }) : void 0;\nvar o3 = `lit$${(Math.random() + "").slice(9)}$`;\nvar n3 = "?" + o3;\nvar l2 = `<${n3}>`;\nvar h2 = document;\nvar r3 = (t4 = "") => h2.createComment(t4);\nvar d2 = (t4) => null === t4 || "object" != typeof t4 && "function" != typeof t4;\nvar u = Array.isArray;\nvar c2 = (t4) => u(t4) || "function" == typeof (null == t4 ? void 0 : t4[Symbol.iterator]);\nvar v = /<(?:(!--|\\/[^a-zA-Z])|(\\/?[a-zA-Z][^>\\s]*)|(\\/?$))/g;\nvar a2 = /-->/g;\nvar f = />/g;\nvar _ = RegExp(`>|[ 	\n\\f\\r](?:([^\\\\s"\'>=/]+)([ 	\n\\f\\r]*=[ 	\n\\f\\r]*(?:[^ 	\n\\f\\r"\'\\`<>=]|("|\')|))|$)`, "g");\nvar m = /\'/g;\nvar p = /"/g;\nvar $ = /^(?:script|style|textarea|title)$/i;\nvar g = (t4) => (i7, ...s6) => ({ _$litType$: t4, strings: i7, values: s6 });\nvar y = g(1);\nvar w = g(2);\nvar x = Symbol.for("lit-noChange");\nvar b = Symbol.for("lit-nothing");\nvar T = /* @__PURE__ */ new WeakMap();\nvar A = h2.createTreeWalker(h2, 129, null, false);\nvar E = (t4, i7) => {\n  const s6 = t4.length - 1, n6 = [];\n  let h3, r5 = 2 === i7 ? "<svg>" : "", d3 = v;\n  for (let i8 = 0; i8 < s6; i8++) {\n    const s7 = t4[i8];\n    let e8, u5, c5 = -1, g2 = 0;\n    for (; g2 < s7.length && (d3.lastIndex = g2, u5 = d3.exec(s7), null !== u5); )\n      g2 = d3.lastIndex, d3 === v ? "!--" === u5[1] ? d3 = a2 : void 0 !== u5[1] ? d3 = f : void 0 !== u5[2] ? ($.test(u5[2]) && (h3 = RegExp("</" + u5[2], "g")), d3 = _) : void 0 !== u5[3] && (d3 = _) : d3 === _ ? ">" === u5[0] ? (d3 = null != h3 ? h3 : v, c5 = -1) : void 0 === u5[1] ? c5 = -2 : (c5 = d3.lastIndex - u5[2].length, e8 = u5[1], d3 = void 0 === u5[3] ? _ : \'"\' === u5[3] ? p : m) : d3 === p || d3 === m ? d3 = _ : d3 === a2 || d3 === f ? d3 = v : (d3 = _, h3 = void 0);\n    const y2 = d3 === _ && t4[i8 + 1].startsWith("/>") ? " " : "";\n    r5 += d3 === v ? s7 + l2 : c5 >= 0 ? (n6.push(e8), s7.slice(0, c5) + "$lit$" + s7.slice(c5) + o3 + y2) : s7 + o3 + (-2 === c5 ? (n6.push(void 0), i8) : y2);\n  }\n  const u4 = r5 + (t4[s6] || "<?>") + (2 === i7 ? "</svg>" : "");\n  if (!Array.isArray(t4) || !t4.hasOwnProperty("raw"))\n    throw Error("invalid template strings array");\n  return [void 0 !== e3 ? e3.createHTML(u4) : u4, n6];\n};\nvar C = class {\n  constructor({ strings: t4, _$litType$: i7 }, e8) {\n    let l6;\n    this.parts = [];\n    let h3 = 0, d3 = 0;\n    const u4 = t4.length - 1, c5 = this.parts, [v2, a3] = E(t4, i7);\n    if (this.el = C.createElement(v2, e8), A.currentNode = this.el.content, 2 === i7) {\n      const t5 = this.el.content, i8 = t5.firstChild;\n      i8.remove(), t5.append(...i8.childNodes);\n    }\n    for (; null !== (l6 = A.nextNode()) && c5.length < u4; ) {\n      if (1 === l6.nodeType) {\n        if (l6.hasAttributes()) {\n          const t5 = [];\n          for (const i8 of l6.getAttributeNames())\n            if (i8.endsWith("$lit$") || i8.startsWith(o3)) {\n              const s6 = a3[d3++];\n              if (t5.push(i8), void 0 !== s6) {\n                const t6 = l6.getAttribute(s6.toLowerCase() + "$lit$").split(o3), i9 = /([.?@])?(.*)/.exec(s6);\n                c5.push({ type: 1, index: h3, name: i9[2], strings: t6, ctor: "." === i9[1] ? M : "?" === i9[1] ? k : "@" === i9[1] ? H : S2 });\n              } else\n                c5.push({ type: 6, index: h3 });\n            }\n          for (const i8 of t5)\n            l6.removeAttribute(i8);\n        }\n        if ($.test(l6.tagName)) {\n          const t5 = l6.textContent.split(o3), i8 = t5.length - 1;\n          if (i8 > 0) {\n            l6.textContent = s3 ? s3.emptyScript : "";\n            for (let s6 = 0; s6 < i8; s6++)\n              l6.append(t5[s6], r3()), A.nextNode(), c5.push({ type: 2, index: ++h3 });\n            l6.append(t5[i8], r3());\n          }\n        }\n      } else if (8 === l6.nodeType)\n        if (l6.data === n3)\n          c5.push({ type: 2, index: h3 });\n        else {\n          let t5 = -1;\n          for (; -1 !== (t5 = l6.data.indexOf(o3, t5 + 1)); )\n            c5.push({ type: 7, index: h3 }), t5 += o3.length - 1;\n        }\n      h3++;\n    }\n  }\n  static createElement(t4, i7) {\n    const s6 = h2.createElement("template");\n    return s6.innerHTML = t4, s6;\n  }\n};\nfunction P(t4, i7, s6 = t4, e8) {\n  var o6, n6, l6, h3;\n  if (i7 === x)\n    return i7;\n  let r5 = void 0 !== e8 ? null === (o6 = s6._$Co) || void 0 === o6 ? void 0 : o6[e8] : s6._$Cl;\n  const u4 = d2(i7) ? void 0 : i7._$litDirective$;\n  return (null == r5 ? void 0 : r5.constructor) !== u4 && (null === (n6 = null == r5 ? void 0 : r5._$AO) || void 0 === n6 || n6.call(r5, false), void 0 === u4 ? r5 = void 0 : (r5 = new u4(t4), r5._$AT(t4, s6, e8)), void 0 !== e8 ? (null !== (l6 = (h3 = s6)._$Co) && void 0 !== l6 ? l6 : h3._$Co = [])[e8] = r5 : s6._$Cl = r5), void 0 !== r5 && (i7 = P(t4, r5._$AS(t4, i7.values), r5, e8)), i7;\n}\nvar V = class {\n  constructor(t4, i7) {\n    this.u = [], this._$AN = void 0, this._$AD = t4, this._$AM = i7;\n  }\n  get parentNode() {\n    return this._$AM.parentNode;\n  }\n  get _$AU() {\n    return this._$AM._$AU;\n  }\n  v(t4) {\n    var i7;\n    const { el: { content: s6 }, parts: e8 } = this._$AD, o6 = (null !== (i7 = null == t4 ? void 0 : t4.creationScope) && void 0 !== i7 ? i7 : h2).importNode(s6, true);\n    A.currentNode = o6;\n    let n6 = A.nextNode(), l6 = 0, r5 = 0, d3 = e8[0];\n    for (; void 0 !== d3; ) {\n      if (l6 === d3.index) {\n        let i8;\n        2 === d3.type ? i8 = new N(n6, n6.nextSibling, this, t4) : 1 === d3.type ? i8 = new d3.ctor(n6, d3.name, d3.strings, this, t4) : 6 === d3.type && (i8 = new I(n6, this, t4)), this.u.push(i8), d3 = e8[++r5];\n      }\n      l6 !== (null == d3 ? void 0 : d3.index) && (n6 = A.nextNode(), l6++);\n    }\n    return o6;\n  }\n  p(t4) {\n    let i7 = 0;\n    for (const s6 of this.u)\n      void 0 !== s6 && (void 0 !== s6.strings ? (s6._$AI(t4, s6, i7), i7 += s6.strings.length - 2) : s6._$AI(t4[i7])), i7++;\n  }\n};\nvar N = class {\n  constructor(t4, i7, s6, e8) {\n    var o6;\n    this.type = 2, this._$AH = b, this._$AN = void 0, this._$AA = t4, this._$AB = i7, this._$AM = s6, this.options = e8, this._$Cm = null === (o6 = null == e8 ? void 0 : e8.isConnected) || void 0 === o6 || o6;\n  }\n  get _$AU() {\n    var t4, i7;\n    return null !== (i7 = null === (t4 = this._$AM) || void 0 === t4 ? void 0 : t4._$AU) && void 0 !== i7 ? i7 : this._$Cm;\n  }\n  get parentNode() {\n    let t4 = this._$AA.parentNode;\n    const i7 = this._$AM;\n    return void 0 !== i7 && 11 === t4.nodeType && (t4 = i7.parentNode), t4;\n  }\n  get startNode() {\n    return this._$AA;\n  }\n  get endNode() {\n    return this._$AB;\n  }\n  _$AI(t4, i7 = this) {\n    t4 = P(this, t4, i7), d2(t4) ? t4 === b || null == t4 || "" === t4 ? (this._$AH !== b && this._$AR(), this._$AH = b) : t4 !== this._$AH && t4 !== x && this.g(t4) : void 0 !== t4._$litType$ ? this.$(t4) : void 0 !== t4.nodeType ? this.T(t4) : c2(t4) ? this.k(t4) : this.g(t4);\n  }\n  O(t4, i7 = this._$AB) {\n    return this._$AA.parentNode.insertBefore(t4, i7);\n  }\n  T(t4) {\n    this._$AH !== t4 && (this._$AR(), this._$AH = this.O(t4));\n  }\n  g(t4) {\n    this._$AH !== b && d2(this._$AH) ? this._$AA.nextSibling.data = t4 : this.T(h2.createTextNode(t4)), this._$AH = t4;\n  }\n  $(t4) {\n    var i7;\n    const { values: s6, _$litType$: e8 } = t4, o6 = "number" == typeof e8 ? this._$AC(t4) : (void 0 === e8.el && (e8.el = C.createElement(e8.h, this.options)), e8);\n    if ((null === (i7 = this._$AH) || void 0 === i7 ? void 0 : i7._$AD) === o6)\n      this._$AH.p(s6);\n    else {\n      const t5 = new V(o6, this), i8 = t5.v(this.options);\n      t5.p(s6), this.T(i8), this._$AH = t5;\n    }\n  }\n  _$AC(t4) {\n    let i7 = T.get(t4.strings);\n    return void 0 === i7 && T.set(t4.strings, i7 = new C(t4)), i7;\n  }\n  k(t4) {\n    u(this._$AH) || (this._$AH = [], this._$AR());\n    const i7 = this._$AH;\n    let s6, e8 = 0;\n    for (const o6 of t4)\n      e8 === i7.length ? i7.push(s6 = new N(this.O(r3()), this.O(r3()), this, this.options)) : s6 = i7[e8], s6._$AI(o6), e8++;\n    e8 < i7.length && (this._$AR(s6 && s6._$AB.nextSibling, e8), i7.length = e8);\n  }\n  _$AR(t4 = this._$AA.nextSibling, i7) {\n    var s6;\n    for (null === (s6 = this._$AP) || void 0 === s6 || s6.call(this, false, true, i7); t4 && t4 !== this._$AB; ) {\n      const i8 = t4.nextSibling;\n      t4.remove(), t4 = i8;\n    }\n  }\n  setConnected(t4) {\n    var i7;\n    void 0 === this._$AM && (this._$Cm = t4, null === (i7 = this._$AP) || void 0 === i7 || i7.call(this, t4));\n  }\n};\nvar S2 = class {\n  constructor(t4, i7, s6, e8, o6) {\n    this.type = 1, this._$AH = b, this._$AN = void 0, this.element = t4, this.name = i7, this._$AM = e8, this.options = o6, s6.length > 2 || "" !== s6[0] || "" !== s6[1] ? (this._$AH = Array(s6.length - 1).fill(new String()), this.strings = s6) : this._$AH = b;\n  }\n  get tagName() {\n    return this.element.tagName;\n  }\n  get _$AU() {\n    return this._$AM._$AU;\n  }\n  _$AI(t4, i7 = this, s6, e8) {\n    const o6 = this.strings;\n    let n6 = false;\n    if (void 0 === o6)\n      t4 = P(this, t4, i7, 0), n6 = !d2(t4) || t4 !== this._$AH && t4 !== x, n6 && (this._$AH = t4);\n    else {\n      const e9 = t4;\n      let l6, h3;\n      for (t4 = o6[0], l6 = 0; l6 < o6.length - 1; l6++)\n        h3 = P(this, e9[s6 + l6], i7, l6), h3 === x && (h3 = this._$AH[l6]), n6 || (n6 = !d2(h3) || h3 !== this._$AH[l6]), h3 === b ? t4 = b : t4 !== b && (t4 += (null != h3 ? h3 : "") + o6[l6 + 1]), this._$AH[l6] = h3;\n    }\n    n6 && !e8 && this.j(t4);\n  }\n  j(t4) {\n    t4 === b ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, null != t4 ? t4 : "");\n  }\n};\nvar M = class extends S2 {\n  constructor() {\n    super(...arguments), this.type = 3;\n  }\n  j(t4) {\n    this.element[this.name] = t4 === b ? void 0 : t4;\n  }\n};\nvar R = s3 ? s3.emptyScript : "";\nvar k = class extends S2 {\n  constructor() {\n    super(...arguments), this.type = 4;\n  }\n  j(t4) {\n    t4 && t4 !== b ? this.element.setAttribute(this.name, R) : this.element.removeAttribute(this.name);\n  }\n};\nvar H = class extends S2 {\n  constructor(t4, i7, s6, e8, o6) {\n    super(t4, i7, s6, e8, o6), this.type = 5;\n  }\n  _$AI(t4, i7 = this) {\n    var s6;\n    if ((t4 = null !== (s6 = P(this, t4, i7, 0)) && void 0 !== s6 ? s6 : b) === x)\n      return;\n    const e8 = this._$AH, o6 = t4 === b && e8 !== b || t4.capture !== e8.capture || t4.once !== e8.once || t4.passive !== e8.passive, n6 = t4 !== b && (e8 === b || o6);\n    o6 && this.element.removeEventListener(this.name, this, e8), n6 && this.element.addEventListener(this.name, this, t4), this._$AH = t4;\n  }\n  handleEvent(t4) {\n    var i7, s6;\n    "function" == typeof this._$AH ? this._$AH.call(null !== (s6 = null === (i7 = this.options) || void 0 === i7 ? void 0 : i7.host) && void 0 !== s6 ? s6 : this.element, t4) : this._$AH.handleEvent(t4);\n  }\n};\nvar I = class {\n  constructor(t4, i7, s6) {\n    this.element = t4, this.type = 6, this._$AN = void 0, this._$AM = i7, this.options = s6;\n  }\n  get _$AU() {\n    return this._$AM._$AU;\n  }\n  _$AI(t4) {\n    P(this, t4);\n  }\n};\nvar L = { P: "$lit$", A: o3, M: n3, C: 1, L: E, R: V, D: c2, V: P, I: N, H: S2, N: k, U: H, B: M, F: I };\nvar z = i2.litHtmlPolyfillSupport;\nnull == z || z(C, N), (null !== (t2 = i2.litHtmlVersions) && void 0 !== t2 ? t2 : i2.litHtmlVersions = []).push("2.6.1");\nvar Z = (t4, i7, s6) => {\n  var e8, o6;\n  const n6 = null !== (e8 = null == s6 ? void 0 : s6.renderBefore) && void 0 !== e8 ? e8 : i7;\n  let l6 = n6._$litPart$;\n  if (void 0 === l6) {\n    const t5 = null !== (o6 = null == s6 ? void 0 : s6.renderBefore) && void 0 !== o6 ? o6 : null;\n    n6._$litPart$ = l6 = new N(i7.insertBefore(r3(), t5), t5, void 0, null != s6 ? s6 : {});\n  }\n  return l6._$AI(t4), l6;\n};\n\n// node_modules/lit-element/lit-element.js\nvar l3;\nvar o4;\nvar s4 = class extends d {\n  constructor() {\n    super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;\n  }\n  createRenderRoot() {\n    var t4, e8;\n    const i7 = super.createRenderRoot();\n    return null !== (t4 = (e8 = this.renderOptions).renderBefore) && void 0 !== t4 || (e8.renderBefore = i7.firstChild), i7;\n  }\n  update(t4) {\n    const i7 = this.render();\n    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t4), this._$Do = Z(i7, this.renderRoot, this.renderOptions);\n  }\n  connectedCallback() {\n    var t4;\n    super.connectedCallback(), null === (t4 = this._$Do) || void 0 === t4 || t4.setConnected(true);\n  }\n  disconnectedCallback() {\n    var t4;\n    super.disconnectedCallback(), null === (t4 = this._$Do) || void 0 === t4 || t4.setConnected(false);\n  }\n  render() {\n    return x;\n  }\n};\ns4.finalized = true, s4._$litElement$ = true, null === (l3 = globalThis.litElementHydrateSupport) || void 0 === l3 || l3.call(globalThis, { LitElement: s4 });\nvar n4 = globalThis.litElementPolyfillSupport;\nnull == n4 || n4({ LitElement: s4 });\n(null !== (o4 = globalThis.litElementVersions) && void 0 !== o4 ? o4 : globalThis.litElementVersions = []).push("3.2.2");\n\n// node_modules/lit-html/directive.js\nvar t3 = { ATTRIBUTE: 1, CHILD: 2, PROPERTY: 3, BOOLEAN_ATTRIBUTE: 4, EVENT: 5, ELEMENT: 6 };\nvar e4 = (t4) => (...e8) => ({ _$litDirective$: t4, values: e8 });\nvar i3 = class {\n  constructor(t4) {\n  }\n  get _$AU() {\n    return this._$AM._$AU;\n  }\n  _$AT(t4, e8, i7) {\n    this._$Ct = t4, this._$AM = e8, this._$Ci = i7;\n  }\n  _$AS(t4, e8) {\n    return this.update(t4, e8);\n  }\n  update(t4, e8) {\n    return this.render(...e8);\n  }\n};\n\n// node_modules/lit-html/directives/style-map.js\nvar i4 = e4(class extends i3 {\n  constructor(t4) {\n    var e8;\n    if (super(t4), t4.type !== t3.ATTRIBUTE || "style" !== t4.name || (null === (e8 = t4.strings) || void 0 === e8 ? void 0 : e8.length) > 2)\n      throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.");\n  }\n  render(t4) {\n    return Object.keys(t4).reduce((e8, r5) => {\n      const s6 = t4[r5];\n      return null == s6 ? e8 : e8 + `${r5 = r5.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g, "-$&").toLowerCase()}:${s6};`;\n    }, "");\n  }\n  update(e8, [r5]) {\n    const { style: s6 } = e8.element;\n    if (void 0 === this.vt) {\n      this.vt = /* @__PURE__ */ new Set();\n      for (const t4 in r5)\n        this.vt.add(t4);\n      return this.render(r5);\n    }\n    this.vt.forEach((t4) => {\n      null == r5[t4] && (this.vt.delete(t4), t4.includes("-") ? s6.removeProperty(t4) : s6[t4] = "");\n    });\n    for (const t4 in r5) {\n      const e9 = r5[t4];\n      null != e9 && (this.vt.add(t4), t4.includes("-") ? s6.setProperty(t4, e9) : s6[t4] = e9);\n    }\n    return x;\n  }\n});\n\n// node_modules/@lit/reactive-element/decorators/custom-element.js\nvar e5 = (e8) => (n6) => "function" == typeof n6 ? ((e9, n7) => (customElements.define(e9, n7), n7))(e8, n6) : ((e9, n7) => {\n  const { kind: t4, elements: s6 } = n7;\n  return { kind: t4, elements: s6, finisher(n8) {\n    customElements.define(e9, n8);\n  } };\n})(e8, n6);\n\n// node_modules/@lit/reactive-element/decorators/property.js\nvar i5 = (i7, e8) => "method" === e8.kind && e8.descriptor && !("value" in e8.descriptor) ? { ...e8, finisher(n6) {\n  n6.createProperty(e8.key, i7);\n} } : { kind: "field", key: Symbol(), placement: "own", descriptor: {}, originalKey: e8.key, initializer() {\n  "function" == typeof e8.initializer && (this[e8.key] = e8.initializer.call(this));\n}, finisher(n6) {\n  n6.createProperty(e8.key, i7);\n} };\nfunction e6(e8) {\n  return (n6, t4) => void 0 !== t4 ? ((i7, e9, n7) => {\n    e9.constructor.createProperty(n7, i7);\n  })(e8, n6, t4) : i5(e8, n6);\n}\n\n// node_modules/@lit/reactive-element/decorators/base.js\nvar o5 = ({ finisher: e8, descriptor: t4 }) => (o6, n6) => {\n  var r5;\n  if (void 0 === n6) {\n    const n7 = null !== (r5 = o6.originalKey) && void 0 !== r5 ? r5 : o6.key, i7 = null != t4 ? { kind: "method", placement: "prototype", key: n7, descriptor: t4(o6.key) } : { ...o6, key: n7 };\n    return null != e8 && (i7.finisher = function(t5) {\n      e8(t5, n7);\n    }), i7;\n  }\n  {\n    const r6 = o6.constructor;\n    void 0 !== t4 && Object.defineProperty(o6, n6, t4(n6)), null == e8 || e8(r6, n6);\n  }\n};\n\n// node_modules/@lit/reactive-element/decorators/query.js\nfunction i6(i7, n6) {\n  return o5({ descriptor: (o6) => {\n    const t4 = { get() {\n      var o7, n7;\n      return null !== (n7 = null === (o7 = this.renderRoot) || void 0 === o7 ? void 0 : o7.querySelector(i7)) && void 0 !== n7 ? n7 : null;\n    }, enumerable: true, configurable: true };\n    if (n6) {\n      const n7 = "symbol" == typeof o6 ? Symbol() : "__" + o6;\n      t4.get = function() {\n        var o7, t5;\n        return void 0 === this[n7] && (this[n7] = null !== (t5 = null === (o7 = this.renderRoot) || void 0 === o7 ? void 0 : o7.querySelector(i7)) && void 0 !== t5 ? t5 : null), this[n7];\n      };\n    }\n    return t4;\n  } });\n}\n\n// node_modules/@lit/reactive-element/decorators/query-assigned-elements.js\nvar n5;\nvar e7 = null != (null === (n5 = window.HTMLSlotElement) || void 0 === n5 ? void 0 : n5.prototype.assignedElements) ? (o6, n6) => o6.assignedElements(n6) : (o6, n6) => o6.assignedNodes(n6).filter((o7) => o7.nodeType === Node.ELEMENT_NODE);\n\n// node_modules/lit-html/directive-helpers.js\nvar { I: l5 } = L;\nvar c3 = () => document.createComment("");\nvar r4 = (o6, t4, i7) => {\n  var n6;\n  const d3 = o6._$AA.parentNode, v2 = void 0 === t4 ? o6._$AB : t4._$AA;\n  if (void 0 === i7) {\n    const t5 = d3.insertBefore(c3(), v2), n7 = d3.insertBefore(c3(), v2);\n    i7 = new l5(t5, n7, o6, o6.options);\n  } else {\n    const l6 = i7._$AB.nextSibling, t5 = i7._$AM, e8 = t5 !== o6;\n    if (e8) {\n      let l7;\n      null === (n6 = i7._$AQ) || void 0 === n6 || n6.call(i7, o6), i7._$AM = o6, void 0 !== i7._$AP && (l7 = o6._$AU) !== t5._$AU && i7._$AP(l7);\n    }\n    if (l6 !== v2 || e8) {\n      let o7 = i7._$AA;\n      for (; o7 !== l6; ) {\n        const l7 = o7.nextSibling;\n        d3.insertBefore(o7, v2), o7 = l7;\n      }\n    }\n  }\n  return i7;\n};\nvar u2 = (o6, l6, t4 = o6) => (o6._$AI(l6, t4), o6);\nvar f2 = {};\nvar s5 = (o6, l6 = f2) => o6._$AH = l6;\nvar m2 = (o6) => o6._$AH;\nvar p2 = (o6) => {\n  var l6;\n  null === (l6 = o6._$AP) || void 0 === l6 || l6.call(o6, false, true);\n  let t4 = o6._$AA;\n  const i7 = o6._$AB.nextSibling;\n  for (; t4 !== i7; ) {\n    const o7 = t4.nextSibling;\n    t4.remove(), t4 = o7;\n  }\n};\n\n// node_modules/lit-html/directives/repeat.js\nvar u3 = (e8, s6, t4) => {\n  const r5 = /* @__PURE__ */ new Map();\n  for (let l6 = s6; l6 <= t4; l6++)\n    r5.set(e8[l6], l6);\n  return r5;\n};\nvar c4 = e4(class extends i3 {\n  constructor(e8) {\n    if (super(e8), e8.type !== t3.CHILD)\n      throw Error("repeat() can only be used in text expressions");\n  }\n  ht(e8, s6, t4) {\n    let r5;\n    void 0 === t4 ? t4 = s6 : void 0 !== s6 && (r5 = s6);\n    const l6 = [], o6 = [];\n    let i7 = 0;\n    for (const s7 of e8)\n      l6[i7] = r5 ? r5(s7, i7) : i7, o6[i7] = t4(s7, i7), i7++;\n    return { values: o6, keys: l6 };\n  }\n  render(e8, s6, t4) {\n    return this.ht(e8, s6, t4).values;\n  }\n  update(s6, [t4, r5, c5]) {\n    var d3;\n    const a3 = m2(s6), { values: p3, keys: v2 } = this.ht(t4, r5, c5);\n    if (!Array.isArray(a3))\n      return this.ut = v2, p3;\n    const h3 = null !== (d3 = this.ut) && void 0 !== d3 ? d3 : this.ut = [], m3 = [];\n    let y2, x2, j = 0, k2 = a3.length - 1, w2 = 0, A2 = p3.length - 1;\n    for (; j <= k2 && w2 <= A2; )\n      if (null === a3[j])\n        j++;\n      else if (null === a3[k2])\n        k2--;\n      else if (h3[j] === v2[w2])\n        m3[w2] = u2(a3[j], p3[w2]), j++, w2++;\n      else if (h3[k2] === v2[A2])\n        m3[A2] = u2(a3[k2], p3[A2]), k2--, A2--;\n      else if (h3[j] === v2[A2])\n        m3[A2] = u2(a3[j], p3[A2]), r4(s6, m3[A2 + 1], a3[j]), j++, A2--;\n      else if (h3[k2] === v2[w2])\n        m3[w2] = u2(a3[k2], p3[w2]), r4(s6, a3[j], a3[k2]), k2--, w2++;\n      else if (void 0 === y2 && (y2 = u3(v2, w2, A2), x2 = u3(h3, j, k2)), y2.has(h3[j]))\n        if (y2.has(h3[k2])) {\n          const e8 = x2.get(v2[w2]), t5 = void 0 !== e8 ? a3[e8] : null;\n          if (null === t5) {\n            const e9 = r4(s6, a3[j]);\n            u2(e9, p3[w2]), m3[w2] = e9;\n          } else\n            m3[w2] = u2(t5, p3[w2]), r4(s6, a3[j], t5), a3[e8] = null;\n          w2++;\n        } else\n          p2(a3[k2]), k2--;\n      else\n        p2(a3[j]), j++;\n    for (; w2 <= A2; ) {\n      const e8 = r4(s6, m3[A2 + 1]);\n      u2(e8, p3[w2]), m3[w2++] = e8;\n    }\n    for (; j <= k2; ) {\n      const e8 = a3[j++];\n      null !== e8 && p2(e8);\n    }\n    return this.ut = v2, s5(s6, m3), x;\n  }\n});\n\n// src/user/browser/assets/browser.render.mts\nvar styles = [\n  i`\n        .page-container{\n            display: flex;\n            flex-direction: column;\n            justify-content: flex-start;\n            align-items: center;\n            box-sizing: border-box;\n            height:100%;\n            \n        }\n\n        .logo-container{\n            display: flex;\n            justify-content: center;\n            align-items:flex-start;\n            margin-top: 30px;\n            width: 100px;\n            height: 60px;\n            background: #0001;\n        }\n\n        .search-container{\n            display: flex;\n            justify-content: center;\n            margin-top: 66px;\n            width: 80%;\n            height: 48px;\n            border-radius: 50px;\n            background: #0001;\n            overflow: hidden;\n            border: 1px solid #ddd;\n        }\n\n        .search-input{\n            box-sizing: border-box;\n            padding: 0px 16px;\n            flex-grow: 1;\n            width: 10px;\n            height: 100%;\n            outline: none;\n            border: none;\n        }\n\n        .search-input::placeholder {\n            color: #ddd;\n            text-align: center;\n          }\n\n        .search-bottom{\n            flex: 0 0 88px;\n            height: 48px;\n            line-height: 48px;\n            text-align: center;\n            color: #666;\n            border: none;\n        }\n\n        .apps-container{\n            width: 80%;\n            height: auto;\n        }\n\n        .row-container{\n            --size: 60px;\n            display: flex;\n            justify-content: flex-start;\n            padding-top: 30px;\n            height: var(--size);\n        }\n\n        .item-container{\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            flex-grow: 0;\n            flex-shrink: 0;\n            box-sizing: border-box;\n            padding:10px;\n            width: var(--size);\n            height: var(--size);\n            border-radius: 16px;\n            background-color: #ddd1;\n            background-position: center;\n            background-size: contain;\n            background-repeat: no-repeat;\n            cursor: pointer;\n        }\n\n        .item-container:nth-of-type(2n){\n            margin: 0px calc((100% - var(--size) * 3) / 2);\n        }\n         \n    `\n];\nvar HomePage = class extends s4 {\n  constructor() {\n    super();\n    this.apps = [];\n    // \u67E5\u770B\u4FE1\u606F\n    this.onView = () => {\n      fetch("/open_webview?mmid=jmmmetadata.sys.dweb").then(async (res) => {\n        console.log("res", res);\n        const result = JSON.parse(await res.json());\n        const origin = result.origin;\n        const url = `${origin}?url=${this.elInput?.value}`;\n        console.log("url: ", url);\n        open(url);\n      }).catch((err) => console.log("err"));\n    };\n    this.getAllAppsInfo();\n  }\n  render() {\n    const arr = toTwoDimensionalArray(this.apps);\n    return y`\n            <div \n                class="page-container"\n            >\n                <div class="logo-container">logo---</div>\n                <div class="search-container">\n                   <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/bfs-metadata.json"/>\n                   <button class="search-bottom" @click=${this.onView} >view</button>\n                </div>\n                <div class="apps-container">\n                    ${c4(arr, (rows, index) => index, (rows, index) => y`\n                                <div class="row-container">\n                                    ${c4(rows, (item) => item.bfsAppId, (item) => {\n      return y`\n                                                <app-col .item=${item} class="item-container" @click=${() => this.onOpenApp(item.appId)}></app-col>\n                                            `;\n    })}\n                                </div>\n                            `)}\n                </div>\n\n                <!-- \u5B9E\u9A8C\u8BE5\u6539\u53D8\u72B6\u6001\u680F -->\n                <!-- <button @click=${() => this.setStatusbarBackground("#F00F")}>\u8BBE\u7F6E\u72B6\u6001\u680F\u7684\u989C\u8272 === #F00F</button>\n                <button @click=${() => this.setStatusbarBackground("#0F0F")}>\u8BBE\u7F6E\u72B6\u6001\u680F\u7684\u989C\u8272 === #0F0F</button>\n                <button @click=${() => this.setStatusbarBackground("#00FF")}>\u8BBE\u7F6E\u72B6\u6001\u680F\u7684\u989C\u8272 === #00FF</button>\n                <button @click=${() => this.setStatusbarStyle("light")}>\u8BBE\u7F6E\u72B6\u6001\u680F\u7684\u98CE\u683C === light</button>onSearch\n                <button @click=${() => this.setStatusbarStyle("dark")}>\u8BBE\u7F6E\u72B6\u6001\u680F\u7684\u98CE\u683C === dark</button>\n                <button @click=${() => this.setStatusbarStyle("default")}>\u8BBE\u7F6E\u72B6\u6001\u680F\u7684\u98CE\u683C === default</button>\n                <button @click=${() => this.getStatusbarStyle()}>\u83B7\u53D6\u72B6\u6001\u680F\u7684\u98CE\u683C</button>\n                <button @click=${() => this.setStatusbarOverlays("0")}>\u83B7\u53D6\u72B6\u6001\u680F\u7684overlays \u4E0D\u8986\u76D6</button>\n                <button @click=${() => this.setStatusbarOverlays("1")}>\u83B7\u53D6\u72B6\u6001\u680F\u7684overlays \u8986\u76D6</button>  -->\n                <!-- <button @click=${() => {\n      open(`/index.html?qaq=${encodeURIComponent(Date.now())}`);\n    }}>open</button>\n               \n            </div>\n        `;\n  }\n  connectedCallback() {\n    super.connectedCallback();\n  }\n  // // \u4E0B\u8F7D\u7684\u529F\u80FD\n  // onSearch(){\n  //     fetch(`./download?url=${this.elInput?.value}`)\n  //     .then(async (res) => {\n  //         console.log(\'\u4E0B\u8F7D\u6210\u529F\u4E86---res: \', await res.json())\n  //     })\n  //     .then(this.getAllAppsInfo)\n  //     .catch(err => console.log(\'\u4E0B\u8F7D\u5931\u8D25\u4E86\'))\n  // }\n  getAllAppsInfo() {\n    console.log("\\u5F00\\u59CB\\u83B7\\u53D6 \\u5168\\u90E8 appsInfo");\n    fetch(`./appsinfo`).then(async (res) => {\n      console.log("res: ", res);\n      const _json = await res.json();\n      this.apps = JSON.parse(_json);\n    }).catch((err) => {\n      console.log("\\u83B7\\u53D6\\u5168\\u90E8 appsInfo error: ", err);\n    });\n  }\n  async onOpenApp(appId) {\n    let response = await fetch(`./install?appId=${appId}`);\n    if (response.status !== 200) {\n      console.error("\\u5B89\\u88C5\\u5E94\\u7528\\u5931\\u8D25 appId: ", appId, response.text());\n      return;\n    }\n    response = await fetch(`./open?appId=${appId}`);\n  }\n  async setStatusbarBackground(color) {\n    const el = document.querySelector("statusbar-dweb");\n    if (el === null)\n      return console.error("\\u8BBE\\u7F6E statusbar\\u9519\\u8BEF el === null");\n    const result = await el.setBackgroundColor(color);\n  }\n  async setStatusbarStyle(value) {\n    const el = document.querySelector("statusbar-dweb");\n    if (el === null)\n      return console.error("\\u8BBE\\u7F6E statusbar\\u9519\\u8BEF el === null");\n    const result = await el.setStyle(value);\n  }\n  async getStatusbarStyle() {\n    const el = document.querySelector("statusbar-dweb");\n    if (el === null)\n      return console.error("\\u8BBE\\u7F6E statusbar\\u9519\\u8BEF el === null");\n    const result = await el.getStyle();\n  }\n  async setStatusbarOverlays(value) {\n    const el = document.querySelector("statusbar-dweb");\n    if (el === null)\n      return console.error("\\u8BBE\\u7F6E statusbar\\u9519\\u8BEF el === null");\n    const result = await el.setOverlaysWebview(value);\n  }\n};\nHomePage.styles = styles;\n__decorateClass([\n  e6()\n], HomePage.prototype, "apps", 2);\n__decorateClass([\n  i6(".search-input")\n], HomePage.prototype, "elInput", 2);\nHomePage = __decorateClass([\n  e5("home-page")\n], HomePage);\nfunction toTwoDimensionalArray(items) {\n  let twoDimensionalArr = [];\n  items.forEach((item, index) => {\n    const rowIndex = Math.floor(index / 3);\n    const colIndex = index % 3;\n    twoDimensionalArr[rowIndex] = twoDimensionalArr[rowIndex] ? twoDimensionalArr[rowIndex] : [];\n    twoDimensionalArr[rowIndex][colIndex] = item;\n  });\n  return twoDimensionalArr;\n}\nvar AppCol = class extends s4 {\n  constructor() {\n    super(...arguments);\n    this.item = void 0;\n  }\n  render() {\n    const _styleMap = i4({\n      backgroundImage: "url(./icon/" + this.item?.bfsAppId + "/sys" + this.item?.icon + ")"\n    });\n    return y`<div class="container" style=${_styleMap} ></div>`;\n  }\n};\nAppCol.styles = [\n  i`\n            .container{\n                display: flex;\n                justify-content: center;\n                align-items: center;\n                box-sizing: border-box;\n                padding:10px;\n                width: 100%;\n                height: 100%;\n                border-radius: 16px;\n                background-color: #ddd1;\n                background-position: center;\n                background-size: contain;\n                background-repeat: no-repeat;\n                cursor: pointer;\n            }\n        `\n];\n__decorateClass([\n  e6()\n], AppCol.prototype, "item", 2);\nAppCol = __decorateClass([\n  e5("app-col")\n], AppCol);\n/*! Bundled license information:\n\n@lit/reactive-element/css-tag.js:\n  (**\n   * @license\n   * Copyright 2019 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/reactive-element.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\nlit-html/lit-html.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\nlit-element/lit-element.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\nlit-html/is-server.js:\n  (**\n   * @license\n   * Copyright 2022 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\nlit-html/directive.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\nlit-html/directives/style-map.js:\n  (**\n   * @license\n   * Copyright 2018 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/custom-element.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/property.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/state.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/base.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/event-options.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/query.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/query-all.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/query-async.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/query-assigned-elements.js:\n  (**\n   * @license\n   * Copyright 2021 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\n@lit/reactive-element/decorators/query-assigned-nodes.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\nlit-html/directive-helpers.js:\n  (**\n   * @license\n   * Copyright 2020 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n\nlit-html/directives/repeat.js:\n  (**\n   * @license\n   * Copyright 2017 Google LLC\n   * SPDX-License-Identifier: BSD-3-Clause\n   *)\n*/\n';
-  }
-});
-
-=======
->>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
-=======
->>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
 // src/core/ipc/IpcHeaders.cts
 var IpcHeaders = class extends Headers {
   init(key, value) {
@@ -414,18 +401,26 @@ var toIpcMethod = (method) => {
 var $metaBodyToBinary = (metaBody) => {
   const [type, data] = metaBody;
   switch (type) {
-    case 9 /* BINARY */: {
+    case IPC_META_BODY_TYPE.BINARY: {
       return data;
     }
-    case 5 /* BASE64 */: {
+    case IPC_META_BODY_TYPE.BASE64: {
       return simpleEncoder(data, "base64");
     }
-    case 3 /* TEXT */: {
+    case IPC_META_BODY_TYPE.TEXT: {
       return simpleEncoder(data, "utf8");
     }
   }
   throw new Error(`invalid metaBody.type :${type}`);
 };
+var IPC_META_BODY_TYPE = /* @__PURE__ */ ((IPC_META_BODY_TYPE2) => {
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["STREAM_ID"] = 0] = "STREAM_ID";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["INLINE"] = 1] = "INLINE";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["TEXT"] = 3] = "TEXT";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BASE64"] = 5] = "BASE64";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BINARY"] = 9] = "BINARY";
+  return IPC_META_BODY_TYPE2;
+})(IPC_META_BODY_TYPE || {});
 var IpcMessage = class {
   constructor(type) {
     this.type = type;
@@ -1055,7 +1050,7 @@ var IpcResMessage = class extends IpcMessage {
 // src/sys/http-server/$createHttpDwebServer.cts
 var import_once5 = __toESM(require_once());
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
 var UINT32_MAX = 4294967295;
 function setUint64(view, offset, value) {
   var high = value / 4294967296;
@@ -1080,7 +1075,7 @@ function getUint64(view, offset) {
   return high * 4294967296 + low;
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/utf8.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/utf8.mjs
 var _a;
 var _b;
 var _c;
@@ -1205,7 +1200,7 @@ function utf8DecodeTD(bytes, inputOffset, byteLength) {
   return sharedTextDecoder.decode(stringBytes);
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
 var ExtData = (
   /** @class */
   function() {
@@ -1217,7 +1212,7 @@ var ExtData = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
 var __extends = function() {
   var extendStatics = function(d, b) {
     extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
@@ -1258,7 +1253,7 @@ var DecodeError = (
   }(Error)
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/timestamp.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/timestamp.mjs
 var EXT_TIMESTAMP = -1;
 var TIMESTAMP32_MAX_SEC = 4294967296 - 1;
 var TIMESTAMP64_MAX_SEC = 17179869184 - 1;
@@ -1339,7 +1334,7 @@ var timestampExtension = {
   decode: decodeTimestampExtension
 };
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
 var ExtensionCodec = (
   /** @class */
   function() {
@@ -1400,7 +1395,7 @@ var ExtensionCodec = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/typedArrays.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/typedArrays.mjs
 function ensureUint8Array(buffer) {
   if (buffer instanceof Uint8Array) {
     return buffer;
@@ -1420,7 +1415,7 @@ function createDataView(buffer) {
   return new DataView(bufferView.buffer, bufferView.byteOffset, bufferView.byteLength);
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/Encoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/Encoder.mjs
 var DEFAULT_MAX_DEPTH = 100;
 var DEFAULT_INITIAL_BUFFER_SIZE = 2048;
 var Encoder = (
@@ -1766,7 +1761,7 @@ var Encoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/encode.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/encode.mjs
 var defaultEncodeOptions = {};
 function encode(value, options) {
   if (options === void 0) {
@@ -1776,12 +1771,12 @@ function encode(value, options) {
   return encoder.encodeSharedRef(value);
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/prettyByte.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/prettyByte.mjs
 function prettyByte(byte) {
   return "".concat(byte < 0 ? "-" : "", "0x").concat(Math.abs(byte).toString(16).padStart(2, "0"));
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/CachedKeyDecoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/CachedKeyDecoder.mjs
 var DEFAULT_MAX_KEY_LENGTH = 16;
 var DEFAULT_MAX_LENGTH_PER_KEY = 16;
 var CachedKeyDecoder = (
@@ -1846,7 +1841,7 @@ var CachedKeyDecoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
 var __awaiter = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve) {
@@ -2642,7 +2637,7 @@ var Decoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/decode.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/decode.mjs
 var defaultDecodeOptions = {};
 function decode(buffer, options) {
   if (options === void 0) {
@@ -3248,14 +3243,6 @@ var closeHttpDwebServer = async (microModule, options) => {
   ).boolean();
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-// src/user/browser/assets/browser.web.cts
-var txt = require_browser_render();
-var CODE = async (require2) => {
-  return txt;
-};
-
 // assets/html/browser.html
 var browser_default = `<html lang="en">
 <head>
@@ -3390,21 +3377,43 @@ var browser_default = `<html lang="en">
             fetch(\`./appsinfo\`)
             .then(async (res) => {
                 console.log('res: ', res)
-                const _json = await res.text()
-                toTwoDimensionalArray(JSON.parse(_json)).forEach((rows, index) => {
-                    let elRow = document.createElement('div')
-                        elRow.setAttribute('class'," row-container")
-                    rows.forEach(col => {
-                        let elCol = document.createElement('div')
-                            elCol.setAttribute('class', "item-container");
-                            elCol.style.backgroundImage = \`url('\${col.icon}')\`
-                            elCol.addEventListener('click', () => onClickIcon(col.id))
-                        elRow.appendChild(elCol)
-                    })
-                    elAppsContainer.appendChild(elRow)
-                })
+                const reader = res.body?.getReader()
+                let loop = false
+                let arr
+                do{
+                    const {value, done} = await reader?.read();
+                    loop = !done;
+                    console.log('done', done)
+                    console.log('value: ', value)
+                    if(value){
+                        if(arr){
+                            arr = Uint8Array.from([...arr, ...value])
+                        }else{
+                            arr = Uint8Array.from([...value])
+                        }
+                    }
+                }while(loop)
+                console.log('\u8BFB\u53D6\u5B8C\u6BD5', new TextDecoder().decode(arr))
+
+                // res.json()
+                // .then(res => console.log('\u83B7\u53D6\u5230\u4E86\u6570\u636E\uFF1A ',res))
+                // .catch(err => console.log('err: ', err))
+
+                // const _json = await res.text()
+                // toTwoDimensionalArray(JSON.parse(_json)).forEach((rows, index) => {
+                //     let elRow = document.createElement('div')
+                //         elRow.setAttribute('class'," row-container")
+                //     rows.forEach(col => {
+                //         let elCol = document.createElement('div')
+                //             elCol.setAttribute('class', "item-container");
+                //             elCol.style.backgroundImage = \`url('\${col.icon}')\`
+                //             elCol.addEventListener('click', () => onClickIcon(col.id))
+                //         elRow.appendChild(elCol)
+                //     })
+                //     elAppsContainer.appendChild(elRow)
+                // })
                 
-                console.log("\u83B7\u53D6\u5230\u4E86\u5168\u90E8\u7684\u5E94\u7528\u5217\u8868\uFF1A ", _json)
+                console.log("\u83B7\u53D6\u5230\u4E86\u5168\u90E8\u7684\u5E94\u7528\u5217\u8868\uFF1A ")
 
             })
             .catch(err => {
@@ -3442,204 +3451,6 @@ var browser_default = `<html lang="en">
       
     <\/script>
 </body>
-=======
-=======
->>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
-// assets/html/browser.html
-var browser_default = `<html lang="en">\r
-<head>\r
-    <meta charset="UTF-8">\r
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">\r
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\r
-    <title>browser.sys.dweb html</title>\r
-    <style type="text/css">\r
-        body{\r
-            display: flex;\r
-            flex-direction: column;\r
-            justify-content: flex-start;\r
-            align-items: center;\r
-            box-sizing: border-box;\r
-            height:100%;\r
-        }\r
-        .logo-container{\r
-            display: flex;\r
-            justify-content: center;\r
-            align-items:flex-start;\r
-            margin-top: 30px;\r
-            width: 100px;\r
-            height: 60px;\r
-            background: #0001;\r
-        }\r
-\r
-        .search-container{\r
-            display: flex;\r
-            justify-content: center;\r
-            margin-top: 66px;\r
-            width: 80%;\r
-            height: 48px;\r
-            border-radius: 50px;\r
-            background: #0001;\r
-            overflow: hidden;\r
-            border: 1px solid #ddd;\r
-        }\r
-\r
-        .search-input{\r
-            box-sizing: border-box;\r
-            padding: 0px 16px;\r
-            flex-grow: 1;\r
-            width: 10px;\r
-            height: 100%;\r
-            outline: none;\r
-            border: none;\r
-        }\r
-\r
-        .search-input::placeholder {\r
-            color: #ddd;\r
-            text-align: center;\r
-        }\r
-\r
-        .search-bottom{\r
-            flex: 0 0 88px;\r
-            height: 48px;\r
-            line-height: 48px;\r
-            text-align: center;\r
-            color: #666;\r
-            border: none;\r
-        }\r
-\r
-        .apps-container{\r
-            width: 80%;\r
-            height: auto;\r
-        }\r
-        .row-container{\r
-            --size: 60px;\r
-            display: flex;\r
-            justify-content: flex-start;\r
-            padding-top: 30px;\r
-            height: var(--size);\r
-        }\r
-\r
-        .item-container{\r
-            display: flex;\r
-            justify-content: center;\r
-            align-items: center;\r
-            flex-grow: 0;\r
-            flex-shrink: 0;\r
-            box-sizing: border-box;\r
-            padding:10px;\r
-            width: var(--size);\r
-            height: var(--size);\r
-            border-radius: 16px;\r
-            background-color: #ddd1;\r
-            background-position: center;\r
-            background-size: contain;\r
-            background-repeat: no-repeat;\r
-            cursor: pointer;\r
-        }\r
-\r
-        .item-container:nth-of-type(2n){\r
-            margin: 0px calc((100% - var(--size) * 3) / 2);\r
-        }\r
-    </style>\r
-</head>\r
-<body>\r
-    <div class="logo-container">logo---</div>\r
-    <div class="search-container">\r
-       <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/bfs-metadata.json"/>\r
-       <button class="search-bottom" @click=\${this.onView} >view</button>\r
-    </div>\r
-    <div class="apps-container">\r
-\r
-    </div>\r
-    <script type="text/javascript">\r
-        const elInput = document.querySelector('.search-input')\r
-        const elView = document.querySelector('.search-bottom')\r
-        const elAppsContainer = document.querySelector('.apps-container')\r
-\r
-        // \u6267\u884C\r
-        getAllAppsInfo()\r
-\r
-        // \u58F0\u660E\u51FD\u6570\r
-        elView.addEventListener('click', ()=> {\r
-            console.log('\u5F00\u59CB\u8DF3\u8F6C\u5230\u4E0B\u8F7D\u9875\u9762')\r
-            fetch("/open_webview?mmid=jmmmetadata.sys.dweb")\r
-            .then(async (res) => {\r
-                console.log('res: ', res)\r
-                const result = JSON.parse(await res.json())\r
-                const origin = result.origin;\r
-                const url = \`\${origin}?url=\${elInput?.value}\`\r
-                open(url)\r
-            })\r
-            .catch(err => console.log('err', err)) \r
-        })\r
-\r
-        // \u67E5\u8BE2 apps \u5217\u8868\r
-        async function getAllAppsInfo(){\r
-            elAppsContainer.innerHTML = ""\r
-            fetch(\`./appsinfo\`)\r
-            .then(async (res) => {\r
-                console.log('res: ', res)\r
-\r
-                res.josn()\r
-                .then(res => console.log('\u83B7\u53D6\u5230\u4E86\u6570\u636E\uFF1A ',res))\r
-                .catch(err => console.log('err: ', err))\r
-\r
-                // const _json = await res.text()\r
-                // toTwoDimensionalArray(JSON.parse(_json)).forEach((rows, index) => {\r
-                //     let elRow = document.createElement('div')\r
-                //         elRow.setAttribute('class'," row-container")\r
-                //     rows.forEach(col => {\r
-                //         let elCol = document.createElement('div')\r
-                //             elCol.setAttribute('class', "item-container");\r
-                //             elCol.style.backgroundImage = \`url('\${col.icon}')\`\r
-                //             elCol.addEventListener('click', () => onClickIcon(col.id))\r
-                //         elRow.appendChild(elCol)\r
-                //     })\r
-                //     elAppsContainer.appendChild(elRow)\r
-                // })\r
-                \r
-                console.log("\u83B7\u53D6\u5230\u4E86\u5168\u90E8\u7684\u5E94\u7528\u5217\u8868\uFF1A ", _json)\r
-\r
-            })\r
-            .catch(err => {\r
-                console.log('\u83B7\u53D6\u5168\u90E8 appsInfo error: ', err)\r
-            })\r
-        }\r
-\r
-        // \u70B9\u51FB \u5E94\u7528\u56FE\u7247\u4E8B\u4EF6\u5904\u7406\u5668\r
-        async function onClickIcon(id){\r
-            const installResponse = await fetch(\`/install?app_id=\${id}\`, {method: "get"})\r
-            if(installResponse.status !== 200){\r
-                console.error('\u5B89\u88C5\u5E94\u7528\u5931\u8D25 appId: ', id, installResponse.text())\r
-                return;\r
-            }\r
-            const openResponse = await fetch(\`./open?app_id=\${id}\`)\r
-        }\r
-        \r
-        \r
-\r
-        /**\r
-         * \u628A\u4E00\u7EF4\u6570\u7EC4\u8F6C\u5316\u4E3A\u4E8C\u4F4D\u6570\u7EC4\r
-         * @param items \r
-         * @returns \r
-         */\r
-        function toTwoDimensionalArray(items){\r
-            let twoDimensionalArr = []\r
-            items.forEach((item, index) => {\r
-                const rowIndex = Math.floor(index / 3)\r
-                const colIndex = index % 3\r
-                twoDimensionalArr[rowIndex] = twoDimensionalArr[rowIndex] ? twoDimensionalArr[rowIndex] : [];\r
-                twoDimensionalArr[rowIndex][colIndex] = item\r
-            })\r
-            return twoDimensionalArr\r
-        }\r
-      \r
-    <\/script>\r
-</body>\r
-<<<<<<< HEAD
->>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
-=======
->>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
 </html>`;
 
 // src/user/browser/browser.worker.mts
@@ -3700,25 +3511,6 @@ async function onRequestPathNameIndexHtml(request, httpServerIpc) {
         "Content-Type": "text/html"
       }),
       _html,
-<<<<<<< HEAD
-<<<<<<< HEAD
-      httpServerIpc
-    )
-  );
-}
-async function onRequestPathNameBroserWebMjs(request, httpServerIpc) {
-  httpServerIpc.postMessage(
-    IpcResponse.fromText(
-      request.req_id,
-      200,
-      new IpcHeaders({
-        "Content-Type": "application/javascript"
-      }),
-      await CODE(request),
-=======
->>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
-=======
->>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
       httpServerIpc
     )
   );
@@ -3735,19 +3527,13 @@ async function onRequestPathNameAppsInfo(request, httpServerIpc) {
   const url = `file://file.sys.dweb/appsinfo`;
   jsProcess;
   fetch(url).then(async (res) => {
+    const ipcResponse = await IpcResponse.fromResponse(
+      request.req_id,
+      res,
+      httpServerIpc
+    );
+    console.log("stream id:", ipcResponse.body.metaBody[1]);
     httpServerIpc.postMessage(
-<<<<<<< HEAD
-<<<<<<< HEAD
-      await IpcResponse.fromJson(
-        request.req_id,
-        200,
-        new IpcHeaders({
-          "content-type": "application/json"
-        }),
-        await res.json(),
-=======
-=======
->>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
       // await IpcResponse.fromJson(
       //   request.req_id, 
       //   200,
@@ -3757,15 +3543,7 @@ async function onRequestPathNameAppsInfo(request, httpServerIpc) {
       //   await res.json(), 
       //   httpServerIpc
       // )
-      await IpcResponse.fromResponse(
-        request.req_id,
-        res,
-<<<<<<< HEAD
->>>>>>> 43b5766 (临时保存   IpcResponse.fromResponse 问题)
-=======
->>>>>>> 43b576667f163fe77dae0b53d2032464e4efbdb3
-        httpServerIpc
-      )
+      ipcResponse
     );
     console.log("browser.worker.mts \u63A5\u53D7\u5230\u4E86 appsifo2: ");
   }).catch((err) => {

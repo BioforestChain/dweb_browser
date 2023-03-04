@@ -42,9 +42,9 @@ var __privateSet = (obj, member, value, setter) => {
   return value;
 };
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js
+// node_modules/lodash/_trimmedEndIndex.js
 var require_trimmedEndIndex = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
+  "node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
     var reWhitespace = /\s/;
     function trimmedEndIndex(string) {
       var index = string.length;
@@ -56,9 +56,9 @@ var require_trimmedEndIndex = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js
+// node_modules/lodash/_baseTrim.js
 var require_baseTrim = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js"(exports, module) {
+  "node_modules/lodash/_baseTrim.js"(exports, module) {
     var trimmedEndIndex = require_trimmedEndIndex();
     var reTrimStart = /^\s+/;
     function baseTrim(string) {
@@ -68,9 +68,9 @@ var require_baseTrim = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js
+// node_modules/lodash/isObject.js
 var require_isObject = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js"(exports, module) {
+  "node_modules/lodash/isObject.js"(exports, module) {
     function isObject(value) {
       var type = typeof value;
       return value != null && (type == "object" || type == "function");
@@ -79,17 +79,17 @@ var require_isObject = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js
+// node_modules/lodash/_freeGlobal.js
 var require_freeGlobal = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js"(exports, module) {
+  "node_modules/lodash/_freeGlobal.js"(exports, module) {
     var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
     module.exports = freeGlobal;
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js
+// node_modules/lodash/_root.js
 var require_root = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js"(exports, module) {
+  "node_modules/lodash/_root.js"(exports, module) {
     var freeGlobal = require_freeGlobal();
     var freeSelf = typeof self == "object" && self && self.Object === Object && self;
     var root = freeGlobal || freeSelf || Function("return this")();
@@ -97,18 +97,18 @@ var require_root = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js
+// node_modules/lodash/_Symbol.js
 var require_Symbol = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js"(exports, module) {
+  "node_modules/lodash/_Symbol.js"(exports, module) {
     var root = require_root();
     var Symbol2 = root.Symbol;
     module.exports = Symbol2;
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js
+// node_modules/lodash/_getRawTag.js
 var require_getRawTag = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js"(exports, module) {
+  "node_modules/lodash/_getRawTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var objectProto = Object.prototype;
     var hasOwnProperty = objectProto.hasOwnProperty;
@@ -135,9 +135,9 @@ var require_getRawTag = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js
+// node_modules/lodash/_objectToString.js
 var require_objectToString = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js"(exports, module) {
+  "node_modules/lodash/_objectToString.js"(exports, module) {
     var objectProto = Object.prototype;
     var nativeObjectToString = objectProto.toString;
     function objectToString(value) {
@@ -147,9 +147,9 @@ var require_objectToString = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js
+// node_modules/lodash/_baseGetTag.js
 var require_baseGetTag = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js"(exports, module) {
+  "node_modules/lodash/_baseGetTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var getRawTag = require_getRawTag();
     var objectToString = require_objectToString();
@@ -166,9 +166,9 @@ var require_baseGetTag = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js
+// node_modules/lodash/isObjectLike.js
 var require_isObjectLike = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js"(exports, module) {
+  "node_modules/lodash/isObjectLike.js"(exports, module) {
     function isObjectLike(value) {
       return value != null && typeof value == "object";
     }
@@ -176,9 +176,9 @@ var require_isObjectLike = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js
+// node_modules/lodash/isSymbol.js
 var require_isSymbol = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js"(exports, module) {
+  "node_modules/lodash/isSymbol.js"(exports, module) {
     var baseGetTag = require_baseGetTag();
     var isObjectLike = require_isObjectLike();
     var symbolTag = "[object Symbol]";
@@ -189,9 +189,9 @@ var require_isSymbol = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js
+// node_modules/lodash/toNumber.js
 var require_toNumber = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js"(exports, module) {
+  "node_modules/lodash/toNumber.js"(exports, module) {
     var baseTrim = require_baseTrim();
     var isObject = require_isObject();
     var isSymbol = require_isSymbol();
@@ -222,9 +222,9 @@ var require_toNumber = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js
+// node_modules/lodash/toFinite.js
 var require_toFinite = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js"(exports, module) {
+  "node_modules/lodash/toFinite.js"(exports, module) {
     var toNumber = require_toNumber();
     var INFINITY = 1 / 0;
     var MAX_INTEGER = 17976931348623157e292;
@@ -243,9 +243,9 @@ var require_toFinite = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js
+// node_modules/lodash/toInteger.js
 var require_toInteger = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js"(exports, module) {
+  "node_modules/lodash/toInteger.js"(exports, module) {
     var toFinite = require_toFinite();
     function toInteger(value) {
       var result = toFinite(value), remainder = result % 1;
@@ -255,9 +255,9 @@ var require_toInteger = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js
+// node_modules/lodash/before.js
 var require_before = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js"(exports, module) {
+  "node_modules/lodash/before.js"(exports, module) {
     var toInteger = require_toInteger();
     var FUNC_ERROR_TEXT = "Expected a function";
     function before(n, func) {
@@ -280,1459 +280,19 @@ var require_before = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js
+// node_modules/lodash/once.js
 var require_once = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js"(exports, module) {
+  "node_modules/lodash/once.js"(exports, module) {
     var before = require_before();
-    function once3(func) {
+    function once6(func) {
       return before(2, func);
     }
-    module.exports = once3;
+    module.exports = once6;
   }
 });
 
-// node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js
-var require_color_name = __commonJS({
-  "node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js"(exports, module) {
-    "use strict";
-    module.exports = {
-      "aliceblue": [240, 248, 255],
-      "antiquewhite": [250, 235, 215],
-      "aqua": [0, 255, 255],
-      "aquamarine": [127, 255, 212],
-      "azure": [240, 255, 255],
-      "beige": [245, 245, 220],
-      "bisque": [255, 228, 196],
-      "black": [0, 0, 0],
-      "blanchedalmond": [255, 235, 205],
-      "blue": [0, 0, 255],
-      "blueviolet": [138, 43, 226],
-      "brown": [165, 42, 42],
-      "burlywood": [222, 184, 135],
-      "cadetblue": [95, 158, 160],
-      "chartreuse": [127, 255, 0],
-      "chocolate": [210, 105, 30],
-      "coral": [255, 127, 80],
-      "cornflowerblue": [100, 149, 237],
-      "cornsilk": [255, 248, 220],
-      "crimson": [220, 20, 60],
-      "cyan": [0, 255, 255],
-      "darkblue": [0, 0, 139],
-      "darkcyan": [0, 139, 139],
-      "darkgoldenrod": [184, 134, 11],
-      "darkgray": [169, 169, 169],
-      "darkgreen": [0, 100, 0],
-      "darkgrey": [169, 169, 169],
-      "darkkhaki": [189, 183, 107],
-      "darkmagenta": [139, 0, 139],
-      "darkolivegreen": [85, 107, 47],
-      "darkorange": [255, 140, 0],
-      "darkorchid": [153, 50, 204],
-      "darkred": [139, 0, 0],
-      "darksalmon": [233, 150, 122],
-      "darkseagreen": [143, 188, 143],
-      "darkslateblue": [72, 61, 139],
-      "darkslategray": [47, 79, 79],
-      "darkslategrey": [47, 79, 79],
-      "darkturquoise": [0, 206, 209],
-      "darkviolet": [148, 0, 211],
-      "deeppink": [255, 20, 147],
-      "deepskyblue": [0, 191, 255],
-      "dimgray": [105, 105, 105],
-      "dimgrey": [105, 105, 105],
-      "dodgerblue": [30, 144, 255],
-      "firebrick": [178, 34, 34],
-      "floralwhite": [255, 250, 240],
-      "forestgreen": [34, 139, 34],
-      "fuchsia": [255, 0, 255],
-      "gainsboro": [220, 220, 220],
-      "ghostwhite": [248, 248, 255],
-      "gold": [255, 215, 0],
-      "goldenrod": [218, 165, 32],
-      "gray": [128, 128, 128],
-      "green": [0, 128, 0],
-      "greenyellow": [173, 255, 47],
-      "grey": [128, 128, 128],
-      "honeydew": [240, 255, 240],
-      "hotpink": [255, 105, 180],
-      "indianred": [205, 92, 92],
-      "indigo": [75, 0, 130],
-      "ivory": [255, 255, 240],
-      "khaki": [240, 230, 140],
-      "lavender": [230, 230, 250],
-      "lavenderblush": [255, 240, 245],
-      "lawngreen": [124, 252, 0],
-      "lemonchiffon": [255, 250, 205],
-      "lightblue": [173, 216, 230],
-      "lightcoral": [240, 128, 128],
-      "lightcyan": [224, 255, 255],
-      "lightgoldenrodyellow": [250, 250, 210],
-      "lightgray": [211, 211, 211],
-      "lightgreen": [144, 238, 144],
-      "lightgrey": [211, 211, 211],
-      "lightpink": [255, 182, 193],
-      "lightsalmon": [255, 160, 122],
-      "lightseagreen": [32, 178, 170],
-      "lightskyblue": [135, 206, 250],
-      "lightslategray": [119, 136, 153],
-      "lightslategrey": [119, 136, 153],
-      "lightsteelblue": [176, 196, 222],
-      "lightyellow": [255, 255, 224],
-      "lime": [0, 255, 0],
-      "limegreen": [50, 205, 50],
-      "linen": [250, 240, 230],
-      "magenta": [255, 0, 255],
-      "maroon": [128, 0, 0],
-      "mediumaquamarine": [102, 205, 170],
-      "mediumblue": [0, 0, 205],
-      "mediumorchid": [186, 85, 211],
-      "mediumpurple": [147, 112, 219],
-      "mediumseagreen": [60, 179, 113],
-      "mediumslateblue": [123, 104, 238],
-      "mediumspringgreen": [0, 250, 154],
-      "mediumturquoise": [72, 209, 204],
-      "mediumvioletred": [199, 21, 133],
-      "midnightblue": [25, 25, 112],
-      "mintcream": [245, 255, 250],
-      "mistyrose": [255, 228, 225],
-      "moccasin": [255, 228, 181],
-      "navajowhite": [255, 222, 173],
-      "navy": [0, 0, 128],
-      "oldlace": [253, 245, 230],
-      "olive": [128, 128, 0],
-      "olivedrab": [107, 142, 35],
-      "orange": [255, 165, 0],
-      "orangered": [255, 69, 0],
-      "orchid": [218, 112, 214],
-      "palegoldenrod": [238, 232, 170],
-      "palegreen": [152, 251, 152],
-      "paleturquoise": [175, 238, 238],
-      "palevioletred": [219, 112, 147],
-      "papayawhip": [255, 239, 213],
-      "peachpuff": [255, 218, 185],
-      "peru": [205, 133, 63],
-      "pink": [255, 192, 203],
-      "plum": [221, 160, 221],
-      "powderblue": [176, 224, 230],
-      "purple": [128, 0, 128],
-      "rebeccapurple": [102, 51, 153],
-      "red": [255, 0, 0],
-      "rosybrown": [188, 143, 143],
-      "royalblue": [65, 105, 225],
-      "saddlebrown": [139, 69, 19],
-      "salmon": [250, 128, 114],
-      "sandybrown": [244, 164, 96],
-      "seagreen": [46, 139, 87],
-      "seashell": [255, 245, 238],
-      "sienna": [160, 82, 45],
-      "silver": [192, 192, 192],
-      "skyblue": [135, 206, 235],
-      "slateblue": [106, 90, 205],
-      "slategray": [112, 128, 144],
-      "slategrey": [112, 128, 144],
-      "snow": [255, 250, 250],
-      "springgreen": [0, 255, 127],
-      "steelblue": [70, 130, 180],
-      "tan": [210, 180, 140],
-      "teal": [0, 128, 128],
-      "thistle": [216, 191, 216],
-      "tomato": [255, 99, 71],
-      "turquoise": [64, 224, 208],
-      "violet": [238, 130, 238],
-      "wheat": [245, 222, 179],
-      "white": [255, 255, 255],
-      "whitesmoke": [245, 245, 245],
-      "yellow": [255, 255, 0],
-      "yellowgreen": [154, 205, 50]
-    };
-  }
-});
-
-// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js
-var require_conversions = __commonJS({
-  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js"(exports, module) {
-    var cssKeywords = require_color_name();
-    var reverseKeywords = {};
-    for (const key of Object.keys(cssKeywords)) {
-      reverseKeywords[cssKeywords[key]] = key;
-    }
-    var convert = {
-      rgb: { channels: 3, labels: "rgb" },
-      hsl: { channels: 3, labels: "hsl" },
-      hsv: { channels: 3, labels: "hsv" },
-      hwb: { channels: 3, labels: "hwb" },
-      cmyk: { channels: 4, labels: "cmyk" },
-      xyz: { channels: 3, labels: "xyz" },
-      lab: { channels: 3, labels: "lab" },
-      lch: { channels: 3, labels: "lch" },
-      hex: { channels: 1, labels: ["hex"] },
-      keyword: { channels: 1, labels: ["keyword"] },
-      ansi16: { channels: 1, labels: ["ansi16"] },
-      ansi256: { channels: 1, labels: ["ansi256"] },
-      hcg: { channels: 3, labels: ["h", "c", "g"] },
-      apple: { channels: 3, labels: ["r16", "g16", "b16"] },
-      gray: { channels: 1, labels: ["gray"] }
-    };
-    module.exports = convert;
-    for (const model of Object.keys(convert)) {
-      if (!("channels" in convert[model])) {
-        throw new Error("missing channels property: " + model);
-      }
-      if (!("labels" in convert[model])) {
-        throw new Error("missing channel labels property: " + model);
-      }
-      if (convert[model].labels.length !== convert[model].channels) {
-        throw new Error("channel and label counts mismatch: " + model);
-      }
-      const { channels, labels } = convert[model];
-      delete convert[model].channels;
-      delete convert[model].labels;
-      Object.defineProperty(convert[model], "channels", { value: channels });
-      Object.defineProperty(convert[model], "labels", { value: labels });
-    }
-    convert.rgb.hsl = function(rgb) {
-      const r = rgb[0] / 255;
-      const g = rgb[1] / 255;
-      const b = rgb[2] / 255;
-      const min = Math.min(r, g, b);
-      const max = Math.max(r, g, b);
-      const delta = max - min;
-      let h;
-      let s;
-      if (max === min) {
-        h = 0;
-      } else if (r === max) {
-        h = (g - b) / delta;
-      } else if (g === max) {
-        h = 2 + (b - r) / delta;
-      } else if (b === max) {
-        h = 4 + (r - g) / delta;
-      }
-      h = Math.min(h * 60, 360);
-      if (h < 0) {
-        h += 360;
-      }
-      const l = (min + max) / 2;
-      if (max === min) {
-        s = 0;
-      } else if (l <= 0.5) {
-        s = delta / (max + min);
-      } else {
-        s = delta / (2 - max - min);
-      }
-      return [h, s * 100, l * 100];
-    };
-    convert.rgb.hsv = function(rgb) {
-      let rdif;
-      let gdif;
-      let bdif;
-      let h;
-      let s;
-      const r = rgb[0] / 255;
-      const g = rgb[1] / 255;
-      const b = rgb[2] / 255;
-      const v = Math.max(r, g, b);
-      const diff = v - Math.min(r, g, b);
-      const diffc = function(c) {
-        return (v - c) / 6 / diff + 1 / 2;
-      };
-      if (diff === 0) {
-        h = 0;
-        s = 0;
-      } else {
-        s = diff / v;
-        rdif = diffc(r);
-        gdif = diffc(g);
-        bdif = diffc(b);
-        if (r === v) {
-          h = bdif - gdif;
-        } else if (g === v) {
-          h = 1 / 3 + rdif - bdif;
-        } else if (b === v) {
-          h = 2 / 3 + gdif - rdif;
-        }
-        if (h < 0) {
-          h += 1;
-        } else if (h > 1) {
-          h -= 1;
-        }
-      }
-      return [
-        h * 360,
-        s * 100,
-        v * 100
-      ];
-    };
-    convert.rgb.hwb = function(rgb) {
-      const r = rgb[0];
-      const g = rgb[1];
-      let b = rgb[2];
-      const h = convert.rgb.hsl(rgb)[0];
-      const w = 1 / 255 * Math.min(r, Math.min(g, b));
-      b = 1 - 1 / 255 * Math.max(r, Math.max(g, b));
-      return [h, w * 100, b * 100];
-    };
-    convert.rgb.cmyk = function(rgb) {
-      const r = rgb[0] / 255;
-      const g = rgb[1] / 255;
-      const b = rgb[2] / 255;
-      const k = Math.min(1 - r, 1 - g, 1 - b);
-      const c = (1 - r - k) / (1 - k) || 0;
-      const m = (1 - g - k) / (1 - k) || 0;
-      const y = (1 - b - k) / (1 - k) || 0;
-      return [c * 100, m * 100, y * 100, k * 100];
-    };
-    function comparativeDistance(x, y) {
-      return (x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2 + (x[2] - y[2]) ** 2;
-    }
-    convert.rgb.keyword = function(rgb) {
-      const reversed = reverseKeywords[rgb];
-      if (reversed) {
-        return reversed;
-      }
-      let currentClosestDistance = Infinity;
-      let currentClosestKeyword;
-      for (const keyword of Object.keys(cssKeywords)) {
-        const value = cssKeywords[keyword];
-        const distance = comparativeDistance(rgb, value);
-        if (distance < currentClosestDistance) {
-          currentClosestDistance = distance;
-          currentClosestKeyword = keyword;
-        }
-      }
-      return currentClosestKeyword;
-    };
-    convert.keyword.rgb = function(keyword) {
-      return cssKeywords[keyword];
-    };
-    convert.rgb.xyz = function(rgb) {
-      let r = rgb[0] / 255;
-      let g = rgb[1] / 255;
-      let b = rgb[2] / 255;
-      r = r > 0.04045 ? ((r + 0.055) / 1.055) ** 2.4 : r / 12.92;
-      g = g > 0.04045 ? ((g + 0.055) / 1.055) ** 2.4 : g / 12.92;
-      b = b > 0.04045 ? ((b + 0.055) / 1.055) ** 2.4 : b / 12.92;
-      const x = r * 0.4124 + g * 0.3576 + b * 0.1805;
-      const y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-      const z = r * 0.0193 + g * 0.1192 + b * 0.9505;
-      return [x * 100, y * 100, z * 100];
-    };
-    convert.rgb.lab = function(rgb) {
-      const xyz = convert.rgb.xyz(rgb);
-      let x = xyz[0];
-      let y = xyz[1];
-      let z = xyz[2];
-      x /= 95.047;
-      y /= 100;
-      z /= 108.883;
-      x = x > 8856e-6 ? x ** (1 / 3) : 7.787 * x + 16 / 116;
-      y = y > 8856e-6 ? y ** (1 / 3) : 7.787 * y + 16 / 116;
-      z = z > 8856e-6 ? z ** (1 / 3) : 7.787 * z + 16 / 116;
-      const l = 116 * y - 16;
-      const a = 500 * (x - y);
-      const b = 200 * (y - z);
-      return [l, a, b];
-    };
-    convert.hsl.rgb = function(hsl) {
-      const h = hsl[0] / 360;
-      const s = hsl[1] / 100;
-      const l = hsl[2] / 100;
-      let t2;
-      let t3;
-      let val;
-      if (s === 0) {
-        val = l * 255;
-        return [val, val, val];
-      }
-      if (l < 0.5) {
-        t2 = l * (1 + s);
-      } else {
-        t2 = l + s - l * s;
-      }
-      const t1 = 2 * l - t2;
-      const rgb = [0, 0, 0];
-      for (let i = 0; i < 3; i++) {
-        t3 = h + 1 / 3 * -(i - 1);
-        if (t3 < 0) {
-          t3++;
-        }
-        if (t3 > 1) {
-          t3--;
-        }
-        if (6 * t3 < 1) {
-          val = t1 + (t2 - t1) * 6 * t3;
-        } else if (2 * t3 < 1) {
-          val = t2;
-        } else if (3 * t3 < 2) {
-          val = t1 + (t2 - t1) * (2 / 3 - t3) * 6;
-        } else {
-          val = t1;
-        }
-        rgb[i] = val * 255;
-      }
-      return rgb;
-    };
-    convert.hsl.hsv = function(hsl) {
-      const h = hsl[0];
-      let s = hsl[1] / 100;
-      let l = hsl[2] / 100;
-      let smin = s;
-      const lmin = Math.max(l, 0.01);
-      l *= 2;
-      s *= l <= 1 ? l : 2 - l;
-      smin *= lmin <= 1 ? lmin : 2 - lmin;
-      const v = (l + s) / 2;
-      const sv = l === 0 ? 2 * smin / (lmin + smin) : 2 * s / (l + s);
-      return [h, sv * 100, v * 100];
-    };
-    convert.hsv.rgb = function(hsv) {
-      const h = hsv[0] / 60;
-      const s = hsv[1] / 100;
-      let v = hsv[2] / 100;
-      const hi = Math.floor(h) % 6;
-      const f = h - Math.floor(h);
-      const p = 255 * v * (1 - s);
-      const q = 255 * v * (1 - s * f);
-      const t = 255 * v * (1 - s * (1 - f));
-      v *= 255;
-      switch (hi) {
-        case 0:
-          return [v, t, p];
-        case 1:
-          return [q, v, p];
-        case 2:
-          return [p, v, t];
-        case 3:
-          return [p, q, v];
-        case 4:
-          return [t, p, v];
-        case 5:
-          return [v, p, q];
-      }
-    };
-    convert.hsv.hsl = function(hsv) {
-      const h = hsv[0];
-      const s = hsv[1] / 100;
-      const v = hsv[2] / 100;
-      const vmin = Math.max(v, 0.01);
-      let sl;
-      let l;
-      l = (2 - s) * v;
-      const lmin = (2 - s) * vmin;
-      sl = s * vmin;
-      sl /= lmin <= 1 ? lmin : 2 - lmin;
-      sl = sl || 0;
-      l /= 2;
-      return [h, sl * 100, l * 100];
-    };
-    convert.hwb.rgb = function(hwb) {
-      const h = hwb[0] / 360;
-      let wh = hwb[1] / 100;
-      let bl = hwb[2] / 100;
-      const ratio = wh + bl;
-      let f;
-      if (ratio > 1) {
-        wh /= ratio;
-        bl /= ratio;
-      }
-      const i = Math.floor(6 * h);
-      const v = 1 - bl;
-      f = 6 * h - i;
-      if ((i & 1) !== 0) {
-        f = 1 - f;
-      }
-      const n = wh + f * (v - wh);
-      let r;
-      let g;
-      let b;
-      switch (i) {
-        default:
-        case 6:
-        case 0:
-          r = v;
-          g = n;
-          b = wh;
-          break;
-        case 1:
-          r = n;
-          g = v;
-          b = wh;
-          break;
-        case 2:
-          r = wh;
-          g = v;
-          b = n;
-          break;
-        case 3:
-          r = wh;
-          g = n;
-          b = v;
-          break;
-        case 4:
-          r = n;
-          g = wh;
-          b = v;
-          break;
-        case 5:
-          r = v;
-          g = wh;
-          b = n;
-          break;
-      }
-      return [r * 255, g * 255, b * 255];
-    };
-    convert.cmyk.rgb = function(cmyk) {
-      const c = cmyk[0] / 100;
-      const m = cmyk[1] / 100;
-      const y = cmyk[2] / 100;
-      const k = cmyk[3] / 100;
-      const r = 1 - Math.min(1, c * (1 - k) + k);
-      const g = 1 - Math.min(1, m * (1 - k) + k);
-      const b = 1 - Math.min(1, y * (1 - k) + k);
-      return [r * 255, g * 255, b * 255];
-    };
-    convert.xyz.rgb = function(xyz) {
-      const x = xyz[0] / 100;
-      const y = xyz[1] / 100;
-      const z = xyz[2] / 100;
-      let r;
-      let g;
-      let b;
-      r = x * 3.2406 + y * -1.5372 + z * -0.4986;
-      g = x * -0.9689 + y * 1.8758 + z * 0.0415;
-      b = x * 0.0557 + y * -0.204 + z * 1.057;
-      r = r > 31308e-7 ? 1.055 * r ** (1 / 2.4) - 0.055 : r * 12.92;
-      g = g > 31308e-7 ? 1.055 * g ** (1 / 2.4) - 0.055 : g * 12.92;
-      b = b > 31308e-7 ? 1.055 * b ** (1 / 2.4) - 0.055 : b * 12.92;
-      r = Math.min(Math.max(0, r), 1);
-      g = Math.min(Math.max(0, g), 1);
-      b = Math.min(Math.max(0, b), 1);
-      return [r * 255, g * 255, b * 255];
-    };
-    convert.xyz.lab = function(xyz) {
-      let x = xyz[0];
-      let y = xyz[1];
-      let z = xyz[2];
-      x /= 95.047;
-      y /= 100;
-      z /= 108.883;
-      x = x > 8856e-6 ? x ** (1 / 3) : 7.787 * x + 16 / 116;
-      y = y > 8856e-6 ? y ** (1 / 3) : 7.787 * y + 16 / 116;
-      z = z > 8856e-6 ? z ** (1 / 3) : 7.787 * z + 16 / 116;
-      const l = 116 * y - 16;
-      const a = 500 * (x - y);
-      const b = 200 * (y - z);
-      return [l, a, b];
-    };
-    convert.lab.xyz = function(lab) {
-      const l = lab[0];
-      const a = lab[1];
-      const b = lab[2];
-      let x;
-      let y;
-      let z;
-      y = (l + 16) / 116;
-      x = a / 500 + y;
-      z = y - b / 200;
-      const y2 = y ** 3;
-      const x2 = x ** 3;
-      const z2 = z ** 3;
-      y = y2 > 8856e-6 ? y2 : (y - 16 / 116) / 7.787;
-      x = x2 > 8856e-6 ? x2 : (x - 16 / 116) / 7.787;
-      z = z2 > 8856e-6 ? z2 : (z - 16 / 116) / 7.787;
-      x *= 95.047;
-      y *= 100;
-      z *= 108.883;
-      return [x, y, z];
-    };
-    convert.lab.lch = function(lab) {
-      const l = lab[0];
-      const a = lab[1];
-      const b = lab[2];
-      let h;
-      const hr = Math.atan2(b, a);
-      h = hr * 360 / 2 / Math.PI;
-      if (h < 0) {
-        h += 360;
-      }
-      const c = Math.sqrt(a * a + b * b);
-      return [l, c, h];
-    };
-    convert.lch.lab = function(lch) {
-      const l = lch[0];
-      const c = lch[1];
-      const h = lch[2];
-      const hr = h / 360 * 2 * Math.PI;
-      const a = c * Math.cos(hr);
-      const b = c * Math.sin(hr);
-      return [l, a, b];
-    };
-    convert.rgb.ansi16 = function(args, saturation = null) {
-      const [r, g, b] = args;
-      let value = saturation === null ? convert.rgb.hsv(args)[2] : saturation;
-      value = Math.round(value / 50);
-      if (value === 0) {
-        return 30;
-      }
-      let ansi = 30 + (Math.round(b / 255) << 2 | Math.round(g / 255) << 1 | Math.round(r / 255));
-      if (value === 2) {
-        ansi += 60;
-      }
-      return ansi;
-    };
-    convert.hsv.ansi16 = function(args) {
-      return convert.rgb.ansi16(convert.hsv.rgb(args), args[2]);
-    };
-    convert.rgb.ansi256 = function(args) {
-      const r = args[0];
-      const g = args[1];
-      const b = args[2];
-      if (r === g && g === b) {
-        if (r < 8) {
-          return 16;
-        }
-        if (r > 248) {
-          return 231;
-        }
-        return Math.round((r - 8) / 247 * 24) + 232;
-      }
-      const ansi = 16 + 36 * Math.round(r / 255 * 5) + 6 * Math.round(g / 255 * 5) + Math.round(b / 255 * 5);
-      return ansi;
-    };
-    convert.ansi16.rgb = function(args) {
-      let color = args % 10;
-      if (color === 0 || color === 7) {
-        if (args > 50) {
-          color += 3.5;
-        }
-        color = color / 10.5 * 255;
-        return [color, color, color];
-      }
-      const mult = (~~(args > 50) + 1) * 0.5;
-      const r = (color & 1) * mult * 255;
-      const g = (color >> 1 & 1) * mult * 255;
-      const b = (color >> 2 & 1) * mult * 255;
-      return [r, g, b];
-    };
-    convert.ansi256.rgb = function(args) {
-      if (args >= 232) {
-        const c = (args - 232) * 10 + 8;
-        return [c, c, c];
-      }
-      args -= 16;
-      let rem;
-      const r = Math.floor(args / 36) / 5 * 255;
-      const g = Math.floor((rem = args % 36) / 6) / 5 * 255;
-      const b = rem % 6 / 5 * 255;
-      return [r, g, b];
-    };
-    convert.rgb.hex = function(args) {
-      const integer = ((Math.round(args[0]) & 255) << 16) + ((Math.round(args[1]) & 255) << 8) + (Math.round(args[2]) & 255);
-      const string = integer.toString(16).toUpperCase();
-      return "000000".substring(string.length) + string;
-    };
-    convert.hex.rgb = function(args) {
-      const match = args.toString(16).match(/[a-f0-9]{6}|[a-f0-9]{3}/i);
-      if (!match) {
-        return [0, 0, 0];
-      }
-      let colorString = match[0];
-      if (match[0].length === 3) {
-        colorString = colorString.split("").map((char) => {
-          return char + char;
-        }).join("");
-      }
-      const integer = parseInt(colorString, 16);
-      const r = integer >> 16 & 255;
-      const g = integer >> 8 & 255;
-      const b = integer & 255;
-      return [r, g, b];
-    };
-    convert.rgb.hcg = function(rgb) {
-      const r = rgb[0] / 255;
-      const g = rgb[1] / 255;
-      const b = rgb[2] / 255;
-      const max = Math.max(Math.max(r, g), b);
-      const min = Math.min(Math.min(r, g), b);
-      const chroma = max - min;
-      let grayscale;
-      let hue;
-      if (chroma < 1) {
-        grayscale = min / (1 - chroma);
-      } else {
-        grayscale = 0;
-      }
-      if (chroma <= 0) {
-        hue = 0;
-      } else if (max === r) {
-        hue = (g - b) / chroma % 6;
-      } else if (max === g) {
-        hue = 2 + (b - r) / chroma;
-      } else {
-        hue = 4 + (r - g) / chroma;
-      }
-      hue /= 6;
-      hue %= 1;
-      return [hue * 360, chroma * 100, grayscale * 100];
-    };
-    convert.hsl.hcg = function(hsl) {
-      const s = hsl[1] / 100;
-      const l = hsl[2] / 100;
-      const c = l < 0.5 ? 2 * s * l : 2 * s * (1 - l);
-      let f = 0;
-      if (c < 1) {
-        f = (l - 0.5 * c) / (1 - c);
-      }
-      return [hsl[0], c * 100, f * 100];
-    };
-    convert.hsv.hcg = function(hsv) {
-      const s = hsv[1] / 100;
-      const v = hsv[2] / 100;
-      const c = s * v;
-      let f = 0;
-      if (c < 1) {
-        f = (v - c) / (1 - c);
-      }
-      return [hsv[0], c * 100, f * 100];
-    };
-    convert.hcg.rgb = function(hcg) {
-      const h = hcg[0] / 360;
-      const c = hcg[1] / 100;
-      const g = hcg[2] / 100;
-      if (c === 0) {
-        return [g * 255, g * 255, g * 255];
-      }
-      const pure = [0, 0, 0];
-      const hi = h % 1 * 6;
-      const v = hi % 1;
-      const w = 1 - v;
-      let mg = 0;
-      switch (Math.floor(hi)) {
-        case 0:
-          pure[0] = 1;
-          pure[1] = v;
-          pure[2] = 0;
-          break;
-        case 1:
-          pure[0] = w;
-          pure[1] = 1;
-          pure[2] = 0;
-          break;
-        case 2:
-          pure[0] = 0;
-          pure[1] = 1;
-          pure[2] = v;
-          break;
-        case 3:
-          pure[0] = 0;
-          pure[1] = w;
-          pure[2] = 1;
-          break;
-        case 4:
-          pure[0] = v;
-          pure[1] = 0;
-          pure[2] = 1;
-          break;
-        default:
-          pure[0] = 1;
-          pure[1] = 0;
-          pure[2] = w;
-      }
-      mg = (1 - c) * g;
-      return [
-        (c * pure[0] + mg) * 255,
-        (c * pure[1] + mg) * 255,
-        (c * pure[2] + mg) * 255
-      ];
-    };
-    convert.hcg.hsv = function(hcg) {
-      const c = hcg[1] / 100;
-      const g = hcg[2] / 100;
-      const v = c + g * (1 - c);
-      let f = 0;
-      if (v > 0) {
-        f = c / v;
-      }
-      return [hcg[0], f * 100, v * 100];
-    };
-    convert.hcg.hsl = function(hcg) {
-      const c = hcg[1] / 100;
-      const g = hcg[2] / 100;
-      const l = g * (1 - c) + 0.5 * c;
-      let s = 0;
-      if (l > 0 && l < 0.5) {
-        s = c / (2 * l);
-      } else if (l >= 0.5 && l < 1) {
-        s = c / (2 * (1 - l));
-      }
-      return [hcg[0], s * 100, l * 100];
-    };
-    convert.hcg.hwb = function(hcg) {
-      const c = hcg[1] / 100;
-      const g = hcg[2] / 100;
-      const v = c + g * (1 - c);
-      return [hcg[0], (v - c) * 100, (1 - v) * 100];
-    };
-    convert.hwb.hcg = function(hwb) {
-      const w = hwb[1] / 100;
-      const b = hwb[2] / 100;
-      const v = 1 - b;
-      const c = v - w;
-      let g = 0;
-      if (c < 1) {
-        g = (v - c) / (1 - c);
-      }
-      return [hwb[0], c * 100, g * 100];
-    };
-    convert.apple.rgb = function(apple) {
-      return [apple[0] / 65535 * 255, apple[1] / 65535 * 255, apple[2] / 65535 * 255];
-    };
-    convert.rgb.apple = function(rgb) {
-      return [rgb[0] / 255 * 65535, rgb[1] / 255 * 65535, rgb[2] / 255 * 65535];
-    };
-    convert.gray.rgb = function(args) {
-      return [args[0] / 100 * 255, args[0] / 100 * 255, args[0] / 100 * 255];
-    };
-    convert.gray.hsl = function(args) {
-      return [0, 0, args[0]];
-    };
-    convert.gray.hsv = convert.gray.hsl;
-    convert.gray.hwb = function(gray) {
-      return [0, 100, gray[0]];
-    };
-    convert.gray.cmyk = function(gray) {
-      return [0, 0, 0, gray[0]];
-    };
-    convert.gray.lab = function(gray) {
-      return [gray[0], 0, 0];
-    };
-    convert.gray.hex = function(gray) {
-      const val = Math.round(gray[0] / 100 * 255) & 255;
-      const integer = (val << 16) + (val << 8) + val;
-      const string = integer.toString(16).toUpperCase();
-      return "000000".substring(string.length) + string;
-    };
-    convert.rgb.gray = function(rgb) {
-      const val = (rgb[0] + rgb[1] + rgb[2]) / 3;
-      return [val / 255 * 100];
-    };
-  }
-});
-
-// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js
-var require_route = __commonJS({
-  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js"(exports, module) {
-    var conversions = require_conversions();
-    function buildGraph() {
-      const graph = {};
-      const models = Object.keys(conversions);
-      for (let len = models.length, i = 0; i < len; i++) {
-        graph[models[i]] = {
-          // http://jsperf.com/1-vs-infinity
-          // micro-opt, but this is simple.
-          distance: -1,
-          parent: null
-        };
-      }
-      return graph;
-    }
-    function deriveBFS(fromModel) {
-      const graph = buildGraph();
-      const queue = [fromModel];
-      graph[fromModel].distance = 0;
-      while (queue.length) {
-        const current = queue.pop();
-        const adjacents = Object.keys(conversions[current]);
-        for (let len = adjacents.length, i = 0; i < len; i++) {
-          const adjacent = adjacents[i];
-          const node = graph[adjacent];
-          if (node.distance === -1) {
-            node.distance = graph[current].distance + 1;
-            node.parent = current;
-            queue.unshift(adjacent);
-          }
-        }
-      }
-      return graph;
-    }
-    function link(from, to) {
-      return function(args) {
-        return to(from(args));
-      };
-    }
-    function wrapConversion(toModel, graph) {
-      const path = [graph[toModel].parent, toModel];
-      let fn = conversions[graph[toModel].parent][toModel];
-      let cur = graph[toModel].parent;
-      while (graph[cur].parent) {
-        path.unshift(graph[cur].parent);
-        fn = link(conversions[graph[cur].parent][cur], fn);
-        cur = graph[cur].parent;
-      }
-      fn.conversion = path;
-      return fn;
-    }
-    module.exports = function(fromModel) {
-      const graph = deriveBFS(fromModel);
-      const conversion = {};
-      const models = Object.keys(graph);
-      for (let len = models.length, i = 0; i < len; i++) {
-        const toModel = models[i];
-        const node = graph[toModel];
-        if (node.parent === null) {
-          continue;
-        }
-        conversion[toModel] = wrapConversion(toModel, graph);
-      }
-      return conversion;
-    };
-  }
-});
-
-// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js
-var require_color_convert = __commonJS({
-  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js"(exports, module) {
-    var conversions = require_conversions();
-    var route = require_route();
-    var convert = {};
-    var models = Object.keys(conversions);
-    function wrapRaw(fn) {
-      const wrappedFn = function(...args) {
-        const arg0 = args[0];
-        if (arg0 === void 0 || arg0 === null) {
-          return arg0;
-        }
-        if (arg0.length > 1) {
-          args = arg0;
-        }
-        return fn(args);
-      };
-      if ("conversion" in fn) {
-        wrappedFn.conversion = fn.conversion;
-      }
-      return wrappedFn;
-    }
-    function wrapRounded(fn) {
-      const wrappedFn = function(...args) {
-        const arg0 = args[0];
-        if (arg0 === void 0 || arg0 === null) {
-          return arg0;
-        }
-        if (arg0.length > 1) {
-          args = arg0;
-        }
-        const result = fn(args);
-        if (typeof result === "object") {
-          for (let len = result.length, i = 0; i < len; i++) {
-            result[i] = Math.round(result[i]);
-          }
-        }
-        return result;
-      };
-      if ("conversion" in fn) {
-        wrappedFn.conversion = fn.conversion;
-      }
-      return wrappedFn;
-    }
-    models.forEach((fromModel) => {
-      convert[fromModel] = {};
-      Object.defineProperty(convert[fromModel], "channels", { value: conversions[fromModel].channels });
-      Object.defineProperty(convert[fromModel], "labels", { value: conversions[fromModel].labels });
-      const routes = route(fromModel);
-      const routeModels = Object.keys(routes);
-      routeModels.forEach((toModel) => {
-        const fn = routes[toModel];
-        convert[fromModel][toModel] = wrapRounded(fn);
-        convert[fromModel][toModel].raw = wrapRaw(fn);
-      });
-    });
-    module.exports = convert;
-  }
-});
-
-// node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js
-var require_ansi_styles = __commonJS({
-  "node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js"(exports, module) {
-    "use strict";
-    var wrapAnsi16 = (fn, offset) => (...args) => {
-      const code = fn(...args);
-      return `\x1B[${code + offset}m`;
-    };
-    var wrapAnsi256 = (fn, offset) => (...args) => {
-      const code = fn(...args);
-      return `\x1B[${38 + offset};5;${code}m`;
-    };
-    var wrapAnsi16m = (fn, offset) => (...args) => {
-      const rgb = fn(...args);
-      return `\x1B[${38 + offset};2;${rgb[0]};${rgb[1]};${rgb[2]}m`;
-    };
-    var ansi2ansi = (n) => n;
-    var rgb2rgb = (r, g, b) => [r, g, b];
-    var setLazyProperty = (object, property, get) => {
-      Object.defineProperty(object, property, {
-        get: () => {
-          const value = get();
-          Object.defineProperty(object, property, {
-            value,
-            enumerable: true,
-            configurable: true
-          });
-          return value;
-        },
-        enumerable: true,
-        configurable: true
-      });
-    };
-    var colorConvert;
-    var makeDynamicStyles = (wrap, targetSpace, identity, isBackground) => {
-      if (colorConvert === void 0) {
-        colorConvert = require_color_convert();
-      }
-      const offset = isBackground ? 10 : 0;
-      const styles = {};
-      for (const [sourceSpace, suite] of Object.entries(colorConvert)) {
-        const name = sourceSpace === "ansi16" ? "ansi" : sourceSpace;
-        if (sourceSpace === targetSpace) {
-          styles[name] = wrap(identity, offset);
-        } else if (typeof suite === "object") {
-          styles[name] = wrap(suite[targetSpace], offset);
-        }
-      }
-      return styles;
-    };
-    function assembleStyles() {
-      const codes = /* @__PURE__ */ new Map();
-      const styles = {
-        modifier: {
-          reset: [0, 0],
-          // 21 isn't widely supported and 22 does the same thing
-          bold: [1, 22],
-          dim: [2, 22],
-          italic: [3, 23],
-          underline: [4, 24],
-          inverse: [7, 27],
-          hidden: [8, 28],
-          strikethrough: [9, 29]
-        },
-        color: {
-          black: [30, 39],
-          red: [31, 39],
-          green: [32, 39],
-          yellow: [33, 39],
-          blue: [34, 39],
-          magenta: [35, 39],
-          cyan: [36, 39],
-          white: [37, 39],
-          // Bright color
-          blackBright: [90, 39],
-          redBright: [91, 39],
-          greenBright: [92, 39],
-          yellowBright: [93, 39],
-          blueBright: [94, 39],
-          magentaBright: [95, 39],
-          cyanBright: [96, 39],
-          whiteBright: [97, 39]
-        },
-        bgColor: {
-          bgBlack: [40, 49],
-          bgRed: [41, 49],
-          bgGreen: [42, 49],
-          bgYellow: [43, 49],
-          bgBlue: [44, 49],
-          bgMagenta: [45, 49],
-          bgCyan: [46, 49],
-          bgWhite: [47, 49],
-          // Bright color
-          bgBlackBright: [100, 49],
-          bgRedBright: [101, 49],
-          bgGreenBright: [102, 49],
-          bgYellowBright: [103, 49],
-          bgBlueBright: [104, 49],
-          bgMagentaBright: [105, 49],
-          bgCyanBright: [106, 49],
-          bgWhiteBright: [107, 49]
-        }
-      };
-      styles.color.gray = styles.color.blackBright;
-      styles.bgColor.bgGray = styles.bgColor.bgBlackBright;
-      styles.color.grey = styles.color.blackBright;
-      styles.bgColor.bgGrey = styles.bgColor.bgBlackBright;
-      for (const [groupName, group] of Object.entries(styles)) {
-        for (const [styleName, style] of Object.entries(group)) {
-          styles[styleName] = {
-            open: `\x1B[${style[0]}m`,
-            close: `\x1B[${style[1]}m`
-          };
-          group[styleName] = styles[styleName];
-          codes.set(style[0], style[1]);
-        }
-        Object.defineProperty(styles, groupName, {
-          value: group,
-          enumerable: false
-        });
-      }
-      Object.defineProperty(styles, "codes", {
-        value: codes,
-        enumerable: false
-      });
-      styles.color.close = "\x1B[39m";
-      styles.bgColor.close = "\x1B[49m";
-      setLazyProperty(styles.color, "ansi", () => makeDynamicStyles(wrapAnsi16, "ansi16", ansi2ansi, false));
-      setLazyProperty(styles.color, "ansi256", () => makeDynamicStyles(wrapAnsi256, "ansi256", ansi2ansi, false));
-      setLazyProperty(styles.color, "ansi16m", () => makeDynamicStyles(wrapAnsi16m, "rgb", rgb2rgb, false));
-      setLazyProperty(styles.bgColor, "ansi", () => makeDynamicStyles(wrapAnsi16, "ansi16", ansi2ansi, true));
-      setLazyProperty(styles.bgColor, "ansi256", () => makeDynamicStyles(wrapAnsi256, "ansi256", ansi2ansi, true));
-      setLazyProperty(styles.bgColor, "ansi16m", () => makeDynamicStyles(wrapAnsi16m, "rgb", rgb2rgb, true));
-      return styles;
-    }
-    Object.defineProperty(module, "exports", {
-      enumerable: true,
-      get: assembleStyles
-    });
-  }
-});
-
-// node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/browser.js
-var require_browser = __commonJS({
-  "node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/browser.js"(exports, module) {
-    "use strict";
-    module.exports = {
-      stdout: false,
-      stderr: false
-    };
-  }
-});
-
-// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js
-var require_util = __commonJS({
-  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js"(exports, module) {
-    "use strict";
-    var stringReplaceAll = (string, substring, replacer) => {
-      let index = string.indexOf(substring);
-      if (index === -1) {
-        return string;
-      }
-      const substringLength = substring.length;
-      let endIndex = 0;
-      let returnValue = "";
-      do {
-        returnValue += string.substr(endIndex, index - endIndex) + substring + replacer;
-        endIndex = index + substringLength;
-        index = string.indexOf(substring, endIndex);
-      } while (index !== -1);
-      returnValue += string.substr(endIndex);
-      return returnValue;
-    };
-    var stringEncaseCRLFWithFirstIndex = (string, prefix, postfix, index) => {
-      let endIndex = 0;
-      let returnValue = "";
-      do {
-        const gotCR = string[index - 1] === "\r";
-        returnValue += string.substr(endIndex, (gotCR ? index - 1 : index) - endIndex) + prefix + (gotCR ? "\r\n" : "\n") + postfix;
-        endIndex = index + 1;
-        index = string.indexOf("\n", endIndex);
-      } while (index !== -1);
-      returnValue += string.substr(endIndex);
-      return returnValue;
-    };
-    module.exports = {
-      stringReplaceAll,
-      stringEncaseCRLFWithFirstIndex
-    };
-  }
-});
-
-// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js
-var require_templates = __commonJS({
-  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js"(exports, module) {
-    "use strict";
-    var TEMPLATE_REGEX = /(?:\\(u(?:[a-f\d]{4}|\{[a-f\d]{1,6}\})|x[a-f\d]{2}|.))|(?:\{(~)?(\w+(?:\([^)]*\))?(?:\.\w+(?:\([^)]*\))?)*)(?:[ \t]|(?=\r?\n)))|(\})|((?:.|[\r\n\f])+?)/gi;
-    var STYLE_REGEX = /(?:^|\.)(\w+)(?:\(([^)]*)\))?/g;
-    var STRING_REGEX = /^(['"])((?:\\.|(?!\1)[^\\])*)\1$/;
-    var ESCAPE_REGEX = /\\(u(?:[a-f\d]{4}|{[a-f\d]{1,6}})|x[a-f\d]{2}|.)|([^\\])/gi;
-    var ESCAPES = /* @__PURE__ */ new Map([
-      ["n", "\n"],
-      ["r", "\r"],
-      ["t", "	"],
-      ["b", "\b"],
-      ["f", "\f"],
-      ["v", "\v"],
-      ["0", "\0"],
-      ["\\", "\\"],
-      ["e", "\x1B"],
-      ["a", "\x07"]
-    ]);
-    function unescape2(c) {
-      const u = c[0] === "u";
-      const bracket = c[1] === "{";
-      if (u && !bracket && c.length === 5 || c[0] === "x" && c.length === 3) {
-        return String.fromCharCode(parseInt(c.slice(1), 16));
-      }
-      if (u && bracket) {
-        return String.fromCodePoint(parseInt(c.slice(2, -1), 16));
-      }
-      return ESCAPES.get(c) || c;
-    }
-    function parseArguments(name, arguments_) {
-      const results = [];
-      const chunks = arguments_.trim().split(/\s*,\s*/g);
-      let matches;
-      for (const chunk of chunks) {
-        const number = Number(chunk);
-        if (!Number.isNaN(number)) {
-          results.push(number);
-        } else if (matches = chunk.match(STRING_REGEX)) {
-          results.push(matches[2].replace(ESCAPE_REGEX, (m, escape2, character) => escape2 ? unescape2(escape2) : character));
-        } else {
-          throw new Error(`Invalid Chalk template style argument: ${chunk} (in style '${name}')`);
-        }
-      }
-      return results;
-    }
-    function parseStyle(style) {
-      STYLE_REGEX.lastIndex = 0;
-      const results = [];
-      let matches;
-      while ((matches = STYLE_REGEX.exec(style)) !== null) {
-        const name = matches[1];
-        if (matches[2]) {
-          const args = parseArguments(name, matches[2]);
-          results.push([name].concat(args));
-        } else {
-          results.push([name]);
-        }
-      }
-      return results;
-    }
-    function buildStyle(chalk3, styles) {
-      const enabled = {};
-      for (const layer of styles) {
-        for (const style of layer.styles) {
-          enabled[style[0]] = layer.inverse ? null : style.slice(1);
-        }
-      }
-      let current = chalk3;
-      for (const [styleName, styles2] of Object.entries(enabled)) {
-        if (!Array.isArray(styles2)) {
-          continue;
-        }
-        if (!(styleName in current)) {
-          throw new Error(`Unknown Chalk style: ${styleName}`);
-        }
-        current = styles2.length > 0 ? current[styleName](...styles2) : current[styleName];
-      }
-      return current;
-    }
-    module.exports = (chalk3, temporary) => {
-      const styles = [];
-      const chunks = [];
-      let chunk = [];
-      temporary.replace(TEMPLATE_REGEX, (m, escapeCharacter, inverse, style, close, character) => {
-        if (escapeCharacter) {
-          chunk.push(unescape2(escapeCharacter));
-        } else if (style) {
-          const string = chunk.join("");
-          chunk = [];
-          chunks.push(styles.length === 0 ? string : buildStyle(chalk3, styles)(string));
-          styles.push({ inverse, styles: parseStyle(style) });
-        } else if (close) {
-          if (styles.length === 0) {
-            throw new Error("Found extraneous } in Chalk template literal");
-          }
-          chunks.push(buildStyle(chalk3, styles)(chunk.join("")));
-          chunk = [];
-          styles.pop();
-        } else {
-          chunk.push(character);
-        }
-      });
-      chunks.push(chunk.join(""));
-      if (styles.length > 0) {
-        const errMessage = `Chalk template literal is missing ${styles.length} closing bracket${styles.length === 1 ? "" : "s"} (\`}\`)`;
-        throw new Error(errMessage);
-      }
-      return chunks.join("");
-    };
-  }
-});
-
-// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js
-var require_source = __commonJS({
-  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js"(exports, module) {
-    "use strict";
-    var ansiStyles = require_ansi_styles();
-    var { stdout: stdoutColor, stderr: stderrColor } = require_browser();
-    var {
-      stringReplaceAll,
-      stringEncaseCRLFWithFirstIndex
-    } = require_util();
-    var { isArray } = Array;
-    var levelMapping = [
-      "ansi",
-      "ansi",
-      "ansi256",
-      "ansi16m"
-    ];
-    var styles = /* @__PURE__ */ Object.create(null);
-    var applyOptions = (object, options = {}) => {
-      if (options.level && !(Number.isInteger(options.level) && options.level >= 0 && options.level <= 3)) {
-        throw new Error("The `level` option should be an integer from 0 to 3");
-      }
-      const colorLevel = stdoutColor ? stdoutColor.level : 0;
-      object.level = options.level === void 0 ? colorLevel : options.level;
-    };
-    var ChalkClass = class {
-      constructor(options) {
-        return chalkFactory(options);
-      }
-    };
-    var chalkFactory = (options) => {
-      const chalk4 = {};
-      applyOptions(chalk4, options);
-      chalk4.template = (...arguments_) => chalkTag(chalk4.template, ...arguments_);
-      Object.setPrototypeOf(chalk4, Chalk.prototype);
-      Object.setPrototypeOf(chalk4.template, chalk4);
-      chalk4.template.constructor = () => {
-        throw new Error("`chalk.constructor()` is deprecated. Use `new chalk.Instance()` instead.");
-      };
-      chalk4.template.Instance = ChalkClass;
-      return chalk4.template;
-    };
-    function Chalk(options) {
-      return chalkFactory(options);
-    }
-    for (const [styleName, style] of Object.entries(ansiStyles)) {
-      styles[styleName] = {
-        get() {
-          const builder = createBuilder(this, createStyler(style.open, style.close, this._styler), this._isEmpty);
-          Object.defineProperty(this, styleName, { value: builder });
-          return builder;
-        }
-      };
-    }
-    styles.visible = {
-      get() {
-        const builder = createBuilder(this, this._styler, true);
-        Object.defineProperty(this, "visible", { value: builder });
-        return builder;
-      }
-    };
-    var usedModels = ["rgb", "hex", "keyword", "hsl", "hsv", "hwb", "ansi", "ansi256"];
-    for (const model of usedModels) {
-      styles[model] = {
-        get() {
-          const { level } = this;
-          return function(...arguments_) {
-            const styler = createStyler(ansiStyles.color[levelMapping[level]][model](...arguments_), ansiStyles.color.close, this._styler);
-            return createBuilder(this, styler, this._isEmpty);
-          };
-        }
-      };
-    }
-    for (const model of usedModels) {
-      const bgModel = "bg" + model[0].toUpperCase() + model.slice(1);
-      styles[bgModel] = {
-        get() {
-          const { level } = this;
-          return function(...arguments_) {
-            const styler = createStyler(ansiStyles.bgColor[levelMapping[level]][model](...arguments_), ansiStyles.bgColor.close, this._styler);
-            return createBuilder(this, styler, this._isEmpty);
-          };
-        }
-      };
-    }
-    var proto = Object.defineProperties(() => {
-    }, {
-      ...styles,
-      level: {
-        enumerable: true,
-        get() {
-          return this._generator.level;
-        },
-        set(level) {
-          this._generator.level = level;
-        }
-      }
-    });
-    var createStyler = (open, close, parent) => {
-      let openAll;
-      let closeAll;
-      if (parent === void 0) {
-        openAll = open;
-        closeAll = close;
-      } else {
-        openAll = parent.openAll + open;
-        closeAll = close + parent.closeAll;
-      }
-      return {
-        open,
-        close,
-        openAll,
-        closeAll,
-        parent
-      };
-    };
-    var createBuilder = (self2, _styler, _isEmpty) => {
-      const builder = (...arguments_) => {
-        if (isArray(arguments_[0]) && isArray(arguments_[0].raw)) {
-          return applyStyle(builder, chalkTag(builder, ...arguments_));
-        }
-        return applyStyle(builder, arguments_.length === 1 ? "" + arguments_[0] : arguments_.join(" "));
-      };
-      Object.setPrototypeOf(builder, proto);
-      builder._generator = self2;
-      builder._styler = _styler;
-      builder._isEmpty = _isEmpty;
-      return builder;
-    };
-    var applyStyle = (self2, string) => {
-      if (self2.level <= 0 || !string) {
-        return self2._isEmpty ? "" : string;
-      }
-      let styler = self2._styler;
-      if (styler === void 0) {
-        return string;
-      }
-      const { openAll, closeAll } = styler;
-      if (string.indexOf("\x1B") !== -1) {
-        while (styler !== void 0) {
-          string = stringReplaceAll(string, styler.close, styler.open);
-          styler = styler.parent;
-        }
-      }
-      const lfIndex = string.indexOf("\n");
-      if (lfIndex !== -1) {
-        string = stringEncaseCRLFWithFirstIndex(string, closeAll, openAll, lfIndex);
-      }
-      return openAll + string + closeAll;
-    };
-    var template;
-    var chalkTag = (chalk4, ...strings) => {
-      const [firstString] = strings;
-      if (!isArray(firstString) || !isArray(firstString.raw)) {
-        return strings.join(" ");
-      }
-      const arguments_ = strings.slice(1);
-      const parts = [firstString.raw[0]];
-      for (let i = 1; i < firstString.length; i++) {
-        parts.push(
-          String(arguments_[i - 1]).replace(/[{}\\]/g, "\\$&"),
-          String(firstString.raw[i])
-        );
-      }
-      if (template === void 0) {
-        template = require_templates();
-      }
-      return template(chalk4, parts.join(""));
-    };
-    Object.defineProperties(Chalk.prototype, styles);
-    var chalk3 = Chalk();
-    chalk3.supportsColor = stdoutColor;
-    chalk3.stderr = Chalk({ level: stderrColor ? stderrColor.level : 0 });
-    chalk3.stderr.supportsColor = stderrColor;
-    module.exports = chalk3;
-  }
-});
+// src/core/ipc/IpcResponse.cts
+var import_once = __toESM(require_once());
 
 // src/helper/binaryHelper.cts
 var isBinary = (data) => data instanceof ArrayBuffer || ArrayBuffer.isView(data);
@@ -1785,6 +345,71 @@ var simpleDecoder = (data, encoding) => {
   return textDecoder.decode(data);
 };
 
+// src/core/ipc/const.cts
+var toIpcMethod = (method) => {
+  if (method == null) {
+    return "GET" /* GET */;
+  }
+  switch (method.toUpperCase()) {
+    case "GET" /* GET */: {
+      return "GET" /* GET */;
+    }
+    case "POST" /* POST */: {
+      return "POST" /* POST */;
+    }
+    case "PUT" /* PUT */: {
+      return "PUT" /* PUT */;
+    }
+    case "DELETE" /* DELETE */: {
+      return "DELETE" /* DELETE */;
+    }
+    case "OPTIONS" /* OPTIONS */: {
+      return "OPTIONS" /* OPTIONS */;
+    }
+    case "TRACE" /* TRACE */: {
+      return "TRACE" /* TRACE */;
+    }
+    case "PATCH" /* PATCH */: {
+      return "PATCH" /* PATCH */;
+    }
+    case "PURGE" /* PURGE */: {
+      return "PURGE" /* PURGE */;
+    }
+    case "HEAD" /* HEAD */: {
+      return "HEAD" /* HEAD */;
+    }
+  }
+  throw new Error(`invalid method: ${method}`);
+};
+var $metaBodyToBinary = (metaBody) => {
+  const [type, data] = metaBody;
+  switch (type) {
+    case IPC_META_BODY_TYPE.BINARY: {
+      return data;
+    }
+    case IPC_META_BODY_TYPE.BASE64: {
+      return simpleEncoder(data, "base64");
+    }
+    case IPC_META_BODY_TYPE.TEXT: {
+      return simpleEncoder(data, "utf8");
+    }
+  }
+  throw new Error(`invalid metaBody.type :${type}`);
+};
+var IPC_META_BODY_TYPE = /* @__PURE__ */ ((IPC_META_BODY_TYPE2) => {
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["STREAM_ID"] = 0] = "STREAM_ID";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["INLINE"] = 1] = "INLINE";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["TEXT"] = 3] = "TEXT";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BASE64"] = 5] = "BASE64";
+  IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["BINARY"] = 9] = "BINARY";
+  return IPC_META_BODY_TYPE2;
+})(IPC_META_BODY_TYPE || {});
+var IpcMessage = class {
+  constructor(type) {
+    this.type = type;
+  }
+};
+
 // src/helper/createSignal.cts
 var createSignal = () => {
   return new Signal();
@@ -1800,6 +425,9 @@ var Signal = class {
       for (const cb of this._cbs) {
         cb.apply(null, args);
       }
+    };
+    this.clear = () => {
+      this._cbs.clear();
     };
   }
 };
@@ -1820,6 +448,57 @@ async function* _doRead(reader) {
 }
 var streamRead = (stream, options = {}) => {
   return _doRead(stream.getReader());
+};
+var binaryStreamRead = (stream, options = {}) => {
+  const reader = streamRead(stream, options);
+  var done = false;
+  var cache = new Uint8Array(0);
+  const appendToCache = async () => {
+    const item = await reader.next();
+    if (item.done) {
+      done = true;
+      return false;
+    } else {
+      cache = u8aConcat([cache, item.value]);
+      return true;
+    }
+  };
+  const available = async () => {
+    if (cache.length > 0) {
+      return cache.length;
+    }
+    if (done) {
+      return -1;
+    }
+    await appendToCache();
+    return available();
+  };
+  const readBinary = async (size) => {
+    if (cache.length >= size) {
+      const result = cache.subarray(0, size);
+      cache = cache.subarray(size);
+      return result;
+    }
+    if (await appendToCache()) {
+      return readBinary(size);
+    } else {
+      throw new Error(
+        `fail to read bytes(${cache.length}/${size} byte) in stream`
+      );
+    }
+  };
+  const u32 = new Uint32Array(1);
+  const u32_u8 = new Uint8Array(u32.buffer);
+  const readInt = async () => {
+    const intBuf = await readBinary(4);
+    u32_u8.set(intBuf);
+    return u32[0];
+  };
+  return Object.assign(reader, {
+    available,
+    readBinary,
+    readInt
+  });
 };
 var streamReadAll = async (stream, options = {}) => {
   const items = [];
@@ -1860,69 +539,123 @@ var ReadableStreamOut = class {
   }
 };
 
+// src/core/ipc/IpcBody.cts
+var _IpcBody = class {
+  get raw() {
+    return this._bodyHub.data;
+  }
+  async u8a() {
+    const bodyHub = this._bodyHub;
+    let body_u8a = bodyHub.u8a;
+    if (body_u8a === void 0) {
+      if (bodyHub.stream) {
+        body_u8a = await streamReadAllBuffer(bodyHub.stream);
+      } else if (bodyHub.text !== void 0) {
+        body_u8a = simpleEncoder(bodyHub.text, "utf8");
+      } else {
+        throw new Error(`invalid body type`);
+      }
+      bodyHub.u8a = body_u8a;
+      _IpcBody.wm.set(body_u8a, this);
+    }
+    return body_u8a;
+  }
+  async stream() {
+    const bodyHub = this._bodyHub;
+    let body_stream = bodyHub.stream;
+    if (body_stream === void 0) {
+      body_stream = new Blob([await this.u8a()]).stream();
+      bodyHub.stream = body_stream;
+      _IpcBody.wm.set(body_stream, this);
+    }
+    return body_stream;
+  }
+  async text() {
+    const bodyHub = await this._bodyHub;
+    let body_text = bodyHub.text;
+    if (body_text === void 0) {
+      body_text = simpleDecoder(await this.u8a(), "utf8");
+      bodyHub.text = body_text;
+    }
+    return body_text;
+  }
+};
+var IpcBody = _IpcBody;
+IpcBody.wm = /* @__PURE__ */ new WeakMap();
+var BodyHub = class {
+  constructor(data) {
+    this.data = data;
+    if (typeof data === "string") {
+      this.text = data;
+    } else if (data instanceof ReadableStream) {
+      this.stream = data;
+    } else {
+      this.u8a = data;
+    }
+  }
+};
+
+// src/core/ipc/IpcStreamAbort.cts
+var IpcStreamAbort = class extends IpcMessage {
+  constructor(stream_id) {
+    super(5 /* STREAM_ABORT */);
+    this.stream_id = stream_id;
+  }
+};
+
 // src/core/ipc/IpcStreamData.cts
-var IpcStreamData = class {
-  constructor(stream_id, data) {
+var IpcStreamData = class extends IpcMessage {
+  constructor(stream_id, data, encoding) {
+    super(2 /* STREAM_DATA */);
     this.stream_id = stream_id;
     this.data = data;
-    this.type = 2 /* STREAM_DATA */;
+    this.encoding = encoding;
   }
-  static fromBinary(ipc, stream_id, data) {
-    if (ipc.support_message_pack) {
-      return new IpcStreamData(stream_id, data);
+  static asBase64(stream_id, data) {
+    return new IpcStreamData(
+      stream_id,
+      simpleDecoder(data, "base64"),
+      4 /* BASE64 */
+    );
+  }
+  static asBinary(stream_id, data) {
+    return new IpcStreamData(stream_id, data, 8 /* BINARY */);
+  }
+  static asUtf8(stream_id, data) {
+    return new IpcStreamData(
+      stream_id,
+      simpleDecoder(data, "utf8"),
+      2 /* UTF8 */
+    );
+  }
+  get binary() {
+    switch (this.encoding) {
+      case 8 /* BINARY */: {
+        return this.data;
+      }
+      case 4 /* BASE64 */: {
+        return simpleEncoder(this.data, "base64");
+      }
+      case 2 /* UTF8 */: {
+        return simpleEncoder(this.data, "utf8");
+      }
     }
-    return new IpcStreamData(stream_id, simpleDecoder(data, "base64"));
   }
 };
 
 // src/core/ipc/IpcStreamEnd.cts
-var IpcStreamEnd = class {
+var IpcStreamEnd = class extends IpcMessage {
   constructor(stream_id) {
+    super(4 /* STREAM_END */);
     this.stream_id = stream_id;
-    this.type = 4 /* STREAM_END */;
   }
 };
-
-// src/core/ipc/$streamAsRawData.cts
-var streamIdWM = /* @__PURE__ */ new WeakMap();
-var stream_id_acc = 0;
-var getStreamId = (stream) => {
-  let id = streamIdWM.get(stream);
-  if (id === void 0) {
-    id = `rs-${stream_id_acc++}`;
-    streamIdWM.set(stream, id);
-  }
-  return id;
-};
-var $streamAsRawData = (stream, ipc) => {
-  const stream_id = getStreamId(stream);
-  const reader = streamRead(stream);
-  const sender = _postStreamData(stream_id, reader, ipc, () => {
-    off();
-  });
-  const off = ipc.onMessage(async (message) => {
-    if (message.type === 3 /* STREAM_PULL */ && message.stream_id === stream_id) {
-      await sender.next();
-    } else if (message.type === 5 /* STREAM_ABORT */ && message.stream_id === stream_id) {
-      reader.throw("abort");
-    }
-  });
-  return ipc.support_binary ? [24 /* BINARY_STREAM_ID */, stream_id] : [20 /* BASE64_STREAM_ID */, stream_id];
-};
-async function* _postStreamData(stream_id, reader, ipc, onDone) {
-  for await (const data of reader) {
-    ipc.postMessage(IpcStreamData.fromBinary(ipc, stream_id, data));
-    yield;
-  }
-  ipc.postMessage(new IpcStreamEnd(stream_id));
-  onDone();
-}
 
 // src/core/ipc/IpcStreamPull.cts
-var IpcStreamPull = class {
+var IpcStreamPull = class extends IpcMessage {
   constructor(stream_id, desiredSize) {
+    super(3 /* STREAM_PULL */);
     this.stream_id = stream_id;
-    this.type = 3 /* STREAM_PULL */;
     if (desiredSize == null) {
       desiredSize = 1;
     } else if (Number.isFinite(desiredSize) === false) {
@@ -1934,114 +667,246 @@ var IpcStreamPull = class {
   }
 };
 
-// src/core/ipc/$rawDataToBody.cts
-var $rawDataToBody = (rawBody, ipc) => {
-  let body;
-  const raw_body_type = rawBody[0];
-  const bodyEncoder = raw_body_type & 8 /* BINARY */ ? (data) => data : raw_body_type & 4 /* BASE64 */ ? (data) => simpleEncoder(data, "base64") : raw_body_type & 2 /* TEXT */ ? (data) => simpleEncoder(data, "utf8") : () => {
-    throw raw_body_type;
-  };
-  if (raw_body_type & 16 /* STREAM_ID */) {
-    if (ipc == null) {
-      throw new Error(`miss ipc when ipc-response has stream-body`);
+// src/core/ipc/IpcBodySender.cts
+var _IpcBodySender = class extends IpcBody {
+  constructor(data, ipc) {
+    super();
+    this.data = data;
+    this.ipc = ipc;
+    this.isStream = this.data instanceof ReadableStream;
+    this.pullSignal = createSignal();
+    this.abortSignal = createSignal();
+    /**
+     * 被哪些 ipc 所真正使用，使用的进度分别是多少
+     *
+     * 这个进度 用于 类似流的 多发
+     */
+    this.usedIpcMap = /* @__PURE__ */ new Map();
+    /**
+     * 当前收到拉取的请求数
+     */
+    this.curPulledTimes = 0;
+    this.closeSignal = createSignal();
+    this.openSignal = createSignal();
+    this._isStreamOpened = false;
+    this._isStreamClosed = false;
+    /// bodyAsMeta
+    this._bodyHub = new BodyHub(this.data);
+    this.metaBody = this.$bodyAsMeta(this.data, this.ipc);
+    if (typeof data !== "string") {
+      IpcBody.wm.set(data, this);
     }
-    const stream_ipc = ipc;
-    const stream_id = rawBody[1];
-    body = new ReadableStream({
-      start(controller) {
-        const off = ipc.onMessage((message) => {
-          if ("stream_id" in message && message.stream_id === stream_id) {
-            if (message.type === 2 /* STREAM_DATA */) {
-              controller.enqueue(
-                typeof message.data === "string" ? bodyEncoder(message.data) : message.data
-              );
-            } else if (message.type === 4 /* STREAM_END */) {
-              controller.close();
-              off();
+    _IpcBodySender.$usableByIpc(ipc, this);
+  }
+  static from(data, ipc) {
+    if (typeof data !== "string") {
+      const cache = IpcBody.wm.get(data);
+      if (cache !== void 0) {
+        return cache;
+      }
+    }
+    return new _IpcBodySender(data, ipc);
+  }
+  /**
+   * 绑定使用
+   */
+  useByIpc(ipc) {
+    if (this.usedIpcMap.has(ipc)) {
+      return true;
+    }
+    if (this.isStream && !this._isStreamOpened) {
+      this.usedIpcMap.set(ipc, 0);
+      this.closeSignal.listen(() => {
+        this.unuseByIpc(ipc);
+      });
+      return true;
+    }
+    return false;
+  }
+  /**
+   * 拉取数据
+   */
+  emitStreamPull(message, ipc) {
+    const pulledSize = this.usedIpcMap.get(ipc) + message.desiredSize;
+    this.usedIpcMap.set(ipc, pulledSize);
+    this.pullSignal.emit();
+  }
+  /**
+   * 解绑使用
+   */
+  unuseByIpc(ipc) {
+    if (this.usedIpcMap.delete(ipc) != null) {
+      if (this.usedIpcMap.size === 0) {
+        this.abortSignal.emit();
+      }
+    }
+  }
+  onStreamClose(cb) {
+    return this.closeSignal.listen(cb);
+  }
+  onStreamOpen(cb) {
+    return this.openSignal.listen(cb);
+  }
+  get isStreamOpened() {
+    return this._isStreamOpened;
+  }
+  set isStreamOpened(value) {
+    if (this._isStreamOpened !== value) {
+      this._isStreamOpened = value;
+      if (value) {
+        this.openSignal.emit();
+        this.openSignal.clear();
+      }
+    }
+  }
+  get isStreamClosed() {
+    return this._isStreamClosed;
+  }
+  set isStreamClosed(value) {
+    if (this._isStreamClosed !== value) {
+      this._isStreamClosed = value;
+      if (value) {
+        this.closeSignal.emit();
+        this.closeSignal.clear();
+      }
+    }
+  }
+  emitStreamClose() {
+    this.isStreamOpened = true;
+    this.isStreamClosed = true;
+  }
+  $bodyAsMeta(body, ipc) {
+    if (typeof body === "string") {
+      return [3 /* TEXT */, body, ipc.uid];
+    }
+    if (body instanceof ReadableStream) {
+      return this.$streamAsMeta(body, ipc);
+    }
+    return ipc.support_binary ? [9 /* BINARY */, binaryToU8a(body), ipc.uid] : [5 /* BASE64 */, simpleDecoder(body, "base64"), ipc.uid];
+  }
+  /**
+   * 如果 rawData 是流模式，需要提供数据发送服务
+   *
+   * 这里不会一直无脑发，而是对方有需要的时候才发
+   * @param stream_id
+   * @param stream
+   * @param ipc
+   */
+  $streamAsMeta(stream, ipc) {
+    const stream_id = getStreamId(stream);
+    const reader = binaryStreamRead(stream);
+    const sender = async () => {
+      if (this.curPulledTimes++ > 0) {
+        return;
+      }
+      while (this.curPulledTimes > 0) {
+        const availableLen = await reader.available();
+        switch (availableLen) {
+          case -1:
+          case 0:
+            {
+              const message = new IpcStreamEnd(stream_id);
+              for (const ipc2 of this.usedIpcMap.keys()) {
+                ipc2.postMessage(message);
+              }
+              this.emitStreamClose();
+            }
+            break;
+          default: {
+            this.isStreamOpened = true;
+            const data = await reader.readBinary(availableLen);
+            let binary_message;
+            let base64_message;
+            for (const ipc2 of this.usedIpcMap.keys()) {
+              const message = ipc2.support_binary ? binary_message ??= IpcStreamData.asBinary(stream_id, data) : base64_message ??= IpcStreamData.asBase64(stream_id, data);
+              ipc2.postMessage(message);
             }
           }
-        });
-      },
-      pull(controller) {
-        stream_ipc.postMessage(
-          new IpcStreamPull(stream_id, controller.desiredSize)
-        );
+        }
+        this.curPulledTimes = 0;
       }
+    };
+    this.pullSignal.listen(() => {
+      void sender();
     });
-  } else {
-    body = /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
-    raw_body_type & 2 /* TEXT */ ? rawBody[1] : (
-      /// 其它模式
-      bodyEncoder(rawBody[1])
-    );
-  }
-  return body;
-};
-
-// src/core/ipc/IpcBody.cts
-var _body, _ipc;
-var IpcBody = class {
-  constructor(rawBody, ipc) {
-    this.rawBody = rawBody;
-    __privateAdd(this, _body, void 0);
-    __privateAdd(this, _ipc, void 0);
-    __privateSet(this, _ipc, ipc);
-  }
-  get body() {
-    return this._initBody().data;
-  }
-  _initBody() {
-    if (__privateGet(this, _body) === void 0) {
-      const data = $rawDataToBody(this.rawBody, __privateGet(this, _ipc));
-      __privateSet(this, _body, {
-        data
-      });
-      if (data instanceof ReadableStream) {
-        __privateGet(this, _body).stream = data;
-      } else if (data instanceof Uint8Array) {
-        __privateGet(this, _body).u8a = data;
-      } else if (typeof data === "string") {
-        __privateGet(this, _body).text = data;
-      }
-    }
-    return __privateGet(this, _body);
-  }
-  async u8a() {
-    const body = this._initBody();
-    let body_u8a = body.u8a;
-    if (body_u8a === void 0) {
-      if (body.stream) {
-        body_u8a = await streamReadAllBuffer(body.stream);
-      } else if (body.text !== void 0) {
-        body_u8a = simpleEncoder(body.text, "utf8");
-      } else {
-        throw new Error(`invalid body type`);
-      }
-      body.u8a = body_u8a;
-    }
-    return body_u8a;
-  }
-  async stream() {
-    const body = this._initBody();
-    let body_stream = body.stream;
-    if (body_stream === void 0) {
-      body_stream = new Blob([await this.u8a()]).stream();
-      body.stream = body_stream;
-    }
-    return body_stream;
-  }
-  async text() {
-    const body = await this._initBody();
-    let body_text = body.text;
-    if (body_text === void 0) {
-      body_text = simpleDecoder(await this.u8a(), "utf8");
-      body.text = body_text;
-    }
-    return body_text;
+    this.abortSignal.listen(() => {
+      reader.return();
+      this.emitStreamClose();
+    });
+    return [0 /* STREAM_ID */, stream_id, ipc.uid];
   }
 };
-_body = new WeakMap();
-_ipc = new WeakMap();
+var IpcBodySender = _IpcBodySender;
+/**
+ * ipc 将会使用它
+ */
+IpcBodySender.$usableByIpc = (ipc, ipcBody) => {
+  if (ipcBody.isStream && !ipcBody._isStreamOpened) {
+    const streamId = ipcBody.metaBody[1];
+    let usableIpcBodyMapper = IpcUsableIpcBodyMap.get(ipc);
+    if (usableIpcBodyMapper === void 0) {
+      const mapper = new UsableIpcBodyMapper();
+      mapper.onDestroy(
+        ipc.onMessage((message) => {
+          if (message instanceof IpcStreamPull) {
+            const ipcBody2 = mapper.get(message.stream_id);
+            if (ipcBody2?.useByIpc(ipc)) {
+              ipcBody2.emitStreamPull(message, ipc);
+            }
+          } else if (message instanceof IpcStreamAbort) {
+            const ipcBody2 = mapper.get(message.stream_id);
+            ipcBody2?.unuseByIpc(ipc);
+          }
+        })
+      );
+      mapper.onDestroy(() => IpcUsableIpcBodyMap.delete(ipc));
+      usableIpcBodyMapper = mapper;
+    }
+    if (usableIpcBodyMapper.add(streamId, ipcBody)) {
+      ipcBody.onStreamClose(() => usableIpcBodyMapper.remove(streamId));
+    }
+  }
+};
+var streamIdWM = /* @__PURE__ */ new WeakMap();
+var stream_id_acc = 0;
+var getStreamId = (stream) => {
+  let id = streamIdWM.get(stream);
+  if (id === void 0) {
+    id = `rs-${stream_id_acc++}`;
+    streamIdWM.set(stream, id);
+  }
+  return id;
+};
+var UsableIpcBodyMapper = class {
+  constructor() {
+    this.map = /* @__PURE__ */ new Map();
+    this.destroySignal = createSignal();
+  }
+  add(streamId, ipcBody) {
+    if (this.map.has(streamId)) {
+      return true;
+    }
+    this.map.set(streamId, ipcBody);
+    return false;
+  }
+  get(streamId) {
+    return this.map.get(streamId);
+  }
+  remove(streamId) {
+    const ipcBody = this.map.get(streamId);
+    if (ipcBody !== void 0) {
+      this.map.delete(streamId);
+      if (this.map.size === 0) {
+        this.destroySignal.emit();
+        this.destroySignal.clear();
+      }
+    }
+  }
+  onDestroy(cb) {
+    this.destroySignal.listen(cb);
+  }
+};
+var IpcUsableIpcBodyMap = /* @__PURE__ */ new WeakMap();
 
 // src/core/ipc/IpcHeaders.cts
 var IpcHeaders = class extends Headers {
@@ -2062,24 +927,36 @@ var IpcHeaders = class extends Headers {
 
 // src/core/ipc/IpcResponse.cts
 var _ipcHeaders;
-var _IpcResponse = class extends IpcBody {
-  constructor(req_id, statusCode, rawBody, headers, ipc) {
-    super(rawBody, ipc);
+var _IpcResponse = class extends IpcMessage {
+  constructor(req_id, statusCode, headers, body, ipc) {
+    super(1 /* RESPONSE */);
     this.req_id = req_id;
     this.statusCode = statusCode;
     this.headers = headers;
-    this.type = 1 /* RESPONSE */;
+    this.body = body;
+    this.ipc = ipc;
     __privateAdd(this, _ipcHeaders, void 0);
+    this.ipcResMessage = (0, import_once.default)(
+      () => new IpcResMessage(
+        this.req_id,
+        this.statusCode,
+        this.headers.toJSON(),
+        this.body.metaBody
+      )
+    );
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc, body);
+    }
   }
   get ipcHeaders() {
     return __privateGet(this, _ipcHeaders) ?? __privateSet(this, _ipcHeaders, new IpcHeaders(this.headers));
   }
-  asResponse(url) {
-    const body = this.body;
+  toResponse(url) {
+    const body = this.body.raw;
     if (body instanceof Uint8Array) {
-      this.headers["content-length"] ??= body.length + "";
+      this.headers.init("Content-Length", body.length + "");
     }
-    const response = new Response(this.body, {
+    const response = new Response(body, {
       headers: this.headers,
       status: this.statusCode
     });
@@ -2095,77 +972,85 @@ var _IpcResponse = class extends IpcBody {
   }
   /** 将 response 对象进行转码变成 ipcResponse */
   static async fromResponse(req_id, response, ipc) {
-    let ipcResponse;
+    let ipcBody;
     if (response.body) {
-      ipcResponse = this.fromStream(
-        req_id,
-        response.status,
-        response.body,
-        new IpcHeaders(response.headers),
-        ipc
-      );
+      ipcBody = IpcBodySender.from(response.body, ipc);
     } else {
-      ipcResponse = this.fromBinary(
-        req_id,
-        response.status,
-        await response.arrayBuffer(),
-        new IpcHeaders(response.headers),
+      ipcBody = IpcBodySender.from(
+        binaryToU8a(await response.arrayBuffer()),
         ipc
       );
     }
-    return ipcResponse;
+    return new _IpcResponse(
+      req_id,
+      response.status,
+      new IpcHeaders(response.headers),
+      ipcBody,
+      ipc
+    );
   }
-  static fromJson(req_id, statusCode, jsonable, headers = new IpcHeaders()) {
+  static fromJson(req_id, statusCode, headers = new IpcHeaders(), jsonable, ipc) {
     headers.init("Content-Type", "application/json");
-    return this.fromText(req_id, statusCode, JSON.stringify(jsonable), headers);
+    return this.fromText(
+      req_id,
+      statusCode,
+      headers,
+      JSON.stringify(jsonable),
+      ipc
+    );
   }
-  static fromText(req_id, statusCode, text, headers = new IpcHeaders()) {
+  static fromText(req_id, statusCode, headers = new IpcHeaders(), text, ipc) {
     headers.init("Content-Type", "text/plain");
     return new _IpcResponse(
       req_id,
       statusCode,
-      [2 /* TEXT */, text],
-      headers.toJSON(),
-      void 0
+      headers,
+      IpcBodySender.from(text, ipc),
+      ipc
     );
   }
-  static fromBinary(req_id, statusCode, binary, headers, ipc) {
+  static fromBinary(req_id, statusCode, headers, binary, ipc) {
     headers.init("Content-Type", "application/octet-stream");
     headers.init("Content-Length", binary.byteLength + "");
     return new _IpcResponse(
       req_id,
       statusCode,
-      ipc.support_binary ? [8 /* BINARY */, binaryToU8a(binary)] : [4 /* BASE64 */, simpleDecoder(binary, "base64")],
-      headers.toJSON(),
-      void 0
+      headers,
+      IpcBodySender.from(binaryToU8a(binary), ipc),
+      ipc
     );
   }
-  static fromStream(req_id, statusCode, stream, headers = new IpcHeaders(), ipc) {
+  static fromStream(req_id, statusCode, headers = new IpcHeaders(), stream, ipc) {
     headers.init("Content-Type", "application/octet-stream");
     const ipcResponse = new _IpcResponse(
       req_id,
       statusCode,
-      $streamAsRawData(stream, ipc),
-      headers.toJSON(),
+      headers,
+      IpcBodySender.from(stream, ipc),
       ipc
     );
     return ipcResponse;
   }
-  // static fromBinaryStream(
-  //   req_id: number,
-  //   statusCode: number,
-  //   binary: Uint8Array | ReadableStream<Uint8Array>,
-  //   headers=new IpcHeaders(),
-  //   ipc: Ipc
-  // ) {}
+  toJSON() {
+    return this.ipcResMessage();
+  }
 };
 var IpcResponse = _IpcResponse;
 _ipcHeaders = new WeakMap();
+var IpcResMessage = class extends IpcMessage {
+  constructor(req_id, statusCode, headers, metaBody) {
+    super(1 /* RESPONSE */);
+    this.req_id = req_id;
+    this.statusCode = statusCode;
+    this.headers = headers;
+    this.metaBody = metaBody;
+  }
+};
 
-// src/sys/http-server/$listenHelper.cts
-var import_once2 = __toESM(require_once());
+// src/sys/http-server/$createHttpDwebServer.cts
+var import_once5 = __toESM(require_once());
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
 var UINT32_MAX = 4294967295;
 function setUint64(view, offset, value) {
   var high = value / 4294967296;
@@ -2190,7 +1075,7 @@ function getUint64(view, offset) {
   return high * 4294967296 + low;
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/utf8.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/utf8.mjs
 var _a;
 var _b;
 var _c;
@@ -2315,7 +1200,7 @@ function utf8DecodeTD(bytes, inputOffset, byteLength) {
   return sharedTextDecoder.decode(stringBytes);
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
 var ExtData = (
   /** @class */
   function() {
@@ -2327,7 +1212,7 @@ var ExtData = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
 var __extends = function() {
   var extendStatics = function(d, b) {
     extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
@@ -2368,7 +1253,7 @@ var DecodeError = (
   }(Error)
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/timestamp.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/timestamp.mjs
 var EXT_TIMESTAMP = -1;
 var TIMESTAMP32_MAX_SEC = 4294967296 - 1;
 var TIMESTAMP64_MAX_SEC = 17179869184 - 1;
@@ -2449,7 +1334,7 @@ var timestampExtension = {
   decode: decodeTimestampExtension
 };
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
 var ExtensionCodec = (
   /** @class */
   function() {
@@ -2510,7 +1395,7 @@ var ExtensionCodec = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/typedArrays.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/typedArrays.mjs
 function ensureUint8Array(buffer) {
   if (buffer instanceof Uint8Array) {
     return buffer;
@@ -2530,7 +1415,7 @@ function createDataView(buffer) {
   return new DataView(bufferView.buffer, bufferView.byteOffset, bufferView.byteLength);
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/Encoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/Encoder.mjs
 var DEFAULT_MAX_DEPTH = 100;
 var DEFAULT_INITIAL_BUFFER_SIZE = 2048;
 var Encoder = (
@@ -2876,7 +1761,7 @@ var Encoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/encode.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/encode.mjs
 var defaultEncodeOptions = {};
 function encode(value, options) {
   if (options === void 0) {
@@ -2886,12 +1771,12 @@ function encode(value, options) {
   return encoder.encodeSharedRef(value);
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/prettyByte.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/prettyByte.mjs
 function prettyByte(byte) {
   return "".concat(byte < 0 ? "-" : "", "0x").concat(Math.abs(byte).toString(16).padStart(2, "0"));
 }
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/CachedKeyDecoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/CachedKeyDecoder.mjs
 var DEFAULT_MAX_KEY_LENGTH = 16;
 var DEFAULT_MAX_LENGTH_PER_KEY = 16;
 var CachedKeyDecoder = (
@@ -2956,7 +1841,7 @@ var CachedKeyDecoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
 var __awaiter = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve) {
@@ -3752,7 +2637,7 @@ var Decoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack+msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/decode.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/decode.mjs
 var defaultDecodeOptions = {};
 function decode(buffer, options) {
   if (options === void 0) {
@@ -3762,8 +2647,11 @@ function decode(buffer, options) {
   return decoder.decode(buffer);
 }
 
+// src/core/ipc-web/ReadableStreamIpc.cts
+var import_once4 = __toESM(require_once());
+
 // src/core/ipc/ipc.cts
-var import_once = __toESM(require_once());
+var import_once3 = __toESM(require_once());
 
 // src/helper/PromiseOut.cts
 var PromiseOut = class {
@@ -3771,9 +2659,23 @@ var PromiseOut = class {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = resolve;
       this.reject = reject;
+    }).then((res) => {
+      this._value = res;
+      return res;
     });
   }
+  static resolve(v) {
+    const po = new PromiseOut();
+    po.resolve(v);
+    return po;
+  }
+  get value() {
+    return this._value;
+  }
 };
+
+// src/core/ipc/IpcRequest.cts
+var import_once2 = __toESM(require_once());
 
 // src/helper/urlHelper.cts
 var URL_BASE = "document" in globalThis ? document.baseURI : "location" in globalThis && (location.protocol === "http:" || location.protocol === "https:" || location.protocol === "file:" || location.protocol === "chrome-extension:") ? location.href : "file:///";
@@ -3805,64 +2707,119 @@ var buildUrl = (url, ext) => {
 
 // src/core/ipc/IpcRequest.cts
 var _parsed_url;
-var _IpcRequest = class extends IpcBody {
-  constructor(req_id, method, url, rawBody, headers, ipc) {
-    super(rawBody, ipc);
+var _IpcRequest = class extends IpcMessage {
+  constructor(req_id, url, method, headers, body, ipc) {
+    super(0 /* REQUEST */);
     this.req_id = req_id;
-    this.method = method;
     this.url = url;
+    this.method = method;
     this.headers = headers;
-    this.type = 0 /* REQUEST */;
+    this.body = body;
+    this.ipc = ipc;
     __privateAdd(this, _parsed_url, void 0);
+    this.ipcReqMessage = (0, import_once2.default)(
+      () => new IpcReqMessage(
+        this.req_id,
+        this.method,
+        this.url,
+        this.headers.toJSON(),
+        this.body.metaBody
+      )
+    );
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc, body);
+    }
   }
   get parsed_url() {
     return __privateGet(this, _parsed_url) ?? __privateSet(this, _parsed_url, parseUrl(this.url));
   }
-  static fromText(text, req_id, method, url, headers = new IpcHeaders()) {
+  static fromText(req_id, url, method = "GET" /* GET */, headers = new IpcHeaders(), text, ipc) {
     return new _IpcRequest(
       req_id,
-      method,
       url,
-      [2 /* TEXT */, text],
-      headers.toJSON(),
-      void 0
-    );
-  }
-  static fromBinary(binary, req_id, method, url, headers = new IpcHeaders(), ipc) {
-    headers.init("Content-Type", "application/octet-stream");
-    headers.init("Content-Length", binary.byteLength + "");
-    const rawBody = ipc.support_binary ? [8 /* BINARY */, binaryToU8a(binary)] : [4 /* BASE64 */, simpleDecoder(binary, "base64")];
-    return new _IpcRequest(req_id, method, url, rawBody, headers.toJSON(), ipc);
-  }
-  static fromStream(stream, req_id, method, url, headers = new IpcHeaders(), ipc) {
-    headers.init("Content-Type", "application/octet-stream");
-    return new _IpcRequest(
-      req_id,
       method,
-      url,
-      $streamAsRawData(stream, ipc),
-      headers.toJSON(),
+      headers,
+      IpcBodySender.from(text, ipc),
       ipc
     );
+  }
+  static fromBinary(req_id, url, method = "GET" /* GET */, headers = new IpcHeaders(), binary, ipc) {
+    headers.init("Content-Type", "application/octet-stream");
+    headers.init("Content-Length", binary.byteLength + "");
+    return new _IpcRequest(
+      req_id,
+      url,
+      method,
+      headers,
+      IpcBodySender.from(binaryToU8a(binary), ipc),
+      ipc
+    );
+  }
+  static fromStream(req_id, url, method = "GET" /* GET */, headers = new IpcHeaders(), stream, ipc) {
+    headers.init("Content-Type", "application/octet-stream");
+    return new _IpcRequest(
+      req_id,
+      url,
+      method,
+      headers,
+      IpcBodySender.from(stream, ipc),
+      ipc
+    );
+  }
+  static fromRequest(req_id, ipc, url, init = {}) {
+    const method = toIpcMethod(init.method);
+    const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
+    let ipcBody;
+    if (isBinary(init.body)) {
+      ipcBody = IpcBodySender.from(init.body, ipc);
+    } else if (init.body instanceof ReadableStream) {
+      ipcBody = IpcBodySender.from(init.body, ipc);
+    } else {
+      ipcBody = IpcBodySender.from(init.body ?? "", ipc);
+    }
+    return new _IpcRequest(req_id, url, method, headers, ipcBody, ipc);
+  }
+  toRequest() {
+    const { method } = this;
+    let body;
+    if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
+      body = this.body.raw;
+    }
+    return new Request(this.url, {
+      method,
+      headers: this.headers,
+      body
+    });
+  }
+  toJSON() {
+    return this.ipcReqMessage();
   }
 };
 var IpcRequest = _IpcRequest;
 _parsed_url = new WeakMap();
+var IpcReqMessage = class extends IpcMessage {
+  constructor(req_id, method, url, headers, metaBody) {
+    super(0 /* REQUEST */);
+    this.req_id = req_id;
+    this.method = method;
+    this.url = url;
+    this.headers = headers;
+    this.metaBody = metaBody;
+  }
+};
 
 // src/core/ipc/ipc.cts
-var import_chalk = __toESM(require_source());
 var ipc_uid_acc = 0;
 var Ipc = class {
   constructor() {
-    /**
-     * 是否支持使用 Protobuf 直接传输二进制
-     * 在网络环境里，protobuf 是更加高效的协议
-     */
-    this.support_protobuf = false;
     this.uid = ipc_uid_acc++;
+    this._support_message_pack = false;
+    this._support_protobuf = false;
+    this._support_raw = false;
+    this._support_binary = false;
     this._messageSignal = createSignal();
     this.onMessage = this._messageSignal.listen;
-    this._getOnRequestListener = (0, import_once.default)(() => {
+    this._getOnRequestListener = (0, import_once3.default)(() => {
       const signal = createSignal();
       this.onMessage((request, ipc) => {
         if (request.type === 0 /* REQUEST */) {
@@ -3879,10 +2836,33 @@ var Ipc = class {
     this._inited_req_res = false;
   }
   /**
+   * 是否支持使用 MessagePack 直接传输二进制
+   * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
+   * 二进制传输在网络相关的服务里被支持，里效率会更高，但前提是对方有 MessagePack 的编解码能力
+   * 否则 JSON 是通用的传输协议
+   */
+  get support_message_pack() {
+    return this._support_message_pack;
+  }
+  /**
+   * 是否支持使用 Protobuf 直接传输二进制
+   * 在网络环境里，protobuf 是更加高效的协议
+   */
+  get support_protobuf() {
+    return this._support_protobuf;
+  }
+  /**
+   * 是否支持结构化内存协议传输：
+   * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
+   */
+  get support_raw() {
+    return this._support_raw;
+  }
+  /**
    * 是否支持二进制传输
    */
   get support_binary() {
-    return this.support_message_pack || this.support_protobuf;
+    return this._support_binary ?? (this.support_message_pack || this.support_protobuf || this.support_raw);
   }
   postMessage(message) {
     if (this._closed) {
@@ -3900,6 +2880,7 @@ var Ipc = class {
     this._closed = true;
     this._doClose();
     this._closeSignal.emit();
+    this._closeSignal.clear();
   }
   allocReqId(url) {
     return this._req_id_acc++;
@@ -3922,43 +2903,14 @@ var Ipc = class {
     });
   }
   // 先找到错误的位置
-  // 需要确定两个问题 
+  // 需要确定两个问题
   // 是否是应为报错导致无法响应后面的请求
   // 如果是是否可以避免报错？？
   /** 发起请求并等待响应 */
   // 会提供给 http-server模块的 gateway.listener.hookHttpRequest
-  request(url, init = {}) {
-    const req_id = this.allocReqId(url);
-    const method = init.method ?? "GET";
-    const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
-    let ipcRequest;
-    if (isBinary(init.body)) {
-      ipcRequest = IpcRequest.fromBinary(
-        init.body,
-        req_id,
-        method,
-        url,
-        headers,
-        this
-      );
-    } else if (init.body instanceof ReadableStream) {
-      ipcRequest = IpcRequest.fromStream(
-        init.body,
-        req_id,
-        method,
-        url,
-        headers,
-        this
-      );
-    } else {
-      ipcRequest = IpcRequest.fromText(
-        init.body ?? "",
-        req_id,
-        method,
-        url,
-        headers
-      );
-    }
+  request(url, init) {
+    const req_id = this.allocReqId();
+    const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
     this.postMessage(ipcRequest);
     return this.registerReqId(req_id).promise;
   }
@@ -3971,33 +2923,102 @@ var Ipc = class {
   }
 };
 
+// src/core/ipc/IpcBodyReceiver.cts
+var _IpcBodyReceiver = class extends IpcBody {
+  constructor(metaBody, ipc) {
+    super();
+    this.metaBody = metaBody;
+    switch (metaBody[0]) {
+      case 0 /* STREAM_ID */:
+        {
+          const streamId = metaBody[1];
+          const senderIpcUid = metaBody[2];
+          const metaId = `${senderIpcUid}/${streamId}`;
+          if (_IpcBodyReceiver.metaIdIpcMap.has(metaId) === false) {
+            ipc.onClose(() => {
+              _IpcBodyReceiver.metaIdIpcMap.delete(metaId);
+            });
+            _IpcBodyReceiver.metaIdIpcMap.set(metaId, ipc);
+          }
+          const receiver = _IpcBodyReceiver.metaIdIpcMap.get(metaId);
+          if (receiver === void 0) {
+            throw new Error(`no found ipc by metaId:${metaId}`);
+          }
+          ipc = receiver;
+          this._bodyHub = new BodyHub($metaToStream(this.metaBody, ipc));
+        }
+        break;
+      case 3 /* TEXT */:
+        {
+          this._bodyHub = new BodyHub(metaBody[1]);
+        }
+        break;
+      default:
+        {
+          this._bodyHub = new BodyHub($metaBodyToBinary(metaBody));
+        }
+        break;
+    }
+  }
+};
+var IpcBodyReceiver = _IpcBodyReceiver;
+IpcBodyReceiver.metaIdIpcMap = /* @__PURE__ */ new Map();
+var $metaToStream = (rawBody, ipc) => {
+  if (ipc == null) {
+    throw new Error(`miss ipc when ipc-response has stream-body`);
+  }
+  const stream_ipc = ipc;
+  const stream_id = rawBody[1];
+  const stream = new ReadableStream({
+    start(controller) {
+      const off = ipc.onMessage((message) => {
+        if ("stream_id" in message && message.stream_id === stream_id) {
+          if (message.type === 2 /* STREAM_DATA */) {
+            console.log("getStreamDataMessage", stream_id);
+            controller.enqueue(message.binary);
+          } else if (message.type === 4 /* STREAM_END */) {
+            controller.close();
+            off();
+          }
+        }
+      });
+    },
+    pull(controller) {
+      console.log("postStreamPullMessage", stream_id, controller.desiredSize);
+      stream_ipc.postMessage(
+        new IpcStreamPull(stream_id, controller.desiredSize)
+      );
+    }
+  });
+  return stream;
+};
+
 // src/core/ipc-web/$messageToIpcMessage.cts
+var isIpcSignalMessage = (msg) => msg === "close" || msg === "ping" || msg === "pong";
 var $messageToIpcMessage = (data, ipc) => {
-  if (data instanceof Uint8Array) {
-    data = decode(data);
+  if (isIpcSignalMessage(data)) {
+    return data;
   }
   let message;
-  if (data === "close") {
-    message = data;
-  } else if (data.type === 0 /* REQUEST */) {
+  if (data.type === 0 /* REQUEST */) {
     message = new IpcRequest(
       data.req_id,
-      data.method,
       data.url,
-      data.rawBody,
-      data.headers,
+      data.method,
+      new IpcHeaders(data.headers),
+      new IpcBodyReceiver(data.metaBody, ipc),
       ipc
     );
   } else if (data.type === 1 /* RESPONSE */) {
     message = new IpcResponse(
       data.req_id,
       data.statusCode,
-      data.rawBody,
-      data.headers,
+      new IpcHeaders(data.headers),
+      new IpcBodyReceiver(data.metaBody, ipc),
       ipc
     );
   } else if (data.type === 2 /* STREAM_DATA */) {
-    message = new IpcStreamData(data.stream_id, data.data);
+    message = new IpcStreamData(data.stream_id, data.data, data.encoding);
   } else if (data.type === 3 /* STREAM_PULL */) {
     message = new IpcStreamPull(data.stream_id, data.desiredSize);
   } else if (data.type === 4 /* STREAM_END */) {
@@ -4006,17 +3027,43 @@ var $messageToIpcMessage = (data, ipc) => {
   return message;
 };
 
+// src/core/ipc-web/$jsonToIpcMessage.cts
+var $jsonToIpcMessage = (data, ipc) => {
+  return $messageToIpcMessage(
+    isIpcSignalMessage(data) ? data : JSON.parse(data),
+    ipc
+  );
+};
+
+// src/core/ipc-web/$messagePackToIpcMessage.cts
+var $messagePackToIpcMessage = (data, ipc) => {
+  return $messageToIpcMessage(
+    decode(data),
+    ipc
+  );
+};
+
 // src/core/ipc-web/ReadableStreamIpc.cts
 var _rso;
 var ReadableStreamIpc = class extends Ipc {
-  constructor(remote, role, support_message_pack = true) {
+  constructor(remote, role, self_support_protocols = {
+    raw: false,
+    message_pack: true,
+    protobuf: false
+  }) {
     super();
     this.remote = remote;
     this.role = role;
-    this.support_message_pack = support_message_pack;
+    this.self_support_protocols = self_support_protocols;
     __privateAdd(this, _rso, new ReadableStreamOut());
+    this.PONG_DATA = (0, import_once4.default)(() => {
+      const pong = simpleEncoder("pong", "utf8");
+      this._len[0] = pong.length;
+      return u8aConcat([this._len_u8a, pong]);
+    });
     this._len = new Uint32Array(1);
     this._len_u8a = new Uint8Array(this._len.buffer);
+    this._support_message_pack = self_support_protocols.message_pack && remote.ipc_support_protocols.message_pack;
   }
   /** 这是输出流，给外部读取用的 */
   get stream() {
@@ -4034,30 +3081,41 @@ var ReadableStreamIpc = class extends Ipc {
       throw new Error("in come stream alreay binded.");
     }
     this._incomne_stream = await stream;
-    let cache = new Uint8Array(0);
-    for await (const chunk of streamRead(this._incomne_stream)) {
-      cache = u8aConcat([cache, chunk]);
-      const len = new Uint32Array(cache.buffer, 0, 1)[0];
-      if (cache.length - 4 < len) {
-        continue;
-      }
-      const data = cache.slice(4, len + 4);
-      cache = cache.slice(len + 4);
-      const message = $messageToIpcMessage(data, this);
+    const reader = binaryStreamRead(this._incomne_stream);
+    while (await reader.available() > 0) {
+      const size = await reader.readInt();
+      const data = await reader.readBinary(size);
+      const message = this.support_message_pack ? $messagePackToIpcMessage(data, this) : $jsonToIpcMessage(simpleDecoder(data, "utf8"), this);
       if (message === void 0) {
+        console.error("unkonwn message", data);
+        return;
+      }
+      if (message === "pong") {
         return;
       }
       if (message === "close") {
         this.close();
         return;
       }
+      if (message === "ping") {
+        this.controller.enqueue(this.PONG_DATA());
+        return;
+      }
       this._messageSignal.emit(message, this);
     }
   }
   _doPostMessage(message) {
-    const data = this.support_message_pack ? encode(message) : simpleEncoder(JSON.stringify(message), "utf8");
-    this._len[0] = data.length;
-    const chunk = u8aConcat([this._len_u8a, data]);
+    var message_raw;
+    if (message instanceof IpcRequest) {
+      message_raw = message.ipcReqMessage();
+    } else if (message instanceof IpcResponse) {
+      message_raw = message.ipcResMessage();
+    } else {
+      message_raw = message;
+    }
+    const message_data = this.support_message_pack ? encode(message_raw) : simpleEncoder(JSON.stringify(message_raw), "utf8");
+    this._len[0] = message_data.length;
+    const chunk = u8aConcat([this._len_u8a, message_data]);
     this.controller.enqueue(chunk);
   }
   _doClose() {
@@ -4066,29 +3124,88 @@ var ReadableStreamIpc = class extends Ipc {
 };
 _rso = new WeakMap();
 
-// src/sys/http-server/$listenHelper.cts
-var import_chalk2 = __toESM(require_source());
-var createHttpDwebServer = async (microModule, options) => {
-  const { origin, token } = await startHttpDwebServer(microModule, options);
-  console.log(import_chalk2.default.green("\u83B7\u5F97\u57DF\u540D\u6388\u6743 origin===]", origin, "  [token===]", token));
-  const listen = () => listenHttpDwebServer(microModule, token);
-  const close = (0, import_once2.default)(() => closeHttpDwebServer(microModule, options));
-  return { origin, token, listen, close };
+// src/sys/http-server/const.ts
+var ServerUrlInfo = class {
+  constructor(host, internal_origin, public_origin) {
+    this.host = host;
+    this.internal_origin = internal_origin;
+    this.public_origin = public_origin;
+  }
+  buildUrl(origin2, builder) {
+    if (typeof builder === "string") {
+      return new URL(builder, origin2);
+    }
+    const url = new URL(origin2);
+    url.searchParams.set("X-Dweb-Host", this.host);
+    return builder(url) ?? url;
+  }
+  buildPublicUrl(builder) {
+    return this.buildUrl(this.public_origin, builder);
+  }
+  buildInternalUrl(builder) {
+    return this.buildUrl(this.internal_origin, builder);
+  }
 };
-var listenHttpDwebServer = async (microModule, token) => {
-  const httpServerIpc = new ReadableStreamIpc(microModule, "client" /* CLIENT */, true);
-  const routes = [
-    /** 定义了路由的方法 */
-    { pathname: "/", matchMode: "prefix", method: "GET" },
-    { pathname: "/", matchMode: "prefix", method: "POST" },
-    { pathname: "/", matchMode: "prefix", method: "PUT" },
-    { pathname: "/", matchMode: "prefix", method: "DELETE" },
-    { pathname: "/", matchMode: "prefix", method: "PATCH" },
-    { pathname: "/", matchMode: "prefix", method: "OPTIONS" },
-    { pathname: "/", matchMode: "prefix", method: "HEAD" },
-    { pathname: "/", matchMode: "prefix", method: "CONNECT" },
-    { pathname: "/", matchMode: "prefix", method: "TRACE" }
-  ];
+var ServerStartResult = class {
+  constructor(token, urlInfo) {
+    this.token = token;
+    this.urlInfo = urlInfo;
+  }
+};
+
+// src/sys/http-server/$createHttpDwebServer.cts
+var createHttpDwebServer = async (microModule, options) => {
+  const startResult = await startHttpDwebServer(microModule, options);
+  console.log("\u83B7\u5F97\u57DF\u540D\u6388\u6743\uFF1A", startResult);
+  return new HttpDwebServer(microModule, options, startResult);
+};
+var HttpDwebServer = class {
+  constructor(nmm, options, startResult) {
+    this.nmm = nmm;
+    this.options = options;
+    this.startResult = startResult;
+    /** 关闭监听 */
+    this.close = (0, import_once5.default)(() => closeHttpDwebServer(this.nmm, this.options));
+  }
+  /** 开始处理请求 */
+  async listen(routes = [
+    {
+      pathname: "/",
+      matchMode: "prefix",
+      method: "GET"
+    },
+    {
+      pathname: "/",
+      matchMode: "prefix",
+      method: "POST"
+    },
+    {
+      pathname: "/",
+      matchMode: "prefix",
+      method: "PUT"
+    },
+    {
+      pathname: "/",
+      matchMode: "prefix",
+      method: "DELETE"
+    }
+  ]) {
+    return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
+  }
+};
+var listenHttpDwebServer = async (microModule, token, routes = [
+  /** 定义了路由的方法 */
+  { pathname: "/", matchMode: "prefix", method: "GET" },
+  { pathname: "/", matchMode: "prefix", method: "POST" },
+  { pathname: "/", matchMode: "prefix", method: "PUT" },
+  { pathname: "/", matchMode: "prefix", method: "DELETE" },
+  { pathname: "/", matchMode: "prefix", method: "PATCH" },
+  { pathname: "/", matchMode: "prefix", method: "OPTIONS" },
+  { pathname: "/", matchMode: "prefix", method: "HEAD" },
+  { pathname: "/", matchMode: "prefix", method: "CONNECT" },
+  { pathname: "/", matchMode: "prefix", method: "TRACE" }
+]) => {
+  const httpServerIpc = new ReadableStreamIpc(microModule, "client" /* CLIENT */);
   const url = new URL(`file://http.sys.dweb`);
   const ext = {
     pathname: "/listen",
@@ -4110,7 +3227,14 @@ var startHttpDwebServer = (microModule, options) => {
       search: options
     })
   ).object().then((obj) => {
-    return obj;
+    console.log(obj);
+    const { urlInfo, token } = obj;
+    const serverUrlInfo = new ServerUrlInfo(
+      urlInfo.host,
+      urlInfo.internal_origin,
+      urlInfo.public_origin
+    );
+    return new ServerStartResult(token, serverUrlInfo);
   });
 };
 var closeHttpDwebServer = async (microModule, options) => {
@@ -4123,8 +3247,8 @@ var closeHttpDwebServer = async (microModule, options) => {
 
 // src/sys/app/common.worker.mts
 var main = async () => {
-  const { origin, listen } = await createHttpDwebServer(jsProcess, {});
-  (await listen()).onRequest(async (request, httpServerIpc) => {
+  const dwebServer = await createHttpDwebServer(jsProcess, {});
+  (await dwebServer.listen()).onRequest(async (request, httpServerIpc) => {
     switch (request.url) {
       case (request.url.startsWith("/operation_from_plugins?") ? request.url : "**eot**"):
         onRequestAtOperationFromPlugins(request, httpServerIpc);
@@ -4137,33 +3261,27 @@ var main = async () => {
   await openIndexHtmlAtMWebview(origin);
 };
 main().catch(console.error);
-async function openIndexHtmlAtMWebview(origin) {
-  const view_id = await jsProcess.fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin)}`).text();
+async function openIndexHtmlAtMWebview(origin2) {
+  const view_id = await jsProcess.fetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(origin2)}`).text();
   return view_id;
 }
 async function onRequestAtOperationFromPlugins(request, ipc) {
-  const _path = request.headers["plugin-target"];
+  const _path = request.headers.get("plugin-target");
   const _appUrl = request.parsed_url.searchParams.get("app_url");
   const _url = `file://api.sys.dweb/${_path}?app_url=${_appUrl}`;
-  jsProcess.fetch(_url, { method: request.method, body: request.body, headers: request.headers }).then(async (res) => {
-    ipc.postMessage(
-      await IpcResponse.fromResponse(
-        request.req_id,
-        res,
-        ipc
-      )
-    );
+  jsProcess.fetch(_url, {
+    method: request.method,
+    body: request.body.raw,
+    headers: request.headers
+  }).then(async (res) => {
+    ipc.postMessage(await IpcResponse.fromResponse(request.req_id, res, ipc));
   });
 }
-async function onRequestDefault(origin, request, ipc) {
-  const _url = `file://www.sys.dweb/server?url=${origin}${request.url}`;
+async function onRequestDefault(origin2, request, ipc) {
+  const _url = `file://www.sys.dweb/server?url=${origin2}${request.url}`;
   const response = await jsProcess.fetch(_url);
   ipc.postMessage(
-    await IpcResponse.fromResponse(
-      request.req_id,
-      response,
-      ipc
-    )
+    await IpcResponse.fromResponse(request.req_id, response, ipc)
   );
 }
 export {
