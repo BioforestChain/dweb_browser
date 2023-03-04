@@ -102,8 +102,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     /// 在网关中寻址能够处理该 host 的监听者
 
 
-    public override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
- {
+    public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// 启动http后端服务
         dwebServer.createServer(httpHandler)
 
@@ -116,7 +115,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 networkFetch(
                     request
                         // 头部里添加 X-Dweb-Host
-                        .header("X-Dweb-Host", request.uri.authority)
+                        .header("X-Dweb-Host", request.uri.getFullAuthority())
                         // 替换 url 的 authority（host+port）
                         .uri(request.uri.scheme("http").authority(dwebServer.authority))
                 )
@@ -244,3 +243,15 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
 }
 
+
+fun Uri.getFullAuthority(hostOrAuthority: String = authority): String {
+    var authority1 = hostOrAuthority
+    if (!authority1.contains(":")) {
+        if (scheme == "http") {
+            authority1 += ":80"
+        } else if (scheme == "https") {
+            authority1 += ":443"
+        }
+    }
+    return authority1
+}

@@ -21,13 +21,14 @@ open class PermissionActivity : AppCompatActivity() {
         private var requestPermissionsCodeAcc = 1;
     }
 
-     class RequestPermissionsResult(val code: Int) {
+    class RequestPermissionsResult(val code: Int) {
         val grants = mutableListOf<String>()
         val denied = mutableListOf<String>()
         private val task = PromiseOut<Unit>()
         fun done() {
             task.resolve(Unit)
         }
+
         val isGranted get() = denied.size == 0
 
         suspend fun waitPromise() = task.waitPromise()

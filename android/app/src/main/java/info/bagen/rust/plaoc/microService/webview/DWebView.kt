@@ -2,10 +2,13 @@ package info.bagen.rust.plaoc.microService.webview
 
 import android.content.Context
 import android.os.Message
+import android.view.View
+import android.view.ViewGroup
 import android.webkit.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
+import info.bagen.rust.plaoc.microService.sys.http.getFullAuthority
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -95,7 +98,7 @@ class DWebView(
         }
         // 加入默认端口
         if (!dwebHost.contains(":")) {
-            dwebHost += ":80"
+            dwebHost = uri.getFullAuthority(dwebHost)
         }
         settings.userAgentString = "$baseUserAgentString dweb-host/${dwebHost}"
     }
@@ -121,12 +124,18 @@ class DWebView(
 
     init {
 
+        layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
         setUA()
         hookWindowClose()
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
         settings.safeBrowsingEnabled = true
+        settings.loadWithOverviewMode = true
+//        settings.useWideViewPort = true
         webViewClient = object : WebViewClient() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -182,6 +191,14 @@ class DWebView(
                     closeSignal.emit()
                 }
                 super.onCloseWindow(window)
+            }
+
+            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                super.onShowCustomView(view, callback)
+            }
+
+            override fun onHideCustomView() {
+                super.onHideCustomView()
             }
 
             override fun onPermissionRequest(request: PermissionRequest) {

@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -23,11 +24,22 @@ class MutilWebViewController(val mmid: Mmid) {
         var hidden: Boolean = false
     )
 
+    private var activityTask = PromiseOut<MutilWebViewActivity>()
+    suspend fun waitActivityCreated() = activityTask.waitPromise()
+
     var activity: MutilWebViewActivity? = null
         set(value) {
+            if (field == value) {
+                return
+            }
             field = value
             for (webview in webViewList) {
                 webview.dWebView.activity = value
+            }
+            if (value == null) {
+                activityTask = PromiseOut()
+            } else {
+                activityTask.resolve(value)
             }
         }
 

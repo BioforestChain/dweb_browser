@@ -51,7 +51,7 @@ class SplashActivity : AppCompatActivity() {
             }
         } else {
             openHomeActivity()
-            finish()
+//            finish()
         }
     }
 

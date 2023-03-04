@@ -14,7 +14,9 @@ import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidFileProperties
 import org.koin.android.ext.koin.androidLogger
@@ -30,12 +32,10 @@ class App : Application() {
         var jmmManagerActivity: JmmManagerActivity? = null
 
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
-            runBlocking {
-                withContext(Dispatchers.IO) {
-                    val intent = Intent(appContext.applicationContext, cls)
-                    onIntent(intent)
-                    appContext.startActivity(intent)
-                }
+            GlobalScope.launch(Dispatchers.Main) {
+                val intent = Intent(appContext, cls)
+                onIntent(intent)
+                appContext.startActivity(intent)
             }
         }
     }
