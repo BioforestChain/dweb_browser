@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * IpcBodySender 本质上是对 ReadableStream 的再次封装。
@@ -41,10 +41,6 @@ class IpcBodySender(
      */
     private val usedIpcMap = mutableMapOf<Ipc, /* desiredSize */ Int>()
 
-    /**
-     * 当前收到拉取的请求数
-     */
-    private var curPulledTimes = AtomicInteger(0);
 
     /**
      * 绑定使用
@@ -247,70 +243,64 @@ class IpcBodySender(
         MetaBody(IPC_META_BODY_TYPE.BASE64, binary.toBase64(), ipc.uid)
     }
 
-    class QAQ {
-        companion object {
-            val readeds = mutableSetOf<InputStream>()
-        }
-    }
 
     private fun streamAsMeta(stream: InputStream, ipc: Ipc): MetaBody {
-        if(QAQ.readeds.contains(stream)){
-            debugger()
-        }else{
-            QAQ.readeds.add(stream)
-        }
+
         val stream_id = getStreamId(stream)
         debugIpcBody("sender/INIT/$stream", stream_id)
         val streamAsMetaScope =
             CoroutineScope(CoroutineName("sender/$stream/$stream_id") + ioAsyncExceptionHandler)
 
+        /**
+         * 发送锁
+         *
+         * 流是不可以被并发读取的
+         */
+        val sendingLock = AtomicBoolean()
         suspend fun sender() {
-            /// 如果原本就不为0，那么就说明已经在运行中了
-            if (curPulledTimes.getAndAdd(1) > 0) {
+            // 上锁，如果已经有锁，那说明已经在被读取了，直接退出
+            if (sendingLock.getAndSet(true)) {
                 return
             }
-            while (curPulledTimes.get() > 0) {
-                debugIpcBody("sender/PULLING/$stream", stream_id)
-                when (val availableLen = stream.available()) {
-                    -1, 0 -> {
-                        debugIpcBody(
-                            "sender/END/$stream", "$availableLen >> $stream_id"
-                        )
-                        /// 不论是不是被 aborted，都发送结束信号
-                        val message = IpcStreamEnd(stream_id)
-                        for (ipc in usedIpcMap.keys) {
-                            ipc.postMessage(message)
-                        }
 
-                        emitStreamClose()
-                        break
+            debugIpcBody("sender/PULLING/$stream", stream_id)
+            when (val availableLen = stream.available()) {
+                -1, 0 -> {
+                    debugIpcBody(
+                        "sender/END/$stream", "$availableLen >> $stream_id"
+                    )
+                    /// 不论是不是被 aborted，都发送结束信号
+                    val message = IpcStreamEnd(stream_id)
+                    for (ipc in usedIpcMap.keys) {
+                        ipc.postMessage(message)
                     }
-                    else -> {
-                        // 开光了，流已经开始被读取
-                        _isStreamOpened = true
-                        debugIpcBody(
-                            "sender/READ/$stream", "$availableLen >> $stream_id"
+
+                    emitStreamClose()
+                }
+                else -> {
+                    // 开光了，流已经开始被读取
+                    _isStreamOpened = true
+                    debugIpcBody(
+                        "sender/READ/$stream", "$availableLen >> $stream_id"
+                    )
+                    val binary = stream.readByteArray(availableLen)
+                    val binary_mesage by lazy {
+                        IpcStreamData.asBinary(stream_id, binary)
+                    }
+                    val base64_mesage by lazy {
+                        IpcStreamData.asBase64(stream_id, binary)
+                    }
+                    for (ipc in usedIpcMap.keys) {
+                        ipc.postMessage(
+                            if (ipc.supportBinary) binary_mesage else base64_mesage
                         )
-                        val binary = stream.readByteArray(availableLen)
-                        val binary_mesage by lazy {
-                            IpcStreamData.asBinary(stream_id, binary)
-                        }
-                        val base64_mesage by lazy {
-                            IpcStreamData.asBase64(stream_id, binary)
-                        }
-                        for (ipc in usedIpcMap.keys) {
-                            ipc.postMessage(
-                                if (ipc.supportBinary) binary_mesage else base64_mesage
-                            )
-                        }
                     }
                 }
-
-                /// 只要发送过一次，那么就把所有请求指控，根据协议，我能发多少是多少，你不够的话，再来要
-                curPulledTimes.set(0)
-                debugIpcBody("sender/PULL-END/$stream", stream_id)
             }
-
+            // 发送完成，解锁
+            sendingLock.set(false)
+            /// 只要发送过一次，那么就把所有请求指控，根据协议，我能发多少是多少，你不够的话，再来要
+            debugIpcBody("sender/PULL-END/$stream", stream_id)
         }
         pullSignal.listen {
             streamAsMetaScope.launch {

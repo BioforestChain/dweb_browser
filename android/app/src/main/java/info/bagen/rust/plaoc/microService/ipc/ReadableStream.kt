@@ -128,19 +128,16 @@ class ReadableStream(
                             }
                             ownSize() >= requestSize -> {
                                 debugStream(
-                                    "REQUEST-DATA/CHANGED/$uid",
-                                    "${ownSize()}/$requestSize"
+                                    "REQUEST-DATA/CHANGED/$uid", "${ownSize()}/$requestSize"
                                 )
                                 wait.resolve(Unit)
                             }
                             else -> {
                                 debugStream(
-                                    "REQUEST-DATA/WAITING/$uid",
-                                    "${ownSize()}/$requestSize"
+                                    "REQUEST-DATA/WAITING-&-PULL/$uid", "${ownSize()}/$requestSize"
                                 )
                                 writeDataScope.launch {
                                     val desiredSize = requestSize - ownSize()
-                                    debugStream("REQUEST-DATA/PULL/${uid}", desiredSize)
                                     onPull(Pair(desiredSize, controller))
                                 }
                             }
