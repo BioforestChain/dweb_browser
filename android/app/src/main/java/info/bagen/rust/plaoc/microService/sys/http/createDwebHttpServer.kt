@@ -2,7 +2,6 @@ package info.bagen.rust.plaoc.microService.sys.http
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
-import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
@@ -35,18 +34,21 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
     ).json<HttpNMM.ServerStartResult>(HttpNMM.ServerStartResult::class.java)
 
 
-suspend fun MicroModule.listenHttpDwebServer(token: String, routes: Array<Gateway.RouteConfig>) =
-    ReadableStreamIpc(this, IPC_ROLE.CLIENT.role).also {
+suspend fun MicroModule.listenHttpDwebServer(
+    startResult: HttpNMM.ServerStartResult,
+    routes: Array<Gateway.RouteConfig>
+) =
+    ReadableStreamIpc(this, "http-server/${startResult.urlInfo.host}").also {
         it.bindIncomeStream(
             this.nativeFetch(
                 Request(
                     Method.POST,
                     Uri.of("file://http.sys.dweb/listen")
-                        .query("token", token)
+                        .query("host", startResult.urlInfo.host)
+                        .query("token", startResult.token)
                         .query("routes", gson.toJson(routes))
                 ).body(it.stream)
-            ).stream(),
-            "http-server"
+            ).stream()
         )
     }
 
@@ -73,7 +75,7 @@ class HttpDwebServer(
     ) = runBlocking {
         val po = PromiseOut<ReadableStreamIpc>()
         GlobalScope.launch {
-            val streamIpc = nmm.listenHttpDwebServer(startResult.token, routes)
+            val streamIpc = nmm.listenHttpDwebServer(startResult, routes)
             po.resolve(streamIpc)
         }
         po.waitPromise()

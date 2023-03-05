@@ -4,8 +4,9 @@ import com.google.gson.reflect.TypeToken
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.toBase64Url
-import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
@@ -20,6 +21,9 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.util.*
+
+inline fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("http", tag, msg, err)
 
 
 class HttpNMM() : NativeMicroModule("http.sys.dweb") {
@@ -88,7 +92,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
          */
         val response = gatewayMap[host]?.let { gateway ->
             println("URL:${request.uri} => gateway: ${gateway.urlInfo}")
-            runBlocking {
+            runBlocking(ioAsyncExceptionHandler) {
                 val response = gateway.listener.hookHttpRequest(request)
 //                println("URL:${request.uri} => response: $response")
                 response
@@ -219,12 +223,13 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         routes: List<Gateway.RouteConfig>
     ): Response {
         val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
+        debugHttp("LISTEN", "host: ${gateway.urlInfo.host}, token: $token")
 
         val streamIpc = ReadableStreamIpc(
             gateway.listener.ipc.remote,
-            IPC_ROLE.SERVER.role
+            "http-gateway/${gateway.urlInfo.host}"
         )
-        streamIpc.bindIncomeStream(message.body.stream, "http-gateway")
+        streamIpc.bindIncomeStream(message.body.stream)
         for (routeConfig in routes) {
             streamIpc.onClose(gateway.listener.addRouter(routeConfig, streamIpc))
         }

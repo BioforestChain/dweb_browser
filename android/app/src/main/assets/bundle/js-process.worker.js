@@ -3473,13 +3473,13 @@ var HttpDwebServer = class {
         method: "DELETE"
       }
     ]) => {
-      return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
+      return listenHttpDwebServer(this.nmm, this.startResult, routes);
     };
     /** 关闭监听 */
     this.close = (0, import_once5.default)(() => closeHttpDwebServer(this.nmm, this.options));
   }
 };
-var listenHttpDwebServer = async (microModule, token, routes = [
+var listenHttpDwebServer = async (microModule, startResult, routes = [
   /** 定义了路由的方法 */
   { pathname: "/", matchMode: "prefix", method: "GET" },
   { pathname: "/", matchMode: "prefix", method: "POST" },
@@ -3496,7 +3496,8 @@ var listenHttpDwebServer = async (microModule, token, routes = [
   const ext = {
     pathname: "/listen",
     search: {
-      token,
+      host: startResult.urlInfo.host,
+      token: startResult.token,
       routes
     }
   };

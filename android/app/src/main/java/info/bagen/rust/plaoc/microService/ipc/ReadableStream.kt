@@ -4,8 +4,11 @@ import info.bagen.rust.plaoc.microService.helper.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicInteger
 
 inline fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("stream", tag, msg, err)
@@ -14,7 +17,7 @@ inline fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
  * 模拟Web的 ReadableStream
  */
 class ReadableStream(
-    val cid: String? = null,
+    cid: String? = null,
     val onStart: suspend (arg: ReadableStreamController) -> Unit = {},
     val onPull: suspend (arg: Pair<Int, ReadableStreamController>) -> Unit = {}
 ) : InputStream() {
@@ -22,6 +25,7 @@ class ReadableStream(
     // 数据源
     private var _data: ByteArray = byteArrayOf()
     private var ptr = 0 // 当前指针
+    private val _dataLock = Mutex()
 
     class ReadableStreamController(
         private val dataChannel: Channel<ByteArray>, val getStream: () -> ReadableStream
@@ -47,11 +51,15 @@ class ReadableStream(
     /** 执行垃圾回收
      * 10kb 的垃圾起，开始回收
      */
-    @Synchronized
     private fun _gc() {
-        if (ptr >= 10240 || isClosed) {
-            _data = _data.sliceArray(ptr until _data.size)
-            ptr = 0
+        runBlocking(writeDataScope.coroutineContext) {
+            _dataLock.withLock {
+                if (ptr >= 1024 || isClosed) {
+                    debugStream("GC/$uid", "-${ptr} ~> ${_data.size - ptr}")
+                    _data = _data.sliceArray(ptr until _data.size)
+                    ptr = 0
+                }
+            }
         }
     }
 
@@ -72,8 +80,10 @@ class ReadableStream(
         writeDataScope.launch {
             // 一直等待数据
             for (chunk in dataChannel) {
-                _data += chunk
-                debugStream("DATA-IN/$uid", "+${chunk.size} ~> ${_data.size}")
+                _dataLock.withLock {
+                    _data += chunk
+                    debugStream("DATA-IN/$uid", "+${chunk.size} ~> ${_data.size}")
+                }
                 // 收到数据了，尝试解锁通知等待者
                 dataSizeObserver.emit(_data.size)
             }
@@ -113,20 +123,25 @@ class ReadableStream(
                     dataSizeObserver.observe { newSize ->
                         when {
                             newSize == -1 -> {
-                                debugStream("REQUEST-DATA/END/$uid", "$ownSize()/$requestSize")
+                                debugStream("REQUEST-DATA/END/$uid", "${ownSize()}/$requestSize")
                                 wait.resolve(Unit) // 不需要抛出错误
                             }
                             ownSize() >= requestSize -> {
-                                debugStream("REQUEST-DATA/CHANGED/$uid", "$ownSize()/$requestSize")
+                                debugStream(
+                                    "REQUEST-DATA/CHANGED/$uid",
+                                    "${ownSize()}/$requestSize"
+                                )
                                 wait.resolve(Unit)
                             }
                             else -> {
-                                debugStream("REQUEST-DATA/WAITING/$uid", "$ownSize()/$requestSize")
+                                debugStream(
+                                    "REQUEST-DATA/WAITING/$uid",
+                                    "${ownSize()}/$requestSize"
+                                )
                                 writeDataScope.launch {
                                     val desiredSize = requestSize - ownSize()
-                                    debugStream("PULL/START/${uid}", desiredSize)
+                                    debugStream("PULL/${uid}", desiredSize)
                                     onPull(Pair(desiredSize, controller))
-                                    debugStream("PULL/END/${uid}", desiredSize)
                                 }
                             }
                         }
@@ -134,7 +149,7 @@ class ReadableStream(
                 }
                 wait.waitPromise()
                 c.cancel()
-                debugStream("REQUEST-DATA/END/$uid", _data.size)
+                debugStream("REQUEST-DATA/DONE/$uid", _data.size)
             }.join()
         }
 
@@ -142,10 +157,24 @@ class ReadableStream(
     }
 
     companion object {
-        private var id_acc = 1
+        private var id_acc = AtomicInteger(1)
     }
+//init {
+//    when(id_acc.get()){
+//        7,9->{
+//            debugger()
+//        }
+//    }
+//}
 
-    private val uid = "#s${cid ?: id_acc++}"
+    val uid = "#s${id_acc.getAndAdd(1)}${
+        if (cid != null) {
+            "($cid)"
+        } else {
+            ""
+        }
+    }"
+
     override fun toString() = uid
 
 

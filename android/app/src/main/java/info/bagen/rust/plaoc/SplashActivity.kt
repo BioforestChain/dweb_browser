@@ -23,6 +23,7 @@ import info.bagen.libappmgr.ui.splash.SplashPrivacyDialog
 import info.bagen.libappmgr.utils.KEY_APP_FIRST_LOAD
 import info.bagen.libappmgr.utils.getBoolean
 import info.bagen.libappmgr.utils.saveBoolean
+import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.openDWebWindow
@@ -38,14 +39,12 @@ class SplashActivity : AppCompatActivity() {
             setContent {
                 RustApplicationTheme {
                     SplashMainView()
-                    SplashPrivacyDialog(
-                        openHome = {
-                            App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
-                            openHomeActivity()
-                        },
+                    SplashPrivacyDialog(openHome = {
+                        App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
+                        openHomeActivity()
+                    },
                         openWebView = { url -> openDWebWindow(this, url) },
-                        closeApp = { finish() }
-                    )
+                        closeApp = { finish() })
                 }
 
             }
@@ -59,7 +58,7 @@ class SplashActivity : AppCompatActivity() {
 
 private fun openHomeActivity(): Boolean {
 
-    runBlocking {
+    runBlocking(commonAsyncExceptionHandler) {
         startDwebBrowser()
     }
 

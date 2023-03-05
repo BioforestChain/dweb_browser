@@ -25,9 +25,11 @@ import info.bagen.rust.plaoc.microService.user.DesktopJMM
 suspend fun startDwebBrowser() {
     debugTags.addAll(
         listOf<String>(
-             "message-port-ipc",
-             "stream-ipc",
-             "stream",
+            "message-port-ipc",
+            "stream-ipc",
+            "stream",
+            "ipc-body",
+            "http",
             "TIME-DURATION"
         )
     )

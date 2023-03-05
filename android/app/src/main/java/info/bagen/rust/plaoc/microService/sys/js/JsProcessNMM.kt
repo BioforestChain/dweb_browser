@@ -7,7 +7,10 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.encodeURI
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.text
-import info.bagen.rust.plaoc.microService.ipc.*
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
+import info.bagen.rust.plaoc.microService.ipc.IpcResponse
+import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
@@ -71,9 +74,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             val urlInfo = mainServer.startResult.urlInfo
             JsProcessWebApi(
                 DWebView(
-                    App.appContext,
-                    this@JsProcessNMM,
-                    DWebView.Options(
+                    App.appContext, this@JsProcessNMM, DWebView.Options(
                         url = urlInfo.buildInternalUrl().path("/index.html").toString()
                     )
                 )
@@ -105,10 +106,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     }
 
     private suspend fun createProcessAndRun(
-        ipc: Ipc,
-        apis: JsProcessWebApi,
-        entry: String = "/index.js",
-        requestMessage: Request
+        ipc: Ipc, apis: JsProcessWebApi, entry: String = "/index.js", requestMessage: Request
     ): Response {
         /**
          * 用自己的域名的权限为它创建一个子域名
@@ -120,8 +118,8 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         /**
          * 远端是代码服务，所以这里是 client 的身份
          */
-        val streamIpc = ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT.role).also {
-            it.bindIncomeStream(requestMessage.body.stream, "code-proxy-server");
+        val streamIpc = ReadableStreamIpc(ipc.remote, "code-proxy-server").also {
+            it.bindIncomeStream(requestMessage.body.stream);
         }
 
         /**
@@ -178,8 +176,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         val bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
             .path("$INTERNAL_PATH/bootstrap.js")
 //            .query("debug", "true")
-            .query("mmid", ipc.remote.mmid)
-            .query("host", httpDwebServer.startResult.urlInfo.host)
+            .query("mmid", ipc.remote.mmid).query("host", httpDwebServer.startResult.urlInfo.host)
             .toString()
 
         /**

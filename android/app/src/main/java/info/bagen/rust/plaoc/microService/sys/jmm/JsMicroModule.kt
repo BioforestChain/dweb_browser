@@ -6,7 +6,6 @@ import info.bagen.rust.plaoc.microService.helper.int
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.rand
 import info.bagen.rust.plaoc.microService.helper.stream
-import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
@@ -31,7 +30,7 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
         debugJMM("bootstrap...", "$mmid/$metadata")
         val pid = rand(1, 1000)
         processId = pid
-        val streamIpc = ReadableStreamIpc(this, IPC_ROLE.CLIENT.role)
+        val streamIpc = ReadableStreamIpc(this, "code-server")
         streamIpc.onRequest { (request, ipc) ->
             val response = if (request.uri.path.endsWith("/")) {
                 Response(Status.FORBIDDEN)
@@ -46,11 +45,9 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                 Request(
                     Method.POST,
                     Uri.of("file://js.sys.dweb/create-process")
-                        .query("entry", metadata.server.entry)
-                        .query("process_id", pid.toString())
+                        .query("entry", metadata.server.entry).query("process_id", pid.toString())
                 ).body(streamIpc.stream)
-            ).stream(),
-            "code-server"
+            ).stream()
         )
 
         debugJMM("running!!", mmid)

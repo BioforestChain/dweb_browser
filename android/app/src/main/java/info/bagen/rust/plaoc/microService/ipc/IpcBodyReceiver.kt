@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
+import info.bagen.rust.plaoc.microService.helper.debugger
 import java.io.InputStream
 
 
@@ -59,26 +60,35 @@ class IpcBodyReceiver(
         fun metaToStream(metaBody: MetaBody, ipc: Ipc): InputStream {
             /// metaToStream
             val stream_id = metaBody.data as String;
-            val stream = ReadableStream(onStart = { controller ->
-                ipc.onMessage { (message) ->
-                    debugStream(
-                        "receiver/metaToStream/onMessage/$ipc/${controller.stream}", message
-                    )
-                    if (message is IpcStreamData && message.stream_id == stream_id) {
-                        controller.enqueue(message.binary)
-                    } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
-                        controller.close()
-                        return@onMessage SIGNAL_CTOR.OFF
-                    } else {
+            val stream = ReadableStream(
+                cid = "receiver-${stream_id}",
+                onStart = { controller ->
+                    ipc.onMessage { (message) ->
+                        if (message is IpcStreamData && message.stream_id == stream_id) {
+                            debugIpcBody(
+                                "receiver/StreamData/$ipc/${controller.stream}", message
+                            )
+                            if (stream_id == "rs-0") {
+                                debugger()
+                            }
+                            controller.enqueue(message.binary)
+                        } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
+                            debugIpcBody(
+                                "receiver/StreamEnd/$ipc/${controller.stream}", message
+                            )
+                            controller.close()
+                            return@onMessage SIGNAL_CTOR.OFF
+                        } else {
+                        }
                     }
-                }
-            }, onPull = { (desiredSize, controller) ->
-                debugStream(
-                    "receiver/metaToStream/postPullMessage/$ipc/${controller.stream}", stream_id
-                )
-                ipc.postMessage(IpcStreamPull(stream_id, 1))
-            });
-            debugStream("receiver/metaToStream/$ipc/$stream", stream_id)
+                },
+                onPull = { (desiredSize, controller) ->
+                    debugIpcBody(
+                        "receiver/postPullMessage/$ipc/${controller.stream}", stream_id
+                    )
+                    ipc.postMessage(IpcStreamPull(stream_id, 1))
+                });
+            debugIpcBody("receiver/$ipc/$stream", "start by stream-id:${stream_id}")
 
             return stream
 

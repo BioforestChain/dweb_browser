@@ -168,13 +168,15 @@ class IpcBodySender(
         private val IpcUsableIpcBodyMap = WeakHashMap<Ipc, UsableIpcBodyMapper>()
 
         /**
-         * ipc 将会使用它
+         * ipc 将会使用 ipcBody
+         * 那么只要这个 ipc 接收到 pull 指令，就意味着成为"使用者"，那么这个 ipcBody 都会开始读取数据出来发送
+         * 在开始发送第一帧数据之前，其它 ipc 也可以通过 pull 指令来参与成为"使用者"
          */
         fun usableByIpc(ipc: Ipc, ipcBody: IpcBodySender) {
             if (ipcBody.isStream && !ipcBody._isStreamOpened) {
                 val streamId = ipcBody.metaBody.data as String
                 val usableIpcBodyMapper = IpcUsableIpcBodyMap.getOrPut(ipc) {
-                    debugStream("ipcBodySenderUsableByIpc/OPEN/$ipc")
+                    debugIpcBody("ipcBodySenderUsableByIpc/OPEN/$ipc")
                     UsableIpcBodyMapper().also { mapper ->
                         val off = ipc.onMessage { (message) ->
                             when (message) {
@@ -197,7 +199,7 @@ class IpcBodySender(
                         }
                         mapper.onDestroy(off)
                         mapper.onDestroy {
-                            debugStream("ipcBodySenderUsableByIpc/CLOSE/$ipc")
+                            debugIpcBody("ipcBodySenderUsableByIpc/CLOSE/$ipc")
                             IpcUsableIpcBodyMap.remove(ipc)
                         }
                     }
@@ -219,7 +221,11 @@ class IpcBodySender(
 
         private var stream_id_acc = 1;
         private fun getStreamId(stream: InputStream): String = streamIdWM.getOrPut(stream) {
-            "rs-${stream_id_acc++}"
+            if (stream is ReadableStream) {
+                "rs-${stream_id_acc++}[${stream.uid}]"
+            } else {
+                "rs-${stream_id_acc++}"
+            }
         };
 
     }
@@ -241,11 +247,22 @@ class IpcBodySender(
         MetaBody(IPC_META_BODY_TYPE.BASE64, binary.toBase64(), ipc.uid)
     }
 
+    class QAQ {
+        companion object {
+            val readeds = mutableSetOf<InputStream>()
+        }
+    }
+
     private fun streamAsMeta(stream: InputStream, ipc: Ipc): MetaBody {
+        if(QAQ.readeds.contains(stream)){
+            debugger()
+        }else{
+            QAQ.readeds.add(stream)
+        }
         val stream_id = getStreamId(stream)
-        debugStream("sender/StreamAsMeta/INIT/$stream", stream_id)
+        debugIpcBody("sender/INIT/$stream", stream_id)
         val streamAsMetaScope =
-            CoroutineScope(CoroutineName("sender/StreamAsMeta/$stream/$stream_id") + ioAsyncExceptionHandler)
+            CoroutineScope(CoroutineName("sender/$stream/$stream_id") + ioAsyncExceptionHandler)
 
         suspend fun sender() {
             /// 如果原本就不为0，那么就说明已经在运行中了
@@ -253,11 +270,11 @@ class IpcBodySender(
                 return
             }
             while (curPulledTimes.get() > 0) {
-                debugStream("sender/StreamAsMeta/PULLING/$stream", stream_id)
+                debugIpcBody("sender/PULLING/$stream", stream_id)
                 when (val availableLen = stream.available()) {
                     -1, 0 -> {
-                        debugStream(
-                            "sender/StreamAsMeta/END/$stream", "$availableLen >> $stream_id"
+                        debugIpcBody(
+                            "sender/END/$stream", "$availableLen >> $stream_id"
                         )
                         /// 不论是不是被 aborted，都发送结束信号
                         val message = IpcStreamEnd(stream_id)
@@ -271,8 +288,8 @@ class IpcBodySender(
                     else -> {
                         // 开光了，流已经开始被读取
                         _isStreamOpened = true
-                        debugStream(
-                            "sender/StreamAsMeta/READ/$stream", "$availableLen >> $stream_id"
+                        debugIpcBody(
+                            "sender/READ/$stream", "$availableLen >> $stream_id"
                         )
                         val binary = stream.readByteArray(availableLen)
                         val binary_mesage by lazy {
@@ -291,7 +308,7 @@ class IpcBodySender(
 
                 /// 只要发送过一次，那么就把所有请求指控，根据协议，我能发多少是多少，你不够的话，再来要
                 curPulledTimes.set(0)
-                debugStream("sender/StreamAsMeta/PULL-END/$stream", stream_id)
+                debugIpcBody("sender/PULL-END/$stream", stream_id)
             }
 
         }

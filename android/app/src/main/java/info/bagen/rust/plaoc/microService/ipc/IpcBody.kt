@@ -1,10 +1,14 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.asBase64
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.toUtf8
 import java.io.InputStream
 import java.util.*
 
+
+inline fun debugIpcBody(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("ipc-body", tag, msg, err)
 
 abstract class IpcBody {
     companion object {

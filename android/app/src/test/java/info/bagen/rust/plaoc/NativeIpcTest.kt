@@ -6,7 +6,6 @@ import info.bagen.rust.plaoc.microService.helper.asUtf8
 import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.*
-import info.bagen.rust.plaoc.microService.ipc.ipcWeb.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.DnsNMM
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
@@ -162,9 +161,9 @@ class NativeIpcTest : AsyncBase() {
         val mServer = object : NativeMicroModule("mServer") {
             override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
                 apiRouting = routes("/listen" bind Method.POST to defineHandler { request, ipc ->
-                    val streamIpc = ReadableStreamIpc(ipc.remote, IPC_ROLE.SERVER)
+                    val streamIpc = ReadableStreamIpc(ipc.remote, "from-remote")
                     println("SERVER STREAM-IPC/STREAM: ${streamIpc.stream}")
-                    streamIpc.bindIncomeStream(request.body.stream, "from-remote")
+                    streamIpc.bindIncomeStream(request.body.stream)
                     streamIpc.onRequest { (request, ipc) ->
                         println("req get request $request")
                         delay(200)
@@ -209,13 +208,13 @@ class NativeIpcTest : AsyncBase() {
         mClient.bootstrap(dnsNMM.bootstrapContext)
 
 
-        val clientStreamIpc = ReadableStreamIpc(mClient, IPC_ROLE.CLIENT)
+        val clientStreamIpc = ReadableStreamIpc(mClient, "as-remote")
         println("CLIENT STREAM-IPC/STREAM: ${clientStreamIpc.stream}")
 
         val res = mClient.nativeFetch(
             Request(Method.POST, "http://mServer/listen").body(clientStreamIpc.stream)
         )
-        clientStreamIpc.bindIncomeStream(res.body.stream, "as-remote");
+        clientStreamIpc.bindIncomeStream(res.body.stream);
 
 
         delay(1000)

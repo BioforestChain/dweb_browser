@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.helper
 
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -13,7 +14,7 @@ inline fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
     err?.printStackTrace()
 }
 
-fun debugger(vararg params: Any) {
+inline fun debugger(vararg params: Any) {
     for (p in params) {
 
     }
@@ -53,8 +54,10 @@ fun timeEnd(label: String) {
  * "stream-ipc"
  * "jmm"
  * "boot"
+ * "http"
  * "js-process"
  * "message-port-ipc"
+ * "ipc-body"
  *
  */
 val debugTags by lazy {

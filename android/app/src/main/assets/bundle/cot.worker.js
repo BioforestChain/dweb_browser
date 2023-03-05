@@ -6,7 +6,8 @@ var main = async () => {
     port: 443
   });
   const apiServer = await http.createHttpDwebServer(jsProcess, {
-    subdomain: "api"
+    subdomain: "api",
+    port: 443
   });
   (await apiServer.listen()).onRequest(async (request, ipc2) => {
     ipc2.postMessage(
@@ -25,7 +26,7 @@ var main = async () => {
     const remoteIpcResponse = await jsProcess.nativeRequest(
       `file:///cot/COT-beta-202302222200${pathname}`
     );
-    console.timeEnd(`open file ${pathname}`, remoteIpcResponse.body.metaBody);
+    console.timeEnd(`open file ${pathname}`);
     ipc2.postMessage(
       new IpcResponse(
         request.req_id,

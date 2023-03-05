@@ -50,8 +50,8 @@ class HttpDwebServer {
       },
     ]
   ) => {
-    return listenHttpDwebServer(this.nmm, this.startResult.token, routes);
-  }
+    return listenHttpDwebServer(this.nmm, this.startResult, routes);
+  };
   /** 关闭监听 */
   close = once(() => closeHttpDwebServer(this.nmm, this.options));
 }
@@ -59,7 +59,7 @@ class HttpDwebServer {
 /** 开始处理请求 */
 export const listenHttpDwebServer = async (
   microModule: $MicroModule,
-  token: string,
+  startResult: ServerStartResult,
   routes: $ReqMatcher[] = [
     /** 定义了路由的方法 */
     { pathname: "/", matchMode: "prefix", method: "GET" },
@@ -79,7 +79,8 @@ export const listenHttpDwebServer = async (
   const ext = {
     pathname: "/listen",
     search: {
-      token,
+      host: startResult.urlInfo.host,
+      token: startResult.token,
       routes,
     },
   };
