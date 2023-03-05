@@ -85,10 +85,10 @@ class ReadableStream(
                     debugStream("DATA-IN/$uid", "+${chunk.size} ~> ${_data.size}")
                 }
                 // 收到数据了，尝试解锁通知等待者
-                dataSizeObserver.emit(_data.size)
+                dataChangeObserver.next()
             }
             // 关闭数据通道了，尝试解锁通知等待者
-            dataSizeObserver.emit(-1)
+            dataChangeObserver.emit(-1)
 
             // 执行关闭
             closePo.resolve(Unit)
@@ -97,7 +97,7 @@ class ReadableStream(
 
     private val closePo = PromiseOut<Unit>()
 
-    private val dataSizeObserver = Observer(_data.size)
+    private val dataChangeObserver = SimpleObserver()
 
     suspend fun afterClosed() {
         closePo.waitPromise()
@@ -119,10 +119,10 @@ class ReadableStream(
         runBlocking {
             readDataScope.async {
                 val wait = PromiseOut<Unit>()
-                val c = launch {
-                    dataSizeObserver.observe { newSize ->
+                val counterJob = launch {
+                    dataChangeObserver.observe { count ->
                         when {
-                            newSize == -1 -> {
+                            count == -1 -> {
                                 debugStream("REQUEST-DATA/END/$uid", "${ownSize()}/$requestSize")
                                 wait.resolve(Unit) // 不需要抛出错误
                             }
@@ -140,7 +140,7 @@ class ReadableStream(
                                 )
                                 writeDataScope.launch {
                                     val desiredSize = requestSize - ownSize()
-                                    debugStream("PULL/${uid}", desiredSize)
+                                    debugStream("REQUEST-DATA/PULL/${uid}", desiredSize)
                                     onPull(Pair(desiredSize, controller))
                                 }
                             }
@@ -148,7 +148,7 @@ class ReadableStream(
                     }
                 }
                 wait.waitPromise()
-                c.cancel()
+                counterJob.cancel()
                 debugStream("REQUEST-DATA/DONE/$uid", _data.size)
             }.join()
         }

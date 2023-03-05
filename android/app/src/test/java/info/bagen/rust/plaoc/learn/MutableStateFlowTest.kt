@@ -50,11 +50,19 @@ class MutableStateFlowTest {
             delay(tm)
             stateFlow.emit(4)
 
+
             val job4 = launch {
                 sharedFlow.collect {
                     println("J4: $it")
                 }
             }
+
+            delay(tm)
+            stateFlow.emit(4) // 这个不会触发，因为没有改变
+            delay(tm)
+            stateFlow.emit(0)
+            delay(tm)
+            stateFlow.emit(4)
 
             delay(100)
             job4.cancel()

@@ -22,6 +22,11 @@ class ReadableStreamIpc(
     override val remote: MicroModule,
     override val role: String,
 ) : Ipc() {
+    constructor(
+        remote: MicroModule,
+        role: IPC_ROLE,
+    ) : this(remote, role.role)
+
     override fun toString(): String {
         return super.toString() + "@ReadableStreamIpc"
     }
