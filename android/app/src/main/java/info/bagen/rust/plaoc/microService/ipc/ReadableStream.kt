@@ -54,7 +54,7 @@ class ReadableStream(
     private fun _gc() {
         runBlocking(writeDataScope.coroutineContext) {
             _dataLock.withLock {
-                if (ptr >= 1024 || isClosed) {
+                if (ptr >= 10240 || isClosed) {
                     debugStream("GC/$uid", "-${ptr} ~> ${_data.size - ptr}")
                     _data = _data.sliceArray(ptr until _data.size)
                     ptr = 0

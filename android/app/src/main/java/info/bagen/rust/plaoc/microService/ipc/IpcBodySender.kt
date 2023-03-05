@@ -299,7 +299,6 @@ class IpcBodySender(
             }
             // 发送完成，解锁
             sendingLock.set(false)
-            /// 只要发送过一次，那么就把所有请求指控，根据协议，我能发多少是多少，你不够的话，再来要
             debugIpcBody("sender/PULL-END/$stream", stream_id)
         }
         pullSignal.listen {

@@ -1,11 +1,14 @@
 package info.bagen.rust.plaoc.microService.sys.dns
 
+import android.content.res.AssetManager
 import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.readByteArray
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
+import java.io.InputStream
 
 typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Response?
 
@@ -31,70 +34,82 @@ val nativeFetchAdaptersManager = NativeFetchAdaptersManager()
 
 private val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
 
+
+class ChunkAssetsFileStream(val source: InputStream, val chunkSize: Int = defaultChunkSize) :
+    InputStream() {
+    companion object {
+        /// 默认1mb切一次
+        val defaultChunkSize = 1024 * 1024
+    }
+
+    var ptr = 0
+    val totalSize = source.available()
+
+    override inline fun read() = source.read()
+    override inline fun available() = chunkSize.coerceAtMost(totalSize - ptr)
+    override inline fun read(b: ByteArray?, off: Int, len: Int) =
+        source.read(b, off, len).also { len ->
+            ptr += len
+        }
+}
+
 /**
  * 加载本地文件
  */
-private fun localeFileFetch(remote: MicroModule, request: Request) =
-    when {
-        request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
+private fun localeFileFetch(remote: MicroModule, request: Request) = when {
+    request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
+        val mode = request.query("mode") ?: "auto"
+        val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
+
+        /**
+         * 打开一个读取流
+         */
+        val assetStream = App.appContext.assets.open(
+            /** 移除开头的斜杠 */
+            request.uri.path.substring(1),
+            when (mode) {
+                "buffer" -> AssetManager.ACCESS_BUFFER
+                else -> AssetManager.ACCESS_STREAMING
+            }
+        )
+
+        val totalSize = assetStream.available()
+        var response = Response(status = Status.OK)
+            .header("Content-Length", totalSize.toString())
+
+
+        response = if (
+        // buffer 就是直接全部读取出来
+            mode == "buffer" ||
+            // 如果分片次数少于2次，那么就直接发送，没必要分片
+            totalSize <= chunk * 2
+        ) {
             /**
-             * 直接整个读出来，避免 AssetInputStream is closed 的错误
+             * 一次性发送
              */
-            val bodyContent = App.appContext.assets.open(
-                /** 移除开头的斜杠 */
-                request.uri.path.substring(1)
-            ).readBytes()
-            Response(status = Status.OK).body(MemoryBody(bodyContent))
-                .header("Content-Length", bodyContent.size.toString())
-                .let { response ->
-                    val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
-                    if (extension != null) {
-                        val type = mimeTypeMap.getMimeTypeFromExtension(extension)
-                        if (type != null) {
-                            return@let response.header("Content-Type", type)
-                        }
-                    }
-                    response
-                }
-        }.getOrElse {
-            Response(Status.NOT_FOUND).body("the ${request.uri.path} file not found.")
+            response.body(MemoryBody(assetStream.readByteArray(totalSize)))
+        } else {
+            /**
+             * 将它分片读取
+             */
+            response.body(ChunkAssetsFileStream(assetStream))
         }
-        else -> null
+
+        /// 尝试加入 Content-Type
+        val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
+        if (extension != null) {
+            val type = mimeTypeMap.getMimeTypeFromExtension(extension)
+            if (type != null) {
+                response = response.header("Content-Type", type)
+            }
+        }
+
+        response
+    }.getOrElse {
+        Response(Status.NOT_FOUND).body("the ${request.uri.path} file not found.")
     }
-
-
-
-// /**
-//  * 加载本地文件
-//  */
-// private fun localeFileFetch(remote: MicroModule, request: Request) = when {
-//     request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
-//         timeStart("assets.open: ${request.uri.path}")
-//         /**
-//          * 打开一个读取流
-//          */
-//         val bodyContent = App.appContext.assets.open(
-//             /** 移除开头的斜杠 */
-//             request.uri.path.substring(1)
-//         )
-//         timeEnd("assets.open: ${request.uri.path}")
-
-//         var response = Response(status = Status.OK).body(bodyContent)
-//         /// 尝试加入 Content-Type
-//         val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
-//         if (extension != null) {
-//             val type = mimeTypeMap.getMimeTypeFromExtension(extension)
-//             if (type != null) {
-//                 response = response.header("Content-Type", type)
-//             }
-//         }
-
-//         response
-//     }.getOrElse {
-//         Response(Status.NOT_FOUND).body("the ${request.uri.path} file not found.")
-//     }
-//     else -> null
-// }
+    else -> null
+}
 
 val networkFetch =
     ApacheClient(responseBodyMode = BodyMode.Stream, requestBodyMode = BodyMode.Stream)

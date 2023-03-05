@@ -58,7 +58,7 @@ inline fun InputStream.readByteArray(): ByteArray {
         if (availableSize <= 0) {
             break
         }
-        bytes+= readByteArray(availableSize)
+        bytes += readByteArray(availableSize)
     }
     return bytes
 }
