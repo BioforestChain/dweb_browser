@@ -1,5 +1,7 @@
 package info.bagen.rust.plaoc.microService.helper
 
+import io.ktor.util.collections.*
+
 typealias Callback<Args> = suspend (args: Args) -> Any?
 typealias SimpleCallback = Callback<Unit>
 typealias OffListener = (Unit) -> Boolean
@@ -19,7 +21,7 @@ enum class SIGNAL_CTOR {
 }
 
 open class Signal<Args> {
-    private val listenerSet = mutableSetOf<Callback<Args>>();
+    private val listenerSet = ConcurrentSet<Callback<Args>>();
     fun listen(cb: Callback<Args>): OffListener {
         // TODO emit 时的cbs 应该要同步进行修改？
         listenerSet.add(cb)
