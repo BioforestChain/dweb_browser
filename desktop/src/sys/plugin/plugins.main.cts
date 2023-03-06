@@ -59,7 +59,7 @@ export class PluginsNMM extends NativeMicroModule {
       },
     });
   }
-  _shutdown() {}
+  _shutdown() { }
 }
 
 // 读取 html 文件

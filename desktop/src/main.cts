@@ -43,7 +43,7 @@ import { NavigatorbarNMM } from "./sys/navigator-bar/navigator-bar.cjs";
 dns.install(new NavigatorbarNMM())
 
 // 安装 plugins.sys.dweb 服务
-import { PluginsNMM } from "./sys/plugins/plugins.main.cjs";
+import { PluginsNMM } from "./sys/plugin/plugins.main.cjs";
 dns.install(new PluginsNMM());
 
 // 安装 jmmMetadata.sys.dweb
