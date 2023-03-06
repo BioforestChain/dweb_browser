@@ -9,6 +9,7 @@ import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.sys.plugin.camera.FlashLightUtils
 import io.ktor.util.*
 import org.http4k.core.Method
 import org.http4k.lens.Query
@@ -40,9 +41,17 @@ class ScanningNMM() : NativeMicroModule("scanning.sys.dweb") {
                 return@defineHandler process(image)
             },
             // 停止处理
-            "stop" bind Method.GET to defineHandler { request ->
+            "/stop" bind Method.GET to defineHandler { request ->
                 stop()
                 return@defineHandler true
+            },
+            // 打开关闭手电筒
+            "/toggleTorch" bind Method.GET to defineHandler { request ->
+                toggleTorch()
+                return@defineHandler true
+            },
+            "/torchState" bind Method.GET to defineHandler { request ->
+                return@defineHandler torchState()
             }
 
         )
@@ -76,4 +85,19 @@ class ScanningNMM() : NativeMicroModule("scanning.sys.dweb") {
     private fun stop() {
        return BarcodeScanning.getClient().close()
     }
+
+    private fun toggleTorch() {
+        if (FlashLightUtils.hasFlashlight()) {
+            if (FlashLightUtils.isOn) {
+                FlashLightUtils.lightOff()
+            } else {
+                FlashLightUtils.lightOn()
+            }
+        }
+    }
+
+    private fun torchState(): Boolean {
+        return FlashLightUtils.isOn
+    }
+
 }

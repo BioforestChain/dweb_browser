@@ -1,11 +1,13 @@
-import type { BasePlugin } from "./components/basePlugin.js";
+import type { BasePlugin } from "./basePlugin.js";
 
-const hiJackCapacitorPlugin = (window as any).Capacitor.Plugin
+const hiJackCapacitorPlugin = (window as any).Capacitor.Plugins
 
 export const registerWebPlugin = (plugin: BasePlugin): void => {
-  new Proxy((window as any).Capacitor.Plugins, {
-    get() {
-
+  new Proxy(hiJackCapacitorPlugin, {
+    get(target, key) {
+      if (key === plugin.proxy) {
+        return plugin
+      }
     }
   })
 

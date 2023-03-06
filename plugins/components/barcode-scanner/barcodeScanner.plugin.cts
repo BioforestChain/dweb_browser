@@ -2,14 +2,14 @@ import { BasePlugin } from '../../basePlugin';
 import { CameraDirection, ScanOptions, ScanResult, SupportedFormat } from './barcodeScanner.type.cjs';
 
 export class BarcodeScanner extends BasePlugin {
-
-  private _direction: string = "environment";
+  private _formats = SupportedFormat.QR_CODE;
+  private _direction: string = CameraDirection.BACK;
   private _video: HTMLVideoElement | null = null;
   private _options: ScanOptions | null = null;
   private _backgroundColor: string | null = null;
 
   constructor(readonly mmid = "file://scanning.sys.dweb") {
-    super(mmid);
+    super(mmid, "BarcodeScanner");
   }
 
   /**
@@ -17,7 +17,12 @@ export class BarcodeScanner extends BasePlugin {
    * @param targetedFormats 扫描文本类型
    * @param cameraDirection 摄像头位置
    */
-  async prepare(): Promise<void> {
+  async prepare(
+    targetedFormats: SupportedFormat = SupportedFormat.QR_CODE,
+    cameraDirection: CameraDirection = CameraDirection.BACK
+  ): Promise<void> {
+    this._direction = cameraDirection
+    this._formats = targetedFormats
     await this._getVideoElement();
     return;
   }
@@ -33,45 +38,127 @@ export class BarcodeScanner extends BasePlugin {
     cameraDirection: CameraDirection = CameraDirection.BACK
   ) {
     this._direction = cameraDirection
+    this._formats = targetedFormats
     const video = await this._getVideoElement();
     if (video) {
-      return await this._getFirstResultFromReader(targetedFormats);
+      return await this._getFirstResultFromReader();
     } else {
       throw Error('Missing video element');
     }
   }
 
   /**
+   * 暂停扫描
+   */
+  async pauseScanning() {
+    await this.nativeFetch(`/stop`)
+  };
+
+  /**
+   * 恢复扫描
+   */
+  async resumeScanning(): Promise<void> {
+    this._getFirstResultFromReader();
+  }
+
+  /**
+   *  停止扫描
+   * @param forceStopScan 是否强制停止扫描
+   */
+  async stopScan(forceStopScan?: boolean): Promise<void> {
+    this._stop();
+    await this.nativeFetch(`/stop`)
+  };
+
+  /**
    *  检查是否有摄像头权限，如果没有或者被拒绝，那么会强制请求打开权限(设置)
    * @param forceCheck 是否强制检查权限
    */
-  checkPermission() {
+  async checkCameraPermission(
+    forceCheck?: boolean,
+    beforeOpenPermissionSettings?: () => boolean | Promise<boolean>
+  ) {
     if (typeof navigator === 'undefined' || !navigator.permissions) {
       throw Error('Permissions API not available in this browser');
     }
+    try {
+      // https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query
+      // 所支持的特定权限因实现该功能的浏览器而异
+      // 权限 API，所以我们需要一个 try/catch 以防 'camera' 无效
+      const permission = await window.navigator.permissions.query({
+        name: 'camera' as any,
+      });
+      if (permission.state === 'prompt') {
+        return {
+          neverAsked: true,
+        };
+      }
+      if (permission.state === 'denied') {
+        return {
+          denied: true,
+        };
+      }
+      if (permission.state === 'granted') {
+        return {
+          granted: true,
+        };
+      }
+      return {
+        unknown: true,
+      };
+    } catch {
+      throw Error('Camera permissions are not available in this browser');
+    }
   }
 
+
+  /**
+   * 打开/关闭手电筒
+   */
+  async toggleTorch() {
+    return await this.nativeFetch("/toggleTorch")
+  };
+
+  /**
+   * 手电筒状态
+   */
+  async getTorchState() {
+    return await this.nativeFetch("/torchState")
+  };
+
+  /**
+   * 隐藏webview背景
+   */
   async hideBackground(): Promise<void> {
     this._backgroundColor = document.documentElement.style.backgroundColor;
     document.documentElement.style.backgroundColor = 'transparent';
     return;
   }
 
+  /**
+   * 显示webview背景
+   */
   async showBackground(): Promise<void> {
     document.documentElement.style.backgroundColor = this._backgroundColor || '';
     return;
   }
 
-  private async _getFirstResultFromReader(targetedFormats: SupportedFormat) {
+  /**
+   * 返回扫码完的结果
+   * @returns 
+   */
+  private async _getFirstResultFromReader() {
     const videoElement = await this._getVideoElement();
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       if (videoElement) {
         const stream = await this.getVideoSteam(videoElement);
-        this.nativeFetch(`process?rotation=${0}&formats=${targetedFormats}`, {
+        await this.nativeFetch(`/process?rotation=${0}&formats=${this._formats}`, {
           method: "POST",
           body: stream
         }).then(res => {
           resolve(res)
+        }).catch(err => {
+          reject(err)
         })
       }
     });
@@ -194,6 +281,7 @@ export class BarcodeScanner extends BasePlugin {
         canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
         // 每帧捕获的次数
         const stream = canvas.captureStream(25);
+        // TODO 这里需要测试
         const read = new ReadableStream({
           start(controller) {
             stream.addEventListener("close", () => {
