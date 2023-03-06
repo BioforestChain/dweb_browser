@@ -32,6 +32,84 @@ class IpcBodySender(
     private val pullSignal = SimpleSignal()
     private val abortSignal = SimpleSignal()
 
+    class IPC {
+        companion object {
+
+            data class UsableIpcBodyMapper(
+
+                private val map: MutableMap<String, IpcBodySender> = mutableMapOf()
+            ) {
+                fun add(streamId: String, ipcBody: IpcBodySender): Boolean {
+                    if (map.contains(streamId)) {
+                        return false
+                    }
+                    map[streamId] = ipcBody
+                    return true
+                }
+
+                fun get(streamId: String) = map[streamId]
+                suspend fun remove(streamId: String) = map.remove(streamId)?.also {
+                    /// 如果都删除完了，那么就触发事件解绑
+                    if (map.isEmpty()) {
+                        this.destroySignal.emit(Unit)
+                        this.destroySignal.clear()
+                    }
+                }
+
+                private val destroySignal = SimpleSignal()
+                fun onDestroy(cb: SimpleCallback) = destroySignal.listen(cb)
+            }
+
+            private val IpcUsableIpcBodyMap = WeakHashMap<Ipc, UsableIpcBodyMapper>()
+
+            /**
+             * ipc 将会使用 ipcBody
+             * 那么只要这个 ipc 接收到 pull 指令，就意味着成为"使用者"，那么这个 ipcBody 都会开始读取数据出来发送
+             * 在开始发送第一帧数据之前，其它 ipc 也可以通过 pull 指令来参与成为"使用者"
+             */
+            fun usableByIpc(ipc: Ipc, ipcBody: IpcBodySender) {
+                if (ipcBody.isStream && !ipcBody._isStreamOpened) {
+                    val streamId = ipcBody.metaBody.streamId!!
+                    val usableIpcBodyMapper = IpcUsableIpcBodyMap.getOrPut(ipc) {
+                        debugIpcBody("ipcBodySenderUsableByIpc/OPEN/$ipc")
+                        UsableIpcBodyMapper().also { mapper ->
+                            val off = ipc.onMessage { (message) ->
+                                when (message) {
+                                    is IpcStreamPull -> {
+                                        mapper.get(message.stream_id)?.also { ipcBody ->
+                                            // 一个流一旦开启了，那么就无法再被外部使用了
+                                            if (ipcBody.useByIpc(ipc)) { // ipc 将使用这个 body，也就是说接下来的 MessageData 也要通知一份给这个 ipc
+                                                ipcBody.emitStreamPull(message, ipc)
+                                            }
+                                        }
+                                    }
+                                    is IpcStreamAbort -> {
+                                        // 一个流一旦开启了，那么就无法再被外部使用了
+                                        mapper.get(message.stream_id)?.also { ipcBody ->
+                                            ipcBody.unuseByIpc(ipc)
+                                        }
+                                    }
+                                    else -> {}
+                                }
+                            }
+                            mapper.onDestroy(off)
+                            mapper.onDestroy {
+                                debugIpcBody("ipcBodySenderUsableByIpc/CLOSE/$ipc")
+                                IpcUsableIpcBodyMap.remove(ipc)
+                            }
+                        }
+                    }
+                    if (usableIpcBodyMapper.add(streamId, ipcBody)) {
+                        // 一个流一旦关闭，那么就将不再会与它有主动通讯上的可能
+                        ipcBody.onStreamClose {
+                            usableIpcBodyMapper.remove(streamId)
+                        }
+                    }
+
+                }
+            }
+        }
+    }
 
     /**
      * 被哪些 ipc 所真正使用，使用的进度分别是多少
@@ -127,89 +205,15 @@ class IpcBodySender(
 
 
     init {
-        wm[raw] = this
+        CACHE.raw_ipcBody_WMap[raw] = this
 
         /// 作为 "生产者"，第一持有这个 IpcBodySender
-        usableByIpc(ipc, this)
+        IPC.usableByIpc(ipc, this)
     }
 
     companion object {
 
-        data class UsableIpcBodyMapper(
-
-            private val map: MutableMap<String, IpcBodySender> = mutableMapOf()
-        ) {
-            fun add(streamId: String, ipcBody: IpcBodySender): Boolean {
-                if (map.contains(streamId)) {
-                    return false
-                }
-                map[streamId] = ipcBody
-                return true
-            }
-
-            fun get(streamId: String) = map[streamId]
-            suspend fun remove(streamId: String) = map.remove(streamId)?.also {
-                /// 如果都删除完了，那么就触发事件解绑
-                if (map.isEmpty()) {
-                    this.destroySignal.emit(Unit)
-                    this.destroySignal.clear()
-                }
-            }
-
-            private val destroySignal = SimpleSignal()
-            fun onDestroy(cb: SimpleCallback) = destroySignal.listen(cb)
-        }
-
-        private val IpcUsableIpcBodyMap = WeakHashMap<Ipc, UsableIpcBodyMapper>()
-
-        /**
-         * ipc 将会使用 ipcBody
-         * 那么只要这个 ipc 接收到 pull 指令，就意味着成为"使用者"，那么这个 ipcBody 都会开始读取数据出来发送
-         * 在开始发送第一帧数据之前，其它 ipc 也可以通过 pull 指令来参与成为"使用者"
-         */
-        fun usableByIpc(ipc: Ipc, ipcBody: IpcBodySender) {
-            if (ipcBody.isStream && !ipcBody._isStreamOpened) {
-                val streamId = ipcBody.metaBody.streamId!!
-                val usableIpcBodyMapper = IpcUsableIpcBodyMap.getOrPut(ipc) {
-                    debugIpcBody("ipcBodySenderUsableByIpc/OPEN/$ipc")
-                    UsableIpcBodyMapper().also { mapper ->
-                        val off = ipc.onMessage { (message) ->
-                            when (message) {
-                                is IpcStreamPull -> {
-                                    mapper.get(message.stream_id)?.also { ipcBody ->
-                                        // 一个流一旦开启了，那么就无法再被外部使用了
-                                        if (ipcBody.useByIpc(ipc)) { // ipc 将使用这个 body，也就是说接下来的 MessageData 也要通知一份给这个 ipc
-                                            ipcBody.emitStreamPull(message, ipc)
-                                        }
-                                    }
-                                }
-                                is IpcStreamAbort -> {
-                                    // 一个流一旦开启了，那么就无法再被外部使用了
-                                    mapper.get(message.stream_id)?.also { ipcBody ->
-                                        ipcBody.unuseByIpc(ipc)
-                                    }
-                                }
-                                else -> {}
-                            }
-                        }
-                        mapper.onDestroy(off)
-                        mapper.onDestroy {
-                            debugIpcBody("ipcBodySenderUsableByIpc/CLOSE/$ipc")
-                            IpcUsableIpcBodyMap.remove(ipc)
-                        }
-                    }
-                }
-                if (usableIpcBodyMapper.add(streamId, ipcBody)) {
-                    // 一个流一旦关闭，那么就将不再会与它有主动通讯上的可能
-                    ipcBody.onStreamClose {
-                        usableIpcBodyMapper.remove(streamId)
-                    }
-                }
-
-            }
-        }
-
-        fun from(raw: Any, ipc: Ipc) = wm[raw] ?: IpcBodySender(raw, ipc)
+        fun from(raw: Any, ipc: Ipc) = CACHE.raw_ipcBody_WMap[raw] ?: IpcBodySender(raw, ipc)
 
 
         private val streamIdWM by lazy { WeakHashMap<InputStream, String>() }
@@ -293,9 +297,10 @@ class IpcBodySender(
             emitStreamClose()
         }
 
+        // 写入第一帧数据
         var streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_ID
         var streamFirstData: Any = ""
-        if (stream is PreReadableInputStream) {
+        if (stream is PreReadableInputStream && stream.preReadableSize > 0) {
             streamFirstData = stream.readByteArray(stream.preReadableSize)
             streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_WITH_BINARY
         }
@@ -305,7 +310,13 @@ class IpcBodySender(
             senderUid = ipc.uid,
             data = streamFirstData,
             streamId = stream_id
-        )
+        ).also { metaBody ->
+            // 流对象，写入缓存
+            CACHE.metaId_ipcBodySender_Map[metaBody.metaId] = this
+            abortSignal.listen {
+                CACHE.metaId_ipcBodySender_Map.remove(metaBody.metaId)
+            }
+        }
     }
 }
 

@@ -23,12 +23,18 @@ var main = async () => {
       pathname = "/locales/zh-Hans" + pathname;
     }
     console.time(`open file ${pathname}`);
-    const remoteIpcResponse = await jsProcess.nativeFetch(
-      `file:///cot/COT-beta-202302222200${pathname}?mode=buffer`
+    const remoteIpcResponse = await jsProcess.nativeRequest(
+      `file:///cot/COT-beta-202302222200${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
     ipc2.postMessage(
-      await IpcResponse.fromResponse(request.req_id, remoteIpcResponse, ipc2)
+      new IpcResponse(
+        request.req_id,
+        remoteIpcResponse.statusCode,
+        remoteIpcResponse.headers,
+        remoteIpcResponse.body,
+        ipc2
+      )
     );
   });
   {

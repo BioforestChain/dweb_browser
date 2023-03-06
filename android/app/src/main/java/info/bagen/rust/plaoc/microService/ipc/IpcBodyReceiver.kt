@@ -16,11 +16,18 @@ class IpcBodyReceiver(
     ipc: Ipc,
 ) : IpcBody() {
 
+    class IPC {
+        companion object {
+
+        }
+    }
+
     /// 因为是 abstract，所以得用 lazy 来延迟得到这些属性
     override val bodyHub by lazy {
         BodyHub().also {
             val data = if (metaBody.type.isStream) {
-                val ipc = metaIdIpcMap[metaId] ?: throw Exception("no found ipc by metaId:$metaId")
+                val ipc = CACHE.metaId_receiverIpc_Map[metaBody.metaId]
+                    ?: throw Exception("no found ipc by metaId:${metaBody.metaId}")
                 metaToStream(metaBody, ipc)
             } else when (metaBody.type.encoding) {
                 /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
@@ -38,14 +45,12 @@ class IpcBodyReceiver(
         }
     }
 
-    private val metaId by lazy { "${metaBody.senderUid}/${metaBody.streamId}" }
-
     init {
         /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
         if (metaBody.type.isStream) {
-            metaIdIpcMap.getOrPut(metaId) {
+            CACHE.metaId_receiverIpc_Map.getOrPut(metaBody.metaId) {
                 ipc.onClose {
-                    metaIdIpcMap.remove(metaId)
+                    CACHE.metaId_receiverIpc_Map.remove(metaBody.metaId)
                 }
                 metaBody.receiverUid = ipc.uid
                 ipc
@@ -55,7 +60,10 @@ class IpcBodyReceiver(
 
     companion object {
 
-        private val metaIdIpcMap = mutableMapOf<String, Ipc>()
+        fun from(metaBody: MetaBody, ipc: Ipc): IpcBody {
+            return CACHE.metaId_ipcBodySender_Map[metaBody.metaId] ?: IpcBodyReceiver(metaBody, ipc)
+        }
+
 
         /**
          * @return {String | ByteArray | InputStream}

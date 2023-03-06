@@ -11,9 +11,33 @@ inline fun debugIpcBody(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("ipc-body", tag, msg, err)
 
 abstract class IpcBody {
-    companion object {
-        val wm = WeakHashMap<Any, IpcBody>()
+    /**
+     * 缓存，这里不提供辅助函数，只是一个统一的存取地方，
+     * 写入缓存者要自己维护缓存释放的逻辑
+     */
+    class CACHE {
+        companion object {
+            /**
+             * 任意的 RAW 背后都会有一个 IpcBodySender/IpcBodyReceiver
+             * 将它们缓存起来，那么使用这些 RAW 确保只拿到同一个 IpcBody，这对 RAW-Stream 很重要，流不可以被多次打开读取
+             */
+            val raw_ipcBody_WMap = WeakHashMap<Any, IpcBody>()
+
+            /**
+             * 每一个 metaBody 背后，都会有第一个 接收者IPC，这直接定义了它的应该由谁来接收这个数据，
+             * 其它的 IPC 即便拿到了这个 metaBody 也是没有意义的，除非它是 INLINE
+             */
+            val metaId_receiverIpc_Map = mutableMapOf<String, Ipc>()
+
+            /**
+             * 每一个 metaBody 背后，都会有一个 IpcBodySender,
+             * 这里主要是存储 流，因为它有明确的 open/close 生命周期
+             */
+            val metaId_ipcBodySender_Map = mutableMapOf<String, IpcBodySender>()
+        }
+
     }
+
 
     protected inner class BodyHub {
         var text: String? = null
@@ -33,7 +57,7 @@ abstract class IpcBody {
         } ?: bodyHub.text?.let {
             it.asBase64()
         } ?: throw Exception("invalid body type")).also {
-            wm[it] = this
+            CACHE.raw_ipcBody_WMap[it] = this
         }
     }
 
@@ -43,7 +67,7 @@ abstract class IpcBody {
         (bodyHub.stream ?: _u8a.let {
             it.inputStream()
         }).also {
-            wm[it] = this
+            CACHE.raw_ipcBody_WMap[it] = this
         }
     }
 
@@ -53,7 +77,7 @@ abstract class IpcBody {
         (bodyHub.text ?: _u8a.let {
             it.toUtf8()
         }).also {
-            wm[it] = this
+            CACHE.raw_ipcBody_WMap[it] = this
         }
     }
 

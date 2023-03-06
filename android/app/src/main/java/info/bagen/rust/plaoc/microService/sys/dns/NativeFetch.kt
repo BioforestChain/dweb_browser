@@ -36,7 +36,11 @@ val nativeFetchAdaptersManager = NativeFetchAdaptersManager()
 private val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
 
 
-class ChunkAssetsFileStream(val source: InputStream, val chunkSize: Int = defaultChunkSize) :
+class ChunkAssetsFileStream(
+    val source: InputStream,
+    val chunkSize: Int = defaultChunkSize,
+    override val preReadableSize: Int = chunkSize
+) :
     InputStream(), PreReadableInputStream {
     companion object {
         /// 默认1mb切一次
@@ -53,7 +57,6 @@ class ChunkAssetsFileStream(val source: InputStream, val chunkSize: Int = defaul
             ptr += len
         }
 
-    override val preReadableSize = defaultChunkSize
 }
 
 /**
@@ -63,6 +66,7 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
     request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
         val mode = request.query("mode") ?: "auto"
         val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
+        val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
 
         /**
          * 打开一个读取流
@@ -93,7 +97,13 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
             /**
              * 将它分片读取
              */
-            response.body(ChunkAssetsFileStream(assetStream))
+            response.body(
+                ChunkAssetsFileStream(
+                    assetStream,
+                    chunkSize = chunk,
+                    preReadableSize = if (preRead) chunk else 0
+                )
+            )
         }
 
         /// 尝试加入 Content-Type

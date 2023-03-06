@@ -15,7 +15,7 @@ class IpcResponse(
 
     init {
         if (body is IpcBodySender) {
-            IpcBodySender.usableByIpc(ipc, body)
+            IpcBodySender.IPC.usableByIpc(ipc, body)
         }
     }
 

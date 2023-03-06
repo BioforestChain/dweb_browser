@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.ipc
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import info.bagen.rust.plaoc.microService.helper.toBase64
+import info.bagen.rust.plaoc.microService.helper.toBase64Url
 import java.lang.reflect.Type
 import java.util.*
 
@@ -18,6 +19,13 @@ data class MetaBody(
     val data: Any,
     val streamId: String? = null,
     var receiverUid: Int? = null,
+    /**
+     * 唯一id，指代这个数据的句柄
+     *
+     * 需要使用这个值对应的数据进行缓存操作
+     * 远端可以发送句柄回来，这样可以省去一些数据的回传延迟。
+     */
+    val metaId: String = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
 ) : JsonSerializer<MetaBody> {
 
     @JsonAdapter(IPC_META_BODY_TYPE::class)
@@ -142,10 +150,11 @@ data class MetaBody(
     ) = JsonObject().also { jsonObject ->
         with(src.jsonAble) {
             jsonObject.add("type", context.serialize(type))
-            jsonObject.add("senderUid", context.serialize(senderUid))
-            jsonObject.add("data", context.serialize(data))
-            jsonObject.add("streamId", context.serialize(streamId))
-            jsonObject.add("receiverUid", context.serialize(receiverUid))
+            jsonObject.addProperty("senderUid", senderUid)
+            jsonObject.addProperty("data", data as String)
+            jsonObject.addProperty("streamId", streamId)
+            jsonObject.addProperty("receiverUid", receiverUid)
+            jsonObject.addProperty("metaId", metaId)
         }
     }
 }

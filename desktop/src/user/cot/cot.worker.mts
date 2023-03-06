@@ -22,37 +22,37 @@ const main = async () => {
     if (pathname.startsWith("/assets/") === false) {
       pathname = "/locales/zh-Hans" + pathname;
     }
-    // console.time(`open file ${pathname}`);
-    // const remoteIpcResponse = await jsProcess.nativeRequest(
-    //   `file:///cot/COT-beta-202302222200${pathname}`
-    // );
-    // console.timeEnd(`open file ${pathname}`);
 
+    console.time(`open file ${pathname}`);
+    const remoteIpcResponse = await jsProcess.nativeRequest(
+      `file:///cot/COT-beta-202302222200${pathname}?mode=stream`
+    );
+    console.timeEnd(`open file ${pathname}`);
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
      * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
      *
      * 如此数据就不会发给我，节省大量传输成本
      */
-    // ipc.postMessage(
-    //   new IpcResponse(
-    //     request.req_id,
-    //     remoteIpcResponse.statusCode,
-    //     remoteIpcResponse.headers,
-    //     remoteIpcResponse.body,
-    //     ipc
-    //   )
-    // );
-
-    console.time(`open file ${pathname}`);
-    const remoteIpcResponse = await jsProcess.nativeFetch(
-      `file:///cot/COT-beta-202302222200${pathname}?mode=buffer`
-    );
-    console.timeEnd(`open file ${pathname}`);
-
     ipc.postMessage(
-      await IpcResponse.fromResponse(request.req_id, remoteIpcResponse, ipc)
+      new IpcResponse(
+        request.req_id,
+        remoteIpcResponse.statusCode,
+        remoteIpcResponse.headers,
+        remoteIpcResponse.body,
+        ipc
+      )
     );
+
+    // console.time(`open file ${pathname}`);
+    // const remoteIpcResponse = await jsProcess.nativeFetch(
+    //   `file:///cot/COT-beta-202302222200${pathname}?mode=buffer`
+    // );
+    // console.timeEnd(`open file ${pathname}`);
+
+    // ipc.postMessage(
+    //   await IpcResponse.fromResponse(request.req_id, remoteIpcResponse, ipc)
+    // );
   });
 
   {

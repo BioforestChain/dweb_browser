@@ -16,7 +16,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
                     it.url,
                     it.method,
                     IpcHeaders(it.headers),
-                    IpcBodyReceiver(it.metaBody, ipc),
+                    IpcBodyReceiver.from(it.metaBody, ipc),
                     ipc
                 )
             }
@@ -25,7 +25,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
                     it.req_id,
                     it.statusCode,
                     IpcHeaders(it.headers),
-                    IpcBodyReceiver(it.metaBody, ipc),
+                    IpcBodyReceiver.from(it.metaBody, ipc),
                     ipc
                 )
             }

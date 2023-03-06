@@ -51,8 +51,8 @@ data class IpcStreamData(
     ) = JsonObject().also { jsonObject ->
         with(src.jsonAble) {
             jsonObject.add("type", context.serialize(type))
-            jsonObject.add("stream_id", context.serialize(stream_id))
-            jsonObject.add("data", context.serialize(data))
+            jsonObject.addProperty("stream_id", stream_id)
+            jsonObject.addProperty("data", data as String)
             jsonObject.add("encoding", context.serialize(encoding))
         }
     }

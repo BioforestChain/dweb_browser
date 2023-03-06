@@ -120,15 +120,19 @@ export const streamReadAllBuffer = async (
   ).result;
 };
 export class ReadableStreamOut<T> {
+  constructor(readonly strategy?: QueuingStrategy<T>) {}
   controller!: ReadableStreamDefaultController<T>;
-  stream = new ReadableStream<T>({
-    start: (controller) => {
-      this.controller = controller;
+  stream = new ReadableStream<T>(
+    {
+      start: (controller) => {
+        this.controller = controller;
+      },
+      pull: () => {
+        this._on_pull_signal?.emit();
+      },
     },
-    pull: () => {
-      this._on_pull_signal?.emit();
-    },
-  });
+    this.strategy
+  );
   private _on_pull_signal?: Signal<$OnPull>;
   get onPull() {
     return (this._on_pull_signal ??= createSignal<$OnPull>()).listen;

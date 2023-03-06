@@ -202,7 +202,8 @@ export class IpcBodySender extends IpcBody {
     let streamFirstData: string | Uint8Array = "";
     if (
       "preReadableSize" in stream &&
-      typeof stream.preReadableSize === "number"
+      typeof stream.preReadableSize === "number" &&
+      stream.preReadableSize > 0
     ) {
       // js的不支持输出预读取帧
     }

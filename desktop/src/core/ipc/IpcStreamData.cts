@@ -50,8 +50,6 @@ export class IpcStreamData extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_DATA> {
     return this;
   }
   toJSON() {
-    const res = Object.fromEntries(Object.entries(this.jsonAble));
-    console.log(res);
-    return res;
+    return { ...this.jsonAble };
   }
 }

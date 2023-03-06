@@ -2173,15 +2173,19 @@ var streamReadAllBuffer = async (stream) => {
   })).result;
 };
 var ReadableStreamOut = class {
-  constructor() {
-    this.stream = new ReadableStream({
-      start: (controller) => {
-        this.controller = controller;
+  constructor(strategy) {
+    this.strategy = strategy;
+    this.stream = new ReadableStream(
+      {
+        start: (controller) => {
+          this.controller = controller;
+        },
+        pull: () => {
+          this._on_pull_signal?.emit();
+        }
       },
-      pull: () => {
-        this._on_pull_signal?.emit();
-      }
-    });
+      this.strategy
+    );
   }
   get onPull() {
     return (this._on_pull_signal ??= createSignal()).listen;
@@ -2347,9 +2351,7 @@ var _IpcStreamData = class extends IpcMessage {
     return this;
   }
   toJSON() {
-    const res = Object.fromEntries(Object.entries(this.jsonAble));
-    console.log(res);
-    return res;
+    return { ...this.jsonAble };
   }
 };
 var IpcStreamData = _IpcStreamData;
@@ -2383,12 +2385,16 @@ var IpcStreamPull = class extends IpcMessage {
 
 // src/core/ipc/MetaBody.cts
 var _MetaBody = class {
-  constructor(type, senderUid, data, streamId, receiverUid) {
+  constructor(type, senderUid, data, streamId, receiverUid, metaId = simpleDecoder(
+    crypto.getRandomValues(new Uint8Array(8)),
+    "base64"
+  )) {
     this.type = type;
     this.senderUid = senderUid;
     this.data = data;
     this.streamId = streamId;
     this.receiverUid = receiverUid;
+    this.metaId = metaId;
   }
   static fromJSON(metaBody) {
     if (metaBody instanceof _MetaBody === false) {
@@ -2397,7 +2403,8 @@ var _MetaBody = class {
         metaBody.senderUid,
         metaBody.data,
         metaBody.streamId,
-        metaBody.receiverUid
+        metaBody.receiverUid,
+        metaBody.metaId
       );
     }
     return metaBody;
@@ -2469,9 +2476,7 @@ var _MetaBody = class {
     return this;
   }
   toJSON() {
-    const res = Object.fromEntries(Object.entries(this.jsonAble));
-    console.log(res);
-    return res;
+    return { ...this.jsonAble };
   }
 };
 var MetaBody = _MetaBody;
@@ -2665,7 +2670,7 @@ var _IpcBodySender = class extends IpcBody {
     });
     let streamType = 0 /* STREAM_ID */;
     let streamFirstData = "";
-    if ("preReadableSize" in stream && typeof stream.preReadableSize === "number") {
+    if ("preReadableSize" in stream && typeof stream.preReadableSize === "number" && stream.preReadableSize > 0) {
     }
     return new MetaBody(streamType, ipc.uid, streamFirstData, stream_id);
   }
@@ -3148,40 +3153,46 @@ var $metaToStream = (metaBody, ipc) => {
   }
   const stream_ipc = ipc;
   const stream_id = metaBody.streamId;
-  const stream = new ReadableStream({
-    start(controller) {
-      let firstData;
-      switch (metaBody.type_encoding) {
-        case 2 /* UTF8 */:
-          firstData = simpleEncoder(metaBody.data, "utf8");
-          break;
-        case 4 /* BASE64 */:
-          firstData = simpleEncoder(metaBody.data, "base64");
-          break;
-        case 8 /* BINARY */:
-          firstData = metaBody.data;
-          break;
-      }
-      if (firstData) {
-        controller.enqueue(firstData);
-      }
-      const off = ipc.onMessage((message) => {
-        if ("stream_id" in message && message.stream_id === stream_id) {
-          if (message.type === 2 /* STREAM_DATA */) {
-            controller.enqueue(message.binary);
-          } else if (message.type === 4 /* STREAM_END */) {
-            controller.close();
-            off();
-          }
+  const stream = new ReadableStream(
+    {
+      start(controller) {
+        let firstData;
+        switch (metaBody.type_encoding) {
+          case 2 /* UTF8 */:
+            firstData = simpleEncoder(metaBody.data, "utf8");
+            break;
+          case 4 /* BASE64 */:
+            firstData = simpleEncoder(metaBody.data, "base64");
+            break;
+          case 8 /* BINARY */:
+            firstData = metaBody.data;
+            break;
         }
-      });
+        if (firstData) {
+          controller.enqueue(firstData);
+        }
+        const off = ipc.onMessage((message) => {
+          if ("stream_id" in message && message.stream_id === stream_id) {
+            if (message.type === 2 /* STREAM_DATA */) {
+              controller.enqueue(message.binary);
+            } else if (message.type === 4 /* STREAM_END */) {
+              controller.close();
+              off();
+            }
+          }
+        });
+      },
+      pull(controller) {
+        stream_ipc.postMessage(
+          new IpcStreamPull(stream_id, controller.desiredSize)
+        );
+      }
     },
-    pull(controller) {
-      stream_ipc.postMessage(
-        new IpcStreamPull(stream_id, controller.desiredSize)
-      );
+    {
+      /// 按需 pull
+      highWaterMark: 0
     }
-  });
+  );
   return stream;
 };
 

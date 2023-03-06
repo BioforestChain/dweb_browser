@@ -10,7 +10,11 @@ export class MetaBody {
     readonly senderUid: number,
     readonly data: string | Uint8Array,
     readonly streamId?: string,
-    public receiverUid?: number
+    public receiverUid?: number,
+    readonly metaId = simpleDecoder(
+      crypto.getRandomValues(new Uint8Array(8)),
+      "base64"
+    )
   ) {}
   static fromJSON(metaBody: MetaBody | $JSON<MetaBody>) {
     if (metaBody instanceof MetaBody === false) {
@@ -19,7 +23,8 @@ export class MetaBody {
         metaBody.senderUid,
         metaBody.data,
         metaBody.streamId,
-        metaBody.receiverUid
+        metaBody.receiverUid,
+        metaBody.metaId
       );
     }
     return metaBody;
@@ -117,9 +122,7 @@ export class MetaBody {
     return this;
   }
   toJSON() {
-    const res = Object.fromEntries(Object.entries(this.jsonAble));
-    console.log(res);
-    return res;
+    return { ...this.jsonAble };
   }
 }
 export const enum IPC_META_BODY_TYPE {

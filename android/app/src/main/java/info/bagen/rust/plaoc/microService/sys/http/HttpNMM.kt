@@ -197,7 +197,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         /// ipc 在关闭的时候，自动释放所有的绑定
         listener.onDestroy(ipc.onClose { close(ipc, options) })
 
-        val token = ByteArray(64).also { Random().nextBytes(it) }.toBase64Url()
+        val token = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
 
         val gateway = Gateway(listener, serverUrlInfo, token)
         gatewayMap[serverUrlInfo.host] = gateway
