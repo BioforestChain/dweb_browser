@@ -1,6 +1,9 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.SimpleCallback
+import info.bagen.rust.plaoc.microService.helper.SimpleSignal
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.readByteArray
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -170,7 +173,7 @@ class IpcBodySender(
          */
         fun usableByIpc(ipc: Ipc, ipcBody: IpcBodySender) {
             if (ipcBody.isStream && !ipcBody._isStreamOpened) {
-                val streamId = ipcBody.metaBody.data as String
+                val streamId = ipcBody.metaBody.streamId!!
                 val usableIpcBodyMapper = IpcUsableIpcBodyMap.getOrPut(ipc) {
                     debugIpcBody("ipcBodySenderUsableByIpc/OPEN/$ipc")
                     UsableIpcBodyMapper().also { mapper ->
@@ -228,21 +231,11 @@ class IpcBodySender(
 
 
     private fun bodyAsMeta(body: Any, ipc: Ipc) = when (body) {
-        is String -> textAsMeta(body, ipc)
-        is ByteArray -> binaryAsMeta(body, ipc)
+        is String -> MetaBody.fromText(ipc.uid, body)
+        is ByteArray -> MetaBody.fromBinary(ipc, body)
         is InputStream -> streamAsMeta(body, ipc)
         else -> throw Exception("invalid body type $body")
     }
-
-    private fun textAsMeta(text: String, ipc: Ipc) =
-        MetaBody(IPC_META_BODY_TYPE.TEXT, text, ipc.uid)
-
-    private fun binaryAsMeta(binary: ByteArray, ipc: Ipc) = if (ipc.supportBinary) {
-        MetaBody(IPC_META_BODY_TYPE.BINARY, binary, ipc.uid)
-    } else {
-        MetaBody(IPC_META_BODY_TYPE.BASE64, binary.toBase64(), ipc.uid)
-    }
-
 
     private fun streamAsMeta(stream: InputStream, ipc: Ipc): MetaBody {
 
@@ -310,7 +303,12 @@ class IpcBodySender(
             stream.close()
             emitStreamClose()
         }
-        return MetaBody(IPC_META_BODY_TYPE.STREAM_ID, stream_id, ipc.uid)
+        return MetaBody(
+            type = MetaBody.IPC_META_BODY_TYPE.STREAM_ID,
+            senderUid = ipc.uid,
+            data = "",
+            streamId = stream_id
+        )
     }
 
 

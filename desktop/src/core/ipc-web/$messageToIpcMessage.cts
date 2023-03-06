@@ -11,6 +11,7 @@ import { IpcResponse } from "../ipc/IpcResponse.cjs";
 import { IpcStreamData } from "../ipc/IpcStreamData.cjs";
 import { IpcStreamEnd } from "../ipc/IpcStreamEnd.cjs";
 import { IpcStreamPull } from "../ipc/IpcStreamPull.cjs";
+import { MetaBody } from "../ipc/MetaBody.cjs";
 
 export type $JSON<T> = {
   [key in keyof T]: T[key] extends Function ? never : T[key];
@@ -35,7 +36,7 @@ export const $messageToIpcMessage = (
       data.url,
       data.method,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(data.metaBody, ipc),
+      new IpcBodyReceiver(MetaBody.fromJSON(data.metaBody), ipc),
       ipc
     );
   } else if (data.type === IPC_MESSAGE_TYPE.RESPONSE) {
@@ -43,7 +44,7 @@ export const $messageToIpcMessage = (
       data.req_id,
       data.statusCode,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(data.metaBody, ipc),
+      new IpcBodyReceiver(MetaBody.fromJSON(data.metaBody), ipc),
       ipc
     );
   } else if (data.type === IPC_MESSAGE_TYPE.STREAM_DATA) {

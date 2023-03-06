@@ -3,8 +3,6 @@ package info.bagen.rust.plaoc.microService.ipc
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import info.bagen.rust.plaoc.microService.helper.Callback
-import info.bagen.rust.plaoc.microService.helper.asBase64
-import info.bagen.rust.plaoc.microService.helper.asUtf8
 import java.lang.reflect.Type
 
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
@@ -82,35 +80,6 @@ enum class IPC_DATA_ENCODING(val encoding: Int) : JsonSerializer<IPC_DATA_ENCODI
 }
 
 
-@JsonAdapter(IPC_META_BODY_TYPE::class)
-enum class IPC_META_BODY_TYPE(val type: Int) : JsonSerializer<IPC_META_BODY_TYPE>,
-    JsonDeserializer<IPC_META_BODY_TYPE> {
-    /** 流 */
-    STREAM_ID(0),
-
-    /** 内联数据 */
-    INLINE(1),
-
-    /** 文本 json html 等 */
-    TEXT(INLINE or IPC_DATA_ENCODING.UTF8),
-
-    /** 使用文本表示的二进制 */
-    BASE64(INLINE or IPC_DATA_ENCODING.BASE64),
-
-    /** 二进制 */
-    BINARY(INLINE or IPC_DATA_ENCODING.BINARY), ;
-
-    override fun serialize(
-        src: IPC_META_BODY_TYPE, typeOfSrc: Type?, context: JsonSerializationContext?
-    ) = JsonPrimitive(src.type)
-
-    override fun deserialize(
-        json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?
-    ) = json.asInt.let { type -> values().find { it.type == type } }
-
-    private inline infix fun or(TYPE: IPC_DATA_ENCODING) = type or TYPE.encoding
-}
-
 @JsonAdapter(IPC_ROLE::class)
 enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>, JsonDeserializer<IPC_ROLE> {
     SERVER("server"), CLIENT("client"), ;
@@ -122,41 +91,5 @@ enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>, JsonDeserializ
     override fun deserialize(
         json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?
     ) = json.asString.let { role -> values().find { it.role == role } }
-}
-
-@JsonAdapter(MetaBody::class)
-data class MetaBody(val type: IPC_META_BODY_TYPE, val data: Any, val ipcUid: Int) :
-    JsonSerializer<MetaBody>,
-    JsonDeserializer<MetaBody> {
-    override fun serialize(
-        src: MetaBody, typeOfSrc: Type, context: JsonSerializationContext
-    ) = JsonArray().also {
-        it.add(context.serialize(src.type))
-        it.add(context.serialize(src.data))
-        it.add(context.serialize(src.ipcUid))
-    }
-
-    override fun deserialize(
-        json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext
-    ) = json.asJsonArray.let { list ->
-        context.deserialize<IPC_META_BODY_TYPE>(list[0], IPC_META_BODY_TYPE::class.java)
-            .let { type ->
-                when (type) {
-                    IPC_META_BODY_TYPE.BINARY -> throw JsonParseException("json no support raw binary body")
-                    else -> MetaBody(type, list[1].asString, list[2].asInt)
-                }
-            }
-    }
-
-
-    val binary
-        get() = when (type) {
-            IPC_META_BODY_TYPE.BINARY -> data as ByteArray
-            IPC_META_BODY_TYPE.BASE64 -> (data as String).asBase64()
-            IPC_META_BODY_TYPE.TEXT -> (data as String).asUtf8()
-            else -> throw Exception("invalid metaBody.type :${type}")
-        }
-
-
 }
 

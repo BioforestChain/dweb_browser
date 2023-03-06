@@ -1,11 +1,11 @@
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.cjs";
 import { streamReadAllBuffer } from "../../helper/readableStreamHelper.cjs";
-import type { $MetaBody } from "./const.cjs";
+import type { MetaBody } from "./MetaBody.cjs";
 
 export abstract class IpcBody {
   static wm = new WeakMap<Uint8Array | ReadableStream, IpcBody>();
 
-  abstract readonly metaBody: $MetaBody;
+  abstract readonly metaBody: MetaBody;
   protected abstract _bodyHub: BodyHub;
   get raw() {
     return this._bodyHub.data;

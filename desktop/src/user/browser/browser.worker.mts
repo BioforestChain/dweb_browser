@@ -161,7 +161,7 @@ async function onRequestPathNameAppsInfo(
       res,
       httpServerIpc
     )
-    console.log("stream id:",ipcResponse.body.metaBody[1])
+    console.log("stream id:",ipcResponse.body.metaBody.streamId)
     
 
     // fromResponse 无法读取完成的数据

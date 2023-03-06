@@ -1,14 +1,12 @@
-import { binaryToU8a } from "../../helper/binaryHelper.cjs";
 import { $Callback, createSignal } from "../../helper/createSignal.cjs";
-import { simpleDecoder } from "../../helper/encoding.cjs";
 import { binaryStreamRead } from "../../helper/readableStreamHelper.cjs";
-import { $MetaBody, IPC_META_BODY_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.cjs";
 import { IpcStreamAbort } from "./IpcStreamAbort.cjs";
 import { IpcStreamData } from "./IpcStreamData.cjs";
 import { IpcStreamEnd } from "./IpcStreamEnd.cjs";
 import { IpcStreamPull } from "./IpcStreamPull.cjs";
+import { IPC_META_BODY_TYPE, MetaBody } from "./MetaBody.cjs";
 
 export class IpcBodySender extends IpcBody {
   static from(data: $BodyData, ipc: Ipc) {
@@ -130,16 +128,14 @@ export class IpcBodySender extends IpcBody {
   protected _bodyHub = new BodyHub(this.data);
   readonly metaBody = this.$bodyAsMeta(this.data, this.ipc);
 
-  private $bodyAsMeta(body: $BodyData, ipc: Ipc): $MetaBody {
+  private $bodyAsMeta(body: $BodyData, ipc: Ipc): MetaBody {
     if (typeof body === "string") {
-      return [IPC_META_BODY_TYPE.TEXT, body, ipc.uid];
+      return MetaBody.fromText(ipc.uid, body);
     }
     if (body instanceof ReadableStream) {
       return this.$streamAsMeta(body, ipc);
     }
-    return ipc.support_binary
-      ? [IPC_META_BODY_TYPE.BINARY, binaryToU8a(body), ipc.uid]
-      : [IPC_META_BODY_TYPE.BASE64, simpleDecoder(body, "base64"), ipc.uid];
+    return MetaBody.fromBinary(ipc, body);
   }
   /**
    * 如果 rawData 是流模式，需要提供数据发送服务
@@ -152,7 +148,7 @@ export class IpcBodySender extends IpcBody {
   private $streamAsMeta(
     stream: ReadableStream<Uint8Array>,
     ipc: Ipc
-  ): $MetaBody {
+  ): MetaBody {
     const stream_id = getStreamId(stream);
     const reader = binaryStreamRead(stream);
 
@@ -207,7 +203,7 @@ export class IpcBodySender extends IpcBody {
       this.emitStreamClose();
     });
 
-    return [IPC_META_BODY_TYPE.STREAM_ID, stream_id, ipc.uid];
+    return new MetaBody(IPC_META_BODY_TYPE.STREAM_ID, ipc.uid, "", stream_id);
   }
 
   /**
@@ -215,7 +211,7 @@ export class IpcBodySender extends IpcBody {
    */
   static $usableByIpc = (ipc: Ipc, ipcBody: IpcBodySender) => {
     if (ipcBody.isStream && !ipcBody._isStreamOpened) {
-      const streamId = ipcBody.metaBody[1] as string;
+      const streamId = ipcBody.metaBody.streamId!
       let usableIpcBodyMapper = IpcUsableIpcBodyMap.get(ipc);
       if (usableIpcBodyMapper === undefined) {
         const mapper = new UsableIpcBodyMapper();
