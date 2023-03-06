@@ -9,6 +9,7 @@ import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.ScanningNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.camera.TorchNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.*
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.FileSystemNMM
@@ -68,6 +69,8 @@ suspend fun startDwebBrowser() {
     val shareNMM = ShareNMM().also { dnsNMM.install(it) }
     /// 振动效果
     val hapticsNMM = HapticsNMM().also { dnsNMM.install(it) }
+    /// 手电筒
+    val torchNMM = TorchNMM().also() {dnsNMM.install(it)}
 
     /// keyboard
     val keyboardNMM = KeyboardNMM().also { dnsNMM.install(it) }
