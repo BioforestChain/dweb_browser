@@ -1,4 +1,4 @@
-/// <reference path="../desktop/src/sys/js-process/js-process.worker.d.ts"/>
+/// <reference lib="dom" />
 
 export class BasePlugin extends HTMLElement {
 
@@ -43,6 +43,7 @@ export class BasePlugin extends HTMLElement {
     }
     const remove = () => this.removeListener(eventName, listenerFunc);
 
+    // deno-lint-ignore no-explicit-any
     const p: any = Promise.resolve({ remove });
     // 注册一个移除监听的方法
     Object.defineProperty(p, 'remove', {
@@ -96,6 +97,7 @@ export class BasePlugin extends HTMLElement {
    * 移动端触发了就通过这里踢一脚注册的组件
    * evalJavascript("")
    */
+  // deno-lint-ignore no-explicit-any
   protected notifyListeners(eventName: string, data: any): void {
     console.log("🍙plugin#notifyListeners:", eventName, data)
     const listeners = this.listeners[eventName];
@@ -110,7 +112,7 @@ export class BasePlugin extends HTMLElement {
 
 }
 
-
+// deno-lint-ignore no-explicit-any
 export type ListenerCallback = (err: any, ...args: any[]) => void;
 
 export interface WindowListenerHandle {

@@ -1,5 +1,5 @@
-import { BasePlugin } from '../../basePlugin';
-import { CameraDirection, ScanOptions, ScanResult, SupportedFormat } from './barcodeScanner.type.cjs';
+import { BasePlugin } from '../../basePlugin.ts';
+import { CameraDirection, ScanOptions, SupportedFormat } from './barcodeScanner.type.ts';
 
 export class BarcodeScanner extends BasePlugin {
   private _formats = SupportedFormat.QR_CODE;
@@ -52,31 +52,31 @@ export class BarcodeScanner extends BasePlugin {
    */
   async pauseScanning() {
     await this.nativeFetch(`/stop`)
-  };
+  }
 
   /**
    * 恢复扫描
    */
   async resumeScanning(): Promise<void> {
-    this._getFirstResultFromReader();
+    await this._getFirstResultFromReader();
   }
 
   /**
    *  停止扫描
    * @param forceStopScan 是否强制停止扫描
    */
-  async stopScan(forceStopScan?: boolean): Promise<void> {
+  async stopScan(_forceStopScan?: boolean): Promise<void> {
     this._stop();
     await this.nativeFetch(`/stop`)
-  };
+  }
 
   /**
    *  检查是否有摄像头权限，如果没有或者被拒绝，那么会强制请求打开权限(设置)
    * @param forceCheck 是否强制检查权限
    */
   async checkCameraPermission(
-    forceCheck?: boolean,
-    beforeOpenPermissionSettings?: () => boolean | Promise<boolean>
+    _forceCheck?: boolean,
+    _beforeOpenPermissionSettings?: () => boolean | Promise<boolean>
   ) {
     if (typeof navigator === 'undefined' || !navigator.permissions) {
       throw Error('Permissions API not available in this browser');
@@ -86,6 +86,7 @@ export class BarcodeScanner extends BasePlugin {
       // 所支持的特定权限因实现该功能的浏览器而异
       // 权限 API，所以我们需要一个 try/catch 以防 'camera' 无效
       const permission = await window.navigator.permissions.query({
+        // deno-lint-ignore no-explicit-any
         name: 'camera' as any,
       });
       if (permission.state === 'prompt') {
@@ -130,6 +131,7 @@ export class BarcodeScanner extends BasePlugin {
   /**
    * 隐藏webview背景
    */
+  // deno-lint-ignore require-await
   async hideBackground(): Promise<void> {
     this._backgroundColor = document.documentElement.style.backgroundColor;
     document.documentElement.style.backgroundColor = 'transparent';
@@ -139,6 +141,7 @@ export class BarcodeScanner extends BasePlugin {
   /**
    * 显示webview背景
    */
+  // deno-lint-ignore require-await
   async showBackground(): Promise<void> {
     document.documentElement.style.backgroundColor = this._backgroundColor || '';
     return;
@@ -150,6 +153,7 @@ export class BarcodeScanner extends BasePlugin {
    */
   private async _getFirstResultFromReader() {
     const videoElement = await this._getVideoElement();
+    // deno-lint-ignore no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       if (videoElement) {
         const stream = await this.getVideoSteam(videoElement);
@@ -169,7 +173,9 @@ export class BarcodeScanner extends BasePlugin {
    * 启动摄像
    * @returns 
    */
-  private async _startVideo(): Promise<{}> {
+  // deno-lint-ignore ban-types
+  private _startVideo(): Promise<{}> {
+    // deno-lint-ignore no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await navigator.mediaDevices
         .getUserMedia({
@@ -230,6 +236,9 @@ export class BarcodeScanner extends BasePlugin {
               //video.src = window.URL.createObjectURL(stream);
               if (this._video) {
                 this._video.srcObject = stream;
+                const videoTracks = stream.getAudioTracks()[0];
+                // const imageCapture = ImageCapture(videoTracks);
+                // imageCapture.takePhoto()
                 this._video.play();
               }
               resolve({});
@@ -252,18 +261,20 @@ export class BarcodeScanner extends BasePlugin {
     return this._video;
   }
 
+  // deno-lint-ignore no-explicit-any
   private async _stop(): Promise<any> {
     if (this._video) {
       this._video.pause();
 
+      // deno-lint-ignore no-explicit-any
       const st: any = this._video.srcObject;
       const tracks = st.getTracks();
 
-      for (var i = 0; i < tracks.length; i++) {
-        var track = tracks[i];
+      for (let i = 0; i < tracks.length; i++) {
+        const track = tracks[i];
         track.stop();
       }
-      this._video.parentElement?.remove();
+      await this._video.parentElement?.remove();
       this._video = null;
     }
   }
@@ -276,22 +287,18 @@ export class BarcodeScanner extends BasePlugin {
     return new Promise(function (resolve, reject) {
       video.setAttribute('crossOrigin', 'anonymous');//处理跨域
       video.addEventListener('loadeddata', function () {
-        let canvas = document.createElement("canvas")
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+        video.cancelVideoFrameCallback
         // 每帧捕获的次数
-        const stream = canvas.captureStream(25);
         // TODO 这里需要测试
-        const read = new ReadableStream({
-          start(controller) {
-            stream.addEventListener("close", () => {
-              controller.close()
-            })
-            controller.enqueue(stream)
-          },
-        })
-        resolve(read);
+        // const read = new ReadableStream({
+        //   start(controller) {
+        //     stream.addEventListener("close", () => {
+        //       controller.close()
+        //     })
+        //     controller.enqueue(stream)
+        //   },
+        // })
+        // resolve(read);
       });
     })
   }

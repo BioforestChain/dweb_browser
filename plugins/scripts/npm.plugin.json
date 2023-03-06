@@ -1,0 +1,14 @@
+[
+  {
+    "buildFromRootDir": "./src/components",
+    "mainExports": ".",
+    "buildToRootDir": "./build/plugin",
+    "importMap": "./import_map.json",
+    "name": "@bfex/plugin",
+    "version": "1.0.0",
+    "lib": [
+      "es2021",
+      "dom"
+    ]
+  }
+]

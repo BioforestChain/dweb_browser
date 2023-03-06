@@ -6,6 +6,7 @@ export interface BarcodeScannerPlugin {
   startScan(options?: ScanOptions): Promise<ScanResult>;
   startScanning(
     options?: ScanOptions,
+    // deno-lint-ignore no-explicit-any
     callback?: (result: ScanResult, err?: any) => void,
   ): Promise<CallbackID>;
   pauseScanning(): Promise<void>;
