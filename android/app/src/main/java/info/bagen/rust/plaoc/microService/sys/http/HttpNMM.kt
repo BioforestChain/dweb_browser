@@ -3,16 +3,12 @@ package info.bagen.rust.plaoc.microService.sys.http
 import com.google.gson.reflect.TypeToken
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
-import info.bagen.rust.plaoc.microService.helper.printdebugln
-import info.bagen.rust.plaoc.microService.helper.toBase64Url
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
 import info.bagen.rust.plaoc.microService.sys.dns.networkFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.Http1Server
-import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
 import org.http4k.lens.Query
 import org.http4k.lens.composite
@@ -74,9 +70,8 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 }
             }
         }
-        val host = (
-                query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host
-                ?: header_host)?.let { host ->
+        val host = (query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host
+        ?: header_host)?.let { host ->
             /// 如果没有端口，补全端口
             if (!host.contains(":")) {
                 host + ":" + Http1Server.PORT;
@@ -92,11 +87,13 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
          */
         val response = gatewayMap[host]?.let { gateway ->
             println("URL:${request.uri} => gateway: ${gateway.urlInfo}")
-            runBlocking(ioAsyncExceptionHandler) {
+            kotlin.runCatching { }.onFailure { ioAsyncExceptionHandler }
+
+            runBlockingCatching {
                 val response = gateway.listener.hookHttpRequest(request)
 //                println("URL:${request.uri} => response: $response")
                 response
-            }
+            }.getOrNull()
         }
 
         response ?: Response(
@@ -112,9 +109,9 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
         /// 为 nativeFetch 函数提供支持
         _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { _, request ->
-            if (
-                (request.uri.scheme == "http" || request.uri.scheme == "https")
-                && request.uri.host.endsWith(".dweb")
+            if ((request.uri.scheme == "http" || request.uri.scheme == "https") && request.uri.host.endsWith(
+                    ".dweb"
+                )
             ) {
                 networkFetch(
                     request
@@ -137,20 +134,16 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         val query_routeConfig = Query.string().required("routes")
         val type_routes = object : TypeToken<ArrayList<Gateway.RouteConfig>>() {}.type
 
-        apiRouting = routes(
-            "/start" bind Method.GET to defineHandler { request, ipc ->
-                start(ipc, query_dwebServerOptions(request))
-            },
-            "/listen" bind Method.POST to defineHandler { request ->
-                val token = query_token(request)
-                val routes: List<Gateway.RouteConfig> =
-                    gson.fromJson(query_routeConfig(request), type_routes)
-                listen(token, request, routes)
-            },
-            "/close" bind Method.GET to defineHandler { request, ipc ->
-                close(ipc, query_dwebServerOptions(request))
-            }
-        )
+        apiRouting = routes("/start" bind Method.GET to defineHandler { request, ipc ->
+            start(ipc, query_dwebServerOptions(request))
+        }, "/listen" bind Method.POST to defineHandler { request ->
+            val token = query_token(request)
+            val routes: List<Gateway.RouteConfig> =
+                gson.fromJson(query_routeConfig(request), type_routes)
+            listen(token, request, routes)
+        }, "/close" bind Method.GET to defineHandler { request, ipc ->
+            close(ipc, query_dwebServerOptions(request))
+        })
 
     }
 
@@ -168,8 +161,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
          */
         val public_origin: String,
     ) {
-        fun buildPublicUrl() = Uri.of(public_origin)
-            .query("X-Dweb-Host", host)
+        fun buildPublicUrl() = Uri.of(public_origin).query("X-Dweb-Host", host)
 
         fun buildInternalUrl() = Uri.of(internal_origin)
     }
@@ -218,16 +210,13 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
      *  绑定流监听
      */
     private fun listen(
-        token: String,
-        message: Request,
-        routes: List<Gateway.RouteConfig>
+        token: String, message: Request, routes: List<Gateway.RouteConfig>
     ): Response {
         val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
         debugHttp("LISTEN", "host: ${gateway.urlInfo.host}, token: $token")
 
         val streamIpc = ReadableStreamIpc(
-            gateway.listener.ipc.remote,
-            "http-gateway/${gateway.urlInfo.host}"
+            gateway.listener.ipc.remote, "http-gateway/${gateway.urlInfo.host}"
         )
         streamIpc.bindIncomeStream(message.body.stream)
         for (routeConfig in routes) {

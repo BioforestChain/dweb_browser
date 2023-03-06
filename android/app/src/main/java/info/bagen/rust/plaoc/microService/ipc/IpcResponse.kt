@@ -45,11 +45,7 @@ class IpcResponse(
         )
 
         fun fromBinary(
-            req_id: Int,
-            statusCode: Int = 200,
-            headers: IpcHeaders,
-            binary: ByteArray,
-            ipc: Ipc
+            req_id: Int, statusCode: Int = 200, headers: IpcHeaders, binary: ByteArray, ipc: Ipc
         ) = IpcResponse(
             req_id,
             statusCode,
@@ -79,9 +75,7 @@ class IpcResponse(
         )
 
         fun fromResponse(
-            req_id: Int,
-            response: Response,
-            ipc: Ipc
+            req_id: Int, response: Response, ipc: Ipc
         ) = IpcResponse(
             req_id,
             response.status.code,
@@ -96,15 +90,14 @@ class IpcResponse(
     }
 
     fun toResponse() =
-        Response(Status(this.statusCode, null))
-            .headers(this.headers.toList()).let { res ->
-                when (val body = body.raw) {
-                    is String -> res.body(body)
-                    is ByteArray -> res.body(body.inputStream(), body.size.toLong())
-                    is InputStream -> res.body(body)
-                    else -> throw Exception("invalid body to response: $body")
-                }
+        Response(Status(this.statusCode, null)).headers(this.headers.toList()).let { res ->
+            when (val body = body.raw) {
+                is String -> res.body(body)
+                is ByteArray -> res.body(body.inputStream(), body.size.toLong())
+                is InputStream -> res.body(body)
+                else -> throw Exception("invalid body to response: $body")
             }
+        }
 
     val ipcResMessage by lazy {
         IpcResMessage(req_id, statusCode, headers.toMap(), body.metaBody)

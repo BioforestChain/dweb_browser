@@ -81,9 +81,7 @@ class IpcRequest(
         )
 
         fun fromRequest(
-            req_id: Int,
-            request: Request,
-            ipc: Ipc
+            req_id: Int, request: Request, ipc: Ipc
         ) = IpcRequest(
             req_id,
             request.uri.toString(),

@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 
@@ -55,27 +57,25 @@ class WebViewEvaluator(
     /**
      * 执行同步JS代码
      */
-    suspend fun evaluateSyncJavascriptCode(script: String) =
-        withContext(Dispatchers.Main) {
-            val po = PromiseOut<String>()
-            webView.evaluateJavascript(script) {
-                po.resolve(it)
-            }
-            po.waitPromise()
+    suspend fun evaluateSyncJavascriptCode(script: String) = withContext(Dispatchers.Main) {
+        val po = PromiseOut<String>()
+        webView.evaluateJavascript(script) {
+            po.resolve(it)
         }
+        po.waitPromise()
+    }
 
     /**
      * 执行异步JS代码，需要传入一个表达式
      */
     suspend fun evaluateAsyncJavascriptCode(
-        script: String,
-        afterEval: suspend () -> Unit = {}
+        script: String, afterEval: suspend () -> Unit = {}
     ): String {
 
         val channel: AsyncChannel = Channel()
         val id = idAcc++
         channelMap[id] = channel
-        GlobalScope.launch(Dispatchers.Main) {
+        GlobalScope.launch(Dispatchers.Main + commonAsyncExceptionHandler) {
             webView.evaluateJavascript(
                 """
             void (async()=>{return ($script)})()
@@ -83,9 +83,9 @@ class WebViewEvaluator(
                 .catch(err=>$JS_ASYNC_KIT.reject($id,String(err)));
             """.trimMargin()
             ) {
-                runBlocking {
+                runBlockingCatching {
                     afterEval()
-                }
+                }.getOrNull()
             };
 
         }

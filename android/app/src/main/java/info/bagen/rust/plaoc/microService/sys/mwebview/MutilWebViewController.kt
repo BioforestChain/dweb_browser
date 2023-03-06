@@ -6,9 +6,9 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 
 class MutilWebViewController(val mmid: Mmid) {
 
@@ -19,9 +19,7 @@ class MutilWebViewController(val mmid: Mmid) {
     val webViewList = mutableStateListOf<ViewItem>()
 
     data class ViewItem(
-        val webviewId: String,
-        val dWebView: DWebView,
-        var hidden: Boolean = false
+        val webviewId: String, val dWebView: DWebView, var hidden: Boolean = false
     )
 
     private var activityTask = PromiseOut<MutilWebViewActivity>()
@@ -50,17 +48,13 @@ class MutilWebViewController(val mmid: Mmid) {
     @Synchronized
     fun openWebView(module: MicroModule, url: String): ViewItem {
         val webviewId = "#w${webviewId_acc++}"
-        val dWebView = runBlocking(Dispatchers.Main) {
+        val dWebView = runBlockingCatching(Dispatchers.Main) {
             val dWebView = DWebView(
-                App.appContext,
-                module,
-                DWebView.Options(url = url),
-                activity
+                App.appContext, module, DWebView.Options(url = url), activity
             )
             dWebView.onOpen { message ->
                 val dWebViewChild = openWebView(
-                    module,
-                    ""
+                    module, ""
                 ).dWebView
                 val transport = message.obj;
                 if (transport is WebView.WebViewTransport) {
@@ -73,7 +67,7 @@ class MutilWebViewController(val mmid: Mmid) {
             }
 
             dWebView
-        }
+        }.getOrThrow()
         return ViewItem(webviewId, dWebView).also {
             webViewList.add(it)
         }

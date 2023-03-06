@@ -109,6 +109,7 @@ class ReadableStreamIpc(
             else -> when (data) {
                 is IpcRequest -> gson.toJson(data.ipcReqMessage).asUtf8()
                 is IpcResponse -> gson.toJson(data.ipcResMessage).asUtf8()
+                is IpcStreamData -> gson.toJson(data).asUtf8()
                 else -> gson.toJson(data).asUtf8()
             }
         }

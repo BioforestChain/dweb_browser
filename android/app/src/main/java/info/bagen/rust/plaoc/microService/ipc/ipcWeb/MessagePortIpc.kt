@@ -57,6 +57,7 @@ open class MessagePortIpc(
         val message = when (data) {
             is IpcRequest -> gson.toJson(data.ipcReqMessage)
             is IpcResponse -> gson.toJson(data.ipcResMessage)
+            is IpcStreamData -> gson.toJson(data)
             else -> gson.toJson(data)
         }
         this.port.postMessage(WebMessage(message))

@@ -179,13 +179,8 @@ export class IpcBodySender extends IpcBody {
             this.isStreamOpened = true;
 
             const data = await reader.readBinary(availableLen);
-            let binary_message: undefined | IpcStreamData;
-            let base64_message: undefined | IpcStreamData;
+            const message = IpcStreamData.asBinary(stream_id, data);
             for (const ipc of this.usedIpcMap.keys()) {
-              const message = ipc.support_binary
-                ? (binary_message ??= IpcStreamData.asBinary(stream_id, data))
-                : (base64_message ??= IpcStreamData.asBase64(stream_id, data));
-
               ipc.postMessage(message);
             }
           }
@@ -203,7 +198,16 @@ export class IpcBodySender extends IpcBody {
       this.emitStreamClose();
     });
 
-    return new MetaBody(IPC_META_BODY_TYPE.STREAM_ID, ipc.uid, "", stream_id);
+    let streamType = IPC_META_BODY_TYPE.STREAM_ID;
+    let streamFirstData: string | Uint8Array = "";
+    if (
+      "preReadableSize" in stream &&
+      typeof stream.preReadableSize === "number"
+    ) {
+      // js的不支持输出预读取帧
+    }
+
+    return new MetaBody(streamType, ipc.uid, streamFirstData, stream_id);
   }
 
   /**
@@ -211,7 +215,7 @@ export class IpcBodySender extends IpcBody {
    */
   static $usableByIpc = (ipc: Ipc, ipcBody: IpcBodySender) => {
     if (ipcBody.isStream && !ipcBody._isStreamOpened) {
-      const streamId = ipcBody.metaBody.streamId!
+      const streamId = ipcBody.metaBody.streamId!;
       let usableIpcBodyMapper = IpcUsableIpcBodyMap.get(ipc);
       if (usableIpcBodyMapper === undefined) {
         const mapper = new UsableIpcBodyMapper();
@@ -282,3 +286,14 @@ class UsableIpcBodyMapper {
 }
 
 const IpcUsableIpcBodyMap = new WeakMap<Ipc, UsableIpcBodyMapper>();
+
+/**
+ * 可预读取的流
+ */
+interface PreReadableInputStream {
+  /**
+   * 对标 InputStream.available 函数
+   * 返回可预读的数据
+   */
+  preReadableSize: number;
+}

@@ -1,3 +1,4 @@
+import { cacheGetter } from "../../helper/cacheGetter.cjs";
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.cjs";
 import { IpcMessage, IPC_DATA_ENCODING, IPC_MESSAGE_TYPE } from "./const.cjs";
 
@@ -39,5 +40,18 @@ export class IpcStreamData extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_DATA> {
         return simpleEncoder(this.data as string, "utf8");
       }
     }
+  }
+
+  @cacheGetter()
+  get jsonAble(): IpcStreamData {
+    if (this.encoding === IPC_DATA_ENCODING.BINARY) {
+      return IpcStreamData.asBase64(this.stream_id, this.data as Uint8Array);
+    }
+    return this;
+  }
+  toJSON() {
+    const res = Object.fromEntries(Object.entries(this.jsonAble));
+    console.log(res);
+    return res;
   }
 }

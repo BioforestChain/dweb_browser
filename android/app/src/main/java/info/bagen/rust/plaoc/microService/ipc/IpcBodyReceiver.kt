@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
 import info.bagen.rust.plaoc.microService.helper.asBase64
+import info.bagen.rust.plaoc.microService.helper.asUtf8
 import info.bagen.rust.plaoc.microService.helper.debugger
 import java.io.InputStream
 
@@ -63,6 +64,15 @@ class IpcBodyReceiver(
             /// metaToStream
             val stream_id = metaBody.streamId!!;
             val stream = ReadableStream(cid = "receiver-${stream_id}", onStart = { controller ->
+
+                /// 如果有初始帧，直接存起来
+                when (metaBody.type.encoding) {
+                    IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).asUtf8()
+                    IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
+                    IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).asBase64()
+                    else -> null
+                }?.let { firstData -> controller.enqueue(firstData) }
+
                 ipc.onMessage { (message) ->
                     if (message is IpcStreamData && message.stream_id == stream_id) {
                         debugIpcBody(
@@ -87,6 +97,7 @@ class IpcBodyReceiver(
                 )
                 ipc.postMessage(IpcStreamPull(stream_id, 1))
             });
+
             debugIpcBody("receiver/$ipc/$stream", "start by stream-id:${stream_id}")
 
             return stream

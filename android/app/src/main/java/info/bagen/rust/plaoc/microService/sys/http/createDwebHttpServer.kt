@@ -7,7 +7,6 @@ import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
@@ -72,14 +71,14 @@ class HttpDwebServer(
             Gateway.RouteConfig(pathname = "", method = IpcMethod.PUT),
             Gateway.RouteConfig(pathname = "", method = IpcMethod.DELETE)
         ),
-    ) = runBlocking {
+    ) = runBlockingCatching {
         val po = PromiseOut<ReadableStreamIpc>()
         GlobalScope.launch {
             val streamIpc = nmm.listenHttpDwebServer(startResult, routes)
             po.resolve(streamIpc)
         }
         po.waitPromise()
-    }
+    }.getOrThrow()
 
 
     val close = suspendOnce { nmm.closeHttpDwebServer(options) }

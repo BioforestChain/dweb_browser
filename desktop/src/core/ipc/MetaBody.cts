@@ -1,3 +1,4 @@
+import { cacheGetter } from "../../helper/cacheGetter.cjs";
 import { simpleDecoder } from "../../helper/encoding.cjs";
 import type { $JSON } from "../ipc-web/$messageToIpcMessage.cjs";
 import { IPC_DATA_ENCODING } from "./const.cjs";
@@ -83,7 +84,7 @@ export class MetaBody {
       receiverUid
     );
   }
-
+  @cacheGetter()
   get type_encoding() {
     const encoding = this.type & 0b11111110;
     switch (encoding) {
@@ -95,11 +96,30 @@ export class MetaBody {
         return IPC_DATA_ENCODING.BINARY;
     }
   }
+  @cacheGetter()
   get type_isInline() {
     return (this.type & IPC_META_BODY_TYPE.INLINE) !== 0;
   }
+  @cacheGetter()
   get type_isStream() {
     return (this.type & IPC_META_BODY_TYPE.INLINE) === 0;
+  }
+  @cacheGetter()
+  get jsonAble(): MetaBody {
+    if (this.type_encoding === IPC_DATA_ENCODING.BINARY) {
+      return MetaBody.fromBase64(
+        this.senderUid,
+        simpleDecoder(this.data as Uint8Array, "base64"),
+        this.streamId,
+        this.receiverUid
+      );
+    }
+    return this;
+  }
+  toJSON() {
+    const res = Object.fromEntries(Object.entries(this.jsonAble));
+    console.log(res);
+    return res;
   }
 }
 export const enum IPC_META_BODY_TYPE {

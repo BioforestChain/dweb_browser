@@ -1,6 +1,5 @@
 import once from "lodash/once";
 import { $Binary, binaryToU8a } from "../../helper/binaryHelper.cjs";
-import type { $JSON } from "../ipc-web/$messageToIpcMessage.cjs";
 import { IpcMessage, IPC_MESSAGE_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import type { IpcBody } from "./IpcBody.cjs";
@@ -158,10 +157,8 @@ export class IpcResMessage extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     readonly req_id: number,
     readonly statusCode: number,
     readonly headers: Record<string, string>,
-    readonly metaBody: MetaBody | $JSON<MetaBody>
+    readonly metaBody: MetaBody
   ) {
     super(IPC_MESSAGE_TYPE.RESPONSE);
-    // this.metaBody = MetaBody.fromJSON(metaBody);
   }
-  // readonly metaBody: MetaBody;
 }

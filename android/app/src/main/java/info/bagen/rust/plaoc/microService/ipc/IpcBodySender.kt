@@ -1,13 +1,9 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.helper.SimpleCallback
-import info.bagen.rust.plaoc.microService.helper.SimpleSignal
-import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
-import info.bagen.rust.plaoc.microService.helper.readByteArray
+import info.bagen.rust.plaoc.microService.helper.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -94,20 +90,20 @@ class IpcBodySender(
         set(value) {
             if (field != value) {
                 field = value
-                runBlocking {
+                runBlockingCatching {
                     openSignal.emit(Unit)
                     openSignal.clear()
-                }
+                }.getOrThrow()
             }
         }
     private var _isStreamClosed = false
         set(value) {
             if (field != value) {
                 field = value
-                runBlocking {
+                runBlockingCatching {
                     closeSignal.emit(Unit)
                     closeSignal.clear()
-                }
+                }.getOrThrow()
             }
         }
 
@@ -276,17 +272,10 @@ class IpcBodySender(
                     debugIpcBody(
                         "sender/READ/$stream", "$availableLen >> $stream_id"
                     )
-                    val binary = stream.readByteArray(availableLen)
-                    val binary_mesage by lazy {
-                        IpcStreamData.asBinary(stream_id, binary)
-                    }
-                    val base64_mesage by lazy {
-                        IpcStreamData.asBase64(stream_id, binary)
-                    }
+                    val message =
+                        IpcStreamData.asBinary(stream_id, stream.readByteArray(availableLen))
                     for (ipc in usedIpcMap.keys) {
-                        ipc.postMessage(
-                            if (ipc.supportBinary) binary_mesage else base64_mesage
-                        )
+                        ipc.postMessage(message)
                     }
                 }
             }
@@ -303,13 +292,31 @@ class IpcBodySender(
             stream.close()
             emitStreamClose()
         }
+
+        var streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_ID
+        var streamFirstData: Any = ""
+        if (stream is PreReadableInputStream) {
+            streamFirstData = stream.readByteArray(stream.preReadableSize)
+            streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_WITH_BINARY
+        }
+
         return MetaBody(
-            type = MetaBody.IPC_META_BODY_TYPE.STREAM_ID,
+            type = streamType,
             senderUid = ipc.uid,
-            data = "",
+            data = streamFirstData,
             streamId = stream_id
         )
     }
+}
 
 
+/**
+ * 可预读取的流
+ */
+interface PreReadableInputStream {
+    /**
+     * 对标 InputStream.available 函数
+     * 返回可预读的数据
+     */
+    val preReadableSize: Int
 }

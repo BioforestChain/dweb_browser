@@ -5,6 +5,7 @@ import info.bagen.rust.plaoc.microService.helper.SimpleSignal
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
+import io.ktor.util.collections.*
 import org.http4k.core.Request
 import org.http4k.core.Response
 
@@ -16,7 +17,7 @@ class Gateway(
         val ipc: Ipc,
         val host: String
     ) {
-        private val _routerSet = mutableSetOf<StreamIpcRouter>();
+        private val _routerSet = ConcurrentSet<StreamIpcRouter>();
 
         fun addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc): (Unit) -> Boolean {
             val route = StreamIpcRouter(config, streamIpc);

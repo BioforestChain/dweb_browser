@@ -27,6 +27,15 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __decorateClass = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result)
+    __defProp(target, key, result);
+  return result;
+};
 var __accessCheck = (obj, member, msg) => {
   if (!member.has(obj))
     throw TypeError("Cannot " + msg);
@@ -2269,8 +2278,32 @@ var IpcStreamAbort = class extends IpcMessage {
   }
 };
 
+// src/helper/cacheGetter.cts
+var cacheGetter = () => {
+  return (target, prop, desp) => {
+    const source_fun = desp.get;
+    if (source_fun === void 0) {
+      throw new Error(`${target}.${prop} should has getter`);
+    }
+    desp.get = function() {
+      const result = source_fun.call(this);
+      if (desp.set) {
+        desp.get = () => result;
+      } else {
+        delete desp.set;
+        delete desp.get;
+        desp.value = result;
+        desp.writable = false;
+      }
+      Object.defineProperty(this, prop, desp);
+      return result;
+    };
+    return desp;
+  };
+};
+
 // src/core/ipc/IpcStreamData.cts
-var IpcStreamData = class extends IpcMessage {
+var _IpcStreamData = class extends IpcMessage {
   constructor(stream_id, data, encoding) {
     super(2 /* STREAM_DATA */);
     this.stream_id = stream_id;
@@ -2278,17 +2311,17 @@ var IpcStreamData = class extends IpcMessage {
     this.encoding = encoding;
   }
   static asBase64(stream_id, data) {
-    return new IpcStreamData(
+    return new _IpcStreamData(
       stream_id,
       simpleDecoder(data, "base64"),
       4 /* BASE64 */
     );
   }
   static asBinary(stream_id, data) {
-    return new IpcStreamData(stream_id, data, 8 /* BINARY */);
+    return new _IpcStreamData(stream_id, data, 8 /* BINARY */);
   }
   static asUtf8(stream_id, data) {
-    return new IpcStreamData(
+    return new _IpcStreamData(
       stream_id,
       simpleDecoder(data, "utf8"),
       2 /* UTF8 */
@@ -2307,7 +2340,22 @@ var IpcStreamData = class extends IpcMessage {
       }
     }
   }
+  get jsonAble() {
+    if (this.encoding === 8 /* BINARY */) {
+      return _IpcStreamData.asBase64(this.stream_id, this.data);
+    }
+    return this;
+  }
+  toJSON() {
+    const res = Object.fromEntries(Object.entries(this.jsonAble));
+    console.log(res);
+    return res;
+  }
 };
+var IpcStreamData = _IpcStreamData;
+__decorateClass([
+  cacheGetter()
+], IpcStreamData.prototype, "jsonAble", 1);
 
 // src/core/ipc/IpcStreamEnd.cts
 var IpcStreamEnd = class extends IpcMessage {
@@ -2334,7 +2382,7 @@ var IpcStreamPull = class extends IpcMessage {
 };
 
 // src/core/ipc/MetaBody.cts
-var MetaBody = class {
+var _MetaBody = class {
   constructor(type, senderUid, data, streamId, receiverUid) {
     this.type = type;
     this.senderUid = senderUid;
@@ -2343,8 +2391,8 @@ var MetaBody = class {
     this.receiverUid = receiverUid;
   }
   static fromJSON(metaBody) {
-    if (metaBody instanceof MetaBody === false) {
-      metaBody = new MetaBody(
+    if (metaBody instanceof _MetaBody === false) {
+      metaBody = new _MetaBody(
         metaBody.type,
         metaBody.senderUid,
         metaBody.data,
@@ -2355,7 +2403,7 @@ var MetaBody = class {
     return metaBody;
   }
   static fromText(senderUid, data, streamId, receiverUid) {
-    return new MetaBody(
+    return new _MetaBody(
       streamId == null ? IPC_META_BODY_TYPE.INLINE_TEXT : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
       senderUid,
       data,
@@ -2364,7 +2412,7 @@ var MetaBody = class {
     );
   }
   static fromBase64(senderUid, data, streamId, receiverUid) {
-    return new MetaBody(
+    return new _MetaBody(
       streamId == null ? IPC_META_BODY_TYPE.INLINE_BASE64 : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
       senderUid,
       data,
@@ -2374,7 +2422,7 @@ var MetaBody = class {
   }
   static fromBinary(sender, data, streamId, receiverUid) {
     if (typeof sender === "number") {
-      return new MetaBody(
+      return new _MetaBody(
         streamId == null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
         sender,
         data,
@@ -2409,7 +2457,36 @@ var MetaBody = class {
   get type_isStream() {
     return (this.type & IPC_META_BODY_TYPE.INLINE) === 0;
   }
+  get jsonAble() {
+    if (this.type_encoding === 8 /* BINARY */) {
+      return _MetaBody.fromBase64(
+        this.senderUid,
+        simpleDecoder(this.data, "base64"),
+        this.streamId,
+        this.receiverUid
+      );
+    }
+    return this;
+  }
+  toJSON() {
+    const res = Object.fromEntries(Object.entries(this.jsonAble));
+    console.log(res);
+    return res;
+  }
 };
+var MetaBody = _MetaBody;
+__decorateClass([
+  cacheGetter()
+], MetaBody.prototype, "type_encoding", 1);
+__decorateClass([
+  cacheGetter()
+], MetaBody.prototype, "type_isInline", 1);
+__decorateClass([
+  cacheGetter()
+], MetaBody.prototype, "type_isStream", 1);
+__decorateClass([
+  cacheGetter()
+], MetaBody.prototype, "jsonAble", 1);
 var IPC_META_BODY_TYPE = ((IPC_META_BODY_TYPE2) => {
   IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["STREAM_ID"] = 0] = "STREAM_ID";
   IPC_META_BODY_TYPE2[IPC_META_BODY_TYPE2["INLINE"] = 1] = "INLINE";
@@ -2570,10 +2647,8 @@ var _IpcBodySender = class extends IpcBody {
           default: {
             this.isStreamOpened = true;
             const data = await reader.readBinary(availableLen);
-            let binary_message;
-            let base64_message;
+            const message = IpcStreamData.asBinary(stream_id, data);
             for (const ipc2 of this.usedIpcMap.keys()) {
-              const message = ipc2.support_binary ? binary_message ??= IpcStreamData.asBinary(stream_id, data) : base64_message ??= IpcStreamData.asBase64(stream_id, data);
               ipc2.postMessage(message);
             }
           }
@@ -2588,7 +2663,11 @@ var _IpcBodySender = class extends IpcBody {
       reader.return();
       this.emitStreamClose();
     });
-    return new MetaBody(0 /* STREAM_ID */, ipc.uid, "", stream_id);
+    let streamType = 0 /* STREAM_ID */;
+    let streamFirstData = "";
+    if ("preReadableSize" in stream && typeof stream.preReadableSize === "number") {
+    }
+    return new MetaBody(streamType, ipc.uid, streamFirstData, stream_id);
   }
 };
 var IpcBodySender = _IpcBodySender;
@@ -2781,7 +2860,6 @@ var IpcReqMessage = class extends IpcMessage {
     this.headers = headers;
     this.metaBody = metaBody;
   }
-  // readonly metaBody: MetaBody;
 };
 
 // src/core/ipc/ipc.cts
@@ -3020,7 +3098,6 @@ var IpcResMessage = class extends IpcMessage {
     this.headers = headers;
     this.metaBody = metaBody;
   }
-  // readonly metaBody: MetaBody;
 };
 
 // src/core/ipc/IpcBodyReceiver.cts
@@ -3065,14 +3142,29 @@ var _IpcBodyReceiver = class extends IpcBody {
 };
 var IpcBodyReceiver = _IpcBodyReceiver;
 IpcBodyReceiver.metaIdIpcMap = /* @__PURE__ */ new Map();
-var $metaToStream = (rawBody, ipc) => {
+var $metaToStream = (metaBody, ipc) => {
   if (ipc == null) {
     throw new Error(`miss ipc when ipc-response has stream-body`);
   }
   const stream_ipc = ipc;
-  const stream_id = rawBody.streamId;
+  const stream_id = metaBody.streamId;
   const stream = new ReadableStream({
     start(controller) {
+      let firstData;
+      switch (metaBody.type_encoding) {
+        case 2 /* UTF8 */:
+          firstData = simpleEncoder(metaBody.data, "utf8");
+          break;
+        case 4 /* BASE64 */:
+          firstData = simpleEncoder(metaBody.data, "base64");
+          break;
+        case 8 /* BINARY */:
+          firstData = metaBody.data;
+          break;
+      }
+      if (firstData) {
+        controller.enqueue(firstData);
+      }
       const off = ipc.onMessage((message) => {
         if ("stream_id" in message && message.stream_id === stream_id) {
           if (message.type === 2 /* STREAM_DATA */) {

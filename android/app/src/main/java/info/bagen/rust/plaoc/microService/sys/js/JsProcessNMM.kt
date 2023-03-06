@@ -6,6 +6,7 @@ import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.encodeURI
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
@@ -16,7 +17,6 @@ import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.http4k.core.*
 import org.http4k.lens.Query
@@ -33,9 +33,9 @@ inline fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
 class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
     private val JS_PROCESS_WORKER_CODE by lazy {
-        runBlocking {
+        runBlockingCatching {
             nativeFetch("file:///bundle/js-process.worker.js").text()
-        }
+        }.getOrThrow()
     }
 
     private val CORS_HEADERS = mapOf(

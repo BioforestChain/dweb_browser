@@ -24,10 +24,10 @@ import info.bagen.libappmgr.utils.KEY_APP_FIRST_LOAD
 import info.bagen.libappmgr.utils.getBoolean
 import info.bagen.libappmgr.utils.saveBoolean
 import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.webView.openDWebWindow
-import kotlinx.coroutines.runBlocking
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,9 +58,9 @@ class SplashActivity : AppCompatActivity() {
 
 private fun openHomeActivity(): Boolean {
 
-    runBlocking(commonAsyncExceptionHandler) {
+    runBlockingCatching(commonAsyncExceptionHandler) {
         startDwebBrowser()
-    }
+    }.getOrNull()
 
     return true
 }

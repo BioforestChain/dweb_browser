@@ -52,7 +52,7 @@ class ReadableStream(
      * 10kb 的垃圾起，开始回收
      */
     private fun _gc() {
-        runBlocking(writeDataScope.coroutineContext) {
+        runBlockingCatching(writeDataScope.coroutineContext) {
             _dataLock.withLock {
                 if (ptr >= 10240 || isClosed) {
                     debugStream("GC/$uid", "-${ptr} ~> ${_data.size - ptr}")
@@ -60,7 +60,7 @@ class ReadableStream(
                     ptr = 0
                 }
             }
-        }
+        }.getOrNull()
     }
 
 
@@ -74,9 +74,9 @@ class ReadableStream(
         CoroutineScope(CoroutineName("readableStream/readData") + ioAsyncExceptionHandler)
 
     init {
-        runBlocking {
+        runBlockingCatching {
             onStart(controller)
-        }
+        }.getOrThrow()
         writeDataScope.launch {
             // 一直等待数据
             for (chunk in dataChannel) {
@@ -116,7 +116,7 @@ class ReadableStream(
             return _data
         }
 
-        runBlocking {
+        runBlockingCatching {
             readDataScope.async {
                 val wait = PromiseOut<Unit>()
                 val counterJob = launch {
@@ -148,7 +148,7 @@ class ReadableStream(
                 counterJob.cancel()
                 debugStream("REQUEST-DATA/DONE/$uid", _data.size)
             }.join()
-        }
+        }.getOrNull()
 
         return _data
     }

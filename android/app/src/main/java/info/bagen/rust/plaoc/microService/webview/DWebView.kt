@@ -13,7 +13,6 @@ import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
@@ -125,8 +124,7 @@ class DWebView(
     init {
 
         layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
         )
         setUA()
         hookWindowClose()
@@ -150,12 +148,13 @@ class DWebView(
             ): WebResourceResponse? {
                 if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
                     /// http://*.dweb 由 MicroModule 来处理请求
-                    val response = runBlocking {
+                    val response = runBlockingCatching {
                         mm.nativeFetch(
-                            Request(Method.GET, request.url.toString())
-                                .headers(request.requestHeaders.toList())
+                            Request(
+                                Method.GET, request.url.toString()
+                            ).headers(request.requestHeaders.toList())
                         )
-                    }
+                    }.getOrThrow()
                     val headersMap = response.headers.toMap().toMutableMap()
                     return WebResourceResponse(
                         null,
@@ -173,10 +172,7 @@ class DWebView(
         settings.setSupportMultipleWindows(true)
         webChromeClient = object : WebChromeClient() {
             override fun onCreateWindow(
-                view: WebView,
-                isDialog: Boolean,
-                isUserGesture: Boolean,
-                resultMsg: Message
+                view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
             ): Boolean {
                 println("open $isDialog $isUserGesture ${resultMsg?.data} ${resultMsg?.obj}")
                 GlobalScope.launch {
@@ -247,6 +243,6 @@ class DWebView(
         evaluator.evaluateAsyncJavascriptCode(script, afterEval)
 
     override fun destroy() {
-        runBlocking(Dispatchers.Main) { super.destroy() }
+        runBlockingCatching(Dispatchers.Main) { super.destroy() }.getOrNull()
     }
 }

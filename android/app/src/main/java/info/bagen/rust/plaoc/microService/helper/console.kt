@@ -1,10 +1,13 @@
 package info.bagen.rust.plaoc.microService.helper
 
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.GlobalScope.coroutineContext
+import kotlinx.coroutines.runBlocking
 import java.time.Duration
 import java.time.LocalDateTime
+import kotlin.coroutines.CoroutineContext
 
 inline fun now() = LocalDateTime.now().toString().padEnd(26, '0').slice(0..25)
 
@@ -26,6 +29,22 @@ val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
     debugger(ctx, e)
 }
 val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
+fun <T> runBlockingCatching(
+    context: CoroutineContext, block: suspend CoroutineScope.() -> T
+) = kotlin.runCatching {
+    runBlocking(context, block)
+}.onFailure {
+    commonAsyncExceptionHandler.handleException(context, it)
+}
+
+fun <T> runBlockingCatching(
+    block: suspend CoroutineScope.() -> T
+) = kotlin.runCatching {
+    runBlocking { block() }
+}.onFailure {
+    commonAsyncExceptionHandler.handleException(coroutineContext, it)
+}
+
 
 private val times = mutableMapOf<String, LocalDateTime>()
 fun timeStart(label: String) {

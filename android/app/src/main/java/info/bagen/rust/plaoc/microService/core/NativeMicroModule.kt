@@ -4,7 +4,6 @@ import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.http4k.core.*
 import org.http4k.filter.ServerFilters
 import org.http4k.lens.RequestContextKey
@@ -82,23 +81,21 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
     }
 
     protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
-        runBlocking {
-            runCatching {
-                when (val result = handler(request)) {
-                    is Response -> result
-                    else -> Response(Status.OK).body(gson.toJson(result))
-                        .header("Content-Type", "application/json")
-                }
-            }.getOrElse { ex ->
-                printdebugln("fetch", "NMM/Error", request.uri, ex)
-                Response(Status.INTERNAL_SERVER_ERROR).body(
-                    """
+        runBlockingCatching {
+            when (val result = handler(request)) {
+                is Response -> result
+                else -> Response(Status.OK).body(gson.toJson(result))
+                    .header("Content-Type", "application/json")
+            }
+        }.getOrElse { ex ->
+            printdebugln("fetch", "NMM/Error", request.uri, ex)
+            Response(Status.INTERNAL_SERVER_ERROR).body(
+                """
                     <p>${request.uri}</p>
                     <pre>${ex.message ?: "Unknown Error"}</pre>    
                     """.trimIndent()
 
-                )
-            }
+            )
         }
 
     }

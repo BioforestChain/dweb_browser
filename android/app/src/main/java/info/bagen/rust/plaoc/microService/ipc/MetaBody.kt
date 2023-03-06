@@ -4,8 +4,9 @@ import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import info.bagen.rust.plaoc.microService.helper.toBase64
 import java.lang.reflect.Type
+import java.util.*
 
-
+@JsonAdapter(MetaBody::class)
 data class MetaBody(
     /**
      * 类型信息，包含了 编码信息 与 形态信息
@@ -17,7 +18,7 @@ data class MetaBody(
     val data: Any,
     val streamId: String? = null,
     var receiverUid: Int? = null,
-) {
+) : JsonSerializer<MetaBody> {
 
     @JsonAdapter(IPC_META_BODY_TYPE::class)
     enum class IPC_META_BODY_TYPE(val type: Int) : JsonSerializer<IPC_META_BODY_TYPE>,
@@ -116,16 +117,36 @@ data class MetaBody(
             streamId: String? = null,
             receiverUid: Int? = null,
         ) = if (senderIpc.supportBinary) fromBinary(
-            senderIpc.uid,
-            data,
-            streamId,
-            receiverUid
+            senderIpc.uid, data, streamId, receiverUid
         ) else fromBase64(
-            senderIpc.uid,
-            data.toBase64(),
-            streamId,
-            receiverUid
+            senderIpc.uid, data.toBase64(), streamId, receiverUid
         )
+    }
+
+
+    @delegate:Transient
+    val jsonAble by lazy {
+        when (type.encoding) {
+            IPC_DATA_ENCODING.BINARY -> fromBase64(
+                senderUid,
+                (data as ByteArray).toBase64(),
+                streamId,
+                receiverUid
+            )
+            else -> this
+        }
+    }
+
+    override fun serialize(
+        src: MetaBody, typeOfSrc: Type, context: JsonSerializationContext
+    ) = JsonObject().also { jsonObject ->
+        with(src.jsonAble) {
+            jsonObject.add("type", context.serialize(type))
+            jsonObject.add("senderUid", context.serialize(senderUid))
+            jsonObject.add("data", context.serialize(data))
+            jsonObject.add("streamId", context.serialize(streamId))
+            jsonObject.add("receiverUid", context.serialize(receiverUid))
+        }
     }
 }
 

@@ -49,14 +49,32 @@ export class IpcBodyReceiver extends IpcBody {
   }
   protected _bodyHub: BodyHub;
 }
-const $metaToStream = (rawBody: MetaBody, ipc: Ipc) => {
+const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
   if (ipc == null) {
     throw new Error(`miss ipc when ipc-response has stream-body`);
   }
   const stream_ipc = ipc;
-  const stream_id = rawBody.streamId!;
+  const stream_id = metaBody.streamId!;
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
+      /// 如果有初始帧，直接存起来
+      let firstData: undefined | Uint8Array;
+      switch (metaBody.type_encoding) {
+        case IPC_DATA_ENCODING.UTF8:
+          firstData = simpleEncoder(metaBody.data as string, "utf8");
+          break;
+        case IPC_DATA_ENCODING.BASE64:
+          firstData = simpleEncoder(metaBody.data as string, "base64");
+          break;
+        case IPC_DATA_ENCODING.BINARY:
+          firstData = metaBody.data as Uint8Array;
+          break;
+      }
+      if (firstData) {
+        controller.enqueue(firstData);
+      }
+
+      /// 监听事件
       const off = ipc.onMessage((message) => {
         if ("stream_id" in message && message.stream_id === stream_id) {
           if (message.type === IPC_MESSAGE_TYPE.STREAM_DATA) {
