@@ -92,8 +92,8 @@ export enum SupportedFormat {
 }
 
 export enum CameraDirection {
-  FRONT = 'front',
-  BACK = 'back',
+  FRONT = 'user', // 前置摄像头
+  BACK = 'environment', // 后置摄像头
 }
 
 export interface ScanOptions {

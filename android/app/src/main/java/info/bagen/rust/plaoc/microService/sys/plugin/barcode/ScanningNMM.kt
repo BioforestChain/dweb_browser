@@ -39,8 +39,13 @@ class ScanningNMM() : NativeMicroModule("scanning.sys.dweb") {
                 )
                 return@defineHandler process(image)
             },
+            // 停止处理
+            "stop" bind Method.GET to defineHandler { request ->
+                stop()
+                return@defineHandler true
+            }
 
-            )
+        )
     }
 
 
@@ -67,5 +72,8 @@ class ScanningNMM() : NativeMicroModule("scanning.sys.dweb") {
                 task.reject(err)
             }
         return task.waitPromise()
+    }
+    private fun stop() {
+       return BarcodeScanning.getClient().close()
     }
 }
