@@ -9,6 +9,7 @@ import UIKit
 import RxSwift
 import SDWebImage
 import Combine
+import Alamofire
 
 class FirstViewController: UIViewController {
 
@@ -24,6 +25,7 @@ class FirstViewController: UIViewController {
     let dataSizeChangeChannel = PassthroughSubject<Int, Never>()
     let passThroughSubject = PassthroughSubject<String, Error>()
     var subscription: AnyCancellable?
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -161,7 +163,6 @@ class FirstViewController: UIViewController {
 //
 //        semaphore.wait()
         
-        print("3")
         return
         if sender.tag == 2 {
             var config = SplashScreenConfig()
@@ -283,6 +284,7 @@ class FirstViewController: UIViewController {
         })
         print(result)
     }
+    
 
 }
 

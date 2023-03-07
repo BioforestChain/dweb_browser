@@ -19,11 +19,11 @@ class Ipc: NSObject {
        */
     
     
-    var ipc_uid_acc = 0
+    var uid_acc = 0
     var supportMessagePack: Bool = false
     var uid: Int {
-        let tmp = ipc_uid_acc
-        ipc_uid_acc = ipc_uid_acc + 1
+        let tmp = uid_acc
+        uid_acc = uid_acc + 1
         return tmp
     }
     /**
@@ -31,21 +31,34 @@ class Ipc: NSObject {
        * 在网络环境里，protobuf 是更加高效的协议
        */
     var supportProtobuf: Bool = false
-    
-    var support_binary: Bool {
-        return self.supportMessagePack || self.supportProtobuf
-    }
+    /**
+         * 是否支持结构化内存协议传输：
+         * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
+         */
+    var supportRaw: Bool = false
+    var support_binary: Bool  = false
+//    {
+//        return self.supportMessagePack || self.supportProtobuf
+//    }
     var remote: MicroModule?
     var role: IPC_ROLE?
     
-    private var closed: Bool = false
+    private var _closed = false
+    
+    private var closed: Bool {
+        return _closed
+    }
+    
+    private var isClosed: Bool {
+        return _closed
+    }
     
     private var ipcMessage: OnIpcMessage?
     
     private var onIpcrequestMessage: OnIpcrequestMessage?
     
     var messageSignal: Signal<(IpcMessage,Ipc)>?
-    var onMessage: ((@escaping OnIpcMessage) -> GenericsClosure<OnIpcMessage>)!
+    var onMessage: ((@escaping OnIpcMessage) -> OffListener)!
     
     private let closeSignal = SimpleSignal()
     
@@ -67,14 +80,19 @@ class Ipc: NSObject {
     }
     
     func postMessage(message: IpcMessage) {
-        guard !closed else { return }
+        guard !_closed else { return }
         doPostMessage(data: message)
         
     }
     
+    func postResponse(req_id: Int, response: Response) {
+        guard let ipcRes = IpcResponse.fromResponse(req_id: req_id, response: response, ipc: self) else { return }
+        postMessage(message: ipcRes)
+    }
+    
     func doPostMessage(data: IpcMessage) { }
     
-    lazy var getOnRequestListener: ((@escaping OnIpcrequestMessage) -> GenericsClosure<OnIpcrequestMessage>) = {
+    lazy var getOnRequestListener: ((@escaping OnIpcrequestMessage) -> OffListener) = {
         
         let signal = Signal<(IpcRequest, Ipc)>()
         
@@ -82,7 +100,7 @@ class Ipc: NSObject {
             if let request = request as? IpcRequest {
                 signal.emit((request, ipc))
             }
-            return self.messageSignal?.closure
+            return nil
         })
 
         return signal.listen
@@ -97,14 +115,15 @@ class Ipc: NSObject {
     func doClose() { }
     
     func closeAction() {
-        guard !self.closed else { return }
-        self.closed = true
+        guard !self._closed else { return }
+        self._closed = true
         self.doClose()
         self.closeSignal.emit(())
+        self.closeSignal.clear()
     }
     
     func allocReqId() -> Int {
-        let tmp = ipc_uid_acc
+        let tmp = uid_acc
         req_id_acc = req_id_acc + 1
         return tmp
     }
@@ -125,96 +144,29 @@ class Ipc: NSObject {
         return self.request(request: req)
     }
     
-    func request(request: IpcRequest) {
+    func request(request: IpcRequest) -> IpcResponse? {
         self.postMessage(message: request)
-        let result = PassthroughSubject<IpcResponse, MyError>()
+        let result = PromiseOut<IpcResponse>()
         
         _ = self.onMessage({ (message, ipc) in
        
             if let req = message as? IpcResponse, req.req_id == request.req_id {
-                Task {
-                    result.send(req)
-                }
+                result.resolver(req)
             }
-            return ipc.messageSignal?.closure
+            return nil
         })
-        
-        _ = result.sink { complete in
-            
-        } receiveValue: { value in
-            self.messageResponse = value
-        }
+        return result.waitPromise()
     }
     
     func request(request: URLRequest) -> Response? {
         self.request(request: IpcRequest.fromRequest(req_id: allocReqId(), request: request, ipc: self))
         if self.messageResponse != nil {
-            return self.messageResponse?.asResponse()
+            return self.messageResponse?.toResponse()
         }
         return nil
     }
     
-    func responseBy(ipc: Ipc, byIpcRequest: IpcRequest) {
-        
-        guard byIpcRequest.asRequest() != nil else { return }
-        guard let response = ipc.request(request: byIpcRequest.asRequest()!) else { return }
-        guard let resultResponse = IpcResponse.fromResponse(req_id: byIpcRequest.req_id, response: response, ipc: ipc)  else { return }
-        
-        postMessage(message: resultResponse)
-    }
-    /*
-    private func initReqRes() {
-        guard !inited_req_res else { return }
-        self.inited_req_res = true
-        
-        _ = self.onMessage({ (request, ipc) in
-       
-            if let request = request as? IpcResponse {
-                let response_po = self.reqresMap[request.req_id]
-                if response_po != nil {
-                    self.reqresMap.removeValue(forKey: request.req_id)
-                    response_po?.resolver(request)
-                } else {
-                    print("no found response by req_id: \(request.req_id)")
-                }
-            }
-            return self.messageSignal?.closure
-        })
-    }
-    
-    func request(url: String, obj: initObj) -> Promise<IpcResponse>? {
-        let req_id = self.allocReqId()
-        let method = obj.method ?? "GET"
-        let headers = obj.headers ?? IpcHeaders()
-        let ipcRequest: IpcRequest
-        
-        if obj.body is [UInt8] {
-            ipcRequest = IpcRequest.fromBinary(binary: obj.body as! [UInt8], req_id: req_id, method: method, urlString: url, headers: headers, ipc: self)
-        } else if obj.body is InputStream {
-            ipcRequest = IpcRequest.fromStream(stream: obj.body as! InputStream, req_id: req_id, method: method, urlString: url, headers: headers, ipc: self)
-        } else {
-            ipcRequest = IpcRequest.fromText(text: obj.body as? String ?? "", req_id: req_id, method: method, urlString: url, headers: headers)
-        }
-        
-        self.postMessage(message: ipcRequest)
-        return self.registerRedId(red_id: req_id).promise
-    }
-    
-    func registerRedId(red_id: Int?) -> PromiseOut<IpcResponse> {
-        
-        var id = red_id
-        if id == nil {
-            id = self.allocReqId()
-        }
-        
-        let response_po = PromiseOut<IpcResponse>()
-        self.reqresMap[id!] = response_po
-        self.initReqRes()
-        return response_po
-        
-    }*/
-    
-    func onClose(cb: @escaping SimpleCallbcak) -> GenericsClosure<SimpleCallbcak> {
+    func onClose(cb: @escaping SimpleCallbcak) -> OffListener {
         return self.closeSignal.listen(cb)
     }
 }

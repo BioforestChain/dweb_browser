@@ -7,12 +7,13 @@
 
 import UIKit
 import Vapor
+import SwiftSoup
 
 class DnsNMM: NativeMicroModule {
 
     private var mmMap: [String:MicroModule] = [:]
     private var running_apps: [String: MicroModule] = [:]
-    private var apiRouting: [String: Response] = [:]
+    private let dwebServer = HTTPServer()
     
     init() {
         super.init(mmid: "dns.sys.dweb")
@@ -25,7 +26,7 @@ class DnsNMM: NativeMicroModule {
         
         /// 对全局的自定义路由提供适配器
         /** 对等连接列表 */
-        var connects: [MicroModule: [String:Ipc]] = [:]
+        let connects: [MicroModule: [String:Ipc]] = [:]
         /**
          * 对 nativeFetch 定义 file://xxx.dweb的解析
          */
@@ -56,8 +57,28 @@ class DnsNMM: NativeMicroModule {
             return generics
         }
         
-        self.routes(functionName: "/open", method: "GET")
-        self.routes(functionName: "/close", method: "GET")
+        let app = dwebServer.app
+        let group = app.grouped("\(mmid)")
+        
+        group.on(.GET, "open") { request -> Response in
+            let response = self.defineHandler(request: request) { reque in
+                if let app_id = reque.query[String.self, at: "app_id"] {
+                    _ = self.open(mmid: app_id)
+                }
+                return true
+            }
+            return response
+        }
+        
+        group.on(.GET, "close") { request -> Response in
+            let response = self.defineHandler(request: request) { reque in
+                if let app_id = reque.query[String.self, at: "app_id"] {
+                    _ = self.close(mmid: app_id)
+                }
+                return true
+            }
+            return response
+        }
         
         _ = self.open(mmid: "boot.sys.dweb")
     }
@@ -101,41 +122,6 @@ class DnsNMM: NativeMicroModule {
             return 1
         } catch {
             return 0
-        }
-    }
-    
-    private func fetchQueryAppID(request: URLRequest) -> String {
-        
-        guard let url = request.url else { return "" }
-        let paramters = url.urlParameters
-        return paramters?["app_id"] ?? ""
-    }
-    
-    private func routes(functionName: String, method: String) {
-        //TODO urlstring
-        switch (functionName,method) {
-        case ("/open", "GET") :
-            guard let url = URL(string: functionName) else { return }
-            var request = URLRequest(url: url)
-            request.httpMethod = method
-            let response = defineHandler(request: request) { reque in
-                let mmid = self.fetchQueryAppID(request: request)
-                _ = self.open(mmid: mmid)
-                return true
-            }
-            apiRouting["\(functionName)\(method)"] = response
-        case ("/close", "GET") :
-            guard let url = URL(string: functionName) else { return }
-            var request = URLRequest(url: url)
-            request.httpMethod = method
-            let response = defineHandler(request: request) { reque in
-                let mmid = self.fetchQueryAppID(request: request)
-                _ = self.close(mmid: mmid)
-                return true
-            }
-            apiRouting["\(functionName)\(method)"] = response
-        default:
-            break
         }
     }
 }

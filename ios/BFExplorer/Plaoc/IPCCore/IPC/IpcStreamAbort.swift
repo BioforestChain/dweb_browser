@@ -9,7 +9,7 @@ import UIKit
 
 struct IpcStreamAbort {
 
-    let type = IPC_DATA_TYPE.STREAM_ABORT
+    var type: IPC_DATA_TYPE = .STREAM_ABORT
     private(set) var stream_id: String?
     
     init(stream_id: String) {

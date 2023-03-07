@@ -141,4 +141,12 @@ extension String {
         let characterSet = NSMutableCharacterSet.urlQueryAllowed
         return self.addingPercentEncoding(withAllowedCharacters: characterSet) ?? ""
     }
+    
+    func regex(pattern: String) -> String? {
+        let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        let result = regex?.firstMatch(in: self, options: NSRegularExpression.MatchingOptions(rawValue: 0), range: NSRange(location: 0, length: self.count))
+        guard result != nil else { return nil }
+        let resultString = self as NSString
+        return resultString.substring(with: result!.range)
+    }
 }

@@ -11,7 +11,7 @@ import Vapor
 
 class IpcBodyReceiver: IpcBody {
     
-    init(metaBody: MetaBody, ipc: Ipc) {
+    init(metaBody: MetaBody?, ipc: Ipc?) {
         super.init()
         self.metaBody = metaBody
         self.ipc = ipc

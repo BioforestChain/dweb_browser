@@ -9,9 +9,9 @@ import UIKit
 
 class ReadableStreamIpc: Ipc {
 
-    private var controller: ReadableStreamController?
-    private var incomeStream: InputStream?
-    private var stream: ReadableStream!
+    var controller: ReadableStreamController?
+    var incomeStream: InputStream?
+    var stream: ReadableStream!
     
     init(remote: MicroModule, role: IPC_ROLE) {
         super.init()
@@ -28,7 +28,8 @@ class ReadableStreamIpc: Ipc {
         controller?.enqueue(byteArray: data)
     }
     
-    func bindIncomeStream(stream: InputStream, coroutineName: String) {
+    func bindIncomeStream(stream: InputStream?, coroutineName: String) {
+        guard stream != nil else { return }
         guard self.incomeStream == nil else { return }
         guard !supportMessagePack else { return }
         
@@ -48,8 +49,8 @@ class ReadableStreamIpc: Ipc {
                 buffer.deallocate()
             }
             // 如果通道关闭并且没有剩余字节可供读取，则返回 true
-            while stream.hasBytesAvailable {
-                let length = stream.read(buffer, maxLength: bufferSize)
+            while stream!.hasBytesAvailable {
+                let length = stream!.read(buffer, maxLength: bufferSize)
                 if length <= 0 {
                     continue
                 }

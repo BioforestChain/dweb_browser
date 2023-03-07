@@ -204,8 +204,31 @@
 		F383C6C029557B0D00BD4FE5 /* AdapterHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F383C6BF29557B0D00BD4FE5 /* AdapterHandle.swift */; };
 		F384E5DB29B02C4200F9493B /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5DA29B02C4200F9493B /* NetworkManager.swift */; };
 		F384E5DD29B076BC00F9493B /* URL_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5DC29B076BC00F9493B /* URL_extension.swift */; };
+		F384E5E029B0A8FE00F9493B /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5DF29B0A8FE00F9493B /* HTTPServer.swift */; };
+		F384E5E229B0A94A00F9493B /* createDwebHttpServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5E129B0A94A00F9493B /* createDwebHttpServer.swift */; };
+		F384E5E429B0A96300F9493B /* Gateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5E329B0A96300F9493B /* Gateway.swift */; };
+		F384E5E629B0A98C00F9493B /* HttpNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5E529B0A98C00F9493B /* HttpNMM.swift */; };
+		F384E5E829B0A99B00F9493B /* MatchMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5E729B0A99B00F9493B /* MatchMode.swift */; };
+		F384E5EA29B0A9C800F9493B /* JsProcessWebApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5E929B0A9C800F9493B /* JsProcessWebApi.swift */; };
+		F384E5EC29B0A9D700F9493B /* JsProcessNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5EB29B0A9D700F9493B /* JsProcessNMM.swift */; };
+		F384E5EF29B0AA1800F9493B /* JmmNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5EE29B0AA1800F9493B /* JmmNMM.swift */; };
+		F384E5F129B0AA2A00F9493B /* JmmMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5F029B0AA2A00F9493B /* JmmMetadata.swift */; };
+		F384E5F329B0AA6100F9493B /* MultiWebViewNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5F229B0AA6100F9493B /* MultiWebViewNMM.swift */; };
+		F384E5F629B0AAA000F9493B /* BrowserNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5F529B0AAA000F9493B /* BrowserNMM.swift */; };
+		F384E5F829B0AACC00F9493B /* DWebBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5F729B0AACC00F9493B /* DWebBrowser.swift */; };
+		F384E5FA29B0AADA00F9493B /* DWebBrowserViewClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5F929B0AADA00F9493B /* DWebBrowserViewClient.swift */; };
+		F384E5FC29B0AAEF00F9493B /* DWebBrowserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F384E5FB29B0AAEF00F9493B /* DWebBrowserModel.swift */; };
 		F394B8D129A88D6F002B14AA /* IpcNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */; };
 		F394B8D329A891BF002B14AA /* MicroModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F394B8D229A891BF002B14AA /* MicroModule.swift */; };
+		F3950EA729B1D15600D9E338 /* RouteConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EA629B1D15600D9E338 /* RouteConfig.swift */; };
+		F3950EA929B1D1A800D9E338 /* PortListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EA829B1D1A800D9E338 /* PortListener.swift */; };
+		F3950EAB29B1D20900D9E338 /* StreamIpcRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EAA29B1D20900D9E338 /* StreamIpcRouter.swift */; };
+		F3950EAD29B1F80100D9E338 /* ServerUrlInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EAC29B1F80100D9E338 /* ServerUrlInfo.swift */; };
+		F3950EAF29B2EBAD00D9E338 /* BaseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EAE29B2EBAD00D9E338 /* BaseModel.swift */; };
+		F3950EB129B2F16700D9E338 /* ServerStartResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EB029B2F16700D9E338 /* ServerStartResult.swift */; };
+		F3950EB329B31B9500D9E338 /* HttpDwebServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EB229B31B9500D9E338 /* HttpDwebServer.swift */; };
+		F3950EB529B3335B00D9E338 /* MessagePortIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EB429B3335B00D9E338 /* MessagePortIpc.swift */; };
+		F3950EB729B3410E00D9E338 /* IpcReqMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EB629B3410E00D9E338 /* IpcReqMessage.swift */; };
 		F399907A29A9AC64007C5403 /* NativeIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399907929A9AC64007C5403 /* NativeIpc.swift */; };
 		F399907E29A9ACD9007C5403 /* NativePort.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399907D29A9ACD9007C5403 /* NativePort.swift */; };
 		F399908029A9E56F007C5403 /* NativeMessageChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399907F29A9E56F007C5403 /* NativeMessageChannel.swift */; };
@@ -235,6 +258,9 @@
 		F39DE5AD299B92980005B389 /* streamAsRawData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39DE5AC299B92980005B389 /* streamAsRawData.swift */; };
 		F39DE5B2299CDE9D0005B389 /* PromiseOut.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39DE5B1299CDE9D0005B389 /* PromiseOut.swift */; };
 		F39DE5B829A079030005B389 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = F39DE5B729A079030005B389 /* Vapor */; };
+		F3A27FCB29B57DBF00EF4502 /* IpcEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A27FCA29B57DBF00EF4502 /* IpcEvent.swift */; };
+		F3A27FCF29B58D7600EF4502 /* UsableIpcBodyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A27FCE29B58D7600EF4502 /* UsableIpcBodyMapper.swift */; };
+		F3A27FD329B5E32700EF4502 /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A27FD229B5E32700EF4502 /* Tools.swift */; };
 		F3A5A04C29AF2E990017F41D /* BootNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A04B29AF2E990017F41D /* BootNMM.swift */; };
 		F3A5A04F29AF35270017F41D /* RoutesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A04E29AF35270017F41D /* RoutesManager.swift */; };
 		F3A5A05129AF3F7E0017F41D /* NativeFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A05029AF3F7E0017F41D /* NativeFetch.swift */; };
@@ -452,8 +478,31 @@
 		F383C6BF29557B0D00BD4FE5 /* AdapterHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdapterHandle.swift; sourceTree = "<group>"; };
 		F384E5DA29B02C4200F9493B /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		F384E5DC29B076BC00F9493B /* URL_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL_extension.swift; sourceTree = "<group>"; };
+		F384E5DF29B0A8FE00F9493B /* HTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
+		F384E5E129B0A94A00F9493B /* createDwebHttpServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = createDwebHttpServer.swift; sourceTree = "<group>"; };
+		F384E5E329B0A96300F9493B /* Gateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gateway.swift; sourceTree = "<group>"; };
+		F384E5E529B0A98C00F9493B /* HttpNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpNMM.swift; sourceTree = "<group>"; };
+		F384E5E729B0A99B00F9493B /* MatchMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchMode.swift; sourceTree = "<group>"; };
+		F384E5E929B0A9C800F9493B /* JsProcessWebApi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsProcessWebApi.swift; sourceTree = "<group>"; };
+		F384E5EB29B0A9D700F9493B /* JsProcessNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsProcessNMM.swift; sourceTree = "<group>"; };
+		F384E5EE29B0AA1800F9493B /* JmmNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmmNMM.swift; sourceTree = "<group>"; };
+		F384E5F029B0AA2A00F9493B /* JmmMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmmMetadata.swift; sourceTree = "<group>"; };
+		F384E5F229B0AA6100F9493B /* MultiWebViewNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiWebViewNMM.swift; sourceTree = "<group>"; };
+		F384E5F529B0AAA000F9493B /* BrowserNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserNMM.swift; sourceTree = "<group>"; };
+		F384E5F729B0AACC00F9493B /* DWebBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebBrowser.swift; sourceTree = "<group>"; };
+		F384E5F929B0AADA00F9493B /* DWebBrowserViewClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebBrowserViewClient.swift; sourceTree = "<group>"; };
+		F384E5FB29B0AAEF00F9493B /* DWebBrowserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebBrowserModel.swift; sourceTree = "<group>"; };
 		F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcNetworkManager.swift; sourceTree = "<group>"; };
 		F394B8D229A891BF002B14AA /* MicroModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicroModule.swift; sourceTree = "<group>"; };
+		F3950EA629B1D15600D9E338 /* RouteConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteConfig.swift; sourceTree = "<group>"; };
+		F3950EA829B1D1A800D9E338 /* PortListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListener.swift; sourceTree = "<group>"; };
+		F3950EAA29B1D20900D9E338 /* StreamIpcRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamIpcRouter.swift; sourceTree = "<group>"; };
+		F3950EAC29B1F80100D9E338 /* ServerUrlInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerUrlInfo.swift; sourceTree = "<group>"; };
+		F3950EAE29B2EBAD00D9E338 /* BaseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseModel.swift; sourceTree = "<group>"; };
+		F3950EB029B2F16700D9E338 /* ServerStartResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStartResult.swift; sourceTree = "<group>"; };
+		F3950EB229B31B9500D9E338 /* HttpDwebServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpDwebServer.swift; sourceTree = "<group>"; };
+		F3950EB429B3335B00D9E338 /* MessagePortIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagePortIpc.swift; sourceTree = "<group>"; };
+		F3950EB629B3410E00D9E338 /* IpcReqMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcReqMessage.swift; sourceTree = "<group>"; };
 		F399907929A9AC64007C5403 /* NativeIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeIpc.swift; sourceTree = "<group>"; };
 		F399907D29A9ACD9007C5403 /* NativePort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePort.swift; sourceTree = "<group>"; };
 		F399907F29A9E56F007C5403 /* NativeMessageChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeMessageChannel.swift; sourceTree = "<group>"; };
@@ -482,6 +531,9 @@
 		F39DE5AA299B82D90005B389 /* urlHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = urlHelper.swift; sourceTree = "<group>"; };
 		F39DE5AC299B92980005B389 /* streamAsRawData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = streamAsRawData.swift; sourceTree = "<group>"; };
 		F39DE5B1299CDE9D0005B389 /* PromiseOut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromiseOut.swift; sourceTree = "<group>"; };
+		F3A27FCA29B57DBF00EF4502 /* IpcEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcEvent.swift; sourceTree = "<group>"; };
+		F3A27FCE29B58D7600EF4502 /* UsableIpcBodyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsableIpcBodyMapper.swift; sourceTree = "<group>"; };
+		F3A27FD229B5E32700EF4502 /* Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
 		F3A5A04B29AF2E990017F41D /* BootNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootNMM.swift; sourceTree = "<group>"; };
 		F3A5A04E29AF35270017F41D /* RoutesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutesManager.swift; sourceTree = "<group>"; };
 		F3A5A05029AF3F7E0017F41D /* NativeFetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFetch.swift; sourceTree = "<group>"; };
@@ -883,6 +935,7 @@
 				F091CB962951B92100FCE565 /* BottomBarModel.swift */,
 				F091CB972951B92100FCE565 /* ButtonModel.swift */,
 				F091CB982951B92100FCE565 /* PromptConfiguration.swift */,
+				F3950EAE29B2EBAD00D9E338 /* BaseModel.swift */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -939,6 +992,7 @@
 				F091CBC52951B93B00FCE565 /* LeadReplyHandle.swift */,
 				F091CBC62951B93B00FCE565 /* ChangeTools.swift */,
 				F091CBC72951B93B00FCE565 /* LeadScriptHandle.swift */,
+				F3A27FD229B5E32700EF4502 /* Tools.swift */,
 			);
 			path = Tools;
 			sourceTree = "<group>";
@@ -977,12 +1031,40 @@
 			path = backend;
 			sourceTree = "<group>";
 		};
+		F384E5DE29B0A8EA00F9493B /* net */ = {
+			isa = PBXGroup;
+			children = (
+				F384E5DF29B0A8FE00F9493B /* HTTPServer.swift */,
+			);
+			path = net;
+			sourceTree = "<group>";
+		};
+		F384E5ED29B0AA0100F9493B /* jmm */ = {
+			isa = PBXGroup;
+			children = (
+				F399908329AA14B4007C5403 /* JsMicroModule.swift */,
+				F384E5EE29B0AA1800F9493B /* JmmNMM.swift */,
+				F384E5F029B0AA2A00F9493B /* JmmMetadata.swift */,
+			);
+			path = jmm;
+			sourceTree = "<group>";
+		};
+		F384E5F429B0AA8F00F9493B /* browser */ = {
+			isa = PBXGroup;
+			children = (
+				F384E5F529B0AAA000F9493B /* BrowserNMM.swift */,
+				F384E5F729B0AACC00F9493B /* DWebBrowser.swift */,
+				F384E5F929B0AADA00F9493B /* DWebBrowserViewClient.swift */,
+				F384E5FB29B0AAEF00F9493B /* DWebBrowserModel.swift */,
+			);
+			path = browser;
+			sourceTree = "<group>";
+		};
 		F394B8CD29A88B30002B14AA /* core */ = {
 			isa = PBXGroup;
 			children = (
 				F394B8D229A891BF002B14AA /* MicroModule.swift */,
 				F399908129A9FA80007C5403 /* NativeMicroModule.swift */,
-				F399908329AA14B4007C5403 /* JsMicroModule.swift */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -1036,6 +1118,7 @@
 		F39DE589299B76DB0005B389 /* IPCCore */ = {
 			isa = PBXGroup;
 			children = (
+				F384E5F429B0AA8F00F9493B /* browser */,
 				F3B0134629AE09B300F10504 /* sys */,
 				F399907C29A9ACC2007C5403 /* native */,
 				F394B8CD29A88B30002B14AA /* core */,
@@ -1070,6 +1153,7 @@
 				F39DE594299B77110005B389 /* IpcHeaders.swift */,
 				F39DE595299B77110005B389 /* IpcStreamAbort.swift */,
 				F39DE596299B77110005B389 /* IpcRequest.swift */,
+				F3A27FCA29B57DBF00EF4502 /* IpcEvent.swift */,
 				F39DE597299B77110005B389 /* const.swift */,
 				F39DE598299B77110005B389 /* IpcStreamPull.swift */,
 				F39DE599299B77110005B389 /* rawDataToBody.swift */,
@@ -1078,7 +1162,10 @@
 				F39BF37729A61EC800599952 /* ReadableStream.swift */,
 				F3274D8029AC4C84007210D2 /* ReadableStreamIpc.swift */,
 				F3274D8629ACB336007210D2 /* IpcBodySender.swift */,
+				F3A27FCE29B58D7600EF4502 /* UsableIpcBodyMapper.swift */,
 				F3274D8829ACC175007210D2 /* IpcBodyReceiver.swift */,
+				F3950EB429B3335B00D9E338 /* MessagePortIpc.swift */,
+				F3950EB629B3410E00D9E338 /* IpcReqMessage.swift */,
 			);
 			path = IPC;
 			sourceTree = "<group>";
@@ -1095,6 +1182,7 @@
 		F3B0134629AE09B300F10504 /* sys */ = {
 			isa = PBXGroup;
 			children = (
+				F384E5ED29B0AA0100F9493B /* jmm */,
 				F3A5A04D29AF35180017F41D /* routes */,
 				F3B0134C29AE0AEE00F10504 /* mwebview */,
 				F3B0134B29AE0AE600F10504 /* js */,
@@ -1133,6 +1221,17 @@
 		F3B0134A29AE0AE000F10504 /* http */ = {
 			isa = PBXGroup;
 			children = (
+				F384E5DE29B0A8EA00F9493B /* net */,
+				F384E5E129B0A94A00F9493B /* createDwebHttpServer.swift */,
+				F384E5E329B0A96300F9493B /* Gateway.swift */,
+				F384E5E529B0A98C00F9493B /* HttpNMM.swift */,
+				F384E5E729B0A99B00F9493B /* MatchMode.swift */,
+				F3950EA629B1D15600D9E338 /* RouteConfig.swift */,
+				F3950EA829B1D1A800D9E338 /* PortListener.swift */,
+				F3950EAA29B1D20900D9E338 /* StreamIpcRouter.swift */,
+				F3950EAC29B1F80100D9E338 /* ServerUrlInfo.swift */,
+				F3950EB029B2F16700D9E338 /* ServerStartResult.swift */,
+				F3950EB229B31B9500D9E338 /* HttpDwebServer.swift */,
 			);
 			path = http;
 			sourceTree = "<group>";
@@ -1140,6 +1239,8 @@
 		F3B0134B29AE0AE600F10504 /* js */ = {
 			isa = PBXGroup;
 			children = (
+				F384E5E929B0A9C800F9493B /* JsProcessWebApi.swift */,
+				F384E5EB29B0A9D700F9493B /* JsProcessNMM.swift */,
 			);
 			path = js;
 			sourceTree = "<group>";
@@ -1147,6 +1248,7 @@
 		F3B0134C29AE0AEE00F10504 /* mwebview */ = {
 			isa = PBXGroup;
 			children = (
+				F384E5F229B0AA6100F9493B /* MultiWebViewNMM.swift */,
 			);
 			path = mwebview;
 			sourceTree = "<group>";
@@ -1290,20 +1392,26 @@
 				F033021B28C73E1700BC0266 /* UIScreen+PKExtensions.swift in Sources */,
 				F091CBC82951B93B00FCE565 /* WebViewPool.swift in Sources */,
 				F091CBA32951B92700FCE565 /* RefreshManager.swift in Sources */,
+				F384E5E229B0A94A00F9493B /* createDwebHttpServer.swift in Sources */,
 				F3088F3D2987549C008E7F82 /* UserDefaultManager.swift in Sources */,
 				F0292DA12975502700C2E464 /* FWPopupView.swift in Sources */,
 				F0BADEB72986820100B8DCCF /* JSInjectManager.swift in Sources */,
 				F39DE5AB299B82D90005B389 /* urlHelper.swift in Sources */,
 				F39DE5A9299B77110005B389 /* IpcResponse.swift in Sources */,
 				F03301CA28BE0FD400BC0266 /* ButtonWithImageAndTitleExtension.swift in Sources */,
+				F384E5EC29B0A9D700F9493B /* JsProcessNMM.swift in Sources */,
 				F0292DA02975502700C2E464 /* FWPopupRootViewController.swift in Sources */,
 				F0BADEB82986820100B8DCCF /* JSCoreEntities.swift in Sources */,
 				F091CB342951B8EE00FCE565 /* CustomWebView.swift in Sources */,
 				1903641826EB427D00B82B1C /* AppDelegate.swift in Sources */,
 				F091CB8A2951B91900FCE565 /* PathFileManager.swift in Sources */,
 				F0292D7F29754E5700C2E464 /* ScanQRCodeVC.swift in Sources */,
+				F384E5F329B0AA6100F9493B /* MultiWebViewNMM.swift in Sources */,
+				F384E5EA29B0A9C800F9493B /* JsProcessWebApi.swift in Sources */,
 				F091CB1A2951B8E400FCE565 /* CaptureViewController.swift in Sources */,
 				1903646426ED07F600B82B1C /* UIColor+Helpers.swift in Sources */,
+				F3950EB129B2F16700D9E338 /* ServerStartResult.swift in Sources */,
+				F3A27FCB29B57DBF00EF4502 /* IpcEvent.swift in Sources */,
 				19EE04C026FA0D0800C41C1B /* URLValidator.swift in Sources */,
 				F091CB452951B90200FCE565 /* Data_extension.swift in Sources */,
 				19F17A1D26F695B200D4F9DE /* BrowserContainerViewController+Keyboard.swift in Sources */,
@@ -1313,6 +1421,7 @@
 				19128CE126FBFBAB0057E46D /* BrowserContainerViewController+ToolbarAnimation.swift in Sources */,
 				F033020F28C73E1700BC0266 /* UIBarButtonItem+PKExtensions.swift in Sources */,
 				F0292DA22975502700C2E464 /* FWSheetView.swift in Sources */,
+				F3950EAB29B1D20900D9E338 /* StreamIpcRouter.swift in Sources */,
 				F091CB182951B8E400FCE565 /* ScanPhotoViewController.swift in Sources */,
 				F01ABAD728D1745E0038AF9C /* Configuration.swift in Sources */,
 				F0BADEB62986820100B8DCCF /* JSCoreManager.swift in Sources */,
@@ -1330,6 +1439,7 @@
 				F39DE5A4299B77110005B389 /* IpcStreamAbort.swift in Sources */,
 				F091CBBA2951B92D00FCE565 /* NSFileManager+NVHFileSize.m in Sources */,
 				F091CB462951B90200FCE565 /* NotificationName.swift in Sources */,
+				F384E5E629B0A98C00F9493B /* HttpNMM.swift in Sources */,
 				F033021828C73E1700BC0266 /* String+PKExtensions.swift in Sources */,
 				F091CBCD2951B93B00FCE565 /* OperateMonitor.swift in Sources */,
 				F39DE5A2299B77110005B389 /* IpcStreamData.swift in Sources */,
@@ -1356,6 +1466,7 @@
 				F091CB7D2951B91900FCE565 /* CacheManager.swift in Sources */,
 				F39BF37829A61EC800599952 /* ReadableStream.swift in Sources */,
 				F0292DA52975502700C2E464 /* FWPopupItem.swift in Sources */,
+				F3950EA729B1D15600D9E338 /* RouteConfig.swift in Sources */,
 				F33B31E4295A858B000EB302 /* ToastManager.swift in Sources */,
 				F091CB8C2951B91900FCE565 /* PermissionManager.swift in Sources */,
 				F399908029A9E56F007C5403 /* NativeMessageChannel.swift in Sources */,
@@ -1383,13 +1494,16 @@
 				F091CB7F2951B91900FCE565 /* BluetoothManager.swift in Sources */,
 				F091CB992951B92100FCE565 /* ConfirmConfiguration.swift in Sources */,
 				F0292D982975502700C2E464 /* LBXScanView.swift in Sources */,
+				F384E5F829B0AACC00F9493B /* DWebBrowser.swift in Sources */,
 				F091CBBC2951B92D00FCE565 /* NVHTarFile.m in Sources */,
+				F3A27FD329B5E32700EF4502 /* Tools.swift in Sources */,
 				F399907E29A9ACD9007C5403 /* NativePort.swift in Sources */,
 				F0A3C3DA2953FA3B00C78D1A /* WKWebViewJavascriptBridge.swift in Sources */,
 				F033022728C73E1700BC0266 /* Array+PKExtensions.swift in Sources */,
 				F0BADEB52986820100B8DCCF /* DwebviewUIEntites.swift in Sources */,
 				182EF45E28B37D67001E039E /* UIButton+Image.swift in Sources */,
 				F091CB4C2951B90200FCE565 /* UIView_extension.swift in Sources */,
+				F384E5E829B0A99B00F9493B /* MatchMode.swift in Sources */,
 				F091CBB62951B92D00FCE565 /* UIImage+SVG.m in Sources */,
 				F091CBE62952FD1E00FCE565 /* BatchTempManager.swift in Sources */,
 				F39A871D2971312300CC7126 /* ImageSaver.swift in Sources */,
@@ -1424,6 +1538,7 @@
 				F091CBCB2951B93B00FCE565 /* Schemehandler.swift in Sources */,
 				F0292D9B2975502700C2E464 /* LBXScanViewStyle.swift in Sources */,
 				F39DE59F299B77110005B389 /* Ipc.swift in Sources */,
+				F384E5FC29B0AAEF00F9493B /* DWebBrowserModel.swift in Sources */,
 				F39DE5A5299B77110005B389 /* IpcRequest.swift in Sources */,
 				F033021E28C73E1700BC0266 /* UIControl+PKExtensions.swift in Sources */,
 				F091CB192951B8E400FCE565 /* WebViewViewController.swift in Sources */,
@@ -1431,6 +1546,7 @@
 				F091CB1B2951B8E400FCE565 /* SecondViewController.swift in Sources */,
 				F091CB1C2951B8E400FCE565 /* CustomTabbarViewController.swift in Sources */,
 				F033023628C73E1800BC0266 /* UIKit+PKOverride.swift in Sources */,
+				F384E5E429B0A96300F9493B /* Gateway.swift in Sources */,
 				F033023328C73E1800BC0266 /* UIDevice+PKExtensions.swift in Sources */,
 				F0BADEB22986820100B8DCCF /* StatusBarEntites.swift in Sources */,
 				F3A5A04C29AF2E990017F41D /* BootNMM.swift in Sources */,
@@ -1441,19 +1557,24 @@
 				F0A3C3DC2953FA3B00C78D1A /* WKWebViewJavascriptBridgeBase.swift in Sources */,
 				F091CB382951B8EE00FCE565 /* AnimationVIew.swift in Sources */,
 				F0292D9A2975502700C2E464 /* LBXScanLineAnimation.swift in Sources */,
+				F3950EB729B3410E00D9E338 /* IpcReqMessage.swift in Sources */,
 				F383C6C029557B0D00BD4FE5 /* AdapterHandle.swift in Sources */,
 				F033022D28C73E1800BC0266 /* UIImage+PKExtensions.swift in Sources */,
 				F091CB4A2951B90200FCE565 /* UIDevice_extension.swift in Sources */,
 				F091CB862951B91900FCE565 /* DocumentManager.swift in Sources */,
 				F091CBA42951B92700FCE565 /* BFSNetworkManager.swift in Sources */,
 				F091CB842951B91900FCE565 /* BrowserManager.swift in Sources */,
+				F3950EB529B3335B00D9E338 /* MessagePortIpc.swift in Sources */,
 				F0292D972975502700C2E464 /* LBXScanNetAnimation.swift in Sources */,
+				F3950EB329B31B9500D9E338 /* HttpDwebServer.swift in Sources */,
 				F39DE5A7299B77110005B389 /* IpcStreamPull.swift in Sources */,
 				F394B8D129A88D6F002B14AA /* IpcNetworkManager.swift in Sources */,
 				F091CBB72951B92D00FCE565 /* NVHProgress.m in Sources */,
 				F39DE59C299B77110005B389 /* binaryHelper.swift in Sources */,
 				F091CB852951B91900FCE565 /* QueueManager.swift in Sources */,
 				F091CB3B2951B8EE00FCE565 /* NaviView.swift in Sources */,
+				F384E5E029B0A8FE00F9493B /* HTTPServer.swift in Sources */,
+				F384E5EF29B0AA1800F9493B /* JmmNMM.swift in Sources */,
 				F091CB912951B91900FCE565 /* StreamFileManager.swift in Sources */,
 				F033021228C73E1700BC0266 /* Timer+PKExtensions.swift in Sources */,
 				F33A570729598A1E00000037 /* ShareManager.swift in Sources */,
@@ -1467,11 +1588,14 @@
 				F3A5A05329AF3F8F0017F41D /* DnsNMM.swift in Sources */,
 				19EE04C826FA525700C41C1B /* Array+Helpers.swift in Sources */,
 				F091CBCF2951B93B00FCE565 /* LeadReplyHandle.swift in Sources */,
+				F3950EAD29B1F80100D9E338 /* ServerUrlInfo.swift in Sources */,
 				F033020628C73E1700BC0266 /* UIView+PKExtensions.swift in Sources */,
+				F3950EAF29B2EBAD00D9E338 /* BaseModel.swift in Sources */,
 				F0BADEBE2990DA8F00B8DCCF /* AppManager.swift in Sources */,
 				F39DE5A0299B77110005B389 /* IpcBody.swift in Sources */,
 				F091CB552951B90A00FCE565 /* UserAppManager.swift in Sources */,
 				1963484D27088A2F005CB874 /* BrowserTabContentView+StatusBarBackgroundView.swift in Sources */,
+				F384E5FA29B0AADA00F9493B /* DWebBrowserViewClient.swift in Sources */,
 				F091CBA52951B92700FCE565 /* NetworkMap.swift in Sources */,
 				F091CB832951B91900FCE565 /* NotificationManager.swift in Sources */,
 				1903644D26EB945900B82B1C /* BrowserTabViewController.swift in Sources */,
@@ -1482,9 +1606,11 @@
 				F03301CC28BF016200BC0266 /* TouchView.swift in Sources */,
 				196DD6C826EFAC620096A9FB /* BrowserTabContentView.swift in Sources */,
 				F091CBC92951B93B00FCE565 /* GlobalTimer.swift in Sources */,
+				F3950EA929B1D1A800D9E338 /* PortListener.swift in Sources */,
 				F0292D9E2975502700C2E464 /* PhotoHandler.swift in Sources */,
 				F091CB3A2951B8EE00FCE565 /* ProgressAnimationView.swift in Sources */,
 				F091CBCE2951B93B00FCE565 /* XXWebView.swift in Sources */,
+				F384E5F129B0AA2A00F9493B /* JmmMetadata.swift in Sources */,
 				F3A5A04F29AF35270017F41D /* RoutesManager.swift in Sources */,
 				F0292DA42975502700C2E464 /* FWPopupCategory.swift in Sources */,
 				F39DE59D299B77110005B389 /* createSignal.swift in Sources */,
@@ -1497,8 +1623,10 @@
 				F394B8D329A891BF002B14AA /* MicroModule.swift in Sources */,
 				F01ABAC528D020BA0038AF9C /* Date+Famatter.swift in Sources */,
 				F03301D828C730DE00BC0266 /* OverlayController.swift in Sources */,
+				F384E5F629B0AAA000F9493B /* BrowserNMM.swift in Sources */,
 				F399907A29A9AC64007C5403 /* NativeIpc.swift in Sources */,
 				F091CB9C2951B92100FCE565 /* BottomBarModel.swift in Sources */,
+				F3A27FCF29B58D7600EF4502 /* UsableIpcBodyMapper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

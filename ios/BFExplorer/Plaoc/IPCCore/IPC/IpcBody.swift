@@ -13,9 +13,12 @@ class IpcBody {
     var ipc: Ipc?
     var bodyHub: Body?
     var metaBody: MetaBody?
+    var wm: [IpcBody: Any] = [:]  //安卓的类型是 [Any: IpcBody] 但swift不能设置key为any类型
     
-    var body: Any {
-        return bodyHub?.data
+    var raw: Any
+    
+    init() {
+        self.raw = bodyHub?.data
     }
     
     func u8a() -> [UInt8]? {
@@ -59,11 +62,23 @@ class IpcBody {
     }
 }
 
+extension IpcBody: Hashable {
+    
+    static func == (lhs: IpcBody, rhs: IpcBody) -> Bool {
+        return lhs.ipc == rhs.ipc && lhs.bodyHub == rhs.bodyHub && lhs.metaBody == rhs.metaBody
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(ipc)
+    }
+}
 
-struct Body {
+
+class Body: NSObject {
     
     var data: Any?  
     var u8a: [UInt8]?
     var stream: InputStream?
     var text: String?
 }
+

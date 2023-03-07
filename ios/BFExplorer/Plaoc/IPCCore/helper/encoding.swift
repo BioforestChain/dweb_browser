@@ -43,4 +43,17 @@ class encoding: NSObject {
         }
         return nil
     }
+    
+    // TODO: 生成token待优化
+    static func generateTokenBase64String(_ count: Int) -> String {
+        var token = ""
+        var bytes = [UInt8](repeating: 0, count: count)
+        let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+
+        if status == errSecSuccess {
+            token = Data(bytes: bytes, count: count).base64EncodedString()
+        }
+        
+        return token
+    }
 }

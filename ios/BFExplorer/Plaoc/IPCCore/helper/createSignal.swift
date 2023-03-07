@@ -14,17 +14,18 @@ class Signal<T> {
     
     typealias SignalClosure = (T) -> Any
     
+    
     private var _cbs: Set<GenericsClosure<SignalClosure>> = []
     
     private(set) var closure: GenericsClosure<SignalClosure>?
     
-    func listen(_ cb: @escaping SignalClosure) -> GenericsClosure<SignalClosure> {
+    func listen(_ cb: @escaping SignalClosure) -> OffListener {
         let closureObj = GenericsClosure(closure: cb)
         self._cbs.insert(closureObj)
         
         self.closure = closureObj
         
-        return closureObj
+        return { self.removeCallback(cb: closureObj) }
     }
     
     func removeCallback(cb: GenericsClosure<SignalClosure>) -> Bool {
@@ -35,6 +36,10 @@ class Signal<T> {
         for obj in self._cbs {
             obj.closure!(args)
         }
+    }
+    
+    func clear() {
+        self._cbs.removeAll()
     }
 }
 

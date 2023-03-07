@@ -16,4 +16,22 @@ extension URL {
             result[item.name] = item.value
         }
     }
+    
+    //替换path
+    func replacePath(replacePath: String) -> URL? {
+        
+        var components = URLComponents(url: self, resolvingAgainstBaseURL: true)
+        components?.path = replacePath
+        return components?.url
+    }
+    
+    func addURLQuery(name: String, value: String?)  -> URL? {
+        
+        guard value != nil, value!.count > 0 else { return nil }
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true), var queryItems = components.queryItems else { return nil }
+        let item = URLQueryItem(name: name, value: value)
+        queryItems.append(item)
+        components.queryItems = queryItems
+        return components.url
+    }
 }

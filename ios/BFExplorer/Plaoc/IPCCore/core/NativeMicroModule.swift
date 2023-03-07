@@ -32,7 +32,7 @@ class NativeMicroModule: MicroModule {
     init(mmid: String) {
         super.init()
         self.mmid = mmid
-        onConnect(cb: { clientIpc in
+        _ = onConnect(cb: { clientIpc in
             clientIpc.onRequest { request,ipc in
                 
             }
@@ -52,7 +52,7 @@ class NativeMicroModule: MicroModule {
         return NativeIpc(port: channel.port2, remote: self, role: .CLIENT)
     }
     
-    func onConnect(cb: @escaping NativaCallback) -> GenericsClosure<NativaCallback> {
+    func onConnect(cb: @escaping NativaCallback) -> OffListener {
         return self.connectSignal.listen(cb)
     }
     //在模块关停后，从自身构建的通讯通道都要关闭掉
@@ -66,7 +66,7 @@ class NativeMicroModule: MicroModule {
     }
     
     
-    internal func defineHandler( request: URLRequest, handler: (URLRequest) -> Any?) -> Response {
+    internal func defineHandler( request: Request, handler: (Request) -> Any?) -> Response {
         
         var response: Response?
         let result = handler(request)
@@ -98,7 +98,7 @@ class NativeMicroModule: MicroModule {
    
     }
     
-    internal func defineHandler(req: URLRequest, handler: (URLRequest, Ipc) -> Any?) -> Response {
+    internal func defineHandler(req: Request, handler: (Request, Ipc) -> Any?) -> Response {
         
         return defineHandler(request: req) { request in
             return handler(request, Ipc())

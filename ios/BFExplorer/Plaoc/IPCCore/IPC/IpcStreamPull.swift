@@ -9,7 +9,7 @@ import UIKit
 
 struct IpcStreamPull {
 
-    let type = IPC_DATA_TYPE.STREAM_PULL
+    var type: IPC_DATA_TYPE = .STREAM_PULL
     private(set) var desiredSize: Int = 0
     private(set) var stream_id: String?
     

@@ -123,3 +123,44 @@ extension MicroModule {
         return NativeFetch.localeFileFetch(remote: self, request: request) ?? NetworkManager.downLoadBodyByRequest(request: request)
     }
 }
+
+extension MicroModule {
+    
+    func startHttpDwebServer(options: DwebHttpServerOptions) -> ServerStartResult? {
+        
+        guard let url = URL(string: "file://http.sys.dweb/start?port=\(options.port)&subdomain=\(options.subdomain)") else { return nil }
+        guard let response = self.nativeFetch(url: url) else { return nil }
+        let model = ChangeTools.jsonToModel(jsonStr: response.body.string ?? "", ServerStartResult.self) as? ServerStartResult
+        
+        return model
+    }
+    
+    func listenHttpDwebServer(token: String, routes: [RouteConfig]) -> ReadableStreamIpc? {
+        
+        guard let routing = ChangeTools.arrayValueString(routes) else { return nil }
+        guard let url = URL(string: "file://http.sys.dweb/listen?token=\(token)&routes=\(routing)") else { return nil }
+        
+        let streamIpc = ReadableStreamIpc(remote: self, role: .CLIENT)
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        guard let response = self.nativeFetch(request: request) else { return nil }
+        guard response.body.data != nil else { return nil }
+        let stream = InputStream(data: response.body.data!)
+        
+        streamIpc.bindIncomeStream(stream: stream, coroutineName: "http-server")
+        return ReadableStreamIpc(remote: self, role: .CLIENT)
+    }
+    
+    func closeHttpDwebServer(options: DwebHttpServerOptions) -> Bool {
+        
+        guard let url = URL(string: "file://http.sys.dweb/start?port=\(options.port)&subdomain=\(options.subdomain)") else { return false }
+        guard self.nativeFetch(url: url) != nil else { return false }
+        return true
+    }
+    
+    func createHttpDwebServer(options: DwebHttpServerOptions) -> HttpDwebServer? {
+        guard let serverStartResult = startHttpDwebServer(options: options) else { return nil }
+        return HttpDwebServer(nmm: self, options: options, startResult: serverStartResult)
+    }
+}

@@ -16,8 +16,8 @@ enum IPC_DATA_TYPE {
     case REQUEST
       /** 类型：相应 */
     case RESPONSE
-      /** 类型：流数据，发送方 */
-    case STREAM_DATA
+    /** 类型：流数据，发送方 */
+    case STREAM_MESSAGE
       /** 类型：流拉取，请求方 */
     case STREAM_PULL
       /** 类型：流关闭，发送方
@@ -26,6 +26,10 @@ enum IPC_DATA_TYPE {
     case STREAM_END
       /** 类型：流中断，请求方 */
     case STREAM_ABORT
+    /** 类型：事件 */
+    case STREAM_EVENT
+    
+    case NONE
 }
 
 enum IPC_RAW_BODY_TYPE: Int {
@@ -45,33 +49,49 @@ enum IPC_RAW_BODY_TYPE: Int {
     case BINARY_STREAM_ID = 24
 }
 
+enum IPC_DATA_ENCODING {
+    
+    /** 文本 json html 等 */
+    case UTF8
+
+    /** 使用文本表示的二进制 */
+    case BASE64
+
+    /** 二进制 */
+    case BINARY
+}
+
 enum IPC_ROLE: String {
     case SERVER = "server"
     case CLIENT = "client"
 }
 
-struct MetaBody: HandyJSON {
+class MetaBody: NSObject, HandyJSON {
     
     var type: IPC_RAW_BODY_TYPE?
     var data: Any?
+    var ipcUid: Int = 0
     
-    init() {
+    override required init() {
         
     }
     
-    init(type: IPC_RAW_BODY_TYPE?, data: Any?) {
+    init(type: IPC_RAW_BODY_TYPE?, data: Any?, ipcUid: Int) {
         self.type = type
         self.data = data
+        self.ipcUid = ipcUid
     }
 
 }
 
 
 
-protocol IpcMessage: HandyJSON { }
+protocol IpcMessage: HandyJSON {
+    var type: IPC_DATA_TYPE { get }
+}
 
-typealias OnIpcMessage = ((IpcMessage, Ipc)) -> Any
-typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Any
+typealias OnIpcMessage = ((IpcMessage, Ipc)) -> Any?
+typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Any?
 typealias closeCallback = (()) -> Any
 typealias SimpleCallbcak = (()) -> Any
-
+typealias OffListener = () -> Bool

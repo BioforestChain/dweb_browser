@@ -57,7 +57,7 @@ class NativePort<I, O> {
         })
     }
     
-    func onClose(cb: @escaping SimpleCallbcak) -> GenericsClosure<SimpleCallbcak> {
+    func onClose(cb: @escaping SimpleCallbcak) -> OffListener {
         return closeSignal.listen(cb)
     }
     
@@ -74,7 +74,7 @@ class NativePort<I, O> {
     }
     
     //监听消息
-    func onMessage(cb: @escaping Callbcak) -> GenericsClosure<Callbcak> {
+    func onMessage(cb: @escaping Callbcak) -> OffListener {
         return messageSignal.listen(cb)
     }
 }

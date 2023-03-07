@@ -12,21 +12,27 @@ import Vapor
 class IpcResponse {
 
     var req_id: Int = 0
-    private let type = IPC_DATA_TYPE.RESPONSE
+    var type: IPC_DATA_TYPE = .RESPONSE
     private var headers: IpcHeaders!
     private var statusCode: Int = 0
     private var body: IpcBody?
+    private var ipc: Ipc?
     
     required init() {
         
     }
     
-    init(req_id: Int, statusCode: Int, headers: IpcHeaders, body: IpcBody) {
+    init(req_id: Int, statusCode: Int, headers: IpcHeaders, body: IpcBody, ipc: Ipc) {
         
         self.headers = headers
         self.req_id = req_id
         self.statusCode = statusCode
         self.body = body
+        self.ipc = ipc
+        
+        if let bodySender = body as? IpcBodySender {
+            IpcBodySender().usableByIpc(ipc: ipc, ipcBody: bodySender)
+        }
     }
     
     lazy var ipcResMessage: IpcResMessage = {
@@ -38,7 +44,7 @@ class IpcResponse {
         return self.headers.headerDict
     }
     
-    func asResponse() -> Response {
+    func toResponse() -> Response {
         
         var headers = HTTPHeaders()
         for (key, value) in self.headers.headerDict {
@@ -46,12 +52,12 @@ class IpcResponse {
         }
      
         var responseBody = Response.Body()
-        if let content = body?.body as? String {
+        if let content = body?.raw as? String {
             responseBody = Response.Body.init(string: content)
-        } else if let tytes = body?.body as? [UInt8] {
+        } else if let tytes = body?.raw as? [UInt8] {
             let data = Data(bytes: tytes, count: tytes.count)
             responseBody = Response.Body.init(data: data)
-        } else if let stream = body?.body as? InputStream {
+        } else if let stream = body?.raw as? InputStream {
             let data = IpcResponse.fetchStreamData(stream: stream)
             responseBody = Response.Body.init(data: data)
         }
@@ -85,15 +91,14 @@ class IpcResponse {
     static func fromResponse(req_id: Int, response: Response, ipc: Ipc) -> IpcResponse? {
         
         guard response.body.data != nil else { return nil }
-        let ipcResponse: IpcResponse?
         
         if response.body.count == -1 {
             let stream = InputStream(data: response.body.data!)
-            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(body: stream, ipc: ipc))
+            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(raw: stream, ipc: ipc), ipc: ipc)
         } else if response.body.count > 0 {
-            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(body: [UInt8](response.body.data!), ipc: ipc))
+            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(raw: [UInt8](response.body.data!), ipc: ipc), ipc: ipc)
         } else {
-            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(body: "", ipc: ipc))
+            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(raw: "", ipc: ipc), ipc: ipc)
         }
     }
     
@@ -107,7 +112,7 @@ class IpcResponse {
     static func fromText(req_id: Int,statusCode: Int = 200,text: String,headers: IpcHeaders = IpcHeaders(),ipc: Ipc)  -> IpcResponse {
         
         headers.set(key: "Content-Type", value: "text/plain")
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: text, ipc: ipc))
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(raw: text, ipc: ipc), ipc: ipc)
     }
     
     static func fromBinary(req_id: Int,statusCode: Int = 200,binary: [UInt8],headers: IpcHeaders,ipc: Ipc)  -> IpcResponse {
@@ -115,13 +120,13 @@ class IpcResponse {
         headers.set(key: "Content-Type", value: "application/octet-stream")
         headers.set(key: "Content-Length", value: "\(binary.count)")
 
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: binary, ipc: ipc))
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(raw: binary, ipc: ipc), ipc: ipc)
     }
     
     static func fromStream(req_id: Int,statusCode: Int = 200,stream: InputStream,headers: IpcHeaders = IpcHeaders(),ipc: Ipc) -> IpcResponse {
         
         headers.set(key: "Content-Type", value: "application/octet-stream")
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: stream, ipc: ipc))
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(raw: stream, ipc: ipc), ipc: ipc)
     }
 }
 
@@ -131,9 +136,10 @@ extension IpcResponse: IpcMessage {}
 
 struct IpcResMessage: IpcMessage {
     
-    var req_id: Int?
-    var statusCode: Int?
-    var headers: IpcHeaders?
+    var type: IPC_DATA_TYPE = .REQUEST
+    var req_id: Int = 0
+    var statusCode: Int = 0
+    var headers: IpcHeaders = IpcHeaders()
     var metaBody: MetaBody?
     
     init() {

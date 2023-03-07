@@ -6,13 +6,13 @@
 //
 
 import UIKit
-import RoutingKit
 import Vapor
 
 class BootNMM: NativeMicroModule {
 
     private var registeredMmids = Set<String>()
     private var apiRouting: [String: Response] = [:]
+    private let dwebServer = HTTPServer()
     
     init(initMmids: [String]? = nil) {
         super.init(mmid: "boot.sys.dweb")
@@ -26,12 +26,27 @@ class BootNMM: NativeMicroModule {
     
     override func _bootstrap() throws {
         
-        routesRegister()
-        routesUnregister()
+        let app = dwebServer.app
+        let group = app.grouped("\(mmid)")
+        
+        group.on(.GET, "register") { request -> Response in
+            let response = self.defineHandler(req: request) { (reque, ipc) in
+                self.register(mmid: ipc.remote?.mmid ?? "")
+            }
+            return response
+        }
+        
+        group.on(.GET, "unregister") { request -> Response in
+            let response = self.defineHandler(req: request) { reque, ipc in
+                self.unregister(mmid: ipc.remote?.mmid ?? "")
+            }
+            return response
+        }
+        
         
         Task {
             for mmid in registeredMmids {
-                nativeFetch(urlstring: "file://dns.sys.dweb/open?app_id=\(mmid.urlEncoder())")
+                _ = nativeFetch(urlstring: "file://dns.sys.dweb/open?app_id=\(mmid.urlEncoder())")
             }
         }
     }
@@ -49,35 +64,43 @@ class BootNMM: NativeMicroModule {
         self.registeredMmids.remove(mmid)
     }
     
-    private func routesRegister() {
-        routes(functionName: "/register", method: "GET")
-    }
-    
-    private func routesUnregister() {
-        routes(functionName: "/unregister", method: "GET")
-    }
-    
-    private func routes(functionName: String, method: String) {
+    /*
+    internal func defineHandler2( request: Request, handler: (Request) -> Any?) -> Response {
         
-        switch (functionName,method) {
-        case ("/register", "GET") :
-            guard let url = URL(string: functionName) else { return }
-            var request = URLRequest(url: url)
-            request.httpMethod = method
-            let response = defineHandler(req: request) { (reque, ipc) in
-                self.register(mmid: ipc.remote?.mmid ?? "")
+        var response: Response?
+        let result = handler(request)
+        if let res = result as? Response {
+            response = res
+        } else {
+            var headers = HTTPHeaders()
+            headers.add(name: "Content-Type", value: "application/json")
+            
+            let status = HTTPResponseStatus(statusCode: 200)
+            
+            let content = ChangeTools.tempAnyToString(value: result)
+            if content != nil {
+                let body = Response.Body.init(string: content!)
+                
+                response = Response(status: status, headers: headers, body: body)
+            } else {
+                let status = HTTPResponseStatus(statusCode: 500)
+                let whitespace = NSCharacterSet.whitespacesAndNewlines
+                let content = """
+                            <p>${request.uri}</p>
+                            <pre>${ex.message ?: "Unknown Error"}</pre>
+                            """.trimmingCharacters(in: whitespace)
+                let body = Response.Body.init(string: content)
+                response = Response(status: status, headers: HTTPHeaders(), body: body)
             }
-            apiRouting["\(functionName)\(method)"] = response
-        case ("/unregister", "GET") :
-            guard let url = URL(string: functionName) else { return }
-            var request = URLRequest(url: url)
-            request.httpMethod = method
-            let response = defineHandler(req: request) { (reque, ipc) in
-                self.unregister(mmid: ipc.remote?.mmid ?? "")
-            }
-            apiRouting["\(functionName)\(method)"] = response
-        default:
-            break
         }
+        return response!
+   
     }
+    
+    internal func defineHandler2(req: Request, handler: (URLRequest, Ipc) -> Any?) -> Response {
+        
+        return defineHandler2(request: req) { request in
+//            return handler(request, Ipc())
+        }
+    }*/
 }

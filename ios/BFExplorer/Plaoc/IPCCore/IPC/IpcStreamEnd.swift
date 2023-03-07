@@ -9,7 +9,7 @@ import UIKit
 
 struct IpcStreamEnd {
 
-    let type = IPC_DATA_TYPE.STREAM_END
+    var type: IPC_DATA_TYPE = .STREAM_END
     private(set) var stream_id: String = ""
     
     init(stream_id: String) {

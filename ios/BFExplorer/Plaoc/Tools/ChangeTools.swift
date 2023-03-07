@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import HandyJSON
 
 class ChangeTools: NSObject {
 
@@ -67,5 +68,34 @@ class ChangeTools: NSObject {
             return ChangeTools.dicValueString(value as! [String : Any]) ?? ""
         }
         return nil
+    }
+    
+    static func jsonToModel(jsonStr: String, _ modelType: HandyJSON.Type) -> BaseModel? {
+        
+        guard jsonStr.count > 0 else { return nil }
+        return modelType.deserialize(from: jsonStr) as? BaseModel
+    }
+    
+    static func jsonArrayToModel(jsonStr: String, _ modelType: HandyJSON.Type) -> [BaseModel]? {
+        
+        guard jsonStr.count > 0 else { return nil }
+        var array: [BaseModel] = []
+        guard let data = jsonStr.data(using: .utf8) else { return nil }
+        guard let modelList = try? JSONSerialization.jsonObject(with: data) as? [[String:Any]] else { return nil }
+        for model in modelList {
+            if let obj = ChangeTools.dictionaryToModel(model, modelType) {
+                array.append(obj)
+            }
+        }
+        return array
+    }
+    
+    /**
+     *  字典转对象
+     */
+    static func dictionaryToModel(_ dictionStr:[String:Any],_ modelType:HandyJSON.Type) -> BaseModel? {
+
+        guard dictionStr.count > 0 else { return nil }
+        return modelType.deserialize(from: dictionStr) as? BaseModel
     }
 }
