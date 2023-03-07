@@ -3,6 +3,9 @@ package info.bagen.rust.plaoc.microService.ipc
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import info.bagen.rust.plaoc.microService.helper.Callback
+import info.bagen.rust.plaoc.microService.helper.fromBase64
+import info.bagen.rust.plaoc.microService.helper.fromUtf8
+import info.bagen.rust.plaoc.microService.helper.toUtf8
 import java.lang.reflect.Type
 
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
@@ -41,7 +44,7 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) : JsonSerializer<IPC_MESSAGE_TYPE>,
     STREAM_ABORT(5),
 
     /** 类型：事件 */
-    STREAM_EVENT(6), ;
+    EVENT(6), ;
 
 
     override fun serialize(
@@ -59,14 +62,24 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) : JsonSerializer<IPC_MESSAGE_TYPE>,
 @JsonAdapter(IPC_DATA_ENCODING::class)
 enum class IPC_DATA_ENCODING(val encoding: Int) : JsonSerializer<IPC_DATA_ENCODING>,
     JsonDeserializer<IPC_DATA_ENCODING> {
-    /** 文本 json html 等 */
+    /** UTF8编码的字符串，本质上是 BINARY */
     UTF8(1 shl 1),
 
-    /** 使用文本表示的二进制 */
+    /** BASE64编码的字符串，本质上是 BINARY */
     BASE64(1 shl 2),
 
-    /** 二进制 */
-    BINARY(1 shl 3), ;
+    /** 二进制, 与 UTF8/BASE64 是对等关系*/
+    BINARY(1 shl 3),
+
+//    /** BINARY-MESSAGEPACK 编码的二进制，本质上是 OBJECT */
+//    MESSAGEPACK(1 shl 4),
+//
+//    /** UTF8-JSON 编码的字符串，本质上是 OBJECT */
+//    JSON(1 shl 5),
+//
+//    /** 结构化对象，与 JSON、MessagePack 是对等关系 */
+//    OBJECT(1 shl 6),
+    ;
 
 
     override fun serialize(
@@ -93,3 +106,24 @@ enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>, JsonDeserializ
     ) = json.asString.let { role -> values().find { it.role == role } }
 }
 
+
+interface DataWithEncoding {
+    val data: Any /*String or ByteArray*/
+    val encoding: IPC_DATA_ENCODING
+
+    fun dataToBinary() = when (encoding) {
+        IPC_DATA_ENCODING.BINARY -> data as ByteArray
+        IPC_DATA_ENCODING.BASE64 -> (data as String).fromBase64()
+        IPC_DATA_ENCODING.UTF8 -> (data as String).fromUtf8()
+        else -> throw Exception("unknown encoding")
+    }
+
+
+    fun dataToText() = when (encoding) {
+        IPC_DATA_ENCODING.BINARY -> (data as ByteArray).toUtf8()
+        IPC_DATA_ENCODING.BASE64 -> (data as String).fromBase64().toUtf8()
+        IPC_DATA_ENCODING.UTF8 -> data as String
+        else -> throw Exception("unknown encoding")
+    }
+
+}

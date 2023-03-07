@@ -23,7 +23,7 @@ export abstract class NativeMicroModule extends MicroModule {
   };
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
   private _connectting_ipcs = new Set<Ipc>();
-  _connect(from: MicroModule): NativeIpc {
+  _beConnect(from: MicroModule): NativeIpc {
     const channel = new MessageChannel();
     const { port1, port2 } = channel;
     const inner_ipc = new NativeIpc(port2, from, IPC_ROLE.SERVER);

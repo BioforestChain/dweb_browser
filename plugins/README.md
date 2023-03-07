@@ -18,3 +18,11 @@ deno task build
 ```bash
 deno task pub
 ```
+
+```ts
+const wwwServer = await http.createHttpDwebServer(jsProcess, {
+    subdomain: "www",
+    port: 443,
+});
+(await wwwServer.listen()).onRequest()
+```

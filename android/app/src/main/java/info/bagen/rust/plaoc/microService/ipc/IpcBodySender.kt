@@ -277,7 +277,7 @@ class IpcBodySender(
                         "sender/READ/$stream", "$availableLen >> $stream_id"
                     )
                     val message =
-                        IpcStreamData.asBinary(stream_id, stream.readByteArray(availableLen))
+                        IpcStreamData.fromBinary(stream_id, stream.readByteArray(availableLen))
                     for (ipc in usedIpcMap.keys) {
                         ipc.postMessage(message)
                     }

@@ -141,7 +141,6 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                         IpcStreamData.fromBinary(
                             strName,
                             socket.inputStream.readByteArray(),
-                            ipc
                         )
                     )
                     ipc.onMessage { (message) ->

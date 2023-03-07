@@ -8,27 +8,27 @@ import {
   IPC_MESSAGE_TYPE,
 } from "./const.cjs";
 
-export class IpcStreamData extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_DATA> {
+export class IpcEvent extends IpcMessage<IPC_MESSAGE_TYPE.EVENT> {
   constructor(
-    readonly stream_id: string,
+    readonly name: string,
     readonly data: string | Uint8Array,
     readonly encoding: IPC_DATA_ENCODING
   ) {
-    super(IPC_MESSAGE_TYPE.STREAM_DATA);
+    super(IPC_MESSAGE_TYPE.EVENT);
   }
-  static fromBase64(stream_id: string, data: Uint8Array) {
-    return new IpcStreamData(
-      stream_id,
+  static fromBase64(name: string, data: Uint8Array) {
+    return new IpcEvent(
+      name,
       simpleDecoder(data, "base64"),
       IPC_DATA_ENCODING.BASE64
     );
   }
-  static fromBinary(stream_id: string, data: Uint8Array) {
-    return new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY);
+  static fromBinary(name: string, data: Uint8Array) {
+    return new IpcEvent(name, data, IPC_DATA_ENCODING.BINARY);
   }
-  static fromUtf8(stream_id: string, data: Uint8Array) {
-    return new IpcStreamData(
-      stream_id,
+  static fromUtf8(name: string, data: Uint8Array) {
+    return new IpcEvent(
+      name,
       simpleDecoder(data, "utf8"),
       IPC_DATA_ENCODING.UTF8
     );
@@ -45,9 +45,9 @@ export class IpcStreamData extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_DATA> {
   }
 
   @cacheGetter()
-  get jsonAble(): IpcStreamData {
+  get jsonAble(): IpcEvent {
     if (this.encoding === IPC_DATA_ENCODING.BINARY) {
-      return IpcStreamData.fromBase64(this.stream_id, this.data as Uint8Array);
+      return IpcEvent.fromBase64(this.name, this.data as Uint8Array);
     }
     return this;
   }

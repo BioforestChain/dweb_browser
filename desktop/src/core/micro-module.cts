@@ -68,12 +68,12 @@ export abstract class MicroModule implements $MicroModule {
     }
   }
   /** 外部程序与内部程序建立链接的方法 */
-  protected abstract _connect(from: MicroModule): $PromiseMaybe<Ipc>;
-  async connect(from: MicroModule) {
+  protected abstract _beConnect(from: MicroModule): $PromiseMaybe<Ipc>;
+  async beConnect(from: MicroModule) {
     if ((await this.isRunning) === false) {
       throw new Error("module no running");
     }
-    return this._connect(from);
+    return this._beConnect(from);
   }
 
   private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {

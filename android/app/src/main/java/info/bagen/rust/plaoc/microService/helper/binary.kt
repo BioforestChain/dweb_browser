@@ -63,9 +63,9 @@ inline fun InputStream.readByteArray(): ByteArray {
     return bytes
 }
 
-inline fun String.asBase64(): ByteArray = base64Decoder.decode(this)
+inline fun String.fromBase64(): ByteArray = base64Decoder.decode(this)
 
-inline fun String.asUtf8(): ByteArray = this.toByteArray(Charsets.UTF_8)
+inline fun String.fromUtf8(): ByteArray = this.toByteArray(Charsets.UTF_8)
 
 inline fun String.encodeURIComponent(): String = URLEncoder.encode(this, "UTF-8")
     .replace("\\+", "%20")

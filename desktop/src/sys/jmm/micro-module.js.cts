@@ -85,7 +85,7 @@ export class JsMicroModule extends MicroModule {
     this._connecting_ipcs.add(streamIpc);
   }
   private _connecting_ipcs = new Set<Ipc>();
-  async _connect(from: MicroModule): Promise<Native2JsIpc> {
+  async _beConnect(from: MicroModule): Promise<Native2JsIpc> {
     const process_id = this._process_id;
     if (process_id === undefined) {
       throw new Error("process_id no found.");

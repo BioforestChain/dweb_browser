@@ -2,7 +2,7 @@ package info.bagen.rust.plaoc
 
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.asUtf8
+import info.bagen.rust.plaoc.microService.helper.fromUtf8
 import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.helper.text
 import info.bagen.rust.plaoc.microService.ipc.*
@@ -84,8 +84,8 @@ class NativeIpcTest : AsyncBase() {
             override suspend fun _shutdown() {
             }
         }
-        m0.bootstrap(dns.bootstrapContext)
-        m1.bootstrap(dns.bootstrapContext)
+        dns.bootstrapMicroModule(m0)
+        dns.bootstrapMicroModule(m1)
 
 
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
@@ -134,7 +134,7 @@ class NativeIpcTest : AsyncBase() {
                 println("开始发送 $i")
                 val chunk = "[$i]"
                 body += chunk
-                controller.enqueue(chunk.asUtf8())
+                controller.enqueue(chunk.fromUtf8())
             }
             controller.close()
         }
@@ -196,7 +196,7 @@ class NativeIpcTest : AsyncBase() {
             }
         }
 
-        val c2sIpc by lazy { runBlocking { mServer.connect(mClient) } }
+        val c2sIpc by lazy { runBlocking { mServer.beConnect(mClient) } }
 
         nativeFetchAdaptersManager.append { _, request ->
             if (request.uri.host == mServer.mmid) {
@@ -204,8 +204,8 @@ class NativeIpcTest : AsyncBase() {
             } else null
         }
 
-        mServer.bootstrap(dnsNMM.bootstrapContext)
-        mClient.bootstrap(dnsNMM.bootstrapContext)
+        dnsNMM.bootstrapMicroModule(mServer)
+        dnsNMM.bootstrapMicroModule(mClient)
 
 
         val clientStreamIpc = ReadableStreamIpc(mClient, "as-remote")

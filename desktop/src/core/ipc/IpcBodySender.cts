@@ -179,7 +179,7 @@ export class IpcBodySender extends IpcBody {
             this.isStreamOpened = true;
 
             const data = await reader.readBinary(availableLen);
-            const message = IpcStreamData.asBinary(stream_id, data);
+            const message = IpcStreamData.fromBinary(stream_id, data);
             for (const ipc of this.usedIpcMap.keys()) {
               ipc.postMessage(message);
             }

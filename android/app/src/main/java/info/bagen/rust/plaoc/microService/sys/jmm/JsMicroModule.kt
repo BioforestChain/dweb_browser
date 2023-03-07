@@ -56,7 +56,7 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
     }
 
 
-    override suspend fun _connect(from: MicroModule): Ipc {
+    override suspend fun _beConnect(from: MicroModule): Ipc {
         val pid = processId ?: throw Exception("$mmid process_id no found, should bootstrap first")
 
         val portId = nativeFetch(

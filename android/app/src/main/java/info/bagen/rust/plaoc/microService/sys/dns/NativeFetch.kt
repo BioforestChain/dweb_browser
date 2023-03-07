@@ -6,6 +6,7 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.readByteArray
+import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.PreReadableInputStream
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
@@ -138,4 +139,3 @@ suspend fun MicroModule.nativeFetch(request: Request): Response {
 
 suspend inline fun MicroModule.nativeFetch(url: Uri) = nativeFetch(Request(Method.GET, url))
 suspend inline fun MicroModule.nativeFetch(url: String) = nativeFetch(Request(Method.GET, url))
-

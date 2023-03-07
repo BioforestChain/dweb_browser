@@ -11,7 +11,7 @@ import org.http4k.routing.RoutingHttpHandler
 
 abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
     private val _connectedIpcSet = mutableSetOf<Ipc>();
-    override suspend fun _connect(from: MicroModule): NativeIpc {
+    override suspend fun _beConnect(from: MicroModule): NativeIpc {
         val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
         val innerNativeIpc = NativeIpc(channel.port1, from, IPC_ROLE.SERVER);
         val outerNativeIpc = NativeIpc(channel.port2, this, IPC_ROLE.CLIENT);

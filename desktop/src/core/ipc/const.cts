@@ -1,3 +1,4 @@
+import { simpleDecoder, simpleEncoder } from "../../helper/encoding.cjs";
 import type { Ipc } from "./ipc.cjs";
 import type { IpcReqMessage, IpcRequest } from "./IpcRequest.cjs";
 import type { IpcResMessage, IpcResponse } from "./IpcResponse.cjs";
@@ -71,6 +72,8 @@ export const enum IPC_MESSAGE_TYPE {
   STREAM_END,
   /** 类型：流中断，请求方 */
   STREAM_ABORT,
+  /** 类型：事件 */
+  EVENT,
 }
 
 /**
@@ -123,3 +126,38 @@ export type $OnIpcRequestMessage = (
   message: IpcRequest,
   ipc: Ipc
 ) => unknown;
+
+export const $dataToBinary = (
+  data: string | Uint8Array,
+  encoding: IPC_DATA_ENCODING
+) => {
+  switch (encoding) {
+    case IPC_DATA_ENCODING.BINARY: {
+      return data as Uint8Array;
+    }
+    case IPC_DATA_ENCODING.BASE64: {
+      return simpleEncoder(data as string, "base64");
+    }
+    case IPC_DATA_ENCODING.UTF8: {
+      return simpleEncoder(data as string, "utf8");
+    }
+  }
+  throw new Error(`unknown encoding: ${encoding}`);
+};
+export const $dataToText = (
+  data: string | Uint8Array,
+  encoding: IPC_DATA_ENCODING
+) => {
+  switch (encoding) {
+    case IPC_DATA_ENCODING.BINARY: {
+      return simpleDecoder(data as Uint8Array, "utf8");
+    }
+    case IPC_DATA_ENCODING.BASE64: {
+      return simpleDecoder(simpleEncoder(data as string, "base64"), "utf8");
+    }
+    case IPC_DATA_ENCODING.UTF8: {
+      return data as string;
+    }
+  }
+  throw new Error(`unknown encoding: ${encoding}`);
+};

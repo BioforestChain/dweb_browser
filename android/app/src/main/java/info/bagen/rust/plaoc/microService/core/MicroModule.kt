@@ -68,12 +68,12 @@ abstract class MicroModule {
     }
 
     /** 外部程序与内部程序建立链接的方法 */
-    protected abstract suspend fun _connect(from: MicroModule): Ipc;
-    suspend fun connect(from: MicroModule): Ipc {
+    protected abstract suspend fun _beConnect(from: MicroModule): Ipc;
+    suspend fun beConnect(from: MicroModule): Ipc {
         if (!runningStateLock.waitPromise()) {
             throw Exception("module no running");
         }
-        return _connect(from);
+        return _beConnect(from);
     }
 
 }

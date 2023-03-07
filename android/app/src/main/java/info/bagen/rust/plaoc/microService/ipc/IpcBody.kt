@@ -1,6 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.helper.asBase64
+import info.bagen.rust.plaoc.microService.helper.fromBase64
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.toUtf8
 import java.io.InputStream
@@ -55,7 +55,7 @@ abstract class IpcBody {
         (bodyHub.u8a ?: bodyHub.stream?.let {
             it.readBytes()
         } ?: bodyHub.text?.let {
-            it.asBase64()
+            it.fromBase64()
         } ?: throw Exception("invalid body type")).also {
             CACHE.raw_ipcBody_WMap[it] = this
         }

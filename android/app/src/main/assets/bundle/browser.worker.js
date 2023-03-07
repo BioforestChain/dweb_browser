@@ -345,6 +345,32 @@ var u8aConcat = (binaryList) => {
   return result;
 };
 
+// src/helper/encoding.cts
+var textEncoder = new TextEncoder();
+var simpleEncoder = (data, encoding) => {
+  if (encoding === "base64") {
+    const byteCharacters = atob(data);
+    const binary = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      binary[i] = byteCharacters.charCodeAt(i);
+    }
+    return binary;
+  }
+  return textEncoder.encode(data);
+};
+var textDecoder = new TextDecoder();
+var simpleDecoder = (data, encoding) => {
+  if (encoding === "base64") {
+    let binary = "";
+    const bytes = binaryToU8a(data);
+    for (const byte of bytes) {
+      binary += String.fromCharCode(byte);
+    }
+    return btoa(binary);
+  }
+  return textDecoder.decode(data);
+};
+
 // src/core/ipc/const.cts
 var toIpcMethod = (method) => {
   if (method == null) {
@@ -385,6 +411,34 @@ var IpcMessage = class {
   constructor(type) {
     this.type = type;
   }
+};
+var $dataToBinary = (data, encoding) => {
+  switch (encoding) {
+    case 8 /* BINARY */: {
+      return data;
+    }
+    case 4 /* BASE64 */: {
+      return simpleEncoder(data, "base64");
+    }
+    case 2 /* UTF8 */: {
+      return simpleEncoder(data, "utf8");
+    }
+  }
+  throw new Error(`unknown encoding: ${encoding}`);
+};
+var $dataToText = (data, encoding) => {
+  switch (encoding) {
+    case 8 /* BINARY */: {
+      return simpleDecoder(data, "utf8");
+    }
+    case 4 /* BASE64 */: {
+      return simpleDecoder(simpleEncoder(data, "base64"), "utf8");
+    }
+    case 2 /* UTF8 */: {
+      return data;
+    }
+  }
+  throw new Error(`unknown encoding: ${encoding}`);
 };
 
 // src/helper/createSignal.cts
@@ -520,32 +574,6 @@ var ReadableStreamOut = class {
   }
 };
 
-// src/helper/encoding.cts
-var textEncoder = new TextEncoder();
-var simpleEncoder = (data, encoding) => {
-  if (encoding === "base64") {
-    const byteCharacters = atob(data);
-    const binary = new Uint8Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      binary[i] = byteCharacters.charCodeAt(i);
-    }
-    return binary;
-  }
-  return textEncoder.encode(data);
-};
-var textDecoder = new TextDecoder();
-var simpleDecoder = (data, encoding) => {
-  if (encoding === "base64") {
-    let binary = "";
-    const bytes = binaryToU8a(data);
-    for (const byte of bytes) {
-      binary += String.fromCharCode(byte);
-    }
-    return btoa(binary);
-  }
-  return textDecoder.decode(data);
-};
-
 // src/core/ipc/IpcBody.cts
 var _IpcBody = class {
   get raw() {
@@ -642,17 +670,17 @@ var _IpcStreamData = class extends IpcMessage {
     this.data = data;
     this.encoding = encoding;
   }
-  static asBase64(stream_id, data) {
+  static fromBase64(stream_id, data) {
     return new _IpcStreamData(
       stream_id,
       simpleDecoder(data, "base64"),
       4 /* BASE64 */
     );
   }
-  static asBinary(stream_id, data) {
+  static fromBinary(stream_id, data) {
     return new _IpcStreamData(stream_id, data, 8 /* BINARY */);
   }
-  static asUtf8(stream_id, data) {
+  static fromUtf8(stream_id, data) {
     return new _IpcStreamData(
       stream_id,
       simpleDecoder(data, "utf8"),
@@ -660,21 +688,14 @@ var _IpcStreamData = class extends IpcMessage {
     );
   }
   get binary() {
-    switch (this.encoding) {
-      case 8 /* BINARY */: {
-        return this.data;
-      }
-      case 4 /* BASE64 */: {
-        return simpleEncoder(this.data, "base64");
-      }
-      case 2 /* UTF8 */: {
-        return simpleEncoder(this.data, "utf8");
-      }
-    }
+    return $dataToBinary(this.data, this.encoding);
+  }
+  get text() {
+    return $dataToText(this.data, this.encoding);
   }
   get jsonAble() {
     if (this.encoding === 8 /* BINARY */) {
-      return _IpcStreamData.asBase64(this.stream_id, this.data);
+      return _IpcStreamData.fromBase64(this.stream_id, this.data);
     }
     return this;
   }
@@ -683,6 +704,12 @@ var _IpcStreamData = class extends IpcMessage {
   }
 };
 var IpcStreamData = _IpcStreamData;
+__decorateClass([
+  cacheGetter()
+], IpcStreamData.prototype, "binary", 1);
+__decorateClass([
+  cacheGetter()
+], IpcStreamData.prototype, "text", 1);
 __decorateClass([
   cacheGetter()
 ], IpcStreamData.prototype, "jsonAble", 1);
@@ -980,7 +1007,7 @@ var _IpcBodySender = class extends IpcBody {
           default: {
             this.isStreamOpened = true;
             const data = await reader.readBinary(availableLen);
-            const message = IpcStreamData.asBinary(stream_id, data);
+            const message = IpcStreamData.fromBinary(stream_id, data);
             for (const ipc2 of this.usedIpcMap.keys()) {
               ipc2.postMessage(message);
             }

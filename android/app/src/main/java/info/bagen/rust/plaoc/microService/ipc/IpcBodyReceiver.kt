@@ -1,8 +1,8 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
-import info.bagen.rust.plaoc.microService.helper.asBase64
-import info.bagen.rust.plaoc.microService.helper.asUtf8
+import info.bagen.rust.plaoc.microService.helper.fromBase64
+import info.bagen.rust.plaoc.microService.helper.fromUtf8
 import info.bagen.rust.plaoc.microService.helper.debugger
 import java.io.InputStream
 
@@ -33,7 +33,7 @@ class IpcBodyReceiver(
                 /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
                 IPC_DATA_ENCODING.UTF8 -> metaBody.data as String
                 IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-                IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).asBase64()
+                IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).fromBase64()
                 else -> throw Exception("invalid metaBody type: ${metaBody.type}")
             }
             it.data = data
@@ -75,9 +75,9 @@ class IpcBodyReceiver(
 
                 /// 如果有初始帧，直接存起来
                 when (metaBody.type.encoding) {
-                    IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).asUtf8()
+                    IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).fromUtf8()
                     IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-                    IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).asBase64()
+                    IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).fromBase64()
                     else -> null
                 }?.let { firstData -> controller.enqueue(firstData) }
 
