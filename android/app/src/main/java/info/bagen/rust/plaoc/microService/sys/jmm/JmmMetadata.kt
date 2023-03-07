@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import java.io.Serializable
 
 data class JmmMetadata(
     val id: Mmid,
@@ -34,8 +33,7 @@ data class JmmMetadata(
      * 所以如果是 staticWebServers 定义的链接，那么自然而然地，页面会等到 staticWebServer 启动后得到响应，不会错过请求。
      */
     val openWebViewList: List<OpenWebView> = listOf(),
-) : Serializable {
-
+):java.io.Serializable {
     data class MainServer(
         /**
          * 应用文件夹的目录
@@ -45,7 +43,7 @@ data class JmmMetadata(
          * 入口文件
          */
         val entry: String
-    )
+    ):java.io.Serializable
 
     /**
      * 静态网络服务定义
@@ -62,9 +60,9 @@ data class JmmMetadata(
         val entry: String = "index.html",
         val subdomain: String = "",
         val port: Int = 80,
-    ): Serializable
+    ):java.io.Serializable
 
-    data class OpenWebView(val url: String = ""): Serializable
+    data class OpenWebView(val url: String = ""):java.io.Serializable
 }
 
 val temp = """

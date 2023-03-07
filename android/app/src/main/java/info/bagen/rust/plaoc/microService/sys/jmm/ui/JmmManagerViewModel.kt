@@ -35,9 +35,9 @@ sealed class JmmIntent {
   class UpdateDownLoadStatus(val downLoadStatus: DownLoadStatus) : JmmIntent()
 }
 
-private val currentTime = {
+private fun currentTime() : String {
   val simpleDateFormat = SimpleDateFormat("yyyy-mm-dd-hh:MM:ss")
-  simpleDateFormat.format(Date())
+  return simpleDateFormat.format(Date())
 }
 
 class JmmManagerViewModel : ViewModel() {
@@ -48,10 +48,10 @@ class JmmManagerViewModel : ViewModel() {
     when (action) {
       is JmmIntent.SetTypeAndJmmMetaData -> {
         val downLoadInfo = DwebBrowserUtil.INSTANCE.mBinderService?.invokeGetDownLoadInfo(
-          action.jmmMetadata.downloadUrl
+          action.jmmMetadata
         ) ?: DownLoadInfo(
           jmmMetadata = action.jmmMetadata,
-          path = "${App.appContext.cacheDir}/DL_${action.jmmMetadata.title}-${currentTime}.bfsa",
+          path = "${App.appContext.cacheDir}/DL_${action.jmmMetadata.id}_${currentTime()}.bfsa",
           notificationId = (NotificationUtil.notificationId++),
         )
         uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
@@ -70,9 +70,9 @@ class JmmManagerViewModel : ViewModel() {
           }
           DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */ }
           DownLoadStatus.DownLoading, DownLoadStatus.PAUSE -> {
-            DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadStatusChange(
-              uiState.downloadInfo.value.jmmMetadata?.downloadUrl ?: ""
-            )
+            uiState.downloadInfo.value.jmmMetadata?.let { metadata ->
+              DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadStatusChange(metadata.id)
+            }
           }
           DownLoadStatus.FAIL -> { // 按钮显示重新下载
             DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)

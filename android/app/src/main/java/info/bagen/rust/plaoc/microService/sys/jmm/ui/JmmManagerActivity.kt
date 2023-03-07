@@ -15,7 +15,6 @@ class JmmManagerActivity : BaseActivity() {
         const val ACTION_LAUNCH = "info.bagen.dwebbrowser.openjmm"
         const val KEY_INSTALL_TYPE = "key_install_type"
         const val KEY_JMM_METADATA = "key_jmm_meta_data"
-        val downLoadStatus = mutableMapOf<Mmid, PromiseOut<DownLoadStatus>>()
 
         fun startActivity(jmmMetadata: JmmMetadata) {
             App.startActivity(JmmManagerActivity::class.java) { intent ->
@@ -33,10 +32,6 @@ class JmmManagerActivity : BaseActivity() {
         App.jmmManagerActivity = this
         val jmmMetadata = intent.getSerializableExtra(KEY_JMM_METADATA)?.let { it as JmmMetadata }
             ?: defaultJmmMetadata
-        // 初始化下载状态
-        downLoadStatus.getOrPut(jmmMetadata.id) {
-            PromiseOut()
-        }
         jmmManagerViewModel.handlerIntent(JmmIntent.SetTypeAndJmmMetaData(jmmMetadata))
     }
 

@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option java_package = "info.bagen.rust.plaoc.microService.helper.Mmid";
+option java_multiple_files = true;
+
+message JmmMetaDataMapPreferences {
+  map<string, JmmMetadataPreferences> data= 1; // 用于存储
+}
+
+message JmmMetadataPreferences {
+  string id = 1; // Mmid
+  MainServerPreferences server = 2; // 打开应用地址
+  string title = 3; // 应用名称
+  string subtitle = 4; // 应用名称
+  string icon = 5; // 应用图标
+  string downloadUrl = 6; // 下载应用地址
+  repeated string images = 7; // 应用截图
+  string introduction = 8; // 应用描述
+  repeated string author = 9; // 开发者
+  string version = 10; // 应用版本
+  repeated string keywords = 11; // 关键字
+  string home = 12; // 首页地址
+  string size = 13; // 文件大小
+  string fileHash = 14;
+  repeated string permissions = 15;
+  repeated string plugins = 16;
+  string releaseDate = 17;
+  repeated StaticWebServerPreferences staticWebServers = 18; // 静态网络服务
+  /* 要求 http/https 协议。
+   * httpNMM 网关那边，遇到未知的请求，会等待一段时间，如果这段时间内这个域名被监听了，那么会将请求分发过去
+   * 所以如果是 staticWebServers 定义的链接，那么自然而然地，页面会等到 staticWebServer 启动后得到响应，不会错过请求。
+   */
+  repeated OpenWebViewPreferences openWebViewList = 19;
+}
+
+message MainServerPreferences {
+  string root = 1; // 应用文件夹的目录
+  string entry = 2; // 入口文件
+  string subdomain = 3;
+  int64 port = 4;
+}
+
+/**
+ * 静态网络服务定义
+ * 它将按配置托管一个静态网页服务
+ */
+message StaticWebServerPreferences {
+  string root = 1; // 应用文件夹的目录
+  string entry = 2; // 入口文件
+  string subdomain = 3;
+  int64 port = 4;
+}
+
+message OpenWebViewPreferences {
+  string url = 1;
+}

@@ -32,7 +32,7 @@ class App : Application() {
         var jmmManagerActivity: JmmManagerActivity? = null
 
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
-            GlobalScope.launch(Dispatchers.Main) {
+            GlobalScope.launch(Dispatchers.IO) {
                 val intent = Intent(appContext, cls)
                 onIntent(intent)
                 appContext.startActivity(intent)

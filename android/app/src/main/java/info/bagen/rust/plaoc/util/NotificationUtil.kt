@@ -13,6 +13,7 @@ import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
+import info.bagen.rust.plaoc.microService.helper.Mmid
 
 class NotificationUtil {
   private val mNormalChannelId = "渠道id" // 唯一性
@@ -120,7 +121,7 @@ class NotificationUtil {
    * 进度条通知
    */
   fun createNotificationForProgress(
-    url: String,
+    mmid: Mmid,
     notificationId: Int = mProgressNotificationId,
     title: String = "进度通知",
     text: String = "下载中"
@@ -142,7 +143,7 @@ class NotificationUtil {
     }
     val intent = Intent(App.appContext, BFSBroadcastReceiver::class.java).apply {
       action = BFSBroadcastAction.DownLoadStatusChanged.action
-      putExtra("url", url)
+      putExtra("mmid", mmid)
     }
     val pendingIntent = PendingIntent.getBroadcast(App.appContext, 999, intent, mFlag)
 

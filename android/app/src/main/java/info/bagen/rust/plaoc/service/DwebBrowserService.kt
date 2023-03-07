@@ -13,6 +13,9 @@ import info.bagen.libappmgr.utils.ZipUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.*
 import info.bagen.rust.plaoc.util.NotificationUtil
 import kotlinx.coroutines.*
@@ -20,11 +23,15 @@ import java.io.File
 
 internal interface IDwebBrowserBinder {
   fun invokeDownloadAndSaveZip(downLoadInfo: DownLoadInfo)
-  fun invokeDownloadStatusChange(url: String)
-  fun invokeGetDownLoadInfo(url: String): DownLoadInfo?
+  fun invokeDownloadStatusChange(mmid: Mmid)
+  fun invokeGetDownLoadInfo(jmmMetadata: JmmMetadata): DownLoadInfo?
 }
 
 class DwebBrowserService : Service() {
+  companion object {
+    val poDownLoadStatus = mutableMapOf<Mmid, PromiseOut<DownLoadStatus>>()
+  }
+
   private val downloadMap = mutableMapOf<String, DownLoadInfo>()
 
   private var bfsBroadcastReceiver: BFSBroadcastReceiver? = null
@@ -50,17 +57,17 @@ class DwebBrowserService : Service() {
       downloadAndSaveZip(downLoadInfo)//暴露给Activity的方法
     }
 
-    override fun invokeDownloadStatusChange(url: String) {
-      downloadStatusChange(url)
+    override fun invokeDownloadStatusChange(mmid: Mmid) {
+      downloadStatusChange(mmid)
     }
 
-    override fun invokeGetDownLoadInfo(url: String): DownLoadInfo? {
-      return getDownLoadInfo(url)
+    override fun invokeGetDownLoadInfo(jmmMetadata: JmmMetadata): DownLoadInfo? {
+      return getDownLoadInfo(jmmMetadata)
     }
   }
 
-  private fun getDownLoadInfo(url: String): DownLoadInfo? {
-    return downloadMap[url]
+  private fun getDownLoadInfo(jmmMetadata: JmmMetadata): DownLoadInfo? {
+    return downloadMap[jmmMetadata.id]
   }
 
   private fun registerBFSBroadcastReceiver() {
@@ -78,13 +85,14 @@ class DwebBrowserService : Service() {
   @OptIn(DelicateCoroutinesApi::class)
   fun downloadAndSaveZip(downLoadInfo: DownLoadInfo): Boolean {
     // 1. 根据path进行下载，并且创建notification
-    if (downloadMap.containsKey(downLoadInfo.jmmMetadata!!.downloadUrl)) {
+    if (downloadMap.containsKey(downLoadInfo.jmmMetadata!!.id)) {
       Toast.makeText(this, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
       return true
     }
-    downloadMap[downLoadInfo.jmmMetadata!!.downloadUrl] = downLoadInfo
+    poDownLoadStatus.getOrPut(downLoadInfo.jmmMetadata!!.id) { PromiseOut() }
+    downloadMap[downLoadInfo.jmmMetadata!!.id] = downLoadInfo
     NotificationUtil.INSTANCE.createNotificationForProgress(
-      downLoadInfo.jmmMetadata!!.downloadUrl,
+      downLoadInfo.jmmMetadata!!.id,
       downLoadInfo.notificationId,
       downLoadInfo.jmmMetadata!!.title
     ) // 显示通知
@@ -128,12 +136,15 @@ class DwebBrowserService : Service() {
 
     if (current == total) {
       jmmMetadata?.let { jmmMetadata ->
-        downloadMap.remove(jmmMetadata.downloadUrl)
+        downloadMap.remove(jmmMetadata.id) // 下载完成后需要移除
         NotificationUtil.INSTANCE.updateNotificationForProgress(
           100, notificationId, "下载完成"
         ) {
+          NotificationUtil.INSTANCE.cancelNotification(notificationId)
           val intent = Intent(App.appContext, JmmManagerActivity::class.java).apply {
             putExtra(JmmManagerActivity.KEY_JMM_METADATA, jmmMetadata)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            `package` = App.appContext.packageName
           }
           val pendingIntent =
             PendingIntent.getActivity(App.appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -145,23 +156,26 @@ class DwebBrowserService : Service() {
           JmmManagerActivity.startActivity(jmmMetadata)
         }
         runBlocking { delay(2000) }
-        val unzip = ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath())
+        val unzip =
+          ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath(), mmid = jmmMetadata.id)
         if (unzip) {
           App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
-            JmmIntent.UpdateDownLoadStatus(DownLoadStatus.INSTALLED) )
-          JmmManagerActivity.downLoadStatus[jmmMetadata.id]?.resolve(DownLoadStatus.INSTALLED)
+            JmmIntent.UpdateDownLoadStatus(DownLoadStatus.INSTALLED)
+          )
+          poDownLoadStatus[jmmMetadata.id]?.resolve(DownLoadStatus.INSTALLED)
         } else {
           App.jmmManagerActivity?.jmmManagerViewModel?.handlerIntent(
-            JmmIntent.UpdateDownLoadStatus(DownLoadStatus.FAIL) )
-          JmmManagerActivity.downLoadStatus[jmmMetadata.id]?.resolve(DownLoadStatus.FAIL)
+            JmmIntent.UpdateDownLoadStatus(DownLoadStatus.FAIL)
+          )
+          poDownLoadStatus[jmmMetadata.id]?.resolve(DownLoadStatus.FAIL)
         }
-        JmmManagerActivity.downLoadStatus.remove(jmmMetadata.id)
+        poDownLoadStatus.remove(jmmMetadata.id)
       }
     }
   }
 
-  fun downloadStatusChange(url: String) {
-    downloadMap[url]?.apply {
+  fun downloadStatusChange(mmid: Mmid) {
+    downloadMap[mmid]?.apply {
       if (size == dSize) return@apply // 如果下载完成，就不执行操作
       when (this.downLoadStatus) {
         DownLoadStatus.PAUSE -> {

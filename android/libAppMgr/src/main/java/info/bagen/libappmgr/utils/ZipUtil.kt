@@ -11,6 +11,8 @@ import org.apache.commons.compress.utils.IOUtils
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.*
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipEntry
@@ -82,7 +84,9 @@ object ZipUtil {
     return outPutFile
   }
 
-  fun ergodicDecompress(filePath: String, outputDir: String, isDeleted: Boolean = true): Boolean {
+  fun ergodicDecompress(
+    filePath: String, outputDir: String, isDeleted: Boolean = true, mmid: String? = null
+  ): Boolean {
     Log.d(TAG, "ergodicDecompress->$filePath, $outputDir, $isDeleted")
     val file = File(filePath)
     if (!file.exists()) {
@@ -92,11 +96,19 @@ object ZipUtil {
     var ret = false
     for (index in arrayListOf("tar", "tar.gz", "tar.bz2", "zip")) {
       try {
-        when (index) {
+        val dirName = when (index) {
           "tar" -> { decompressTar(file, outputDir) }
           "tar.gz" -> { decompressTarGz(file, outputDir) }
           "tar.bz2" -> { decompressTarBz2(file, outputDir) }
           "zip" -> { unZip(file, outputDir) }
+          else -> "NULL"
+        }
+        mmid?.let {
+          Files.move(
+            Paths.get("$outputDir/$dirName"),
+            Paths.get("$outputDir/$mmid"),
+            StandardCopyOption.REPLACE_EXISTING
+          )
         }
         ret = true
         Log.e(TAG, "ergodicDecompress:: fileType is $index.")
@@ -148,8 +160,9 @@ object ZipUtil {
    * @throws IOException
    */
   @Throws(IOException::class)
-  private fun unZip(file: File?, outputDir: String) {
+  private fun unZip(file: File?, outputDir: String) : String {
     Log.d(TAG, "unZip->${file?.absolutePath}, $outputDir")
+    var dirName: String? = null
     ZipFile(file, StandardCharsets.UTF_8).use { zipFile ->
       //创建输出目录
       //createDirectory(outputDir, null)
@@ -158,6 +171,7 @@ object ZipUtil {
         val entry: ZipEntry = enums.nextElement() as ZipEntry
         if (entry.isDirectory) {
           //创建空目录
+          if (dirName == null) dirName = entry.name
           createDirectory(outputDir, entry.name)
         } else {
           zipFile.getInputStream(entry).use { inputStream ->
@@ -168,11 +182,13 @@ object ZipUtil {
         }
       }
     }
+    return dirName ?: ""
   }
 
   @Throws(IOException::class)
-  private fun decompressTar(file: File?, outputDir: String) {
+  private fun decompressTar(file: File?, outputDir: String) : String {
     Log.d(TAG, "decompressTar->${file?.absolutePath}, $outputDir")
+    var dirName: String? = null
     TarArchiveInputStream(FileInputStream(file)).use { tarIn ->
       //创建输出目录
       //createDirectory(outputDir, null)
@@ -181,6 +197,7 @@ object ZipUtil {
         //是目录
         if (entry!!.isDirectory) {
           //创建空目录
+          if (dirName == null) dirName = entry!!.name
           createDirectory(outputDir, entry!!.name)
         } else {
           //是文件
@@ -190,11 +207,13 @@ object ZipUtil {
         }
       }
     }
+    return dirName ?: ""
   }
 
   @Throws(IOException::class)
-  private fun decompressTarGz(file: File?, outputDir: String) {
+  private fun decompressTarGz(file: File?, outputDir: String) : String {
     Log.d(TAG, "decompressTarGz->${file?.absolutePath}, $outputDir")
+    var dirName: String? = null
     TarArchiveInputStream(
       GzipCompressorInputStream(BufferedInputStream(FileInputStream(file)))
     ).use { tarIn ->
@@ -205,6 +224,7 @@ object ZipUtil {
         //是目录
         if (entry!!.isDirectory) {
           //创建空目录
+          if (dirName == null) dirName = entry!!.name
           createDirectory(outputDir, entry!!.name)
         } else {
           //是文件
@@ -214,6 +234,7 @@ object ZipUtil {
         }
       }
     }
+    return dirName ?: ""
   }
 
   /**
@@ -223,8 +244,9 @@ object ZipUtil {
    * @param outputDir 目标文件夹
    */
   @Throws(IOException::class)
-  private fun decompressTarBz2(file: File?, outputDir: String) {
+  private fun decompressTarBz2(file: File?, outputDir: String) : String {
     Log.d(TAG, "decompressTarBz2->${file?.absolutePath}, $outputDir")
+    var dirName: String? = null
     TarArchiveInputStream(
       BZip2CompressorInputStream(FileInputStream(file))
     ).use { tarIn ->
@@ -232,6 +254,7 @@ object ZipUtil {
       var entry: TarArchiveEntry
       while (tarIn.nextTarEntry.also { entry = it } != null) {
         if (entry.isDirectory) {
+          if (dirName == null) dirName = entry.name
           createDirectory(outputDir, entry.name)
         } else {
           FileOutputStream(
@@ -240,6 +263,7 @@ object ZipUtil {
         }
       }
     }
+    return dirName ?: ""
   }
 
   /**

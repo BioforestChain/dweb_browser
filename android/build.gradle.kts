@@ -14,6 +14,7 @@ buildscript {
         classpath("com.android.tools.build:gradle:7.2.2")
         val kotlinVersion by System.getProperties()
         classpath(kotlin("gradle-plugin", version = "${kotlinVersion}"))
+        classpath("com.google.protobuf:protobuf-gradle-plugin:0.8.19")
     }
 
 }

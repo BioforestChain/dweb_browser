@@ -1,28 +1,29 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
+import info.bagen.rust.plaoc.datastore.JmmMetadataDB
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.json
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
+import info.bagen.rust.plaoc.service.DwebBrowserService
 import org.http4k.core.Method
-import org.http4k.format.Jackson.asJsonObject
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
-    val apps = mutableMapOf<Mmid, JsMicroModule>()
+    companion object {
+        val apps = mutableMapOf<Mmid, JsMicroModule>()
+    }
 
     init {
         // TODO 启动的时候，从数据库中恢复 apps 对象
+        JmmMetadataDB.queryJmmMetadata()
     }
-
 
     val queryMetadataUrl = Query.string().required("metadataUrl")
     val queryMmid = Query.string().required("mmid")
@@ -54,6 +55,9 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                     apps.map { it.value.metadata },
                     installingApps.map { it.value })
             },
+            "/open" bind Method.GET to defineHandler { request, ipc ->
+                // TODO 打开界面
+            }
         )
 
     }
@@ -61,9 +65,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     data class AppsQueryResult(
         val installedAppList: List<JmmMetadata>,
         val installingAppList: List<InstallingAppInfo>
-    ) {
-
-    }
+    )
 
     data class InstallingAppInfo(var progress: Float, val jmmMetadata: JmmMetadata)
 
@@ -72,8 +74,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
         // 打开安装的界面
         JmmManagerActivity.startActivity(jmmMetadata)
         // 拿到安装的状态
-        val status = JmmManagerActivity.downLoadStatus[jmmMetadata.id]?.waitPromise()
-        when(status) {
+        when(DwebBrowserService.poDownLoadStatus[jmmMetadata.id]?.waitPromise()) {
             DownLoadStatus.INSTALLED -> {
                 registerJmmForDns(jmmMetadata)
             }
@@ -83,6 +84,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
             else -> {}
         }
     }
+
     /**
      * 注册应用
      * */

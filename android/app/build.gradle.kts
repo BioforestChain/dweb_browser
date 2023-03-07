@@ -1,9 +1,11 @@
+import com.google.protobuf.gradle.*
+
 //@file:("../version.gradle.kts")
 
 plugins {
-    1
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.protobuf")//.version("0.8.19")// dependence datastore protobuf 20230306
 }
 android {
     compileSdk = 33
@@ -27,6 +29,7 @@ android {
         named("main") {
             jniLibs.setSrcDirs(listOf("src/main/libs"))
             assets.setSrcDirs(listOf("src/main/assets"))
+            // Add generated code folder to app module source set
         }
     }
 
@@ -121,7 +124,10 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:$constraintlayout_version")
     val core_version = "1.9.0"
     implementation("androidx.core:core-ktx:$core_version")
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore:1.0.0") // dependence datastore protobuf 20230306
+    //implementation("androidx.datastore:datastore-preferences:1.1.0-alpha01") // dependence datastore protobuf 20230306
+    //implementation("com.google.protobuf:protobuf-javalite:3.19.2") // dependence datastore protobuf 20230306
+    implementation("com.google.protobuf:protobuf-java:3.19.2") // dependence datastore protobuf 20230306
 
     /// Compose 相关
     val composeBom = platform("androidx.compose:compose-bom:2023.01.00")
@@ -158,7 +164,6 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.4.0")
 
 
-
     testImplementation(platform("org.junit:junit-bom:5.9.2"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher") {
         because("Only needed to run tests in a version of IntelliJ IDEA that bundles older versions")
@@ -169,6 +174,30 @@ dependencies {
     /// 依赖
     implementation(project(":libAppMgr"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+}
+
+// dependence datastore protobuf 20230306
+protobuf {
+    val configuration = this
+    configuration.protoc {
+        artifact = "com.google.protobuf:protoc:3.19.2"
+    }
+
+    // Generates the java Protobuf-lite code for the Protobufs in this project. See
+    // https://github.com/google/protobuf-gradle-plugin#customizing-protobuf-compilation
+    // for more information.
+    // configuration.generatedFilesBaseDir = project.layout.projectDirectory.dir("build/generated").toString()
+
+    configuration.generateProtoTasks {
+
+        this.all().forEach { task ->
+            task.builtins {
+                id("java") {
+                    java { }
+                }
+            }
+        }
+    }
 }
 
 tasks.withType<Test> {
