@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.http.net
 
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,7 +27,7 @@ class Http1Server {
         }
 
         val portPo = PromiseOut<Int>()
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(ioAsyncExceptionHandler).launch {
             server = handler.asServer(KtorCIO(22206/* 使用随机端口*/)).start().also { server ->
                 bindingPort = server.port()
                 portPo.resolve(bindingPort)

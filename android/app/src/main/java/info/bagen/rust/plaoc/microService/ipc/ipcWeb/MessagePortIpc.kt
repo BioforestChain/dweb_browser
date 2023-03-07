@@ -2,23 +2,59 @@ package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort
-import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
-import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
 
 inline fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("message-port-ipc", tag, msg, err)
 
+class MessagePort {
+    companion object {
+        private val wm = WeakHashMap<WebMessagePort, MessagePort>()
+        fun from(port: WebMessagePort): MessagePort = wm.getOrPut(port) { MessagePort(port) }
+    }
+
+    private lateinit var port: WebMessagePort
+
+    private constructor(port: WebMessagePort) {
+        this.port = port
+    }
+
+    private val _messageSignal by lazy {
+        val signal = Signal<WebMessage>()
+
+        port.setWebMessageCallback(object :
+            WebMessagePort.WebMessageCallback() {
+            override fun onMessage(port: WebMessagePort, event: WebMessage) {
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    signal.emit(event)
+                }
+            }
+        })
+
+        signal
+    }
+
+    fun onWebMessage(cb: Callback<WebMessage>) = _messageSignal.listen(cb)
+    fun postMessage(event: WebMessage) = port.postMessage(event)
+
+    fun close() = port.close()
+}
+
 open class MessagePortIpc(
-    val port: WebMessagePort,
-    override val remote: MicroModule,
+    val port: MessagePort,
+    override val remote: MicroModuleInfo,
     private val role_type: IPC_ROLE,
 ) : Ipc() {
+    constructor(
+        port: WebMessagePort,
+        remote: MicroModuleInfo,
+        role_type: IPC_ROLE
+    ) : this(MessagePort.from(port), remote, role_type)
+
     override val role get() = role_type.role
     override fun toString(): String {
         return super.toString() + "@MessagePortIpc"
@@ -26,31 +62,22 @@ open class MessagePortIpc(
 
     init {
         val ipc = this;
-//        GlobalScope.launch {
-//            while (true) {
-//                port.postMessage(WebMessage("ping"))
-//                delay(30000)
-//            }
-//        }
-        port.setWebMessageCallback(object :
-            WebMessagePort.WebMessageCallback() {
-            override fun onMessage(port: WebMessagePort, event: WebMessage) {
-                CoroutineScope(CoroutineName(this.toString()) + ioAsyncExceptionHandler).launch {
-                    when (val message = jsonToIpcMessage(event.data, ipc)) {
-                        "close" -> close()
-                        "ping" -> port.postMessage(WebMessage("pong"))
-                        "pong" -> debugMessagePortIpc("PONG/$ipc")
-                        is IpcMessage -> {
-                            debugMessagePortIpc("ON-MESSAGE/$ipc", message)
-                            _messageSignal.emit(
-                                IpcMessageArgs(message, ipc)
-                            )
-                        }
-                        else -> throw Exception("unknown message: $message")
-                    }
+        val callback = port.onWebMessage { event ->
+            when (val message = jsonToIpcMessage(event.data, ipc)) {
+                "close" -> close()
+                "ping" -> port.postMessage(WebMessage("pong"))
+                "pong" -> debugMessagePortIpc("PONG/$ipc")
+                is IpcMessage -> {
+                    debugMessagePortIpc("ON-MESSAGE/$ipc", message)
+                    _messageSignal.emit(
+                        IpcMessageArgs(message, ipc)
+                    )
                 }
+                else -> throw Exception("unknown message: $message")
             }
-        })
+        }
+        onDestroy(callback)
+
     }
 
     override suspend fun _doPostMessage(data: IpcMessage) {

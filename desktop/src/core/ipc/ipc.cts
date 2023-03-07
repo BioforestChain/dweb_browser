@@ -1,13 +1,13 @@
-import once from "lodash/once";
+import { cacheGetter } from "../../helper/cacheGetter.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $MicroModule } from "../../helper/types.cjs";
 import {
   $IpcMessage,
+  $OnIpcEventMessage,
   $OnIpcRequestMessage,
   IPC_MESSAGE_TYPE,
   type $OnIpcMessage,
-  type IPC_ROLE,
 } from "./const.cjs";
 import type { IpcHeaders } from "./IpcHeaders.cjs";
 import { IpcRequest } from "./IpcRequest.cjs";
@@ -69,18 +69,34 @@ export abstract class Ipc {
   abstract _doPostMessage(data: $IpcMessage): void;
   onMessage = this._messageSignal.listen;
 
-  private _getOnRequestListener = once(() => {
+  @cacheGetter()
+  private get _onRequestSignal() {
     const signal = createSignal<$OnIpcRequestMessage>();
     this.onMessage((request, ipc) => {
       if (request.type === IPC_MESSAGE_TYPE.REQUEST) {
         signal.emit(request, ipc);
       }
     });
-    return signal.listen;
-  });
+    return signal;
+  }
 
   onRequest(cb: $OnIpcRequestMessage) {
-    return this._getOnRequestListener()(cb);
+    return this._onRequestSignal.listen(cb);
+  }
+
+  @cacheGetter()
+  private get _onEventSignal() {
+    const signal = createSignal<$OnIpcEventMessage>();
+    this.onMessage((event, ipc) => {
+      if (event.type === IPC_MESSAGE_TYPE.EVENT) {
+        signal.emit(event, ipc);
+      }
+    });
+    return signal;
+  }
+
+  onEvent(cb: $OnIpcEventMessage) {
+    return this._onEventSignal.listen(cb);
   }
 
   abstract _doClose(): void;

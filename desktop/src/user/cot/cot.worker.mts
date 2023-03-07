@@ -1,4 +1,5 @@
 const main = async () => {
+  console.log("start");
   const { IpcResponse, IpcHeaders } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",

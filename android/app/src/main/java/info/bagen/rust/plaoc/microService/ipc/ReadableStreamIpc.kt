@@ -19,11 +19,11 @@ inline fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
  * 以及需要手动绑定输入流 {@link bindIncomeStream}
  */
 class ReadableStreamIpc(
-    override val remote: MicroModule,
+    override val remote: MicroModuleInfo,
     override val role: String,
 ) : Ipc() {
     constructor(
-        remote: MicroModule,
+        remote: MicroModuleInfo,
         role: IPC_ROLE,
     ) : this(remote, role.role)
 

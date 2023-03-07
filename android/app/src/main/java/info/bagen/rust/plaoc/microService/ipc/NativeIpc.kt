@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
@@ -11,7 +10,7 @@ inline fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
 
 class NativeIpc(
     val port: NativePort<IpcMessage, IpcMessage>,
-    override val remote: MicroModule,
+    override val remote: MicroModuleInfo,
     private val role_type: IPC_ROLE,
 ) : Ipc() {
     override val role get() = role_type.role
@@ -46,7 +45,7 @@ class NativeIpc(
 //                debugNativeIpc("onMessage/emitted $message")
             _messageSignal.emit(IpcMessageArgs(message, this@NativeIpc))
         }
-        GlobalScope.launch {
+        GlobalScope.launch(ioAsyncExceptionHandler) {
             port.start()
         }
     }
@@ -102,7 +101,7 @@ class NativePort<I, O>(
      * 等待 close 信号被发出，那么就关闭出口、触发事件
      */
     init {
-        GlobalScope.launch {
+        GlobalScope.launch(ioAsyncExceptionHandler) {
             closePo.waitPromise()
             channel_out.close()
             _closeSignal.emit()

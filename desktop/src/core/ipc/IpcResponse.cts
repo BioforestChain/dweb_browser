@@ -106,7 +106,7 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
   static fromBinary(
     req_id: number,
     statusCode: number,
-    headers: IpcHeaders,
+    headers = new IpcHeaders(),
     binary: $Binary,
     ipc: Ipc
   ) {

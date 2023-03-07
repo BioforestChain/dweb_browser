@@ -26,7 +26,7 @@ data class MetaBody(
      * 远端可以发送句柄回来，这样可以省去一些数据的回传延迟。
      */
     val metaId: String = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
-) : JsonSerializer<MetaBody> {
+) : JsonSerializer<MetaBody>, JsonDeserializer<MetaBody> {
 
     @JsonAdapter(IPC_META_BODY_TYPE::class)
     enum class IPC_META_BODY_TYPE(val type: Int) : JsonSerializer<IPC_META_BODY_TYPE>,
@@ -132,7 +132,6 @@ data class MetaBody(
     }
 
 
-    @delegate:Transient
     val jsonAble by lazy {
         when (type.encoding) {
             IPC_DATA_ENCODING.BINARY -> fromBase64(
@@ -157,12 +156,35 @@ data class MetaBody(
             jsonObject.addProperty("metaId", metaId)
         }
     }
+
+
+    override fun deserialize(
+        json: JsonElement,
+        typeOfT: Type,
+        context: JsonDeserializationContext
+    ): MetaBody = json.asJsonObject.let { obj ->
+        MetaBody(
+            type = context.deserialize(obj["type"], IPC_META_BODY_TYPE::class.java),
+            senderUid = obj["senderUid"].asInt,
+            data = obj["data"].asString,
+            streamId = obj.getStringOrNull("streamId"),
+            receiverUid = obj.getIntOrNull("receiverUid"),
+            metaId = obj["metaId"].asString,
+        )
+    }
 }
 
-private val JsonElement.asStringOrNull
-    get() = if (isJsonNull) null else asString
+private fun JsonObject.getElementOrNull(key: String): JsonElement? {
+    if (!has(key)) {
+        return null
+    }
+    val value = get(key)
+    return if (value.isJsonNull)
+        null
+    else value
+}
+private fun JsonObject.getStringOrNull(key: String) = getElementOrNull(key)?.asString
 
+private fun JsonObject.getIntOrNull(key: String) = getElementOrNull(key)?.asInt
 
-private val JsonElement.asIntOrNull
-    get() = if (isJsonNull) null else asInt
 

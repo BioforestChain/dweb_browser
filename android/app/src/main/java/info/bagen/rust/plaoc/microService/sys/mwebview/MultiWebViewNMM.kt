@@ -7,13 +7,19 @@ import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
-import kotlinx.coroutines.delay
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcEvent
+import io.ktor.util.collections.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.util.concurrent.ConcurrentSkipListSet
 
 inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("MultiWebViewNMM", tag, msg, err)
@@ -40,12 +46,30 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val query_url = Query.string().required("url")
         val query_webviewId = Query.string().required("webview_id")
 
+        val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
+        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
+            for ((ipc) in subscribers) {
+                ipc.postMessage(IpcEvent.fromUtf8("qaq", "hi"))
+            }
+        }
+        _afterShutdownSignal.listen { job.cancel() }
+
         apiRouting = routes(
+            // 打开一个 webview 作为窗口
             "/open" bind Method.GET to defineHandler { request, ipc ->
                 val url = query_url(request)
                 println("MultiWebViewNMM $url")
-                openDwebView(ipc.remote, url)
+                val remoteMm = when (ipc.remote) {
+                    is MicroModule -> ipc.remote as MicroModule
+                    else -> throw Exception("mwebview.sys.dweb/open should be call by locale")
+                }
+                val webviewId = openDwebView(remoteMm, url)
+                val refs = subscribers.getOrPut(ipc) { ConcurrentSkipListSet<String>() }
+                refs.add(webviewId)
+
+                webviewId
             },
+            // 关闭指定 webview 窗口
             "/close" bind Method.GET to defineHandler { request, ipc ->
                 val webviewId = query_webviewId(request)
                 val remoteMmid = ipc.remote.mmid
@@ -61,14 +85,13 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     @Synchronized
     private fun openMutilWebViewActivity(remoteMmid: Mmid): ActivityClass {
         val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-        val activityClass =
-            activityClassList.find { it.mmid == remoteMmid } ?:
-            // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
-            activityClassList.removeAt(0).also {
-                it.mmid = remoteMmid
-                activityClassList.add(it)
-                flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-            }
+        val activityClass = activityClassList.find { it.mmid == remoteMmid } ?:
+        // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
+        activityClassList.removeAt(0).also {
+            it.mmid = remoteMmid
+            activityClassList.add(it)
+            flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        }
         App.startActivity(activityClass.ctor) { intent ->
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
@@ -91,7 +114,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val controller = controllerMap.getOrPut(remoteMmid) { MutilWebViewController(remoteMmid) }
         openMutilWebViewActivity(remoteMmid)
         controller.waitActivityCreated()
-        return controller.openWebView(remoteMm, url).webviewId
+        return controller.openWebView(this, remoteMm, url).webviewId
     }
 
     private fun closeDwebView(remoteMmid: String, webviewId: String) =

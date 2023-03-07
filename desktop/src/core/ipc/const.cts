@@ -1,5 +1,6 @@
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.cjs";
 import type { Ipc } from "./ipc.cjs";
+import type { IpcEvent } from "./IpcEvent.cjs";
 import type { IpcReqMessage, IpcRequest } from "./IpcRequest.cjs";
 import type { IpcResMessage, IpcResponse } from "./IpcResponse.cjs";
 import type { IpcStreamAbort } from "./IpcStreamAbort.cjs";
@@ -101,6 +102,7 @@ export class IpcMessage<T extends IPC_MESSAGE_TYPE> {
 export type $IpcTransferableMessage =
   | IpcReqMessage
   | IpcResMessage
+  | IpcEvent
   | IpcStreamData
   | IpcStreamPull
   | IpcStreamEnd
@@ -110,6 +112,7 @@ export type $IpcTransferableMessage =
 export type $IpcMessage =
   | IpcRequest
   | IpcResponse
+  | IpcEvent
   | IpcStreamData
   | IpcStreamPull
   | IpcStreamEnd
@@ -124,6 +127,11 @@ export type $OnIpcMessage = (
 export type $OnIpcRequestMessage = (
   /// 这里只会有两种类型的数据
   message: IpcRequest,
+  ipc: Ipc
+) => unknown;
+export type $OnIpcEventMessage = (
+  /// 这里只会有两种类型的数据
+  message: IpcEvent,
   ipc: Ipc
 ) => unknown;
 

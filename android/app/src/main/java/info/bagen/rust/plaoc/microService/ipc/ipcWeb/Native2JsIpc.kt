@@ -5,11 +5,12 @@ import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 
 
-val ALL_IPC_CACHE = mutableMapOf<Int, WebMessagePort>();
-var all_ipc_id_acc = 1;
+val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
+private var all_ipc_id_acc = 1;
 fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc++.also { port_id ->
-    ALL_IPC_CACHE[port_id] = port;
+    ALL_MESSAGE_PORT_CACHE[port_id] = MessagePort.from(port);
 }
+
 
 /**
  * Native2JsIpc 的远端是在 webView 中的，所以底层使用 WebMessagePort 与指通讯
@@ -26,7 +27,12 @@ class Native2JsIpc(
     remote: MicroModule,
     role: IPC_ROLE = IPC_ROLE.CLIENT,
 ) : MessagePortIpc(
-    ALL_IPC_CACHE[port_id] ?: throw Exception("no found port2(js-process) by id: $port_id"),
-    remote,
-    role
-)
+    ALL_MESSAGE_PORT_CACHE[port_id]
+        ?: throw Exception("no found port2(js-process) by id: $port_id"), remote, role
+) {
+    init {
+        onClose {
+            ALL_MESSAGE_PORT_CACHE.remove(port_id)
+        }
+    }
+}

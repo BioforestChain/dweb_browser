@@ -3,7 +3,7 @@
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
-import { IPC_ROLE } from "../../core/ipc/index.cjs";
+import { Ipc, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { fetchExtends } from "../../helper/$makeFetchExtends.cjs";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.cjs";
 import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.cjs";
@@ -16,6 +16,8 @@ import { updateUrlOrigin } from "../../helper/urlHelper.cjs";
 import type { $RunMainConfig } from "./assets/js-process.web.mjs";
 
 import * as ipc from "../../core/ipc/index.cjs";
+import { cacheGetter } from "../../helper/cacheGetter.cjs";
+import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import * as http from "../http-server/$createHttpDwebServer.cjs";
 
 class Metadata {
@@ -81,6 +83,7 @@ export class JsProcessMicroModule implements $MicroModule {
     readonly meta: Metadata,
     private nativeFetchPort: MessagePort
   ) {}
+  /// 这个通道只能用于基础的通讯
   readonly fetchIpc = new MessagePortIpc(
     this.nativeFetchPort,
     this,
@@ -111,12 +114,26 @@ export class JsProcessMicroModule implements $MicroModule {
     const args = normalizeFetchArgs(url, init);
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
+
+  connect(mmid: $MMID) {
+    const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
+    const po = new PromiseOut<MessagePort>();
+    connectCidMap.set(cid, po);
+    this.nativeFetch(
+      `/dns/connect?mmid=${encodeURIComponent(mmid)}&cid=${cid}`
+    );
+    return po.promise;
+  }
+
+  beConnnect(ipc:Ipc){
+
+  }
 }
 
 /// 消息通道构造器
 const waitFetchPort = () => {
   return new Promise<MessagePort>((resolve) => {
-    self.addEventListener("message", (event) => {
+    self.addEventListener("message", function onFetchIpcChannel(event) {
       const data = event.data as any[];
       if (Array.isArray(event.data) === false) {
         return;
@@ -125,6 +142,7 @@ const waitFetchPort = () => {
       /// 由 web 主线程代理传递过来
       if (data[0] === "fetch-ipc-channel") {
         resolve(data[1]);
+        self.removeEventListener("message", onFetchIpcChannel);
       }
     });
   });
@@ -188,8 +206,20 @@ self.addEventListener("message", async (event) => {
     });
 
     await import(config.main_url);
+  } else if (data[0] === "ipc-connect") {
+    const cid = data[1];
+    const port = event.ports[0];
+    const po = connectCidMap.get(cid);
+    if (po) {
+      connectCidMap.delete(cid);
+      po.resolve(port);
+    } else {
+      // jsProcess.beConnnect(new MessagePortIpc(port,jsProcess,))
+    }
   }
 });
+
+const connectCidMap = new Map<string, PromiseOut<MessagePort>>();
 
 installEnv(
   metadata.requiredString("mmid") as $MMID,

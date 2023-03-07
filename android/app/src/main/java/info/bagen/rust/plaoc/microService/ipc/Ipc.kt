@@ -37,7 +37,12 @@ abstract class Ipc {
     /** 是否支持 二进制 传输 */
     open val supportBinary: Boolean = false // get() = supportMessagePack || supportProtobuf
 
-    abstract val remote: MicroModule
+    abstract val remote: MicroModuleInfo
+
+    interface MicroModuleInfo {
+        val mmid: Mmid
+    }
+
     abstract val role: String
 
     override fun toString() = "#i$uid"
@@ -77,6 +82,19 @@ abstract class Ipc {
 
     fun onRequest(cb: OnIpcRequestMessage) = _requestSignal.listen(cb)
 
+    private val _eventSignal by lazy {
+        Signal<IpcEventMessageArgs>().also { signal ->
+            _messageSignal.listen { args ->
+                if (args.message is IpcEvent) {
+                    signal.emit(IpcEventMessageArgs(args.message, args.ipc));
+                }
+            }
+        }
+    }
+
+    fun onEvent(cb: OnIpcEventMessage) = _eventSignal.listen(cb)
+
+
     abstract suspend fun _doClose(): Unit;
 
     private var _closed = false
@@ -88,12 +106,37 @@ abstract class Ipc {
         this._doClose();
         this._closeSignal.emit();
         this._closeSignal.clear();
+
+        /// 关闭的时候会自动触发销毁
+        this.destroy(false)
     }
 
     val isClosed get() = _closed
 
     private val _closeSignal = SimpleSignal();
     fun onClose(cb: SimpleCallback) = this._closeSignal.listen(cb)
+
+
+    private val _destroySignal = SimpleSignal()
+    fun onDestroy(cb: SimpleCallback) = this._destroySignal.listen(cb)
+
+    private var _destroyed = false
+    val isDestroy get() = _destroyed
+
+    /**
+     * 销毁实例
+     */
+    suspend fun destroy(close: Boolean = true) {
+        if (_destroyed) {
+            return
+        }
+        _destroyed = true
+        if (close) {
+            this.close()
+        }
+        this._destroySignal.emit()
+        this._destroySignal.clear()
+    }
 
     /**
      * 发送请求

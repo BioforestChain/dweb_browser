@@ -5,6 +5,7 @@ import android.webkit.WebMessage
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
+import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.MessagePortIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.saveNative2JsIpcPort
 import info.bagen.rust.plaoc.microService.webview.DWebView
@@ -12,22 +13,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class JsProcessWebApi(val dWebView: DWebView) {
-
-
     suspend fun isReady() =
         dWebView.evaluateSyncJavascriptCode("typeof createProcess") == "function"
 
     data class ProcessInfo(val process_id: Int) {}
     inner class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
 
-    suspend fun createProcess(env_script_url: String, remoteModule: MicroModule) =
+    suspend fun createProcess(env_script_url: String, remoteModule: Ipc.MicroModuleInfo) =
         withContext(Dispatchers.Main) {
             val channel = dWebView.createWebMessageChannel()
             val port1 = channel[0]
             val port2 = channel[1]
 
-            val processInfo_json = dWebView.evaluateAsyncJavascriptCode(
-                """
+            val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
             new Promise((resolve,reject)=>{
                 addEventListener("message", async event => {
                     if (event.data === "js-process/create-process") {
@@ -41,14 +39,11 @@ class JsProcessWebApi(val dWebView: DWebView) {
                     }
                 }, { once: true })
             })
-            """.trimIndent(),
-                afterEval = {
-                    dWebView.postWebMessage(
-                        WebMessage("js-process/create-process", arrayOf(port1)),
-                        Uri.EMPTY
-                    );
-                }
-            )
+            """.trimIndent(), afterEval = {
+                dWebView.postWebMessage(
+                    WebMessage("js-process/create-process", arrayOf(port1)), Uri.EMPTY
+                );
+            })
             debugJsProcess("processInfo", processInfo_json)
             val info = gson.fromJson(processInfo_json, ProcessInfo::class.java)
             ProcessHandler(info, MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT))
@@ -84,8 +79,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
         val port1 = channel[0]
         val port2 = channel[1]
         dWebView.postWebMessage(
-            WebMessage("js-process/create-ipc", arrayOf(port1)),
-            android.net.Uri.EMPTY
+            WebMessage("js-process/create-ipc", arrayOf(port1)), Uri.EMPTY
         );
 
         saveNative2JsIpcPort(port2)

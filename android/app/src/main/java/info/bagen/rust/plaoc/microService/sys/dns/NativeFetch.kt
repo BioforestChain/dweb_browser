@@ -4,9 +4,9 @@ import android.content.res.AssetManager
 import android.webkit.MimeTypeMap
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
+import info.bagen.rust.plaoc.microService.helper.AdapterManager
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.readByteArray
-import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.PreReadableInputStream
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
@@ -18,21 +18,8 @@ typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Resp
 inline fun debugFetch(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("fetch", tag, msg, err)
 
-class NativeFetchAdaptersManager {
-    private val adapterOrderMap = mutableMapOf<FetchAdapter, Int>()
-    private var orderdAdapters = listOf<FetchAdapter>()
-    val adapters get() = orderdAdapters
-    fun append(order: Int = 0, adapter: FetchAdapter): (Unit) -> Boolean {
-        adapterOrderMap[adapter] = order
-        orderdAdapters =
-            adapterOrderMap.toList().sortedBy { (_, b) -> b }.map { (adapter) -> adapter }
-        return { remove(adapter) }
-    }
 
-    fun remove(adapter: FetchAdapter) = adapterOrderMap.remove(adapter) != null
-}
-
-val nativeFetchAdaptersManager = NativeFetchAdaptersManager()
+val nativeFetchAdaptersManager = AdapterManager<FetchAdapter>()
 
 private val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
 

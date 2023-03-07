@@ -3,24 +3,29 @@ package info.bagen.rust.plaoc.microService.sys.js
 import android.webkit.WebView
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
+import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.encodeURI
-import info.bagen.rust.plaoc.microService.helper.printdebugln
-import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
-import info.bagen.rust.plaoc.microService.helper.text
-import info.bagen.rust.plaoc.microService.ipc.*
+import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
+import info.bagen.rust.plaoc.microService.ipc.IpcResponse
+import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.http4k.core.*
+import org.http4k.core.Method
+import org.http4k.core.Request
+import org.http4k.core.query
 import org.http4k.lens.Query
-import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.util.concurrent.ConcurrentHashMap
 
 
 inline fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -70,7 +75,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             val urlInfo = mainServer.startResult.urlInfo
             JsProcessWebApi(
                 DWebView(
-                    App.appContext, this@JsProcessNMM, DWebView.Options(
+                    App.appContext, this@JsProcessNMM, this@JsProcessNMM, DWebView.Options(
                         url = urlInfo.buildInternalUrl().path("/index.html").toString()
                     )
                 )
@@ -81,18 +86,46 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         }
 
         val query_entry = Query.string().required("entry")
-        val query_process_id = Query.int().required("process_id")
+        val query_process_id = Query.string().required("process_id")
 
+        val ipcProcessIdMap = mutableMapOf<Ipc, MutableMap<String, PromiseOut<Int>>>()
+        val ipcProcessIdMapLock = Mutex()
         apiRouting = routes(
             /// 创建 web worker
+            // request 需要携带一个流，来为 web worker 提供代码服务
             "/create-process" bind Method.POST to defineHandler { request, ipc ->
-                createProcessAndRun(
-                    ipc, apis, query_entry(request), request
+                val po = ipcProcessIdMapLock.withLock {
+                    val processId = query_process_id(request)
+                    val processIdMap = ipcProcessIdMap.getOrPut(ipc) {
+                        ipc.onClose { ipcProcessIdMap.remove(ipc) }
+                        ConcurrentHashMap()
+                    }
+
+                    if (processIdMap.contains(processId)) {
+                        throw Exception("ipc:${ipc.remote.mmid}/processId:$processId has already using")
+                    }
+
+                    PromiseOut<Int>().also { processIdMap[processId] = it }
+                }
+                val result = createProcessAndRun(
+                    ipc, apis, query_entry(request), request,
                 )
+                // 将自定义的 processId 与真实的 js-process_id 进行关联
+                po.resolve(result.processHandler.info.process_id)
+
+                // 返回流，因为构建了一个双工通讯用于代码提供服务
+                result.streamIpc.stream
             },
             /// 创建 web 通讯管道
-            "/create-ipc" bind Method.GET to defineHandler { request ->
-                apis.createIpc(query_process_id(request))
+            "/create-ipc" bind Method.GET to defineHandler { request, ipc ->
+                val processId = query_process_id(request)
+                val process_id = ipcProcessIdMapLock.withLock {
+                    ipcProcessIdMap[ipc]?.get(processId)
+                        ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
+                }.waitPromise()
+
+                // 返回 port_id
+                createIpc(ipc, apis, process_id)
             })
 
     }
@@ -102,8 +135,11 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     }
 
     private suspend fun createProcessAndRun(
-        ipc: Ipc, apis: JsProcessWebApi, entry: String = "/index.js", requestMessage: Request
-    ): Response {
+        ipc: Ipc,
+        apis: JsProcessWebApi,
+        entry: String = "/index.js",
+        requestMessage: Request,
+    ): CreateProcessAndRunResult {
         /**
          * 用自己的域名的权限为它创建一个子域名
          */
@@ -180,15 +216,33 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          */
         val processHandler = apis.createProcess(bootstrap_url, ipc.remote);
 
+        /**
+         * js create-process 目前只能被本地模块调用，因为我们需要它直接发起 nativeFetch 来代理 worker 的请求
+         * 否则需要将这里的所有请求发往远端
+         */
+        val remoteMM: MicroModule = if (ipc.remote is MicroModule) ipc.remote as MicroModule
+        else throw Exception("js-process should be call by locale")
+
+        val query_mmid = Query.string().required("mmid")
+        val query_cid = Query.string().required("cid")
         /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
         /// TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
         processHandler.ipc.onRequest { (ipcRequest, ipc) ->
-            val request = ipcRequest.toRequest()
-            // 转发请求
-            val response = ipc.remote.nativeFetch(request);
-            val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
-            ipc.postMessage(ipcResponse)
+            val request = ipcRequest.toRequest().header("X-Dweb-Proxy-Id", mmid)
+            kotlin.runCatching {
+                // 转发请求
+                val response = remoteMM.nativeFetch(request);
+                val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
+                ipc.postMessage(ipcResponse)
+            }.onFailure {
+                ipc.postMessage(
+                    IpcResponse.fromText(
+                        ipcRequest.req_id, 500, text = it.message ?: "", ipc = ipc
+                    )
+                )
+            }
         }
+
         /**
          * 开始执行代码
          */
@@ -214,8 +268,15 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             httpDwebServer.close();
         }
 
-        /// 返回自定义的 Response，里头携带我们定义的 ipcStream
-        return Response(Status.OK).body(streamIpc.stream);
+        return CreateProcessAndRunResult(streamIpc, processHandler)
+    }
+
+    data class CreateProcessAndRunResult(
+        val streamIpc: ReadableStreamIpc, val processHandler: JsProcessWebApi.ProcessHandler
+    )
+
+    private suspend fun createIpc(ipc: Ipc, apis: JsProcessWebApi, process_id: Int): Int {
+        return apis.createIpc(process_id)
     }
 }
 

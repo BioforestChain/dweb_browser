@@ -1,17 +1,13 @@
 package info.bagen.rust.plaoc.microService.sys.dns
 
-import info.bagen.rust.plaoc.microService.core.BootstrapContext
-import info.bagen.rust.plaoc.microService.core.DnsMicroModule
-import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.core.*
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
+import org.http4k.core.*
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -25,29 +21,26 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     private val mmMap = mutableMapOf<Mmid, MicroModule>()
 
     suspend fun bootstrap() {
-        super.bootstrap(object : BootstrapContext {
-            override val dns: DnsMicroModule
-                get() = throw Exception("no support for self")
-        })
+        bootstrapMicroModule(this)
     }
 
     /** 对等连接列表 */
     private val connects = mutableMapOf<MicroModule, MutableMap<Mmid, Ipc>>()
 
     /** 为两个mm建立 ipc 通讯 */
-    private suspend fun connectTo(fromMM: MicroModule, toMmid: Mmid): Ipc {
+    private suspend fun connectTo(fromMM: MicroModule, toMmid: Mmid, reason: Request): Ipc {
         /** 一个互联实例表 */
         val ipcMap = connects.getOrPut(fromMM) { mutableMapOf() }
 
         /**
          * 一个互联实例
          */
-        val ipc = ipcMap.getOrPut(mmid) {
-            val toMM = open(mmid);
-            debugFetch("DNS/connect", "${toMM.mmid} 🥑 ${fromMM.mmid}")
-            toMM.beConnect(fromMM).also { ipc ->
+        val ipc = ipcMap.getOrPut(toMmid) {
+            val toMM = open(toMmid);
+            debugFetch("DNS/connect", "${fromMM.mmid} => $toMmid")
+            connectMicroModules(fromMM, toMM, reason).also { ipc ->
                 // 在 IPC 关闭的时候，从 ipcMap 中移除
-                ipc.onClose { ipcMap.remove(mmid); }
+                ipc.onClose { ipcMap.remove(toMmid); }
             }
         }
         return ipc
@@ -65,10 +58,18 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
             uninstall(mm)
         }
 
-        override suspend fun connect(mmid: Mmid): Ipc {
+        override suspend fun connect(
+            mmid: Mmid,
+            reason: Request?
+        ): Ipc {
             // TODO 权限保护
-            return dnsMM.connectTo(fromMM, mmid)
+            return dnsMM.connectTo(
+                fromMM,
+                mmid,
+                reason ?: Request(Method.GET, Uri.of("file://$mmid"))
+            )
         }
+
     }
 
     class MyBootstrapContext(override val dns: MyDnsMicroModule) : BootstrapContext {}
@@ -90,7 +91,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
                 val mmid = request.uri.host
                 debugFetch("DNS/fetchAdapter", "$mmid >> ${request.uri.path}")
                 mmMap[mmid]?.let {
-                    val ipc = connectTo(fromMM, mmid)
+                    val ipc = connectTo(fromMM, mmid, request)
                     return@let ipc.request(request)
                 } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())
             } else null
@@ -114,7 +115,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
                 true
             })
         /// 启动 boot 模块
-        GlobalScope.launch {
+        GlobalScope.launch(ioAsyncExceptionHandler) {
             open("boot.sys.dweb")
         }
     }

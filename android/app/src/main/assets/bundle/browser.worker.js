@@ -293,10 +293,10 @@ var require_before = __commonJS({
 var require_once = __commonJS({
   "node_modules/lodash/once.js"(exports, module) {
     var before = require_before();
-    function once6(func) {
+    function once5(func) {
       return before(2, func);
     }
-    module.exports = once6;
+    module.exports = once5;
   }
 });
 
@@ -1186,7 +1186,7 @@ var _IpcResponse = class extends IpcMessage {
       ipc
     );
   }
-  static fromBinary(req_id, statusCode, headers, binary, ipc) {
+  static fromBinary(req_id, statusCode, headers = new IpcHeaders(), binary, ipc) {
     headers.init("Content-Type", "application/octet-stream");
     headers.init("Content-Length", binary.byteLength + "");
     return new _IpcResponse(
@@ -1225,7 +1225,7 @@ var IpcResMessage = class extends IpcMessage {
 };
 
 // src/sys/http-server/$createHttpDwebServer.cts
-var import_once5 = __toESM(require_once());
+var import_once4 = __toESM(require_once());
 
 // node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
 var UINT32_MAX = 4294967295;
@@ -2825,9 +2825,6 @@ function decode(buffer, options) {
 }
 
 // src/core/ipc-web/ReadableStreamIpc.cts
-var import_once4 = __toESM(require_once());
-
-// src/core/ipc/ipc.cts
 var import_once3 = __toESM(require_once());
 
 // src/helper/PromiseOut.cts
@@ -2996,15 +2993,6 @@ var Ipc = class {
     this._support_binary = false;
     this._messageSignal = createSignal();
     this.onMessage = this._messageSignal.listen;
-    this._getOnRequestListener = (0, import_once3.default)(() => {
-      const signal = createSignal();
-      this.onMessage((request, ipc) => {
-        if (request.type === 0 /* REQUEST */) {
-          signal.emit(request, ipc);
-        }
-      });
-      return signal.listen;
-    });
     this._closed = false;
     this._closeSignal = createSignal();
     this.onClose = this._closeSignal.listen;
@@ -3047,8 +3035,29 @@ var Ipc = class {
     }
     this._doPostMessage(message);
   }
+  get _onRequestSignal() {
+    const signal = createSignal();
+    this.onMessage((request, ipc) => {
+      if (request.type === 0 /* REQUEST */) {
+        signal.emit(request, ipc);
+      }
+    });
+    return signal;
+  }
   onRequest(cb) {
-    return this._getOnRequestListener()(cb);
+    return this._onRequestSignal.listen(cb);
+  }
+  get _onEventSignal() {
+    const signal = createSignal();
+    this.onMessage((event, ipc) => {
+      if (event.type === 6 /* EVENT */) {
+        signal.emit(event, ipc);
+      }
+    });
+    return signal;
+  }
+  onEvent(cb) {
+    return this._onEventSignal.listen(cb);
   }
   close() {
     if (this._closed) {
@@ -3099,6 +3108,12 @@ var Ipc = class {
     return response_po;
   }
 };
+__decorateClass([
+  cacheGetter()
+], Ipc.prototype, "_onRequestSignal", 1);
+__decorateClass([
+  cacheGetter()
+], Ipc.prototype, "_onEventSignal", 1);
 
 // src/core/ipc/IpcBodyReceiver.cts
 var _IpcBodyReceiver = class extends IpcBody {
@@ -3191,6 +3206,58 @@ var $metaToStream = (metaBody, ipc) => {
   return stream;
 };
 
+// src/core/ipc/IpcEvent.cts
+var _IpcEvent = class extends IpcMessage {
+  constructor(name, data, encoding) {
+    super(6 /* EVENT */);
+    this.name = name;
+    this.data = data;
+    this.encoding = encoding;
+  }
+  static fromBase64(name, data) {
+    return new _IpcEvent(
+      name,
+      simpleDecoder(data, "base64"),
+      4 /* BASE64 */
+    );
+  }
+  static fromBinary(name, data) {
+    return new _IpcEvent(name, data, 8 /* BINARY */);
+  }
+  static fromUtf8(name, data) {
+    return new _IpcEvent(
+      name,
+      simpleDecoder(data, "utf8"),
+      2 /* UTF8 */
+    );
+  }
+  get binary() {
+    return $dataToBinary(this.data, this.encoding);
+  }
+  get text() {
+    return $dataToText(this.data, this.encoding);
+  }
+  get jsonAble() {
+    if (this.encoding === 8 /* BINARY */) {
+      return _IpcEvent.fromBase64(this.name, this.data);
+    }
+    return this;
+  }
+  toJSON() {
+    return { ...this.jsonAble };
+  }
+};
+var IpcEvent = _IpcEvent;
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "binary", 1);
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "text", 1);
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "jsonAble", 1);
+
 // src/core/ipc-web/$messageToIpcMessage.cts
 var isIpcSignalMessage = (msg) => msg === "close" || msg === "ping" || msg === "pong";
 var $messageToIpcMessage = (data, ipc) => {
@@ -3215,6 +3282,8 @@ var $messageToIpcMessage = (data, ipc) => {
       new IpcBodyReceiver(MetaBody.fromJSON(data.metaBody), ipc),
       ipc
     );
+  } else if (data.type === 6 /* EVENT */) {
+    message = new IpcEvent(data.name, data.data, data.encoding);
   } else if (data.type === 2 /* STREAM_DATA */) {
     message = new IpcStreamData(data.stream_id, data.data, data.encoding);
   } else if (data.type === 3 /* STREAM_PULL */) {
@@ -3254,7 +3323,7 @@ var ReadableStreamIpc = class extends Ipc {
     this.role = role;
     this.self_support_protocols = self_support_protocols;
     __privateAdd(this, _rso, new ReadableStreamOut());
-    this.PONG_DATA = (0, import_once4.default)(() => {
+    this.PONG_DATA = (0, import_once3.default)(() => {
       const pong = simpleEncoder("pong", "utf8");
       this._len[0] = pong.length;
       return u8aConcat([this._len_u8a, pong]);
@@ -3388,7 +3457,7 @@ var HttpDwebServer = class {
       return listenHttpDwebServer(this.nmm, this.startResult, routes);
     };
     /** 关闭监听 */
-    this.close = (0, import_once5.default)(() => closeHttpDwebServer(this.nmm, this.options));
+    this.close = (0, import_once4.default)(() => closeHttpDwebServer(this.nmm, this.options));
   }
 };
 var listenHttpDwebServer = async (microModule, startResult, routes = [

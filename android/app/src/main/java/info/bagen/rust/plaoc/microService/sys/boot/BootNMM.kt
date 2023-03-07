@@ -5,6 +5,7 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.core.Router
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.encodeURIComponent
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
@@ -41,7 +42,7 @@ class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb"
             }
         )
 
-        GlobalScope.launch {
+        GlobalScope.launch(ioAsyncExceptionHandler) {
             for (mmid in registeredMmids) {
                 debugBoot("launch", mmid)
                 nativeFetch("file://dns.sys.dweb/open?app_id=${mmid.encodeURIComponent()}")

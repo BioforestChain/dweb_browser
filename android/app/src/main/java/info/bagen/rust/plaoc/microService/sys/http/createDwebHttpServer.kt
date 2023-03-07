@@ -73,7 +73,7 @@ class HttpDwebServer(
         ),
     ) = runBlockingCatching {
         val po = PromiseOut<ReadableStreamIpc>()
-        GlobalScope.launch {
+        GlobalScope.launch(ioAsyncExceptionHandler) {
             val streamIpc = nmm.listenHttpDwebServer(startResult, routes)
             po.resolve(streamIpc)
         }

@@ -5,6 +5,7 @@ import {
 } from "../ipc/const.cjs";
 import type { Ipc } from "../ipc/ipc.cjs";
 import { IpcBodyReceiver } from "../ipc/IpcBodyReceiver.cjs";
+import { IpcEvent } from "../ipc/IpcEvent.cjs";
 import { IpcHeaders } from "../ipc/IpcHeaders.cjs";
 import { IpcRequest } from "../ipc/IpcRequest.cjs";
 import { IpcResponse } from "../ipc/IpcResponse.cjs";
@@ -47,6 +48,8 @@ export const $messageToIpcMessage = (
       new IpcBodyReceiver(MetaBody.fromJSON(data.metaBody), ipc),
       ipc
     );
+  } else if (data.type === IPC_MESSAGE_TYPE.EVENT) {
+    message = new IpcEvent(data.name, data.data, data.encoding);
   } else if (data.type === IPC_MESSAGE_TYPE.STREAM_DATA) {
     message = new IpcStreamData(data.stream_id, data.data, data.encoding);
   } else if (data.type === IPC_MESSAGE_TYPE.STREAM_PULL) {

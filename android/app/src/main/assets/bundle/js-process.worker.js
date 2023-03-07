@@ -297,10 +297,10 @@ var require_before = __commonJS({
 var require_once = __commonJS({
   "node_modules/lodash/once.js"(exports, module) {
     var before = require_before();
-    function once6(func) {
+    function once5(func) {
       return before(2, func);
     }
-    module.exports = once6;
+    module.exports = once5;
   }
 });
 
@@ -1901,8 +1901,29 @@ function decode(buffer, options) {
   return decoder.decode(buffer);
 }
 
-// src/core/ipc/ipc.cts
-var import_once2 = __toESM(require_once());
+// src/helper/cacheGetter.cts
+var cacheGetter = () => {
+  return (target, prop, desp) => {
+    const source_fun = desp.get;
+    if (source_fun === void 0) {
+      throw new Error(`${target}.${prop} should has getter`);
+    }
+    desp.get = function() {
+      const result = source_fun.call(this);
+      if (desp.set) {
+        desp.get = () => result;
+      } else {
+        delete desp.set;
+        delete desp.get;
+        desp.value = result;
+        desp.writable = false;
+      }
+      Object.defineProperty(this, prop, desp);
+      return result;
+    };
+    return desp;
+  };
+};
 
 // src/helper/createSignal.cts
 var createSignal = () => {
@@ -2309,30 +2330,6 @@ var IpcStreamAbort = class extends IpcMessage {
     super(5 /* STREAM_ABORT */);
     this.stream_id = stream_id;
   }
-};
-
-// src/helper/cacheGetter.cts
-var cacheGetter = () => {
-  return (target, prop, desp) => {
-    const source_fun = desp.get;
-    if (source_fun === void 0) {
-      throw new Error(`${target}.${prop} should has getter`);
-    }
-    desp.get = function() {
-      const result = source_fun.call(this);
-      if (desp.set) {
-        desp.get = () => result;
-      } else {
-        delete desp.set;
-        delete desp.get;
-        desp.value = result;
-        desp.writable = false;
-      }
-      Object.defineProperty(this, prop, desp);
-      return result;
-    };
-    return desp;
-  };
 };
 
 // src/core/ipc/IpcStreamData.cts
@@ -2906,15 +2903,6 @@ var Ipc = class {
     this._support_binary = false;
     this._messageSignal = createSignal();
     this.onMessage = this._messageSignal.listen;
-    this._getOnRequestListener = (0, import_once2.default)(() => {
-      const signal = createSignal();
-      this.onMessage((request, ipc) => {
-        if (request.type === 0 /* REQUEST */) {
-          signal.emit(request, ipc);
-        }
-      });
-      return signal.listen;
-    });
     this._closed = false;
     this._closeSignal = createSignal();
     this.onClose = this._closeSignal.listen;
@@ -2957,8 +2945,29 @@ var Ipc = class {
     }
     this._doPostMessage(message);
   }
+  get _onRequestSignal() {
+    const signal = createSignal();
+    this.onMessage((request, ipc) => {
+      if (request.type === 0 /* REQUEST */) {
+        signal.emit(request, ipc);
+      }
+    });
+    return signal;
+  }
   onRequest(cb) {
-    return this._getOnRequestListener()(cb);
+    return this._onRequestSignal.listen(cb);
+  }
+  get _onEventSignal() {
+    const signal = createSignal();
+    this.onMessage((event, ipc) => {
+      if (event.type === 6 /* EVENT */) {
+        signal.emit(event, ipc);
+      }
+    });
+    return signal;
+  }
+  onEvent(cb) {
+    return this._onEventSignal.listen(cb);
   }
   close() {
     if (this._closed) {
@@ -3009,9 +3018,15 @@ var Ipc = class {
     return response_po;
   }
 };
+__decorateClass([
+  cacheGetter()
+], Ipc.prototype, "_onRequestSignal", 1);
+__decorateClass([
+  cacheGetter()
+], Ipc.prototype, "_onEventSignal", 1);
 
 // src/core/ipc/IpcResponse.cts
-var import_once3 = __toESM(require_once());
+var import_once2 = __toESM(require_once());
 var _ipcHeaders;
 var _IpcResponse = class extends IpcMessage {
   constructor(req_id, statusCode, headers, body, ipc) {
@@ -3022,7 +3037,7 @@ var _IpcResponse = class extends IpcMessage {
     this.body = body;
     this.ipc = ipc;
     __privateAdd(this, _ipcHeaders, void 0);
-    this.ipcResMessage = (0, import_once3.default)(
+    this.ipcResMessage = (0, import_once2.default)(
       () => new IpcResMessage(
         this.req_id,
         this.statusCode,
@@ -3095,7 +3110,7 @@ var _IpcResponse = class extends IpcMessage {
       ipc
     );
   }
-  static fromBinary(req_id, statusCode, headers, binary, ipc) {
+  static fromBinary(req_id, statusCode, headers = new IpcHeaders(), binary, ipc) {
     headers.init("Content-Type", "application/octet-stream");
     headers.init("Content-Length", binary.byteLength + "");
     return new _IpcResponse(
@@ -3224,6 +3239,58 @@ var $metaToStream = (metaBody, ipc) => {
   return stream;
 };
 
+// src/core/ipc/IpcEvent.cts
+var _IpcEvent = class extends IpcMessage {
+  constructor(name, data, encoding) {
+    super(6 /* EVENT */);
+    this.name = name;
+    this.data = data;
+    this.encoding = encoding;
+  }
+  static fromBase64(name, data) {
+    return new _IpcEvent(
+      name,
+      simpleDecoder(data, "base64"),
+      4 /* BASE64 */
+    );
+  }
+  static fromBinary(name, data) {
+    return new _IpcEvent(name, data, 8 /* BINARY */);
+  }
+  static fromUtf8(name, data) {
+    return new _IpcEvent(
+      name,
+      simpleDecoder(data, "utf8"),
+      2 /* UTF8 */
+    );
+  }
+  get binary() {
+    return $dataToBinary(this.data, this.encoding);
+  }
+  get text() {
+    return $dataToText(this.data, this.encoding);
+  }
+  get jsonAble() {
+    if (this.encoding === 8 /* BINARY */) {
+      return _IpcEvent.fromBase64(this.name, this.data);
+    }
+    return this;
+  }
+  toJSON() {
+    return { ...this.jsonAble };
+  }
+};
+var IpcEvent = _IpcEvent;
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "binary", 1);
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "text", 1);
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "jsonAble", 1);
+
 // src/core/ipc-web/$messageToIpcMessage.cts
 var isIpcSignalMessage = (msg) => msg === "close" || msg === "ping" || msg === "pong";
 var $messageToIpcMessage = (data, ipc) => {
@@ -3248,6 +3315,8 @@ var $messageToIpcMessage = (data, ipc) => {
       new IpcBodyReceiver(MetaBody.fromJSON(data.metaBody), ipc),
       ipc
     );
+  } else if (data.type === 6 /* EVENT */) {
+    message = new IpcEvent(data.name, data.data, data.encoding);
   } else if (data.type === 2 /* STREAM_DATA */) {
     message = new IpcStreamData(data.stream_id, data.data, data.encoding);
   } else if (data.type === 3 /* STREAM_PULL */) {
@@ -3527,10 +3596,10 @@ __export(createHttpDwebServer_exports, {
   listenHttpDwebServer: () => listenHttpDwebServer,
   startHttpDwebServer: () => startHttpDwebServer
 });
-var import_once5 = __toESM(require_once());
+var import_once4 = __toESM(require_once());
 
 // src/core/ipc-web/ReadableStreamIpc.cts
-var import_once4 = __toESM(require_once());
+var import_once3 = __toESM(require_once());
 var _rso;
 var ReadableStreamIpc = class extends Ipc {
   constructor(remote, role, self_support_protocols = {
@@ -3543,7 +3612,7 @@ var ReadableStreamIpc = class extends Ipc {
     this.role = role;
     this.self_support_protocols = self_support_protocols;
     __privateAdd(this, _rso, new ReadableStreamOut());
-    this.PONG_DATA = (0, import_once4.default)(() => {
+    this.PONG_DATA = (0, import_once3.default)(() => {
       const pong = simpleEncoder("pong", "utf8");
       this._len[0] = pong.length;
       return u8aConcat([this._len_u8a, pong]);
@@ -3677,7 +3746,7 @@ var HttpDwebServer = class {
       return listenHttpDwebServer(this.nmm, this.startResult, routes);
     };
     /** 关闭监听 */
-    this.close = (0, import_once5.default)(() => closeHttpDwebServer(this.nmm, this.options));
+    this.close = (0, import_once4.default)(() => closeHttpDwebServer(this.nmm, this.options));
   }
 };
 var listenHttpDwebServer = async (microModule, startResult, routes = [
@@ -3786,6 +3855,7 @@ var JsProcessMicroModule = class {
     this.meta = meta;
     this.nativeFetchPort = nativeFetchPort;
     this.ipc_support_protocols = js_process_ipc_support_protocols;
+    /// 这个通道只能用于基础的通讯
     this.fetchIpc = new MessagePortIpc(
       this.nativeFetchPort,
       this,
@@ -3813,16 +3883,28 @@ var JsProcessMicroModule = class {
     const args = normalizeFetchArgs(url, init);
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
+  connect(mmid) {
+    const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
+    const po = new PromiseOut();
+    connectCidMap.set(cid, po);
+    this.nativeFetch(
+      `/dns/connect?mmid=${encodeURIComponent(mmid)}&cid=${cid}`
+    );
+    return po.promise;
+  }
+  beConnnect(ipc) {
+  }
 };
 var waitFetchPort = () => {
   return new Promise((resolve) => {
-    self.addEventListener("message", (event) => {
+    self.addEventListener("message", function onFetchIpcChannel(event) {
       const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
       }
       if (data[0] === "fetch-ipc-channel") {
         resolve(data[1]);
+        self.removeEventListener("message", onFetchIpcChannel);
       }
     });
   });
@@ -3877,8 +3959,18 @@ self.addEventListener("message", async (event) => {
       writable: false
     });
     await import(config.main_url);
+  } else if (data[0] === "ipc-connect") {
+    const cid = data[1];
+    const port = event.ports[0];
+    const po = connectCidMap.get(cid);
+    if (po) {
+      connectCidMap.delete(cid);
+      po.resolve(port);
+    } else {
+    }
   }
 });
+var connectCidMap = /* @__PURE__ */ new Map();
 installEnv(
   metadata.requiredString("mmid"),
   metadata.requiredString("host")

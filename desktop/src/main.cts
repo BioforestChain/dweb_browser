@@ -12,11 +12,11 @@ dns.install(new HttpServerNMM());
 import { desktopJmm } from "./user/desktop/desktop.main.cjs";
 dns.install(desktopJmm);
 
-// 安装 browser 
+// 安装 browser
 // import { BrowserNMM } from "./sys/browser/browser.main.cjs"
 // dns.install(new BrowserNMM())
-import { browserJMM } from "./user/browser/browser.main.cjs"
-dns.install(browserJMM)
+import { browserJMM } from "./user/browser/browser.main.cjs";
+dns.install(browserJMM);
 // 安装 cot
 import { cotJMM } from "./user/cot/cot.main.cjs";
 dns.install(cotJMM);
@@ -40,7 +40,7 @@ dns.install(new StatusbarNMM());
 
 // 安装 navigatorbar.sys.dweb
 import { NavigatorbarNMM } from "./sys/navigator-bar/navigator-bar.cjs";
-dns.install(new NavigatorbarNMM())
+dns.install(new NavigatorbarNMM());
 
 // 安装 plugins.sys.dweb 服务
 import { PluginsNMM } from "./sys/plugin/plugins.main.cjs";
@@ -48,7 +48,7 @@ dns.install(new PluginsNMM());
 
 // 安装 jmmMetadata.sys.dweb
 import { JMMMetadata } from "./sys/jmm-metadata/jmm-metadata.cjs";
-dns.install(new JMMMetadata())
+dns.install(new JMMMetadata());
 
 dns.install(new BootNMM([cotJMM.mmid]));
 
@@ -58,3 +58,8 @@ process.on("unhandledRejection", (error) => {
   console.error("????", error);
   debugger;
 });
+
+import { webcrypto } from "node:crypto";
+if (typeof crypto === "undefined") {
+  Object.assign(globalThis, { crypto: webcrypto });
+}

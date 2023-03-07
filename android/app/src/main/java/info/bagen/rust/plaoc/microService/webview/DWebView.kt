@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.webkit.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.getFullAuthority
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
@@ -65,7 +66,8 @@ import org.http4k.core.Uri
  */
 class DWebView(
     context: Context,
-    val mm: MicroModule,
+    val localeMM: MicroModule,
+    val remoteMM: MicroModule,
     val options: Options,
     var activity: PermissionActivity? = null
 ) : WebView(context) {
@@ -88,7 +90,7 @@ class DWebView(
      */
     private inline fun setUA() {
         val baseUserAgentString = settings.userAgentString
-        val baseDwebHost = mm.mmid
+        val baseDwebHost = remoteMM.mmid
         var dwebHost = baseDwebHost
         // 初始化设置 ua，这个是无法动态修改的
         val uri = Uri.of(options.url)
@@ -149,10 +151,11 @@ class DWebView(
                 if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
                     /// http://*.dweb 由 MicroModule 来处理请求
                     val response = runBlockingCatching {
-                        mm.nativeFetch(
+                        remoteMM.nativeFetch(
                             Request(
                                 Method.GET, request.url.toString()
                             ).headers(request.requestHeaders.toList())
+                                .header("X-Dweb-Proxy-Id", localeMM.mmid)
                         )
                     }.getOrThrow()
                     val headersMap = response.headers.toMap().toMutableMap()
@@ -175,7 +178,7 @@ class DWebView(
                 view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
             ): Boolean {
                 println("open $isDialog $isUserGesture ${resultMsg?.data} ${resultMsg?.obj}")
-                GlobalScope.launch {
+                GlobalScope.launch(ioAsyncExceptionHandler) {
                     openSignal.emit(resultMsg)
                 }
                 return true
@@ -183,7 +186,7 @@ class DWebView(
 
             override fun onCloseWindow(window: WebView?) {
                 println("close")
-                GlobalScope.launch {
+                GlobalScope.launch(ioAsyncExceptionHandler) {
                     closeSignal.emit()
                 }
                 super.onCloseWindow(window)
@@ -201,7 +204,7 @@ class DWebView(
                 println("activity:$activity request.resources:${request.resources.joinToString { it }}")
                 activity?.also {
 //                    PermissionManager.requestPermissions(it,request.resources[0])
-                    GlobalScope.launch {
+                    GlobalScope.launch(ioAsyncExceptionHandler) {
                         val permissions = mutableListOf<String>()
                         for (res in request.resources) {
                             if (res == "android.webkit.resource.VIDEO_CAPTURE") {

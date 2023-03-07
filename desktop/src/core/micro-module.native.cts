@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { $deserializeRequestToParams } from "../helper/$deserializeRequestToParams.cjs";
 import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
 import { $serializeResultToResponse } from "../helper/$serializeResultToResponse.cjs";
@@ -13,7 +14,6 @@ import type {
 import { NativeIpc } from "./ipc.native.cjs";
 import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.cjs";
 import { MicroModule } from "./micro-module.cjs";
-import chalk from "chalk";
 
 export abstract class NativeMicroModule extends MicroModule {
   readonly ipc_support_protocols: $IpcSupportProtocols = {
@@ -78,13 +78,12 @@ export abstract class NativeMicroModule extends MicroModule {
           if ($isMatchReq(hanlder_schema, pathname, request.method)) {
             has = true;
             try {
-            
               const result = await hanlder_schema.handler(
                 hanlder_schema.input(request),
                 client_ipc,
                 request
               );
-              
+
               if (result instanceof IpcResponse) {
                 response = result;
               } else {
@@ -95,7 +94,7 @@ export abstract class NativeMicroModule extends MicroModule {
                 );
               }
             } catch (err) {
-              console.log('err: ', err)
+              console.log("err: ", err);
               let body: string;
               if (err instanceof Error) {
                 body = err.stack ?? err.message;
@@ -114,8 +113,16 @@ export abstract class NativeMicroModule extends MicroModule {
           }
         }
 
-        if(!has) { /** 没有匹配的事件处理器 弹出终端 优化了开发体验 */
-          console.log(chalk.red('[micro-module.native.cts 没有匹配的注册方法 mmid===]',this.mmid), "请求的方法是",request);
+        if (!has) {
+          /** 没有匹配的事件处理器 弹出终端 优化了开发体验 */
+          console.log(
+            chalk.red(
+              "[micro-module.native.cts 没有匹配的注册方法 mmid===]",
+              this.mmid
+            ),
+            "请求的方法是",
+            request
+          );
         }
 
         if (response === undefined) {

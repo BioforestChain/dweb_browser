@@ -20,6 +20,12 @@ data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc) {
 }
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
+data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc) {
+    val component1 get() = event
+    val component2 get() = ipc
+}
+typealias OnIpcEventMessage = Callback<IpcEventMessageArgs>
+
 @JsonAdapter(IPC_MESSAGE_TYPE::class)
 enum class IPC_MESSAGE_TYPE(val type: Byte) : JsonSerializer<IPC_MESSAGE_TYPE>,
     JsonDeserializer<IPC_MESSAGE_TYPE> {
@@ -30,7 +36,7 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) : JsonSerializer<IPC_MESSAGE_TYPE>,
     RESPONSE(1),
 
     /** 类型：流数据，发送方 */
-    STREAM_MESSAGE(2),
+    STREAM_DATA(2),
 
     /** 类型：流拉取，请求方 */
     STREAM_PULL(3),
@@ -107,23 +113,21 @@ enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>, JsonDeserializ
 }
 
 
-interface DataWithEncoding {
-    val data: Any /*String or ByteArray*/
-    val encoding: IPC_DATA_ENCODING
-
-    fun dataToBinary() = when (encoding) {
-        IPC_DATA_ENCODING.BINARY -> data as ByteArray
-        IPC_DATA_ENCODING.BASE64 -> (data as String).fromBase64()
-        IPC_DATA_ENCODING.UTF8 -> (data as String).fromUtf8()
-        else -> throw Exception("unknown encoding")
-    }
+fun dataToBinary(
+    data: Any /*String or ByteArray*/, encoding: IPC_DATA_ENCODING
+) = when (encoding) {
+    IPC_DATA_ENCODING.BINARY -> data as ByteArray
+    IPC_DATA_ENCODING.BASE64 -> (data as String).fromBase64()
+    IPC_DATA_ENCODING.UTF8 -> (data as String).fromUtf8()
+    else -> throw Exception("unknown encoding")
+}
 
 
-    fun dataToText() = when (encoding) {
-        IPC_DATA_ENCODING.BINARY -> (data as ByteArray).toUtf8()
-        IPC_DATA_ENCODING.BASE64 -> (data as String).fromBase64().toUtf8()
-        IPC_DATA_ENCODING.UTF8 -> data as String
-        else -> throw Exception("unknown encoding")
-    }
-
+fun dataToText(
+    data: Any /*String or ByteArray*/, encoding: IPC_DATA_ENCODING
+) = when (encoding) {
+    IPC_DATA_ENCODING.BINARY -> (data as ByteArray).toUtf8()
+    IPC_DATA_ENCODING.BASE64 -> (data as String).fromBase64().toUtf8()
+    IPC_DATA_ENCODING.UTF8 -> data as String
+    else -> throw Exception("unknown encoding")
 }
