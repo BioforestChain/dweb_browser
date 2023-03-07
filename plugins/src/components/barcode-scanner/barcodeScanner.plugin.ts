@@ -1,3 +1,5 @@
+/// <reference path="../../shims/ImageCapture.d.ts"/>
+import { ImageCapture, PromiseOut } from "../../../deps.ts";
 import { BasePlugin } from '../basePlugin.ts';
 import { CameraDirection, ScanOptions, SupportedFormat } from './barcodeScanner.type.ts';
 
@@ -7,6 +9,7 @@ export class BarcodeScanner extends BasePlugin {
   private _video: HTMLVideoElement | null = null;
   private _options: ScanOptions | null = null;
   private _backgroundColor: string | null = null;
+  private _promiseOutR = new PromiseOut<Response>()
 
   constructor(readonly mmid = "file://scanning.sys.dweb") {
     super(mmid, "BarcodeScanner");
@@ -51,6 +54,9 @@ export class BarcodeScanner extends BasePlugin {
    * 暂停扫描
    */
   async pauseScanning() {
+    if (!this._promiseOutR.is_finished) {
+      this._promiseOutR.resolve(new Response())
+    }
     await this.nativeFetch(`/stop`)
   }
 
@@ -148,28 +154,6 @@ export class BarcodeScanner extends BasePlugin {
   }
 
   /**
-   * 返回扫码完的结果
-   * @returns 
-   */
-  private async _getFirstResultFromReader() {
-    const videoElement = await this._getVideoElement();
-    // deno-lint-ignore no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-      if (videoElement) {
-        const stream = await this.getVideoSteam(videoElement);
-        await this.nativeFetch(`/process?rotation=${0}&formats=${this._formats}`, {
-          method: "POST",
-          body: stream
-        }).then(res => {
-          resolve(res)
-        }).catch(err => {
-          reject(err)
-        })
-      }
-    });
-  }
-
-  /**
    * 启动摄像
    * @returns 
    */
@@ -232,13 +216,15 @@ export class BarcodeScanner extends BasePlugin {
           };
 
           navigator.mediaDevices.getUserMedia(constraints).then(
-            (stream) => {
+            async (stream) => {
               //video.src = window.URL.createObjectURL(stream);
               if (this._video) {
                 this._video.srcObject = stream;
                 const videoTracks = stream.getAudioTracks()[0];
-                // const imageCapture = ImageCapture(videoTracks);
-                // imageCapture.takePhoto()
+                const captureDevice = new ImageCapture(videoTracks);
+                if (captureDevice) {
+                  await captureDevice.takePhoto().then(this.processPhoto).catch(this.stopCamera);
+                }
                 this._video.play();
               }
               resolve({});
@@ -260,6 +246,34 @@ export class BarcodeScanner extends BasePlugin {
     }
     return this._video;
   }
+  /**
+   * 返回扫码完的结果
+   * @returns 
+   */
+  private async _getFirstResultFromReader() {
+    this._promiseOutR = new PromiseOut()
+    const videoElement = await this._getVideoElement();
+    if (videoElement) {
+      await this._promiseOutR.promise
+    }
+
+  }
+  private async processPhoto(blob: Blob) {
+    await this.nativeFetch(`/process?rotation=${0}&formats=${this._formats}`, {
+      method: "POST",
+      body: blob
+    }).then(res => {
+      this._promiseOutR.resolve(res)
+    }).catch(err => {
+      this._promiseOutR.reject(err)
+    })
+  }
+
+  // deno-lint-ignore no-explicit-any
+  private stopCamera(error: any) {
+    console.error(error);
+    this._stop();  // turn off the camera
+  }
 
   // deno-lint-ignore no-explicit-any
   private async _stop(): Promise<any> {
@@ -277,29 +291,5 @@ export class BarcodeScanner extends BasePlugin {
       await this._video.parentElement?.remove();
       this._video = null;
     }
-  }
-  /**
-   * 绘制并转换为一帧图片
-   * @param video 
-   * @returns 
-   */
-  private getVideoSteam(video: HTMLVideoElement): Promise<ReadableStream> {
-    return new Promise(function (resolve, reject) {
-      video.setAttribute('crossOrigin', 'anonymous');//处理跨域
-      video.addEventListener('loadeddata', function () {
-        video.cancelVideoFrameCallback
-        // 每帧捕获的次数
-        // TODO 这里需要测试
-        // const read = new ReadableStream({
-        //   start(controller) {
-        //     stream.addEventListener("close", () => {
-        //       controller.close()
-        //     })
-        //     controller.enqueue(stream)
-        //   },
-        // })
-        // resolve(read);
-      });
-    })
   }
 }

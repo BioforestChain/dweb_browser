@@ -40,7 +40,6 @@ export const doBuid = async (config: {
     const getOrder = (ep: EntryPoint) => orderMap.get(ep.name) || 1;
     entryPoints.sort((a, b) => getOrder(b) - getOrder(a));
   }
-  // console.group("entryPoints ===========> ", JSON.stringify(entryPoints));
 
   await build({
     importMap: importMap,
@@ -54,10 +53,10 @@ export const doBuid = async (config: {
     typeCheck: true,
     test: false,
     shims: {
-      deno: "dev", custom: [
+      custom: [
         // {
-        //   module: "https://cdn.esm.sh/jsdom@20.0.3",
-        //   globalNames: ["HTMLElement"],
+        //   module: "https://cdn.esm.sh/image-capture@0.4.0",
+        //   globalNames: ["ImageCapture"],
         // }
       ]
     },
