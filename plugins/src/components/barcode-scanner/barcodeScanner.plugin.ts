@@ -1,4 +1,4 @@
-import { BasePlugin } from '../../basePlugin.ts';
+import { BasePlugin } from '../basePlugin.ts';
 import { CameraDirection, ScanOptions, SupportedFormat } from './barcodeScanner.type.ts';
 
 export class BarcodeScanner extends BasePlugin {

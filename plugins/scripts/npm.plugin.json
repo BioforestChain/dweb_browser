@@ -1,6 +1,6 @@
 [
   {
-    "buildFromRootDir": "./src/components",
+    "buildFromRootDir": "./src",
     "mainExports": ".",
     "buildToRootDir": "./build/plugin",
     "importMap": "./import_map.json",

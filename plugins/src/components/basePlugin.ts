@@ -24,7 +24,7 @@ export class BasePlugin extends HTMLElement {
     * @param listenerFunc 
     * @returns 
     */
-  addListener(
+  protected addListener(
     eventName: string,
     listenerFunc: ListenerCallback,
   ): Promise<PluginListenerHandle> & PluginListenerHandle {

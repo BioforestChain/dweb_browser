@@ -1,4 +1,4 @@
-import { BasePlugin } from "../../basePlugin.ts";
+import { BasePlugin } from "../basePlugin.ts";
 import { AnimationOptions, BackgroundColorOptions, SetOverlaysWebViewOptions, StatusBarInfo, StyleOptions } from "./statusbar.type.ts";
 /**
  * 访问 statusbar 能力的插件
