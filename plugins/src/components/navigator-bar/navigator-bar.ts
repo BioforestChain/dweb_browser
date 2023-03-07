@@ -1,14 +1,12 @@
-import { BasePlugin, ListenerCallback, PluginListenerHandle } from '../basePlugin.ts';
+import { BasePlugin } from '../basePlugin.ts';
 import { NavigationBarPluginEvents } from "./navigator.events.ts";
 import { ColorParameters } from "./navigator.type.ts"
 // navigator-bar 插件 
 export class Navigatorbar extends BasePlugin {
-    private _navigatorbarHttpAddress: string | undefined = "./operation_from_plugins"
-    private _appUrl: string | undefined = undefined
+
 
     constructor(readonly mmid = "navigationBar.sys.dweb") {
         super(mmid, "NavigationBar")
-        this._appUrl = location.origin;
     }
 
     connectedCallback() {
@@ -55,6 +53,11 @@ export class Navigatorbar extends BasePlugin {
         return { color: " " }
     }
 
+    private readonly _signalShow = this.createSignal<ListenerCallback>()
+    private readonly _signalHide = this.createSignal<ListenerCallback>()
+    private readonly _signalChange = this.createSignal<ListenerCallback>()
+
+
     /**
      * 导航栏显示后触发的事件
      * @param event The event
@@ -63,11 +66,19 @@ export class Navigatorbar extends BasePlugin {
      * NavigationBarPluginEvents.COLOR_CHANGE 导航栏颜色更改后触发的事件
      */
     addListener(
-        event: NavigationBarPluginEvents.SHOW,
+        event: NavigationBarPluginEvents,
         listenerFunc: ListenerCallback
-    ): Promise<PluginListenerHandle> & PluginListenerHandle {
-        return super.addListener(event, listenerFunc)
+    ) {
+        switch (event) {
+            case NavigationBarPluginEvents.HIDE:
+                return this._signalHide.listen(listenerFunc)
+            case NavigationBarPluginEvents.COLOR_CHANGE:
+                return this._signalChange.listen(listenerFunc)
+            default: return this._signalShow.listen(listenerFunc)
+        }
     }
 
 }
 
+// deno-lint-ignore no-explicit-any
+export type ListenerCallback = (...args: any[]) => void;
