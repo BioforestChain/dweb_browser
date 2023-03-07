@@ -10,13 +10,10 @@ import { AnimationOptions, BackgroundColorOptions, SetOverlaysWebViewOptions, St
  * @property getHeight(): number
  * @property getOverlaysWebview(): "0" | "1"
  */
-class StatusbarPlugin extends BasePlugin {
-    private _statusbarHttpAddress: string | undefined = "./operation_from_plugins"
-    private _appUrl: string | undefined = undefined
+export class StatusbarPlugin extends BasePlugin {
 
-    constructor(readonly mmid = "file://statusBar.sys.dweb") {
+    constructor(readonly mmid = "statusBar.sys.dweb") {
         super(mmid, "StatusBar")
-        this._appUrl = location.origin;
     }
 
     /**
@@ -34,14 +31,14 @@ class StatusbarPlugin extends BasePlugin {
 
     }
     /**
-      * Show the status bar.
-      * On iOS, if the status bar is initially hidden and the initial style is set to
-      * `UIStatusBarStyleLightContent`, first show call might present a glitch on the
-      * animation showing the text as dark and then transition to light. It's recommended
-      * to use `Animation.None` as the animation on the first call.
-      *
-      * @since 1.0.0
-      */
+    * 显示状态栏。
+    * 在 iOS 上，如果状态栏最初是隐藏的，并且初始样式设置为
+    * `UIStatusBarStyleLightContent`，第一次显示调用可能会在
+    * 动画将文本显示为深色然后过渡为浅色。 值得推荐
+    * 在第一次调用时使用 `Animation.None` 作为动画。
+    *
+    * @since 1.0.0
+    */
     async show(options?: AnimationOptions): Promise<void> {
 
     }
@@ -76,15 +73,5 @@ class StatusbarPlugin extends BasePlugin {
 
     }
 
-}
-
-customElements.define('statusbar-dweb', StatusbarPlugin)
-
-// 插入自定义标签
-document.addEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
-function documentOnDOMContentLoaded() {
-    const el = new StatusbarPlugin();
-    document.body.append(el);
-    document.removeEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
 }
 

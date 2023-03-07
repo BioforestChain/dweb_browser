@@ -1,76 +1,69 @@
+import { BasePlugin } from '../basePlugin.ts';
 /**
  * 访问 toast 能力的插件
- * 
- 1"
  */
-class ToastPlugin extends HTMLElement{
+
+export class ToastPlugin extends BasePlugin {
     // override shadowRoot: ShadowRoot | null; 
-    private _root: ShadowRoot; 
-    private _elContent:HTMLDivElement = document.createElement('div');
+    private _root: ShadowRoot;
+    private _elContent: HTMLDivElement = document.createElement('div');
     private _elStyle: HTMLStyleElement = document.createElement('style');
     private _fragment: DocumentFragment = new DocumentFragment()
     private _duration: $Duration = "long"
     private _position: $Position = "bottom"
+    // deno-lint-ignore no-inferrable-types
     private _verticalClassName: string = ""
 
-    constructor(){
-        super()
-        this._root = this.attachShadow({mode:'open'});
+    constructor(mmid = "toast.sys.dweb") {
+        super(mmid, "Toast")
+        this._root = this.attachShadow({ mode: 'open' });
         this._init()
     }
 
-    private _init(){
+    private _init() {
         this._initContent()._initStyle()._initfragment()._initShadowRoot()
     }
-    
-    private _initfragment(){
+
+    private _initfragment() {
         this._fragment.append(this._elContent, this._elStyle);
         return this;
     }
 
-    private _initShadowRoot(){
+    private _initShadowRoot() {
         this._root.appendChild(this._fragment)
         return this;
     }
 
-    private _initContent(){
+    private _initContent() {
         this._elContent.setAttribute("class", "content")
         this._elContent.innerText = '消息的内容！';
         return this;
     }
 
-    private _initStyle(){
+    private _initStyle() {
         this._elStyle.setAttribute("type", "text/css")
         this._elStyle.innerText = createCssText()
         return this;
     }
 
-    show(message: string, duration:$Duration = "long", position: $Position ="bottom"){
+    /**
+     * toast信息显示
+     * @param message 消息
+     * @param duration 时长 'long' | 'short'
+     * @returns
+     */
+    show(message: string, duration: $Duration = "long", position: $Position = "bottom") {
         this._duration = duration;
         this._position = position;
         this.setAttribute('style', "left: 0px;")
         this._elContent.innerText = message
         this._elContentTransitionStart()
+        this.nativeFetch(`/show?message=${message}&duration=${duration}&position=${position}`)
         return this;
     }
 
-    connectedCallback(){
-        // 问题是否可以同时显示多条
-        // 如果是连续的显示该如何操作
-        // console.log('载入了', this)
-        // const arr = ["bottom", "top", "center"]
-        // let index = 0;
-        // setInterval(() =>{
-        //     this.show("message,messagemessagemessagemessagemessagemessagemessage", "long", arr[index++] as any);
-        //     index = index > 2 ? 0 : index;
-        // }, 6000)
+    connectedCallback() {
 
-        
-        // setInterval(() =>{
-        //     this.show("message", "short", arr[index++] as any);
-        //     index = index > 2 ? 0 : index;
-        // }, 6000)
-        
     }
 
     private _onTransitionenOutToIn = () => {
@@ -79,7 +72,7 @@ class ToastPlugin extends HTMLElement{
             this._elContent.addEventListener('transitionend', this._onTransitionendInToOut)
             this._elContent.classList.remove("content_transform_inside")
             this._elContent.classList.add("content_transform_outside")
-            
+
         }, this._duration === "long" ? 2000 : 3500)
     }
 
@@ -101,19 +94,11 @@ class ToastPlugin extends HTMLElement{
         }, 100)
     }
 
-};
+}
 
-customElements.define('toast-dweb', ToastPlugin)
- 
-// 插入自定义标签
-document.addEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
-function documentOnDOMContentLoaded(){
-    const el = new ToastPlugin();
-    document.body.append(el);
-    document.removeEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
-};
 
-function createCssText(){
+
+function createCssText() {
     return `
         :host{
             position: fixed;
@@ -172,5 +157,5 @@ function createCssText(){
     `
 }
 
-export type $Duration =  'long' | 'short';
+export type $Duration = 'long' | 'short';
 export type $Position = 'top' | 'center' | 'bottom'

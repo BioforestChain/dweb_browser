@@ -1,20 +1,17 @@
-import { Navigatorbar } from "./navigator-bar.ts";
-
-export { NavigationBarPluginEvents } from "./navigator.events.ts"
+import { StatusbarPlugin } from "./statusbar.plugin.ts";
 
 
-customElements.define('dweb-navigator', Navigatorbar);
+customElements.define('dweb-statusbar', StatusbarPlugin)
 
 // 插入自定义标签
 document.addEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
 function documentOnDOMContentLoaded() {
-  const el = new Navigatorbar();
+  const el = new StatusbarPlugin();
   document.body.append(el);
   document.removeEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
 }
 
-export * from './navigator.type.ts';
 
 export {
-  Navigatorbar
+  StatusbarPlugin
 }

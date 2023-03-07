@@ -20,6 +20,7 @@ import info.bagen.rust.plaoc.microService.sys.plugin.share.ShareNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.KeyboardNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.NavigationBarNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.StatusBarNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.toast.ToastNMM
 import info.bagen.rust.plaoc.microService.user.CotJMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 
@@ -65,6 +66,8 @@ suspend fun startDwebBrowser() {
     val nfcNMM = NfcNMM().also { dnsNMM.install(it) }
     /// 通知
     val notificationNMM = NotificationNMM().also { dnsNMM.install(it) }
+    /// 弹窗
+    val toastNMM = ToastNMM().also { dnsNMM.install(it) }
     /// 分享
     val shareNMM = ShareNMM().also { dnsNMM.install(it) }
     /// 振动效果

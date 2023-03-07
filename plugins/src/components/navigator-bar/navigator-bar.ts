@@ -4,7 +4,6 @@ import { ColorParameters } from "./navigator.type.ts"
 // navigator-bar 插件 
 export class Navigatorbar extends BasePlugin {
 
-
     constructor(readonly mmid = "navigationBar.sys.dweb") {
         super(mmid, "NavigationBar")
     }

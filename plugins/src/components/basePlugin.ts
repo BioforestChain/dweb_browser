@@ -11,9 +11,9 @@ export class BasePlugin extends HTMLElement {
 
   protected nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     if (url instanceof Request) {
-      return this.nativeFetch(url, init)
+      return fetch(url, init)
     }
-    return this.nativeFetch(new URL(url, this.mmid), init)
+    return fetch(new URL(url, this.mmid), init)
   }
 
   protected createSignal = createSignal

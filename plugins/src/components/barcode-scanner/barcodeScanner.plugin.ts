@@ -11,7 +11,7 @@ export class BarcodeScanner extends BasePlugin {
   private _backgroundColor: string | null = null;
   private _promiseOutR = new PromiseOut<Response>()
 
-  constructor(readonly mmid = "file://scanning.sys.dweb") {
+  constructor(readonly mmid = "scanning.sys.dweb") {
     super(mmid, "BarcodeScanner");
   }
 

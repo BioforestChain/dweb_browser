@@ -4,18 +4,18 @@ import android.view.Gravity
 import android.view.View
 import info.bagen.rust.plaoc.App
 
-object Toast {
+object ToastController {
 
     enum class DurationType(duration: Long) {
         SHORT(2000L), LONG(3500L)
     }
 
-    enum class PositionType(position: String) {
+    enum class PositionType(val position: String) {
         TOP("top"), CENTER("center"), BOTTOM("bottom")
     }
 
     fun show(
-        text: String, view: View?,
+        text: String,
         durationType: DurationType = DurationType.SHORT,
         positionType: PositionType = PositionType.BOTTOM
     ) {
