@@ -27,19 +27,25 @@ class NativeIpc: Ipc {
 //                ipcMessage = message
 //            }
             
-            self._messageSignal.emit((message, self))
+            await self._messageSignal.emit((message, self))
             return nil
         }
         
-        port.start()
+        Task {
+            await port.start()
+        }
     }
     
-    override func _doPostMessage(data: IpcMessage) {
-        port.postMessage(msg: data)
+    override func _doPostMessage(data: IpcMessage) async {
+        await port.postMessage(msg: data)
     }
     
     override func _doClose() async {
         port.close()
+    }
+    
+    override func toString() -> String {
+        super.toString() + "@NativeIpc"
     }
 }
 
@@ -59,27 +65,28 @@ class NativePort<I, O> {
             await closePo.waitPromise()
             closing = true
 //            cancellable?.cancel()
-            _closeSignal.emit(())
+            await _closeSignal.emit(())
         }
     }
     
     private var started = false
     
-    func start() {
+    func start() async {
         if started || closing {
             return
         } else {
             started = true
         }
         
-        Task {
-//            cancellable = channel_in.sink { message in
-//                self._messageSignal.emit(message)
-//            }
-            for await message in channel_in.values {
-                self._messageSignal.emit(message)
+//        for await message in channel_in.values {
+//            await self._messageSignal.emit(message)
+//        }
+        channel_in.sink(receiveValue: { message in
+            print(message)
+            Task {
+                await self._messageSignal.emit(message)
             }
-        }
+        })
     }
     
     private let _closeSignal = Signal<()>()
@@ -95,11 +102,11 @@ class NativePort<I, O> {
     
     private let _messageSignal = Signal<I>()
     
-    func postMessage(msg: O) {
+    func postMessage(msg: O) async {
         channel_out.send(msg)
     }
     
-    func onMessage(cb: @escaping (I) -> SIGNAL_CTOR?) -> () -> Bool {
+    func onMessage(cb: @escaping (I) async -> SIGNAL_CTOR?) -> () async -> Bool {
         self._messageSignal.listen(cb)
     }
 }

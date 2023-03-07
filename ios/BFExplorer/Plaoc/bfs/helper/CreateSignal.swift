@@ -20,8 +20,8 @@ enum SIGNAL_CTOR {
 }
 
 class Signal<T> {
-    typealias SignalClosure = (T) -> SIGNAL_CTOR?
-    typealias OffListener = () -> Bool
+    typealias SignalClosure = (T) async -> Any?
+    typealias OffListener = () async -> Bool
     
     private var _cbs: Set<GenericsClosure<SignalClosure>> = []
 
@@ -29,7 +29,7 @@ class Signal<T> {
         let closureObj = GenericsClosure(closure: cb)
         self._cbs.insert(closureObj)
         
-        return {
+        return { 
             self.off(closureObj)
         }
     }
@@ -38,15 +38,16 @@ class Signal<T> {
         return (_cbs.remove(closureObj) != nil)
     }
     
-    func emit(_ args: T) {
+    func emit(_ args: T) async {
         for obj in _cbs {
-            switch obj.closure(args) {
-            case .OFF:
-                _cbs.remove(obj)
-            case .BREAK:
-                break
-            case .none:
-                continue
+            let result = await obj.closure(args)
+            if let result = result as? SIGNAL_CTOR {
+                switch result {
+                case .OFF:
+                    _cbs.remove(obj)
+                case .BREAK:
+                    break
+                }
             }
         }
     }

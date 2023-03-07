@@ -33,6 +33,14 @@ class JsProcessNMM: NativeMicroModule {
     
     private let INTERNAL_PATH = "/<internal>".encodeURIComponent()
     
+    private func getJsProcessWebApi(urlInfo: HttpNMM.ServerUrlInfo) -> JsProcessWebApi {
+        return DispatchQueue.main.sync {
+            let api = JsProcessWebApi(webView: DWebView(mm: self, options: DWebView.Options(url: urlInfo.buildInternalUrl().replacePath("/index.html").absoluteString), frame: .zero))
+//                _afterShutdownSignal.listen {}
+            return api
+        }
+    }
+    
     override func _bootstrap() async throws {
         // 必须要为每个js空间注册，否则无法使用
 //        nww = webView
@@ -44,22 +52,24 @@ class JsProcessNMM: NativeMicroModule {
         
         let serverIpc = await mainServer.listen()
         _ = serverIpc.onRequest { request, ipc in
-            Task {
-                let response = await self.nativeFetch(url: "file:///bundle/js-process\(request.uri!.path)")
-                ipc.postMessage(message: IpcResponse.fromResponse(req_id: request.req_id, response: response, ipc: ipc).ipcResMessage)
-            }
+            let response = await self.nativeFetch(url: "file:///bundle/js-process\(request.uri!.path)")
+            await ipc.postMessage(message: IpcResponse.fromResponse(req_id: request.req_id, response: response, ipc: ipc).ipcResMessage)
             return nil
         }
         
-//        let apis =
-//        let apis = 
+        let apis = getJsProcessWebApi(urlInfo: mainServer.startResult.urlInfo)
         
         let app = HttpServer.app
         let group = app.grouped("\(self.mmid)")
-        group.on(.POST, ["create-process"]) { request, ipc in
-            let main_pathname = request.query[Int.self, at: "main_pathname"]
-            createProcessAndRun(ipc: ipc, apis: apis, main_pathname: main_pathname, requestMessage: request)
+        _ = group.on(.POST, ["create-process"]) { request, ipc in
+            let main_pathname = request.query[String.self, at: "main_pathname"]
+            return await self.createProcessAndRun(ipc: ipc!, apis: apis, main_pathname: main_pathname!, requestMessage: request)
         }
+        _ = group.on(.GET, ["create-ipc"], use: { request, _ in
+            let process_id = request.query[Int.self, at: "process_id"]
+            await apis.createIpc(process_id: process_id!)
+            return Response(status: .ok)
+        })
     }
     
     private func createProcessAndRun(
@@ -78,7 +88,7 @@ class JsProcessNMM: NativeMicroModule {
          */
         let streamIpc = ReadableStreamIpc(remote: ipc.remote, role: .client)
         var data = Data()
-        var sequential = requestMessage.eventLoop.makeSucceededFuture(())
+        let sequential = requestMessage.eventLoop.makeSucceededFuture(())
         requestMessage.body.drain {
             switch $0 {
             case .buffer(var buffer):
@@ -108,20 +118,22 @@ class JsProcessNMM: NativeMicroModule {
                 let internalUri = request.uri!.path.slice(0, self.INTERNAL_PATH.count).pathComponents.string
                 
                 if internalUri == "/bootstrap.js" {
-                    ipc.postMessage(message: IpcResponse.fromText(req_id: request.req_id, statusCode: 200, text: JS_PROCESS_WORKER_CODE, headers: IpcHeaders(self.CORS_HEADERS), ipc: ipc).ipcResMessage)
+                    await ipc.postMessage(message: IpcResponse.fromText(req_id: request.req_id, statusCode: 200, text: JS_PROCESS_WORKER_CODE, headers: IpcHeaders(self.CORS_HEADERS), ipc: ipc).ipcResMessage)
                 } else {
-                    ipc.postMessage(message: IpcResponse.fromText(req_id: request.req_id, statusCode: 404, text: "// no found \(internalUri)", headers: IpcHeaders(self.CORS_HEADERS), ipc: ipc).ipcResMessage)
+                    await ipc.postMessage(message: IpcResponse.fromText(req_id: request.req_id, statusCode: 404, text: "// no found \(internalUri)", headers: IpcHeaders(self.CORS_HEADERS), ipc: ipc).ipcResMessage)
                 }
             } else {
                 Task {
-                    var response = await streamIpc.request(request: request.toRequest())
+                    let response = await streamIpc.request(request: request.toRequest())
                     for (key, value) in self.CORS_HEADERS {
                         response.headers.add(name: key, value: value)
                     }
                     
-                    ipc.postResponse(req_id: request.req_id, response: response)
+                    await ipc.postResponse(req_id: request.req_id, response: response)
                 }
             }
+            
+            return nil
         }
         
         let bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
@@ -138,13 +150,11 @@ class JsProcessNMM: NativeMicroModule {
         /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
         // TODO: 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
         _ = processHandler.ipc.onRequest { ipcRequest, ipc in
-            Task {
-                let request = ipcRequest.toRequest()
-                let response = await ipc.remote.nativeFetch(request: request)
-                let ipcResponse = IpcResponse.fromResponse(req_id: ipcRequest.req_id, response: response, ipc: ipc)
-                
-                ipc.postMessage(message: ipcResponse.ipcResMessage)
-            }
+            let request = ipcRequest.toRequest()
+            let response = await ipc.remote.nativeFetch(request: request)
+            let ipcResponse = IpcResponse.fromResponse(req_id: ipcRequest.req_id, response: response, ipc: ipc)
+            
+            await ipc.postMessage(message: ipcResponse.ipcResMessage)
             
             return nil
         }
@@ -193,7 +203,7 @@ class JsProcessNMM: NativeMicroModule {
                     _ = writer.write(.end)
                 }
                 data.append(buffer, count: bytesRead)
-                var byteBuffer = ByteBuffer(data: data)
+                let byteBuffer = ByteBuffer(data: data)
                 _ = writer.write(.buffer(byteBuffer))
             }
         }))

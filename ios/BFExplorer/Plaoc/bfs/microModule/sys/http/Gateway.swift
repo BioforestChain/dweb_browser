@@ -62,13 +62,13 @@ class Gateway {
         
         /// 销毁
         private let destroySignal = Signal<()>()
-        func onDestroy(cb: @escaping () -> SIGNAL_CTOR?) -> () -> Bool {
+        func onDestroy(cb: @escaping () -> SIGNAL_CTOR?) -> () async -> Bool {
             destroySignal.listen(cb)
         }
         
         func destroy() async {
             _routerSet.removeAll()
-            destroySignal.emit(())
+            await destroySignal.emit(())
         }
     }
     

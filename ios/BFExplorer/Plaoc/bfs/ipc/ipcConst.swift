@@ -81,8 +81,8 @@ struct IpcMessageString: IpcMessage {
 }
 
 /** message: 只会有两种类型的数据 */
-typealias OnIpcMessage = ((IpcMessage, Ipc)) -> SIGNAL_CTOR?
-typealias OnIpcRequestMessage = ((IpcRequest, Ipc)) -> SIGNAL_CTOR?
+typealias OnIpcMessage = ((IpcMessage, Ipc)) async -> SIGNAL_CTOR?
+typealias OnIpcRequestMessage = ((IpcRequest, Ipc)) async -> SIGNAL_CTOR?
 typealias Callback<T, R> = (T) -> R?
 
 struct S_MetaBody: Codable {

@@ -66,14 +66,14 @@ class ReadableStreamIpc: Ipc {
                             print("PONG/\(stream)")
                         }
                     } else {
-                        self._messageSignal.emit((result!, self))
+                        await self._messageSignal.emit((result!, self))
                     }
                 }
             }
         }
     }
     
-    override func _doPostMessage(data: IpcMessage) {
+    override func _doPostMessage(data: IpcMessage) async {
         if support_message_pack {
             do {
                 let data = try MessagePackEncoder().encode(data)

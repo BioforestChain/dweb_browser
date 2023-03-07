@@ -5,6 +5,8 @@
 //  Created by kingsword09 on 2023/1/31.
 //
 
+import Foundation
+
 class BootNMM: NativeMicroModule {
     override init() {
         super.init()

@@ -68,26 +68,24 @@ class IpcBodySender: IpcBody {
         
         _ = ipc.onMessage { message, _ in
             if let message = message as? IpcStreamPull, message.stream_id == stream_id {
-                DispatchQueue.global(qos: .background).async {
-                    var desiredSize = message.desiredSize
-                    stream.open()
-                    defer {
-                        stream.close()
+                var desiredSize = message.desiredSize
+                stream.open()
+                defer {
+                    stream.close()
+                }
+                while desiredSize != nil && desiredSize! > 0 {
+                    if stream.hasBytesAvailable {
+                        var data = Data()
+                        let bufferSize = 1024
+                        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+                        stream.read(buffer, maxLength: bufferSize)
+                        data.append(buffer, count: bufferSize)
+                        await ipc.postMessage(message: IpcStreamData.fromBinary(ipc: ipc, stream_id: stream_id, data: data))
+                        desiredSize! -= bufferSize
+                        buffer.deallocate()
                     }
-                    while desiredSize != nil && desiredSize! > 0 {
-                        if stream.hasBytesAvailable {
-                            var data = Data()
-                            let bufferSize = 1024
-                            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-                            stream.read(buffer, maxLength: bufferSize)
-                            data.append(buffer, count: bufferSize)
-                            ipc.postMessage(message: IpcStreamData.fromBinary(ipc: ipc, stream_id: stream_id, data: data))
-                            desiredSize! -= bufferSize
-                            buffer.deallocate()
-                        }
-                        
-                        ipc.postMessage(message: IpcStreamPull(stream_id: stream_id, desiredSize: nil))
-                    }
+                    
+                    await ipc.postMessage(message: IpcStreamPull(stream_id: stream_id, desiredSize: nil))
                 }
             } else if let message = message as? IpcStreamAbort, message.stream_id == stream_id {
                 print("ipcStreamAbort stream_id: \(stream_id)")

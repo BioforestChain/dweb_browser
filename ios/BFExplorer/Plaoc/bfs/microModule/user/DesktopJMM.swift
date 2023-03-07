@@ -9,8 +9,6 @@ import Foundation
 
 class DesktopJMM: JsMicroModule {
     convenience init() {
-        let mmid: Mmid = "desktop.user.dweb"
-        let metadata = JmmMetadata(main_url: "file:///bundle/desktop.worker.js")
-        self.init(mmid: mmid, metadata: metadata)
+        self.init(metadata: JmmMetadata(id: "desktopuser.dweb", main_url: "file:///bundle/desktop.worker.js"))
     }
 }

@@ -65,7 +65,7 @@ class HttpNMM: NativeMicroModule {
             }
             
             var response: Response?
-            var gateway = httpNMM.gatewayMap[host]
+            let gateway = httpNMM.gatewayMap[host]
             if gateway != nil {
                 response = await gateway!.listener.hookHttpRequest(request: request)
             }
@@ -252,7 +252,7 @@ class HttpNMM: NativeMicroModule {
         let streamIpc = ReadableStreamIpc(remote: gateway!.listener.ipc.remote, role: .server)
 
         var data = Data()
-        var sequential = message.eventLoop.makeSucceededFuture(())
+        let sequential = message.eventLoop.makeSucceededFuture(())
         message.body.drain {
             switch $0 {
             case .buffer(var buffer):
@@ -286,7 +286,7 @@ class HttpNMM: NativeMicroModule {
                     _ = writer.write(.end)
                 }
                 data.append(buffer, count: bytesRead)
-                var byteBuffer = ByteBuffer(data: data)
+                let byteBuffer = ByteBuffer(data: data)
                 _ = writer.write(.buffer(byteBuffer))
             }
         }))

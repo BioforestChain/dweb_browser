@@ -20,8 +20,6 @@ class NativeMicroModule: MicroModule {
         let app = HttpServer.app
         let hookRequestMiddleware = HookRequestMiddleware()
         app.middleware.use(hookRequestMiddleware, at: .end)
-        let middlewares = app.middleware.resolve()
-        
         
         _ = onConnect { clientIpc in
             _ = clientIpc.onRequest { message in
@@ -40,7 +38,7 @@ class NativeMicroModule: MicroModule {
         }
 
         func respond(to request: Vapor.Request, chainingTo next: Vapor.AsyncResponder) async throws -> Vapor.Response {
-            var resPo = PromiseOut<Vapor.Response>()
+            let resPo = PromiseOut<Vapor.Response>()
             for await (ipcRequest, clientIpc) in channel.values {
                 let req = ipcRequest.toRequest()
                 
@@ -48,7 +46,7 @@ class NativeMicroModule: MicroModule {
                     req.ipc = clientIpc
                     let response = try await next.respond(to: req)
                     let ipcResMessage = IpcResponse.fromResponse(req_id: ipcRequest.req_id, response: response, ipc: clientIpc).ipcResMessage
-                    clientIpc.postMessage(message: ipcResMessage)
+                    await clientIpc.postMessage(message: ipcResMessage)
                     resPo.resolve(response)
                 } else {
                     resPo.resolve(try await next.respond(to: request))
@@ -69,13 +67,13 @@ class NativeMicroModule: MicroModule {
             self._connectedIpcSet.remove(nativeIpc)
             return .OFF
         }
-        _connectSignal.emit((nativeIpc))
+        await _connectSignal.emit((nativeIpc))
         return NativeIpc(port: channel.port2, remote: self, role: .client)
     }
     
     internal var _connectSignal = Signal<(NativeIpc)>()
     
-    internal func onConnect(cb: @escaping ((NativeIpc)) -> SIGNAL_CTOR?) -> (() -> Bool) {
+    internal func onConnect(cb: @escaping ((NativeIpc)) -> SIGNAL_CTOR?) -> (() async -> Bool) {
         return _connectSignal.listen(cb)
     }
     

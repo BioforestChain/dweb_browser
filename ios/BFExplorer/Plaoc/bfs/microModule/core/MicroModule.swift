@@ -22,24 +22,22 @@ class MicroModule {
     }
     
     internal func _bootstrap() async throws {}
-    private var runningStateLock = PromiseOut.resolve(false)
+    private var runningStateLock = false
     private var running: Bool {
         get {
-            runningStateLock.value == true
+            runningStateLock
         }
     }
     
     private func beforeBootstrap() async {
-        if self.running {
+        if runningStateLock {
             fatalError("module \(self.mmid) already running")
         }
         
-        runningStateLock = PromiseOut()
+        runningStateLock = true
     }
     
-    internal func afterBootstrap() async {
-        runningStateLock.resolve(true)
-    }
+    internal func afterBootstrap() async {}
     
     func bootstrap() async {
         await beforeBootstrap()
@@ -56,19 +54,18 @@ class MicroModule {
     internal let _afterShutdownSignal = Signal<()>()
     
     internal func beforeShutdown() async {
-        if !running {
+        if !runningStateLock {
             fatalError("module \(mmid) already shutdown")
         }
         
-        runningStateLock = PromiseOut()
+        runningStateLock = false
     }
     
     internal func _shutdown() async throws {}
     
     internal func afterShutdown() async {
-        _afterShutdownSignal.emit(())
+        await _afterShutdownSignal.emit(())
         _afterShutdownSignal.clear()
-        runningStateLock.resolve(false)
     }
     
     func shutdown() async {
@@ -88,7 +85,7 @@ class MicroModule {
     }
     
     func connect(from: MicroModule) async -> Ipc {
-        if !(await runningStateLock.waitPromise()) {
+        if !runningStateLock {
             fatalError("module no running")
         }
         

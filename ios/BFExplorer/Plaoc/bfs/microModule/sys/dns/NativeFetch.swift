@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import Alamofire
 
-typealias FetchAdaptor = (_ remote: MicroModule, _ request: Vapor.Request) -> Vapor.Response?
+typealias FetchAdaptor = (_ remote: MicroModule, _ request: Vapor.Request) async -> Vapor.Response?
 struct S_FetchAdaptor: Hashable {
     var timestamp = Date().milliStamp
     var fetchAdaptor: FetchAdaptor
@@ -33,12 +33,12 @@ class NativeFetchAdaptersManager {
         }
     }
     
-    func append(order: Int = 0, adapter: @escaping FetchAdaptor) -> () -> Bool {
+    func append(order: Int = 0, adapter: @escaping FetchAdaptor) -> (()) async -> Bool {
         let fetchAdaptor = S_FetchAdaptor(fetchAdaptor: adapter)
         adapterOrderMap[fetchAdaptor] = order
         orderdAdapters = adapterOrderMap.reduce(into: []) { $0.append(($1.key, $1.value)) }.sorted(by: { $0.1 < $1.1 }).map { $0.0 }
         
-        return {
+        return { _ in
             return self.remove(fetchAdaptor: fetchAdaptor)
         }
     }
@@ -105,6 +105,7 @@ func alamofireFetch(request: Vapor.Request) -> Vapor.Response? {
             
             semaphore.signal()
         }
+        task.resume()
         
         semaphore.wait()
         
@@ -117,7 +118,7 @@ func alamofireFetch(request: Vapor.Request) -> Vapor.Response? {
 extension MicroModule {
     func nativeFetch(request: Vapor.Request) async -> Vapor.Response {
         for fetchAdapter in nativeFetchAdaptersManager.adapters {
-            let response = fetchAdapter.fetchAdaptor(self, request)
+            let response = await fetchAdapter.fetchAdaptor(self, request)
             if response != nil {
                 return response!
             }

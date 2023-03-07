@@ -10,13 +10,13 @@ import WebKit
 import Combine
 
 class JsProcessWebApi: NSObject {
-    let webView: WKWebView
+    let webView: DWebView
     private let processIdSubject = PassthroughSubject<Int, Never>()
     private var messageIpcPort1: MessagePortIpc?
     private var cancellable: AnyCancellable?
     private var processIdMmidMap: [Int:String] = [:]
     
-    init(webView: WKWebView) {
+    init(webView: DWebView) {
         self.webView = webView
         super.init()
     }
@@ -107,7 +107,9 @@ extension JsProcessWebApi: WKScriptMessageHandler {
                 guard let body = message.body as? String else { return }
                 let ipcMessage = jsonToIpcMessage(data: body, ipc: messageIpcPort1!)
                 if ipcMessage != nil {
-                    messageIpcPort1!.postMessage(message: ipcMessage!)
+                    Task {
+                        await messageIpcPort1!.postMessage(message: ipcMessage!)
+                    }
                 }
             }
         } else if message.name == "processId" {

@@ -52,12 +52,12 @@ class ReadableStream: InputStream {
 
     private var pullSignal = Signal<(Int)>()
     
-    init(onStart: ((ReadableStreamController)) -> Void, onPull: @escaping ((Int, ReadableStreamController)) -> Void) {
+    init(onStart: ((ReadableStreamController)) -> Void, onPull: @escaping ((Int, ReadableStreamController)) async -> Void) {
         super.init(data: self._data)
         _ = onStart(controller)
         
         _ = pullSignal.listen { size in
-            onPull((size, self.controller))
+            await onPull((size, self.controller))
             return nil
         }
         
@@ -87,7 +87,9 @@ class ReadableStream: InputStream {
         }
         
         dataSizeState = len - _data.count
-        pullSignal.emit((dataSizeState))
+        Task {
+            await pullSignal.emit((dataSizeState))
+        }
         semaphore.wait()
         
         let len = _data.count

@@ -20,8 +20,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        appVersionMgr.startCheck()
 //
 //        window?.rootViewController = UINavigationController(rootViewController: FirstViewController())
-        
-        DnsNMM.shared.bootstrap()
+        Task {
+            await startDwebBrowser()
+        }
        
         return true
     }

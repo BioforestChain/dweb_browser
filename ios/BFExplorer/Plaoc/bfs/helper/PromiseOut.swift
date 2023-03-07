@@ -38,13 +38,31 @@ class PromiseOut<T: Any> {
     
     func waitPromise() async -> T {
         return await withCheckedContinuation { continuation in
-            self.cancellable = _subject.sink(receiveCompletion: { complete in
+            self.cancellable = self._subject.sink(receiveCompletion: { complete in
                 switch complete {
                 case .finished:
                     self.isFinished = true
                     continuation.resume(returning: self.value!)
                 case .failure(let error):
                     fatalError("PromiseOut reject \(error.localizedDescription)")
+                }
+            }, receiveValue: { value in
+                self.value = value
+                self.isResolved = true
+                self._subject.send(completion: .finished)
+            })
+        }
+    }
+    
+    func promise() async throws -> T {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.cancellable = _subject.sink(receiveCompletion: { complete in
+                switch complete {
+                case .finished:
+                    self.isFinished = true
+                    continuation.resume(returning: self.value!)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
                 }
             }, receiveValue: { value in
                 self.value = value

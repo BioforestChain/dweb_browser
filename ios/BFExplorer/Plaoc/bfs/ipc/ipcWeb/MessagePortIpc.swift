@@ -50,12 +50,14 @@ class MessagePortIpc: Ipc {
                     print("PONG/\(ipc)")
                 }
             } else if let message = noti.object as? IpcMessage {
-                self._messageSignal.emit((message, ipc))
+                Task {
+                    await self._messageSignal.emit((message, ipc))
+                }
             }
         }
     }
     
-    override func _doPostMessage(data: IpcMessage) {
+    override func _doPostMessage(data: IpcMessage) async {
         if let message = data as? IpcReqMessage {
             NotificationCenter.default.post(name: Notification.Name(port1), object: message)
         } else if let message = data as? IpcResMessage {

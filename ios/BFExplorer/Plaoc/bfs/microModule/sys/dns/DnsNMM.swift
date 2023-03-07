@@ -26,37 +26,37 @@ class DnsNMM: NativeMicroModule {
         /**
          * 对 nativeFetch 定义 file://xxx.dweb的解析
          */
-        _ = _afterShutdownSignal.listen {
-            _ = nativeFetchAdaptersManager.append { (fromMM, request) in
-                Task {
-                    if request.url.scheme == "file" && request.url.host != nil && request.url.host!.hasSuffix("dweb") {
-                        let mmid = request.url.host!
-                        let mm = self.mmMap[mmid]
-                        
-                        var ipcMap: [Mmid:Ipc]? = self.connects[fromMM]
-                        if ipcMap == nil {
-                            self.connects[fromMM] = [:]
-                            ipcMap = [:]
-                        }
-                        
-                        var ipc: Ipc? = ipcMap![mmid]
-                        if ipc == nil {
-                            let toMM = await self.open(mmid: mmid)
-                            ipc = await toMM.connect(from: fromMM)
-                            _ = ipc!.onClose {
-                                ipcMap!.removeValue(forKey: mmid)
-                                
-                                return .OFF
-                            }
+        _ = _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { (fromMM, request) in
+            if request.url.scheme == "file" && request.url.host != nil && request.url.host!.hasSuffix("dweb") {
+                let mmid = request.url.host!
+                let mm = self.mmMap[mmid]
+                
+                if mm != nil {
+                    var ipcMap = self.connects[fromMM]
+                    if ipcMap == nil {
+                        self.connects[fromMM] = [:]
+                        ipcMap = [:]
+                    }
+                    
+                    var ipc = ipcMap![mmid]
+                    if ipc == nil {
+                        let toMM = await self.open(mmid: mmid)
+                        ipc = await toMM.connect(from: fromMM)
+                        _ = ipc!.onClose {
+                            ipcMap!.removeValue(forKey: mmid)
+                            
+                            return .OFF
                         }
                     }
+                    
+                    return await ipc!.request(request: request)
+                } else {
+                    return Response(status: .badGateway, body: .init(string: request.url.string))
                 }
-                
+            } else {
                 return nil
             }
-            
-            return nil
-        }
+        })
         
         let app = HttpServer.app
         let group = app.grouped("\(mmid)")
@@ -116,9 +116,11 @@ class DnsNMM: NativeMicroModule {
     /** 打开应用 */
     private func open(mmid: Mmid) async -> MicroModule {
         var app = running_apps[mmid]
-        if app == nil {
-            app = query(mmid: mmid)
+        if app != nil {
+            return app!
         }
+        
+        app = query(mmid: mmid)
         
         if app == nil {
             fatalError("no found app: \(mmid)")
@@ -131,7 +133,7 @@ class DnsNMM: NativeMicroModule {
     
     /** 关闭应用 */
     private func close(mmid: Mmid) async -> Int {
-        var app = running_apps[mmid]
+        let app = running_apps[mmid]
         
         if app != nil {
             await app!.shutdown()

@@ -8,19 +8,15 @@
 import Foundation
 import Vapor
 
-struct JmmMetadata {
-    var main_url: String
-}
-
 /** 可动态加载的微组件 */
 class JsMicroModule: MicroModule {
     var metadata: JmmMetadata
     var processId: Int? = nil
     
-    init(mmid: Mmid, metadata: JmmMetadata) {
+    init(metadata: JmmMetadata) {
         self.metadata = metadata
         super.init()
-        self.mmid = mmid
+        self.mmid = metadata.id
     }
     
     override func _bootstrap() async throws {

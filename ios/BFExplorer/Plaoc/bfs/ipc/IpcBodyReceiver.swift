@@ -58,7 +58,7 @@ class IpcBodyReceiver: IpcBody {
                     return nil
                 }
             }, onPull: { (desiredSize, controller) in
-                ipc!.postMessage(message: IpcStreamPull(stream_id: stream_id, desiredSize: desiredSize))
+                await ipc!.postMessage(message: IpcStreamPull(stream_id: stream_id, desiredSize: desiredSize))
             })
             return IpcBodyReceiver.StreamData(stream: Data(reading: stream))
         } else if (metaBody!.type.rawValue & IPC_RAW_BODY_TYPE.text.rawValue) != 0 {

@@ -13,11 +13,14 @@ class DWebView: WKWebView {
     let mm: MicroModule
     let options: Options
     
-    init(mm: MicroModule, options: Options) {
+    init(mm: MicroModule, options: Options, frame: CGRect) {
         self.mm = mm
         self.options = options
-
-        let config = WKWebViewConfiguration()
+        
+        let config = DWebView.setUA(mm: mm, options: options)
+        super.init(frame: frame, configuration: config)
+        self.scrollView.contentInsetAdjustmentBehavior = .never
+        self.allowsBackForwardNavigationGestures = true
     }
     
     required init?(coder: NSCoder) {
@@ -36,7 +39,7 @@ class DWebView: WKWebView {
         await readyPo.waitPromise()
     }
     
-    private func setUA() {
+    private class func setUA(mm: MicroModule, options: Options) -> WKWebViewConfiguration {
         let baseDwebHost = mm.mmid
         var dwebHost = baseDwebHost
         
@@ -54,10 +57,15 @@ class DWebView: WKWebView {
         if !dwebHost.contains(where: { $0 == ":" }) {
             dwebHost += ":80"
         }
+
+        let config = WKWebViewConfiguration()
+        config.applicationNameForUserAgent = "dweb-host/\(dwebHost)"
+//        config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
         
-//        UserDefaults.standard
-//        UserDefaults.standard.register(defaults: <#T##[String : Any]#>)
-//        self.customUserAgent
+        let preference = WKPreferences()
+        preference.javaScriptCanOpenWindowsAutomatically = true
+        config.preferences = preference
         
+        return config
     }
 }
