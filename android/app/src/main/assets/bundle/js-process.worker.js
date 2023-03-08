@@ -3707,6 +3707,18 @@ var $readRequestAsIpcRequest = async (request_init) => {
   return { method, body, headers };
 };
 
+// src/helper/mapHelper.cts
+var mapHelper = new class {
+  getOrPut(map, key, putter) {
+    if (map.has(key)) {
+      return map.get(key);
+    }
+    const put = putter();
+    map.set(key, put);
+    return put;
+  }
+}();
+
 // src/sys/http-server/$createHttpDwebServer.cts
 var createHttpDwebServer_exports = {};
 __export(createHttpDwebServer_exports, {
@@ -3981,6 +3993,7 @@ var JsProcessMicroModule = class {
       this,
       "server" /* SERVER */
     );
+    this._ipcMap = /* @__PURE__ */ new Map();
     const _beConnect = async (event) => {
       const data = event.data;
       if (Array.isArray(event.data) === false) {
@@ -3989,10 +4002,10 @@ var JsProcessMicroModule = class {
       if (data[0] === "ipc-connect") {
         const cid = data[1];
         const port = event.ports[0];
-        const po = this.connectCidMap.get(cid);
-        if (po) {
+        const port_po = this.connectCidMap.get(cid);
+        if (port_po) {
           this.connectCidMap.delete(cid);
-          po.resolve(port);
+          port_po.resolve(port);
           self.postMessage(["ipc-connect-ready", cid]);
         } else {
         }
@@ -4021,21 +4034,30 @@ var JsProcessMicroModule = class {
     const args = normalizeFetchArgs(url, init);
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
-  async connect(mmid) {
-    const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
-    const po = new PromiseOut();
-    this.connectCidMap.set(cid, po);
-    this.fetchIpc.postMessage(
-      IpcEvent.fromText("dns/connect", JSON.stringify({ mmid, cid }))
-    );
-    return new MessagePortIpc(await po.promise, {
-      mmid,
-      ipc_support_protocols: {
-        raw: false,
-        message_pack: false,
-        protobuf: false
-      }
-    });
+  connect(mmid) {
+    return mapHelper.getOrPut(this._ipcMap, mmid, () => {
+      const ipc_po = new PromiseOut();
+      ipc_po.resolve(
+        (async () => {
+          const port_po = new PromiseOut();
+          const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
+          this.connectCidMap.set(cid, port_po);
+          this.fetchIpc.postMessage(
+            IpcEvent.fromText("dns/connect", JSON.stringify({ mmid, cid }))
+          );
+          const ipc = new MessagePortIpc(await port_po.promise, {
+            mmid,
+            ipc_support_protocols: {
+              raw: false,
+              message_pack: false,
+              protobuf: false
+            }
+          });
+          return ipc;
+        })()
+      );
+      return ipc_po;
+    }).promise;
   }
   beConnnect(ipc) {
   }

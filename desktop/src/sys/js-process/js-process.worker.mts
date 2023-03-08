@@ -17,6 +17,7 @@ import type { $RunMainConfig } from "./assets/js-process.web.mjs";
 
 import * as ipc from "../../core/ipc/index.cjs";
 import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
+import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import * as http from "../http-server/$createHttpDwebServer.cjs";
 
@@ -91,10 +92,10 @@ export class JsProcessMicroModule implements $MicroModule {
       if (data[0] === "ipc-connect") {
         const cid = data[1];
         const port = event.ports[0];
-        const po = this.connectCidMap.get(cid);
-        if (po) {
+        const port_po = this.connectCidMap.get(cid);
+        if (port_po) {
           this.connectCidMap.delete(cid);
-          po.resolve(port);
+          port_po.resolve(port);
           self.postMessage(["ipc-connect-ready", cid]);
         } else {
           // jsProcess.beConnnect(new MessagePortIpc(port,jsProcess,))
@@ -138,21 +139,31 @@ export class JsProcessMicroModule implements $MicroModule {
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
 
-  async connect(mmid: $MMID) {
-    const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
-    const po = new PromiseOut<MessagePort>();
-    this.connectCidMap.set(cid, po);
-    this.fetchIpc.postMessage(
-      IpcEvent.fromText("dns/connect", JSON.stringify({ mmid, cid }))
-    );
-    return new MessagePortIpc(await po.promise, {
-      mmid,
-      ipc_support_protocols: {
-        raw: false,
-        message_pack: false,
-        protobuf: false,
-      },
-    });
+  private _ipcMap = new Map<$MMID, PromiseOut<Ipc>>();
+  connect(mmid: $MMID) {
+    return mapHelper.getOrPut(this._ipcMap, mmid, () => {
+      const ipc_po = new PromiseOut<Ipc>();
+      ipc_po.resolve(
+        (async () => {
+          const port_po = new PromiseOut<MessagePort>();
+          const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
+          this.connectCidMap.set(cid, port_po);
+          this.fetchIpc.postMessage(
+            IpcEvent.fromText("dns/connect", JSON.stringify({ mmid, cid }))
+          );
+          const ipc = new MessagePortIpc(await port_po.promise, {
+            mmid,
+            ipc_support_protocols: {
+              raw: false,
+              message_pack: false,
+              protobuf: false,
+            },
+          });
+          return ipc;
+        })()
+      );
+      return ipc_po;
+    }).promise;
   }
 
   beConnnect(ipc: Ipc) {}

@@ -131,7 +131,6 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
             }
         }
 
-        data class DnsConnectEvent(val mmid: Mmid, val cid: String)
         /**
          * 收到 Worker 的事件，如果是指令，执行一些特定的操作
          */
@@ -141,9 +140,14 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
              */
             if (ipcEvent.name == "dns/connect") {
                 GlobalScope.launch(ioAsyncExceptionHandler) {
+                    data class DnsConnectEvent(val mmid: Mmid, val cid: String)
+
                     val event = gson.fromJson(ipcEvent.text, DnsConnectEvent::class.java)
                     /**
-                     * TODO 这里建立的两个连接，我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
+                     * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
+                     * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
+                     *
+                     * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
                      */
                     /**
                      * 向目标模块发起连接
@@ -156,7 +160,10 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                         Uri.of("file://js.sys.dweb/create-ipc").query("process_id", pid)
                             .query("cid", event.cid)
                     ).int()
-                    val originIpc = Native2JsIpc(portId, this@JsMicroModule)
+                    val originIpc = Native2JsIpc(portId, this@JsMicroModule).also {
+                        _ipcSet.add(it) // 同样要被生命周期管理销毁
+                    }
+
                     /**
                      * 将两个消息通道间接互联
                      */
