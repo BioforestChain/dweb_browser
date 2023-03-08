@@ -42,7 +42,7 @@ class IpcBodyReceiver: IpcBody {
             ? { data in return (data as! String).to_utf8_data()! }
             : { data in fatalError("invalid rawBody type: \(metaBody!.type)")}
 
-        if !metaBody!.type.isEmpty && IPC_RAW_BODY_TYPE.stream_id.rawValue != 0 {
+        if (metaBody!.type.rawValue & IPC_RAW_BODY_TYPE.stream_id.rawValue) != 0 {
             let stream_id = metaBody!.data.string!
             let stream = ReadableStream(onStart: { controller in
                 _ = ipc!.onMessage { (message, ipc) in

@@ -31,9 +31,7 @@ class NativeIpc: Ipc {
             return nil
         }
         
-        Task {
-            await port.start()
-        }
+        port.start()
     }
     
     override func _doPostMessage(data: IpcMessage) async {
@@ -54,7 +52,7 @@ class NativePort<I, O> {
     private let channel_in: PassthroughSubject<I, Never>
     private let channel_out: PassthroughSubject<O, Never>
     private let closePo: PromiseOut<()>
-//    private var cancellable: AnyCancellable?
+    private var cancellable: AnyCancellable?
     
     init(channel_in: PassthroughSubject<I, Never>, channel_out: PassthroughSubject<O, Never>, closePo: PromiseOut<()>) {
         self.channel_in = channel_in
@@ -64,14 +62,14 @@ class NativePort<I, O> {
         Task {
             await closePo.waitPromise()
             closing = true
-//            cancellable?.cancel()
+            cancellable?.cancel()
             await _closeSignal.emit(())
         }
     }
     
     private var started = false
     
-    func start() async {
+    func start() {
         if started || closing {
             return
         } else {
@@ -81,7 +79,9 @@ class NativePort<I, O> {
 //        for await message in channel_in.values {
 //            await self._messageSignal.emit(message)
 //        }
-        channel_in.sink(receiveValue: { message in
+        print("sink start")
+        cancellable = channel_in.sink(receiveValue: { message in
+            print("message")
             print(message)
             Task {
                 await self._messageSignal.emit(message)
@@ -104,6 +104,10 @@ class NativePort<I, O> {
     
     func postMessage(msg: O) async {
         channel_out.send(msg)
+        
+        if let msg = msg as? IpcMessage {
+            print(msg.type)
+        }
     }
     
     func onMessage(cb: @escaping (I) async -> SIGNAL_CTOR?) -> () async -> Bool {

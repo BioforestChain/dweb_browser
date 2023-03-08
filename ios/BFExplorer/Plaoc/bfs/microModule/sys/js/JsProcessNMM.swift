@@ -256,9 +256,7 @@ extension MicroModule {
     
     func listenHttpDwebServer(token: String, routes: [Gateway.RouteConfig]) async -> ReadableStreamIpc {
         let ipc = ReadableStreamIpc(remote: self, role: .client)
-        await ipc.bindIncomeStream(stream: await nativeFetch(request: Request(application: HttpServer.app,
-                                                                              url: URI(string: "file://http.sys.dweb/listen?token=\(token)&routes=\(ChangeTools.arrayValueString(routes)!)"),
-                                                                        on: HttpServer.app.eventLoopGroup.next())).stream())
+        await ipc.bindIncomeStream(stream: await nativeFetch(request: Request.new(url: "file://http.sys.dweb/listen?token=\(token)&routes=\(ChangeTools.arrayValueString(routes)!)")).stream())
         return ipc
     }
     

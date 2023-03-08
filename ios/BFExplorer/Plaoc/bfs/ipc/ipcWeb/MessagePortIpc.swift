@@ -71,4 +71,8 @@ class MessagePortIpc: Ipc {
         NotificationCenter.default.post(name: Notification.Name(port1), object: "close")
         cancellable?.cancel()
     }
+    
+    deinit {
+        cancellable?.cancel()
+    }
 }

@@ -113,7 +113,7 @@ struct IpcResMessage: IpcMessage {
     let headers: IpcHeaders
     let metaBody: MetaBody
     
-    func toIpcResponse() -> IpcResponse {
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: .init(metaBody: metaBody, body: nil))
+    func toIpcResponse(ipc: Ipc) -> IpcResponse {
+        IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodyReceiver(metaBody: metaBody, ipc: ipc))
     }
 }

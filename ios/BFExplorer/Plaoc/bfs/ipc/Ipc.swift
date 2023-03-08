@@ -111,7 +111,7 @@ class Ipc {
             let po = PromiseOut<IpcResponse>()
             _ = self.onMessage { (message, ipc) in
                 if let message = message as? IpcResMessage, ipcRequest.req_id == message.req_id {
-                    po.resolve(message.toIpcResponse())
+                    po.resolve(message.toIpcResponse(ipc: ipc))
 //                    return message.toIpcResponse()
                 }
                 

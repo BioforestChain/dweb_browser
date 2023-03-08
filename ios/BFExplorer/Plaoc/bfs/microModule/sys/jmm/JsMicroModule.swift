@@ -38,7 +38,7 @@ class JsMicroModule: MicroModule {
             return nil
         }
         
-        let request = Request(application: HttpServer.app, method: .POST, url: URI(string: "file://js.sys.dweb/create-process?main_pathname=/index.js&process_id=\(pid)"), on: HttpServer.app.eventLoopGroup.next())
+        let request = Request.new(method: .POST, url: "file://js.sys.dweb/create-process?main_pathname=/index.js&process_id=\(pid)")
         let inputStream = await nativeFetch(request: request).stream()
         
         await streamIpc.bindIncomeStream(stream: inputStream)
@@ -53,7 +53,7 @@ class JsMicroModule: MicroModule {
         if pid == nil {
             fatalError("\(mmid) process_id no found, should bootstrap first")
         }
-        let request = Request(application: HttpServer.app, method: .POST, url: URI(string: "file://js.sys.dweb/create-ipc?process_id=\(pid!)"), on: HttpServer.app.eventLoopGroup.next())
+        let request = Request.new(method: .POST, url: "file://js.sys.dweb/create-ipc?process_id=\(pid!)")
         let portId = await nativeFetch(request: request).int()
         
         if portId == nil {

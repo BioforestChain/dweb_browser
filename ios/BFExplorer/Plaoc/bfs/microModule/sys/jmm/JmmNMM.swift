@@ -17,28 +17,42 @@ class JmmNMM: NativeMicroModule {
     }
     
     override func _bootstrap() async throws {
-        let app = HttpServer.app
-        
-        let group = app.grouped("\(mmid)")
-        group.on(.GET, ["install"]) { request, ipc in
+        routerHandler()
+    }
+    
+    private func routerHandler() {
+        let installRouteHandler: RouterHandler = { request, ipc async in
             let metadataUrl = request.query[String.self, at: "metadata-url"]
             
             let jmmMetadata = await self.nativeFetch(url: metadataUrl!).json(JmmMetadata.self)
             self.openJmmMetadataInstallPage(jmmMetadata: jmmMetadata)
-            return Response(status: .ok)
+            
+            return jmmMetadata
         }
-        _ = group.on(.GET, ["uninstall"]) { request, ipc in
+        let uninstallRouteHandler: RouterHandler = { request, ipc async in
             let mmid = request.query[Mmid.self, at: "mmid"]
             let jmm = self.apps[mmid!]
             if jmm == nil {
                 fatalError("")
             }
             self.openJmmMetadataUninstallPage(jmmMetadata: jmm!.metadata)
-            return Response(status: .ok)
+            return true
         }
-        _ = group.on(.GET, ["query"]) { request, ipc in
-            _ = AppQueryResult(installedAppList: self.apps.map { $1.metadata }, installingAppList: self.installingApps.map { $1 })
-            return Response(status: .ok)
+        let queryRouteHandler: RouterHandler = { request, ipc async in
+            return AppQueryResult(installedAppList: self.apps.map { $1.metadata }, installingAppList: self.installingApps.map { $1 })
+        }
+        apiRouting["\(self.mmid)/install"] = installRouteHandler
+        apiRouting["\(self.mmid)/uninstall"] = uninstallRouteHandler
+        apiRouting["\(self.mmid)/query"] = queryRouteHandler
+        
+        // 添加路由处理方法到http路由中
+        let app = HttpServer.app
+        let group = app.grouped("\(mmid)")
+        let httpHandler: (Request) async throws -> Response = { request async in
+            await self.defineHandler(request: request)
+        }
+        for pathComponent in ["install", "uninstall", "query"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
         }
     }
     

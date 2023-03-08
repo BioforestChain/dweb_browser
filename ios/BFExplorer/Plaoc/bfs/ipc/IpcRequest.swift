@@ -101,6 +101,10 @@ final class IpcRequest {
     }
     
     func toRequest() -> Request {
+        if method == .GET || method == .HEAD {
+            return Request.new(method: HTTPMethod(rawValue: method.rawValue), url: self.url)
+        }
+        
         var buffer: ByteBuffer
         
         if body.body.text != nil {
@@ -113,7 +117,7 @@ final class IpcRequest {
             fatalError("invalid body to request: \(body)")
         }
         
-        return Request(application: HttpServer.app, method: HTTPMethod(rawValue: self.method.rawValue), url: URI(string: self.url), collectedBody: buffer, on: HttpServer.app.eventLoopGroup.next())
+        return Request.new(method: HTTPMethod(rawValue: method.rawValue), url: self.url, collectedBody: buffer)
     }
     
     lazy var ipcReqMessage: IpcReqMessage = IpcReqMessage(req_id: req_id, method: method, url: url, headers: headers, metaBody: body.metaBody)

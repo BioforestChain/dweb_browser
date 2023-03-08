@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Vapor
 
 class BootNMM: NativeMicroModule {
     override init() {
@@ -21,24 +22,33 @@ class BootNMM: NativeMicroModule {
     }
     
     override func _bootstrap() async throws {
-        let app = HttpServer.app
-        let group = app.grouped("\(mmid)")
-        
-        group.on(.GET, "open") { request in
-            print("BootNMM \(self.mmid) \(request.url.path)")
-            return true
-        }
-        group.on(.GET, "register") { request in
-            return self.register(mmid: request.ipc?.remote.mmid)
-        }
-        group.on(.GET, "unregister") { request in
-            return self.unregister(mmid: request.ipc?.remote.mmid)
-        }
+        routerHandler()
         
         Task {
             for mmid in registerdMmids {
                 _ = await nativeFetch(url: "file://dns.sys.dweb/open?app_id=\(mmid.encodeURIComponent())")
             }
+        }
+    }
+    
+    private func routerHandler() {
+        let registerRouteHandler: RouterHandler = { request, ipc async in
+            return self.register(mmid: ipc?.remote.mmid)
+        }
+        let unregisterRouteHandler: RouterHandler = { request, ipc async in
+            return self.unregister(mmid: ipc?.remote.mmid)
+        }
+        apiRouting["\(self.mmid)/register"] = registerRouteHandler
+        apiRouting["\(self.mmid)/unregister"] = unregisterRouteHandler
+        
+        // 添加路由处理方法到http路由中
+        let app = HttpServer.app
+        let group = app.grouped("\(mmid)")
+        let httpHandler: (Request) async throws -> Response = { request async in
+            await self.defineHandler(request: request)
+        }
+        for pathComponent in ["register", "unregister"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
         }
     }
     

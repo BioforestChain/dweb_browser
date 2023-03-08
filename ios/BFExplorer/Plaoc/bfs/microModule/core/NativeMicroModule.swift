@@ -12,48 +12,27 @@ import SwiftUI
 import Vapor
 import Combine
 
+typealias RouterHandler<T> = (_ request: Request, _ ipc: Ipc?) async -> T?
+
 class NativeMicroModule: MicroModule {
+    internal var reqidRouting: [/* req_id */Int:String/* route */] = [:]
+    internal var apiRouting: [/* route */String:RouterHandler<Any>] = [:]
     override init() {
         super.init()
         mmid = ".sys.dweb"
         
-        let app = HttpServer.app
-        let hookRequestMiddleware = HookRequestMiddleware()
-        app.middleware.use(hookRequestMiddleware, at: .end)
-        
         _ = onConnect { clientIpc in
             _ = clientIpc.onRequest { message in
-                hookRequestMiddleware.hookRequest(ipcRequest: message.0, clientIpc: clientIpc)
+                let ipcRequest = message.0
+                let url = URI(string: ipcRequest.url)
+                self.reqidRouting[ipcRequest.req_id] = url.host! + url.path
+                
+                let res = await self.defineHandler(request: ipcRequest.toRequest(), ipc: clientIpc)
+                let ipcResMessage = IpcResponse.fromResponse(req_id: ipcRequest.req_id, response: res, ipc: clientIpc).ipcResMessage
+                await clientIpc.postMessage(message: ipcResMessage)
                 return nil
             }
             return nil
-        }
-    }
-    
-    struct HookRequestMiddleware: AsyncMiddleware {
-        var channel = PassthroughSubject<(IpcRequest, Ipc), Never>()
-        
-        func hookRequest(ipcRequest: IpcRequest, clientIpc: Ipc) {
-            channel.send((ipcRequest, clientIpc))
-        }
-
-        func respond(to request: Vapor.Request, chainingTo next: Vapor.AsyncResponder) async throws -> Vapor.Response {
-            let resPo = PromiseOut<Vapor.Response>()
-            for await (ipcRequest, clientIpc) in channel.values {
-                let req = ipcRequest.toRequest()
-                
-                if request.route?.path.string == req.route?.path.string {
-                    req.ipc = clientIpc
-                    let response = try await next.respond(to: req)
-                    let ipcResMessage = IpcResponse.fromResponse(req_id: ipcRequest.req_id, response: response, ipc: clientIpc).ipcResMessage
-                    await clientIpc.postMessage(message: ipcResMessage)
-                    resPo.resolve(response)
-                } else {
-                    resPo.resolve(try await next.respond(to: request))
-                }
-            }
-
-            return await resPo.waitPromise()
         }
     }
     
@@ -84,6 +63,24 @@ class NativeMicroModule: MicroModule {
         }
         
         _connectedIpcSet.removeAll()
+    }
+    
+    // 对路由处理方法包裹一层，用于http路由
+    internal func defineHandler(request: Request, ipc: Ipc? = nil) async -> Response {
+        let routeHandler = self.apiRouting[request.route!.path.string]!
+        
+        let result = await routeHandler(request, ipc)
+        
+        if let result = result as? Response {
+            return result
+        } else if let result = result as? Codable {
+            return Response(status: .ok, headers: .init([("Content-Type", "application/json")]), body: .init(string: JSONStringify(result)!))
+        } else {
+            return Response(status: .internalServerError, body: .init(string: """
+                <p>\(request.url)</p>
+                <pre>Unknow Error</pre>
+            """.trimmingCharacters(in: .whitespacesAndNewlines)))
+        }
     }
 }
 

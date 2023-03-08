@@ -16,33 +16,41 @@ class MultiWebViewNMM: NativeMicroModule {
     }
     
     override func _bootstrap() async throws {
+        routerHandler()
+    }
+    
+    private func routerHandler() {
+        let openRouteHandler: RouterHandler = { request, ipc async in
+            let url = request.query[String.self, at: "url"]!
+            
+            return self.openDwebView(remoteMmid: ipc!.remote.mmid, url: url)
+        }
+        let closeRouteHandler: RouterHandler = { request, ipc async in
+            let webviewId = request.query[String.self, at: "webview_id"]!
+            
+            return self.closeDwebView(remoteMmid: ipc!.remote.mmid, webviewId: webviewId)
+        }
+        apiRouting["\(self.mmid)/open"] = openRouteHandler
+        apiRouting["\(self.mmid)/close"] = closeRouteHandler
+        
+        // 添加路由处理方法到http路由中
         let app = HttpServer.app
         let group = app.grouped("\(mmid)")
-        
-        group.on(.GET, "open") { request in
-            guard let origin = request.query[String.self, at: "origin"] else {
-                return Response(status: .badRequest)
-            }
-            let processId = request.query[String.self, at: "process_id"]
-            
-            let webViewId = self.openDwebView(origin: origin, processId: processId)
-            
-            return Response(status: .ok, body: .init(string: webViewId))
+        let httpHandler: (Request) async throws -> Response = { request async in
+            await self.defineHandler(request: request)
         }
-        group.on(.GET, "close") { request in
-            let processId = request.query[String.self, at: "process_id"]
-            
-            self.closeDwebView(processId: processId)
-            
-            return true
+        for pathComponent in ["open", "close"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
         }
     }
     
-    func openDwebView(origin: String, processId: String?) -> String {
+    func openDwebView(remoteMmid: Mmid, url: String?) -> String {
         return ""
     }
     
-    func closeDwebView(processId: String?) {}
+    func closeDwebView(remoteMmid: Mmid, webviewId: String) -> Bool {
+        return true
+    }
 }
 
 //class MultiWebViewNMM: NativeMicroModule {

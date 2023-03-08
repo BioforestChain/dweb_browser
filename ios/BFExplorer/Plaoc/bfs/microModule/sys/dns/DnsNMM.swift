@@ -49,6 +49,7 @@ class DnsNMM: NativeMicroModule {
                         }
                     }
                     
+                    print("start request")
                     return await ipc!.request(request: request)
                 } else {
                     return Response(status: .badGateway, body: .init(string: request.url.string))
@@ -58,20 +59,24 @@ class DnsNMM: NativeMicroModule {
             }
         })
         
-        let app = HttpServer.app
-        let group = app.grouped("\(mmid)")
-        group.on(.GET, "open") { request async in
+        // 处理路由
+        routerHandler()
+        
+        // 启动 boot 模块
+        _ = await open(mmid: "boot.sys.dweb")
+    }
+    
+    // 处理路由
+    private func routerHandler() {
+        // 保存路由处理方法，方便http和file协议请求调用
+        let openRouteHandler: RouterHandler = { request, _ async in
             _ = self._connectSignal.listen { clientIpc in
                 _ = clientIpc.onRequest { IpcRequest in
                     return nil
                 }
                 
-                
-
                 return nil
             }
-            
-            
             
             guard let app_id = request.query[Mmid.self, at: "app_id"] else {
                 return false
@@ -80,7 +85,7 @@ class DnsNMM: NativeMicroModule {
             _ = await self.open(mmid: app_id)
             return true
         }
-        group.on(.GET, "close") { request async in
+        let closeRouteHandler: RouterHandler = { request, _ async in
             guard let app_id = request.query[Mmid.self, at: "app_id"] else {
                 return false
             }
@@ -88,9 +93,18 @@ class DnsNMM: NativeMicroModule {
             _ = await self.close(mmid: app_id)
             return true
         }
+        apiRouting["\(self.mmid)/open"] = openRouteHandler
+        apiRouting["\(self.mmid)/close"] = closeRouteHandler
         
-        // 启动 boot 模块
-        _ = await open(mmid: "boot.sys.dweb")
+        // 添加路由处理方法到http路由中
+        let app = HttpServer.app
+        let group = app.grouped("\(mmid)")
+        let httpHandler: (Request) async throws -> Response = { request async in
+            await self.defineHandler(request: request)
+        }
+        for pathComponent in ["open", "close"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
+        }
     }
     
     override func _shutdown() async throws {

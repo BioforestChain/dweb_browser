@@ -144,31 +144,53 @@ class HttpNMM: NativeMicroModule {
     }
     
     override func _bootstrap() async throws {
+        /// 启动http后端服务
         HttpServer.createServer(22206)
-        let app = HttpServer.app
         
-//        _afterShutdownSignal
+        /// 路由处理
+        routerHandler()
         
-        let group = app.grouped("\(mmid)")
-        group.on(.GET, "start") { request in
+        /// 为 nativeFetch 函数提供支持
+        _ = _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { _, request in
+            if request.url.scheme == "http" && request.url.host != nil && request.url.host!.hasSuffix(".dweb") {
+                return alamofireFetch(request: Request.new(url: request.url.string))
+            } else {
+                return nil
+            }
+        })
+    }
+    
+    private func routerHandler() {
+        let startRouteHandler: RouterHandler = { request, _ async in
             let port = request.query[Int.self, at: "port"]
             let subdomain = request.query[String.self]
             
-            _ = self.start(ipc: request.ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
-            return Response(status: .ok)
+            return self.start(ipc: request.ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
         }
-        group.on(.POST, "listen") { request in
+        let listenRouteHandler: RouterHandler = { request, _ async in
             guard let token = request.query[String.self, at: "token"] else {
                 return Response(status: .badRequest)
             }
                     
             return await self.listen(token: token, message: request)
         }
-        group.on(.GET, "close") { request in
+        let closeRouteHandler: RouterHandler = { request, _ async in
             let port = request.query[Int.self, at: "port"]
             let subdomain = request.query[String.self]
-            await self.close(ipc: request.ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
-            return Response(status: .ok)
+            return await self.close(ipc: request.ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
+        }
+        apiRouting["\(self.mmid)/start"] = startRouteHandler
+        apiRouting["\(self.mmid)/listen"] = listenRouteHandler
+        apiRouting["\(self.mmid)/close"] = closeRouteHandler
+        
+        // 添加路由处理方法到http路由中
+        let app = HttpServer.app
+        let group = app.grouped("\(mmid)")
+        let httpHandler: (Request) async throws -> Response = { request async in
+            await self.defineHandler(request: request)
+        }
+        for pathComponent in ["start", "listen", "close"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
         }
     }
     
@@ -292,13 +314,16 @@ class HttpNMM: NativeMicroModule {
         }))
     }
     
-    private func close(ipc: Ipc, options: DwebHttpServerOptions) async {
+    private func close(ipc: Ipc, options: DwebHttpServerOptions) async -> Bool {
         let serverUrlInfo = getServerUrlInfo(ipc: ipc, options: options)
         let gateway = gatewayMap.removeValue(forKey: serverUrlInfo.host)
         
         if gateway != nil {
             tokenMap.removeValue(forKey: gateway!.token)
             await gateway!.listener.destroy()
+            return true
+        } else {
+            return false
         }
     }
 }
