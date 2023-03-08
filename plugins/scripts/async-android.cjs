@@ -58,12 +58,12 @@ function mkdirsSync(dirname) {
 }
 
 // 创建目录
-mkdirsSync('../android/app/src/main/assets/cot/locales/zh-Hans');
+mkdirsSync('../android/app/src/main/assets/cot-demo');
 
-fs.rmSync("../android/app/src/main/assets/cot/locales/zh-Hans", { recursive: true, force: true })
+fs.rmSync("../android/app/src/main/assets/cot-demo", { recursive: true, force: true })
 
 // 复制前端
-copyDir('./demo', '../android/app/src/main/assets/cot/locales/zh-Hans', (e) => {
+copyDir('./demo', '../android/app/src/main/assets/cot-demo', (e) => {
   console.log(e)
 })
 

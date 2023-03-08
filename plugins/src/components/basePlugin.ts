@@ -9,8 +9,13 @@ export class BasePlugin extends HTMLElement {
     super();
   }
 
-  protected nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    return fetch(`${url}&X-Dweb-Host=${this.mmid}`, init)
+  protected nativeFetch(url: RequestInfo, init?: RequestInit): Promise<Response> {
+    if (url instanceof Request) {
+      return fetch(url, init)
+    }
+    const api = window.location.host.replace("www", "api")
+    console.log("nativeFetch=>", api)
+    return fetch(`https://${api}${url}`, init)
   }
 
   protected createSignal = createSignal

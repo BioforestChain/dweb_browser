@@ -22,6 +22,9 @@ dns.install(browserJMM);
 import { cotJMM } from "./user/cot/cot.main.cjs";
 dns.install(cotJMM);
 
+import { cotDemoJMM } from "./user/cot-demo/cotDemo.main.cjs";
+dns.install(cotDemoJMM);
+
 // 安装 file.sys.dweb
 import { FileNMM } from "./sys/file/file.cjs";
 dns.install(new FileNMM());

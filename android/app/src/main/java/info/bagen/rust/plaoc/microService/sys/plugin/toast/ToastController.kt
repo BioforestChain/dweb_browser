@@ -3,6 +3,10 @@ package info.bagen.rust.plaoc.microService.sys.plugin.toast
 import android.view.Gravity
 import android.view.View
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.activityClassList
+import info.bagen.rust.plaoc.microService.sys.mwebview.MutilWebViewActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 object ToastController {
 
@@ -44,17 +48,19 @@ object ToastController {
             DurationType.LONG -> android.widget.Toast.LENGTH_LONG
             else -> android.widget.Toast.LENGTH_SHORT
         }
-        val toast = android.widget.Toast.makeText(App.appContext, text, duration)
-        when (positionType) {
-            PositionType.TOP -> {
-                toast.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 40)
+        runBlocking(Dispatchers.Main) {
+            val toast = android.widget.Toast.makeText(App.appContext, text, duration)
+            when (positionType) {
+                PositionType.TOP -> {
+                    toast.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 40)
+                }
+                PositionType.CENTER -> {
+                    toast.setGravity(Gravity.CENTER_VERTICAL or Gravity.CENTER_HORIZONTAL, 0, 0)
+                }
+                else -> {}
             }
-            PositionType.CENTER -> {
-                toast.setGravity(Gravity.CENTER_VERTICAL or Gravity.CENTER_HORIZONTAL, 0, 0)
-            }
-            else -> {}
+            toast.show()
         }
-        toast.show()
     }
 }
 

@@ -196,13 +196,13 @@ class NativeIpcTest : AsyncBase() {
             }
         }
 
-        val c2sIpc by lazy { runBlocking { mServer.beConnect(mClient) } }
-
-        nativeFetchAdaptersManager.append { _, request ->
-            if (request.uri.host == mServer.mmid) {
-                c2sIpc.request(request)
-            } else null
-        }
+//        val c2sIpc by lazy { runBlocking { mServer.beConnect(mClient) } }
+//
+//        nativeFetchAdaptersManager.append { _, request ->
+//            if (request.uri.host == mServer.mmid) {
+//                c2sIpc.request(request)
+//            } else null
+//        }
 
         dnsNMM.bootstrapMicroModule(mServer)
         dnsNMM.bootstrapMicroModule(mClient)

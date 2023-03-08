@@ -21,6 +21,7 @@ import info.bagen.rust.plaoc.microService.sys.plugin.systemui.KeyboardNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.NavigationBarNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.StatusBarNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.toast.ToastNMM
+import info.bagen.rust.plaoc.microService.user.CotDemoJMM
 import info.bagen.rust.plaoc.microService.user.CotJMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 
@@ -89,13 +90,15 @@ suspend fun startDwebBrowser() {
     /// 安装用户应用
     val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }
     val cotJMM = CotJMM().also { dnsNMM.install(it) }
+    val cotDemoJMM = CotDemoJMM().also { dnsNMM.install(it) }
 
     /// 启动程序
     val bootNMM = BootNMM(
         listOf(
 //            browserNMM.mmid,
 //            desktopJMM.mmid,
-            cotJMM.mmid,
+//            cotJMM.mmid,
+            cotDemoJMM.mmid
         )
     ).also { dnsNMM.install(it) }
 

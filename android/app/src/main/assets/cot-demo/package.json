@@ -1,0 +1,8 @@
+{
+  "name": "deno",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild ./src/index.ts --bundle --outfile=./src/index.js"
+  },
+  "dependencies": {}
+}

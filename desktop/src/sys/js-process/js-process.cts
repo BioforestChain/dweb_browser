@@ -33,7 +33,7 @@ class ImportLinker {
       pathMatcher: $ReqMatcher;
       handler: (parsed_url: URL) => $PromiseMaybe<$Code>;
     }> = []
-  ) {}
+  ) { }
 
   link(url: string) {
     const parsed_url = new URL(url, this.origin);
@@ -80,19 +80,19 @@ const _ipcSuccessResponse = (
   ipc.postMessage(
     typeof code.data === "string"
       ? IpcResponse.fromText(
-          requestMessage.req_id,
-          200,
-          headers,
-          code.data,
-          ipc
-        )
+        requestMessage.req_id,
+        200,
+        headers,
+        code.data,
+        ipc
+      )
       : IpcResponse.fromBinary(
-          requestMessage.req_id,
-          200,
-          headers,
-          code.data,
-          ipc
-        )
+        requestMessage.req_id,
+        200,
+        headers,
+        code.data,
+        ipc
+      )
   );
 };
 
@@ -215,7 +215,7 @@ export class JsProcessNMM extends NativeMicroModule {
       },
     });
   }
-  async _shutdown() {}
+  async _shutdown() { }
 
   private async createProcessAndRun(
     ipc: Ipc,

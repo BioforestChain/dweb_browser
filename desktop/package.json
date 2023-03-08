@@ -1,16 +1,16 @@
 {
-  "name": "dweb-browser",
-  "main-": "index.html",
-  "main": "./index.js",
-  "domain": "dweb",
-  "webview": {
-      "partitions": [
-          {
-              "name": "trusted",
-              "accessible_resources": [
-                  "<all_urls>"
-              ]
-          }
+    "name": "dweb-browser",
+    "main-": "index.html",
+    "main": "./index.js",
+    "domain": "dweb",
+    "webview": {
+        "partitions": [
+            {
+                "name": "trusted",
+                "accessible_resources": [
+                    "<all_urls>"
+                ]
+            }
         ]
     },
     "node-remote": "<all_urls>",
@@ -34,6 +34,8 @@
         "dev:desktop.worker": "npm run bundle:desktop.worker -- --watch",
         "bundle:cot.worker": "esbuild ./src/user/cot/cot.worker.mts --outfile=./bundle/cot.worker.js --bundle --format=esm",
         "dev:cot.worker": "npm run bundle:cot.worker -- --watch",
+        "bundle:cotDemo.worker": "esbuild ./src/user/cot-demo/cotDemo.worker.mts --outfile=./bundle/cotDemo.worker.js --bundle --format=esm",
+        "dev:cotDemo.worker": "npm run bundle:cotDemo.worker -- --watch",
         "bundle:browser.worker": "node ./esbuild.browser.worker.js",
         "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
         "bundle:common.worker": "esbuild ./src/sys/app/common.worker.mts --outfile=./bundle/common.worker.js --bundle --format=esm",
@@ -44,7 +46,7 @@
         "dev:plugins.components": "npm run bundle:plugins.components -- --watch",
         "start:win": "chcp 65001 && electron .",
         "start": "electron ./",
-        "备注":"如果出现一些莫名的问题，请删除 dis 重新编译和 bundle 运行 pnpm dev",
+        "备注": "如果出现一些莫名的问题，请删除 dis 重新编译和 bundle 运行 pnpm dev",
         "如果需要采用彩色的输出到终端": "FORCE_COLOR=true pnpm start"
     },
     "devDependencies": {

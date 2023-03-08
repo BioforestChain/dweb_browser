@@ -1,5 +1,9 @@
+import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
+import type { Ipc } from "../../core/ipc/ipc.cjs";
+import { onRequestToastShow } from "./cotDemo.request.mjs";
+
 const main = async () => {
-  console.log("start");
+  console.log("start cot-demo");
   const { IpcResponse, IpcHeaders } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
@@ -12,10 +16,23 @@ const main = async () => {
   console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
   (await apiServer.listen()).onRequest(async (request, ipc) => {
     console.log("接受到了请求 apiServer： request.parsed_url.pathname： ", request.parsed_url.pathname);
-    ipc.postMessage(
-      IpcResponse.fromText(request.req_id, 404, undefined, "forbidden", ipc)
-    );
+    onRequest(request, ipc)
   });
+
+  /**
+ * request 事件处理器
+ */
+  async function onRequest(request: IpcRequest, httpServerIpc: Ipc) {
+    switch (request.parsed_url.pathname) {
+      case "/":
+      case "/show":
+        onRequestToastShow(request, httpServerIpc);
+        break;
+      default:
+        break;
+    }
+  }
+
 
   (await wwwServer.listen()).onRequest(async (request, ipc) => {
     console.log("接受到了请求 wwwServer request.parsed_url.pathname： ", request.parsed_url.pathname);
@@ -23,13 +40,10 @@ const main = async () => {
     if (pathname === "/") {
       pathname = "/index.html";
     }
-    if (pathname.startsWith("/assets/") === false) {
-      pathname = "/locales/zh-Hans" + pathname;
-    }
 
     console.time(`open file ${pathname}`);
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///cot${pathname}?mode=stream`
+      `file:///cot-demo${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
     /**
@@ -48,15 +62,6 @@ const main = async () => {
       )
     );
 
-    // console.time(`open file ${pathname}`);
-    // const remoteIpcResponse = await jsProcess.nativeFetch(
-    //   `file:///cot/COT-beta-202302222200${pathname}?mode=buffer`
-    // );
-    // console.timeEnd(`open file ${pathname}`);
-
-    // ipc.postMessage(
-    //   await IpcResponse.fromResponse(request.req_id, remoteIpcResponse, ipc)
-    // );
   });
 
   {
@@ -71,12 +76,13 @@ const main = async () => {
       .text();
   }
   {
-    const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
-    Object.assign(globalThis, { mwebviewIpc });
-    mwebviewIpc.onEvent((event) => {
-      console.log("got event:", event.name, event.text);
-    });
+    // const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
+    // Object.assign(globalThis, { mwebviewIpc });
+    // mwebviewIpc.onEvent((event) => {
+    //   console.log("got event:", event.name, event.text);
+    // });
   }
 };
 
 main();
+
