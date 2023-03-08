@@ -38,7 +38,7 @@ class ReadableStreamIpc(
     val stream = ReadableStream(cid = role, onStart = {
         controller = it
     }, onPull = { (size, controller) ->
-        debugStream("IPC-ON-PULL/${controller.stream}", size)
+        debugStreamIpc("ON-PULL/${controller.stream}", size)
     })
 
     @Synchronized

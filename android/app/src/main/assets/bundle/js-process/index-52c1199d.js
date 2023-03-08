@@ -67,13 +67,16 @@ class PromiseOut {
 const ALL_PROCESS_MAP = /* @__PURE__ */ new Map();
 let acc_process_id = 0;
 const allocProcessId = () => acc_process_id++;
-const createProcess = async (env_script_url, fetch_port) => {
+const createProcess = async (env_script_url, metadata_json, env_json, fetch_port, name = new URL(env_script_url).hostname) => {
   console.log(env_script_url, fetch_port);
   const process_id = allocProcessId();
   const worker_url = URL.createObjectURL(
     new Blob(
       [
-        `import("${env_script_url}").then(()=>postMessage("ready"),(err)=>postMessage("ERROR:"+err))`
+        `import("${env_script_url}").then(async({installEnv,Metadata})=>{
+          void installEnv(new Metadata(${metadata_json},${env_json}));
+          postMessage("ready")
+        },(err)=>postMessage("ERROR:"+err))`
       ],
       {
         // esm 代码必须有正确的 mime
@@ -81,7 +84,10 @@ const createProcess = async (env_script_url, fetch_port) => {
       }
     )
   );
-  const worker = new Worker(worker_url, { type: "module" });
+  const worker = new Worker(worker_url, {
+    type: "module",
+    name
+  });
   await new Promise((resolve, reject) => {
     worker.addEventListener(
       "message",
@@ -125,12 +131,12 @@ const runProcessMain = (process_id, config) => {
   const process = _forceGetProcess(process_id);
   process.worker.postMessage(["run-main", config]);
 };
-const createIpc = async (process_id, cid, ipc_port) => {
+const createIpc = async (process_id, mmid, ipc_port) => {
   const process = _forceGetProcess(process_id);
-  process.worker.postMessage(["ipc-connect", cid], [ipc_port]);
+  process.worker.postMessage(["ipc-connect", mmid], [ipc_port]);
   const connect_ready_po = new PromiseOut();
   const onEnvReady = (event) => {
-    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready" && event.data[1] === cid) {
+    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready" && event.data[1] === mmid) {
       connect_ready_po.resolve();
     }
   };

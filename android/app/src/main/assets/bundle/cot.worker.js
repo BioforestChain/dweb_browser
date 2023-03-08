@@ -1,7 +1,7 @@
 // src/user/cot/cot.worker.mts
 var main = async () => {
   console.log("start");
-  const { IpcResponse, IpcHeaders } = ipc;
+  const { IpcResponse, IpcHeaders, IpcEvent } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443
@@ -10,15 +10,25 @@ var main = async () => {
     subdomain: "api",
     port: 443
   });
-  console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
+  console.log(
+    "will do listen!!",
+    wwwServer.startResult.urlInfo.host,
+    apiServer.startResult.urlInfo.host
+  );
   (await apiServer.listen()).onRequest(async (request, ipc2) => {
-    console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 apiServer\uFF1A request.parsed_url.pathname\uFF1A ", request.parsed_url.pathname);
+    console.log(
+      "\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 apiServer\uFF1A request.parsed_url.pathname\uFF1A ",
+      request.parsed_url.pathname
+    );
     ipc2.postMessage(
       IpcResponse.fromText(request.req_id, 404, void 0, "forbidden", ipc2)
     );
   });
   (await wwwServer.listen()).onRequest(async (request, ipc2) => {
-    console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 wwwServer request.parsed_url.pathname\uFF1A ", request.parsed_url.pathname);
+    console.log(
+      "\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 wwwServer request.parsed_url.pathname\uFF1A ",
+      request.parsed_url.pathname
+    );
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -51,10 +61,13 @@ var main = async () => {
     ).text();
   }
   {
-    const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
-    Object.assign(globalThis, { mwebviewIpc });
-    mwebviewIpc.onEvent((event) => {
-      console.log("got event:", event.name, event.text);
+    jsProcess.onConnect((ipc2) => {
+      ipc2.onEvent((event, ipc3) => {
+        console.log("got event:", ipc3.remote.mmid, event.name, event.text);
+        setTimeout(() => {
+          ipc3.postMessage(IpcEvent.fromText(event.name, "echo:" + event.text));
+        }, 500);
+      });
     });
   }
 };

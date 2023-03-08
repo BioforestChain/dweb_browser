@@ -85,7 +85,9 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     class MyBootstrapContext(override val dns: MyDnsMicroModule) : BootstrapContext {}
 
     suspend fun bootstrapMicroModule(fromMM: MicroModule) {
-        fromMM.bootstrap(MyBootstrapContext(MyDnsMicroModule(this, fromMM)))
+        GlobalScope.launch(ioAsyncExceptionHandler) {
+            fromMM.bootstrap(MyBootstrapContext(MyDnsMicroModule(this@DnsNMM, fromMM)))
+        }.join()
     }
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

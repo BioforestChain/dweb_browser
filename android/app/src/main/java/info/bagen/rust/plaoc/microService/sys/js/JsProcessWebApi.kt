@@ -18,20 +18,25 @@ class JsProcessWebApi(val dWebView: DWebView) {
     data class ProcessInfo(val process_id: Int) {}
     inner class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
 
-    suspend fun createProcess(env_script_url: String, remoteModule: Ipc.MicroModuleInfo) =
-        withContext(Dispatchers.Main) {
-            val channel = dWebView.createWebMessageChannel()
-            val port1 = channel[0]
-            val port2 = channel[1]
+    suspend fun createProcess(
+        env_script_url: String,
+        metadata_json: String,
+        env_json: String,
+        remoteModule: Ipc.MicroModuleInfo
+    ) = withContext(Dispatchers.Main) {
+        val channel = dWebView.createWebMessageChannel()
+        val port1 = channel[0]
+        val port2 = channel[1]
+        val metadata_json_str = gson.toJson(metadata_json)
+        val env_json_str = gson.toJson(env_json)
 
-            val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
+        val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
             new Promise((resolve,reject)=>{
                 addEventListener("message", async event => {
                     if (event.data === "js-process/create-process") {
                         const fetch_port = event.ports[0];
-//                        await new Promise((resolve)=>{self.createProcess_start = resolve})
                         try{
-                            resolve(await createProcess(`$env_script_url`, fetch_port))
+                            resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port))
                         }catch(err){
                             reject(err)
                         }
@@ -39,14 +44,14 @@ class JsProcessWebApi(val dWebView: DWebView) {
                 }, { once: true })
             })
             """.trimIndent(), afterEval = {
-                dWebView.postWebMessage(
-                    WebMessage("js-process/create-process", arrayOf(port1)), Uri.EMPTY
-                );
-            })
-            debugJsProcess("processInfo", processInfo_json)
-            val info = gson.fromJson(processInfo_json, ProcessInfo::class.java)
-            ProcessHandler(info, MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT))
-        }
+            dWebView.postWebMessage(
+                WebMessage("js-process/create-process", arrayOf(port1)), Uri.EMPTY
+            );
+        })
+        debugJsProcess("processInfo", processInfo_json)
+        val info = gson.fromJson(processInfo_json, ProcessInfo::class.java)
+        ProcessHandler(info, MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT))
+    }
 
 
     data class RunProcessMainOptions(val main_url: String)

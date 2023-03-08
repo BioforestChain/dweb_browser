@@ -1,6 +1,6 @@
 const main = async () => {
   console.log("start");
-  const { IpcResponse, IpcHeaders } = ipc;
+  const { IpcResponse, IpcHeaders, IpcEvent } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443,
@@ -9,16 +9,26 @@ const main = async () => {
     subdomain: "api",
     port: 443,
   });
-  console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
+  console.log(
+    "will do listen!!",
+    wwwServer.startResult.urlInfo.host,
+    apiServer.startResult.urlInfo.host
+  );
   (await apiServer.listen()).onRequest(async (request, ipc) => {
-    console.log("接受到了请求 apiServer： request.parsed_url.pathname： ", request.parsed_url.pathname);
+    console.log(
+      "接受到了请求 apiServer： request.parsed_url.pathname： ",
+      request.parsed_url.pathname
+    );
     ipc.postMessage(
       IpcResponse.fromText(request.req_id, 404, undefined, "forbidden", ipc)
     );
   });
 
   (await wwwServer.listen()).onRequest(async (request, ipc) => {
-    console.log("接受到了请求 wwwServer request.parsed_url.pathname： ", request.parsed_url.pathname);
+    console.log(
+      "接受到了请求 wwwServer request.parsed_url.pathname： ",
+      request.parsed_url.pathname
+    );
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -70,11 +80,22 @@ const main = async () => {
       )
       .text();
   }
+  //   {
+  //     const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
+  //     Object.assign(globalThis, { mwebviewIpc });
+  //     mwebviewIpc.onEvent((event) => {
+  //       console.log("got event:", event.name, event.text);
+  //     });
+  //   }
+
   {
-    const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
-    Object.assign(globalThis, { mwebviewIpc });
-    mwebviewIpc.onEvent((event) => {
-      console.log("got event:", event.name, event.text);
+    jsProcess.onConnect((ipc) => {
+      ipc.onEvent((event, ipc) => {
+        console.log("got event:", ipc.remote.mmid, event.name, event.text);
+        setTimeout(() => {
+          ipc.postMessage(IpcEvent.fromText(event.name, "echo:" + event.text));
+        }, 500);
+      });
     });
   }
 };

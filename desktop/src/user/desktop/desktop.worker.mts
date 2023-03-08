@@ -8,13 +8,11 @@ export const main = async () => {
   const { IpcHeaders, IpcResponse } = ipc;
   const { createHttpDwebServer } = http;
 
-
   debugger;
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
 
-
-  if (jsProcess.meta.optionalBoolean("debug")) {
+  if (jsProcess.meta.envBooleanOrNull("debug")) {
     await new Promise((resolve) => {
       Object.assign(self, { start_main: resolve });
     });

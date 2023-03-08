@@ -3935,80 +3935,91 @@ var closeHttpDwebServer = async (microModule, options) => {
 
 // src/sys/js-process/js-process.worker.mts
 var Metadata = class {
-  constructor(source) {
-    this.source = source;
+  constructor(data, env) {
+    this.data = data;
+    this.env = env;
   }
-  requiredString(key) {
-    const val = this.optionalString(key);
-    if (val === void 0) {
+  envString(key) {
+    const val = this.envStringOrNull(key);
+    if (val == null) {
       throw new Error(`no found (string) ${key}`);
     }
     return val;
   }
-  optionalString(key) {
-    const val = this.source.get(key);
-    if (val === null) {
+  envStringOrNull(key) {
+    const val = this.env[key];
+    if (val == null) {
       return;
     }
     return val;
   }
-  requiredBoolean(key) {
-    const val = this.optionalBoolean(key);
-    if (val === void 0) {
+  envBoolean(key) {
+    const val = this.envBooleanOrNull(key);
+    if (val == null) {
       throw new Error(`no found (boolean) ${key}`);
     }
     return val;
   }
-  optionalBoolean(key) {
-    const val = this.optionalString(key);
-    if (val === null) {
+  envBooleanOrNull(key) {
+    const val = this.envStringOrNull(key);
+    if (val == null) {
       return;
     }
     return val === "true";
   }
-  stringArray(key) {
-    return this.source.getAll(key);
-  }
 };
-var metadata = new Metadata(new URL(import.meta.url).searchParams);
-var js_process_ipc_support_protocols = (() => {
-  const protocols = metadata.stringArray("ipc-support-protocols");
-  return {
-    raw: protocols.includes("raw"),
-    message_pack: protocols.includes("message_pack"),
-    protobuf: protocols.includes("protobuf")
-  };
-})();
 var JsProcessMicroModule = class {
-  constructor(mmid, host, meta, nativeFetchPort) {
-    this.mmid = mmid;
-    this.host = host;
+  constructor(meta, nativeFetchPort) {
     this.meta = meta;
     this.nativeFetchPort = nativeFetchPort;
-    this.ipc_support_protocols = js_process_ipc_support_protocols;
-    this.connectCidMap = /* @__PURE__ */ new Map();
+    this.ipc_support_protocols = (() => {
+      const protocols = this.meta.envStringOrNull("ipc-support-protocols")?.split(/[\s\,]+/) ?? [];
+      return {
+        raw: protocols.includes("raw"),
+        message_pack: protocols.includes("message_pack"),
+        protobuf: protocols.includes("protobuf")
+      };
+    })();
+    this.mmid = this.meta.data.mmid;
+    this.host = this.meta.envString("host");
     /// 这个通道只能用于基础的通讯
     this.fetchIpc = new MessagePortIpc(
       this.nativeFetchPort,
       this,
       "server" /* SERVER */
     );
-    this._ipcMap = /* @__PURE__ */ new Map();
+    this._ipcConnectsMap = /* @__PURE__ */ new Map();
+    this._connectSignal = createSignal();
     const _beConnect = async (event) => {
       const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
       }
       if (data[0] === "ipc-connect") {
-        const cid = data[1];
+        const mmid = data[1];
         const port = event.ports[0];
-        const port_po = this.connectCidMap.get(cid);
-        if (port_po) {
-          this.connectCidMap.delete(cid);
-          port_po.resolve(port);
-          self.postMessage(["ipc-connect-ready", cid]);
-        } else {
+        let rote = "client" /* CLIENT */;
+        const port_po = mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
+          rote = "server" /* SERVER */;
+          return new PromiseOut();
+        });
+        if (rote === "server" /* SERVER */) {
+          self.postMessage(["ipc-connect-ready", mmid]);
         }
+        const ipc = new MessagePortIpc(
+          port,
+          {
+            mmid,
+            ipc_support_protocols: {
+              raw: false,
+              message_pack: false,
+              protobuf: false
+            }
+          },
+          rote
+        );
+        port_po.resolve(ipc);
+        this.beConnect(ipc);
       }
     };
     self.addEventListener("message", _beConnect);
@@ -4035,31 +4046,22 @@ var JsProcessMicroModule = class {
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
   connect(mmid) {
-    return mapHelper.getOrPut(this._ipcMap, mmid, () => {
+    return mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
       const ipc_po = new PromiseOut();
-      ipc_po.resolve(
-        (async () => {
-          const port_po = new PromiseOut();
-          const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
-          this.connectCidMap.set(cid, port_po);
-          this.fetchIpc.postMessage(
-            IpcEvent.fromText("dns/connect", JSON.stringify({ mmid, cid }))
-          );
-          const ipc = new MessagePortIpc(await port_po.promise, {
-            mmid,
-            ipc_support_protocols: {
-              raw: false,
-              message_pack: false,
-              protobuf: false
-            }
-          });
-          return ipc;
-        })()
+      this.fetchIpc.postMessage(
+        IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
       );
       return ipc_po;
     }).promise;
   }
-  beConnnect(ipc) {
+  beConnect(ipc) {
+    ipc.onClose(() => {
+      this._ipcConnectsMap.delete(ipc.remote.mmid);
+    });
+    this._connectSignal.emit(ipc);
+  }
+  onConnect(cb) {
+    return this._connectSignal.listen(cb);
   }
 };
 var waitFetchPort = () => {
@@ -4076,13 +4078,8 @@ var waitFetchPort = () => {
     });
   });
 };
-var installEnv = async (mmid, host) => {
-  const jsProcess2 = new JsProcessMicroModule(
-    mmid,
-    host,
-    metadata,
-    await waitFetchPort()
-  );
+var installEnv = async (metadata) => {
+  const jsProcess2 = new JsProcessMicroModule(metadata, await waitFetchPort());
   Object.assign(globalThis, {
     jsProcess: jsProcess2,
     JsProcessMicroModule,
@@ -4129,11 +4126,8 @@ self.addEventListener("message", async function runMain(event) {
     this.self.removeEventListener("message", runMain);
   }
 });
-installEnv(
-  metadata.requiredString("mmid"),
-  metadata.requiredString("host")
-);
 export {
   JsProcessMicroModule,
+  Metadata,
   installEnv
 };

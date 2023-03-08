@@ -142,6 +142,12 @@ export class JsProcessNMM extends NativeMicroModule {
         )
       );
     });
+    const bootstrap_url = mainServer.startResult.urlInfo.buildInternalUrl(
+      (url) => {
+        url.pathname = `${this.INTERNAL_PATH}/bootstrap.js`;
+      }
+    ).href;
+
     this._after_shutdown_signal.listen(mainServer.close);
 
     const apis = await (async () => {
@@ -189,6 +195,7 @@ export class JsProcessNMM extends NativeMicroModule {
         const result = await this.createProcessAndRun(
           ipc,
           apis,
+          bootstrap_url,
           args.entry,
           requestMessage
         );
@@ -200,7 +207,14 @@ export class JsProcessNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/create-ipc",
       matchMode: "full",
-      input: { process_id: "string", cid: "string" },
+      input: {
+        process_id: "string",
+        /**
+         * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
+         * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
+         */
+        mmid: "string",
+      },
       output: "number",
       handler: async (args, ipc) => {
         const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
@@ -210,7 +224,7 @@ export class JsProcessNMM extends NativeMicroModule {
           );
         }
         const process_id = await process_id_po.promise;
-        const port_id = await this.createIpc(ipc, apis, process_id, args.cid);
+        const port_id = await this.createIpc(ipc, apis, process_id, args.mmid);
         return port_id;
       },
     });
@@ -220,6 +234,7 @@ export class JsProcessNMM extends NativeMicroModule {
   private async createProcessAndRun(
     ipc: Ipc,
     apis: Remote<$APIS>,
+    bootstrap_url: string,
     entry = "/index.js",
     requestMessage: IpcRequest
   ) {
@@ -278,16 +293,14 @@ export class JsProcessNMM extends NativeMicroModule {
       void _ipcResponseFromImportLinker(ipc, importLinker, request);
     });
 
-    const bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl(
-      (url) => {
-        url.pathname = `${this.INTERNAL_PATH}/bootstrap.js`;
-        url.searchParams.set("mmid", ipc.remote.mmid);
-        url.searchParams.set("host", httpDwebServer.startResult.urlInfo.host);
-        /// 这里是 nodejs 和 web-browser 的通讯，electorn 提供了 raw 的支持
-        url.searchParams.append("ipc-support-protocols", "raw");
-        url.searchParams.append("ipc-support-protocols", "message_pack");
-      }
-    ).href;
+    /// TODO 需要传过来，而不是自己构建
+    const metadata = JSON.stringify({ mmid: ipc.remote.mmid });
+    /// TODO env 允许远端传过来扩展
+    const env = JSON.stringify({
+      host: httpDwebServer.startResult.urlInfo.host,
+      debug: "true",
+      "ipc-support-protocols": "raw message_pack",
+    } satisfies Record<string, string>);
 
     /**
      * 创建一个通往 worker 的消息通道
@@ -295,6 +308,8 @@ export class JsProcessNMM extends NativeMicroModule {
     const channel_for_worker = new MessageChannel();
     const processInfo = await apis.createProcess(
       bootstrap_url,
+      JSON.stringify(metadata),
+      JSON.stringify(env),
       transfer(channel_for_worker.port2, [channel_for_worker.port2])
     );
 
@@ -351,7 +366,7 @@ export class JsProcessNMM extends NativeMicroModule {
     ipc: Ipc,
     apis: Remote<$APIS>,
     process_id: number,
-    cid: string
+    mmid: string
   ) {
     /**
      * 创建一个通往 worker 的消息通道
@@ -359,7 +374,7 @@ export class JsProcessNMM extends NativeMicroModule {
     const channel_for_worker = new MessageChannel();
     await apis.createIpc(
       process_id,
-      cid,
+      mmid,
       transfer(channel_for_worker.port2, [channel_for_worker.port2])
     );
     return saveNative2JsIpcPort(channel_for_worker.port1);

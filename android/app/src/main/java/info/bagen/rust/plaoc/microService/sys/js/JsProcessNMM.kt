@@ -3,7 +3,6 @@ package info.bagen.rust.plaoc.microService.sys.js
 import android.webkit.WebView
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
-import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.Ipc
@@ -20,7 +19,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.http4k.core.Method
 import org.http4k.core.Request
-import org.http4k.core.query
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -57,13 +55,42 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             // 提供基本的主页服务
             val serverIpc = server.listen();
             serverIpc.onRequest { (request, ipc) ->
-                val response = nativeFetch("file:///bundle/js-process${request.uri.path}")
-                ipc.postMessage(
-                    IpcResponse.fromResponse(request.req_id, response, ipc)
-                )
+                // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
+                if (request.uri.path.startsWith(INTERNAL_PATH)) {
+                    val internalUri =
+                        request.uri.path(request.uri.path.substring(INTERNAL_PATH.length));
+                    if (internalUri.path == "/bootstrap.js") {
+                        ipc.postMessage(
+                            IpcResponse.fromText(
+                                request.req_id,
+                                200,
+                                IpcHeaders(CORS_HEADERS.toMutableMap()),
+                                JS_PROCESS_WORKER_CODE,
+                                ipc
+                            )
+                        )
+                    } else {
+                        ipc.postMessage(
+                            IpcResponse.fromText(
+                                request.req_id,
+                                404,
+                                IpcHeaders(CORS_HEADERS.toMutableMap()),
+                                "// no found ${internalUri.path}",
+                                ipc
+                            )
+                        )
+                    }
+                } else {
+                    val response = nativeFetch("file:///bundle/js-process${request.uri.path}")
+                    ipc.postMessage(
+                        IpcResponse.fromResponse(request.req_id, response, ipc)
+                    )
+                }
             }
         }
-
+        val bootstrap_url =
+            mainServer.startResult.urlInfo.buildInternalUrl().path("$INTERNAL_PATH/bootstrap.js")
+                .toString()
         println("mainServer: ${mainServer.startResult}")
 
 
@@ -84,9 +111,9 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             }
         }
 
-        val query_entry = Query.string().required("entry")
+        val query_entry = Query.string().optional("entry")
         val query_process_id = Query.string().required("process_id")
-        val query_cid = Query.string().required("cid")
+        val query_mmid = Query.string().required("mmid")
 
         val ipcProcessIdMap = mutableMapOf<Ipc, MutableMap<String, PromiseOut<Int>>>()
         val ipcProcessIdMapLock = Mutex()
@@ -108,7 +135,9 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     PromiseOut<Int>().also { processIdMap[processId] = it }
                 }
                 val result = createProcessAndRun(
-                    ipc, apis, query_entry(request), request,
+                    ipc, apis,
+                    bootstrap_url,
+                    query_entry(request), request,
                 )
                 // 将自定义的 processId 与真实的 js-process_id 进行关联
                 po.resolve(result.processHandler.info.process_id)
@@ -119,14 +148,19 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             /// 创建 web 通讯管道
             "/create-ipc" bind Method.GET to defineHandler { request, ipc ->
                 val processId = query_process_id(request)
-                val cid = query_cid(request)
+
+                /**
+                 * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
+                 * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
+                 */
+                val mmid = query_mmid(request)
                 val process_id = ipcProcessIdMapLock.withLock {
                     ipcProcessIdMap[ipc]?.get(processId)
                         ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
                 }.waitPromise()
 
                 // 返回 port_id
-                createIpc(ipc, apis, process_id, cid)
+                createIpc(ipc, apis, process_id, mmid)
             })
 
     }
@@ -138,7 +172,8 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     private suspend fun createProcessAndRun(
         ipc: Ipc,
         apis: JsProcessWebApi,
-        entry: String = "/index.js",
+        bootstrap_url: String,
+        entry: String?,
         requestMessage: Request,
     ): CreateProcessAndRunResult {
         /**
@@ -164,68 +199,37 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         val codeProxyServerIpc = httpDwebServer.listen()
 
         codeProxyServerIpc.onRequest { (request, ipc) ->
-            // <internal>开头的是特殊路径：交由内部处理，不会推给远端处理
-            if (request.uri.path.startsWith(INTERNAL_PATH)) {
-                val internalUri =
-                    request.uri.path(request.uri.path.substring(INTERNAL_PATH.length));
-                if (internalUri.path == "/bootstrap.js") {
-                    ipc.postMessage(
-                        IpcResponse.fromText(
-                            request.req_id,
-                            200,
-                            IpcHeaders(CORS_HEADERS.toMutableMap()),
-                            JS_PROCESS_WORKER_CODE,
-                            ipc
-                        )
-                    )
-                } else {
-                    ipc.postMessage(
-                        IpcResponse.fromText(
-                            request.req_id,
-                            404,
-                            IpcHeaders(CORS_HEADERS.toMutableMap()),
-                            "// no found ${internalUri.path}",
-                            ipc
-                        )
-                    )
-                }
-            } else {
-                ipc.postResponse(
-                    request.req_id,
-                    // 转发给远端来处理
-                    // TODO 对代码进行翻译处理
-                    streamIpc.request(request.toRequest()).let {
-                        /// 加入跨域配置
-                        var response = it;
-                        for ((key, value) in CORS_HEADERS) {
-                            response = response.header(key, value)
-                        }
-                        response
-                    },
-                )
-            }
+            ipc.postResponse(
+                request.req_id,
+                // 转发给远端来处理
+                // TODO 对代码进行翻译处理
+                streamIpc.request(request.toRequest()).let {
+                    /// 加入跨域配置
+                    var response = it;
+                    for ((key, value) in CORS_HEADERS) {
+                        response = response.header(key, value)
+                    }
+                    response
+                },
+            )
         }
 
-        val bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
-            .path("$INTERNAL_PATH/bootstrap.js")
-//            .query("debug", "true")
-            .query("mmid", ipc.remote.mmid).query("host", httpDwebServer.startResult.urlInfo.host)
-            .toString()
+        data class JsProcessMetadata(val mmid: Mmid) {}
+        /// TODO 需要传过来，而不是自己构建
+        val metadata = JsProcessMetadata(ipc.remote.mmid)
+
+        /// TODO env 允许远端传过来扩展
+        val env = mutableMapOf( // ...your envs
+            Pair("host", httpDwebServer.startResult.urlInfo.host),
+            Pair("debug", "true"),
+            Pair("ipc-support-protocols", "")
+        )
 
         /**
          * 创建一个通往 worker 的消息通道
          */
-        val processHandler = apis.createProcess(bootstrap_url, ipc.remote);
-
-        /**
-         * js create-process 目前只能被本地模块调用，因为我们需要它直接发起 nativeFetch 来代理 worker 的请求
-         * 否则需要将这里的所有请求发往远端
-         */
-        val remoteMM: MicroModule =
-            ipc.asRemoteInstance() ?: throw Exception("js-process should be call by locale")
-
-        val query_mmid = Query.string().required("mmid")
-        val query_cid = Query.string().required("cid")
+        val processHandler =
+            apis.createProcess(bootstrap_url, gson.toJson(metadata), gson.toJson(env), ipc.remote);
         /**
          * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
          *
@@ -246,8 +250,8 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          */
         apis.runProcessMain(
             processHandler.info.process_id, JsProcessWebApi.RunProcessMainOptions(
-                main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl().path(entry)
-                    .toString()
+                main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
+                    .path(entry ?: "/index.js").toString()
             )
         )
 
@@ -274,10 +278,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     )
 
     private suspend fun createIpc(
-        ipc: Ipc,
-        apis: JsProcessWebApi,
-        process_id: Int,
-        cid: String
+        ipc: Ipc, apis: JsProcessWebApi, process_id: Int, cid: String
     ): Int {
         return apis.createIpc(process_id, cid)
     }

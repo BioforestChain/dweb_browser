@@ -24,6 +24,7 @@ import info.bagen.rust.plaoc.microService.sys.plugin.toast.ToastNMM
 import info.bagen.rust.plaoc.microService.user.CotDemoJMM
 import info.bagen.rust.plaoc.microService.user.CotJMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
+import info.bagen.rust.plaoc.microService.user.ToyJMM
 
 suspend fun startDwebBrowser() {
     debugTags.addAll(
@@ -75,7 +76,7 @@ suspend fun startDwebBrowser() {
     /// 振动效果
     val hapticsNMM = HapticsNMM().also { dnsNMM.install(it) }
     /// 手电筒
-    val torchNMM = TorchNMM().also() {dnsNMM.install(it)}
+    val torchNMM = TorchNMM().also() { dnsNMM.install(it) }
 
     /// keyboard
     val keyboardNMM = KeyboardNMM().also { dnsNMM.install(it) }
@@ -91,6 +92,7 @@ suspend fun startDwebBrowser() {
     val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }
     val cotJMM = CotJMM().also { dnsNMM.install(it) }
     val cotDemoJMM = CotDemoJMM().also { dnsNMM.install(it) }
+    val toyJMM = ToyJMM().also { dnsNMM.install(it) }
 
     /// 启动程序
     val bootNMM = BootNMM(
@@ -98,7 +100,9 @@ suspend fun startDwebBrowser() {
 //            browserNMM.mmid,
 //            desktopJMM.mmid,
 //            cotJMM.mmid,
-            cotDemoJMM.mmid
+//            cotDemoJMM.mmid
+            cotJMM.mmid,
+            toyJMM.mmid,
         )
     ).also { dnsNMM.install(it) }
 

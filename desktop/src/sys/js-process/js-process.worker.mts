@@ -17,55 +17,48 @@ import type { $RunMainConfig } from "./assets/js-process.web.mjs";
 
 import * as ipc from "../../core/ipc/index.cjs";
 import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
+import { $Callback, createSignal } from "../../helper/createSignal.cjs";
 import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import * as http from "../http-server/$createHttpDwebServer.cjs";
 
-class Metadata {
-  constructor(private source: URLSearchParams) {}
-  requiredString(key: string) {
-    const val = this.optionalString(key);
-    if (val === undefined) {
+export class Metadata<T extends $Metadata = $Metadata> {
+  constructor(readonly data: T, readonly env: Record<string, string>) {}
+  envString(key: string) {
+    const val = this.envStringOrNull(key);
+    if (val == null) {
       throw new Error(`no found (string) ${key}`);
     }
     return val;
   }
-  optionalString(key: string) {
-    const val = this.source.get(key);
-    if (val === null) {
+  envStringOrNull(key: string) {
+    const val = this.env[key];
+    if (val == null) {
       return;
     }
     return val;
   }
-  requiredBoolean(key: string) {
-    const val = this.optionalBoolean(key);
-    if (val === undefined) {
+  envBoolean(key: string) {
+    const val = this.envBooleanOrNull(key);
+    if (val == null) {
       throw new Error(`no found (boolean) ${key}`);
     }
     return val;
   }
-  optionalBoolean(key: string) {
-    const val = this.optionalString(key);
-    if (val === null) {
+  envBooleanOrNull(key: string) {
+    const val = this.envStringOrNull(key);
+    if (val == null) {
       return;
     }
     return val === "true";
   }
-  stringArray(key: string) {
-    return this.source.getAll(key);
-  }
 }
 
-const metadata = new Metadata(new URL(import.meta.url).searchParams);
+type $Metadata = {
+  mmid: $MMID;
+};
 
-const js_process_ipc_support_protocols = (() => {
-  const protocols = metadata.stringArray("ipc-support-protocols");
-  return {
-    raw: protocols.includes("raw"),
-    message_pack: protocols.includes("message_pack"),
-    protobuf: protocols.includes("protobuf"),
-  } satisfies $IpcSupportProtocols;
-})();
+// const js_process_ipc_support_protocols =
 
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
@@ -77,35 +70,57 @@ const js_process_ipc_support_protocols = (() => {
  * 这个是虚假的 $MicroModule，这里只是一个影子，指代 native 那边的 micro_module
  */
 export class JsProcessMicroModule implements $MicroModule {
-  readonly ipc_support_protocols = js_process_ipc_support_protocols;
-  constructor(
-    readonly mmid: $MMID,
-    readonly host: String,
-    readonly meta: Metadata,
-    private nativeFetchPort: MessagePort
-  ) {
+  readonly ipc_support_protocols = (() => {
+    const protocols =
+      this.meta.envStringOrNull("ipc-support-protocols")?.split(/[\s\,]+/) ??
+      [];
+    return {
+      raw: protocols.includes("raw"),
+      message_pack: protocols.includes("message_pack"),
+      protobuf: protocols.includes("protobuf"),
+    } satisfies $IpcSupportProtocols;
+  })();
+  readonly mmid = this.meta.data.mmid;
+  readonly host = this.meta.envString("host");
+
+  constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
     const _beConnect = async (event: MessageEvent) => {
       const data = event.data as any[];
       if (Array.isArray(event.data) === false) {
         return;
       }
       if (data[0] === "ipc-connect") {
-        const cid = data[1];
+        const mmid = data[1];
         const port = event.ports[0];
-        const port_po = this.connectCidMap.get(cid);
-        if (port_po) {
-          this.connectCidMap.delete(cid);
-          port_po.resolve(port);
-          self.postMessage(["ipc-connect-ready", cid]);
-        } else {
-          // jsProcess.beConnnect(new MessagePortIpc(port,jsProcess,))
+        let rote = IPC_ROLE.CLIENT as IPC_ROLE;
+        const port_po = mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
+          rote = IPC_ROLE.SERVER;
+          return new PromiseOut<Ipc>();
+        });
+        if (rote === IPC_ROLE.SERVER) {
+          self.postMessage(["ipc-connect-ready", mmid]);
         }
+
+        const ipc = new MessagePortIpc(
+          port,
+          {
+            mmid,
+            ipc_support_protocols: {
+              raw: false,
+              message_pack: false,
+              protobuf: false,
+            },
+          },
+          rote
+        );
+        port_po.resolve(ipc);
+
+        /// 不论是连接方，还是被连接方，都需要触发事件
+        this.beConnect(ipc);
       }
     };
     self.addEventListener("message", _beConnect);
   }
-
-  private connectCidMap = new Map<string, PromiseOut<MessagePort>>();
 
   /// 这个通道只能用于基础的通讯
   readonly fetchIpc = new MessagePortIpc(
@@ -139,34 +154,28 @@ export class JsProcessMicroModule implements $MicroModule {
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
 
-  private _ipcMap = new Map<$MMID, PromiseOut<Ipc>>();
+  private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();
   connect(mmid: $MMID) {
-    return mapHelper.getOrPut(this._ipcMap, mmid, () => {
+    return mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
       const ipc_po = new PromiseOut<Ipc>();
-      ipc_po.resolve(
-        (async () => {
-          const port_po = new PromiseOut<MessagePort>();
-          const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
-          this.connectCidMap.set(cid, port_po);
-          this.fetchIpc.postMessage(
-            IpcEvent.fromText("dns/connect", JSON.stringify({ mmid, cid }))
-          );
-          const ipc = new MessagePortIpc(await port_po.promise, {
-            mmid,
-            ipc_support_protocols: {
-              raw: false,
-              message_pack: false,
-              protobuf: false,
-            },
-          });
-          return ipc;
-        })()
+      // 发送指令
+      this.fetchIpc.postMessage(
+        IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
       );
       return ipc_po;
     }).promise;
   }
 
-  beConnnect(ipc: Ipc) {}
+  private _connectSignal = createSignal<$Callback<[Ipc]>>();
+  beConnect(ipc: Ipc) {
+    ipc.onClose(() => {
+      this._ipcConnectsMap.delete(ipc.remote.mmid);
+    });
+    this._connectSignal.emit(ipc);
+  }
+  onConnect(cb: $Callback<[Ipc]>) {
+    return this._connectSignal.listen(cb);
+  }
 }
 
 /// 消息通道构造器
@@ -190,13 +199,8 @@ const waitFetchPort = () => {
 /**
  * 安装上下文
  */
-export const installEnv = async (mmid: $MMID, host: String) => {
-  const jsProcess = new JsProcessMicroModule(
-    mmid,
-    host,
-    metadata,
-    await waitFetchPort()
-  );
+export const installEnv = async (metadata: Metadata) => {
+  const jsProcess = new JsProcessMicroModule(metadata, await waitFetchPort());
 
   Object.assign(globalThis, {
     jsProcess,
@@ -248,8 +252,3 @@ self.addEventListener("message", async function runMain(event) {
     this.self.removeEventListener("message", runMain);
   }
 });
-
-installEnv(
-  metadata.requiredString("mmid") as $MMID,
-  metadata.requiredString("host")
-);

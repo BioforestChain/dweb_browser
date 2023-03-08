@@ -14,14 +14,20 @@ const allocProcessId = () => acc_process_id++;
 
 const createProcess = async (
   env_script_url: string,
-  fetch_port: MessagePort
+  metadata_json: string,
+  env_json: string,
+  fetch_port: MessagePort,
+  name: string = new URL(env_script_url).hostname
 ) => {
   console.log(env_script_url, fetch_port);
   const process_id = allocProcessId();
   const worker_url = URL.createObjectURL(
     new Blob(
       [
-        `import("${env_script_url}").then(()=>postMessage("ready"),(err)=>postMessage("ERROR:"+err))`,
+        `import("${env_script_url}").then(async({installEnv,Metadata})=>{
+          void installEnv(new Metadata(${metadata_json},${env_json}));
+          postMessage("ready")
+        },(err)=>postMessage("ERROR:"+err))`,
       ],
       {
         // esm 代码必须有正确的 mime
@@ -30,7 +36,10 @@ const createProcess = async (
     )
   );
   /// https://caniuse.com/mdn-api_worker_worker_ecmascript_modules 需要 2019 年之后的 WebView 支持： Safari 15+ || Chrome 80+
-  const worker = new Worker(worker_url, { type: "module" });
+  const worker = new Worker(worker_url, {
+    type: "module",
+    name: name,
+  });
   await new Promise<void>((resolve, reject) => {
     worker.addEventListener(
       "message",
@@ -91,18 +100,18 @@ const runProcessMain = (process_id: number, config: $RunMainConfig) => {
 
 const createIpc = async (
   process_id: number,
-  cid: string,
+  mmid: string,
   ipc_port: MessagePort
 ) => {
   const process = _forceGetProcess(process_id);
-  process.worker.postMessage(["ipc-connect", cid], [ipc_port]);
+  process.worker.postMessage(["ipc-connect", mmid], [ipc_port]);
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
   const onEnvReady = (event: MessageEvent) => {
     if (
       Array.isArray(event.data) &&
       event.data[0] === "ipc-connect-ready" &&
-      event.data[1] === cid
+      event.data[1] === mmid
     ) {
       connect_ready_po.resolve();
     }

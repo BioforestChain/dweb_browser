@@ -61,7 +61,7 @@ var main = async () => {
   const { createHttpDwebServer } = http;
   debugger;
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
-  if (jsProcess.meta.optionalBoolean("debug")) {
+  if (jsProcess.meta.envBooleanOrNull("debug")) {
     await new Promise((resolve) => {
       Object.assign(self, { start_main: resolve });
     });

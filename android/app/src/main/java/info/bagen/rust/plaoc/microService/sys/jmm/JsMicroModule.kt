@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
+import info.bagen.rust.plaoc.microService.core.ConnectResult
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.connectAdapterManager
 import info.bagen.rust.plaoc.microService.helper.*
@@ -13,8 +14,6 @@ import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.http4k.core.*
-import org.http4k.lens.Query
-import org.http4k.lens.string
 import java.util.*
 
 
@@ -53,20 +52,20 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
 
         init {
             connectAdapterManager.append { fromMM, toMM, reason ->
-                /*if (fromMM is JsMicroModule) {
-                    */
-                /**
-                 * 主动连接，不需要触发 fromMM.beConnect
-                 * 因为这一步是在js里头自己会去做
-                 *//*
-                    val toIpc = createConnectIpc(toMM, fromMM, IPC_ROLE.CLIENT)
-                    toIpc
-                } else */
                 if (toMM is JsMicroModule) {
-//                val fromIpc = createConnectIpc(fromMM, toMM, IPC_ROLE.SERVER)
-//                fromMM.beConnect(fromIpc, reason)
-//                fromIpc
-                    null
+                    val pid = toMM.processId ?: throw Exception("JMM:${toMM.mmid} no ready");
+                    /**
+                     * 向js模块发起连接
+                     */
+                    val portId = toMM.nativeFetch(
+                        Uri.of("file://js.sys.dweb/create-ipc").query("process_id", pid)
+                            .query("mmid", fromMM.mmid)
+                    ).int()
+                    val originIpc = Native2JsIpc(portId, toMM).also {
+                        // 同样要被生命周期管理销毁
+                        toMM.beConnect(it, reason)
+                    }
+                    return@append ConnectResult(originIpc, null)
                 } else null
             }
 
@@ -104,9 +103,6 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
             ).stream()
         )
 
-        val query_mmid = Query.string().required("mmid")
-        val query_cid = Query.string().required("cid")
-
         /**
          * 拿到与js.sys.dweb模块的直连通道，它会将 Worker 中的数据带出来
          */
@@ -140,7 +136,7 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
              */
             if (ipcEvent.name == "dns/connect") {
                 GlobalScope.launch(ioAsyncExceptionHandler) {
-                    data class DnsConnectEvent(val mmid: Mmid, val cid: String)
+                    data class DnsConnectEvent(val mmid: Mmid)
 
                     val event = gson.fromJson(ipcEvent.text, DnsConnectEvent::class.java)
                     /**
@@ -158,10 +154,10 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                      */
                     val portId = nativeFetch(
                         Uri.of("file://js.sys.dweb/create-ipc").query("process_id", pid)
-                            .query("cid", event.cid)
+                            .query("mmid", event.mmid)
                     ).int()
                     val originIpc = Native2JsIpc(portId, this@JsMicroModule).also {
-                        _ipcSet.add(it) // 同样要被生命周期管理销毁
+                        beConnect(it, Request(Method.GET, "file://$mmid/event/dns/connect"))
                     }
 
                     /**

@@ -96,11 +96,11 @@ export class JsMicroModule extends MicroModule {
     });
     jsIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect") {
-        const { cid, mmid } = JSON.parse(ipcEvent.text);
+        const { mmid } = JSON.parse(ipcEvent.text);
         const [targetIpc] = await context.dns.connect(mmid);
         const portId = await this.nativeFetch(
           buildUrl(new URL(`file://js.sys.dweb/create-ipc`), {
-            search: { pid, cid },
+            search: { pid, mmid },
           })
         ).number();
         const originIpc = new Native2JsIpc(portId, this);

@@ -36,6 +36,8 @@
         "dev:cot.worker": "npm run bundle:cot.worker -- --watch",
         "bundle:cotDemo.worker": "esbuild ./src/user/cot-demo/cotDemo.worker.mts --outfile=./bundle/cotDemo.worker.js --bundle --format=esm",
         "dev:cotDemo.worker": "npm run bundle:cotDemo.worker -- --watch",
+        "bundle:toy.worker": "esbuild ./src/user/toy/toy.worker.mts --outfile=./bundle/toy.worker.js --bundle --format=esm",
+        "dev:toy.worker": "npm run bundle:toy.worker -- --watch",
         "bundle:browser.worker": "node ./esbuild.browser.worker.js",
         "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
         "bundle:common.worker": "esbuild ./src/sys/app/common.worker.mts --outfile=./bundle/common.worker.js --bundle --format=esm",
