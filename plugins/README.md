@@ -26,3 +26,17 @@ const wwwServer = await http.createHttpDwebServer(jsProcess, {
 });
 (await wwwServer.listen()).onRequest()
 ```
+
+## test
+
+```bash
+deno task link
+```
+
+async for android assets
+
+```bash
+deno task async
+```
+
+run android project

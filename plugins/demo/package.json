@@ -1,1 +1,10 @@
-{}
+{
+  "name": "deno",
+  "type": "module",
+  "scripts": {
+    "say-hello": "cowsay 'Hello from deno!'"
+  },
+  "dependencies": {
+    "@bfex/plugin": "file:../build/plugin"
+  }
+}

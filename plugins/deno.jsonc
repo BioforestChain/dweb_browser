@@ -2,6 +2,8 @@
   "tasks": {
     "build": "deno run -A ./scripts/build_npm.ts",
     "pub": "deno run -A ./scripts/pub_npm.ts",
+    "link": "chmod 777 ./scripts/link.sh && ./scripts/link.sh",
+    "async": "node ./scripts/async-android.cjs",
     "test": "deno test --allow-all --unstable --no-check  ./test"
   },
   "compilerOptions": {

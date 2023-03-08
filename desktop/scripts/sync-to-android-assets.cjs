@@ -8,7 +8,7 @@ const android_assets_dir = path.join(
 );
 const origin_dir = path.join(__dirname, "../");
 
-const tasks = ["bundle", "cot"].map((dirname) => {
+const tasks = ["bundle"].map((dirname) => {// , "cot"
   return {
     from: path.join(origin_dir, dirname),
     to: path.join(android_assets_dir, dirname),

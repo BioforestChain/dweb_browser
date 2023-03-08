@@ -26,7 +26,7 @@ const main = async () => {
 
     console.time(`open file ${pathname}`);
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///cot/COT-beta-202302222200${pathname}?mode=stream`
+      `file:///cot${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
     /**
@@ -61,6 +61,7 @@ const main = async () => {
       .nativeFetch(
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(
           wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+            console.log("cot#wwwServer==>", url)
             url.pathname = "/index.html";
           }).href
         )}`

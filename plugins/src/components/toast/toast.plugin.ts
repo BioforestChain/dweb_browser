@@ -14,7 +14,7 @@ export class ToastPlugin extends BasePlugin {
     // deno-lint-ignore no-inferrable-types
     private _verticalClassName: string = ""
 
-    constructor(mmid = "toast.sys.dweb") {
+    constructor(readonly mmid = "toast.sys.dweb") {
         super(mmid, "Toast")
         this._root = this.attachShadow({ mode: 'open' });
         this._init()
