@@ -1,4 +1,5 @@
 import { BasePlugin } from '../basePlugin.ts';
+import { Duration, Position } from "./toast.type.ts";
 /**
  * 访问 toast 能力的插件
  */
@@ -9,8 +10,8 @@ export class ToastPlugin extends BasePlugin {
     private _elContent: HTMLDivElement = document.createElement('div');
     private _elStyle: HTMLStyleElement = document.createElement('style');
     private _fragment: DocumentFragment = new DocumentFragment()
-    private _duration: $Duration = "long"
-    private _position: $Position = "bottom"
+    private _duration: Duration = "long"
+    private _position: Position = "bottom"
     // deno-lint-ignore no-inferrable-types
     private _verticalClassName: string = ""
 
@@ -52,7 +53,7 @@ export class ToastPlugin extends BasePlugin {
      * @param duration 时长 'long' | 'short'
      * @returns
      */
-    show(message: string, duration: $Duration = "long", position: $Position = "bottom") {
+    show(message: string, duration: Duration = "long", position: Position = "bottom") {
         this._duration = duration;
         this._position = position;
         this.setAttribute('style', "left: 0px;")
@@ -157,5 +158,3 @@ function createCssText() {
     `
 }
 
-export type $Duration = 'long' | 'short';
-export type $Position = 'top' | 'center' | 'bottom'

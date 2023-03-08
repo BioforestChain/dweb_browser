@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require("path")
 /*
  * 复制目录、子目录，及其中的文件
  * @param src {String} 要复制的目录
@@ -43,6 +44,21 @@ function copyDir(src, dist, callback) {
     }
   }
 }
+
+// 递归创建目录 同步方法
+function mkdirsSync(dirname) {
+  if (fs.existsSync(dirname)) {
+    return true;
+  } else {
+    if (mkdirsSync(path.dirname(dirname))) {
+      fs.mkdirSync(dirname);
+      return true;
+    }
+  }
+}
+
+// 创建目录
+mkdirsSync('../android/app/src/main/assets/cot/locales/zh-Hans');
 
 fs.rmSync("../android/app/src/main/assets/cot/locales/zh-Hans", { recursive: true, force: true })
 

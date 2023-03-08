@@ -1,9 +1,7 @@
 import { BarcodeScanner } from "./barcodeScanner.plugin.ts"
 
 
-export {
-  BarcodeScanner
-}
+
 
 customElements.define('dweb-scanner', BarcodeScanner);
 
@@ -13,5 +11,11 @@ function documentOnDOMContentLoaded() {
   const el = new BarcodeScanner();
   document.body.append(el);
   document.removeEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
+}
+
+export * from "./barcodeScanner.type.ts"
+
+export {
+  BarcodeScanner
 }
 

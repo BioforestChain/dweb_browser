@@ -123,20 +123,4 @@
 
 </html>
 
-<script type="module">
-
-  function $(params) {
-    return document.getElementById(params)
-  }
-
-  import { ToastPlugin } from "@bfex/plugin"
-
-  $("toast-show").addEventListener("click", () => {
-    const duration = $("toast-duration").vaue
-    const msg = $("toast-message").vaue
-    const toast = new ToastPlugin()
-    toast.show(msg, duration)
-  })
-
-
-</script>
+<script type="module" src="./src/index.js" />

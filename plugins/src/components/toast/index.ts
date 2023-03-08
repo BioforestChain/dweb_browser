@@ -12,6 +12,7 @@ function documentOnDOMContentLoaded() {
   document.removeEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
 }
 
+export * from "./toast.type.ts"
 
 export {
   ToastPlugin

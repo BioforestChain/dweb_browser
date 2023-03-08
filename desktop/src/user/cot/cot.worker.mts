@@ -61,7 +61,6 @@ const main = async () => {
       .nativeFetch(
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(
           wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-            console.log("cot#wwwServer==>", url)
             url.pathname = "/index.html";
           }).href
         )}`

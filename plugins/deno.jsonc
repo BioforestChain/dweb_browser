@@ -3,6 +3,7 @@
     "build": "deno run -A ./scripts/build_npm.ts",
     "pub": "deno run -A ./scripts/pub_npm.ts",
     "link": "chmod 777 ./scripts/link.sh && ./scripts/link.sh",
+    "demo": "deno run -A ./build.ts && node ./scripts/async-android.cjs",
     "async": "node ./scripts/async-android.cjs",
     "test": "deno test --allow-all --unstable --no-check  ./test"
   },

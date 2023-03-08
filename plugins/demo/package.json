@@ -2,9 +2,7 @@
   "name": "deno",
   "type": "module",
   "scripts": {
-    "say-hello": "cowsay 'Hello from deno!'"
+    "build": "esbuild ./src/index.ts --bundle --outfile=./src/index.js"
   },
-  "dependencies": {
-    "@bfex/plugin": "file:../build/plugin"
-  }
+  "dependencies": {}
 }
