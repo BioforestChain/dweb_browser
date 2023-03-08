@@ -1,16 +1,17 @@
 import type { BasePlugin } from "./basePlugin.ts";
 
 // deno-lint-ignore no-explicit-any
-const hiJackCapacitorPlugin = (window as any).Capacitor.Plugins
+const hiJackCapacitorPlugin = (window as any).Capacitor?.Plugins
 
 export const registerWebPlugin = (plugin: BasePlugin): void => {
-  new Proxy(hiJackCapacitorPlugin, {
-    get(_target, key) {
-      if (key === plugin.proxy) {
-        return plugin
+  if (hiJackCapacitorPlugin) {
+    new Proxy(hiJackCapacitorPlugin, {
+      get(_target, key) {
+        if (key === plugin.proxy) {
+          return plugin
+        }
       }
-    }
-  })
-
+    })
+  }
 }
 

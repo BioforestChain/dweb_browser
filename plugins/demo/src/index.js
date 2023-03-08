@@ -1,76 +1,542 @@
-// src/components/registerPlugin.ts
-var hiJackCapacitorPlugin = window.Capacitor.Plugins;
-var registerWebPlugin = (plugin) => {
-  new Proxy(hiJackCapacitorPlugin, {
-    get(_target, key) {
-      if (key === plugin.proxy) {
-        return plugin;
+// build/plugin/esm/_dnt.shims.js
+var dntGlobals = {};
+var dntGlobalThis = createMergeProxy(globalThis, dntGlobals);
+function createMergeProxy(baseObj, extObj) {
+  return new Proxy(baseObj, {
+    get(_target, prop, _receiver) {
+      if (prop in extObj) {
+        return extObj[prop];
+      } else {
+        return baseObj[prop];
       }
+    },
+    set(_target, prop, value) {
+      if (prop in extObj) {
+        delete extObj[prop];
+      }
+      baseObj[prop] = value;
+      return true;
+    },
+    deleteProperty(_target, prop) {
+      let success = false;
+      if (prop in extObj) {
+        delete extObj[prop];
+        success = true;
+      }
+      if (prop in baseObj) {
+        delete baseObj[prop];
+        success = true;
+      }
+      return success;
+    },
+    ownKeys(_target) {
+      const baseKeys = Reflect.ownKeys(baseObj);
+      const extKeys = Reflect.ownKeys(extObj);
+      const extKeysSet = new Set(extKeys);
+      return [...baseKeys.filter((k) => !extKeysSet.has(k)), ...extKeys];
+    },
+    defineProperty(_target, prop, desc) {
+      if (prop in extObj) {
+        delete extObj[prop];
+      }
+      Reflect.defineProperty(baseObj, prop, desc);
+      return true;
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      if (prop in extObj) {
+        return Reflect.getOwnPropertyDescriptor(extObj, prop);
+      } else {
+        return Reflect.getOwnPropertyDescriptor(baseObj, prop);
+      }
+    },
+    has(_target, prop) {
+      return prop in extObj || prop in baseObj;
     }
   });
+}
+
+// build/plugin/esm/src/components/registerPlugin.js
+var hiJackCapacitorPlugin = dntGlobalThis.Capacitor?.Plugins;
+var registerWebPlugin = (plugin) => {
+  if (hiJackCapacitorPlugin) {
+    new Proxy(hiJackCapacitorPlugin, {
+      get(_target, key) {
+        if (key === plugin.proxy) {
+          return plugin;
+        }
+      }
+    });
+  }
 };
 
-// deps.ts
-import { ImageCapture } from "https://esm.sh/image-capture@0.4.0";
-import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/index.ts";
+// build/plugin/node_modules/image-capture/src/imagecapture.js
+var ImageCapture = window.ImageCapture;
+if (typeof ImageCapture === "undefined") {
+  ImageCapture = class {
+    /**
+     * TODO https://www.w3.org/TR/image-capture/#constructors
+     *
+     * @param {MediaStreamTrack} videoStreamTrack - A MediaStreamTrack of the 'video' kind
+     */
+    constructor(videoStreamTrack) {
+      if (videoStreamTrack.kind !== "video")
+        throw new DOMException("NotSupportedError");
+      this._videoStreamTrack = videoStreamTrack;
+      if (!("readyState" in this._videoStreamTrack)) {
+        this._videoStreamTrack.readyState = "live";
+      }
+      this._previewStream = new MediaStream([videoStreamTrack]);
+      this.videoElement = document.createElement("video");
+      this.videoElementPlaying = new Promise((resolve) => {
+        this.videoElement.addEventListener("playing", resolve);
+      });
+      if (HTMLMediaElement) {
+        this.videoElement.srcObject = this._previewStream;
+      } else {
+        this.videoElement.src = URL.createObjectURL(this._previewStream);
+      }
+      this.videoElement.muted = true;
+      this.videoElement.setAttribute("playsinline", "");
+      this.videoElement.play();
+      this.canvasElement = document.createElement("canvas");
+      this.canvas2dContext = this.canvasElement.getContext("2d");
+    }
+    /**
+     * https://w3c.github.io/mediacapture-image/index.html#dom-imagecapture-videostreamtrack
+     * @return {MediaStreamTrack} The MediaStreamTrack passed into the constructor
+     */
+    get videoStreamTrack() {
+      return this._videoStreamTrack;
+    }
+    /**
+     * Implements https://www.w3.org/TR/image-capture/#dom-imagecapture-getphotocapabilities
+     * @return {Promise<PhotoCapabilities>} Fulfilled promise with
+     * [PhotoCapabilities](https://www.w3.org/TR/image-capture/#idl-def-photocapabilities)
+     * object on success, rejected promise on failure
+     */
+    getPhotoCapabilities() {
+      return new Promise(function executorGPC(resolve, reject) {
+        const MediaSettingsRange = {
+          current: 0,
+          min: 0,
+          max: 0
+        };
+        resolve({
+          exposureCompensation: MediaSettingsRange,
+          exposureMode: "none",
+          fillLightMode: "none",
+          focusMode: "none",
+          imageHeight: MediaSettingsRange,
+          imageWidth: MediaSettingsRange,
+          iso: MediaSettingsRange,
+          redEyeReduction: false,
+          whiteBalanceMode: "none",
+          zoom: MediaSettingsRange
+        });
+        reject(new DOMException("OperationError"));
+      });
+    }
+    /**
+     * Implements https://www.w3.org/TR/image-capture/#dom-imagecapture-setoptions
+     * @param {Object} photoSettings - Photo settings dictionary, https://www.w3.org/TR/image-capture/#idl-def-photosettings
+     * @return {Promise<void>} Fulfilled promise on success, rejected promise on failure
+     */
+    setOptions(photoSettings = {}) {
+      return new Promise(function executorSO(resolve, reject) {
+      });
+    }
+    /**
+     * TODO
+     * Implements https://www.w3.org/TR/image-capture/#dom-imagecapture-takephoto
+     * @return {Promise<Blob>} Fulfilled promise with [Blob](https://www.w3.org/TR/FileAPI/#blob)
+     * argument on success; rejected promise on failure
+     */
+    takePhoto() {
+      const self = this;
+      return new Promise(function executorTP(resolve, reject) {
+        if (self._videoStreamTrack.readyState !== "live") {
+          return reject(new DOMException("InvalidStateError"));
+        }
+        self.videoElementPlaying.then(() => {
+          try {
+            self.canvasElement.width = self.videoElement.videoWidth;
+            self.canvasElement.height = self.videoElement.videoHeight;
+            self.canvas2dContext.drawImage(self.videoElement, 0, 0);
+            self.canvasElement.toBlob(resolve);
+          } catch (error) {
+            reject(new DOMException("UnknownError"));
+          }
+        });
+      });
+    }
+    /**
+     * Implements https://www.w3.org/TR/image-capture/#dom-imagecapture-grabframe
+     * @return {Promise<ImageBitmap>} Fulfilled promise with
+     * [ImageBitmap](https://www.w3.org/TR/html51/webappapis.html#webappapis-images)
+     * argument on success; rejected promise on failure
+     */
+    grabFrame() {
+      const self = this;
+      return new Promise(function executorGF(resolve, reject) {
+        if (self._videoStreamTrack.readyState !== "live") {
+          return reject(new DOMException("InvalidStateError"));
+        }
+        self.videoElementPlaying.then(() => {
+          try {
+            self.canvasElement.width = self.videoElement.videoWidth;
+            self.canvasElement.height = self.videoElement.videoHeight;
+            self.canvas2dContext.drawImage(self.videoElement, 0, 0);
+            resolve(window.createImageBitmap(self.canvasElement));
+          } catch (error) {
+            reject(new DOMException("UnknownError"));
+          }
+        });
+      });
+    }
+  };
+}
+window.ImageCapture = ImageCapture;
 
-// src/helper/createSignal.ts
+// build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
+var isPromiseLike = (value) => {
+  return value instanceof Object && typeof value.then === "function";
+};
+
+// build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
+var PromiseOut = class {
+  constructor() {
+    Object.defineProperty(this, "promise", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "is_resolved", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: false
+    });
+    Object.defineProperty(this, "is_rejected", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: false
+    });
+    Object.defineProperty(this, "is_finished", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: false
+    });
+    Object.defineProperty(this, "value", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "reason", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "resolve", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "reject", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "_innerFinally", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "_innerFinallyArg", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "_innerThen", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "_innerCatch", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    this.promise = new Promise((resolve, reject) => {
+      this.resolve = (value) => {
+        try {
+          if (isPromiseLike(value)) {
+            value.then(this.resolve, this.reject);
+          } else {
+            this.is_resolved = true;
+            this.is_finished = true;
+            resolve(this.value = value);
+            this._runThen();
+            this._innerFinallyArg = Object.freeze({
+              status: "resolved",
+              result: this.value
+            });
+            this._runFinally();
+          }
+        } catch (err) {
+          this.reject(err);
+        }
+      };
+      this.reject = (reason) => {
+        this.is_rejected = true;
+        this.is_finished = true;
+        reject(this.reason = reason);
+        this._runCatch();
+        this._innerFinallyArg = Object.freeze({
+          status: "rejected",
+          reason: this.reason
+        });
+        this._runFinally();
+      };
+    });
+  }
+  onSuccess(innerThen) {
+    if (this.is_resolved) {
+      this.__callInnerThen(innerThen);
+    } else {
+      (this._innerThen || (this._innerThen = [])).push(innerThen);
+    }
+  }
+  onError(innerCatch) {
+    if (this.is_rejected) {
+      this.__callInnerCatch(innerCatch);
+    } else {
+      (this._innerCatch || (this._innerCatch = [])).push(innerCatch);
+    }
+  }
+  onFinished(innerFinally) {
+    if (this.is_finished) {
+      this.__callInnerFinally(innerFinally);
+    } else {
+      (this._innerFinally || (this._innerFinally = [])).push(innerFinally);
+    }
+  }
+  _runFinally() {
+    if (this._innerFinally) {
+      for (const innerFinally of this._innerFinally) {
+        this.__callInnerFinally(innerFinally);
+      }
+      this._innerFinally = void 0;
+    }
+  }
+  __callInnerFinally(innerFinally) {
+    queueMicrotask(async () => {
+      try {
+        await innerFinally(this._innerFinallyArg);
+      } catch (err) {
+        console.error("Unhandled promise rejection when running onFinished", innerFinally, err);
+      }
+    });
+  }
+  _runThen() {
+    if (this._innerThen) {
+      for (const innerThen of this._innerThen) {
+        this.__callInnerThen(innerThen);
+      }
+      this._innerThen = void 0;
+    }
+  }
+  _runCatch() {
+    if (this._innerCatch) {
+      for (const innerCatch of this._innerCatch) {
+        this.__callInnerCatch(innerCatch);
+      }
+      this._innerCatch = void 0;
+    }
+  }
+  __callInnerThen(innerThen) {
+    queueMicrotask(async () => {
+      try {
+        await innerThen(this.value);
+      } catch (err) {
+        console.error("Unhandled promise rejection when running onSuccess", innerThen, err);
+      }
+    });
+  }
+  __callInnerCatch(innerCatch) {
+    queueMicrotask(async () => {
+      try {
+        await innerCatch(this.value);
+      } catch (err) {
+        console.error("Unhandled promise rejection when running onError", innerCatch, err);
+      }
+    });
+  }
+};
+
+// build/plugin/esm/src/helper/createSignal.js
 var createSignal = () => {
   return new Signal();
 };
 var Signal = class {
   constructor() {
-    this._cbs = /* @__PURE__ */ new Set();
-    this.listen = (cb) => {
-      this._cbs.add(cb);
-      return () => this._cbs.delete(cb);
-    };
-    this.emit = (...args) => {
-      for (const cb of this._cbs) {
-        cb.apply(null, args);
+    Object.defineProperty(this, "_cbs", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: /* @__PURE__ */ new Set()
+    });
+    Object.defineProperty(this, "listen", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: (cb) => {
+        this._cbs.add(cb);
+        return () => this._cbs.delete(cb);
       }
-    };
-    this.clear = () => {
-      this._cbs.clear();
-    };
+    });
+    Object.defineProperty(this, "emit", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: (...args) => {
+        for (const cb of this._cbs) {
+          cb.apply(null, args);
+        }
+      }
+    });
+    Object.defineProperty(this, "clear", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: () => {
+        this._cbs.clear();
+      }
+    });
   }
 };
 
-// src/components/basePlugin.ts
+// build/plugin/esm/src/components/basePlugin.js
 var BasePlugin = class extends HTMLElement {
   // mmid:为对应组件的名称，proxy:为劫持对象的属性
   constructor(mmid, proxy) {
     super();
-    this.mmid = mmid;
-    this.proxy = proxy;
-    this.createSignal = createSignal;
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+    Object.defineProperty(this, "proxy", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: proxy
+    });
+    Object.defineProperty(this, "createSignal", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: createSignal
+    });
   }
   nativeFetch(url, init) {
-    if (url instanceof Request) {
-      return fetch(url, init);
-    }
-    return fetch(new URL(url, this.mmid), init);
+    return fetch(`https://www.cot.bfs.dweb:443${url}&X-Dweb-Host=${this.mmid}`, init);
   }
 };
 
-// src/components/barcode-scanner/barcodeScanner.plugin.ts
+// build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
+var SupportedFormat;
+(function(SupportedFormat2) {
+  SupportedFormat2["UPC_A"] = "UPC_A";
+  SupportedFormat2["UPC_E"] = "UPC_E";
+  SupportedFormat2["UPC_EAN_EXTENSION"] = "UPC_EAN_EXTENSION";
+  SupportedFormat2["EAN_8"] = "EAN_8";
+  SupportedFormat2["EAN_13"] = "EAN_13";
+  SupportedFormat2["CODE_39"] = "CODE_39";
+  SupportedFormat2["CODE_39_MOD_43"] = "CODE_39_MOD_43";
+  SupportedFormat2["CODE_93"] = "CODE_93";
+  SupportedFormat2["CODE_128"] = "CODE_128";
+  SupportedFormat2["CODABAR"] = "CODABAR";
+  SupportedFormat2["ITF"] = "ITF";
+  SupportedFormat2["ITF_14"] = "ITF_14";
+  SupportedFormat2["AZTEC"] = "AZTEC";
+  SupportedFormat2["DATA_MATRIX"] = "DATA_MATRIX";
+  SupportedFormat2["MAXICODE"] = "MAXICODE";
+  SupportedFormat2["PDF_417"] = "PDF_417";
+  SupportedFormat2["QR_CODE"] = "QR_CODE";
+  SupportedFormat2["RSS_14"] = "RSS_14";
+  SupportedFormat2["RSS_EXPANDED"] = "RSS_EXPANDED";
+})(SupportedFormat || (SupportedFormat = {}));
+var CameraDirection;
+(function(CameraDirection2) {
+  CameraDirection2["FRONT"] = "user";
+  CameraDirection2["BACK"] = "environment";
+})(CameraDirection || (CameraDirection = {}));
+
+// build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
 var BarcodeScanner = class extends BasePlugin {
   constructor(mmid = "scanning.sys.dweb") {
     super(mmid, "BarcodeScanner");
-    this.mmid = mmid;
-    this._formats = "QR_CODE" /* QR_CODE */;
-    this._direction = "environment" /* BACK */;
-    this._video = null;
-    this._options = null;
-    this._backgroundColor = null;
-    this._promiseOutR = new PromiseOut();
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+    Object.defineProperty(this, "_formats", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: SupportedFormat.QR_CODE
+    });
+    Object.defineProperty(this, "_direction", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: CameraDirection.BACK
+    });
+    Object.defineProperty(this, "_video", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: null
+    });
+    Object.defineProperty(this, "_options", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: null
+    });
+    Object.defineProperty(this, "_backgroundColor", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: null
+    });
+    Object.defineProperty(this, "_promiseOutR", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: new PromiseOut()
+    });
   }
   /**
    *  准备扫描
    * @param targetedFormats 扫描文本类型
    * @param cameraDirection 摄像头位置
    */
-  async prepare(targetedFormats = "QR_CODE" /* QR_CODE */, cameraDirection = "environment" /* BACK */) {
+  async prepare(targetedFormats = SupportedFormat.QR_CODE, cameraDirection = CameraDirection.BACK) {
     this._direction = cameraDirection;
     this._formats = targetedFormats;
     await this._getVideoElement();
@@ -81,7 +547,7 @@ var BarcodeScanner = class extends BasePlugin {
    * @param targetedFormats 扫描文本类型
    * @param cameraDirection 摄像头位置
    */
-  async startScan(targetedFormats = "QR_CODE" /* QR_CODE */, cameraDirection = "environment" /* BACK */) {
+  async startScan(targetedFormats = SupportedFormat.QR_CODE, cameraDirection = CameraDirection.BACK) {
     this._direction = cameraDirection;
     this._formats = targetedFormats;
     const video = await this._getVideoElement();
@@ -123,7 +589,7 @@ var BarcodeScanner = class extends BasePlugin {
       throw Error("Permissions API not available in this browser");
     }
     try {
-      const permission = await window.navigator.permissions.query({
+      const permission = await globalThis.navigator.permissions.query({
         // deno-lint-ignore no-explicit-any
         name: "camera"
       });
@@ -180,7 +646,7 @@ var BarcodeScanner = class extends BasePlugin {
   }
   /**
    * 启动摄像
-   * @returns 
+   * @returns
    */
   // deno-lint-ignore ban-types
   _startVideo() {
@@ -197,17 +663,11 @@ var BarcodeScanner = class extends BasePlugin {
       const video = document.getElementById("video");
       if (!video) {
         const parent = document.createElement("div");
-        parent.setAttribute(
-          "style",
-          "position:absolute; top: 0; left: 0; width:100%; height: 100%; background-color: black;"
-        );
+        parent.setAttribute("style", "position:absolute; top: 0; left: 0; width:100%; height: 100%; background-color: black;");
         this._video = document.createElement("video");
         this._video.id = "video";
-        if (this._options?.cameraDirection !== "environment" /* BACK */) {
-          this._video.setAttribute(
-            "style",
-            "-webkit-transform: scaleX(-1); transform: scaleX(-1); width:100%; height: 100%;"
-          );
+        if (this._options?.cameraDirection !== CameraDirection.BACK) {
+          this._video.setAttribute("style", "-webkit-transform: scaleX(-1); transform: scaleX(-1); width:100%; height: 100%;");
         } else {
           this._video.setAttribute("style", "width:100%; height: 100%;");
         }
@@ -224,23 +684,20 @@ var BarcodeScanner = class extends BasePlugin {
           const constraints = {
             video: { facingMode: this._direction }
           };
-          navigator.mediaDevices.getUserMedia(constraints).then(
-            async (stream) => {
-              if (this._video) {
-                this._video.srcObject = stream;
-                const videoTracks = stream.getAudioTracks()[0];
-                const captureDevice = new ImageCapture(videoTracks);
-                if (captureDevice) {
-                  await captureDevice.takePhoto().then(this.processPhoto).catch(this.stopCamera);
-                }
-                this._video.play();
+          navigator.mediaDevices.getUserMedia(constraints).then(async (stream) => {
+            if (this._video) {
+              this._video.srcObject = stream;
+              const videoTracks = stream.getAudioTracks()[0];
+              const captureDevice = new ImageCapture(videoTracks);
+              if (captureDevice) {
+                await captureDevice.takePhoto().then(this.processPhoto).catch(this.stopCamera);
               }
-              resolve({});
-            },
-            (err) => {
-              reject(err);
+              this._video.play();
             }
-          );
+            resolve({});
+          }, (err) => {
+            reject(err);
+          });
         }
       } else {
         reject({ message: "camera already started" });
@@ -255,7 +712,7 @@ var BarcodeScanner = class extends BasePlugin {
   }
   /**
    * 返回扫码完的结果
-   * @returns 
+   * @returns
    */
   async _getFirstResultFromReader() {
     this._promiseOutR = new PromiseOut();
@@ -295,7 +752,7 @@ var BarcodeScanner = class extends BasePlugin {
   }
 };
 
-// src/components/barcode-scanner/index.ts
+// build/plugin/esm/src/components/barcode-scanner/index.js
 customElements.define("dweb-scanner", BarcodeScanner);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 function documentOnDOMContentLoaded() {
@@ -304,14 +761,42 @@ function documentOnDOMContentLoaded() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 }
 
-// src/components/navigator-bar/navigator-bar.ts
+// build/plugin/esm/src/components/navigator-bar/navigator.events.js
+var NavigationBarPluginEvents;
+(function(NavigationBarPluginEvents2) {
+  NavigationBarPluginEvents2["SHOW"] = "onShow";
+  NavigationBarPluginEvents2["HIDE"] = "onHide";
+  NavigationBarPluginEvents2["COLOR_CHANGE"] = "onColorChange";
+})(NavigationBarPluginEvents || (NavigationBarPluginEvents = {}));
+
+// build/plugin/esm/src/components/navigator-bar/navigator-bar.js
 var Navigatorbar = class extends BasePlugin {
   constructor(mmid = "navigationBar.sys.dweb") {
     super(mmid, "NavigationBar");
-    this.mmid = mmid;
-    this._signalShow = this.createSignal();
-    this._signalHide = this.createSignal();
-    this._signalChange = this.createSignal();
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+    Object.defineProperty(this, "_signalShow", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: this.createSignal()
+    });
+    Object.defineProperty(this, "_signalHide", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: this.createSignal()
+    });
+    Object.defineProperty(this, "_signalChange", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: this.createSignal()
+    });
   }
   connectedCallback() {
   }
@@ -328,13 +813,13 @@ var Navigatorbar = class extends BasePlugin {
   /**
    * 更改导航栏的颜色。
    *支持 alpha 十六进制数。
-   * @param options 
+   * @param options
    */
   async setColor(options) {
   }
   /**
    * 设置透明度
-   * @param isTransparent 
+   * @param isTransparent
    */
   async setTransparency(options) {
   }
@@ -347,15 +832,15 @@ var Navigatorbar = class extends BasePlugin {
   /**
    * 导航栏显示后触发的事件
    * @param event The event
-   * @param listenerFunc Callback 
+   * @param listenerFunc Callback
    * NavigationBarPluginEvents.HIDE 导航栏隐藏后触发的事件
    * NavigationBarPluginEvents.COLOR_CHANGE 导航栏颜色更改后触发的事件
    */
   addListener(event, listenerFunc) {
     switch (event) {
-      case "onHide" /* HIDE */:
+      case NavigationBarPluginEvents.HIDE:
         return this._signalHide.listen(listenerFunc);
-      case "onColorChange" /* COLOR_CHANGE */:
+      case NavigationBarPluginEvents.COLOR_CHANGE:
         return this._signalChange.listen(listenerFunc);
       default:
         return this._signalShow.listen(listenerFunc);
@@ -363,7 +848,15 @@ var Navigatorbar = class extends BasePlugin {
   }
 };
 
-// src/components/navigator-bar/index.ts
+// build/plugin/esm/src/components/navigator-bar/navigator.type.js
+var NAVIGATION_BAR_COLOR;
+(function(NAVIGATION_BAR_COLOR2) {
+  NAVIGATION_BAR_COLOR2["TRANSPARENT"] = "#00000000";
+  NAVIGATION_BAR_COLOR2["WHITE"] = "#ffffff";
+  NAVIGATION_BAR_COLOR2["BLACK"] = "#000000";
+})(NAVIGATION_BAR_COLOR || (NAVIGATION_BAR_COLOR = {}));
+
+// build/plugin/esm/src/components/navigator-bar/index.js
 customElements.define("dweb-navigator", Navigatorbar);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
 function documentOnDOMContentLoaded2() {
@@ -372,11 +865,16 @@ function documentOnDOMContentLoaded2() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
 }
 
-// src/components/statusbar/statusbar.plugin.ts
+// build/plugin/esm/src/components/statusbar/statusbar.plugin.js
 var StatusbarPlugin = class extends BasePlugin {
   constructor(mmid = "statusBar.sys.dweb") {
     super(mmid, "StatusBar");
-    this.mmid = mmid;
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
   }
   /**
    * 设置状态栏背景色
@@ -428,7 +926,7 @@ var StatusbarPlugin = class extends BasePlugin {
   }
 };
 
-// src/components/statusbar/index.ts
+// build/plugin/esm/src/components/statusbar/index.js
 customElements.define("dweb-statusbar", StatusbarPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
 function documentOnDOMContentLoaded3() {
@@ -437,42 +935,97 @@ function documentOnDOMContentLoaded3() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
 }
 
-// src/components/toast/toast.plugin.ts
+// build/plugin/esm/src/components/toast/toast.plugin.js
 var ToastPlugin = class extends BasePlugin {
   constructor(mmid = "toast.sys.dweb") {
     super(mmid, "Toast");
-    this.mmid = mmid;
-    this._elContent = document.createElement("div");
-    this._elStyle = document.createElement("style");
-    this._fragment = new DocumentFragment();
-    this._duration = "long";
-    this._position = "bottom";
-    // deno-lint-ignore no-inferrable-types
-    this._verticalClassName = "";
-    this._onTransitionenOutToIn = () => {
-      setTimeout(() => {
-        this._elContent.removeEventListener("transitionend", this._onTransitionenOutToIn);
-        this._elContent.addEventListener("transitionend", this._onTransitionendInToOut);
-        this._elContent.classList.remove("content_transform_inside");
-        this._elContent.classList.add("content_transform_outside");
-      }, this._duration === "long" ? 2e3 : 3500);
-    };
-    this._onTransitionendInToOut = () => {
-      this._elContent.removeEventListener("transitionend", this._onTransitionendInToOut);
-      this._elContent.classList.remove("content_transform_outside");
-      this._elContent.classList.remove("content_transition");
-      this._elContent.classList.remove(this._verticalClassName);
-      this.setAttribute("style", "");
-    };
-    this._elContentTransitionStart = () => {
-      this._verticalClassName = this._position === "bottom" ? "content_vertical_bottom" : this._position === "center" ? "content_vertical_center" : "content_vertical_top";
-      this._elContent.classList.add("content_transform_outside", this._verticalClassName);
-      this._elContent.addEventListener("transitionend", this._onTransitionenOutToIn);
-      setTimeout(() => {
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+    Object.defineProperty(this, "_root", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "_elContent", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: document.createElement("div")
+    });
+    Object.defineProperty(this, "_elStyle", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: document.createElement("style")
+    });
+    Object.defineProperty(this, "_fragment", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: new DocumentFragment()
+    });
+    Object.defineProperty(this, "_duration", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: "long"
+    });
+    Object.defineProperty(this, "_position", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: "bottom"
+    });
+    Object.defineProperty(this, "_verticalClassName", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: ""
+    });
+    Object.defineProperty(this, "_onTransitionenOutToIn", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: () => {
+        setTimeout(() => {
+          this._elContent.removeEventListener("transitionend", this._onTransitionenOutToIn);
+          this._elContent.addEventListener("transitionend", this._onTransitionendInToOut);
+          this._elContent.classList.remove("content_transform_inside");
+          this._elContent.classList.add("content_transform_outside");
+        }, this._duration === "long" ? 2e3 : 3500);
+      }
+    });
+    Object.defineProperty(this, "_onTransitionendInToOut", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: () => {
+        this._elContent.removeEventListener("transitionend", this._onTransitionendInToOut);
         this._elContent.classList.remove("content_transform_outside");
-        this._elContent.classList.add("content_transform_inside", "content_transition");
-      }, 100);
-    };
+        this._elContent.classList.remove("content_transition");
+        this._elContent.classList.remove(this._verticalClassName);
+        this.setAttribute("style", "");
+      }
+    });
+    Object.defineProperty(this, "_elContentTransitionStart", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: () => {
+        this._verticalClassName = this._position === "bottom" ? "content_vertical_bottom" : this._position === "center" ? "content_vertical_center" : "content_vertical_top";
+        this._elContent.classList.add("content_transform_outside", this._verticalClassName);
+        this._elContent.addEventListener("transitionend", this._onTransitionenOutToIn);
+        setTimeout(() => {
+          this._elContent.classList.remove("content_transform_outside");
+          this._elContent.classList.add("content_transform_inside", "content_transition");
+        }, 100);
+      }
+    });
     this._root = this.attachShadow({ mode: "open" });
     this._init();
   }
@@ -574,7 +1127,7 @@ function createCssText() {
     `;
 }
 
-// src/components/toast/index.ts
+// build/plugin/esm/src/components/toast/index.js
 customElements.define("dweb-toast", ToastPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
 function documentOnDOMContentLoaded4() {
@@ -583,11 +1136,16 @@ function documentOnDOMContentLoaded4() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
 }
 
-// src/components/torch/torch.plugin.ts
+// build/plugin/esm/src/components/torch/torch.plugin.js
 var TorchPlugin = class extends BasePlugin {
   constructor(mmid = "torch.sys.dweb") {
     super(mmid, "Torch");
-    this.mmid = mmid;
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
   }
   /**
    * 打开/关闭手电筒
@@ -603,7 +1161,7 @@ var TorchPlugin = class extends BasePlugin {
   }
 };
 
-// src/components/torch/index.ts
+// build/plugin/esm/src/components/torch/index.js
 customElements.define("dweb-torch", TorchPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded5);
 function documentOnDOMContentLoaded5() {
@@ -612,7 +1170,7 @@ function documentOnDOMContentLoaded5() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded5);
 }
 
-// src/components/index.ts
+// build/plugin/esm/src/components/index.js
 registerWebPlugin(new Navigatorbar());
 registerWebPlugin(new BarcodeScanner());
 registerWebPlugin(new StatusbarPlugin());
@@ -630,3 +1188,25 @@ $("toast-show").addEventListener("click", () => {
   const toast = new ToastPlugin();
   toast.show(msg, duration);
 });
+/*! Bundled license information:
+
+image-capture/src/imagecapture.js:
+  (**
+   * MediaStream ImageCapture polyfill
+   *
+   * @license
+   * Copyright 2018 Google Inc.
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *      http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   *)
+*/

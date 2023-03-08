@@ -10,12 +10,15 @@ var main = async () => {
     subdomain: "api",
     port: 443
   });
+  console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
   (await apiServer.listen()).onRequest(async (request, ipc2) => {
+    console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 apiServer\uFF1A request.parsed_url.pathname\uFF1A ", request.parsed_url.pathname);
     ipc2.postMessage(
       IpcResponse.fromText(request.req_id, 404, void 0, "forbidden", ipc2)
     );
   });
   (await wwwServer.listen()).onRequest(async (request, ipc2) => {
+    console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 wwwServer request.parsed_url.pathname\uFF1A ", request.parsed_url.pathname);
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";

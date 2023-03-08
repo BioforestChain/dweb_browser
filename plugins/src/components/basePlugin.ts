@@ -10,10 +10,7 @@ export class BasePlugin extends HTMLElement {
   }
 
   protected nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    if (url instanceof Request) {
-      return fetch(url, init)
-    }
-    return fetch(new URL(url, this.mmid), init)
+    return fetch(`${url}&X-Dweb-Host=${this.mmid}`, init)
   }
 
   protected createSignal = createSignal

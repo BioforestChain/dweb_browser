@@ -1,5 +1,6 @@
 {
   "tasks": {
+    "android": "deno task build && deno task demo",
     "build": "deno run -A ./scripts/build_npm.ts",
     "pub": "deno run -A ./scripts/pub_npm.ts",
     "link": "chmod 777 ./scripts/link.sh && ./scripts/link.sh",

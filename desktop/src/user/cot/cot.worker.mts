@@ -9,13 +9,16 @@ const main = async () => {
     subdomain: "api",
     port: 443,
   });
+  console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
   (await apiServer.listen()).onRequest(async (request, ipc) => {
+    console.log("接受到了请求 apiServer： request.parsed_url.pathname： ", request.parsed_url.pathname);
     ipc.postMessage(
       IpcResponse.fromText(request.req_id, 404, undefined, "forbidden", ipc)
     );
   });
 
   (await wwwServer.listen()).onRequest(async (request, ipc) => {
+    console.log("接受到了请求 wwwServer request.parsed_url.pathname： ", request.parsed_url.pathname);
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";

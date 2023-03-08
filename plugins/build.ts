@@ -4,7 +4,7 @@ esbuild
   .build({
     entryPoints: ["./demo/src/index.ts"],
     outfile: "./demo/src/index.js",
-    format: "esm",
+    format: "cjs",
     bundle: true,
   }).then(() => {
     esbuild.stop();
