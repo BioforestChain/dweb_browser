@@ -2,7 +2,6 @@ import chalk from "chalk";
 import { $deserializeRequestToParams } from "../helper/$deserializeRequestToParams.cjs";
 import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
 import { $serializeResultToResponse } from "../helper/$serializeResultToResponse.cjs";
-import { createSignal } from "../helper/createSignal.cjs";
 import type {
   $IpcSupportProtocols,
   $PromiseMaybe,
@@ -14,6 +13,19 @@ import type {
 import { NativeIpc } from "./ipc.native.cjs";
 import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.cjs";
 import { MicroModule } from "./micro-module.cjs";
+import { connectAdapterManager } from "./nativeConnect.cjs";
+
+connectAdapterManager.append((fromMM, toMM, reason) => {
+  if (toMM instanceof NativeMicroModule) {
+    const channel = new MessageChannel();
+    const { port1, port2 } = channel;
+    const toNativeIpc = new NativeIpc(port2, fromMM, IPC_ROLE.SERVER);
+    const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
+    fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
+    toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
+    return [fromNativeIpc, toNativeIpc];
+  }
+});
 
 export abstract class NativeMicroModule extends MicroModule {
   readonly ipc_support_protocols: $IpcSupportProtocols = {
@@ -22,42 +34,6 @@ export abstract class NativeMicroModule extends MicroModule {
     raw: true,
   };
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
-  private _connectting_ipcs = new Set<Ipc>();
-  _beConnect(from: MicroModule): NativeIpc {
-    const channel = new MessageChannel();
-    const { port1, port2 } = channel;
-    const inner_ipc = new NativeIpc(port2, from, IPC_ROLE.SERVER);
-
-    this._connectting_ipcs.add(inner_ipc);
-    inner_ipc.onClose(() => {
-      this._connectting_ipcs.delete(inner_ipc);
-    });
-
-    this._connectSignal.emit(inner_ipc);
-    return new NativeIpc(port1, this, IPC_ROLE.CLIENT);
-  }
-
-  /**
-   * 内部程序与外部程序通讯的方法
-   * TODO 这里应该是可以是多个
-   */
-  protected _connectSignal = createSignal<(ipc: Ipc) => unknown>();
-  /**
-   * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
-   * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
-   * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
-   */
-  protected onConnect = this._connectSignal.listen;
-
-  override after_shutdown() {
-    super.after_shutdown();
-    for (const inner_ipc of this._connectting_ipcs) {
-      inner_ipc.close();
-    }
-    this._connectting_ipcs.clear();
-  }
-
-  ///
 
   private _commmon_ipc_on_message_hanlders =
     new Set<$RequestCustomHanlderSchema>();

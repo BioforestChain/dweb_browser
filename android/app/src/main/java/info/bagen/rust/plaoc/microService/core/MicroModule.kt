@@ -22,8 +22,10 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
             throw Exception("module ${this.mmid} already running");
         }
         this.runningStateLock = PromiseOut()
+        this._bootstrapContext = bootstrapContext // 保存contxt
     }
 
+    private var _bootstrapContext: BootstrapContext? = null
     protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
     private suspend fun afterBootstrap(dnsMM: BootstrapContext) {
         this.runningStateLock.resolve(true)
@@ -31,7 +33,6 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
 
     suspend fun bootstrap(bootstrapContext: BootstrapContext) {
         this.beforeBootstrap(bootstrapContext)
-
         try {
             this._bootstrap(bootstrapContext);
         } finally {
@@ -59,6 +60,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
         _afterShutdownSignal.emit()
         _afterShutdownSignal.clear()
         runningStateLock.resolve(false)
+        this._bootstrapContext = null
     }
 
 
@@ -91,12 +93,15 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
     protected fun onConnect(cb: Callback<IpcConnectArgs>) = _connectSignal.listen(cb);
 
     /**
+     * 尝试连接到指定对象
+     */
+    suspend fun connect(mmid: Mmid, reason: Request? = null) =
+        this._bootstrapContext?.dns?.connect(mmid, reason)
+
+    /**
      * 收到一个连接，触发相关事件
      */
     suspend fun beConnect(ipc: Ipc, reason: Request) {
-//        if (!runningStateLock.waitPromise()) {
-//            throw Exception("module no running");
-//        }
         this._ipcSet.add(ipc);
         ipc.onClose {
             this._ipcSet.remove(ipc);

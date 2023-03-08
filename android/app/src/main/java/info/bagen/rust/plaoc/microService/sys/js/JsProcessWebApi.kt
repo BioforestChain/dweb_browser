@@ -2,7 +2,6 @@ package info.bagen.rust.plaoc.microService.sys.js
 
 import android.net.Uri
 import android.webkit.WebMessage
-import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
@@ -59,29 +58,28 @@ class JsProcessWebApi(val dWebView: DWebView) {
         """.trimIndent()
         ).let {}
 
-    suspend fun createIpc(process_id: Int) = dWebView.evaluateAsyncJavascriptCode(
-        """
+    suspend fun createIpc(process_id: Int, cid: String) = withContext(Dispatchers.Main) {
+        val channel = dWebView.createWebMessageChannel()
+        val port1 = channel[0]
+        val port2 = channel[1]
+        dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
             addEventListener("message", async event => {
                 if (event.data === "js-process/create-ipc") {
-                    const ipc_port = event.port[0];
+                    const ipc_port = event.ports[0];
                     try{
-                        resolve(await createIpc($process_id, ipc_port))
+                        resolve(await createIpc($process_id, ${gson.toJson(cid)}, ipc_port))
                     }catch(err){
                         reject(err)
                     }
                 }
             }, { once: true })
         })
-        """.trimIndent()
-    ).let {
-        val channel = dWebView.createWebMessageChannel()
-        val port1 = channel[0]
-        val port2 = channel[1]
-        dWebView.postWebMessage(
-            WebMessage("js-process/create-ipc", arrayOf(port1)), Uri.EMPTY
-        );
-
+        """.trimIndent(), afterEval = {
+            dWebView.postWebMessage(
+                WebMessage("js-process/create-ipc", arrayOf(port1)), Uri.EMPTY
+            );
+        })
         saveNative2JsIpcPort(port2)
     }
 

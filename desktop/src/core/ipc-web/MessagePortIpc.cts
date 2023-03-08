@@ -1,9 +1,9 @@
 import { encode } from "@msgpack/msgpack";
 import type {
+  $IpcMicroModuleInfo,
   $IpcSupportProtocols,
-  $MicroModule,
 } from "../../helper/types.cjs";
-import type { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
+import { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
 import { Ipc } from "../ipc/ipc.cjs";
 import { IpcRequest } from "../ipc/IpcRequest.cjs";
 import { IpcResponse } from "../ipc/IpcResponse.cjs";
@@ -14,8 +14,8 @@ import { $messageToIpcMessage } from "./$messageToIpcMessage.cjs";
 export class MessagePortIpc extends Ipc {
   constructor(
     readonly port: MessagePort,
-    readonly remote: $MicroModule,
-    readonly role: IPC_ROLE,
+    readonly remote: $IpcMicroModuleInfo,
+    readonly role: IPC_ROLE = IPC_ROLE.CLIENT,
     readonly self_support_protocols: $IpcSupportProtocols = {
       raw: true,
       message_pack: true,

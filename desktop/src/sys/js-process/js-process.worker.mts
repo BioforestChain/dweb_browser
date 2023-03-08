@@ -16,7 +16,7 @@ import { updateUrlOrigin } from "../../helper/urlHelper.cjs";
 import type { $RunMainConfig } from "./assets/js-process.web.mjs";
 
 import * as ipc from "../../core/ipc/index.cjs";
-import { cacheGetter } from "../../helper/cacheGetter.cjs";
+import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import * as http from "../http-server/$createHttpDwebServer.cjs";
 
@@ -82,7 +82,30 @@ export class JsProcessMicroModule implements $MicroModule {
     readonly host: String,
     readonly meta: Metadata,
     private nativeFetchPort: MessagePort
-  ) {}
+  ) {
+    const _beConnect = async (event: MessageEvent) => {
+      const data = event.data as any[];
+      if (Array.isArray(event.data) === false) {
+        return;
+      }
+      if (data[0] === "ipc-connect") {
+        const cid = data[1];
+        const port = event.ports[0];
+        const po = this.connectCidMap.get(cid);
+        if (po) {
+          this.connectCidMap.delete(cid);
+          po.resolve(port);
+          self.postMessage(["ipc-connect-ready", cid]);
+        } else {
+          // jsProcess.beConnnect(new MessagePortIpc(port,jsProcess,))
+        }
+      }
+    };
+    self.addEventListener("message", _beConnect);
+  }
+
+  private connectCidMap = new Map<string, PromiseOut<MessagePort>>();
+
   /// 这个通道只能用于基础的通讯
   readonly fetchIpc = new MessagePortIpc(
     this.nativeFetchPort,
@@ -115,19 +138,24 @@ export class JsProcessMicroModule implements $MicroModule {
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
 
-  connect(mmid: $MMID) {
+  async connect(mmid: $MMID) {
     const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
     const po = new PromiseOut<MessagePort>();
-    connectCidMap.set(cid, po);
-    this.nativeFetch(
-      `/dns/connect?mmid=${encodeURIComponent(mmid)}&cid=${cid}`
+    this.connectCidMap.set(cid, po);
+    this.fetchIpc.postMessage(
+      IpcEvent.fromText("dns/connect", JSON.stringify({ mmid, cid }))
     );
-    return po.promise;
+    return new MessagePortIpc(await po.promise, {
+      mmid,
+      ipc_support_protocols: {
+        raw: false,
+        message_pack: false,
+        protobuf: false,
+      },
+    });
   }
 
-  beConnnect(ipc:Ipc){
-
-  }
+  beConnnect(ipc: Ipc) {}
 }
 
 /// 消息通道构造器
@@ -170,7 +198,7 @@ export const installEnv = async (mmid: $MMID, host: String) => {
   return jsProcess;
 };
 
-self.addEventListener("message", async (event) => {
+self.addEventListener("message", async function runMain(event) {
   const data = event.data as any[];
   if (Array.isArray(event.data) === false) {
     return;
@@ -206,20 +234,9 @@ self.addEventListener("message", async (event) => {
     });
 
     await import(config.main_url);
-  } else if (data[0] === "ipc-connect") {
-    const cid = data[1];
-    const port = event.ports[0];
-    const po = connectCidMap.get(cid);
-    if (po) {
-      connectCidMap.delete(cid);
-      po.resolve(port);
-    } else {
-      // jsProcess.beConnnect(new MessagePortIpc(port,jsProcess,))
-    }
+    this.self.removeEventListener("message", runMain);
   }
 });
-
-const connectCidMap = new Map<string, PromiseOut<MessagePort>>();
 
 installEnv(
   metadata.requiredString("mmid") as $MMID,

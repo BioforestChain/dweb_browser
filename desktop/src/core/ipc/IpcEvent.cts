@@ -33,6 +33,9 @@ export class IpcEvent extends IpcMessage<IPC_MESSAGE_TYPE.EVENT> {
       IPC_DATA_ENCODING.UTF8
     );
   }
+  static fromText(name: string, data: string) {
+    return new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8);
+  }
 
   @cacheGetter()
   get binary() {

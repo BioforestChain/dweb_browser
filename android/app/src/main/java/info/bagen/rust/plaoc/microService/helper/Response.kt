@@ -15,12 +15,12 @@ fun Response.text(): String = ok().bodyString()
 
 fun Response.stream(): InputStream = ok().body.stream
 
-fun Response.int() = ok().json<Int>(Int.javaClass);
+fun Response.int() = text().toInt()
 
-fun Response.long() = ok().json<Long>(Long.javaClass);
+fun Response.long() = text().toLong()
 
-fun Response.double() = ok().json<Double>(Double.javaClass);
+fun Response.double() = text().toDouble();
 
-fun Response.float() = ok().json<Float>(Float.javaClass);
+fun Response.float() = text().toFloat();
 
 fun Response.boolean() = text() == "true"

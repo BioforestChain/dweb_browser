@@ -6,12 +6,8 @@ import type {
   $IpcSupportProtocols,
   $MicroModule,
   $MMID,
-  $PromiseMaybe,
 } from "../helper/types.cjs";
-import {
-  localeFileFetch,
-  nativeFetchAdaptersManager,
-} from "../sys/dns/nativeFetch.cjs";
+import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.cjs";
 import type { $BootstrapContext } from "./bootstrapContext.cjs";
 import type { Ipc } from "./ipc/index.cjs";
 
@@ -67,13 +63,28 @@ export abstract class MicroModule implements $MicroModule {
       this.after_shutdown();
     }
   }
-  /** 外部程序与内部程序建立链接的方法 */
-  protected abstract _beConnect(from: MicroModule): $PromiseMaybe<Ipc>;
-  async beConnect(from: MicroModule) {
-    if ((await this.isRunning) === false) {
-      throw new Error("module no running");
-    }
-    return this._beConnect(from);
+
+  protected _ipcSet = new Set<Ipc>();
+  /**
+   * 内部程序与外部程序通讯的方法
+   * TODO 这里应该是可以是多个
+   */
+  private readonly _connectSignal = createSignal<$OnIpcConnect>();
+
+  /**
+   * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
+   * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
+   * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
+   */
+  protected onConnect(cb: $OnIpcConnect) {
+    return this._connectSignal.listen(cb);
+  }
+  async beConnect(ipc: Ipc, reason: Request) {
+    this._ipcSet.add(ipc);
+    ipc.onClose(() => {
+      this._ipcSet.delete(ipc);
+    });
+    this._connectSignal.emit(ipc, reason);
   }
 
   private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
@@ -85,12 +96,11 @@ export abstract class MicroModule implements $MicroModule {
         return response;
       }
     }
-    return (
-      (await localeFileFetch(this, args.parsed_url, args.request_init)) ??
-      fetch(args.parsed_url, args.request_init)
-    );
+    return fetch(args.parsed_url, args.request_init);
   }
   nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 }
+
+type $OnIpcConnect = (ipc: Ipc, reason: Request) => unknown;

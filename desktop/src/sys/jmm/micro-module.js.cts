@@ -1,3 +1,4 @@
+import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { MicroModule } from "../../core/micro-module.cjs";
@@ -32,10 +33,12 @@ export class JsMicroModule extends MicroModule {
    * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起
    * 所以不会和其它程序所使用的 pid 冲突
    */
-  private _process_id?: number;
+  private _process_id?: string;
 
   /** 每个 JMM 启动都要依赖于某一个js */
-  async _bootstrap() {
+  async _bootstrap(context: $BootstrapContext) {
+    const pid = Math.ceil(Math.random() * 1000).toString();
+    this._process_id = pid;
     // console.log("[micro-module.js.cts _bootstrap:]", this.mmid)
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
@@ -73,7 +76,7 @@ export class JsMicroModule extends MicroModule {
         buildUrl(new URL(`file://js.sys.dweb/create-process`), {
           search: {
             entry: this.metadata.config.server.entry,
-            process_id: (this._process_id = Math.ceil(Math.random() * 1000)),
+            process_id: pid,
           },
         }),
         {
@@ -83,6 +86,31 @@ export class JsMicroModule extends MicroModule {
       ).stream()
     );
     this._connecting_ipcs.add(streamIpc);
+
+    const [jsIpc] = await context.dns.connect("js.sys.dweb");
+    jsIpc.onRequest(async (ipcRequest) => {
+      const response = await this.nativeFetch(ipcRequest.toRequest());
+      jsIpc.postMessage(
+        await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc)
+      );
+    });
+    jsIpc.onEvent(async (ipcEvent) => {
+      if (ipcEvent.name === "dns/connect") {
+        const { cid, mmid } = JSON.parse(ipcEvent.text);
+        const [targetIpc] = await context.dns.connect(mmid);
+        const portId = await this.nativeFetch(
+          buildUrl(new URL(`file://js.sys.dweb/create-ipc`), {
+            search: { pid, cid },
+          })
+        ).number();
+        const originIpc = new Native2JsIpc(portId, this);
+        /**
+         * 将两个消息通道间接互联
+         */
+        originIpc.onMessage((ipcMessage) => targetIpc.postMessage(ipcMessage));
+        targetIpc.onMessage((ipcMessage) => originIpc.postMessage(ipcMessage));
+      }
+    });
   }
   private _connecting_ipcs = new Set<Ipc>();
   async _beConnect(from: MicroModule): Promise<Native2JsIpc> {

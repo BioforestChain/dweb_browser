@@ -33,7 +33,7 @@ suspend fun startDwebBrowser() {
             "stream",
             "ipc-body",
             "http",
-//            "TIME-DURATION"
+            "TIME-DURATION"
         )
     )
 

@@ -1,8 +1,8 @@
 package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 
 import android.webkit.WebMessagePort
-import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
+import info.bagen.rust.plaoc.microService.ipc.Ipc
 
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
@@ -24,7 +24,7 @@ fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc++.also { port_id
  */
 class Native2JsIpc(
     val port_id: Int,
-    remote: MicroModule,
+    remote: Ipc.MicroModuleInfo,
     role: IPC_ROLE = IPC_ROLE.CLIENT,
 ) : MessagePortIpc(
     ALL_MESSAGE_PORT_CACHE[port_id]

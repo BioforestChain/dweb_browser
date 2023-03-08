@@ -42,9 +42,11 @@ export interface $IpcSupportProtocols {
   protobuf: boolean;
   raw: boolean;
 }
-export interface $MicroModule {
+export interface $IpcMicroModuleInfo {
   readonly ipc_support_protocols: $IpcSupportProtocols;
   readonly mmid: $MMID;
+}
+export interface $MicroModule extends $IpcMicroModuleInfo {
   nativeFetch(
     input: RequestInfo | URL,
     init?: RequestInit

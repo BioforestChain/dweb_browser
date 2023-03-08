@@ -39,6 +39,8 @@ abstract class Ipc {
 
     abstract val remote: MicroModuleInfo
 
+    fun asRemoteInstance() = if (remote is MicroModule) remote as MicroModule else null
+
     interface MicroModuleInfo {
         val mmid: Mmid
     }

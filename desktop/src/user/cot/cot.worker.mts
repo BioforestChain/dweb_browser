@@ -61,11 +61,19 @@ const main = async () => {
       .nativeFetch(
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(
           wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+            console.log("cot#wwwServer==>", url);
             url.pathname = "/index.html";
           }).href
         )}`
       )
       .text();
+  }
+  {
+    const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
+    Object.assign(globalThis, { mwebviewIpc });
+    mwebviewIpc.onEvent((event) => {
+      console.log("got event:", event.name, event.text);
+    });
   }
 };
 

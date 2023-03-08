@@ -125,13 +125,12 @@ const runProcessMain = (process_id, config) => {
   const process = _forceGetProcess(process_id);
   process.worker.postMessage(["run-main", config]);
 };
-const createIpc = async (process_id, ipc_port) => {
+const createIpc = async (process_id, cid, ipc_port) => {
   const process = _forceGetProcess(process_id);
-  const token = Date.now() + Math.random();
-  process.worker.postMessage(["ipc-connect", token], [ipc_port]);
+  process.worker.postMessage(["ipc-connect", cid], [ipc_port]);
   const connect_ready_po = new PromiseOut();
   const onEnvReady = (event) => {
-    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready") {
+    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready" && event.data[1] === cid) {
       connect_ready_po.resolve();
     }
   };

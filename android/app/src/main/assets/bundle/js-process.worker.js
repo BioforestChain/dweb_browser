@@ -1901,73 +1901,6 @@ function decode(buffer, options) {
   return decoder.decode(buffer);
 }
 
-// src/helper/cacheGetter.cts
-var cacheGetter = () => {
-  return (target, prop, desp) => {
-    const source_fun = desp.get;
-    if (source_fun === void 0) {
-      throw new Error(`${target}.${prop} should has getter`);
-    }
-    desp.get = function() {
-      const result = source_fun.call(this);
-      if (desp.set) {
-        desp.get = () => result;
-      } else {
-        delete desp.set;
-        delete desp.get;
-        desp.value = result;
-        desp.writable = false;
-      }
-      Object.defineProperty(this, prop, desp);
-      return result;
-    };
-    return desp;
-  };
-};
-
-// src/helper/createSignal.cts
-var createSignal = () => {
-  return new Signal();
-};
-var Signal = class {
-  constructor() {
-    this._cbs = /* @__PURE__ */ new Set();
-    this.listen = (cb) => {
-      this._cbs.add(cb);
-      return () => this._cbs.delete(cb);
-    };
-    this.emit = (...args) => {
-      for (const cb of this._cbs) {
-        cb.apply(null, args);
-      }
-    };
-    this.clear = () => {
-      this._cbs.clear();
-    };
-  }
-};
-
-// src/helper/PromiseOut.cts
-var PromiseOut = class {
-  constructor() {
-    this.promise = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    }).then((res) => {
-      this._value = res;
-      return res;
-    });
-  }
-  static resolve(v) {
-    const po = new PromiseOut();
-    po.resolve(v);
-    return po;
-  }
-  get value() {
-    return this._value;
-  }
-};
-
 // src/helper/binaryHelper.cts
 var isBinary = (data) => data instanceof ArrayBuffer || ArrayBuffer.isView(data);
 var binaryToU8a = (binary) => {
@@ -2122,8 +2055,164 @@ var $dataToText = (data, encoding) => {
   throw new Error(`unknown encoding: ${encoding}`);
 };
 
-// src/core/ipc/IpcRequest.cts
-var import_once = __toESM(require_once());
+// src/helper/cacheGetter.cts
+var cacheGetter = () => {
+  return (target, prop, desp) => {
+    const source_fun = desp.get;
+    if (source_fun === void 0) {
+      throw new Error(`${target}.${prop} should has getter`);
+    }
+    desp.get = function() {
+      const result = source_fun.call(this);
+      if (desp.set) {
+        desp.get = () => result;
+      } else {
+        delete desp.set;
+        delete desp.get;
+        desp.value = result;
+        desp.writable = false;
+      }
+      Object.defineProperty(this, prop, desp);
+      return result;
+    };
+    return desp;
+  };
+};
+
+// src/helper/createSignal.cts
+var createSignal = () => {
+  return new Signal();
+};
+var Signal = class {
+  constructor() {
+    this._cbs = /* @__PURE__ */ new Set();
+    this.listen = (cb) => {
+      this._cbs.add(cb);
+      return () => this._cbs.delete(cb);
+    };
+    this.emit = (...args) => {
+      for (const cb of this._cbs) {
+        cb.apply(null, args);
+      }
+    };
+    this.clear = () => {
+      this._cbs.clear();
+    };
+  }
+};
+
+// src/helper/PromiseOut.cts
+var PromiseOut = class {
+  constructor() {
+    this.promise = new Promise((resolve, reject) => {
+      this.resolve = resolve;
+      this.reject = reject;
+    }).then((res) => {
+      this._value = res;
+      return res;
+    });
+  }
+  static resolve(v) {
+    const po = new PromiseOut();
+    po.resolve(v);
+    return po;
+  }
+  get value() {
+    return this._value;
+  }
+};
+
+// src/helper/JsonlinesStream.cts
+var JsonlinesStream = class extends TransformStream {
+  constructor() {
+    let json = "";
+    const try_enqueue = (controller, jsonline) => {
+      try {
+        controller.enqueue(JSON.parse(jsonline));
+      } catch (err) {
+        controller.error(err);
+        return true;
+      }
+    };
+    super({
+      transform: (chunk, controller) => {
+        json += chunk;
+        let line_break_index;
+        while ((line_break_index = json.indexOf("\n")) !== -1) {
+          const jsonline = json.slice(0, line_break_index);
+          json = json.slice(jsonline.length + 1);
+          if (try_enqueue(controller, jsonline)) {
+            break;
+          }
+        }
+      },
+      flush: (controller) => {
+        json = json.trim();
+        if (json.length > 0) {
+          try_enqueue(controller, json);
+        }
+        controller.terminate();
+      }
+    });
+  }
+};
+
+// src/helper/$makeFetchExtends.cts
+var $makeFetchExtends = (exts) => {
+  return exts;
+};
+var fetchExtends = $makeFetchExtends({
+  async number() {
+    const text = await this.text();
+    return +text;
+  },
+  async ok() {
+    const response = await this;
+    if (response.status >= 400) {
+      throw response.statusText || await response.text();
+    } else {
+      return response;
+    }
+  },
+  async text() {
+    const ok = await this.ok();
+    return ok.text();
+  },
+  async binary() {
+    const ok = await this.ok();
+    return ok.arrayBuffer();
+  },
+  async boolean() {
+    const text = await this.text();
+    return text === "true";
+  },
+  async object() {
+    const ok = await this.ok();
+    try {
+      return await ok.json();
+    } catch (err) {
+      debugger;
+      throw err;
+    }
+  },
+  /** 将响应的内容解码成 jsonlines 格式 */
+  async jsonlines() {
+    return (
+      // 首先要能拿到数据流
+      (await this.stream()).pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream())
+    );
+  },
+  /** 获取 Response 的 body 为 ReadableStream */
+  stream() {
+    return this.then((res) => {
+      const stream = res.body;
+      if (stream == null) {
+        throw new Error(`request ${res.url} could not by stream.`);
+      }
+      return stream;
+    });
+  }
+});
 
 // src/helper/urlHelper.cts
 var URL_BASE = "document" in globalThis ? document.baseURI : "location" in globalThis && (location.protocol === "http:" || location.protocol === "https:" || location.protocol === "file:" || location.protocol === "chrome-extension:") ? location.href : "file:///";
@@ -2156,6 +2245,142 @@ var buildUrl = (url, ext) => {
   }
   return url;
 };
+
+// src/helper/normalizeFetchArgs.cts
+var normalizeFetchArgs = (url, init) => {
+  let _parsed_url2;
+  let _request_init = init;
+  if (typeof url === "string") {
+    _parsed_url2 = parseUrl(url);
+  } else if (url instanceof Request) {
+    _parsed_url2 = parseUrl(url.url);
+    _request_init = url;
+  } else if (url instanceof URL) {
+    _parsed_url2 = url;
+  }
+  if (_parsed_url2 === void 0) {
+    throw new Error(`no found url for fetch`);
+  }
+  const parsed_url = _parsed_url2;
+  const request_init = _request_init ?? {};
+  return {
+    parsed_url,
+    request_init
+  };
+};
+
+// src/helper/AdaptersManager.cts
+var AdaptersManager = class {
+  constructor() {
+    this.adapterOrderMap = /* @__PURE__ */ new Map();
+    this.orderdAdapters = [];
+  }
+  _reorder() {
+    this.orderdAdapters = [...this.adapterOrderMap].sort((a, b) => a[1] - b[1]).map((a) => a[0]);
+  }
+  get adapters() {
+    return this.orderdAdapters;
+  }
+  append(adapter, order = 0) {
+    this.adapterOrderMap.set(adapter, order);
+    this._reorder();
+    return () => this.remove(adapter);
+  }
+  remove(adapter) {
+    if (this.adapterOrderMap.delete(adapter) != null) {
+      this._reorder();
+      return true;
+    }
+    return false;
+  }
+};
+
+// src/sys/dns/nativeFetch.cts
+var nativeFetchAdaptersManager = new AdaptersManager();
+
+// src/core/micro-module.cts
+var MicroModule = class {
+  constructor() {
+    this._running_state_lock = PromiseOut.resolve(false);
+    this._after_shutdown_signal = createSignal();
+    this._ipcSet = /* @__PURE__ */ new Set();
+    /**
+     * 内部程序与外部程序通讯的方法
+     * TODO 这里应该是可以是多个
+     */
+    this._connectSignal = createSignal();
+  }
+  get isRunning() {
+    return this._running_state_lock.promise;
+  }
+  async before_bootstrap(context) {
+    if (await this._running_state_lock.promise) {
+      throw new Error(`module ${this.mmid} alreay running`);
+    }
+    this._running_state_lock = new PromiseOut();
+  }
+  async after_bootstrap(context) {
+    this._running_state_lock.resolve(true);
+  }
+  async bootstrap(context) {
+    await this.before_bootstrap(context);
+    try {
+      await this._bootstrap(context);
+    } finally {
+      this.after_bootstrap(context);
+    }
+  }
+  async before_shutdown() {
+    if (false === await this._running_state_lock.promise) {
+      throw new Error(`module ${this.mmid} already shutdown`);
+    }
+    this._running_state_lock = new PromiseOut();
+  }
+  after_shutdown() {
+    this._after_shutdown_signal.emit();
+    this._after_shutdown_signal.clear();
+    this._running_state_lock.resolve(false);
+  }
+  async shutdown() {
+    await this.before_shutdown();
+    try {
+      await this._shutdown();
+    } finally {
+      this.after_shutdown();
+    }
+  }
+  /**
+   * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
+   * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
+   * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
+   */
+  onConnect(cb) {
+    return this._connectSignal.listen(cb);
+  }
+  async beConnect(ipc, reason) {
+    this._ipcSet.add(ipc);
+    ipc.onClose(() => {
+      this._ipcSet.delete(ipc);
+    });
+    this._connectSignal.emit(ipc, reason);
+  }
+  async _nativeFetch(url, init) {
+    const args = normalizeFetchArgs(url, init);
+    for (const adapter of nativeFetchAdaptersManager.adapters) {
+      const response = await adapter(this, args.parsed_url, args.request_init);
+      if (response !== void 0) {
+        return response;
+      }
+    }
+    return fetch(args.parsed_url, args.request_init);
+  }
+  nativeFetch(url, init) {
+    return Object.assign(this._nativeFetch(url, init), fetchExtends);
+  }
+};
+
+// src/core/ipc/IpcRequest.cts
+var import_once = __toESM(require_once());
 
 // src/helper/readableStreamHelper.cts
 async function* _doRead(reader) {
@@ -2939,6 +3164,11 @@ var Ipc = class {
   get support_binary() {
     return this._support_binary ?? (this.support_message_pack || this.support_protobuf || this.support_raw);
   }
+  asRemoteInstance() {
+    if (this.remote instanceof MicroModule) {
+      return this.remote;
+    }
+  }
   postMessage(message) {
     if (this._closed) {
       return;
@@ -3264,6 +3494,9 @@ var _IpcEvent = class extends IpcMessage {
       2 /* UTF8 */
     );
   }
+  static fromText(name, data) {
+    return new _IpcEvent(name, data, 2 /* UTF8 */);
+  }
   get binary() {
     return $dataToBinary(this.data, this.encoding);
   }
@@ -3345,7 +3578,7 @@ var $messagePackToIpcMessage = (data, ipc) => {
 
 // src/core/ipc-web/MessagePortIpc.cts
 var MessagePortIpc = class extends Ipc {
-  constructor(port, remote, role, self_support_protocols = {
+  constructor(port, remote, role = "client" /* CLIENT */, self_support_protocols = {
     raw: true,
     message_pack: true,
     protobuf: false
@@ -3417,6 +3650,7 @@ __export(ipc_exports, {
   IpcBody: () => IpcBody,
   IpcBodyReceiver: () => IpcBodyReceiver,
   IpcBodySender: () => IpcBodySender,
+  IpcEvent: () => IpcEvent,
   IpcHeaders: () => IpcHeaders,
   IpcMessage: () => IpcMessage,
   IpcReqMessage: () => IpcReqMessage,
@@ -3427,98 +3661,6 @@ __export(ipc_exports, {
   IpcStreamEnd: () => IpcStreamEnd,
   IpcStreamPull: () => IpcStreamPull,
   toIpcMethod: () => toIpcMethod
-});
-
-// src/helper/JsonlinesStream.cts
-var JsonlinesStream = class extends TransformStream {
-  constructor() {
-    let json = "";
-    const try_enqueue = (controller, jsonline) => {
-      try {
-        controller.enqueue(JSON.parse(jsonline));
-      } catch (err) {
-        controller.error(err);
-        return true;
-      }
-    };
-    super({
-      transform: (chunk, controller) => {
-        json += chunk;
-        let line_break_index;
-        while ((line_break_index = json.indexOf("\n")) !== -1) {
-          const jsonline = json.slice(0, line_break_index);
-          json = json.slice(jsonline.length + 1);
-          if (try_enqueue(controller, jsonline)) {
-            break;
-          }
-        }
-      },
-      flush: (controller) => {
-        json = json.trim();
-        if (json.length > 0) {
-          try_enqueue(controller, json);
-        }
-        controller.terminate();
-      }
-    });
-  }
-};
-
-// src/helper/$makeFetchExtends.cts
-var $makeFetchExtends = (exts) => {
-  return exts;
-};
-var fetchExtends = $makeFetchExtends({
-  async number() {
-    const text = await this.text();
-    return +text;
-  },
-  async ok() {
-    const response = await this;
-    if (response.status >= 400) {
-      throw response.statusText || await response.text();
-    } else {
-      return response;
-    }
-  },
-  async text() {
-    const ok = await this.ok();
-    return ok.text();
-  },
-  async binary() {
-    const ok = await this.ok();
-    return ok.arrayBuffer();
-  },
-  async boolean() {
-    const text = await this.text();
-    return text === "true";
-  },
-  async object() {
-    const ok = await this.ok();
-    try {
-      return await ok.json();
-    } catch (err) {
-      debugger;
-      throw err;
-    }
-  },
-  /** 将响应的内容解码成 jsonlines 格式 */
-  async jsonlines() {
-    return (
-      // 首先要能拿到数据流
-      (await this.stream()).pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream())
-    );
-  },
-  /** 获取 Response 的 body 为 ReadableStream */
-  stream() {
-    return this.then((res) => {
-      const stream = res.body;
-      if (stream == null) {
-        throw new Error(`request ${res.url} could not by stream.`);
-      }
-      return stream;
-    });
-  }
 });
 
 // src/helper/headersToRecord.cts
@@ -3563,29 +3705,6 @@ var $readRequestAsIpcRequest = async (request_init) => {
   }
   const headers = headersToRecord(request_init.headers);
   return { method, body, headers };
-};
-
-// src/helper/normalizeFetchArgs.cts
-var normalizeFetchArgs = (url, init) => {
-  let _parsed_url2;
-  let _request_init = init;
-  if (typeof url === "string") {
-    _parsed_url2 = parseUrl(url);
-  } else if (url instanceof Request) {
-    _parsed_url2 = parseUrl(url.url);
-    _request_init = url;
-  } else if (url instanceof URL) {
-    _parsed_url2 = url;
-  }
-  if (_parsed_url2 === void 0) {
-    throw new Error(`no found url for fetch`);
-  }
-  const parsed_url = _parsed_url2;
-  const request_init = _request_init ?? {};
-  return {
-    parsed_url,
-    request_init
-  };
 };
 
 // src/sys/http-server/$createHttpDwebServer.cts
@@ -3855,12 +3974,31 @@ var JsProcessMicroModule = class {
     this.meta = meta;
     this.nativeFetchPort = nativeFetchPort;
     this.ipc_support_protocols = js_process_ipc_support_protocols;
+    this.connectCidMap = /* @__PURE__ */ new Map();
     /// 这个通道只能用于基础的通讯
     this.fetchIpc = new MessagePortIpc(
       this.nativeFetchPort,
       this,
       "server" /* SERVER */
     );
+    const _beConnect = async (event) => {
+      const data = event.data;
+      if (Array.isArray(event.data) === false) {
+        return;
+      }
+      if (data[0] === "ipc-connect") {
+        const cid = data[1];
+        const port = event.ports[0];
+        const po = this.connectCidMap.get(cid);
+        if (po) {
+          this.connectCidMap.delete(cid);
+          po.resolve(port);
+          self.postMessage(["ipc-connect-ready", cid]);
+        } else {
+        }
+      }
+    };
+    self.addEventListener("message", _beConnect);
   }
   async _nativeFetch(url, init) {
     const args = normalizeFetchArgs(url, init);
@@ -3883,14 +4021,21 @@ var JsProcessMicroModule = class {
     const args = normalizeFetchArgs(url, init);
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
-  connect(mmid) {
+  async connect(mmid) {
     const cid = `w-${(Date.now() + Math.random()).toString(36)}`;
     const po = new PromiseOut();
-    connectCidMap.set(cid, po);
-    this.nativeFetch(
-      `/dns/connect?mmid=${encodeURIComponent(mmid)}&cid=${cid}`
+    this.connectCidMap.set(cid, po);
+    this.fetchIpc.postMessage(
+      IpcEvent.fromText("dns/connect", JSON.stringify({ mmid, cid }))
     );
-    return po.promise;
+    return new MessagePortIpc(await po.promise, {
+      mmid,
+      ipc_support_protocols: {
+        raw: false,
+        message_pack: false,
+        protobuf: false
+      }
+    });
   }
   beConnnect(ipc) {
   }
@@ -3925,7 +4070,7 @@ var installEnv = async (mmid, host) => {
   self.postMessage(["env-ready"]);
   return jsProcess2;
 };
-self.addEventListener("message", async (event) => {
+self.addEventListener("message", async function runMain(event) {
   const data = event.data;
   if (Array.isArray(event.data) === false) {
     return;
@@ -3959,18 +4104,9 @@ self.addEventListener("message", async (event) => {
       writable: false
     });
     await import(config.main_url);
-  } else if (data[0] === "ipc-connect") {
-    const cid = data[1];
-    const port = event.ports[0];
-    const po = connectCidMap.get(cid);
-    if (po) {
-      connectCidMap.delete(cid);
-      po.resolve(port);
-    } else {
-    }
+    this.self.removeEventListener("message", runMain);
   }
 });
-var connectCidMap = /* @__PURE__ */ new Map();
 installEnv(
   metadata.requiredString("mmid"),
   metadata.requiredString("host")

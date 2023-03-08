@@ -1,10 +1,12 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 import com.google.gson.*
+import com.google.gson.annotations.JsonAdapter
 import info.bagen.rust.plaoc.microService.helper.toBase64
 import info.bagen.rust.plaoc.microService.helper.toUtf8
 import java.lang.reflect.Type
 
+@JsonAdapter(IpcEvent::class)
 class IpcEvent(
     val name: String,
     val data: Any /*String or ByteArray*/,

@@ -1,7 +1,8 @@
 import { cacheGetter } from "../../helper/cacheGetter.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
-import type { $MicroModule } from "../../helper/types.cjs";
+import type { $IpcMicroModuleInfo } from "../../helper/types.cjs";
+import { MicroModule } from "../micro-module.cjs";
 import {
   $IpcMessage,
   $OnIpcEventMessage,
@@ -56,7 +57,12 @@ export abstract class Ipc {
 
   protected _support_binary = false;
 
-  abstract readonly remote: $MicroModule;
+  abstract readonly remote: $IpcMicroModuleInfo;
+  asRemoteInstance() {
+    if (this.remote instanceof MicroModule) {
+      return this.remote;
+    }
+  }
   abstract readonly role: string;
 
   protected _messageSignal = createSignal<$OnIpcMessage>();

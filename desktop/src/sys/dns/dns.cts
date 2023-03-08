@@ -2,13 +2,18 @@ import type {
   $BootstrapContext,
   $DnsMicroModule,
 } from "../../core/bootstrapContext.cjs";
-import type { Ipc } from "../../core/ipc/ipc.cjs";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import type { MicroModule } from "../../core/micro-module.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
+import {
+  $ConnectResult,
+  connectMicroModules,
+} from "../../core/nativeConnect.cjs";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.cjs";
-import type { $MMID, $PromiseMaybe } from "../../helper/types.cjs";
+import { mapHelper } from "../../helper/mapHelper.cjs";
+import { PromiseOut } from "../../helper/PromiseOut.cjs";
+import type { $MMID } from "../../helper/types.cjs";
 import { nativeFetchAdaptersManager } from "./nativeFetch.cjs";
 
 class MyDnsMicroModule implements $DnsMicroModule {
@@ -19,8 +24,12 @@ class MyDnsMicroModule implements $DnsMicroModule {
   uninstall(mm: MicroModule): void {
     this.dnsNN.uninstall(mm);
   }
-  connect(mmid: any) {
-    return this.dnsNN[connectTo_symbol](this.dnsNN, mmid);
+  connect(mmid: $MMID, reason?: Request) {
+    return this.dnsNN[connectTo_symbol](
+      this.dnsNN,
+      mmid,
+      reason ?? new Request(`file://${mmid}`)
+    );
   }
 }
 class MyBootstrapContext implements $BootstrapContext {
@@ -43,45 +52,37 @@ export class DnsNMM extends NativeMicroModule {
   }
 
   // 拦截 nativeFetch
-  private connects = new WeakMap<
+  private mmConnectsMap = new WeakMap<
     MicroModule,
-    Map<
-      $MMID,
-      $PromiseMaybe<{
-        ipc: Ipc;
-      }>
-    >
+    Map<$MMID, PromiseOut<$ConnectResult>>
   >();
-  async [connectTo_symbol](fromMM: MicroModule, toMmid: $MMID) {
+  async [connectTo_symbol](
+    fromMM: MicroModule,
+    toMmid: $MMID,
+    reason: Request
+  ) {
     /// 拦截到了，走自定义总线
-    let fromMM_ipcs = this.connects.get(fromMM);
-    if (fromMM_ipcs === undefined) {
-      fromMM_ipcs = new Map();
-      this.connects.set(fromMM, fromMM_ipcs);
-    }
+    const connectsMap = mapHelper.getOrPut(
+      this.mmConnectsMap,
+      fromMM,
+      () => new Map<$MMID, PromiseOut<$ConnectResult>>()
+    );
 
-    /// 与指定应用建立通讯
-    let ipc_promise = fromMM_ipcs.get(toMmid);
-    if (ipc_promise === undefined) {
-      /// 初始化互联
-      fromMM_ipcs.set(
-        toMmid,
-        (ipc_promise = (async () => {
-          const toMM = await this.open(toMmid);
-          const ipc = await toMM.beConnect(fromMM);
-          // 监听生命周期 释放引用
-          ipc.onClose(() => {
-            fromMM_ipcs?.delete(toMmid);
-          });
-          return {
-            ipc,
-          };
-        })())
-      );
-    }
-
-    const { ipc } = await ipc_promise;
-    return ipc;
+    const po = mapHelper.getOrPut(connectsMap, toMmid, () => {
+      const po = new PromiseOut<$ConnectResult>();
+      (async () => {
+        /// 与指定应用建立通讯
+        const toMM = await this.open(toMmid);
+        const connects = await connectMicroModules(fromMM, toMM, reason);
+        // 监听生命周期 释放引用
+        connects[0].onClose(() => {
+          connectsMap?.delete(toMmid);
+        });
+        po.resolve(connects);
+      })();
+      return po;
+    });
+    return po.promise;
   }
 
   override _bootstrap() {
@@ -128,7 +129,11 @@ export class DnsNMM extends NativeMicroModule {
             parsedUrl.hostname.endsWith(".dweb")
           ) {
             const mmid = parsedUrl.hostname as $MMID;
-            const ipc = await this[connectTo_symbol](fromMM, mmid);
+            const [ipc] = await this[connectTo_symbol](
+              fromMM,
+              mmid,
+              new Request(parsedUrl, requestInit)
+            );
             const ipc_req_init = await $readRequestAsIpcRequest(requestInit);
             const ipc_response = await ipc.request(
               parsedUrl.href,

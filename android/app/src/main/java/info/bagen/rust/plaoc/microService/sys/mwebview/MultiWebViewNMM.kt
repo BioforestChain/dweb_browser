@@ -13,6 +13,7 @@ import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import io.ktor.util.collections.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.lens.Query
@@ -48,8 +49,11 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 
         val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
         val job = GlobalScope.launch(ioAsyncExceptionHandler) {
-            for ((ipc) in subscribers) {
-                ipc.postMessage(IpcEvent.fromUtf8("qaq", "hi"))
+            while (true){
+                for ((ipc) in subscribers) {
+                    ipc.postMessage(IpcEvent.fromUtf8("qaq", "hi"))
+                }
+                delay(1000)
             }
         }
         _afterShutdownSignal.listen { job.cancel() }
@@ -59,10 +63,9 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             "/open" bind Method.GET to defineHandler { request, ipc ->
                 val url = query_url(request)
                 println("MultiWebViewNMM $url")
-                val remoteMm = when (ipc.remote) {
-                    is MicroModule -> ipc.remote as MicroModule
-                    else -> throw Exception("mwebview.sys.dweb/open should be call by locale")
-                }
+                val remoteMm = ipc.asRemoteInstance()
+                    ?: throw Exception("mwebview.sys.dweb/open should be call by locale")
+
                 val webviewId = openDwebView(remoteMm, url)
                 val refs = subscribers.getOrPut(ipc) { ConcurrentSkipListSet<String>() }
                 refs.add(webviewId)

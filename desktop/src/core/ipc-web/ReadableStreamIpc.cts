@@ -7,8 +7,8 @@ import {
   ReadableStreamOut,
 } from "../../helper/readableStreamHelper.cjs";
 import type {
+  $IpcMicroModuleInfo,
   $IpcSupportProtocols,
-  $MicroModule,
   $PromiseMaybe,
 } from "../../helper/types.cjs";
 import type { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
@@ -26,7 +26,7 @@ import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.cjs";
  */
 export class ReadableStreamIpc extends Ipc {
   constructor(
-    readonly remote: $MicroModule,
+    readonly remote: $IpcMicroModuleInfo,
     readonly role: IPC_ROLE,
     readonly self_support_protocols: $IpcSupportProtocols = {
       raw: false,

@@ -89,14 +89,21 @@ const runProcessMain = (process_id: number, config: $RunMainConfig) => {
   process.worker.postMessage(["run-main", config]);
 };
 
-const createIpc = async (process_id: number, ipc_port: MessagePort) => {
+const createIpc = async (
+  process_id: number,
+  cid: string,
+  ipc_port: MessagePort
+) => {
   const process = _forceGetProcess(process_id);
-  const token = Date.now() + Math.random();
-  process.worker.postMessage(["ipc-connect", token], [ipc_port]);
+  process.worker.postMessage(["ipc-connect", cid], [ipc_port]);
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
   const onEnvReady = (event: MessageEvent) => {
-    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready") {
+    if (
+      Array.isArray(event.data) &&
+      event.data[0] === "ipc-connect-ready" &&
+      event.data[1] === cid
+    ) {
       connect_ready_po.resolve();
     }
   };

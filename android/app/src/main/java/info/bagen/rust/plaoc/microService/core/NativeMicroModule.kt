@@ -23,7 +23,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                     val fromNativeIpc = NativeIpc(channel.port2, toMM, IPC_ROLE.CLIENT);
                     fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
                     toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
-                    return@append fromNativeIpc // 返回发起者的ipc
+                    return@append ConnectResult(fromNativeIpc, toNativeIpc) // 返回发起者的ipc
                 } else null
             }
         }

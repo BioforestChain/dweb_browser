@@ -25,7 +25,6 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.util.concurrent.ConcurrentHashMap
 
 
 inline fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -87,6 +86,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
         val query_entry = Query.string().required("entry")
         val query_process_id = Query.string().required("process_id")
+        val query_cid = Query.string().required("cid")
 
         val ipcProcessIdMap = mutableMapOf<Ipc, MutableMap<String, PromiseOut<Int>>>()
         val ipcProcessIdMapLock = Mutex()
@@ -98,7 +98,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     val processId = query_process_id(request)
                     val processIdMap = ipcProcessIdMap.getOrPut(ipc) {
                         ipc.onClose { ipcProcessIdMap.remove(ipc) }
-                        ConcurrentHashMap()
+                        mutableMapOf()
                     }
 
                     if (processIdMap.contains(processId)) {
@@ -119,13 +119,14 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             /// 创建 web 通讯管道
             "/create-ipc" bind Method.GET to defineHandler { request, ipc ->
                 val processId = query_process_id(request)
+                val cid = query_cid(request)
                 val process_id = ipcProcessIdMapLock.withLock {
                     ipcProcessIdMap[ipc]?.get(processId)
                         ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
                 }.waitPromise()
 
                 // 返回 port_id
-                createIpc(ipc, apis, process_id)
+                createIpc(ipc, apis, process_id, cid)
             })
 
     }
@@ -220,27 +221,24 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          * js create-process 目前只能被本地模块调用，因为我们需要它直接发起 nativeFetch 来代理 worker 的请求
          * 否则需要将这里的所有请求发往远端
          */
-        val remoteMM: MicroModule = if (ipc.remote is MicroModule) ipc.remote as MicroModule
-        else throw Exception("js-process should be call by locale")
+        val remoteMM: MicroModule =
+            ipc.asRemoteInstance() ?: throw Exception("js-process should be call by locale")
 
         val query_mmid = Query.string().required("mmid")
         val query_cid = Query.string().required("cid")
-        /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
-        /// TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
-        processHandler.ipc.onRequest { (ipcRequest, ipc) ->
-            val request = ipcRequest.toRequest().header("X-Dweb-Proxy-Id", mmid)
-            kotlin.runCatching {
-                // 转发请求
-                val response = remoteMM.nativeFetch(request);
-                val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
-                ipc.postMessage(ipcResponse)
-            }.onFailure {
-                ipc.postMessage(
-                    IpcResponse.fromText(
-                        ipcRequest.req_id, 500, text = it.message ?: "", ipc = ipc
-                    )
-                )
-            }
+        /**
+         * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
+         *
+         * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
+         */
+        processHandler.ipc.onMessage { (workerIpcMessage) ->
+            /**
+             * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
+             */
+            ipc.postMessage(workerIpcMessage)
+        }
+        ipc.onMessage { (remoteIpcMessage) ->
+            processHandler.ipc.postMessage(remoteIpcMessage)
         }
 
         /**
@@ -275,8 +273,13 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         val streamIpc: ReadableStreamIpc, val processHandler: JsProcessWebApi.ProcessHandler
     )
 
-    private suspend fun createIpc(ipc: Ipc, apis: JsProcessWebApi, process_id: Int): Int {
-        return apis.createIpc(process_id)
+    private suspend fun createIpc(
+        ipc: Ipc,
+        apis: JsProcessWebApi,
+        process_id: Int,
+        cid: String
+    ): Int {
+        return apis.createIpc(process_id, cid)
     }
 }
 

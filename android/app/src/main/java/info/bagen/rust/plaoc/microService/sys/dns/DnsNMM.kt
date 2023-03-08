@@ -2,11 +2,13 @@ package info.bagen.rust.plaoc.microService.sys.dns
 
 import info.bagen.rust.plaoc.microService.core.*
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
-import info.bagen.rust.plaoc.microService.ipc.Ipc
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.http4k.core.*
 import org.http4k.lens.Query
 import org.http4k.lens.string
@@ -25,26 +27,37 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     }
 
     /** 对等连接列表 */
-    private val connects = mutableMapOf<MicroModule, MutableMap<Mmid, Ipc>>()
+    private val mmConnectsMap =
+        mutableMapOf<MicroModule, MutableMap<Mmid, PromiseOut<ConnectResult>>>()
+    private val mmConnectsMapLock = Mutex()
 
     /** 为两个mm建立 ipc 通讯 */
-    private suspend fun connectTo(fromMM: MicroModule, toMmid: Mmid, reason: Request): Ipc {
+    private suspend fun connectTo(
+        fromMM: MicroModule, toMmid: Mmid, reason: Request
+    ) = mmConnectsMapLock.withLock {
+
         /** 一个互联实例表 */
-        val ipcMap = connects.getOrPut(fromMM) { mutableMapOf() }
+        val connectsMap = mmConnectsMap.getOrPut(fromMM) { mutableMapOf() }
 
         /**
          * 一个互联实例
          */
-        val ipc = ipcMap.getOrPut(toMmid) {
-            val toMM = open(toMmid);
-            debugFetch("DNS/connect", "${fromMM.mmid} => $toMmid")
-            connectMicroModules(fromMM, toMM, reason).also { ipc ->
-                // 在 IPC 关闭的时候，从 ipcMap 中移除
-                ipc.onClose { ipcMap.remove(toMmid); }
+        connectsMap.getOrPut(toMmid) {
+            PromiseOut<ConnectResult>().also { po ->
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    val toMM = open(toMmid);
+                    debugFetch("DNS/connect", "${fromMM.mmid} => $toMmid")
+                    val connects = connectMicroModules(fromMM, toMM, reason)
+                    po.resolve(connects)
+                    connects.ipcForFromMM.onClose {
+                        mmConnectsMapLock.withLock {
+                            connectsMap.remove(toMmid);
+                        }
+                    }
+                }
             }
         }
-        return ipc
-    }
+    }.waitPromise()
 
     class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
         DnsMicroModule {
@@ -59,14 +72,11 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
         }
 
         override suspend fun connect(
-            mmid: Mmid,
-            reason: Request?
-        ): Ipc {
+            mmid: Mmid, reason: Request?
+        ): ConnectResult {
             // TODO 权限保护
             return dnsMM.connectTo(
-                fromMM,
-                mmid,
-                reason ?: Request(Method.GET, Uri.of("file://$mmid"))
+                fromMM, mmid, reason ?: Request(Method.GET, Uri.of("file://$mmid"))
             )
         }
 
@@ -91,8 +101,8 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
                 val mmid = request.uri.host
                 debugFetch("DNS/fetchAdapter", "$mmid >> ${request.uri.path}")
                 mmMap[mmid]?.let {
-                    val ipc = connectTo(fromMM, mmid, request)
-                    return@let ipc.request(request)
+                    val (fromIpc) = connectTo(fromMM, mmid, request)
+                    return@let fromIpc.request(request)
                 } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())
             } else null
         })

@@ -23,5 +23,5 @@ interface DnsMicroModule {
     /**
      * 与其它应用建立连接
      */
-    suspend fun connect(mmid: Mmid, reason: Request? = null): Ipc
+    suspend fun connect(mmid: Mmid, reason: Request? = null): ConnectResult
 }

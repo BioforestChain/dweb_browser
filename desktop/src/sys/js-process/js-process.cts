@@ -200,7 +200,7 @@ export class JsProcessNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/create-ipc",
       matchMode: "full",
-      input: { process_id: "string" },
+      input: { process_id: "string", cid: "string" },
       output: "number",
       handler: async (args, ipc) => {
         const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
@@ -210,7 +210,7 @@ export class JsProcessNMM extends NativeMicroModule {
           );
         }
         const process_id = await process_id_po.promise;
-        const port_id = await this.createIpc(ipc, apis, process_id);
+        const port_id = await this.createIpc(ipc, apis, process_id, args.cid);
         return port_id;
       },
     });
@@ -308,11 +308,11 @@ export class JsProcessNMM extends NativeMicroModule {
       IPC_ROLE.CLIENT
     );
     /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
-    ipc_to_worker.onRequest(async (ipcMessage, worker_ipc) => {
-      const response = await ipc.remote.nativeFetch(ipcMessage.toRequest());
-      worker_ipc.postMessage(
-        await IpcResponse.fromResponse(ipcMessage.req_id, response, worker_ipc)
-      );
+    ipc_to_worker.onMessage((ipcMessage) => {
+      ipc.postMessage(ipcMessage);
+    });
+    ipc.onMessage((ipcMessage) => {
+      ipc_to_worker.postMessage(ipcMessage);
     });
 
     // this.processImportsMap.set(host, processImports);
@@ -347,13 +347,19 @@ export class JsProcessNMM extends NativeMicroModule {
     };
   }
 
-  private async createIpc(ipc: Ipc, apis: Remote<$APIS>, process_id: number) {
+  private async createIpc(
+    ipc: Ipc,
+    apis: Remote<$APIS>,
+    process_id: number,
+    cid: string
+  ) {
     /**
      * 创建一个通往 worker 的消息通道
      */
     const channel_for_worker = new MessageChannel();
     await apis.createIpc(
       process_id,
+      cid,
       transfer(channel_for_worker.port2, [channel_for_worker.port2])
     );
     return saveNative2JsIpcPort(channel_for_worker.port1);

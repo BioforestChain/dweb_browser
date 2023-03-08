@@ -21,7 +21,7 @@
     ],
     "scripts": {
         "dev": "concurrently npm:dev:*",
-        "dev:tsc": "tsc -w",
+        "dev:tsc": "tsc -w --preserveWatchOutput",
         "sync-to-android-assets": "node ./scripts/sync-to-android-assets.cjs",
         "dev:sync-to-android-assets": "npm run sync-to-android-assets -- --watch",
         "bundle:jmm.html": "vite build src/sys/jmm/assets/ --outDir=../../../../bundle/jmm --emptyOutDir -c electron-vite.config.ts",

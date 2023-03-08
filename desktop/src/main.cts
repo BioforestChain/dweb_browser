@@ -1,5 +1,6 @@
 import { BootNMM } from "./sys/boot.cjs";
 import { DnsNMM } from "./sys/dns/dns.cjs";
+import "./sys/dns/localeFileFetch.cjs";
 import { HttpServerNMM } from "./sys/http-server/http-server.cjs";
 import { JsProcessNMM } from "./sys/js-process/js-process.cjs";
 import { MultiWebviewNMM } from "./sys/multi-webview/multi-webview.mobile.cjs";
