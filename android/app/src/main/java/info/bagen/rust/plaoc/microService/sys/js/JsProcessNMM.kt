@@ -228,8 +228,13 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         /**
          * 创建一个通往 worker 的消息通道
          */
-        val processHandler =
-            apis.createProcess(bootstrap_url, gson.toJson(metadata), gson.toJson(env), ipc.remote);
+        val processHandler = apis.createProcess(
+            bootstrap_url,
+            gson.toJson(metadata),
+            gson.toJson(env),
+            ipc.remote,
+            httpDwebServer.startResult.urlInfo.host
+        );
         /**
          * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
          *
@@ -278,9 +283,9 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     )
 
     private suspend fun createIpc(
-        ipc: Ipc, apis: JsProcessWebApi, process_id: Int, cid: String
+        ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: Mmid
     ): Int {
-        return apis.createIpc(process_id, cid)
+        return apis.createIpc(process_id, mmid)
     }
 }
 

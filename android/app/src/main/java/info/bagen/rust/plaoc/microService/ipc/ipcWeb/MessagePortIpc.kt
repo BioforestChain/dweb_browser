@@ -4,7 +4,8 @@ import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -25,11 +26,12 @@ class MessagePort {
 
     private val _messageSignal by lazy {
         val signal = Signal<WebMessage>()
+        val messageScope = CoroutineScope(CoroutineName("message") + ioAsyncExceptionHandler)
 
         port.setWebMessageCallback(object :
             WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
-                GlobalScope.launch(ioAsyncExceptionHandler) {
+                messageScope.launch {
                     signal.emit(event)
                 }
             }

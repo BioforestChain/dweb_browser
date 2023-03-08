@@ -97,10 +97,6 @@ export class JsProcessMicroModule implements $MicroModule {
           rote = IPC_ROLE.SERVER;
           return new PromiseOut<Ipc>();
         });
-        if (rote === IPC_ROLE.SERVER) {
-          self.postMessage(["ipc-connect-ready", mmid]);
-        }
-
         const ipc = new MessagePortIpc(
           port,
           {
@@ -114,6 +110,7 @@ export class JsProcessMicroModule implements $MicroModule {
           rote
         );
         port_po.resolve(ipc);
+        self.postMessage(["ipc-connect-ready", mmid]);
 
         /// 不论是连接方，还是被连接方，都需要触发事件
         this.beConnect(ipc);

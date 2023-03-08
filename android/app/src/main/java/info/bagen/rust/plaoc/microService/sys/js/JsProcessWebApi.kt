@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.sys.js
 
 import android.net.Uri
 import android.webkit.WebMessage
+import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
@@ -22,7 +23,8 @@ class JsProcessWebApi(val dWebView: DWebView) {
         env_script_url: String,
         metadata_json: String,
         env_json: String,
-        remoteModule: Ipc.MicroModuleInfo
+        remoteModule: Ipc.MicroModuleInfo,
+        host: String
     ) = withContext(Dispatchers.Main) {
         val channel = dWebView.createWebMessageChannel()
         val port1 = channel[0]
@@ -36,7 +38,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
                     if (event.data === "js-process/create-process") {
                         const fetch_port = event.ports[0];
                         try{
-                            resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port))
+                            resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`))
                         }catch(err){
                             reject(err)
                         }
@@ -63,7 +65,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
         """.trimIndent()
         ).let {}
 
-    suspend fun createIpc(process_id: Int, cid: String) = withContext(Dispatchers.Main) {
+    suspend fun createIpc(process_id: Int, mmid: Mmid) = withContext(Dispatchers.Main) {
         val channel = dWebView.createWebMessageChannel()
         val port1 = channel[0]
         val port2 = channel[1]
@@ -73,7 +75,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
                 if (event.data === "js-process/create-ipc") {
                     const ipc_port = event.ports[0];
                     try{
-                        resolve(await createIpc($process_id, ${gson.toJson(cid)}, ipc_port))
+                        resolve(await createIpc($process_id, `$mmid`, ipc_port))
                     }catch(err){
                         reject(err)
                     }

@@ -4003,9 +4003,6 @@ var JsProcessMicroModule = class {
           rote = "server" /* SERVER */;
           return new PromiseOut();
         });
-        if (rote === "server" /* SERVER */) {
-          self.postMessage(["ipc-connect-ready", mmid]);
-        }
         const ipc = new MessagePortIpc(
           port,
           {
@@ -4019,6 +4016,7 @@ var JsProcessMicroModule = class {
           rote
         );
         port_po.resolve(ipc);
+        self.postMessage(["ipc-connect-ready", mmid]);
         this.beConnect(ipc);
       }
     };

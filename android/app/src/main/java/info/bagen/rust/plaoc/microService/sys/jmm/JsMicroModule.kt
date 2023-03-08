@@ -23,33 +23,6 @@ inline fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
     companion object {
-
-
-        suspend fun createConnectPortId(jsMM: JsMicroModule, role: IPC_ROLE): Int {
-            val processId = jsMM.processId
-                ?: throw Exception("$${jsMM.mmid} process_id no found, should bootstrap first")
-
-            val portId = jsMM.nativeFetch(
-                "file://js.sys.dweb/create-ipc?process_id=$processId&role=${role.role}"
-            ).int();
-            return portId
-        }
-
-        suspend fun createConnectIpc(
-            otherMM: Ipc.MicroModuleInfo, jsMM: JsMicroModule, role: IPC_ROLE
-        ): Ipc {
-            val portId = createConnectPortId(jsMM, role)
-            val otherIpc = Native2JsIpc(portId, jsMM);
-            return otherIpc
-        }
-
-        suspend fun createConnectIpc(
-            otherMM: Ipc.MicroModuleInfo, jsMM: JsMicroModule, portId: Int
-        ): Ipc {
-            val otherIpc = Native2JsIpc(portId, jsMM);
-            return otherIpc
-        }
-
         init {
             connectAdapterManager.append { fromMM, toMM, reason ->
                 if (toMM is JsMicroModule) {
@@ -174,13 +147,8 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
             null
         }
 
-
-
         debugJMM("running!!", mmid)
-
         _ipcSet.add(streamIpc);
-
-
     }
 
 
