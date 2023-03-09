@@ -25,7 +25,7 @@
 
   <card>
     <card-title>Status Bar</card-title>
-
+    <dweb-statusbar></dweb-statusbar>
     <fieldset>
       <legend>Status Bar Background Color</legend>
       <input type="color" id="statusbar-background-color" />
@@ -42,6 +42,16 @@
       </select>
       <button id="statusbar-setStyle">Set</button>
       <button id="statusbar-getStyle">Get</button>
+    </fieldset>
+    <fieldset>
+      <legend>Status Bar visible </legend>
+      <select name="statusbar-style" id="statusbar-animation">
+        <option value="NONE">NONE</option>
+        <option value="SLIDE">SLIDE</option>
+        <option value="FADE">FADE</option>
+      </select>
+      <button id="statusbar-show">show</button>
+      <button id="statusbar-hide">hide</button>
     </fieldset>
 
     <fieldset>

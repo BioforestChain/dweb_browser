@@ -4,14 +4,14 @@ export interface StyleOptions {
    *
    * @since 1.0.0
    */
-  style: Style;
+  style: StatusbarStyle;
 }
 /**
  * 状态栏的风格
  * Light 代表文字为黑色
  * Dark 代表文字为白色
  */
-export enum Style {
+export enum StatusbarStyle {
   /**
    * Light text for dark backgrounds.
    *
@@ -45,10 +45,10 @@ export interface AnimationOptions {
    *
    * @since 1.0.0
    */
-  animation: Animation;
+  animation: EStatusBarAnimation;
 }
 
-export enum Animation {
+export enum EStatusBarAnimation {
   /**
    * No animation during show/hide.
    *
@@ -96,7 +96,7 @@ export interface StatusBarInfo {
    *
    * @since 1.0.0
    */
-  style: Style;
+  style: StatusbarStyle;
 
   /**
    * The current status bar color.
@@ -126,7 +126,7 @@ export interface SetOverlaysWebViewOptions {
   overlay: boolean;
 }
 
-export interface StatusBarPlugin {
+export interface IStatusBarPlugin {
   /**
    * Set the current style of the status bar.
    *
@@ -141,7 +141,7 @@ export interface StatusBarPlugin {
    *
    * @since 1.0.0
    */
-  setBackgroundColor(options: BackgroundColorOptions): Promise<void>;
+  setBackgroundColor(options: BackgroundColorOptions): Promise<Response>;
 
   /**
    * Show the status bar.
@@ -213,11 +213,11 @@ export type StatusBarAnimationOptions = AnimationOptions;
  * @deprecated Use `Animation`.
  * @since 1.0.0
  */
-export const StatusBarAnimation = Animation;
+export const StatusBarAnimation = EStatusBarAnimation;
 
 /**
  * @deprecated Use `Style`.
  * @since 1.0.0
  */
-export const StatusBarStyle = Style;
+export const StatusBarStyle = StatusbarStyle;
 

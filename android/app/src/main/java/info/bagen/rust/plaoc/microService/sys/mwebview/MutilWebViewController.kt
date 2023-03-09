@@ -75,6 +75,10 @@ class MutilWebViewController(val mmid: Mmid) {
         }
     }
 
+    fun getCurrentWebView(): ViewItem {
+        return webViewList.last()
+    }
+
     /**
      * 关闭WebView
      */

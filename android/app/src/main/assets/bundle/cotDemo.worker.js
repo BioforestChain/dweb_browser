@@ -300,6 +300,23 @@ var require_once = __commonJS({
   }
 });
 
+// src/core/ipc/IpcHeaders.cts
+var IpcHeaders = class extends Headers {
+  init(key, value) {
+    if (this.has(key)) {
+      return;
+    }
+    this.set(key, value);
+  }
+  toJSON() {
+    const record = {};
+    this.forEach((value, key) => {
+      record[key] = value;
+    });
+    return record;
+  }
+};
+
 // src/core/ipc/IpcResponse.cts
 var import_once = __toESM(require_once());
 
@@ -1030,23 +1047,6 @@ var UsableIpcBodyMapper = class {
 };
 var IpcUsableIpcBodyMap = /* @__PURE__ */ new WeakMap();
 
-// src/core/ipc/IpcHeaders.cts
-var IpcHeaders = class extends Headers {
-  init(key, value) {
-    if (this.has(key)) {
-      return;
-    }
-    this.set(key, value);
-  }
-  toJSON() {
-    const record = {};
-    this.forEach((value, key) => {
-      record[key] = value;
-    });
-    return record;
-  }
-};
-
 // src/core/ipc/IpcResponse.cts
 var _ipcHeaders;
 var _IpcResponse = class extends IpcMessage {
@@ -1170,20 +1170,31 @@ var IpcResMessage = class extends IpcMessage {
 };
 
 // src/user/cot-demo/cotDemo.request.mts
-async function onRequestToastShow(request, httpServerIpc) {
-  const url = `file://toast.sys.dweb${request.url}`;
+async function onApiRequest(request, httpServerIpc) {
+  const url = `file:/${request.url}`;
   console.log("onRequestToastShow: ", url);
-  const result = await jsProcess.nativeFetch(url).then(async (res) => res).catch((err) => {
-    console.log("\u8BF7\u6C42\u5931\u8D25\uFF1A ", err);
-    return err;
-  });
-  return result;
+  let res = await jsProcess.nativeFetch(url);
+  httpServerIpc.postMessage(
+    await IpcResponse.fromText(
+      request.req_id,
+      200,
+      new IpcHeaders({
+        "content-type": "text/html",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        // 要支持 X-Dweb-Host
+        "Access-Control-Allow-Methods": "*"
+      }),
+      await res.text(),
+      httpServerIpc
+    )
+  );
 }
 
 // src/user/cot-demo/cotDemo.worker.mts
 var main = async () => {
   console.log("start cot-demo");
-  const { IpcResponse: IpcResponse3, IpcHeaders: IpcHeaders2 } = ipc;
+  const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443
@@ -1194,37 +1205,10 @@ var main = async () => {
   });
   console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
   (await apiServer.listen()).onRequest(async (request, ipc2) => {
-    console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 apiServer\uFF1A request.parsed_url.pathname\uFF1A ", request.parsed_url.pathname);
-    onRequest(request, ipc2);
+    console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 apiServer\uFF1A request.parsed_url.pathname\uFF1A ", JSON.stringify(request.parsed_url));
+    onApiRequest(request, ipc2);
   });
-  async function onRequest(request, httpServerIpc) {
-    let res = new Response();
-    switch (request.parsed_url.pathname) {
-      case "/":
-      case "/show":
-        res = await onRequestToastShow(request, httpServerIpc);
-        break;
-      default:
-        break;
-    }
-    httpServerIpc.postMessage(
-      await IpcResponse3.fromJson(
-        request.req_id,
-        200,
-        new IpcHeaders2({
-          "content-type": "text/html",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "*",
-          // 要支持 X-Dweb-Host
-          "Access-Control-Allow-Methods": "*"
-        }),
-        await res.text(),
-        httpServerIpc
-      )
-    );
-  }
   (await wwwServer.listen()).onRequest(async (request, ipc2) => {
-    console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 wwwServer request.parsed_url.pathname\uFF1A ", request.parsed_url.pathname);
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -1235,7 +1219,7 @@ var main = async () => {
     );
     console.timeEnd(`open file ${pathname}`);
     ipc2.postMessage(
-      new IpcResponse3(
+      new IpcResponse2(
         request.req_id,
         remoteIpcResponse.statusCode,
         remoteIpcResponse.headers,

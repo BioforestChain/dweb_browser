@@ -1,6 +1,5 @@
-import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
-import type { Ipc } from "../../core/ipc/ipc.cjs";
-import { onRequestToastShow } from "./cotDemo.request.mjs";
+
+import { onApiRequest } from "./cotDemo.request.mjs";
 
 const main = async () => {
   console.log("start cot-demo");
@@ -15,42 +14,13 @@ const main = async () => {
   });
   console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
   (await apiServer.listen()).onRequest(async (request, ipc) => {
-    console.log("接受到了请求 apiServer： request.parsed_url.pathname： ", request.parsed_url.pathname);
-    onRequest(request, ipc)
+    console.log("接受到了请求 apiServer： request.parsed_url.pathname： ", JSON.stringify(request.parsed_url));
+    onApiRequest(request, ipc)
   });
 
-  /**
- * request 事件处理器
- */
-  async function onRequest(request: IpcRequest, httpServerIpc: Ipc) {
-    let res = new Response();
-    switch (request.parsed_url.pathname) {
-      case "/":
-      case "/show":
-        res = await onRequestToastShow(request, httpServerIpc);
-        break;
-      default:
-        break;
-    }
-    // 返回数据到前端
-    httpServerIpc.postMessage(
-      await IpcResponse.fromJson(
-        request.req_id,
-        200,
-        new IpcHeaders({
-          "content-type": "text/html",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "*", // 要支持 X-Dweb-Host
-          "Access-Control-Allow-Methods": "*",
-        }),
-        await res.text(),
-        httpServerIpc
-      )
-    );
-  }
+
 
   (await wwwServer.listen()).onRequest(async (request, ipc) => {
-    console.log("接受到了请求 wwwServer request.parsed_url.pathname： ", request.parsed_url.pathname);
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";

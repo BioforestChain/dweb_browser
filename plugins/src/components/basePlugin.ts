@@ -1,4 +1,5 @@
 /// <reference lib="dom" />
+import { encodeUri } from "../helper/binary.ts";
 import { createSignal } from '../helper/createSignal.ts';
 
 
@@ -13,8 +14,10 @@ export class BasePlugin extends HTMLElement {
     if (url instanceof Request) {
       return fetch(url, init)
     }
-    const api = window.location.host.replace("www", "api")
-    return fetch(`https://${api}${url}`, init)
+    const host = window.location.host.replace("www", "api")
+    const api = `https://${host}/${this.mmid}${encodeUri(url)}`
+    console.log("nativeFetch=>", api)
+    return fetch(api, init)
   }
 
   protected createSignal = createSignal

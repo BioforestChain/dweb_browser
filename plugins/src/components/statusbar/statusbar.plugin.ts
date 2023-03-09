@@ -1,5 +1,6 @@
+import { convertToRGBAHex } from "../../helper/color.ts";
 import { BasePlugin } from "../basePlugin.ts";
-import { AnimationOptions, BackgroundColorOptions, SetOverlaysWebViewOptions, StatusBarInfo, StyleOptions, Style } from "./statusbar.type.ts";
+import { AnimationOptions, BackgroundColorOptions, IStatusBarPlugin, SetOverlaysWebViewOptions, EStatusBarAnimation, StatusBarInfo, StyleOptions } from "./statusbar.type.ts";
 /**
  * 访问 statusbar 能力的插件
  * 
@@ -10,10 +11,10 @@ import { AnimationOptions, BackgroundColorOptions, SetOverlaysWebViewOptions, St
  * @property getHeight(): number
  * @property getOverlaysWebview(): "0" | "1"
  */
-export class StatusbarPlugin extends BasePlugin {
+export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
 
     private _visible: boolean = true;
-    private _style: Style = Style.Default ;
+    private _style: Style = Style.Default;
     private _color: string = "";
     private _overlays: boolean = false;
 
@@ -29,29 +30,39 @@ export class StatusbarPlugin extends BasePlugin {
      * @param b 0~255
      * @param a 0~1
      */
-    async setBackgroundColor(options: BackgroundColorOptions): Promise<void> {
-        
+    async setBackgroundColor(options: BackgroundColorOptions): Promise<Response> {
+        const colorHex = convertToRGBAHex(options.color ?? "");
+        return await this.nativeFetch(`/setBackgroundColor?color=${colorHex}`)
     }
-    // 支持 LIGHT | DARK | DEFAULT
-    async setStyle(styleOptions: StyleOptions) {
-        const request = new Request(
-            `/api?app_id=${this.mmid}&action=set_style&value=${styleOptions.style}`, 
-            { 
-                method: "PUT",
-                headers: {
-                    "Content-type": "application/json"
-                }
-            }
-        )
+    /**
+     *  获取背景颜色
+     */
+    async getBackgroundColor() {
+        return await this.nativeFetch(`/getBackgroundColor`)
+    }
 
-        return this.nativeFetch(request)
-                .then(res => {
-                    if(res.status === 200){ /** 如果成功 保存状态 */
-                        this._style = styleOptions.style;
-                    }
-                    return res;
-                })
+
+    /**
+     * 设置状态栏风格
+     * // 支持 light | dark | defalt
+     * 据观测
+     * 在系统主题为 Light 的时候, Default 意味着 白色字体
+     * 在系统主题为 Dark 的手, Default 因为这 黑色字体
+     * 这兴许与设置有关系, 无论如何, 尽可能避免使用 Default 带来的不确定性
+     *
+     * @param style
+     */
+    async setStyle(styleOptions: StyleOptions) {
+        await this.nativeFetch(`/setStyle?style=${styleOptions.style}`)
     }
+    /**
+     * 获取当前style
+     * @returns 
+     */
+    async getStyle() {
+        return (await this.getInfo()).style
+    }
+
     /**
     * 显示状态栏。
     * 在 iOS 上，如果状态栏最初是隐藏的，并且初始样式设置为
@@ -62,7 +73,8 @@ export class StatusbarPlugin extends BasePlugin {
     * @since 1.0.0
     */
     async show(options?: AnimationOptions): Promise<void> {
-
+        const animation = options?.animation ?? EStatusBarAnimation.None
+        await this.nativeFetch(`/setVisible?visible=true&animation=${animation}`)
     }
 
     /**
@@ -71,7 +83,8 @@ export class StatusbarPlugin extends BasePlugin {
      * @since 1.0.0
      */
     async hide(options?: AnimationOptions): Promise<void> {
-
+        const animation = options?.animation ?? EStatusBarAnimation.None
+        await this.nativeFetch(`/setVisible?visible=false&animation=${animation}`)
     }
 
     /**
@@ -79,9 +92,10 @@ export class StatusbarPlugin extends BasePlugin {
     *
     * @since 1.0.0
     */
-    // async getInfo(): Promise<StatusBarInfo> {
-    //     return { visible :}
-    // }
+    async getInfo(): Promise<StatusBarInfo> {
+        const result: StatusBarInfo = await this.nativeFetch(`/getInfo`).then(res => res.json()).catch(err => err)
+        return result
+    }
 
     /**
     * 设置状态栏是否应该覆盖 webview 以允许使用
@@ -92,7 +106,7 @@ export class StatusbarPlugin extends BasePlugin {
     * @since 1.0.0
     */
     async setOverlaysWebView(options: SetOverlaysWebViewOptions): Promise<void> {
-
+        await this.nativeFetch(`/setOverlays?overlay=${options.overlay}`)
     }
 
 }

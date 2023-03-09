@@ -4,17 +4,27 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUIState
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import kotlin.math.min
 
 
 open class PermissionActivity : AppCompatActivity() {
@@ -90,6 +100,8 @@ open class MutilWebViewActivity : PermissionActivity() {
 
     private var remoteMmid by mutableStateOf("")
     private var controller: MutilWebViewController? = null
+
+    var systemUiPlugin: SystemUiPlugin? = null
     private fun upsetRemoteMmid() {
         remoteMmid = intent.getStringExtra("mmid")
             ?: return finish()
@@ -111,6 +123,7 @@ open class MutilWebViewActivity : PermissionActivity() {
     }
 
 
+    @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         upsetRemoteMmid()
@@ -128,13 +141,46 @@ open class MutilWebViewActivity : PermissionActivity() {
                 val wc by remember(remoteMmid) { mutableStateOf(controller) }
 
                 val viewItem = wc?.webViewList?.lastOrNull()
+
+                // if (controller == null) return@RustApplicationTheme
+                // TODO !!
+                val systemUIState = SystemUIState.Default(activity = controller?.activity!!)
+
+                var overlayOffset = IntOffset(0, 0)
+                val overlayPadding = WindowInsets(0).let {
+                    var res = it
+                    if (!systemUIState.statusBar.overlay.value) {
+                        res = res.add(WindowInsets.statusBars)
+                    }
+                    if (!systemUIState.virtualKeyboard.overlay.value && WindowInsets.isImeVisible) {
+                        // it.add(WindowInsets.ime) // ime本身就包含了navigationBars的高度
+                        overlayOffset =
+                            IntOffset(
+                                0, min(
+                                    0, -WindowInsets.ime.getBottom(LocalDensity.current)
+                                            + WindowInsets.navigationBars.getBottom(LocalDensity.current)
+                                )
+                            )
+                    } else if (!systemUIState.navigationBar.overlay.value) {
+                        res = res.add(WindowInsets.navigationBars)
+                    }
+                    res
+                }.asPaddingValues()
+
                 if (viewItem != null) key(viewItem.webviewId) {
                     Box(
                         modifier = Modifier
+                            .padding(overlayPadding)
+                            .offset { overlayOffset }
                             .fillMaxSize()
                     ) {
                         AndroidView(
                             factory = { ctx ->
+                                if (controller != null) {
+                                    val currentView =
+                                        controller!!.getCurrentWebView().dWebView.rootView
+                                    systemUiPlugin = SystemUiPlugin(currentView, systemUIState)
+                                }
                                 viewItem.dWebView
                             },
                             modifier = Modifier
@@ -142,13 +188,11 @@ open class MutilWebViewActivity : PermissionActivity() {
                         )
                     }
                 }
-
             }
-
         }
     }
-
 }
+
 
 class MutilWebViewPlaceholder1Activity : MutilWebViewActivity()
 class MutilWebViewPlaceholder2Activity : MutilWebViewActivity()

@@ -11,6 +11,7 @@ import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
+import info.bagen.rust.plaoc.microService.webview.DWebView
 import io.ktor.util.collections.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -39,6 +40,10 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             ActivityClass("", MutilWebViewPlaceholder5Activity::class.java),
         )
         val controllerMap = mutableMapOf<Mmid, MutilWebViewController>()
+        var currentMmid = ""
+        fun getCurrentWebViewController(): MutilWebViewController? {
+           return controllerMap[currentMmid]
+        }
     }
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
@@ -114,6 +119,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val remoteMmid = remoteMm.mmid
         debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")
         val controller = controllerMap.getOrPut(remoteMmid) { MutilWebViewController(remoteMmid) }
+        currentMmid = remoteMmid
         openMutilWebViewActivity(remoteMmid)
         controller.waitActivityCreated()
         return controller.openWebView(this, remoteMm, url).webviewId

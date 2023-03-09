@@ -100,9 +100,9 @@ suspend fun startDwebBrowser() {
 //            browserNMM.mmid,
 //            desktopJMM.mmid,
 //            cotJMM.mmid,
-//            cotDemoJMM.mmid
-            cotJMM.mmid,
-            toyJMM.mmid,
+            cotDemoJMM.mmid
+//            cotJMM.mmid,
+//            toyJMM.mmid,
         )
     ).also { dnsNMM.install(it) }
 

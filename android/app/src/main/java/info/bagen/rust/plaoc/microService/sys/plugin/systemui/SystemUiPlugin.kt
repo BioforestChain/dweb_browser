@@ -2,19 +2,15 @@ package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 
 
 import android.view.View
-import android.webkit.JavascriptInterface
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.core.graphics.Insets
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.keyboard.VirtualKeyboard
-import info.bagen.rust.plaoc.webView.jsutil.DataString_From
 import info.bagen.rust.plaoc.webView.network.getColorHex
 import info.bagen.rust.plaoc.webView.network.hexToIntColor
-import info.bagen.rust.plaoc.webkit.AdWebViewHook
 
 class SystemUiPlugin(
     webView: View,
-    private val hook: AdWebViewHook,
     private val systemUIState: SystemUIState,
 ) {
 
@@ -23,10 +19,10 @@ class SystemUiPlugin(
     /**
      * @TODO 在未来，这里的disable与否，通过更加完善的声明来实现，比如可以声明多个rect
      */
-    @JavascriptInterface
-    fun disableTouchEvent() {
-        hook.onTouchEvent = { false }
-    }
+//    @JavascriptInterface
+//    fun disableTouchEvent() {
+//        hook.onTouchEvent = { false }
+//    }
 
     /**第一个参数是颜色HEX。第二个是图标是否更期望于使用深色*/
     fun setStatusBarBackgroundColor(colorHex: String): Boolean {
@@ -36,24 +32,42 @@ class SystemUiPlugin(
         return true
     }
 
-    fun setStatusBarStyle(darkIcons: Boolean): Boolean {
+    fun setStatusBarStyle(style: String): String {
+       val darkIcons = when (style) {
+           StatusBarStyle.Dark.type -> true
+           StatusBarStyle.Light.type -> false
+           else -> true
+        }
         systemUIState.statusBar.apply {
             isDarkIcons.value = darkIcons
         }
-        return true
+        return style
     }
 
     /** 获取状态栏背景颜色*/
     fun getStatusBarBackgroundColor(): String {
         val color = systemUIState.statusBar.color.value
         val colorInt = android.graphics.Color.argb(color.alpha, color.red, color.green, color.blue)
+        println("getStatusBarBackgroundColor=> ${color} $colorInt")
         return getColorHex(colorInt)
     }
 
-    /** 获取状态栏是否更期望使用深色*/
-    fun getStatusBarIsDark(): Boolean {
-        return systemUIState.statusBar.isDarkIcons.value
+    /**
+     * 获取状态栏风格
+     * 获取状态栏是否更期望使用深色
+     * */
+    fun getStatusBarIsDark(): String {
+        val isDark = systemUIState.statusBar.isDarkIcons.value
             ?: (systemUIState.statusBar.color.value.luminance() > 0.5F)
+        if (isDark){
+            return  StatusBarStyle.Dark.type
+        }
+        return StatusBarStyle.Light.type
+    }
+    fun getStatusBarColor(): String {
+        val color = systemUIState.statusBar.color.value
+        val colorInt = android.graphics.Color.argb(color.alpha, color.red, color.green, color.blue)
+        return getColorHex(colorInt)
     }
 
     /** 查看状态栏是否可见*/
@@ -75,7 +89,6 @@ class SystemUiPlugin(
     /**设置状态栏是否透明*/
     fun setStatusBarOverlay(isOverlay: Boolean): Boolean {
         systemUIState.statusBar.overlay.value = isOverlay
-//        Log.i(TAG, "isOverlayStatusBar.value:${systemUIState.statusBar.overlay.value}")
         return true
     }
 
@@ -136,9 +149,30 @@ class SystemUiPlugin(
         return """{"top":${top},"left":${left},"bottom":${bottom},"right":${right}}"""
     }
 
-    @JavascriptInterface
-    fun getInsetsTypeEnum(): String {
-        return DataString_From(InsetsType())
+    enum class StatusBarStyle(val type:String) {
+        /**
+         * Light text for dark backgrounds.
+         *
+         * @since 1.0.0
+         */
+        Dark("Dark"),
+
+        /**
+         * Dark text for light backgrounds.
+         *
+         * @since 1.0.0
+         */
+        Light("Light"),
+
+        /**
+         * The style is based on the device appearance.
+         * If the device is using Dark mode, the statusbar text will be light.
+         * If the device is using Light mode, the statusbar text will be dark.
+         * On Android the default will be the one the app was launched with.
+         *
+         * @since 1.0.0
+         */
+        Default("Default"),
     }
 
     class InsetsType {

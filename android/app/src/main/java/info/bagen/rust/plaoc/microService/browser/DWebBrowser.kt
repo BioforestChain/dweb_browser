@@ -73,7 +73,7 @@ fun DWebBrowserView(dWebBrowserModel: DWebBrowserModel, item: DWebBrowserItem) {
             AndroidView(factory = {
                 item.dWebBrowser.adWebViewHook = hook
                 if (systemUIState != null) {
-                    item.systemUi = SystemUiPlugin(item.dWebBrowser.mWebView, hook, systemUIState)
+                    item.systemUi = SystemUiPlugin(item.dWebBrowser.mWebView, systemUIState)
                 }
                 item.dWebBrowser
             })

@@ -1,4 +1,14 @@
-// ../build/plugin/esm/_dnt.shims.js
+// build/plugin/esm/_dnt.polyfills.js
+if (!String.prototype.replaceAll) {
+  String.prototype.replaceAll = function (str, newStr) {
+    if (Object.prototype.toString.call(str).toLowerCase() === "[object regexp]") {
+      return this.replace(str, newStr);
+    }
+    return this.replace(new RegExp(str, "g"), newStr);
+  };
+}
+
+// build/plugin/esm/_dnt.shims.js
 var dntGlobals = {};
 var dntGlobalThis = createMergeProxy(globalThis, dntGlobals);
 function createMergeProxy(baseObj, extObj) {
@@ -398,7 +408,12 @@ var PromiseOut = class {
   }
 };
 
-// ../build/plugin/esm/src/helper/createSignal.js
+// build/plugin/esm/src/helper/binary.js
+var encodeUri = (url) => {
+  return url.replaceAll("#", "%23");
+};
+
+// build/plugin/esm/src/helper/createSignal.js
 var createSignal = () => {
   return new Signal();
 };
@@ -468,14 +483,16 @@ var BasePlugin = class extends HTMLElement {
     if (url instanceof Request) {
       return fetch(url, init);
     }
-    const api = globalThis.location.host.replace("www", "api");
-    return fetch(`https://${api}${url}`, init);
+    const host = globalThis.location.host.replace("www", "api");
+    const api = `https://${host}/${this.mmid}${encodeUri(url)}`;
+    console.log("nativeFetch=>", api);
+    return fetch(api, init);
   }
 };
 
 // ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
 var SupportedFormat;
-(function(SupportedFormat2) {
+(function (SupportedFormat2) {
   SupportedFormat2["UPC_A"] = "UPC_A";
   SupportedFormat2["UPC_E"] = "UPC_E";
   SupportedFormat2["UPC_EAN_EXTENSION"] = "UPC_EAN_EXTENSION";
@@ -497,7 +514,7 @@ var SupportedFormat;
   SupportedFormat2["RSS_EXPANDED"] = "RSS_EXPANDED";
 })(SupportedFormat || (SupportedFormat = {}));
 var CameraDirection;
-(function(CameraDirection2) {
+(function (CameraDirection2) {
   CameraDirection2["FRONT"] = "user";
   CameraDirection2["BACK"] = "environment";
 })(CameraDirection || (CameraDirection = {}));
@@ -781,7 +798,7 @@ function documentOnDOMContentLoaded() {
 
 // ../build/plugin/esm/src/components/navigator-bar/navigator.events.js
 var NavigationBarPluginEvents;
-(function(NavigationBarPluginEvents2) {
+(function (NavigationBarPluginEvents2) {
   NavigationBarPluginEvents2["SHOW"] = "onShow";
   NavigationBarPluginEvents2["HIDE"] = "onHide";
   NavigationBarPluginEvents2["COLOR_CHANGE"] = "onColorChange";
@@ -868,7 +885,7 @@ var Navigatorbar = class extends BasePlugin {
 
 // ../build/plugin/esm/src/components/navigator-bar/navigator.type.js
 var NAVIGATION_BAR_COLOR;
-(function(NAVIGATION_BAR_COLOR2) {
+(function (NAVIGATION_BAR_COLOR2) {
   NAVIGATION_BAR_COLOR2["TRANSPARENT"] = "#00000000";
   NAVIGATION_BAR_COLOR2["WHITE"] = "#ffffff";
   NAVIGATION_BAR_COLOR2["BLACK"] = "#000000";
@@ -883,21 +900,51 @@ function documentOnDOMContentLoaded2() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
 }
 
-// ../build/plugin/esm/src/components/statusbar/statusbar.type.js
-var Style;
-(function(Style2) {
-  Style2["Dark"] = "DARK";
-  Style2["Light"] = "LIGHT";
-  Style2["Default"] = "DEFAULT";
-})(Style || (Style = {}));
-var Animation;
-(function(Animation2) {
-  Animation2["None"] = "NONE";
-  Animation2["Slide"] = "SLIDE";
-  Animation2["Fade"] = "FADE";
-})(Animation || (Animation = {}));
+// build/plugin/esm/src/helper/color.js
+function convertToRGBAHex(color) {
+  let colorHex = "#";
+  if (color.startsWith("rgba(")) {
+    const colorArr = color.replace("rgba(", "").replace(")", "").split(",");
+    for (let [index, item] of colorArr.entries()) {
+      if (index === 3) {
+        item = `${parseFloat(item) * 255}`;
+      }
+      let itemHex = Math.round(parseFloat(item)).toString(16);
+      if (itemHex.length === 1) {
+        itemHex = "0" + itemHex;
+      }
+      colorHex += itemHex;
+    }
+  }
+  if (color.startsWith("#")) {
+    if (color.length === 9) {
+      colorHex = color;
+    } else {
+      color = color.substring(1);
+      if (color.length === 4 || color.length === 3) {
+        color = color.replace(/(.)/g, "$1$1");
+      }
+      colorHex += color.padEnd(8, "F");
+    }
+  }
+  return colorHex;
+}
 
-// ../build/plugin/esm/src/components/statusbar/statusbar.plugin.js
+// build/plugin/esm/src/components/statusbar/statusbar.type.js
+var StatusbarStyle;
+(function (StatusbarStyle2) {
+  StatusbarStyle2["Dark"] = "DARK";
+  StatusbarStyle2["Light"] = "LIGHT";
+  StatusbarStyle2["Default"] = "DEFAULT";
+})(StatusbarStyle || (StatusbarStyle = {}));
+var EStatusBarAnimation;
+(function (EStatusBarAnimation2) {
+  EStatusBarAnimation2["None"] = "NONE";
+  EStatusBarAnimation2["Slide"] = "SLIDE";
+  EStatusBarAnimation2["Fade"] = "FADE";
+})(EStatusBarAnimation || (EStatusBarAnimation = {}));
+
+// build/plugin/esm/src/components/statusbar/statusbar.plugin.js
 var StatusbarPlugin = class extends BasePlugin {
   // mmid 最好全部采用小写，防止出现不可预期的意外
   constructor(mmid = "statusbar.sys.dweb") {
@@ -941,21 +988,34 @@ var StatusbarPlugin = class extends BasePlugin {
    * @param a 0~1
    */
   async setBackgroundColor(options) {
+    const colorHex = convertToRGBAHex(options.color ?? "");
+    return await this.nativeFetch(`/setBackgroundColor?color=${colorHex}`);
   }
-  // 支持 LIGHT | DARK | DEFAULT
+  /**
+   *  获取背景颜色
+   */
+  async getBackgroundColor() {
+    return await this.nativeFetch(`/getBackgroundColor`);
+  }
+  /**
+   * 设置状态栏风格
+   * // 支持 light | dark | defalt
+   * 据观测
+   * 在系统主题为 Light 的时候, Default 意味着 白色字体
+   * 在系统主题为 Dark 的手, Default 因为这 黑色字体
+   * 这兴许与设置有关系, 无论如何, 尽可能避免使用 Default 带来的不确定性
+   *
+   * @param style
+   */
   async setStyle(styleOptions) {
-    const request = new Request(`/api?app_id=${this.mmid}&action=set_style&value=${styleOptions.style}`, {
-      method: "PUT",
-      headers: {
-        "Content-type": "application/json"
-      }
-    });
-    return this.nativeFetch(request).then((res) => {
-      if (res.status === 200) {
-        this._style = styleOptions.style;
-      }
-      return res;
-    });
+    await this.nativeFetch(`/setStyle?style=${styleOptions.style}`);
+  }
+  /**
+   * 获取当前style
+   * @returns
+   */
+  async getStyle() {
+    return (await this.getInfo()).style;
   }
   /**
   * 显示状态栏。
@@ -967,6 +1027,8 @@ var StatusbarPlugin = class extends BasePlugin {
   * @since 1.0.0
   */
   async show(options) {
+    const animation = options?.animation ?? EStatusBarAnimation.None;
+    await this.nativeFetch(`/setVisible?visible=true&animation=${animation}`);
   }
   /**
    * Hide the status bar.
@@ -974,15 +1036,18 @@ var StatusbarPlugin = class extends BasePlugin {
    * @since 1.0.0
    */
   async hide(options) {
+    const animation = options?.animation ?? EStatusBarAnimation.None;
+    await this.nativeFetch(`/setVisible?visible=false&animation=${animation}`);
   }
   /**
   * 获取有关状态栏当前状态的信息。
   *
   * @since 1.0.0
   */
-  // async getInfo(): Promise<StatusBarInfo> {
-  //     return { visible :}
-  // }
+  async getInfo() {
+    const result = await this.nativeFetch(`/getInfo`).then((res) => res.json()).catch((err) => err);
+    return result;
+  }
   /**
   * 设置状态栏是否应该覆盖 webview 以允许使用
   * 它下面的空间。
@@ -992,6 +1057,7 @@ var StatusbarPlugin = class extends BasePlugin {
   * @since 1.0.0
   */
   async setOverlaysWebView(options) {
+    await this.nativeFetch(`/setOverlays?overlay=${options.overlay}`);
   }
 };
 
@@ -1139,17 +1205,67 @@ registerWebPlugin(new BarcodeScanner());
 registerWebPlugin(new StatusbarPlugin());
 registerWebPlugin(new ToastPlugin());
 registerWebPlugin(new TorchPlugin());
-export {
-  BarcodeScanner,
-  CameraDirection,
-  NAVIGATION_BAR_COLOR,
-  NavigationBarPluginEvents,
-  Navigatorbar,
-  StatusbarPlugin,
-  SupportedFormat,
-  ToastPlugin,
-  TorchPlugin
-};
+
+// demo/src/index.ts
+function $(params) {
+  return document.getElementById(params);
+}
+document.addEventListener("DOMContentLoaded", () => {
+  $("toast-show").addEventListener("click", async () => {
+    const toast = document.querySelector("dweb-toast");
+    console.log("click toast-show");
+    const duration = $("toast-duration").value ?? "long";
+    const text = $("toast-message").value ?? "\u6211\u662Ftoast\u{1F353}";
+    if (toast) {
+      const result = await toast.show({ text, duration }).then((res) => res.text());
+      $("statusbar-observer-log").innerHTML = result;
+    }
+  });
+  const statusBar = document.querySelector("dweb-statusbar");
+  $("statusbar-setBackgroundColor").addEventListener("click", async () => {
+    const color = $("statusbar-background-color").value;
+    console.log("statusbar=>", color);
+    const result = await statusBar.setBackgroundColor({ color }).then((res) => res.text());
+    console.log("statusbar-setBackgroundColor=>", result);
+    $("statusbar-observer-log").innerHTML = result;
+  });
+  $("statusbar-getBackgroundColor").addEventListener("click", async () => {
+    const result = await statusBar.getBackgroundColor().then((res) => res.text());
+    console.log("statusbar-getBackgroundColor=>", result);
+    $("statusbar-observer-log").innerHTML = result;
+  });
+  $("statusbar-setStyle").addEventListener("click", async () => {
+    const styleOptions = $("statusbar-style").value;
+    await statusBar.setStyle({ style: styleOptions });
+  });
+  $("statusbar-getStyle").addEventListener("click", async () => {
+    const result = await statusBar.getStyle();
+    console.log("statusbar-getBackgroundColor=>", result);
+    $("statusbar-observer-log").innerHTML = result;
+  });
+  $("statusbar-show").addEventListener("click", async () => {
+    const animation = $("statusbar-animation").value;
+    await statusBar.show({ animation });
+  });
+  $("statusbar-hide").addEventListener("click", async () => {
+    const animation = $("statusbar-animation").value;
+    await statusBar.hide({ animation });
+  });
+  $("statusbar-setOverlaysWebView").addEventListener("click", async () => {
+    const overlay = $("statusbar-overlay").checked;
+    await statusBar.setOverlaysWebView({ overlay });
+  });
+  $("statusbar-getOverlaysWebView").addEventListener("click", async () => {
+    const result = await statusBar.getInfo();
+    $("statusbar-observer-log").innerHTML = JSON.stringify(result);
+  });
+});
+/**
+ * String.prototype.replaceAll() polyfill
+ * https://gomakethings.com/how-to-replace-a-section-of-a-string-with-another-one-with-vanilla-js/
+ * @author Chris Ferdinandi
+ * @license MIT
+ */
 /*! Bundled license information:
 
 image-capture/src/imagecapture.js:

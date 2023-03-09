@@ -11,6 +11,8 @@ function documentOnDOMContentLoaded() {
   document.removeEventListener('DOMContentLoaded', documentOnDOMContentLoaded);
 }
 
+export * from "./statusbar.type.ts"
+
 
 export {
   StatusbarPlugin
