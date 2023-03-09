@@ -1,4 +1,4 @@
-// build/plugin/esm/_dnt.shims.js
+// ../build/plugin/esm/_dnt.shims.js
 var dntGlobals = {};
 var dntGlobalThis = createMergeProxy(globalThis, dntGlobals);
 function createMergeProxy(baseObj, extObj) {
@@ -55,6 +55,7 @@ function createMergeProxy(baseObj, extObj) {
   });
 }
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/registerPlugin.js
 var hiJackCapacitorPlugin = dntGlobalThis.Capacitor?.Plugins;
 var registerWebPlugin = (plugin) => {
@@ -64,12 +65,42 @@ var registerWebPlugin = (plugin) => {
         if (key === plugin.proxy) {
           return plugin;
         }
+=======
+// ../build/plugin/esm/src/components/registerPlugin.js
+var Plugins = class {
+  constructor() {
+    Object.defineProperty(this, "map", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: /* @__PURE__ */ new Map()
+    });
+    Object.defineProperty(this, "registerWebPlugin", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: (plugin) => {
+        this.map.set(plugin.proxy, plugin);
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
       }
     });
   }
 };
+<<<<<<< HEAD
 
 // build/plugin/node_modules/image-capture/src/imagecapture.js
+=======
+var plugins = new Plugins();
+dntGlobalThis.Capacitor ? "" : dntGlobalThis.Capacitor = { Plugins: {} };
+dntGlobalThis.Capacitor.Plugins = new Proxy({}, {
+  get(_target, proxy, receiver) {
+    return plugins.map.get(proxy);
+  }
+});
+var registerWebPlugin = plugins.registerWebPlugin;
+
+// ../build/plugin/node_modules/image-capture/src/imagecapture.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var ImageCapture = window.ImageCapture;
 if (typeof ImageCapture === "undefined") {
   ImageCapture = class {
@@ -197,12 +228,20 @@ if (typeof ImageCapture === "undefined") {
 }
 window.ImageCapture = ImageCapture;
 
+<<<<<<< HEAD
 // build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
+=======
+// ../build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var isPromiseLike = (value) => {
   return value instanceof Object && typeof value.then === "function";
 };
 
+<<<<<<< HEAD
 // build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
+=======
+// ../build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var PromiseOut = class {
   constructor() {
     Object.defineProperty(this, "promise", {
@@ -384,7 +423,11 @@ var PromiseOut = class {
   }
 };
 
+<<<<<<< HEAD
 // build/plugin/esm/src/helper/createSignal.js
+=======
+// ../build/plugin/esm/src/helper/createSignal.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var createSignal = () => {
   return new Signal();
 };
@@ -426,7 +469,11 @@ var Signal = class {
   }
 };
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/basePlugin.js
+=======
+// ../build/plugin/esm/src/components/basePlugin.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var BasePlugin = class extends HTMLElement {
   // mmid:为对应组件的名称，proxy:为劫持对象的属性
   constructor(mmid, proxy) {
@@ -454,12 +501,20 @@ var BasePlugin = class extends HTMLElement {
     if (url instanceof Request) {
       return fetch(url, init);
     }
+<<<<<<< HEAD
     const api = globalThis.location.host.replace("www", "api");
     return fetch(`https://${api}${url}`, init);
   }
 };
 
 // build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
+=======
+    return fetch(new URL(url, this.mmid), init);
+  }
+};
+
+// ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var SupportedFormat;
 (function(SupportedFormat2) {
   SupportedFormat2["UPC_A"] = "UPC_A";
@@ -488,7 +543,11 @@ var CameraDirection;
   CameraDirection2["BACK"] = "environment";
 })(CameraDirection || (CameraDirection = {}));
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
+=======
+// ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var BarcodeScanner = class extends BasePlugin {
   constructor(mmid = "scanning.sys.dweb") {
     super(mmid, "BarcodeScanner");
@@ -756,7 +815,11 @@ var BarcodeScanner = class extends BasePlugin {
   }
 };
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/barcode-scanner/index.js
+=======
+// ../build/plugin/esm/src/components/barcode-scanner/index.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 customElements.define("dweb-scanner", BarcodeScanner);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 function documentOnDOMContentLoaded() {
@@ -765,7 +828,11 @@ function documentOnDOMContentLoaded() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 }
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/navigator-bar/navigator.events.js
+=======
+// ../build/plugin/esm/src/components/navigator-bar/navigator.events.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var NavigationBarPluginEvents;
 (function(NavigationBarPluginEvents2) {
   NavigationBarPluginEvents2["SHOW"] = "onShow";
@@ -773,7 +840,11 @@ var NavigationBarPluginEvents;
   NavigationBarPluginEvents2["COLOR_CHANGE"] = "onColorChange";
 })(NavigationBarPluginEvents || (NavigationBarPluginEvents = {}));
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/navigator-bar/navigator-bar.js
+=======
+// ../build/plugin/esm/src/components/navigator-bar/navigator-bar.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var Navigatorbar = class extends BasePlugin {
   constructor(mmid = "navigationBar.sys.dweb") {
     super(mmid, "NavigationBar");
@@ -852,7 +923,11 @@ var Navigatorbar = class extends BasePlugin {
   }
 };
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/navigator-bar/navigator.type.js
+=======
+// ../build/plugin/esm/src/components/navigator-bar/navigator.type.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 var NAVIGATION_BAR_COLOR;
 (function(NAVIGATION_BAR_COLOR2) {
   NAVIGATION_BAR_COLOR2["TRANSPARENT"] = "#00000000";
@@ -860,7 +935,11 @@ var NAVIGATION_BAR_COLOR;
   NAVIGATION_BAR_COLOR2["BLACK"] = "#000000";
 })(NAVIGATION_BAR_COLOR || (NAVIGATION_BAR_COLOR = {}));
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/navigator-bar/index.js
+=======
+// ../build/plugin/esm/src/components/navigator-bar/index.js
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 customElements.define("dweb-navigator", Navigatorbar);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
 function documentOnDOMContentLoaded2() {
@@ -869,6 +948,7 @@ function documentOnDOMContentLoaded2() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
 }
 
+<<<<<<< HEAD
 // build/plugin/esm/src/components/statusbar/statusbar.plugin.js
 var StatusbarPlugin = class extends BasePlugin {
   constructor(mmid = "statusBar.sys.dweb") {
@@ -1089,6 +1169,15 @@ $("toast-show").addEventListener("click", async () => {
     console.log("show result=>", await result);
   }
 });
+=======
+// ../build/plugin/esm/src/components/index.js
+registerWebPlugin(new Navigatorbar());
+registerWebPlugin(new BarcodeScanner());
+export {
+  NavigationBarPluginEvents,
+  Navigatorbar
+};
+>>>>>>> 426cd67 (✅ 添加 demo 测试)
 /*! Bundled license information:
 
 image-capture/src/imagecapture.js:
