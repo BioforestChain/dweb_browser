@@ -7,7 +7,10 @@ include ':libAppMgr'
 
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+//    集成kotlin multiplatform mobile 需要切换存储库模式
+//    https://stackoverflow.com/questions/74299038/in-a-kotlin-multiplatform-mobile-gradle-build-what-is-an-ivy-repository-wher
+//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
         google()
         mavenCentral()
@@ -16,3 +19,4 @@ dependencyResolutionManagement {
     }
 }
 include ':benchmark'
+include ':kmmSharedModule'
