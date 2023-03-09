@@ -55,21 +55,35 @@ function createMergeProxy(baseObj, extObj) {
   });
 }
 
-// build/plugin/esm/src/components/registerPlugin.js
-var hiJackCapacitorPlugin = dntGlobalThis.Capacitor?.Plugins;
-var registerWebPlugin = (plugin) => {
-  if (hiJackCapacitorPlugin) {
-    new Proxy(hiJackCapacitorPlugin, {
-      get(_target, key) {
-        if (key === plugin.proxy) {
-          return plugin;
-        }
+// ../build/plugin/esm/src/components/registerPlugin.js
+var Plugins = class {
+  constructor() {
+    Object.defineProperty(this, "map", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: /* @__PURE__ */ new Map()
+    });
+    Object.defineProperty(this, "registerWebPlugin", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: (plugin) => {
+        this.map.set(plugin.proxy, plugin);
       }
     });
   }
 };
+var plugins = new Plugins();
+dntGlobalThis.Capacitor ? "" : dntGlobalThis.Capacitor = { Plugins: {} };
+dntGlobalThis.Capacitor.Plugins = new Proxy({}, {
+  get(_target, proxy, receiver) {
+    return plugins.map.get(proxy);
+  }
+});
+var registerWebPlugin = plugins.registerWebPlugin;
 
-// build/plugin/node_modules/image-capture/src/imagecapture.js
+// ../build/plugin/node_modules/image-capture/src/imagecapture.js
 var ImageCapture = window.ImageCapture;
 if (typeof ImageCapture === "undefined") {
   ImageCapture = class {
@@ -197,12 +211,12 @@ if (typeof ImageCapture === "undefined") {
 }
 window.ImageCapture = ImageCapture;
 
-// build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
+// ../build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
 var isPromiseLike = (value) => {
   return value instanceof Object && typeof value.then === "function";
 };
 
-// build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
+// ../build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
 var PromiseOut = class {
   constructor() {
     Object.defineProperty(this, "promise", {
@@ -384,7 +398,7 @@ var PromiseOut = class {
   }
 };
 
-// build/plugin/esm/src/helper/createSignal.js
+// ../build/plugin/esm/src/helper/createSignal.js
 var createSignal = () => {
   return new Signal();
 };
@@ -426,7 +440,7 @@ var Signal = class {
   }
 };
 
-// build/plugin/esm/src/components/basePlugin.js
+// ../build/plugin/esm/src/components/basePlugin.js
 var BasePlugin = class extends HTMLElement {
   // mmid:为对应组件的名称，proxy:为劫持对象的属性
   constructor(mmid, proxy) {
@@ -459,7 +473,7 @@ var BasePlugin = class extends HTMLElement {
   }
 };
 
-// build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
+// ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
 var SupportedFormat;
 (function(SupportedFormat2) {
   SupportedFormat2["UPC_A"] = "UPC_A";
@@ -488,7 +502,7 @@ var CameraDirection;
   CameraDirection2["BACK"] = "environment";
 })(CameraDirection || (CameraDirection = {}));
 
-// build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
+// ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
 var BarcodeScanner = class extends BasePlugin {
   constructor(mmid = "scanning.sys.dweb") {
     super(mmid, "BarcodeScanner");
@@ -756,7 +770,7 @@ var BarcodeScanner = class extends BasePlugin {
   }
 };
 
-// build/plugin/esm/src/components/barcode-scanner/index.js
+// ../build/plugin/esm/src/components/barcode-scanner/index.js
 customElements.define("dweb-scanner", BarcodeScanner);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 function documentOnDOMContentLoaded() {
@@ -765,6 +779,109 @@ function documentOnDOMContentLoaded() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 }
 
+// ../build/plugin/esm/src/components/navigator-bar/navigator.events.js
+var NavigationBarPluginEvents;
+(function(NavigationBarPluginEvents2) {
+  NavigationBarPluginEvents2["SHOW"] = "onShow";
+  NavigationBarPluginEvents2["HIDE"] = "onHide";
+  NavigationBarPluginEvents2["COLOR_CHANGE"] = "onColorChange";
+})(NavigationBarPluginEvents || (NavigationBarPluginEvents = {}));
+
+// ../build/plugin/esm/src/components/navigator-bar/navigator-bar.js
+var Navigatorbar = class extends BasePlugin {
+  constructor(mmid = "navigationBar.sys.dweb") {
+    super(mmid, "NavigationBar");
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+    Object.defineProperty(this, "_signalShow", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: this.createSignal()
+    });
+    Object.defineProperty(this, "_signalHide", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: this.createSignal()
+    });
+    Object.defineProperty(this, "_signalChange", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: this.createSignal()
+    });
+  }
+  connectedCallback() {
+  }
+  /**
+  * 显示导航栏。
+  */
+  async show() {
+  }
+  /**
+   * 隐藏导航栏。
+   */
+  async hide() {
+  }
+  /**
+   * 更改导航栏的颜色。
+   *支持 alpha 十六进制数。
+   * @param options
+   */
+  async setColor(options) {
+  }
+  /**
+   * 设置透明度
+   * @param isTransparent
+   */
+  async setTransparency(options) {
+  }
+  /**
+   * 以十六进制获取导航栏的当前颜色。
+   */
+  async getColor() {
+    return { color: " " };
+  }
+  /**
+   * 导航栏显示后触发的事件
+   * @param event The event
+   * @param listenerFunc Callback
+   * NavigationBarPluginEvents.HIDE 导航栏隐藏后触发的事件
+   * NavigationBarPluginEvents.COLOR_CHANGE 导航栏颜色更改后触发的事件
+   */
+  addListener(event, listenerFunc) {
+    switch (event) {
+      case NavigationBarPluginEvents.HIDE:
+        return this._signalHide.listen(listenerFunc);
+      case NavigationBarPluginEvents.COLOR_CHANGE:
+        return this._signalChange.listen(listenerFunc);
+      default:
+        return this._signalShow.listen(listenerFunc);
+    }
+  }
+};
+
+// ../build/plugin/esm/src/components/navigator-bar/navigator.type.js
+var NAVIGATION_BAR_COLOR;
+(function(NAVIGATION_BAR_COLOR2) {
+  NAVIGATION_BAR_COLOR2["TRANSPARENT"] = "#00000000";
+  NAVIGATION_BAR_COLOR2["WHITE"] = "#ffffff";
+  NAVIGATION_BAR_COLOR2["BLACK"] = "#000000";
+})(NAVIGATION_BAR_COLOR || (NAVIGATION_BAR_COLOR = {}));
+
+// ../build/plugin/esm/src/components/navigator-bar/index.js
+customElements.define("dweb-navigator", Navigatorbar);
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
+function documentOnDOMContentLoaded2() {
+  const el = new Navigatorbar();
+  document.body.append(el);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
+}
 
 // ../build/plugin/esm/src/components/statusbar/statusbar.type.js
 var Style;
@@ -880,180 +997,6 @@ var StatusbarPlugin = class extends BasePlugin {
 
 // ../build/plugin/esm/src/components/statusbar/index.js
 customElements.define("dweb-statusbar", StatusbarPlugin);
-document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
-function documentOnDOMContentLoaded2() {
-  const el = new StatusbarPlugin();
-  document.body.append(el);
-  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
-}
-
-
-var NavigationBarPluginEvents;
-(function(NavigationBarPluginEvents2) {
-  NavigationBarPluginEvents2["SHOW"] = "onShow";
-  NavigationBarPluginEvents2["HIDE"] = "onHide";
-  NavigationBarPluginEvents2["COLOR_CHANGE"] = "onColorChange";
-})(NavigationBarPluginEvents || (NavigationBarPluginEvents = {}));
-
-// build/plugin/esm/src/components/navigator-bar/navigator-bar.js
-var Navigatorbar = class extends BasePlugin {
-  constructor(mmid = "navigationBar.sys.dweb") {
-    super(mmid, "NavigationBar");
-    Object.defineProperty(this, "mmid", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: mmid
-    });
-    Object.defineProperty(this, "_signalShow", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: this.createSignal()
-    });
-    Object.defineProperty(this, "_signalHide", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: this.createSignal()
-    });
-    Object.defineProperty(this, "_signalChange", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: this.createSignal()
-    });
-  }
-  connectedCallback() {
-  }
-  /**
-  * 显示导航栏。
-  */
-  async show() {
-  }
-  /**
-   * 隐藏导航栏。
-   */
-  async hide() {
-  }
-  /**
-   * 更改导航栏的颜色。
-   *支持 alpha 十六进制数。
-   * @param options
-   */
-  async setColor(options) {
-  }
-  /**
-   * 设置透明度
-   * @param isTransparent
-   */
-  async setTransparency(options) {
-  }
-  /**
-   * 以十六进制获取导航栏的当前颜色。
-   */
-  async getColor() {
-    return { color: " " };
-  }
-  /**
-   * 导航栏显示后触发的事件
-   * @param event The event
-   * @param listenerFunc Callback
-   * NavigationBarPluginEvents.HIDE 导航栏隐藏后触发的事件
-   * NavigationBarPluginEvents.COLOR_CHANGE 导航栏颜色更改后触发的事件
-   */
-  addListener(event, listenerFunc) {
-    switch (event) {
-      case NavigationBarPluginEvents.HIDE:
-        return this._signalHide.listen(listenerFunc);
-      case NavigationBarPluginEvents.COLOR_CHANGE:
-        return this._signalChange.listen(listenerFunc);
-      default:
-        return this._signalShow.listen(listenerFunc);
-    }
-  }
-};
-
-// build/plugin/esm/src/components/navigator-bar/navigator.type.js
-var NAVIGATION_BAR_COLOR;
-(function(NAVIGATION_BAR_COLOR2) {
-  NAVIGATION_BAR_COLOR2["TRANSPARENT"] = "#00000000";
-  NAVIGATION_BAR_COLOR2["WHITE"] = "#ffffff";
-  NAVIGATION_BAR_COLOR2["BLACK"] = "#000000";
-})(NAVIGATION_BAR_COLOR || (NAVIGATION_BAR_COLOR = {}));
-
-// build/plugin/esm/src/components/navigator-bar/index.js
-customElements.define("dweb-navigator", Navigatorbar);
-document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
-function documentOnDOMContentLoaded3() {
-  const el = new Navigatorbar();
-  document.body.append(el);
-  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
-}
-
-// build/plugin/esm/src/components/statusbar/statusbar.plugin.js
-var StatusbarPlugin = class extends BasePlugin {
-  constructor(mmid = "statusBar.sys.dweb") {
-    super(mmid, "StatusBar");
-    Object.defineProperty(this, "mmid", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: mmid
-    });
-  }
-  /**
-   * 设置状态栏背景色
-   * @param r 0~255
-   * @param g 0~255
-   * @param b 0~255
-   * @param a 0~1
-   */
-  async setBackgroundColor(options) {
-  }
-  // 支持 light | dark | defalt
-  async setStyle(style) {
-  }
-  /**
-  * 显示状态栏。
-  * 在 iOS 上，如果状态栏最初是隐藏的，并且初始样式设置为
-  * `UIStatusBarStyleLightContent`，第一次显示调用可能会在
-  * 动画将文本显示为深色然后过渡为浅色。 值得推荐
-  * 在第一次调用时使用 `Animation.None` 作为动画。
-  *
-  * @since 1.0.0
-  */
-  async show(options) {
-  }
-  /**
-   * Hide the status bar.
-   *
-   * @since 1.0.0
-   */
-  async hide(options) {
-  }
-  /**
-  * 获取有关状态栏当前状态的信息。
-  *
-  * @since 1.0.0
-  */
-  // async getInfo(): Promise<StatusBarInfo> {
-  //     return { visible :}
-  // }
-  /**
-  * 设置状态栏是否应该覆盖 webview 以允许使用
-  * 它下面的空间。
-  *
-  * 此方法仅在 Android 上支持。
-  *
-  * @since 1.0.0
-  */
-  async setOverlaysWebView(options) {
-  }
-};
-
-// build/plugin/esm/src/components/statusbar/index.js
-customElements.define("dweb-statusbar", StatusbarPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
 function documentOnDOMContentLoaded3() {
   const el = new StatusbarPlugin();
@@ -1061,7 +1004,7 @@ function documentOnDOMContentLoaded3() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
 }
 
-// build/plugin/esm/src/components/toast/toast.plugin.js
+// ../build/plugin/esm/src/components/toast/toast.plugin.js
 var ToastPlugin = class extends BasePlugin {
   constructor(mmid = "toast.sys.dweb") {
     super(mmid, "Toast");
@@ -1147,7 +1090,7 @@ var ToastPlugin = class extends BasePlugin {
   }
 };
 
-// build/plugin/esm/src/components/toast/index.js
+// ../build/plugin/esm/src/components/toast/index.js
 customElements.define("dweb-toast", ToastPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
 function documentOnDOMContentLoaded4() {
@@ -1156,7 +1099,7 @@ function documentOnDOMContentLoaded4() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
 }
 
-// build/plugin/esm/src/components/torch/torch.plugin.js
+// ../build/plugin/esm/src/components/torch/torch.plugin.js
 var TorchPlugin = class extends BasePlugin {
   constructor(mmid = "torch.sys.dweb") {
     super(mmid, "Torch");
@@ -1181,7 +1124,7 @@ var TorchPlugin = class extends BasePlugin {
   }
 };
 
-// build/plugin/esm/src/components/torch/index.js
+// ../build/plugin/esm/src/components/torch/index.js
 customElements.define("dweb-torch", TorchPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded5);
 function documentOnDOMContentLoaded5() {
@@ -1190,27 +1133,23 @@ function documentOnDOMContentLoaded5() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded5);
 }
 
-// build/plugin/esm/src/components/index.js
+// ../build/plugin/esm/src/components/index.js
 registerWebPlugin(new Navigatorbar());
 registerWebPlugin(new BarcodeScanner());
 registerWebPlugin(new StatusbarPlugin());
 registerWebPlugin(new ToastPlugin());
 registerWebPlugin(new TorchPlugin());
-
-// demo/src/index.ts
-function $(params) {
-  return document.getElementById(params);
-}
-$("toast-show").addEventListener("click", async () => {
-  console.log("click toast-show");
-  const duration = $("toast-duration").value ?? "long";
-  const text = $("toast-message").value ?? "\u6211\u662Ftoast\u{1F353}";
-  const toast = document.querySelector("dweb-toast");
-  if (toast) {
-    const result = await toast.show({ text, duration });
-    console.log("show result=>", await result);
-  }
-});
+export {
+  BarcodeScanner,
+  CameraDirection,
+  NAVIGATION_BAR_COLOR,
+  NavigationBarPluginEvents,
+  Navigatorbar,
+  StatusbarPlugin,
+  SupportedFormat,
+  ToastPlugin,
+  TorchPlugin
+};
 /*! Bundled license information:
 
 image-capture/src/imagecapture.js:
