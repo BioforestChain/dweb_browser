@@ -23,16 +23,31 @@ const main = async () => {
  * request 事件处理器
  */
   async function onRequest(request: IpcRequest, httpServerIpc: Ipc) {
+    let res = new Response();
     switch (request.parsed_url.pathname) {
       case "/":
       case "/show":
-        onRequestToastShow(request, httpServerIpc);
+        res = await onRequestToastShow(request, httpServerIpc);
         break;
       default:
         break;
     }
+    // 返回数据到前端
+    httpServerIpc.postMessage(
+      await IpcResponse.fromJson(
+        request.req_id,
+        200,
+        new IpcHeaders({
+          "content-type": "text/html",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "*", // 要支持 X-Dweb-Host
+          "Access-Control-Allow-Methods": "*",
+        }),
+        await res.text(),
+        httpServerIpc
+      )
+    );
   }
-
 
   (await wwwServer.listen()).onRequest(async (request, ipc) => {
     console.log("接受到了请求 wwwServer request.parsed_url.pathname： ", request.parsed_url.pathname);

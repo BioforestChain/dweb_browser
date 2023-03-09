@@ -1170,20 +1170,20 @@ var IpcResMessage = class extends IpcMessage {
 };
 
 // src/user/cot-demo/cotDemo.request.mts
-function onRequestToastShow(request, httpServerIpc) {
+async function onRequestToastShow(request, httpServerIpc) {
   const url = `file://toast.sys.dweb${request.url}`;
   console.log("onRequestToastShow: ", url);
-  jsProcess.nativeFetch(url).then(async (res) => {
-    httpServerIpc.postMessage(
-      await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
-    );
-  }).catch((err) => console.log("\u8BF7\u6C42\u5931\u8D25\uFF1A ", err));
+  const result = await jsProcess.nativeFetch(url).then(async (res) => res).catch((err) => {
+    console.log("\u8BF7\u6C42\u5931\u8D25\uFF1A ", err);
+    return err;
+  });
+  return result;
 }
 
 // src/user/cot-demo/cotDemo.worker.mts
 var main = async () => {
   console.log("start cot-demo");
-  const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2 } = ipc;
+  const { IpcResponse: IpcResponse3, IpcHeaders: IpcHeaders2 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443
@@ -1198,14 +1198,30 @@ var main = async () => {
     onRequest(request, ipc2);
   });
   async function onRequest(request, httpServerIpc) {
+    let res = new Response();
     switch (request.parsed_url.pathname) {
       case "/":
       case "/show":
-        onRequestToastShow(request, httpServerIpc);
+        res = await onRequestToastShow(request, httpServerIpc);
         break;
       default:
         break;
     }
+    httpServerIpc.postMessage(
+      await IpcResponse3.fromJson(
+        request.req_id,
+        200,
+        new IpcHeaders2({
+          "content-type": "text/html",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "*",
+          // 要支持 X-Dweb-Host
+          "Access-Control-Allow-Methods": "*"
+        }),
+        await res.text(),
+        httpServerIpc
+      )
+    );
   }
   (await wwwServer.listen()).onRequest(async (request, ipc2) => {
     console.log("\u63A5\u53D7\u5230\u4E86\u8BF7\u6C42 wwwServer request.parsed_url.pathname\uFF1A ", request.parsed_url.pathname);
@@ -1219,7 +1235,7 @@ var main = async () => {
     );
     console.timeEnd(`open file ${pathname}`);
     ipc2.postMessage(
-      new IpcResponse2(
+      new IpcResponse3(
         request.req_id,
         remoteIpcResponse.statusCode,
         remoteIpcResponse.headers,

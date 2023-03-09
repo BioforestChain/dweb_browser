@@ -14,7 +14,6 @@ export class BasePlugin extends HTMLElement {
       return fetch(url, init)
     }
     const api = window.location.host.replace("www", "api")
-    console.log("nativeFetch=>", api)
     return fetch(`https://${api}${url}`, init)
   }
 

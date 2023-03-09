@@ -7,7 +7,6 @@ import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
-import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 
@@ -50,8 +49,9 @@ class MutilWebViewController(val mmid: Mmid) {
     fun openWebView(localeMM: MicroModule, remoteMM: MicroModule, url: String): ViewItem {
         val webviewId = "#w${webviewId_acc++}"
         val dWebView = runBlockingCatching(Dispatchers.Main) {
+            val currentActivity = activity ?: App.appContext
             val dWebView = DWebView(
-                App.appContext, localeMM, remoteMM, DWebView.Options(url = url), activity
+                currentActivity, localeMM, remoteMM, DWebView.Options(url = url), activity
             )
             dWebView.onOpen { message ->
                 val dWebViewChild = openWebView(

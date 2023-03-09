@@ -62,7 +62,6 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             // 打开一个 webview 作为窗口
             "/open" bind Method.GET to defineHandler { request, ipc ->
                 val url = query_url(request)
-                println("MultiWebViewNMM $url")
                 val remoteMm = ipc.asRemoteInstance()
                     ?: throw Exception("mwebview.sys.dweb/open should be call by locale")
 

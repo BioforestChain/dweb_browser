@@ -455,7 +455,6 @@ var BasePlugin = class extends HTMLElement {
       return fetch(url, init);
     }
     const api = globalThis.location.host.replace("www", "api");
-    console.log("nativeFetch=>", api);
     return fetch(`https://${api}${url}`, init);
   }
 };
@@ -956,12 +955,6 @@ var ToastPlugin = class extends BasePlugin {
       writable: true,
       value: void 0
     });
-    Object.defineProperty(this, "_elContent", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: document.createElement("div")
-    });
     Object.defineProperty(this, "_elStyle", {
       enumerable: true,
       configurable: true,
@@ -992,145 +985,45 @@ var ToastPlugin = class extends BasePlugin {
       writable: true,
       value: ""
     });
-    Object.defineProperty(this, "_onTransitionenOutToIn", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: () => {
-        setTimeout(() => {
-          this._elContent.removeEventListener("transitionend", this._onTransitionenOutToIn);
-          this._elContent.addEventListener("transitionend", this._onTransitionendInToOut);
-          this._elContent.classList.remove("content_transform_inside");
-          this._elContent.classList.add("content_transform_outside");
-        }, this._duration === "long" ? 2e3 : 3500);
-      }
-    });
-    Object.defineProperty(this, "_onTransitionendInToOut", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: () => {
-        this._elContent.removeEventListener("transitionend", this._onTransitionendInToOut);
-        this._elContent.classList.remove("content_transform_outside");
-        this._elContent.classList.remove("content_transition");
-        this._elContent.classList.remove(this._verticalClassName);
-        this.setAttribute("style", "");
-      }
-    });
-    Object.defineProperty(this, "_elContentTransitionStart", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: () => {
-        this._verticalClassName = this._position === "bottom" ? "content_vertical_bottom" : this._position === "center" ? "content_vertical_center" : "content_vertical_top";
-        this._elContent.classList.add("content_transform_outside", this._verticalClassName);
-        this._elContent.addEventListener("transitionend", this._onTransitionenOutToIn);
-        setTimeout(() => {
-          this._elContent.classList.remove("content_transform_outside");
-          this._elContent.classList.add("content_transform_inside", "content_transition");
-        }, 100);
-      }
-    });
     this._root = this.attachShadow({ mode: "open" });
     this._init();
   }
   _init() {
-    this._initContent()._initStyle()._initfragment()._initShadowRoot();
   }
-  _initfragment() {
-    this._fragment.append(this._elContent, this._elStyle);
-    return this;
-  }
-  _initShadowRoot() {
-    this._root.appendChild(this._fragment);
-    return this;
-  }
-  _initContent() {
-    this._elContent.setAttribute("class", "content");
-    this._elContent.innerText = "\u6D88\u606F\u7684\u5185\u5BB9\uFF01";
-    return this;
-  }
-  _initStyle() {
-    this._elStyle.setAttribute("type", "text/css");
-    this._elStyle.innerText = createCssText();
-    return this;
-  }
+  // private _initfragment() {
+  //     this._fragment.append(this._elContent, this._elStyle);
+  //     return this;
+  // }
+  // private _initShadowRoot() {
+  //     this._root.appendChild(this._fragment)
+  //     return this;
+  // }
+  // private _initContent() {
+  //     this._elContent.setAttribute("class", "content")
+  //     this._elContent.innerText = '消息的内容！';
+  //     return this;
+  // }
+  // private _initStyle() {
+  //     this._elStyle.setAttribute("type", "text/css")
+  //     this._elStyle.innerText = createCssText()
+  //     return this;
+  // }
   /**
    * toast信息显示
    * @param message 消息
    * @param duration 时长 'long' | 'short'
    * @returns
    */
-  show(message, duration = "long", position = "bottom") {
+  async show(options) {
+    const { text, duration = "long", position = "bottom" } = options;
     this._duration = duration;
     this._position = position;
     this.setAttribute("style", "left: 0px;");
-    this._elContent.innerText = message;
-    this._elContentTransitionStart();
-    this.nativeFetch(`/show?message=${message}&duration=${duration}&position=${position}`);
-    return this;
+    return await this.nativeFetch(`/show?message=${text}&duration=${duration}&position=${position}`);
   }
   connectedCallback() {
   }
 };
-function createCssText() {
-  return `
-        :host{
-            position: fixed;
-            z-index: 9999999999;
-            left: -100vw;
-            top: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-sizing: border-box;
-            width: 100%;
-            height: 100%;
-            border: 1px solid red;
-        }
-
-        .content{
-            position: absolute;
-            box-sizing: border-box;
-            padding: 0px 10px;
-            min-width: 10px;
-            max-width: 300;
-            font-size: 13px;
-            line-height: 30px;
-            overflow: hidden;
-            whilte-space: nowrap;
-            text-overflow: ellipsis;
-            border-radius: 10px;
-            color: #fff;
-            background: #000d;
-        }
-        
-        .content_vertical_top{
-            top: 10px;
-        }
-
-        .content_vertical_center{
-
-        }
-
-        .content_vertical_bottom{
-            bottom: 30px;
-        }
-
-        .content_transform_outside{
-            transform: translateX(100vw);
-        }
-
-        .content_transform_inside{
-            transform: translateX(0);
-        }
-
-        .content_transition{
-            transition: all 0.5s ease-out;
-        }
-    
-    `;
-}
 
 // build/plugin/esm/src/components/toast/index.js
 customElements.define("dweb-toast", ToastPlugin);
@@ -1186,12 +1079,15 @@ registerWebPlugin(new TorchPlugin());
 function $(params) {
   return document.getElementById(params);
 }
-$("toast-show").addEventListener("click", () => {
+$("toast-show").addEventListener("click", async () => {
   console.log("click toast-show");
   const duration = $("toast-duration").value ?? "long";
-  const msg = $("toast-message").value ?? "\u6211\u662Ftoast\u{1F353}";
-  const toast = new ToastPlugin();
-  toast.show(msg, duration);
+  const text = $("toast-message").value ?? "\u6211\u662Ftoast\u{1F353}";
+  const toast = document.querySelector("dweb-toast");
+  if (toast) {
+    const result = await toast.show({ text, duration });
+    console.log("show result=>", await result);
+  }
 });
 /*! Bundled license information:
 

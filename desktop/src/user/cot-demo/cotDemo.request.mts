@@ -7,16 +7,15 @@ import type { Ipc } from "../../core/ipc/ipc.cjs";
  * @param request 
  * @param httpServerIpc 
  */
-export function onRequestToastShow(request: IpcRequest, httpServerIpc: Ipc) {
+export async function onRequestToastShow(request: IpcRequest, httpServerIpc: Ipc) {
   const url = `file://toast.sys.dweb${request.url}`;
   console.log("onRequestToastShow: ", url)
-  jsProcess
+  const result = await jsProcess
     .nativeFetch(url)
-    .then(async (res: Response) => {
-      // 这里要做修改 改为 IpcResponse.fromResponse
-      httpServerIpc.postMessage(
-        await IpcResponse.fromResponse(request.req_id, res, httpServerIpc)
-      );
-    })
-    .catch((err: any) => console.log("请求失败： ", err));
+    .then(async (res: Response) => res)
+    .catch((err: any) => {
+      console.log("请求失败： ", err)
+      return err
+    });
+  return result
 }
