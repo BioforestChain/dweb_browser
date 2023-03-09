@@ -93,9 +93,16 @@
         <button id="navigationbar-setNavigationBarColor">Set</button>
         <button id="navigationbar-getNavigationBarColor">Get</button>
       </fieldset>
-
       <pre id="navigationbar-observer-log"></pre>
-    </card>
+
+      <script type="text/javascript">
+        const elBtnNavigatorbarGet = document.querySelector("#navigationbar-getNavigationBarColor");
+        elBtnNavigatorbarGet.addEventListener('click', () => {
+          const _navigatorbar = window.Capacitor.Plugins.NavigationBar;
+          console.log('_navigatorbar: ', _navigatorbar)
+        })
+      </script>
+    </card> 
 
     <card>
       <card-title>Keyboard</card-title>
