@@ -30,7 +30,7 @@ import info.bagen.libappmgr.ui.main.Home
 import info.bagen.libappmgr.ui.main.MainViewModel
 import info.bagen.libappmgr.ui.main.SearchAction
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.apps.BrowserJMM
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_CAN_BE_FOUND
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_REQUEST
@@ -79,8 +79,8 @@ class BrowserActivity : AppCompatActivity() {
                         LogUtils.d("搜索框内容响应：$action--$data")
                         when (action) {
                             SearchAction.Search -> {
-                                //openDWebWindow(this@MainActivity, data)
-                                dWebBrowserModel.openDWebBrowser("https://shop.plaoc.com/bfs-metadata.json")
+                                dWebBrowserModel.handleIntent(DWebBrowserIntent.OpenDWebBrowser(data))
+                                //dWebBrowserModel.openDWebBrowser("https://shop.plaoc.com/bfs-metadata.json")
                             }
                             SearchAction.OpenCamera -> {
                                 if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
@@ -96,6 +96,7 @@ class BrowserActivity : AppCompatActivity() {
                     }, onOpenDWebview = { appId, dAppInfo ->
                         dWebView_host = appId
                         /// TODO 这里是点击桌面app触发的事件
+                        JmmNMM.nativeFetch(appId)
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                     QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)

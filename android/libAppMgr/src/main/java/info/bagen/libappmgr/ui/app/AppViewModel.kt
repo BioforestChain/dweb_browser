@@ -1,6 +1,7 @@
 package info.bagen.libappmgr.ui.app
 
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
@@ -245,10 +246,12 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
         when (uiState.appDialogInfo.value.lastType) {
             AppDialogType.NewVersion, AppDialogType.ReDownLoad -> {
                 if (uiState.useMaskView.value) { // 在app上面显示遮罩
-                    uiState.curAppViewState?.let {
-                        it.maskViewState.show.value = true
-                        it.maskViewState.downLoadViewModel.handleIntent(
-                            DownLoadIntent.LoadDownLoadStateAndDownLoad(it.maskViewState.path)
+                    uiState.curAppViewState?.let {appViewState ->
+                        appViewState.maskViewState.show.value = true
+                        appViewState.maskViewState.downLoadViewModel.handleIntent(
+                            DownLoadIntent.LoadDownLoadStateAndDownLoad(
+                                appViewState.maskViewState.path, appViewState.appInfo
+                            )
                         )
                     }
                     uiState.appDialogInfo.value = uiState.appDialogInfo.value.copy(
@@ -351,7 +354,9 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
         appViewState: AppViewState, appInfo: AppInfo, downloadFile: String
     ) {
         uiState.appViewStateList.remove(appViewState)
-        val unzip = ZipUtil.ergodicDecompress(downloadFile, FilesUtil.getAppUnzipPath())
+        val unzip = ZipUtil.ergodicDecompress(
+            downloadFile, FilesUtil.getAppUnzipPath(), mmid = appInfo.bfsAppId
+        )
         if (unzip) {
             uiState.appViewStateList.forEach { item ->
                 if (item.appInfo?.bfsAppId == appInfo.bfsAppId) {

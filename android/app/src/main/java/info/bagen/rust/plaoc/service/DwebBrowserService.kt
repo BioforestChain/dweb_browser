@@ -89,7 +89,6 @@ class DwebBrowserService : Service() {
       Toast.makeText(this, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
       return true
     }
-    poDownLoadStatus.getOrPut(downLoadInfo.jmmMetadata!!.id) { PromiseOut() }
     downloadMap[downLoadInfo.jmmMetadata!!.id] = downLoadInfo
     NotificationUtil.INSTANCE.createNotificationForProgress(
       downLoadInfo.jmmMetadata!!.id,
@@ -142,8 +141,9 @@ class DwebBrowserService : Service() {
         ) {
           NotificationUtil.INSTANCE.cancelNotification(notificationId)
           val intent = Intent(App.appContext, JmmManagerActivity::class.java).apply {
+            action = JmmManagerActivity.ACTION_LAUNCH
             putExtra(JmmManagerActivity.KEY_JMM_METADATA, jmmMetadata)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
             `package` = App.appContext.packageName
           }
           val pendingIntent =

@@ -111,9 +111,9 @@ fun BoxScope.AppInfoItem(
         .pointerInput(appViewState) {
             detectTapGestures(onPress = {}, // 触摸事件
                 onTap = { // 点击事件
-                    GlobalScope.launch {
+                    /*GlobalScope.launch {
                         run()
-                    }
+                    }*/
                     appViewState.appInfo?.dAppUrl?.let {
                         onOpenApp?.let { it() }
                     } ?: run {
@@ -251,7 +251,8 @@ fun AppInfoGridView(
         ) {
             items(appViewModel.uiState.appViewStateList) { item ->
                 AppInfoView(appViewModel, item) {
-                    onOpenApp?.let { it(item.appInfo?.bfsAppId ?: "", item.dAppInfoUI) }
+                    //onOpenApp?.let { it(item.appInfo?.bfsAppId ?: "", item.dAppInfoUI) }
+                    onOpenApp?.let { it(item.appInfo?.dAppUrl ?: "", item.dAppInfoUI) }
                 }
             }
         }

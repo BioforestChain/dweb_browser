@@ -2,6 +2,7 @@ package info.bagen.libappmgr.utils
 
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import info.bagen.libappmgr.entity.AppInfo
 import info.bagen.libappmgr.entity.DAppInfo
 import info.bagen.libappmgr.system.media.MediaInfo
@@ -311,37 +312,34 @@ object FilesUtil {
         val appInfoList = ArrayList<AppInfo>()
         val systemAppExist = HashMap<String, String>()
         // Log.d(TAG, "$systemAppMap , $recommendAppMap")
-        systemAppMap?.forEach {
-            val appInfo = getFileContent(
-                it.value + File.separator + DIR_BOOT + File.separator + FILE_LINK_JSON
-            )?.let { it1 ->
-                JsonUtil.getAppInfoFromLinkJson(it1, APP_DIR_TYPE.SystemApp)
-            }
-            // Log.d(TAG, "getAppInfoList system-app $appInfo")
-            appInfo?.apply {
-                getDAppInfo(appInfo)?.let { dAppInfo ->
+        systemAppMap?.forEach { (key, value) ->
+
+            getFileContent(
+                value + File.separator + DIR_BOOT + File.separator + FILE_LINK_JSON
+            )?.let { content ->
+                JsonUtil.getAppInfoFromLinkJson(content, APP_DIR_TYPE.SystemApp)
+            }?.apply {
+                /*getDAppInfo(appInfo)?.let { dAppInfo ->
                     dAppUrl = getAppDenoUrl(appInfo, dAppInfo)
-                }
-                appInfoList.add(appInfo)
-                systemAppExist[it.key] = it.value
+                }*/
+                dAppUrl = key
+                appInfoList.add(this)
+                systemAppExist[key] = value
             }
         }
         // 将 system 目录下的所有app进行校验是否是 recommend 的
         appInfoList.forEach { appInfo ->
-            recommendAppMap?.let { map ->
-                if (map.containsKey(appInfo.bfsAppId)) {
-                    appInfo.isRecommendApp = true
-                }
+            if (recommendAppMap?.containsKey(appInfo.bfsAppId) == true) {
+                appInfo.isRecommendApp = true
             }
         }
-        recommendAppMap?.forEach {
-            if (!systemAppExist.containsKey(it.key)) {
+        recommendAppMap?.forEach { (key, value) ->
+            if (!systemAppExist.containsKey(key)) {
                 val appInfo = getFileContent(
-                    it.value + File.separator + DIR_BOOT + File.separator + FILE_LINK_JSON
-                )?.let { it1 ->
-                    JsonUtil.getAppInfoFromLinkJson(it1, APP_DIR_TYPE.RecommendApp)
-                }
-                appInfo?.apply {
+                    value + File.separator + DIR_BOOT + File.separator + FILE_LINK_JSON
+                )?.let { content ->
+                    JsonUtil.getAppInfoFromLinkJson(content, APP_DIR_TYPE.RecommendApp)
+                }?.apply {
                     this.isRecommendApp = true
                     appInfoList.add(this)
                 }

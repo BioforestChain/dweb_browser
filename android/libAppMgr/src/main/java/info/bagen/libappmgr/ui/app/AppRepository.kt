@@ -16,7 +16,7 @@ class AppRepository(private val api: ApiService = ApiService.instance) {
 //        return loadDAppUrlTest(appInfo)
         val dAppInfo = FilesUtil.getDAppInfo(appInfo.bfsAppId)
         dAppInfo?.let { info ->
-            val dAppUrl = FilesUtil.getAppDenoUrl(appInfo, info)
+            val dAppUrl = appInfo.bfsAppId // FilesUtil.getAppDenoUrl(appInfo, info)
             val url = info.manifest.url ?: ""
             val isDWeb = info.manifest.appType != "web"
             val name = dAppInfo.manifest.name

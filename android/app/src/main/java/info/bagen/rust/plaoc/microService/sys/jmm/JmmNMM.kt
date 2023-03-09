@@ -1,10 +1,10 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
+import android.util.Log
 import info.bagen.rust.plaoc.datastore.JmmMetadataDB
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.json
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
@@ -17,7 +17,25 @@ import org.http4k.routing.routes
 
 class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
-        val apps = mutableMapOf<Mmid, JsMicroModule>()
+        private val apps = mutableMapOf<Mmid, JsMicroModule>()
+
+        fun getAndUpdateJmmNmmApps() = apps
+
+        fun nativeFetch(mmid: Mmid) {
+            runBlockingCatching {
+                apps[mmid]?.nativeFetch(
+                    "file://dns.sys.dweb/open?app_id=${mmid.encodeURIComponent()}"
+                ) ?: Log.e("JmmNMM", "no found jmm mmid $mmid")
+            }
+        }
+
+        fun nativeFetchJMM(jmmMetadata: JmmMetadata, url: String) {
+            runBlockingCatching {
+                apps.getOrElse(jmmMetadata.id) {
+                    JsMicroModule(jmmMetadata)
+                }.nativeFetch("file://jmm.sys.dweb/install?mmid=${jmmMetadata.id}&metadataUrl=$url")
+            }
+        }
     }
 
     init {
@@ -30,18 +48,22 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         // 初始化的DNS注册
-        for (app in apps.values) {
+        /*for (app in apps.values) {
             bootstrapContext.dns.install(app)
-        }
+        }*/
 
         apiRouting = routes(
             "/install" bind Method.GET to defineHandler { request ->
-
                 val metadataUrl = queryMetadataUrl(request)
                 val jmmMetadata =
                     nativeFetch(metadataUrl).json<JmmMetadata>(JmmMetadata::class.java)
                 // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-                openJmmMatadataInstallPage(jmmMetadata)
+                openJmmMetadataInstallPage(jmmMetadata) { metadata ->
+                    JsMicroModule(metadata).apply {
+                        apps[jmmMetadata.id] = this // 添加应用
+                        bootstrapContext.dns.install(this) // 注册应用
+                    }
+                }
                 return@defineHandler jmmMetadata
             },
             "/uninstall" bind Method.GET to defineHandler { request, ipc ->
@@ -54,9 +76,6 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 return@defineHandler AppsQueryResult(
                     apps.map { it.value.metadata },
                     installingApps.map { it.value })
-            },
-            "/open" bind Method.GET to defineHandler { request, ipc ->
-                // TODO 打开界面
             }
         )
 
@@ -70,28 +89,22 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     data class InstallingAppInfo(var progress: Float, val jmmMetadata: JmmMetadata)
 
     private val installingApps = mutableMapOf<Mmid, InstallingAppInfo>()
-    private suspend fun openJmmMatadataInstallPage(jmmMetadata: JmmMetadata) {
+    private suspend fun openJmmMetadataInstallPage(
+        jmmMetadata: JmmMetadata, installDNS: (JmmMetadata) -> Unit
+    ) {
         // 打开安装的界面
         JmmManagerActivity.startActivity(jmmMetadata)
         // 拿到安装的状态
         when(DwebBrowserService.poDownLoadStatus[jmmMetadata.id]?.waitPromise()) {
-            DownLoadStatus.INSTALLED -> {
-                registerJmmForDns(jmmMetadata)
-            }
-            DownLoadStatus.FAIL-> {
-                // TODO 安装退出，或者安装失败的处理，也可以不处理
-            }
-            else -> {}
+            DownLoadStatus.INSTALLED -> installDNS(jmmMetadata)
+            else -> { }
         }
-    }
-
-    /**
-     * 注册应用
-     * */
-    private fun registerJmmForDns(jmmMetadata: JmmMetadata) {
-        val jmm = JsMicroModule(jmmMetadata)
-        // 添加应用
-        apps[jmmMetadata.id] = jmm
+        /*DownLoadStatusSubject.attach(jmmMetadata.id) { _: Mmid, downLoadStatus: DownLoadStatus ->
+            when (downLoadStatus) {
+                DownLoadStatus.INSTALLED -> { installDNS(jmmMetadata) }
+                else -> { }
+            }
+        }*/
     }
 
     private fun openJmmMatadataUninstallPage(jmmMetadata: JmmMetadata) {

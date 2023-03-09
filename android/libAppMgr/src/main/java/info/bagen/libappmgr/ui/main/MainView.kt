@@ -1,5 +1,6 @@
 package info.bagen.libappmgr.ui.main
 
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -201,11 +202,12 @@ fun MainSearchView(onSearchAction: ((SearchAction, String) -> Unit)? = null) {
         keyboardActions = KeyboardActions(onSearch = {
             if (inputText.isEmpty()) return@KeyboardActions
             focusManager.clearFocus() // 取消聚焦，就会间接的隐藏键盘
-            val url = if (inputText.startsWith("http") || inputText.startsWith("https")) {
-                inputText
-            } else {
-                "https://cn.bing.com/search?q=${inputText}"
-            }
+            val url = Uri.parse(inputText)?.let { uri ->
+                if ((uri.scheme == "http" || uri.scheme == "https") &&
+                    uri.host?.isNotEmpty() == true) {
+                    inputText
+                } else null
+            } ?: "https://cn.bing.com/search?q=${inputText}"
             onSearchAction?.let { it(SearchAction.Search, url) }
             // Toast.makeText(AppContextUtil.sInstance, "搜索：$url", Toast.LENGTH_SHORT).show()
         })

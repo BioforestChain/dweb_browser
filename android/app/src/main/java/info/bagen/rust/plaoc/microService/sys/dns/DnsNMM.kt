@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.dns
 
+import android.util.Log
 import info.bagen.rust.plaoc.microService.core.*
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
@@ -63,12 +64,12 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
         DnsMicroModule {
         override fun install(mm: MicroModule) {
             // TODO 作用域保护
-            install(mm)
+            dnsMM.install(mm)
         }
 
         override fun uninstall(mm: MicroModule) {
             // TODO 作用域保护
-            uninstall(mm)
+            dnsMM.uninstall(mm)
         }
 
         override suspend fun connect(

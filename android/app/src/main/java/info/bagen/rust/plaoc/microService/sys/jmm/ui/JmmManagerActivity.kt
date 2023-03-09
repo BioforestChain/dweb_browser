@@ -4,10 +4,10 @@ import android.content.Intent
 import androidx.compose.runtime.Composable
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.base.BaseActivity
-import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.defaultJmmMetadata
+import info.bagen.rust.plaoc.service.DwebBrowserService
 
 class JmmManagerActivity : BaseActivity() {
 
@@ -17,10 +17,11 @@ class JmmManagerActivity : BaseActivity() {
         const val KEY_JMM_METADATA = "key_jmm_meta_data"
 
         fun startActivity(jmmMetadata: JmmMetadata) {
+            DwebBrowserService.poDownLoadStatus.getOrPut(jmmMetadata.id) { PromiseOut() }
             App.startActivity(JmmManagerActivity::class.java) { intent ->
                 intent.action = ACTION_LAUNCH
                 intent.`package` = "info.bagen.rust.plaoc"
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
                 intent.putExtra(KEY_JMM_METADATA, jmmMetadata)
             }
         }
@@ -58,6 +59,7 @@ class JmmManagerActivity : BaseActivity() {
 
     override fun onDestroy() {
         App.jmmManagerActivity = null
+        jmmManagerViewModel.handlerIntent(JmmIntent.DestroyActivity)
         super.onDestroy()
     }
 }

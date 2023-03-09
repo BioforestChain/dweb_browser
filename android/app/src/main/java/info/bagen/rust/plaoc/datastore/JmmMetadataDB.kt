@@ -30,7 +30,7 @@ object JmmMetadataDB {
   fun queryJmmMetadata() = runBlocking(Dispatchers.IO) {
     App.appContext.jmmMetaDataStore.data.map { data ->
       data.dataMap.forEach { (key, value) ->
-        JmmNMM.apps[key] = value.toJsMicroModule()
+        JmmNMM.getAndUpdateJmmNmmApps()[key] = value.toJsMicroModule()
       }
     }
   }
@@ -41,7 +41,7 @@ object JmmMetadataDB {
         jmmMetadata?.let { item ->
           putData(item.id, item.toJmmMetadataPreferences())
         } ?: {
-          JmmNMM.apps.forEach { (key, value) ->
+          JmmNMM.getAndUpdateJmmNmmApps().forEach { (key, value) ->
             putData(key, value.metadata.toJmmMetadataPreferences())
           }
         }

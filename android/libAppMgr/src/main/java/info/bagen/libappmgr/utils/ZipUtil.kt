@@ -87,7 +87,7 @@ object ZipUtil {
   fun ergodicDecompress(
     filePath: String, outputDir: String, isDeleted: Boolean = true, mmid: String? = null
   ): Boolean {
-    Log.d(TAG, "ergodicDecompress->$filePath, $outputDir, $isDeleted")
+    Log.w(TAG, "ergodicDecompress->$filePath, $outputDir, $isDeleted, $mmid")
     val file = File(filePath)
     if (!file.exists()) {
       Log.e(TAG, "ergodicDecompress file not exist.")
@@ -97,27 +97,36 @@ object ZipUtil {
     for (index in arrayListOf("tar", "tar.gz", "tar.bz2", "zip")) {
       try {
         val dirName = when (index) {
-          "tar" -> { decompressTar(file, outputDir) }
-          "tar.gz" -> { decompressTarGz(file, outputDir) }
-          "tar.bz2" -> { decompressTarBz2(file, outputDir) }
-          "zip" -> { unZip(file, outputDir) }
+          "tar" -> { decompressTar(file, outputDir, mmid) }
+          "tar.gz" -> { decompressTarGz(file, outputDir, mmid) }
+          "tar.bz2" -> { decompressTarBz2(file, outputDir, mmid) }
+          "zip" -> { unZip(file, outputDir, mmid) }
           else -> "NULL"
         }
-        mmid?.let {
-          Files.move(
-            Paths.get("$outputDir/$dirName"),
-            Paths.get("$outputDir/$mmid"),
-            StandardCopyOption.REPLACE_EXISTING
-          )
-        }
+        filterFile(File(outputDir))
         ret = true
-        Log.e(TAG, "ergodicDecompress:: fileType is $index.")
+        Log.e(TAG, "ergodicDecompress:: fileType is $index.$dirName")
         break
-      } catch (e: Exception) {
-        Log.e(TAG, "ergodicDecompress:: decompress occur error.")
+      } catch (e: IOException) {
+        Log.e(TAG, "ergodicDecompress:: decompress occur error{$index}. ${e.message}")
       }
     }
+    if (isDeleted && ret) {
+      FilesUtil.deleteQuietly(file)
+    }
     return ret
+  }
+
+  private fun getEntryName(entryName:String, mmid: String?, dirName: ((String) -> String)) : String {
+    return when (entryName) {
+      ".", "..", "__MACOSX" -> entryName
+      else -> {
+        mmid?.let { mmid ->
+          val sss = dirName(entryName)
+          entryName.replaceFirst(sss, "$mmid/")// 由于entryName如果是目录最后一个字符是 /
+        } ?: entryName
+      }
+    }
   }
 
   private fun decompress(filePath: String, outputDir: String, isDeleted: Boolean = true): Boolean {
@@ -160,60 +169,60 @@ object ZipUtil {
    * @throws IOException
    */
   @Throws(IOException::class)
-  private fun unZip(file: File?, outputDir: String) : String {
+  private fun unZip(file: File?, outputDir: String, mmid: String? = null) : String {
     Log.d(TAG, "unZip->${file?.absolutePath}, $outputDir")
-    var dirName: String? = null
+    var dirName = ""
     ZipFile(file, StandardCharsets.UTF_8).use { zipFile ->
       //创建输出目录
       //createDirectory(outputDir, null)
       val enums: Enumeration<*> = zipFile.entries()
       while (enums.hasMoreElements()) {
         val entry: ZipEntry = enums.nextElement() as ZipEntry
+        val name = getEntryName(entry.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         if (entry.isDirectory) {
           //创建空目录
-          if (dirName == null) dirName = entry.name
-          createDirectory(outputDir, entry.name)
+          createDirectory(outputDir, name)
         } else {
           zipFile.getInputStream(entry).use { inputStream ->
             FileOutputStream(
-              File(outputDir + File.separator + entry.name)
+              File(outputDir + File.separator + name)
             ).use { out -> writeFile(inputStream, out) }
           }
         }
       }
     }
-    return dirName ?: ""
+    return dirName
   }
 
   @Throws(IOException::class)
-  private fun decompressTar(file: File?, outputDir: String) : String {
+  private fun decompressTar(file: File?, outputDir: String, mmid: String? = null) : String {
     Log.d(TAG, "decompressTar->${file?.absolutePath}, $outputDir")
-    var dirName: String? = null
+    var dirName = ""
     TarArchiveInputStream(FileInputStream(file)).use { tarIn ->
       //创建输出目录
       //createDirectory(outputDir, null)
       var entry: TarArchiveEntry? = null
       while (tarIn.nextTarEntry.also { entry = it } != null) {
+        val name = getEntryName(entry!!.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         //是目录
         if (entry!!.isDirectory) {
           //创建空目录
-          if (dirName == null) dirName = entry!!.name
-          createDirectory(outputDir, entry!!.name)
+          createDirectory(outputDir, name)
         } else {
           //是文件
           FileOutputStream(
-            File(outputDir + File.separator.toString() + entry!!.name)
+            File(outputDir + File.separator.toString() + name)
           ).use { out -> writeFile(tarIn, out) }
         }
       }
     }
-    return dirName ?: ""
+    return dirName
   }
 
   @Throws(IOException::class)
-  private fun decompressTarGz(file: File?, outputDir: String) : String {
+  private fun decompressTarGz(file: File?, outputDir: String, mmid: String? = null) : String {
     Log.d(TAG, "decompressTarGz->${file?.absolutePath}, $outputDir")
-    var dirName: String? = null
+    var dirName = ""
     TarArchiveInputStream(
       GzipCompressorInputStream(BufferedInputStream(FileInputStream(file)))
     ).use { tarIn ->
@@ -221,20 +230,20 @@ object ZipUtil {
       //createDirectory(outputDir, null)
       var entry: TarArchiveEntry? = null
       while (tarIn.nextTarEntry.also { entry = it } != null) {
+        val name = getEntryName(entry!!.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         //是目录
         if (entry!!.isDirectory) {
           //创建空目录
-          if (dirName == null) dirName = entry!!.name
-          createDirectory(outputDir, entry!!.name)
+          createDirectory(outputDir, name)
         } else {
           //是文件
           FileOutputStream(
-            File(outputDir + File.separator + entry!!.name)
+            File(outputDir + File.separator + name)
           ).use { out -> writeFile(tarIn, out) }
         }
       }
     }
-    return dirName ?: ""
+    return dirName
   }
 
   /**
@@ -244,26 +253,26 @@ object ZipUtil {
    * @param outputDir 目标文件夹
    */
   @Throws(IOException::class)
-  private fun decompressTarBz2(file: File?, outputDir: String) : String {
+  private fun decompressTarBz2(file: File?, outputDir: String, mmid: String? = null) : String {
     Log.d(TAG, "decompressTarBz2->${file?.absolutePath}, $outputDir")
-    var dirName: String? = null
+    var dirName = ""
     TarArchiveInputStream(
       BZip2CompressorInputStream(FileInputStream(file))
     ).use { tarIn ->
       //createDirectory(outputDir, null)
       var entry: TarArchiveEntry
       while (tarIn.nextTarEntry.also { entry = it } != null) {
+        val name = getEntryName(entry.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         if (entry.isDirectory) {
-          if (dirName == null) dirName = entry.name
-          createDirectory(outputDir, entry.name)
+          createDirectory(outputDir, name)
         } else {
           FileOutputStream(
-            File(outputDir + File.separator.toString() + entry.name)
+            File(outputDir + File.separator.toString() + name)
           ).use { out -> writeFile(tarIn, out) }
         }
       }
     }
-    return dirName ?: ""
+    return dirName
   }
 
   /**

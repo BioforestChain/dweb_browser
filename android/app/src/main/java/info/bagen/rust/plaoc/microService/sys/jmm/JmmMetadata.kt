@@ -106,7 +106,7 @@ val temp = """
 """.trimIndent()
 
 val defaultJmmMetadata = JmmMetadata(
-    id = "app.bilibili.dweb",
+    id = "bfmeta.user.dweb",
     downloadUrl = "https://shop.plaoc.com/KEJPMHLA/KEJPMHLA.bfsa",
     permissions = arrayListOf("camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb"),
     icon = "https://www.bfmeta.info/imgs/logo3.webp",
@@ -121,6 +121,6 @@ val defaultJmmMetadata = JmmMetadata(
         "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ),
     home = "https://www.bfmeta.info/",
-    server = JmmMetadata.MainServer(root = "/assets", entry = "/bfs.bfm.js")
+    server = JmmMetadata.MainServer(root = "file:///bundle", entry = "/cot.worker.js")
 )
 
