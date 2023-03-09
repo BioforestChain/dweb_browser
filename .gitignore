@@ -26,4 +26,7 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+
+#plugins
 ./plugins/build
+./plugins/demo/src/index.js
