@@ -1,5 +1,5 @@
 import { BasePlugin } from "../basePlugin.ts";
-import { AnimationOptions, BackgroundColorOptions, SetOverlaysWebViewOptions, StatusBarInfo, StyleOptions } from "./statusbar.type.ts";
+import { AnimationOptions, BackgroundColorOptions, SetOverlaysWebViewOptions, StatusBarInfo, StyleOptions, Style } from "./statusbar.type.ts";
 /**
  * 访问 statusbar 能力的插件
  * 
@@ -12,7 +12,13 @@ import { AnimationOptions, BackgroundColorOptions, SetOverlaysWebViewOptions, St
  */
 export class StatusbarPlugin extends BasePlugin {
 
-    constructor(readonly mmid = "statusBar.sys.dweb") {
+    private _visible: boolean = true;
+    private _style: Style = Style.Default ;
+    private _color: string = "";
+    private _overlays: boolean = false;
+
+    // mmid 最好全部采用小写，防止出现不可预期的意外
+    constructor(readonly mmid = "statusbar.sys.dweb") {
         super(mmid, "StatusBar")
     }
 
@@ -24,11 +30,27 @@ export class StatusbarPlugin extends BasePlugin {
      * @param a 0~1
      */
     async setBackgroundColor(options: BackgroundColorOptions): Promise<void> {
-
+        
     }
-    // 支持 light | dark | defalt
-    async setStyle(style: StyleOptions) {
+    // 支持 LIGHT | DARK | DEFAULT
+    async setStyle(styleOptions: StyleOptions) {
+        const request = new Request(
+            `/api?app_id=${this.mmid}&action=set_style&value=${styleOptions.style}`, 
+            { 
+                method: "PUT",
+                headers: {
+                    "Content-type": "application/json"
+                }
+            }
+        )
 
+        return this.nativeFetch(request)
+                .then(res => {
+                    if(res.status === 200){ /** 如果成功 保存状态 */
+                        this._style = styleOptions.style;
+                    }
+                    return res;
+                })
     }
     /**
     * 显示状态栏。

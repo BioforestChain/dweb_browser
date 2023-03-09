@@ -5,6 +5,7 @@ const path = require('path')
 const app = express();
       app.get('/', routeIndex);
       app.get('/index.js', routerIndexJs)
+      app.put('/api', routeApi)
 
 const server = app.listen(8080, '127.0.0.1', () => {
   console.log(`服务器运行在 http://${server.address().address}:${server.address().port}`);
@@ -42,4 +43,65 @@ async function routerIndexJs(req, res){
   readableStream.on('end', () => {
     res.end()
   })
+}
+
+/**
+ * 处理 /api 的fetch 服务
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function routeApi(req, res){
+  switch(req.query.app_id){
+    case "statusbar.sys.dweb":
+      onRouteApiStatusbar(req, res);
+      break;
+    default: onRouteApiDefault(req, res)
+
+  }
+  console.log("query: ", req.query)
+
+}
+
+async function onRouteApiStatusbar(req, res){
+  switch(req.query.action){
+    case "set_style":
+      onRouteApiStatusbarSetStyle(req, res);
+      break;
+    default:
+      onRouteApiStatusbarDefault(req, res);
+      break;
+  }
+}
+
+async function onRouteApiStatusbarSetStyle(req, res){
+  const value = req.query.value;
+  if(value === "LIGHT" || value === "DARK" || value === "DEFAULT"){
+    res.setHeader('content-type', "text/plain")
+    res.statusCode = 200;
+    res.send('ok')
+    res.end()
+    return;
+  }
+
+  res.setHeader('content-type', "text/plain");
+  res.statusCode = 400;
+  res.send('非法的 value ')
+  res.end();
+}
+
+async function onRouteApiStatusbarDefault(req, res){
+  res.setHeader('content-type', "text/plain");
+  res.statusCode = 400;
+  res.send('非法的 action ')
+  res.end();
+}
+
+
+
+
+async function onRouteApiDefault(req, res){
+  res.setHeader("content-type", "text/plain")
+  res.statusCode = 404
+  res.send('not found')
+  res.end()
 }

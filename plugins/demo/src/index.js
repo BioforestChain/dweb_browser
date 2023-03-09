@@ -55,7 +55,6 @@ function createMergeProxy(baseObj, extObj) {
   });
 }
 
-<<<<<<< HEAD
 // build/plugin/esm/src/components/registerPlugin.js
 var hiJackCapacitorPlugin = dntGlobalThis.Capacitor?.Plugins;
 var registerWebPlugin = (plugin) => {
@@ -65,42 +64,12 @@ var registerWebPlugin = (plugin) => {
         if (key === plugin.proxy) {
           return plugin;
         }
-=======
-// ../build/plugin/esm/src/components/registerPlugin.js
-var Plugins = class {
-  constructor() {
-    Object.defineProperty(this, "map", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: /* @__PURE__ */ new Map()
-    });
-    Object.defineProperty(this, "registerWebPlugin", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: (plugin) => {
-        this.map.set(plugin.proxy, plugin);
->>>>>>> 426cd67 (✅ 添加 demo 测试)
       }
     });
   }
 };
-<<<<<<< HEAD
 
 // build/plugin/node_modules/image-capture/src/imagecapture.js
-=======
-var plugins = new Plugins();
-dntGlobalThis.Capacitor ? "" : dntGlobalThis.Capacitor = { Plugins: {} };
-dntGlobalThis.Capacitor.Plugins = new Proxy({}, {
-  get(_target, proxy, receiver) {
-    return plugins.map.get(proxy);
-  }
-});
-var registerWebPlugin = plugins.registerWebPlugin;
-
-// ../build/plugin/node_modules/image-capture/src/imagecapture.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var ImageCapture = window.ImageCapture;
 if (typeof ImageCapture === "undefined") {
   ImageCapture = class {
@@ -228,20 +197,12 @@ if (typeof ImageCapture === "undefined") {
 }
 window.ImageCapture = ImageCapture;
 
-<<<<<<< HEAD
 // build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
-=======
-// ../build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var isPromiseLike = (value) => {
   return value instanceof Object && typeof value.then === "function";
 };
 
-<<<<<<< HEAD
 // build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
-=======
-// ../build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var PromiseOut = class {
   constructor() {
     Object.defineProperty(this, "promise", {
@@ -423,11 +384,7 @@ var PromiseOut = class {
   }
 };
 
-<<<<<<< HEAD
 // build/plugin/esm/src/helper/createSignal.js
-=======
-// ../build/plugin/esm/src/helper/createSignal.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var createSignal = () => {
   return new Signal();
 };
@@ -469,11 +426,7 @@ var Signal = class {
   }
 };
 
-<<<<<<< HEAD
 // build/plugin/esm/src/components/basePlugin.js
-=======
-// ../build/plugin/esm/src/components/basePlugin.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var BasePlugin = class extends HTMLElement {
   // mmid:为对应组件的名称，proxy:为劫持对象的属性
   constructor(mmid, proxy) {
@@ -501,20 +454,12 @@ var BasePlugin = class extends HTMLElement {
     if (url instanceof Request) {
       return fetch(url, init);
     }
-<<<<<<< HEAD
     const api = globalThis.location.host.replace("www", "api");
     return fetch(`https://${api}${url}`, init);
   }
 };
 
 // build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
-=======
-    return fetch(new URL(url, this.mmid), init);
-  }
-};
-
-// ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var SupportedFormat;
 (function(SupportedFormat2) {
   SupportedFormat2["UPC_A"] = "UPC_A";
@@ -543,11 +488,7 @@ var CameraDirection;
   CameraDirection2["BACK"] = "environment";
 })(CameraDirection || (CameraDirection = {}));
 
-<<<<<<< HEAD
 // build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
-=======
-// ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var BarcodeScanner = class extends BasePlugin {
   constructor(mmid = "scanning.sys.dweb") {
     super(mmid, "BarcodeScanner");
@@ -815,11 +756,7 @@ var BarcodeScanner = class extends BasePlugin {
   }
 };
 
-<<<<<<< HEAD
 // build/plugin/esm/src/components/barcode-scanner/index.js
-=======
-// ../build/plugin/esm/src/components/barcode-scanner/index.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 customElements.define("dweb-scanner", BarcodeScanner);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 function documentOnDOMContentLoaded() {
@@ -828,11 +765,129 @@ function documentOnDOMContentLoaded() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 }
 
-<<<<<<< HEAD
-// build/plugin/esm/src/components/navigator-bar/navigator.events.js
-=======
-// ../build/plugin/esm/src/components/navigator-bar/navigator.events.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
+
+// ../build/plugin/esm/src/components/statusbar/statusbar.type.js
+var Style;
+(function(Style2) {
+  Style2["Dark"] = "DARK";
+  Style2["Light"] = "LIGHT";
+  Style2["Default"] = "DEFAULT";
+})(Style || (Style = {}));
+var Animation;
+(function(Animation2) {
+  Animation2["None"] = "NONE";
+  Animation2["Slide"] = "SLIDE";
+  Animation2["Fade"] = "FADE";
+})(Animation || (Animation = {}));
+
+// ../build/plugin/esm/src/components/statusbar/statusbar.plugin.js
+var StatusbarPlugin = class extends BasePlugin {
+  // mmid 最好全部采用小写，防止出现不可预期的意外
+  constructor(mmid = "statusbar.sys.dweb") {
+    super(mmid, "StatusBar");
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+    Object.defineProperty(this, "_visible", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: true
+    });
+    Object.defineProperty(this, "_style", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: Style.Default
+    });
+    Object.defineProperty(this, "_color", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: ""
+    });
+    Object.defineProperty(this, "_overlays", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: false
+    });
+  }
+  /**
+   * 设置状态栏背景色
+   * @param r 0~255
+   * @param g 0~255
+   * @param b 0~255
+   * @param a 0~1
+   */
+  async setBackgroundColor(options) {
+  }
+  // 支持 LIGHT | DARK | DEFAULT
+  async setStyle(styleOptions) {
+    const request = new Request(`/api?app_id=${this.mmid}&action=set_style&value=${styleOptions.style}`, {
+      method: "PUT",
+      headers: {
+        "Content-type": "application/json"
+      }
+    });
+    return this.nativeFetch(request).then((res) => {
+      if (res.status === 200) {
+        this._style = styleOptions.style;
+      }
+      return res;
+    });
+  }
+  /**
+  * 显示状态栏。
+  * 在 iOS 上，如果状态栏最初是隐藏的，并且初始样式设置为
+  * `UIStatusBarStyleLightContent`，第一次显示调用可能会在
+  * 动画将文本显示为深色然后过渡为浅色。 值得推荐
+  * 在第一次调用时使用 `Animation.None` 作为动画。
+  *
+  * @since 1.0.0
+  */
+  async show(options) {
+  }
+  /**
+   * Hide the status bar.
+   *
+   * @since 1.0.0
+   */
+  async hide(options) {
+  }
+  /**
+  * 获取有关状态栏当前状态的信息。
+  *
+  * @since 1.0.0
+  */
+  // async getInfo(): Promise<StatusBarInfo> {
+  //     return { visible :}
+  // }
+  /**
+  * 设置状态栏是否应该覆盖 webview 以允许使用
+  * 它下面的空间。
+  *
+  * 此方法仅在 Android 上支持。
+  *
+  * @since 1.0.0
+  */
+  async setOverlaysWebView(options) {
+  }
+};
+
+// ../build/plugin/esm/src/components/statusbar/index.js
+customElements.define("dweb-statusbar", StatusbarPlugin);
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
+function documentOnDOMContentLoaded2() {
+  const el = new StatusbarPlugin();
+  document.body.append(el);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
+}
+
+
 var NavigationBarPluginEvents;
 (function(NavigationBarPluginEvents2) {
   NavigationBarPluginEvents2["SHOW"] = "onShow";
@@ -840,11 +895,7 @@ var NavigationBarPluginEvents;
   NavigationBarPluginEvents2["COLOR_CHANGE"] = "onColorChange";
 })(NavigationBarPluginEvents || (NavigationBarPluginEvents = {}));
 
-<<<<<<< HEAD
 // build/plugin/esm/src/components/navigator-bar/navigator-bar.js
-=======
-// ../build/plugin/esm/src/components/navigator-bar/navigator-bar.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var Navigatorbar = class extends BasePlugin {
   constructor(mmid = "navigationBar.sys.dweb") {
     super(mmid, "NavigationBar");
@@ -923,11 +974,7 @@ var Navigatorbar = class extends BasePlugin {
   }
 };
 
-<<<<<<< HEAD
 // build/plugin/esm/src/components/navigator-bar/navigator.type.js
-=======
-// ../build/plugin/esm/src/components/navigator-bar/navigator.type.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 var NAVIGATION_BAR_COLOR;
 (function(NAVIGATION_BAR_COLOR2) {
   NAVIGATION_BAR_COLOR2["TRANSPARENT"] = "#00000000";
@@ -935,20 +982,15 @@ var NAVIGATION_BAR_COLOR;
   NAVIGATION_BAR_COLOR2["BLACK"] = "#000000";
 })(NAVIGATION_BAR_COLOR || (NAVIGATION_BAR_COLOR = {}));
 
-<<<<<<< HEAD
 // build/plugin/esm/src/components/navigator-bar/index.js
-=======
-// ../build/plugin/esm/src/components/navigator-bar/index.js
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 customElements.define("dweb-navigator", Navigatorbar);
-document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
-function documentOnDOMContentLoaded2() {
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
+function documentOnDOMContentLoaded3() {
   const el = new Navigatorbar();
   document.body.append(el);
-  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
 }
 
-<<<<<<< HEAD
 // build/plugin/esm/src/components/statusbar/statusbar.plugin.js
 var StatusbarPlugin = class extends BasePlugin {
   constructor(mmid = "statusBar.sys.dweb") {
@@ -1169,15 +1211,6 @@ $("toast-show").addEventListener("click", async () => {
     console.log("show result=>", await result);
   }
 });
-=======
-// ../build/plugin/esm/src/components/index.js
-registerWebPlugin(new Navigatorbar());
-registerWebPlugin(new BarcodeScanner());
-export {
-  NavigationBarPluginEvents,
-  Navigatorbar
-};
->>>>>>> 426cd67 (✅ 添加 demo 测试)
 /*! Bundled license information:
 
 image-capture/src/imagecapture.js:
