@@ -2,7 +2,8 @@
   "name": "deno",
   "type": "module",
   "scripts": {
-    "build": "esbuild ./src/index.ts --bundle --outfile=./src/index.js"
+    "build": "esbuild ./src/index.ts --bundle --outfile=./src/index.js",
+    "bundle:plugins": "esbuild ../build/plugin/esm/src/index.js --outfile=./src/index.js --bundle --format=esm"
   },
   "dependencies": {}
 }

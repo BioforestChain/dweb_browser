@@ -1,6 +1,6 @@
 // build/plugin/esm/_dnt.polyfills.js
 if (!String.prototype.replaceAll) {
-  String.prototype.replaceAll = function (str, newStr) {
+  String.prototype.replaceAll = function(str, newStr) {
     if (Object.prototype.toString.call(str).toLowerCase() === "[object regexp]") {
       return this.replace(str, newStr);
     }
@@ -65,7 +65,7 @@ function createMergeProxy(baseObj, extObj) {
   });
 }
 
-// ../build/plugin/esm/src/components/registerPlugin.js
+// build/plugin/esm/src/components/registerPlugin.js
 var Plugins = class {
   constructor() {
     Object.defineProperty(this, "map", {
@@ -93,7 +93,7 @@ dntGlobalThis.Capacitor.Plugins = new Proxy({}, {
 });
 var registerWebPlugin = plugins.registerWebPlugin;
 
-// ../build/plugin/node_modules/image-capture/src/imagecapture.js
+// build/plugin/node_modules/image-capture/src/imagecapture.js
 var ImageCapture = window.ImageCapture;
 if (typeof ImageCapture === "undefined") {
   ImageCapture = class {
@@ -221,12 +221,12 @@ if (typeof ImageCapture === "undefined") {
 }
 window.ImageCapture = ImageCapture;
 
-// ../build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
+// build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-is/index.js
 var isPromiseLike = (value) => {
   return value instanceof Object && typeof value.then === "function";
 };
 
-// ../build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
+// build/plugin/esm/deps/deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.js
 var PromiseOut = class {
   constructor() {
     Object.defineProperty(this, "promise", {
@@ -455,7 +455,7 @@ var Signal = class {
   }
 };
 
-// ../build/plugin/esm/src/components/basePlugin.js
+// build/plugin/esm/src/components/basePlugin.js
 var BasePlugin = class extends HTMLElement {
   // mmid:为对应组件的名称，proxy:为劫持对象的属性
   constructor(mmid, proxy) {
@@ -490,9 +490,9 @@ var BasePlugin = class extends HTMLElement {
   }
 };
 
-// ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
+// build/plugin/esm/src/components/barcode-scanner/barcodeScanner.type.js
 var SupportedFormat;
-(function (SupportedFormat2) {
+(function(SupportedFormat2) {
   SupportedFormat2["UPC_A"] = "UPC_A";
   SupportedFormat2["UPC_E"] = "UPC_E";
   SupportedFormat2["UPC_EAN_EXTENSION"] = "UPC_EAN_EXTENSION";
@@ -514,12 +514,12 @@ var SupportedFormat;
   SupportedFormat2["RSS_EXPANDED"] = "RSS_EXPANDED";
 })(SupportedFormat || (SupportedFormat = {}));
 var CameraDirection;
-(function (CameraDirection2) {
+(function(CameraDirection2) {
   CameraDirection2["FRONT"] = "user";
   CameraDirection2["BACK"] = "environment";
 })(CameraDirection || (CameraDirection = {}));
 
-// ../build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
+// build/plugin/esm/src/components/barcode-scanner/barcodeScanner.plugin.js
 var BarcodeScanner = class extends BasePlugin {
   constructor(mmid = "scanning.sys.dweb") {
     super(mmid, "BarcodeScanner");
@@ -787,7 +787,7 @@ var BarcodeScanner = class extends BasePlugin {
   }
 };
 
-// ../build/plugin/esm/src/components/barcode-scanner/index.js
+// build/plugin/esm/src/components/barcode-scanner/index.js
 customElements.define("dweb-scanner", BarcodeScanner);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 function documentOnDOMContentLoaded() {
@@ -796,15 +796,15 @@ function documentOnDOMContentLoaded() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded);
 }
 
-// ../build/plugin/esm/src/components/navigator-bar/navigator.events.js
+// build/plugin/esm/src/components/navigator-bar/navigator.events.js
 var NavigationBarPluginEvents;
-(function (NavigationBarPluginEvents2) {
+(function(NavigationBarPluginEvents2) {
   NavigationBarPluginEvents2["SHOW"] = "onShow";
   NavigationBarPluginEvents2["HIDE"] = "onHide";
   NavigationBarPluginEvents2["COLOR_CHANGE"] = "onColorChange";
 })(NavigationBarPluginEvents || (NavigationBarPluginEvents = {}));
 
-// ../build/plugin/esm/src/components/navigator-bar/navigator-bar.js
+// build/plugin/esm/src/components/navigator-bar/navigator-bar.js
 var Navigatorbar = class extends BasePlugin {
   constructor(mmid = "navigationBar.sys.dweb") {
     super(mmid, "NavigationBar");
@@ -883,15 +883,15 @@ var Navigatorbar = class extends BasePlugin {
   }
 };
 
-// ../build/plugin/esm/src/components/navigator-bar/navigator.type.js
+// build/plugin/esm/src/components/navigator-bar/navigator.type.js
 var NAVIGATION_BAR_COLOR;
-(function (NAVIGATION_BAR_COLOR2) {
+(function(NAVIGATION_BAR_COLOR2) {
   NAVIGATION_BAR_COLOR2["TRANSPARENT"] = "#00000000";
   NAVIGATION_BAR_COLOR2["WHITE"] = "#ffffff";
   NAVIGATION_BAR_COLOR2["BLACK"] = "#000000";
 })(NAVIGATION_BAR_COLOR || (NAVIGATION_BAR_COLOR = {}));
 
-// ../build/plugin/esm/src/components/navigator-bar/index.js
+// build/plugin/esm/src/components/navigator-bar/index.js
 customElements.define("dweb-navigator", Navigatorbar);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
 function documentOnDOMContentLoaded2() {
@@ -932,13 +932,13 @@ function convertToRGBAHex(color) {
 
 // build/plugin/esm/src/components/statusbar/statusbar.type.js
 var StatusbarStyle;
-(function (StatusbarStyle2) {
+(function(StatusbarStyle2) {
   StatusbarStyle2["Dark"] = "DARK";
   StatusbarStyle2["Light"] = "LIGHT";
   StatusbarStyle2["Default"] = "DEFAULT";
 })(StatusbarStyle || (StatusbarStyle = {}));
 var EStatusBarAnimation;
-(function (EStatusBarAnimation2) {
+(function(EStatusBarAnimation2) {
   EStatusBarAnimation2["None"] = "NONE";
   EStatusBarAnimation2["Slide"] = "SLIDE";
   EStatusBarAnimation2["Fade"] = "FADE";
@@ -965,7 +965,7 @@ var StatusbarPlugin = class extends BasePlugin {
       enumerable: true,
       configurable: true,
       writable: true,
-      value: Style.Default
+      value: StatusbarStyle.Default
     });
     Object.defineProperty(this, "_color", {
       enumerable: true,
@@ -1061,7 +1061,7 @@ var StatusbarPlugin = class extends BasePlugin {
   }
 };
 
-// ../build/plugin/esm/src/components/statusbar/index.js
+// build/plugin/esm/src/components/statusbar/index.js
 customElements.define("dweb-statusbar", StatusbarPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
 function documentOnDOMContentLoaded3() {
@@ -1070,7 +1070,7 @@ function documentOnDOMContentLoaded3() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
 }
 
-// ../build/plugin/esm/src/components/toast/toast.plugin.js
+// build/plugin/esm/src/components/toast/toast.plugin.js
 var ToastPlugin = class extends BasePlugin {
   constructor(mmid = "toast.sys.dweb") {
     super(mmid, "Toast");
@@ -1156,7 +1156,7 @@ var ToastPlugin = class extends BasePlugin {
   }
 };
 
-// ../build/plugin/esm/src/components/toast/index.js
+// build/plugin/esm/src/components/toast/index.js
 customElements.define("dweb-toast", ToastPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
 function documentOnDOMContentLoaded4() {
@@ -1165,7 +1165,7 @@ function documentOnDOMContentLoaded4() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
 }
 
-// ../build/plugin/esm/src/components/torch/torch.plugin.js
+// build/plugin/esm/src/components/torch/torch.plugin.js
 var TorchPlugin = class extends BasePlugin {
   constructor(mmid = "torch.sys.dweb") {
     super(mmid, "Torch");
@@ -1190,7 +1190,7 @@ var TorchPlugin = class extends BasePlugin {
   }
 };
 
-// ../build/plugin/esm/src/components/torch/index.js
+// build/plugin/esm/src/components/torch/index.js
 customElements.define("dweb-torch", TorchPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded5);
 function documentOnDOMContentLoaded5() {
@@ -1199,7 +1199,7 @@ function documentOnDOMContentLoaded5() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded5);
 }
 
-// ../build/plugin/esm/src/components/index.js
+// build/plugin/esm/src/components/index.js
 registerWebPlugin(new Navigatorbar());
 registerWebPlugin(new BarcodeScanner());
 registerWebPlugin(new StatusbarPlugin());

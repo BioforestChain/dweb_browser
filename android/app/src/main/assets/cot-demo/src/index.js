@@ -66,18 +66,32 @@ function createMergeProxy(baseObj, extObj) {
 }
 
 // build/plugin/esm/src/components/registerPlugin.js
-var hiJackCapacitorPlugin = dntGlobalThis.Capacitor?.Plugins;
-var registerWebPlugin = (plugin) => {
-  if (hiJackCapacitorPlugin) {
-    new Proxy(hiJackCapacitorPlugin, {
-      get(_target, key) {
-        if (key === plugin.proxy) {
-          return plugin;
-        }
+var Plugins = class {
+  constructor() {
+    Object.defineProperty(this, "map", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: /* @__PURE__ */ new Map()
+    });
+    Object.defineProperty(this, "registerWebPlugin", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: (plugin) => {
+        this.map.set(plugin.proxy, plugin);
       }
     });
   }
 };
+var plugins = new Plugins();
+dntGlobalThis.Capacitor ? "" : dntGlobalThis.Capacitor = { Plugins: {} };
+dntGlobalThis.Capacitor.Plugins = new Proxy({}, {
+  get(_target, proxy, receiver) {
+    return plugins.map.get(proxy);
+  }
+});
+var registerWebPlugin = plugins.registerWebPlugin;
 
 // build/plugin/node_modules/image-capture/src/imagecapture.js
 var ImageCapture = window.ImageCapture;
@@ -932,13 +946,38 @@ var EStatusBarAnimation;
 
 // build/plugin/esm/src/components/statusbar/statusbar.plugin.js
 var StatusbarPlugin = class extends BasePlugin {
-  constructor(mmid = "statusBar.sys.dweb") {
+  // mmid 最好全部采用小写，防止出现不可预期的意外
+  constructor(mmid = "statusbar.sys.dweb") {
     super(mmid, "StatusBar");
     Object.defineProperty(this, "mmid", {
       enumerable: true,
       configurable: true,
       writable: true,
       value: mmid
+    });
+    Object.defineProperty(this, "_visible", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: true
+    });
+    Object.defineProperty(this, "_style", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: StatusbarStyle.Default
+    });
+    Object.defineProperty(this, "_color", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: ""
+    });
+    Object.defineProperty(this, "_overlays", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: false
     });
   }
   /**

@@ -1,6 +1,6 @@
 import { convertToRGBAHex } from "../../helper/color.ts";
 import { BasePlugin } from "../basePlugin.ts";
-import { AnimationOptions, BackgroundColorOptions, IStatusBarPlugin, SetOverlaysWebViewOptions, EStatusBarAnimation, StatusBarInfo, StyleOptions } from "./statusbar.type.ts";
+import { AnimationOptions, BackgroundColorOptions, IStatusBarPlugin, SetOverlaysWebViewOptions, EStatusBarAnimation, StatusBarInfo, StyleOptions, StatusbarStyle } from "./statusbar.type.ts";
 /**
  * 访问 statusbar 能力的插件
  * 
@@ -14,7 +14,7 @@ import { AnimationOptions, BackgroundColorOptions, IStatusBarPlugin, SetOverlays
 export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
 
     private _visible: boolean = true;
-    private _style: Style = Style.Default;
+    private _style: StatusbarStyle = StatusbarStyle.Default;
     private _color: string = "";
     private _overlays: boolean = false;
 
