@@ -1,7 +1,7 @@
 {
   "tasks": {
     "android": "deno task build && deno task demo",
-    "demo:test": "deno task build && cd ./demo && pnpm bundle:plugins",
+    "desktop": "deno run -A ./build.ts && node ./scripts/async-desktop.cjs",
     "build": "deno run -A ./scripts/build_npm.ts",
     "pub": "deno run -A ./scripts/pub_npm.ts",
     "link": "chmod 777 ./scripts/link.sh && ./scripts/link.sh",
