@@ -12,14 +12,13 @@ typealias AppRun = (_ options: NativeOptions) -> Any
 typealias Router = [String:AppRun]
 typealias Mmid = String
 
+protocol MicroModuleInfo {
+    var mmid: Mmid { get }
+}
+
 /** 微组件抽象类 */
-class MicroModule {
+class MicroModule: MicroModuleInfo {
     var mmid: Mmid = ""
-    var routers: Router? {
-        get {
-            nil
-        }
-    }
     
     internal func _bootstrap() async throws {}
     private var runningStateLock = false

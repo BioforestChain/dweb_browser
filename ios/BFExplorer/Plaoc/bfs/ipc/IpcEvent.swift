@@ -1,38 +1,22 @@
 //
-//  IpcStreamData.swift
+//  IpcEvent.swift
 //  BFExplorer
 //
-//  Created by ui08 on 2023/2/8.
+//  Created by ui08 on 2023/3/10.
 //
 
 import Foundation
 
-struct IpcStreamData {
-    var type: IPC_MESSAGE_TYPE = .stream_data
-    let stream_id: String
-    let data: IpcEvent.IpcEventData
+struct IpcEvent {
+    var type: IPC_MESSAGE_TYPE = .event
+    
+    let name: String
+    let data: IpcEventData /* String or Data */
     let encoding: IPC_DATA_ENCODING
     
-    init(stream_id: String, data: IpcEvent.IpcEventData, encoding: IPC_DATA_ENCODING) {
-        self.stream_id = stream_id
-        self.data = data
-        self.encoding = encoding
-    }
-    
-    static func fromBinary(stream_id: String, data: Data) -> IpcStreamData {
-        IpcStreamData(stream_id: stream_id, data: IpcEvent.IpcEventData(string: nil, data: data), encoding: .binary)
-    }
-    
-    static func fromBase64(stream_id: String, data: Data) -> IpcStreamData {
-        IpcStreamData(stream_id: stream_id, data: IpcEvent.IpcEventData(string: nil, data: data), encoding: .base64)
-    }
-    
-    static func fromUtf8(stream_id: String, data: Data) -> IpcStreamData {
-        fromUtf8(stream_id: stream_id, data: String(data: data, encoding: .utf8)!)
-    }
-    
-    static func fromUtf8(stream_id: String, data: String) -> IpcStreamData {
-        IpcStreamData(stream_id: stream_id, data: IpcEvent.IpcEventData(string: data, data: nil), encoding: .utf8)
+    struct IpcEventData: Codable {
+        let string: String?
+        let data: Data?
     }
     
     lazy var binary: Data = {
@@ -44,10 +28,10 @@ struct IpcStreamData {
     }()
 }
 
-extension IpcStreamData: IpcMessage {
+extension IpcEvent: IpcMessage {
     enum CodeKey: CodingKey {
         case type
-        case stream_id
+        case name
         case data
         case encoding
     }
@@ -55,24 +39,25 @@ extension IpcStreamData: IpcMessage {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodeKey.self)
         type = try values.decode(IPC_MESSAGE_TYPE.self, forKey: .type)
-        stream_id = try values.decode(String.self, forKey: .stream_id)
+        name = try values.decode(String.self, forKey: .name)
         encoding = try values.decode(IPC_DATA_ENCODING.self, forKey: .encoding)
         
         let value = try values.decode(String.self, forKey: .data)
 //        switch encoding {
 //        case .binary:
-//            data = IpcEvent.IpcEventData(string: nil, data: value.fromUtf8())
+//            data = IpcEventData(string: nil, data: value.fromUtf8())
 //        case .base64, .utf8:
-//            data = IpcEvent.IpcEventData(string: value, data: nil)
+//            data = IpcEventData(string: value, data: nil)
+//        default:
+//            fatalError("encoding type unknown, can not deserialize data")
 //        }
-        
-        data = IpcEvent.IpcEventData(string: value, data: nil)
+        data = IpcEventData(string: value, data: nil)
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodeKey.self)
         try container.encode(type, forKey: .type)
-        try container.encode(stream_id, forKey: .stream_id)
+        try container.encode(name, forKey: .name)
         try container.encode(encoding, forKey: .encoding)
         
 //        switch encoding {
@@ -80,8 +65,9 @@ extension IpcStreamData: IpcMessage {
 //            try container.encode(String(data: data.data!, encoding: .utf8), forKey: .data)
 //        case .base64, .utf8:
 //            try container.encode(data.string!, forKey: .data)
+//        default:
+//            fatalError("encoding type unknown, can not serialize data")
 //        }
-        
         if data.string != nil {
             try container.encode(data.string!, forKey: .data)
         } else if data.data != nil {

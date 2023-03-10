@@ -59,17 +59,27 @@ class JsProcessNMM: NativeMicroModule {
         
         let apis = getJsProcessWebApi(urlInfo: mainServer.startResult.urlInfo)
         
-        let app = HttpServer.app
-        let group = app.grouped("\(self.mmid)")
-        _ = group.on(.POST, ["create-process"]) { request, ipc in
+        let createProcessRouteHandler: RouterHandler = { request, ipc async in
             let main_pathname = request.query[String.self, at: "main_pathname"]
             return await self.createProcessAndRun(ipc: ipc!, apis: apis, main_pathname: main_pathname!, requestMessage: request)
         }
-        _ = group.on(.GET, ["create-ipc"], use: { request, _ in
+        let createIpcRouteHandler: RouterHandler = { request, _ async in
             let process_id = request.query[Int.self, at: "process_id"]
             await apis.createIpc(process_id: process_id!)
             return Response(status: .ok)
-        })
+        }
+        apiRouting["\(self.mmid)/create-process"] = createProcessRouteHandler
+        apiRouting["\(self.mmid)/create-ipc"] = createIpcRouteHandler
+        
+        // 添加路由处理方法到http路由中
+        let app = HttpServer.app
+        let group = app.grouped("\(mmid)")
+        let httpHandler: (Request) async throws -> Response = { request async in
+            await self.defineHandler(request: request)
+        }
+        for pathComponent in ["create-process", "create-ipc"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
+        }
     }
     
     private func createProcessAndRun(

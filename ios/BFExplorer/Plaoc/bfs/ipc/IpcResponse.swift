@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 
 final class IpcResponse {
-    var type: IPC_DATA_TYPE = .response
+    var type: IPC_MESSAGE_TYPE = .response
     var req_id: Int
     var statusCode: Int
     var headers: IpcHeaders
@@ -107,7 +107,7 @@ final class IpcResponse {
 }
 
 struct IpcResMessage: IpcMessage {
-    var type: IPC_DATA_TYPE = .response
+    var type: IPC_MESSAGE_TYPE = .response
     let req_id: Int
     let statusCode: Int
     let headers: IpcHeaders

@@ -242,6 +242,11 @@
 		F3A74EAE298BC21D008614BD /* JsProcessNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74EAD298BC21D008614BD /* JsProcessNMM.swift */; };
 		F3A74EB029933227008614BD /* Operator_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74EAF29933227008614BD /* Operator_extension.swift */; };
 		F3A74EB2299388B4008614BD /* HttpNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A74EB1299388B4008614BD /* HttpNMM.swift */; };
+		F3ABA06629BAB330008615C0 /* BootstrapContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06529BAB330008615C0 /* BootstrapContext.swift */; };
+		F3ABA06829BAB3AC008615C0 /* NativeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06729BAB3AC008615C0 /* NativeConnect.swift */; };
+		F3ABA06A29BAB49E008615C0 /* AdapterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06929BAB49E008615C0 /* AdapterManager.swift */; };
+		F3ABA06C29BAC541008615C0 /* IpcEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06B29BAC541008615C0 /* IpcEvent.swift */; };
+		F3ABA06E29BAE82C008615C0 /* MetaBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06D29BAE82C008615C0 /* MetaBody.swift */; };
 		F3D953F72999CDFF00ED08C1 /* CommonStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EB2999CDFF00ED08C1 /* CommonStruct.swift */; };
 		F3D953F82999CDFF00ED08C1 /* CreateSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EC2999CDFF00ED08C1 /* CreateSignal.swift */; };
 		F3D953F92999CDFF00ED08C1 /* ipcConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EE2999CDFF00ED08C1 /* ipcConst.swift */; };
@@ -503,6 +508,11 @@
 		F3A74EAD298BC21D008614BD /* JsProcessNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsProcessNMM.swift; sourceTree = "<group>"; };
 		F3A74EAF29933227008614BD /* Operator_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operator_extension.swift; sourceTree = "<group>"; };
 		F3A74EB1299388B4008614BD /* HttpNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpNMM.swift; sourceTree = "<group>"; };
+		F3ABA06529BAB330008615C0 /* BootstrapContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootstrapContext.swift; sourceTree = "<group>"; };
+		F3ABA06729BAB3AC008615C0 /* NativeConnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeConnect.swift; sourceTree = "<group>"; };
+		F3ABA06929BAB49E008615C0 /* AdapterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdapterManager.swift; sourceTree = "<group>"; };
+		F3ABA06B29BAC541008615C0 /* IpcEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcEvent.swift; sourceTree = "<group>"; };
+		F3ABA06D29BAE82C008615C0 /* MetaBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaBody.swift; sourceTree = "<group>"; };
 		F3D953EB2999CDFF00ED08C1 /* CommonStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonStruct.swift; sourceTree = "<group>"; };
 		F3D953EC2999CDFF00ED08C1 /* CreateSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateSignal.swift; sourceTree = "<group>"; };
 		F3D953EE2999CDFF00ED08C1 /* ipcConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ipcConst.swift; sourceTree = "<group>"; };
@@ -1124,6 +1134,8 @@
 			children = (
 				F3A74EA3298A6078008614BD /* MicroModule.swift */,
 				F3A74E8B2987BA99008614BD /* NativeMicroModule.swift */,
+				F3ABA06529BAB330008615C0 /* BootstrapContext.swift */,
+				F3ABA06729BAB3AC008615C0 /* NativeConnect.swift */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -1198,6 +1210,7 @@
 				F334FCE029AF550C00DA520C /* PromiseOut.swift */,
 				F334FCE229B042DF00DA520C /* Response.swift */,
 				F354063329B817BD001C2AB5 /* Request.swift */,
+				F3ABA06929BAB49E008615C0 /* AdapterManager.swift */,
 			);
 			path = helper;
 			sourceTree = "<group>";
@@ -1212,6 +1225,7 @@
 				F3D953F02999CDFF00ED08C1 /* IpcBody.swift */,
 				F334FCD729ACBCCA00DA520C /* IpcBodyReceiver.swift */,
 				F334FCD929ACBCD800DA520C /* IpcBodySender.swift */,
+				F3ABA06B29BAC541008615C0 /* IpcEvent.swift */,
 				F3D953F12999CDFF00ED08C1 /* IpcStreamEnd.swift */,
 				F3D953F22999CDFF00ED08C1 /* IpcStreamData.swift */,
 				F3D953F32999CDFF00ED08C1 /* IpcStreamAbort.swift */,
@@ -1221,6 +1235,7 @@
 				F359A4A229A2F7050080EAD7 /* IpcMethod.swift */,
 				F359A4A629A3195F0080EAD7 /* NativeIpc.swift */,
 				F334FCC529A44F2B00DA520C /* ReadableStream.swift */,
+				F3ABA06D29BAE82C008615C0 /* MetaBody.swift */,
 			);
 			path = ipc;
 			sourceTree = "<group>";
@@ -1366,6 +1381,7 @@
 				F033021B28C73E1700BC0266 /* UIScreen+PKExtensions.swift in Sources */,
 				F091CBC82951B93B00FCE565 /* WebViewPool.swift in Sources */,
 				F091CBA32951B92700FCE565 /* RefreshManager.swift in Sources */,
+				F3ABA06E29BAE82C008615C0 /* MetaBody.swift in Sources */,
 				F3088F3D2987549C008E7F82 /* UserDefaultManager.swift in Sources */,
 				F0292DA12975502700C2E464 /* FWPopupView.swift in Sources */,
 				F0BADEB72986820100B8DCCF /* JSInjectManager.swift in Sources */,
@@ -1386,6 +1402,7 @@
 				1903646426ED07F600B82B1C /* UIColor+Helpers.swift in Sources */,
 				19EE04C026FA0D0800C41C1B /* URLValidator.swift in Sources */,
 				F359A4A729A3195F0080EAD7 /* NativeIpc.swift in Sources */,
+				F3ABA06629BAB330008615C0 /* BootstrapContext.swift in Sources */,
 				F091CB452951B90200FCE565 /* Data_extension.swift in Sources */,
 				19F17A1D26F695B200D4F9DE /* BrowserContainerViewController+Keyboard.swift in Sources */,
 				F033022128C73E1700BC0266 /* UIApplication+PKExtensions.swift in Sources */,
@@ -1393,6 +1410,7 @@
 				F3D953F72999CDFF00ED08C1 /* CommonStruct.swift in Sources */,
 				19128CE126FBFBAB0057E46D /* BrowserContainerViewController+ToolbarAnimation.swift in Sources */,
 				F033020F28C73E1700BC0266 /* UIBarButtonItem+PKExtensions.swift in Sources */,
+				F3ABA06829BAB3AC008615C0 /* NativeConnect.swift in Sources */,
 				F0292DA22975502700C2E464 /* FWSheetView.swift in Sources */,
 				F091CB182951B8E400FCE565 /* ScanPhotoViewController.swift in Sources */,
 				F01ABAD728D1745E0038AF9C /* Configuration.swift in Sources */,
@@ -1407,6 +1425,7 @@
 				F0292DA32975502700C2E464 /* FWPopupSWindow.swift in Sources */,
 				F3D953FC2999CDFF00ED08C1 /* IpcStreamEnd.swift in Sources */,
 				F3A74EB2299388B4008614BD /* HttpNMM.swift in Sources */,
+				F3ABA06A29BAB49E008615C0 /* AdapterManager.swift in Sources */,
 				F0BADEB02986820100B8DCCF /* BottomBarEntites.swift in Sources */,
 				F334FCE329B042DF00DA520C /* Response.swift in Sources */,
 				F091CBBA2951B92D00FCE565 /* NSFileManager+NVHFileSize.m in Sources */,
@@ -1566,6 +1585,7 @@
 				F091CBA52951B92700FCE565 /* NetworkMap.swift in Sources */,
 				F091CB832951B91900FCE565 /* NotificationManager.swift in Sources */,
 				1903644D26EB945900B82B1C /* BrowserTabViewController.swift in Sources */,
+				F3ABA06C29BAC541008615C0 /* IpcEvent.swift in Sources */,
 				F3A74EAE298BC21D008614BD /* JsProcessNMM.swift in Sources */,
 				1903645826EBB37700B82B1C /* BrowserToolbar.swift in Sources */,
 				19128CE326FC02D20057E46D /* BrowserContainerViewController+AddressBarsAnimation.swift in Sources */,

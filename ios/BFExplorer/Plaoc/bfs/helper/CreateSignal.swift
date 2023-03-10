@@ -23,11 +23,11 @@ class Signal<T> {
     typealias SignalClosure = (T) async -> Any?
     typealias OffListener = () async -> Bool
     
-    private var _cbs: Set<GenericsClosure<SignalClosure>> = []
+    private var listenerSet: Set<GenericsClosure<SignalClosure>> = []
 
     func listen(_ cb: @escaping SignalClosure) -> OffListener {
         let closureObj = GenericsClosure(closure: cb)
-        self._cbs.insert(closureObj)
+        self.listenerSet.insert(closureObj)
         
         return { 
             self.off(closureObj)
@@ -35,16 +35,16 @@ class Signal<T> {
     }
     
     func off(_ closureObj: GenericsClosure<SignalClosure>) -> Bool {
-        return (_cbs.remove(closureObj) != nil)
+        listenerSet.remove(closureObj) != nil
     }
     
     func emit(_ args: T) async {
-        for obj in _cbs {
+        for obj in listenerSet {
             let result = await obj.closure(args)
             if let result = result as? SIGNAL_CTOR {
                 switch result {
                 case .OFF:
-                    _cbs.remove(obj)
+                    listenerSet.remove(obj)
                 case .BREAK:
                     break
                 }
@@ -52,8 +52,8 @@ class Signal<T> {
         }
     }
     
-    func clear() {
-        _cbs.removeAll()
+    func clear() async {
+        listenerSet.removeAll()
     }
 }
 

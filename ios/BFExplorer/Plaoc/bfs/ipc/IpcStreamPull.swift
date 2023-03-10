@@ -7,20 +7,13 @@
 
 import Foundation
 
-struct IpcStreamPull: Codable {
-    var type: IPC_DATA_TYPE = .stream_pull
+struct IpcStreamPull {
+    var type: IPC_MESSAGE_TYPE = .stream_pull
     let stream_id: String
-    var desiredSize: Int?
+    var desiredSize: Int
     
-    init(stream_id: String, desiredSize: Int?) {
-        var _deisredSize = desiredSize
-        if _deisredSize == nil {
-            _deisredSize = 1
-        } else if _deisredSize! < 1 {
-            _deisredSize = 1
-        }
-        
-        self.desiredSize = _deisredSize
+    init(stream_id: String, desiredSize: Int = 1) {
+        self.desiredSize = desiredSize
         self.stream_id = stream_id
     }
 }

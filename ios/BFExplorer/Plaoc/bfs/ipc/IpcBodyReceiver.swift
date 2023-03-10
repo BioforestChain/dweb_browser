@@ -13,58 +13,105 @@ class IpcBodyReceiver: IpcBody {
     
     init(metaBody: MetaBody, ipc: Ipc) {
         self.ipc = ipc
-        super.init(metaBody: metaBody, body: nil)
+        super.init()
+        self.metaBody = metaBody
         
-        let data = IpcBodyReceiver.rawDataToBody(metaBody: metaBody, ipc: ipc)
-        if let data = data as? String {
-            bodyHub = BodyHub(text: data)
-            body = bodyHub
-        } else if let data = data as? Data {
-            bodyHub = BodyHub(u8a: data)
-            body = bodyHub
-        } else if let data = data as? StreamData {
-            bodyHub = BodyHub(stream: data)
-            body = bodyHub
+        if self.metaBody.type.isStream {
+            let cacheIpc = CACHE.metaId_receiverIpc_Map[self.metaBody.metaId]
+            
+            if cacheIpc == nil {
+                _ = ipc.onClose {
+                    CACHE.metaId_receiverIpc_Map.removeValue(forKey: self.metaBody.metaId)
+                    return .OFF
+                }
+                self.metaBody.receiverUid = ipc.uid
+                
+                CACHE.metaId_receiverIpc_Map[self.metaBody.metaId] = ipc
+            }
         }
     }
     
-    static func rawDataToBody(metaBody: MetaBody?, ipc: Ipc?) -> Any {
-        if metaBody == nil || ipc == nil {
-            return ""
-        }
+    private lazy var _bodyHub: IpcBody.BodyHub = {
+        var bodyHub = BodyHub()
 
-        var bodyEncoder: (Any) -> Any
-        bodyEncoder = ((metaBody!.type.rawValue & IPC_RAW_BODY_TYPE.binary.rawValue) != 0)
-            ? { data in return data as! Data }
-            : ((metaBody!.type.rawValue & IPC_RAW_BODY_TYPE.base64.rawValue) != 0)
-            ? { data in return (data as! String).to_b64_data()! }
-            : ((metaBody!.type.rawValue & IPC_RAW_BODY_TYPE.text.rawValue) != 0)
-            ? { data in return (data as! String).to_utf8_data()! }
-            : { data in fatalError("invalid rawBody type: \(metaBody!.type)")}
-
-        if (metaBody!.type.rawValue & IPC_RAW_BODY_TYPE.stream_id.rawValue) != 0 {
-            let stream_id = metaBody!.data.string!
-            let stream = ReadableStream(onStart: { controller in
-                _ = ipc!.onMessage { (message, ipc) in
-                    if let message = message as? IpcStreamData, message.stream_id == stream_id {
-    //                    let str = String(decoding: message.data, as: .)
-                        let str = String(decoding: bodyEncoder(message.data) as! Data, as: UTF8.self)
-
-                        controller.enqueue(ByteBuffer.init(string: str))
-                    } else if let message = message as? IpcStreamEnd, message.stream_id == stream_id {
-                        return .OFF
-                    }
-
-                    return nil
-                }
-            }, onPull: { (desiredSize, controller) in
-                await ipc!.postMessage(message: IpcStreamPull(stream_id: stream_id, desiredSize: desiredSize))
-            })
-            return IpcBodyReceiver.StreamData(stream: Data(reading: stream))
-        } else if (metaBody!.type.rawValue & IPC_RAW_BODY_TYPE.text.rawValue) != 0 {
-            return metaBody!.data.string!
+        if self.metaBody.type.isStream {
+            bodyHub.stream = IpcBodyReceiver.metaToStream(metaBody: self.metaBody, ipc: self.ipc)
+            bodyHub.data = bodyHub.stream
         } else {
-            return bodyEncoder(metaBody!.data.data!)
+            switch self.metaBody.type.encoding {
+            case .utf8:
+                bodyHub.text = self.metaBody.data.string!
+                bodyHub.data = bodyHub.text
+            case .binary:
+                bodyHub.u8a = self.metaBody.data.data!
+                bodyHub.data = bodyHub.u8a
+            case .base64:
+                bodyHub.u8a = self.metaBody.data.string!.fromBase64()!
+                bodyHub.data = bodyHub.u8a
+            default:
+                fatalError("invalid metaBody type: \(self.metaBody.type)")
+            }
         }
+        
+//        switch data {
+//        case is String:
+//            bodyHub.text = data as! String
+//        case is Data:
+//            bodyHub.u8a = data as! Data
+//        case is InputStream:
+//            bodyHub.stream = data as! InputStream
+//        default:
+//            fatalError("invalid data type: \(data)")
+//        }
+        return bodyHub
+    }()
+    override var bodyHub: IpcBody.BodyHub {
+        get {
+            _bodyHub
+        }
+        set {
+            _bodyHub = newValue
+        }
+    }
+    
+    static func from(metaBody: MetaBody, ipc: Ipc) -> IpcBody {
+        return CACHE.metaId_ipcBodySender_Map[metaBody.metaId] ?? IpcBodyReceiver(metaBody: metaBody, ipc: ipc)
+    }
+    
+    static func metaToStream(metaBody: MetaBody, ipc: Ipc) -> InputStream {
+        var metaBody = metaBody
+        let stream_id = metaBody.streamId!
+        let stream = ReadableStream(onStart: { controller in
+            var data: Data?
+            switch metaBody.type.encoding {
+            case .utf8:
+                data = metaBody.data.string!.fromUtf8()
+            case .binary:
+                data = metaBody.data.data!
+            case .base64:
+                data = metaBody.data.string!.fromBase64()
+            default:
+                data = nil
+            }
+            
+            _ = ipc.onMessage { (message, _) in
+                if let message = message as? IpcStreamData, message.stream_id == stream_id {
+//                    if stream_id == "rs-0" {
+//
+//                    }
+                } else if let message = message as? IpcStreamEnd, message.stream_id == stream_id {
+                    
+                    
+                    return SIGNAL_CTOR.OFF
+                }
+                
+                return nil
+            }
+        }, onPull: { (desiredSize, controller) in
+            print("receiver/postPullMessage/\(ipc)/")
+            await ipc.postMessage(message: IpcStreamPull(stream_id: stream_id, desiredSize: 1))
+        })
+        
+        return stream
     }
 }

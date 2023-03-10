@@ -10,47 +10,58 @@ import Vapor
 import Combine
 
 class Ipc {
-    typealias IpcTupleCtor = () -> SIGNAL_CTOR
-    typealias IpcTupleBool = () async -> Bool
+    typealias IpcTupleCtor = VoidCallback<SIGNAL_CTOR>
+    typealias IpcTupleBool = AsyncVoidCallback<Bool>
+    typealias IpcMessageArgs = (IpcMessage, Ipc)
+    typealias OnIpcMessage = AsyncCallback<IpcMessageArgs, Any>
+    typealias IpcRequestMessageArgs = (IpcReqMessage, Ipc)
+    typealias OnIpcRequestMessage = AsyncCallback<IpcRequestMessageArgs, Any>
+    typealias IpcEventMessageArgs = (IpcEvent, Ipc)
+    typealias OnIpcEventMessage = AsyncCallback<IpcEventMessageArgs, Any>
     
     private static var uid_acc = 1
+    private static var req_id_acc = 0
+    
     var uid: Int = Ipc.uid_acc++
+    
     /**
      * 是否支持 messagePack 协议传输：
      * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
      */
     var support_message_pack: Bool = false
+    
     /**
      * 是否支持 Protobuf 协议传输：
      * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 Protobuf 的编解码
      */
     var support_protobuf: Bool = false
-    /** 是否支持 二进制 传输 */
-    var suport_bianry: Bool {
-        get {
-            return support_message_pack || support_protobuf
-        }
-    }
+    
     /**
      * 是否支持结构化内存协议传输：
      * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
      */
     var supportRaw: Bool = false
-    var remote: MicroModule
-    var role: IPC_ROLE
     
-    init() {
-        remote = NativeMicroModule()
-        role = IPC_ROLE.client
-//        onMessage = _messageSignal.listen
+    /** 是否支持 二进制 传输 */
+    var suport_bianry: Bool = false
+    
+    var remote: MicroModuleInfo = MicroModule()
+    
+    func asRemoteInstance() -> MicroModule? {
+        if let remote = remote as? MicroModule {
+            return remote
+        } else {
+            return nil
+        }
     }
+    
+    var role: String = ""
     
     func toString() -> String {
         "#i\(uid)"
     }
-
-    internal var _messageSignal = Signal<(IpcMessage, Ipc)>()
-    func postMessage(message: IpcMessage) async -> Void {
+    
+    func postMessage(message: IpcMessage) async {
         if self._closed {
             return
         }
@@ -62,17 +73,18 @@ class Ipc {
         await postMessage(message: IpcResponse.fromResponse(req_id: req_id, response: response, ipc: self).ipcResMessage)
     }
     
-//    var onMessage: ((@escaping OnIpcMessage) -> IpcTupleBool)
+    internal var _messageSignal = Signal<IpcMessageArgs>()
+    
     func onMessage(cb: @escaping OnIpcMessage) -> IpcTupleBool {
         return _messageSignal.listen(cb)
     }
     func _doPostMessage(data: IpcMessage) async {}
     
-    private lazy var _getOnRequestListener = {
-        let signal = Signal<(IpcRequest, Ipc)>()
+    private lazy var _requestSignal = {
+        let signal = Signal<IpcRequestMessageArgs>()
         _ = _messageSignal.listen { (message, ipc) in
             if let message = message as? IpcReqMessage {
-                await signal.emit((message.toIpcRequest(), ipc))
+                await signal.emit((message, ipc))
             }
             
             return nil
@@ -82,14 +94,30 @@ class Ipc {
     }()
     
     func onRequest(cb: @escaping OnIpcRequestMessage) -> IpcTupleBool {
-        return _getOnRequestListener(cb)
+        return _requestSignal(cb)
     }
     
-    private var _closed = false
-    private var _closeSignal = Signal<()>()
+    private lazy var _eventSignal = {
+        let signal = Signal<IpcRequestMessageArgs>()
+        _ = _messageSignal.listen { (message, ipc) in
+            if let message = message as? IpcReqMessage {
+                await signal.emit((message, ipc))
+            }
+            
+            return nil
+        }
+
+        return signal.listen
+    }()
+    
+    func onEvent(cb: @escaping OnIpcRequestMessage) -> IpcTupleBool {
+        return _eventSignal(cb)
+    }
+    
     
     func _doClose() async {}
-    
+    private var _closed = false
+
     func close() async {
         if self._closed {
             return
@@ -98,16 +126,33 @@ class Ipc {
         self._closed = true
         await self._doClose()
         await self._closeSignal.emit(())
+        await self._closeSignal.clear()
+    }
+    
+    private var _closeSignal = Signal<()>()
+    
+    var isClosed: Bool {
+        get {
+            _closed
+        }
     }
     
     func onClose(cb: @escaping IpcTupleCtor) -> IpcTupleBool {
         return self._closeSignal.listen(cb)
     }
     
+    deinit {
+        if !_closed {
+            Task {
+                await close()
+            }
+        }
+    }
+    
     func request(ipcRequest: IpcRequest) async -> IpcResponse {
         await self.postMessage(message: ipcRequest.ipcReqMessage)
 //        let po = PromiseOut<IpcResponse>()
-        let task = Task(priority: .userInitiated) {
+        let task = Task {
             let po = PromiseOut<IpcResponse>()
             _ = self.onMessage { (message, ipc) in
                 if let message = message as? IpcResMessage, ipcRequest.req_id == message.req_id {
@@ -115,7 +160,7 @@ class Ipc {
 //                    return message.toIpcResponse()
                 }
                 
-                return .OFF
+                return SIGNAL_CTOR.OFF
             }
             
             return await po.waitPromise()
@@ -123,22 +168,15 @@ class Ipc {
         
         return await task.value
 //        return await po.waitPromise()
-//        return IpcResponse(req_id: 1, statusCode: 200, headers: IpcHeaders(["Content-Type": "text/plain"]), body: .init(metaBody: nil, body: .init(text:"")))
     }
     
     func request(request: Request) async -> Response {
-//        let task = Task {
-//            return await self.request(ipcRequest: IpcRequest.fromRequest(req_id: allocReqId(), request: request, ipc: self)).toResponse()
-//        }
-//
-//        return await task.value
         return await self.request(ipcRequest: IpcRequest.fromRequest(req_id: allocReqId(), request: request, ipc: self)).toResponse()
     }
-    private static var _req_id_acc = 0
-    func allocReqId() -> Int {
-        return Ipc._req_id_acc++
-    }
     
+    func allocReqId() -> Int {
+        return Ipc.req_id_acc++
+    }
 }
 
 // 用于Set中判断是否相同

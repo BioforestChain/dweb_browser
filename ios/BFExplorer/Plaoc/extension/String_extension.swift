@@ -116,11 +116,11 @@ extension String {
         return String(self[beginIndex...endIndex])
     }
     
-    func to_b64_data() -> Data? {
+    func fromBase64() -> Data? {
         Data(base64Encoded: self)
     }
     
-    func to_utf8_data() -> Data? {
+    func fromUtf8() -> Data? {
         self.data(using: .utf8)
     }
     

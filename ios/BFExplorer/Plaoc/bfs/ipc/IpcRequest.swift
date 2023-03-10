@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 
 final class IpcRequest {
-    var type: IPC_DATA_TYPE = .request
+    var type: IPC_MESSAGE_TYPE = .request
     var req_id: Int
     var method: IpcMethod
     var url: String
@@ -124,7 +124,7 @@ final class IpcRequest {
 }
 
 struct IpcReqMessage: IpcMessage {
-    var type: IPC_DATA_TYPE = .request
+    var type: IPC_MESSAGE_TYPE = .request
     let req_id: Int
     let method: IpcMethod
     let url: String

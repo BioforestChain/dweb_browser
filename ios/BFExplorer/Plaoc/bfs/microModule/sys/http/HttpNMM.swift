@@ -161,11 +161,11 @@ class HttpNMM: NativeMicroModule {
     }
     
     private func routerHandler() {
-        let startRouteHandler: RouterHandler = { request, _ async in
+        let startRouteHandler: RouterHandler = { request, ipc async in
             let port = request.query[Int.self, at: "port"]
             let subdomain = request.query[String.self]
             
-            return self.start(ipc: request.ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
+            return self.start(ipc: ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
         }
         let listenRouteHandler: RouterHandler = { request, _ async in
             guard let token = request.query[String.self, at: "token"] else {
@@ -174,10 +174,10 @@ class HttpNMM: NativeMicroModule {
                     
             return await self.listen(token: token, message: request)
         }
-        let closeRouteHandler: RouterHandler = { request, _ async in
+        let closeRouteHandler: RouterHandler = { request, ipc async in
             let port = request.query[Int.self, at: "port"]
             let subdomain = request.query[String.self]
-            return await self.close(ipc: request.ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
+            return await self.close(ipc: ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
         }
         apiRouting["\(self.mmid)/start"] = startRouteHandler
         apiRouting["\(self.mmid)/listen"] = listenRouteHandler
@@ -198,7 +198,7 @@ class HttpNMM: NativeMicroModule {
         let mmid = ipc.remote.mmid
         let subdomainPrefix = options.subdomain == "" || options.subdomain.hasSuffix(".") ? options.subdomain : "\(options.subdomain)."
         let port = options.port
-        if port <= 1024 || port >= 65536 {
+        if port <= 0 || port >= 65536 {
             fatalError("invalid dweb http port: \(options.port)")
         }
         

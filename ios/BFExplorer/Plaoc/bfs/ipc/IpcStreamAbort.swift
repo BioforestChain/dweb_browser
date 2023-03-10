@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct IpcStreamAbort: Codable {
-    var type: IPC_DATA_TYPE = .stream_abort
+struct IpcStreamAbort {
+    var type: IPC_MESSAGE_TYPE = .stream_abort
     let stream_id: String
     
     init(stream_id: String) {

@@ -84,45 +84,45 @@ class NativeMicroModule: MicroModule {
     }
 }
 
-extension Vapor.Request {
-    struct createIpc {
-        static var _clientIpc: Ipc? = nil
-    }
-    
-    var ipc: Ipc? {
-        get {
-            return createIpc._clientIpc
-        }
-        set {
-            createIpc._clientIpc = newValue
-        }
-    }
-}
-
-extension RoutesBuilder {
-    func on<Response>(
-        _ method: HTTPMethod,
-        _ path: [PathComponent],
-        body: HTTPBodyStreamStrategy = .collect,
-        use closure: @escaping (Request, Ipc?) async throws -> Response
-    ) -> Route
-        where Response: AsyncResponseEncodable
-    {
-        let responder = AsyncBasicResponder { request  in
-            if case .collect(let max) = body, request.body.data == nil {
-                _ = try await request.body.collect(max: max?.value ?? request.application.routes.defaultMaxBodySize.value).get()
-                
-            }
-            return try await closure(request, request.ipc).encodeResponse(for: request)
-        }
-        let route = Route(
-            method: method,
-            path: path,
-            responder: responder,
-            requestType: Request.self,
-            responseType: Response.self
-        )
-        self.add(route)
-        return route
-    }
-}
+//extension Vapor.Request {
+//    struct createIpc {
+//        static var _clientIpc: Ipc? = nil
+//    }
+//    
+//    var ipc: Ipc? {
+//        get {
+//            return createIpc._clientIpc
+//        }
+//        set {
+//            createIpc._clientIpc = newValue
+//        }
+//    }
+//}
+//
+//extension RoutesBuilder {
+//    func on<Response>(
+//        _ method: HTTPMethod,
+//        _ path: [PathComponent],
+//        body: HTTPBodyStreamStrategy = .collect,
+//        use closure: @escaping (Request, Ipc?) async throws -> Response
+//    ) -> Route
+//        where Response: AsyncResponseEncodable
+//    {
+//        let responder = AsyncBasicResponder { request  in
+//            if case .collect(let max) = body, request.body.data == nil {
+//                _ = try await request.body.collect(max: max?.value ?? request.application.routes.defaultMaxBodySize.value).get()
+//                
+//            }
+//            return try await closure(request, request.ipc).encodeResponse(for: request)
+//        }
+//        let route = Route(
+//            method: method,
+//            path: path,
+//            responder: responder,
+//            requestType: Request.self,
+//            responseType: Response.self
+//        )
+//        self.add(route)
+//        return route
+//    }
+//}
