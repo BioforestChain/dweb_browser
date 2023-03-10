@@ -145,67 +145,12 @@ open class MutilWebViewActivity : PermissionActivity() {
 
 
             RustApplicationTheme {
-                // <<<<<<< Updated upstream
-                // val wc by remember(remoteMmid) { mutableStateOf(controller) }
 
-                // val viewItem = wc?.webViewList?.lastOrNull()
-
-                // // if (controller == null) return@RustApplicationTheme
-
-                // val systemUIState = SystemUIState.Default(this)
-
-                // var overlayOffset = IntOffset(0, 0)
-                // val overlayPadding by remember {
-
-                //     mutableStateOf(WindowInsets(0).let {
-                //         var res = it
-                //         if (!systemUIState.statusBar.overlay.value) {
-                //             res = res.add(WindowInsets.statusBars)
-                //         }
-                //         if (!systemUIState.virtualKeyboard.overlay.value && WindowInsets.isImeVisible) {
-                //             // it.add(WindowInsets.ime) // ime本身就包含了navigationBars的高度
-                //             overlayOffset =
-                //                 IntOffset(
-                //                     0, min(
-                //                         0, -WindowInsets.ime.getBottom(LocalDensity.current)
-                //                                 + WindowInsets.navigationBars.getBottom(LocalDensity.current)
-                //                     )
-                //                 )
-                //         } else if (!systemUIState.navigationBar.overlay.value) {
-                //             res = res.add(WindowInsets.navigationBars)
-                //         }
-                //         res
-                //     }.asPaddingValues())
-                // }
-
-                // if (viewItem != null) key(viewItem.webviewId) {
-                //     Box(
-                //         modifier = Modifier
-                //             .padding(overlayPadding)
-                //             .offset { overlayOffset }
-                //             .fillMaxSize()
-                //     ) {
-                //         AndroidView(
-                //             factory = { ctx ->
-                //                 if (controller != null) {
-                //                     val currentView =
-                //                         controller!!.getCurrentWebView().dWebView.rootView
-                //                     systemUiPlugin = SystemUiPlugin(currentView, systemUIState)
-                //                 }
-                //                 viewItem.dWebView
-                //             },
-                //             modifier = Modifier
-                //                 .fillMaxSize(),
-                //         )
-                //     }
-                // }
-                // ====== =
                 val wc by remember(remoteMmid) {
                     mutableStateOf(
                         controller ?: throw Exception("no found controller")
                     )
                 }
-
 
                 val systemUIState = SystemUIState.Default(this)
 
@@ -345,14 +290,6 @@ open class MutilWebViewActivity : PermissionActivity() {
                     }
                 }
 
-//                val viewItem = wc?.webViewList?.lastOrNull()
-//                if (viewItem != null) key(viewItem.webviewId) {
-//                    AndroidView(
-//                        factory = { viewItem.webView },
-//                        modifier = Modifier.fillMaxSize(),
-//                    )
-//                }
-                // >>>>>>> Stashed changes
             }
         }
     }

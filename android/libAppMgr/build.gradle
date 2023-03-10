@@ -70,7 +70,7 @@ dependencies {
     // 解压文件
     implementation 'org.apache.commons:commons-compress:1.21'
     // 网络请求 Retrofit
-    implementation 'com.google.code.gson:gson:2.10'
+    implementation 'com.google.code.gson:gson:2.10.1'
     /*implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation "com.squareup.retrofit2:converter-gson:2.9.0"
     implementation "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2"*/

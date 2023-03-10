@@ -57,10 +57,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
+        val kotlin_version = "1.8.10"
         freeCompilerArgs += listOf(
             "-P",
-            "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+            "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=$kotlin_version"
         )
     }
     buildFeatures {
@@ -83,11 +84,13 @@ android {
             excludes += "/META-INF/DEPENDENCIES"
         }
     }
+    namespace = "info.bagen.rust.plaoc"
 }
 
-val ktorVersion by System.getProperties()
 
 dependencies {
+
+    val ktor_version = "2.2.3"
     /// 网络开发相关
     implementation(platform("org.http4k:http4k-bom:4.39.0.0"))
     implementation("org.http4k:http4k-core")
@@ -95,7 +98,7 @@ dependencies {
     implementation("org.http4k:http4k-client-okhttp")
     implementation("org.http4k:http4k-server-ktorcio")
 //    implementation("org.http4k:http4k-format-jackson") // payload to json
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
 
 
     // Android 相关
@@ -112,7 +115,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.5.1")
     implementation("androidx.navigation:navigation-ui-ktx:2.5.1")
     implementation("androidx.gridlayout:gridlayout:1.0.0")
-    val accompanist_version = "0.29.1-alpha"
+    val accompanist_version = "0.29.2-rc"
     implementation("com.google.accompanist:accompanist-webview:$accompanist_version")
     implementation("com.google.accompanist:accompanist-navigation-material:$accompanist_version")
     implementation("com.google.accompanist:accompanist-navigation-animation:$accompanist_version")
@@ -148,7 +151,7 @@ dependencies {
 
     // 工具库
     implementation(kotlin("stdlib"))
-    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 //    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
     implementation("com.daveanthonythomas.moshipack:moshipack:1.0.1") // message-pack
 
