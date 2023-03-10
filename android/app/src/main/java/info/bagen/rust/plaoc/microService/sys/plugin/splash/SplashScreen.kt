@@ -27,6 +27,10 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+
+typealias SplashCallBack = (onComplete:String?, onError:String?) -> Unit
 
 class SplashScreen(
     private var context: Context = App.appContext, private var config: SplashScreenConfig
@@ -49,7 +53,7 @@ class SplashScreen(
             fadeInDuration: Long? = null,
             fadeOutDuration: Long? = null,
             autoHide: Boolean = true,
-            onErrorCallback: ((String) -> Unit)? = null
+            onCallback: SplashCallBack? = null
         ) {
             val settings = SplashScreenSettings(
                 showDuration = showDuration ?: 3000L,
@@ -58,7 +62,7 @@ class SplashScreen(
                 autoHide = autoHide
             )
             App.dwebViewActivity?.let { activity ->
-                sInstance.show(activity, settings, onErrorCallback)
+                sInstance.show(activity, settings, onCallback)
             }
         }
 
@@ -183,13 +187,13 @@ class SplashScreen(
      * @param splashListener A listener to handle the finish of the animation (if any)
      */
     fun show(
-        activity: Activity, settings: SplashScreenSettings, onErrorCallback: ((String) -> Unit)?
+        activity: Activity, settings: SplashScreenSettings, onCallback: SplashCallBack? = null
     ) {
         this.settings = settings
         if (config.usingDialog) {
-            showDialog(activity, settings, false, onErrorCallback)
+            showDialog(activity, settings, false, onCallback)
         } else {
-            show(activity, settings, false, onErrorCallback)
+            show(activity, settings, false, onCallback)
         }
     }
 
@@ -197,11 +201,11 @@ class SplashScreen(
         activity: Activity?,
         settings: SplashScreenSettings,
         isLaunchSplash: Boolean,
-        onErrorCallback: ((String) -> Unit)?
+        onCallback: SplashCallBack?
     ) {
         if (activity == null || activity.isFinishing) return
         if (isVisible) {
-            onErrorCallback?.let { it("OnCompleted") }
+            onCallback?.let { it("OnCompleted", null) }
             return
         }
         activity.runOnUiThread {
@@ -240,12 +244,12 @@ class SplashScreen(
                 Handler(context.mainLooper).postDelayed(
                     {
                         hideDialog(activity, isLaunchSplash)
-                        onErrorCallback?.let { it("OnCompleted") }
+                        onCallback?.let { it("OnCompleted", null) }
                     }, settings.showDuration
                 )
             } else {
                 // If no autoHide, call complete
-                onErrorCallback?.let { it("OnCompleted") }
+                onCallback?.let { it("OnCompleted", null) }
             }
         }
     }
@@ -277,7 +281,7 @@ class SplashScreen(
     }
 
     @SuppressLint("DiscouragedApi")
-    private fun buildViews() {
+    private fun buildViews(activity: Activity) {
         if (splashImage == null) {
             var splashId = 0
             val splash: Drawable?
@@ -287,13 +291,12 @@ class SplashScreen(
                 Log.e(TAG, "Layout not found, defaulting to ImageView")
             }
             if (splashId != 0) {
-                val activity = context as Activity?
-                val inflator = activity!!.layoutInflater
+                val inflater = activity.layoutInflater
                 val root: ViewGroup = FrameLayout(context)
                 root.layoutParams = FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
                 )
-                splashImage = inflator.inflate(splashId, root, false)
+                splashImage = inflater.inflate(splashId, root, false)
             } else {
                 splash = getSplashDrawable()
                 if (splash != null) {
@@ -362,15 +365,15 @@ class SplashScreen(
         activity: Activity,
         settings: SplashScreenSettings,
         isLaunchSplash: Boolean,
-        onErrorCallback: ((String) -> Unit)?,
+        onCallback: SplashCallBack?,
     ) {
         windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         if (activity.isFinishing) {
             return
         }
-        buildViews()
+        buildViews(activity) // 将View添加到当前的界面
         if (isVisible) {
-            onErrorCallback?.let { it("OnCompleted") }
+            onCallback?.let { it("OnCompleted", null) }
             return
         }
         val listener: Animator.AnimatorListener = object : Animator.AnimatorListener {
@@ -380,12 +383,12 @@ class SplashScreen(
                     Handler(context.mainLooper).postDelayed(
                         {
                             hide(settings.fadeOutDuration, isLaunchSplash)
-                            onErrorCallback?.let { it("OnCompleted") }
+                            onCallback?.let { it("OnCompleted", null) }
                         }, settings.showDuration
                     )
                 } else {
                     // If no autoHide, call complete
-                    onErrorCallback?.let { it("OnCompleted") }
+                    onCallback?.let { it("OnCompleted", null) }
                 }
             }
 
@@ -393,8 +396,7 @@ class SplashScreen(
             override fun onAnimationRepeat(animator: Animator) {}
             override fun onAnimationStart(animator: Animator) {}
         }
-        val mainHandler = Handler(context.mainLooper)
-        mainHandler.post {
+        runBlocking(Dispatchers.Main) {
             val params: WindowManager.LayoutParams = WindowManager.LayoutParams()
             params.gravity = Gravity.CENTER
             params.flags = activity.window.attributes.flags
@@ -402,13 +404,14 @@ class SplashScreen(
             // Required to enable the view to actually fade
             params.format = PixelFormat.TRANSLUCENT
             try {
+                //splashImage?.parent?.let { (it as ViewGroup).removeView(splashImage) }
                 windowManager!!.addView(splashImage, params)
             } catch (ex: IllegalStateException) {
                 Log.e(TAG, "Could not add splash view")
-                return@post
+                return@runBlocking
             } catch (ex: IllegalArgumentException) {
                 Log.e(TAG, "Could not add splash view")
-                return@post
+                return@runBlocking
             }
             if (config.immersive) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -633,5 +636,5 @@ data class SplashScreenConfig(
     var fullScreen: Boolean = false,
     var scaleType: ImageView.ScaleType = ImageView.ScaleType.FIT_XY,
     var usingDialog: Boolean = false,
-    var layoutName: String = "launch_screen",
+    var layoutName: String = "splash_screen",
 )
