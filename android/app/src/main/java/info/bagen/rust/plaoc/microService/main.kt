@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService
 
+import android.os.Build
 import info.bagen.rust.plaoc.microService.browser.BrowserNMM
 import info.bagen.rust.plaoc.microService.helper.debugTags
 import info.bagen.rust.plaoc.microService.sys.boot.BootNMM
@@ -27,20 +28,32 @@ import info.bagen.rust.plaoc.microService.user.CotJMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 import info.bagen.rust.plaoc.microService.user.ToyJMM
 
+
 suspend fun startDwebBrowser() {
-    debugTags.addAll(
-        listOf<String>(
-//            "message-port-ipc",
-//            "stream-ipc",
-//            "fetch",
-//            "stream",
-//            "ipc-body",
-//            "http",
-//            "TIME-DURATION"
-            "mwebview",
-            "dwebview",
+    /**
+     *
+     * "message-port-ipc",
+     * "stream-ipc",
+     * "fetch",
+     * "stream",
+     * "ipc-body",
+     * "http",
+     * "TIME-DURATION"
+     */
+    when (DEVELOPER.CURRENT) {
+        DEVELOPER.GAUBEE -> debugTags.addAll(
+            listOf<String>(
+                "mwebview",
+                "dwebview",
+            )
         )
-    )
+        else -> debugTags.addAll(
+            listOf<String>(
+
+            )
+        )
+    }
+
 
     val dnsNMM = DnsNMM()
 
@@ -99,16 +112,29 @@ suspend fun startDwebBrowser() {
     val cotDemoJMM = CotDemoJMM().also { dnsNMM.install(it) }
     val toyJMM = ToyJMM().also { dnsNMM.install(it) }
 
+
+    println(Build.MANUFACTURER + "::" + Build.MODEL)
+
+    /**
+     *
+     * browserNMM.mmid,
+     * desktopJMM.mmid,
+     * cotDemoJMM.mmid,
+     * cotJMM.mmid,
+     * toyJMM.mmid,
+     */
+    val bootMmidList = when (DEVELOPER.CURRENT) {
+        DEVELOPER.GAUBEE -> listOf(
+            cotJMM.mmid,
+        )
+        else -> listOf(
+            cotDemoJMM.mmid,
+        )
+    }
+
     /// 启动程序
     val bootNMM = BootNMM(
-        listOf(
-//            browserNMM.mmid,
-//            desktopJMM.mmid,
-            cotJMM.mmid,
-//            cotDemoJMM.mmid
-//            cotJMM.mmid,
-//            toyJMM.mmid,
-        )
+        bootMmidList
     ).also { dnsNMM.install(it) }
 
     /// 启动
