@@ -76,7 +76,7 @@
 
   <card>
     <card-title>Share</card-title>
-
+    <dweb-share></dweb-share>
     <fieldset>
       <legend>Share</legend>
       <textarea id="share-options" format="application/javascript">
@@ -127,6 +127,15 @@
       <legend>Haptics Vibrate</legend>
       <input type="text" id="haptics-vibrate-pattern" />
       <button id="haptics-vibrate">Vibrate</button>
+    </fieldset>
+  </card>
+  <card>
+    <card-title>barcode scanner</card-title>
+    <dweb-scanner></dweb-scanner>
+    <fieldset>
+      <legend>barcode scanner Show/Hide</legend>
+      <button id="barcode-scanner-show">Show</button>
+      <button id="barcode-scanner-hide">Hide</button>
     </fieldset>
   </card>
 </body>

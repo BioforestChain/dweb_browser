@@ -5,6 +5,7 @@ function $<T extends HTMLElement>(params: string): T {
 import { Tduration } from '../../build/plugin/types/src/components/toast/toast.type.d.ts';
 import "../../build/plugin/esm/src/index.js"
 import { StatusbarPlugin, StatusbarStyle, EStatusBarAnimation, ToastPlugin, SplashScreenPlugin } from "../../src/index.ts";
+import { SharePlugin } from "../../src/components/share/index.ts";
 document.addEventListener("DOMContentLoaded", () => {
   /**toast */
   $("toast-show").addEventListener("click", async () => {
@@ -72,6 +73,15 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 
   /**Share */
+  const share = document.querySelector<SharePlugin>("dweb-share")!
+  $("share-share").addEventListener("click", async () => {
+    const text = $<HTMLTextAreaElement>("share-options").value
+    const result = await share.share(
+      { title: "分享标题", text, url: "file:///xxx", files: ["file://xxx"], dialogTitle: "dialogTitle" })
+      .then(res => res.text())
+    $("statusbar-observer-log").innerHTML = result
+  })
+
   /**Safe Area */
   /**Navigation Bar */
   /**Keyboard */

@@ -1,6 +1,6 @@
 import { convertToRGBAHex } from "../../helper/color.ts";
 import { BasePlugin } from "../basePlugin.ts";
-import { AnimationOptions, BackgroundColorOptions, IStatusBarPlugin, SetOverlaysWebViewOptions, EStatusBarAnimation, StatusBarInfo, StyleOptions, StatusbarStyle } from "./statusbar.type.ts";
+import { AnimationOptions, BackgroundColorOptions, IStatusBarPlugin, SetOverlaysWebViewOptions, EStatusBarAnimation, StatusBarInfo, StyleOptions } from "./statusbar.type.ts";
 /**
  * 访问 statusbar 能力的插件
  * 
@@ -13,10 +13,10 @@ import { AnimationOptions, BackgroundColorOptions, IStatusBarPlugin, SetOverlays
  */
 export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
 
-    private _visible: boolean = true;
-    private _style: StatusbarStyle = StatusbarStyle.Default;
-    private _color: string = "";
-    private _overlays: boolean = false;
+    // private _visible: boolean = true;
+    // private _style: StatusbarStyle = StatusbarStyle.Default;
+    // private _color: string = "";
+    // private _overlays: boolean = false;
 
     // mmid 最好全部采用小写，防止出现不可预期的意外
     constructor(readonly mmid = "statusbar.sys.dweb") {
@@ -32,7 +32,7 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
      */
     async setBackgroundColor(options: BackgroundColorOptions): Promise<Response> {
         const colorHex = convertToRGBAHex(options.color ?? "");
-        return await this.nativeFetch(`/setBackgroundColor`,{search:{color:colorHex}})
+        return await this.nativeFetch(`/setBackgroundColor`, { search: { color: colorHex } })
     }
     /**
      *  获取背景颜色
@@ -53,14 +53,19 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
      * @param style
      */
     async setStyle(styleOptions: StyleOptions) {
-        await this.nativeFetch(`/setStyle?style=${styleOptions.style}`)
+        await this.nativeFetch(`/setStyle`, {
+            search: {
+                style: styleOptions.style
+            }
+        })
     }
     /**
      * 获取当前style
      * @returns 
      */
     async getStyle() {
-        return (await this.getInfo()).style
+        const result = await this.getInfo()
+        return result.style
     }
 
     /**
@@ -84,7 +89,12 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
      */
     async hide(options?: AnimationOptions): Promise<void> {
         const animation = options?.animation ?? EStatusBarAnimation.None
-        await this.nativeFetch(`/setVisible?visible=false&animation=${animation}`)
+        await this.nativeFetch(`/setVisible`, {
+            search: {
+                visible: false,
+                animation: animation
+            }
+        })
     }
 
     /**
@@ -106,7 +116,11 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
     * @since 1.0.0
     */
     async setOverlaysWebView(options: SetOverlaysWebViewOptions): Promise<void> {
-        await this.nativeFetch(`/setOverlays?overlay=${options.overlay}`)
+        await this.nativeFetch(`/setOverlays`, {
+            search: {
+                overlay: options.overlay
+            }
+        })
     }
 
 }

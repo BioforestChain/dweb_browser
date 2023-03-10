@@ -12,7 +12,14 @@ export class SplashScreenPlugin extends BasePlugin implements ISplashScreenPlugi
    * @param options
    */
   async show(options?: ShowOptions): Promise<Response> {
-    return await this.nativeFetch(`/show?options=${JSON.stringify(options)}`);
+    return await this.nativeFetch(`/show`, {
+      search: {
+        autoHide: options?.autoHide,
+        showDuration: options?.showDuration,
+        fadeOutDuration: options?.fadeOutDuration,
+        fadeInDuration: options?.fadeInDuration
+      }
+    });
   }
 
   /**
@@ -20,6 +27,10 @@ export class SplashScreenPlugin extends BasePlugin implements ISplashScreenPlugi
    * @param options
    */
   async hide(options?: HideOptions): Promise<Response> {
-    return await this.nativeFetch(`/hide?options=${JSON.stringify(options)}`);
+    return await this.nativeFetch(`/hide`, {
+      search: {
+        fadeOutDuration: options?.fadeOutDuration
+      }
+    });
   }
 }

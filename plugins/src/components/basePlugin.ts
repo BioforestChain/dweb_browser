@@ -1,5 +1,4 @@
 /// <reference lib="dom" />
-import { encodeUri } from "../helper/binary.ts";
 import { createSignal } from "../helper/createSignal.ts";
 
 export class BasePlugin extends HTMLElement {
@@ -11,6 +10,7 @@ export class BasePlugin extends HTMLElement {
   protected nativeFetch(
     url: RequestInfo,
     init?: RequestInit & {
+      // deno-lint-ignore ban-types
       search?: string | URLSearchParams | Record<string, unknown> | {};
     }
   ): Promise<Response> {
@@ -19,7 +19,7 @@ export class BasePlugin extends HTMLElement {
     }
     const host = window.location.host.replace("www", "api");
 
-    const uri = new URL(`${this.mmid}${url}`, host);
+    const uri = new URL(`${this.mmid}${url}`, `https://${host}`);
     const search = init?.search;
     if (search) {
       if (search instanceof URLSearchParams) {
@@ -37,7 +37,6 @@ export class BasePlugin extends HTMLElement {
         ).toString();
       }
     }
-    console.log("nativeFetch=>", uri);
     return fetch(uri, init);
   }
 

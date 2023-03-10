@@ -20,3 +20,4 @@ export * from "./toast/index.ts";
 export * from "./torch/index.ts"
 export * from "./statusbar/index.ts";
 export * from "./splash-screen/index.ts"
+export * from "./share/index.ts"
