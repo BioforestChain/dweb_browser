@@ -22,13 +22,14 @@ import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.WebView
+import com.google.common.primitives.Ints.min
 import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUIState
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import info.bagen.rust.plaoc.util.rememberIsChange
 import kotlinx.coroutines.launch
-import kotlin.math.min
 
 
 open class PermissionActivity : AppCompatActivity() {
@@ -134,7 +135,6 @@ open class MutilWebViewActivity : PermissionActivity() {
         super.onCreate(savedInstanceState)
         upsetRemoteMmid()
 
-
         // This will lay out our app behind the system bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -154,27 +154,37 @@ open class MutilWebViewActivity : PermissionActivity() {
 
                 val systemUIState = SystemUIState.Default(this)
 
-                var overlayOffset = IntOffset(0, 0)
-                val overlayPadding = WindowInsets(0).let {
-                    var res = it
-                    if (!systemUIState.statusBar.overlay.value) {
-                        res = res.add(WindowInsets.statusBars)
-                    }
-                    if (!systemUIState.virtualKeyboard.overlay.value && WindowInsets.isImeVisible) {
-                        // it.add(WindowInsets.ime) // ime本身就包含了navigationBars的高度
-                        overlayOffset = IntOffset(
-                            0, min(
-                                0,
-                                -WindowInsets.ime.getBottom(LocalDensity.current) + WindowInsets.navigationBars.getBottom(
-                                    LocalDensity.current
+                var overlayOffset by remember { mutableStateOf(IntOffset(0, 0)) }
+                var overlayPadding by remember { mutableStateOf(PaddingValues()) }
+                val isSystemUILayoutChanged = rememberIsChange()
+                isSystemUILayoutChanged.rememberStateOf(systemUIState.virtualKeyboard.overlay)
+                isSystemUILayoutChanged.rememberStateOf(systemUIState.statusBar.overlay)
+                isSystemUILayoutChanged.rememberStateOf(WindowInsets.isImeVisible)
+                isSystemUILayoutChanged.rememberStateOf(systemUIState.navigationBar.overlay)
+                isSystemUILayoutChanged.rememberStateOf(WindowInsets.navigationBars)
+                isSystemUILayoutChanged.effectChange {
+                    overlayPadding = WindowInsets(0).let {
+                        var res = it
+                        if (!systemUIState.statusBar.overlay.value) {
+                            res = res.add(WindowInsets.statusBars)
+                        }
+                        if (!systemUIState.virtualKeyboard.overlay.value && WindowInsets.isImeVisible) {
+                            // it.add(WindowInsets.ime) // ime本身就包含了navigationBars的高度
+                            overlayOffset = IntOffset(
+                                0, min(
+                                    0,
+                                    WindowInsets.navigationBars.getBottom(LocalDensity.current) - WindowInsets.ime.getBottom(
+                                        LocalDensity.current
+                                    )
                                 )
                             )
-                        )
-                    } else if (!systemUIState.navigationBar.overlay.value) {
-                        res = res.add(WindowInsets.navigationBars)
-                    }
-                    res
-                }.asPaddingValues()
+                        } else if (!systemUIState.navigationBar.overlay.value) {
+                            res = res.add(WindowInsets.navigationBars)
+                        }
+                        res
+                    }.asPaddingValues()
+                }
+
 
                 wc.webViewList.forEachIndexed { index, viewItem ->
                     println("viewItem.webviewId: ${viewItem.webviewId}")
