@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -102,7 +103,6 @@ open class MutilWebViewActivity : PermissionActivity() {
     private var remoteMmid by mutableStateOf("")
     private var controller: MutilWebViewController? = null
 
-    var systemUiPlugin: SystemUiPlugin? = null
     private fun upsetRemoteMmid() {
         remoteMmid = intent.getStringExtra("mmid") ?: return finish()
         controller?.activity = null
@@ -155,35 +155,36 @@ open class MutilWebViewActivity : PermissionActivity() {
                 val systemUIState = SystemUIState.Default(this)
 
                 var overlayOffset by remember { mutableStateOf(IntOffset(0, 0)) }
-                var overlayPadding by remember { mutableStateOf(PaddingValues()) }
-                val isSystemUILayoutChanged = rememberIsChange()
-                isSystemUILayoutChanged.rememberStateOf(systemUIState.virtualKeyboard.overlay)
-                isSystemUILayoutChanged.rememberStateOf(systemUIState.statusBar.overlay)
-                isSystemUILayoutChanged.rememberStateOf(WindowInsets.isImeVisible)
-                isSystemUILayoutChanged.rememberStateOf(systemUIState.navigationBar.overlay)
-                isSystemUILayoutChanged.rememberStateOf(WindowInsets.navigationBars)
-                isSystemUILayoutChanged.effectChange {
-                    overlayPadding = WindowInsets(0).let {
-                        var res = it
-                        if (!systemUIState.statusBar.overlay.value) {
-                            res = res.add(WindowInsets.statusBars)
-                        }
-                        if (!systemUIState.virtualKeyboard.overlay.value && WindowInsets.isImeVisible) {
-                            // it.add(WindowInsets.ime) // ime本身就包含了navigationBars的高度
-                            overlayOffset = IntOffset(
-                                0, min(
-                                    0,
-                                    WindowInsets.navigationBars.getBottom(LocalDensity.current) - WindowInsets.ime.getBottom(
-                                        LocalDensity.current
-                                    )
+//                var overlayPadding by remember { mutableStateOf(PaddingValues()) }
+//                val isSystemUILayoutChanged = rememberIsChange()
+//                isSystemUILayoutChanged.rememberStateOf(systemUIState.virtualKeyboard.overlay)
+//                isSystemUILayoutChanged.rememberStateOf(systemUIState.statusBar.overlay)
+//                isSystemUILayoutChanged.rememberStateOf(WindowInsets.isImeVisible)
+//                isSystemUILayoutChanged.rememberStateOf(systemUIState.navigationBar.overlay)
+//                isSystemUILayoutChanged.rememberStateOf(WindowInsets.navigationBars)
+//                isSystemUILayoutChanged.effectChange {
+//
+//                }
+               val overlayPadding = WindowInsets(0).let {
+                    var res = it
+                    if (!systemUIState.statusBar.overlay.value) {
+                        res = res.add(WindowInsets.statusBars)
+                    }
+                    if (!systemUIState.virtualKeyboard.overlay.value && WindowInsets.isImeVisible) {
+                        // it.add(WindowInsets.ime) // ime本身就包含了navigationBars的高度
+                        overlayOffset = IntOffset(
+                            0, min(
+                                0,
+                                WindowInsets.navigationBars.getBottom(LocalDensity.current) - WindowInsets.ime.getBottom(
+                                    LocalDensity.current
                                 )
                             )
-                        } else if (!systemUIState.navigationBar.overlay.value) {
-                            res = res.add(WindowInsets.navigationBars)
-                        }
-                        res
-                    }.asPaddingValues()
-                }
+                        )
+                    } else if (!systemUIState.navigationBar.overlay.value) {
+                        res = res.add(WindowInsets.navigationBars)
+                    }
+                    res
+                }.asPaddingValues()
 
 
                 wc.webViewList.forEachIndexed { index, viewItem ->
@@ -201,6 +202,7 @@ open class MutilWebViewActivity : PermissionActivity() {
                                 wc.closeWebView(viewItem.webviewId)
                             }
                         }
+                        viewItem.systemUiPlugin = SystemUiPlugin(viewItem.webView, systemUIState)
 
                         val chromeClient = remember {
                             object : AccompanistWebChromeClient() {

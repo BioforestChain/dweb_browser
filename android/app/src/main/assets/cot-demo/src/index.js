@@ -1,13 +1,3 @@
-// build/plugin/esm/_dnt.polyfills.js
-if (!String.prototype.replaceAll) {
-  String.prototype.replaceAll = function(str, newStr) {
-    if (Object.prototype.toString.call(str).toLowerCase() === "[object regexp]") {
-      return this.replace(str, newStr);
-    }
-    return this.replace(new RegExp(str, "g"), newStr);
-  };
-}
-
 // build/plugin/node_modules/image-capture/src/imagecapture.js
 var ImageCapture = window.ImageCapture;
 if (typeof ImageCapture === "undefined") {
@@ -323,11 +313,6 @@ var PromiseOut = class {
   }
 };
 
-// build/plugin/esm/src/helper/binary.js
-var encodeUri = (url) => {
-  return url.replaceAll("#", "%23").replaceAll("{", "%7B").replaceAll("}", "%7D");
-};
-
 // build/plugin/esm/src/helper/createSignal.js
 var createSignal = () => {
   return new Signal();
@@ -399,9 +384,24 @@ var BasePlugin = class extends HTMLElement {
       return fetch(url, init);
     }
     const host = globalThis.location.host.replace("www", "api");
-    const api = `https://${host}/${this.mmid}${encodeUri(url)}`;
-    console.log("nativeFetch=>", api);
-    return fetch(api, init);
+    const uri = new URL(`${this.mmid}${url}`, `https://${host}`);
+    const search = init?.search;
+    if (search) {
+      if (search instanceof URLSearchParams) {
+        uri.search = search.toString();
+      } else if (typeof search === "string") {
+        uri.search = search;
+      } else {
+        uri.search = new URLSearchParams(Object.entries(search).map(([key, value]) => {
+          return [
+            key,
+            typeof value === "string" ? value : JSON.stringify(value)
+          ];
+        })).toString();
+      }
+    }
+    console.log("nativeFetch=>", uri);
+    return fetch(uri, init);
   }
 };
 
@@ -990,6 +990,10 @@ var EStatusBarAnimation;
 
 // build/plugin/esm/src/components/statusbar/statusbar.plugin.js
 var StatusbarPlugin = class extends BasePlugin {
+  // private _visible: boolean = true;
+  // private _style: StatusbarStyle = StatusbarStyle.Default;
+  // private _color: string = "";
+  // private _overlays: boolean = false;
   // mmid 最好全部采用小写，防止出现不可预期的意外
   constructor(mmid = "statusbar.sys.dweb") {
     super(mmid, "StatusBar");
@@ -998,30 +1002,6 @@ var StatusbarPlugin = class extends BasePlugin {
       configurable: true,
       writable: true,
       value: mmid
-    });
-    Object.defineProperty(this, "_visible", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: true
-    });
-    Object.defineProperty(this, "_style", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: StatusbarStyle.Default
-    });
-    Object.defineProperty(this, "_color", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: ""
-    });
-    Object.defineProperty(this, "_overlays", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: false
     });
   }
   /**
@@ -1033,7 +1013,7 @@ var StatusbarPlugin = class extends BasePlugin {
    */
   async setBackgroundColor(options) {
     const colorHex = convertToRGBAHex(options.color ?? "");
-    return await this.nativeFetch(`/setBackgroundColor?color=${colorHex}`);
+    return await this.nativeFetch(`/setBackgroundColor`, { search: { color: colorHex } });
   }
   /**
    *  获取背景颜色
@@ -1052,14 +1032,19 @@ var StatusbarPlugin = class extends BasePlugin {
    * @param style
    */
   async setStyle(styleOptions) {
-    await this.nativeFetch(`/setStyle?style=${styleOptions.style}`);
+    await this.nativeFetch(`/setStyle`, {
+      search: {
+        style: styleOptions.style
+      }
+    });
   }
   /**
    * 获取当前style
    * @returns
    */
   async getStyle() {
-    return (await this.getInfo()).style;
+    const result = await this.getInfo();
+    return result.style;
   }
   /**
   * 显示状态栏。
@@ -1081,7 +1066,12 @@ var StatusbarPlugin = class extends BasePlugin {
    */
   async hide(options) {
     const animation = options?.animation ?? EStatusBarAnimation.None;
-    await this.nativeFetch(`/setVisible?visible=false&animation=${animation}`);
+    await this.nativeFetch(`/setVisible`, {
+      search: {
+        visible: false,
+        animation
+      }
+    });
   }
   /**
   * 获取有关状态栏当前状态的信息。
@@ -1101,7 +1091,11 @@ var StatusbarPlugin = class extends BasePlugin {
   * @since 1.0.0
   */
   async setOverlaysWebView(options) {
-    await this.nativeFetch(`/setOverlays?overlay=${options.overlay}`);
+    await this.nativeFetch(`/setOverlays`, {
+      search: {
+        overlay: options.overlay
+      }
+    });
   }
 };
 
@@ -1130,14 +1124,25 @@ var SplashScreenPlugin = class extends BasePlugin {
    * @param options
    */
   async show(options) {
-    return await this.nativeFetch(`/show?options=${JSON.stringify(options)}`);
+    return await this.nativeFetch(`/show`, {
+      search: {
+        autoHide: options?.autoHide,
+        showDuration: options?.showDuration,
+        fadeOutDuration: options?.fadeOutDuration,
+        fadeInDuration: options?.fadeInDuration
+      }
+    });
   }
   /**
    * 隐藏启动页
    * @param options
    */
   async hide(options) {
-    return await this.nativeFetch(`/hide?options=${JSON.stringify(options)}`);
+    return await this.nativeFetch(`/hide`, {
+      search: {
+        fadeOutDuration: options?.fadeOutDuration
+      }
+    });
   }
 };
 
@@ -1148,6 +1153,57 @@ function documentOnDOMContentLoaded6() {
   const el = new SplashScreenPlugin();
   document.body.append(el);
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded6);
+}
+
+// build/plugin/esm/src/components/share/share.plugin.js
+var SharePlugin = class extends BasePlugin {
+  constructor(mmid = "share.sys.dweb") {
+    super(mmid, "Share");
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+  }
+  /**
+   * 判断是否能分享
+   * web Only
+   * @returns
+   */
+  // deno-lint-ignore require-await
+  async canShare() {
+    if (typeof navigator === "undefined" || !navigator.share) {
+      return { value: false };
+    } else {
+      return { value: true };
+    }
+  }
+  /**
+   * 分享
+   * @param options
+   * @returns
+   */
+  async share(options) {
+    return await this.nativeFetch(`/share`, {
+      search: {
+        dialogTitle: options?.dialogTitle,
+        title: options?.title,
+        text: options?.text,
+        url: options?.url,
+        files: options?.files
+      }
+    });
+  }
+};
+
+// build/plugin/esm/src/components/share/index.js
+customElements.define("dweb-share", SharePlugin);
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded7);
+function documentOnDOMContentLoaded7() {
+  const el = new SharePlugin();
+  document.body.append(el);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded7);
 }
 
 // demo/src/index.ts
@@ -1212,13 +1268,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const result = await splash.hide({ fadeOutDuration: 200 }).then((res) => res.text());
     $("statusbar-observer-log").innerHTML = result;
   });
+  const share = document.querySelector("dweb-share");
+  $("share-share").addEventListener("click", async () => {
+    const text = $("share-options").value;
+    const result = await share.share(
+      { title: "\u5206\u4EAB\u6807\u9898", text, url: "file:///xxx", files: ["file://xxx"], dialogTitle: "dialogTitle" }
+    ).then((res) => res.text());
+    $("statusbar-observer-log").innerHTML = result;
+  });
 });
-/**
- * String.prototype.replaceAll() polyfill
- * https://gomakethings.com/how-to-replace-a-section-of-a-string-with-another-one-with-vanilla-js/
- * @author Chris Ferdinandi
- * @license MIT
- */
 /*! Bundled license information:
 
 image-capture/src/imagecapture.js:

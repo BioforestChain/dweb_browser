@@ -37,23 +37,20 @@ inline fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class ShareNMM : NativeMicroModule("share.sys.dweb") {
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+        val shareOption = Query.composite { spec ->
+            ShareOptions(
+               dialogTitle = string().required("dialogTitle")(spec),
+               title = string().optional("title")(spec),
+               text = string().optional("text")(spec),
+               url = string().optional("url")(spec),
+               files = string().multi.optional("files")(spec),
+           )
+        }
         apiRouting = routes(
             /** 分享*/
             "/share" bind Method.GET to defineHandler { request ->
-                debugShare(
-                    "FileSystemNMM#apiRouting",
-                    "checkPermissions===>$mmid  ${request.uri.path} "
-                )
-                val ext = Query.composite {
-
-                    ShareOptions(
-                        title = string().optional("title")(it),
-                        text = string().optional("text")(it),
-                        url = string().optional("url")(it),
-                        files = string().multi.optional("files")(it),
-                        dialogTitle = string().required("dialogTitle")(it),
-                    )
-                }(request)
+                debugShare("ShareNMM#apiRouting","share===>$mmid  ${request.uri.path} ")
+                val ext = shareOption(request)
                 share(ext.title, ext.text, ext.url, ext.files, ext.dialogTitle) {
                     Response(Status.OK).body(it)
                 }

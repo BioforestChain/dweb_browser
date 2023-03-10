@@ -84,5 +84,6 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
         defineHandler { request ->
             handler(request, requestContextKey_ipc(request))
         }
+
 }
 

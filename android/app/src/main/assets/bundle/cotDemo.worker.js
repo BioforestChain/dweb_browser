@@ -1171,9 +1171,10 @@ var IpcResMessage = class extends IpcMessage {
 
 // src/user/cot-demo/cotDemo.request.mts
 async function onApiRequest(request, httpServerIpc) {
-  const url = `file:/${request.url}`;
-  console.log("onRequestToastShow: ", url);
-  let res = await jsProcess.nativeFetch(url);
+  const url = new URL(request.url);
+  const path = `file:/${url.pathname}${url.search}`;
+  console.log("onRequestToastShow: ", path);
+  let res = await jsProcess.nativeFetch(path);
   httpServerIpc.postMessage(
     await IpcResponse.fromText(
       request.req_id,

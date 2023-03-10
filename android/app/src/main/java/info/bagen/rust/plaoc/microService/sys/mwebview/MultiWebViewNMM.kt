@@ -39,9 +39,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             ActivityClass("", MutilWebViewPlaceholder5Activity::class.java),
         )
         val controllerMap = mutableMapOf<Mmid, MutilWebViewController>()
-        fun getCurrentWebViewController(): MutilWebViewController? {
-//            return controllerMap[currentMmid]
-            return null
+        fun getCurrentWebViewController(mmid: Mmid): MutilWebViewController? {
+            return controllerMap[mmid]
         }
     }
 

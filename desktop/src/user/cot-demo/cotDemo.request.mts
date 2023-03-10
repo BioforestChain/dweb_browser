@@ -8,9 +8,11 @@ import type { Ipc } from "../../core/ipc/ipc.cjs";
 * request 事件处理器
 */
 export async function onApiRequest(request: IpcRequest, httpServerIpc: Ipc) {
-  const url = `file:/${request.url}`;
-  console.log("onRequestToastShow: ", url)
-  let res = await jsProcess.nativeFetch(url)
+
+  const url = new URL(request.url)
+  const path = `file:/${url.pathname}${url.search}`;
+  console.log("onRequestToastShow: ", path)
+  let res = await jsProcess.nativeFetch(path)
   // 返回数据到前端
   httpServerIpc.postMessage(
     await IpcResponse.fromText(

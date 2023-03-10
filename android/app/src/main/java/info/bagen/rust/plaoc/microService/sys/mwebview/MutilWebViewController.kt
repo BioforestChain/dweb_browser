@@ -7,6 +7,8 @@ import com.google.accompanist.web.WebViewState
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUIState
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.*
 
@@ -27,6 +29,7 @@ class MutilWebViewController(
         val webView: DWebView,
         val state: WebViewState,
         val navigator: WebViewNavigator,
+        var systemUiPlugin: SystemUiPlugin?= null,
         val coroutineScope: CoroutineScope,
         var hidden: Boolean = false
     )
@@ -108,7 +111,7 @@ class MutilWebViewController(
             webView = dWebView,
             state = state,
             coroutineScope = coroutineScope,
-            navigator = navigator
+            navigator = navigator,
         ).also {
             webViewList.add(it)
             dWebView.onCloseWindow {
@@ -120,10 +123,6 @@ class MutilWebViewController(
         }
     }.getOrThrow()
 
-
-    fun getCurrentWebView(): ViewItem {
-        return webViewList.last()
-    }
 
     /**
      * 关闭WebView

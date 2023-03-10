@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.DWebView
 import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
