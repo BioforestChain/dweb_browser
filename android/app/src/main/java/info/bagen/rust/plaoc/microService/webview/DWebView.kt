@@ -184,6 +184,7 @@ class DWebView(
             ): WebResourceResponse? {
                 if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
                     /// http://*.dweb 由 MicroModule 来处理请求
+                    println("xxx: ${request.url.toString()}")
                     val response = runBlockingCatching {
                         remoteMM.nativeFetch(
                             Request(

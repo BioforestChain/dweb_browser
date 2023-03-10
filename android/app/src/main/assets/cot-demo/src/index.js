@@ -8,91 +8,6 @@ if (!String.prototype.replaceAll) {
   };
 }
 
-// build/plugin/esm/_dnt.shims.js
-var dntGlobals = {};
-var dntGlobalThis = createMergeProxy(globalThis, dntGlobals);
-function createMergeProxy(baseObj, extObj) {
-  return new Proxy(baseObj, {
-    get(_target, prop, _receiver) {
-      if (prop in extObj) {
-        return extObj[prop];
-      } else {
-        return baseObj[prop];
-      }
-    },
-    set(_target, prop, value) {
-      if (prop in extObj) {
-        delete extObj[prop];
-      }
-      baseObj[prop] = value;
-      return true;
-    },
-    deleteProperty(_target, prop) {
-      let success = false;
-      if (prop in extObj) {
-        delete extObj[prop];
-        success = true;
-      }
-      if (prop in baseObj) {
-        delete baseObj[prop];
-        success = true;
-      }
-      return success;
-    },
-    ownKeys(_target) {
-      const baseKeys = Reflect.ownKeys(baseObj);
-      const extKeys = Reflect.ownKeys(extObj);
-      const extKeysSet = new Set(extKeys);
-      return [...baseKeys.filter((k) => !extKeysSet.has(k)), ...extKeys];
-    },
-    defineProperty(_target, prop, desc) {
-      if (prop in extObj) {
-        delete extObj[prop];
-      }
-      Reflect.defineProperty(baseObj, prop, desc);
-      return true;
-    },
-    getOwnPropertyDescriptor(_target, prop) {
-      if (prop in extObj) {
-        return Reflect.getOwnPropertyDescriptor(extObj, prop);
-      } else {
-        return Reflect.getOwnPropertyDescriptor(baseObj, prop);
-      }
-    },
-    has(_target, prop) {
-      return prop in extObj || prop in baseObj;
-    }
-  });
-}
-
-// build/plugin/esm/src/components/registerPlugin.js
-var Plugins = class {
-  constructor() {
-    Object.defineProperty(this, "map", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: /* @__PURE__ */ new Map()
-    });
-    Object.defineProperty(this, "registerWebPlugin", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: (plugin) => {
-        this.map.set(plugin.proxy, plugin);
-      }
-    });
-  }
-};
-var plugins = new Plugins();
-dntGlobalThis.Capacitor ? "" : dntGlobalThis.Capacitor = { Plugins: {} };
-dntGlobalThis.Capacitor.Plugins = new Proxy({}, {
-  get(_target, proxy, receiver) {
-    return plugins.map.get(proxy);
-  }
-});
-var registerWebPlugin = plugins.registerWebPlugin;
-
 // build/plugin/node_modules/image-capture/src/imagecapture.js
 var ImageCapture = window.ImageCapture;
 if (typeof ImageCapture === "undefined") {
@@ -410,7 +325,7 @@ var PromiseOut = class {
 
 // build/plugin/esm/src/helper/binary.js
 var encodeUri = (url) => {
-  return url.replaceAll("#", "%23");
+  return url.replaceAll("#", "%23").replaceAll("{", "%7B").replaceAll("}", "%7D");
 };
 
 // build/plugin/esm/src/helper/createSignal.js
@@ -900,6 +815,135 @@ function documentOnDOMContentLoaded2() {
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded2);
 }
 
+// build/plugin/esm/src/components/toast/toast.plugin.js
+var ToastPlugin = class extends BasePlugin {
+  constructor(mmid = "toast.sys.dweb") {
+    super(mmid, "Toast");
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+    Object.defineProperty(this, "_root", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, "_elStyle", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: document.createElement("style")
+    });
+    Object.defineProperty(this, "_fragment", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: new DocumentFragment()
+    });
+    Object.defineProperty(this, "_duration", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: "long"
+    });
+    Object.defineProperty(this, "_position", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: "bottom"
+    });
+    Object.defineProperty(this, "_verticalClassName", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: ""
+    });
+    this._root = this.attachShadow({ mode: "open" });
+    this._init();
+  }
+  _init() {
+  }
+  // private _initfragment() {
+  //     this._fragment.append(this._elContent, this._elStyle);
+  //     return this;
+  // }
+  // private _initShadowRoot() {
+  //     this._root.appendChild(this._fragment)
+  //     return this;
+  // }
+  // private _initContent() {
+  //     this._elContent.setAttribute("class", "content")
+  //     this._elContent.innerText = '消息的内容！';
+  //     return this;
+  // }
+  // private _initStyle() {
+  //     this._elStyle.setAttribute("type", "text/css")
+  //     this._elStyle.innerText = createCssText()
+  //     return this;
+  // }
+  /**
+   * toast信息显示
+   * @param message 消息
+   * @param duration 时长 'long' | 'short'
+   * @returns
+   */
+  async show(options) {
+    const { text, duration = "long", position = "bottom" } = options;
+    this._duration = duration;
+    this._position = position;
+    this.setAttribute("style", "left: 0px;");
+    return await this.nativeFetch(`/show?message=${text}&duration=${duration}&position=${position}`);
+  }
+  connectedCallback() {
+  }
+};
+
+// build/plugin/esm/src/components/toast/index.js
+customElements.define("dweb-toast", ToastPlugin);
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
+function documentOnDOMContentLoaded3() {
+  const el = new ToastPlugin();
+  document.body.append(el);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
+}
+
+// build/plugin/esm/src/components/torch/torch.plugin.js
+var TorchPlugin = class extends BasePlugin {
+  constructor(mmid = "torch.sys.dweb") {
+    super(mmid, "Torch");
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+  }
+  /**
+   * 打开/关闭手电筒
+   */
+  async toggleTorch() {
+    return await this.nativeFetch("/toggleTorch");
+  }
+  /**
+   * 手电筒状态
+   */
+  async getTorchState() {
+    return await this.nativeFetch("/torchState");
+  }
+};
+
+// build/plugin/esm/src/components/torch/index.js
+customElements.define("dweb-torch", TorchPlugin);
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
+function documentOnDOMContentLoaded4() {
+  const el = new TorchPlugin();
+  document.body.append(el);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
+}
+
 // build/plugin/esm/src/helper/color.js
 function convertToRGBAHex(color) {
   let colorHex = "#";
@@ -1063,148 +1107,48 @@ var StatusbarPlugin = class extends BasePlugin {
 
 // build/plugin/esm/src/components/statusbar/index.js
 customElements.define("dweb-statusbar", StatusbarPlugin);
-document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
-function documentOnDOMContentLoaded3() {
-  const el = new StatusbarPlugin();
-  document.body.append(el);
-  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded3);
-}
-
-// build/plugin/esm/src/components/toast/toast.plugin.js
-var ToastPlugin = class extends BasePlugin {
-  constructor(mmid = "toast.sys.dweb") {
-    super(mmid, "Toast");
-    Object.defineProperty(this, "mmid", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: mmid
-    });
-    Object.defineProperty(this, "_root", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: void 0
-    });
-    Object.defineProperty(this, "_elStyle", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: document.createElement("style")
-    });
-    Object.defineProperty(this, "_fragment", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: new DocumentFragment()
-    });
-    Object.defineProperty(this, "_duration", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: "long"
-    });
-    Object.defineProperty(this, "_position", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: "bottom"
-    });
-    Object.defineProperty(this, "_verticalClassName", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: ""
-    });
-    this._root = this.attachShadow({ mode: "open" });
-    this._init();
-  }
-  _init() {
-  }
-  // private _initfragment() {
-  //     this._fragment.append(this._elContent, this._elStyle);
-  //     return this;
-  // }
-  // private _initShadowRoot() {
-  //     this._root.appendChild(this._fragment)
-  //     return this;
-  // }
-  // private _initContent() {
-  //     this._elContent.setAttribute("class", "content")
-  //     this._elContent.innerText = '消息的内容！';
-  //     return this;
-  // }
-  // private _initStyle() {
-  //     this._elStyle.setAttribute("type", "text/css")
-  //     this._elStyle.innerText = createCssText()
-  //     return this;
-  // }
-  /**
-   * toast信息显示
-   * @param message 消息
-   * @param duration 时长 'long' | 'short'
-   * @returns
-   */
-  async show(options) {
-    const { text, duration = "long", position = "bottom" } = options;
-    this._duration = duration;
-    this._position = position;
-    this.setAttribute("style", "left: 0px;");
-    return await this.nativeFetch(`/show?message=${text}&duration=${duration}&position=${position}`);
-  }
-  connectedCallback() {
-  }
-};
-
-// build/plugin/esm/src/components/toast/index.js
-customElements.define("dweb-toast", ToastPlugin);
-document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
-function documentOnDOMContentLoaded4() {
-  const el = new ToastPlugin();
-  document.body.append(el);
-  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded4);
-}
-
-// build/plugin/esm/src/components/torch/torch.plugin.js
-var TorchPlugin = class extends BasePlugin {
-  constructor(mmid = "torch.sys.dweb") {
-    super(mmid, "Torch");
-    Object.defineProperty(this, "mmid", {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-      value: mmid
-    });
-  }
-  /**
-   * 打开/关闭手电筒
-   */
-  async toggleTorch() {
-    return await this.nativeFetch("/toggleTorch");
-  }
-  /**
-   * 手电筒状态
-   */
-  async getTorchState() {
-    return await this.nativeFetch("/torchState");
-  }
-};
-
-// build/plugin/esm/src/components/torch/index.js
-customElements.define("dweb-torch", TorchPlugin);
 document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded5);
 function documentOnDOMContentLoaded5() {
-  const el = new TorchPlugin();
+  const el = new StatusbarPlugin();
   document.body.append(el);
   document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded5);
 }
 
-// build/plugin/esm/src/components/index.js
-registerWebPlugin(new Navigatorbar());
-registerWebPlugin(new BarcodeScanner());
-registerWebPlugin(new StatusbarPlugin());
-registerWebPlugin(new ToastPlugin());
-registerWebPlugin(new TorchPlugin());
+// build/plugin/esm/src/components/splash-screen/splash.plugin.js
+var SplashScreenPlugin = class extends BasePlugin {
+  constructor(mmid = "splash.sys.dweb") {
+    super(mmid, "Splash");
+    Object.defineProperty(this, "mmid", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: mmid
+    });
+  }
+  /**
+   * 显示启动页
+   * @param options
+   */
+  async show(options) {
+    return await this.nativeFetch(`/show?options=${JSON.stringify(options)}`);
+  }
+  /**
+   * 隐藏启动页
+   * @param options
+   */
+  async hide(options) {
+    return await this.nativeFetch(`/hide?options=${JSON.stringify(options)}`);
+  }
+};
+
+// build/plugin/esm/src/components/splash-screen/index.js
+customElements.define("dweb-splash", SplashScreenPlugin);
+document.addEventListener("DOMContentLoaded", documentOnDOMContentLoaded6);
+function documentOnDOMContentLoaded6() {
+  const el = new SplashScreenPlugin();
+  document.body.append(el);
+  document.removeEventListener("DOMContentLoaded", documentOnDOMContentLoaded6);
+}
 
 // demo/src/index.ts
 function $(params) {
@@ -1258,6 +1202,15 @@ document.addEventListener("DOMContentLoaded", () => {
   $("statusbar-getOverlaysWebView").addEventListener("click", async () => {
     const result = await statusBar.getInfo();
     $("statusbar-observer-log").innerHTML = JSON.stringify(result);
+  });
+  const splash = document.querySelector("dweb-splash");
+  $("splashscreen-show").addEventListener("click", async () => {
+    const result = await splash.show({ autoHide: true, fadeInDuration: 300, fadeOutDuration: 200, showDuration: 3e3 }).then((res) => res.text());
+    $("statusbar-observer-log").innerHTML = result;
+  });
+  $("splashscreen-hide").addEventListener("click", async () => {
+    const result = await splash.hide({ fadeOutDuration: 200 }).then((res) => res.text());
+    $("statusbar-observer-log").innerHTML = result;
   });
 });
 /**

@@ -67,7 +67,7 @@ class SplashScreen(
                 if (sInstance.config.usingDialog) {
                     sInstance.hideDialog(activity = activity)
                 } else if (sInstance.settings != null) {
-                    sInstance.hide(sInstance.settings!!)
+                    sInstance.hide(HideOptions(sInstance.settings!!.fadeOutDuration))
                 }
             }
 
@@ -255,7 +255,7 @@ class SplashScreen(
      *
      * @param settings Settings used to hide the Splash Screen
      */
-    fun hide(settings: SplashScreenSettings) {
+    fun hide(settings: HideOptions) {
         hide(settings.fadeOutDuration, false)
     }
 
@@ -576,11 +576,49 @@ class SplashScreen(
 }
 
 data class SplashScreenSettings(
-    var showDuration: Long = 3000L,
-    var fadeInDuration: Long = 200L,
-    var fadeOutDuration: Long = 200L,
+    /**
+     * Whether to auto hide the splash after showDuration
+     *
+     * @since 1.0.0
+     */
     var autoHide: Boolean = true,
+    /**
+     * How long (in ms) to fade in.
+     *
+     * @since 1.0.0
+     * @default 200
+     */
+    var fadeInDuration: Long = 200L,
+    /**
+     * How long (in ms) to fade out.
+     *
+     * @since 1.0.0
+     * @default 200
+     */
+    var fadeOutDuration:  Long = 200L,
+    /**
+     * How long to show the splash screen when autoHide is enabled (in ms)
+     *
+     * @since 1.0.0
+     * @default 3000
+     */
+    var showDuration: Long = 3000L
 )
+
+data class HideOptions(
+    /**
+     * How long (in ms) to fade out.
+     *
+     * On Android, if using the Android 12 Splash Screen API, it's not being used.
+     * Use launchFadeOutDuration configuration option instead.
+     *
+     * @since 1.0.0
+     * @default 200
+     */
+    var fadeOutDuration: Long = 200L
+) {
+
+}
 
 data class SplashScreenConfig(
     var backgroundColor: Long = 0xffffffff,

@@ -4,7 +4,7 @@ function $<T extends HTMLElement>(params: string): T {
 
 import { Tduration } from '../../build/plugin/types/src/components/toast/toast.type.d.ts';
 import "../../build/plugin/esm/src/index.js"
-import { StatusbarPlugin, StatusbarStyle, EStatusBarAnimation, ToastPlugin } from "../../src/index.ts";
+import { StatusbarPlugin, StatusbarStyle, EStatusBarAnimation, ToastPlugin, SplashScreenPlugin } from "../../src/index.ts";
 document.addEventListener("DOMContentLoaded", () => {
   /**toast */
   $("toast-show").addEventListener("click", async () => {
@@ -60,9 +60,17 @@ document.addEventListener("DOMContentLoaded", () => {
     $("statusbar-observer-log").innerHTML = JSON.stringify(result)
   })
 
-
-
   /**Splash */
+  const splash = document.querySelector<SplashScreenPlugin>("dweb-splash")!
+  $("splashscreen-show").addEventListener("click", async () => {
+    const result = await splash.show({ autoHide: true, fadeInDuration: 300, fadeOutDuration: 200, showDuration: 3000 }).then(res => res.text())
+    $("statusbar-observer-log").innerHTML = result
+  })
+  $("splashscreen-hide").addEventListener("click", async () => {
+    const result = await splash.hide({ fadeOutDuration: 200 }).then(res => res.text())
+    $("statusbar-observer-log").innerHTML = result
+  })
+
   /**Share */
   /**Safe Area */
   /**Navigation Bar */

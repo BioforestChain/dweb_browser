@@ -28,5 +28,5 @@ lerna-debug.log*
 
 
 #plugins
-./plugins/build
-./plugins/demo/src/index.js
+plugins/build
+plugins/demo/src/index.js

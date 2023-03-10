@@ -17,6 +17,7 @@ import info.bagen.rust.plaoc.microService.sys.plugin.haptics.HapticsNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.notification.NotificationNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionsNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.share.ShareNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.splash.SplashScreenNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.KeyboardNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.NavigationBarNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.StatusBarNMM
@@ -78,6 +79,8 @@ suspend fun startDwebBrowser() {
     /// 手电筒
     val torchNMM = TorchNMM().also() { dnsNMM.install(it) }
 
+    /// SplashScreen
+    val splashScreenNMM = SplashScreenNMM().also { dnsNMM.install(it) }
     /// keyboard
     val keyboardNMM = KeyboardNMM().also { dnsNMM.install(it) }
     /// statusBar
