@@ -17,7 +17,7 @@ inline fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
     err?.printStackTrace()
 }
 
-inline fun debugger(vararg params: Any) {
+inline fun debugger(vararg params: Any?) {
     for (p in params) {
 
     }

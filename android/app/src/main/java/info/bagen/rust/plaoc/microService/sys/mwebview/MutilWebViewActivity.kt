@@ -8,28 +8,27 @@ import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.WebView
-import com.google.common.primitives.Ints.min
 import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUIState
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiController
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
-import info.bagen.rust.plaoc.util.rememberIsChange
 import kotlinx.coroutines.launch
 
 
@@ -141,7 +140,17 @@ open class MutilWebViewActivity : PermissionActivity() {
         setContent {
 
             val systemUiController = rememberSystemUiController()
-            systemUiController.setSystemBarsColor(Color.Transparent)
+            val useDarkIcons = !isSystemInDarkTheme()
+            DisposableEffect(systemUiController, useDarkIcons) {
+                // 更新所有系统栏的颜色为透明
+                // 如果我们在浅色主题中使用深色图标
+                systemUiController.setSystemBarsColor(
+                    color = Color.Transparent,
+                    darkIcons = useDarkIcons,
+                )
+
+                onDispose {}
+            }
 
 
             RustApplicationTheme {
@@ -152,40 +161,11 @@ open class MutilWebViewActivity : PermissionActivity() {
                     )
                 }
 
-                val systemUIState = SystemUIState.Default(this)
+                val systemUiController = SystemUiController.remember(this)
 
-                var overlayOffset by remember { mutableStateOf(IntOffset(0, 0)) }
-//                var overlayPadding by remember { mutableStateOf(PaddingValues()) }
-//                val isSystemUILayoutChanged = rememberIsChange()
-//                isSystemUILayoutChanged.rememberStateOf(systemUIState.virtualKeyboard.overlay)
-//                isSystemUILayoutChanged.rememberStateOf(systemUIState.statusBar.overlay)
-//                isSystemUILayoutChanged.rememberStateOf(WindowInsets.isImeVisible)
-//                isSystemUILayoutChanged.rememberStateOf(systemUIState.navigationBar.overlay)
-//                isSystemUILayoutChanged.rememberStateOf(WindowInsets.navigationBars)
-//                isSystemUILayoutChanged.effectChange {
-//
-//                }
-               val overlayPadding = WindowInsets(0).let {
-                    var res = it
-                    if (!systemUIState.statusBar.overlay.value) {
-                        res = res.add(WindowInsets.statusBars)
-                    }
-                    if (!systemUIState.virtualKeyboard.overlay.value && WindowInsets.isImeVisible) {
-                        // it.add(WindowInsets.ime) // ime本身就包含了navigationBars的高度
-                        overlayOffset = IntOffset(
-                            0, min(
-                                0,
-                                WindowInsets.navigationBars.getBottom(LocalDensity.current) - WindowInsets.ime.getBottom(
-                                    LocalDensity.current
-                                )
-                            )
-                        )
-                    } else if (!systemUIState.navigationBar.overlay.value) {
-                        res = res.add(WindowInsets.navigationBars)
-                    }
-                    res
-                }.asPaddingValues()
-
+                val modifierOffset by systemUiController.modifierOffsetState
+                val modifierPadding by systemUiController.modifierPaddingState
+                val modifierScale by systemUiController.modifierScaleState
 
                 wc.webViewList.forEachIndexed { index, viewItem ->
                     println("viewItem.webviewId: ${viewItem.webviewId}")
@@ -202,7 +182,8 @@ open class MutilWebViewActivity : PermissionActivity() {
                                 wc.closeWebView(viewItem.webviewId)
                             }
                         }
-                        viewItem.systemUiPlugin = SystemUiPlugin(viewItem.webView, systemUIState)
+                        viewItem.systemUiPlugin =
+                            SystemUiPlugin(viewItem.webView, systemUiController)
 
                         val chromeClient = remember {
                             object : AccompanistWebChromeClient() {
@@ -259,14 +240,19 @@ open class MutilWebViewActivity : PermissionActivity() {
 
                             }
                         }
-                        Box(modifier = Modifier
-                            .fillMaxSize()
-                            .padding(overlayPadding)
-                            .offset { overlayOffset }) {
+                        Box(
+                            modifier = Modifier
+                                .background(Color.Blue)
+                                .fillMaxSize()
+                        ) {
                             WebView(
                                 state = state,
                                 navigator = navigator,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+//                                    .offset { modifierOffset }
+//                                    .scale(modifierScale.first, modifierScale.second)
+                                    .fillMaxSize()
+                                    .padding(modifierPadding),
                                 factory = { viewItem.webView },
                                 chromeClient = chromeClient,
                             )
@@ -297,6 +283,58 @@ open class MutilWebViewActivity : PermissionActivity() {
                                         }
                                     })
                             }
+                            var statusBarOverlay by systemUiController.statusBarController.overlayState
+                            var virtualKeyboardOverlay by systemUiController.virtualKeyboardController.overlayState
+                            var navigationBarOverlay by systemUiController.navigationBarController.overlayState
+
+                            Column(
+                                modifier = Modifier.padding(top = 30.dp, start = 20.dp),
+                            ) {
+                                @Composable
+                                fun RowSwitchItem(
+                                    text: String,
+                                    switchState: MutableState<Boolean>
+                                ) {
+                                    var switch by switchState
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .height(56.dp)
+                                            .padding(horizontal = 16.dp)
+                                            .toggleable(
+                                                value = switch,
+                                                onValueChange = {
+                                                    switch = it
+                                                },
+                                                role = Role.Switch
+                                            )
+                                    ) {
+                                        Switch(
+                                            checked = switch,
+                                            onCheckedChange = null
+                                        )
+                                        Text(
+                                            modifier = Modifier.padding(start = 16.dp),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            text = text
+                                        )
+                                    }
+                                }
+                                RowSwitchItem(
+                                    "statusBarOverlay",
+                                    systemUiController.statusBarController.overlayState
+                                )
+                                RowSwitchItem(
+                                    "virtualKeyboardOverlay",
+                                    systemUiController.virtualKeyboardController.overlayState
+                                )
+                                RowSwitchItem(
+                                    "navigationBarOverlay",
+                                    systemUiController.navigationBarController.overlayState
+                                )
+                               
+                            }
+
                         }
 
                     }

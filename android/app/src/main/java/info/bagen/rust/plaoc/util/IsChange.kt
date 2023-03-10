@@ -3,14 +3,16 @@ package info.bagen.rust.plaoc.util
 import androidx.compose.runtime.*
 
 @Stable
-class IsChange {
+class IsChange(
+    val needFirstCall: Boolean, _policy: SnapshotMutationPolicy<Any?>? = null
+) {
+    private val policy = _policy ?: structuralEqualityPolicy()
     val changes: MutableState<Int> = mutableStateOf(0)
-    private val policy by lazy {
+    private val markChangePolicy by lazy {
         object : SnapshotMutationPolicy<Any?> {
             override fun equivalent(a: Any?, b: Any?): Boolean {
-                return (a == b).also {
-                    if (!it)
-                        changes.value += 1
+                return policy.equivalent(a, b).also {
+                    if (!it) changes.value += 1
                 }
             }
         }
@@ -18,7 +20,7 @@ class IsChange {
 
 
     fun <T> getPolicy(): SnapshotMutationPolicy<T> {
-        return policy as SnapshotMutationPolicy<T>
+        return markChangePolicy as SnapshotMutationPolicy<T>
     }
 
     @Composable
@@ -30,16 +32,33 @@ class IsChange {
     }
 
     @Composable
-    fun <T> rememberStateOf(value: T): MutableState<T> {
-        return remember {
+    inline fun <T> rememberToState(value: T): MutableState<T> {
+        return remember(value) {
+            if (needFirstCall) {
+                changes.value += 1
+            }
             mutableStateOf(value, getPolicy())
+        }
+    }
+
+    @Composable
+    inline fun <T> rememberByState(value: State<T>): State<T> {
+        return remember {
+            if (needFirstCall) {
+                changes.value += 1
+            }
+            derivedStateOf(getPolicy()) {
+                value.value
+            }
         }
     }
 }
 
 @Composable
-inline fun rememberIsChange(): IsChange {
+inline fun rememberIsChange(
+    needFirstCall: Boolean, _policy: SnapshotMutationPolicy<Any?>? = null
+): IsChange {
     return remember {
-        IsChange()
+        IsChange(needFirstCall, _policy)
     }
 }

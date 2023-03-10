@@ -2,7 +2,6 @@ package info.bagen.rust.plaoc.microService
 
 import android.annotation.SuppressLint
 import android.app.ActivityManager
-import android.net.Uri
 import android.os.Message
 import android.util.Log
 import android.webkit.*
@@ -18,9 +17,10 @@ import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiController
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.keyboard.VirtualKeyboard
 import info.bagen.rust.plaoc.webView.api.BFSApi
 import info.bagen.rust.plaoc.webView.bottombar.BottomBarState
 import info.bagen.rust.plaoc.webView.bottombar.DWebBottomBar
@@ -28,16 +28,11 @@ import info.bagen.rust.plaoc.webView.dialog.*
 import info.bagen.rust.plaoc.webView.jsutil.JsUtil
 import info.bagen.rust.plaoc.webView.network.*
 import info.bagen.rust.plaoc.webView.openDWebWindow
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUIState
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.keyboard.VirtualKeyboard
 import info.bagen.rust.plaoc.webView.topbar.DWebTopBar
 import info.bagen.rust.plaoc.webView.topbar.TopBarState
 import info.bagen.rust.plaoc.webView.urlscheme.CustomUrlScheme
 import info.bagen.rust.plaoc.webkit.*
 import java.net.URI
-import kotlin.math.min
-
-
 
 
 private const val LEAVE_URI_SYMBOL = ":~:dweb=leave"
@@ -82,38 +77,19 @@ fun DWebView(
 
     SetTaskDescription(state, activity)
 
-    val systemUIState = SystemUIState.Default(activity)
+    val systemUiController = SystemUiController.remember(activity)
 
     jsUtil?.apply {
         VirtualKeyboard.injectVirtualKeyboardVars(
             this,
             LocalDensity.current, LocalLayoutDirection.current,
-            systemUIState.virtualKeyboard.overlay.value, WindowInsets.ime,
-            systemUIState.navigationBar.overlay.value, WindowInsets.navigationBars,
+            systemUiController.virtualKeyboardController.overlayState.value, WindowInsets.ime,
+            systemUiController.navigationBarController.overlayState.value, WindowInsets.navigationBars,
         )
     }
 
-    var overlayOffset = IntOffset(0, 0)
-    val overlayPadding = WindowInsets(0).let {
-        var res = it
-        if (!systemUIState.statusBar.overlay.value) {
-            res = res.add(WindowInsets.statusBars)
-        }
-
-        if (!systemUIState.virtualKeyboard.overlay.value && WindowInsets.isImeVisible) {
-            // it.add(WindowInsets.ime) // ime本身就包含了navigationBars的高度
-            overlayOffset =
-                IntOffset(
-                    0, min(
-                        0, -WindowInsets.ime.getBottom(LocalDensity.current)
-                                + WindowInsets.navigationBars.getBottom(LocalDensity.current)
-                    )
-                )
-        } else if (!systemUIState.navigationBar.overlay.value) {
-            res = res.add(WindowInsets.navigationBars)
-        }
-        res
-    }.asPaddingValues()
+    val overlayOffset by systemUiController.modifierOffsetState
+    val overlayPadding by systemUiController.modifierPaddingState
 
     // Log.i(TAG, "overlayPadding:$overlayPadding")
     val pressBack = remember {
@@ -209,7 +185,10 @@ fun DWebView(
                         override fun onJsAlert(
                             view: WebView?, url: String?, message: String?, result: JsResult?
                         ): Boolean {
-                            Log.e("DWebView", "chromeClient::onJsAlert url=$url, message=$message, result=$result")
+                            Log.e(
+                                "DWebView",
+                                "chromeClient::onJsAlert url=$url, message=$message, result=$result"
+                            )
                             if (result == null) {
                                 return super.onJsAlert(view, url, message, result)
                             }
@@ -228,7 +207,10 @@ fun DWebView(
                             defaultValue: String?,
                             result: JsPromptResult?
                         ): Boolean {
-                            Log.e("DWebView", "chromeClient::onJsPrompt url=$url, message=$message, result=$result")
+                            Log.e(
+                                "DWebView",
+                                "chromeClient::onJsPrompt url=$url, message=$message, result=$result"
+                            )
                             if (result == null) {
                                 return super.onJsPrompt(view, url, message, defaultValue, result)
                             }
@@ -245,7 +227,10 @@ fun DWebView(
                         override fun onJsConfirm(
                             view: WebView?, url: String?, message: String?, result: JsResult?
                         ): Boolean {
-                            Log.e("DWebView", "chromeClient::onJsConfirm url=$url, message=$message, result=$result")
+                            Log.e(
+                                "DWebView",
+                                "chromeClient::onJsConfirm url=$url, message=$message, result=$result"
+                            )
                             if (result == null) {
                                 return super.onJsConfirm(view, url, message, result)
                             }
@@ -261,7 +246,10 @@ fun DWebView(
                         override fun onJsBeforeUnload(
                             view: WebView?, url: String?, message: String?, result: JsResult?
                         ): Boolean {
-                            Log.e("DWebView", "chromeClient::onJsBeforeUnload url=$url, message=$message, result=$result")
+                            Log.e(
+                                "DWebView",
+                                "chromeClient::onJsBeforeUnload url=$url, message=$message, result=$result"
+                            )
                             if (result == null) {
                                 return super.onJsBeforeUnload(view, url, message, result)
                             }
@@ -292,7 +280,7 @@ fun DWebView(
                             request?.let { webResourceRequest ->
                                 val url = webResourceRequest.url
                                 val path = url.path.toString()
-                               println("kotlin#DWebView shouldInterceptRequest url=$url, path=$path, url.host=${url.host}")
+                                println("kotlin#DWebView shouldInterceptRequest url=$url, path=$path, url.host=${url.host}")
                                 if (url.host?.endsWith("sys.dweb") == true) {
                                     // 这里出来的url全部都用是小写，serviceWorker没办法一开始就注册，所以还会走一次这里
                                     return interceptNetworkRequests(request, customUrlScheme)
@@ -327,7 +315,7 @@ fun DWebView(
             if ((topBarState.alpha.value != 1F) and topBarState.enabled.value) {
                 Box(
                     contentAlignment = Alignment.TopCenter,
-                    modifier = if (systemUIState.statusBar.overlay.value) {
+                    modifier = if (systemUiController.statusBarController.overlayState.value) {
                         with(LocalDensity.current) {
                             Modifier.offset(y = WindowInsets.statusBars.getTop(this).toDp())
                         }

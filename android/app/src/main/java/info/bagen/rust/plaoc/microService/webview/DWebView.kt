@@ -1,48 +1,13 @@
 package info.bagen.rust.plaoc.microService.webview
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Message
-import android.util.Log
-import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.DWebView
-import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.getFullAuthority
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUIState
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.keyboard.VirtualKeyboard
-import info.bagen.rust.plaoc.webView.api.BFSApi
-import info.bagen.rust.plaoc.webView.dialog.*
-import info.bagen.rust.plaoc.webView.network.interceptNetworkRequests
-import info.bagen.rust.plaoc.webView.openDWebWindow
-import info.bagen.rust.plaoc.webkit.AdWebChromeClient
-import info.bagen.rust.plaoc.webkit.AdWebView
-import info.bagen.rust.plaoc.webkit.AdWebViewClient
-import info.bagen.rust.plaoc.webkit.AdWebViewHook
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -52,8 +17,6 @@ import kotlinx.coroutines.withContext
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
-import java.net.URI
-import kotlin.math.min
 
 
 inline fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =

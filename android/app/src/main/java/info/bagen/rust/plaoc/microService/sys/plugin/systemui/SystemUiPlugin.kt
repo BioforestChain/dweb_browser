@@ -11,10 +11,10 @@ import info.bagen.rust.plaoc.webView.network.hexToIntColor
 
 class SystemUiPlugin(
     webView: View,
-    private val systemUIState: SystemUIState,
+    private val systemUiController: SystemUiController,
 ) {
 
-    val virtualKeyboard = VirtualKeyboard(systemUIState.virtualKeyboard.overlay, webView)
+    val virtualKeyboard = VirtualKeyboard(systemUiController.virtualKeyboardController.overlayState, webView)
 
     /**
      * @TODO 在未来，这里的disable与否，通过更加完善的声明来实现，比如可以声明多个rect
@@ -26,8 +26,8 @@ class SystemUiPlugin(
 
     /**第一个参数是颜色HEX。第二个是图标是否更期望于使用深色*/
     fun setStatusBarBackgroundColor(colorHex: String): Boolean {
-        systemUIState.statusBar.apply {
-            color.value = Color(hexToIntColor(colorHex))
+        systemUiController.statusBarController.apply {
+            colorState.value = Color(hexToIntColor(colorHex))
         }
         return true
     }
@@ -38,15 +38,15 @@ class SystemUiPlugin(
            StatusBarStyle.Light.type -> false
            else -> true
         }
-        systemUIState.statusBar.apply {
-            isDarkIcons.value = darkIcons
+        systemUiController.statusBarController.apply {
+            isDarkIconsState.value = darkIcons
         }
         return style
     }
 
     /** 获取状态栏背景颜色*/
     fun getStatusBarBackgroundColor(): String {
-        val color = systemUIState.statusBar.color.value
+        val color = systemUiController.statusBarController.colorState.value
         val colorInt = android.graphics.Color.argb(color.alpha, color.red, color.green, color.blue)
         println("getStatusBarBackgroundColor=> ${color} $colorInt")
         return getColorHex(colorInt)
@@ -57,38 +57,38 @@ class SystemUiPlugin(
      * 获取状态栏是否更期望使用深色
      * */
     fun getStatusBarIsDark(): String {
-        val isDark = systemUIState.statusBar.isDarkIcons.value
-            ?: (systemUIState.statusBar.color.value.luminance() > 0.5F)
+        val isDark = systemUiController.statusBarController.isDarkIconsState.value
+            ?: (systemUiController.statusBarController.colorState.value.luminance() > 0.5F)
         if (isDark){
             return  StatusBarStyle.Dark.type
         }
         return StatusBarStyle.Light.type
     }
     fun getStatusBarColor(): String {
-        val color = systemUIState.statusBar.color.value
+        val color = systemUiController.statusBarController.colorState.value
         val colorInt = android.graphics.Color.argb(color.alpha, color.red, color.green, color.blue)
         return getColorHex(colorInt)
     }
 
     /** 查看状态栏是否可见*/
     fun getStatusBarVisible(): Boolean {
-        return systemUIState.statusBar.visible.value
+        return systemUiController.statusBarController.visibleState.value
     }
 
     /** 设置false为透明*/
     fun setStatusBarVisible(visible: Boolean): Boolean {
-        systemUIState.statusBar.visible.value = visible
+        systemUiController.statusBarController.visibleState.value = visible
         return visible
     }
 
     /**获取状态栏是否透明的状态*/
     fun getStatusBarOverlay(): Boolean {
-        return systemUIState.statusBar.overlay.value
+        return systemUiController.statusBarController.overlayState.value
     }
 
     /**设置状态栏是否透明*/
     fun setStatusBarOverlay(isOverlay: Boolean): Boolean {
-        systemUIState.statusBar.overlay.value = isOverlay
+        systemUiController.statusBarController.overlayState.value = isOverlay
         return true
     }
 
@@ -98,10 +98,10 @@ class SystemUiPlugin(
         darkIcons: Boolean,
         isNavigationBarContrastEnforced: Boolean
     ): Boolean {
-        systemUIState.navigationBar.apply {
-            color.value = Color(hexToIntColor(colorHex))
-            isDarkIcons.value = darkIcons
-            isContrastEnforced.value = isNavigationBarContrastEnforced
+        systemUiController.navigationBarController.apply {
+            colorState.value = Color(hexToIntColor(colorHex))
+            isDarkIconsState.value = darkIcons
+            isContrastEnforcedState.value = isNavigationBarContrastEnforced
         }
         return true
     }
@@ -109,31 +109,31 @@ class SystemUiPlugin(
     /**获取系统导航栏颜色*/
     fun getNavigationBarColor(
     ): String {
-        val color = systemUIState.navigationBar.color.value
+        val color = systemUiController.navigationBarController.colorState.value
         val colorInt = android.graphics.Color.argb(color.alpha, color.red, color.green, color.blue)
         return getColorHex(colorInt)
     }
 
     /**获取系统导航栏可见性*/
     fun getNavigationBarVisible(): Boolean {
-        return systemUIState.navigationBar.visible.value
+        return systemUiController.navigationBarController.visibleState.value
     }
 
     /**设置系统导航栏是否隐藏*/
     fun setNavigationBarVisible(visible: Boolean): Boolean {
-        systemUIState.navigationBar.visible.value =
+        systemUiController.navigationBarController.visibleState.value =
             visible
         return visible
     }
 
     /**获取系统导航栏是否透明*/
     fun getNavigationBarOverlay(): Boolean {
-        return systemUIState.navigationBar.overlay.value
+        return systemUiController.navigationBarController.overlayState.value
     }
 
     /**设置系统导航栏是否透明*/
     fun setNavigationBarOverlay(isOverlay: Boolean): Boolean {
-        systemUIState.navigationBar.overlay.value =
+        systemUiController.navigationBarController.overlayState.value =
             isOverlay
         return isOverlay
     }
