@@ -30,13 +30,15 @@ import info.bagen.rust.plaoc.microService.user.ToyJMM
 suspend fun startDwebBrowser() {
     debugTags.addAll(
         listOf<String>(
-            "message-port-ipc",
-            "stream-ipc",
-            "fetch",
-            "stream",
-            "ipc-body",
-            "http",
-            "TIME-DURATION"
+//            "message-port-ipc",
+//            "stream-ipc",
+//            "fetch",
+//            "stream",
+//            "ipc-body",
+//            "http",
+//            "TIME-DURATION"
+            "mwebview",
+            "dwebview",
         )
     )
 
@@ -102,8 +104,8 @@ suspend fun startDwebBrowser() {
         listOf(
 //            browserNMM.mmid,
 //            desktopJMM.mmid,
-//            cotJMM.mmid,
-            cotDemoJMM.mmid
+            cotJMM.mmid,
+//            cotDemoJMM.mmid
 //            cotJMM.mmid,
 //            toyJMM.mmid,
         )

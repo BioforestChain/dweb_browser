@@ -9,7 +9,6 @@ import info.bagen.rust.plaoc.microService.helper.printdebugln
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.format.Jackson.auto
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -29,22 +28,12 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
         val permission_op = PromiseOut<Boolean>()
     }
 
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
- {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
             /** 申请权限*/
             "/apply" bind Method.GET to defineHandler { request, ipc ->
-                val permission = Query.string().optional("permission")(request)
-                val permissions = Query.auto<ArrayList<String>>().optional("permissions")(request)
-                // 必须传递一个或者多个权限，当传递多个权限时，以多个权限为主
-                if (permission == null && permissions == null) {
-                    return@defineHandler Response(Status.UNSATISFIABLE_PARAMETERS).body("At least one of permission or permissions must be transmission ")
-                }
-                if (permissions != null) {
-                    applyPermissions(permissions,ipc.remote.mmid)
-                } else if (permission != null) {
-                    applyPermission(permission,ipc.remote.mmid)
-                }
+                val permissions = ArrayList(Query.string().multi.required("permission")(request))
+                applyPermissions(permissions, ipc.remote.mmid)
                 // TODO 向用户申请之后这里应该有回调
                 // permission_op
                 return@defineHandler Response(Status.OK)
@@ -54,7 +43,7 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
                 val permission = Query.string().required("permission")(request)
                 val res = permissionMap[ipc.remote.mmid]?.contains(permission) ?: false
                 if (!res) {
-                    applyPermission(permission,ipc.remote.mmid)
+                    applyPermission(permission, ipc.remote.mmid)
                 }
                 val response = """{"hasPermission":${res}}"""
                 Response(Status.OK).body(response)
@@ -62,7 +51,7 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
         )
     }
 
-    private fun applyPermission(permission:String, mmid:Mmid) {
+    private fun applyPermission(permission: String, mmid: Mmid) {
         App.browserActivity?.let {
             PermissionManager.requestPermissions(
                 it,
@@ -73,7 +62,7 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
         list.add(permission)
     }
 
-    private fun applyPermissions(permissions: ArrayList<String>,mmid: Mmid) {
+    private fun applyPermissions(permissions: ArrayList<String>, mmid: Mmid) {
         App.browserActivity?.let {
             PermissionManager.requestPermissions(
                 it,

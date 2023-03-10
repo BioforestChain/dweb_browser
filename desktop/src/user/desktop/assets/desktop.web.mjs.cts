@@ -41,12 +41,15 @@ const script = () => {
         function success(stream) {
           cameraView.srcObject = stream;
           console.log(stream);
-          cameraView.play()
+          cameraView.play();
         },
         (err) => {
           console.error(err);
         }
       );
+  };
+  window.onbeforeunload = (event) => {
+    event.returnValue = "别走！！";
   };
 };
 

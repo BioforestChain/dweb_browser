@@ -4,6 +4,7 @@ import android.util.Log
 import com.king.mlkit.vision.camera.util.LogUtils
 import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.iterator
 import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.helper.readInt
 import info.bagen.rust.plaoc.webView.network.dWebView_host
@@ -145,24 +146,25 @@ class FileSystemPlugin {
                 }
             }
             bool.toString()
-        } catch (e:Throwable) {
+        } catch (e: Throwable) {
             e.message.toString()
         }
     }
 
     /**写文件利用BufferedWriter，可以保证内存不会溢出，而且会一直写入 */
-    fun write(path: String, fileContent: String, options: WriteOption): String {
+    fun write(path: String, fileContent: InputStream, options: WriteOption): String {
         val file = getFileByPath(path)
-        var fileWriter: FileWriter? = null
+        var fileWriter: FileOutputStream? = null
         try {
             // 判断文件是否创建且需要自动创建
             if (!file.exists() && options.autoCreate) {
                 file.parentFile?.mkdirs()
             }
-            fileWriter = FileWriter(file, options.append)
-            val bw = BufferedWriter(fileWriter)
-            bw.write(fileContent)
-            bw.close()
+            fileWriter = FileOutputStream(file, options.append)
+            for (byte in fileContent) {
+                fileWriter.write(byte)
+            }
+            fileWriter.close()
         } catch (e: Throwable) {
             LogUtils.d("write fail -> ${e.message}")
             return e.message.toString()
@@ -285,12 +287,12 @@ class FileSystemPlugin {
         val file = getFileByPath(path)
         var bool = false
         try {
-             bool = when (deepDelete) {
+            bool = when (deepDelete) {
                 true -> file.deleteRecursively()
                 false -> file.delete()
             }
-        } catch (e:Throwable) {
-            return  e.message.toString()
+        } catch (e: Throwable) {
+            return e.message.toString()
         }
         return bool.toString()
     }

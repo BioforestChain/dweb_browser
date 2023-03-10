@@ -1,9 +1,11 @@
 package info.bagen.rust.plaoc.microService.helper
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.future.await
 import java.util.concurrent.CompletableFuture
 
-class PromiseOut<T : Any> {
+open class PromiseOut<T : Any> {
     companion object {
         fun <T : Any> resolve(value: T) = PromiseOut<T>().also { it.resolve(value) }
         fun <T : Any> reject(e: Throwable) = PromiseOut<T>().also { it.reject(e) }
@@ -12,12 +14,12 @@ class PromiseOut<T : Any> {
     private val _future = CompletableFuture<T>()
 
 
-    fun resolve(value: T) {
+    open fun resolve(value: T) {
         _future.complete(value)
     }
 
 
-    fun reject(e: Throwable) {
+    open fun reject(e: Throwable) {
         _future.get()
 
         _future.completeExceptionally(e)
@@ -31,4 +33,3 @@ class PromiseOut<T : Any> {
 
     suspend fun waitPromise(): T = _future.await()
 }
-

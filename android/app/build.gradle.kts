@@ -68,7 +68,7 @@ android {
         viewBinding = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.0"
+        kotlinCompilerExtensionVersion = "1.4.3"
     }
     lint {
         abortOnError = false
@@ -94,7 +94,7 @@ dependencies {
     implementation("org.http4k:http4k-client-apache")
     implementation("org.http4k:http4k-client-okhttp")
     implementation("org.http4k:http4k-server-ktorcio")
-    implementation("org.http4k:http4k-format-jackson") // payload to json
+//    implementation("org.http4k:http4k-format-jackson") // payload to json
     implementation("io.ktor:ktor-client-core:$ktorVersion")
 
 
@@ -112,10 +112,11 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.5.1")
     implementation("androidx.navigation:navigation-ui-ktx:2.5.1")
     implementation("androidx.gridlayout:gridlayout:1.0.0")
-    implementation("com.google.accompanist:accompanist-webview:0.24.7-alpha")
-    implementation("com.google.accompanist:accompanist-navigation-material:0.24.7-alpha")
-    implementation("com.google.accompanist:accompanist-navigation-animation:0.24.7-alpha")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.24.7-alpha")
+    val accompanist_version = "0.29.1-alpha"
+    implementation("com.google.accompanist:accompanist-webview:$accompanist_version")
+    implementation("com.google.accompanist:accompanist-navigation-material:$accompanist_version")
+    implementation("com.google.accompanist:accompanist-navigation-animation:$accompanist_version")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanist_version")
     implementation("androidx.profileinstaller:profileinstaller:1.2.0-alpha02")
     testImplementation("org.junit.jupiter:junit-jupiter")
     val appcompat_version = "1.6.1"
@@ -148,7 +149,7 @@ dependencies {
     // 工具库
     implementation(kotlin("stdlib"))
     implementation("com.google.code.gson:gson:2.9.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
+//    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
     implementation("com.daveanthonythomas.moshipack:moshipack:1.0.1") // message-pack
 
 

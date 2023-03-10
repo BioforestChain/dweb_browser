@@ -179,7 +179,7 @@ data class SystemUIState(
 
     companion object {
         @Composable
-        fun Default(activity: ComponentActivity): SystemUIState {
+         fun Default(activity: ComponentActivity): SystemUIState {
             val statusBar = StatusBarState.Default(activity)
             val navigationBar = NavigationBarState.Default(activity)
             val virtualKeyboard = VirtualKeyboardState.Default()

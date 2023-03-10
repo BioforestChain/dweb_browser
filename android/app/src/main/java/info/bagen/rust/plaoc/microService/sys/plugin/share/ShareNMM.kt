@@ -13,11 +13,12 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.printdebugln
-import org.http4k.core.Body
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.format.Jackson.auto
+import org.http4k.lens.Query
+import org.http4k.lens.composite
+import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.io.File
@@ -27,7 +28,7 @@ data class ShareOptions(
     val title: String?,
     val text: String?,
     val url: String?,
-    val files: Array<String>?,
+    val files: List<String>?,
     val dialogTitle: String
 )
 
@@ -35,14 +36,24 @@ inline fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Share", tag, msg, err)
 
 class ShareNMM : NativeMicroModule("share.sys.dweb") {
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
- {
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
             /** 分享*/
-            "/share" bind Method.POST to defineHandler { request ->
-                debugShare("FileSystemNMM#apiRouting","checkPermissions===>$mmid  ${request.uri.path} ")
-                val shareOptionLens = Body.auto<ShareOptions>().toLens()
-                val ext = shareOptionLens(request)
+            "/share" bind Method.GET to defineHandler { request ->
+                debugShare(
+                    "FileSystemNMM#apiRouting",
+                    "checkPermissions===>$mmid  ${request.uri.path} "
+                )
+                val ext = Query.composite {
+
+                    ShareOptions(
+                        title = string().optional("title")(it),
+                        text = string().optional("text")(it),
+                        url = string().optional("url")(it),
+                        files = string().multi.optional("files")(it),
+                        dialogTitle = string().required("dialogTitle")(it),
+                    )
+                }(request)
                 share(ext.title, ext.text, ext.url, ext.files, ext.dialogTitle) {
                     Response(Status.OK).body(it)
                 }
@@ -64,7 +75,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
         title: String? = null,
         text: String? = null,
         url: String? = null,
-        files: Array<String>? = null,
+        files: List<String>? = null,
         dialogTitle: String = "分享到：",
         onErrorCallback: (String) -> Unit
     ) {
@@ -122,7 +133,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
     }
 
     private fun shareFiles(
-        files: Array<String>, intent: Intent, onErrorCallback: (String) -> Unit
+        files: List<String>, intent: Intent, onErrorCallback: (String) -> Unit
     ) {
         val arrayListFiles = arrayListOf<Uri>()
         try {

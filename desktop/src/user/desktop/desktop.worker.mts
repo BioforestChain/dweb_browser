@@ -8,15 +8,15 @@ export const main = async () => {
   const { IpcHeaders, IpcResponse } = ipc;
   const { createHttpDwebServer } = http;
 
-  debugger;
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const httpDwebServer = await createHttpDwebServer(jsProcess, {});
 
-  if (jsProcess.meta.envBooleanOrNull("debug")) {
-    await new Promise((resolve) => {
-      Object.assign(self, { start_main: resolve });
-    });
-  }
+  // if (jsProcess.meta.envBooleanOrNull("debug")) {
+  //   await new Promise((resolve) => {
+  //     Object.assign(self, { start_main: resolve });
+  //   });
+  //   debugger;
+  // }
   console.log("will do listen!!", httpDwebServer.startResult.urlInfo.host);
   (await httpDwebServer.listen()).onRequest(async (request, httpServerIpc) => {
     console.log("worker on request", request.parsed_url);
@@ -70,12 +70,13 @@ export const main = async () => {
   const main_url =
     httpDwebServer.startResult.urlInfo.buildInternalUrl("/index.html").href;
 
-  console.log("请求浏览器页面", main_url);
-
-  const response = await jsProcess.nativeFetch(main_url);
-  console.log("html content:", response.status, await response.text());
-  console.log("打开浏览器页面", main_url);
   {
+    // console.log("请求浏览器页面", main_url);
+    // const response = await jsProcess.nativeFetch(main_url);
+    // console.log("html content:", response.status, await response.text());
+  }
+  {
+    console.log("打开浏览器页面", main_url);
     const view_id = await jsProcess
       .nativeFetch(
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
@@ -84,3 +85,20 @@ export const main = async () => {
   }
 };
 main().catch(console.error);
+
+// (() => {
+//   const e = new CustomEvent("beforeunload");
+//   let beforeUnloadPrompt = "";
+//   Object.defineProperty(e, "returnValue", {
+//     configurable: true,
+//     enumerable: true,
+//     get: () => {
+//       return beforeUnloadPrompt;
+//     },
+//     set: (v) => {
+//       beforeUnloadPrompt = v;
+//     },
+//   });
+//   dispatchEvent(e);
+//   return beforeUnloadPrompt;
+// })();

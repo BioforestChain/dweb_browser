@@ -29,6 +29,7 @@ val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
     debugger(ctx, e)
 }
 val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
+val mainAsyncExceptionHandler = Dispatchers.Main + commonAsyncExceptionHandler
 fun <T> runBlockingCatching(
     context: CoroutineContext, block: suspend CoroutineScope.() -> T
 ) = kotlin.runCatching {
@@ -74,6 +75,8 @@ fun timeEnd(label: String) {
  * "jmm"
  * "boot"
  * "http"
+ * "mwebview"
+ * "dwebview"
  * "js-process"
  * "message-port-ipc"
  * "ipc-body"

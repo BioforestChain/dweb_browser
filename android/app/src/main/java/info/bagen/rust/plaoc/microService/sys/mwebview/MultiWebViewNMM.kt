@@ -11,7 +11,6 @@ import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
-import info.bagen.rust.plaoc.microService.webview.DWebView
 import io.ktor.util.collections.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -24,7 +23,7 @@ import org.http4k.routing.routes
 import java.util.concurrent.ConcurrentSkipListSet
 
 inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("MultiWebViewNMM", tag, msg, err)
+    printdebugln("mwebview", tag, msg, err)
 
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
@@ -40,9 +39,9 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             ActivityClass("", MutilWebViewPlaceholder5Activity::class.java),
         )
         val controllerMap = mutableMapOf<Mmid, MutilWebViewController>()
-        var currentMmid = ""
         fun getCurrentWebViewController(): MutilWebViewController? {
-           return controllerMap[currentMmid]
+//            return controllerMap[currentMmid]
+            return null
         }
     }
 
@@ -54,7 +53,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 
         val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
         val job = GlobalScope.launch(ioAsyncExceptionHandler) {
-            while (true){
+            while (true) {
                 for ((ipc) in subscribers) {
                     ipc.postMessage(IpcEvent.fromUtf8("qaq", "hi"))
                 }
@@ -118,11 +117,16 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     ): String {
         val remoteMmid = remoteMm.mmid
         debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")
-        val controller = controllerMap.getOrPut(remoteMmid) { MutilWebViewController(remoteMmid) }
-        currentMmid = remoteMmid
+        val controller = controllerMap.getOrPut(remoteMmid) {
+            MutilWebViewController(
+                remoteMmid,
+                this,
+                remoteMm,
+            )
+        }
         openMutilWebViewActivity(remoteMmid)
         controller.waitActivityCreated()
-        return controller.openWebView(this, remoteMm, url).webviewId
+        return controller.openWebView(url).webviewId
     }
 
     private fun closeDwebView(remoteMmid: String, webviewId: String) =

@@ -7,7 +7,6 @@ import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
-import info.bagen.rust.plaoc.microService.sys.dns.networkFetch
 import info.bagen.rust.plaoc.microService.sys.http.net.Http1Server
 import org.http4k.core.*
 import org.http4k.lens.Query
@@ -48,7 +47,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
      * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
      * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
      */
-    private val httpHandler: HttpHandler = { request ->
+    private suspend fun httpHandler(request: Request): Response {
         var header_host: String? = null
         var header_x_dweb_host: String? = null
         var header_user_agent_host: String? = null
@@ -87,25 +86,23 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
          */
         val response = gatewayMap[host]?.let { gateway ->
             println("URL:${request.uri} => gateway: ${gateway.urlInfo}")
-            kotlin.runCatching { }.onFailure { ioAsyncExceptionHandler }
-
-            runBlockingCatching {
-                val response = gateway.listener.hookHttpRequest(request)
-//                println("URL:${request.uri} => response: $response")
-                response
-            }.getOrNull()
+            gateway.listener.hookHttpRequest(request)
         }
 
-        response ?: Response(
-            Status.NOT_FOUND
-        )
+        return response ?: Response(Status.NOT_FOUND)
     }
-    /// 在网关中寻址能够处理该 host 的监听者
+/// 在网关中寻址能够处理该 host 的监听者
 
 
     public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// 启动http后端服务
-        dwebServer.createServer(httpHandler)
+        dwebServer.createServer { request ->
+            runBlockingCatching(ioAsyncExceptionHandler) {
+                httpHandler(
+                    request
+                )
+            }.getOrThrow()
+        }
 
         /// 为 nativeFetch 函数提供支持
         _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { _, request ->
@@ -113,7 +110,8 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                     ".dweb"
                 )
             ) {
-                networkFetch(
+                // 无需走网络层，直接内部处理掉
+                httpHandler(
                     request
                         // 头部里添加 X-Dweb-Host
                         .header("X-Dweb-Host", request.uri.getFullAuthority())

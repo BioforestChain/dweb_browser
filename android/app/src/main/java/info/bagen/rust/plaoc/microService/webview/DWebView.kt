@@ -28,7 +28,6 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
-import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.getFullAuthority
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
@@ -46,12 +45,18 @@ import info.bagen.rust.plaoc.webkit.AdWebViewHook
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
 import java.net.URI
 import kotlin.math.min
 
+
+inline fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("dwebview", tag, msg, err)
 
 /**
  * DWebView ,将 WebView 与 dweb 的 dwebHttpServer 设计进行兼容性绑定的模块
@@ -103,21 +108,81 @@ class DWebView(
     val localeMM: MicroModule,
     val remoteMM: MicroModule,
     val options: Options,
-    var activity: PermissionActivity? = null
+    var activity: PermissionActivity? = null,
 ) : WebView(context) {
 
     data class Options(
         /**
          * 要加载的页面
          */
-        val url: String
-    )
+        val url: String,
+        /**
+         * WebChromeClient.onJsBeforeUnload 的策略
+         *
+         * 用户可以额外地进行策略补充
+         */
+        val onJsBeforeUnloadStrategy: JsBeforeUnloadStrategy = JsBeforeUnloadStrategy.Default,
+        /**
+         * WebView.onDetachedFromWindow 的策略
+         *
+         * 如果修改了它，就务必注意 WebView 的销毁需要自己去管控
+         */
+        val onDetachedFromWindowStrategy: DetachedFromWindowStrategy = DetachedFromWindowStrategy.Default,
+    ) {
+        enum class JsBeforeUnloadStrategy {
+            /**
+             * 默认行为，会弹出原生的弹窗提示用户是否要离开页面
+             */
+            Default,
 
-    private var readyPo = PromiseOut<Boolean>()
+            /**
+             * 不会弹出提示框，总是取消，留下
+             */
+            Cancel,
 
-    suspend fun afterReady() = readyPo.waitPromise()
+            /**
+             * 不会弹出提示框，总是确认，离开
+             */
+            Confirm,
+            ;
+        }
+
+        enum class DetachedFromWindowStrategy {
+            /**
+             * 默认行为，会触发销毁
+             */
+            Default,
+
+            /**
+             * 忽略默认行为，不做任何事情
+             */
+            Ignore,
+        }
+    }
+
+    private var readyHelper: DWebViewClient.ReadyHelper? = null
+
+    private val readyHelperLock = Mutex()
+    suspend fun onReady(cb: SimpleCallback) {
+        val readyHelper = readyHelperLock.withLock {
+            if (readyHelper == null) {
+                DWebViewClient.ReadyHelper().also {
+                    readyHelper = it
+                    withContext(Dispatchers.Main) {
+                        dWebViewClient.addWebViewClient(it)
+                    }
+                    it.afterReady {
+                        debugDWebView("READY")
+                    }
+                }
+            } else readyHelper!!
+        }
+        readyHelper.afterReady(cb)
+    }
 
     private val evaluator = WebViewEvaluator(this)
+    suspend fun getUrlInMain() = withContext(Dispatchers.Main) { url }
+
 
     /**
      * 初始化设置 userAgent
@@ -126,6 +191,9 @@ class DWebView(
         val baseUserAgentString = settings.userAgentString
         val baseDwebHost = remoteMM.mmid
         var dwebHost = baseDwebHost
+        if (options.url == null) {
+            return
+        }
         // 初始化设置 ua，这个是无法动态修改的
         val uri = Uri.of(options.url)
         if ((uri.scheme == "http" || uri.scheme == "https") && uri.host.endsWith(".dweb")) {
@@ -138,134 +206,164 @@ class DWebView(
         settings.userAgentString = "$baseUserAgentString dweb-host/${dwebHost}"
     }
 
-    private inline fun hookWindowClose() {
-        addJavascriptInterface(object {
-            @JavascriptInterface
-            fun close() {
-                println("CCCCCLOSE!!")
-            }
+    //
+//    private val openSignal = Signal<Message>()
+//    fun onOpen(cb: Callback<Message>) = openSignal.listen(cb)
+    private val closeSignal = SimpleSignal()
+    fun onCloseWindow(cb: SimpleCallback) = closeSignal.listen(cb)
 
-            @JavascriptInterface
-            fun close2() {
-                println("CCCCCLOSE!!")
+    val dWebViewClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        DWebViewClient().also {
+            it.addWebViewClient(internalWebViewClient)
+            super.setWebViewClient(it)
+        }
+    }
+    private val internalWebViewClient = object : WebViewClient() {
+        override fun shouldInterceptRequest(
+            view: WebView, request: WebResourceRequest
+        ): WebResourceResponse? {
+            if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
+                /// http://*.dweb 由 MicroModule 来处理请求
+                val response = runBlockingCatching(ioAsyncExceptionHandler) {
+                    remoteMM.nativeFetch(
+                        Request(
+                            Method.GET, request.url.toString()
+                        ).headers(request.requestHeaders.toList())
+                            .header("X-Dweb-Proxy-Id", localeMM.mmid)
+                    )
+                }.getOrThrow()
+                val headersMap = response.headers.toMap().toMutableMap()
+                return WebResourceResponse(
+                    null,
+                    null,
+                    response.status.code,
+                    response.status.description,
+                    headersMap,
+                    response.body.stream
+                )
             }
-        }, "__hook_window__")
+            return super.shouldInterceptRequest(view, request)
+        }
     }
 
-    private val openSignal = Signal<Message>()
-    fun onOpen(cb: Callback<Message>) = openSignal.listen(cb)
-    private val closeSignal = SimpleSignal()
-    fun onClose(cb: SimpleCallback) = closeSignal.listen(cb)
+    override fun setWebViewClient(client: WebViewClient) {
+        dWebViewClient.addWebViewClient(client)
+    }
+
+    val dWebChromeClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        DWebChromeClient().also {
+            it.addWebChromeClient(internalWebChromeClient)
+            super.setWebChromeClient(it)
+        }
+    }
+    private val internalWebChromeClient = object : WebChromeClient() {
+        //        override fun onCreateWindow(
+//            view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
+//        ): Boolean {
+//            println("open $isDialog $isUserGesture ${resultMsg?.data} ${resultMsg?.obj}")
+//            GlobalScope.launch(ioAsyncExceptionHandler) {
+//                openSignal.emit(resultMsg)
+//            }
+//            return true
+//        }
+//
+        override fun onCloseWindow(window: WebView?) {
+            println("close")
+            GlobalScope.launch(ioAsyncExceptionHandler) {
+                closeSignal.emit()
+            }
+            super.onCloseWindow(window)
+        }
+//
+//        override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+//            super.onShowCustomView(view, callback)
+//        }
+//
+//        override fun onHideCustomView() {
+//            super.onHideCustomView()
+//        }
+
+        override fun onPermissionRequest(request: PermissionRequest) {
+            println("activity:$activity request.resources:${request.resources.joinToString { it }}")
+            activity?.also {
+//                    PermissionManager.requestPermissions(it,request.resources[0])
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    val permissions = mutableListOf<String>()
+                    for (res in request.resources) {
+                        if (res == "android.webkit.resource.VIDEO_CAPTURE") {
+                            permissions.add("android.permission.CAMERA")
+                        } else if (res == "android.webkit.resource.AUDIO_CAPTURE") {
+                            permissions.add("android.permission.RECORD_AUDIO")
+                        }
+                    }
+                    val result = it.requestPermissions(permissions.toTypedArray())
+                    println("activity:$activity result:${result.grants.joinToString()}")
+                    it.runOnUiThread {
+                        if (result.denied.size == 0) {
+                            request.grant(request.resources)
+                        } else {
+                            request.deny()
+                        }
+                    }
+                }
+            } ?: request.deny()
+        }
+
+    }
+
+    override fun setWebChromeClient(client: WebChromeClient?) {
+        if (client != null) {
+            dWebChromeClient.addWebChromeClient(client)
+        }
+    }
+
 
     init {
+        debugDWebView("INIT", options)
 
         layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
         )
         setUA()
-        hookWindowClose()
+
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
         settings.safeBrowsingEnabled = true
         settings.loadWithOverviewMode = true
-//        settings.useWideViewPort = true
-        webViewClient = object : WebViewClient() {
-
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                // TODO 这里需要注入脚本，对 fetch、XMLHttpRequest 这些网络请求进行拦截
-                // loadUrl("javascript:hookFetch()");
-                readyPo.resolve(true)
-            }
-
-            override fun shouldInterceptRequest(
-                view: WebView, request: WebResourceRequest
-            ): WebResourceResponse? {
-                if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
-                    /// http://*.dweb 由 MicroModule 来处理请求
-                    println("xxx: ${request.url.toString()}")
-                    val response = runBlockingCatching {
-                        remoteMM.nativeFetch(
-                            Request(
-                                Method.GET, request.url.toString()
-                            ).headers(request.requestHeaders.toList())
-                                .header("X-Dweb-Proxy-Id", localeMM.mmid)
-                        )
-                    }.getOrThrow()
-                    val headersMap = response.headers.toMap().toMutableMap()
-                    return WebResourceResponse(
-                        null,
-                        null,
-                        response.status.code,
-                        response.status.description,
-                        headersMap,
-                        response.body.stream
-                    )
-                }
-                return super.shouldInterceptRequest(view, request)
-            }
-        }
-
         settings.setSupportMultipleWindows(true)
-        webChromeClient = object : WebChromeClient() {
-            override fun onCreateWindow(
-                view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
-            ): Boolean {
-                println("open $isDialog $isUserGesture ${resultMsg?.data} ${resultMsg?.obj}")
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    openSignal.emit(resultMsg)
-                }
-                return true
-            }
+        settings.allowFileAccess = false
+        settings.javaScriptCanOpenWindowsAutomatically = true
 
-            override fun onCloseWindow(window: WebView?) {
-                println("close")
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    closeSignal.emit()
-                }
-                super.onCloseWindow(window)
-            }
+        super.setWebViewClient(internalWebViewClient)
+        super.setWebChromeClient(internalWebChromeClient)
 
-            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
-                super.onShowCustomView(view, callback)
-            }
-
-            override fun onHideCustomView() {
-                super.onHideCustomView()
-            }
-
-            override fun onPermissionRequest(request: PermissionRequest) {
-                println("activity:$activity request.resources:${request.resources.joinToString { it }}")
-                activity?.also {
-//                    PermissionManager.requestPermissions(it,request.resources[0])
-                    GlobalScope.launch(ioAsyncExceptionHandler) {
-                        val permissions = mutableListOf<String>()
-                        for (res in request.resources) {
-                            if (res == "android.webkit.resource.VIDEO_CAPTURE") {
-                                permissions.add("android.permission.CAMERA")
-                            } else if (res == "android.webkit.resource.AUDIO_CAPTURE") {
-                                permissions.add("android.permission.RECORD_AUDIO")
-                            }
-                        }
-                        val result = it.requestPermissions(permissions.toTypedArray())
-                        println("activity:$activity result:${result.grants.joinToString()}")
-                        it.runOnUiThread {
-                            if (result.denied.size == 0) {
-                                request.grant(request.resources)
-                            } else {
-                                request.deny()
-                            }
-                        }
+        if (options.onJsBeforeUnloadStrategy != Options.JsBeforeUnloadStrategy.Default) {
+            dWebChromeClient.addWebChromeClient(object : WebChromeClient() {
+                override fun onJsBeforeUnload(
+                    view: WebView?,
+                    url: String?,
+                    message: String?,
+                    result: JsResult?
+                ): Boolean {
+                    when (options.onJsBeforeUnloadStrategy) {
+                        Options.JsBeforeUnloadStrategy.Cancel -> result?.cancel()
+                        Options.JsBeforeUnloadStrategy.Confirm -> result?.confirm()
+                        Options.JsBeforeUnloadStrategy.Default -> return super.onJsBeforeUnload(
+                            view,
+                            url,
+                            message,
+                            result
+                        )
                     }
-                } ?: request.deny()
-            }
+                    return true
+                }
+            }, Extends.Config(order = Int.MIN_VALUE))
         }
         if (options.url.isNotEmpty()) {
             /// 开始加载
             loadUrl(options.url)
         }
-
     }
 
     /**
@@ -280,7 +378,54 @@ class DWebView(
     suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) =
         evaluator.evaluateAsyncJavascriptCode(script, afterEval)
 
+    private var _destroyed = false
     override fun destroy() {
-        runBlockingCatching(Dispatchers.Main) { super.destroy() }.getOrNull()
+        if (_destroyed) {
+            return
+        }
+        _destroyed = true
+        debugDWebView("DESTROY")
+        super.destroy()
+        GlobalScope.launch(ioAsyncExceptionHandler) {
+            closeSignal.emit()
+        }
     }
+
+    override fun onDetachedFromWindow() {
+        if (options.onDetachedFromWindowStrategy == Options.DetachedFromWindowStrategy.Default) {
+            super.onDetachedFromWindow()
+        }
+    }
+
+
+//    suspend fun close(onBeforeUnload: suspend (beforeUnloadPrompt: String) -> Boolean = { true }) {
+//        val beforeUnloadPrompt = evaluator.evaluateSyncJavascriptCode(
+//            """
+//            (() => {
+//              const e = new CustomEvent("beforeunload");
+//              let beforeUnloadPrompt = "";
+//              Object.defineProperty(e, "returnValue", {
+//                configurable: true,
+//                enumerable: true,
+//                get: () => {
+//                  return beforeUnloadPrompt;
+//                },
+//                set: (v) => {
+//                  beforeUnloadPrompt = v;
+//                },
+//              });
+//              dispatchEvent(e);
+//              return beforeUnloadPrompt;
+//            })();""".trimIndent()
+//        )
+//        var canClose = true
+//        if (beforeUnloadPrompt.isNotEmpty()) {
+//            canClose = onBeforeUnload(beforeUnloadPrompt)
+//        }
+//        if (canClose) {
+//            runBlockingCatching(Dispatchers.Main) {
+//                destroy()
+//            }.getOrThrow()
+//        }
+//    }
 }

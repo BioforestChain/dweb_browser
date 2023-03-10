@@ -51,6 +51,13 @@ inline fun InputStream.readByteArray(size: Int): ByteArray {
     return bytes
 }
 
+inline operator fun InputStream.iterator(): Iterator<ByteArray> {
+    return object : Iterator<ByteArray> {
+        override fun hasNext(): Boolean = available() > 0
+        override fun next(): ByteArray = readByteArray(available())
+    }
+}
+
 inline fun InputStream.readByteArray(): ByteArray {
     var bytes = ByteArray(0)
     while (true) {

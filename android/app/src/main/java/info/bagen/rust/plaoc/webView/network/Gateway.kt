@@ -60,7 +60,7 @@ fun viewGateWay(
     if (url.contains("?")) {
         url = url.split("?", limit = 2)[0]
     }
-     Log.e(TAG, " viewGateWay: $url, contains=${front_to_rear_map.contains(url)}")
+    Log.e(TAG, " viewGateWay: $url, contains=${front_to_rear_map.contains(url)}")
     Uri.parse(url).path?.let { trueUrl ->
         return customUrlScheme.handleRequest(request, trueUrl)
     }
@@ -84,9 +84,7 @@ fun viewGateWay(
         }
     }*/
     return WebResourceResponse(
-        "application/json",
-        "utf-8",
-        ByteArrayInputStream(
+        "application/json", "utf-8", ByteArrayInputStream(
             JsonUtil.toJson(
                 Response(false, "无权限，需要前往后端配置")
             ).toByteArray()

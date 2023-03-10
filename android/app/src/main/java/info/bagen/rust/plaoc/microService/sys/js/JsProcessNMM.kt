@@ -94,6 +94,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         println("mainServer: ${mainServer.startResult}")
 
 
+        val afterReadyPo = PromiseOut<Unit>()
         /// WebView 实例
         val apis = withContext(Dispatchers.Main) {
             WebView.setWebContentsDebuggingEnabled(true)
@@ -107,9 +108,10 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 )
             ).also { api ->
                 _afterShutdownSignal.listen { api.destroy() }
-                api.dWebView.afterReady()
+                api.dWebView.onReady { afterReadyPo.resolve(Unit) }
             }
         }
+        afterReadyPo.waitPromise()
 
         val query_entry = Query.string().optional("entry")
         val query_process_id = Query.string().required("process_id")
