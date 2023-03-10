@@ -32,7 +32,7 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
      */
     async setBackgroundColor(options: BackgroundColorOptions): Promise<Response> {
         const colorHex = convertToRGBAHex(options.color ?? "");
-        return await this.nativeFetch(`/setBackgroundColor?color=${colorHex}`)
+        return await this.nativeFetch(`/setBackgroundColor`,{search:{color:colorHex}})
     }
     /**
      *  获取背景颜色
