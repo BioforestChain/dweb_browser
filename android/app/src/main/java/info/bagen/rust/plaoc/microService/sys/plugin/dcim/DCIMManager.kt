@@ -2,11 +2,11 @@ package info.bagen.rust.plaoc.microService.sys.plugin.dcim
 
 import android.app.Activity
 import android.content.Intent
-import info.bagen.libappmgr.database.MediaDBManager
-import info.bagen.libappmgr.system.media.MediaInfo
-import info.bagen.libappmgr.system.media.MediaType
-import info.bagen.libappmgr.ui.dcim.DCIMActivity
-import info.bagen.libappmgr.utils.FilesUtil
+import info.bagen.rust.plaoc.database.MediaDBManager
+import info.bagen.rust.plaoc.ui.entity.MediaInfo
+import info.bagen.rust.plaoc.ui.entity.MediaType
+import info.bagen.rust.plaoc.ui.dcim.DCIMActivity
+import info.bagen.rust.plaoc.util.FilesUtil
 import info.bagen.rust.plaoc.App
 
 class DCIMManager {

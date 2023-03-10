@@ -92,6 +92,7 @@ dependencies {
     implementation(platform("org.http4k:http4k-bom:4.39.0.0"))
     implementation("org.http4k:http4k-core")
     implementation("org.http4k:http4k-client-apache")
+    implementation("org.http4k:http4k-client-okhttp")
     implementation("org.http4k:http4k-server-ktorcio")
     implementation("org.http4k:http4k-format-jackson") // payload to json
     implementation("io.ktor:ktor-client-core:$ktorVersion")
@@ -142,8 +143,6 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.5.1")
-    implementation("io.coil-kt:coil-compose:2.1.0")
-    implementation("io.coil-kt:coil-svg:2.0.0")
     implementation("com.google.android.material:material")
 
     // 工具库
@@ -171,8 +170,34 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 
+    // exoplayer
+    //implementation 'com.google.android.exoplayer:exoplayer:2.14.1'
+    implementation("com.google.android.exoplayer:exoplayer-core:2.14.1")
+    implementation("com.google.android.exoplayer:exoplayer-ui:2.14.1")
+    // 由于引入exoplayer后导致com.google.guava:listenablefuture not found -> https://github.com/google/ExoPlayer/issues/7993
+    implementation("com.google.guava:guava:29.0-android")
+
+    // 类似ViewPager功能
+    implementation("com.google.accompanist:accompanist-pager:0.27.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.27.0")
+
+    // 解压文件
+    implementation("org.apache.commons:commons-compress:1.21")
+
+    // 增加注入ViewModel // 将implementation改为api是为了让app主应用能够调用到
+    implementation("io.insert-koin:koin-androidx-compose:3.2.1")
+    implementation("io.insert-koin:koin-android:3.1.2")
+    implementation("io.insert-koin:koin-android-compat:3.1.2")
+
+    // 加载图片 coil
+    implementation("io.coil-kt:coil:2.2.2")
+    implementation("io.coil-kt:coil-svg:2.2.2")
+    implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation("io.coil-kt:coil-video:2.2.2")
+    implementation("io.coil-kt:coil-gif:2.2.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1") // 因为导入coil后，编译失败，duplicate
+
     /// 依赖
-    implementation(project(":libAppMgr"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }
 

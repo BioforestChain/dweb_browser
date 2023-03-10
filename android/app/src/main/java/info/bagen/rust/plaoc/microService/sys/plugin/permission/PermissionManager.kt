@@ -2,8 +2,8 @@ package info.bagen.rust.plaoc.microService.sys.plugin.permission
 
 import android.app.Activity
 import androidx.fragment.app.Fragment
-import info.bagen.libappmgr.system.permission.PermissionManager
-import info.bagen.libappmgr.system.permission.PermissionUtil
+import info.bagen.rust.plaoc.util.permission.PermissionManager
+import info.bagen.rust.plaoc.util.permission.PermissionUtil
 
 /**
  * 用于请求网络

@@ -7,9 +7,9 @@ import android.content.IntentFilter
 import android.os.Binder
 import android.os.IBinder
 import android.widget.Toast
-import info.bagen.libappmgr.network.ApiService
-import info.bagen.libappmgr.utils.FilesUtil
-import info.bagen.libappmgr.utils.ZipUtil
+import info.bagen.rust.plaoc.network.ApiService
+import info.bagen.rust.plaoc.util.FilesUtil
+import info.bagen.rust.plaoc.util.ZipUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver

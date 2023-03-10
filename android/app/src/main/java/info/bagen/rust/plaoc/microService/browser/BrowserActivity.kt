@@ -19,16 +19,16 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.ViewCompat
 import com.king.mlkit.vision.camera.util.LogUtils
 import com.king.mlkit.vision.camera.util.PermissionUtils
-import info.bagen.libappmgr.system.permission.EPermission
-import info.bagen.libappmgr.system.permission.PermissionUtil
-import info.bagen.libappmgr.ui.app.AppViewModel
-import info.bagen.libappmgr.ui.camera.QRCodeIntent
-import info.bagen.libappmgr.ui.camera.QRCodeScanning
-import info.bagen.libappmgr.ui.camera.QRCodeScanningView
-import info.bagen.libappmgr.ui.camera.QRCodeViewModel
-import info.bagen.libappmgr.ui.main.Home
-import info.bagen.libappmgr.ui.main.MainViewModel
-import info.bagen.libappmgr.ui.main.SearchAction
+import info.bagen.rust.plaoc.util.permission.EPermission
+import info.bagen.rust.plaoc.util.permission.PermissionUtil
+import info.bagen.rust.plaoc.ui.app.AppViewModel
+import info.bagen.rust.plaoc.ui.camera.QRCodeIntent
+import info.bagen.rust.plaoc.ui.camera.QRCodeScanning
+import info.bagen.rust.plaoc.ui.camera.QRCodeScanningView
+import info.bagen.rust.plaoc.ui.camera.QRCodeViewModel
+import info.bagen.rust.plaoc.ui.main.Home
+import info.bagen.rust.plaoc.ui.main.MainViewModel
+import info.bagen.rust.plaoc.ui.main.SearchAction
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
@@ -131,13 +131,13 @@ class BrowserActivity : AppCompatActivity() {
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == info.bagen.libappmgr.system.permission.PermissionManager.MY_PERMISSIONS) {
-            info.bagen.libappmgr.system.permission.PermissionManager(this@BrowserActivity)
+        if (requestCode == info.bagen.rust.plaoc.util.permission.PermissionManager.MY_PERMISSIONS) {
+            info.bagen.rust.plaoc.util.permission.PermissionManager(this@BrowserActivity)
                 .onRequestPermissionsResult(requestCode,
                     permissions,
                     grantResults,
                     object :
-                        info.bagen.libappmgr.system.permission.PermissionManager.PermissionCallback {
+                        info.bagen.rust.plaoc.util.permission.PermissionManager.PermissionCallback {
                         override fun onPermissionGranted(
                             permissions: Array<out String>, grantResults: IntArray
                         ) {

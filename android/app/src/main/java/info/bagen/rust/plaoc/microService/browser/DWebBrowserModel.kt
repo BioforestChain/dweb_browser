@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
-import info.bagen.libappmgr.network.HttpClient
-import info.bagen.libappmgr.network.base.byteBufferToString
+import info.bagen.rust.plaoc.network.HttpClient
+import info.bagen.rust.plaoc.network.base.byteBufferToString
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM

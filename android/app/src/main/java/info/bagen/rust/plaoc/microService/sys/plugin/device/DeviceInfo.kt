@@ -7,8 +7,7 @@ import android.os.Build
 import android.os.Build.MODEL
 import android.provider.Settings
 import android.telephony.TelephonyManager
-import info.bagen.libappmgr.utils.AppContextUtil
-import info.bagen.libappmgr.utils.JsonUtil
+import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.sys.plugin.device.model.*
 
@@ -72,7 +71,7 @@ class DeviceInfo {
         @SuppressLint("MissingPermission")
         get() {
             mTelephonyManager =
-                AppContextUtil.sInstance?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+                App.appContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             // 获取 Global.DEVICE_NAME值不对，所以考虑用蓝牙名称，这二者理论上是一致的
             // 但是如果蓝牙是关闭的，修改设备名称后不会立刻同步到蓝牙，只有等蓝牙打开后才会同步名称
             return Settings.Secure.getString(App.appContext.contentResolver, "bluetooth_name")

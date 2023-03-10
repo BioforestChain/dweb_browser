@@ -7,7 +7,7 @@ import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import info.bagen.libappmgr.ui.main.MainActivity
+import info.bagen.rust.plaoc.ui.main.MainActivity
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction

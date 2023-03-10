@@ -5,9 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import info.bagen.libappmgr.di.libRepositoryModule
-import info.bagen.libappmgr.di.libViewModelModule
-import info.bagen.libappmgr.utils.ClipboardUtil
+import info.bagen.rust.plaoc.di.repositoryModule
 import info.bagen.rust.plaoc.di.appModules
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
@@ -47,9 +45,7 @@ class App : Application() {
             androidLogger(Level.ERROR)
             androidContext(this@App)
             androidFileProperties()
-            modules(
-                appModules, libViewModelModule, libRepositoryModule
-            )
+            modules(appModules, repositoryModule)
         }
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
         // startService(Intent(this@App, DwebBrowserService::class.java))
@@ -65,9 +61,9 @@ class App : Application() {
 
         override fun onActivityResumed(activity: Activity) {
             // android10中规定, 只有默认输入法(IME)或者是目前处于焦点的应用, 才能访问到剪贴板数据，所以要延迟到聚焦后
-            activity.window.decorView.post {
+            /*activity.window.decorView.post {
                 GlobalScope.launch { ClipboardUtil.readAndParsingClipboard(activity) }
-            }
+            }*/
         }
 
         override fun onActivityPaused(activity: Activity) {

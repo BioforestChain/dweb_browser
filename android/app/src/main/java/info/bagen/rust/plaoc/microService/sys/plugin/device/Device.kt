@@ -9,7 +9,7 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.Settings
 import android.webkit.WebView
-import info.bagen.libappmgr.utils.JsonUtil
+import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
 import java.util.*
 

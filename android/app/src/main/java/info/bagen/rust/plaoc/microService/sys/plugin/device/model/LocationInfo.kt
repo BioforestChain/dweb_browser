@@ -7,7 +7,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Looper
-import info.bagen.libappmgr.utils.JsonUtil
+import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.printerrln
 import kotlinx.coroutines.GlobalScope

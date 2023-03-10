@@ -43,4 +43,20 @@
   <string name="permission_deny_sensor">Sensor permission is required to obtain sensor related health conditions</string>
   <string name="permission_deny_sms">SMS permission is required to read SMS and create/modify/delete/send information</string>
   <string name="permission_deny_device">Device permission is required to obtain information about the device</string>
+
+  <!-- 导航内容 -->
+  <string name="navitem_home">Home</string>
+  <string name="navitem_contact">Contact</string>
+  <string name="navitem_message">Message</string>
+  <string name="navitem_me">Me</string>
+
+  <string name="privacy_title">Tips</string>
+  <string name="privacy_content_1">Welcome to Dweb Browser. It will use the internet when you use it. Please consult your local operator for traffic costs. Please read the</string>
+  <string name="privacy_content_2">carefully before using Dweb Browser. You need to agree and accept all the terms before starting our service.</string>
+  <string name="privacy_policy">《privacy policy》</string>
+  <string name="privacy_content_deny">This product can only be used after agreeing to the relevant agreement</string>
+  <string name="button_not_agree">Not Agree</string>
+  <string name="button_agree_continue">Agree and Continue</string>
+  <string name="button_exit_app">exit app</string>
+  <string name="button_i_know">I Know</string>
 </resources>

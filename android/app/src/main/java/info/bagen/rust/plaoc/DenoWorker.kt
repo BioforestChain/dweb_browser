@@ -73,7 +73,7 @@ class DenoWorker(val appContext: Context, workerParams: WorkerParameters) :
                     PENDING_INTENT_FLAG_MUTABLE
                 )
             )
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)

@@ -3,7 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.plugin.device.model
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
-import info.bagen.libappmgr.utils.JsonUtil
+import info.bagen.rust.plaoc.util.JsonUtil
 import java.io.IOException
 import java.io.RandomAccessFile
 

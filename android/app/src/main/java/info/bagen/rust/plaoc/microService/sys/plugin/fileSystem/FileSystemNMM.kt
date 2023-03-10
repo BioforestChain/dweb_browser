@@ -5,7 +5,6 @@ import androidx.core.net.toUri
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.byteArrayInputStream
-import info.bagen.rust.plaoc.microService.sys.file.FileSystemPlugin
 import org.http4k.core.*
 import org.http4k.format.Jackson.asJsonObject
 import org.http4k.format.Jackson.auto

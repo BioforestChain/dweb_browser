@@ -3,9 +3,8 @@ package info.bagen.rust.plaoc.broadcast
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.work.impl.utils.ForceStopRunnable.BroadcastReceiver
-import info.bagen.libappmgr.ui.app.AppViewIntent
+import info.bagen.rust.plaoc.ui.app.AppViewIntent
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import kotlinx.coroutines.Dispatchers

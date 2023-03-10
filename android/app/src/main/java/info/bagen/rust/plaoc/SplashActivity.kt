@@ -18,15 +18,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
-import info.bagen.libappmgr.R
-import info.bagen.libappmgr.ui.splash.SplashPrivacyDialog
-import info.bagen.libappmgr.utils.KEY_APP_FIRST_LOAD
-import info.bagen.libappmgr.utils.getBoolean
-import info.bagen.libappmgr.utils.saveBoolean
+import info.bagen.rust.plaoc.ui.splash.SplashPrivacyDialog
+import info.bagen.rust.plaoc.util.getBoolean
+import info.bagen.rust.plaoc.util.saveBoolean
 import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import info.bagen.rust.plaoc.util.KEY_ENABLE_AGREEMENT
 import info.bagen.rust.plaoc.webView.openDWebWindow
 
 class SplashActivity : AppCompatActivity() {
@@ -34,13 +33,13 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
-        val first = this.getBoolean(KEY_APP_FIRST_LOAD, true)
+        val first = this.getBoolean(KEY_ENABLE_AGREEMENT, true)
         if (first) {
             setContent {
                 RustApplicationTheme {
                     SplashMainView()
                     SplashPrivacyDialog(openHome = {
-                        App.appContext.saveBoolean(KEY_APP_FIRST_LOAD, false)
+                        App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, false)
                         openHomeActivity()
                     },
                         openWebView = { url -> openDWebWindow(this, url) },

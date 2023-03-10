@@ -4,7 +4,7 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
-import info.bagen.libappmgr.utils.JsonUtil
+import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule

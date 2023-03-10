@@ -6,7 +6,7 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
-import info.bagen.libappmgr.utils.JsonUtil
+import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
 import java.io.BufferedReader
 import java.io.File

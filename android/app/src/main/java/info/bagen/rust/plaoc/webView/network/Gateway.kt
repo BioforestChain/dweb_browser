@@ -4,9 +4,7 @@ import android.net.Uri
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
-import com.fasterxml.jackson.core.JsonParser
-import info.bagen.libappmgr.utils.JsonUtil
-import info.bagen.rust.plaoc.*
+import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.webView.urlscheme.CustomUrlScheme
 import java.io.ByteArrayInputStream
 import java.util.*

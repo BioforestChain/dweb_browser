@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import info.bagen.libappmgr.ui.splash.SplashActivity
-import info.bagen.libappmgr.ui.splash.SplashView
+import info.bagen.rust.plaoc.ui.splash.SplashActivity
+import info.bagen.rust.plaoc.ui.splash.SplashView
 import info.bagen.rust.plaoc.App
 
 object SplashManager {

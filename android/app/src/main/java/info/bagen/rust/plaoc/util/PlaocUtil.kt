@@ -3,9 +3,11 @@ package info.bagen.rust.plaoc.util
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.widget.Toast
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
 
 object PlaocUtil {
@@ -41,6 +43,16 @@ object PlaocUtil {
     fun getZeroBuffKey(req_id: ByteArray): String {
         return "${req_id[0]}-${req_id[1]}"
     }
+
+    fun showShortToastMessage(msg: String) {
+        Toast.makeText(App.appContext, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    fun showLongToastMessage(msg: String) {
+        Toast.makeText(App.appContext, msg, Toast.LENGTH_LONG).show()
+    }
+
+
 }
 
 
