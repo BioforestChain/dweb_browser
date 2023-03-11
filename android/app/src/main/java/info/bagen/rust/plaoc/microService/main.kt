@@ -125,7 +125,8 @@ suspend fun startDwebBrowser() {
      */
     val bootMmidList = when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> listOf(
-            cotJMM.mmid,
+//            cotJMM.mmid,
+            cotDemoJMM.mmid,
         )
         else -> listOf(
             cotDemoJMM.mmid,

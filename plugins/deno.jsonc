@@ -1,13 +1,13 @@
 {
   "tasks": {
     "android": "deno task build && deno task demo",
-    "desktop": "deno run -A ./build.ts && node ./scripts/async-desktop.cjs",
+    "desktop": "deno run -A ./build.ts && deno run -A ./scripts/async-desktop.mts",
     "build": "deno run -A ./scripts/build_npm.ts",
     "pub": "deno run -A ./scripts/pub_npm.ts",
     "link": "chmod 777 ./scripts/link.sh && ./scripts/link.sh",
-    "demo": "deno run -A ./build.ts && node ./scripts/async-android.cjs",
-    "async": "node ./scripts/async-android.cjs",
-    "test": "deno test --allow-all --unstable --no-check  ./test"
+    "demo": "deno run -A ./build.ts && deno run -A ./scripts/async-android.mts",
+    "async": "deno run -A ./scripts/async-android.mts",
+    "test": "deno test -A --unstable --no-check  ./test"
   },
   "compilerOptions": {
     "allowJs": false,

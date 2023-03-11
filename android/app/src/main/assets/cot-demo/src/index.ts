@@ -2,7 +2,7 @@ function $<T extends HTMLElement>(params: string): T {
   return document.getElementById(params) as T
 }
 
-import { Tduration } from '../../build/plugin/types/src/components/toast/toast.type.d.ts';
+import { Duration } from '../../build/plugin/types/src/components/toast/toast.type.d.ts';
 import "../../build/plugin/esm/src/index.js"
 import { StatusbarPlugin, StatusbarStyle, EStatusBarAnimation, ToastPlugin, SplashScreenPlugin } from "../../src/index.ts";
 import { SharePlugin } from "../../src/components/share/index.ts";
@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("toast-show").addEventListener("click", async () => {
     const toast = document.querySelector<ToastPlugin>("dweb-toast")
     console.log("click toast-show")
-    const duration = ($<HTMLSelectElement>("toast-duration").value ?? "long") as Tduration
+    const duration = ($<HTMLSelectElement>("toast-duration").value ?? "long") as Duration
     const text = $<HTMLInputElement>("toast-message").value ?? "我是toast🍓"
     if (toast) {
       const result = await toast.show({ text, duration }).then(res => res.text())
@@ -64,11 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
   /**Splash */
   const splash = document.querySelector<SplashScreenPlugin>("dweb-splash")!
   $("splashscreen-show").addEventListener("click", async () => {
-    const result = await splash.show({ autoHide: true, fadeInDuration: 300, fadeOutDuration: 200, showDuration: 3000 }).then(res => res.text())
+    const result = await splash.show({ autoHide: true, fadeInDuration: 300, fadeOuDuration: 200, showDuration: 3000 }).then(res => res.text())
     $("statusbar-observer-log").innerHTML = result
   })
   $("splashscreen-hide").addEventListener("click", async () => {
-    const result = await splash.hide({ fadeOutDuration: 200 }).then(res => res.text())
+    const result = await splash.hide({ fadeOuDuration: 200 }).then(res => res.text())
     $("statusbar-observer-log").innerHTML = result
   })
 

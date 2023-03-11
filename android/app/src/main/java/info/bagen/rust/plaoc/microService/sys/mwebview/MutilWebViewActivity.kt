@@ -332,7 +332,7 @@ open class MutilWebViewActivity : PermissionActivity() {
                                     "navigationBarOverlay",
                                     systemUiController.navigationBarController.overlayState
                                 )
-                               
+
                             }
 
                         }
