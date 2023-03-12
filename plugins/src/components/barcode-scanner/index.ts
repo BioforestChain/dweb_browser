@@ -1,8 +1,6 @@
 import { BarcodeScanner } from "./barcodeScanner.plugin.ts"
 
 
-
-
 customElements.define('dweb-scanner', BarcodeScanner);
 
 // 插入自定义标签

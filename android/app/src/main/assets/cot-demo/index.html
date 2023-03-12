@@ -1,144 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DwebPlugin DEMO</title>
-</head>
-
-<body>
-  <card>
-    <card-title>Toast</card-title>
-    <dweb-toast></dweb-toast>
-    <fieldset>
-      <legend>Show Toast</legend>
-      <input type="text" id="toast-message" value="我是toast🍓" />
-      <select name="toast-duration" id="toast-duration">
-        <option value="long">long</option>
-        <option value="short">short</option>
-      </select>
-      <button id="toast-show">Show</button>
-    </fieldset>
-  </card>
-
-  <card>
-    <card-title>Status Bar</card-title>
-    <dweb-statusbar></dweb-statusbar>
-    <fieldset>
-      <legend>Status Bar Background Color</legend>
-      <input type="color" id="statusbar-background-color" />
-      <button id="statusbar-setBackgroundColor">Set</button>
-      <button id="statusbar-getBackgroundColor">Get</button>
-    </fieldset>
-
-    <fieldset>
-      <legend>Status Bar Style</legend>
-      <select name="statusbar-style" id="statusbar-style">
-        <option value="Default">Default</option>
-        <option value="Dark">Dark</option>
-        <option value="Light">Light</option>
-      </select>
-      <button id="statusbar-setStyle">Set</button>
-      <button id="statusbar-getStyle">Get</button>
-    </fieldset>
-    <fieldset>
-      <legend>Status Bar visible </legend>
-      <select name="statusbar-style" id="statusbar-animation">
-        <option value="NONE">NONE</option>
-        <option value="SLIDE">SLIDE</option>
-        <option value="FADE">FADE</option>
-      </select>
-      <button id="statusbar-show">show</button>
-      <button id="statusbar-hide">hide</button>
-    </fieldset>
-
-    <fieldset>
-      <legend>Status Bar Overlays WebView</legend>
-      <input type="checkbox" id="statusbar-overlay" />
-      <button id="statusbar-setOverlaysWebView">Set</button>
-      <button id="statusbar-getOverlaysWebView">Get</button>
-    </fieldset>
-
-    <pre id="statusbar-observer-log"></pre>
-  </card>
-
-  <card>
-    <card-title>Splash Screen</card-title>
-    <dweb-splash></dweb-splash>
-    <fieldset>
-      <legend>Splash Screen Show/Hide</legend>
-      <button id="splashscreen-show">Show</button>
-      <button id="splashscreen-hide">Hide</button>
-    </fieldset>
-  </card>
-
-  <card>
-    <card-title>Share</card-title>
-    <dweb-share></dweb-share>
-    <fieldset>
-      <legend>Share</legend>
-      <textarea id="share-options" format="application/javascript">
-            // 放一些js代码，动态执行，返回 $ShareOptions 对象
-        </textarea>
-      <button id="share-share">Share</button>
-    </fieldset>
-  </card>
-
-  <card>
-    <card-title>Safe Area</card-title>
-
-    <fieldset>
-      <legend>Get Safe Area Insets</legend>
-      <button id="safearea-getSafeAreaInsets">Get</button>
-    </fieldset>
-  </card>
-
-  <card>
-    <card-title>Navigation Bar</card-title>
-
-    <fieldset>
-      <legend>Navigation Bar Color</legend>
-      <input type="color" id="navigationbar-color" />
-      <button id="navigationbar-setNavigationBarColor">Set</button>
-      <button id="navigationbar-getNavigationBarColor">Get</button>
-    </fieldset>
-
-    <pre id="navigationbar-observer-log"></pre>
-  </card>
-
-  <card>
-    <card-title>Keyboard</card-title>
-
-    <fieldset>
-      <legend>Keyboard Show/Hide</legend>
-      <button id="keyboard-show">Show</button>
-      <button id="keyboard-hide">Hide</button>
-    </fieldset>
-
-    <pre id="keyboard-observer-log"></pre>
-  </card>
-
-  <card>
-    <card-title>Haptics</card-title>
-
-    <fieldset>
-      <legend>Haptics Vibrate</legend>
-      <input type="text" id="haptics-vibrate-pattern" />
-      <button id="haptics-vibrate">Vibrate</button>
-    </fieldset>
-  </card>
-  <card>
-    <card-title>barcode scanner</card-title>
-    <dweb-scanner></dweb-scanner>
-    <fieldset>
-      <legend>barcode scanner Show/Hide</legend>
-      <button id="barcode-scanner-show">Show</button>
-      <button id="barcode-scanner-hide">Hide</button>
-    </fieldset>
-  </card>
-</body>
-<script type="module" src="./src/index.js"></script>
-
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+    <script type="module" crossorigin src="/assets/index.f58eec1c.js"></script>
+    <link rel="stylesheet" href="/assets/index.03db2576.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    
+  </body>
 </html>

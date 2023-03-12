@@ -46,15 +46,15 @@ export class SyncTask {
     console.log("synced");
   }
 
-  watch() {
+  watch(recursive = false) {
     const debounceSync = debounce(() => this.sync(), 500);
     const watcherList = this.tasks.map((task) =>
-      Deno.watchFs(task.from, { recursive: true })
+      Deno.watchFs(task.from, { recursive })
     );
     console.log("watching");
     watcherList.forEach(async (watcher) => {
       for await (const event of watcher) {
-        console.log(event)
+        console.log(event.kind, event.paths);
         debounceSync();
       }
     });

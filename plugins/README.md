@@ -7,13 +7,29 @@
    2. MutilWebview 的前端代码，对后端的网络请求进行进一步封装，简化成 WebComponent 的声明式模块，使得接口更加符合前端开发者的思维直觉。
       > 额外地，我们会基于这些 WebComponent 做一个进一步的封装，使得能够尽可能兼容 capacitor、cordova 等传统前端应用开发框架
 
-## build
+## Dev / Get Start
+
+1.  install deno
+1.  install node
+1.  install pnpm
+1.  run `deno task dev:src`,
+
+## Test / Demo
+
+1. run `deno task init:demo`
+1. after print `Process finished`,
+1. then run `deno task dev`
+   > `http://localhost:3000/` will be open
+   >
+   > the `demo/dist` will auto sync to android/desktop
+
+## Build
 
 ```bash
 deno task build
 ```
 
-## publish npm
+## Publish npm
 
 ```bash
 deno task pub
@@ -21,19 +37,8 @@ deno task pub
 
 ```ts
 const wwwServer = await http.createHttpDwebServer(jsProcess, {
-    subdomain: "www",
-    port: 443,
+  subdomain: "www",
+  port: 443,
 });
-(await wwwServer.listen()).onRequest()
+(await wwwServer.listen()).onRequest();
 ```
-
-## test
-
-```bash
-deno task demo
-```
-
-auto async for android assets
-
-
-run android project

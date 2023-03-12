@@ -1,7 +1,12 @@
 // ex. scripts/build_npm.ts
 import { copySync } from "https://deno.land/std@0.156.0/fs/mod.ts";
 import * as semver from "https://deno.land/std@0.156.0/semver/mod.ts";
-import { build, emptyDir, EntryPoint, LibName } from "https://deno.land/x/dnt@0.31.0/mod.ts";
+import {
+  build,
+  emptyDir,
+  EntryPoint,
+  LibName,
+} from "https://deno.land/x/dnt@0.31.0/mod.ts";
 
 export const doBuid = async (config: {
   name: string;
@@ -58,7 +63,7 @@ export const doBuid = async (config: {
         //   module: "https://cdn.esm.sh/image-capture@0.4.0",
         //   globalNames: ["ImageCapture"],
         // }
-      ]
+      ],
     },
     compilerOptions: {
       target: "ES2020",
@@ -177,6 +182,21 @@ export const doBuildFromJson = async (file: string, args = Deno.args) => {
 };
 
 if (import.meta.main) {
+  /**
+   * 这里导入源码，目的是为了让 deno 的 watch 可以正确工作 为此，我们需要做一些基础的垫片工作
+   */
+  {
+    if (typeof HTMLElement === "undefined") {
+      const noop = () => {};
+      Object.assign(globalThis, {
+        HTMLElement: class HTMLElement {},
+        customElements: { define: noop },
+        document: { addEventListener: noop },
+      });
+    }
+    import("../src/index.ts");
+  }
+
   let target = "plugin";
   if (Deno.args[1]) {
     target = Deno.args[1];

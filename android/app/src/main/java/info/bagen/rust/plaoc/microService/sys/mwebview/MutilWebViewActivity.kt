@@ -137,6 +137,15 @@ open class MutilWebViewActivity : PermissionActivity() {
         // This will lay out our app behind the system bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+//        val metrics = WindowMetricsCalculator.getOrCreate()
+//            .computeCurrentWindowMetrics(this)
+//        val widthDp = (metrics.bounds.width() /
+//            resources.displayMetrics.density).dp
+//        val heightDp = (metrics.bounds.height() /
+//            resources.displayMetrics.density).dp
+//
+//        println("widthDp:$widthDp heightDp:$heightDp")
+
         setContent {
 
             val systemUiController = rememberSystemUiController()
@@ -252,6 +261,8 @@ open class MutilWebViewActivity : PermissionActivity() {
 //                                    .offset { modifierOffset }
 //                                    .scale(modifierScale.first, modifierScale.second)
                                     .fillMaxSize()
+//                                    .width(300.dp)
+//                                    .height(800.dp)
                                     .padding(modifierPadding),
                                 factory = { viewItem.webView },
                                 chromeClient = chromeClient,
@@ -283,64 +294,70 @@ open class MutilWebViewActivity : PermissionActivity() {
                                         }
                                     })
                             }
-                            var statusBarOverlay by systemUiController.statusBarController.overlayState
-                            var virtualKeyboardOverlay by systemUiController.virtualKeyboardController.overlayState
-                            var navigationBarOverlay by systemUiController.navigationBarController.overlayState
 
-                            Column(
-                                modifier = Modifier.padding(top = 30.dp, start = 20.dp),
-                            ) {
-                                @Composable
-                                fun RowSwitchItem(
-                                    text: String,
-                                    switchState: MutableState<Boolean>
-                                ) {
-                                    var switch by switchState
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .height(56.dp)
-                                            .padding(horizontal = 16.dp)
-                                            .toggleable(
-                                                value = switch,
-                                                onValueChange = {
-                                                    switch = it
-                                                },
-                                                role = Role.Switch
-                                            )
-                                    ) {
-                                        Switch(
-                                            checked = switch,
-                                            onCheckedChange = null
-                                        )
-                                        Text(
-                                            modifier = Modifier.padding(start = 16.dp),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            text = text
-                                        )
-                                    }
-                                }
-                                RowSwitchItem(
-                                    "statusBarOverlay",
-                                    systemUiController.statusBarController.overlayState
-                                )
-                                RowSwitchItem(
-                                    "virtualKeyboardOverlay",
-                                    systemUiController.virtualKeyboardController.overlayState
-                                )
-                                RowSwitchItem(
-                                    "navigationBarOverlay",
-                                    systemUiController.navigationBarController.overlayState
-                                )
-
-                            }
-
+                            // DebugPanel()
                         }
 
                     }
                 }
 
             }
+        }
+    }
+
+    @Composable
+    fun DebugPanel() {
+        val systemUiController = SystemUiController.remember(this)
+        var statusBarOverlay by systemUiController.statusBarController.overlayState
+        var virtualKeyboardOverlay by systemUiController.virtualKeyboardController.overlayState
+        var navigationBarOverlay by systemUiController.navigationBarController.overlayState
+
+        Column(
+            modifier = Modifier.padding(top = 30.dp, start = 20.dp),
+        ) {
+            @Composable
+            fun RowSwitchItem(
+                text: String,
+                switchState: MutableState<Boolean>
+            ) {
+                var switch by switchState
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .height(56.dp)
+                        .padding(horizontal = 16.dp)
+                        .toggleable(
+                            value = switch,
+                            onValueChange = {
+                                switch = it
+                            },
+                            role = Role.Switch
+                        )
+                ) {
+                    Switch(
+                        checked = switch,
+                        onCheckedChange = null
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp),
+                        style = MaterialTheme.typography.bodyLarge,
+                        text = text
+                    )
+                }
+            }
+            RowSwitchItem(
+                "statusBarOverlay",
+                systemUiController.statusBarController.overlayState
+            )
+            RowSwitchItem(
+                "virtualKeyboardOverlay",
+                systemUiController.virtualKeyboardController.overlayState
+            )
+            RowSwitchItem(
+                "navigationBarOverlay",
+                systemUiController.navigationBarController.overlayState
+            )
+
         }
     }
 }
