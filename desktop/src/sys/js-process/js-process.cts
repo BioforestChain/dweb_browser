@@ -324,8 +324,10 @@ export class JsProcessNMM extends NativeMicroModule {
     const channel_for_worker = new MessageChannel();
     const processInfo = await apis.createProcess(
       bootstrap_url,
-      JSON.stringify(metadata),
-      JSON.stringify(env),
+      metadata,
+      env,
+      // JSON.stringify(metadata),
+      // JSON.stringify(env),
       transfer(channel_for_worker.port2, [channel_for_worker.port2])
     );
 
