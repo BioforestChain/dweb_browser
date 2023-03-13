@@ -178,6 +178,9 @@ export class JsProcessNMM extends NativeMicroModule {
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );
+
+      // 打开 devtools
+      nww.webContents.openDevTools();
       this._after_shutdown_signal.listen(() => {
         nww.close();
       });
