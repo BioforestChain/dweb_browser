@@ -12,6 +12,7 @@ ios/BFExplorer/BFExplorer.xcodeproj/project.pbxproj
 local.properties
 build/
 *.log
+android/app/src/main/assets/cot-demo/
 
 # desktop
 desktop/apps
@@ -29,4 +30,3 @@ lerna-debug.log*
 
 #plugins
 plugins/build
-plugins/demo/src/index.js

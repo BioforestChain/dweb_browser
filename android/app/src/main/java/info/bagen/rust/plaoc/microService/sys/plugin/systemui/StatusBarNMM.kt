@@ -49,8 +49,8 @@ class StatusBarNMM : NativeMicroModule("statusbar.sys.dweb") { // 小写不然�
                 // println("StatusBarNMM#apiRouting getInfo===>$result")
                 return@defineHandler StatusBarInfo(visible, style, overlay, color)
             },
-            /** 设置状态栏是否覆盖webview (透明)*/
-            "/setOverlays" bind Method.GET to defineHandler { request, ipc ->
+            /** 设置状态栏是否覆盖webview*/
+            "/setOverlays" bind Method.GET to defineHandler { request,ipc ->
                 val overlay = Query.boolean().required("overlay")(request)
                 val statusBar = getStatusBar(ipc.remote.mmid)
                 val result = statusBar.setStatusBarOverlay(overlay)

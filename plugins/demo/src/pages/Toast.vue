@@ -41,8 +41,8 @@ const showToast = async () => {
           <option value="short">short</option>
         </select>
       </FieldLabel>
-      <div class="card-actions justify-end">
-        <button class="btn btn-accent inline-block rounded-full" id="toast-show" @click="showToast()">Show</button>
+      <div class="justify-end card-actions">
+        <button class="inline-block rounded-full btn btn-accent" id="toast-show" @click="showToast()">Show</button>
       </div>
     </article>
   </div>

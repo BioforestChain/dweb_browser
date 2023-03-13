@@ -5,6 +5,9 @@ import { StatusbarPlugin, StatusbarStyle } from "@bfex/plugin";
 import { defineAction } from "../helpers/logHelper";
 
 const title = "StatusBar";
+
+// import { } from "@bfex/plugin"
+
 // export default {};
 // const elSetStatusbarStyle = document.querySelector("#statusbar-setStyle");
 // const elSelectStatusbarStyle = document.querySelector("#statusbar-style");
@@ -88,25 +91,25 @@ const getOverlay = defineAction(
       <input class="color" type="color" v-model="color" />
 
       <div class="card-actions justify-end btn-group">
-        <button class="btn btn-accent inline-block rounded-full" :disabled="null == color" @click="setBackgroundColor">
+        <button class="rounded-full btn btn-accent inline-block" :disabled="null == color" @click="setBackgroundColor">
           Set
         </button>
-        <button class="btn btn-accent inline-block rounded-full" @click="getBackgroundColor">Get</button>
+        <button class="rounded-full btn btn-accent inline-block" @click="getBackgroundColor">Get</button>
       </div>
     </article>
 
     <article class="card-body">
       <h2 class="card-title">Status Bar Style</h2>
-      <select class="select w-full max-w-xs" name="statusbar-style" id="statusbar-style" v-model="style">
+      <select class="max-w-xs w-full select" name="statusbar-style" id="statusbar-style" v-model="style">
         <option value="DEFAULT">Default</option>
         <option value="DARK">Dark</option>
         <option value="LIGHT">Light</option>
       </select>
       <div class="card-actions justify-end btn-group">
-        <button class="btn btn-accent inline-block rounded-full" :disabled="null == style" @click="setStyle">
+        <button class="rounded-full btn btn-accent inline-block" :disabled="null == style" @click="setStyle">
           Set
         </button>
-        <button class="btn btn-accent inline-block rounded-full" @click="getStyle">Get</button>
+        <button class="rounded-full btn btn-accent inline-block" @click="getStyle">Get</button>
       </div>
     </article>
 
@@ -115,10 +118,10 @@ const getOverlay = defineAction(
       <input class="toggle" type="checkbox" id="statusbar-overlay" v-model="overlay" />
 
       <div class="card-actions justify-end btn-group">
-        <button class="btn btn-accent inline-block rounded-full" :disabled="null == overlay" @click="setOverlay">
+        <button class="rounded-full btn btn-accent inline-block" :disabled="null == overlay" @click="setOverlay">
           Set
         </button>
-        <button class="btn btn-accent inline-block rounded-full" @click="getOverlay">Get</button>
+        <button class="rounded-full btn btn-accent inline-block" @click="getOverlay">Get</button>
       </div>
     </article>
   </div>

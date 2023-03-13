@@ -16,14 +16,6 @@ class SystemUiPlugin(
 
     val virtualKeyboard = VirtualKeyboard(systemUiController.virtualKeyboardController.overlayState, webView)
 
-    /**
-     * @TODO 在未来，这里的disable与否，通过更加完善的声明来实现，比如可以声明多个rect
-     */
-//    @JavascriptInterface
-//    fun disableTouchEvent() {
-//        hook.onTouchEvent = { false }
-//    }
-
     /**第一个参数是颜色HEX。第二个是图标是否更期望于使用深色*/
     fun setStatusBarBackgroundColor(colorHex: String): Boolean {
         systemUiController.statusBarController.apply {
@@ -75,35 +67,38 @@ class SystemUiPlugin(
         return systemUiController.statusBarController.visibleState.value
     }
 
-    /** 设置false为透明*/
+    /** 设置状态栏是否可见*/
     fun setStatusBarVisible(visible: Boolean): Boolean {
         systemUiController.statusBarController.visibleState.value = visible
         return visible
     }
 
-    /**获取状态栏是否透明的状态*/
+    /**获取状态栏是否覆盖内容*/
     fun getStatusBarOverlay(): Boolean {
         return systemUiController.statusBarController.overlayState.value
     }
 
-    /**设置状态栏是否透明*/
+    /**设置状态栏是否覆盖内容*/
     fun setStatusBarOverlay(isOverlay: Boolean): Boolean {
         systemUiController.statusBarController.overlayState.value = isOverlay
         return true
     }
 
-    /**设置系统导航栏颜色*/
+    /**
+     * 设置系统导航栏颜色
+     * darkIcons - 深色导航栏图标是否更可取。
+     * navigationBarContrastEnforced - 当请求完全透明的背景时，系统是否应确保导航栏具有足够的对比度。 仅支持 API 29+。
+     * */
     fun setNavigationBarColor(
         colorHex: String,
         darkIcons: Boolean,
         isNavigationBarContrastEnforced: Boolean
-    ): Boolean {
+    ) {
         systemUiController.navigationBarController.apply {
             colorState.value = Color(hexToIntColor(colorHex))
             isDarkIconsState.value = darkIcons
             isContrastEnforcedState.value = isNavigationBarContrastEnforced
         }
-        return true
     }
 
     /**获取系统导航栏颜色*/
@@ -121,18 +116,36 @@ class SystemUiPlugin(
 
     /**设置系统导航栏是否隐藏*/
     fun setNavigationBarVisible(visible: Boolean): Boolean {
-        systemUiController.navigationBarController.visibleState.value =
-            visible
+        systemUiController.navigationBarController.visibleState.value = visible
         return visible
     }
 
     /**获取系统导航栏是否透明*/
-    fun getNavigationBarOverlay(): Boolean {
+    fun getNavigationBarTransparency(): Boolean {
         return systemUiController.navigationBarController.overlayState.value
     }
 
     /**设置系统导航栏是否透明*/
-    fun setNavigationBarOverlay(isOverlay: Boolean): Boolean {
+    fun setNavigationBarTransparency(isTransparency: Boolean): Boolean {
+        val color = systemUiController.navigationBarController.colorState.value
+
+        systemUiController.navigationBarController.apply {
+            colorState.value = color
+            isDarkIconsState.value = true
+            isContrastEnforcedState.value = isTransparency
+        }
+        return isTransparency
+    }
+
+    /**获取系统导航栏是否覆盖内容*/
+    fun getNavigationBarOverlay(): Boolean {
+        return systemUiController.navigationBarController.overlayState.value
+    }
+
+    /**
+     * 是否覆盖内容
+     */
+    fun setNavigationBarOverlay(isOverlay: Boolean):Boolean {
         systemUiController.navigationBarController.overlayState.value =
             isOverlay
         return isOverlay
