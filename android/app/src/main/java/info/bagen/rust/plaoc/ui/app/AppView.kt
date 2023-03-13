@@ -37,7 +37,7 @@ import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import info.bagen.rust.plaoc.R
-import info.bagen.rust.plaoc.ui.download.DownLoadState
+import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.ui.download.DownloadAppMaskView
 import info.bagen.rust.plaoc.ui.download.DownloadDialogView
 import info.bagen.rust.plaoc.ui.entity.AppInfo
@@ -66,9 +66,9 @@ private fun BoxScope.AppIcon(appViewState: AppViewState) {
 @Composable
 private fun BoxScope.AppName(appViewState: AppViewState) {
   val name = when (appViewState.maskViewState.downLoadState.value) {
-    DownLoadState.LOADING -> "下载中"
-    DownLoadState.PAUSE -> "暂停"
-    DownLoadState.INSTALL -> "正在安装"
+    DownLoadStatus.DownLoading -> "下载中"
+    DownLoadStatus.PAUSE -> "暂停"
+    DownLoadStatus.DownLoadComplete -> "正在安装"
     else -> appViewState.name.value
   }
   Text(
@@ -100,9 +100,6 @@ fun BoxScope.AppInfoItem(
       .pointerInput(appViewState) {
           detectTapGestures(onPress = {}, // 触摸事件
               onTap = { // 点击事件
-                  /*GlobalScope.launch {
-              run()
-          }*/
                   appViewState.appInfo?.dAppUrl?.let {
                       onOpenApp?.let { it() }
                   } ?: run {
@@ -144,7 +141,7 @@ fun AppInfoView(appViewModel: AppViewModel, appViewState: AppViewState, onOpenAp
     AppInfoItem(appViewModel, appViewState, onOpenApp)
     if (appViewState.maskViewState.show.value) {
       DownloadAppMaskView(
-        downLoadViewModel = appViewState.maskViewState.downLoadViewModel,
+        downLoadViewModel = appViewState.maskViewState.downLoadViewModel!!,
         modifier = Modifier
             .size(50.dp)
             .clip(RoundedCornerShape(6.dp))
@@ -160,73 +157,9 @@ fun AppInfoView(appViewModel: AppViewModel, appViewState: AppViewState, onOpenAp
               appViewState
             )
           )
-        },
-        checkInstallOrOverride = { appInfo, zipFile ->
-          compareDownloadApp(appViewModel, appViewState, appInfo, zipFile)
         })
     }
   }
-}
-
-private fun compareDownloadApp(
-  appViewModel: AppViewModel, appViewState: AppViewState, appInfo: AppInfo?, zipFile: String
-): NewAppUnzipType {
-  var ret = NewAppUnzipType.INSTALL
-  if (appViewState.bfsDownloadPath != null && appInfo != null) {
-    run OutSide@{
-      appViewModel.uiState.appViewStateList.forEach { tempAppViewState ->
-        if (tempAppViewState.appInfo?.bfsAppId == appInfo.bfsAppId) {
-          if (compareAppVersionHigh(
-              tempAppViewState.appInfo!!.version,
-              appInfo.version
-            )
-          ) {
-            ret = NewAppUnzipType.OVERRIDE
-            appViewModel.handleIntent(
-              AppViewIntent.OverrideDownloadApp(appViewState, appInfo, zipFile)
-            )
-          } else {
-            ret = NewAppUnzipType.LOW_VERSION
-            appViewModel.handleIntent(AppViewIntent.RemoveDownloadApp(appViewState))
-          }
-          return@OutSide
-        }
-      }
-    }
-    if (ret == NewAppUnzipType.INSTALL) {
-      appViewModel.handleIntent(
-        AppViewIntent.UpdateDownloadApp(
-          appViewState,
-          appInfo,
-          zipFile
-        )
-      )
-    }
-  }
-  return ret
-}
-
-private fun compareAppVersionHigh(localVersion: String, compareVersion: String): Boolean {
-  var localSplit = localVersion.split(".")
-  val compareSplit = compareVersion.split(".")
-  var tempLocalVersion = localVersion
-  if (localSplit.size < compareSplit.size) {
-    val cha = compareSplit.size - localSplit.size
-    for (i in 0 until cha) {
-      tempLocalVersion += ".0"
-    }
-    localSplit = tempLocalVersion.split(".")
-  }
-  try {
-    for (i in compareSplit.indices) {
-      val local = Integer.parseInt(localSplit[i])
-      val compare = Integer.parseInt(compareSplit[i])
-      if (compare > local) return true
-    }
-  } catch (e: Throwable) {
-    Log.e("AppViewModel", "compareAppVersionHigh issue -> $localVersion, $compareVersion")
-  }
-  return false
 }
 
 @Composable
@@ -257,10 +190,11 @@ fun AppDialogView(
     AppDialogType.DownLoading -> {
       val appViewState = appViewModel.uiState.curAppViewState
       DownloadDialogView(
+        mmid = appViewModel.uiState.curAppViewState!!.appInfo!!.bfsAppId,
         path = appViewModel.uiState.appDialogInfo.value.data as String
       ) { state, dialogInfo ->
         when (state) {
-          DownLoadState.COMPLETED, DownLoadState.FAILURE -> {
+          DownLoadStatus.INSTALLED, DownLoadStatus.FAIL -> {
             appViewModel.handleIntent(
               AppViewIntent.DialogDownloadCallback(state, dialogInfo, appViewState!!)
             )

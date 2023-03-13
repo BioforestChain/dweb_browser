@@ -7,8 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.ui.download.DownLoadIntent
-import info.bagen.rust.plaoc.ui.download.DownLoadState
 import info.bagen.rust.plaoc.ui.download.DownLoadViewModel
 import info.bagen.rust.plaoc.ui.entity.AppInfo
 import info.bagen.rust.plaoc.ui.entity.AppVersion
@@ -17,8 +17,10 @@ import info.bagen.rust.plaoc.ui.view.DialogInfo
 import info.bagen.rust.plaoc.ui.view.DialogType
 import info.bagen.rust.plaoc.util.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 data class AppViewUIState(
   val useMaskView: MutableState<Boolean> = mutableStateOf(true), // 表示使用app遮罩的方式下载
@@ -41,9 +43,9 @@ data class AppViewState(
 
 data class MaskProgressState(
   val show: MutableState<Boolean> = mutableStateOf(false),
-  val downLoadState: MutableState<DownLoadState> = mutableStateOf(DownLoadState.IDLE),
+  val downLoadState: MutableState<DownLoadStatus> = mutableStateOf(DownLoadStatus.IDLE),
   var path: String = "",
-  var downLoadViewModel: DownLoadViewModel = DownLoadViewModel()
+  var downLoadViewModel: DownLoadViewModel? = null,
 )
 
 private fun AppInfo.createAppViewState(
@@ -78,13 +80,13 @@ sealed class AppViewIntent {
   class LoadAppNewVersion(val appViewState: AppViewState) : AppViewIntent()
 
   class MaskDownloadCallback(
-    val downLoadState: DownLoadState, val dialogInfo: DialogInfo, val appViewState: AppViewState
+    val downLoadState: DownLoadStatus, val dialogInfo: DialogInfo, val appViewState: AppViewState
   ) : AppViewIntent()
 
   class ShowAppViewBadge(val appViewState: AppViewState, val show: Boolean) : AppViewIntent()
 
   class DialogDownloadCallback(
-    val downLoadState: DownLoadState, val dialogInfo: DialogInfo, val appViewState: AppViewState
+    val downLoadState: DownLoadStatus, val dialogInfo: DialogInfo, val appViewState: AppViewState
   ) : AppViewIntent()
 
   object DialogHide : AppViewIntent()
@@ -183,7 +185,7 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
           )
           handleIntent(
             AppViewIntent.MaskDownloadCallback(
-              DownLoadState.FAILURE, dialogInfo, action.appViewState
+              DownLoadStatus.FAIL, dialogInfo, action.appViewState
             )
           )
         }
@@ -246,12 +248,12 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
       AppDialogType.NewVersion, AppDialogType.ReDownLoad -> {
         if (uiState.useMaskView.value) { // 在app上面显示遮罩
           uiState.curAppViewState?.let { appViewState ->
+            appViewState.maskViewState.downLoadViewModel = DownLoadViewModel(
+              appViewState.appInfo!!.bfsAppId, appViewState.maskViewState.path
+            ).apply {
+              handleIntent(DownLoadIntent.DownLoad)
+            }
             appViewState.maskViewState.show.value = true
-            appViewState.maskViewState.downLoadViewModel.handleIntent(
-              DownLoadIntent.LoadDownLoadStateAndDownLoad(
-                appViewState.maskViewState.path, appViewState.appInfo
-              )
-            )
           }
           uiState.appDialogInfo.value = uiState.appDialogInfo.value.copy(
             dialogInfo = DialogInfo(DialogType.HIDE)
@@ -272,10 +274,10 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
   }
 
   private suspend fun dialogDownloadCallback(
-    downLoadState: DownLoadState, dialogInfo: DialogInfo, appViewState: AppViewState
+    downLoadState: DownLoadStatus, dialogInfo: DialogInfo, appViewState: AppViewState
   ) {
     val appDialogType: AppDialogType = when (downLoadState) {
-      DownLoadState.COMPLETED -> {
+      DownLoadStatus.INSTALLED -> {
         appViewState.showBadge.value = true
         appViewState.appInfo?.let { appInfo ->
           repository.loadDAppUrl(appInfo)?.let { dAppInfoUI -> // 跳转需要的地址
@@ -285,7 +287,7 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
         }
         AppDialogType.DownLoadCompleted
       }
-      DownLoadState.FAILURE -> AppDialogType.ReDownLoad
+      DownLoadStatus.FAIL -> AppDialogType.ReDownLoad
       else -> AppDialogType.Other
     }
     uiState.appDialogInfo.value = uiState.appDialogInfo.value.copy(
@@ -294,10 +296,10 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
   }
 
   private suspend fun maskDownloadCallback(
-    downLoadState: DownLoadState, dialogInfo: DialogInfo, appViewState: AppViewState
+    downLoadState: DownLoadStatus, dialogInfo: DialogInfo, appViewState: AppViewState
   ) {
     when (downLoadState) {
-      DownLoadState.COMPLETED -> {
+      DownLoadStatus.INSTALLED -> {
         appViewState.showBadge.value = true
         appViewState.appInfo?.apply {
           appDirType = APP_DIR_TYPE.SystemApp // 需要提前将路径改为 system-app
@@ -308,11 +310,12 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
             appViewState.appInfo!!.dAppUrl = dAppInfoUI.dAppUrl
           }
         }
+        delay(1000)
+        appViewState.maskViewState.show.value = false
       }
-      DownLoadState.FAILURE -> {
+      DownLoadStatus.FAIL -> {
         PlaocUtil.showShortToastMessage(dialogInfo.text)
-      }
-      DownLoadState.CLOSE -> {
+        delay(1000)
         appViewState.maskViewState.show.value = false
       }
       else -> {}
@@ -335,10 +338,10 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
         bfsDownloadPath = path,
         maskViewState = MaskProgressState(
           show = mutableStateOf(true),
-          downLoadState = mutableStateOf(DownLoadState.LOADING),
+          downLoadState = mutableStateOf(DownLoadStatus.DownLoading),
           path = path,
-          downLoadViewModel = DownLoadViewModel().apply {
-            handleIntent(DownLoadIntent.LoadDownLoadStateAndDownLoad(path)) // 直接下载
+          downLoadViewModel = DownLoadViewModel("down_${Calendar.MILLISECOND}", path).apply {
+            handleIntent(DownLoadIntent.DownLoad) // 直接下载
           })
       )
       uiState.appViewStateList.add(appViewState)
@@ -360,7 +363,7 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
         if (item.appInfo?.bfsAppId == appInfo.bfsAppId) {
           handleIntent(
             AppViewIntent.MaskDownloadCallback(
-              DownLoadState.COMPLETED,
+              DownLoadStatus.INSTALLED,
               DialogInfo(),
               item
             )
@@ -377,7 +380,7 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
             confirmText = "重新下载"
           )
           handleIntent(
-            AppViewIntent.MaskDownloadCallback(DownLoadState.FAILURE, dialogInfo, item)
+            AppViewIntent.MaskDownloadCallback(DownLoadStatus.FAIL, dialogInfo, item)
           )
         }
       }

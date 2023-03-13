@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
-import info.bagen.rust.plaoc.ui.app.NewAppUnzipType
-import info.bagen.rust.plaoc.ui.entity.AppInfo
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.ui.view.DialogInfo
 import info.bagen.rust.plaoc.ui.view.DialogType
 import info.bagen.rust.plaoc.ui.view.DialogView
@@ -28,9 +28,11 @@ import info.bagen.rust.plaoc.ui.view.DialogView
  *     DialogInfo: 使用对话框形式返回下载结果的具体内容信息，可直接显示，当然也可以做相应调整后显示
  */
 @Composable
-fun DownloadDialogView(path: String, callbackState: (DownLoadState, DialogInfo) -> Unit) {
-  val downLoadViewModel = DownLoadViewModel()
-  downLoadViewModel.handleIntent(DownLoadIntent.LoadDownLoadStateAndDownLoad(path))
+fun DownloadDialogView(
+  mmid: Mmid, path: String, callbackState: (DownLoadStatus, DialogInfo) -> Unit
+) {
+  val downLoadViewModel = DownLoadViewModel(mmid, path)
+  downLoadViewModel.handleIntent(DownLoadIntent.DownLoad)
   DownloadDialogProgressView(
     downLoadViewModel = downLoadViewModel, callbackState = callbackState
   )
@@ -45,18 +47,17 @@ fun DownloadDialogView(path: String, callbackState: (DownLoadState, DialogInfo) 
  */
 @Composable
 fun DownloadAppMaskView(
+  mmid: Mmid,
   path: String,
   modifier: Modifier = Modifier,
-  callbackState: (DownLoadState, DialogInfo) -> Unit,
-  checkInstallOrOverride: (AppInfo?, String) -> NewAppUnzipType
+  callbackState: (DownLoadStatus, DialogInfo) -> Unit,
 ) {
-  val downLoadViewModel = DownLoadViewModel()
-  downLoadViewModel.handleIntent(DownLoadIntent.LoadDownLoadStateAndDownLoad(path))
+  val downLoadViewModel = DownLoadViewModel(mmid, path)
+  downLoadViewModel.handleIntent(DownLoadIntent.DownLoad)
   DownloadAppProgressView(
     downLoadViewModel = downLoadViewModel,
     modifier = modifier,
     callbackState = callbackState,
-    checkInstallOrOverride = checkInstallOrOverride
   )
 }
 
@@ -64,14 +65,12 @@ fun DownloadAppMaskView(
 fun DownloadAppMaskView(
   downLoadViewModel: DownLoadViewModel,
   modifier: Modifier = Modifier,
-  callbackState: (DownLoadState, DialogInfo) -> Unit,
-  checkInstallOrOverride: (AppInfo?, String) -> NewAppUnzipType
+  callbackState: (DownLoadStatus, DialogInfo) -> Unit,
 ) {
   DownloadAppProgressView(
     downLoadViewModel = downLoadViewModel,
     modifier = modifier,
     callbackState = callbackState,
-    checkInstallOrOverride = checkInstallOrOverride
   )
 }
 
@@ -79,8 +78,7 @@ fun DownloadAppMaskView(
 private fun DownloadAppProgressView(
   downLoadViewModel: DownLoadViewModel,
   modifier: Modifier,
-  callbackState: (DownLoadState, DialogInfo) -> Unit,
-  checkInstallOrOverride: (AppInfo?, String) -> NewAppUnzipType
+  callbackState: (DownLoadStatus, DialogInfo) -> Unit,
 ) {
   val dialogInfo = DialogInfo(
     type = DialogType.PROGRESS,
@@ -89,8 +87,8 @@ private fun DownloadAppProgressView(
   val show = remember {
     derivedStateOf { // 多个状态归类判断，只有出现变化后，才会刷新show值
       when (downLoadViewModel.uiState.value.downLoadState.value) {
-        DownLoadState.COMPLETED, DownLoadState.FAILURE, DownLoadState.CLOSE -> false
-        else -> true
+        DownLoadStatus.DownLoading, DownLoadStatus.DownLoadComplete, DownLoadStatus.PAUSE -> true
+        else -> false
       }
     }
   }
@@ -101,18 +99,10 @@ private fun DownloadAppProgressView(
       downLoadViewModel.uiState.value.downLoadState.value,
       downLoadViewModel.uiState.value.dialogInfo
     )
-    if (downLoadViewModel.uiState.value.downLoadState.value == DownLoadState.INSTALL &&
-      checkInstallOrOverride(
-        downLoadViewModel.uiState.value.downloadAppInfo,
-        downLoadViewModel.mDownLoadProgress.downloadFile
-      ) == NewAppUnzipType.INSTALL
-    ) {
-      downLoadViewModel.handleIntent(DownLoadIntent.DecompressFile)
-    }
   }
   if (show.value) {
     Box(modifier = modifier.clickable {
-      downLoadViewModel.handleIntent(DownLoadIntent.DownLoadPauseStateChanged)
+      downLoadViewModel.handleIntent(DownLoadIntent.DownLoadStatusChange)
     }) {
       Canvas(modifier = Modifier.fillMaxSize()) {
         radius.value = size.minDimension / 2f
@@ -153,7 +143,7 @@ fun HideAppMaskView(
   radius: Float,
   canvasSize: Float,
   modifier: Modifier,
-  callbackState: (DownLoadState, DialogInfo) -> Unit
+  callbackState: (DownLoadStatus, DialogInfo) -> Unit
 ) {
   var trigger by remember { mutableStateOf(if (radius == 0f) 90f else radius) }
   var isFinished by remember { mutableStateOf(false) }
@@ -162,7 +152,7 @@ fun HideAppMaskView(
     durationMillis = 200, easing = LinearEasing
   ), finishedListener = {
     isFinished = true
-    callbackState(DownLoadState.CLOSE, DialogInfo())
+    callbackState(DownLoadStatus.INSTALLED, DialogInfo())
   })
 
   DisposableEffect(Unit) {
@@ -188,7 +178,7 @@ fun HideAppMaskView(
 
 @Composable
 private fun DownloadDialogProgressView(
-  downLoadViewModel: DownLoadViewModel, callbackState: (DownLoadState, DialogInfo) -> Unit
+  downLoadViewModel: DownLoadViewModel, callbackState: (DownLoadStatus, DialogInfo) -> Unit
 ) {
   val dialogInfo = DialogInfo(
     type = DialogType.PROGRESS,
@@ -197,13 +187,13 @@ private fun DownloadDialogProgressView(
   val show = remember {
     derivedStateOf { // 多个状态归类判断，只有出现变化后，才会刷新show值
       when (downLoadViewModel.uiState.value.downLoadState.value) {
-        DownLoadState.LOADING, DownLoadState.INSTALL, DownLoadState.PAUSE -> true
+        DownLoadStatus.DownLoading, DownLoadStatus.DownLoadComplete, DownLoadStatus.PAUSE -> true
         else -> false
       }
     }
   }
   when (downLoadViewModel.uiState.value.downLoadState.value) { // 为了在状态变化后能够及时通知调用方刷新状态
-    DownLoadState.COMPLETED, DownLoadState.FAILURE -> {
+    DownLoadStatus.INSTALLED, DownLoadStatus.FAIL -> {
       callbackState(
         downLoadViewModel.uiState.value.downLoadState.value,
         downLoadViewModel.uiState.value.dialogInfo

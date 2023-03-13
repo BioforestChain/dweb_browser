@@ -8,7 +8,6 @@ import android.os.Bundle
 import info.bagen.rust.plaoc.di.repositoryModule
 import info.bagen.rust.plaoc.di.appModules
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
-import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.PlaocUtil
 import info.bagen.rust.plaoc.webView.DWebViewActivity
@@ -27,7 +26,6 @@ class App : Application() {
 
         var browserActivity: BrowserActivity? = null
         var dwebViewActivity: DWebViewActivity? = null
-        var jmmManagerActivity: JmmManagerActivity? = null
 
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
             GlobalScope.launch(Dispatchers.IO) {

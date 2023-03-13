@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.registerReceiver
 import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
@@ -194,17 +195,11 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
         }
         // 发现设备时注册广播。
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        App.browserActivity?.blueToothReceiver = BrowserActivity.BlueToothReceiver()
         registerReceiver(
             App.appContext,
-            App.browserActivity!!.receiver,
+            App.browserActivity!!.blueToothReceiver,
             filter,
-            ContextCompat.RECEIVER_VISIBLE_TO_INSTANT_APPS
-        )
-
-        registerReceiver(
-            App.appContext,
-            App.browserActivity!!.receiver,
-            IntentFilter(BluetoothDevice.ACTION_FOUND),
             ContextCompat.RECEIVER_VISIBLE_TO_INSTANT_APPS
         )
         return JsonUtil.toJson(findBluetoothResult.waitPromise())

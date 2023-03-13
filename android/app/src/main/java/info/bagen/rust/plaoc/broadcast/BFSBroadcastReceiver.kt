@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 
 enum class BFSBroadcastAction(val action: String) {
     BFSInstallApp("info.bagen.rust.plaoc.BFSInstallApp"),
-    DownLoadStatusChanged("action.download.status.changed"),
 }
 
 @SuppressLint("RestrictedApi")
@@ -29,11 +28,6 @@ class BFSBroadcastReceiver : BroadcastReceiver() {
                             val path = it.getStringExtra("path") ?: ""
                             mainActivity.getAppViewModel()
                                 .handleIntent(AppViewIntent.BFSInstallApp(path))
-                        }
-                    }
-                    BFSBroadcastAction.DownLoadStatusChanged.action -> {
-                        it.getStringExtra("url")?.let { mmid ->
-                            DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadStatusChange(mmid)
                         }
                     }
                     else -> {}

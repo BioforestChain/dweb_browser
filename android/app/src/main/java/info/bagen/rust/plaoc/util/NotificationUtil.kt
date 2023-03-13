@@ -10,8 +10,6 @@ import androidx.core.app.NotificationCompat
 import info.bagen.rust.plaoc.ui.main.MainActivity
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
-import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
-import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.microService.helper.Mmid
 
@@ -136,7 +134,7 @@ class NotificationUtil {
     val progressCurrent = 0
 
     // 适配12.0及以上
-    mFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    /*mFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
       PendingIntent.FLAG_IMMUTABLE
     } else {
       PendingIntent.FLAG_UPDATE_CURRENT
@@ -145,14 +143,14 @@ class NotificationUtil {
       action = BFSBroadcastAction.DownLoadStatusChanged.action
       putExtra("mmid", mmid)
     }
-    val pendingIntent = PendingIntent.getBroadcast(App.appContext, 999, intent, mFlag)
+    val pendingIntent = PendingIntent.getBroadcast(App.appContext, 999, intent, mFlag)*/
 
     mBuilder = NotificationCompat.Builder(App.appContext, mProgressChannelId).setContentTitle(title)
       .setContentText("$text：$progressCurrent%").setSmallIcon(R.mipmap.ic_launcher)
       // .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_avatar))
       // 第3个参数indeterminate，false表示确定的进度，比如100，true表示不确定的进度，会一直显示进度动画，直到更新状态下载完成，或删除通知
       .setProgress(progressMax, progressCurrent, false)
-      .setContentIntent(pendingIntent)
+      //.setContentIntent(pendingIntent)
 
     mManager.notify(notificationId, mBuilder.build())
   }

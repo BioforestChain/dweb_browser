@@ -48,6 +48,7 @@ class BrowserActivity : AppCompatActivity() {
         const val REQUEST_CODE_REQUEST_EXTERNAL_STORAGE = 2
     }
 
+    var blueToothReceiver : BlueToothReceiver? = null
     fun getContext() = this
     val dWebBrowserModel: DWebBrowserModel by viewModel()
     val qrCodeViewModel: QRCodeViewModel by viewModel()
@@ -174,7 +175,8 @@ class BrowserActivity : AppCompatActivity() {
         super.onDestroy()
         App.browserActivity = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
-        unregisterReceiver(receiver)
+        blueToothReceiver?.let { unregisterReceiver(it) }
+        blueToothReceiver = null
     }
 
     // 打开相册
@@ -186,9 +188,8 @@ class BrowserActivity : AppCompatActivity() {
         startActivityForResult(pickIntent, REQUEST_CODE_PHOTO)
     }
 
-
     // 创建查找对象
-    val receiver = object : BroadcastReceiver() {
+    class BlueToothReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val result = mutableListOf<BluetoothNMM.BluetoothTargets>()
             when (intent.action) {

@@ -28,34 +28,33 @@ import java.text.DecimalFormat
 
 @Composable
 fun MALLBrowserView(jmmViewModel: JmmManagerViewModel) {
-  jmmViewModel.uiState.downloadInfo.value.jmmMetadata?.let { jmmMetadata ->
-    Box(
-      modifier = Modifier.fillMaxSize()
+  val jmmMetadata =jmmViewModel.uiState.downloadInfo.value.jmmMetadata
+  Box(
+    modifier = Modifier.fillMaxSize()
+  ) {
+    LazyColumn(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(start = 16.dp, end = 16.dp)
     ) {
-      LazyColumn(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(start = 16.dp, end = 16.dp)
-      ) {
+      item { Spacer(modifier = Modifier.height(16.dp)) }
+      item { HeadContent(jmmMetadata = jmmMetadata) }
+      item { Spacer(modifier = Modifier.height(16.dp)) }
+      item { CaptureListView(jmmMetadata = jmmMetadata) }
+      item { Spacer(modifier = Modifier.height(16.dp)) }
+      item { AppIntroductionView(jmmMetadata = jmmMetadata) }
+      jmmMetadata.permissions?.let { permissions ->
         item { Spacer(modifier = Modifier.height(16.dp)) }
-        item { HeadContent(jmmMetadata = jmmMetadata) }
+        item { Text(text = "权限列表", fontSize = 24.sp, fontStyle = FontStyle.Normal) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
-        item { CaptureListView(jmmMetadata = jmmMetadata) }
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-        item { AppIntroductionView(jmmMetadata = jmmMetadata) }
-        jmmMetadata.permissions?.let { permissions ->
-          item { Spacer(modifier = Modifier.height(16.dp)) }
-          item { Text(text = "权限列表", fontSize = 24.sp, fontStyle = FontStyle.Normal) }
-          item { Spacer(modifier = Modifier.height(16.dp)) }
-          itemsIndexed(permissions) { index, mmid ->
-            InstallItemPermissionView(index, mmid, permissions.size)
-          }
+        itemsIndexed(permissions) { index, mmid ->
+          InstallItemPermissionView(index, mmid, permissions.size)
         }
-        item { Spacer(modifier = Modifier.height(60.dp)) }
       }
-
-      DownLoadButton(jmmViewModel)
+      item { Spacer(modifier = Modifier.height(60.dp)) }
     }
+
+    DownLoadButton(jmmViewModel)
   }
 }
 
@@ -75,7 +74,7 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
       item { Spacer(modifier = Modifier.height(16.dp)) }
       item { Text(text = "权限", fontSize = 16.sp, color = Color.Gray) }
       item { Spacer(modifier = Modifier.height(16.dp)) }
-      jmmViewModel.uiState.downloadInfo.value.jmmMetadata?.permissions?.let { permissions ->
+      jmmViewModel.uiState.downloadInfo.value.jmmMetadata.permissions?.let { permissions ->
         itemsIndexed(permissions) { index, mmid ->
           InstallItemPermissionView(index, mmid, permissions.size)
         }
@@ -134,7 +133,7 @@ private fun BoxScope.DownLoadButton(jmmViewModel: JmmManagerViewModel) {
   ) {
     var showLinearProgress = false
     val text = when (downLoadInfo.downLoadStatus) {
-      DownLoadStatus.IDLE -> "下载 (${downLoadInfo.jmmMetadata!!.size.toSpaceSize()})"
+      DownLoadStatus.IDLE -> "下载 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
       DownLoadStatus.DownLoading -> {
         showLinearProgress = true
         "下载中".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
@@ -197,6 +196,7 @@ private fun String.displayDownLoad(total: Long, progress: Long): String {
 }
 
 private fun String.toSpaceSize(): String {
+  if (this.isEmpty()) return "0"
   val size = this.toFloat()
   val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
   val MB = 1024 * 1024 // 定义MB的计算常量

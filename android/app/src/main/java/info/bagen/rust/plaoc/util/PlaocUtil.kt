@@ -9,6 +9,8 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 object PlaocUtil {
 
@@ -85,3 +87,11 @@ fun hexStrToByteArray(str: String): ByteArray {
     }
     return byteArray
 }
+
+val Float.moreThanTwoDigits: () -> String
+    get() = {
+        val format = DecimalFormat("#.##")
+        //舍弃规则，RoundingMode.FLOOR表示直接舍弃。
+        format.roundingMode = RoundingMode.FLOOR
+        format.format(this)
+    }

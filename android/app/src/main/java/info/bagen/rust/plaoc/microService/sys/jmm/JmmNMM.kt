@@ -8,7 +8,9 @@ import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
-import info.bagen.rust.plaoc.service.DwebBrowserService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.string
@@ -17,12 +19,13 @@ import org.http4k.routing.routes
 
 class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
+        const val hostName = "file://jmm.sys.dweb"
         private val apps = mutableMapOf<Mmid, JsMicroModule>()
 
         fun getAndUpdateJmmNmmApps() = apps
 
         fun nativeFetch(mmid: Mmid) {
-            runBlockingCatching {
+            GlobalScope.launch(Dispatchers.IO) {
                 apps[mmid]?.nativeFetch(
                     "file://dns.sys.dweb/open?app_id=${mmid.encodeURIComponent()}"
                 ) ?: Log.e("JmmNMM", "no found jmm mmid $mmid")
@@ -30,10 +33,10 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
         }
 
         fun nativeFetchJMM(jmmMetadata: JmmMetadata, url: String) {
-            runBlockingCatching {
+            GlobalScope.launch(Dispatchers.IO) {
                 apps.getOrElse(jmmMetadata.id) {
                     JsMicroModule(jmmMetadata)
-                }.nativeFetch("file://jmm.sys.dweb/install?mmid=${jmmMetadata.id}&metadataUrl=$url")
+                }.nativeFetch("${hostName}/install?mmid=${jmmMetadata.id}&metadataUrl=$url")
             }
         }
     }
@@ -48,9 +51,9 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         // 初始化的DNS注册
-        /*for (app in apps.values) {
+        for (app in apps.values) {
             bootstrapContext.dns.install(app)
-        }*/
+        }
 
         apiRouting = routes(
             "/install" bind Method.GET to defineHandler { request ->
@@ -76,6 +79,19 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 return@defineHandler AppsQueryResult(
                     apps.map { it.value.metadata },
                     installingApps.map { it.value })
+            },
+            "/download" bind Method.GET to defineHandler { request ->
+                val mmid = queryMmid(request)
+                apps.getOrPut(mmid) {
+                    JsMicroModule(JmmMetadata(
+                        id = mmid,
+                        server = JmmMetadata.MainServer(
+                            root = "file:///bundle", entry = "/cot.worker.js"))
+                    ).also {
+                        bootstrapContext.dns.install(it) // 注册应用
+                    }
+                }
+                return@defineHandler true
             }
         )
 
@@ -95,15 +111,17 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
         // 打开安装的界面
         JmmManagerActivity.startActivity(jmmMetadata)
         // 拿到安装的状态
-        when(DwebBrowserService.poDownLoadStatus[jmmMetadata.id]?.waitPromise()) {
+        val observe = DownLoadObserver(jmmMetadata.id)
+        GlobalScope.launch(Dispatchers.IO) {
+            observe.observe {
+                if (it.downLoadStatus == DownLoadStatus.INSTALLED) {
+                    installDNS(jmmMetadata)
+                }
+            }
+        }
+        /*when(DwebBrowserService.poDownLoadStatus[jmmMetadata.id]?.waitPromise()) {
             DownLoadStatus.INSTALLED -> installDNS(jmmMetadata)
             else -> { }
-        }
-        /*DownLoadStatusSubject.attach(jmmMetadata.id) { _: Mmid, downLoadStatus: DownLoadStatus ->
-            when (downLoadStatus) {
-                DownLoadStatus.INSTALLED -> { installDNS(jmmMetadata) }
-                else -> { }
-            }
         }*/
     }
 

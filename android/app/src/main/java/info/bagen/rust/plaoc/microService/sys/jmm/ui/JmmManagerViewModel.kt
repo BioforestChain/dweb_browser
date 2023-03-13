@@ -5,18 +5,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.sys.jmm.DownLoadObserver
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
-import info.bagen.rust.plaoc.service.DwebBrowserService
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.NotificationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 
 data class JmmUIState(
-  var downloadInfo: MutableState<DownLoadInfo> = mutableStateOf(DownLoadInfo())
+  var downloadInfo: MutableState<DownLoadInfo>
 )
 
 enum class DownLoadStatus {
@@ -24,7 +23,7 @@ enum class DownLoadStatus {
 }
 
 data class DownLoadInfo(
-  var jmmMetadata: JmmMetadata? = null,
+  var jmmMetadata: JmmMetadata,
   var path: String = "", // 文件下载路径
   var notificationId: Int = 0, // 通知栏的id
   var size: Long = 0L, // 文件大小
@@ -33,96 +32,92 @@ data class DownLoadInfo(
   var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
 )
 
+fun createDownLoadInfoByJmm(jmmMetadata: JmmMetadata): DownLoadInfo {
+  return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(jmmMetadata.id)) {
+    // 表示当前mmid已存在，显示为打开
+    DownLoadInfo(
+      jmmMetadata = jmmMetadata,
+      downLoadStatus = DownLoadStatus.INSTALLED
+    )
+  } else {
+    DownLoadInfo(
+      jmmMetadata = jmmMetadata,
+      downLoadStatus = DownLoadStatus.IDLE,
+      path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
+      notificationId = (NotificationUtil.notificationId++),
+    )
+  }
+}
+
 sealed class JmmIntent {
   object ButtonFunction : JmmIntent()
   object DestroyActivity : JmmIntent()
-  class SetTypeAndJmmMetaData(val jmmMetadata: JmmMetadata) : JmmIntent()
-  class UpdateDownLoadProgress(val current: Long, val total: Long) : JmmIntent()
-  class UpdateDownLoadStatus(val downLoadStatus: DownLoadStatus) : JmmIntent()
 }
 
-private fun currentTime(): String {
-  val simpleDateFormat = SimpleDateFormat("yyyy-mm-dd-hh:MM:ss")
-  return simpleDateFormat.format(Date())
-}
+class JmmManagerViewModel(jmmMetadata: JmmMetadata) : ViewModel() {
+  val uiState: JmmUIState
+  private var downLoadObserver: DownLoadObserver? = null
 
-class JmmManagerViewModel : ViewModel() {
-  val uiState = JmmUIState()
+  init {
+    val downLoadInfo = createDownLoadInfoByJmm(jmmMetadata)
+    uiState = JmmUIState(mutableStateOf(downLoadInfo))
+    if (downLoadInfo.downLoadStatus != DownLoadStatus.INSTALLED) {
+      downLoadObserver = DownLoadObserver(jmmMetadata.id)
+      initDownLoadStatusListener()
+    }
+  }
+
+  private fun initDownLoadStatusListener() {
+    viewModelScope.launch(Dispatchers.IO) {
+      downLoadObserver?.observe {
+        uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
+          downLoadStatus = it.downLoadStatus,
+          dSize = it.downLoadSize,
+          size = it.totalSize
+        )
+        when (it.downLoadStatus) {
+          DownLoadStatus.DownLoading -> {
+            uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
+              downLoadStatus = it.downLoadStatus,
+              dSize = it.downLoadSize,
+              size = it.totalSize
+            )
+          }
+          else -> {
+            uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
+              downLoadStatus = it.downLoadStatus
+            )
+          }
+        }
+        if (it.downLoadStatus == DownLoadStatus.INSTALLED) { // 移除监听列表
+          downLoadObserver?.close()
+        }
+      }
+    }
+  }
 
   fun handlerIntent(action: JmmIntent) {
     viewModelScope.launch(Dispatchers.IO) {
       when (action) {
-        is JmmIntent.SetTypeAndJmmMetaData -> {
-          val downLoadInfo = DwebBrowserUtil.INSTANCE.mBinderService?.invokeGetDownLoadInfo(
-            action.jmmMetadata
-          ) ?: DownLoadInfo(
-            jmmMetadata = action.jmmMetadata,
-            path = "${App.appContext.cacheDir}/DL_${action.jmmMetadata.id}_${currentTime()}.bfsa",
-            notificationId = (NotificationUtil.notificationId++),
-          )
-          /*DownLoadStatusSubject.attach(action.jmmMetadata.id) { _, downLoadStatus ->
-            uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
-              downLoadStatus = downLoadStatus
-            )
-          }*/
-
-          uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
-            jmmMetadata = action.jmmMetadata,
-            path = downLoadInfo.path,
-            notificationId = downLoadInfo.notificationId,
-            size = downLoadInfo.size,
-            dSize = downLoadInfo.dSize,
-            downLoadStatus =
-            if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(action.jmmMetadata.id)) {
-              DownLoadStatus.INSTALLED
-            } else {
-              downLoadInfo.downLoadStatus
-            },
-          )
-        }
         is JmmIntent.ButtonFunction -> {
           when (uiState.downloadInfo.value.downLoadStatus) {
-            DownLoadStatus.IDLE -> {
+            DownLoadStatus.IDLE, DownLoadStatus.FAIL -> { // 空闲点击是下载，失败点击也是重新下载
               DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
             }
             DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */
             }
             DownLoadStatus.DownLoading, DownLoadStatus.PAUSE -> {
-              uiState.downloadInfo.value.jmmMetadata?.let { metadata ->
-                DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadStatusChange(metadata.id)
-              }
-            }
-            DownLoadStatus.FAIL -> { // 按钮显示重新下载
-              DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
+              DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadStatusChange(
+                uiState.downloadInfo.value.jmmMetadata.id
+              )
             }
             DownLoadStatus.INSTALLED -> { // 点击打开app触发的事件
-              JmmNMM.nativeFetch(uiState.downloadInfo.value.jmmMetadata!!.id)
+              JmmNMM.nativeFetch(uiState.downloadInfo.value.jmmMetadata.id)
             }
           }
-        }
-        is JmmIntent.UpdateDownLoadProgress -> {
-          uiState.downloadInfo.value =
-            uiState.downloadInfo.value.copy(
-              size = action.total,
-              dSize = action.current,
-              downLoadStatus = DownLoadStatus.DownLoading
-            )
-        }
-        is JmmIntent.UpdateDownLoadStatus -> {
-          uiState.downloadInfo.value =
-            uiState.downloadInfo.value.copy(downLoadStatus = action.downLoadStatus)
         }
         is JmmIntent.DestroyActivity -> {
-          uiState.downloadInfo.value.jmmMetadata?.let { jmmMetadata ->
-            when (uiState.downloadInfo.value.downLoadStatus) {
-              DownLoadStatus.IDLE -> {
-                DwebBrowserService.poDownLoadStatus[jmmMetadata.id]?.resolve(DownLoadStatus.IDLE)
-                DwebBrowserService.poDownLoadStatus.remove(jmmMetadata.id)
-              }
-              else -> {}
-            }
-          }
-          //DownLoadStatusSubject.detach()
+          downLoadObserver?.close()
         }
       }
     }
