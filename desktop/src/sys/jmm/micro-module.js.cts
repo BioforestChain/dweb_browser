@@ -37,13 +37,36 @@ export class JsMicroModule extends MicroModule {
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
+    // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
+    // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
+    this.onConnect((ipc) => {
+      ipc.onRequest(async (request) => {
+        console.log('ipc onRequest')
+        const response = await this.nativeFetch(request.parsed_url.href);
+        ipc.postMessage(
+          await IpcResponse.fromResponse(request.req_id, response, ipc)
+        )
+      })
+
+      ipc.onMessage(async (request) => {
+        // console.log('ipc.onMessage', request)
+      })
+
+      ipc.onEvent(() =>{
+        console.log('ipc. onEvent')
+      })
+      console.log('onConencted')
+    })
+
+
+
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // console.log("[micro-module.js.cts _bootstrap:]", this.mmid)
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
     streamIpc.onRequest(async (request) => {
-      // console.log("[micro-module.js.cts 监听到了请求:]", this.mmid)
+      console.log('-----------------------2', request.parsed_url)
       if (request.parsed_url.pathname.endsWith("/")) {
         streamIpc.postMessage(
           IpcResponse.fromText(
@@ -70,6 +93,7 @@ export class JsMicroModule extends MicroModule {
         );
       }
     });
+
     // console.log("[micro-module.js.cts 执行 bindIncomeStream:]", this.mmid)
     void streamIpc.bindIncomeStream(
       this.nativeFetch(
@@ -86,7 +110,7 @@ export class JsMicroModule extends MicroModule {
       ).stream()
     );
     this._connecting_ipcs.add(streamIpc);
-
+    
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
     jsIpc.onRequest(async (ipcRequest) => {
       const response = await this.nativeFetch(ipcRequest.toRequest());
@@ -94,6 +118,7 @@ export class JsMicroModule extends MicroModule {
         await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc)
       );
     });
+
     jsIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
@@ -111,6 +136,9 @@ export class JsMicroModule extends MicroModule {
         targetIpc.onMessage((ipcMessage) => originIpc.postMessage(ipcMessage));
       }
     });
+
+ 
+    
   }
   private _connecting_ipcs = new Set<Ipc>();
   async _beConnect(from: MicroModule): Promise<Native2JsIpc> {
