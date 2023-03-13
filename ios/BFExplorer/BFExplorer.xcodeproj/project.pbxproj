@@ -219,7 +219,6 @@
 		F359A495299A10260080EAD7 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = F359A494299A10260080EAD7 /* Vapor */; };
 		F359A497299A109B0080EAD7 /* HttpServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A496299A109B0080EAD7 /* HttpServer.swift */; };
 		F359A49B299DB1830080EAD7 /* IpcHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A49A299DB1830080EAD7 /* IpcHeaders.swift */; };
-		F359A49D299DCB4D0080EAD7 /* BinaryHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A49C299DCB4D0080EAD7 /* BinaryHelper.swift */; };
 		F359A49F299DD4750080EAD7 /* EncodingHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A49E299DD4750080EAD7 /* EncodingHelper.swift */; };
 		F359A4A329A2F7050080EAD7 /* IpcMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A4A229A2F7050080EAD7 /* IpcMethod.swift */; };
 		F359A4A529A311640080EAD7 /* JsonHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A4A429A311640080EAD7 /* JsonHelper.swift */; };
@@ -247,6 +246,8 @@
 		F3ABA06A29BAB49E008615C0 /* AdapterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06929BAB49E008615C0 /* AdapterManager.swift */; };
 		F3ABA06C29BAC541008615C0 /* IpcEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06B29BAC541008615C0 /* IpcEvent.swift */; };
 		F3ABA06E29BAE82C008615C0 /* MetaBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06D29BAE82C008615C0 /* MetaBody.swift */; };
+		F3ABA07029BEA761008615C0 /* Int_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA06F29BEA761008615C0 /* Int_extension.swift */; };
+		F3ABA07229BEB089008615C0 /* InputStream_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3ABA07129BEB089008615C0 /* InputStream_extension.swift */; };
 		F3D953F72999CDFF00ED08C1 /* CommonStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EB2999CDFF00ED08C1 /* CommonStruct.swift */; };
 		F3D953F82999CDFF00ED08C1 /* CreateSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EC2999CDFF00ED08C1 /* CreateSignal.swift */; };
 		F3D953F92999CDFF00ED08C1 /* ipcConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D953EE2999CDFF00ED08C1 /* ipcConst.swift */; };
@@ -485,7 +486,6 @@
 		F354063329B817BD001C2AB5 /* Request.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		F359A496299A109B0080EAD7 /* HttpServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpServer.swift; sourceTree = "<group>"; };
 		F359A49A299DB1830080EAD7 /* IpcHeaders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcHeaders.swift; sourceTree = "<group>"; };
-		F359A49C299DCB4D0080EAD7 /* BinaryHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryHelper.swift; sourceTree = "<group>"; };
 		F359A49E299DD4750080EAD7 /* EncodingHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingHelper.swift; sourceTree = "<group>"; };
 		F359A4A229A2F7050080EAD7 /* IpcMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcMethod.swift; sourceTree = "<group>"; };
 		F359A4A429A311640080EAD7 /* JsonHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonHelper.swift; sourceTree = "<group>"; };
@@ -513,6 +513,8 @@
 		F3ABA06929BAB49E008615C0 /* AdapterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdapterManager.swift; sourceTree = "<group>"; };
 		F3ABA06B29BAC541008615C0 /* IpcEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcEvent.swift; sourceTree = "<group>"; };
 		F3ABA06D29BAE82C008615C0 /* MetaBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaBody.swift; sourceTree = "<group>"; };
+		F3ABA06F29BEA761008615C0 /* Int_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Int_extension.swift; sourceTree = "<group>"; };
+		F3ABA07129BEB089008615C0 /* InputStream_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputStream_extension.swift; sourceTree = "<group>"; };
 		F3D953EB2999CDFF00ED08C1 /* CommonStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonStruct.swift; sourceTree = "<group>"; };
 		F3D953EC2999CDFF00ED08C1 /* CreateSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateSignal.swift; sourceTree = "<group>"; };
 		F3D953EE2999CDFF00ED08C1 /* ipcConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ipcConst.swift; sourceTree = "<group>"; };
@@ -868,6 +870,8 @@
 				F3A74EA5298B90E5008614BD /* Dictionary_extension.swift */,
 				F3A74EA9298BB6C0008614BD /* URL_extension.swift */,
 				F3A74EAF29933227008614BD /* Operator_extension.swift */,
+				F3ABA06F29BEA761008615C0 /* Int_extension.swift */,
+				F3ABA07129BEB089008615C0 /* InputStream_extension.swift */,
 			);
 			path = extension;
 			sourceTree = "<group>";
@@ -1022,7 +1026,6 @@
 			children = (
 				F334FCBF29A3725600DA520C /* MessagePortIpc.swift */,
 				F334FCC129A3819E00DA520C /* Native2JsIpc.swift */,
-				F334FCC329A3830300DA520C /* ReadableStreamIpc.swift */,
 			);
 			path = ipcWeb;
 			sourceTree = "<group>";
@@ -1203,7 +1206,6 @@
 			children = (
 				F3D953EB2999CDFF00ED08C1 /* CommonStruct.swift */,
 				F3D953EC2999CDFF00ED08C1 /* CreateSignal.swift */,
-				F359A49C299DCB4D0080EAD7 /* BinaryHelper.swift */,
 				F359A49E299DD4750080EAD7 /* EncodingHelper.swift */,
 				F359A4A429A311640080EAD7 /* JsonHelper.swift */,
 				F334FCCE29A85A8E00DA520C /* WebViewKit.swift */,
@@ -1235,6 +1237,7 @@
 				F359A4A229A2F7050080EAD7 /* IpcMethod.swift */,
 				F359A4A629A3195F0080EAD7 /* NativeIpc.swift */,
 				F334FCC529A44F2B00DA520C /* ReadableStream.swift */,
+				F334FCC329A3830300DA520C /* ReadableStreamIpc.swift */,
 				F3ABA06D29BAE82C008615C0 /* MetaBody.swift */,
 			);
 			path = ipc;
@@ -1388,7 +1391,6 @@
 				F3D953FF2999CDFF00ED08C1 /* IpcRequest.swift in Sources */,
 				F03301CA28BE0FD400BC0266 /* ButtonWithImageAndTitleExtension.swift in Sources */,
 				F0292DA02975502700C2E464 /* FWPopupRootViewController.swift in Sources */,
-				F359A49D299DCB4D0080EAD7 /* BinaryHelper.swift in Sources */,
 				F3D953FA2999CDFF00ED08C1 /* Ipc.swift in Sources */,
 				F0BADEB82986820100B8DCCF /* JSCoreEntities.swift in Sources */,
 				F334FCE829B58CF200DA520C /* JmmNMM.swift in Sources */,
@@ -1543,6 +1545,7 @@
 				F0BADEB22986820100B8DCCF /* StatusBarEntites.swift in Sources */,
 				F091CB872951B91900FCE565 /* FeedbackGenerator.swift in Sources */,
 				F033021528C73E1700BC0266 /* UILabel+PKExtensions.swift in Sources */,
+				F3ABA07229BEB089008615C0 /* InputStream_extension.swift in Sources */,
 				F091CB9D2951B92100FCE565 /* ButtonModel.swift in Sources */,
 				F0A3C3DC2953FA3B00C78D1A /* WKWebViewJavascriptBridgeBase.swift in Sources */,
 				F091CB382951B8EE00FCE565 /* AnimationVIew.swift in Sources */,
@@ -1564,6 +1567,7 @@
 				F091CB3B2951B8EE00FCE565 /* NaviView.swift in Sources */,
 				F091CB912951B91900FCE565 /* StreamFileManager.swift in Sources */,
 				F033021228C73E1700BC0266 /* Timer+PKExtensions.swift in Sources */,
+				F3ABA07029BEA761008615C0 /* Int_extension.swift in Sources */,
 				F33A570729598A1E00000037 /* ShareManager.swift in Sources */,
 				F0BADEB12986820100B8DCCF /* KeyboardEntites.swift in Sources */,
 				F091CB8E2951B91900FCE565 /* DatabaseManager.swift in Sources */,

@@ -9,70 +9,160 @@ import Foundation
 import Combine
 import Vapor
 
-class MessagePortIpc: Ipc {
-    private var type: MessagePortIpcType
-    private var port1: String
-    private var port2: String
-    private var cancellable: AnyCancellable?
+class WebMessagePort: Hashable {
+    let name: String
+    let role: PortRole
     
-    enum MessagePortIpcType {
-        case port1
-        case port2
+    init(name: String, role: PortRole) {
+        self.name = name
+        self.role = role
     }
     
-    init(port: String, remote: MicroModule, role: IPC_ROLE, type: MessagePortIpcType) {
-        self.type = type
-        if type == .port1 {
-            port1 = port + "_sender"
-            port2 = port + "_receiver"
+    func postMessage(_ message: String?) {
+        if role == .port1 {
+            NotificationCenter.default.post(name: Notification.Name(name + "_port2"), object: message)
         } else {
-            port2 = port + "_sender"
-            port1 = port + "_receiver"
+            NotificationCenter.default.post(name: Notification.Name(name + "_port1"), object: message)
+        }
+    }
+    
+    private var cancellable: AnyCancellable?
+    
+    func onMessage(_ callback: @escaping AsyncCallback<String, Any>) {
+        var notiName = name
+        
+        if role == .port1 {
+            notiName += "_port1"
+        } else {
+            notiName += "_port2"
         }
         
-        super.init()
-        self.remote = remote
-        self.role = role
-        self.support_message_pack = true
-        self.support_protobuf = false
-
-        let ipc = self
-        let publisher = NotificationCenter.default.publisher(for: Notification.Name(port2), object: nil)
+        let publisher = NotificationCenter.default.publisher(for: Notification.Name(notiName), object: nil)
+        
         cancellable = publisher.sink { noti in
             if let message = noti.object as? String {
-                if message == "close" {
-                    Task {
-                        await self.close()
-                    }
-                } else if message == "ping" {
-                    NotificationCenter.default.post(name: Notification.Name(self.port1), object: "pong")
-                } else if message == "pong" {
-                    print("PONG/\(ipc)")
-                }
-            } else if let message = noti.object as? IpcMessage {
                 Task {
-                    await self._messageSignal.emit((message, ipc))
+                    _ = await callback(message)
                 }
             }
         }
     }
     
-    override func _doPostMessage(data: IpcMessage) async {
-        if let message = data as? IpcReqMessage {
-            NotificationCenter.default.post(name: Notification.Name(port1), object: message)
-        } else if let message = data as? IpcResMessage {
-            NotificationCenter.default.post(name: Notification.Name(port1), object: message)
-        } else {
-            NotificationCenter.default.post(name: Notification.Name(port1), object: data as! IpcMessageData)
-        }
-    }
-    
-    override func _doClose() async {
-        NotificationCenter.default.post(name: Notification.Name(port1), object: "close")
+    func close() {
         cancellable?.cancel()
     }
     
     deinit {
         cancellable?.cancel()
+    }
+    
+    enum PortRole: String {
+        case port1 = "port1"
+        case port2 = "port2"
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+        hasher.combine(role.rawValue)
+    }
+    
+    static func ==(lhs: WebMessagePort, rhs: WebMessagePort) -> Bool {
+        lhs.name == rhs.name && lhs.role.rawValue == rhs.role.rawValue
+    }
+}
+
+class MessagePort {
+    private static var wm: [WebMessagePort:MessagePort] = [:]
+    static func from(port: WebMessagePort) -> MessagePort {
+        if wm.keys.contains(where: { $0 == port }) {
+            return wm[port]!
+        } else {
+            let messagePort = MessagePort(port: port)
+            wm[port] = messagePort
+            return messagePort
+        }
+    }
+    
+    private let port: WebMessagePort
+    init(port: WebMessagePort) {
+        self.port = port
+    }
+    
+    private lazy var _messageSignal: Signal<String> = {
+        let signal = Signal<String>()
+        port.onMessage { message in
+            await signal.emit(message)
+        }
+        
+        return signal
+    }()
+    
+    func onWebMessage(_ cb: @escaping AsyncCallback<String, Any>) -> AsyncVoidCallback<Bool> {
+        return _messageSignal.listen(cb)
+    }
+    
+    func postMessage(_ message: String) {
+        port.postMessage(message)
+    }
+    
+    func close() {
+        port.close()
+    }
+}
+
+class MessagePortIpc: Ipc {
+    let port: MessagePort
+    private let role_type: IPC_ROLE
+    
+    convenience init(port: WebMessagePort, remote: MicroModuleInfo, role_type: IPC_ROLE) {
+        self.init(port: MessagePort.from(port: port), remote: remote, role_type: role_type)
+    }
+    
+    init(port: MessagePort, remote: MicroModuleInfo, role_type: IPC_ROLE) {
+        self.port = port
+        self.role_type = role_type
+        super.init()
+        self.remote = remote
+        self.role = role_type.rawValue
+        
+        let ipc = self
+        let callback = port.onWebMessage { data in
+            let message = jsonToIpcMessage(data: data, ipc: ipc)
+            
+            if let message = message as? IpcMessageString {
+                if message.data == "close" {
+                    await self.close()
+                } else if message.data == "ping" {
+                    self.port.postMessage("pong")
+                } else if message.data == "pong" {
+                    print("PONG/\(ipc)")
+                } else {
+                    fatalError("unknown message: \(message.data)")
+                }
+            } else if message != nil {
+                await self._messageSignal.emit((message!, ipc))
+            } else {
+                fatalError("message is nil")
+            }
+            
+            return nil
+        }
+    }
+    
+    override func toString() -> String {
+        super.toString() + "@messagePortIpc"
+    }
+    
+    override func _doPostMessage(data: IpcMessage) async {
+        let message = JSONStringify(data)
+        
+        if message != nil {
+            port.postMessage(message!)
+        }
+    }
+    
+    override func _doClose() async {
+        port.postMessage("close")
+        port.close()
     }
 }

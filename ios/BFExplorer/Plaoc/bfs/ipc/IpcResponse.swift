@@ -14,35 +14,83 @@ final class IpcResponse {
     var statusCode: Int
     var headers: IpcHeaders
     var body: IpcBody
+    var ipc: Ipc
     
-    init(req_id: Int, statusCode: Int, headers: IpcHeaders, body: IpcBody) {
+    init(req_id: Int, statusCode: Int, headers: IpcHeaders, body: IpcBody, ipc: Ipc) {
         self.req_id = req_id
         self.statusCode = statusCode
         self.headers = headers
         self.body = body
+        self.ipc = ipc
     }
     
-    static func fromJson(req_id: Int, statusCode: Int = 200, jsonAble: [String:Any], headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
-        return fromText(req_id: req_id, statusCode: statusCode, text: ChangeTools.dicValueString(jsonAble)!, headers: headers, ipc: ipc)
+    static func fromJson(
+        req_id: Int,
+        statusCode: Int = 200,
+        jsonAble: [String:Any],
+        headers: IpcHeaders = .init([:]),
+        ipc: Ipc
+    ) -> IpcResponse {
+        var headers = headers
+        headers.set(key: "Content-Type", value: "application/json")
+        
+        return fromText(
+            req_id: req_id,
+            statusCode: statusCode,
+            text: ChangeTools.dicValueString(jsonAble)!,
+            headers: headers, ipc: ipc)
     }
     
-    static func fromText(req_id: Int, statusCode: Int = 200, text: String, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: .init(text: text), ipc: ipc))
+    static func fromText(
+        req_id: Int,
+        statusCode: Int = 200,
+        text: String,
+        headers: IpcHeaders = .init([:]),
+        ipc: Ipc
+    ) -> IpcResponse {
+        return IpcResponse(
+            req_id: req_id,
+            statusCode: statusCode,
+            headers: headers,
+            body: IpcBodySender.from(raw: .init(key: text), ipc: ipc),
+            ipc: ipc)
     }
     
-    static func fromBinary(req_id: Int, statusCode: Int = 200, binary: Data, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
+    static func fromBinary(
+        req_id: Int,
+        statusCode: Int = 200,
+        binary: Data,
+        headers: IpcHeaders = .init([:]),
+        ipc: Ipc
+    ) -> IpcResponse {
         var headers = headers
         headers.set(key: "Content-Type", value: "application/octet-stream")
         headers.set(key: "Content-Length", value: "\(binary.count)")
         
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: .init(u8a: binary), ipc: ipc))
+        return IpcResponse(
+            req_id: req_id,
+            statusCode: statusCode,
+            headers: headers,
+            body: IpcBodySender.from(raw: .init(key: binary), ipc: ipc),
+            ipc: ipc)
     }
     
-    static func fromStream(req_id: Int, statusCode: Int = 200, stream: IpcBody.StreamData, headers: IpcHeaders, ipc: Ipc) -> IpcResponse {
+    static func fromStream(
+        req_id: Int,
+        statusCode: Int = 200,
+        stream: InputStream,
+        headers: IpcHeaders,
+        ipc: Ipc
+    ) -> IpcResponse {
         var headers = headers
         headers.set(key: "Content-Type", value: "application/octet-stream")
        
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(body: .init(stream: stream), ipc: ipc))
+        return IpcResponse(
+            req_id: req_id,
+            statusCode: statusCode,
+            headers: headers,
+            body: IpcBodySender.from(raw: .init(key: stream), ipc: ipc),
+            ipc: ipc)
     }
     
     static func fromResponse(req_id: Int, response: Response, ipc: Ipc) -> IpcResponse {
@@ -61,7 +109,7 @@ final class IpcResponse {
                 }
             }
             
-            return fromStream(req_id: req_id, stream: .init(stream: data), headers: IpcHeaders(response.headers), ipc: ipc)
+            return fromStream(req_id: req_id, stream: .init(data: data), headers: IpcHeaders(response.headers), ipc: ipc)
         } else {
             return fromText(req_id: req_id, text: "", headers: IpcHeaders(response.headers), ipc: ipc)
         }
@@ -70,13 +118,13 @@ final class IpcResponse {
     func toResponse() -> Response {
         var _body: Response.Body
         
-        if body.body.text != nil {
-            _body = .init(string: body.body.text!)
-        } else if body.body.u8a != nil {
-            _body = .init(data: body.body.u8a!)
-        } else if body.body.stream != nil {
+        if body.bodyHub.text != nil {
+            _body = .init(string: body.bodyHub.text!)
+        } else if body.bodyHub.u8a != nil {
+            _body = .init(data: body.bodyHub.u8a!)
+        } else if body.bodyHub.stream != nil {
             _body = .init(stream: { writer in
-                var stream = InputStream(data: self.body.body.stream!.stream)
+                var stream = self.body.bodyHub.stream!
                 let bufferSize = 1024
                 stream.open()
                 
@@ -100,10 +148,15 @@ final class IpcResponse {
             fatalError("invalid body to response: \(body)")
         }
         
-        return Response(status: HTTPResponseStatus(statusCode: statusCode), headers: headers.toHTTPHeaders(), body: _body)
+        return Response(
+            status: HTTPResponseStatus(statusCode: statusCode),
+            headers: headers.toHTTPHeaders(),
+            body: _body)
     }
     
-    lazy var ipcResMessage: IpcResMessage = IpcResMessage(req_id: req_id, statusCode: statusCode, headers: headers, metaBody: body.metaBody)
+    lazy var ipcResMessage: IpcResMessage = IpcResMessage(
+        req_id: req_id, statusCode: statusCode, headers: headers, metaBody: body.metaBody
+    )
 }
 
 struct IpcResMessage: IpcMessage {
@@ -114,6 +167,11 @@ struct IpcResMessage: IpcMessage {
     let metaBody: MetaBody
     
     func toIpcResponse(ipc: Ipc) -> IpcResponse {
-        IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodyReceiver(metaBody: metaBody, ipc: ipc))
+        IpcResponse(
+            req_id: req_id,
+            statusCode: statusCode,
+            headers: headers,
+            body: IpcBodySender(raw: metaBody.data.string ?? metaBody.data.data ?? "", ipc: ipc),
+            ipc: ipc)
     }
 }

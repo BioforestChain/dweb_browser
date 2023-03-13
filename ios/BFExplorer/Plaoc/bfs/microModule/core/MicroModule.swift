@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Vapor
 
 typealias NativeOptions = [String:String]
 typealias AppRun = (_ options: NativeOptions) -> Any
@@ -18,9 +19,10 @@ protocol MicroModuleInfo {
 
 /** 微组件抽象类 */
 class MicroModule: MicroModuleInfo {
+    typealias IpcConnectArgs = (Ipc, Request)
+    
     var mmid: Mmid = ""
     
-    internal func _bootstrap() async throws {}
     private var runningStateLock = false
     private var running: Bool {
         get {
@@ -28,26 +30,31 @@ class MicroModule: MicroModuleInfo {
         }
     }
     
-    private func beforeBootstrap() async {
+    private func beforeBootstrap(bootstrapContext: BootStrapContext) async {
         if runningStateLock {
             fatalError("module \(self.mmid) already running")
         }
         
-        runningStateLock = true
+//        runningStateLock = true
+        _bootstrapContext = bootstrapContext
     }
     
-    internal func afterBootstrap() async {}
+    private var _bootstrapContext: BootStrapContext? = nil
     
-    func bootstrap() async {
-        await beforeBootstrap()
+    internal func afterBootstrap(dnsMM: BootStrapContext) async {
+        runningStateLock = true
+    }
+    internal func _bootstrap(bootstrapContext: BootStrapContext) async throws {}
+    func bootstrap(bootstrapContext: BootStrapContext) async {
+        await beforeBootstrap(bootstrapContext: bootstrapContext)
         
         do {
-            try await self._bootstrap()
+            try await self._bootstrap(bootstrapContext: bootstrapContext)
         } catch {
             
         }
         
-        await self.afterBootstrap()
+        await self.afterBootstrap(dnsMM: bootstrapContext)
     }
     
     internal let _afterShutdownSignal = Signal<()>()
@@ -58,13 +65,22 @@ class MicroModule: MicroModuleInfo {
         }
         
         runningStateLock = false
+        
+        /// 关闭所有的通讯
+        for ipc in _ipcSet {
+            await ipc.close()
+        }
+        
+        _ipcSet.removeAll()
     }
     
     internal func _shutdown() async throws {}
     
     internal func afterShutdown() async {
         await _afterShutdownSignal.emit(())
-        _afterShutdownSignal.clear()
+        await _afterShutdownSignal.clear()
+        runningStateLock = false
+        _bootstrapContext = nil
     }
     
     func shutdown() async {
@@ -79,16 +95,45 @@ class MicroModule: MicroModuleInfo {
         await afterShutdown()
     }
     
-    internal func _connect(from: MicroModule) async -> Ipc {
-        return Ipc()
+    /**
+     * 连接池
+     */
+    internal var _ipcSet: Set<Ipc> = []
+    
+    /**
+     * 内部程序与外部程序通讯的方法
+     * TODO 这里应该是可以是多个
+     */
+    private let _connectSignal = Signal<IpcConnectArgs>()
+    
+    /**
+     * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
+     * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
+     * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
+     */
+    internal func onConnect(cb: @escaping AsyncCallback<IpcConnectArgs, Any>) -> Signal.OffListener {
+        _connectSignal.listen(cb)
     }
     
-    func connect(from: MicroModule) async -> Ipc {
-        if !runningStateLock {
-            fatalError("module no running")
+    /**
+     * 尝试连接到指定对象
+     */
+    func connect(mmid: Mmid, reason: Request? = nil) async -> ConnectResult? {
+        await _bootstrapContext?.dns.connect(mmid: mmid, reason: reason)
+    }
+    
+    /**
+     * 收到一个连接，触发相关事件
+     */
+    func beConnect(ipc: Ipc, reason: Request) async {
+        _ipcSet.insert(ipc)
+        
+        _ = ipc.onClose {
+            self._ipcSet.remove(ipc)
+            return .OFF
         }
         
-        return await _connect(from: from)
+        await _connectSignal.emit((ipc, reason))
     }
 }
 

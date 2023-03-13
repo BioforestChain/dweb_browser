@@ -17,16 +17,36 @@ typealias RouterHandler<T> = (_ request: Request, _ ipc: Ipc?) async -> T?
 class NativeMicroModule: MicroModule {
     internal var reqidRouting: [/* req_id */Int:String/* route */] = [:]
     internal var apiRouting: [/* route */String:RouterHandler<Any>] = [:]
+
+    static var willInit: Void = {
+        _ = connectAdapterManager.append { (fromMM, toMM, reason) in
+            if let toMM = toMM as? NativeMicroModule {
+                let channel = NativeMessageChannel<IpcMessage, IpcMessage>()
+                let toNativeIpc = NativeIpc(port: channel.port1, remote: fromMM, role: .server)
+                let fromNativeIpc = NativeIpc(port: channel.port2, remote: toMM, role: .client)
+                await fromMM.beConnect(ipc: fromNativeIpc, reason: reason)
+                await toMM.beConnect(ipc: toNativeIpc, reason: reason)
+                return ConnectResult(ipcForFromMM: fromNativeIpc, ipcForToMM: toNativeIpc)
+            } else {
+                return nil
+            }
+        }
+    }()
+    
     override init() {
+        // 静态初始化，只执行一次
+        _ = NativeMicroModule.willInit
+        
         super.init()
         mmid = ".sys.dweb"
         
-        _ = onConnect { clientIpc in
-            _ = clientIpc.onRequest { message in
-                let ipcRequest = message.0
-                let url = URI(string: ipcRequest.url)
-                self.reqidRouting[ipcRequest.req_id] = url.host! + url.path
+        _ = onConnect { (clientIpc, _) in
+            _ = clientIpc.onRequest { (ipcReqMessage, _) in
+                let url = URI(string: ipcReqMessage.url)
+                self.reqidRouting[ipcReqMessage.req_id] = url.host! + url.path
                 
+                let ipcRequest = ipcReqMessage.toIpcRequest(ipc: clientIpc)
+                print("fetch", "NMM/Handler", ipcRequest.url)
                 let res = await self.defineHandler(request: ipcRequest.toRequest(), ipc: clientIpc)
                 let ipcResMessage = IpcResponse.fromResponse(req_id: ipcRequest.req_id, response: res, ipc: clientIpc).ipcResMessage
                 await clientIpc.postMessage(message: ipcResMessage)
@@ -34,35 +54,6 @@ class NativeMicroModule: MicroModule {
             }
             return nil
         }
-    }
-    
-    private var _connectedIpcSet: Set<Ipc> = []
-    override func _connect(from: MicroModule) async -> Ipc {
-        let channel = NativeMessageChannel<IpcMessage, IpcMessage>()
-        let nativeIpc = NativeIpc(port: channel.port1, remote: from, role: .server)
-        
-        _connectedIpcSet.insert(nativeIpc)
-        _ = nativeIpc.onClose {
-            self._connectedIpcSet.remove(nativeIpc)
-            return .OFF
-        }
-        await _connectSignal.emit((nativeIpc))
-        return NativeIpc(port: channel.port2, remote: self, role: .client)
-    }
-    
-    internal var _connectSignal = Signal<(NativeIpc)>()
-    
-    internal func onConnect(cb: @escaping ((NativeIpc)) -> SIGNAL_CTOR?) -> (() async -> Bool) {
-        return _connectSignal.listen(cb)
-    }
-    
-    override func afterShutdown() async {
-        await super.afterShutdown()
-        for inter_ipc in _connectedIpcSet {
-            await inter_ipc.close()
-        }
-        
-        _connectedIpcSet.removeAll()
     }
     
     // 对路由处理方法包裹一层，用于http路由

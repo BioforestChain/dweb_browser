@@ -15,18 +15,11 @@ class NativeIpc: Ipc {
         self.port = port
         super.init()
         self.remote = remote
-        self.role = role
+        self.role = role.rawValue
+        self.support_raw = true
+        self.support_bianry = true
         
         _ = port.onMessage { message in
-//            var ipcMessage: IpcMessage
-//            if let fromRequest = message as? IpcReqMessage {
-//                ipcMessage = fromRequest
-//            } else if let fromResponse = message as? IpcResMessage {
-//                ipcMessage = fromResponse
-//            } else {
-//                ipcMessage = message
-//            }
-            
             await self._messageSignal.emit((message, self))
             return nil
         }
@@ -47,12 +40,20 @@ class NativeIpc: Ipc {
     }
 }
 
-
+class NativePortUid {
+    static var uid_acc = 1
+}
 class NativePort<I, O> {
     private let channel_in: PassthroughSubject<I, Never>
     private let channel_out: PassthroughSubject<O, Never>
     private let closePo: PromiseOut<()>
     private var cancellable: AnyCancellable?
+    
+    private var uid = NativePortUid.uid_acc++
+    
+    func toString() -> String {
+        "#p\(uid)"
+    }
     
     init(channel_in: PassthroughSubject<I, Never>, channel_out: PassthroughSubject<O, Never>, closePo: PromiseOut<()>) {
         self.channel_in = channel_in
@@ -76,17 +77,15 @@ class NativePort<I, O> {
             started = true
         }
         
-//        for await message in channel_in.values {
-//            await self._messageSignal.emit(message)
-//        }
-        print("sink start")
+        print("port-message-start/\(self)")
         cancellable = channel_in.sink(receiveValue: { message in
-            print("message")
-            print(message)
             Task {
+                print("port-message-in/\(self) << \(message)")
                 await self._messageSignal.emit(message)
+                print("port-message-waiting/\(self)")
             }
         })
+        print("port-message-end/\(self)")
     }
     
     private let _closeSignal = Signal<()>()

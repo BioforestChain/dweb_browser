@@ -128,7 +128,7 @@ struct MetaBody {
         streamId: String? = nil,
         receiverUid: Int? = nil
     ) -> MetaBody {
-        senderIpc.suport_bianry
+        senderIpc.support_bianry
             ? fromBinary(
                 senderUid: senderIpc.uid,
                 data: data,

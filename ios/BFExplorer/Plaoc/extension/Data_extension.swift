@@ -28,4 +28,9 @@ extension Data {
         }
         inputStream.close()
     }
+    
+    func toInt() -> Int? {
+        let stringInt = String(data: self, encoding: .utf8)
+        return Int(stringInt ?? "")
+    }
 }

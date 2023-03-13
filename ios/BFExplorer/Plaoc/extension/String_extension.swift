@@ -106,7 +106,30 @@ extension String {
     func encodeURIComponent() -> String {
         let characterSet = NSMutableCharacterSet.urlQueryAllowed
 
-        return self.addingPercentEncoding(withAllowedCharacters: characterSet) ?? ""
+        return self.addingPercentEncoding(withAllowedCharacters: characterSet)?
+            .replacingOccurrences(of: "\\+", with: "%20")
+            .replacingOccurrences(of: "\\%21", with: "!")
+            .replacingOccurrences(of: "\\%27", with: "'")
+            .replacingOccurrences(of: "\\%28", with: "(")
+            .replacingOccurrences(of: "\\%29", with: ")")
+            .replacingOccurrences(of: "\\%7E", with: "~")
+        ?? ""
+    }
+    
+    func encodeURI() -> String {
+        return self.addingPercentEncoding(withAllowedCharacters: .afURLQueryAllowed)?
+            .replacingOccurrences(of: "%3B", with: ";")
+            .replacingOccurrences(of: "%2F", with: "/")
+            .replacingOccurrences(of: "%3F", with: "?")
+            .replacingOccurrences(of: "%3A", with: ":")
+            .replacingOccurrences(of: "$40", with: "@")
+            .replacingOccurrences(of: "%26", with: "&")
+            .replacingOccurrences(of: "%3D", with: "=")
+            .replacingOccurrences(of: "%2B", with: "+")
+            .replacingOccurrences(of: "%24", with: "$")
+            .replacingOccurrences(of: "%2C", with: ",")
+            .replacingOccurrences(of: "%23", with: "#")
+        ?? ""
     }
     
     //字符串截断

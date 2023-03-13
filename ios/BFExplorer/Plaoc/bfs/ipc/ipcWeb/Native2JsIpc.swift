@@ -8,23 +8,37 @@
 import Foundation
 import Combine
 
-var ALL_IPC_CACHE: [Int:String] = [:]
-var all_ipc_id_acc = 0
+var ALL_MESSAGE_PORT_CACHE: [Int:MessagePort] = [:]
+var all_ipc_id_acc = 1
 
-func saveNative2JsIpcPort(port: String) {
+func saveNative2JsIpcPort(port: WebMessagePort) {
     let port_id = all_ipc_id_acc++
-    ALL_IPC_CACHE[port_id] = port
+    ALL_MESSAGE_PORT_CACHE[port_id] = MessagePort.from(port: port)
 }
 
-/// Native2JsIpc通常是port2，所以type设置为port2
+/**
+ * Native2JsIpc 的远端是在 webView 中的，所以底层使用 WebMessagePort 与指通讯
+ *
+ * ### 原理
+ * 连接发起方执行 `fetch('file://js.sys.dweb/create-ipc')` 后，
+ * 由 js-worker 创建了 channel-port1/2，然后 js-process(native) 负责中转这个信道（在nwjs中，我们直接使用内存引用，在mobile中，我们需要拦截webRequest），并为其存下一个 id(number)。
+ * 最终将这个 id 通过 fetch 返回值返回。
+ *
+ * 那么连接发起方就可以通过这个 id(number) 和 Native2JsIpc 构造器来实现与 js-worker 的直连
+ */
 class Native2JsIpc: MessagePortIpc {
     init(port_id: Int, remote: MicroModule, role: IPC_ROLE = .client) {
-        let port = ALL_IPC_CACHE[port_id]
+        let port = ALL_MESSAGE_PORT_CACHE[port_id]
         
         if port == nil {
-            fatalError("no found port js-process by id \(port_id)")
+            fatalError("no found port2(js-process) by id \(port_id)")
         }
         
-        super.init(port: port!, remote: remote, role: role, type: .port2)
+        super.init(port: port!, remote: remote, role_type: role)
+        
+        _ = onClose {
+            ALL_MESSAGE_PORT_CACHE.removeValue(forKey: port_id)
+            return .OFF
+        }
     }
 }

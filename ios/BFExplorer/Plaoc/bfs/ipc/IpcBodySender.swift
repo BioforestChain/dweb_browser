@@ -30,6 +30,9 @@ class IpcBodySender: IpcBody {
         self.ipc = ipc
         super.init()
         self.raw = raw
+        
+        CACHE.raw_ipcBody_WMap[CACHE.IpcBodyKey(key: raw)] = self
+        IPC.usableByIpc(ipc: ipc, ipcBody: self)
     }
     
     lazy var isStream: Bool = {
@@ -85,14 +88,14 @@ class IpcBodySender: IpcBody {
             }
         }
         
-        private var IpcUsableIpcBodyMap: [Ipc:UsableIpcBodyMapper] = [:]
+        private static var IpcUsableIpcBodyMap: [Ipc:UsableIpcBodyMapper] = [:]
         
         /**
          * ipc 将会使用 ipcBody
          * 那么只要这个 ipc 接收到 pull 指令，就意味着成为"使用者"，那么这个 ipcBody 都会开始读取数据出来发送
          * 在开始发送第一帧数据之前，其它 ipc 也可以通过 pull 指令来参与成为"使用者"
          */
-        func usableByIpc(ipc: Ipc, ipcBody: IpcBodySender) {
+        static func usableByIpc(ipc: Ipc, ipcBody: IpcBodySender) {
             if ipcBody.isStream && !ipcBody._isStreamOpened {
                 let streamId = ipcBody.metaBody.streamId!
                 var usableIpcBodyMapper = IpcUsableIpcBodyMap[ipc]
@@ -239,6 +242,8 @@ class IpcBodySender: IpcBody {
             return MetaBody.fromBinary(senderIpc: ipc, data: body)
         } else if let body = body as? InputStream {
             return streamAsMeta(stream: body, ipc: ipc)
+        } else {
+            fatalError("invalid body type \(body)")
         }
     }
     
@@ -248,7 +253,34 @@ class IpcBodySender: IpcBody {
         let sendingLock = ManagedAtomic<Bool>(false)
         
         func sender() async {
-
+            if sendingLock.exchange(true, ordering: .acquiring) {
+                return
+            }
+            
+            print("sender/PULLING/\(stream)", stream_id)
+            
+            if stream.hasBytesAvailable {
+                _isStreamClosed = true
+                print("sender/READ/\(stream)", " >> \(stream_id)")
+                let message = IpcStreamData.fromBinary(stream_id: stream_id, data: stream.readData())
+                for ipc in usedIpcMap.keys {
+                    await ipc.postMessage(message: message)
+                }
+            } else {
+                print("sender/END/\(stream)", " >> \(stream_id)")
+                
+                /// 无论是不是被 aborted，都发送结束信号
+                let message = IpcStreamEnd(stream_id: stream_id)
+                for ipc in usedIpcMap.keys {
+                    await ipc.postMessage(message: message)
+                }
+                
+                emitStreamClose()
+            }
+            
+            // 发送完成，解锁
+            sendingLock.store(false, ordering: .releasing)
+            print("sender/PULL-END/\(stream)", stream_id)
         }
         
         _ = pullSignal.listen {
@@ -261,9 +293,21 @@ class IpcBodySender: IpcBody {
             
             return nil
         }
+        
+        var streamType = MetaBody.IpcMetaBodyType(type: .stream_id)
+        var streamFirstData: IpcEvent.IpcEventData = .init(string: nil, data: nil)
+        if let stream = stream as? PreReadableInputStream, stream.preReadableSize > 0 {
+            streamFirstData = IpcEvent.IpcEventData(string: nil, data: stream.readData(size: stream.preReadableSize))
+            streamType = MetaBody.IpcMetaBodyType(type: .stream_with_binary)
+        }
+        
+        return MetaBody(type: streamType, senderUid: ipc.uid, data: streamFirstData)
     }
     
     
+    static func from(raw: CACHE.IpcBodyKey, ipc: Ipc) -> IpcBody {
+        CACHE.raw_ipcBody_WMap[raw] ?? IpcBodySender(raw: raw.key, ipc: ipc)
+    }
     private static var streamIdWM: [(InputStream,String)] = []
     
     private static var stream_id_acc = 1
@@ -276,4 +320,15 @@ class IpcBodySender: IpcBody {
             return stream_id
         }
     }
+}
+
+/**
+ * 可预读取的流
+ */
+protocol PreReadableInputStream: InputStream {
+    /**
+     * 对标 InputStream.available 函数
+     * 返回可预读的数据
+     */
+    var preReadableSize: Int { get set }
 }

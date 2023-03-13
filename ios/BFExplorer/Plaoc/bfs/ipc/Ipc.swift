@@ -40,10 +40,10 @@ class Ipc {
      * 是否支持结构化内存协议传输：
      * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
      */
-    var supportRaw: Bool = false
+    var support_raw: Bool = false
     
     /** 是否支持 二进制 传输 */
-    var suport_bianry: Bool = false
+    var support_bianry: Bool = false
     
     var remote: MicroModuleInfo = MicroModule()
     

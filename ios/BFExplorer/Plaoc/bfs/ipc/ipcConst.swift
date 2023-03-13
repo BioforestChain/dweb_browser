@@ -56,23 +56,23 @@ struct IPC_DATA_ENCODING: OptionSet, Codable {
 //    static let binary_stream_id = IPC_RAW_BODY_TYPE(rawValue: IPC_RAW_BODY_TYPE.stream_id.rawValue | IPC_RAW_BODY_TYPE.binary.rawValue)
 //}
 
-struct S_RawData: Codable {
-    var string: String?
-    var data: Data?
-}
-struct RawData: Hashable, Codable {
-
-    var type: IPC_RAW_BODY_TYPE
-    var data: S_RawData
-
-    static func ==(lhs: RawData, rhs: RawData) -> Bool {
-        return lhs.type == rhs.type
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(type.rawValue)
-    }
-}
+//struct S_RawData: Codable {
+//    var string: String?
+//    var data: Data?
+//}
+//struct RawData: Hashable, Codable {
+//
+//    var type: IPC_RAW_BODY_TYPE
+//    var data: S_RawData
+//
+//    static func ==(lhs: RawData, rhs: RawData) -> Bool {
+//        return lhs.type == rhs.type
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        hasher.combine(type.rawValue)
+//    }
+//}
 
 enum IPC_ROLE: String, Codable {
     case server = "server"
