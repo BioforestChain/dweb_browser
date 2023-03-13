@@ -51,9 +51,9 @@ var __privateSet = (obj, member, value, setter) => {
   return value;
 };
 
-// node_modules/lodash/_trimmedEndIndex.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js
 var require_trimmedEndIndex = __commonJS({
-  "node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
     var reWhitespace = /\s/;
     function trimmedEndIndex(string) {
       var index = string.length;
@@ -65,9 +65,9 @@ var require_trimmedEndIndex = __commonJS({
   }
 });
 
-// node_modules/lodash/_baseTrim.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js
 var require_baseTrim = __commonJS({
-  "node_modules/lodash/_baseTrim.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js"(exports, module) {
     var trimmedEndIndex = require_trimmedEndIndex();
     var reTrimStart = /^\s+/;
     function baseTrim(string) {
@@ -77,9 +77,9 @@ var require_baseTrim = __commonJS({
   }
 });
 
-// node_modules/lodash/isObject.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js
 var require_isObject = __commonJS({
-  "node_modules/lodash/isObject.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js"(exports, module) {
     function isObject(value) {
       var type = typeof value;
       return value != null && (type == "object" || type == "function");
@@ -88,17 +88,17 @@ var require_isObject = __commonJS({
   }
 });
 
-// node_modules/lodash/_freeGlobal.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js
 var require_freeGlobal = __commonJS({
-  "node_modules/lodash/_freeGlobal.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js"(exports, module) {
     var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
     module.exports = freeGlobal;
   }
 });
 
-// node_modules/lodash/_root.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js
 var require_root = __commonJS({
-  "node_modules/lodash/_root.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js"(exports, module) {
     var freeGlobal = require_freeGlobal();
     var freeSelf = typeof self == "object" && self && self.Object === Object && self;
     var root = freeGlobal || freeSelf || Function("return this")();
@@ -106,18 +106,18 @@ var require_root = __commonJS({
   }
 });
 
-// node_modules/lodash/_Symbol.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js
 var require_Symbol = __commonJS({
-  "node_modules/lodash/_Symbol.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js"(exports, module) {
     var root = require_root();
     var Symbol2 = root.Symbol;
     module.exports = Symbol2;
   }
 });
 
-// node_modules/lodash/_getRawTag.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js
 var require_getRawTag = __commonJS({
-  "node_modules/lodash/_getRawTag.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var objectProto = Object.prototype;
     var hasOwnProperty = objectProto.hasOwnProperty;
@@ -144,9 +144,9 @@ var require_getRawTag = __commonJS({
   }
 });
 
-// node_modules/lodash/_objectToString.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js
 var require_objectToString = __commonJS({
-  "node_modules/lodash/_objectToString.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js"(exports, module) {
     var objectProto = Object.prototype;
     var nativeObjectToString = objectProto.toString;
     function objectToString(value) {
@@ -156,9 +156,9 @@ var require_objectToString = __commonJS({
   }
 });
 
-// node_modules/lodash/_baseGetTag.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js
 var require_baseGetTag = __commonJS({
-  "node_modules/lodash/_baseGetTag.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var getRawTag = require_getRawTag();
     var objectToString = require_objectToString();
@@ -175,9 +175,9 @@ var require_baseGetTag = __commonJS({
   }
 });
 
-// node_modules/lodash/isObjectLike.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js
 var require_isObjectLike = __commonJS({
-  "node_modules/lodash/isObjectLike.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js"(exports, module) {
     function isObjectLike(value) {
       return value != null && typeof value == "object";
     }
@@ -185,9 +185,9 @@ var require_isObjectLike = __commonJS({
   }
 });
 
-// node_modules/lodash/isSymbol.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js
 var require_isSymbol = __commonJS({
-  "node_modules/lodash/isSymbol.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js"(exports, module) {
     var baseGetTag = require_baseGetTag();
     var isObjectLike = require_isObjectLike();
     var symbolTag = "[object Symbol]";
@@ -198,9 +198,9 @@ var require_isSymbol = __commonJS({
   }
 });
 
-// node_modules/lodash/toNumber.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js
 var require_toNumber = __commonJS({
-  "node_modules/lodash/toNumber.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js"(exports, module) {
     var baseTrim = require_baseTrim();
     var isObject = require_isObject();
     var isSymbol = require_isSymbol();
@@ -231,9 +231,9 @@ var require_toNumber = __commonJS({
   }
 });
 
-// node_modules/lodash/toFinite.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js
 var require_toFinite = __commonJS({
-  "node_modules/lodash/toFinite.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js"(exports, module) {
     var toNumber = require_toNumber();
     var INFINITY = 1 / 0;
     var MAX_INTEGER = 17976931348623157e292;
@@ -252,9 +252,9 @@ var require_toFinite = __commonJS({
   }
 });
 
-// node_modules/lodash/toInteger.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js
 var require_toInteger = __commonJS({
-  "node_modules/lodash/toInteger.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js"(exports, module) {
     var toFinite = require_toFinite();
     function toInteger(value) {
       var result = toFinite(value), remainder = result % 1;
@@ -264,9 +264,9 @@ var require_toInteger = __commonJS({
   }
 });
 
-// node_modules/lodash/before.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js
 var require_before = __commonJS({
-  "node_modules/lodash/before.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js"(exports, module) {
     var toInteger = require_toInteger();
     var FUNC_ERROR_TEXT = "Expected a function";
     function before(n, func) {
@@ -289,9 +289,9 @@ var require_before = __commonJS({
   }
 });
 
-// node_modules/lodash/once.js
+// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js
 var require_once = __commonJS({
-  "node_modules/lodash/once.js"(exports, module) {
+  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js"(exports, module) {
     var before = require_before();
     function once2(func) {
       return before(2, func);
@@ -759,10 +759,10 @@ var _MetaBody = class {
     }
   }
   get type_isInline() {
-    return (this.type & IPC_META_BODY_TYPE.INLINE) !== 0;
+    return (this.type & 1 /* INLINE */) !== 0;
   }
   get type_isStream() {
-    return (this.type & IPC_META_BODY_TYPE.INLINE) === 0;
+    return (this.type & 1 /* INLINE */) === 0;
   }
   get jsonAble() {
     if (this.type_encoding === 8 /* BINARY */) {
