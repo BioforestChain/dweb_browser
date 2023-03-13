@@ -29,6 +29,7 @@ export class HttpServerNMM extends NativeMicroModule {
   private _gatewayMap = new Map</* host */ string, $Gateway>();
 
   protected async _bootstrap() {
+    console.log('[http-server.cts _bootstrap]')
     const info = await this._dwebServer.create();
     info.server.on("request", (req, res) => {
       // console.log('[http-server.cts 接受到了 http 请求：]', req.headers.host)

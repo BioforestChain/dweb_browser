@@ -86,6 +86,7 @@ export class DnsNMM extends NativeMicroModule {
   }
 
   override _bootstrap() {
+    console.log('[dns.cts _bootstrap]')
     this.install(this);
     this.running_apps.set(this.mmid, this);
 
