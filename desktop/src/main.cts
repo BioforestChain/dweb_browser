@@ -54,7 +54,12 @@ dns.install(new PluginsNMM());
 import { JMMMetadata } from "./sys/jmm-metadata/jmm-metadata.cjs";
 dns.install(new JMMMetadata());
 
-dns.install(new BootNMM([cotJMM.mmid]));
+dns.install(new BootNMM([
+  "http.sys.dweb",
+  "js.sys.dweb",
+  "mwebview.sys.dweb",
+  cotDemoJMM.mmid
+]));
 
 Object.assign(globalThis, { dns: dns });
 
