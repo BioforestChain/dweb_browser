@@ -1,6 +1,7 @@
 import type { Remote } from "comlink";
 import { transfer } from "comlink";
 import { once } from "lodash";
+import path from "path";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import {
@@ -132,6 +133,21 @@ export class JsProcessNMM extends NativeMicroModule {
   async _bootstrap() {
     const mainServer = await createHttpDwebServer(this, {});
     (await mainServer.listen()).onRequest(async (request, ipc) => {
+      const pathname = request.parsed_url.pathname;
+      if(pathname.endsWith('/bootstrap.js')){
+        return ipc.postMessage(
+          await IpcResponse.fromText(
+            request.req_id,
+            200,
+            new IpcHeaders({
+              "Content-Type": "text/javascript"
+            }),
+            await this.JS_PROCESS_WORKER_CODE(),
+            ipc
+          )
+        );
+      }
+
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
