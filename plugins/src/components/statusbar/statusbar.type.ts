@@ -17,14 +17,14 @@ export enum StatusbarStyle {
    *
    * @since 1.0.0
    */
-  Dark = 'DARK',
+  Dark = "DARK",
 
   /**
    * Dark text for light backgrounds.
    *
    * @since 1.0.0
    */
-  Light = 'LIGHT',
+  Light = "LIGHT",
 
   /**
    * The style is based on the device appearance.
@@ -34,7 +34,7 @@ export enum StatusbarStyle {
    *
    * @since 1.0.0
    */
-  Default = 'DEFAULT',
+  Default = "DEFAULT",
 }
 
 export interface AnimationOptions {
@@ -54,7 +54,7 @@ export enum EStatusBarAnimation {
    *
    * @since 1.0.0
    */
-  None = 'NONE',
+  None = "NONE",
 
   /**
    * Slide animation during show/hide.
@@ -62,14 +62,14 @@ export enum EStatusBarAnimation {
    *
    * @since 1.0.0
    */
-  Slide = 'SLIDE',
+  Slide = "SLIDE",
 
   /**
    * Fade animation during show/hide.
    *
    * @since 1.0.0
    */
-  Fade = 'FADE',
+  Fade = "FADE",
 }
 
 export interface BackgroundColorOptions {
@@ -141,7 +141,16 @@ export interface IStatusBarPlugin {
    *
    * @since 1.0.0
    */
-  setBackgroundColor(options: BackgroundColorOptions): Promise<Response>;
+  setBackgroundColor(options: BackgroundColorOptions): Promise<void>;
+
+  /**
+   * Set the background color of the status bar.
+   *
+   * This method is only supported on Android.
+   *
+   * @since 1.0.0
+   */
+  getBackgroundColor(options: BackgroundColorOptions): Promise<string>;
 
   /**
    * Show the status bar.
@@ -220,4 +229,3 @@ export const StatusBarAnimation = EStatusBarAnimation;
  * @since 1.0.0
  */
 export const StatusBarStyle = StatusbarStyle;
-

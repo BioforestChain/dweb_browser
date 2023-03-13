@@ -33,11 +33,8 @@ const title = "Navigation Bar";
         <button class="btn btn-accent inline-block rounded-full" id="navigationbar-getOverlaysWebView">Get</button>
       </div>
     </article>
-
-    <div class="card-body">
-      <div class="mockup-code text-xs min-w-max">
-        <pre id="navigationbar-observer-log"><code>xxxx</code></pre>
-      </div>
-    </div>
   </div>
+
+  <div class="divider">LOG</div>
+  <LogPanel ref="$logPanel"></LogPanel>
 </template>

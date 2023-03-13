@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 
 
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -12,9 +11,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.util.rememberIsChange
 
-const val TAG = "SystemUIState"
+
+inline fun debugSystemUi(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("systemui", tag, msg, err)
 
 class SystemUiController(
     val statusBarController: StatusBarController,
@@ -35,170 +37,14 @@ class SystemUiController(
      */
     val modifierScaleState: State<Pair<Float, Float>>,
 ) {
-
-
-    class StatusBarController(
-        val overlayState: MutableState<Boolean>,
-        val colorState: MutableState<Color>,
-        val isDarkIconsState: MutableState<Boolean?>,
-        val visibleState: MutableState<Boolean>,
-    ) {
-        val statusBarsInsets
-            @Composable
-            get() = WindowInsets.statusBars
-
-        companion object {
-
-            @Composable
-            fun remember(activity: ComponentActivity): StatusBarController {
-                val systemUiController = rememberSystemUiController()
-
-                //region Color
-
-                val isColorChanged = rememberIsChange(true)
-                val color = isColorChanged.rememberToState(Color.Transparent)
-                val isDarkIcons = isColorChanged.rememberToState<Boolean?>(!isSystemInDarkTheme())
-
-                isColorChanged.effectChange {
-                    Log.i(TAG, "StatusBar Color Changed!")
-                    SideEffect {
-                        activity.runOnUiThread {
-                            systemUiController.setStatusBarColor(
-                                color = color.value,
-                                darkIcons = isDarkIcons.value ?: (color.value.luminance() > 0.5F),
-                            )
-                        }
-                    }
-                }
-
-                //endregion
-
-                //region Visible
-                val isVisible = rememberIsChange(false)
-                val visible =
-                    isVisible.rememberToState(value = systemUiController.isStatusBarVisible)
-                isVisible.effectChange {
-                    SideEffect {
-                        activity.runOnUiThread {
-                            systemUiController.isStatusBarVisible = visible.value
-                        }
-                    }
-                }
-                //endregion
-
-
-                return remember {
-                    StatusBarController(
-                        overlayState = mutableStateOf(true),
-                        colorState = color,
-                        isDarkIconsState = isDarkIcons,
-                        visibleState = visible,
-                    )
-                }
-            }
-        }
-    }
-
-    @Stable
-    class NavigationBarController(
-        val overlayState: MutableState<Boolean>,
-        val colorState: MutableState<Color>,
-        val isDarkIconsState: MutableState<Boolean?>,
-        val isContrastEnforcedState: MutableState<Boolean?>,
-        val visibleState: MutableState<Boolean>,
-    ) {
-        val navigationBarsInsets
-            @Composable
-            get() = WindowInsets.navigationBars
-
-        companion object {
-
-            @Composable
-            fun Default(activity: ComponentActivity): NavigationBarController {
-                val systemUiController = rememberSystemUiController()
-
-                //region Color
-
-                val isColorChanged = rememberIsChange(true)
-                val color = isColorChanged.rememberToState(Color.Transparent)
-                val isDarkIcons = isColorChanged.rememberToState<Boolean?>(!isSystemInDarkTheme())
-                val isContrastEnforced =
-                    isColorChanged.rememberToState<Boolean?>(systemUiController.navigationBarDarkContentEnabled)
-                isColorChanged.effectChange {
-                    Log.i(TAG, "Navigation Color Changed!")
-                    SideEffect {
-                        activity.runOnUiThread {
-                            systemUiController.setNavigationBarColor(
-                                color = color.value,
-                                darkIcons = isDarkIcons.value ?: (color.value.luminance() > 0.5F),
-                                navigationBarContrastEnforced = isContrastEnforced.value ?: true,
-                            )
-                        }
-                    }
-                }
-
-                //endregion
-
-                //region Visible
-                val isVisible = rememberIsChange(false)
-                val visible =
-                    isVisible.rememberToState(value = systemUiController.isNavigationBarVisible)
-                isVisible.effectChange {
-                    Log.i(TAG, "isNavigationBarVisible!")
-                    SideEffect {
-                        activity.runOnUiThread {
-                            systemUiController.isNavigationBarVisible = visible.value
-                        }
-                    }
-                }
-                //endregion
-
-
-                return remember {
-                    NavigationBarController(
-                        overlayState = mutableStateOf(true),
-                        colorState = color,
-                        isDarkIconsState = isDarkIcons,
-                        isContrastEnforcedState = isContrastEnforced,
-                        visibleState = visible,
-                    )
-                }
-            }
-        }
-    }
-
-    @Stable
-    class VirtualKeyboardController(
-        val overlayState: MutableState<Boolean>,
-    ) {
-        val imeInsets
-            @Composable
-            get() = WindowInsets.ime
-
-        @OptIn(ExperimentalLayoutApi::class)
-        val isImeVisible
-            @Composable
-            get() = WindowInsets.isImeVisible
-
-        companion object {
-            @Composable
-            fun Default(activity: ComponentActivity): VirtualKeyboardController {
-                return remember {
-                    VirtualKeyboardController(
-                        overlayState = mutableStateOf(true),
-                    )
-                }
-            }
-        }
-    }
-
     companion object {
+
         @OptIn(ExperimentalLayoutApi::class)
         @Composable
         fun remember(activity: ComponentActivity): SystemUiController {
             val statusBarController = StatusBarController.remember(activity)
-            val navigationBarController = NavigationBarController.Default(activity)
-            val virtualKeyboardController = VirtualKeyboardController.Default(activity)
+            val navigationBarController = NavigationBarController.remember(activity)
+            val virtualKeyboardController = VirtualKeyboardController.remember(activity)
 
             val modifierPaddingState = remember {
                 mutableStateOf(PaddingValues())
@@ -223,9 +69,23 @@ class SystemUiController(
                 )
             }
 
+
+//            val systemUiController = rememberSystemUiController()
+
+//            val systemUi = rememberSystemUiController()
+//            val useDarkIcons = !isSystemInDarkTheme()
+//            DisposableEffect(systemUi, useDarkIcons) {
+//                // 更新所有系统栏的颜色为透明
+//                // 如果我们在浅色主题中使用深色图标
+//                systemUi.setSystemBarsColor(
+//                    color = Color.Transparent,
+//                    darkIcons = useDarkIcons,
+//                )
+//                onDispose {}
+//            }
+
             /**
              * 使用这个 SystemUIController，会使得默认覆盖 系统 UI
-
              */
             SideEffect {
                 WindowCompat.setDecorFitsSystemWindows(activity.window, false)
@@ -236,7 +96,7 @@ class SystemUiController(
 
                 val isStatusBarOverlay by it.rememberByState(statusBarController.overlayState)
                 println("isStatusBarOverlay: $isStatusBarOverlay")
-                val statusBarsInsets by it.rememberToState(WindowInsets.statusBars)
+                val statusBarsInsets by it.rememberToState(statusBarController.statusBarsInsets)
                 println("statusBarsInsets: $statusBarsInsets")
 
                 val isVirtualKeyboardOverlay by it.rememberByState(virtualKeyboardController.overlayState)
@@ -252,6 +112,17 @@ class SystemUiController(
                 println("navigationBarsInsets: $navigationBarsInsets")
 
                 it.effectChange {
+                    debugSystemUi(
+                        "LAYOUT-CHANGE", """
+                            isStatusBarOverlay: $isStatusBarOverlay
+                            statusBarsInsets: $statusBarsInsets
+                            isVirtualKeyboardOverlay: $isVirtualKeyboardOverlay
+                            isImeVisible: $isImeVisible
+                            imeInsets: $imeInsets
+                            isNavigationBarOverlay: $isNavigationBarOverlay
+                            navigationBarsInsets: $navigationBarsInsets
+                            """.trimIndent()
+                    )
                     modifierPaddingState.value = WindowInsets(0).let {
                         var res = it
                         /// 顶部
@@ -288,4 +159,155 @@ class SystemUiController(
             return systemUiController
         }
     }
+
+    class StatusBarController(
+        val overlayState: MutableState<Boolean>,
+        val colorState: MutableState<Color>,
+        val isDarkIconsState: MutableState<Boolean?>,
+        val visibleState: MutableState<Boolean>,
+    ) {
+        val statusBarsInsets
+            @Composable get() = WindowInsets.statusBars
+
+        companion object {
+
+            @Composable
+            fun remember(activity: ComponentActivity): StatusBarController {
+                val systemUiController = rememberSystemUiController()
+
+                //region Color
+
+                val isColorChanged = rememberIsChange(true)
+                val color = isColorChanged.rememberToState(Color.Transparent)
+                val isDarkIcons = isColorChanged.rememberToState<Boolean?>(!isSystemInDarkTheme())
+
+                isColorChanged.effectChange {
+                    debugSystemUi("StatusBar", "Color Changed!")
+                    SideEffect {
+                        activity.runOnUiThread {
+                            systemUiController.setStatusBarColor(
+                                color = color.value,
+                                darkIcons = isDarkIcons.value ?: (color.value.luminance() > 0.5F),
+                            )
+                        }
+                    }
+                }
+
+                //endregion
+
+                //region Visible
+                val isVisible = rememberIsChange(false)
+                val visible =
+                    isVisible.rememberToState(value = systemUiController.isStatusBarVisible)
+                isVisible.effectChange {
+                    debugSystemUi("StatusBar", "Visible Changed!")
+                    SideEffect {
+                        activity.runOnUiThread {
+                            systemUiController.isStatusBarVisible = visible.value
+                        }
+                    }
+                }
+                //endregion
+
+
+                return remember {
+                    StatusBarController(
+                        overlayState = mutableStateOf(true),
+                        colorState = color,
+                        isDarkIconsState = isDarkIcons,
+                        visibleState = visible,
+                    )
+                }
+            }
+        }
+    }
+
+    @Stable
+    class NavigationBarController(
+        val overlayState: MutableState<Boolean>,
+        val colorState: MutableState<Color>,
+        val isDarkIconsState: MutableState<Boolean?>,
+        val isContrastEnforcedState: MutableState<Boolean?>,
+        val visibleState: MutableState<Boolean>,
+    ) {
+        val navigationBarsInsets
+            @Composable get() = WindowInsets.navigationBars
+
+        companion object {
+
+            @Composable
+            fun remember(activity: ComponentActivity): NavigationBarController {
+                val systemUiController = rememberSystemUiController()
+
+                //region Color
+
+                val isColorChanged = rememberIsChange(true)
+                val color = isColorChanged.rememberToState(Color.Transparent)
+                val isDarkIcons = isColorChanged.rememberToState<Boolean?>(!isSystemInDarkTheme())
+                val isContrastEnforced =
+                    isColorChanged.rememberToState<Boolean?>(systemUiController.navigationBarDarkContentEnabled)
+                isColorChanged.effectChange {
+                    debugSystemUi("Navigation", "Color Changed!")
+                    SideEffect {
+                        activity.runOnUiThread {
+                            systemUiController.setNavigationBarColor(
+                                color = color.value,
+                                darkIcons = isDarkIcons.value ?: (color.value.luminance() > 0.5F),
+                                navigationBarContrastEnforced = isContrastEnforced.value ?: true,
+                            )
+                        }
+                    }
+                }
+
+                //endregion
+
+                //region Visible
+                val isVisible = rememberIsChange(false)
+                val visible =
+                    isVisible.rememberToState(value = systemUiController.isNavigationBarVisible)
+                isVisible.effectChange {
+                    debugSystemUi("Navigation", "Visible Changed!")
+                    SideEffect {
+                        activity.runOnUiThread {
+                            systemUiController.isNavigationBarVisible = visible.value
+                        }
+                    }
+                }
+                //endregion
+                return remember {
+                    NavigationBarController(
+                        overlayState = mutableStateOf(true),
+                        colorState = color,
+                        isDarkIconsState = isDarkIcons,
+                        isContrastEnforcedState = isContrastEnforced,
+                        visibleState = visible,
+                    )
+                }
+            }
+        }
+    }
+
+    @Stable
+    class VirtualKeyboardController(
+        val overlayState: MutableState<Boolean>,
+    ) {
+        val imeInsets
+            @Composable get() = WindowInsets.ime
+
+        @OptIn(ExperimentalLayoutApi::class)
+        val isImeVisible
+            @Composable get() = WindowInsets.isImeVisible
+
+        companion object {
+            @Composable
+            fun remember(activity: ComponentActivity): VirtualKeyboardController {
+                return remember {
+                    VirtualKeyboardController(
+                        overlayState = mutableStateOf(true),
+                    )
+                }
+            }
+        }
+    }
+
 }

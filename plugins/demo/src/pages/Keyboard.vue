@@ -15,11 +15,8 @@ const title = "Keyboard";
         <button class="btn btn-accent inline-block rounded-full" id="keyboard-hide">Hide</button>
       </div>
     </article>
-
-    <div class="card-body">
-      <div class="mockup-code text-xs min-w-max">
-        <pre id="keyboard-observer-log"><code>xxxx</code></pre>
-      </div>
-    </div>
   </div>
+
+  <div class="divider">LOG</div>
+  <LogPanel ref="$logPanel"></LogPanel>
 </template>

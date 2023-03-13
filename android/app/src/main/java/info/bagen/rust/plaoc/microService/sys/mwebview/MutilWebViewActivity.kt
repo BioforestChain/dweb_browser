@@ -135,7 +135,7 @@ open class MutilWebViewActivity : PermissionActivity() {
         upsetRemoteMmid()
 
         // This will lay out our app behind the system bars
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+//        WindowCompat.setDecorFitsSystemWindows(window, false)
 
 //        val metrics = WindowMetricsCalculator.getOrCreate()
 //            .computeCurrentWindowMetrics(this)
@@ -147,19 +147,19 @@ open class MutilWebViewActivity : PermissionActivity() {
 //        println("widthDp:$widthDp heightDp:$heightDp")
 
         setContent {
-
-            val systemUiController = rememberSystemUiController()
-            val useDarkIcons = !isSystemInDarkTheme()
-            DisposableEffect(systemUiController, useDarkIcons) {
-                // 更新所有系统栏的颜色为透明
-                // 如果我们在浅色主题中使用深色图标
-                systemUiController.setSystemBarsColor(
-                    color = Color.Transparent,
-                    darkIcons = useDarkIcons,
-                )
-
-                onDispose {}
-            }
+//
+//            val systemUiController = rememberSystemUiController()
+//            val useDarkIcons = !isSystemInDarkTheme()
+//            DisposableEffect(systemUiController, useDarkIcons) {
+//                // 更新所有系统栏的颜色为透明
+//                // 如果我们在浅色主题中使用深色图标
+//                systemUiController.setSystemBarsColor(
+//                    color = Color.Transparent,
+//                    darkIcons = useDarkIcons,
+//                )
+//
+//                onDispose {}
+//            }
 
 
             RustApplicationTheme {
@@ -308,9 +308,6 @@ open class MutilWebViewActivity : PermissionActivity() {
     @Composable
     fun DebugPanel() {
         val systemUiController = SystemUiController.remember(this)
-        var statusBarOverlay by systemUiController.statusBarController.overlayState
-        var virtualKeyboardOverlay by systemUiController.virtualKeyboardController.overlayState
-        var navigationBarOverlay by systemUiController.navigationBarController.overlayState
 
         Column(
             modifier = Modifier.padding(top = 30.dp, start = 20.dp),
