@@ -19,9 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiController
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
 import info.bagen.rust.plaoc.webkit.AdWebViewHook
 import info.bagen.rust.plaoc.webkit.CustomMenu
 
@@ -63,7 +60,6 @@ fun DWebBrowserView(dWebBrowserModel: DWebBrowserModel, item: DWebBrowserItem) {
         visible = item.show.value, enter = enterAnimator, exit = exitAnimator
     ) {
         val hook = remember { AdWebViewHook() }
-        val systemUiController = App.browserActivity?.let { SystemUiController.remember(it) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -72,9 +68,6 @@ fun DWebBrowserView(dWebBrowserModel: DWebBrowserModel, item: DWebBrowserItem) {
             BackHandler { dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveLast) }
             AndroidView(factory = {
                 item.dWebBrowser.adWebViewHook = hook
-                if (systemUiController != null) {
-                    item.systemUi = SystemUiPlugin(item.dWebBrowser.mWebView, systemUiController)
-                }
                 item.dWebBrowser
             })
         }

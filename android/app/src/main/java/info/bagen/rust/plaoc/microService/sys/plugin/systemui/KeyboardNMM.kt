@@ -1,54 +1,46 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 
-import info.bagen.rust.plaoc.App
+import androidx.compose.ui.unit.Density
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.toJsonAble
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class KeyboardNMM: NativeMicroModule("keyboard.sys.dweb")  {
+class KeyboardNMM : NativeMicroModule("keyboard.sys.dweb") {
 
-    private val virtualKeyboard = run {
-        App.browserActivity?.dWebBrowserModel?.getSystemUi()?.virtualKeyboard
-    }
+    private fun getController(mmid: Mmid) =
+        NativeUiController.fromMultiWebView(mmid).virtualKeyboard
 
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
- {
+
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
             /** 显示键盘*/
             "/show" bind Method.GET to defineHandler { request ->
-                println("VirtualKeyboard#apiRouting show===>$mmid  ${request.uri.path} ")
-
-                val result = virtualKeyboard?.show()
-                Response(Status.OK).body(result.toString())
+                val virtualKeyboard = getController(mmid)
+                virtualKeyboard.showState.value = true
+                true
             },
             /** 隐藏键盘*/
             "/hide" bind Method.GET to defineHandler { request ->
                 println("VirtualKeyboard#apiRouting hide===>$mmid  ${request.uri.path} ")
-                val result = virtualKeyboard?.hide()
-                Response(Status.OK).body(result.toString())
+                val virtualKeyboard = getController(mmid)
+                virtualKeyboard.showState.value = false
+                true
             },
             /** 安全区域*/
             "/safeArea" bind Method.GET to defineHandler { request ->
                 println("VirtualKeyboard#apiRouting safeArea===>$mmid  ${request.uri.path} ")
-                val result = virtualKeyboard?.getSafeArea()
-                if (result != null) {
-                    Response(Status.OK).body(result)
-                }
-                Response(Status.NOT_FOUND).body("safeArea return zero!!!")
-            },
-            /** 隐藏键盘*/
-            "/height" bind Method.GET to defineHandler { request ->
-                println("VirtualKeyboard#apiRouting height===>$mmid  ${request.uri.path} ")
-                val result = virtualKeyboard?.getHeight()
-                Response(Status.OK).body(result.toString())
+                val virtualKeyboard = getController(mmid)
+                val result =
+                    virtualKeyboard.imeInsets.value.toJsonAble(Density(virtualKeyboard.activity))
+                result
             },
         )
     }
+
     override suspend fun _shutdown() {
-        virtualKeyboard?.hide()
     }
 }

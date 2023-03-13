@@ -9,12 +9,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
-import info.bagen.rust.plaoc.network.HttpClient
-import info.bagen.rust.plaoc.network.base.byteBufferToString
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
+import info.bagen.rust.plaoc.network.HttpClient
+import info.bagen.rust.plaoc.network.base.byteBufferToString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,7 +30,6 @@ data class DWebBrowserItem(
     val url: String,
     val host: String,
     val dWebBrowser: DWebBrowser,
-    var systemUi: SystemUiPlugin? = null,
 )
 
 sealed class DWebBrowserIntent {
@@ -51,7 +49,7 @@ class DWebBrowserModel : ViewModel() {
     val uiState = DWebBrowserUIState()
     private val dWebBrowserTree: HashMap<String, ArrayList<DWebBrowserItem>> = hashMapOf()
 
-    class DWebBrowser(val viewId:String, val instance:DWebBrowserItem)
+    class DWebBrowser(val viewId: String, val instance: DWebBrowserItem)
 
     private val dWebBrowserList = listOf<DWebBrowser>()
 
@@ -94,18 +92,11 @@ class DWebBrowserModel : ViewModel() {
         }
     }
 
-    fun getSystemUi():SystemUiPlugin? {
-        if (uiState.dWebBrowserList.isEmpty()) {
-            return  null
-        }
-        return uiState.dWebBrowserList.last().systemUi
-    }
-
     fun openDWebBrowser(origin: String, processId: String? = null): String {
         // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
         if (checkJmmMetadataJson(origin) { jmmMetadata, url ->
-            JmmNMM.nativeFetchJMM(jmmMetadata, url)
-        }) return "0"
+                JmmNMM.nativeFetchJMM(jmmMetadata, url)
+            }) return "0"
 
         // 先产生 processId 返回值，然后再执行界面，否则在 Main 执行无法获取返回值
         val ret = Uri.parse(origin)?.host?.let { host ->
@@ -140,20 +131,20 @@ class DWebBrowserModel : ViewModel() {
 
     private fun checkJmmMetadataJson(
         url: String, openJmmActivity: (JmmMetadata, String) -> Unit
-    ) : Boolean {
+    ): Boolean {
         Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
-          if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
-              try {
-                  Gson().fromJson(
-                      byteBufferToString(HttpClient().requestPath(url).body.payload),
-                      JmmMetadata::class.java
-                  ).apply { openJmmActivity(this, url) }
+            if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
+                try {
+                    Gson().fromJson(
+                        byteBufferToString(HttpClient().requestPath(url).body.payload),
+                        JmmMetadata::class.java
+                    ).apply { openJmmActivity(this, url) }
 
-                  return true
-              } catch (e: JsonSyntaxException) {
-                  Log.e("DWebBrowserModel", "checkJmmMetadataJson fail -> ${e.message}")
-              }
-          }
+                    return true
+                } catch (e: JsonSyntaxException) {
+                    Log.e("DWebBrowserModel", "checkJmmMetadataJson fail -> ${e.message}")
+                }
+            }
         }
         return false
     }

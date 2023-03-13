@@ -80,7 +80,7 @@ fun timeEnd(label: String) {
  * "js-process"
  * "message-port-ipc"
  * "ipc-body"
- * "systemui"
+ * "nativeui"
  *
  */
 val debugTags by lazy {

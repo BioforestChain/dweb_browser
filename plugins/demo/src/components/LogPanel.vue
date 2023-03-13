@@ -73,7 +73,7 @@ defineExpose({ log, debug: log, warn, success, error, info, time, timeEnd, clear
 </script>
 <template>
   <div class="mockup-code text-xs min-w-max w-full">
-    <div class="max-h-[60vh] overflow-y-auto overflow-x-clip">
+    <div class="max-h-[60vh] overflow-y-auto overflow-x-clip flex flex-col-reverse">
       <TransitionGroup name="fade">
         <pre
           v-for="[id, item] in messageLists"

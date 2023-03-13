@@ -11,16 +11,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiController
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.keyboard.VirtualKeyboard
 import info.bagen.rust.plaoc.webView.api.BFSApi
 import info.bagen.rust.plaoc.webView.bottombar.BottomBarState
 import info.bagen.rust.plaoc.webView.bottombar.DWebBottomBar
@@ -59,11 +55,9 @@ fun DWebView(
         // 如果要执行doBack，那么要禁用拦截
         doBack
                 // 如果有js上下文
-                and
-                (jsUtil != null)
+                and (jsUtil != null)
                 // 并且没有历史记录了，说明返回按钮会触发"退出行为"
-                and
-                !(adCaptureBackPresses && adNavigator.canGoBack)
+                and !(adCaptureBackPresses && adNavigator.canGoBack)
     ) {
         // 这种 location.replace 行为不会触发 Navigator 的长度发生变化的同时，还能自动触发 onbeforeunload
         // @TODO 这里的风险在于，如果js代码卡住，那么这段代码会无法正常执行，那么就永远无法退出
@@ -77,19 +71,6 @@ fun DWebView(
 
     SetTaskDescription(state, activity)
 
-    val systemUiController = SystemUiController.remember(activity)
-
-    jsUtil?.apply {
-        VirtualKeyboard.injectVirtualKeyboardVars(
-            this,
-            LocalDensity.current, LocalLayoutDirection.current,
-            systemUiController.virtualKeyboardController.overlayState.value, WindowInsets.ime,
-            systemUiController.navigationBarController.overlayState.value, WindowInsets.navigationBars,
-        )
-    }
-
-    val overlayOffset by systemUiController.modifierOffsetState
-    val overlayPadding by systemUiController.modifierPaddingState
 
     // Log.i(TAG, "overlayPadding:$overlayPadding")
     val pressBack = remember {
@@ -113,20 +94,15 @@ fun DWebView(
         DWebBottomBar(jsUtil, bottomBarState)
     }
 
-    Scaffold(
-        modifier = modifier
-            .padding(overlayPadding)
-            .offset { overlayOffset },
+    Scaffold(modifier = modifier,
         // 如果前端没有传递overlay,并且没有传递enabled
-        topBar = { if (topBarState.enabled.value) TopAppBar() },
-        bottomBar = {
+        topBar = { if (topBarState.enabled.value) TopAppBar() }, bottomBar = {
             // Log.i("DwebView","bottomBarState.isEnabled:${ bottomBarState.isEnabled}, bottomBarState.overlay:${ bottomBarState.overlay.value}");
             // 如果前端没有传递hidden，也就是bottomBarState.isEnabled等于true，则显示bottom bar
             if (bottomBarState.isEnabled) {
                 BottomAppBar()
             }
-        },
-        content = { innerPadding ->
+        }, content = { innerPadding ->
             val jsAlertConfig = remember { mutableStateOf<JsAlertConfiguration?>(null) }
             val jsPromptConfig = remember { mutableStateOf<JsPromptConfiguration?>(null) }
             val jsConfirmConfig = remember { mutableStateOf<JsConfirmConfiguration?>(null) }
@@ -273,8 +249,7 @@ fun DWebView(
                         @SuppressLint("NewApi")
                         @Override
                         override fun shouldInterceptRequest(
-                            view: WebView?,
-                            request: WebResourceRequest?
+                            view: WebView?, request: WebResourceRequest?
                         ): WebResourceResponse? {
 //                            return super.shouldInterceptRequest(view, request)
                             request?.let { webResourceRequest ->
@@ -312,39 +287,37 @@ fun DWebView(
             )
 
             // 如果前端传递了透明度属性，并且是需要显示的
-            if ((topBarState.alpha.value != 1F) and topBarState.enabled.value) {
-                Box(
-                    contentAlignment = Alignment.TopCenter,
-                    modifier = if (systemUiController.statusBarController.overlayState.value) {
-                        with(LocalDensity.current) {
-                            Modifier.offset(y = WindowInsets.statusBars.getTop(this).toDp())
-                        }
-                    } else {
-                        Modifier
-                    }
-                ) {
-                    TopAppBar()
-                }
-            }
-            if ((bottomBarState.alpha.value != 1F) and bottomBarState.isEnabled) {
-                Box(
-                    contentAlignment = Alignment.BottomCenter,
-                    modifier = Modifier.fillMaxSize()
-                        .let {
-                            it
-                        }
-                ) {
-                    BottomAppBar()
-                }
-            }
+//            if ((topBarState.alpha.value != 1F) and topBarState.enabled.value) {
+//                Box(
+//                    contentAlignment = Alignment.TopCenter,
+//                    modifier = if (nativeUiController.statusBarController.overlayState.value) {
+//                        with(LocalDensity.current) {
+//                            Modifier.offset(y = WindowInsets.statusBars.getTop(this).toDp())
+//                        }
+//                    } else {
+//                        Modifier
+//                    }
+//                ) {
+//                    TopAppBar()
+//                }
+//            }
+//            if ((bottomBarState.alpha.value != 1F) and bottomBarState.isEnabled) {
+//                Box(
+//                    contentAlignment = Alignment.BottomCenter,
+//                    modifier = Modifier.fillMaxSize()
+//                        .let {
+//                            it
+//                        }
+//                ) {
+//                    BottomAppBar()
+//                }
+//            }
 
             jsAlertConfig.value?.openAlertDialog { jsAlertConfig.value = null }
             jsPromptConfig.value?.openPromptDialog { jsPromptConfig.value = null }
             jsConfirmConfig.value?.openConfirmDialog { jsConfirmConfig.value = null }
             jsWarningConfig.value?.openWarningDialog { jsWarningConfig.value = null }
-        },
-        containerColor = Companion.Transparent,
-        contentColor = Companion.Transparent
+        }, containerColor = Companion.Transparent, contentColor = Companion.Transparent
     )
 }
 

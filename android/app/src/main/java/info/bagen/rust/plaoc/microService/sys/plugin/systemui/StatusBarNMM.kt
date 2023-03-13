@@ -4,87 +4,65 @@ package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
+import info.bagen.rust.plaoc.microService.helper.toJsonAble
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.boolean
-import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 class StatusBarNMM : NativeMicroModule("statusbar.sys.dweb") { // 小写不然路由不到
 
+    private fun getController(mmid: Mmid) =
+        NativeUiController.fromMultiWebView(mmid).statusBar
+
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+
         apiRouting = routes(
             /** 设置状态栏背景色*/
             "/setBackgroundColor" bind Method.GET to defineHandler { request, ipc ->
-                val colorHex = Query.string().required("color")(request)
-                val statusBar = getStatusBar(ipc.remote.mmid)
-                val result = statusBar.setStatusBarBackgroundColor(colorHex).toString()
-//                println("StatusBarNMM#apiRouting setBackgroundColor===>$colorHex  $result ${ipc.remote.mmid}")
-                Response(Status.OK).body(result)
+                val color = QueryHelper.color(request)
+                getController(ipc.remote.mmid).colorState.value = color
+                return@defineHandler null
             },
             /** 获取状态栏背景色*/
             "/getBackgroundColor" bind Method.GET to defineHandler { request, ipc ->
-                //  println("StatusBarNMM#apiRouting getBackgroundColor===>$result")
-                val statusBar = getStatusBar(ipc.remote.mmid)
-                return@defineHandler statusBar.getStatusBarBackgroundColor()
+                return@defineHandler getController(ipc.remote.mmid).colorState.value
             },
             /** 设置状态栏风格*/
-            "/setStyle" bind Method.GET to defineHandler { request, ipc ->
-                val style = Query.string().required("style")(request)
-//                println("StatusBarNMM#apiRouting setStyle===>$style  ")
-                val statusBar = getStatusBar(ipc.remote.mmid)
-                return@defineHandler statusBar.setStatusBarStyle(style)
+            "/setForegroundStyle" bind Method.GET to defineHandler { request, ipc ->
+                val style = QueryHelper.style(request)
+                getController(ipc.remote.mmid).styleState.value = style
+                return@defineHandler null
+            },
+            /** 获取状态栏风格*/
+            "/getForegroundStyle" bind Method.GET to defineHandler { request, ipc ->
+                return@defineHandler getController(ipc.remote.mmid).styleState.value
             },
             /** 获取状态栏信息*/
             "/getInfo" bind Method.GET to defineHandler { request, ipc ->
-                val statusBar = getStatusBar(ipc.remote.mmid)
-                val visible = statusBar.getStatusBarVisible()
-                val style = statusBar.getStatusBarIsDark()
-                val overlay = statusBar.getStatusBarOverlay()
-                val color = statusBar.getStatusBarColor()
-                // println("StatusBarNMM#apiRouting getInfo===>$result")
-                return@defineHandler StatusBarInfo(visible, style, overlay, color)
+                return@defineHandler getController(ipc.remote.mmid)
             },
             /** 设置状态栏是否覆盖webview*/
-            "/setOverlays" bind Method.GET to defineHandler { request,ipc ->
-                val overlay = Query.boolean().required("overlay")(request)
-                val statusBar = getStatusBar(ipc.remote.mmid)
-                val result = statusBar.setStatusBarOverlay(overlay)
-//                println("StatusBarNMM#apiRouting setOverlays===>$overlay  $result ")
-                return@defineHandler result
+            "/setOverlays" bind Method.GET to defineHandler { request, ipc ->
+                val overlay = QueryHelper.overlay(request)
+                getController(ipc.remote.mmid).overlayState.value = overlay
+                return@defineHandler null
             },
             /** 设置状态栏是否覆盖webview (透明)*/
             "/getOverlays" bind Method.GET to defineHandler { request, ipc ->
-                val statusBar = getStatusBar(ipc.remote.mmid)
-                val result = statusBar.getStatusBarOverlay()
-//                println("StatusBarNMM#apiRouting setOverlays===>$overlay  $result ")
-                return@defineHandler result
+                return@defineHandler getController(ipc.remote.mmid).overlayState.value
             },
             /** 设置状态栏是否可见 */
             "/setVisible" bind Method.GET to defineHandler { request, ipc ->
-                val visible = Query.boolean().required("visible")(request)
-                val statusBar = getStatusBar(ipc.remote.mmid)
-//                println("StatusBarNMM#apiRouting setVisible===>$visible   ")
-                return@defineHandler statusBar.setStatusBarVisible(visible)
+                val visible = QueryHelper.visible(request)
+                getController(ipc.remote.mmid).visibleState.value = visible
+                return@defineHandler null
+            },
+            /** 获取状态栏是否可见 */
+            "/getVisible" bind Method.GET to defineHandler { request, ipc ->
+                return@defineHandler getController(ipc.remote.mmid).visibleState.value
             },
         )
     }
-
-    private fun getStatusBar(mmid: Mmid): SystemUiPlugin {
-        return getCurrentWebViewController(mmid)?.webViewList?.last()?.systemUiPlugin
-            ?: throw Exception("system ui is unavailable for $mmid")
-    }
-
-    data class StatusBarInfo(
-        val visible: Boolean?,
-        val style: String?,
-        val overlay: Boolean?,
-        val color: String?
-    )
 
     override suspend fun _shutdown() {
         TODO("Not yet implemented")

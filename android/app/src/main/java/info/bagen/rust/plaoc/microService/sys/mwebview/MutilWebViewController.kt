@@ -7,7 +7,7 @@ import com.google.accompanist.web.WebViewState
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.NativeUiController
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.*
 
@@ -28,10 +28,15 @@ class MutilWebViewController(
         val webView: DWebView,
         val state: WebViewState,
         val navigator: WebViewNavigator,
-        var systemUiPlugin: SystemUiPlugin?= null,
         val coroutineScope: CoroutineScope,
         var hidden: Boolean = false
-    )
+    ) {
+
+        val nativeUiController by lazy {
+            webView.activity?.let { NativeUiController(it) }
+                ?: throw Exception("webview un attached to activity")
+        }
+    }
 
     private var activityTask = PromiseOut<MutilWebViewActivity>()
     suspend fun waitActivityCreated() = activityTask.waitPromise()

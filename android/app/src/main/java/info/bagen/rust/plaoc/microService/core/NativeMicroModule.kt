@@ -58,14 +58,71 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
         }
     }
 
+    class ResponseRegistry {
+        companion object {
+            val regMap = mutableMapOf<Class<Any>, (item: Any) -> Response>(
+//                Pair(ByteArray::class.java, { Response(Status.OK).body(MemoryBody(it)) })
+            )
+
+            fun <T : Any> registryResponse(type: Class<T>, handler: (item: T) -> Response) {
+                regMap[type as Class<Any>] = handler as (item: Any) -> Response
+            }
+
+            init {
+                registryResponse(ByteArray::class.java) {
+                    Response(Status.OK).body(MemoryBody(it))
+                }
+                registryResponse(InputStream::class.java) {
+                    Response(Status.OK).body(it)
+                }
+            }
+
+            fun <T : Any> registryJsonAble(type: Class<T>, handler: (item: T) -> Any) {
+                registryResponse(type) {
+                    asJson(handler(it))
+                }
+            }
+
+            fun handle(result: Any): Response {
+                val javaClass = result.javaClass
+                return when (val handler = regMap[javaClass]) {
+                    null -> {
+                        var superJavaClass = javaClass.superclass
+                        while (superJavaClass != null) {
+                            // 尝试寻找继承关系
+                            when (val handler = regMap[superJavaClass!!]) {
+                                null -> superJavaClass = superJavaClass!!.superclass
+                                else -> return handler(result)
+                            }
+                        }
+                        // 否则默认当成JSON来返回
+                        return asJson(result)
+                    }
+                    // 如果有注册处理函数，那么交给处理函数进行处理
+                    else -> handler(result)
+                }
+
+            }
+
+            inline fun asJson(result: Any) = Response(Status.OK).body(gson.toJson(result))
+                .header("Content-Type", "application/json")
+
+        }
+    }
+
     protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
         runBlockingCatching {
             when (val result = handler(request)) {
+                null, Unit -> {
+                    Response(Status.OK)
+                }
                 is Response -> result
                 is ByteArray -> Response(Status.OK).body(MemoryBody(result))
                 is InputStream -> Response(Status.OK).body(result)
-                else -> Response(Status.OK).body(gson.toJson(result))
-                    .header("Content-Type", "application/json")
+                else -> {
+                    // 如果有注册处理函数，那么交给处理函数进行处理
+                    ResponseRegistry.handle(result)
+                }
             }
         }.getOrElse { ex ->
             printdebugln("fetch", "NMM/Error", request.uri, ex)

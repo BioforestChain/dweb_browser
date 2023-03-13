@@ -9,7 +9,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.*
@@ -20,14 +19,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.view.WindowCompat
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.WebView
 import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiController
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SystemUiPlugin
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import kotlinx.coroutines.launch
 
@@ -169,16 +164,18 @@ open class MutilWebViewActivity : PermissionActivity() {
                         controller ?: throw Exception("no found controller")
                     )
                 }
-
-                val systemUiController = SystemUiController.remember(this)
-
-                val modifierOffset by systemUiController.modifierOffsetState
-                val modifierPadding by systemUiController.modifierPaddingState
-                val modifierScale by systemUiController.modifierScaleState
+//
+//                val nativeUiController = NativeUiController.remember(this)
+//
+//                val modifierOffset by nativeUiController.modifierOffsetState
+//                val modifierPadding by nativeUiController.modifierPaddingState
+//                val modifierScale by nativeUiController.modifierScaleState
 
                 wc.webViewList.forEachIndexed { index, viewItem ->
                     println("viewItem.webviewId: ${viewItem.webviewId}")
                     key(viewItem.webviewId) {
+                        val nativeUiController = viewItem.nativeUiController.effect()
+
                         val state = viewItem.state
                         val navigator = viewItem.navigator
                         var beforeUnloadPrompt by remember { mutableStateOf("") }
@@ -191,8 +188,6 @@ open class MutilWebViewActivity : PermissionActivity() {
                                 wc.closeWebView(viewItem.webviewId)
                             }
                         }
-                        viewItem.systemUiPlugin =
-                            SystemUiPlugin(viewItem.webView, systemUiController)
 
                         val chromeClient = remember {
                             object : AccompanistWebChromeClient() {
@@ -254,16 +249,13 @@ open class MutilWebViewActivity : PermissionActivity() {
                                 .background(Color.Blue)
                                 .fillMaxSize()
                         ) {
+                            val modifierPadding by nativeUiController.safeArea.contentAreaInsetsState
                             WebView(
                                 state = state,
                                 navigator = navigator,
                                 modifier = Modifier
-//                                    .offset { modifierOffset }
-//                                    .scale(modifierScale.first, modifierScale.second)
                                     .fillMaxSize()
-//                                    .width(300.dp)
-//                                    .height(800.dp)
-                                    .padding(modifierPadding),
+                                    .padding(modifierPadding.asPaddingValues()),
                                 factory = { viewItem.webView },
                                 chromeClient = chromeClient,
                             )
@@ -306,16 +298,15 @@ open class MutilWebViewActivity : PermissionActivity() {
     }
 
     @Composable
-    fun DebugPanel() {
-        val systemUiController = SystemUiController.remember(this)
+    fun DebugPanel(viewItem: MutilWebViewController.ViewItem) {
+        val nativeUiController = viewItem.nativeUiController.effect()
 
         Column(
             modifier = Modifier.padding(top = 30.dp, start = 20.dp),
         ) {
             @Composable
             fun RowSwitchItem(
-                text: String,
-                switchState: MutableState<Boolean>
+                text: String, switchState: MutableState<Boolean>
             ) {
                 var switch by switchState
                 Row(
@@ -324,16 +315,13 @@ open class MutilWebViewActivity : PermissionActivity() {
                         .height(56.dp)
                         .padding(horizontal = 16.dp)
                         .toggleable(
-                            value = switch,
-                            onValueChange = {
+                            value = switch, onValueChange = {
                                 switch = it
-                            },
-                            role = Role.Switch
+                            }, role = Role.Switch
                         )
                 ) {
                     Switch(
-                        checked = switch,
-                        onCheckedChange = null
+                        checked = switch, onCheckedChange = null
                     )
                     Text(
                         modifier = Modifier.padding(start = 16.dp),
@@ -343,16 +331,13 @@ open class MutilWebViewActivity : PermissionActivity() {
                 }
             }
             RowSwitchItem(
-                "statusBarOverlay",
-                systemUiController.statusBarController.overlayState
+                "statusBarOverlay", nativeUiController.statusBar.overlayState
             )
             RowSwitchItem(
-                "virtualKeyboardOverlay",
-                systemUiController.virtualKeyboardController.overlayState
+                "virtualKeyboardOverlay", nativeUiController.virtualKeyboard.overlayState
             )
             RowSwitchItem(
-                "navigationBarOverlay",
-                systemUiController.navigationBarController.overlayState
+                "navigationBarOverlay", nativeUiController.navigationBar.overlayState
             )
 
         }
