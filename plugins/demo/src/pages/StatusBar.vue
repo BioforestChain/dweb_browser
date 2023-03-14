@@ -44,7 +44,7 @@ const setBackgroundColor = defineLogAction(
 );
 const getBackgroundColor = defineLogAction(
   async () => {
-    color.value = await statusbar.getBackgroundColor();
+    color.value = await statusbar.getBackgroundColor()
   },
   { name: "getBackgroundColor", args: [color], logPanel: $logPanel }
 );
@@ -90,26 +90,26 @@ const getOverlay = defineLogAction(
       <h2 class="card-title">Status Bar Background Color</h2>
       <v-color-picker v-model="color" :modes="['rgba']"></v-color-picker>
 
-      <div class="card-actions justify-end btn-group">
-        <button class="rounded-full btn btn-accent inline-block" :disabled="null == color" @click="setBackgroundColor">
+      <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == color" @click="setBackgroundColor">
           Set
         </button>
-        <button class="rounded-full btn btn-accent inline-block" @click="getBackgroundColor">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getBackgroundColor">Get</button>
       </div>
     </article>
 
     <article class="card-body">
       <h2 class="card-title">Status Bar Style</h2>
-      <select class="max-w-xs w-full select" name="statusbar-style" id="statusbar-style" v-model="style">
+      <select class="w-full max-w-xs select" name="statusbar-style" id="statusbar-style" v-model="style">
         <option value="DEFAULT">Default</option>
         <option value="DARK">Dark</option>
         <option value="LIGHT">Light</option>
       </select>
-      <div class="card-actions justify-end btn-group">
-        <button class="rounded-full btn btn-accent inline-block" :disabled="null == style" @click="setStyle">
+      <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == style" @click="setStyle">
           Set
         </button>
-        <button class="rounded-full btn btn-accent inline-block" @click="getStyle">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getStyle">Get</button>
       </div>
     </article>
 
@@ -117,11 +117,11 @@ const getOverlay = defineLogAction(
       <h2 class="card-title">Status Bar Overlays WebView</h2>
       <input class="toggle" type="checkbox" id="statusbar-overlay" v-model="overlay" />
 
-      <div class="card-actions justify-end btn-group">
-        <button class="rounded-full btn btn-accent inline-block" :disabled="null == overlay" @click="setOverlay">
+      <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == overlay" @click="setOverlay">
           Set
         </button>
-        <button class="rounded-full btn btn-accent inline-block" @click="getOverlay">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getOverlay">Get</button>
       </div>
     </article>
   </div>

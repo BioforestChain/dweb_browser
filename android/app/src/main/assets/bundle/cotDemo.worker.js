@@ -275,7 +275,7 @@ var require_before = __commonJS({
         throw new TypeError(FUNC_ERROR_TEXT);
       }
       n = toInteger(n);
-      return function() {
+      return function () {
         if (--n > 0) {
           result = func.apply(this, arguments);
         }
@@ -387,6 +387,81 @@ var $dataToText = (data, encoding) => {
   }
   throw new Error(`unknown encoding: ${encoding}`);
 };
+
+// src/core/ipc/IpcEvent.cts
+var _IpcEvent = class extends IpcMessage {
+  constructor(name, data, encoding) {
+    super(6 /* EVENT */);
+    this.name = name;
+    this.data = data;
+    this.encoding = encoding;
+  }
+  static fromBase64(name, data) {
+    return new _IpcEvent(
+      name,
+      simpleDecoder(data, "base64"),
+      4 /* BASE64 */
+    );
+  }
+  static fromBinary(name, data) {
+    return new _IpcEvent(name, data, 8 /* BINARY */);
+  }
+  static fromUtf8(name, data) {
+    return new _IpcEvent(
+      name,
+      simpleDecoder(data, "utf8"),
+      2 /* UTF8 */
+    );
+  }
+  static fromText(name, data) {
+    return new _IpcEvent(name, data, 2 /* UTF8 */);
+  }
+  get binary() {
+    return $dataToBinary(this.data, this.encoding);
+  }
+  get text() {
+    return $dataToText(this.data, this.encoding);
+  }
+  get jsonAble() {
+    if (this.encoding === 8 /* BINARY */) {
+      return _IpcEvent.fromBase64(this.name, this.data);
+    }
+    return this;
+  }
+  toJSON() {
+    return { ...this.jsonAble };
+  }
+};
+var IpcEvent = _IpcEvent;
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "binary", 1);
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "text", 1);
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "jsonAble", 1);
+
+// src/core/ipc/IpcHeaders.cts
+var IpcHeaders = class extends Headers {
+  init(key, value) {
+    if (this.has(key)) {
+      return;
+    }
+    this.set(key, value);
+  }
+  toJSON() {
+    const record = {};
+    this.forEach((value, key) => {
+      record[key] = value;
+    });
+    return record;
+  }
+};
+
+// src/core/ipc/IpcResponse.cts
+var import_once = __toESM(require_once());
 
 // src/helper/createSignal.cts
 var createSignal = () => {
@@ -564,30 +639,6 @@ var IpcStreamAbort = class extends IpcMessage {
     super(5 /* STREAM_ABORT */);
     this.stream_id = stream_id;
   }
-};
-
-// src/helper/cacheGetter.cts
-var cacheGetter = () => {
-  return (target, prop, desp) => {
-    const source_fun = desp.get;
-    if (source_fun === void 0) {
-      throw new Error(`${target}.${prop} should has getter`);
-    }
-    desp.get = function() {
-      const result = source_fun.call(this);
-      if (desp.set) {
-        desp.get = () => result;
-      } else {
-        delete desp.set;
-        delete desp.get;
-        desp.value = result;
-        desp.writable = false;
-      }
-      Object.defineProperty(this, prop, desp);
-      return result;
-    };
-    return desp;
-  };
 };
 
 // src/core/ipc/IpcStreamData.cts
@@ -1268,13 +1319,15 @@ var main = async () => {
     );
   });
   {
+    const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/index.html";
+    }).href;
+    console.log("cot#open interUrl=>", interUrl);
     const view_id = await jsProcess.nativeFetch(
-      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(
-        wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-          url.pathname = "/index.html";
-        }).href
-      )}`
+      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
     ).text();
+  }
+  {
   }
   {
   }

@@ -8,14 +8,22 @@ import com.google.mlkit.vision.common.InputImage
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.FlashLightUtils
 import io.ktor.util.*
+import io.ktor.util.collections.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.int
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.util.concurrent.ConcurrentSkipListSet
 
 inline fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Scanning", tag, msg, err)
@@ -24,10 +32,19 @@ class ScanningNMM() : NativeMicroModule("scanning.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_rotationDegrees = Query.int().defaulted("rotation", 0)
+//
+//        val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
+//        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
+//                for ((ipc) in subscribers) {
+//                    ipc.postMessage(IpcEvent.fromUtf8("qaq", "hi"))
+//                }
+//        }
+//        _afterShutdownSignal.listen { job.cancel() }
 
         apiRouting = routes(
             // 处理二维码图像
             "/process" bind Method.POST to defineHandler { request, ipc ->
+                println("ScanningNMM process => ${query_rotationDegrees(request)}")
                 val image = InputImage.fromBitmap(
                     request.body.payload.moveToByteArray().let { byteArray ->
                         BitmapFactory.decodeByteArray(

@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
 import { Navigatorbar, NavigationBarPluginEvents } from "@bfex/plugin";
-import { throttle } from "../helper/throttle";
 
 const title = "Navigation Bar";
 
@@ -122,8 +121,8 @@ const listen_change = async () => {
       <h2 class="card-title">Navigation Bar Transparency WebView</h2>
       <input class="toggle toggle-accent" type="checkbox" v-model="transparency" />
       <div class="justify-end card-actions btn-group">
-        <button class="rounded-full inline-block btn btn-accent" @click="setTransparency">Set</button>
-        <button class="rounded-full inline-block btn btn-accent" @click="getTransparency">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="setTransparency">Set</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getTransparency">Get</button>
       </div>
     </article>
 
@@ -131,8 +130,8 @@ const listen_change = async () => {
       <h2 class="card-title">Navigation Bar Overlay WebView</h2>
       <input class="toggle toggle-accent" type="checkbox" v-model="overlay" />
       <div class="justify-end card-actions btn-group">
-        <button class="rounded-full inline-block btn btn-accent" @click="setOverlay">Set</button>
-        <button class="rounded-full inline-block btn btn-accent" @click="getOverlay">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="setOverlay">Set</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getOverlay">Get</button>
       </div>
     </article>
   </div>

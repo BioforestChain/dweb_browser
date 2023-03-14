@@ -3856,7 +3856,7 @@ var ServerStartResult = class {
 // src/sys/http-server/$createHttpDwebServer.cts
 var createHttpDwebServer = async (microModule, options) => {
   const startResult = await startHttpDwebServer(microModule, options);
-  console.log("\u83B7\u5F97\u57DF\u540D\u6388\u6743\uFF1A", startResult);
+  console.log("\u83B7\u5F97\u57DF\u540D\u6388\u6743\uFF1A", startResult.urlInfo.internal_origin, startResult.urlInfo.public_origin);
   return new HttpDwebServer(microModule, options, startResult);
 };
 var HttpDwebServer = class {

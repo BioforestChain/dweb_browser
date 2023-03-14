@@ -1,9 +1,13 @@
 package info.bagen.rust.plaoc.microService.sys.mwebview
 
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Message
 import android.webkit.JsResult
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -30,6 +34,7 @@ import kotlinx.coroutines.launch
 open class PermissionActivity : AppCompatActivity() {
 
     companion object {
+        val PERMISSION_REQUEST_CODE_PHOTO = 2
         private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
         private var requestPermissionsCodeAcc = 1;
     }
@@ -110,6 +115,13 @@ open class MutilWebViewActivity : PermissionActivity() {
                 }
             }
         } ?: throw Exception("no found controller by mmid:$remoteMmid")
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        // 选中图片
+        if (resultCode == RESULT_OK && requestCode == PERMISSION_REQUEST_CODE_PHOTO) {
+            controller?.webViewList?.last()?.webView?.filePathCallback?.onReceiveValue(arrayOf(data?.data!!))
+        }
     }
 
     override fun onResume() {

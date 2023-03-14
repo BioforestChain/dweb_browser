@@ -16,7 +16,11 @@ class NavigationBarNMM : NativeMicroModule("navigationbar.sys.dweb") {
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         QueryHelper.init()
         apiRouting = routes(
-            /** 设置系统导航栏颜色*/
+            /**
+             * 设置系统导航栏颜色
+             * darkIcons - 深色导航栏图标是否更可取。
+             * navigationBarContrastEnforced - 当请求完全透明的背景时，系统是否应确保导航栏具有足够的对比度。 仅支持 API 29+。
+             * */
             "/setBackgroundColor" bind Method.GET to defineHandler { request, ipc ->
                 val color = QueryHelper.color(request)
                 getController(ipc.remote.mmid).colorState.value = color

@@ -23,7 +23,7 @@ export async function onApiRequest(
           request.req_id,
           200,
           undefined,
-          serverurlInfo.buildPublicUrl(() => {}).href,
+          serverurlInfo.buildPublicUrl(() => { }).href,
           httpServerIpc
         );
       } else {

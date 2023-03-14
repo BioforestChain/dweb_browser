@@ -1,6 +1,8 @@
 package info.bagen.rust.plaoc.microService.webview
 
 import android.content.Context
+import android.content.Intent
+import android.provider.MediaStore
 import android.view.ViewGroup
 import android.webkit.*
 import info.bagen.rust.plaoc.microService.core.MicroModule
@@ -8,6 +10,7 @@ import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.getFullAuthority
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
+import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity.Companion.PERMISSION_REQUEST_CODE_PHOTO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -74,6 +77,9 @@ class DWebView(
     val options: Options,
     var activity: PermissionActivity? = null,
 ) : WebView(context) {
+
+    var filePathCallback: ValueCallback<Array<android.net.Uri>>? = null
+    var requestPermissionCallback: ValueCallback<Boolean>? = null
 
     data class Options(
         /**
@@ -221,16 +227,24 @@ class DWebView(
         }
     }
     private val internalWebChromeClient = object : WebChromeClient() {
-        //        override fun onCreateWindow(
-//            view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
-//        ): Boolean {
-//            println("open $isDialog $isUserGesture ${resultMsg?.data} ${resultMsg?.obj}")
-//            GlobalScope.launch(ioAsyncExceptionHandler) {
-//                openSignal.emit(resultMsg)
-//            }
-//            return true
-//        }
-//
+        override fun onShowFileChooser(
+            webView: WebView?,
+            filePathCallback: ValueCallback<Array<android.net.Uri>>?,
+            fileChooserParams: FileChooserParams?
+        ): Boolean {
+            this@DWebView.filePathCallback = filePathCallback
+            this@DWebView.requestPermissionCallback =  ValueCallback {
+//                launchFileInput() TODO permission
+            }
+            val pickIntent = Intent(
+                Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            )
+            pickIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
+            activity?.startActivityForResult(pickIntent, PERMISSION_REQUEST_CODE_PHOTO)
+            return true
+        }
+
         override fun onCloseWindow(window: WebView?) {
             println("close")
             GlobalScope.launch(ioAsyncExceptionHandler) {
@@ -276,9 +290,10 @@ class DWebView(
     }
 
     override fun setWebChromeClient(client: WebChromeClient?) {
-        if (client != null) {
-            dWebChromeClient.addWebChromeClient(client)
+        if (client == null) {
+            return
         }
+        dWebChromeClient.addWebChromeClient(client)
     }
 
 

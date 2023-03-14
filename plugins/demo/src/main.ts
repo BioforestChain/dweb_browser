@@ -26,6 +26,7 @@ createApp(App)
         { path: "/splashscreen", component: () => import("./pages/SplashScreen.vue") },
         { path: "/statusbar", component: () => import("./pages/StatusBar.vue") },
         { path: "/toast", component: () => import("./pages/Toast.vue") },
+        { path: "/scanner", component: () => import("./pages/Scanner.vue") },
       ],
     })
   )

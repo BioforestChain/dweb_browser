@@ -17,10 +17,6 @@ const main = async () => {
     apiServer.startResult.urlInfo.host
   );
   (await apiServer.listen()).onRequest(async (request, ipc) => {
-    console.log(
-      "接受到了请求 apiServer： request.parsed_url.pathname： ",
-      JSON.stringify(request.parsed_url)
-    );
     onApiRequest(apiServer.startResult.urlInfo, request, ipc);
   });
 
@@ -53,15 +49,23 @@ const main = async () => {
   });
 
   {
+    const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/index.html";
+    }).href
+    console.log("cot#open interUrl=>", interUrl)
     const view_id = await jsProcess
       .nativeFetch(
-        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(
-          wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-            url.pathname = "/index.html";
-          }).href
-        )}`
+        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
       )
       .text();
+  }
+
+  {
+    // const http = await jsProcess.nativeFetch(`file://http.sys.dweb/listen`)
+
+    // const pluginUrl = wwwServer.startResult.urlInfo.buildPublicUrl((url) => {
+    // }).href
+    // console.log("公共 url", pluginUrl)
   }
   {
     // const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
