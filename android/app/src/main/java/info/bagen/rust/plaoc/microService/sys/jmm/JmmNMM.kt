@@ -43,7 +43,14 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
 
     init {
         // TODO 启动的时候，从数据库中恢复 apps 对象
-        JmmMetadataDB.queryJmmMetadata()
+        GlobalScope.launch {
+            apps.clear()
+            JmmMetadataDB.queryJsMicroModuleList().collect {
+                it.forEach { (key, value) ->
+                    apps[key] = value
+                }
+            }
+        }
     }
 
     val queryMetadataUrl = Query.string().required("metadataUrl")
@@ -63,6 +70,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
                 openJmmMetadataInstallPage(jmmMetadata) { metadata ->
                     JsMicroModule(metadata).apply {
+                        JmmMetadataDB.saveJsMicroModule(jmmMetadata.id, this)
                         apps[jmmMetadata.id] = this // 添加应用
                         bootstrapContext.dns.install(this) // 注册应用
                     }
