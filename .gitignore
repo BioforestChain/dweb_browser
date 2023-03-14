@@ -15,7 +15,7 @@ build/
 android/app/src/main/assets/cot-demo/
 
 # desktop
-desktop/apps
+
 
 # node/deno/typescript
 node_modules/
