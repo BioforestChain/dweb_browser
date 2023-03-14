@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
 import { StatusbarPlugin, StatusbarStyle } from "@bfex/plugin";
-import { defineAction } from "../helpers/logHelper";
+import { defineLogAction } from "../helpers/logHelper";
 
 const title = "StatusBar";
 
@@ -36,13 +36,13 @@ onMounted(() => {
 });
 
 const color = ref<string>(null as never);
-const setBackgroundColor = defineAction(
+const setBackgroundColor = defineLogAction(
   async () => {
     await statusbar.setBackgroundColor({ color: color.value });
   },
   { name: "setBackgroundColor", args: [color], logPanel: $logPanel }
 );
-const getBackgroundColor = defineAction(
+const getBackgroundColor = defineLogAction(
   async () => {
     color.value = await statusbar.getBackgroundColor();
   },
@@ -50,13 +50,13 @@ const getBackgroundColor = defineAction(
 );
 
 const style = ref<StatusbarStyle>(null as never);
-const setStyle = defineAction(
+const setStyle = defineLogAction(
   async () => {
     await statusbar.setStyle({ style: style.value });
   },
   { name: "setStyle", args: [style], logPanel: $logPanel }
 );
-const getStyle = defineAction(
+const getStyle = defineLogAction(
   async () => {
     style.value = await statusbar.getStyle();
   },
@@ -64,12 +64,12 @@ const getStyle = defineAction(
 );
 
 const overlay = ref<boolean>(null as never);
-const setOverlay = defineAction(() => statusbar.setOverlaysWebView({ overlay: overlay.value }), {
+const setOverlay = defineLogAction(() => statusbar.setOverlaysWebView({ overlay: overlay.value }), {
   name: "setOverlay",
   args: [overlay],
   logPanel: $logPanel,
 });
-const getOverlay = defineAction(
+const getOverlay = defineLogAction(
   async () => {
     overlay.value = await statusbar.getOverlaysWebView();
   },
@@ -81,14 +81,14 @@ const getOverlay = defineAction(
 );
 </script>
 <template>
-  <dweb-statusbar ref="$statusbarPlugin"></dweb-statusbar>
+  <dweb-status-bar ref="$statusbarPlugin"></dweb-status-bar>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/statusbar.svg" :alt="title" />
     </figure>
     <article class="card-body">
       <h2 class="card-title">Status Bar Background Color</h2>
-      <input class="color" type="color" v-model="color" />
+      <v-color-picker v-model="color" :modes="['rgba']"></v-color-picker>
 
       <div class="card-actions justify-end btn-group">
         <button class="rounded-full btn btn-accent inline-block" :disabled="null == color" @click="setBackgroundColor">

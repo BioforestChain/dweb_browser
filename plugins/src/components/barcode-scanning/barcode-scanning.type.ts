@@ -1,26 +1,26 @@
 export type CallbackID = string;
-export interface BarcodeScannerPlugin {
-  prepare(options?: ScanOptions): Promise<void>;
-  hideBackground(): Promise<void>;
-  showBackground(): Promise<void>;
-  startScan(options?: ScanOptions): Promise<ScanResult>;
-  startScanning(
-    options?: ScanOptions,
-    // deno-lint-ignore no-explicit-any
-    callback?: (result: ScanResult, err?: any) => void,
-  ): Promise<CallbackID>;
-  pauseScanning(): Promise<void>;
-  resumeScanning(): Promise<void>;
-  stopScan(options?: StopScanOptions): Promise<void>;
-  checkPermission(
-    options?: CheckPermissionOptions,
-  ): Promise<CheckPermissionResult>;
-  openAppSettings(): Promise<void>;
-  enableTorch(): Promise<void>;
-  disableTorch(): Promise<void>;
-  toggleTorch(): Promise<void>;
-  getTorchState(): Promise<TorchStateResult>;
-}
+// export interface BarcodeScannerPlugin {
+//   prepare(options?: ScanOptions): Promise<void>;
+//   hideBackground(): Promise<void>;
+//   showBackground(): Promise<void>;
+//   startScan(options?: ScanOptions): Promise<ScanResult>;
+//   startScanning(
+//     options?: ScanOptions,
+//     // deno-lint-ignore no-explicit-any
+//     callback?: (result: ScanResult, err?: any) => void,
+//   ): Promise<CallbackID>;
+//   pauseScanning(): Promise<void>;
+//   resumeScanning(): Promise<void>;
+//   stopScan(options?: StopScanOptions): Promise<void>;
+//   checkPermission(
+//     options?: CheckPermissionOptions,
+//   ): Promise<CheckPermissionResult>;
+//   openAppSettings(): Promise<void>;
+//   enableTorch(): Promise<void>;
+//   disableTorch(): Promise<void>;
+//   toggleTorch(): Promise<void>;
+//   getTorchState(): Promise<TorchStateResult>;
+// }
 
 export enum SupportedFormat {
   // BEGIN 1D Product

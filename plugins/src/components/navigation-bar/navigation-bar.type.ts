@@ -1,4 +1,4 @@
-import { NavigationBarPluginEvents } from "./navigator.events.ts";
+import { NavigationBarPluginEvents } from "./navigation-bar.events.ts";
 
 export enum NAVIGATION_BAR_COLOR {
   TRANSPARENT = '#00000000',

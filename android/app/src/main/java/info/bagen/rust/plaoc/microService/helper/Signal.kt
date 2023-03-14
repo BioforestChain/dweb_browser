@@ -28,7 +28,7 @@ open class Signal<Args> {
         return { off(cb) }
     }
 
-    private fun off(cb: Callback<Args>): Boolean {
+    fun off(cb: Callback<Args>): Boolean {
         return listenerSet.remove(cb)
     }
 

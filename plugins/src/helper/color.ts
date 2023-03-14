@@ -1,41 +1,84 @@
-import { Color } from "../types/color.d.ts";
-
 /**
  * 将rgba(r, b, g, a)或#rrbbggaa或#rgba转为#rrbbggaa 十六进制
- * @param color 
+ * @param color
  * @returns  #rrbbggaa
  */
-export function convertToRGBAHex(color: string): Color.RGBAHex {
-  let colorHex = "#";
+export function convertColor(color: string) {
+  // 默认是纯黑色
+  const rgbaColor = [/* red */ 0, /* green */ 0, /* blue */ 0, /* alpha */ 255];
 
-  if (color.startsWith("rgba(")) {
-    const colorArr = color.replace("rgba(", "").replace(")", "").split(",");
+  // "rgba("  "rgb("
+  if (color.startsWith("rgb")) {
+    // 提取括号中的内容，提取数字
+    const colorArr = color.match(/\((.+)\)/)?.[1].match(/\d+/g);
+    if (colorArr) {
+      for (const [index, item] of colorArr.entries()) {
+        const value = parseFloat(item);
+        switch (index) {
+          case 0:
+            rgbaColor[index] = value;
+            break;
+          case 1:
+            rgbaColor[index] = value;
+            break;
+          case 2:
+            rgbaColor[index] = value;
+            break;
+          case 3:
+            rgbaColor[index] = value * 255;
+            break;
+        }
+      }
+    }
+  } else if (color.startsWith("#")) {
+    color = color.slice(1);
+    if (color.length === 8 || color.length === 6) {
+      color.match(/../g)!.forEach((value, index) => {
+        rgbaColor[index] = parseInt(value, 16);
+      });
+    } else if (color.length === 4 || color.length === 3) {
+      color.match(/./g)!.forEach((value, index) => {
+        rgbaColor[index] = parseInt(value + value, 16);
+      });
+    }
+  }
+  return {
+    red: rgbaColor[0],
+    green: rgbaColor[1],
+    blue: rgbaColor[2],
+    alpha: rgbaColor[3],
+  };
+}
 
-    for (let [index, item] of colorArr.entries()) {
+export const enum COLOR_FORMAT {
+  HEXA,
+  RGBA,
+}
+export function normalizeColor(
+  color: ReturnType<typeof convertColor>,
+  format: COLOR_FORMAT = COLOR_FORMAT.RGBA
+) {
+  const rgbaColor = [color.red, color.green, color.blue, color.alpha];
+  if (format === COLOR_FORMAT.HEXA) {
+    const hex =
+      "#" +
+      rgbaColor
+        .map((v) => (v & 255).toString(16).padStart(2, "0"))
+        .join("")
+        .toUpperCase();
+    if (hex.endsWith("ff")) {
+      return hex.slice(0, -2);
+    }
+    return hex;
+  }
+
+  /// COLOR.RGBA
+  return `rgba(${rgbaColor
+    .map((v, index) => {
       if (index === 3) {
-        item = `${parseFloat(item) * 255}`;
+        return v / 255;
       }
-      let itemHex = Math.round(parseFloat(item)).toString(16);
-
-      if (itemHex.length === 1) {
-        itemHex = "0" + itemHex;
-      }
-
-      colorHex += itemHex;
-    }
-  }
-  if (color.startsWith("#")) {
-    if (color.length === 9) {
-      colorHex = color;
-    } else {
-      color = color.substring(1);
-      // 如果是 #f71 或者#f72e这种格式的话,转换为5字符格式
-      if (color.length === 4 || color.length === 3) {
-        color = color.replace(/(.)/g, "$1$1");
-      }
-      // 填充成9字符格式，不然android无法渲染
-      colorHex += color.padEnd(8, "F");
-    }
-  }
-  return colorHex as Color.RGBAHex;
+      return v;
+    })
+    .join(",")})`;
 }

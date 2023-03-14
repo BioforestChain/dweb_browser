@@ -1,21 +1,27 @@
+import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../basePlugin.ts";
-import { CanShareResult, ShareOptions, ISharePlugin } from "./share.type.ts";
+import type {
+  CanShareResult,
+  ShareOptions,
+  ISharePlugin,
+} from "./share.type.ts";
 
 export class SharePlugin extends BasePlugin implements ISharePlugin {
+  readonly tagName = "dweb-share";
 
-
-  constructor(readonly mmid = "share.sys.dweb") {
-    super(mmid, "Share")
+  constructor() {
+    super("share.sys.dweb");
   }
 
   /**
-   * 判断是否能分享 
+   * 判断是否能分享
    * web Only
-   * @returns 
+   * @returns
    */
+  @bindThis
   // deno-lint-ignore require-await
   async canShare(): Promise<CanShareResult> {
-    if (typeof navigator === 'undefined' || !navigator.share) {
+    if (typeof navigator === "undefined" || !navigator.share) {
       return { value: false };
     } else {
       return { value: true };
@@ -24,9 +30,10 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
 
   /**
    * 分享
-   * @param options 
-   * @returns 
+   * @param options
+   * @returns
    */
+  @bindThis
   async share(options: ShareOptions): Promise<Response> {
     return await this.nativeFetch(`/share`, {
       search: {
@@ -34,8 +41,9 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
         title: options?.title,
         text: options?.text,
         url: options?.url,
-        files: options?.files
-      }
-    })
+        files: options?.files,
+      },
+    });
   }
 }
+export const sharePlugin = new SharePlugin();

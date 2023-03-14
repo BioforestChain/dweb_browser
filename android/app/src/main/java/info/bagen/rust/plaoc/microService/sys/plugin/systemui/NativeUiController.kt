@@ -10,12 +10,12 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import info.bagen.rust.plaoc.microService.helper.ColorJson
-import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.printdebugln
-import info.bagen.rust.plaoc.microService.helper.toJsonAble
+import com.google.gson.*
+import com.google.gson.annotations.JsonAdapter
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.util.IsChange
+import java.lang.reflect.Type
 
 
 inline fun debugNativeUi(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -49,7 +49,8 @@ class NativeUiController(
         return this
     }
 
-    enum class BarStyle(val style: String) {
+    @JsonAdapter(BarStyle::class)
+    enum class BarStyle(val style: String) : JsonDeserializer<BarStyle>, JsonSerializer<BarStyle> {
         /**
          * Light text for dark backgrounds.
          */
@@ -73,6 +74,18 @@ class NativeUiController(
                 return values().find { it.style == style } ?: BarStyle.Default
             }
         }
+
+        override fun deserialize(
+            json: JsonElement,
+            typeOfT: Type,
+            context: JsonDeserializationContext
+        ): BarStyle = from(json.asString)
+
+        override fun serialize(
+            src: BarStyle,
+            typeOfSrc: Type,
+            context: JsonSerializationContext
+        ): JsonElement = JsonPrimitive(src.style)
 
     }
 
@@ -202,13 +215,18 @@ class NativeUiController(
 
     class StatusBarController(
         val activity: ComponentActivity,
-        nativeUiController: NativeUiController,
+        val nativeUiController: NativeUiController,
     ) {
         val overlayState = mutableStateOf(true)
         val colorState = mutableStateOf(Color.Transparent)
         val styleState = mutableStateOf(BarStyle.Default)
         val visibleState = mutableStateOf(true)
         val statusBarsInsetsState = mutableStateOf(WindowInsets(0))
+
+        private val stateChanges = IsChange(false)
+        val observeSignal = SimpleSignal()
+        fun observe(cb: SimpleCallback) = observeSignal.listen(cb)
+        fun unObserve(cb: SimpleCallback) = observeSignal.off(cb)
 
         /**
          * 使得当前 StatusBarController 生效
@@ -240,6 +258,22 @@ class NativeUiController(
                 )
                 systemUiController.isStatusBarVisible = visible
                 onDispose {}
+            }
+
+
+            stateChanges.also {
+                it.rememberByState(overlayState)
+                it.rememberByState(colorState)
+                it.rememberByState(styleState)
+                it.rememberByState(visibleState)
+                it.rememberByState(statusBarsInsetsState)
+
+                it.effectChange {
+                    debugNativeUi("StatusBar", "CHANGED")
+                    runBlockingCatching {
+                        observeSignal.emit()
+                    }.getOrNull()
+                }
             }
 
             return this

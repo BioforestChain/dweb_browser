@@ -3,7 +3,6 @@ package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.toJsonAble
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -15,6 +14,7 @@ class NavigationBarNMM : NativeMicroModule("navigationbar.sys.dweb") {
         NativeUiController.fromMultiWebView(mmid).navigationBar
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+        QueryHelper.init()
         apiRouting = routes(
             /** 设置系统导航栏颜色*/
             "/setBackgroundColor" bind Method.GET to defineHandler { request, ipc ->
@@ -24,7 +24,7 @@ class NavigationBarNMM : NativeMicroModule("navigationbar.sys.dweb") {
             },
             /** 获取当前导航栏背景色*/
             "/getBackgroundColor" bind Method.GET to defineHandler { request, ipc ->
-                return@defineHandler getController(ipc.remote.mmid).colorState.value.toJsonAble()
+                return@defineHandler getController(ipc.remote.mmid).colorState.value
             },
             /** 设置系统导航栏颜色*/
             "/setForegroundStyle" bind Method.GET to defineHandler { request, ipc ->

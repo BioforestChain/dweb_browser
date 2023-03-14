@@ -10,7 +10,12 @@ import info.bagen.rust.plaoc.App
 data class ColorJson(val red: Int, val blue: Int, val green: Int, val alpha: Int)
 
 fun Color.toJsonAble(): ColorJson = convert(ColorSpaces.Srgb).let {
-    ColorJson(it.red.toInt(), it.blue.toInt(), it.green.toInt(), it.alpha.toInt())
+    ColorJson(
+        (it.red * 255).toInt(),
+        (it.blue * 255).toInt(),
+        (it.green * 255).toInt(),
+        (it.alpha * 255).toInt()
+    )
 }
 
 data class WebDomRect(val x: Float, val y: Float, val width: Float, val height: Float)

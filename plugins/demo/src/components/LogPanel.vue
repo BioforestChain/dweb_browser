@@ -20,7 +20,7 @@ const log = (...logs: unknown[]) => {
 };
 const error = (...logs: unknown[]) => {
   const message = format(logs);
-  pushMessage({ message, type: "error", prefix: "❌", class: "text-error" });
+  pushMessage({ message, type: "error", prefix: ">", class: "text-error" });
 };
 const warn = (...logs: unknown[]) => {
   const message = format(logs);
@@ -28,7 +28,7 @@ const warn = (...logs: unknown[]) => {
 };
 const success = (...logs: unknown[]) => {
   const message = format(logs);
-  pushMessage({ message, type: "success", prefix: "✅", class: "text-success" });
+  pushMessage({ message, type: "success", prefix: ">", class: "text-success" });
 };
 const info = (...logs: unknown[]) => {
   const message = format(logs);
@@ -36,10 +36,13 @@ const info = (...logs: unknown[]) => {
 };
 const timeMap = new Map<string, { msgId: number; startTime: number }>();
 const time = (label: string, ...logs: unknown[]) => {
+  if (timeMap.has(label)) {
+    return;
+  }
   const msgId = pushMessage({
     message: format(label, ...logs),
     type: "info",
-    prefix: "⏲",
+    prefix: ".",
     class: "bg-accent text-accent-content",
   });
   const startTime = Date.now();
@@ -55,11 +58,11 @@ const timeEnd = (label: string, ...logs: unknown[]) => {
       {
         message:
           format(label, ...logs) +
-          ` <span class="px-1 text-[0.6rem] rounded-lg bg-accent text-accent-content">+${
+          ` <span class="px-1 text-[0.6rem] rounded-lg bg-accent text-accent-content shrink-0">+${
             (endTime - timeItem.startTime) / 1000
           }ms</span>`,
         type: "info",
-        prefix: "●",
+        prefix: ".",
         class: "text-accent",
       },
       timeItem.msgId
@@ -72,15 +75,16 @@ const clear = () => {
 defineExpose({ log, debug: log, warn, success, error, info, time, timeEnd, clear });
 </script>
 <template>
-  <div class="mockup-code text-xs min-w-max w-full">
+  <div class="mockup-code text-xs min-w-full w-full">
     <div class="max-h-[60vh] overflow-y-auto overflow-x-clip flex flex-col-reverse">
       <TransitionGroup name="fade">
         <pre
           v-for="[id, item] in messageLists"
           :key="id"
-          :data-prefix="id + ' ' + item.prefix"
+          :data-prefix="id + item.prefix"
+          class="whitespace-normal flex flex-row justify-start py-1"
           :class="item.class"
-        ><code v-html="item.message"></code></pre>
+        ><code class="flex-1 break-all flex flex-wrap justify-between flex-row" v-html="item.message"></code></pre>
       </TransitionGroup>
     </div>
 
@@ -92,11 +96,56 @@ defineExpose({ log, debug: log, warn, success, error, info, time, timeEnd, clear
 
 <script lang="ts">
 import type LogPanel from "./LogPanel.vue";
-import type { Ref } from "vue";
+import { Ref, isRef } from "vue";
 export const toConsole = (ele: Ref<typeof LogPanel | undefined>) => {
   return ele.value! as unknown as Console;
 };
+
+const normalizeArgs = (args: any[]) => {
+  const res: any[] = [];
+  for (const arg of args) {
+    if (isRef(arg)) {
+      res.push(arg.value);
+    } else {
+      res.push(arg);
+    }
+  }
+  return res;
+};
+
+export const defineLogAction = <T extends (...args: any[]) => Promise<unknown>>(
+  fun: T,
+  config: {
+    logPanel: Ref<typeof LogPanel | undefined>;
+    name: string;
+    args: Array<unknown | Ref<unknown>>;
+  }
+) => {
+  const nargs = () => normalizeArgs(config.args);
+  return (async (...args: any[]) => {
+    const logger = config.logPanel.value || console;
+    logger.time(config.name, ...nargs());
+    try {
+      const result = await fun(...args);
+      logger.timeEnd(
+        config.name,
+        ...nargs(),
+        `<span class="px-1 text-[0.6rem] rounded-lg bg-accent text-accent-content shrink-0">-></span>`,
+        result
+      );
+      return result;
+    } catch (err) {
+      logger.timeEnd(config.name, ...nargs());
+      logger.error(config.name, err);
+    }
+  }) as unknown as T;
+};
 </script>
+<style>
+.mockup-code pre.flex:before {
+  flex-shrink: 0;
+}
+</style>
 
 <style>
 .container {

@@ -1,14 +1,19 @@
-import { convertToRGBAHex } from "../../helper/color.ts";
+import { bindThis } from "../../helper/bindThis.ts";
+import {
+  COLOR_FORMAT,
+  convertColor,
+  normalizeColor,
+} from "../../helper/color.ts";
 import { BasePlugin } from "../basePlugin.ts";
 import {
-  AnimationOptions,
-  BackgroundColorOptions,
-  IStatusBarPlugin,
-  SetOverlaysWebViewOptions,
+  type AnimationOptions,
+  type BackgroundColorOptions,
+  type IStatusBarPlugin,
+  type SetOverlaysWebViewOptions,
   EStatusBarAnimation,
-  StatusBarInfo,
-  StyleOptions,
-} from "./statusbar.type.ts";
+  type StatusBarInfo,
+  type StyleOptions,
+} from "./status-bar.type.ts";
 /**
  * 访问 statusbar 能力的插件
  *
@@ -19,7 +24,8 @@ import {
  * @property getHeight(): number
  * @property getOverlaysWebview(): "0" | "1"
  */
-export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
+export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
+  readonly tagName = "dweb-status-bar";
   // private _visible: boolean = true;
   // private _style: StatusbarStyle = StatusbarStyle.Default;
   // private _color: string = "";
@@ -27,7 +33,7 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
 
   // mmid 最好全部采用小写，防止出现不可预期的意外
   constructor(readonly mmid = "statusbar.sys.dweb") {
-    super(mmid, "StatusBar");
+    super("statusbar.sys.dweb");
   }
 
   /**
@@ -37,17 +43,22 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
    * @param b 0~255
    * @param a 0~1
    */
+  @bindThis
   async setBackgroundColor(options: BackgroundColorOptions) {
-    const colorHex = convertToRGBAHex(options.color ?? "");
+    const color = convertColor(options.color);
     await this.nativeFetch(`/setBackgroundColor`, {
-      search: { color: colorHex },
+      search: color,
     });
   }
   /**
    *  获取背景颜色
    */
+  @bindThis
   async getBackgroundColor() {
-    return await (await this.nativeFetch(`/getBackgroundColor`)).text();
+    return normalizeColor(
+      await (await this.nativeFetch(`/getBackgroundColor`)).json(),
+      COLOR_FORMAT.HEXA
+    );
   }
 
   /**
@@ -60,6 +71,7 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
    *
    * @param style
    */
+  @bindThis
   async setStyle(styleOptions: StyleOptions) {
     await this.nativeFetch(`/setStyle`, {
       search: {
@@ -71,6 +83,7 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
    * 获取当前style
    * @returns
    */
+  @bindThis
   async getStyle() {
     const result = await this.getInfo();
     return result.style;
@@ -85,6 +98,7 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
    *
    * @since 1.0.0
    */
+  @bindThis
   async show(options?: AnimationOptions): Promise<void> {
     const animation = options?.animation ?? EStatusBarAnimation.None;
     await this.nativeFetch(`/setVisible?visible=true&animation=${animation}`);
@@ -95,6 +109,7 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
    *
    * @since 1.0.0
    */
+  @bindThis
   async hide(options?: AnimationOptions): Promise<void> {
     const animation = options?.animation ?? EStatusBarAnimation.None;
     await this.nativeFetch(`/setVisible`, {
@@ -110,11 +125,9 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
    *
    * @since 1.0.0
    */
+  @bindThis
   async getInfo(): Promise<StatusBarInfo> {
-    const result: StatusBarInfo = await this.nativeFetch(`/getInfo`)
-      .then((res) => res.json())
-      .catch((err) => err);
-    return result;
+    return await this.nativeFetch(`/getInfo`).object<StatusBarInfo>();
   }
 
   /**
@@ -125,14 +138,17 @@ export class StatusbarPlugin extends BasePlugin implements IStatusBarPlugin {
    *
    * @since 1.0.0
    */
+  @bindThis
   async setOverlaysWebView(options: SetOverlaysWebViewOptions): Promise<void> {
-    await this.nativeFetch(`/setOverlays`, {
+    await this.nativeFetch(`/setOverlay`, {
       search: {
         overlay: options.overlay,
       },
     });
   }
+  @bindThis
   async getOverlaysWebView(): Promise<boolean> {
-    return await this.nativeFetch(`/getOverlays`).boolean();
+    return await this.nativeFetch(`/getOverlay`).boolean();
   }
 }
+export const statusBarPlugin = new StatusBarPlugin();

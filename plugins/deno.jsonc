@@ -32,5 +32,8 @@
       "singleQuote": false,
       "proseWrap": "preserve"
     }
+  },
+  "imports": {
+    "../desktop/src/sys/js-process/js-process.worker.mjs": "../desktop/src/sys/js-process/js-process.worker.mts"
   }
 }

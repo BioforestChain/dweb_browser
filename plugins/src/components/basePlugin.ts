@@ -1,23 +1,22 @@
 // <reference types="https://esm.sh/v111/@types/web@0.0.96/index.d.ts" />
 /// <reference lib="dom"/>
-import { createSignal } from "../helper/createSignal.ts";
+import { createEvt } from "../helper/createEvt.ts";
 
-export class BasePlugin extends HTMLElement {
+export abstract class BasePlugin {
+  abstract tagName: string;
+
   // mmid:为对应组件的名称，proxy:为劫持对象的属性
-  constructor(readonly mmid: string, readonly proxy: string) {
-    super();
+  constructor(readonly mmid: string) {}
+
+  protected static internal_url: string =
+    globalThis.location?.href ?? "http://localhost";
+  protected static public_url: Promise<string> | string = "";
+
+  protected nativeFetch(url: string, init?: $NativeFetchInit) {
+    return Object.assign(this._nativeFetch(url, init), fetchBaseExtends);
   }
-
-  protected nativeFetch(
-    url: string,
-    init?: RequestInit & {
-      // deno-lint-ignore ban-types
-      search?: string | URLSearchParams | Record<string, unknown> | {};
-    }
-  ) {
-    const host = window.location.host.replace("www", "api");
-
-    const uri = new URL(`${this.mmid}${url}`, `https://${host}`);
+  protected async _nativeFetch(url: string, init?: $NativeFetchInit) {
+    const uri = new URL(`${this.mmid}${url}`, await BasePlugin.internal_url);
     const search = init?.search;
     if (search) {
       if (search instanceof URLSearchParams) {
@@ -35,12 +34,15 @@ export class BasePlugin extends HTMLElement {
         ).toString();
       }
     }
-    return Object.assign(fetch(uri, init), fetchBaseExtends);
+    return fetch(uri, init);
   }
 
-  protected createSignal = createSignal;
+  protected createSignal = createEvt;
 }
-
+type $NativeFetchInit = RequestInit & {
+  // deno-lint-ignore ban-types
+  search?: string | URLSearchParams | Record<string, unknown> | {};
+};
 const $makeFetchExtends = <M extends unknown = unknown>(
   exts: $FetchExtends<M>
 ) => {

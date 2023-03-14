@@ -1,4 +1,3 @@
-
 import { onApiRequest } from "./cotDemo.request.mjs";
 
 const main = async () => {
@@ -12,13 +11,18 @@ const main = async () => {
     subdomain: "api",
     port: 443,
   });
-  console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
+  console.log(
+    "will do listen!!",
+    wwwServer.startResult.urlInfo.host,
+    apiServer.startResult.urlInfo.host
+  );
   (await apiServer.listen()).onRequest(async (request, ipc) => {
-    console.log("接受到了请求 apiServer： request.parsed_url.pathname： ", JSON.stringify(request.parsed_url));
-    onApiRequest(request, ipc)
+    console.log(
+      "接受到了请求 apiServer： request.parsed_url.pathname： ",
+      JSON.stringify(request.parsed_url)
+    );
+    onApiRequest(apiServer.startResult.urlInfo, request, ipc);
   });
-
-
 
   (await wwwServer.listen()).onRequest(async (request, ipc) => {
     let pathname = request.parsed_url.pathname;
@@ -46,7 +50,6 @@ const main = async () => {
         ipc
       )
     );
-
   });
 
   {
@@ -70,4 +73,3 @@ const main = async () => {
 };
 
 main();
-

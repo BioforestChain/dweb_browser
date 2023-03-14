@@ -14,6 +14,10 @@ class QueryHelper {
             NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.StatusBarController::class.java) { it.toJsonAble() }
         }
 
+        fun init() {
+            // 确保 init 里头的类被注册
+        }
+
         val color = Query.composite {
             Color(
                 red = int().required("red")(it),
