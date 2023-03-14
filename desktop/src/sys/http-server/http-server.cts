@@ -12,6 +12,7 @@ import { Http1Server } from "./net/Http1Server.cjs";
 import { PortListener } from "./portListener.cjs";
 import chalk from "chalk"
 
+
 interface $Gateway {
   listener: PortListener;
   urlInfo: ServerUrlInfo;
@@ -28,10 +29,15 @@ export class HttpServerNMM extends NativeMicroModule {
   private _tokenMap = new Map</* token */ string, $Gateway>();
   private _gatewayMap = new Map</* host */ string, $Gateway>();
 
+ 
+
   protected async _bootstrap() {
+    console.log('[http-server.cts _bootstrap]')
     const info = await this._dwebServer.create();
     info.server.on("request", (req, res) => {
-      // console.log('[http-server.cts 接受到了 http 请求：]', req.headers.host)
+      if(req.url?.startsWith("/index.html?X-Dweb-Host=www.cotdemo.bfs.dweb")){
+        console.log(chalk.red('[step 1 http-server.cts 接受到了 http 请求：]', req.url))
+      }
 
       /// 获取 host
       var header_host: string | null = null;
@@ -101,6 +107,7 @@ export class HttpServerNMM extends NativeMicroModule {
           "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
         );
       }
+
       // gateway.listener.ipc.request("/on-connect")
 
       // const gateway_timeout = setTimeout(() => {
@@ -142,6 +149,19 @@ export class HttpServerNMM extends NativeMicroModule {
         return this.listen(args.token, message, args.routes as $ReqMatcher[]);
       },
     });
+
+    // 注册 jsMM wwwServer apiServer 监听器
+    this.registerCommonIpcOnMessageHandler({
+      method: "GET",
+      pathname: "/listen",
+      matchMode: "full",
+      input: { token: "string", routes: "object", host: "string" },
+      output: "object",
+      handler: async (args, ipc, message) => {
+        console.log('http-server get  registerCommonIpcOnMessageHandler listen 接受到了 请求', args)
+        return this.listen(args.token, message, args.routes as $ReqMatcher[]);
+      },
+    });
   }
   protected _shutdown() {
     this._dwebServer.destroy();
@@ -168,7 +188,7 @@ export class HttpServerNMM extends NativeMicroModule {
   private async start(ipc: Ipc, hostOptions: $DwebHttpServerOptions) {
     const serverUrlInfo = this.getServerUrlInfo(ipc, hostOptions);
     if (this._gatewayMap.has(serverUrlInfo.host)) {
-      throw new Error(`already in listen: ${origin}`);
+      throw new Error(`already in listen: ${serverUrlInfo.internal_origin}`);
     }
     const listener = new PortListener(
       ipc,
@@ -215,6 +235,7 @@ export class HttpServerNMM extends NativeMicroModule {
         streamIpc,
       })
     );
+
     return new Response(streamIpc.stream, { status: 200 });
   }
   /**

@@ -27,6 +27,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   >();
 
   async _bootstrap() {
+    console.log('[multi-webview.mobile.cts] _bootstrap')
     const httpDwebServer = await createHttpDwebServer(this, {});
     this._after_shutdown_signal.listen(() => httpDwebServer.close());
     /// 从本地文件夹中读取数据返回，
@@ -56,6 +57,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { url: "string" },
       output: "number",
       handler: async (args, client_ipc, request) => {
+        console.log('[multi-webview.mobile.cts 接受到了 open 请求]')
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         const webview_id = await wapis.apis.openWebview(args.url);
         console.log('multi-webview.mobile.cts /open args.url:', args.url)
