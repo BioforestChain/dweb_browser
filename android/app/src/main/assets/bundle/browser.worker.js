@@ -559,6 +559,9 @@ var ReadableStreamOut = class {
     this.strategy = strategy;
     this.stream = new ReadableStream(
       {
+        cancel: (reason) => {
+          this._on_cancel_signal?.emit(reason);
+        },
         start: (controller) => {
           this.controller = controller;
         },
@@ -568,6 +571,9 @@ var ReadableStreamOut = class {
       },
       this.strategy
     );
+  }
+  get onCancel() {
+    return (this._on_cancel_signal ??= createSignal()).listen;
   }
   get onPull() {
     return (this._on_pull_signal ??= createSignal()).listen;

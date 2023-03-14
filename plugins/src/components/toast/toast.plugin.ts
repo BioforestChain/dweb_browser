@@ -23,7 +23,7 @@ export class ToastPlugin extends BasePlugin implements IToastPlugin {
   async show(options: IShowOptions) {
     const { text: message, duration = "long", position = "bottom" } = options;
 
-    return await this.nativeFetch(`/show`, {
+    return await this.fetchApi(`/show`, {
       search: { message, duration, position },
     });
   }

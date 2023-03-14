@@ -1,5 +1,5 @@
-import { u8aConcat } from "./binaryHelper.cjs";
-import { $Callback, createSignal, Signal } from "./createSignal.cjs";
+import { u8aConcat } from "./binaryHelper.ts";
+import { createSignal, Signal } from "./createSignal.ts";
 
 async function* _doRead<T extends unknown>(
   reader: ReadableStreamDefaultReader<T>
@@ -120,25 +120,27 @@ export const streamReadAllBuffer = async (
   ).result;
 };
 export class ReadableStreamOut<T> {
-  constructor(readonly strategy?: QueuingStrategy<T>) {}
+  constructor(readonly strategy?: QueuingStrategy<T>) {
+    this.stream = new ReadableStream<T>(
+      {
+        cancel: (reason) => {
+          this._on_cancel_signal?.emit(reason);
+        },
+        start: (controller) => {
+          this.controller = controller;
+        },
+        pull: () => {
+          this._on_pull_signal?.emit();
+        },
+      },
+      this.strategy
+    );
+  }
   controller!: ReadableStreamDefaultController<T>;
-  stream = new ReadableStream<T>(
-    {
-      cancel: (reason) => {
-        this._on_cancel_signal?.emit(reason);
-      },
-      start: (controller) => {
-        this.controller = controller;
-      },
-      pull: () => {
-        this._on_pull_signal?.emit();
-      },
-    },
-    this.strategy
-  );
-  private _on_cancel_signal?: Signal<$Callback<[/* reason: */any]>>;
+  readonly stream: ReadableStream;
+  private _on_cancel_signal?: Signal<$OnCancel>;
   get onCancel() {
-    return (this._on_cancel_signal ??= createSignal()).listen;
+    return (this._on_cancel_signal ??= createSignal<$OnCancel>()).listen;
   }
   private _on_pull_signal?: Signal<$OnPull>;
   get onPull() {
@@ -146,6 +148,7 @@ export class ReadableStreamOut<T> {
   }
 }
 export type $OnPull = () => unknown;
+export type $OnCancel = (reason: any) => unknown;
 
 export const streamFromCallback = <T extends (...args: any[]) => unknown>(
   cb: T,

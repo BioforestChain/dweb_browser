@@ -35,7 +35,7 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
    */
   @bindThis
   async share(options: ShareOptions): Promise<Response> {
-    return await this.nativeFetch(`/share`, {
+    return await this.fetchApi(`/share`, {
       search: {
         dialogTitle: options?.dialogTitle,
         title: options?.title,

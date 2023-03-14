@@ -14,7 +14,7 @@ export class TorchPlugin extends BasePlugin {
    */
   @bindThis
   async toggleTorch() {
-    return await this.nativeFetch("/toggleTorch");
+    return await this.fetchApi("/toggleTorch");
   }
 
   /**
@@ -22,7 +22,7 @@ export class TorchPlugin extends BasePlugin {
    */
   @bindThis
   async getTorchState() {
-    return await this.nativeFetch("/torchState");
+    return await this.fetchApi("/torchState");
   }
 }
 

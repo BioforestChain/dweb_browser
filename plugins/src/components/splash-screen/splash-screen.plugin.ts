@@ -21,7 +21,7 @@ export class SplashScreenPlugin
    */
   @bindThis
   async show(options?: ShowOptions): Promise<Response> {
-    return await this.nativeFetch(`/show`, {
+    return await this.fetchApi(`/show`, {
       search: {
         autoHide: options?.autoHide,
         showDuration: options?.showDuration,
@@ -37,7 +37,7 @@ export class SplashScreenPlugin
    */
   @bindThis
   async hide(options?: HideOptions): Promise<Response> {
-    return await this.nativeFetch(`/hide`, {
+    return await this.fetchApi(`/hide`, {
       search: {
         fadeOutDuration: options?.fadeOutDuration,
       },

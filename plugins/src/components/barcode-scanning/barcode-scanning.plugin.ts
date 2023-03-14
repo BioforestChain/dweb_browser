@@ -25,7 +25,7 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @returns 
    */
   async process(blob: Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
-    await this.nativeFetch("/process", {
+    await this.fetchApi("/process", {
       search: {
         rotation,
         formats,
@@ -39,7 +39,7 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @returns 
    */
   async stop() {
-    return await this.nativeFetch(`/stop`)
+    return await this.fetchApi(`/stop`)
   }
 
   // /**

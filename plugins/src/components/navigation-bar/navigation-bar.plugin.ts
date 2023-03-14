@@ -19,7 +19,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async show(): Promise<void> {
-    await this.nativeFetch("/setVisible", {
+    await this.fetchApi("/setVisible", {
       search: {
         visible: true,
       },
@@ -31,7 +31,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async hide(): Promise<void> {
-    await this.nativeFetch("/setVisible", {
+    await this.fetchApi("/setVisible", {
       search: {
         visible: false,
       },
@@ -43,7 +43,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async getVisible(): Promise<Response> {
-    return await this.nativeFetch("/getVisible");
+    return await this.fetchApi("/getVisible");
   }
 
   /**
@@ -53,7 +53,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async setColor(options: ColorParameters): Promise<void> {
-    await this.nativeFetch("/setBackgroundColor", {
+    await this.fetchApi("/setBackgroundColor", {
       search: {
         color: options.color,
         darkButtons: options.darkButtons,
@@ -66,7 +66,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async getColor(): Promise<{ color: string }> {
-    const color = await this.nativeFetch("/getBackgroundColor").then((res) =>
+    const color = await this.fetchApi("/getBackgroundColor").then((res) =>
       res.text()
     );
     return { color: color };
@@ -78,7 +78,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async setTransparency(options: { isTransparent: boolean }): Promise<void> {
-    await this.nativeFetch("/setTransparency", {
+    await this.fetchApi("/setTransparency", {
       search: {
         isTransparency: options.isTransparent,
       },
@@ -90,7 +90,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async getTransparency(): Promise<Response> {
-    return await this.nativeFetch("/getTransparency");
+    return await this.fetchApi("/getTransparency");
   }
 
   /**
@@ -99,7 +99,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async setOverlay(options: { isOverlay: boolean }): Promise<void> {
-    await this.nativeFetch("/setOverlay", {
+    await this.fetchApi("/setOverlay", {
       search: {
         isOverlay: options.isOverlay,
       },
@@ -111,7 +111,7 @@ export class NavigatorBarPlugin extends BasePlugin {
    */
   @bindThis
   async getOverlay(): Promise<Response> {
-    return await this.nativeFetch("/getOverlay");
+    return await this.fetchApi("/getOverlay");
   }
 
   private _signalShow = this.createSignal();

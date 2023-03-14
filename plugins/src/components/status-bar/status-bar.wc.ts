@@ -1,3 +1,4 @@
+import { streamRead } from "../../helper/readableStreamHelper.ts";
 import { statusBarPlugin } from "./status-bar.plugin.ts";
 
 export class HTMLDwebStatusBarElement extends HTMLElement {
@@ -28,6 +29,22 @@ export class HTMLDwebStatusBarElement extends HTMLElement {
   }
   get getOverlaysWebView() {
     return statusBarPlugin.getOverlaysWebView;
+  }
+  constructor() {
+    super();
+    (async () => {
+      for await (const info of streamRead(await statusBarPlugin.observe())) {
+        console.log("changed", info);
+        statusBarPlugin.currentInfo = info;
+      }
+    })();
+  }
+  async connectedCallback() {
+    await statusBarPlugin.startObserve();
+    await statusBarPlugin.getInfo();
+  }
+  async disconnectedCallback() {
+    await statusBarPlugin.stopObserve();
   }
 }
 

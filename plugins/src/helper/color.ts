@@ -47,15 +47,20 @@ export function convertColor(color: string) {
     green: rgbaColor[1],
     blue: rgbaColor[2],
     alpha: rgbaColor[3],
-  };
+  } as $Color;
 }
-
+export type $Color = {
+  red: number;
+  green: number;
+  blue: number;
+  alpha: number;
+};
 export const enum COLOR_FORMAT {
   HEXA,
   RGBA,
 }
 export function normalizeColor(
-  color: ReturnType<typeof convertColor>,
+  color: $Color,
   format: COLOR_FORMAT = COLOR_FORMAT.RGBA
 ) {
   const rgbaColor = [color.red, color.green, color.blue, color.alpha];

@@ -22,7 +22,7 @@ export class ConfigPlugin extends BasePlugin {
   }
 
   private _getPublicUrl() {
-    return this.nativeFetch("/public-url").text();
+    return this.fetchApi("/public-url").text();
   }
   getPublicUrl() {
     return (BasePlugin.public_url = this._getPublicUrl());

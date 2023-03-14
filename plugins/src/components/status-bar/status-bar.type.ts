@@ -1,3 +1,5 @@
+import { $Color } from "../../helper/color.ts";
+
 export interface StyleOptions {
   /**
    * Style of the text of the status bar.
@@ -86,15 +88,11 @@ export interface BackgroundColorOptions {
 export interface StatusBarInfo {
   /**
    * Whether the status bar is visible or not.
-   *
-   * @since 1.0.0
    */
   visible: boolean;
 
   /**
    * The current status bar style.
-   *
-   * @since 1.0.0
    */
   style: StatusbarStyle;
 
@@ -102,19 +100,15 @@ export interface StatusBarInfo {
    * The current status bar color.
    *
    * This option is only supported on Android.
-   *
-   * @since 1.0.0
    */
-  color?: string;
+  color: $Color;
 
   /**
    * Whether the statusbar is overlaid or not.
    *
    * This option is only supported on Android.
-   *
-   * @since 1.0.0
    */
-  overlays?: boolean;
+  overlays: boolean;
 }
 
 export interface SetOverlaysWebViewOptions {

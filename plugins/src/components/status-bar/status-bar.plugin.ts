@@ -36,6 +36,20 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
     super("statusbar.sys.dweb");
   }
 
+  startObserve() {
+    return this.fetchApi(`/startObserve`);
+  }
+
+  observe() {
+    return this.buildInternalRequest("/observe", { search: this.mmid })
+      .fetch()
+      .jsonlines<StatusBarInfo>();
+  }
+
+  stopObserve() {
+    return this.fetchApi(`/stopObserve`);
+  }
+
   /**
    * 设置状态栏背景色
    * @param r 0~255
@@ -46,7 +60,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
   @bindThis
   async setBackgroundColor(options: BackgroundColorOptions) {
     const color = convertColor(options.color);
-    await this.nativeFetch(`/setBackgroundColor`, {
+    await this.fetchApi(`/setBackgroundColor`, {
       search: color,
     });
   }
@@ -56,7 +70,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
   @bindThis
   async getBackgroundColor() {
     return normalizeColor(
-      await (await this.nativeFetch(`/getBackgroundColor`)).json(),
+      (await this._getCurrentInfo()).color,
       COLOR_FORMAT.HEXA
     );
   }
@@ -73,7 +87,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
    */
   @bindThis
   async setStyle(styleOptions: StyleOptions) {
-    await this.nativeFetch(`/setStyle`, {
+    await this.fetchApi(`/setStyle`, {
       search: {
         style: styleOptions.style,
       },
@@ -101,7 +115,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
   @bindThis
   async show(options?: AnimationOptions): Promise<void> {
     const animation = options?.animation ?? EStatusBarAnimation.None;
-    await this.nativeFetch(`/setVisible?visible=true&animation=${animation}`);
+    await this.fetchApi(`/setVisible?visible=true&animation=${animation}`);
   }
 
   /**
@@ -112,7 +126,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
   @bindThis
   async hide(options?: AnimationOptions): Promise<void> {
     const animation = options?.animation ?? EStatusBarAnimation.None;
-    await this.nativeFetch(`/setVisible`, {
+    await this.fetchApi(`/setVisible`, {
       search: {
         visible: false,
         animation: animation,
@@ -126,9 +140,18 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
    * @since 1.0.0
    */
   @bindThis
-  async getInfo(): Promise<StatusBarInfo> {
-    return await this.nativeFetch(`/getInfo`).object<StatusBarInfo>();
+  async getInfo() {
+    return (this.currentInfo = await this.fetchApi(
+      `/getInfo`
+    ).object<StatusBarInfo>());
   }
+  private _getCurrentInfo() {
+    return this.currentInfo ?? this.getInfo();
+  }
+  /**
+   * 当前的状态集合
+   */
+  currentInfo?: StatusBarInfo;
 
   /**
    * 设置状态栏是否应该覆盖 webview 以允许使用
@@ -140,7 +163,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
    */
   @bindThis
   async setOverlaysWebView(options: SetOverlaysWebViewOptions): Promise<void> {
-    await this.nativeFetch(`/setOverlay`, {
+    await this.fetchApi(`/setOverlay`, {
       search: {
         overlay: options.overlay,
       },
@@ -148,7 +171,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
   }
   @bindThis
   async getOverlaysWebView(): Promise<boolean> {
-    return await this.nativeFetch(`/getOverlay`).boolean();
+    return await this.fetchApi(`/getOverlay`).boolean();
   }
 }
 export const statusBarPlugin = new StatusBarPlugin();

@@ -2,8 +2,29 @@ import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
+import { simpleEncoder } from "../../helper/encoding.cjs";
+import { mapHelper } from "../../helper/mapHelper.cjs";
+import { ReadableStreamOut } from "../../helper/readableStreamHelper.cjs";
 import type { ServerUrlInfo } from "../../sys/http-server/const.js";
 
+const ipcObserversMap = new Map<
+  $MMID,
+  Set<{ controller: ReadableStreamDefaultController }>
+>();
+jsProcess.onConnect((ipc) => {
+  ipc.onEvent((event) => {
+    const observers = ipcObserversMap.get(ipc.remote.mmid);
+    if (observers && observers.size > 0) {
+      const jsonline = simpleEncoder(
+        JSON.stringify(event.jsonAble) + "\n",
+        "utf8"
+      );
+      for (const ob of observers) {
+        ob.controller.enqueue(jsonline);
+      }
+    }
+  });
+});
 const INTERNAL_PREFIX = "/internal";
 /**
  * request 事件处理器
@@ -19,11 +40,35 @@ export async function onApiRequest(
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
       if (pathname === "/public-url") {
-        ipcResponse = await IpcResponse.fromText(
+        ipcResponse = IpcResponse.fromText(
           request.req_id,
           200,
           undefined,
-          serverurlInfo.buildPublicUrl(() => { }).href,
+          serverurlInfo.buildPublicUrl(() => {}).href,
+          httpServerIpc
+        );
+      } else if (pathname === "/observe") {
+        const mmid = url.searchParams.get("mmid");
+        if (mmid === null) {
+          throw new Error("observe require mmid");
+        }
+        const streamPo = new ReadableStreamOut<Uint8Array>();
+        const observers = mapHelper.getOrPut(
+          ipcObserversMap,
+          mmid,
+          () => new Set()
+        );
+        const ob = { controller: streamPo.controller };
+        observers.add(ob);
+        streamPo.onCancel(() => {
+          observers.delete(ob);
+        });
+
+        ipcResponse = IpcResponse.fromStream(
+          request.req_id,
+          200,
+          undefined,
+          streamPo.stream,
           httpServerIpc
         );
       } else {
