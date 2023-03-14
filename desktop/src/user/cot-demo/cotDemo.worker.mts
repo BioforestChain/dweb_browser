@@ -1,5 +1,6 @@
 
 import { onApiRequest } from "./cotDemo.request.mjs";
+import chalk from "chalk";
 
 const main = async () => {
   console.log("[cotDemo.worker.mts] main");
@@ -64,6 +65,11 @@ const main = async () => {
      *
      * 如此数据就不会发给我，节省大量传输成本
      */
+    console.log(chalk.red("这里的 ipc.postMessage 没有办法触发返回"))
+    // 检查了 ipc_to_worker.onMessage(） ipc.onMessage(）那个地方没有相应匹配的 事件触发
+    // 不知道这个 ipc 是指向那个地方
+    // ipc.cts 和 ReadableSreamIpc.cts 文件中的方法都正常的触发了
+    // 不知道这里是个什么情况
     ipc.postMessage(
       new IpcResponse(
         request.req_id,
