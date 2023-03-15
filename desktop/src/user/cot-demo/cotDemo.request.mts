@@ -1,3 +1,4 @@
+import { u8aConcat } from "../../helper/binaryHelper.cjs";
 import { simpleEncoder } from "../../helper/encoding.cjs";
 import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
@@ -14,7 +15,7 @@ const ipcObserversMap = new Map<
   $MMID,
   {
     ipc: PromiseOut<$Ipc>;
-    obs: Set<{ controller: ReadableStreamDefaultController }>;
+    obs: Set<{ controller: ReadableStreamDefaultController<Uint8Array> }>;
   }
 >();
 
@@ -30,7 +31,7 @@ export async function onApiRequest(
   let ipcResponse: undefined | $IpcResponse;
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
-    console.log("cotDemo#onApiRequest=>", url.href, request.method)
+    console.log("cotDemo#onApiRequest=>", url.href, request.method);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
       if (pathname === "/public-url") {
@@ -53,14 +54,14 @@ export async function onApiRequest(
           result.ipc.promise.then((ipc) => {
             ipc.onEvent((event) => {
               console.log("on-event", event);
+              if (event.name !== "observe") {
+                return;
+              }
               const observers = ipcObserversMap.get(ipc.remote.mmid);
+              const jsonlineEnd = simpleEncoder("\n", "utf8");
               if (observers && observers.obs.size > 0) {
-                const jsonline = simpleEncoder(
-                  JSON.stringify(event.jsonAble) + "\n",
-                  "utf8"
-                );
                 for (const ob of observers.obs) {
-                  ob.controller.enqueue(jsonline);
+                  ob.controller.enqueue(u8aConcat([event.binary, jsonlineEnd]));
                 }
               }
             });

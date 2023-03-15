@@ -34,7 +34,7 @@ class StatusBarNMM : NativeMicroModule("status-bar.sys.dweb") {
                     observers[ipc] = controller.observe {
                         ipc.postMessage(
                             IpcEvent.fromUtf8(
-                                "status-bar-state-changed",
+                                "observe",
                                 gson.toJson(controller.toJsonAble())
                             )
                         )

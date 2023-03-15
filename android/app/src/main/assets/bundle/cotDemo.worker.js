@@ -1,3 +1,18 @@
+// src/helper/binaryHelper.cts
+var u8aConcat = (binaryList) => {
+  let totalLength = 0;
+  for (const binary of binaryList) {
+    totalLength += binary.byteLength;
+  }
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const binary of binaryList) {
+    result.set(binary, offset);
+    offset += binary.byteLength;
+  }
+  return result;
+};
+
 // src/helper/encoding.cts
 var textEncoder = new TextEncoder();
 var simpleEncoder = (data, encoding) => {
@@ -127,14 +142,14 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
           result.ipc.promise.then((ipc2) => {
             ipc2.onEvent((event) => {
               console.log("on-event", event);
+              if (event.name !== "observe") {
+                return;
+              }
               const observers2 = ipcObserversMap.get(ipc2.remote.mmid);
+              const jsonlineEnd = simpleEncoder("\n", "utf8");
               if (observers2 && observers2.obs.size > 0) {
-                const jsonline = simpleEncoder(
-                  JSON.stringify(event.jsonAble) + "\n",
-                  "utf8"
-                );
                 for (const ob2 of observers2.obs) {
-                  ob2.controller.enqueue(jsonline);
+                  ob2.controller.enqueue(u8aConcat([event.binary, jsonlineEnd]));
                 }
               }
             });

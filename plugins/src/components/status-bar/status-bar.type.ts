@@ -85,7 +85,7 @@ export interface BackgroundColorOptions {
   color: string;
 }
 
-export interface StatusBarInfo {
+export interface StatusBarRawInfo {
   /**
    * Whether the status bar is visible or not.
    */
@@ -108,7 +108,14 @@ export interface StatusBarInfo {
    *
    * This option is only supported on Android.
    */
-  overlays: boolean;
+  overlay: boolean;
+}
+
+export interface StatusBarInfo {
+  visible: boolean;
+  style: StatusbarStyle;
+  color: string;
+  overlay: boolean;
 }
 
 export interface SetOverlaysWebViewOptions {
@@ -204,7 +211,7 @@ export type StatusBarOverlaysWebviewOptions = SetOverlaysWebViewOptions;
  * @deprecated Use `StatusBarInfo`.
  * @since 1.0.0
  */
-export type StatusBarInfoResult = StatusBarInfo;
+export type StatusBarInfoResult = StatusBarRawInfo;
 
 /**
  * @deprecated Use `AnimationOptions`.

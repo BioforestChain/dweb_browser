@@ -4,6 +4,7 @@ import {
   convertColor,
   normalizeColor,
 } from "../../helper/color.ts";
+import { $Callback } from "../../helper/createSignal.ts";
 import { BasePlugin } from "../basePlugin.ts";
 import {
   type AnimationOptions,
@@ -11,8 +12,9 @@ import {
   type IStatusBarPlugin,
   type SetOverlaysWebViewOptions,
   EStatusBarAnimation,
-  type StatusBarInfo,
+  type StatusBarRawInfo,
   type StyleOptions,
+  StatusBarInfo,
 } from "./status-bar.type.ts";
 /**
  * 访问 statusbar 能力的插件
@@ -45,7 +47,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
       base: await BasePlugin.public_url,
     })
       .fetch()
-      .jsonlines<StatusBarInfo>();
+      .jsonlines<StatusBarRawInfo>();
   }
 
   stopObserve() {
@@ -71,10 +73,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
    */
   @bindThis
   async getBackgroundColor() {
-    return normalizeColor(
-      (await this._getCurrentInfo()).color,
-      COLOR_FORMAT.HEXA
-    );
+    return (await this.getInfo()).color;
   }
 
   /**
@@ -116,8 +115,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
    */
   @bindThis
   async show(options?: AnimationOptions): Promise<void> {
-    const animation = options?.animation ?? EStatusBarAnimation.None;
-    await this.fetchApi(`/setVisible?visible=true&animation=${animation}`);
+    return this.setVisible(true, options);
   }
 
   /**
@@ -127,33 +125,65 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
    */
   @bindThis
   async hide(options?: AnimationOptions): Promise<void> {
+    return this.setVisible(false, options);
+  }
+  @bindThis
+  async setVisible(visible: boolean, options?: AnimationOptions) {
     const animation = options?.animation ?? EStatusBarAnimation.None;
     await this.fetchApi(`/setVisible`, {
       search: {
-        visible: false,
+        visible: visible,
         animation: animation,
       },
     });
   }
+  @bindThis
+  async getVisible() {
+    await this.fetchApi(`/getVisible`);
+  }
 
   /**
-   * 获取有关状态栏当前状态的信息。
-   *
-   * @since 1.0.0
+   * 刷新获取有关状态栏当前状态的信息。
+   */
+  private async _updateCurrentInfo() {
+    const rawInfo = await this.fetchApi(`/getInfo`).object<StatusBarRawInfo>();
+    return this.normalizeRawInfo(rawInfo);
+  }
+  normalizeRawInfo(rawInfo: StatusBarRawInfo) {
+    const info: StatusBarInfo = {
+      ...rawInfo,
+      color: normalizeColor(rawInfo.color, COLOR_FORMAT.HEXA),
+    };
+    return info;
+  }
+  /**
+   * 获取当前状态
+   * @returns
    */
   @bindThis
-  async getInfo() {
-    return (this.currentInfo = await this.fetchApi(
-      `/getInfo`
-    ).object<StatusBarInfo>());
-  }
-  private _getCurrentInfo() {
-    return this.currentInfo ?? this.getInfo();
+  async getInfo(force_update = false) {
+    if (force_update || this.currentInfo === undefined) {
+      return await this._updateCurrentInfo();
+    }
+    return this.currentInfo;
   }
   /**
    * 当前的状态集合
    */
-  currentInfo?: StatusBarInfo;
+  private _currentInfo?: StatusBarInfo | undefined;
+  public get currentInfo(): StatusBarInfo | undefined {
+    return this._currentInfo;
+  }
+  public set currentInfo(value: StatusBarInfo | undefined) {
+    this._currentInfo = value;
+    if (value) {
+      this._signalCurrentInfoChange.emit(value);
+    }
+  }
+
+  private _signalCurrentInfoChange =
+    this.createSignal<$Callback<[StatusBarInfo]>>();
+  readonly onCurrentInfoChange = this._signalCurrentInfoChange.listen;
 
   /**
    * 设置状态栏是否应该覆盖 webview 以允许使用
@@ -173,7 +203,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
   }
   @bindThis
   async getOverlaysWebView(): Promise<boolean> {
-    return await this.fetchApi(`/getOverlay`).boolean();
+    return (await this.getInfo()).overlay;
   }
 }
 export const statusBarPlugin = new StatusBarPlugin();

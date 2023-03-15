@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import { StatusbarPlugin, StatusbarStyle } from "@bfex/plugin";
+import { StatusbarPlugin, StatusbarStyle, StatusbarInfo } from "@bfex/plugin";
 import { defineLogAction } from "../helpers/logHelper";
 
 const title = "StatusBar";
@@ -30,10 +30,18 @@ const $statusbarPlugin = ref<StatusbarPlugin>();
 
 let console: Console;
 let statusbar: StatusbarPlugin;
-onMounted(() => {
+onMounted(async () => {
   console = toConsole($logPanel);
   statusbar = $statusbarPlugin.value!;
+  onStatusBarChange(await statusbar.getInfo());
 });
+
+const onStatusBarChange = (info: StatusbarInfo) => {
+  color.value = info.color;
+  style.value = info.style;
+  overlay.value = info.overlay;
+  visible.value = info.visible;
+};
 
 const color = ref<string>(null as never);
 const setBackgroundColor = defineLogAction(
@@ -44,7 +52,7 @@ const setBackgroundColor = defineLogAction(
 );
 const getBackgroundColor = defineLogAction(
   async () => {
-    color.value = await statusbar.getBackgroundColor()
+    color.value = await statusbar.getBackgroundColor();
   },
   { name: "getBackgroundColor", args: [color], logPanel: $logPanel }
 );
@@ -79,9 +87,25 @@ const getOverlay = defineLogAction(
     logPanel: $logPanel,
   }
 );
+const visible = ref<boolean>(null as never);
+const setVisible = defineLogAction(() => statusbar.setVisible({ visible: visible.value }), {
+  name: "setVisible",
+  args: [visible],
+  logPanel: $logPanel,
+});
+const getVisible = defineLogAction(
+  async () => {
+    visible.value = await statusbar.getVisible();
+  },
+  {
+    name: "getOverlay",
+    args: [visible],
+    logPanel: $logPanel,
+  }
+);
 </script>
 <template>
-  <dweb-status-bar ref="$statusbarPlugin"></dweb-status-bar>
+  <dweb-status-bar ref="$statusbarPlugin" @change="onStatusBarChange(event.detail)"></dweb-status-bar>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/statusbar.svg" :alt="title" />
@@ -122,6 +146,18 @@ const getOverlay = defineLogAction(
           Set
         </button>
         <button class="inline-block rounded-full btn btn-accent" @click="getOverlay">Get</button>
+      </div>
+    </article>
+
+    <article class="card-body">
+      <h2 class="card-title">Status Bar Visible</h2>
+      <input class="toggle" type="checkbox" id="statusbar-overlay" v-model="visible" />
+
+      <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == visible" @click="setVisible">
+          Set
+        </button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getVisible">Get</button>
       </div>
     </article>
   </div>
