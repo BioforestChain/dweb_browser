@@ -7,7 +7,7 @@ export async function wwwServerOnRequest(request: IpcRequest, ipc: Ipc){
     let pathname = request.parsed_url.pathname;
         pathname = pathname === "/" ? "/index.html" : pathname;
         
-    const url = `file:///cot-demo${pathname}?mode=stream`
+    const url = `file:///app/cot-demo${pathname}?mode=stream`
     const response = await jsProcess.nativeRequest(url);
 
     ipc.postMessage(
