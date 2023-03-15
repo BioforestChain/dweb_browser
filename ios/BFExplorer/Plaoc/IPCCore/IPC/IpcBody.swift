@@ -20,8 +20,6 @@ class IpcBody {
     
     var raw: Any
     
-    var wm: NSMutableDictionary = NSMutableDictionary()
-    
     init() {
         self.raw = bodyHub?.data
     }

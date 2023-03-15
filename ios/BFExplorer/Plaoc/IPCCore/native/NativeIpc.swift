@@ -12,31 +12,26 @@ class NativeIpc: Ipc {
 
     private var port: NativePort<IpcMessage, IpcMessage>?
     
-    init(port: NativePort<IpcMessage, IpcMessage>, remote: MicroModule, role: IPC_ROLE) {
+    init(port: NativePort<IpcMessage, IpcMessage>, remote: MicroModuleInfo, role: IPC_ROLE) {
         super.init()
         self.port = port
         self.remote = remote
-        self.role = role
+        self.role = role.rawValue
         
+        self.supportRaw = true
+        self.supportBinary = true
         
         _ = port.onMessage { message in
-//            var ipcMessage: IpcMessage?
-//            if let request = message as? IpcRequest {
-//                ipcMessage = IpcRequest.fromRequest(req_id: request.req_id, request: request.asRequest()!, ipc: self)
-//            } else if let response = message as? IpcResponse {
-//                if let res = IpcResponse.fromResponse(req_id: response.req_id, response: response.asResponse(), ipc: self) {
-//                    ipcMessage = res
-//                }
-//            } else {
-//                ipcMessage = message
-//            }
             
             self.messageSignal?.emit((message,self))
-//            return port.messageSignal.closure
         }
         Task {
             port.start()
         }
+    }
+    
+    override func toString() -> String {
+        return super.toString() + "@NativeIpc"
     }
     
     override func doPostMessage(data: IpcMessage) {

@@ -35,7 +35,7 @@ class Ipc: NSObject {
     var supportRaw: Bool = false
     /** 是否支持 二进制 传输 */
     var supportBinary: Bool  = false
-    var remote: MicroModuleInfo
+    var remote: MicroModuleInfo?
     var role: String?
     
     private var _closed = false
@@ -111,6 +111,7 @@ class Ipc: NSObject {
             if let request = message as? IpcRequest {
                 signal.emit((request, ipc))
             }
+            return nil
         })
         return signal
     }()
@@ -127,6 +128,7 @@ class Ipc: NSObject {
             if let event = message as? IpcEvent {
                 signal.emit((event, ipc))
             }
+            return nil
         })
         return signal
     }()

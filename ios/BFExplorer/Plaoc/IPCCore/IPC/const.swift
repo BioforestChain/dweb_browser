@@ -28,3 +28,4 @@ typealias OnIpcEventMessage = ((IpcEvent,Ipc)) -> Void
 typealias closeCallback = (()) -> Any
 typealias SimpleCallbcak = (()) -> Any
 typealias OffListener = () -> Bool
+typealias AsyncCallback<T, R> = (T) async -> R?

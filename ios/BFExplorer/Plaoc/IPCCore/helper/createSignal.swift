@@ -12,7 +12,7 @@ import UIKit
 
 class Signal<T> {
     
-    typealias SignalClosure = (T) -> Any
+    typealias SignalClosure = (T) -> Any?
     
     
     private var _cbs: Set<GenericsClosure<SignalClosure>> = []
