@@ -46,6 +46,7 @@ suspend fun startDwebBrowser() {
                 "message-port-ipc",
                 "stream-ipc",
                 "stream",
+                "nativeui",
             )
         )
         else -> debugTags.addAll(

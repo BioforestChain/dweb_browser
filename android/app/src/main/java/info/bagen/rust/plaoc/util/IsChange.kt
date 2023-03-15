@@ -33,24 +33,38 @@ class IsChange(
 
     @Composable
     inline fun <T> rememberToState(value: T): MutableState<T> {
-        return remember(value) {
-            if (needFirstCall) {
-                changes.value += 1
-            }
+        return rememberByState(remember(value) {
             mutableStateOf(value, getPolicy())
-        }
+        })
     }
 
     @Composable
-    inline fun <T> rememberByState(value: State<T>): State<T> {
-        return remember {
+    inline fun <out T> rememberByState(state: MutableState<T>): MutableState<T> {
+        LaunchedEffect(state) {
             if (needFirstCall) {
                 changes.value += 1
             }
-            derivedStateOf(getPolicy()) {
-                value.value
+            snapshotFlow {
+                state.value
+            }.collect {
+                changes.value += 1
             }
         }
+
+        return state
+    }
+
+    @Composable
+    fun TodoList(highPriorityKeywords: List<String> = listOf("Review", "Unblock", "Compose")) {
+
+        val todoTasks = remember { mutableStateListOf<String>() }
+
+        // Calculate high priority tasks only when the todoTasks or highPriorityKeywords
+        // change, not on every recomposition
+        val highPriorityTasks by remember(highPriorityKeywords) {
+            derivedStateOf { todoTasks.filter { it.startsWith(highPriorityKeywords[0]) } }
+        }
+
     }
 }
 
