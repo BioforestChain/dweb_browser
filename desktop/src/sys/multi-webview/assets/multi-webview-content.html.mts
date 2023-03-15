@@ -134,6 +134,12 @@ export class MultiWebViewContent extends LitElement{
 
     static override styles  = allCss
 
+    @state() isShow: boolean = false;
+
+    override connectedCallback(){
+        super.connectedCallback()
+    }
+
     onDomReady(event: Event){
         this.dispatchEvent(new CustomEvent(
             "dom-ready",
@@ -146,6 +152,10 @@ export class MultiWebViewContent extends LitElement{
                 }
             }
         ))
+    }
+
+    onShow(){
+        this.isShow = true;
     }
 
     onAnimationend(event: AnimationEvent){
@@ -201,8 +211,18 @@ export class MultiWebViewContent extends LitElement{
                         allowpopups
                         @dom-ready=${this.onDomReady}
                     ></webview>
+                    <!--
+                    <iframe
+                        src=${ifDefined(this.src)}
+                        @load=${() => console.log('cot-demo 载入完成')}
+                        style="display: ${this.isShow ? "block" : 'none'};width: 100%;height: 48px;border: none; flex-grow: 0; flex-shrink: 0; position:relative; left: 0px; top: 0px;"
+                        data-app-url=${this.src}
+                    ></iframe>
+                    <button class="show" @click=${this.onShow}>show</button>
+                    -->
                 </div>
                 <!-- navigator-bar -->
+                <!--
                 <iframe 
                     id="navigator-bar"
                     class="iframe-navigator-bar"
@@ -211,6 +231,7 @@ export class MultiWebViewContent extends LitElement{
                     @load=${() => console.log('navigator-bar 载入完成')}
                     data-app-url=${this.src}
                 ></iframe>
+                -->
                 <!-- 底部黑线 -->
                 <div class="bottom-line-container"></div>
             </div>

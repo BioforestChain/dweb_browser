@@ -6,6 +6,7 @@ import type { $IpcSupportProtocols } from "../../helper/types.cjs";
 import { buildUrl } from "../../helper/urlHelper.cjs";
 import { Native2JsIpc } from "../js-process/ipc.native2js.cjs";
 import type { JmmMetadata } from "./JmmMetadata.cjs";
+import chalk from "chalk";
 
 /**
  * 所有的js程序都只有这么一个动态的构造器
@@ -40,9 +41,18 @@ export class JsMicroModule extends MicroModule {
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
     this.onConnect((ipc) => {
+      // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
       ipc.onRequest(async (request) => {
-        console.log('ipc onRequest')
-        const response = await this.nativeFetch(request.parsed_url.href);
+        // console.log('[micro-module.js.cts ipc onRequest]',JSON.stringify(request))
+        // console.log('[micro-module.js.cts ipc onRequest request.parsed_url.href]',request.parsed_url.href)
+        // console.log('[micro-module.js.cts ]   ipc ', ipc.remote.mmid)
+        // console.log(chalk.red(`[micro-module.js.cts 这里错误，传递 init 参数否则无法正确的创建ipc通信🔗]`))
+        console.log(chalk.red(`[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`))
+        const  init = request.method === "POST" || request.method === "PUT"  
+                    ? { method: request.method, body: await request.body.stream()}
+                    : { method: request.method}
+
+        const response = await this.nativeFetch(request.parsed_url.href, init)
         ipc.postMessage(
           await IpcResponse.fromResponse(request.req_id, response, ipc)
         )

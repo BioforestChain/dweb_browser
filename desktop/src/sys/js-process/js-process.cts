@@ -137,6 +137,8 @@ export class JsProcessNMM extends NativeMicroModule {
     console.log('[js-process _bootstrap]')
     const mainServer = await createHttpDwebServer(this, {});
     (await mainServer.listen()).onRequest(async (request, ipc) => {
+      console.log("[js-process mainServer onRequest ]request.parsed_url.pathname", request.parsed_url.pathname)
+      // return;
       const pathname = request.parsed_url.pathname;
       if(pathname.endsWith('/bootstrap.js')){
         return ipc.postMessage(
@@ -182,7 +184,7 @@ export class JsProcessNMM extends NativeMicroModule {
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );
-
+      console.log( '[js-process. openNativeWindow]')
       // 打开 devtools
       nww.webContents.openDevTools();
       this._after_shutdown_signal.listen(() => {
@@ -349,110 +351,101 @@ export class JsProcessNMM extends NativeMicroModule {
     );
     /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
     ipc_to_worker.onMessage((ipcMessage) => {
-      // console.log(`3 [js-process.cts 接受到了 ${ipc_to_worker.remote.mmid}] worker 发送过来的请求 请求的url === ${(ipcMessage as  any).url}`)
-      // console.log(`4 [js-process.cts 把请求发送给了 ipc ${ipc.remote.mmid}]`)
-      console.log('------------------------')
+      ipc.postMessage(ipcMessage);
+      // 调试用代码 先不要删除
+      // // console.log(`3 [js-process.cts 接受到了 ${ipc_to_worker.remote.mmid}] worker 发送过来的请求 请求的url === ${(ipcMessage as  any).url}`)
+      // // console.log(`4 [js-process.cts 把请求发送给了 ipc ${ipc.remote.mmid}]`)
+      // console.log('------------------------')
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.REQUEST){
-        console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 请求类型的数据]')
-        ipc.postMessage(ipcMessage);
-        return
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.REQUEST){
+      //   console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 请求类型的数据]')
+      //   ipc.postMessage(ipcMessage);
+      //   return
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.RESPONSE){
-        console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 返回类型的数据]')
-        ipc.postMessage(ipcMessage);
-        return
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.RESPONSE){
+      //   console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 返回类型的数据]')
+      //   ipc.postMessage(ipcMessage);
+      //   return
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_DATA){
-        console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 发送方数据流]')
-        ipc.postMessage(ipcMessage);
-        return
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_DATA){
+      //   console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 发送方数据流]')
+      //   ipc.postMessage(ipcMessage);
+      //   return
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_PULL){
-        console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 拉取流请求方]')
-        ipc.postMessage(ipcMessage);
-        return;
-      }  
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_PULL){
+      //   console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 拉取流请求方]')
+      //   ipc.postMessage(ipcMessage);
+      //   return;
+      // }  
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_END){
-        console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 关闭流]')
-        ipc.postMessage(ipcMessage);
-        return;
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_END){
+      //   console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 关闭流]')
+      //   ipc.postMessage(ipcMessage);
+      //   return;
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_ABORT){
-        console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 流中断]')
-        ipc.postMessage(ipcMessage);
-        return;
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_ABORT){
+      //   console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 流中断]')
+      //   ipc.postMessage(ipcMessage);
+      //   return;
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.EVENT){
-        console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 事件]')
-        ipc.postMessage(ipcMessage);
-        return;
-      }
-
-
-      console.log(chalk.red('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 还没有定义类型的数据]'))
-
-      // ipc.postMessage(ipcMessage);
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.EVENT){
+      //   console.log('[js-process.cts ipc_to_worker 对象 onMessage 接受到了 事件]')
+      //   ipc.postMessage(ipcMessage);
+      //   return;
+      // }
     });
     ipc.onMessage((ipcMessage) => {
-      console.log('------------------------22222')
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.REQUEST){
-        console.log(`1 请求 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`, )
-        ipc_to_worker.postMessage(ipcMessage);
-      }
+      ipc_to_worker.postMessage(ipcMessage);
+      // 调试用代码 先不要删除
+      // console.log('------------------------22222')
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.REQUEST){
+      //   console.log(`1 请求 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`, )
+      //   ipc_to_worker.postMessage(ipcMessage);
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.RESPONSE){
-        console.log(`1 返回 数据 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的 发送给通过 port1 发送给 worker`, )
-        ipc_to_worker.postMessage(ipcMessage);
-        return;
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.RESPONSE){
+      //   console.log(`1 返回 数据 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的 发送给通过 port1 发送给 worker`, )
+      //   ipc_to_worker.postMessage(ipcMessage);
+      //   return;
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_DATA){
-        console.log(`1 发送方的数据流 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
-        ipc_to_worker.postMessage(ipcMessage);
-        return;
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_DATA){
+      //   console.log(`1 发送方的数据流 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
+      //   ipc_to_worker.postMessage(ipcMessage);
+      //   return;
+      // }
  
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_PULL){
-        console.log(`1 拉取流请求方 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
-        ipc_to_worker.postMessage(ipcMessage);
-        return;
-      }    
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_PULL){
+      //   console.log(`1 拉取流请求方 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
+      //   ipc_to_worker.postMessage(ipcMessage);
+      //   return;
+      // }    
       
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_END){
-        console.log(`1 关闭流 发送方 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
-        ipc_to_worker.postMessage(ipcMessage);
-        return;
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_END){
+      //   console.log(`1 关闭流 发送方 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
+      //   ipc_to_worker.postMessage(ipcMessage);
+      //   return;
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_ABORT){
-        console.log(`1 流中断 请求方 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
-        ipc_to_worker.postMessage(ipcMessage);
-        return;
-      }
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.STREAM_ABORT){
+      //   console.log(`1 流中断 请求方 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
+      //   ipc_to_worker.postMessage(ipcMessage);
+      //   return;
+      // }
 
-      if(ipcMessage.type === IPC_MESSAGE_TYPE.EVENT){
-        console.log('')
-        console.log(`1 事假 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
-        ipc_to_worker.postMessage(ipcMessage);
-        return;
-      }
-
-
-
-      console.log(chalk.red(`1 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的 没有匹配类型的数据`, ipcMessage.type))
-
+      // if(ipcMessage.type === IPC_MESSAGE_TYPE.EVENT){
+      //   console.log('')
+      //   console.log(`1 事假 [js-process.cts ipc.onMessage ${ipc.remote.mmid}] 发送过来的请求数据发送给通过 port1 发送给 worker`)
+      //   ipc_to_worker.postMessage(ipcMessage);
+      //   return;
+      // }
       
-      
-      // console.log(`2 [js-process.cts 把消息发送给  ${ipc_to_worker.remote.mmid}] worker`)
-      // ipc_to_worker.postMessage(ipcMessage);
     });
 
     // this.processImportsMap.set(host, processImports);

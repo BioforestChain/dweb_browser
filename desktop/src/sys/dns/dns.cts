@@ -125,6 +125,7 @@ export class DnsNMM extends NativeMicroModule {
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(
         async (fromMM, parsedUrl, requestInit) => {
+          // console.log('[dns.cts 适配器执行了] requestInit === ',JSON.stringify(requestInit))
           if (
             parsedUrl.protocol === "file:" &&
             parsedUrl.hostname.endsWith(".dweb")
@@ -136,6 +137,7 @@ export class DnsNMM extends NativeMicroModule {
               new Request(parsedUrl, requestInit)
             );
             const ipc_req_init = await $readRequestAsIpcRequest(requestInit);
+            console.log('[dns.cts 适配器执行了] ipc_req_init === ',JSON.stringify(ipc_req_init))
             const ipc_response = await ipc.request(
               parsedUrl.href,
               ipc_req_init
