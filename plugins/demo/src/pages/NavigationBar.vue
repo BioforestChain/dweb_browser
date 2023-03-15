@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import { Navigatorbar, NavigationBarPluginEvents } from "@bfex/plugin";
+import { NavigatorBarPlugin, NavigationBarPluginEvents } from "@bfex/plugin";
 
 const title = "Navigation Bar";
 
 const $logPanel = ref<typeof LogPanel>();
-const $NavigatorbarPlugin = ref<Navigatorbar>();
+const $NavigatorbarPlugin = ref<NavigatorBarPlugin>();
 
 let console: Console;
-let navigator: Navigatorbar;
+let navigator: NavigatorBarPlugin;
 onMounted(() => {
   console = toConsole($logPanel);
   navigator = $NavigatorbarPlugin.value!;
@@ -75,19 +75,19 @@ const getOverlay = async () => {
 };
 
 const listen_show = async () => {
-  navigator.addListener(NavigationBarPluginEvents.SHOW, (res) => {
-    console.info("listen_show", res);
+  navigator.onShow(() => {
+    console.info("listen_show");
   });
 };
 
 const listen_hide = async () => {
-  navigator.addListener(NavigationBarPluginEvents.HIDE, (res) => {
-    console.info("listen_hide", res);
+  navigator.onHide(() => {
+    console.info("listen_show");
   });
 };
 const listen_change = async () => {
-  navigator.addListener(NavigationBarPluginEvents.COLOR_CHANGE, (res) => {
-    console.info("listen_change", res);
+  navigator.onChange(() => {
+    console.info("listen_show");
   });
 };
 </script>

@@ -1,4 +1,4 @@
-/// <reference path="../../shims/ImageCapture.d.ts"/>
+// <reference path="../../shims/ImageCapture.d.ts"/>
 import { BasePlugin } from "../basePlugin.ts";
 import {
   SupportedFormat,
@@ -25,14 +25,15 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @returns 
    */
   async process(blob: Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
-    await this.fetchApi("/process", {
+    return this.buildApiRequest("/process", {
       search: {
         rotation,
         formats,
       },
       method: "POST",
-      body: blob
-    })
+      body: blob,
+      base: await BasePlugin.public_url,
+    }).fetch()
   }
   /**
    * 停止扫码

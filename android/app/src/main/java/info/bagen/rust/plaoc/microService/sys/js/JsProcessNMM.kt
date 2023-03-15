@@ -91,7 +91,6 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         val bootstrap_url =
             mainServer.startResult.urlInfo.buildInternalUrl().path("$INTERNAL_PATH/bootstrap.js")
                 .toString()
-        println("mainServer: ${mainServer.startResult}")
 
 
         val afterReadyPo = PromiseOut<Unit>()

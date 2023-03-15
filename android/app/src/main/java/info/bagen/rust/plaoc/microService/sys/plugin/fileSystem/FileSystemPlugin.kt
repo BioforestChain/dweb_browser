@@ -7,7 +7,6 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.iterator
 import info.bagen.rust.plaoc.microService.helper.readByteArray
 import info.bagen.rust.plaoc.microService.helper.readInt
-import info.bagen.rust.plaoc.webView.network.dWebView_host
 import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
@@ -20,7 +19,7 @@ typealias path = String
 class FileSystemPlugin {
     val filePermissions = mutableMapOf<path, PermissionState>()
     fun getRootPath(): String {
-        return "${App.appContext.dataDir}/system-app/$dWebView_host/home/"
+        return "${App.appContext.dataDir}/system-app/home/"
     }
 
     fun getFileByPath(path: String): File {

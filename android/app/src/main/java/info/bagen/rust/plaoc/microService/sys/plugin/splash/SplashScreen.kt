@@ -43,9 +43,9 @@ class SplashScreen(
         }
 
         fun load() {
-            App.dwebViewActivity?.let { activity ->
-                sInstance.showOnLaunch(activity = activity)
-            }
+//            App.dwebViewActivity?.let { activity ->
+//                sInstance.showOnLaunch(activity = activity)
+//            }
         }
 
         fun show(
@@ -61,19 +61,19 @@ class SplashScreen(
                 fadeOutDuration = fadeOutDuration ?: 200L,
                 autoHide = autoHide
             )
-            App.dwebViewActivity?.let { activity ->
-                sInstance.show(activity, settings, onCallback)
-            }
+//            App.dwebViewActivity?.let { activity ->
+//                sInstance.show(activity, settings, onCallback)
+//            }
         }
 
         fun hide() {
-            App.dwebViewActivity?.let { activity ->
-                if (sInstance.config.usingDialog) {
-                    sInstance.hideDialog(activity = activity)
-                } else if (sInstance.settings != null) {
-                    sInstance.hide(HideOptions(sInstance.settings!!.fadeOutDuration))
-                }
-            }
+//            App.dwebViewActivity?.let { activity ->
+//                if (sInstance.config.usingDialog) {
+//                    sInstance.hideDialog(activity = activity)
+//                } else if (sInstance.settings != null) {
+//                    sInstance.hide(HideOptions(sInstance.settings!!.fadeOutDuration))
+//                }
+//            }
 
         }
 

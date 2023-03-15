@@ -3,9 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.fileopener
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.webkit.MimeTypeMap
-import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.printerrln
 import java.io.File
 
@@ -41,13 +39,13 @@ object FileOpener {
                     val path = Uri.parse("content://${file.absolutePath}")
                     intent.setDataAndType(path, type)
                     intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    App.dwebViewActivity?.let { activity ->
-                        if (openWithDefault) {
-                            activity.startActivity(intent)
-                        } else {
-                            activity.startActivity(Intent.createChooser(intent, "Open File in..."))
-                        }
-                    }
+//                    App.dwebViewActivity?.let { activity ->
+//                        if (openWithDefault) {
+//                            activity.startActivity(intent)
+//                        } else {
+//                            activity.startActivity(Intent.createChooser(intent, "Open File in..."))
+//                        }
+//                    }
                 } catch (exception: ActivityNotFoundException) {
                     printerrln("FileOpener", "FIleOpener::open ActivityNotFoundException->$exception")
                     onErrorCallback("Activity not found: ${exception.message} --> 8 $exception")

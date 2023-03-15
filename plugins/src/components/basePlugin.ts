@@ -7,8 +7,7 @@ import { createSignal } from "../helper/createSignal.ts";
 export abstract class BasePlugin {
   abstract tagName: string;
 
-  // mmid:为对应组件的名称，proxy:为劫持对象的属性
-  constructor(readonly mmid: string) {}
+  constructor(readonly mmid: string) { }
 
   protected static internal_url: string =
     globalThis.location?.href ?? "http://localhost";

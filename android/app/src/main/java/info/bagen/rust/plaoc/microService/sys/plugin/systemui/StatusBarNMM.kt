@@ -12,7 +12,7 @@ import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class StatusBarNMM : NativeMicroModule("statusbar.sys.dweb") { // 小写不然路由不到
+class StatusBarNMM : NativeMicroModule("status-bar.sys.dweb") {
 
     private fun getController(mmid: Mmid) =
         NativeUiController.fromMultiWebView(mmid).statusBar

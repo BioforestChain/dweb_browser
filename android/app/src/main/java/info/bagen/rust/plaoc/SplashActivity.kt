@@ -26,7 +26,6 @@ import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.KEY_ENABLE_AGREEMENT
-import info.bagen.rust.plaoc.webView.openDWebWindow
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +41,7 @@ class SplashActivity : AppCompatActivity() {
                         App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, false)
                         openHomeActivity()
                     },
-                        openWebView = { url -> openDWebWindow(this, url) },
+                        openWebView = { url ->  },
                         closeApp = { finish() })
                 }
 

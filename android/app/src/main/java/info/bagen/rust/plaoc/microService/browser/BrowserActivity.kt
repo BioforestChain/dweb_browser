@@ -38,7 +38,6 @@ import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Compani
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
-import info.bagen.rust.plaoc.webView.network.dWebView_host
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
@@ -95,7 +94,6 @@ class BrowserActivity : AppCompatActivity() {
                             }
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
-                        dWebView_host = appId
                         /// TODO 这里是点击桌面app触发的事件
                         JmmNMM.nativeFetch(appId)
                     })

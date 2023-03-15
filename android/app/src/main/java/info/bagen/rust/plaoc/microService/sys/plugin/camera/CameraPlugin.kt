@@ -119,9 +119,9 @@ class CameraPlugin {
                     onCallback?.let { it("User cancelled photos app") }
                 }
             })
-        App.dwebViewActivity?.let { activity ->
-            fragment.show(activity.supportFragmentManager, "capacitorModalsActionSheet")
-        }
+//        App.dwebViewActivity?.let { activity ->
+//            fragment.show(activity.supportFragmentManager, "capacitorModalsActionSheet")
+//        }
     }
 
     private fun showCamera(onCallback: ((String) -> Unit)?) {
@@ -200,9 +200,9 @@ class CameraPlugin {
                     onCallback?.let { it("$IMAGE_FILE_SAVE_ERROR -- $ex") }
                     return
                 }
-                App.dwebViewActivity?.let { activity ->
-                    startActivityForResult(activity, takePictureIntent, ProcessCameraImage, null)
-                }
+//                App.dwebViewActivity?.let { activity ->
+//                    startActivityForResult(activity, takePictureIntent, ProcessCameraImage, null)
+//                }
             } else {
                 onCallback?.let { it(NO_CAMERA_ACTIVITY_ERROR) }
             }
@@ -228,9 +228,9 @@ class CameraPlugin {
                 } else {
                     ProcessPickedImage
                 }
-                App.dwebViewActivity?.let { activity ->
-                    startActivityForResult(activity, intent, requestCode, null)
-                }
+//                App.dwebViewActivity?.let { activity ->
+//                    startActivityForResult(activity, intent, requestCode, null)
+//                }
             } catch (ex: ActivityNotFoundException) {
                 onCallback?.let { it(NO_PHOTO_ACTIVITY_ERROR) }
             }
@@ -678,13 +678,13 @@ class CameraPlugin {
         try {
             val tempImage = getTempImage(uri, bitmapOutputStream)
             val editIntent = createEditIntent(tempImage)
-            App.dwebViewActivity?.let { activity ->
-                if (editIntent != null) {
-                    startActivityForResult(activity, editIntent, ProcessEditedImage, null)
-                } else {
-                    onCallback?.let { it(IMAGE_EDIT_ERROR) }
-                }
-            }
+//            App.dwebViewActivity?.let { activity ->
+//                if (editIntent != null) {
+//                    startActivityForResult(activity, editIntent, ProcessEditedImage, null)
+//                } else {
+//                    onCallback?.let { it(IMAGE_EDIT_ERROR) }
+//                }
+//            }
 
         } catch (ex: Throwable) {
             onCallback?.let { it("$IMAGE_EDIT_ERROR -- $ex") }

@@ -10,7 +10,6 @@ import info.bagen.rust.plaoc.di.appModules
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.PlaocUtil
-import info.bagen.rust.plaoc.webView.DWebViewActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -25,7 +24,6 @@ class App : Application() {
         lateinit var appContext: Context
 
         var browserActivity: BrowserActivity? = null
-        var dwebViewActivity: DWebViewActivity? = null
 
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
             GlobalScope.launch(Dispatchers.IO) {

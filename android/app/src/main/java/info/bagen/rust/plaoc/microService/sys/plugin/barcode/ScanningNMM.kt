@@ -28,18 +28,10 @@ import java.util.concurrent.ConcurrentSkipListSet
 inline fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Scanning", tag, msg, err)
 
-class ScanningNMM() : NativeMicroModule("scanning.sys.dweb") {
+class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_rotationDegrees = Query.int().defaulted("rotation", 0)
-//
-//        val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
-//        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
-//                for ((ipc) in subscribers) {
-//                    ipc.postMessage(IpcEvent.fromUtf8("qaq", "hi"))
-//                }
-//        }
-//        _afterShutdownSignal.listen { job.cancel() }
 
         apiRouting = routes(
             // 处理二维码图像

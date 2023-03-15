@@ -31,9 +31,8 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
   // private _color: string = "";
   // private _overlays: boolean = false;
 
-  // mmid 最好全部采用小写，防止出现不可预期的意外
-  constructor(readonly mmid = "statusbar.sys.dweb") {
-    super("statusbar.sys.dweb");
+  constructor() {
+    super("status-bar.sys.dweb");
   }
 
   startObserve() {

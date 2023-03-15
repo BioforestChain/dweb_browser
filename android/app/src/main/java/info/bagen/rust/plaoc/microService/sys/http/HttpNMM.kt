@@ -85,7 +85,6 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
          * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
          */
         val response = gatewayMap[host]?.let { gateway ->
-            println("URL:${request.uri} => gateway: ${gateway.urlInfo}")
             gateway.listener.hookHttpRequest(request)
         }
 

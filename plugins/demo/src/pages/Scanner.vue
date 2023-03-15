@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import { BarcodeScanner } from "@bfex/plugin"
+import { barcodeScannerPlugin } from "@bfex/plugin"
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
 
 const title = "Scanner";
 
 const $logPanel = ref<typeof LogPanel>();
-const $BarcodeScanner = ref<BarcodeScanner>();
-
 
 let console: Console;
-let scanner: BarcodeScanner;
+let scanner = barcodeScannerPlugin;
 onMounted(() => {
   console = toConsole($logPanel);
-  scanner = $BarcodeScanner.value!;
 });
 
 
@@ -34,7 +31,6 @@ const onStop = async () => {
 </script>
 
 <template>
-  <dweb-scanner ref="$BarcodeScanner"></dweb-scanner>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/vibrate.svg" :alt="title" />

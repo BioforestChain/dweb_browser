@@ -33,7 +33,6 @@ class Gateway(
          */
         suspend fun hookHttpRequest(request: Request): Response? {
             for (router in _routerSet) {
-                println("hookHttpRequest2#==>${request.uri.path}")
                 val response = router.handler(request)
                 if (response != null) {
                     return response
@@ -76,7 +75,6 @@ class Gateway(
         }
 
         suspend fun handler(request: Request) = if (isMatch(request)) {
-            println("streamIpc#==>${request.uri.path}")
             streamIpc.request(request)
         } else null
     }

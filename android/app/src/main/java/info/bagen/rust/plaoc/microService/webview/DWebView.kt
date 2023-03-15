@@ -192,6 +192,7 @@ class DWebView(
         override fun shouldInterceptRequest(
             view: WebView, request: WebResourceRequest
         ): WebResourceResponse? {
+//            println("internalWebViewClient=> ${request.url}")
             if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
                 /// http://*.dweb 由 MicroModule 来处理请求
                 val response = runBlockingCatching(ioAsyncExceptionHandler) {

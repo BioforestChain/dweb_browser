@@ -151,7 +151,6 @@ open class MutilWebViewActivity : PermissionActivity() {
 //        val heightDp = (metrics.bounds.height() /
 //            resources.displayMetrics.density).dp
 //
-//        println("widthDp:$widthDp heightDp:$heightDp")
 
         setContent {
 //
@@ -184,7 +183,6 @@ open class MutilWebViewActivity : PermissionActivity() {
 //                val modifierScale by nativeUiController.modifierScaleState
 
                 wc.webViewList.forEachIndexed { index, viewItem ->
-                    println("viewItem.webviewId: ${viewItem.webviewId}")
                     key(viewItem.webviewId) {
                         val nativeUiController = viewItem.nativeUiController.effect()
 

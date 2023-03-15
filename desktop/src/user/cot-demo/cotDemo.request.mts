@@ -37,6 +37,7 @@ export async function onApiRequest(
   let ipcResponse: undefined | IpcResponse;
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
+    console.log("cotDemo#onApiRequest=>", url.href)
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
       if (pathname === "/public-url") {
@@ -44,7 +45,7 @@ export async function onApiRequest(
           request.req_id,
           200,
           undefined,
-          serverurlInfo.buildPublicUrl(() => {}).href,
+          serverurlInfo.buildPublicUrl(() => { }).href,
           httpServerIpc
         );
       } else if (pathname === "/observe") {
@@ -76,9 +77,9 @@ export async function onApiRequest(
       }
     } else {
       const path = `file:/${url.pathname}${url.search}`;
-      console.log("onRequestToastShow: ", path);
+      console.log("onRequestPath: ", path);
       let res = await jsProcess.nativeFetch(path);
-
+      console.log("res => ", res)
       ipcResponse = await IpcResponse.fromResponse(
         request.req_id,
         res,
