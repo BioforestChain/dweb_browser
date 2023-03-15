@@ -2,12 +2,9 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.os.Message
 import android.webkit.JsResult
-import android.webkit.ValueCallback
-import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -96,11 +93,11 @@ open class PermissionActivity : AppCompatActivity() {
     }
 }
 
-open class MutilWebViewActivity : PermissionActivity() {
+open class MultiWebViewActivity : PermissionActivity() {
 
 
     private var remoteMmid by mutableStateOf("")
-    private var controller: MutilWebViewController? = null
+    private var controller: MultiWebViewController? = null
 
     private fun upsetRemoteMmid() {
         remoteMmid = intent.getStringExtra("mmid") ?: return finish()
@@ -308,7 +305,7 @@ open class MutilWebViewActivity : PermissionActivity() {
     }
 
     @Composable
-    fun DebugPanel(viewItem: MutilWebViewController.ViewItem) {
+    fun DebugPanel(viewItem: MultiWebViewController.ViewItem) {
         val nativeUiController = viewItem.nativeUiController.effect()
 
         Column(
@@ -355,8 +352,8 @@ open class MutilWebViewActivity : PermissionActivity() {
 }
 
 
-class MutilWebViewPlaceholder1Activity : MutilWebViewActivity()
-class MutilWebViewPlaceholder2Activity : MutilWebViewActivity()
-class MutilWebViewPlaceholder3Activity : MutilWebViewActivity()
-class MutilWebViewPlaceholder4Activity : MutilWebViewActivity()
-class MutilWebViewPlaceholder5Activity : MutilWebViewActivity()
+class MultiWebViewPlaceholder1Activity : MultiWebViewActivity()
+class MultiWebViewPlaceholder2Activity : MultiWebViewActivity()
+class MultiWebViewPlaceholder3Activity : MultiWebViewActivity()
+class MultiWebViewPlaceholder4Activity : MultiWebViewActivity()
+class MultiWebViewPlaceholder5Activity : MultiWebViewActivity()

@@ -112,7 +112,7 @@ class JmmManagerViewModel(jmmMetadata: JmmMetadata) : ViewModel() {
               )
             }
             DownLoadStatus.INSTALLED -> { // 点击打开app触发的事件
-              JmmNMM.nativeFetch(uiState.downloadInfo.value.jmmMetadata.id)
+              JmmNMM.nativeFetchFromJS(uiState.downloadInfo.value.jmmMetadata.id)
             }
           }
         }

@@ -95,7 +95,7 @@ class DWebBrowserModel : ViewModel() {
     fun openDWebBrowser(origin: String, processId: String? = null): String {
         // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
         if (checkJmmMetadataJson(origin) { jmmMetadata, url ->
-                JmmNMM.nativeFetchJMM(jmmMetadata, url)
+                JmmNMM.nativeFetchOpenInstall(jmmMetadata, url)
             }) return "0"
 
         // 先产生 processId 返回值，然后再执行界面，否则在 Main 执行无法获取返回值

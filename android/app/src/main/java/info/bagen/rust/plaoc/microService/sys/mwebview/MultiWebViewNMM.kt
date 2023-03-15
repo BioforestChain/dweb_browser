@@ -27,19 +27,19 @@ inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null
 
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
-    class ActivityClass(var mmid: Mmid, val ctor: Class<out MutilWebViewActivity>)
+    class ActivityClass(var mmid: Mmid, val ctor: Class<out MultiWebViewActivity>)
 
 
     companion object {
         val activityClassList = mutableListOf(
-            ActivityClass("", MutilWebViewPlaceholder1Activity::class.java),
-            ActivityClass("", MutilWebViewPlaceholder2Activity::class.java),
-            ActivityClass("", MutilWebViewPlaceholder3Activity::class.java),
-            ActivityClass("", MutilWebViewPlaceholder4Activity::class.java),
-            ActivityClass("", MutilWebViewPlaceholder5Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder1Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder2Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder3Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder4Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
         )
-        val controllerMap = mutableMapOf<Mmid, MutilWebViewController>()
-        fun getCurrentWebViewController(mmid: Mmid): MutilWebViewController? {
+        val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
+        fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
             return controllerMap[mmid]
         }
     }
@@ -80,7 +80,23 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
                 val remoteMmid = ipc.remote.mmid
 
                 closeDwebView(remoteMmid, webviewId)
-            })
+            },
+            // 界面没有关闭，用于重新唤醒
+            "/reOpen" bind Method.GET to defineHandler { _, ipc ->
+                val remoteMmid = ipc.remote.mmid
+                debugMultiWebView("REOPEN-WEBVIEW", "remote-mmid: $remoteMmid")
+                activityClassList.find { it.mmid == remoteMmid }?.let { activityClass ->
+                    App.startActivity(activityClass.ctor) { intent ->
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                        val b = Bundle();
+                        b.putString("mmid", remoteMmid);
+                        intent.putExtras(b);
+                    }
+                }
+                null
+            },)
     }
 
     override suspend fun _shutdown() {
@@ -88,7 +104,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
     }
 
     @Synchronized
-    private fun openMutilWebViewActivity(remoteMmid: Mmid): ActivityClass {
+    private fun openMultiWebViewActivity(remoteMmid: Mmid): ActivityClass {
         val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
         val activityClass = activityClassList.find { it.mmid == remoteMmid } ?:
         // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
@@ -117,13 +133,13 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val remoteMmid = remoteMm.mmid
         debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")
         val controller = controllerMap.getOrPut(remoteMmid) {
-            MutilWebViewController(
+            MultiWebViewController(
                 remoteMmid,
                 this,
                 remoteMm,
             )
         }
-        openMutilWebViewActivity(remoteMmid)
+        openMultiWebViewActivity(remoteMmid)
         controller.waitActivityCreated()
         return controller.openWebView(url).webviewId
     }

@@ -1,11 +1,11 @@
 package info.bagen.rust.plaoc.microService.sys.dns
 
-import android.util.Log
 import info.bagen.rust.plaoc.microService.core.*
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.sys.jmm.JsMicroModule
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -19,9 +19,23 @@ import org.http4k.routing.routes
 inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("fetch", tag, msg, err)
 
+inline fun <K, V> MutableMap<K, V>.runExistOrPut(
+    key: K, runExists:(V) -> Unit, defaultValue: () -> V
+): V {
+    val value = get(key)
+    return if (value == null) {
+        val answer = defaultValue()
+        put(key, answer)
+        answer
+    } else {
+        runExists(value)
+        value
+    }
+}
 
-class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
-    private val mmMap = mutableMapOf<Mmid, MicroModule>()
+class DnsNMM : NativeMicroModule("dns.sys.dweb") {
+    private val installApps = mutableMapOf<Mmid, MicroModule>() // 已安装的应用
+    private val runningApps = mutableMapOf<Mmid, MicroModule>() // 正在运行的应用
 
     suspend fun bootstrap() {
         bootstrapMicroModule(this)
@@ -93,7 +107,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         install(this)
-        running_apps[this.mmid] = this
+        runningApps[this.mmid] = this
 
         /**
          * 对全局的自定义路由提供适配器
@@ -103,7 +117,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
             if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
                 val mmid = request.uri.host
                 debugFetch("DNS/fetchAdapter", "$mmid >> ${request.uri.path}")
-                mmMap[mmid]?.let {
+                installApps[mmid]?.let {
                     val (fromIpc) = connectTo(fromMM, mmid, request)
                     return@let fromIpc.request(request)
                 } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())
@@ -124,6 +138,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
             // 关闭应用
             // TODO 能否关闭一个应该应该由应用自己决定
             "/close" bind Method.GET to defineHandler { request ->
+                debugDNS("close/$mmid", request.uri.path)
                 close(query_app_id(request))
                 true
             })
@@ -134,33 +149,37 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
     }
 
     override suspend fun _shutdown() {
-        mmMap.forEach {
+        installApps.forEach {
             it.value.shutdown()
         }
-        mmMap.clear()
+        installApps.clear()
     }
-
-    private val running_apps = mutableMapOf<Mmid, MicroModule>();
 
     /** 安装应用 */
     fun install(mm: MicroModule) {
-        mmMap[mm.mmid] = mm
+        installApps[mm.mmid] = mm
     }
 
     /** 卸载应用 */
     fun uninstall(mm: MicroModule) {
-        mmMap.remove(mm.mmid)
+        installApps.remove(mm.mmid)
     }
-
 
     /** 查询应用 */
     private suspend inline fun query(mmid: Mmid): MicroModule? {
-        return mmMap[mmid]
+        return installApps[mmid]
     }
 
     /** 打开应用 */
-    suspend fun open(mmid: Mmid): MicroModule {
-        return running_apps.getOrPut(mmid) {
+    suspend fun open(mmid: Mmid) : MicroModule {
+        return runningApps.runExistOrPut(
+            key = mmid,
+            runExists = {
+                if (it is JsMicroModule) {
+                    it.nativeFetch(Uri.of("file://mwebview.sys.dweb/reOpen"))
+                }
+            }
+        ) {
             query(mmid)?.also {
                 bootstrapMicroModule(it)
             } ?: throw Exception("no found app: $mmid")
@@ -169,9 +188,10 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb") {
 
     /** 关闭应用 */
     suspend fun close(mmid: Mmid): Int {
-        return running_apps.remove(mmid)?.let {
+        return runningApps.remove(mmid)?.let { microModule ->
             runCatching {
-                it.shutdown()
+                mmConnectsMap[microModule]?.remove(mmid) // 将这个连接关闭
+                microModule.shutdown()
                 1
             }.getOrDefault(0)
         } ?: -1

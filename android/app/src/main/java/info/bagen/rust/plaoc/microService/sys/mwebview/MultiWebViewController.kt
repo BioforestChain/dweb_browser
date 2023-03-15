@@ -7,11 +7,14 @@ import com.google.accompanist.web.WebViewState
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.NativeUiController
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.*
+import org.http4k.core.Uri
+import org.http4k.core.query
 
-class MutilWebViewController(
+class MultiWebViewController(
     val mmid: Mmid,
     val localeMM: MicroModule,
     val remoteMM: MicroModule,
@@ -38,10 +41,10 @@ class MutilWebViewController(
         }
     }
 
-    private var activityTask = PromiseOut<MutilWebViewActivity>()
+    private var activityTask = PromiseOut<MultiWebViewActivity>()
     suspend fun waitActivityCreated() = activityTask.waitPromise()
 
-    var activity: MutilWebViewActivity? = null
+    var activity: MultiWebViewActivity? = null
         set(value) {
             if (field == value) {
                 return
@@ -127,23 +130,27 @@ class MutilWebViewController(
         }
     }.getOrThrow()
 
-
     /**
      * 关闭WebView
      */
     @Synchronized
     fun closeWebView(webviewId: String): Boolean {
-        return webViewList.removeIf {
-            if (it.webviewId == webviewId) {
-                it.webView.destroy()
-                it.coroutineScope.launch {
+        webViewList.forEach { viewItem ->
+            if (viewItem.webviewId == webviewId) {
+                viewItem.coroutineScope.launch(Dispatchers.Main) {
+                    if (webViewList.size == 1) {
+                        localeMM.nativeFetch(
+                            Uri.of("file://dns.sys.dweb/close").query("app_id", mmid)
+                        )
+                    }
+                    webViewList.remove(viewItem)
+                    viewItem.webView.destroy()
                     webViewCloseSignal.emit(webviewId)
                 }
-                true
-            } else {
-                false
+                return true
             }
         }
+        return false
     }
 
     /**

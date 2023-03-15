@@ -14,6 +14,7 @@ import info.bagen.rust.plaoc.util.ZipUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
+import info.bagen.rust.plaoc.datastore.JmmMetadataDB
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
@@ -153,9 +154,8 @@ class DwebBrowserService : Service() {
       val unzip =
         ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath(), mmid = jmmMetadata.id)
       if (unzip) {
-        runBlockingCatching {
-          JsMicroModule(jmmMetadata).nativeFetch("${JmmNMM.hostName}/download?mmid=${jmmMetadata.id}")
-        }
+        JmmMetadataDB.saveJmmMetadata(jmmMetadata.id, jmmMetadata)
+        JmmNMM.nativeFetchInstallDNS(jmmMetadata)
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.INSTALLED)
       } else {
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)

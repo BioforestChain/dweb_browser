@@ -6,7 +6,7 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.debugger
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
-import info.bagen.rust.plaoc.microService.sys.mwebview.MutilWebViewActivity
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewActivity
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -21,7 +21,7 @@ class SplashScreenNMM : NativeMicroModule("splash.sys.dweb") {
 
 
     private val splashScreen: SplashScreen = SplashScreen(App.appContext, SplashScreenConfig())
-    private fun currentActivity(mmid: Mmid): MutilWebViewActivity? {
+    private fun currentActivity(mmid: Mmid): MultiWebViewActivity? {
         return MultiWebViewNMM.getCurrentWebViewController(mmid)?.activity
     }
 

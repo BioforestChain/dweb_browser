@@ -49,8 +49,8 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
         this.runningStateLock = PromiseOut()
 
         /// 关闭所有的通讯
-        for (ipc in _ipcSet) {
-            ipc.close()
+        _ipcSet.toList().forEach {
+            it.close()
         }
         _ipcSet.clear()
     }
