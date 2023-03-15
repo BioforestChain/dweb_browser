@@ -54,7 +54,7 @@ class ReadableStream(
     private fun _gc() {
         runBlockingCatching(writeDataScope.coroutineContext) {
             _dataLock.withLock {
-                if (ptr >= 10240 || isClosed) {
+                if (ptr >= 1 /*10240*/ || isClosed) {
                     debugStream("GC/$uid", "-${ptr} ~> ${_data.size - ptr}")
                     _data = _data.sliceArray(ptr until _data.size)
                     ptr = 0
@@ -109,8 +109,9 @@ class ReadableStream(
     /**
      * 读取数据，在尽可能满足下标读取的情况下
      */
-    private fun requestData(requestSize: Int): ByteArray {
+    private fun requestData(requestSize: Int, waitFull: Boolean): ByteArray {
         val ownSize = { _data.size - ptr }
+        var requestSize = if (waitFull) requestSize else 1
         // 如果下标满足条件，直接返回
         if (ownSize() >= requestSize) {
             return _data
@@ -182,7 +183,7 @@ class ReadableStream(
     override fun read(): Int {
         try {
             //当读到没有数据后，会返回-1
-            val data = requestData(1)
+            val data = requestData(1, true)
             return if (ptr < data.size) data[ptr++].toInt() else -1
         } finally {
             _gc()
@@ -194,7 +195,7 @@ class ReadableStream(
      */
     @Throws(IOException::class)
     override fun available(): Int {
-        return requestData(1).size - ptr
+        return requestData(1, true).size - ptr
     }
 
     @Throws(IOException::class)
@@ -217,7 +218,7 @@ class ReadableStream(
     @Throws(IOException::class)
     override fun read(b: ByteArray, off: Int, len: Int): Int {
         try {
-            val data = requestData(len)
+            val data = requestData(len, false)
             var len = len
             if (ptr >= data.size || len < 0) {
                 //流已读完

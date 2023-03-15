@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.ipc
 import info.bagen.rust.plaoc.microService.helper.gson
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.filter.flash
 import java.io.InputStream
 
 class IpcResponse(

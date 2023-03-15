@@ -1,5 +1,4 @@
 import { onApiRequest } from "./cotDemo.request.mjs";
-import chalk from "chalk";
 
 const main = async () => {
   console.log("[cotDemo.worker.mts] main");
@@ -46,7 +45,7 @@ const main = async () => {
 
   // await sleep(5000)
   // await wwwServer.listen();
-  ; (await wwwServer.listen()).onRequest(async (request, ipc) => {
+  (await wwwServer.listen()).onRequest(async (request, ipc) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -83,8 +82,8 @@ const main = async () => {
   {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
-    }).href
-    console.log("cot#open interUrl=>", interUrl)
+    }).href;
+    console.log("cot#open interUrl=>", interUrl);
     const view_id = await jsProcess
       .nativeFetch(
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`

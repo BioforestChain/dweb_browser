@@ -28,7 +28,7 @@ class Http1Server {
 
         val portPo = PromiseOut<Int>()
         CoroutineScope(ioAsyncExceptionHandler).launch {
-            server = handler.asServer(KtorCIO(22206/* 使用随机端口*/)).start().also { server ->
+            server = handler.asServer(MyKtorCIO(22206/* 使用随机端口*/)).start().also { server ->
                 bindingPort = server.port()
                 portPo.resolve(bindingPort)
             }

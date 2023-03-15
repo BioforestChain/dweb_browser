@@ -1,39 +1,33 @@
-import type { Ipc } from "../../core/ipc/ipc.cjs";
 import { simpleEncoder } from "../../helper/encoding.cjs";
 import { mapHelper } from "../../helper/mapHelper.cjs";
+import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.cjs";
 import type { ServerUrlInfo } from "../../sys/http-server/const.js";
 
-const { IpcHeaders, IpcRequest, IpcResponse } = ipc;
+const { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
+type $IpcResponse = InstanceType<typeof IpcResponse>;
+type $Ipc = InstanceType<typeof Ipc>;
+type $IpcRequest = InstanceType<typeof IpcRequest>;
+type $IpcHeaders = InstanceType<typeof IpcHeaders>;
 
 const ipcObserversMap = new Map<
   $MMID,
-  Set<{ controller: ReadableStreamDefaultController }>
+  {
+    ipc: PromiseOut<$Ipc>;
+    obs: Set<{ controller: ReadableStreamDefaultController }>;
+  }
 >();
-jsProcess.onConnect((ipc) => {
-  ipc.onEvent((event) => {
-    const observers = ipcObserversMap.get(ipc.remote.mmid);
-    if (observers && observers.size > 0) {
-      const jsonline = simpleEncoder(
-        JSON.stringify(event.jsonAble) + "\n",
-        "utf8"
-      );
-      for (const ob of observers) {
-        ob.controller.enqueue(jsonline);
-      }
-    }
-  });
-});
+
 const INTERNAL_PREFIX = "/internal";
 /**
  * request 事件处理器
  */
 export async function onApiRequest(
   serverurlInfo: ServerUrlInfo,
-  request: IpcRequest,
-  httpServerIpc: Ipc
+  request: $IpcRequest,
+  httpServerIpc: $Ipc
 ) {
-  let ipcResponse: undefined | IpcResponse;
+  let ipcResponse: undefined | $IpcResponse;
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
     console.log("cotDemo#onApiRequest=>", url.href, request.method)
@@ -44,7 +38,7 @@ export async function onApiRequest(
           request.req_id,
           200,
           undefined,
-          serverurlInfo.buildPublicUrl(() => { }).href,
+          serverurlInfo.buildPublicUrl(() => {}).href,
           httpServerIpc
         );
       } else if (pathname === "/observe") {
@@ -53,15 +47,30 @@ export async function onApiRequest(
           throw new Error("observe require mmid");
         }
         const streamPo = new ReadableStreamOut<Uint8Array>();
-        const observers = mapHelper.getOrPut(
-          ipcObserversMap,
-          mmid,
-          () => new Set()
-        );
+        const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
+          const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };
+          result.ipc.resolve(jsProcess.connect(mmid));
+          result.ipc.promise.then((ipc) => {
+            ipc.onEvent((event) => {
+              console.log("on-event", event);
+              const observers = ipcObserversMap.get(ipc.remote.mmid);
+              if (observers && observers.obs.size > 0) {
+                const jsonline = simpleEncoder(
+                  JSON.stringify(event.jsonAble) + "\n",
+                  "utf8"
+                );
+                for (const ob of observers.obs) {
+                  ob.controller.enqueue(jsonline);
+                }
+              }
+            });
+          });
+          return result;
+        });
         const ob = { controller: streamPo.controller };
-        observers.add(ob);
+        observers.obs.add(ob);
         streamPo.onCancel(() => {
-          observers.delete(ob);
+          observers.obs.delete(ob);
         });
 
         ipcResponse = IpcResponse.fromStream(
@@ -120,7 +129,7 @@ export async function onApiRequest(
   }
 }
 
-const cros = (headers: IpcHeaders) => {
+const cros = (headers: $IpcHeaders) => {
   headers.init("Access-Control-Allow-Origin", "*");
   headers.init("Access-Control-Allow-Headers", "*"); // 要支持 X-Dweb-Host
   headers.init("Access-Control-Allow-Methods", "*");

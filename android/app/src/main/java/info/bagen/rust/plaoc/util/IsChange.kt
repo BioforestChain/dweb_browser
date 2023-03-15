@@ -54,18 +54,6 @@ class IsChange(
         return state
     }
 
-    @Composable
-    fun TodoList(highPriorityKeywords: List<String> = listOf("Review", "Unblock", "Compose")) {
-
-        val todoTasks = remember { mutableStateListOf<String>() }
-
-        // Calculate high priority tasks only when the todoTasks or highPriorityKeywords
-        // change, not on every recomposition
-        val highPriorityTasks by remember(highPriorityKeywords) {
-            derivedStateOf { todoTasks.filter { it.startsWith(highPriorityKeywords[0]) } }
-        }
-
-    }
 }
 
 @Composable
