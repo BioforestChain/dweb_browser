@@ -55,7 +55,7 @@ export const openNativeWindow = async (
     });
   });
   
-  console.log("url", url);
+  console.log("[openNativeWindow.cts]url", url);
   await win.loadURL(url);
   await show_po.promise;
 

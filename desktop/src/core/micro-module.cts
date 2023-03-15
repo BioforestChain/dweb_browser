@@ -11,6 +11,7 @@ import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.cjs";
 import type { $BootstrapContext } from "./bootstrapContext.cjs";
 import type { Ipc } from "./ipc/index.cjs";
 
+import chalk from "chalk";
 export abstract class MicroModule implements $MicroModule {
   abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract mmid: $MMID;
@@ -90,6 +91,16 @@ export abstract class MicroModule implements $MicroModule {
   private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
     const args = normalizeFetchArgs(url, init);
 
+    // nativeFetch 会遍历发送给 全部的适配器
+    // 一但那个适配器返回的 不是 undefined 就采用那个适配器返回的结果
+    // 适配器一个是 localFileFetch.cts 专门用来执行 file:///
+    // 另一个适配器是 dns.cts nativeFetchAdaptersManager.append 添加的结果
+    // 用来执行 file://****.dweb
+    // console.log('[micro-module.cts _nativeFetch url: ]', JSON.stringify(url))
+    // console.log('[micro-module.cts _nativeFetch init: ]', JSON.stringify(init))
+    // console.log('[micro-module.cts _nativeFetch args: ]', JSON.stringify(args))
+    // // console.log('[micro-module.cts _nativeFetch args.request_init: ]', args.request_init)
+    // console.log(chalk.red('[micro-module.cts init 没有传过来导致是 get 请求]'))
     for (const adapter of nativeFetchAdaptersManager.adapters) {
       const response = await adapter(this, args.parsed_url, args.request_init);
       if (response !== undefined) {
@@ -98,7 +109,9 @@ export abstract class MicroModule implements $MicroModule {
     }
     return fetch(args.parsed_url, args.request_init);
   }
+
   nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    // console.log('[micro-module.cts nativeFetch init: ]', init)
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 }

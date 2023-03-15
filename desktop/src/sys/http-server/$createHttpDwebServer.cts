@@ -86,6 +86,7 @@ export const listenHttpDwebServer = async (
   };
   const buildUrlValue = buildUrl(url, ext);
   const int = { method: "POST", body: httpServerIpc.stream };
+  // console.log('[$createHttpDwebServer.cts 调用 microModule.nativeFetch],int', int)
   const httpIncomeRequestStream = await microModule
     .nativeFetch(buildUrlValue, int)
     .stream();
@@ -109,7 +110,6 @@ export const startHttpDwebServer = (
     )
     .object<ServerStartResult>()
     .then((obj) => {
-      console.log(obj);
       const { urlInfo, token } = obj;
       const serverUrlInfo = new ServerUrlInfo(
         urlInfo.host,

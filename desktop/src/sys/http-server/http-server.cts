@@ -33,10 +33,14 @@ export class HttpServerNMM extends NativeMicroModule {
 
   protected async _bootstrap() {
     console.log('[http-server.cts _bootstrap]')
+    // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     const info = await this._dwebServer.create();
     info.server.on("request", (req, res) => {
+      
       if(req.url?.startsWith("/index.html?X-Dweb-Host=www.cotdemo.bfs.dweb")){
         console.log(chalk.red('[step 1 http-server.cts 接受到了 http 请求：]', req.url))
+      }else{
+        console.log(chalk.green('[http-server.cts 接受到了 http 请求：]', `http://${req.headers.host}${req.url}`))
       }
 
       /// 获取 host
@@ -95,6 +99,7 @@ export class HttpServerNMM extends NativeMicroModule {
       }
 
       /// 在网关中寻址能够处理该 host 的监听者
+      console.log(chalk.green('[http-server.cts host]', host))
       const gateway = this._gatewayMap.get(host);
       // console.log('[http-server.cts 接受到了 http 请求：gateway]',gateway)
       if (gateway == undefined) {
@@ -119,7 +124,9 @@ export class HttpServerNMM extends NativeMicroModule {
       void gateway.listener.hookHttpRequest(req, res);
     });
 
-    /// 监听 IPC 请求
+     
+
+    /// 监听 IPC 请求 /start
     this.registerCommonIpcOnMessageHandler({
       pathname: "/start",
       matchMode: "full",
@@ -129,6 +136,8 @@ export class HttpServerNMM extends NativeMicroModule {
         return await this.start(ipc, args);
       },
     });
+
+    /// 监听 IPC 请求 /close
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
       matchMode: "full",
@@ -138,6 +147,8 @@ export class HttpServerNMM extends NativeMicroModule {
         return await this.close(ipc, args);
       },
     });
+
+    /// 监听 IPC 请求 /listen post
     this.registerCommonIpcOnMessageHandler({
       method: "POST",
       pathname: "/listen",
@@ -150,18 +161,18 @@ export class HttpServerNMM extends NativeMicroModule {
       },
     });
 
-    // 注册 jsMM wwwServer apiServer 监听器
-    this.registerCommonIpcOnMessageHandler({
-      method: "GET",
-      pathname: "/listen",
-      matchMode: "full",
-      input: { token: "string", routes: "object", host: "string" },
-      output: "object",
-      handler: async (args, ipc, message) => {
-        console.log('http-server get  registerCommonIpcOnMessageHandler listen 接受到了 请求', args)
-        return this.listen(args.token, message, args.routes as $ReqMatcher[]);
-      },
-    });
+    // /// 监听 IPC 请求 /listen GET
+    // this.registerCommonIpcOnMessageHandler({
+    //   method: "GET",
+    //   pathname: "/listen",
+    //   matchMode: "full",
+    //   input: { token: "string", routes: "object", host: "string" },
+    //   output: "object",
+    //   handler: async (args, ipc, message) => {
+    //     console.log(chalk.red('[http-server] get  registerCommonIpcOnMessageHandler listen 接受到了 请求 但是这个请求是不应该存在的', ))
+    //     return this.listen(args.token, message, args.routes as $ReqMatcher[]);
+    //   },
+    // });
   }
   protected _shutdown() {
     this._dwebServer.destroy();

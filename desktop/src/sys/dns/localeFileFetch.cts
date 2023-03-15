@@ -6,7 +6,8 @@ import { ROOT } from "../../helper/createResolveTo.cjs";
 import { nativeFetchAdaptersManager } from "./nativeFetch.cjs";
 
 nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {
-  /// fetch("file:///*")
+  /// fetch("file:///*") 匹配
+  // console.log('[localFileFetch.cts] parsedUrl ', parsedUrl, " --- ", parsedUrl.protocol === "file:" && parsedUrl.hostname === "")
   if (parsedUrl.protocol === "file:" && parsedUrl.hostname === "") {
     return (async () => {
       try {
