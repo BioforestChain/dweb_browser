@@ -70,6 +70,7 @@ const timeEnd = (label: string, ...logs: unknown[]) => {
   }
 };
 const clear = () => {
+  timeMap.clear();
   messageLists.value.clear();
 };
 defineExpose({ log, debug: log, warn, success, error, info, time, timeEnd, clear });

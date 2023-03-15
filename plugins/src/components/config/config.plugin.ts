@@ -9,8 +9,11 @@ export class ConfigPlugin extends BasePlugin {
     return BasePlugin.internal_url;
   }
   setInternalUrl(url: string) {
-    this.init_public_url();
-    return (BasePlugin.internal_url = url);
+    try {
+      return (BasePlugin.internal_url = url);
+    } finally {
+      this.init_public_url();
+    }
   }
   private _first = false;
   private init_public_url() {
@@ -18,7 +21,7 @@ export class ConfigPlugin extends BasePlugin {
       return;
     }
     this._first = true;
-    this.getPublicUrl();
+    void this.getPublicUrl();
   }
 
   private _getPublicUrl() {

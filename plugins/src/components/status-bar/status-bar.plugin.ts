@@ -40,8 +40,11 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
     return this.fetchApi(`/startObserve`);
   }
 
-  observe() {
-    return this.buildInternalRequest("/observe", { search: this.mmid })
+  async observe() {
+    return this.buildInternalApiRequest("/observe", {
+      search: { mmid: this.mmid },
+      base: await BasePlugin.public_url,
+    })
       .fetch()
       .jsonlines<StatusBarInfo>();
   }

@@ -14,23 +14,27 @@ export abstract class BasePlugin {
     globalThis.location?.href ?? "http://localhost";
   protected static public_url: Promise<string> | string = "";
 
-  protected buildRequest(url: URL, init?: $NativeFetchInit) {
+  protected buildRequest(url: URL, init?: $BuildRequestInit) {
     const search = init?.search;
     if (search) {
+      let extendsSearch: URLSearchParams;
       if (search instanceof URLSearchParams) {
-        url.search = search.toString();
+        extendsSearch = search;
       } else if (typeof search === "string") {
-        url.search = search;
+        extendsSearch = new URLSearchParams(search);
       } else {
-        url.search = new URLSearchParams(
+        extendsSearch = new URLSearchParams(
           Object.entries(search).map(([key, value]) => {
             return [
               key,
               typeof value === "string" ? value : JSON.stringify(value),
             ] as [string, string];
           })
-        ).toString();
+        );
       }
+      extendsSearch.forEach((value, key) => {
+        url.searchParams.append(key, value);
+      });
     }
     return Object.assign(
       new Request(url, init),
@@ -41,25 +45,34 @@ export abstract class BasePlugin {
       })
     );
   }
-  protected fetchApi(url: string, init?: $NativeFetchInit) {
+  protected fetchApi(url: string, init?: $BuildRequestInit) {
     return this.buildApiRequest(url, init).fetch();
   }
-  protected buildApiRequest(url: string, init?: $NativeFetchInit) {
-    return this.buildRequest(
-      new URL(`${this.mmid}${url}`, BasePlugin.internal_url),
-      init
-    );
+  protected buildApiRequest(
+    pathname: string,
+    init?: $BuildRequestWithBaseInit
+  ) {
+    const url = new URL(init?.base ?? BasePlugin.internal_url);
+    url.pathname = `${this.mmid}${pathname}`;
+    return this.buildRequest(url, init);
   }
-  protected buildInternalRequest(url: string, init?: $NativeFetchInit) {
-    return this.buildRequest(
-      new URL(`/internal${url}`, BasePlugin.internal_url),
-      init
-    );
+  protected buildInternalApiRequest(
+    pathname: string,
+    init?: $BuildRequestWithBaseInit
+  ) {
+    const url = new URL(init?.base ?? BasePlugin.internal_url);
+    url.pathname = `/internal${pathname}`;
+    return this.buildRequest(url, init);
   }
 
   protected createSignal = createSignal;
 }
-type $NativeFetchInit = RequestInit & {
-  // deno-lint-ignore ban-types
-  search?: string | URLSearchParams | Record<string, unknown> | {};
-};
+interface $BuildRequestInit extends RequestInit {
+  search?:
+    | ConstructorParameters<typeof URLSearchParams>[0]
+    | Record<string, unknown>;
+  base?: string;
+}
+interface $BuildRequestWithBaseInit extends $BuildRequestInit {
+  base?: string;
+}
