@@ -6,26 +6,38 @@
 //
 
 import UIKit
+import HandyJSON
 
 class ReadableStreamIpc: Ipc {
 
     var controller: ReadableStreamController?
     var incomeStream: InputStream?
-    var stream: ReadableStream!
     
-    init(remote: MicroModule, role: IPC_ROLE) {
-        super.init()
-        
-        self.stream = ReadableStream().startLoad { controller in
+    var stream: ReadableStream! {
+        return ReadableStream(cid: self.role) { controller in
             self.controller = controller
-        } onPull: { desiredSize, controller in
+        } onPull: { size, controller in
             
         }
-        
     }
     
-    @inline(__always) func enqueue(data: [UInt8]) {
-        controller?.enqueue(byteArray: data)
+    private var PONG_DATA: Data? {
+        guard var data = "pong".utf8Data() else { return nil }
+        return data.count.toByteArray() + data
+    }
+    
+    init(remote: MicroModuleInfo, role: IPC_ROLE) {
+        super.init()
+        self.remote = remote
+        self.role = role.rawValue
+    }
+    
+    override func toString() -> String {
+        return super.toString() + "@ReadableStreamIpc"
+    }
+    
+    func enqueue(data: Data) {
+        controller?.enqueue(data)
     }
     
     func bindIncomeStream(stream: InputStream?, coroutineName: String) {
@@ -33,34 +45,59 @@ class ReadableStreamIpc: Ipc {
         guard self.incomeStream == nil else { return }
         guard !supportMessagePack else { return }
         
-        let j = Task {
-            try? Task.checkCancellation()
-            try? await Task.sleep(nanoseconds: 10000)
-            print("LIVE/$stream")
-        }
-        
         self.incomeStream = stream
         
         Task {
             
-            let bufferSize = 1024
-            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-            defer {
-                buffer.deallocate()
-            }
-            // 如果通道关闭并且没有剩余字节可供读取，则返回 true
             while stream!.hasBytesAvailable {
-                let length = stream!.read(buffer, maxLength: bufferSize)
-                if length <= 0 {
+                let size = stream?.readInt() ?? 0
+                if size <= 0 {
                     continue
                 }
-                // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                let data = Data(bytes: buffer, count: length)
-                let chunk = String(data: data, encoding: .utf8) ?? ""
                 
+                let bytes = stream!.readByteArray(size: size)
+                let data = Data(bytes: bytes, count: bytes.count)
+                var chunk = String(data: data, encoding: .utf8) ?? ""
                 
+                let message = jsonToIpcMessage.jsonToIpcMessage(data: chunk, ipc: self)
+                if let content = message as? String {
+                    if content == "close" {
+                        closeAction()
+                    } else if content == "ping" {
+                        if PONG_DATA != nil {
+                            enqueue(data: PONG_DATA!)
+                        }
+                    } else if content == "pong" {
+                        print("PONG/\(stream)")
+                    }
+                } else if let message = message as? IpcMessage {
+                    messageSignal?.emit((message,self))
+                }else {
+                    fatalError("message is nil")
+                }
             }
         }
+    }
+    
+    override func doPostMessage(data: IpcMessage) {
         
+        var message: [UInt8] = []
+//        if supportMessagePack {
+//            if let jsonString = data.toJSONString(), let messageData = jsonString.utf8Data() {
+//                message = messageData
+//            }
+//        } else {
+//            if let jsonString = data.toJSONString(), let messageData = jsonString.utf8Data() {
+//                message = messageData
+//            }
+//        }
+        if let jsonString = data.toJSONString(), let messageData = jsonString.fromUtf8() {
+            message = messageData
+        }
+        enqueue(data: Data(message))
+    }
+    
+    override func doClose() {
+        controller?.close()
     }
 }

@@ -6,34 +6,50 @@
 //
 
 import UIKit
+import Vapor
 
 //TODO
 class JsMicroModule: MicroModule {
 
-    private var metadata: JmmMetadata!
+    var metadata: JmmMetadata!
     private var processId: Int?
     private var connectingIpcSet = Set<Ipc>()
     
-    init(mmid: String, metadata: JmmMetadata) {
+    init(metadata: JmmMetadata) {
         super.init()
-        self.mmid = mmid
+        self.mmid = metadata.id
         self.metadata = metadata
     }
     
     override func _bootstrap() {
         let pid = Int(arc4random_uniform(1000) + 1)
         processId = pid
-        //TODO
-        let streaamIpc = ReadableStreamIpc(remote: self, role: .CLIENT)
-        streaamIpc.onRequest { (request,ipc) in
-            
+        
+        let streamIpc = ReadableStreamIpc(remote: self, role: .CLIENT)
+        _ = streamIpc.onRequest { request,ipc in
+            var resposne: Response?
+            if request.url?.path == "/index.js" {
+                resposne = self.nativeFetch(urlstring: self.metadata.downloadUrl)
+            } else {
+                resposne = Response(status: .notFound)
+            }
+            if let resp = IpcResponse.fromResponse(req_id: request.req_id, response: resposne!, ipc: ipc) {
+                ipc.postMessage(message: resp)
+            }
         }
+        
+        guard let url = URL(string: "file://js.sys.dweb/create-process?main_pathname=/index.js&process_id=\(pid)") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        let response = nativeFetch(request: request)
+        streamIpc.bindIncomeStream(stream: response?.stream(), coroutineName: "\(pid)")
+        connectingIpcSet.insert(streamIpc)
     }
     
     override func _connect(from: MicroModule) -> Ipc? {
         
         guard processId != nil else { return nil }
-        //TODO
+        let portId = 1
         return nil
     }
     
@@ -48,19 +64,5 @@ class JsMicroModule: MicroModule {
 }
 
 
-class JmmMetadata {
-    
-    private var main_url: String
-    
-    init(urlString: String) {
-        self.main_url = urlString
-    }
-    
-    func getMainUrlString() -> String {
-        return self.main_url
-    }
-    
-    func setMainUrl(urlString: String) {
-        self.main_url = urlString
-    }
-}
+
+

@@ -17,7 +17,7 @@ class BaseModel: HandyJSON {
 
 struct BaseStruct: IpcMessage, HandyJSON {
     
-    var type: IPC_DATA_TYPE = .NONE
+    var type: IPC_MESSAGE_TYPE = .NONE
    
     init() {
         

@@ -29,6 +29,7 @@ class HTTPServer: ObservableObject {
     func createServer(_ port: Int, _ host: String = "localhost") {
         
         configure(app, host: host, port: port)
+        start()
     }
     
     private func configure(_ app: Application, host: String, port: Int) {

@@ -9,7 +9,7 @@ import UIKit
 
 class IpcRequest {
 
-    var type: IPC_DATA_TYPE = .REQUEST
+    var type: IPC_MESSAGE_TYPE = .REQUEST
     var parsed_url: URL?
     var req_id: Int = 0
     var method: String = ""
@@ -32,10 +32,14 @@ class IpcRequest {
         self.headers = headers
         self.body = body
         url = URL(string: urlString)
+        
+        if let sender = body as? IpcBodySender, ipc != nil {
+            IpcBodySender().IPCsender(ipc: ipc!, ipcBody: sender)
+        }
     }
     
-    static func fromText(text: String,req_id: Int,method: String,urlString: String,headers: IpcHeaders, ipc: Ipc) -> IpcRequest {
-        return IpcRequest(req_id: req_id, method: method, urlString: urlString, headers: headers, body: IpcBodySender(raw: text, ipc: ipc), ipc: ipc)
+    static func fromText(text: String,req_id: Int,method: String = "GET",urlString: String,headers: IpcHeaders, ipc: Ipc) -> IpcRequest {
+        return IpcRequest(req_id: req_id, method: method, urlString: urlString, headers: headers, body: IpcBodySender.from(raw: text, ipc: ipc), ipc: ipc)
     }
     
     static func fromBinary(binary: [UInt8],req_id: Int,method: String,urlString: String,headers:IpcHeaders, ipc: Ipc) -> IpcRequest {
@@ -43,7 +47,7 @@ class IpcRequest {
         headers.set(key: "Content-Type", value: "application/octet-stream")
         headers.set(key: "Content-Length", value: "\(binary.count)")
         
-        return IpcRequest(req_id: req_id, method: method, urlString: urlString, headers: headers, body: IpcBodySender(raw: binary, ipc: ipc), ipc: ipc)
+        return IpcRequest(req_id: req_id, method: method, urlString: urlString, headers: headers, body: IpcBodySender.from(raw: binary, ipc: ipc), ipc: ipc)
     }
     
     static func fromStream(stream: InputStream,req_id: Int,method: String,urlString: String,headers:IpcHeaders, ipc: Ipc, size: Int64?) -> IpcRequest {
@@ -52,22 +56,31 @@ class IpcRequest {
         if size != nil {
             headers.set(key: "Content-Length", value: "\(size!)")
         }
-        return IpcRequest(req_id: req_id, method: method, urlString: urlString, headers: headers, body: IpcBodySender(raw: stream, ipc: ipc), ipc: ipc)
+        return IpcRequest(req_id: req_id, method: method, urlString: urlString, headers: headers, body: IpcBodySender.from(raw: stream, ipc: ipc), ipc: ipc)
     }
     
     static func fromRequest(req_id: Int,request: URLRequest, ipc: Ipc) -> IpcRequest {
         
         let header = IpcHeaders()
-        for (key,value) in request.allHTTPHeaderFields! {
+        for (key,value) in request.allHTTPHeaderFields ?? [:] {
             header.set(key: key, value: value)
         }
         
-        if request.httpBody == nil {
-            return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender(raw: request.httpBodyStream, ipc: ipc), ipc: ipc)
-        } else if request.httpBody?.count == 0 {
-            return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender(raw: "", ipc: ipc), ipc: ipc)
+        if request.httpMethod == "GET" || request.httpMethod == "HEAD" {
+            return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender.from(raw: "", ipc: ipc), ipc: ipc)
         }
-        return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender(raw: [UInt8](request.httpBody!), ipc: ipc), ipc: ipc)
+        
+        if request.httpBody == nil {
+            return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender.from(raw: request.httpBodyStream, ipc: ipc), ipc: ipc)
+        } else if request.httpBody?.count == 0 {
+            return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender.from(raw: "", ipc: ipc), ipc: ipc)
+        }
+        
+        var bytes: [UInt8] = []
+        if request.httpBody != nil {
+            bytes = [UInt8](request.httpBody!)
+        }
+        return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender.from(raw: bytes, ipc: ipc), ipc: ipc)
     }
     
     func toRequest() -> URLRequest? {
@@ -76,6 +89,11 @@ class IpcRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.allHTTPHeaderFields = headerDict
+        
+        if request.httpMethod == "GET" || request.httpMethod == "HEAD" {
+            return request
+        }
+        
         if let content = body?.raw as? String {
             request.httpBody = content.data(using: .utf8)
         } else if let bytes = body?.raw as? [UInt8] {

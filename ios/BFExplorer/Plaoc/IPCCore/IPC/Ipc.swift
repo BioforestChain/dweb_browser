@@ -11,15 +11,12 @@ import Vapor
 
 class Ipc: NSObject {
 
+    private var uid_acc = 1
+    private var req_id_acc = 0
     /**
-       * 是否支持使用 MessagePack 直接传输二进制
-       * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
-       * 二进制传输在网络相关的服务里被支持，里效率会更高，但前提是对方有 MessagePack 的编解码能力
-       * 否则 JSON 是通用的传输协议
-       */
-    
-    
-    var uid_acc = 0
+     * 是否支持 messagePack 协议传输：
+     * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
+     */
     var supportMessagePack: Bool = false
     var uid: Int {
         let tmp = uid_acc
@@ -27,21 +24,19 @@ class Ipc: NSObject {
         return tmp
     }
     /**
-       * 是否支持使用 Protobuf 直接传输二进制
-       * 在网络环境里，protobuf 是更加高效的协议
-       */
+        * 是否支持 Protobuf 协议传输：
+        * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 Protobuf 的编解码
+        */
     var supportProtobuf: Bool = false
     /**
          * 是否支持结构化内存协议传输：
          * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
          */
     var supportRaw: Bool = false
-    var support_binary: Bool  = false
-//    {
-//        return self.supportMessagePack || self.supportProtobuf
-//    }
-    var remote: MicroModule?
-    var role: IPC_ROLE?
+    /** 是否支持 二进制 传输 */
+    var supportBinary: Bool  = false
+    var remote: MicroModuleInfo
+    var role: String?
     
     private var _closed = false
     
@@ -53,17 +48,24 @@ class Ipc: NSObject {
         return _closed
     }
     
+    private var _destroyed = false
+    
+    var isDestroy: Bool {
+        return _destroyed
+    }
+    
     private var ipcMessage: OnIpcMessage?
     
     private var onIpcrequestMessage: OnIpcrequestMessage?
     
     var messageSignal: Signal<(IpcMessage,Ipc)>?
-    var onMessage: ((@escaping OnIpcMessage) -> OffListener)!
+//    var onMessage: ((@escaping OnIpcMessage) -> OffListener)!
     
     private let closeSignal = SimpleSignal()
+    private let destroySignal = SimpleSignal()
     
     private(set) var reqresMap: [Int: PromiseOut<IpcResponse>] = [:]
-    private var req_id_acc = 0
+    
     private var inited_req_res: Bool = false
     
     private var messageResponse: IpcResponse?
@@ -71,8 +73,14 @@ class Ipc: NSObject {
     override init() {
         super.init()
         messageSignal = Signal<(IpcMessage,Ipc)>()
-        onMessage = messageSignal!.listen
         
+    }
+    
+    func asRemoteInstance() -> MicroModule? {
+        if let module = remote as? MicroModule {
+            return module
+        }
+        return nil
     }
     
     func toString() -> String {
@@ -90,26 +98,52 @@ class Ipc: NSObject {
         postMessage(message: ipcRes)
     }
     
+    func onMessage(cb: @escaping OnIpcMessage) -> OffListener {
+        return messageSignal!.listen(cb)
+    }
+    
     func doPostMessage(data: IpcMessage) { }
     
-    lazy var getOnRequestListener: ((@escaping OnIpcrequestMessage) -> OffListener) = {
-        
+    lazy var requestSignal: Signal<(IpcRequest, Ipc)> = {
         let signal = Signal<(IpcRequest, Ipc)>()
         
-        _ = self.onMessage({ (request, ipc) in
-            if let request = request as? IpcRequest {
+        _ = self.messageSignal?.listen({ message,ipc in
+            if let request = message as? IpcRequest {
                 signal.emit((request, ipc))
             }
-            return nil
         })
-
-        return signal.listen
-        
+        return signal
     }()
     
-    func onRequest(cb: @escaping OnIpcrequestMessage) -> Any {
+    func onRequest(cb: @escaping OnIpcrequestMessage) -> OffListener {
         
-        return self.getOnRequestListener(cb)
+        return requestSignal.listen(cb)
+    }
+    
+    lazy var eventSignal: Signal<(IpcEvent, Ipc)> = {
+        let signal = Signal<(IpcEvent, Ipc)>()
+        
+        _ = self.messageSignal?.listen({ message,ipc in
+            if let event = message as? IpcEvent {
+                signal.emit((event, ipc))
+            }
+        })
+        return signal
+    }()
+    
+    func onEvent(cb: @escaping OnIpcEventMessage) -> OffListener {
+        
+        return eventSignal.listen(cb)
+    }
+    
+    func onClose(cb: @escaping SimpleCallbcak) -> OffListener {
+        
+        return closeSignal.listen(cb)
+    }
+    
+    func onDestroy(cb: @escaping SimpleCallbcak) -> OffListener {
+        
+        return destroySignal.listen(cb)
     }
     
     func doClose() { }
@@ -120,6 +154,19 @@ class Ipc: NSObject {
         self.doClose()
         self.closeSignal.emit(())
         self.closeSignal.clear()
+        // 关闭的时候会自动触发销毁
+//        destory
+    }
+    
+    func destroy(close: Bool = true) {
+        guard !_destroyed else { return }
+        _destroyed = true
+        if close {
+            self.closeAction()
+        }
+        
+        self.destroySignal.emit(())
+        self.destroySignal.clear()
     }
     
     func allocReqId() -> Int {
@@ -138,42 +185,28 @@ class Ipc: NSObject {
     }
     
     func request(url: URL) -> Response? {
-        
+
         var req = URLRequest(url: url)
         req.httpMethod = "GET"
         return self.request(request: req)
     }
     
-    func request(request: IpcRequest) -> IpcResponse? {
-        self.postMessage(message: request)
+    func request(ipcRequest: IpcRequest) -> IpcResponse? {
+        self.postMessage(message: ipcRequest)
         let result = PromiseOut<IpcResponse>()
         
-        _ = self.onMessage({ (message, ipc) in
+        _ = self.onMessage(cb: { (message, ipc) in
        
-            if let req = message as? IpcResponse, req.req_id == request.req_id {
+            if let req = message as? IpcResponse, req.req_id == ipcRequest.req_id {
                 result.resolver(req)
             }
-            return nil
         })
         return result.waitPromise()
     }
     
     func request(request: URLRequest) -> Response? {
-        self.request(request: IpcRequest.fromRequest(req_id: allocReqId(), request: request, ipc: self))
-        if self.messageResponse != nil {
-            return self.messageResponse?.toResponse()
-        }
-        return nil
-    }
-    
-    func onClose(cb: @escaping SimpleCallbcak) -> OffListener {
-        return self.closeSignal.listen(cb)
+        let response = self.request(ipcRequest: IpcRequest.fromRequest(req_id: allocReqId(), request: request, ipc: self))
+        return response?.toResponse()
     }
 }
 
-class initObj {
-    
-    var method: String?
-    var body: Any?
-    var headers: IpcHeaders?
-}

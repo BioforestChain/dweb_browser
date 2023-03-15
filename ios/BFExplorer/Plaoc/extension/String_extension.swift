@@ -102,7 +102,12 @@ extension String {
         } ?? []
     }
     
-    // 编码
+    //utf8 编码
+    func utf8Encoding() {
+        
+    }
+    
+    // base64编码
     func base64Encoding() -> String? {
 
         let plainData = self.data(using: .utf8)
@@ -112,7 +117,7 @@ extension String {
         return base64String
         
     }
-    //解码
+    //base64解码
     func base64Decoding() -> String? {
         
         guard let decodedData = Data(base64Encoded: self) else { return nil }
@@ -149,4 +154,22 @@ extension String {
         let resultString = self as NSString
         return resultString.substring(with: result!.range)
     }
+    
+    func fromBase64() -> [UInt8]? {
+        
+        guard let decodedData = Data(base64Encoded: self) else { return nil }
+        return [UInt8](decodedData)
+    }
+    
+    func fromUtf8() -> [UInt8]? {
+        
+        guard let data = self.data(using: .utf8) else { return nil }
+        return [UInt8](data)
+    }
+    
+    //将编码后的url转换回原始的url
+    func urlDecoded() -> String {
+        return self.removingPercentEncoding ?? ""
+    }
+    
 }

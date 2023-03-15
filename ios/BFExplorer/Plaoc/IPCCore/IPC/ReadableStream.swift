@@ -7,7 +7,7 @@
 
 import UIKit
 import Combine
-import AsyncHTTPClient
+import Atomics
 
 enum MyError: Error {
     case testError
@@ -21,34 +21,61 @@ class ReadableStream: InputStream {
     var onStart: OnStartCallback?
     var onPull: OnPullCallback?
     
-    private var data: [UInt8] = [UInt8]()
+    private var data: Data = Data()
     private var ptr = 0  // 当前指针
-    private var mark = 0  //标记
     
-    private var dataChannel = PassthroughSubject<[UInt8], MyError>()
-    private var dataSizeChangeChannel = PassthroughSubject<Int, MyError>()
-    private var writelable: AnyCancellable?
-    private var readlable: AnyCancellable?
-    private var pullSignal = Signal<Int>()
+    private let lock = NSLock()
     
-    private var writeDataScope = DispatchQueue.init(label: "write")
-    private var readDataScope = DispatchQueue.init(label: "read")
+    private var dataChannel = PassthroughSubject<Data, MyError>()
     private var closePo = PromiseOut<Void>()
-    private var isClose: Bool = true
     
-    private var id_acc = 1
+    private var observerData = CurrentValueSubject<Int, Never>(0)
     
-    private var uid: String {
-        let tmp = self.id_acc
-        self.id_acc += 1
-        return "#s\(tmp)"
+    private var _observerInt = 0 {
+        didSet{
+            observerData.send(_observerInt)
+        }
+    }
+    
+    static var id_acc = ManagedAtomic<Int>(1)
+    
+    var uid: String {
+        return "#s\(ReadableStream.id_acc.store(1, ordering: .releasing))" + (cid != nil ? "(\(cid!))" : "")
+    }
+    
+    var isClosed: Bool {
+        return closePo.finished()
     }
     
     enum StreamControlSignal {
         case PULL
     }
     
-    var test: String = ""
+    var cid: String?
+    
+    init(cid: String? = nil, onStart: @escaping OnStartCallback, onPull: @escaping OnPullCallback) {
+        super.init(data: data)
+        self.onStart = onStart
+        self.onPull = onPull
+        self.cid = cid
+        
+        onStart(controller)
+        
+        Task {
+            for try await chunk in dataChannel.values {
+                lock.withLock {
+                    data += chunk
+                }
+                // 收到数据了，尝试解锁通知等待者
+                _observerInt += 1
+            }
+            // 关闭数据通道了，尝试解锁通知等待者
+            _observerInt = -1
+            
+            // 执行关闭
+            self.closePo.resolver(())
+        }
+    }
     
     lazy private var controller: ReadableStreamController = {
         let controller = ReadableStreamController(dataChannel: dataChannel) {
@@ -57,33 +84,26 @@ class ReadableStream: InputStream {
         return controller
     }()
     
-    func startLoad(onStart: @escaping OnStartCallback, onPull: @escaping OnPullCallback) -> ReadableStream {
-        
-        let stream = ReadableStream()
-        stream.open()
-        stream.controller = controller
-        onStart(stream.controller)
-        
-        self.onStart = onStart
-        self.onPull = onPull
-        
-        stream.isClose = stream.closePo.finished()
-//
-//      _ = pullSignal.listen { desiredSize in
-//            onPull(desiredSize,stream.controller)
-//        }
-        
-        writeDataScope.async {
-            self.writelable = self.dataChannel.sink { complete in
-                self.dataSizeChangeChannel.send(-1)
-                self.closePo.resolver(())
-            } receiveValue: { value in
-                self.data += value
-                self.dataSizeChangeChannel.send(self.data.count)
+    /**
+         * 流协议不支持mark，读出来就直接丢了
+         */
+    func markSupported() -> Bool{
+        return false
+    }
+    
+    /** 执行垃圾回收
+         * 10kb 的垃圾起，开始回收
+         */
+    func gc() {
+        Task {
+            lock.withLock {
+                if ptr >= 10240 || isClosed {
+                    let subData = data[ptr..<data.count]
+                    data = subData
+                    ptr = 0
+                }
             }
-            
         }
-        return stream
     }
     
     func afterClosed() {
@@ -91,49 +111,32 @@ class ReadableStream: InputStream {
             self.closePo.waitPromise()
         }
     }
-    
-    private func requestData(ptr: Int) -> [UInt8] {
-        if ptr < data.count {
+    /**
+         * 读取数据，在尽可能满足下标读取的情况下
+         */
+    private func requestData(requestSize: Int) -> [UInt8] {
+        
+        let ownSize = { self.data.count - self.ptr }
+        if ownSize() >= requestSize {
             return [UInt8](data)
         }
         
-        let endSize = ptr + 1
-        let desiredSize = endSize - self.ptr
-        
-        let semaphore = DispatchSemaphore(value: 0)
-        writeAction(desiredSize: desiredSize, semaphore: semaphore)
-        readAction(ptr: ptr, semaphore: semaphore)
-        
-        semaphore.wait()
-        semaphore.wait()
-        return [UInt8](data)
-    }
-    
-    func writeAction(desiredSize: Int, semaphore: DispatchSemaphore) {
-        writeDataScope.async {
-//            self.pullSignal.emit(desiredSize)
-            self.onPull?(desiredSize,self.controller)
-            semaphore.signal()
-        }
-    }
-    
-    func readAction(ptr: Int, semaphore: DispatchSemaphore) {
-        readDataScope.async {
-            let wait = PromiseOut<Void>()
-            self.readlable = self.dataSizeChangeChannel.sink { complete in
-                print("complete")
-            } receiveValue: { value in
-                if value == self.data.count {
-                    print("REQUEST-DATA/WAITING/\(self.uid)")
-                } else if value == -1 {
-                    wait.resolver(())
-                } else if ptr < value {
-                    wait.resolver(())
-                }
+        let wait = PromiseOut<Void>()
+        let task = Task {
+            if observerData.value == -1 {
+                wait.resolver(())
+            } else if ownSize() >= requestSize {
+                wait.resolver(())
+            } else {
+                let desireSize = requestSize - data.count
+                onPull?(desireSize, controller)
             }
-            _ = wait.waitPromise()
-            semaphore.signal()
         }
+        
+        wait.waitPromise()
+        task.cancel()
+        
+        return [UInt8](data)
     }
     
     func toString() -> String {
@@ -145,41 +148,20 @@ class ReadableStream: InputStream {
 
 extension ReadableStream {
     
-    func read() -> Int {
-        let data = requestData(ptr: ptr)
-        if ptr < data.count {
-            let count = ptr
-            ptr += 1
-            return Int(data[count])
-        }
-        return -1
-    }
-    
-    func available() -> Int {
-        return requestData(ptr: ptr).count - ptr
-    }
-    
-    func markAction(limit: Int) {
-        mark = limit
-    }
-    
-    func reset() {
-        if mark < 0 || mark >= data.count {
-            print("标识不对")
+    override func close() {
+        
+        if isClosed {
             return
         }
-        ptr = mark
-    }
-    
-    override func close() {
-        super.close()
+        
+        closePo.resolver(())
         controller.close()
-        ptr = data.count
+        super.close()
     }
     
     override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         
-        var data = requestData(ptr: data.count + len - 1)
+        var data = requestData(requestSize: len)
         if ptr >= data.count || len < 0 {
             return -1
         }
@@ -187,9 +169,10 @@ extension ReadableStream {
         if len == 0 {
             return 0
         }
+        let length = super.read(buffer, maxLength: len)
+        let readData = Data(bytes: buffer, count: length)
         
-        let length = (available() < len) ? available() : len
-        data += [buffer.pointee]
+        data += readData
         ptr += length
         return length
     }
@@ -198,17 +181,16 @@ extension ReadableStream {
 
 struct ReadableStreamController {
     
-    private var dataChannel = PassthroughSubject<[UInt8], MyError>()
+    private var dataChannel = PassthroughSubject<Data, MyError>()
     var stream: ReadableStream?
     
-    init(dataChannel: PassthroughSubject<[UInt8], MyError>, getStream: () -> ReadableStream) {
+    init(dataChannel: PassthroughSubject<Data, MyError>, getStream: () -> ReadableStream) {
         self.dataChannel = dataChannel
         self.stream = getStream()
     }
     
-    func enqueue(byteArray: [UInt8]) {
-        guard byteArray.count > 0 else { return }
-        dataChannel.send(byteArray)
+    func enqueue(_ data: Data) {
+        dataChannel.send(data)
     }
     
     func close() {

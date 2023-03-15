@@ -9,7 +9,7 @@ import Foundation
 
 struct IpcReqMessage: IpcMessage {
   
-    var type: IPC_DATA_TYPE = .REQUEST
+    var type: IPC_MESSAGE_TYPE = .REQUEST
     var req_id: Int = 0
     var method: String = ""
     var urlString: String = ""

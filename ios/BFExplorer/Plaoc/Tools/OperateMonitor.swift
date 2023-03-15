@@ -20,4 +20,5 @@ class OperateMonitor: NSObject {
     let backMonitor = PublishSubject<String>()
     let scanMonitor = PublishSubject<(String,[String:Any])>()
     let routeMonitor = PublishSubject<(String, URLRequest)>()
+    let exposeWkwebViewMonitor = PublishSubject<[String:Any]>()
 }

@@ -27,7 +27,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         sharedCachesMgr.cacheNews()
         appVersionMgr.startCheck()
-        window?.rootViewController = UINavigationController(rootViewController: FirstViewController())   
+        window?.rootViewController = UINavigationController(rootViewController: FirstViewController())
+        
+//        startDwebBrowser()
         
         return true
     }
@@ -42,8 +44,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             tash.resume()
         })
         
-        
     }
+    
+    
+//    func testAction(comment: IPC_MESSAGE_TYPE2) {
+//        var type: IPC_MESSAGE_TYPE2 = .REQUEST1
+//        
+//        if type == .REQUEST1 {
+//            
+//        }
+//    }
+
 }
 
 extension UIApplication {

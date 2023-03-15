@@ -18,20 +18,21 @@ class NativeIpc: Ipc {
         self.remote = remote
         self.role = role
         
+        
         _ = port.onMessage { message in
-            var ipcMessage: IpcMessage?
-            if let request = message as? IpcRequest {
-                ipcMessage = IpcRequest.fromRequest(req_id: request.req_id, request: request.asRequest()!, ipc: self)
-            } else if let response = message as? IpcResponse {
-                if let res = IpcResponse.fromResponse(req_id: response.req_id, response: response.asResponse(), ipc: self) {
-                    ipcMessage = res
-                }
-            } else {
-                ipcMessage = message
-            }
+//            var ipcMessage: IpcMessage?
+//            if let request = message as? IpcRequest {
+//                ipcMessage = IpcRequest.fromRequest(req_id: request.req_id, request: request.asRequest()!, ipc: self)
+//            } else if let response = message as? IpcResponse {
+//                if let res = IpcResponse.fromResponse(req_id: response.req_id, response: response.asResponse(), ipc: self) {
+//                    ipcMessage = res
+//                }
+//            } else {
+//                ipcMessage = message
+//            }
             
-            self.messageSignal?.emit((ipcMessage!,self))
-            return port.messageSignal.closure
+            self.messageSignal?.emit((message,self))
+//            return port.messageSignal.closure
         }
         Task {
             port.start()

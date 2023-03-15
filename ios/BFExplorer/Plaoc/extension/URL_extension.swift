@@ -34,4 +34,29 @@ extension URL {
         components.queryItems = queryItems
         return components.url
     }
+    
+    func authority() -> String {
+        var prefix = ""
+        if self.user != nil {
+            prefix += self.user!
+        }
+        
+        if self.password != nil {
+            if prefix.count > 0 {
+                prefix += ":\(self.password!)@"
+            } else {
+                prefix = "\(self.password!)@"
+            }
+        }
+        
+        if self.host != nil {
+            prefix += self.host!
+        }
+        
+        if self.port != nil {
+            prefix += ":\(self.port!)"
+        }
+        
+        return prefix
+    }
 }

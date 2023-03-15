@@ -10,6 +10,7 @@ import RxSwift
 import SDWebImage
 import Combine
 import Alamofire
+import Vapor
 
 class FirstViewController: UIViewController {
 
@@ -25,7 +26,7 @@ class FirstViewController: UIViewController {
     let dataSizeChangeChannel = PassthroughSubject<Int, Never>()
     let passThroughSubject = PassthroughSubject<String, Error>()
     var subscription: AnyCancellable?
-    
+    var app: Application!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -82,39 +83,39 @@ class FirstViewController: UIViewController {
         
         
         
-        let wait = PromiseOut<UInt>()
-//        dataSizeChangeChannel.sink { complete in
-//            print("complete")
-//        } receiveValue: { value in
-////            wait.resolver(UInt(value))
-//            print(value)
+        DispatchQueue.global().async {
+//            self.test()
+        }
+       
+    }
+    
+    func test() {
+        
+        
+        var env = try! Environment.detect()
+
+        app = Application(.development)
+        defer { app.shutdown() }
+
+        try! configure(app)
+
+        try! app.run()
+    }
+    
+    public func configure(_ app: Application) throws {
+        app.logger.logLevel = .debug
+        
+        app.http.server.configuration.hostname = "127.0.0.1"
+        app.http.server.configuration.port = 8080
+        
+        // routes
+//        app.on(.GET, "ping") { req in
+//                return "123456"
 //        }
         
-        
-        
-        
-        subscription = passThroughSubject.sink(
-            receiveCompletion: { completion in
-                print("Received completion (sink)", completion)
-            },
-            receiveValue: { value in
-                print("Received value (sink)", value)
-                wait.resolver(2)
-            })
-        
-        DispatchQueue.global().async {
-            let result = wait.waitPromise()
-            print(result)
+        app.routes.get("hello", ":a") { req in
+            return req.parameters.get("a") ?? ""
         }
-        
-        Task {
-            print(Thread.current)
-            print("start")
-            try? await Task.sleep(nanoseconds:50000)
-            print("sleep")
-        }
-        print("end")
-       
     }
     
     @objc func update(noti: Notification) {
@@ -152,7 +153,8 @@ class FirstViewController: UIViewController {
         
 //        dataSizeChangeChannel.send(2)
         
-        passThroughSubject.send("Hello")
+        
+        
 //        let semaphore = DispatchSemaphore(value: 0)
         
 //        print("1")

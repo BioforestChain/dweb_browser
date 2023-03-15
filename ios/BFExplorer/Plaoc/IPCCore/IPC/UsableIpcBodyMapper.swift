@@ -22,7 +22,7 @@ class UsableIpcBodyMapper {
     
     func add(streamId: String, ipcBody: IpcBodySender) -> Bool {
         
-        guard map.keys.contains(streamId) else { return false }
+        guard !map.keys.contains(streamId) else { return false }
         map[streamId] = ipcBody
         return true
     }
@@ -34,7 +34,7 @@ class UsableIpcBodyMapper {
     func remove(streamId: String) {
         let sender = map.removeValue(forKey: streamId)
         guard sender != nil else { return }
-        
+        // 如果都删除完了，那么就触发事件解绑
         if map.isEmpty {
             destroySignal.emit(())
             destroySignal.clear()

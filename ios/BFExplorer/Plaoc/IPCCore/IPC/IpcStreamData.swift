@@ -9,10 +9,26 @@ import UIKit
 
 struct IpcStreamData {
 
-    var type: IPC_DATA_TYPE = .STREAM_MESSAGE
+    var type: IPC_MESSAGE_TYPE = .STREAM_DATA
     private(set) var data: Any?
     private(set) var stream_id: String = ""
-    private var encoding: IPC_DATA_ENCODING?
+    private var encoding: IPC_DATA_ENCODING = .NONE
+    
+    var binary: [UInt8]? {
+        return binaryHelper.dataToBinary(data: data, encoding: encoding)
+    }
+    
+    var text: String? {
+        return binaryHelper.dataToText(data: data, encoding: encoding)
+    }
+    
+    var jsonAble: IpcStreamData? {
+        if encoding == .BINARY {
+            return IpcStreamData.fromBase64(stream_id: stream_id, data: (data as? [UInt8]) ?? [])
+        } else {
+            return self
+        }
+    }
     
     init(stream_id: String, data: Any, encoding: IPC_DATA_ENCODING) {
         self.data = data
@@ -20,26 +36,20 @@ struct IpcStreamData {
         self.encoding = encoding
     }
     
-    static func fromBinary(ipc: Ipc, stream_id: String, data: [UInt8]) -> IpcStreamData {
-        if ipc.support_binary {
-            return asBinary(stream_id: stream_id, data: data)
-        }
-        return asBase64(stream_id: stream_id, data: data)
-    }
-    
-    static func asBinary(stream_id: String, data: [UInt8]) -> IpcStreamData {
+    static func fromBinary(stream_id: String, data: [UInt8]) -> IpcStreamData {
         return IpcStreamData(stream_id: stream_id, data: data, encoding: .BINARY)
     }
     
-    static func asBase64(stream_id: String, data: [UInt8]) -> IpcStreamData {
-        let datas = Data(bytes: data, count: data.count)
-        return IpcStreamData(stream_id: stream_id, data: datas.base64EncodedString(), encoding: .BASE64)
+    static func fromBase64(stream_id: String, data: [UInt8]) -> IpcStreamData {
+        return IpcStreamData(stream_id: stream_id, data: data.toBase64(), encoding: .BASE64)
     }
     
-    static func asUtf8(stream_id: String, data: [UInt8]) -> IpcStreamData {
-        let datas = Data(bytes: data, count: data.count)
-        return IpcStreamData(stream_id: stream_id, data: String(data: datas, encoding: .utf8) ?? "", encoding: .UTF8)
-        
+    static func fromUtf8(stream_id: String, data: [UInt8]) -> IpcStreamData {
+        return IpcStreamData(stream_id: stream_id, data: data.toUtf8(), encoding: .UTF8)
+    }
+    
+    static func fromUtf8(stream_id: String, data: String) -> IpcStreamData {
+        return IpcStreamData(stream_id: stream_id, data: data, encoding: .UTF8)
     }
 }
 

@@ -10,25 +10,25 @@ import WebKit
 
 class JsProcessWebApi {
     
-    private var wkWebView: WKWebView!
+    private var dWebView: DWebView!
     
-    init(dWebView: WKWebView) {
+    init(dWebView: DWebView) {
         
-        self.wkWebView = dWebView
+        self.dWebView = dWebView
     }
     
     func isReady() -> Bool {
         
-        var ready: Bool = false
-        let semaphore = DispatchSemaphore(value: 0)
-        wkWebView.evaluateJavaScript("typeof createProcess") { result, error in
-            ready = result as? String == "function"
-            semaphore.signal()
-        }
-        semaphore.wait()
-        return ready
+        return dWebView.evaluateSyncJavascriptCode(script: "typeof createProcess") == "function"
     }
     
+    func createProcess(env_script_url: String, remoteModule: MicroModule) {
+        //TODO
+    }
+    
+    func runProcessMain(process_id: Int, options: RunProcessMainOptions) {
+        //TODO
+    }
 }
 
 
@@ -50,5 +50,14 @@ struct ProcessHandler {
     init(info: IpcProcessInfo, ipc: MessagePortIpc) {
         self.info = info
         self.ipc = ipc
+    }
+}
+
+struct RunProcessMainOptions {
+    
+    var main_url: String
+    
+    init(main_url: String) {
+        self.main_url = main_url
     }
 }

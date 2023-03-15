@@ -12,7 +12,7 @@ import Vapor
 class IpcResponse {
 
     var req_id: Int = 0
-    var type: IPC_DATA_TYPE = .RESPONSE
+    var type: IPC_MESSAGE_TYPE = .RESPONSE
     private var headers: IpcHeaders!
     private var statusCode: Int = 0
     private var body: IpcBody?
@@ -31,7 +31,7 @@ class IpcResponse {
         self.ipc = ipc
         
         if let bodySender = body as? IpcBodySender {
-            IpcBodySender().usableByIpc(ipc: ipc, ipcBody: bodySender)
+            IpcBodySender().IPCsender(ipc: ipc, ipcBody: bodySender)
         }
     }
     
@@ -39,10 +39,6 @@ class IpcResponse {
         let message = IpcResMessage(req_id: self.req_id, statusCode: self.statusCode, headers: self.headers, metaBody: self.body?.metaBody)
         return message
     }()
-    
-    func getIpcHeaders() -> [String:String] {
-        return self.headers.headerDict
-    }
     
     func toResponse() -> Response {
         
@@ -94,11 +90,11 @@ class IpcResponse {
         
         if response.body.count == -1 {
             let stream = InputStream(data: response.body.data!)
-            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(raw: stream, ipc: ipc), ipc: ipc)
+            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender.from(raw: stream, ipc: ipc), ipc: ipc)
         } else if response.body.count > 0 {
-            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(raw: [UInt8](response.body.data!), ipc: ipc), ipc: ipc)
+            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender.from(raw: [UInt8](response.body.data!), ipc: ipc), ipc: ipc)
         } else {
-            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender(raw: "", ipc: ipc), ipc: ipc)
+            return IpcResponse(req_id: req_id, statusCode: Int(response.status.code), headers: IpcHeaders(content: response.headers.description), body: IpcBodySender.from(raw: "", ipc: ipc), ipc: ipc)
         }
     }
     
@@ -112,7 +108,7 @@ class IpcResponse {
     static func fromText(req_id: Int,statusCode: Int = 200,text: String,headers: IpcHeaders = IpcHeaders(),ipc: Ipc)  -> IpcResponse {
         
         headers.set(key: "Content-Type", value: "text/plain")
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(raw: text, ipc: ipc), ipc: ipc)
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender.from(raw: text, ipc: ipc), ipc: ipc)
     }
     
     static func fromBinary(req_id: Int,statusCode: Int = 200,binary: [UInt8],headers: IpcHeaders,ipc: Ipc)  -> IpcResponse {
@@ -120,13 +116,13 @@ class IpcResponse {
         headers.set(key: "Content-Type", value: "application/octet-stream")
         headers.set(key: "Content-Length", value: "\(binary.count)")
 
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(raw: binary, ipc: ipc), ipc: ipc)
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender.from(raw: binary, ipc: ipc), ipc: ipc)
     }
     
     static func fromStream(req_id: Int,statusCode: Int = 200,stream: InputStream,headers: IpcHeaders = IpcHeaders(),ipc: Ipc) -> IpcResponse {
         
         headers.set(key: "Content-Type", value: "application/octet-stream")
-        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender(raw: stream, ipc: ipc), ipc: ipc)
+        return IpcResponse(req_id: req_id, statusCode: statusCode, headers: headers, body: IpcBodySender.from(raw: stream, ipc: ipc), ipc: ipc)
     }
 }
 
@@ -136,7 +132,7 @@ extension IpcResponse: IpcMessage {}
 
 struct IpcResMessage: IpcMessage {
     
-    var type: IPC_DATA_TYPE = .REQUEST
+    var type: IPC_MESSAGE_TYPE = .RESPONSE
     var req_id: Int = 0
     var statusCode: Int = 0
     var headers: IpcHeaders = IpcHeaders()

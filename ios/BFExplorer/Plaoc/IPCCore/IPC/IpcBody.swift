@@ -8,37 +8,42 @@
 import UIKit
 import SwiftUI
 
+var raw_ipcBody_WMap = NSMutableDictionary()
+var metaId_receiverIpc_Map: [String:Ipc] = [:]
+var metaId_ipcBodySender_Map: [String: IpcBodySender] = [:]
+
 class IpcBody {
 
     var ipc: Ipc?
-    var bodyHub: Body?
+    var bodyHub: BodyHub?
     var metaBody: MetaBody?
-    var wm: [IpcBody: Any] = [:]  //安卓的类型是 [Any: IpcBody] 但swift不能设置key为any类型
     
     var raw: Any
+    
+    var wm: NSMutableDictionary = NSMutableDictionary()
     
     init() {
         self.raw = bodyHub?.data
     }
     
     func u8a() -> [UInt8]? {
-        guard bodyHub != nil else { return nil }
         var body_u8a = bodyHub?.u8a
         if body_u8a == nil {
             if bodyHub?.stream != nil {
-                body_u8a = StreamFileManager.readData(stream: bodyHub!.stream!)
+                body_u8a = bodyHub?.stream!.readByteArray()
             } else if bodyHub?.text != nil {
-                body_u8a = encoding.simpleEncoder(data: bodyHub!.text!, encoding: .base64)
+                body_u8a = bodyHub?.text!.fromBase64()
             } else {
                 print("invalid body type")
+                return nil
             }
             self.bodyHub?.u8a = body_u8a
         }
+        raw_ipcBody_WMap[body_u8a] = self
         return body_u8a
     }
     
     func stream() -> InputStream? {
-        guard bodyHub != nil else { return nil }
         var body_stream = bodyHub?.stream
         if body_stream == nil {
             let binary = self.u8a() ?? []
@@ -46,35 +51,26 @@ class IpcBody {
             body_stream = InputStream(data: data)
             self.bodyHub?.stream = body_stream
         }
+        raw_ipcBody_WMap[body_stream] = self
         return body_stream
     }
     
     func text() -> String? {
-        guard bodyHub != nil else { return nil }
         var body_text = bodyHub?.text
         if body_text == nil {
             if self.u8a() != nil {
-                body_text = encoding.simpleDecoder(data: self.u8a()!, encoding: .utf8)
+                let binary = self.u8a() ?? []
+                body_text = binary.toUtf8()
                 self.bodyHub?.text = body_text
             }
         }
+        raw_ipcBody_WMap[body_text] = self
         return body_text
     }
 }
 
-extension IpcBody: Hashable {
-    
-    static func == (lhs: IpcBody, rhs: IpcBody) -> Bool {
-        return lhs.ipc == rhs.ipc && lhs.bodyHub == rhs.bodyHub && lhs.metaBody == rhs.metaBody
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(ipc)
-    }
-}
 
-
-class Body: NSObject {
+struct BodyHub {
     
     var data: Any?  
     var u8a: [UInt8]?

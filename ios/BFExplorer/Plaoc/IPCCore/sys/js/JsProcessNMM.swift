@@ -44,10 +44,9 @@ class JsProcessNMM: NativeMicroModule {
             
             let serverIpc = mainServer?.listen()
             _ = serverIpc?.onRequest(cb: { request, ipc in
-                guard let response = self.nativeFetch(url: URL(string: "file:///bundle/js-process\(request.url!.path)")!) else { return false }
-                guard let resp = IpcResponse.fromResponse(req_id: request.req_id, response: response, ipc: ipc) else { return false }
+                guard let response = self.nativeFetch(url: URL(string: "file:///bundle/js-process\(request.url!.path)")!) else { return }
+                guard let resp = IpcResponse.fromResponse(req_id: request.req_id, response: response, ipc: ipc) else { return }
                 ipc.postMessage(message: resp)
-                return true //返回any 随便返回
             })
         }
         
@@ -91,7 +90,7 @@ class JsProcessNMM: NativeMicroModule {
          * 我们会对回来的代码进行处理，然后再执行
          */
         let codeProxyServerIpc = httpDwebServer?.listen()
-        codeProxyServerIpc?.onRequest(cb: { request, ipc in
+        _ = codeProxyServerIpc?.onRequest(cb: { request, ipc in
             // <internal>开头的是特殊路径：交由内部处理，不会推给远端处理
             if request.url != nil, request.url!.path.hasPrefix(self.INTERNAL_PATH) {
                 let path = request.url!.path
@@ -112,20 +111,35 @@ class JsProcessNMM: NativeMicroModule {
                 }
             } else {
                 
-                guard let tmpRequest = request.toRequest() else { return nil }
-                guard let res = streamIpc.request(request: tmpRequest) else { return nil }
+                guard let tmpRequest = request.toRequest() else { return }
+                guard let res = streamIpc.request(request: tmpRequest) else { return }
                 for (key,value) in self.CORS_HEADERS {
                     res.headers.add(name: key, value: value)
                 }
                 ipc.postResponse(req_id: request.req_id, response: res)
             }
-            return nil
         })
         
         let bootstrap_url = httpDwebServer?.startResult.urlInfo.buildInternalUrl()?.replacePath(replacePath: "\(INTERNAL_PATH)/bootstrap.js")?.addURLQuery(name: "mmid", value: ipc.remote?.mmid)?.addURLQuery(name: "host", value: httpDwebServer?.startResult.urlInfo.host)?.absoluteString
         //创建一个通往 worker 的消息通道
+        //TODO
         
+        /**
+                 * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
+                 *
+                 * > 自己shutdown的时候，这些ipc会被关闭
+                 */
+        _ = ipc.onClose { _ in
+            streamIpc.closeAction()
+        }
         
-        return nil
+        _ = streamIpc.onClose { _ in
+            httpDwebServer?.close
+        }
+        
+        // 返回自定义的 Response，里头携带我们定义的 ipcStream
+        let data = IpcResponse.fetchStreamData(stream: streamIpc.stream)
+        let responseBody = Response.Body.init(data: data)
+        return Response(status: .ok, body: responseBody)
     }
 }
