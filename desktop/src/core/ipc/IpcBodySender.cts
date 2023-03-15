@@ -255,6 +255,16 @@ const getStreamId = (stream: ReadableStream<Uint8Array>) => {
   }
   return id;
 };
+export const setStreamId = (
+  stream: ReadableStream<Uint8Array>,
+  cid: string
+) => {
+  let id = streamIdWM.get(stream);
+  if (id === undefined) {
+    streamIdWM.set(stream, (id = `rs-${stream_id_acc++}[${cid}]`));
+  }
+  return id;
+};
 
 class UsableIpcBodyMapper {
   private map = new Map<String, IpcBodySender>();

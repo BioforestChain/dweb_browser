@@ -86,9 +86,6 @@ class IpcBodyReceiver(
                         debugIpcBody(
                             "receiver/StreamData/$ipc/${controller.stream}", message
                         )
-                        if (stream_id == "rs-0") {
-                            debugger()
-                        }
                         controller.enqueue(message.binary)
                     } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
                         debugIpcBody(

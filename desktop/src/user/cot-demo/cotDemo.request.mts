@@ -1,11 +1,10 @@
 import type { Ipc } from "../../core/ipc/ipc.cjs";
-import type { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
-import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
-import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { simpleEncoder } from "../../helper/encoding.cjs";
 import { mapHelper } from "../../helper/mapHelper.cjs";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.cjs";
 import type { ServerUrlInfo } from "../../sys/http-server/const.js";
+
+const { IpcHeaders, IpcRequest, IpcResponse } = ipc;
 
 const ipcObserversMap = new Map<
   $MMID,
@@ -78,12 +77,13 @@ export async function onApiRequest(
     } else {
       const path = `file:/${url.pathname}${url.search}`;
       console.log("onRequestPath: ", path);
-      let res = await jsProcess.nativeFetch(path);
-      console.log("res => ", res)
+      const response = await jsProcess.nativeFetch(path);
+
       ipcResponse = await IpcResponse.fromResponse(
         request.req_id,
-        res,
+        response,
         httpServerIpc
+        // true
       );
     }
     cros(ipcResponse.headers);

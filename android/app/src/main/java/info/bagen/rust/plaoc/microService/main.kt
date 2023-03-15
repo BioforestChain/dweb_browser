@@ -34,8 +34,8 @@ suspend fun startDwebBrowser() {
      *
      * "message-port-ipc",
      * "stream-ipc",
-     * "fetch",
      * "stream",
+     * "fetch",
      * "ipc-body",
      * "http",
      * "TIME-DURATION"
@@ -43,8 +43,9 @@ suspend fun startDwebBrowser() {
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
             listOf<String>(
-                "mwebview",
-                "dwebview",
+                "message-port-ipc",
+                "stream-ipc",
+                "stream",
             )
         )
         else -> debugTags.addAll(

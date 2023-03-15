@@ -3,7 +3,7 @@ import { $Binary, binaryToU8a } from "../../helper/binaryHelper.cjs";
 import { IpcMessage, IPC_MESSAGE_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import type { IpcBody } from "./IpcBody.cjs";
-import { IpcBodySender } from "./IpcBodySender.cjs";
+import { IpcBodySender, setStreamId } from "./IpcBodySender.cjs";
 import { IpcHeaders } from "./IpcHeaders.cjs";
 import type { MetaBody } from "./MetaBody.cjs";
 
@@ -47,13 +47,20 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
   }
 
   /** 将 response 对象进行转码变成 ipcResponse */
-  static async fromResponse(req_id: number, response: Response, ipc: Ipc) {
+  static async fromResponse(
+    req_id: number,
+    response: Response,
+    ipc: Ipc,
+    asBinary = false
+  ) {
     let ipcBody: IpcBody;
     if (
-      response.body /* &&
+      response.body &&
+      !asBinary /* &&
       /// 如果有 content-length，说明大小是明确的，不要走流，直接传输就好，减少 IPC 的触发次数
       response.headers.get("content-length") === null */
     ) {
+      setStreamId(response.body, response.url);
       ipcBody = IpcBodySender.from(response.body, ipc);
     } else {
       ipcBody = IpcBodySender.from(
