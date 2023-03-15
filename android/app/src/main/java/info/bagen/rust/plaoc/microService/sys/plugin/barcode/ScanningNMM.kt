@@ -19,6 +19,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.int
 import org.http4k.routing.bind
@@ -36,7 +38,10 @@ class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
         apiRouting = routes(
             // 处理二维码图像
             "/process" bind Method.POST to defineHandler { request, ipc ->
-                println("ScanningNMM process => ${query_rotationDegrees(request)}")
+                debugScanning(
+                    "process",
+                    " ${query_rotationDegrees(request)} ${request.body.length}"
+                )
                 val image = InputImage.fromBitmap(
                     request.body.payload.moveToByteArray().let { byteArray ->
                         BitmapFactory.decodeByteArray(
@@ -47,7 +52,12 @@ class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
                     },
                     query_rotationDegrees(request)
                 )
-                return@defineHandler process(image)
+                var result = mutableListOf<String>()
+                process(image).forEach {
+                    result.add(String(it.data))
+                }
+                debugScanning("process", "result=> $result")
+                return@defineHandler result
             },
             // 停止处理
             "/stop" bind Method.GET to defineHandler { request ->
@@ -82,8 +92,9 @@ class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
             }
         return task.waitPromise()
     }
+
     private fun stop() {
-       return BarcodeScanning.getClient().close()
+        return BarcodeScanning.getClient().close()
     }
 
 }

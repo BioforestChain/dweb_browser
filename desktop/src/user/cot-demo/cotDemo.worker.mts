@@ -35,28 +35,25 @@ const main = async () => {
     port: 443,
   });
 
-  // // console.log('wwwServer 创建完毕')
-  // const apiServer = await http.createHttpDwebServer(jsProcess, {
-  //   subdomain: "api",
-  //   port: 443,
-  // });
+  const apiServer = await http.createHttpDwebServer(jsProcess, {
+    subdomain: "api",
+    port: 443,
+  });
 
-  // console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
-  // (await apiServer.listen()).onRequest(async (request, ipc) => {
-  //   console.log("接受到了请求 apiServer： request.parsed_url.pathname： ", JSON.stringify(request.parsed_url));
-  //   onApiRequest(request, ipc)
-  // });
+  (await apiServer.listen()).onRequest(async (request, ipc) => {
+    onApiRequest(apiServer.startResult.urlInfo, request, ipc);
+  });
 
   // await sleep(5000)
   // await wwwServer.listen();
-  ;(await wwwServer.listen()).onRequest(async (request, ipc) => {
+  ; (await wwwServer.listen()).onRequest(async (request, ipc) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
     }
 
     console.time(`open file ${pathname}`);
-    
+
     const remoteIpcResponse = await jsProcess.nativeRequest(
       `file:///cot-demo${pathname}?mode=stream`
     );
@@ -104,13 +101,3 @@ const main = async () => {
 };
 
 main();
-
-
-function sleep(timestamp: number){
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve(true)
-    }, timestamp)
-  })
-}
-

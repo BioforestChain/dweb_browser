@@ -20,7 +20,7 @@ const onFileChanged = async ($event: Event) => {
   if (target && target.files) {
     const img = target.files[0]
     console.info("photo ==> ", img.name, img.type, img.size)
-    const result = await scanner.process(img)
+    const result = await scanner.process(img).then(res => res.text())
     console.info("photo process", result)
   }
 }

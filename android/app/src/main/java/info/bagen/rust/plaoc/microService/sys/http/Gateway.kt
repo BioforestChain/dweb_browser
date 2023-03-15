@@ -2,12 +2,15 @@ package info.bagen.rust.plaoc.microService.sys.http
 
 import info.bagen.rust.plaoc.microService.helper.SimpleCallback
 import info.bagen.rust.plaoc.microService.helper.SimpleSignal
+import info.bagen.rust.plaoc.microService.helper.long
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import io.ktor.util.collections.*
+import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
+import org.http4k.core.Status
 
 class Gateway(
     val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String
@@ -76,6 +79,15 @@ class Gateway(
 
         suspend fun handler(request: Request) = if (isMatch(request)) {
             streamIpc.request(request)
+        } else if (request.method == Method.OPTIONS) {
+            // 处理options请求
+            Response(Status.OK).headers(
+                listOf(
+                    Pair("Access-Control-Allow-Methods", "*"),
+                    Pair("Access-Control-Allow-Origin", "*"),
+                    Pair("Access-Control-Allow-Headers", "*")
+                )
+            )
         } else null
     }
 

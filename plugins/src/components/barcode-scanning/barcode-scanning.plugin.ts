@@ -25,7 +25,7 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @returns 
    */
   async process(blob: Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
-    return this.buildApiRequest("/process", {
+    return await this.buildApiRequest("/process", {
       search: {
         rotation,
         formats,

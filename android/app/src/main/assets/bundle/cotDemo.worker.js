@@ -24,9 +24,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/color-name/index.js
+// node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js
 var require_color_name = __commonJS({
-  "node_modules/color-name/index.js"(exports, module) {
+  "node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js"(exports, module) {
     "use strict";
     module.exports = {
       "aliceblue": [240, 248, 255],
@@ -181,9 +181,9 @@ var require_color_name = __commonJS({
   }
 });
 
-// node_modules/color-convert/conversions.js
+// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js
 var require_conversions = __commonJS({
-  "node_modules/color-convert/conversions.js"(exports, module) {
+  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js"(exports, module) {
     var cssKeywords = require_color_name();
     var reverseKeywords = {};
     for (const key of Object.keys(cssKeywords)) {
@@ -852,9 +852,9 @@ var require_conversions = __commonJS({
   }
 });
 
-// node_modules/color-convert/route.js
+// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js
 var require_route = __commonJS({
-  "node_modules/color-convert/route.js"(exports, module) {
+  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js"(exports, module) {
     var conversions = require_conversions();
     function buildGraph() {
       const graph = {};
@@ -922,9 +922,9 @@ var require_route = __commonJS({
   }
 });
 
-// node_modules/color-convert/index.js
+// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js
 var require_color_convert = __commonJS({
-  "node_modules/color-convert/index.js"(exports, module) {
+  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js"(exports, module) {
     var conversions = require_conversions();
     var route = require_route();
     var convert = {};
@@ -983,9 +983,9 @@ var require_color_convert = __commonJS({
   }
 });
 
-// node_modules/ansi-styles/index.js
+// node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js
 var require_ansi_styles = __commonJS({
-  "node_modules/ansi-styles/index.js"(exports, module) {
+  "node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js"(exports, module) {
     "use strict";
     var wrapAnsi16 = (fn, offset) => (...args) => {
       const code = fn(...args);
@@ -1125,9 +1125,9 @@ var require_ansi_styles = __commonJS({
   }
 });
 
-// node_modules/supports-color/browser.js
+// node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/browser.js
 var require_browser = __commonJS({
-  "node_modules/supports-color/browser.js"(exports, module) {
+  "node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/browser.js"(exports, module) {
     "use strict";
     module.exports = {
       stdout: false,
@@ -1136,9 +1136,9 @@ var require_browser = __commonJS({
   }
 });
 
-// node_modules/chalk/source/util.js
+// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js
 var require_util = __commonJS({
-  "node_modules/chalk/source/util.js"(exports, module) {
+  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js"(exports, module) {
     "use strict";
     var stringReplaceAll = (string, substring, replacer) => {
       let index = string.indexOf(substring);
@@ -1175,9 +1175,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/chalk/source/templates.js
+// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js
 var require_templates = __commonJS({
-  "node_modules/chalk/source/templates.js"(exports, module) {
+  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js"(exports, module) {
     "use strict";
     var TEMPLATE_REGEX = /(?:\\(u(?:[a-f\d]{4}|\{[a-f\d]{1,6}\})|x[a-f\d]{2}|.))|(?:\{(~)?(\w+(?:\([^)]*\))?(?:\.\w+(?:\([^)]*\))?)*)(?:[ \t]|(?=\r?\n)))|(\})|((?:.|[\r\n\f])+?)/gi;
     var STYLE_REGEX = /(?:^|\.)(\w+)(?:\(([^)]*)\))?/g;
@@ -1289,9 +1289,9 @@ var require_templates = __commonJS({
   }
 });
 
-// node_modules/chalk/source/index.js
+// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js
 var require_source = __commonJS({
-  "node_modules/chalk/source/index.js"(exports, module) {
+  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js"(exports, module) {
     "use strict";
     var ansiStyles = require_ansi_styles();
     var { stdout: stdoutColor, stderr: stderrColor } = require_browser();
@@ -1494,6 +1494,55 @@ var mapHelper = new class {
   }
 }();
 
+// src/helper/createSignal.cts
+var createSignal = () => {
+  return new Signal();
+};
+var Signal = class {
+  constructor() {
+    this._cbs = /* @__PURE__ */ new Set();
+    this.listen = (cb) => {
+      this._cbs.add(cb);
+      return () => this._cbs.delete(cb);
+    };
+    this.emit = (...args) => {
+      for (const cb of this._cbs) {
+        cb.apply(null, args);
+      }
+    };
+    this.clear = () => {
+      this._cbs.clear();
+    };
+  }
+};
+
+// src/helper/readableStreamHelper.cts
+var ReadableStreamOut = class {
+  constructor(strategy) {
+    this.strategy = strategy;
+    this.stream = new ReadableStream(
+      {
+        cancel: (reason) => {
+          this._on_cancel_signal?.emit(reason);
+        },
+        start: (controller) => {
+          this.controller = controller;
+        },
+        pull: () => {
+          this._on_pull_signal?.emit();
+        }
+      },
+      this.strategy
+    );
+  }
+  get onCancel() {
+    return (this._on_cancel_signal ??= createSignal()).listen;
+  }
+  get onPull() {
+    return (this._on_pull_signal ??= createSignal()).listen;
+  }
+};
+
 // src/user/cot-demo/cotDemo.request.mts
 var { IpcHeaders, IpcRequest, IpcResponse } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
@@ -1511,6 +1560,96 @@ jsProcess.onConnect((ipc2) => {
     }
   });
 });
+var INTERNAL_PREFIX = "/internal";
+async function onApiRequest(serverurlInfo, request, httpServerIpc) {
+  let ipcResponse;
+  try {
+    const url = new URL(request.url, serverurlInfo.internal_origin);
+    console.log("cotDemo#onApiRequest=>", url.href, request.method);
+    if (url.pathname.startsWith(INTERNAL_PREFIX)) {
+      const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
+      if (pathname === "/public-url") {
+        ipcResponse = IpcResponse.fromText(
+          request.req_id,
+          200,
+          void 0,
+          serverurlInfo.buildPublicUrl(() => {
+          }).href,
+          httpServerIpc
+        );
+      } else if (pathname === "/observe") {
+        const mmid = url.searchParams.get("mmid");
+        if (mmid === null) {
+          throw new Error("observe require mmid");
+        }
+        const streamPo = new ReadableStreamOut();
+        const observers = mapHelper.getOrPut(
+          ipcObserversMap,
+          mmid,
+          () => /* @__PURE__ */ new Set()
+        );
+        const ob = { controller: streamPo.controller };
+        observers.add(ob);
+        streamPo.onCancel(() => {
+          observers.delete(ob);
+        });
+        ipcResponse = IpcResponse.fromStream(
+          request.req_id,
+          200,
+          void 0,
+          streamPo.stream,
+          httpServerIpc
+        );
+      } else {
+        throw new Error(`unknown gateway: ${url.search}`);
+      }
+    } else {
+      const path = `file:/${url.pathname}${url.search}`;
+      console.log("onRequestPath: ", path, request.method, request.body);
+      if (request.method === "POST") {
+        const response = await jsProcess.nativeFetch(path, {
+          body: request.body.raw,
+          method: request.method
+        });
+        ipcResponse = await IpcResponse.fromResponse(
+          request.req_id,
+          response,
+          httpServerIpc,
+          true
+        );
+      } else {
+        const response = await jsProcess.nativeFetch(path);
+        ipcResponse = await IpcResponse.fromResponse(
+          request.req_id,
+          response,
+          httpServerIpc
+          // true
+        );
+      }
+    }
+    cros(ipcResponse.headers);
+    httpServerIpc.postMessage(ipcResponse);
+  } catch (err) {
+    if (ipcResponse === void 0) {
+      ipcResponse = await IpcResponse.fromText(
+        request.req_id,
+        502,
+        void 0,
+        String(err),
+        httpServerIpc
+      );
+      cros(ipcResponse.headers);
+      httpServerIpc.postMessage(ipcResponse);
+    } else {
+      throw err;
+    }
+  }
+}
+var cros = (headers) => {
+  headers.init("Access-Control-Allow-Origin", "*");
+  headers.init("Access-Control-Allow-Headers", "*");
+  headers.init("Access-Control-Allow-Methods", "*");
+};
 
 // src/user/cot-demo/cotDemo.worker.mts
 var import_chalk = __toESM(require_source(), 1);
@@ -1520,6 +1659,13 @@ var main = async () => {
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443
+  });
+  const apiServer = await http.createHttpDwebServer(jsProcess, {
+    subdomain: "api",
+    port: 443
+  });
+  (await apiServer.listen()).onRequest(async (request, ipc2) => {
+    onApiRequest(apiServer.startResult.urlInfo, request, ipc2);
   });
   ;
   (await wwwServer.listen()).onRequest(async (request, ipc2) => {

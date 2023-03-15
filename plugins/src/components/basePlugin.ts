@@ -68,8 +68,8 @@ export abstract class BasePlugin {
 }
 interface $BuildRequestInit extends RequestInit {
   search?:
-    | ConstructorParameters<typeof URLSearchParams>[0]
-    | Record<string, unknown>;
+  | ConstructorParameters<typeof URLSearchParams>[0]
+  | Record<string, unknown>;
   base?: string;
 }
 interface $BuildRequestWithBaseInit extends $BuildRequestInit {
