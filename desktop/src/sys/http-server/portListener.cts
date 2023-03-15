@@ -3,6 +3,7 @@ import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import { $isMatchReq, $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
+import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.cjs";
 import {
   ReadableStreamOut,
   streamFromCallback,
@@ -36,9 +37,9 @@ export class PortListener {
 
   /**
    * 判断是否有绑定的请求
-   * @param pathname 
-   * @param method 
-   * @returns 
+   * @param pathname
+   * @param method
+   * @returns
    */
   private _isBindMatchReq(pathname: string, method: string) {
     for (const bind of this._routers) {
@@ -81,8 +82,7 @@ export class PortListener {
     /// 参考文档 https://www.rfc-editor.org/rfc/rfc9110.html#name-method-definitions
     if (
       /// 理论上除了 GET/HEAD/OPTIONS 之外的method （比如 DELETE）是允许包含 BODY 的，但这类严格的对其进行限制，未来可以通过启动监听时的配置来解除限制
-      method === "POST" ||
-      method === "PUT"
+      httpMethodCanOwnBody(method)
       // &&
       // /// HTTP/1.x 的规范：（我们自己的 file: 参考了该标准）
       // (this.protocol === "http:" || this.protocol === "file:")

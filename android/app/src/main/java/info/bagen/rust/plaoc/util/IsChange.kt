@@ -39,7 +39,7 @@ class IsChange(
     }
 
     @Composable
-    inline fun <out T> rememberByState(state: MutableState<T>): MutableState<T> {
+    inline fun <T> rememberByState(state: MutableState<T>): MutableState<T> {
         LaunchedEffect(state) {
             if (needFirstCall) {
                 changes.value += 1

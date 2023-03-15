@@ -1,12 +1,13 @@
+import chalk from "chalk";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { MicroModule } from "../../core/micro-module.cjs";
+import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.cjs";
 import type { $IpcSupportProtocols } from "../../helper/types.cjs";
 import { buildUrl } from "../../helper/urlHelper.cjs";
 import { Native2JsIpc } from "../js-process/ipc.native2js.cjs";
 import type { JmmMetadata } from "./JmmMetadata.cjs";
-import chalk from "chalk";
 
 /**
  * 所有的js程序都只有这么一个动态的构造器
@@ -47,28 +48,30 @@ export class JsMicroModule extends MicroModule {
         // console.log('[micro-module.js.cts ipc onRequest request.parsed_url.href]',request.parsed_url.href)
         // console.log('[micro-module.js.cts ]   ipc ', ipc.remote.mmid)
         // console.log(chalk.red(`[micro-module.js.cts 这里错误，传递 init 参数否则无法正确的创建ipc通信🔗]`))
-        console.log(chalk.red(`[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`))
-        const  init = request.method === "POST" || request.method === "PUT"  
-                    ? { method: request.method, body: await request.body.stream()}
-                    : { method: request.method}
+        console.log(
+          chalk.red(
+            `[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`
+          )
+        );
+        const init = httpMethodCanOwnBody(request.method)
+          ? { method: request.method, body: await request.body.stream() }
+          : { method: request.method };
 
-        const response = await this.nativeFetch(request.parsed_url.href, init)
+        const response = await this.nativeFetch(request.parsed_url.href, init);
         ipc.postMessage(
           await IpcResponse.fromResponse(request.req_id, response, ipc)
-        )
-      })
+        );
+      });
 
       ipc.onMessage(async (request) => {
         // console.log('ipc.onMessage', request)
-      })
+      });
 
-      ipc.onEvent(() =>{
-        console.log('ipc. onEvent')
-      })
-      console.log('onConencted')
-    })
-
-
+      ipc.onEvent(() => {
+        console.log("ipc. onEvent");
+      });
+      console.log("onConencted");
+    });
 
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
@@ -76,7 +79,7 @@ export class JsMicroModule extends MicroModule {
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
     streamIpc.onRequest(async (request) => {
-      console.log('-----------------------2', request.parsed_url)
+      console.log("-----------------------2", request.parsed_url);
       if (request.parsed_url.pathname.endsWith("/")) {
         streamIpc.postMessage(
           IpcResponse.fromText(
@@ -120,7 +123,7 @@ export class JsMicroModule extends MicroModule {
       ).stream()
     );
     this._connecting_ipcs.add(streamIpc);
-    
+
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
     jsIpc.onRequest(async (ipcRequest) => {
       const response = await this.nativeFetch(ipcRequest.toRequest());
@@ -146,9 +149,6 @@ export class JsMicroModule extends MicroModule {
         targetIpc.onMessage((ipcMessage) => originIpc.postMessage(ipcMessage));
       }
     });
-
- 
-    
   }
   private _connecting_ipcs = new Set<Ipc>();
   async _beConnect(from: MicroModule): Promise<Native2JsIpc> {

@@ -1494,55 +1494,6 @@ var mapHelper = new class {
   }
 }();
 
-// src/helper/createSignal.cts
-var createSignal = () => {
-  return new Signal();
-};
-var Signal = class {
-  constructor() {
-    this._cbs = /* @__PURE__ */ new Set();
-    this.listen = (cb) => {
-      this._cbs.add(cb);
-      return () => this._cbs.delete(cb);
-    };
-    this.emit = (...args) => {
-      for (const cb of this._cbs) {
-        cb.apply(null, args);
-      }
-    };
-    this.clear = () => {
-      this._cbs.clear();
-    };
-  }
-};
-
-// src/helper/readableStreamHelper.cts
-var ReadableStreamOut = class {
-  constructor(strategy) {
-    this.strategy = strategy;
-    this.stream = new ReadableStream(
-      {
-        cancel: (reason) => {
-          this._on_cancel_signal?.emit(reason);
-        },
-        start: (controller) => {
-          this.controller = controller;
-        },
-        pull: () => {
-          this._on_pull_signal?.emit();
-        }
-      },
-      this.strategy
-    );
-  }
-  get onCancel() {
-    return (this._on_cancel_signal ??= createSignal()).listen;
-  }
-  get onPull() {
-    return (this._on_pull_signal ??= createSignal()).listen;
-  }
-};
-
 // src/user/cot-demo/cotDemo.request.mts
 var { IpcHeaders, IpcRequest, IpcResponse } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
@@ -1560,83 +1511,6 @@ jsProcess.onConnect((ipc2) => {
     }
   });
 });
-var INTERNAL_PREFIX = "/internal";
-async function onApiRequest(serverurlInfo, request, httpServerIpc) {
-  let ipcResponse;
-  try {
-    const url = new URL(request.url, serverurlInfo.internal_origin);
-    console.log("cotDemo#onApiRequest=>", url.href);
-    if (url.pathname.startsWith(INTERNAL_PREFIX)) {
-      const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
-      if (pathname === "/public-url") {
-        ipcResponse = IpcResponse.fromText(
-          request.req_id,
-          200,
-          void 0,
-          serverurlInfo.buildPublicUrl(() => {
-          }).href,
-          httpServerIpc
-        );
-      } else if (pathname === "/observe") {
-        const mmid = url.searchParams.get("mmid");
-        if (mmid === null) {
-          throw new Error("observe require mmid");
-        }
-        const streamPo = new ReadableStreamOut();
-        const observers = mapHelper.getOrPut(
-          ipcObserversMap,
-          mmid,
-          () => /* @__PURE__ */ new Set()
-        );
-        const ob = { controller: streamPo.controller };
-        observers.add(ob);
-        streamPo.onCancel(() => {
-          observers.delete(ob);
-        });
-        ipcResponse = IpcResponse.fromStream(
-          request.req_id,
-          200,
-          void 0,
-          streamPo.stream,
-          httpServerIpc
-        );
-      } else {
-        throw new Error(`unknown gateway: ${url.search}`);
-      }
-    } else {
-      const path = `file:/${url.pathname}${url.search}`;
-      console.log("onRequestPath: ", path);
-      const response = await jsProcess.nativeFetch(path);
-      ipcResponse = await IpcResponse.fromResponse(
-        request.req_id,
-        response,
-        httpServerIpc
-        // true
-      );
-    }
-    cros(ipcResponse.headers);
-    httpServerIpc.postMessage(ipcResponse);
-  } catch (err) {
-    if (ipcResponse === void 0) {
-      ipcResponse = await IpcResponse.fromText(
-        request.req_id,
-        502,
-        void 0,
-        String(err),
-        httpServerIpc
-      );
-      cros(ipcResponse.headers);
-      httpServerIpc.postMessage(ipcResponse);
-    } else {
-      throw err;
-    }
-  }
-}
-var cros = (headers) => {
-  headers.init("Access-Control-Allow-Origin", "*");
-  headers.init("Access-Control-Allow-Headers", "*");
-  headers.init("Access-Control-Allow-Methods", "*");
-};
 
 // src/user/cot-demo/cotDemo.worker.mts
 var import_chalk = __toESM(require_source(), 1);
@@ -1647,14 +1521,7 @@ var main = async () => {
     subdomain: "www",
     port: 443
   });
-  const apiServer = await http.createHttpDwebServer(jsProcess, {
-    subdomain: "api",
-    port: 443
-  });
-  console.log("will do listen!!", wwwServer.startResult.urlInfo.host, apiServer.startResult.urlInfo.host);
-  (await apiServer.listen()).onRequest(async (request, ipc2) => {
-    onApiRequest(apiServer.startResult.urlInfo, request, ipc2);
-  });
+  ;
   (await wwwServer.listen()).onRequest(async (request, ipc2) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
