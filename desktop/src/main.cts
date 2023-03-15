@@ -59,7 +59,8 @@ dns.install(new BootNMM([
   "mwebview.sys.dweb",
   "js.sys.dweb",
   "statusbar.sys.dweb",
-  cotDemoJMM.mmid
+  "browser.sys.dweb"
+  // cotDemoJMM.mmid
 ]));
 
 Object.assign(globalThis, { dns: dns });

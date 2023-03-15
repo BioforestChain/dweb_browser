@@ -137,7 +137,7 @@ export class JsProcessNMM extends NativeMicroModule {
     console.log('[js-process _bootstrap]')
     const mainServer = await createHttpDwebServer(this, {});
     (await mainServer.listen()).onRequest(async (request, ipc) => {
-      console.log("[js-process mainServer onRequest ]request.parsed_url.pathname", request.parsed_url.pathname)
+      // console.log("[js-process mainServer onRequest ]request.parsed_url.pathname", request.parsed_url.pathname)
       // return;
       const pathname = request.parsed_url.pathname;
       if(pathname.endsWith('/bootstrap.js')){
@@ -184,7 +184,7 @@ export class JsProcessNMM extends NativeMicroModule {
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );
-      console.log( '[js-process. openNativeWindow]')
+      // console.log( '[js-process. openNativeWindow]')
       // 打开 devtools
       nww.webContents.openDevTools();
       this._after_shutdown_signal.listen(() => {

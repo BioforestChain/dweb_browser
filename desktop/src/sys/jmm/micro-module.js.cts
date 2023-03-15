@@ -47,7 +47,7 @@ export class JsMicroModule extends MicroModule {
         // console.log('[micro-module.js.cts ipc onRequest request.parsed_url.href]',request.parsed_url.href)
         // console.log('[micro-module.js.cts ]   ipc ', ipc.remote.mmid)
         // console.log(chalk.red(`[micro-module.js.cts 这里错误，传递 init 参数否则无法正确的创建ipc通信🔗]`))
-        console.log(chalk.red(`[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`))
+        // console.log(chalk.red(`[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`))
         const  init = request.method === "POST" || request.method === "PUT"  
                     ? { method: request.method, body: await request.body.stream()}
                     : { method: request.method}
