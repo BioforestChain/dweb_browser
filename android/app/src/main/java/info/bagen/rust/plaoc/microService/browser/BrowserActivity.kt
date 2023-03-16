@@ -49,8 +49,8 @@ class BrowserActivity : AppCompatActivity() {
 
     var blueToothReceiver : BlueToothReceiver? = null
     fun getContext() = this
-    val dWebBrowserModel: DWebBrowserModel by viewModel()
     val qrCodeViewModel: QRCodeViewModel by viewModel()
+    private val dWebBrowserModel: DWebBrowserModel by viewModel()
     private val appViewModel: AppViewModel by viewModel()
     private val mainViewModel: MainViewModel by viewModel()
 

@@ -8,9 +8,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.google.gson.Gson
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.defaultJmmMetadata
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +34,7 @@ object JmmMetadataDB {
         throw e
       }
     }.map { pref ->
-      Gson().fromJson(pref[stringPreferencesKey(key)], JmmMetadata::class.java)
+      gson.fromJson(pref[stringPreferencesKey(key)], JmmMetadata::class.java)
         ?: defaultValue       // stringPreferencesKey 生成一个读取string 类型的key
     }
   }
@@ -50,7 +50,7 @@ object JmmMetadataDB {
     }.map { pref ->
       val list = mutableMapOf<Mmid, JmmMetadata>()
       pref.asMap().forEach { (key, value) ->
-        list[key.name] = Gson().fromJson((value as String), JmmMetadata::class.java)
+        list[key.name] = gson.fromJson((value as String), JmmMetadata::class.java)
       }
       list
     }
@@ -59,7 +59,7 @@ object JmmMetadataDB {
   fun saveJmmMetadata(mmid: Mmid, JmmMetadata: JmmMetadata) = runBlocking(Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     App.appContext.dataStore.edit { pref ->
-      pref[stringPreferencesKey(mmid)] = Gson().toJson(JmmMetadata)
+      pref[stringPreferencesKey(mmid)] = gson.toJson(JmmMetadata)
     }
   }
 
@@ -67,7 +67,7 @@ object JmmMetadataDB {
     // edit 函数需要在挂起环境中执行
     App.appContext.dataStore.edit { pref ->
       list.forEach { (key, value) ->
-        pref[stringPreferencesKey(key)] = Gson().toJson(value)
+        pref[stringPreferencesKey(key)] = gson.toJson(value)
       }
     }
   }

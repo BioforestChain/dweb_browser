@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.network
 
 import com.google.gson.Gson
+import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.network.base.*
 import info.bagen.rust.plaoc.ui.entity.AppVersion
 import org.http4k.core.BodyMode.Stream
@@ -13,7 +14,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
   override suspend fun getAppVersion(path: String): ApiResultData<BaseData<AppVersion>> =
     info.bagen.rust.plaoc.network.base.runCatching {
       val type = ParameterizedTypeImpl(BaseData::class.java, arrayOf(AppVersion::class.java))
-      Gson().fromJson(byteBufferToString(httpClient.requestPath(path).body.payload), type)
+      gson.fromJson(byteBufferToString(httpClient.requestPath(path).body.payload), type)
     }
 
   override suspend fun getNetWorker(url: String): String {

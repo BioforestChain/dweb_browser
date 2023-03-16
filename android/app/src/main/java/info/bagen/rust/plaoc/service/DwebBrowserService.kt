@@ -91,6 +91,11 @@ class DwebBrowserService : Service() {
       downLoadInfo.notificationId,
       downLoadInfo.jmmMetadata.title
     ) // 显示通知
+    App.browserActivity?.let {activity -> // 为了让App接收到有下载的请求
+      activity.getAppViewModel().handleIntent(
+        AppViewIntent.ServiceDownLoadNotify(downLoadInfo.jmmMetadata.id, downLoadInfo.path)
+      )
+    }
     DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     GlobalScope.launch(Dispatchers.IO) {
       ApiService.instance.downloadAndSave(

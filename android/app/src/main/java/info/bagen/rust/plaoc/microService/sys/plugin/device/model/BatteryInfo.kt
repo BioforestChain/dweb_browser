@@ -3,8 +3,8 @@ package info.bagen.rust.plaoc.microService.sys.plugin.device.model
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
-import com.google.gson.Gson
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.gson
 
 data class Battery(
     var batteryPercent: Int = 0,
@@ -43,7 +43,7 @@ class BatteryInfo {
             chargingSource,
             isBatteryPresent
         )
-        return Gson().toJson(battery)
+        return gson.toJson(battery)
     }
 
     /* Battery Info:

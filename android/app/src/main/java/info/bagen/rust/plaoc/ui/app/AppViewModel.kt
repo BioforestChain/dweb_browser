@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.ui.download.DownLoadIntent
 import info.bagen.rust.plaoc.ui.download.DownLoadViewModel
@@ -104,6 +105,7 @@ sealed class AppViewIntent {
   class UpdateDownloadApp(
     val appViewState: AppViewState, val appInfo: AppInfo, val downloadFile: String
   ) : AppViewIntent()
+  class ServiceDownLoadNotify(val mmid: Mmid, val url: String) : AppViewIntent()
 }
 
 
@@ -194,6 +196,17 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
         }
         is AppViewIntent.UpdateDownloadApp -> { // 如果当前下载app是正常的app，那么就需要自动解压，并且
           action.appViewState.appInfo = action.appInfo
+        }
+        is AppViewIntent.ServiceDownLoadNotify -> { // 当前是service执行下载时，会通知app做界面调整
+          uiState.appViewStateList.forEach {
+            if (it.appInfo?.bfsAppId == action.mmid) {
+              if (it.maskViewState.downLoadViewModel == null) {
+                it.maskViewState.downLoadViewModel = DownLoadViewModel(action.mmid, action.url)
+                it.maskViewState.show.value = true
+              }
+              return@forEach
+            }
+          }
         }
       }
     }

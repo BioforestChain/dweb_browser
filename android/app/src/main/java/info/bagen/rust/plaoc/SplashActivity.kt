@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc
 
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -41,17 +40,14 @@ class SplashActivity : AppCompatActivity() {
     window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
     val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false)
-    Log.e("lin.huang", "xxxxxxxxxxxxxxxxxxxxxxxx enable=$enable")
     setContent {
       RustApplicationTheme {
         val webUrl = remember { mutableStateOf("") }
-        Log.e("lin.huang", "yyyyyyyyyy enable=$enable")
         SplashMainView()
         if (!enable) {
           SplashPrivacyDialog(
             openHome = {
               App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-              Log.e("lin.huang", "false click enable=$enable")
               startDwebBrowserProcess()
             },
             openWebView = { url -> webUrl.value = url },
@@ -59,7 +55,6 @@ class SplashActivity : AppCompatActivity() {
           )
           PrivacyView(url = webUrl)
         } else {
-          Log.e("lin.huang", "true enable=$enable")
           startDwebBrowserProcess()
         }
       }
@@ -68,13 +63,11 @@ class SplashActivity : AppCompatActivity() {
 
   override fun onStop() {
     super.onStop()
-    Log.e("lin.huang", "onStop")
     finish()
   }
 }
 
 private fun startDwebBrowserProcess() = runBlockingCatching(commonAsyncExceptionHandler) {
-  Log.e("lin.huang", "startDwebBrowser ")
   startDwebBrowser()
 }.getOrNull()
 

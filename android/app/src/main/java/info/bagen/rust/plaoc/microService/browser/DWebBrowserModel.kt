@@ -7,9 +7,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.network.HttpClient
@@ -95,7 +95,7 @@ class DWebBrowserModel : ViewModel() {
     fun openDWebBrowser(origin: String, processId: String? = null): String {
         // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
         if (checkJmmMetadataJson(origin) { jmmMetadata, url ->
-                JmmNMM.nativeFetchOpenInstall(jmmMetadata, url)
+                JmmNMM.nativeFetchInstallApp(jmmMetadata, url)
             }) return "0"
 
         // 先产生 processId 返回值，然后再执行界面，否则在 Main 执行无法获取返回值
@@ -135,7 +135,7 @@ class DWebBrowserModel : ViewModel() {
         Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
             if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
                 try {
-                    Gson().fromJson(
+                    gson.fromJson(
                         byteBufferToString(HttpClient().requestPath(url).body.payload),
                         JmmMetadata::class.java
                     ).apply { openJmmActivity(this, url) }

@@ -131,17 +131,20 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         val query_routeConfig = Query.string().required("routes")
         val type_routes = object : TypeToken<ArrayList<Gateway.RouteConfig>>() {}.type
 
-        apiRouting = routes("/start" bind Method.GET to defineHandler { request, ipc ->
-            start(ipc, query_dwebServerOptions(request))
-        }, "/listen" bind Method.POST to defineHandler { request ->
-            val token = query_token(request)
-            val routes: List<Gateway.RouteConfig> =
-                gson.fromJson(query_routeConfig(request), type_routes)
-            listen(token, request, routes)
-        }, "/close" bind Method.GET to defineHandler { request, ipc ->
-            close(ipc, query_dwebServerOptions(request))
-        })
-
+        apiRouting = routes(
+            "/start" bind Method.GET to defineHandler { request, ipc ->
+                start(ipc, query_dwebServerOptions(request))
+            },
+            "/listen" bind Method.POST to defineHandler { request ->
+                val token = query_token(request)
+                val routes: List<Gateway.RouteConfig> =
+                    gson.fromJson(query_routeConfig(request), type_routes)
+                listen(token, request, routes)
+            },
+            "/close" bind Method.GET to defineHandler { request, ipc ->
+                close(ipc, query_dwebServerOptions(request))
+            }
+        )
     }
 
     data class ServerUrlInfo(

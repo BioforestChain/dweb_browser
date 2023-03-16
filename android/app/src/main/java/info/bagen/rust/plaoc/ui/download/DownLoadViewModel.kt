@@ -63,8 +63,8 @@ class DownLoadViewModel(val mmid: Mmid, val url: String) : ViewModel() {
     jmmMetadata = JmmMetadata(
       id = mmid,
       server = JmmMetadata.MainServer(
-        root = "file:///bundle/browser/server",
-        entry = "/index.js"
+        root = "file:///bundle",
+        entry = "/cotDemo.worker.js"
       ),
       downloadUrl = url,
       title = "测试",

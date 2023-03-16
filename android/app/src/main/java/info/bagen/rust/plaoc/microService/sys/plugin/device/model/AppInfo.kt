@@ -3,8 +3,8 @@ package info.bagen.rust.plaoc.microService.sys.plugin.device.model
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import com.google.gson.Gson
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.gson
 
 data class AppData(
     var versionCode: Int = 0,
@@ -17,7 +17,7 @@ class AppInfo {
     private val NOT_FOUND_VAL = "unknown"
 
     fun getAppInfo(): String {
-        return Gson().toJson(appData)
+        return gson.toJson(appData)
     }
 
     val appData: AppData get() = AppData(versionCode, versionName, packageName, appName)

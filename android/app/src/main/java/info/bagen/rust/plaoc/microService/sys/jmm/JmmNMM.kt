@@ -1,11 +1,10 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
-import android.util.Log
-import com.google.gson.Gson
 import info.bagen.rust.plaoc.datastore.JmmMetadataDB
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.sys.dns.debugDNS
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +12,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.http4k.core.Method
+import org.http4k.core.Uri
+import org.http4k.core.query
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -20,7 +21,6 @@ import org.http4k.routing.routes
 
 class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
-        const val hostName = "file://jmm.sys.dweb"
         private val apps = mutableMapOf<Mmid, JsMicroModule>()
         private var jmmNMM: JmmNMM? = null
 
@@ -29,49 +29,54 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
         fun nativeFetchFromJS(mmid: Mmid) {
             GlobalScope.launch(Dispatchers.IO) {
                 apps[mmid]?.nativeFetch(
-                    "file://dns.sys.dweb/open?app_id=${mmid.encodeURIComponent()}"
-                ) ?: Log.e("JmmNMM", "no found jmm mmid $mmid")
-            }
-        }
-
-        fun nativeFetchOpenInstall(jmmMetadata: JmmMetadata, url: String) {
-            GlobalScope.launch(Dispatchers.IO) {
-                jmmNMM?.nativeFetch("${hostName}/open?mmid=${jmmMetadata.id}&metadataUrl=$url")
+                    Uri.of("file://dns.sys.dweb/open")
+                        .query("app_id", mmid.encodeURIComponent())
+                ) ?: debugDNS("JmmNMM:nativeFetchFromJS", "no found JsMicroModule mmid $mmid")
             }
         }
 
         fun nativeFetchInstallDNS(jmmMetadata: JmmMetadata) { // 安装完成后，需要注册到 DnsNMM 中
             GlobalScope.launch(Dispatchers.IO) {
-                jmmNMM?.nativeFetch("${hostName}/install?metadata=${Gson().toJson(jmmMetadata)}")
+                jmmNMM?.nativeFetch(
+                    Uri.of("file://dns.sys.dweb/install")
+                        .query("jmmMetadata", gson.toJson(jmmMetadata))
+                )
+            }
+        }
+
+        fun nativeFetchInstallApp(jmmMetadata: JmmMetadata, url: String) {
+            GlobalScope.launch(Dispatchers.IO) {
+                jmmNMM?.nativeFetch(
+                    Uri.of("file://jmm.sys.dweb/install")
+                        .query("mmid", jmmMetadata.id).query("metadataUrl", url)
+                )
             }
         }
     }
 
     init {
         // TODO 启动的时候，从数据库中恢复 apps 对象
+        jmmNMM = this
         GlobalScope.launch(Dispatchers.IO) {
             JmmMetadataDB.queryJmmMetadataList().collectLatest {
                 apps.clear()
                 it.forEach { (key, value) ->
                     apps[key] = JsMicroModule(value)
+                    nativeFetch(Uri.of("file://dns.sys.dweb/install")
+                        .query("jmmMetadata", gson.toJson(value))
+                    )
                 }
             }
         }
-        jmmNMM = this
     }
 
     val queryMetadataUrl = Query.string().required("metadataUrl")
     val queryMmid = Query.string().required("mmid")
-    val queryMetadata = Query.string().required("metadata")
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        // 初始化的DNS注册
-        for (app in apps.values) {
-            bootstrapContext.dns.install(app)
-        }
 
         apiRouting = routes(
-            "/open" bind Method.GET to defineHandler { request ->
+            "/install" bind Method.GET to defineHandler { request ->
                 val metadataUrl = queryMetadataUrl(request)
                 val jmmMetadata =
                     nativeFetch(metadataUrl).json<JmmMetadata>(JmmMetadata::class.java)
@@ -94,15 +99,6 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 return@defineHandler AppsQueryResult(
                     apps.map { it.value.metadata },
                     installingApps.map { it.value })
-            },
-            "/install" bind Method.GET to defineHandler { request ->
-                val jmmMetadata = Gson().fromJson(queryMetadata(request), JmmMetadata::class.java)
-                apps.getOrPut(jmmMetadata.id) {
-                    JsMicroModule(jmmMetadata).also {
-                        bootstrapContext.dns.install(it) // 注册应用
-                    }
-                }
-                return@defineHandler true
             }
         )
 
