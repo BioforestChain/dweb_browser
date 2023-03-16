@@ -206,7 +206,7 @@ class DWebView(
                 println("shouldInterceptRequest response: ${request.url}  [${response.headers.joinToString { "${it.first}=${it.second} " }}]")
                 val headersMap = response.headers.toMap().toMutableMap()
                 return WebResourceResponse(
-                    null,
+                    response.header("Content-Type"),
                     null,
                     response.status.code,
                     response.status.description,
@@ -319,6 +319,7 @@ class DWebView(
         settings.databaseEnabled = true
         settings.safeBrowsingEnabled = true
         settings.loadWithOverviewMode = true
+        settings.loadsImagesAutomatically = true
         settings.setSupportMultipleWindows(true)
         settings.allowFileAccess = false
         settings.javaScriptCanOpenWindowsAutomatically = true
