@@ -34,6 +34,9 @@ doSync();
 if (process.argv.includes("--watch")) {
   const debounceSync = debounce(doSync, 500);
   for (const task of tasks) {
+    if (fs.existsSync(task.from) === false) {
+      return
+    }
     fs.watch(task.from, { recursive: true }, (event) => {
       console.log(event)
       debounceSync();

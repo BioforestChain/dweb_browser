@@ -149,21 +149,6 @@ export class BarcodeScannerPlugin extends BasePlugin {
   //     throw Error("Camera permissions are not available in this browser");
   //   }
   // }
-
-  // /**
-  //  * 打开/关闭手电筒
-  //  */
-  // // async toggleTorch() {
-  // //   return await this.nativeFetch("/toggleTorch")
-  // // };
-
-  // /**
-  //  * 手电筒状态
-  //  */
-  // // async getTorchState() {
-  // //   return await this.nativeFetch("/torchState")
-  // // };
-
   // /**
   //  * 隐藏webview背景
   //  */

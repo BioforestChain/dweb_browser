@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 
 
 open class PermissionActivity : AppCompatActivity() {
-
     companion object {
         val PERMISSION_REQUEST_CODE_PHOTO = 2
         private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
@@ -113,11 +112,19 @@ open class MultiWebViewActivity : PermissionActivity() {
             }
         } ?: throw Exception("no found controller by mmid:$remoteMmid")
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         // 选中图片
-        if (resultCode == RESULT_OK && requestCode == PERMISSION_REQUEST_CODE_PHOTO) {
-            controller?.webViewList?.last()?.webView?.filePathCallback?.onReceiveValue(arrayOf(data?.data!!))
+        if (requestCode == PERMISSION_REQUEST_CODE_PHOTO) {
+            controller?.webViewList?.last()?.webView?.also { webview ->
+                webview.filePathCallback?.also {
+                    it.onReceiveValue(
+                        if (resultCode == RESULT_OK) arrayOf(data?.data!!) else emptyArray()
+                    )
+                    webview.filePathCallback = null
+                }
+            }
         }
     }
 

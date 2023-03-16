@@ -10,9 +10,9 @@
 ## Dev / Get Start
 
 1.  install deno
-1.  install node
-1.  install pnpm
-1.  run `deno task dev:src`,
+2.  install node
+3.  install pnpm
+4.  run `deno task dev:src`,
 
 ## Test / Demo
 

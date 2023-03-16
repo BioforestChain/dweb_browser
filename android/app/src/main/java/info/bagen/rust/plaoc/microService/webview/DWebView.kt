@@ -229,10 +229,13 @@ class DWebView(
     }
     private val internalWebChromeClient = object : WebChromeClient() {
         override fun onShowFileChooser(
-            webView: WebView?,
-            filePathCallback: ValueCallback<Array<android.net.Uri>>?,
-            fileChooserParams: FileChooserParams?
+            webView: WebView,
+            filePathCallback: ValueCallback<Array<android.net.Uri>>,
+            fileChooserParams: FileChooserParams
         ): Boolean {
+            this@DWebView.filePathCallback?.also {
+                it.onReceiveValue(emptyArray())
+            }
             this@DWebView.filePathCallback = filePathCallback
             this@DWebView.requestPermissionCallback =  ValueCallback {
 //                launchFileInput() TODO permission
@@ -241,7 +244,8 @@ class DWebView(
                 Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             )
-            pickIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
+
+            pickIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, fileChooserParams.acceptTypes.joinToString (","))
             activity?.startActivityForResult(pickIntent, PERMISSION_REQUEST_CODE_PHOTO)
             return true
         }

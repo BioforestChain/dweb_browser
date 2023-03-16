@@ -1,0 +1,200 @@
+export enum CameraSource {
+  /**
+   * Prompts the user to select either the photo album or take a photo.
+   */
+  Prompt = 'PROMPT',
+  /**
+   * Take a new photo using the camera.
+   */
+  Camera = 'CAMERA',
+  /**
+   * Pick an existing photo from the gallery or photo album.
+   */
+  Photos = 'PHOTOS',
+}
+
+export interface ImageOptions {
+  /**
+   * The quality of image to return as JPEG, from 0-100
+   *
+   * @since 1.0.0
+   */
+  quality?: number;
+  /**
+   * Whether to allow the user to crop or make small edits (platform specific).
+   * On iOS 14+ it's only supported for CameraSource.Camera, but not for CameraSource.Photos.
+   *
+   * @since 1.0.0
+   */
+  allowEditing?: boolean;
+  /**
+   * How the data should be returned. Currently, only 'Base64', 'DataUrl' or 'Uri' is supported
+   *
+   * @since 1.0.0
+   */
+  resultType: CameraResultType;
+  /**
+   * Whether to save the photo to the gallery.
+   * If the photo was picked from the gallery, it will only be saved if edited.
+   * @default: false
+   *
+   * @since 1.0.0
+   */
+  saveToGallery?: boolean;
+  /**
+   * The desired maximum width of the saved image. The aspect ratio is respected.
+   *
+   * @since 1.0.0
+   */
+  width?: number;
+  /**
+   * The desired maximum height of the saved image. The aspect ratio is respected.
+   *
+   * @since 1.0.0
+   */
+  height?: number;
+  /**
+   * Whether to automatically rotate the image "up" to correct for orientation
+   * in portrait mode
+   * @default: true
+   *
+   * @since 1.0.0
+   */
+  correctOrientation?: boolean;
+  /**
+   * The source to get the photo from. By default this prompts the user to select
+   * either the photo album or take a photo.
+   * @default: CameraSource.Prompt
+   *
+   * @since 1.0.0
+   */
+  source?: CameraSource;
+  /**
+   * iOS and Web only: The camera direction.
+   * @default: CameraDirection.Rear
+   *
+   * @since 1.0.0
+   */
+  direction?: CameraDirection;
+
+  /**
+   * iOS only: The presentation style of the Camera.
+   * @default: 'fullscreen'
+   *
+   * @since 1.0.0
+   */
+  presentationStyle?: 'fullscreen' | 'popover';
+
+  /**
+   * Web only: Whether to use the PWA Element experience or file input. The
+   * default is to use PWA Elements if installed and fall back to file input.
+   * To always use file input, set this to `true`.
+   *
+   * Learn more about PWA Elements: https://capacitorjs.com/docs/web/pwa-elements
+   *
+   * @since 1.0.0
+   */
+  webUseInput?: boolean;
+
+  /**
+   * Text value to use when displaying the prompt.
+   * @default: 'Photo'
+   *
+   * @since 1.0.0
+   *
+   */
+  promptLabelHeader?: string;
+
+  /**
+   * Text value to use when displaying the prompt.
+   * iOS only: The label of the 'cancel' button.
+   * @default: 'Cancel'
+   *
+   * @since 1.0.0
+   */
+  promptLabelCancel?: string;
+
+  /**
+   * Text value to use when displaying the prompt.
+   * The label of the button to select a saved image.
+   * @default: 'From Photos'
+   *
+   * @since 1.0.0
+   */
+  promptLabelPhoto?: string;
+
+  /**
+   * Text value to use when displaying the prompt.
+   * The label of the button to open the camera.
+   * @default: 'Take Picture'
+   *
+   * @since 1.0.0
+   */
+  promptLabelPicture?: string;
+}
+
+export interface Photo {
+  /**
+   * The base64 encoded string representation of the image, if using CameraResultType.Base64.
+   *
+   * @since 1.0.0
+   */
+  base64String?: string;
+  /**
+   * The url starting with 'data:image/jpeg;base64,' and the base64 encoded string representation of the image, if using CameraResultType.DataUrl.
+   *
+   * @since 1.0.0
+   */
+  dataUrl?: string;
+  /**
+   * If using CameraResultType.Uri, the path will contain a full,
+   * platform-specific file URL that can be read later using the Filesystem API.
+   *
+   * @since 1.0.0
+   */
+  path?: string;
+  /**
+   * webPath returns a path that can be used to set the src attribute of an image for efficient
+   * loading and rendering.
+   *
+   * @since 1.0.0
+   */
+  webPath?: string;
+  /**
+   * Exif data, if any, retrieved from the image
+   *
+   * @since 1.0.0
+   */
+  // deno-lint-ignore no-explicit-any
+  exif?: any;
+  /**
+   * The format of the image, ex: jpeg, png, gif.
+   *
+   * iOS and Android only support jpeg.
+   * Web supports jpeg and png. gif is only supported if using file input.
+   *
+   * @since 1.0.0
+   */
+  format: string;
+  /**
+   * Whether if the image was saved to the gallery or not.
+   *
+   * On Android and iOS, saving to the gallery can fail if the user didn't
+   * grant the required permissions.
+   * On Web there is no gallery, so always returns false.
+   *
+   * @since 1.1.0
+   */
+  saved: boolean;
+}
+
+export enum CameraResultType {
+  Uri = 'uri',
+  Base64 = 'base64',
+  DataUrl = 'dataUrl',
+}
+
+export enum CameraDirection {
+  FRONT = 'user', // 前置摄像头
+  BACK = 'environment', // 后置摄像头
+}

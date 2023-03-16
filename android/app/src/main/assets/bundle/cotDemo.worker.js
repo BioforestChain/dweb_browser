@@ -244,6 +244,7 @@ var main = async () => {
       `file:///cot-demo${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
+    console.log(`${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`);
     ipc2.postMessage(
       new IpcResponse2(
         request.req_id,

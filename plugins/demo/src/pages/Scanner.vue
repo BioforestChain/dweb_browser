@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import { barcodeScannerPlugin } from "@bfex/plugin"
-import LogPanel, { toConsole } from "../components/LogPanel.vue";
+import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 
 const title = "Scanner";
 
@@ -15,15 +15,15 @@ onMounted(() => {
 });
 
 
-const onFileChanged = async ($event: Event) => {
+const onFileChanged = defineLogAction(async ($event: Event) => {
   const target = $event.target as HTMLInputElement;
-  if (target && target.files) {
+  if (target && target.files?.[0]) {
     const img = target.files[0]
     console.info("photo ==> ", img.name, img.type, img.size)
     const result = await scanner.process(img).then(res => res.text())
     console.info("photo process", result)
   }
-}
+}, { name: "process", args: [], logPanel: $logPanel })
 
 const onStop = async () => {
   await scanner.stop()
@@ -40,7 +40,7 @@ const onStop = async () => {
       <FieldLabel label="Vibrate Pattern:">
         <input type="file" @change="onFileChanged($event)" accept="image/*" capture>
       </FieldLabel>
-      <button class="inline-block rounded-full btn btn-accent">process</button>
+      <button class="inline-block rounded-full btn btn-accent">scanner</button>
       <button class="inline-block rounded-full btn btn-accent" @click="onStop">stop</button>
     </article>
   </div>

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import LogPanel, { toConsole } from "../components/LogPanel.vue";
+import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 import type { Tduration, ToastPlugin } from "@bfex/plugin";
-import { defineLogAction } from "../helpers/logHelper";
 const title = "Toast";
 
 const $logPanel = ref<typeof LogPanel>();

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import LogPanel, { toConsole } from "../components/LogPanel.vue";
+import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 import { StatusbarPlugin, StatusbarStyle, StatusbarInfo } from "@bfex/plugin";
-import { defineLogAction } from "../helpers/logHelper";
 
 const title = "StatusBar";
 
