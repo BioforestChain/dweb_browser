@@ -39,9 +39,9 @@ class HttpDwebServer: BaseModel {
         
         let po = PromiseOut<ReadableStreamIpc>()
         Task {
-            if let streamIpc = self.nmm.listenHttpDwebServer(token: self.startResult.token, routes: routes) {
-                po.resolver(streamIpc)
-            }
+           let streamIpc = self.nmm.listenHttpDwebServer(startResult: self.startResult, routes: routes)
+            po.resolver(streamIpc)
+            
         }
         let ipc = po.waitPromise()
         return ipc

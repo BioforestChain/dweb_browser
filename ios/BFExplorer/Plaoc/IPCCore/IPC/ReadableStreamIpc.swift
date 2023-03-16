@@ -26,6 +26,12 @@ class ReadableStreamIpc: Ipc {
         return data.count.toByteArray() + data
     }
     
+    init(remote: MicroModuleInfo, role: String) {
+        super.init()
+        self.remote = remote
+        self.role = role
+    }
+    
     init(remote: MicroModuleInfo, role: IPC_ROLE) {
         super.init()
         self.remote = remote

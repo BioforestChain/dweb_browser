@@ -102,11 +102,6 @@ extension String {
         } ?? []
     }
     
-    //utf8 编码
-    func utf8Encoding() {
-        
-    }
-    
     // base64编码
     func base64Encoding() -> String? {
 
@@ -153,6 +148,35 @@ extension String {
         guard result != nil else { return nil }
         let resultString = self as NSString
         return resultString.substring(with: result!.range)
+    }
+    
+    func getMatches(regex: String) -> [String] {
+        guard let regex = try? NSRegularExpression(pattern: regex) else {
+            return []
+        }
+        let results = regex.matches(in: self,
+                                range: NSRange(self.startIndex..., in: self))
+        let finalResult = results.map { match in
+            return (0..<match.numberOfRanges).map { range -> String in
+                let rangeBounds = match.range(at: range)
+                guard let range = Range(rangeBounds, in: self) else {
+                    return ""
+                }
+                return String(self[range])
+            }
+        }.filter { !$0.isEmpty }
+        var allMatches: [String] = []
+        
+        for result in finalResult {
+            for (index, resultText) in result.enumerated() {
+                if index == 0 {
+                    continue
+                }
+                allMatches.append(resultText)
+            }
+        }
+
+        return allMatches
     }
     
     func fromBase64() -> [UInt8]? {

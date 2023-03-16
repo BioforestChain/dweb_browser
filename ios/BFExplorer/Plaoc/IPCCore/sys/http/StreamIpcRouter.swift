@@ -18,23 +18,21 @@ class StreamIpcRouter: NSObject {
         self.streamIpc = streamIpc
     }
     
-    lazy var isMatch: (URLRequest) -> Bool = {
+    lazy var isMatch: (Request) -> Bool = {
         if config.matchMode == .PREFIX {
-            let match = { (request: URLRequest) -> Bool in
-                guard request.url != nil else { return false }
-                return request.httpMethod == self.config.method && request.url!.path.hasPrefix(self.config.pathname)
+            let match = { (request: Request) -> Bool in
+                return request.method.rawValue == self.config.method && request.url.path.hasPrefix(self.config.pathname)
             }
             return match
         } else {
-            let match = { (request: URLRequest) -> Bool in
-                guard request.url != nil else { return false }
-                return request.httpMethod == self.config.method && request.url!.path == self.config.pathname
+            let match = { (request: Request) -> Bool in
+                return request.method.rawValue == self.config.method && request.url.path == self.config.pathname
             }
             return match
         }
     }()
     
-    func handler(request: URLRequest) -> Response? {
+    func handler(request: Request) -> Response? {
         if isMatch(request) {
             return streamIpc.request(request: request)
         }

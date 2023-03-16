@@ -11,27 +11,25 @@ import Vapor
 class NetworkManager: NSObject {
 
     static func downLoadBody(url: URL, method: String) -> Response? {
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        let response = NetworkManager.downLoadBodyByRequest(request: request)
-        return response
+        return downLoadBody(urlstring: url.absoluteString, method: method)
     }
     
     static func downLoadBody(urlstring: String, method: String) -> Response? {
-        guard let url = URL(string: urlstring) else { return nil }
-        var request = URLRequest(url: url)
-        request.httpMethod = method
+        let request = Request.new(method: HTTPMethod(rawValue: method), url: urlstring)
         let response = NetworkManager.downLoadBodyByRequest(request: request)
         return response
     }
     
-    static func downLoadBodyByRequest(request: URLRequest) -> Response? {
+    static func downLoadBodyByRequest(request: Request) -> Response? {
         
+        guard let url = URL(string: request.url.string) else { return nil }
+        var originRequest = URLRequest(url: url)
+        originRequest.httpMethod = request.method.rawValue
         let semaphore = DispatchSemaphore(value: 0)
         let config = URLSessionConfiguration.default
         let session = URLSession(configuration: config)
         var response: Response?
-        let task = session.dataTask(with: request) { data, res, error in
+        let task = session.dataTask(with: originRequest) { data, res, error in
             guard data != nil else {
                 semaphore.signal()
                 return

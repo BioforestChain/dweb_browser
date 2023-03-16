@@ -125,21 +125,18 @@ class MicroModule: MicroModuleInfo {
 extension MicroModule {
     
     func nativeFetch(url: URL) -> Response? {
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        return nativeFetch(request: request)
+        
+        return nativeFetch(urlstring: url.absoluteString)
     }
     
     func nativeFetch(urlstring: String) -> Response? {
-        guard let url = URL(string: urlstring) else { return nil }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        let request = Request.new(url: urlstring)
         return nativeFetch(request: request)
     }
     
-    func nativeFetch(request: URLRequest) -> Response? {
-        for generics in nativeFetchAdaptersManager.adapters {
-            if let response = generics.closure?(self, request) {
+    func nativeFetch(request: Request) -> Response? {
+        for closure in nativeFetchAdaptersManager.adapters {
+            if let response = closure(self, request) {
                 return response
             }
         }
@@ -158,21 +155,18 @@ extension MicroModule {
         return model
     }
     
-    func listenHttpDwebServer(token: String, routes: [RouteConfig]) -> ReadableStreamIpc? {
+    func listenHttpDwebServer(startResult: ServerStartResult, routes: [RouteConfig]) -> ReadableStreamIpc {
         
-        guard let routing = ChangeTools.arrayValueString(routes) else { return nil }
-        guard let url = URL(string: "file://http.sys.dweb/listen?token=\(token)&routes=\(routing)") else { return nil }
+        let ipc = ReadableStreamIpc(remote: self, role: "http-server/\(startResult.urlInfo.host)")
         
-        let streamIpc = ReadableStreamIpc(remote: self, role: .CLIENT)
+        guard let routing = ChangeTools.arrayValueString(routes) else { return ipc }
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        guard let response = self.nativeFetch(request: request) else { return nil }
-        guard response.body.data != nil else { return nil }
-        let stream = InputStream(data: response.body.data!)
+        let request = Request.new(url: "file://http.sys.dweb/listen?host=\(startResult.urlInfo.host)&token=\(startResult.token)&routes=\(routing))")
+        let stream = self.nativeFetch(request: request)?.stream()
         
-        streamIpc.bindIncomeStream(stream: stream, coroutineName: "http-server")
-        return ReadableStreamIpc(remote: self, role: .CLIENT)
+        ipc.bindIncomeStream(stream: stream, coroutineName: ipc.role ?? "")
+        
+        return ipc
     }
     
     func closeHttpDwebServer(options: DwebHttpServerOptions) -> Bool {

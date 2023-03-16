@@ -10,7 +10,6 @@ import Vapor
 
 class HttpNMM: NativeMicroModule {
     
-    private let dwebServer = HTTPServer()
     private var tokenMap: [String:Gateway] = [:]
     private var gatewayMap: [String:Gateway] = [:]
     
@@ -18,23 +17,38 @@ class HttpNMM: NativeMicroModule {
         super.init(mmid: "http.sys.dweb")
     }
     
-    private func httpHandler(_ request: URLRequest) -> Response? {
+    /**
+        * 监听请求
+        *
+        * 真实过来的请求有两种情况：
+        * 1. http://subdomain.localhost:24433
+        * 2. http://localhost:24433
+        * 前者是桌面端自身 chrome 支持的情况，后者才是常态。
+        * 但是我们返回给开发者的端口只有一个，这就意味着我们需要额外手段进行路由
+        *
+        * 如果这个请求是发生在 nativeFetch 中，我们会将请求的 url 改成 http://localhost:24433，同时在 headers.user-agent 的尾部加上 dweb-host/subdomain.localhost:24433
+        * 如果这个请求是 webview 中发出，我们一开始就会为整个 webview 设置 user-agent，使其行为和上条一致
+        *
+        * 如果在 webview 中，要跨域其它请求，那么 webview 的拦截器能对 get 请求进行简单的转译处理，
+        * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
+        * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
+        */
+    private func httpHandler(_ request: Request) -> Response? {
         var header_host: String?
         var header_x_dweb_host: String?
         var header_user_agent_host: String?
-        let query_x_web_host = request.url?.urlParameters?["X-DWeb-Host"]
+        let query_x_web_host = request.query[String.self, at: "X-DWeb-Host"]
         
-        for (key,value) in request.allHTTPHeaderFields ?? [:] {
+        for (key,value) in request.headers {
             switch key {
             case "Host":
                 header_host = value
             case "X-Dweb-Host":
                 header_x_dweb_host = value
             case "User-Agent":
-                let result = value.regex(pattern: #"\sdweb-host\/(.+)\s*"#)
-                if result != nil {
-                    //TODO
-                    header_user_agent_host = result
+                let result = value.getMatches(regex: #"\sdweb-host\/(.+)\s*"#)
+                if result.count > 0 {
+                    header_user_agent_host = result[0]
                 }
             default:
                 break
@@ -62,42 +76,39 @@ class HttpNMM: NativeMicroModule {
         return response
     }
     
-    override func _bootstrap() throws {
-        dwebServer.createServer(22605)
+    override func _bootstrap(bootstrapContext: BootstrapContext) throws {
+        HTTPServer.createServer(22605)
         
-        _ = afterShutdownSignal.listen { _ in
-            
-            let adapter = { (fromMM: MicroModule, request: URLRequest) -> Response? in
-                if request.url?.scheme == "http", ((request.url?.host?.hasSuffix(".dweb")) != nil) {
-                    //TODO
-                    var req = request
-                    var headers = req.allHTTPHeaderFields
-                    headers?["X-Dweb-Host"] = self.authority(request: req)
-                    req.allHTTPHeaderFields = headers
-                    let replace = self.replaceHostAndPort(request: request)
-                    let result = request.url?.absoluteString.replacingOccurrences(of: replace, with: self.dwebServer.authority)
-                    req.url = URL(string: result ?? "")
-                    
-                    let response = NetworkManager.downLoadBodyByRequest(request: req)
-                    return response
+        // 路由处理
+        routerHandler()
+        // 为 nativeFetch 函数提供支持
+        
+        _ = afterShutdownSignal.listen({ _ in
+            let off = nativeFetchAdaptersManager.append { (remote, request) -> Response? in
+                if (request.url.scheme == "http" || request.url.scheme == "https"), ((request.url.host?.hasSuffix(".dweb")) != nil) {
+                    // 无需走网络层，直接内部处理掉
+                    guard let url = URL(string: request.url.string) else { return nil }
+                    request.headers.add(name: "X-Dweb-Host", value: url.getFullAuthority())
+                    request.url.scheme = "http"
+                    let content = request.url.string.regexReplacePattern(pattern: url.authority(), replaceString: HTTPServer.authority)
+                    request.url = URI(string: content)
+                    return self.httpHandler(request)
+                } else {
+                    return nil
                 }
-                return nil
             }
-            let generics = nativeFetchAdaptersManager.append(adapter: GenericsClosure(closure: adapter))
-            return generics
+            return off
+        })
+    }
+    
+    private func routerHandler() {
+        let startRouteHandler: RouterHandler = { request, ipc in
+            let port = request.query[Int.self, at: "port"]
+            let subdomain = request.query[String.self]
+            
+            return self.start(ipc: ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
         }
-        
-        let group = dwebServer.app.grouped("\(mmid)")
-        
-        group.on(.GET, "start") { request -> Response in
-            let port = request.query[Int.self, at: "port"] ?? 80
-            let subdomain = request.query[String.self] ?? ""
-            return self.defineHandler(req: request) { reque, ipc in
-                self.start(ipc: ipc, options: DwebHttpServerOptions(port: port, subdomain: subdomain))
-            }
-        }
-        
-        group.on(.POST, "listen") { request -> Response in
+        let listenRouteHandler: RouterHandler = { request, _ in
             let token = request.query[String.self, at: "token"] ?? ""
             let routes = request.query[String.self, at: "routes"] ?? ""
             guard let type_routes = ChangeTools.jsonArrayToModel(jsonStr: routes, RouteConfig.self) as? [RouteConfig] else {
@@ -105,53 +116,24 @@ class HttpNMM: NativeMicroModule {
             }
             return self.listen(token: token, message: request, routes: type_routes) ?? self.badResponse(request: request)
         }
+        let closeRouteHandler: RouterHandler = { request, ipc in
+            let port = request.query[Int.self, at: "port"]
+            let subdomain = request.query[String.self]
+            return self.close(ipc: ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
+        }
+        apiRouting["\(self.mmid)/start"] = startRouteHandler
+        apiRouting["\(self.mmid)/listen"] = listenRouteHandler
+        apiRouting["\(self.mmid)/close"] = closeRouteHandler
         
-        group.on(.GET, "close") { request -> Response in
-            return self.defineHandler(req: request) { reque, ipc in
-                let port = request.query[Int.self, at: "port"] ?? 80
-                let subdomain = request.query[String.self] ?? ""
-                return self.defineHandler(req: request) { reque, ipc in
-                    self.close(ipc: ipc, options: DwebHttpServerOptions(port: port, subdomain: subdomain))
-                }
-            }
+        // 添加路由处理方法到http路由中
+        let app = HTTPServer.app
+        let group = app.grouped("\(mmid)")
+        let httpHandler: (Request) async throws -> Response = { request async in
+            await self.defineHandler(request: request)
         }
-    }
-    
-    private func authority(request: URLRequest) -> String {
-        guard let url = request.url else { return "" }
-        let port = url.port
-        let host = url.host
-        let user = url.user
-        let password = url.password
-        var result = ""
-        if user != nil {
-            result = user!
+        for pathComponent in ["start", "listen", "close"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
         }
-        if password != nil {
-            result = result.count > 0 ? "\(user!):\(password!)" : password!
-        }
-        result += "@"
-        if host != nil {
-            result += host!
-        }
-        if port != nil {
-            result += ":\(port!)"
-        }
-        return result
-    }
-    
-    private func replaceHostAndPort(request: URLRequest) -> String {
-        guard let url = request.url else { return "" }
-        let port = url.port
-        let host = url.host
-        var result = ""
-        if host != nil {
-            result += host!
-        }
-        if port != nil {
-            result += ":\(port!)"
-        }
-        return result
     }
     
     func getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions) -> ServerUrlInfo? {
@@ -173,12 +155,12 @@ class HttpNMM: NativeMicroModule {
         
         let host = "\(subdomainPrefix)\(mmid):\(port)"
         let internal_origin = "http://\(host)"
-        let public_origin = dwebServer.origin
+        let public_origin = HTTPServer.origin
         return ServerUrlInfo(host: host, internal_origin: internal_origin, public_origin: public_origin)
     }
     
     override func _shutdown() throws {
-        dwebServer.shutdown()
+        HTTPServer.shutdown()
     }
     
     private func start(ipc: Ipc, options: DwebHttpServerOptions) -> ServerStartResult? {
@@ -211,19 +193,18 @@ class HttpNMM: NativeMicroModule {
         guard let gateway = tokenMap[token] else { return nil }
         guard let remote = gateway.listener.ipc.remote else { return nil }
         
-        let streamIpc = ReadableStreamIpc(remote: remote, role: .SERVER)
+        let streamIpc = ReadableStreamIpc(remote: remote, role: "http-gateway/\(gateway.urlInfo.host)")
         guard let buffer = message.body.data else { return nil }
-        guard let data = buffer.getData(at: 0, length: buffer.readableBytes) else { return nil }
-        let stream = InputStream(data: data)
+        let stream = InputStream(data: Data(buffer: buffer))
         
-        streamIpc.bindIncomeStream(stream: stream, coroutineName: "http-gateway")
+        streamIpc.bindIncomeStream(stream: stream, coroutineName: streamIpc.role ?? "")
         for config in routes {
             _ = streamIpc.onClose { _ in
                 gateway.listener.addRouter(config: config, streamIpc: streamIpc)
             }
         }
         
-        return Response(status: .ok, body: Response.Body(data: data))
+        return Response(status: .ok, body: Response.Body(data: Data(buffer: buffer)))
     }
     
     private func close(ipc: Ipc, options: DwebHttpServerOptions) -> Bool {

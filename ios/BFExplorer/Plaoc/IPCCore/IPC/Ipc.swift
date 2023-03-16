@@ -9,7 +9,7 @@ import UIKit
 import Combine
 import Vapor
 
-class Ipc {
+class Ipc: NSObject {
 
     private var uid_acc = 1
     private var req_id_acc = 0
@@ -70,7 +70,8 @@ class Ipc {
     
     private var messageResponse: IpcResponse?
     
-    init() {
+    override init() {
+        super.init()
         messageSignal = Signal<(IpcMessage,Ipc)>()
         
     }
@@ -179,17 +180,14 @@ class Ipc {
     
     func request(urlString: String) -> Response? {
         
-        guard let url = URL(string: urlString) else { return nil }
-        var req = URLRequest(url: url)
-        req.httpMethod = "GET"
-        return self.request(request: req)
+        let request = Request.new(url: urlString)
+        return self.request(request: request)
     }
     
     func request(url: URL) -> Response? {
 
-        var req = URLRequest(url: url)
-        req.httpMethod = "GET"
-        return self.request(request: req)
+        let request = Request.new(url: url.absoluteString)
+        return self.request(request: request)
     }
     
     func request(ipcRequest: IpcRequest) -> IpcResponse? {

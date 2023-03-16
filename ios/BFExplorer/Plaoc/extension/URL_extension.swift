@@ -59,4 +59,17 @@ extension URL {
         
         return prefix
     }
+    
+    func getFullAuthority(hostOrAuthority: String? = nil) -> String {
+        
+        var authority = hostOrAuthority ?? authority()
+        if !authority.contains(":") {
+            if scheme == "http" {
+                authority += ":80"
+            } else if scheme == "https" {
+                authority += "443"
+            }
+        }
+        return authority
+    }
 }

@@ -21,17 +21,17 @@ class PortListener {
         self.host = host
     }
     
-    func addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc) -> StreamIpcRouter {
+    func addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc) -> () -> Bool {
         let route = StreamIpcRouter(config: config, streamIpc: streamIpc)
         self.routerSet.insert(route)
-        return route
+        return { self.removeRouter(route: route) }
     }
     
     func removeRouter(route: StreamIpcRouter) -> Bool {
         return self.routerSet.remove(route) != nil
     }
     
-    func hookHttpRequest(request: URLRequest) -> Response? {
+    func hookHttpRequest(request: Request) -> Response? {
         
         for router in routerSet {
             let response = router.handler(request: request)

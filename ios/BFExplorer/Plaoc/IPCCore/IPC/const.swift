@@ -28,6 +28,6 @@ typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Void
 typealias OnIpcEventMessage = ((IpcEvent,Ipc)) -> Void
 typealias IpcConnect = ((Ipc,Request)) -> Void
 typealias closeCallback = (()) -> Void
-typealias SimpleCallbcak = (()) -> Void
+typealias SimpleCallbcak = (()) -> Any?
 typealias OffListener = () -> Bool
 typealias AsyncCallback<T, R> = (T) async -> R?

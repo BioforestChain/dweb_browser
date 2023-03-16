@@ -10,7 +10,6 @@
 
 typedef NS_ENUM(NSUInteger, IPC_MESSAGE_TYPE) {
     
-    NONE               = -1,
     /** 类型：请求 */
     REQUEST            = 0,
     /** 类型：相应 */
@@ -26,7 +25,8 @@ typedef NS_ENUM(NSUInteger, IPC_MESSAGE_TYPE) {
     /** 类型：流中断，请求方 */
     STREAM_ABORT       = 5,
     /** 类型：事件 */
-    STREAM_EVENT       = 6
+    STREAM_EVENT       = 6,
+    NONE               = 1000
 };
 
 typedef NS_ENUM(NSUInteger, IPC_DATA_ENCODING) {

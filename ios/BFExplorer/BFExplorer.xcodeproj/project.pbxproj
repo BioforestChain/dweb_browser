@@ -230,6 +230,7 @@
 		F3873F1529B7230C00286989 /* WebViewEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3873F1429B7230C00286989 /* WebViewEvaluator.swift */; };
 		F388A08029C2A7030044BB7E /* MyDnsMicroModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F388A07F29C2A7030044BB7E /* MyDnsMicroModule.swift */; };
 		F388A08229C2A8130044BB7E /* MyBootstrapContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F388A08129C2A8130044BB7E /* MyBootstrapContext.swift */; };
+		F388A08629C2F5C60044BB7E /* URI_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F388A08529C2F5C60044BB7E /* URI_extension.swift */; };
 		F38DFD5C29BF0CDF00DF6079 /* desktop.worker.js in Resources */ = {isa = PBXBuildFile; fileRef = F38DFD5B29BF0CDF00DF6079 /* desktop.worker.js */; };
 		F38DFD5E29BF1D9800DF6079 /* binary.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DFD5D29BF1D9800DF6079 /* binary.swift */; };
 		F394B8D129A88D6F002B14AA /* IpcNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */; };
@@ -530,6 +531,7 @@
 		F3873F1429B7230C00286989 /* WebViewEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewEvaluator.swift; sourceTree = "<group>"; };
 		F388A07F29C2A7030044BB7E /* MyDnsMicroModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDnsMicroModule.swift; sourceTree = "<group>"; };
 		F388A08129C2A8130044BB7E /* MyBootstrapContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyBootstrapContext.swift; sourceTree = "<group>"; };
+		F388A08529C2F5C60044BB7E /* URI_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URI_extension.swift; sourceTree = "<group>"; };
 		F38DFD5B29BF0CDF00DF6079 /* desktop.worker.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = desktop.worker.js; sourceTree = "<group>"; };
 		F38DFD5D29BF1D9800DF6079 /* binary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = binary.swift; sourceTree = "<group>"; };
 		F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcNetworkManager.swift; sourceTree = "<group>"; };
@@ -940,6 +942,7 @@
 				F3A0798B29C019BE00E46574 /* UInt8Array_extension.swift */,
 				F3A0798D29C0448D00E46574 /* Int_extension.swift */,
 				F399B3F329C1BFDA0059D5D5 /* Request_extension.swift */,
+				F388A08529C2F5C60044BB7E /* URI_extension.swift */,
 			);
 			path = extension;
 			sourceTree = "<group>";
@@ -1559,6 +1562,7 @@
 				19F17A1926F3F2B500D4F9DE /* KeyboardManager.swift in Sources */,
 				F091CB812951B91900FCE565 /* DiskManager.swift in Sources */,
 				F0292DA32975502700C2E464 /* FWPopupSWindow.swift in Sources */,
+				F388A08629C2F5C60044BB7E /* URI_extension.swift in Sources */,
 				F39DE5A1299B77110005B389 /* IpcStreamEnd.swift in Sources */,
 				F0BADEB02986820100B8DCCF /* BottomBarEntites.swift in Sources */,
 				F39DE5A4299B77110005B389 /* IpcStreamAbort.swift in Sources */,

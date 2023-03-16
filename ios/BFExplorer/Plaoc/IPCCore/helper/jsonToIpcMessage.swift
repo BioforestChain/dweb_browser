@@ -38,7 +38,7 @@ class jsonToIpcMessage: NSObject {
             }
         }
         
-        if baseModel?.type == .STREAM_MESSAGE {
+        if baseModel?.type == .STREAM_DATA {
             return JSONDeserializer<IpcStreamData>.deserializeFrom(json: data)
         }
         
