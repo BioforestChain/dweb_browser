@@ -51,7 +51,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         var header_host: String? = null
         var header_x_dweb_host: String? = null
         var header_user_agent_host: String? = null
-        val query_x_web_host: String? = request.query("X-Dweb-Host")
+        val query_x_web_host: String? = request.query("X-Dweb-Host")?.decodeURIComponent()
         for ((key, value) in request.headers) {
             when (key) {
                 "Host" -> {
