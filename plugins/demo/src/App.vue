@@ -88,7 +88,7 @@ const apiUrl = new URL(location.href);
 </template>
 <style scoped>
 .app-bg {
-  background: url(../assets/bg.png);
+  background: url("../assets/bg.png");
   background-size: cover;
   background-position: center;
   /* animation-name: ani-bg; */

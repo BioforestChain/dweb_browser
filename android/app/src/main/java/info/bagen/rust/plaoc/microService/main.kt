@@ -43,9 +43,7 @@ suspend fun startDwebBrowser() {
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
             listOf<String>(
-                "message-port-ipc",
-                "stream-ipc",
-                "stream",
+                "fetch-file",
                 "nativeui",
             )
         )

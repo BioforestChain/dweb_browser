@@ -4,6 +4,7 @@ import info.bagen.rust.plaoc.microService.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 
 inline fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("native-ipc", tag, msg, err)
@@ -46,10 +47,10 @@ class NativePort<I, O>(
     private val closePo: PromiseOut<Unit>
 ) {
     companion object {
-        private var uid_acc = 1;
+        private var uid_acc = AtomicInteger(1);
     }
 
-    private val uid = uid_acc++
+    private val uid = uid_acc.getAndAdd(1)
     override fun toString() = "#p$uid"
 
     private var started = false

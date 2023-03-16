@@ -26,13 +26,14 @@ import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 
 
 open class PermissionActivity : AppCompatActivity() {
     companion object {
         val PERMISSION_REQUEST_CODE_PHOTO = 2
         private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
-        private var requestPermissionsCodeAcc = 1;
+        private var requestPermissionsCodeAcc = AtomicInteger(1);
     }
 
     class RequestPermissionsResult(val code: Int) {
@@ -49,7 +50,7 @@ open class PermissionActivity : AppCompatActivity() {
     }
 
     suspend fun requestPermissions(permissions: Array<String>): RequestPermissionsResult {
-        val result = RequestPermissionsResult(requestPermissionsCodeAcc++)
+        val result = RequestPermissionsResult(requestPermissionsCodeAcc.getAndAdd(1))
 
         val shouldRequestPermissions = permissions
 //            permissions.filter {

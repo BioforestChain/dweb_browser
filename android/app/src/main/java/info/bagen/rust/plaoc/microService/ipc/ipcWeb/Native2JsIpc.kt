@@ -3,11 +3,12 @@ package info.bagen.rust.plaoc.microService.ipc.ipcWeb
 import android.webkit.WebMessagePort
 import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
 import info.bagen.rust.plaoc.microService.ipc.Ipc
+import java.util.concurrent.atomic.AtomicInteger
 
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
-private var all_ipc_id_acc = 1;
-fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc++.also { port_id ->
+private var all_ipc_id_acc = AtomicInteger(1);
+fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).also { port_id ->
     ALL_MESSAGE_PORT_CACHE[port_id] = MessagePort.from(port);
 }
 

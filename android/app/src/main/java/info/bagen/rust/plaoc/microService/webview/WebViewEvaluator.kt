@@ -8,6 +8,7 @@ import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import java.util.concurrent.atomic.AtomicInteger
 
 typealias AsyncChannel = Channel<Result<String>>;
 
@@ -19,7 +20,7 @@ class WebViewEvaluator(
     val webView: WebView,
 ) {
     companion object {
-        private var idAcc = 0
+        private var idAcc = AtomicInteger(0)
         const val JS_ASYNC_KIT = "__native_async_callback_kit__"
     }
 
@@ -73,7 +74,7 @@ class WebViewEvaluator(
     ): String {
 
         val channel: AsyncChannel = Channel()
-        val id = idAcc++
+        val id = idAcc.getAndAdd(1)
         channelMap[id] = channel
         GlobalScope.launch(Dispatchers.Main + commonAsyncExceptionHandler) {
             webView.evaluateJavascript(

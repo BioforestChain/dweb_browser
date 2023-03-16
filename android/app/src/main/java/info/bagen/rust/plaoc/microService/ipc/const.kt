@@ -20,6 +20,12 @@ data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc) {
 }
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
+data class IpcResponseMessageArgs(val response: IpcResponse, val ipc: Ipc) {
+    val component1 get() = response
+    val component2 get() = ipc
+}
+typealias OnIpcResponseMessage = Callback<IpcResponseMessageArgs>
+
 data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc) {
     val component1 get() = event
     val component2 get() = ipc

@@ -6,15 +6,16 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Uri
+import java.util.concurrent.atomic.AtomicInteger
 
 
 abstract class Ipc {
     companion object {
-        private var uid_acc = 1
-        private var req_id_acc = 0;
+        private var uid_acc = AtomicInteger(1)
+        private var req_id_acc = AtomicInteger(0);
     }
 
-    val uid = uid_acc++
+    val uid = uid_acc.getAndAdd(1)
 
     /**
      * 是否支持 messagePack 协议传输：
@@ -84,6 +85,18 @@ abstract class Ipc {
 
     fun onRequest(cb: OnIpcRequestMessage) = _requestSignal.listen(cb)
 
+    private val _responseSignal by lazy {
+        Signal<IpcResponseMessageArgs>().also { signal ->
+            _messageSignal.listen { args ->
+                if (args.message is IpcResponse) {
+                    signal.emit(IpcResponseMessageArgs(args.message, args.ipc));
+                }
+            }
+        }
+    }
+
+    fun onResponse(cb: OnIpcResponseMessage) = _responseSignal.listen(cb)
+
     private val _eventSignal by lazy {
         Signal<IpcEventMessageArgs>().also { signal ->
             _messageSignal.listen { args ->
@@ -152,10 +165,10 @@ abstract class Ipc {
     suspend fun request(ipcRequest: IpcRequest): IpcResponse {
         this.postMessage(ipcRequest)
         val result = PromiseOut<IpcResponse>();
-        this.onMessage { args ->
-            if (args.message is IpcResponse && args.message.req_id == ipcRequest.req_id) {
-                result.resolve(args.message)
-                return@onMessage SIGNAL_CTOR.OFF
+        this.onResponse { (response) ->
+            if (response.req_id == ipcRequest.req_id) {
+                result.resolve(response)
+                return@onResponse SIGNAL_CTOR.OFF
             } else {
             }
         }
@@ -165,7 +178,6 @@ abstract class Ipc {
     suspend fun request(request: Request) =
         this.request(IpcRequest.fromRequest(allocReqId(), request, this)).toResponse()
 
-    fun allocReqId() = req_id_acc++;
-
+    fun allocReqId() = req_id_acc.getAndAdd(1);
 }
 

@@ -21,20 +21,29 @@ enum class SIGNAL_CTOR {
 }
 
 open class Signal<Args> {
-    private val listenerSet = ConcurrentSet<Callback<Args>>();
-    fun listen(cb: Callback<Args>): OffListener {
+    val listenerSet = ConcurrentSet<Callback<Args>>();
+    var cpSet = setOf<Callback<Args>>()
+    inline fun listen(noinline cb: Callback<Args>): OffListener {
         // TODO emit 时的cbs 应该要同步进行修改？
-        listenerSet.add(cb)
+        listenerSet.add(cb).also {
+            if (it) {
+                cpSet = listenerSet.toSet()
+            }
+        }
         return { off(cb) }
     }
 
-    fun off(cb: Callback<Args>): Boolean {
-        return listenerSet.remove(cb)
+    inline fun off(noinline cb: Callback<Args>): Boolean {
+        return listenerSet.remove(cb).also {
+            if (it) {
+                cpSet = listenerSet.toSet()
+            }
+        }
     }
 
-    suspend fun emit(args: Args) {
-        // toList 是为了拷贝一份，避免中通对其读写的时候出问题
-        val cbs = listenerSet.toList()
+    suspend inline fun emit(args: Args) {
+        // 这里拷贝一份，避免中通对其读写的时候出问题
+        val cbs = cpSet
         for (cb in cbs) {
             try {
                 /// 因为 cbs 和 listenerSet 已经不是同一个列表了，所以至少说执行之前要检查一下是否还在

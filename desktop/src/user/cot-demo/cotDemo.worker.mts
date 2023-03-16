@@ -1,4 +1,4 @@
-import { onApiRequest } from "./cotDemo.request.mjs";
+import { cros, onApiRequest } from "./cotDemo.request.mjs";
 
 const main = async () => {
   console.log("[cotDemo.worker.mts] main");
@@ -57,7 +57,7 @@ const main = async () => {
       `file:///cot-demo${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
-    console.log(`${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`)
+    console.log(`${request.req_id}/${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`)
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
      * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
@@ -73,7 +73,7 @@ const main = async () => {
       new IpcResponse(
         request.req_id,
         remoteIpcResponse.statusCode,
-        remoteIpcResponse.headers,
+        cros(remoteIpcResponse.headers),
         remoteIpcResponse.body,
         ipc
       )

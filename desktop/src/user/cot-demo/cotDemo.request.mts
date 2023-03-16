@@ -96,8 +96,8 @@ export async function onApiRequest(
         ipcResponse = await IpcResponse.fromResponse(
           request.req_id,
           response,
-          httpServerIpc,
-          true
+          httpServerIpc
+          // true
         );
       } else {
         const response = await jsProcess.nativeFetch(path);
@@ -130,8 +130,11 @@ export async function onApiRequest(
   }
 }
 
-const cros = (headers: $IpcHeaders) => {
+export const cros = (headers: $IpcHeaders) => {
   headers.init("Access-Control-Allow-Origin", "*");
   headers.init("Access-Control-Allow-Headers", "*"); // 要支持 X-Dweb-Host
   headers.init("Access-Control-Allow-Methods", "*");
+  // headers.init("Connection", "keep-alive");
+  // headers.init("Transfer-Encoding", "chunked");
+  return headers;
 };

@@ -182,8 +182,8 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         ipcResponse = await IpcResponse.fromResponse(
           request.req_id,
           response,
-          httpServerIpc,
-          true
+          httpServerIpc
+          // true
         );
       } else {
         const response = await jsProcess.nativeFetch(path);
@@ -217,6 +217,7 @@ var cros = (headers) => {
   headers.init("Access-Control-Allow-Origin", "*");
   headers.init("Access-Control-Allow-Headers", "*");
   headers.init("Access-Control-Allow-Methods", "*");
+  return headers;
 };
 
 // src/user/cot-demo/cotDemo.worker.mts
@@ -244,12 +245,12 @@ var main = async () => {
       `file:///cot-demo${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
-    console.log(`${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`);
+    console.log(`${request.req_id}/${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`);
     ipc2.postMessage(
       new IpcResponse2(
         request.req_id,
         remoteIpcResponse.statusCode,
-        remoteIpcResponse.headers,
+        cros(remoteIpcResponse.headers),
         remoteIpcResponse.body,
         ipc2
       )

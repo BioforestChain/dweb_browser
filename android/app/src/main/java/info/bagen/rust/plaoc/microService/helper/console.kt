@@ -76,7 +76,7 @@ fun timeEnd(label: String) {
  * "message-port-ipc"
  * "ipc-body"
  * "nativeui"
- * "locale-file"
+ * "fetch-file"
  *
  */
 val debugTags by lazy {

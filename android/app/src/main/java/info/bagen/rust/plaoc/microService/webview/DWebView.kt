@@ -203,6 +203,7 @@ class DWebView(
                             .header("X-Dweb-Proxy-Id", localeMM.mmid)
                     )
                 }.getOrThrow()
+                println("shouldInterceptRequest response: ${request.url}[${response.headers.joinToString { "${it.first}=${it.second} " }}]")
                 val headersMap = response.headers.toMap().toMutableMap()
                 return WebResourceResponse(
                     null,
@@ -237,7 +238,7 @@ class DWebView(
                 it.onReceiveValue(emptyArray())
             }
             this@DWebView.filePathCallback = filePathCallback
-            this@DWebView.requestPermissionCallback =  ValueCallback {
+            this@DWebView.requestPermissionCallback = ValueCallback {
 //                launchFileInput() TODO permission
             }
             val pickIntent = Intent(
@@ -245,7 +246,10 @@ class DWebView(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             )
 
-            pickIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, fileChooserParams.acceptTypes.joinToString (","))
+            pickIntent.setDataAndType(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                fileChooserParams.acceptTypes.joinToString(",")
+            )
             activity?.startActivityForResult(pickIntent, PERMISSION_REQUEST_CODE_PHOTO)
             return true
         }

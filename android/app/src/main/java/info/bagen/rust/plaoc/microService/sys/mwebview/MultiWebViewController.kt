@@ -13,6 +13,7 @@ import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.*
 import org.http4k.core.Uri
 import org.http4k.core.query
+import java.util.concurrent.atomic.AtomicInteger
 
 class MultiWebViewController(
     val mmid: Mmid,
@@ -21,7 +22,7 @@ class MultiWebViewController(
 ) {
 
     companion object {
-        private var webviewId_acc = 1
+        private var webviewId_acc = AtomicInteger(1)
     }
 
     val webViewList = mutableStateListOf<ViewItem>()
@@ -109,7 +110,7 @@ class MultiWebViewController(
 
     @Synchronized
     fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching(Dispatchers.Main) {
-        val webviewId = "#w${webviewId_acc++}"
+        val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
         val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
         val coroutineScope = CoroutineScope(CoroutineName(webviewId))
         val navigator = WebViewNavigator(coroutineScope)

@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * IpcBodySender 本质上是对 ReadableStream 的再次封装。
@@ -218,12 +219,12 @@ class IpcBodySender(
 
         private val streamIdWM by lazy { WeakHashMap<InputStream, String>() }
 
-        private var stream_id_acc = 1;
+        private var stream_id_acc = AtomicInteger(1);
         private fun getStreamId(stream: InputStream): String = streamIdWM.getOrPut(stream) {
             if (stream is ReadableStream) {
-                "rs-${stream_id_acc++}[${stream.uid}]"
+                "rs-${stream_id_acc.getAndAdd(1)}[${stream.uid}]"
             } else {
-                "rs-${stream_id_acc++}"
+                "rs-${stream_id_acc.getAndAdd(1)}"
             }
         };
 

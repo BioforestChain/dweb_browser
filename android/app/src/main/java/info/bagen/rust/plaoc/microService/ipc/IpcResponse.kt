@@ -1,9 +1,9 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+import info.bagen.rust.plaoc.microService.helper.fromCode
 import info.bagen.rust.plaoc.microService.helper.gson
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.filter.flash
 import java.io.InputStream
 
 class IpcResponse(
@@ -91,7 +91,7 @@ class IpcResponse(
     }
 
     fun toResponse() =
-        Response(Status(this.statusCode, null)).headers(this.headers.toList()).let { res ->
+        Response(Status.fromCode(this.statusCode)).headers(this.headers.toList()).let { res ->
             when (val body = body.raw) {
                 is String -> res.body(body)
                 is ByteArray -> res.body(body.inputStream(), body.size.toLong())
