@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { HTMLDwebStatusBarElement, StatusbarStyle, StatusBarInfo } from "@bfex/plugin";
+import { StatusBarPlugin, STATUS_BAR_STYLE, $StatusBarState } from "@bfex/plugin";
 
 const title = "StatusBar";
 
 const $logPanel = ref<typeof LogPanel>();
-const $statusbarPlugin = ref<HTMLDwebStatusBarElement>();
+const $statusbarPlugin = ref<StatusBarPlugin>();
 
-let statusbar: HTMLDwebStatusBarElement;
+let console: Console;
+let statusbar: StatusBarPlugin;
 onMounted(async () => {
   console = toConsole($logPanel);
   statusbar = $statusbarPlugin.value!;
-  onStatusBarChange(await statusbar.getInfo());
+  onStatusBarChange(await statusbar.getState());
 });
 
-const onStatusBarChange = (info: StatusBarInfo) => {
+const onStatusBarChange = (info: $StatusBarState) => {
   color.value = info.color;
   style.value = info.style;
   overlay.value = info.overlay;
@@ -23,23 +24,23 @@ const onStatusBarChange = (info: StatusBarInfo) => {
 };
 
 const color = ref<string>(null as never);
-const setBackgroundColor = defineLogAction(
+const setColor = defineLogAction(
   async () => {
-    await statusbar.setBackgroundColor({ color: color.value });
+    await statusbar.setColor(color.value);
   },
-  { name: "setBackgroundColor", args: [color], logPanel: $logPanel }
+  { name: "setColor", args: [color], logPanel: $logPanel }
 );
-const getBackgroundColor = defineLogAction(
+const getColor = defineLogAction(
   async () => {
-    color.value = await statusbar.getBackgroundColor();
+    color.value = await statusbar.getColor();
   },
-  { name: "getBackgroundColor", args: [color], logPanel: $logPanel }
+  { name: "getColor", args: [color], logPanel: $logPanel }
 );
 
-const style = ref<StatusbarStyle>(null as never);
+const style = ref<STATUS_BAR_STYLE>(null as never);
 const setStyle = defineLogAction(
   async () => {
-    await statusbar.setStyle({ style: style.value });
+    await statusbar.setStyle(style.value);
   },
   { name: "setStyle", args: [style], logPanel: $logPanel }
 );
@@ -51,14 +52,14 @@ const getStyle = defineLogAction(
 );
 
 const overlay = ref<boolean>(null as never);
-const setOverlay = defineLogAction(() => statusbar.setOverlaysWebView({ overlay: overlay.value }), {
+const setOverlay = defineLogAction(() => statusbar.setOverlay(overlay.value), {
   name: "setOverlay",
   args: [overlay],
   logPanel: $logPanel,
 });
 const getOverlay = defineLogAction(
   async () => {
-    overlay.value = await statusbar.getOverlaysWebView();
+    overlay.value = await statusbar.getOverlay();
   },
   {
     name: "getOverlay",
@@ -94,10 +95,10 @@ const getVisible = defineLogAction(
       <v-color-picker v-model="color" :modes="['rgba']"></v-color-picker>
 
       <div class="justify-end card-actions btn-group">
-        <button class="inline-block rounded-full btn btn-accent" :disabled="null == color" @click="setBackgroundColor">
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == color" @click="setColor">
           Set
         </button>
-        <button class="inline-block rounded-full btn btn-accent" @click="getBackgroundColor">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getColor">Get</button>
       </div>
     </article>
 

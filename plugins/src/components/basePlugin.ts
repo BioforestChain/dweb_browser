@@ -7,11 +7,10 @@ import { createSignal } from "../helper/createSignal.ts";
 export abstract class BasePlugin {
   abstract tagName: string;
 
-  constructor(readonly mmid: string) { }
+  constructor(readonly mmid: string) {}
 
-  protected static internal_url: string =
-    globalThis.location?.href ?? "http://localhost";
-  protected static public_url: Promise<string> | string = "";
+  static internal_url: string = globalThis.location?.href ?? "http://localhost";
+  static public_url: Promise<string> | string = "";
 
   protected buildRequest(url: URL, init?: $BuildRequestInit) {
     const search = init?.search;
@@ -23,12 +22,18 @@ export abstract class BasePlugin {
         extendsSearch = new URLSearchParams(search);
       } else {
         extendsSearch = new URLSearchParams(
-          Object.entries(search).map(([key, value]) => {
-            return [
-              key,
-              typeof value === "string" ? value : JSON.stringify(value),
-            ] as [string, string];
-          })
+          Object.entries(search)
+            .filter(
+              ([_, value]) => value != undefined /* null undefined 都不传输*/
+            )
+            .map(([key, value]) => {
+              return [
+                key,
+                typeof value === "object"
+                  ? JSON.stringify(value)
+                  : String(value),
+              ] as [string, string];
+            })
         );
       }
       extendsSearch.forEach((value, key) => {
@@ -44,21 +49,15 @@ export abstract class BasePlugin {
       })
     );
   }
-  protected fetchApi(url: string, init?: $BuildRequestInit) {
+  fetchApi(url: string, init?: $BuildRequestInit) {
     return this.buildApiRequest(url, init).fetch();
   }
-  protected buildApiRequest(
-    pathname: string,
-    init?: $BuildRequestWithBaseInit
-  ) {
+  buildApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
     const url = new URL(init?.base ?? BasePlugin.internal_url);
     url.pathname = `${this.mmid}${pathname}`;
     return this.buildRequest(url, init);
   }
-  protected buildInternalApiRequest(
-    pathname: string,
-    init?: $BuildRequestWithBaseInit
-  ) {
+  buildInternalApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
     const url = new URL(init?.base ?? BasePlugin.internal_url);
     url.pathname = `/internal${pathname}`;
     return this.buildRequest(url, init);
@@ -68,8 +67,8 @@ export abstract class BasePlugin {
 }
 interface $BuildRequestInit extends RequestInit {
   search?:
-  | ConstructorParameters<typeof URLSearchParams>[0]
-  | Record<string, unknown>;
+    | ConstructorParameters<typeof URLSearchParams>[0]
+    | Record<string, any>;
   base?: string;
 }
 interface $BuildRequestWithBaseInit extends $BuildRequestInit {

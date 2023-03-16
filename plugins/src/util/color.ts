@@ -3,7 +3,7 @@
  * @param color
  * @returns  #rrbbggaa
  */
-export function convertColor(color: string) {
+export function convertColorToArga(color: string) {
   // 默认是纯黑色
   const rgbaColor = [/* red */ 0, /* green */ 0, /* blue */ 0, /* alpha */ 255];
 
@@ -47,9 +47,9 @@ export function convertColor(color: string) {
     green: rgbaColor[1],
     blue: rgbaColor[2],
     alpha: rgbaColor[3],
-  } as $Color;
+  } as $AgbaColor;
 }
-export type $Color = {
+export type $AgbaColor = {
   red: number;
   green: number;
   blue: number;
@@ -59,8 +59,8 @@ export const enum COLOR_FORMAT {
   HEXA,
   RGBA,
 }
-export function normalizeColor(
-  color: $Color,
+export function normalizeArgaToColor(
+  color: $AgbaColor,
   format: COLOR_FORMAT = COLOR_FORMAT.RGBA
 ) {
   const rgbaColor = [color.red, color.green, color.blue, color.alpha];

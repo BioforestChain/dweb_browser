@@ -1,14 +1,13 @@
 import { $OffListener } from "../../helper/createSignal.ts";
-import { streamRead } from "../../helper/readableStreamHelper.ts";
 import { statusBarPlugin } from "./status-bar.plugin.ts";
 
 export class HTMLDwebStatusBarElement extends HTMLElement {
   readonly plugin = statusBarPlugin;
-  get setBackgroundColor() {
-    return statusBarPlugin.setBackgroundColor;
+  get setColor() {
+    return statusBarPlugin.setColor;
   }
-  get getBackgroundColor() {
-    return statusBarPlugin.getBackgroundColor;
+  get getColor() {
+    return statusBarPlugin.getColor;
   }
   get setStyle() {
     return statusBarPlugin.setStyle;
@@ -28,38 +27,37 @@ export class HTMLDwebStatusBarElement extends HTMLElement {
   get getVisible() {
     return statusBarPlugin.getVisible;
   }
-  get getInfo() {
-    return statusBarPlugin.getInfo;
+  get getState() {
+    return statusBarPlugin.state.getState();
   }
-  get setOverlaysWebView() {
-    return statusBarPlugin.setOverlaysWebView;
+  get setOverlay() {
+    return statusBarPlugin.setOverlay;
   }
-  get getOverlaysWebView() {
-    return statusBarPlugin.getOverlaysWebView;
+  get getOverlay() {
+    return statusBarPlugin.getOverlay;
   }
   constructor() {
     super();
     (async () => {
-      for await (const info of streamRead(await statusBarPlugin.observe())) {
-        console.log("changed", info);
-        statusBarPlugin.currentInfo = statusBarPlugin.normalizeRawInfo(info);
+      for await (const state of statusBarPlugin.state.jsonlines()) {
+        console.log("status-bar changed", state);
       }
     })();
   }
   private _onchange?: $OffListener;
   async connectedCallback() {
-    this._onchange = statusBarPlugin.onCurrentInfoChange((info) => {
+    this._onchange = statusBarPlugin.state.onChange((info) => {
       this.dispatchEvent(new CustomEvent("change", { detail: info }));
     });
-    await statusBarPlugin.startObserve(); // 开始监听
-    await statusBarPlugin.getInfo(true); // 强制刷新
+    await statusBarPlugin.state.startObserve(); // 开始监听
+    await statusBarPlugin.getState(true); // 强制刷新
   }
   async disconnectedCallback() {
     if (this._onchange) {
       this._onchange();
       this._onchange = undefined;
     }
-    await statusBarPlugin.stopObserve();
+    await statusBarPlugin.state.stopObserve();
   }
 }
 

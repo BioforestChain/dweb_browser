@@ -1,16 +1,18 @@
 /**
  * 将字符串解码成 jsonlines 格式
  */
-export class JsonlinesStream<T> extends TransformStream<string, T> {
-  constructor() {
+export class JsonlinesStream<T, R = T> extends TransformStream<string, R> {
+  constructor(
+    parser: $Transform<T, R> = (value) => value as unknown as R
+  ) {
     let json = "";
 
     const try_enqueue = (
-      controller: TransformStreamDefaultController<T>,
+      controller: TransformStreamDefaultController<R>,
       jsonline: string
     ) => {
       try {
-        controller.enqueue(JSON.parse(jsonline));
+        controller.enqueue(parser(JSON.parse(jsonline)));
       } catch (err) {
         controller.error(err);
         return true;
@@ -39,3 +41,4 @@ export class JsonlinesStream<T> extends TransformStream<string, T> {
     });
   }
 }
+export type $Transform<T, R> = (value: T) => R;

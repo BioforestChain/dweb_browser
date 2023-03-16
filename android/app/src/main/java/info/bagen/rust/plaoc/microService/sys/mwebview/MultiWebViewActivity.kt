@@ -302,7 +302,7 @@ open class MultiWebViewActivity : PermissionActivity() {
                                     })
                             }
 
-                            // DebugPanel()
+                            DebugPanel(viewItem)
                         }
 
                     }

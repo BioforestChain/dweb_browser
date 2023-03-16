@@ -7,7 +7,9 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import info.bagen.rust.plaoc.App
 
-data class ColorJson(val red: Int, val blue: Int, val green: Int, val alpha: Int)
+data class ColorJson(val red: Int, val blue: Int, val green: Int, val alpha: Int) {
+    fun toColor() = Color(red = red, blue = blue, green = green, alpha = alpha)
+}
 
 fun Color.toJsonAble(): ColorJson = convert(ColorSpaces.Srgb).let {
     ColorJson(
@@ -18,17 +20,17 @@ fun Color.toJsonAble(): ColorJson = convert(ColorSpaces.Srgb).let {
     )
 }
 
-data class WebDomRect(val x: Float, val y: Float, val width: Float, val height: Float)
+data class RectJson(val x: Float, val y: Float, val width: Float, val height: Float)
 
 fun WindowInsets.toJsonAble(
     density: Density = Density(App.appContext),
     direction: LayoutDirection = LayoutDirection.Ltr
-): WebDomRect {
+): RectJson {
     val left = this.getLeft(density, direction)
     val top = this.getTop(density)
     val right = this.getRight(density, direction)
     val bottom = this.getBottom(density)
-    return WebDomRect(
+    return RectJson(
         x = left.toFloat(),
         y = top.toFloat(),
         width = (right - left).toFloat(),

@@ -211,7 +211,7 @@ class DWebView(
                     response.status.code,
                     response.status.description,
                     headersMap,
-                    response.body.stream
+                    response.body.stream,
                 )
             }
             return super.shouldInterceptRequest(view, request)

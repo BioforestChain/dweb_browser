@@ -223,10 +223,7 @@ class NativeUiController(
         val visibleState = mutableStateOf(true)
         val statusBarsInsetsState = mutableStateOf(WindowInsets(0))
 
-        private val stateChanges = IsChange(false)
-        val observeSignal = SimpleSignal()
-        fun observe(cb: SimpleCallback) = observeSignal.listen(cb)
-        fun unObserve(cb: SimpleCallback) = observeSignal.off(cb)
+        val observer = StateObservable { gson.toJson(toJsonAble()) }
 
         /**
          * 使得当前 StatusBarController 生效
@@ -260,7 +257,7 @@ class NativeUiController(
                 onDispose {}
             }
 
-            stateChanges.also {
+            observer.stateChanges.also {
                 it.rememberByState(overlayState)
                 it.rememberByState(colorState)
                 it.rememberByState(styleState)
@@ -270,7 +267,7 @@ class NativeUiController(
                 it.effectChange {
                     debugNativeUi("StatusBar", "CHANGED")
                     runBlockingCatching {
-                        observeSignal.emit()
+                        observer.changeSignal.emit()
                     }.getOrNull()
                 }
             }
@@ -279,26 +276,28 @@ class NativeUiController(
         }
 
 
-        data class StatusBarJson(
+        data class StatusBarState(
             val visible: Boolean,
             val style: BarStyle,
             val overlay: Boolean,
             val color: ColorJson,
+            val boundingRect: RectJson,
         )
 
 
-        fun toJsonAble() = StatusBarJson(
+        fun toJsonAble() = StatusBarState(
             visible = visibleState.value,
             style = styleState.value,
             overlay = overlayState.value,
-            color = colorState.value.toJsonAble()
+            color = colorState.value.toJsonAble(),
+            boundingRect = statusBarsInsetsState.value.toJsonAble()
         )
     }
 
     @Stable
     class NavigationBarController(
         val activity: ComponentActivity,
-        nativeUiController: NativeUiController,
+        val nativeUiController: NativeUiController,
     ) {
         /**
          * 是否层叠渲染
@@ -322,6 +321,7 @@ class NativeUiController(
 
         val navigationBarsInsetsState = mutableStateOf(WindowInsets(0))
 
+        val observer = StateObservable { gson.toJson(toJsonAble()) }
 
         @Composable
         fun effect(): NavigationBarController {
@@ -345,8 +345,41 @@ class NativeUiController(
                 systemUiController.isNavigationBarVisible = visible
                 onDispose { }
             }
+
+            observer.stateChanges.also {
+                it.rememberByState(overlayState)
+                it.rememberByState(colorState)
+                it.rememberByState(styleState)
+                it.rememberByState(visibleState)
+                it.rememberByState(navigationBarsInsetsState)
+
+                it.effectChange {
+                    debugNativeUi("StatusBar", "CHANGED")
+                    runBlockingCatching {
+                        observer.changeSignal.emit()
+                    }.getOrNull()
+                }
+            }
+
             return this
         }
+
+
+        data class NavigationBarState(
+            val visible: Boolean,
+            val style: BarStyle,
+            val overlay: Boolean,
+            val color: ColorJson,
+            val boundingRect: RectJson,
+        )
+
+        fun toJsonAble() = NavigationBarState(
+            visible = visibleState.value,
+            style = styleState.value,
+            overlay = overlayState.value,
+            color = colorState.value.toJsonAble(),
+            boundingRect = navigationBarsInsetsState.value.toJsonAble(),
+        )
     }
 
     @Stable

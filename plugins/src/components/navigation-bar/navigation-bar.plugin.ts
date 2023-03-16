@@ -1,124 +1,60 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../basePlugin.ts";
-import type { ColorParameters } from "./navigation-bar.type.ts";
-// navigator-bar 插件
-export class NavigatorBarPlugin extends BasePlugin {
-  readonly tagName = "dweb-navigator-bar";
+import { $BarRawState, $BarState, BarPlugin } from "../../util/bar.ts";
+import {
+  COLOR_FORMAT,
+  convertColorToArga,
+  normalizeArgaToColor,
+} from "../../util/color.ts";
+import { $Coder } from "../../util/StateObserver.ts";
+import {
+  $NavigationBarWritableState,
+  type $NavigationBarRawState,
+  type $NavigationBarState,
+} from "./navigation-bar.type.ts";
+/**
+ * 访问 navigation-bar 能力的插件
+ */
+export class NavigationBarPlugin extends BarPlugin<
+  $NavigationBarRawState,
+  $NavigationBarState,
+  $NavigationBarWritableState
+> {
+  readonly tagName = "dweb-navigation-bar";
 
   constructor() {
-    super("navigationbar.sys.dweb");
+    super("navigation-bar.sys.dweb");
   }
+  coder: $Coder<$BarRawState, $BarState> = {
+    decode: (raw: $NavigationBarRawState) => ({
+      ...raw,
+      color: normalizeArgaToColor(raw.color, COLOR_FORMAT.HEXA),
+    }),
+    encode: (state: $NavigationBarState) => ({
+      ...state,
+      color: convertColorToArga(state.color),
+    }),
+  };
 
-  connectedCallback() {
-    // 发起一个监听请求
-    // this._addClickNavigatorbarItem()
-  }
-
-  /**
-   * 显示导航栏。
-   */
   @bindThis
-  async show(): Promise<void> {
-    await this.fetchApi("/setVisible", {
+  async setStates(state: Partial<$NavigationBarWritableState>) {
+    await this.fetchApi("/setState", {
       search: {
-        visible: true,
+        ...state,
+        color: state.color ? convertColorToArga(state.color) : undefined,
       },
     });
   }
-
-  /**
-   * 隐藏导航栏。
-   */
   @bindThis
-  async hide(): Promise<void> {
-    await this.fetchApi("/setVisible", {
-      search: {
-        visible: false,
-      },
+  setState<K extends keyof $NavigationBarWritableState>(
+    key: K,
+    value: $NavigationBarWritableState[K]
+  ) {
+    return this.setStates({
+      [key]: value,
     });
   }
-
-  /**
-   * 获取导航栏是否可见。
-   */
-  @bindThis
-  async getVisible(): Promise<Response> {
-    return await this.fetchApi("/getVisible");
+  get getState() {
+    return this.state.getState;
   }
-
-  /**
-   * 更改导航栏的颜色。
-   *支持 alpha 十六进制数。
-   * @param options
-   */
-  @bindThis
-  async setColor(options: ColorParameters): Promise<void> {
-    await this.fetchApi("/setBackgroundColor", {
-      search: {
-        color: options.color,
-        darkButtons: options.darkButtons,
-      },
-    });
-  }
-
-  /**
-   * 以十六进制获取导航栏的当前颜色。
-   */
-  @bindThis
-  async getColor(): Promise<{ color: string }> {
-    const color = await this.fetchApi("/getBackgroundColor").then((res) =>
-      res.text()
-    );
-    return { color: color };
-  }
-
-  /**
-   * 设置透明度
-   * @param isTransparent
-   */
-  @bindThis
-  async setTransparency(options: { isTransparent: boolean }): Promise<void> {
-    await this.fetchApi("/setTransparency", {
-      search: {
-        isTransparency: options.isTransparent,
-      },
-    });
-  }
-  /**
-   * 获取导航栏是否透明度
-   * @param isTransparent
-   */
-  @bindThis
-  async getTransparency(): Promise<Response> {
-    return await this.fetchApi("/getTransparency");
-  }
-
-  /**
-   * 设置导航栏是否覆盖内容
-   * @param isOverlay
-   */
-  @bindThis
-  async setOverlay(options: { isOverlay: boolean }): Promise<void> {
-    await this.fetchApi("/setOverlay", {
-      search: {
-        isOverlay: options.isOverlay,
-      },
-    });
-  }
-  /**
-   * 获取导航栏是否覆盖内容
-   * @param isOverlay
-   */
-  @bindThis
-  async getOverlay(): Promise<Response> {
-    return await this.fetchApi("/getOverlay");
-  }
-
-  private _signalShow = this.createSignal();
-  readonly onShow = this._signalShow.listen;
-  private _signalHide = this.createSignal();
-  readonly onHide = this._signalHide.listen;
-  private _signalChange = this.createSignal();
-  readonly onChange = this._signalChange.listen;
 }
-export const navigatorBarPlugin = new NavigatorBarPlugin();
+export const navigationBarPlugin = new NavigationBarPlugin();

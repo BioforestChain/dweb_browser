@@ -1,83 +1,11 @@
+import {
+  BAR_STYLE as NAVIGATION_BAR_STYLE,
+  $BarRawState,
+  $BarState,
+  $BarWritableState,
+} from "../../util/bar.ts";
+export { NAVIGATION_BAR_STYLE };
 
-export enum NAVIGATION_BAR_COLOR {
-  TRANSPARENT = '#00000000',
-  WHITE = '#ffffff',
-  BLACK = '#000000',
-}
-
-
-
-// export interface NavigationBarPlugin {
-//   /**
-//    * Display the navigation bar.
-//    */
-//   show(): Promise<void>
-
-//   /**
-//    * Hide the navigation bar.
-//    */
-//   hide(): Promise<void>
-
-//   /**
-//    * Change the color of the navigation bar.
-//    * *Support alpha hexadecimal numbers.
-//    * @param options 
-//    */
-//   setColor(options: ColorParameters): Promise<void>
-
-//   /**
-//    * Set the Transparency
-//    * @param isTransparent 
-//    */
-//   setTransparency(options: { isTransparent: boolean }): Promise<void>
-
-//   /**
-//    * Gets the current color of the navigation bar in Hexadecimal.
-//    */
-//   getColor(): Promise<{ color: string }>
-
-//   /**
-//    * Event fired after navigation bar is displayed
-//    * @param event The event
-//    * @param listenerFunc Callback 
-//    */
-//   addListener(
-//     event: NavigationBarPluginEvents.SHOW,
-//     listenerFunc: () => void
-//   ): PluginListenerHandle
-
-//   /**
-//    * Event fired after navigation bar is hidden
-//    * @param event The event
-//    * @param listenerFunc Callback 
-//    */
-//   addListener(
-//     event: NavigationBarPluginEvents.HIDE,
-//     listenerFunc: () => void
-//   ): PluginListenerHandle
-
-//   /**
-//    * Event fired after navigation bar color is changed
-//    * @param event The event
-//    * @param listenerFunc Callback 
-//    */
-//   addListener(
-//     event: NavigationBarPluginEvents.COLOR_CHANGE,
-//     listenerFunc: (returnObject: { color: string }) => void
-//   ): PluginListenerHandle
-// }
-
-export interface ColorParameters {
-  /**
-   * Sets the new color of the navigation bar.
-   */
-  color: string
-
-  /**
-   * Sets whether the default navigation bar buttons should be black or white.
-   */
-  darkButtons?: boolean
-}
-export interface PluginListenerHandle {
-  remove: () => Promise<void>;
-}
+export type $NavigationBarRawState = $BarRawState;
+export type $NavigationBarState = $BarState;
+export type $NavigationBarWritableState = $BarWritableState;

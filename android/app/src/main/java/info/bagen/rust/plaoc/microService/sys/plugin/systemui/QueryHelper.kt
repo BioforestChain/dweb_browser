@@ -3,8 +3,13 @@ package info.bagen.rust.plaoc.microService.sys.plugin.systemui
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.graphics.Color
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.ColorJson
+import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.toJsonAble
-import org.http4k.lens.*
+import org.http4k.core.Request
+import org.http4k.lens.Query
+import org.http4k.lens.boolean
+import org.http4k.lens.string
 
 class QueryHelper {
     companion object {
@@ -12,28 +17,21 @@ class QueryHelper {
             NativeMicroModule.ResponseRegistry.registryJsonAble(Color::class.java) { it.toJsonAble() }
             NativeMicroModule.ResponseRegistry.registryJsonAble(WindowInsets::class.java) { it.toJsonAble() }
             NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.StatusBarController::class.java) { it.toJsonAble() }
+            NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.NavigationBarController::class.java) { it.toJsonAble() }
         }
 
         fun init() {
             // 确保 init 里头的类被注册
         }
 
-        val getColor = Query.composite {
-            Color(
-                red = int().required("red")(it),
-                blue = int().required("blue")(it),
-                green = int().required("green")(it),
-                alpha = int().required("alpha")(it)
-            )
+        fun color(req: Request) = Query.string().optional("color")(req)?.let {
+            gson.fromJson(it, ColorJson::class.java).toColor()
         }
-        val style =
-            Query.composite {
-                NativeUiController.BarStyle.from(
-                    Query.string().required("style")(it)
-                )
-            }
-        val getVisible = Query.boolean().required("visible")
-        val overlay = Query.boolean().required("overlay")
+        fun style(req: Request) = Query.string().optional("style")(req)?.let {
+            NativeUiController.BarStyle.from(it)
+        }
+        val visible = Query.boolean().optional("visible")
+        val overlay = Query.boolean().optional("overlay")
     }
 }
 
