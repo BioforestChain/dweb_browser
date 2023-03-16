@@ -1,41 +1,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { StatusbarPlugin, StatusbarStyle, StatusbarInfo } from "@bfex/plugin";
+import { HTMLDwebStatusBarElement, StatusbarStyle, StatusBarInfo } from "@bfex/plugin";
 
 const title = "StatusBar";
 
-// import { } from "@bfex/plugin"
-
-// export default {};
-// const elSetStatusbarStyle = document.querySelector("#statusbar-setStyle");
-// const elSelectStatusbarStyle = document.querySelector("#statusbar-style");
-// elSetStatusbarStyle.addEventListener("click", () => {
-//   const value = elSelectStatusbarStyle.value;
-//   const pluginsStatusbar = window.Capacitor.Plugins.StatusBar;
-//   console.log("pluginsStatusbar: ", pluginsStatusbar);
-//   pluginsStatusbar.setStyle({ style: "LIGHT" }).then(async (res) => {
-//     if (res.status === 200) {
-//       console.log("res: ", res);
-//       console.log("设置bstatusar ok res.body===", await res.text());
-//       return;
-//     }
-//     console.error("设置 statusbar style 失败", await res.text());
-//   });
-// });
-
 const $logPanel = ref<typeof LogPanel>();
-const $statusbarPlugin = ref<StatusbarPlugin>();
+const $statusbarPlugin = ref<HTMLDwebStatusBarElement>();
 
-let console: Console;
-let statusbar: StatusbarPlugin;
+let statusbar: HTMLDwebStatusBarElement;
 onMounted(async () => {
   console = toConsole($logPanel);
   statusbar = $statusbarPlugin.value!;
   onStatusBarChange(await statusbar.getInfo());
 });
 
-const onStatusBarChange = (info: StatusbarInfo) => {
+const onStatusBarChange = (info: StatusBarInfo) => {
   color.value = info.color;
   style.value = info.style;
   overlay.value = info.overlay;
@@ -87,7 +67,7 @@ const getOverlay = defineLogAction(
   }
 );
 const visible = ref<boolean>(null as never);
-const setVisible = defineLogAction(() => statusbar.setVisible({ visible: visible.value }), {
+const setVisible = defineLogAction(() => statusbar.setVisible(visible.value), {
   name: "setVisible",
   args: [visible],
   logPanel: $logPanel,
@@ -104,7 +84,7 @@ const getVisible = defineLogAction(
 );
 </script>
 <template>
-  <dweb-status-bar ref="$statusbarPlugin" @change="onStatusBarChange(event.detail)"></dweb-status-bar>
+  <dweb-status-bar ref="$statusbarPlugin" @change="onStatusBarChange($event.detail)"></dweb-status-bar>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/statusbar.svg" :alt="title" />

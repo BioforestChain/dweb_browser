@@ -34,6 +34,8 @@ const main = async () => {
     port: 443,
   });
 
+
+
   const apiServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "api",
     port: 443,
@@ -57,18 +59,13 @@ const main = async () => {
       `file:///cot-demo${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
-    console.log(`${request.req_id}/${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`)
+    console.log(`${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`)
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
      * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
      *
      * 如此数据就不会发给我，节省大量传输成本
      */
-    // console.log(chalk.red("这里的 ipc.postMessage 没有办法触发返回"))
-    // 检查了 ipc_to_worker.onMessage(） ipc.onMessage(）那个地方没有相应匹配的 事件触发
-    // 不知道这个 ipc 是指向那个地方
-    // ipc.cts 和 ReadableSreamIpc.cts 文件中的方法都正常的触发了
-    // 不知道这里是个什么情况
     ipc.postMessage(
       new IpcResponse(
         request.req_id,
@@ -91,13 +88,17 @@ const main = async () => {
       )
       .text();
   }
-  // {
-  //   const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
-  //   Object.assign(globalThis, { mwebviewIpc });
-  //   mwebviewIpc.onEvent((event) => {
-  //     console.log("got event:", event.name, event.text);
-  //   });
-  // }
+  {
+    // const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
+    // Object.assign(globalThis, { mwebviewIpc });
+    // mwebviewIpc.onEvent((event) => {
+    //   console.log("got event:", event.name, event.text);
+    //   if (event.name === "close") {
+    //     wwwServer.close()
+    //     apiServer.close()
+    //   }
+    // });
+  }
 };
 
 main();

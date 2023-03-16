@@ -114,6 +114,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
    * @since 1.0.0
    */
   @bindThis
+  // deno-lint-ignore require-await
   async show(options?: AnimationOptions): Promise<void> {
     return this.setVisible(true, options);
   }
@@ -124,6 +125,7 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
    * @since 1.0.0
    */
   @bindThis
+  // deno-lint-ignore require-await
   async hide(options?: AnimationOptions): Promise<void> {
     return this.setVisible(false, options);
   }
@@ -138,8 +140,8 @@ export class StatusBarPlugin extends BasePlugin implements IStatusBarPlugin {
     });
   }
   @bindThis
-  async getVisible() {
-    await this.fetchApi(`/getVisible`);
+  async getVisible(): Promise<boolean> {
+    return await this.fetchApi(`/getVisible`).boolean();
   }
 
   /**

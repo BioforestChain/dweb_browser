@@ -245,7 +245,7 @@ var main = async () => {
       `file:///cot-demo${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
-    console.log(`${request.req_id}/${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`);
+    console.log(`${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`);
     ipc2.postMessage(
       new IpcResponse2(
         request.req_id,
@@ -264,6 +264,8 @@ var main = async () => {
     const view_id = await jsProcess.nativeFetch(
       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
     ).text();
+  }
+  {
   }
 };
 main();

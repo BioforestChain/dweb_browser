@@ -18,7 +18,7 @@ class QueryHelper {
             // 确保 init 里头的类被注册
         }
 
-        val color = Query.composite {
+        val getColor = Query.composite {
             Color(
                 red = int().required("red")(it),
                 blue = int().required("blue")(it),
@@ -32,7 +32,7 @@ class QueryHelper {
                     Query.string().required("style")(it)
                 )
             }
-        val visible = Query.boolean().required("visible")
+        val getVisible = Query.boolean().required("visible")
         val overlay = Query.boolean().required("overlay")
     }
 }

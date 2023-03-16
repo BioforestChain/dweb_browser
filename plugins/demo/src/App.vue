@@ -19,7 +19,7 @@ const routes = [
 ];
 const router = useRouter();
 
-router.push("/scanner");
+router.push("/statusbar");
 
 const drawer_controller = ref(false);
 

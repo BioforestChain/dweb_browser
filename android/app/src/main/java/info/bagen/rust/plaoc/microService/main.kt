@@ -49,6 +49,7 @@ suspend fun startDwebBrowser() {
         )
         else -> debugTags.addAll(
             listOf<String>(
+                "nativeui"
             )
         )
     }

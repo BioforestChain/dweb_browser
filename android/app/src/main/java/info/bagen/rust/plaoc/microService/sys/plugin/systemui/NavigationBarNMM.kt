@@ -22,7 +22,7 @@ class NavigationBarNMM : NativeMicroModule("navigationbar.sys.dweb") {
              * navigationBarContrastEnforced - 当请求完全透明的背景时，系统是否应确保导航栏具有足够的对比度。 仅支持 API 29+。
              * */
             "/setBackgroundColor" bind Method.GET to defineHandler { request, ipc ->
-                val color = QueryHelper.color(request)
+                val color = QueryHelper.getColor(request)
                 getController(ipc.remote.mmid).colorState.value = color
                 return@defineHandler null
             },
@@ -46,7 +46,7 @@ class NavigationBarNMM : NativeMicroModule("navigationbar.sys.dweb") {
             },
             /** 设置当前导航栏是否可见*/
             "/setVisible" bind Method.GET to defineHandler { request, ipc ->
-                val visible = QueryHelper.visible(request)
+                val visible = QueryHelper.getVisible(request)
                 getController(ipc.remote.mmid).visibleState.value = visible
                 return@defineHandler null
             },

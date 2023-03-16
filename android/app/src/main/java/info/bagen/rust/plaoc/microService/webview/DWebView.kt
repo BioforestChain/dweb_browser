@@ -203,7 +203,7 @@ class DWebView(
                             .header("X-Dweb-Proxy-Id", localeMM.mmid)
                     )
                 }.getOrThrow()
-                println("shouldInterceptRequest response: ${request.url}[${response.headers.joinToString { "${it.first}=${it.second} " }}]")
+                println("shouldInterceptRequest response: ${request.url}  [${response.headers.joinToString { "${it.first}=${it.second} " }}]")
                 val headersMap = response.headers.toMap().toMutableMap()
                 return WebResourceResponse(
                     null,

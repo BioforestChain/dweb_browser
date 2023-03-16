@@ -54,7 +54,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val job = GlobalScope.launch(ioAsyncExceptionHandler) {
             while (true) {
                 for ((ipc) in subscribers) {
-                    ipc.postMessage(IpcEvent.fromUtf8("qaq", "hi"))
+                    ipc.postMessage(IpcEvent.fromUtf8("close", "hi"))
                 }
                 delay(1000)
             }

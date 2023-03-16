@@ -53,12 +53,12 @@ class StatusBarNMM : NativeMicroModule("status-bar.sys.dweb") {
             },
             /** 设置状态栏背景色*/
             "/setBackgroundColor" bind Method.GET to defineHandler { request, ipc ->
-                val color = QueryHelper.color(request)
+                val color = QueryHelper.getColor(request)
                 getController(ipc.remote.mmid).colorState.value = color
                 return@defineHandler null
             },
             /** 设置状态栏风格*/
-            "/setForegroundStyle" bind Method.GET to defineHandler { request, ipc ->
+            "/setStyle" bind Method.GET to defineHandler { request, ipc ->
                 val style = QueryHelper.style(request)
                 getController(ipc.remote.mmid).styleState.value = style
                 return@defineHandler null
@@ -71,7 +71,7 @@ class StatusBarNMM : NativeMicroModule("status-bar.sys.dweb") {
             },
             /** 设置状态栏是否可见 */
             "/setVisible" bind Method.GET to defineHandler { request, ipc ->
-                val visible = QueryHelper.visible(request)
+                val visible = QueryHelper.getVisible(request)
                 getController(ipc.remote.mmid).visibleState.value = visible
                 return@defineHandler null
             },
