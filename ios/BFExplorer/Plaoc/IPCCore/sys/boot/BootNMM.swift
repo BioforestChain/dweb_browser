@@ -11,8 +11,6 @@ import Vapor
 class BootNMM: NativeMicroModule {
 
     private var registeredMmids = Set<String>()
-    private var apiRouting: [String: Response] = [:]
-    private let dwebServer = HTTPServer()
     
     init(initMmids: [String]? = nil) {
         super.init(mmid: "boot.sys.dweb")
@@ -24,12 +22,13 @@ class BootNMM: NativeMicroModule {
         self.routers = [:]
     }
     
-    override func _bootstrap() throws {
-        
-        let app = dwebServer.app
+    override func _bootstrap(bootstrapContext: BootstrapContext)  throws {
+        /*
+        let app = HTTPServer.app
         let group = app.grouped("\(mmid)")
         
         group.on(.GET, "register") { request -> Response in
+            
             let response = self.defineHandler(req: request) { (reque, ipc) in
                 self.register(mmid: ipc.remote?.mmid ?? "")
             }
@@ -41,13 +40,34 @@ class BootNMM: NativeMicroModule {
                 self.unregister(mmid: ipc.remote?.mmid ?? "")
             }
             return response
-        }
-        
+        }*/
+        routerHandler()
         
         Task {
             for mmid in registeredMmids {
                 _ = nativeFetch(urlstring: "file://dns.sys.dweb/open?app_id=\(mmid.urlEncoder())")
             }
+        }
+    }
+    
+    private func routerHandler() {
+        let registerRouteHandler: RouterHandler = { request, ipc in
+            return self.register(mmid: ipc?.remote?.mmid ?? "")
+        }
+        let unregisterRouteHandler: RouterHandler = { request, ipc in
+            return self.unregister(mmid: ipc?.remote?.mmid ?? "")
+        }
+        apiRouting["\(self.mmid)/register"] = registerRouteHandler
+        apiRouting["\(self.mmid)/unregister"] = unregisterRouteHandler
+        
+        // 添加路由处理方法到http路由中
+        let app = HTTPServer.app
+        let group = app.grouped("\(mmid)")
+        let httpHandler: (Request) async throws -> Response = { request in
+            self.defineHandler(request: request)
+        }
+        for pathComponent in ["register", "unregister"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
         }
     }
     

@@ -88,5 +88,24 @@ extension InputStream {
         let bytes = [UInt8](Array(repeating: 0, count: 4))
         return bytes.toInt()
     }
+    
+    func available() -> Int {
+        self.open()
+        defer {
+            self.close()
+        }
+        
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer {
+            buffer.deallocate()
+        }
+        var result: Int = 0
+        while self.hasBytesAvailable {
+            let length = self.read(buffer, maxLength: bufferSize)
+            result += length
+        }
+        return result
+    }
 }
 

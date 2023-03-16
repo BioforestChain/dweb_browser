@@ -7,6 +7,7 @@
 
 import Foundation
 import HandyJSON
+import Vapor
 
 enum IPC_ROLE: String {
     case SERVER = "server"
@@ -25,7 +26,8 @@ protocol IpcMessage: HandyJSON {
 typealias OnIpcMessage = ((IpcMessage, Ipc)) -> Void
 typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Void
 typealias OnIpcEventMessage = ((IpcEvent,Ipc)) -> Void
-typealias closeCallback = (()) -> Any
-typealias SimpleCallbcak = (()) -> Any
+typealias IpcConnect = ((Ipc,Request)) -> Void
+typealias closeCallback = (()) -> Void
+typealias SimpleCallbcak = (()) -> Void
 typealias OffListener = () -> Bool
 typealias AsyncCallback<T, R> = (T) async -> R?

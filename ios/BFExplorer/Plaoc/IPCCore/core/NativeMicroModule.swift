@@ -6,66 +6,68 @@
 //
 
 import UIKit
-import Network
 import Vapor
 
-class NativeMicroModule: MicroModule {
+typealias RouterHandler<T> = (_ request: Request, _ ipc: Ipc?) -> T?
 
-    /**
-     * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
-     * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
-     * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
-     */
-    typealias NativaCallback = (NativeIpc) -> Any
+class NativeMicroModule: MicroModule {
     
-    private var connectedIpcSet = Set<Ipc>()
+    var reqidRouting: [/* req_id */Int:String/* route */] = [:]
     
-    /**
-     * 内部程序与外部程序通讯的方法
-     * TODO 这里应该是可以是多个
-     */
-    private let connectSignal = Signal<NativeIpc>()
+    var apiRouting: [/* route */String:RouterHandler<Any>] = [:]
     
-    //TODO
-//    private var  apiRouting: RoutingHttpHandler?
+    func createNativeMicro() {
+        
+        _ = connectAdapterManager.append { fromMM, toMM, reason in
+            if let toMM = toMM as? NativeMicroModule {
+                let channel = NativeMessageChannel<IpcMessage, IpcMessage>()
+                let toNativeIpc = NativeIpc(port: channel.port1, remote: fromMM, role: .SERVER)
+                let fromNativeIpc = NativeIpc(port: channel.port2, remote: toMM, role: .CLIENT)
+                fromMM.beConnect(ipc: fromNativeIpc, reason: reason)
+                toMM.beConnect(ipc: toNativeIpc, reason: reason)
+                return ConnectResult(ipcForFromMM: fromNativeIpc, ipcForToMM: toNativeIpc)
+            } else {
+                return nil
+            }
+        }
+    }
     
     init(mmid: String) {
         super.init()
         self.mmid = mmid
-        _ = onConnect(cb: { clientIpc in
-            clientIpc.onRequest { request,ipc in
-                
+        
+        _ = onConnect { clientIpc, req in
+            _ = clientIpc.onRequest { request,ipc in
+                guard let url = URL(string: request.urlString) else { return }
+                self.reqidRouting[request.req_id] = url.host! + url.path
+                let ipcRequest = request.toRequest()
+                print("fetch", "NMM/Handler", ipcRequest.url)
+                let res = self.defineHandler(request: ipcRequest, ipc: clientIpc)
+                let ipcResMessage = IpcResponse.fromResponse(req_id: request.req_id, response: res, ipc: clientIpc)!.ipcResMessage
+                clientIpc.postMessage(message: ipcResMessage)
             }
-        })
-    }
-    
-    override func _connect(from: MicroModule) -> NativeIpc? {
-        let channel = NativeMessageChannel<IpcMessage, IpcMessage>()
-        let nativeIpc = NativeIpc(port: channel.port1, remote: from, role: .SERVER)
-        
-        self.connectedIpcSet.insert(nativeIpc)
-        _ = nativeIpc.onClose { _ in
-            self.connectedIpcSet.remove(nativeIpc)
         }
-        
-        self.connectSignal.emit(nativeIpc)
-        return NativeIpc(port: channel.port2, remote: self, role: .CLIENT)
     }
     
-    func onConnect(cb: @escaping NativaCallback) -> OffListener {
-        return self.connectSignal.listen(cb)
-    }
-    //在模块关停后，从自身构建的通讯通道都要关闭掉
-    override func afterShutdown() {
-        super.afterShutdown()
-        for ipc in self.connectedIpcSet {
-            ipc.closeAction()
+    // 对路由处理方法包裹一层，用于http路由
+    func defineHandler(request: Request, ipc: Ipc? = nil) -> Response {
+        let routeHandler = self.apiRouting[request.route!.path.string]!
+        
+        let result = routeHandler(request, ipc)
+        
+        if let result = result as? Response {
+            return result
+        } else if let result = result as? Codable {
+            let content = ChangeTools.tempAnyToString(value: result)
+            return Response(status: .ok, headers: .init([("Content-Type", "application/json")]), body: .init(string: content!))
+        } else {
+            return Response(status: .internalServerError, body: .init(string: """
+                <p>\(request.url)</p>
+                <pre>Unknow Error</pre>
+            """.trimmingCharacters(in: .whitespacesAndNewlines)))
         }
-        self.connectedIpcSet.removeAll()
-        
     }
-    
-    
+/*
     internal func defineHandler( request: Request, handler: (Request) -> Any?) -> Response {
         
         var response: Response?
@@ -77,7 +79,6 @@ class NativeMicroModule: MicroModule {
             headers.add(name: "Content-Type", value: "application/json")
             
             let status = HTTPResponseStatus(statusCode: 200)
-            
             let content = ChangeTools.tempAnyToString(value: result)
             if content != nil {
                 let body = Response.Body.init(string: content!)
@@ -95,7 +96,6 @@ class NativeMicroModule: MicroModule {
             }
         }
         return response!
-   
     }
     
     internal func defineHandler(req: Request, handler: (Request, Ipc) -> Any?) -> Response {
@@ -103,5 +103,5 @@ class NativeMicroModule: MicroModule {
         return defineHandler(request: req) { request in
             return handler(request, Ipc())
         }
-    }
+    }*/
 }

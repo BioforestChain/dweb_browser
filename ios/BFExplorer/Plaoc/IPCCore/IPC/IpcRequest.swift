@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Vapor
 
 class IpcRequest {
 
@@ -59,49 +60,60 @@ class IpcRequest {
         return IpcRequest(req_id: req_id, method: method, urlString: urlString, headers: headers, body: IpcBodySender.from(raw: stream, ipc: ipc), ipc: ipc)
     }
     
-    static func fromRequest(req_id: Int,request: URLRequest, ipc: Ipc) -> IpcRequest {
+    static func fromRequest(req_id: Int,request: Request, ipc: Ipc) -> IpcRequest {
         
-        let header = IpcHeaders()
-        for (key,value) in request.allHTTPHeaderFields ?? [:] {
-            header.set(key: key, value: value)
+        let header = IpcHeaders(content: request.headers.description)
+        
+        if request.method == .GET || request.method == .HEAD {
+            return IpcRequest(req_id: req_id, method: request.method.rawValue, urlString: request.url.string, headers: header, body: IpcBodySender.from(raw: "", ipc: ipc), ipc: ipc)
         }
         
-        if request.httpMethod == "GET" || request.httpMethod == "HEAD" {
-            return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender.from(raw: "", ipc: ipc), ipc: ipc)
+        if request.body.data != nil {
+            return self.fromBinary(binary: [UInt8](Data(buffer: request.body.data!)), req_id: req_id, method: request.method.rawValue, urlString: request.url.string, headers: header, ipc: ipc)
+        } else if request.method == .POST || request.method == .PUT || request.method == .PATCH {
+            var ipc_req_body_stream: Data = Data()
+            var sequential = request.eventLoop.makeSucceededFuture(())
+            
+            request.body.drain {
+                switch $0 {
+                case .buffer(var buffer):
+                    if buffer.readableBytes > 0 {
+                        ipc_req_body_stream.append(buffer.readData(length: buffer.readableBytes)!)
+                    }
+                    
+                    return sequential
+                case .error(_):
+                    return sequential
+                case .end:
+                    return sequential
+                }
+            }
+            
+            return self.fromStream(stream: InputStream(data: ipc_req_body_stream), req_id: req_id, method: request.method.rawValue, urlString: request.url.string, headers: header, ipc: ipc, size: Int64(ipc_req_body_stream.count))
+        }else {
+            return self.fromText(text: request.body.string ?? "", req_id: req_id, method: request.method.rawValue, urlString: request.url.string, headers: header, ipc: ipc)
         }
-        
-        if request.httpBody == nil {
-            return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender.from(raw: request.httpBodyStream, ipc: ipc), ipc: ipc)
-        } else if request.httpBody?.count == 0 {
-            return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender.from(raw: "", ipc: ipc), ipc: ipc)
-        }
-        
-        var bytes: [UInt8] = []
-        if request.httpBody != nil {
-            bytes = [UInt8](request.httpBody!)
-        }
-        return IpcRequest(req_id: req_id, method: request.httpMethod ?? "", urlString: request.url?.absoluteString ?? "", headers: header, body: IpcBodySender.from(raw: bytes, ipc: ipc), ipc: ipc)
     }
     
-    func toRequest() -> URLRequest? {
-        guard let url = URL(string: urlString) else { return nil }
-        let headerDict = headers != nil ? headers!.headerDict : nil
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.allHTTPHeaderFields = headerDict
+    func toRequest() -> Request {
         
-        if request.httpMethod == "GET" || request.httpMethod == "HEAD" {
-            return request
+        if method == "GET" || method == "HEAD" {
+            return Request.new(method: HTTPMethod(rawValue: method), url: self.urlString)
         }
+        
+        var buffer: ByteBuffer
         
         if let content = body?.raw as? String {
-            request.httpBody = content.data(using: .utf8)
+            buffer = .init(string: content)
         } else if let bytes = body?.raw as? [UInt8] {
-            request.httpBodyStream = InputStream(data: Data(bytes: bytes, count: bytes.count))
+            buffer = .init(data: Data(bytes))
         } else if let stream = body?.raw as? InputStream {
-            request.httpBodyStream = stream
+            buffer = .init(data: Data(stream.readByteArray()))
+        } else {
+            fatalError("invalid body to request: \(body)")
         }
-        return request
+        return Request.new(method: HTTPMethod(rawValue: method), url: self.urlString, collectedBody: buffer)
+        
     }
     
     func toString() -> String {

@@ -10,17 +10,51 @@ import Vapor
 import MobileCoreServices
 
 
-typealias FetchAdapter = (_ remote: MicroModule, _ request: URLRequest) -> Response?
+typealias FetchAdapter = (_ remote: MicroModule, _ request: Request) -> Response?
 
-let nativeFetchAdaptersManager = NativeFetchAdaptersManager()
+let nativeFetchAdaptersManager = AdapterManager<FetchAdapter>()
+
+
+class ChunkAssetsFileStream: InputStream, PreReadableInputStream {
+
+    static let defaultChunkSize = 1024 * 1024
+    
+    var source: InputStream?
+    var chunkSize: Int?
+    var preReadableSize: Int = 0
+    
+    var ptr = 0
+    var totalSize: Int = 0
+    
+    init(source: InputStream, chunkSize: Int = defaultChunkSize, preReadableSize: Int?) {
+        
+        super.init(data: Data())
+        self.source = source
+        self.chunkSize = chunkSize
+        self.preReadableSize = preReadableSize ?? chunkSize
+        
+        totalSize = source.available()
+    }
+    
+}
+
+func localeFileFetch(remote: MicroModule, request: Request) -> Response? {
+    
+    if request.url?.scheme == "file", request.url?.host == "" {
+        
+    }
+}
 
 class NativeFetch {
     
     //加载本地文件
-    static func localeFileFetch(remote: MicroModule, request: URLRequest) -> Response? {
+    static func localeFileFetch(remote: MicroModule, request: Request) -> Response? {
         
-        if request.url?.scheme == "file", request.url?.host == "" {
+        if request.url.scheme == "file", request.url.host == "", let url = URL(string: request.url.string) {
             
+            let path = url.pathComponents.joined(separator: "/")
+            return request.fileio.streamFile(at: Bundle.main.bundlePath + "/app/sdk\(path)")
+            /*
             do {
                 var path = request.url?.path ?? ""
                 if path.contains("/") {
@@ -37,7 +71,7 @@ class NativeFetch {
                 let body = Response.Body.init(string: content)
                 let response = Response(status: .notFound, headers: HTTPHeaders(), body: body)
                 return response
-            }
+            }*/
         }
         return nil
     }
@@ -60,26 +94,5 @@ class NativeFetch {
    
 }
 
-class NativeFetchAdaptersManager {
-    
-    private var adapterOrderMap: [GenericsClosure<FetchAdapter>: Int] = [:]
-    private var orderdAdapters: [GenericsClosure<FetchAdapter>] = []
-    
-    var adapters: [GenericsClosure<FetchAdapter>] {
-        return orderdAdapters
-    }
-    
-    func append(order: Int = 0, adapter: GenericsClosure<FetchAdapter>) -> GenericsClosure<FetchAdapter> {
-        
-        adapterOrderMap[adapter] = order
-        orderdAdapters = adapterOrderMap.sorted(by: {$0.1 < $1.1}).map { $0.0 }
-        
-        return adapter
-    }
-    
-    func remove(adapter: GenericsClosure<FetchAdapter>) -> Bool {
-        return self.adapterOrderMap.removeValue(forKey: adapter) != nil
-    }
-}
 
 

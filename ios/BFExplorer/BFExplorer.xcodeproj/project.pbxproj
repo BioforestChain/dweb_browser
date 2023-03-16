@@ -228,6 +228,8 @@
 		F385478529B86FD1004DF9B6 /* MutilWebViewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F385478429B86FD1004DF9B6 /* MutilWebViewViewController.swift */; };
 		F3873F1329B7207D00286989 /* DWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3873F1229B7207D00286989 /* DWebView.swift */; };
 		F3873F1529B7230C00286989 /* WebViewEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3873F1429B7230C00286989 /* WebViewEvaluator.swift */; };
+		F388A08029C2A7030044BB7E /* MyDnsMicroModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F388A07F29C2A7030044BB7E /* MyDnsMicroModule.swift */; };
+		F388A08229C2A8130044BB7E /* MyBootstrapContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F388A08129C2A8130044BB7E /* MyBootstrapContext.swift */; };
 		F38DFD5C29BF0CDF00DF6079 /* desktop.worker.js in Resources */ = {isa = PBXBuildFile; fileRef = F38DFD5B29BF0CDF00DF6079 /* desktop.worker.js */; };
 		F38DFD5E29BF1D9800DF6079 /* binary.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DFD5D29BF1D9800DF6079 /* binary.swift */; };
 		F394B8D129A88D6F002B14AA /* IpcNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */; };
@@ -251,6 +253,10 @@
 		F399B3E629C19A0B0059D5D5 /* MessagePort.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399B3E529C19A0B0059D5D5 /* MessagePort.swift */; };
 		F399B3EA29C19DA80059D5D5 /* WebMessagePort.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399B3E929C19DA80059D5D5 /* WebMessagePort.swift */; };
 		F399B3EC29C1A52E0059D5D5 /* Native2JsIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399B3EB29C1A52E0059D5D5 /* Native2JsIpc.swift */; };
+		F399B3EE29C1ABA30059D5D5 /* BootstrapContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399B3ED29C1ABA30059D5D5 /* BootstrapContext.swift */; };
+		F399B3F029C1AC480059D5D5 /* NativeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399B3EF29C1AC480059D5D5 /* NativeConnect.swift */; };
+		F399B3F229C1ACFB0059D5D5 /* AdapterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399B3F129C1ACFB0059D5D5 /* AdapterManager.swift */; };
+		F399B3F429C1BFDA0059D5D5 /* Request_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399B3F329C1BFDA0059D5D5 /* Request_extension.swift */; };
 		F39A8713297013CB00CC7126 /* CameraType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39A8712297013CB00CC7126 /* CameraType.swift */; };
 		F39A87172970F53E00CC7126 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39A87162970F53E00CC7126 /* CameraManager.swift */; };
 		F39A87192970F88C00CC7126 /* CameraExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39A87182970F88C00CC7126 /* CameraExtensions.swift */; };
@@ -522,6 +528,8 @@
 		F385478429B86FD1004DF9B6 /* MutilWebViewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutilWebViewViewController.swift; sourceTree = "<group>"; };
 		F3873F1229B7207D00286989 /* DWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebView.swift; sourceTree = "<group>"; };
 		F3873F1429B7230C00286989 /* WebViewEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewEvaluator.swift; sourceTree = "<group>"; };
+		F388A07F29C2A7030044BB7E /* MyDnsMicroModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDnsMicroModule.swift; sourceTree = "<group>"; };
+		F388A08129C2A8130044BB7E /* MyBootstrapContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyBootstrapContext.swift; sourceTree = "<group>"; };
 		F38DFD5B29BF0CDF00DF6079 /* desktop.worker.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = desktop.worker.js; sourceTree = "<group>"; };
 		F38DFD5D29BF1D9800DF6079 /* binary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = binary.swift; sourceTree = "<group>"; };
 		F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcNetworkManager.swift; sourceTree = "<group>"; };
@@ -545,6 +553,10 @@
 		F399B3E529C19A0B0059D5D5 /* MessagePort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagePort.swift; sourceTree = "<group>"; };
 		F399B3E929C19DA80059D5D5 /* WebMessagePort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebMessagePort.swift; sourceTree = "<group>"; };
 		F399B3EB29C1A52E0059D5D5 /* Native2JsIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Native2JsIpc.swift; sourceTree = "<group>"; };
+		F399B3ED29C1ABA30059D5D5 /* BootstrapContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootstrapContext.swift; sourceTree = "<group>"; };
+		F399B3EF29C1AC480059D5D5 /* NativeConnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeConnect.swift; sourceTree = "<group>"; };
+		F399B3F129C1ACFB0059D5D5 /* AdapterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdapterManager.swift; sourceTree = "<group>"; };
+		F399B3F329C1BFDA0059D5D5 /* Request_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Request_extension.swift; sourceTree = "<group>"; };
 		F39A8712297013CB00CC7126 /* CameraType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraType.swift; sourceTree = "<group>"; };
 		F39A87162970F53E00CC7126 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		F39A87182970F88C00CC7126 /* CameraExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraExtensions.swift; sourceTree = "<group>"; };
@@ -927,6 +939,7 @@
 				F3A0798929C014C600E46574 /* InputStream_extension.swift */,
 				F3A0798B29C019BE00E46574 /* UInt8Array_extension.swift */,
 				F3A0798D29C0448D00E46574 /* Int_extension.swift */,
+				F399B3F329C1BFDA0059D5D5 /* Request_extension.swift */,
 			);
 			path = extension;
 			sourceTree = "<group>";
@@ -1148,7 +1161,9 @@
 			isa = PBXGroup;
 			children = (
 				F394B8D229A891BF002B14AA /* MicroModule.swift */,
+				F399B3ED29C1ABA30059D5D5 /* BootstrapContext.swift */,
 				F399908129A9FA80007C5403 /* NativeMicroModule.swift */,
+				F399B3EF29C1AC480059D5D5 /* NativeConnect.swift */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -1238,6 +1253,7 @@
 				F3274D8229AC8B10007210D2 /* jsonToIpcMessage.swift */,
 				F38DFD5D29BF1D9800DF6079 /* binary.swift */,
 				F399B3E029C14DAC0059D5D5 /* Observer.swift */,
+				F399B3F129C1ACFB0059D5D5 /* AdapterManager.swift */,
 			);
 			path = helper;
 			sourceTree = "<group>";
@@ -1314,6 +1330,8 @@
 			children = (
 				F3A5A05029AF3F7E0017F41D /* NativeFetch.swift */,
 				F3A5A05229AF3F8F0017F41D /* DnsNMM.swift */,
+				F388A07F29C2A7030044BB7E /* MyDnsMicroModule.swift */,
+				F388A08129C2A8130044BB7E /* MyBootstrapContext.swift */,
 			);
 			path = dns;
 			sourceTree = "<group>";
@@ -1523,6 +1541,7 @@
 				F399908429AA14B4007C5403 /* JsMicroModule.swift in Sources */,
 				F091CBB92951B92D00FCE565 /* NVHTarGzip.m in Sources */,
 				19128CE126FBFBAB0057E46D /* BrowserContainerViewController+ToolbarAnimation.swift in Sources */,
+				F388A08229C2A8130044BB7E /* MyBootstrapContext.swift in Sources */,
 				F033020F28C73E1700BC0266 /* UIBarButtonItem+PKExtensions.swift in Sources */,
 				F0292DA22975502700C2E464 /* FWSheetView.swift in Sources */,
 				F3950EAB29B1D20900D9E338 /* StreamIpcRouter.swift in Sources */,
@@ -1568,6 +1587,7 @@
 				F091CB882951B91900FCE565 /* ClipboardManager.swift in Sources */,
 				F385477E29B82BE3004DF9B6 /* DesktopJMM.swift in Sources */,
 				F091CB8D2951B91900FCE565 /* LocationManager.swift in Sources */,
+				F399B3F429C1BFDA0059D5D5 /* Request_extension.swift in Sources */,
 				F0BADEB32986820100B8DCCF /* AlertEntites.swift in Sources */,
 				F01ABACE28D07AE30038AF9C /* LinkListPageVC.swift in Sources */,
 				F091CBBB2951B92D00FCE565 /* NVHFile.m in Sources */,
@@ -1627,12 +1647,14 @@
 				F39DE59E299B77110005B389 /* types.swift in Sources */,
 				F03301F728C73E1700BC0266 /* UIColor+PKExtensions.swift in Sources */,
 				F39DE5A6299B77110005B389 /* const.swift in Sources */,
+				F399B3F229C1ACFB0059D5D5 /* AdapterManager.swift in Sources */,
 				F091CB9B2951B92100FCE565 /* AlertConfiguration.swift in Sources */,
 				F091CB322951B8EE00FCE565 /* CustomConfirmPopView.swift in Sources */,
 				182EF46328B62DE4001E039E /* UIImage+Text.swift in Sources */,
 				F3274D8129AC4C84007210D2 /* ReadableStreamIpc.swift in Sources */,
 				F39DE5B2299CDE9D0005B389 /* PromiseOut.swift in Sources */,
 				F0292DA8297686CF00C2E464 /* AppVersionManager.swift in Sources */,
+				F388A08029C2A7030044BB7E /* MyDnsMicroModule.swift in Sources */,
 				F091CB8F2951B91900FCE565 /* FileSystemManager.swift in Sources */,
 				F3088F3F298757AA008E7F82 /* FileOpenManager.swift in Sources */,
 				F0BADEBD2990DA8F00B8DCCF /* AppInfoMgr.swift in Sources */,
@@ -1652,6 +1674,7 @@
 				F091CBCB2951B93B00FCE565 /* Schemehandler.swift in Sources */,
 				F0292D9B2975502700C2E464 /* LBXScanViewStyle.swift in Sources */,
 				F39DE59F299B77110005B389 /* Ipc.swift in Sources */,
+				F399B3EE29C1ABA30059D5D5 /* BootstrapContext.swift in Sources */,
 				F384E5FC29B0AAEF00F9493B /* DWebBrowserModel.swift in Sources */,
 				F39DE5A5299B77110005B389 /* IpcRequest.swift in Sources */,
 				F033021E28C73E1700BC0266 /* UIControl+PKExtensions.swift in Sources */,
@@ -1749,6 +1772,7 @@
 				F399907A29A9AC64007C5403 /* NativeIpc.swift in Sources */,
 				F091CB9C2951B92100FCE565 /* BottomBarModel.swift in Sources */,
 				F3A27FCF29B58D7600EF4502 /* UsableIpcBodyMapper.swift in Sources */,
+				F399B3F029C1AC480059D5D5 /* NativeConnect.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

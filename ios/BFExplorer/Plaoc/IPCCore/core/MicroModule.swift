@@ -12,7 +12,7 @@ import Vapor
 typealias AppRun = ([String:String]) -> Any
 typealias Routers = [String:AppRun]
 
-class MicroModule: NSObject {
+class MicroModule: MicroModuleInfo {
     
     var mmid: String = ""
     var routers: Routers?
@@ -23,35 +23,40 @@ class MicroModule: NSObject {
     
     internal var afterShutdownSignal = SimpleSignal()
     
-    override init() {
-        super.init()
+    private var bootstrapContext: BootstrapContext?
+    
+    private var connectSignal = Signal<(Ipc,Request)>()
+    
+    var ipcSet = NSMutableSet()
+    
+    init() {
         runningStateLock.resolver(false)
         
     }
     
-    func beforeBootstrap() {
+    func beforeBootstrap(bootstrapContext: BootstrapContext) {
         
         if runningStateLock.hasResult() {
             print("module \(self.mmid) already running")
             return
         }
         self.runningStateLock = PromiseOut<Bool>()
-        
+        self.bootstrapContext = bootstrapContext
     }
     
-    private func afterBootstrap() {
+    private func afterBootstrap(dnsMM: BootstrapContext) {
         self.runningStateLock.resolver(true)
     }
     
-    func bootstrap() {
-        self.beforeBootstrap()
+    func bootstrap(bootstrapContext: BootstrapContext) {
+        self.beforeBootstrap(bootstrapContext: bootstrapContext)
         
         defer {
-            self.afterBootstrap()
+            self.afterBootstrap(dnsMM: bootstrapContext)
         }
         
         do {
-            try self._bootstrap()
+            try self._bootstrap(bootstrapContext: bootstrapContext)
         } catch {
             print(error.localizedDescription)
         }
@@ -63,14 +68,27 @@ class MicroModule: NSObject {
             return
         }
         self.runningStateLock = PromiseOut<Bool>()
+        
+        // 关闭所有的通讯
+        
+        ipcSet.enumerateObjects { ipc, _ in
+            if let ipc = ipc as? Ipc {
+                ipc.closeAction()
+            }
+        }
+        ipcSet.removeAllObjects()
     }
     
-    func _bootstrap() throws {  }
+    func _bootstrap(bootstrapContext: BootstrapContext) throws {  }
     
     func _shutdown() throws { }
     
     func afterShutdown() {
+        
+        afterShutdownSignal.emit(())
+        afterShutdownSignal.clear()
         runningStateLock.resolver(false)
+        self.bootstrapContext = nil
     }
     
     func shutdown() throws {
@@ -87,15 +105,20 @@ class MicroModule: NSObject {
         }
     }
     
-    func _connect(from: MicroModule) -> Ipc? { return nil }
+    func onConnect(cb: @escaping IpcConnect) -> OffListener {
+        return connectSignal.listen(cb)
+    }
     
-    func connect(from: MicroModule) -> Ipc? {
-        
-        if !runningStateLock.hasResult() {
-            print("module no running")
-            return nil
+    func connect(mmid: String, reason: Request? = nil) -> ConnectResult?  {
+        return self.bootstrapContext?.dns.connect(mmid: mmid, reason: reason)
+    }
+    
+    func beConnect(ipc: Ipc, reason: Request) {
+        self.ipcSet.add(ipc)
+        _ = ipc.onClose { _ in
+            self.ipcSet.remove(ipc)
         }
-        return _connect(from: from)
+        connectSignal.emit((ipc,reason))
     }
 }
 

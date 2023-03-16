@@ -9,6 +9,8 @@
 #define ObjcEnum_h
 
 typedef NS_ENUM(NSUInteger, IPC_MESSAGE_TYPE) {
+    
+    NONE               = -1,
     /** 类型：请求 */
     REQUEST            = 0,
     /** 类型：相应 */
