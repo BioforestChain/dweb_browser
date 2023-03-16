@@ -5,18 +5,15 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Environment
-import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.now
 import info.bagen.rust.plaoc.microService.helper.printerrln
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.math.roundToInt
-
 
 object CameraUtils {
     fun createImageFileUri(appId: String): Uri? {
@@ -26,7 +23,7 @@ object CameraUtils {
 
     fun createImageFile(): File {
         // Create an image file name
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val timeStamp: String = now()
         val imageFileName = "JPEG_" + timeStamp + "_"
         val storageDir: File? = App.appContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
@@ -35,7 +32,6 @@ object CameraUtils {
             storageDir /* directory */
         )
     }
-
 
     /**
      * Resize an image to the given max width and max height. Constraint can be put

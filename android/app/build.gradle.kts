@@ -13,7 +13,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        ndk.abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+        ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86"))
         //ndk.abiFilters = listOf("arm64-v8a")
         vectorDrawables {
             useSupportLibrary = true
@@ -30,13 +30,14 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true //开启代码混淆
             setProguardFiles(
                 listOf(
                     getDefaultProguardFile("proguard-android-optimize.txt"),
                     "proguard-rules.pro"
                 )
             )
+            isShrinkResources = true //移除无用的resource文件
         }
         create("sit") {
             isDebuggable = true

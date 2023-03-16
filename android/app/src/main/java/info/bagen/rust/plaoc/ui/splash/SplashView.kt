@@ -60,8 +60,7 @@ fun SplashView(
       count = paths.size, state = pagerState, modifier = Modifier.fillMaxSize()
     ) { loadPage ->
       val path = paths[loadPage]
-      val type = FilesUtil.getFileType(path)
-      when (type) {
+      when (FilesUtil.getFileType(path)) {
         MediaType.Video.name -> {
           SplashVideoView(path = path)
         }

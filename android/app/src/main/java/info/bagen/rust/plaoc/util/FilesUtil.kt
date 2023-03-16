@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.util
 import android.net.Uri
 import android.os.Build
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.helper.now
 import info.bagen.rust.plaoc.ui.entity.AppInfo
 import info.bagen.rust.plaoc.ui.entity.DAppInfo
 import info.bagen.rust.plaoc.ui.entity.MediaInfo
@@ -13,7 +14,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
 import java.util.*
 
 enum class APP_DIR_TYPE(val rootName: String) {
@@ -35,7 +35,6 @@ enum class APP_DIR_TYPE(val rootName: String) {
  */
 object FilesUtil {
   const val TAG: String = "FilesUtil"
-  val simpleDateFormat = SimpleDateFormat("yyyyMMddhhmmss")
 
   const val DIR_BOOT: String = "boot" // 存放 link.json 数据
   const val DIR_SYS: String = "sys" // system-app/bfs-id-xxx/sys 是运行程序路径
@@ -113,7 +112,7 @@ object FilesUtil {
    * 获取应用更新路径
    */
   fun getAppVersionSaveFile(appInfo: AppInfo): String {
-    return getAppUpdateDirectory(appInfo) + File.separator + simpleDateFormat.format(Date()) + ".json"
+    return getAppUpdateDirectory(appInfo) + File.separator + now() + ".json"
   }
 
   /**

@@ -5,8 +5,6 @@ import info.bagen.rust.plaoc.microService.core.ConnectResult
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.connectAdapterManager
 import info.bagen.rust.plaoc.microService.helper.*
-import info.bagen.rust.plaoc.microService.ipc.IPC_ROLE
-import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.Native2JsIpc
@@ -16,10 +14,8 @@ import kotlinx.coroutines.launch
 import org.http4k.core.*
 import java.util.*
 
-
 inline fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("jmm", tag, msg, err)
-
 
 open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
     companion object {

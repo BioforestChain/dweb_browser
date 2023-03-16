@@ -2,12 +2,12 @@ package info.bagen.rust.plaoc.ui.splash
 
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.graphics.Color
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 
-class SplashActivity : ComponentActivity() {
+class SplashActivity : AppCompatActivity() {
   companion object {
     const val SPLASH_LIST = "splash_list"
   }

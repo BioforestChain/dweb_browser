@@ -2,15 +2,14 @@ package info.bagen.rust.plaoc.microService.core
 
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.ipc.*
+import info.bagen.rust.plaoc.microService.sys.dns.debugDNS
 import org.http4k.core.*
 import org.http4k.filter.ServerFilters
 import org.http4k.lens.RequestContextKey
 import org.http4k.routing.RoutingHttpHandler
 import java.io.InputStream
-
 
 abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
 
@@ -46,7 +45,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                 val routesWithContext = routes.withFilter(ipcApiFilter.then(Filter { next ->
                     { next(it.with(requestContextKey_ipc of clientIpc)) }
                 }));
-                printdebugln("fetch", "NMM/Handler", ipcRequest.url)
+                debugDNS("NMM/Handler", ipcRequest.url)
                 val request = ipcRequest.toRequest()
                 val response = routesWithContext(request)
                 clientIpc.postMessage(
@@ -125,7 +124,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                 }
             }
         }.getOrElse { ex ->
-            printdebugln("fetch", "NMM/Error", request.uri, ex)
+            debugDNS("NMM/Error", request.uri, ex)
             Response(Status.INTERNAL_SERVER_ERROR).body(
                 """
                     <p>${request.uri}</p>

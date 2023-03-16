@@ -9,30 +9,26 @@ import java.time.Duration
 import java.time.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 
-inline fun now() = LocalDateTime.now().toString().padEnd(26, '0').slice(0..25)
+fun now() = LocalDateTime.now().toString()//.padEnd(23, '0')
 
-inline fun printerrln(log: String) = System.err.println(log)
-inline fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
-    printerrln("$tag\t $msg")
+fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
+    System.err.println("${tag.padEnd(60, ' ')} $msg")
     err?.printStackTrace()
 }
 
-inline fun debugger(vararg params: Any?) {
-    for (p in params) {
-
-    }
+/*fun debugger(vararg params: Any?) {
     println("DEBUGGER")
-}
+}*/
 
 val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
     printerrln(ctx.toString(), e.message, e)
-    debugger(ctx, e)
+    //debugger(ctx, e)
 }
 val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
 val mainAsyncExceptionHandler = Dispatchers.Main + commonAsyncExceptionHandler
 fun <T> runBlockingCatching(
     context: CoroutineContext, block: suspend CoroutineScope.() -> T
-) = kotlin.runCatching {
+) = runCatching {
     runBlocking(context, block)
 }.onFailure {
     commonAsyncExceptionHandler.handleException(context, it)
@@ -40,12 +36,11 @@ fun <T> runBlockingCatching(
 
 fun <T> runBlockingCatching(
     block: suspend CoroutineScope.() -> T
-) = kotlin.runCatching {
+) = runCatching {
     runBlocking { block() }
 }.onFailure {
     commonAsyncExceptionHandler.handleException(coroutineContext, it)
 }
-
 
 private val times = mutableMapOf<String, LocalDateTime>()
 fun timeStart(label: String) {
@@ -91,9 +86,9 @@ val debugTags by lazy {
 //    setOf<String>()
 }
 
-inline fun printdebugln(scope: String, tag: String, msg: Any?, err: Throwable? = null) {
+fun printdebugln(scope: String, tag: String, msg: Any?, err: Throwable? = null) {
     if (!debugTags.contains(scope)) {
         return
     }
-    printerrln("${now()}\t│ $scope\t│ $tag", msg, err)
+    printerrln("${now()} │ ${scope.padEnd(8, ' ')} │ $tag", msg, err)
 }

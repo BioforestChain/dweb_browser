@@ -4,7 +4,6 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.debugger
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewActivity
 import org.http4k.core.Method
@@ -47,9 +46,7 @@ class SplashScreenNMM : NativeMicroModule("splash.sys.dweb") {
                 val currentActivity = currentActivity(ipc.remote.mmid)
                 println("SplashScreenNMM#apiRouting show===>${options} $splashScreen  $currentActivity")
                 if (currentActivity != null) {
-                    splashScreen.show(currentActivity, options) { a, b ->
-                        debugger(a, b)
-                    }
+                    splashScreen.show(currentActivity, options)
                     return@defineHandler Response(Status.OK)
                 }
                 Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
