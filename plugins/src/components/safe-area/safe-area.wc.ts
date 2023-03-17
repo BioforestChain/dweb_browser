@@ -13,7 +13,19 @@ export class HTMLDwebSafeAreaElement extends HTMLStateObserverElement<
   }
   @cacheGetter()
   get getState() {
-    return safeAreaPlugin.state.getState;
+    return safeAreaPlugin.getState;
+  }
+  @cacheGetter()
+  get setState() {
+    return safeAreaPlugin.setState;
+  }
+  @cacheGetter()
+  get setOverlay() {
+    return safeAreaPlugin.setOverlay;
+  }
+  @cacheGetter()
+  get getOverlay() {
+    return safeAreaPlugin.getOverlay;
   }
 }
 customElements.define(safeAreaPlugin.tagName, HTMLDwebSafeAreaElement);

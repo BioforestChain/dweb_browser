@@ -18,13 +18,13 @@ createApp(App)
     createRouter({
       history: createWebHashHistory(),
       routes: [
-        { path: "/haptics", component: () => import("./pages/Haptics.vue") },
-        { path: "/keyboard", component: () => import("./pages/Keyboard.vue") },
+        { path: "/statusbar", component: () => import("./pages/StatusBar.vue") },
         { path: "/navigationbar", component: () => import("./pages/NavigationBar.vue") },
         { path: "/safearea", component: () => import("./pages/SafeArea.vue") },
+        { path: "/haptics", component: () => import("./pages/Haptics.vue") },
+        { path: "/keyboard", component: () => import("./pages/Keyboard.vue") },
         { path: "/share", component: () => import("./pages/Share.vue") },
         { path: "/splashscreen", component: () => import("./pages/SplashScreen.vue") },
-        { path: "/statusbar", component: () => import("./pages/StatusBar.vue") },
         { path: "/toast", component: () => import("./pages/Toast.vue") },
         { path: "/scanner", component: () => import("./pages/Scanner.vue") },
       ],

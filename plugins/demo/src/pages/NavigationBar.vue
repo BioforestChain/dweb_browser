@@ -1,38 +1,39 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { NavigationBarPlugin, NAVIGATION_BAR_STYLE, $NavigationBarState } from "@bfex/plugin";
+import { HTMLDwebNavigationBarElement, NAVIGATION_BAR_STYLE, $NavigationBarState } from "@bfex/plugin";
 
 const title = "NavigationBar";
 
 const $logPanel = ref<typeof LogPanel>();
-const $navigationbarPlugin = ref<NavigationBarPlugin>();
+const $navigationBar = ref<HTMLDwebNavigationBarElement>();
 
 let console: Console;
-let navigationbar: NavigationBarPlugin;
+let navigationBar: HTMLDwebNavigationBarElement;
 onMounted(async () => {
   console = toConsole($logPanel);
-  navigationbar = $navigationbarPlugin.value!;
-  onNavigationBarChange(await navigationbar.getState());
+  navigationBar = $navigationBar.value!;
+  onNavigationBarChange(await navigationBar.getState(), "init");
 });
 
-const onNavigationBarChange = (info: $NavigationBarState) => {
+const onNavigationBarChange = (info: $NavigationBarState, type: string) => {
   color.value = info.color;
   style.value = info.style;
   overlay.value = info.overlay;
   visible.value = info.visible;
+  console.log(type, info);
 };
 
 const color = ref<string>(null as never);
 const setColor = defineLogAction(
   async () => {
-    await navigationbar.setColor(color.value);
+    await navigationBar.setColor(color.value);
   },
   { name: "setColor", args: [color], logPanel: $logPanel }
 );
 const getColor = defineLogAction(
   async () => {
-    color.value = await navigationbar.getColor();
+    color.value = await navigationBar.getColor();
   },
   { name: "getColor", args: [color], logPanel: $logPanel }
 );
@@ -40,26 +41,26 @@ const getColor = defineLogAction(
 const style = ref<NAVIGATION_BAR_STYLE>(null as never);
 const setStyle = defineLogAction(
   async () => {
-    await navigationbar.setStyle(style.value);
+    await navigationBar.setStyle(style.value);
   },
   { name: "setStyle", args: [style], logPanel: $logPanel }
 );
 const getStyle = defineLogAction(
   async () => {
-    style.value = await navigationbar.getStyle();
+    style.value = await navigationBar.getStyle();
   },
   { name: "getStyle", args: [style], logPanel: $logPanel }
 );
 
 const overlay = ref<boolean>(null as never);
-const setOverlay = defineLogAction(() => navigationbar.setOverlay(overlay.value), {
+const setOverlay = defineLogAction(() => navigationBar.setOverlay(overlay.value), {
   name: "setOverlay",
   args: [overlay],
   logPanel: $logPanel,
 });
 const getOverlay = defineLogAction(
   async () => {
-    overlay.value = await navigationbar.getOverlay();
+    overlay.value = await navigationBar.getOverlay();
   },
   {
     name: "getOverlay",
@@ -68,14 +69,14 @@ const getOverlay = defineLogAction(
   }
 );
 const visible = ref<boolean>(null as never);
-const setVisible = defineLogAction(() => navigationbar.setVisible(visible.value), {
+const setVisible = defineLogAction(() => navigationBar.setVisible(visible.value), {
   name: "setVisible",
   args: [visible],
   logPanel: $logPanel,
 });
 const getVisible = defineLogAction(
   async () => {
-    visible.value = await navigationbar.getVisible();
+    visible.value = await navigationBar.getVisible();
   },
   {
     name: "getOverlay",
@@ -85,7 +86,10 @@ const getVisible = defineLogAction(
 );
 </script>
 <template>
-  <dweb-navigation-bar ref="$navigationbarPlugin" @stateChange="onNavigationBarChange($event.detail)"></dweb-navigation-bar>
+  <dweb-navigation-bar
+    ref="$navigationBar"
+    @statechange="onNavigationBarChange($event.detail, 'change')"
+  ></dweb-navigation-bar>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/navigationbar.svg" :alt="title" />

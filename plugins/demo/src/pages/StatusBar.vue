@@ -1,38 +1,39 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { StatusBarPlugin, STATUS_BAR_STYLE, $StatusBarState } from "@bfex/plugin";
+import { HTMLDwebStatusBarElement, STATUS_BAR_STYLE, $StatusBarState } from "@bfex/plugin";
 
 const title = "StatusBar";
 
 const $logPanel = ref<typeof LogPanel>();
-const $statusbarPlugin = ref<StatusBarPlugin>();
+const $statusBar = ref<HTMLDwebStatusBarElement>();
 
 let console: Console;
-let statusbar: StatusBarPlugin;
+let statusBar: HTMLDwebStatusBarElement;
 onMounted(async () => {
   console = toConsole($logPanel);
-  statusbar = $statusbarPlugin.value!;
-  onStatusBarChange(await statusbar.getState());
+  statusBar = $statusBar.value!;
+  onStatusBarChange(await statusBar.getState(), "init");
 });
 
-const onStatusBarChange = (info: $StatusBarState) => {
+const onStatusBarChange = (info: $StatusBarState, type: string) => {
   color.value = info.color;
   style.value = info.style;
   overlay.value = info.overlay;
   visible.value = info.visible;
+  console.log(type, info);
 };
 
 const color = ref<string>(null as never);
 const setColor = defineLogAction(
   async () => {
-    await statusbar.setColor(color.value);
+    await statusBar.setColor(color.value);
   },
   { name: "setColor", args: [color], logPanel: $logPanel }
 );
 const getColor = defineLogAction(
   async () => {
-    color.value = await statusbar.getColor();
+    color.value = await statusBar.getColor();
   },
   { name: "getColor", args: [color], logPanel: $logPanel }
 );
@@ -40,26 +41,26 @@ const getColor = defineLogAction(
 const style = ref<STATUS_BAR_STYLE>(null as never);
 const setStyle = defineLogAction(
   async () => {
-    await statusbar.setStyle(style.value);
+    await statusBar.setStyle(style.value);
   },
   { name: "setStyle", args: [style], logPanel: $logPanel }
 );
 const getStyle = defineLogAction(
   async () => {
-    style.value = await statusbar.getStyle();
+    style.value = await statusBar.getStyle();
   },
   { name: "getStyle", args: [style], logPanel: $logPanel }
 );
 
 const overlay = ref<boolean>(null as never);
-const setOverlay = defineLogAction(() => statusbar.setOverlay(overlay.value), {
+const setOverlay = defineLogAction(() => statusBar.setOverlay(overlay.value), {
   name: "setOverlay",
   args: [overlay],
   logPanel: $logPanel,
 });
 const getOverlay = defineLogAction(
   async () => {
-    overlay.value = await statusbar.getOverlay();
+    overlay.value = await statusBar.getOverlay();
   },
   {
     name: "getOverlay",
@@ -68,14 +69,14 @@ const getOverlay = defineLogAction(
   }
 );
 const visible = ref<boolean>(null as never);
-const setVisible = defineLogAction(() => statusbar.setVisible(visible.value), {
+const setVisible = defineLogAction(() => statusBar.setVisible(visible.value), {
   name: "setVisible",
   args: [visible],
   logPanel: $logPanel,
 });
 const getVisible = defineLogAction(
   async () => {
-    visible.value = await statusbar.getVisible();
+    visible.value = await statusBar.getVisible();
   },
   {
     name: "getOverlay",
@@ -85,7 +86,7 @@ const getVisible = defineLogAction(
 );
 </script>
 <template>
-  <dweb-status-bar ref="$statusbarPlugin" @stateChange="onStatusBarChange($event.detail)"></dweb-status-bar>
+  <dweb-status-bar ref="$statusBar" @statechange="onStatusBarChange($event.detail, 'change')"></dweb-status-bar>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/statusbar.svg" :alt="title" />

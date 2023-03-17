@@ -21,6 +21,7 @@ import info.bagen.rust.plaoc.microService.sys.plugin.share.ShareNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.splash.SplashScreenNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.KeyboardNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.NavigationBarNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SafeAreaNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.systemui.StatusBarNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.toast.ToastNMM
 import info.bagen.rust.plaoc.microService.user.CotDemoJMM
@@ -102,6 +103,8 @@ suspend fun startDwebBrowser() {
     val statusBarNMM = StatusBarNMM().also { dnsNMM.install(it) }
     ///navigation
     val navigationBarNMM = NavigationBarNMM().also { dnsNMM.install(it) }
+    ///safeArea
+    val safeAreaNMM = SafeAreaNMM().also { dnsNMM.install(it) }
 
     /// 安装Jmm
     val jmmNMM = JmmNMM().also { dnsNMM.install(it) }

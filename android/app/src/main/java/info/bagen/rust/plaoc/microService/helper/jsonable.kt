@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.core.graphics.Insets
 import info.bagen.rust.plaoc.App
 
 data class ColorJson(val red: Int, val blue: Int, val green: Int, val alpha: Int) {
@@ -21,19 +22,19 @@ fun Color.toJsonAble(): ColorJson = convert(ColorSpaces.Srgb).let {
 }
 
 data class RectJson(val x: Float, val y: Float, val width: Float, val height: Float)
+data class InsetsJson(val top: Float, val left: Float, val right: Float, val bottom: Float)
 
 fun WindowInsets.toJsonAble(
-    density: Density = Density(App.appContext),
-    direction: LayoutDirection = LayoutDirection.Ltr
-): RectJson {
-    val left = this.getLeft(density, direction)
-    val top = this.getTop(density)
-    val right = this.getRight(density, direction)
-    val bottom = this.getBottom(density)
-    return RectJson(
-        x = left.toFloat(),
-        y = top.toFloat(),
-        width = (right - left).toFloat(),
-        height = (bottom - top).toFloat()
-    )
-}
+    density: Density = Density(App.appContext), direction: LayoutDirection = LayoutDirection.Ltr
+) = InsetsJson(
+    top = getTop(density).toFloat(),
+    left = getLeft(density, direction).toFloat(),
+    right = getRight(density, direction).toFloat(),
+    bottom = getBottom(density).toFloat(),
+)
+fun Insets.toJsonAble() = InsetsJson(
+    top = top.toFloat(),
+    left = left.toFloat(),
+    right = right.toFloat(),
+    bottom = bottom.toFloat(),
+)

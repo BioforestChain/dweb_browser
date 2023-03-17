@@ -5,6 +5,7 @@ import {
   convertColorToArga,
   normalizeArgaToColor,
 } from "../../util/color.ts";
+import { domInsetsToJson, insetsToDom } from "../../util/insets.ts";
 import { $Coder } from "../../util/StateObserver.ts";
 import {
   $StatusBarWritableState,
@@ -28,10 +29,12 @@ export class StatusBarPlugin extends BarPlugin<
     decode: (raw: $StatusBarRawState) => ({
       ...raw,
       color: normalizeArgaToColor(raw.color, COLOR_FORMAT.HEXA),
+      insets: insetsToDom(raw.insets),
     }),
     encode: (state: $StatusBarState) => ({
       ...state,
       color: convertColorToArga(state.color),
+      insets: domInsetsToJson(state.insets),
     }),
   };
 

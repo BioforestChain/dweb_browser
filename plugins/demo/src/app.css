@@ -5,7 +5,7 @@
 :root,
 body,
 #app {
-  @apply h-full;
+  @apply min-h-full;
 }
 #app {
   @apply bg-top bg-base-200 bg-repeat bg-[length:20px_20px];

@@ -1,8 +1,13 @@
+import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { domRectToJson, rectToDom } from "../../util/rect.ts";
+import { domInsetsToJson, insetsToDom } from "../../util/insets.ts";
 import { $Coder, StateObserver } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../basePlugin.ts";
-import { $SafeAreaRawState, $SafeAreaState } from "./safe-area.type.ts";
+import {
+  $SafeAreaRawState,
+  $SafeAreaState,
+  $SafeAreaWritableState,
+} from "./safe-area.type.ts";
 
 export class SafeAreaPlugin extends BasePlugin {
   readonly tagName = "dweb-safe-area";
@@ -13,15 +18,15 @@ export class SafeAreaPlugin extends BasePlugin {
   readonly coder: $Coder<$SafeAreaRawState, $SafeAreaState> = {
     decode: (value) => ({
       ...value,
-      cutoutRect: rectToDom(value.cutoutRect),
-      boundingOuterRect: rectToDom(value.boundingOuterRect),
-      boundingInnerRect: rectToDom(value.boundingInnerRect),
+      cutoutInsets: insetsToDom(value.cutoutInsets),
+      outerInsets: insetsToDom(value.outerInsets),
+      innerInsets: insetsToDom(value.innerInsets),
     }),
     encode: (value) => ({
       ...value,
-      cutoutRect: domRectToJson(value.cutoutRect),
-      boundingOuterRect: domRectToJson(value.boundingOuterRect),
-      boundingInnerRect: domRectToJson(value.boundingInnerRect),
+      cutoutInsets: domInsetsToJson(value.cutoutInsets),
+      outerInsets: domInsetsToJson(value.outerInsets),
+      innerInsets: domInsetsToJson(value.innerInsets),
     }),
   };
 
@@ -32,6 +37,32 @@ export class SafeAreaPlugin extends BasePlugin {
       () => this.fetchApi(`/getState`).object<$SafeAreaRawState>(),
       this.coder
     );
+  }
+  @bindThis
+  async setStates(state: Partial<$SafeAreaWritableState>) {
+    await this.fetchApi("/setState", {
+      search: state,
+    });
+  }
+  @bindThis
+  setState<K extends keyof $SafeAreaWritableState>(
+    key: K,
+    value: $SafeAreaWritableState[K]
+  ) {
+    return this.setStates({
+      [key]: value,
+    });
+  }
+  get getState() {
+    return this.state.getState;
+  }
+  @bindThis
+  setOverlay(overlay: boolean) {
+    return this.setState("overlay", overlay);
+  }
+  @bindThis
+  async getOverlay() {
+    return (await this.state.getState()).overlay;
   }
 }
 

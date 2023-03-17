@@ -3,6 +3,7 @@ import { bindThis } from "../helper/bindThis.ts";
 import { cacheGetter } from "../helper/cacheGetter.ts";
 import { $Transform } from "../helper/JsonlinesStream.ts";
 import { $AgbaColor } from "./color.ts";
+import { $Insets, DOMInsets } from "./insets.ts";
 import { $Rect } from "./rect.ts";
 import { $Coder, StateObserver } from "./StateObserver.ts";
 
@@ -57,7 +58,7 @@ export interface $BarRawState {
    * This option is only supported on Android.
    */
   overlay: boolean;
-  boundingRect: $Rect;
+  insets: $Insets;
 }
 
 export interface $BarState {
@@ -65,9 +66,9 @@ export interface $BarState {
   style: BAR_STYLE;
   overlay: boolean;
   visible: boolean;
-  boundingRect: $Rect;
+  insets: DOMInsets;
 }
-export type $BarWritableState = Omit<$BarState, "boundingRect">;
+export type $BarWritableState = Omit<$BarState, "insets">;
 
 export abstract class BarPlugin<
   RAW extends $BarRawState,

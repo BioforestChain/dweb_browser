@@ -13,25 +13,39 @@ const pushMessage = (msg: $Message, id = msg_id_acc++) => {
   messageLists.value.set(id, msg);
   return id;
 };
-const format = (...logs: unknown[]) => logs.map((v) => String(v)).join(" ");
+const format = (...logs: unknown[]) =>
+  logs
+    .map((v) => {
+      if (typeof v === "object" && v !== null) {
+        if (Object.getPrototypeOf(v) === Object.prototype) {
+          try {
+            return `<span class="text-blue">${JSON.stringify(v)}</span>`;
+          } catch {}
+        } else if (v instanceof Error) {
+          return `<span class="text-red">${v.stack || v.message}</span>`;
+        }
+      }
+      return String(v);
+    })
+    .join(" ");
 const log = (...logs: unknown[]) => {
-  const message = format(logs);
+  const message = format(...logs);
   pushMessage({ message, type: "debug", prefix: "~", class: "" });
 };
 const error = (...logs: unknown[]) => {
-  const message = format(logs);
+  const message = format(...logs);
   pushMessage({ message, type: "error", prefix: ">", class: "text-error" });
 };
 const warn = (...logs: unknown[]) => {
-  const message = format(logs);
+  const message = format(...logs);
   pushMessage({ message, type: "warn", prefix: ">", class: "text-warning" });
 };
 const success = (...logs: unknown[]) => {
-  const message = format(logs);
+  const message = format(...logs);
   pushMessage({ message, type: "success", prefix: ">", class: "text-success" });
 };
 const info = (...logs: unknown[]) => {
-  const message = format(logs);
+  const message = format(...logs);
   pushMessage({ message, type: "info", prefix: ">", class: "text-info" });
 };
 const timeMap = new Map<string, { msgId: number; startTime: number }>();
@@ -78,6 +92,7 @@ defineExpose({ log, debug: log, warn, success, error, info, time, timeEnd, clear
 <template>
   <div class="mockup-code text-xs min-w-full w-full">
     <div class="max-h-[60vh] overflow-y-auto overflow-x-clip flex flex-col-reverse">
+      <div class="anchor"></div>
       <TransitionGroup name="fade">
         <pre
           v-for="[id, item] in messageLists"
@@ -171,5 +186,8 @@ export const defineLogAction = <T extends (...args: any[]) => Promise<unknown>>(
       以便正确地计算移动时的动画效果。 */
 .fade-leave-active {
   position: absolute;
+}
+.anchor {
+  overflow-anchor: auto;
 }
 </style>

@@ -1,14 +1,17 @@
-import { $Rect } from "../../util/rect.ts";
+import { $Insets, DOMInsets } from "../../util/insets.ts";
 
 export interface $SafeAreaRawState {
-  cutoutRect: $Rect;
+  cutoutInsets: $Insets;
   overlay: boolean;
-  boundingOuterRect: $Rect;
-  boundingInnerRect: $Rect;
+  outerInsets: $Insets;
+  innerInsets: $Insets;
 }
 export interface $SafeAreaState {
-  cutoutRect: DOMRect;
+  cutoutInsets: DOMInsets;
   overlay: boolean;
-  boundingOuterRect: DOMRect;
-  boundingInnerRect: DOMRect;
+  outerInsets: DOMInsets;
+  innerInsets: DOMInsets;
+}
+export interface $SafeAreaWritableState {
+  overlay: boolean;
 }

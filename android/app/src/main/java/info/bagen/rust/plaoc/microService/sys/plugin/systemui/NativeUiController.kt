@@ -8,7 +8,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.core.view.WindowCompat
+import androidx.core.graphics.Insets
+import androidx.core.view.*
 import androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.gson.*
@@ -24,11 +25,15 @@ inline fun debugNativeUi(tag: String, msg: Any? = "", err: Throwable? = null) =
 class NativeUiController(
     val activity: ComponentActivity,
 ) {
-    val windowInsetsControllerCompat by lazy {
+    val windowInsetsController by lazy {
         WindowCompat.getInsetsController(
             activity.window, activity.window.decorView
         )
     }
+    val currentInsets =
+        mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets))
+
+    fun getCurrentInsets(typeMask: Int) = currentInsets.value.getInsets(typeMask)
 
     val statusBar = StatusBarController(activity, this)
     val navigationBar = NavigationBarController(activity, this)
@@ -45,7 +50,13 @@ class NativeUiController(
         SideEffect {
             WindowCompat.setDecorFitsSystemWindows(activity.window, false)
             /// system-bar 一旦隐藏（visible = false），那么被手势划出来后，过一会儿自动回去
-            windowInsetsControllerCompat.systemBarsBehavior = BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            windowInsetsController.systemBarsBehavior = BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+            ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView) { _, insets ->
+                currentInsets.value = insets
+                insets
+            }
+
         }
         statusBar.effect()
         navigationBar.effect()
@@ -110,16 +121,19 @@ class NativeUiController(
         fun effect(): StatusBarController {
             val systemUiController = rememberSystemUiController()
 
-            statusBarsInsetsState.value = WindowInsets.statusBars
+            statusBarsInsetsState.value =
+                nativeUiController.getCurrentInsets(WindowInsetsCompat.Type.statusBars())
+                    .toWindowsInsets()
 
             val color by colorState
             val style by styleState
             var visible by visibleState
             DisposableEffect(visible, color, style) {
                 debugNativeUi(
-                    "DisposableEffect", "visible:${visible}"
+                    "DisposableEffect", "visible:$visible; color:$color; style:$style"
                 )
                 systemUiController.isStatusBarVisible = visible
+//                systemUiController.statusBarDarkContentEnabled = true
                 systemUiController.setStatusBarColor(
                     color = color,
                     darkIcons = when (style) {
@@ -153,7 +167,7 @@ class NativeUiController(
             val style: BarStyle,
             val overlay: Boolean,
             val color: ColorJson,
-            val boundingRect: RectJson,
+            val insets: InsetsJson,
         )
 
 
@@ -162,7 +176,7 @@ class NativeUiController(
             style = styleState.value,
             overlay = overlayState.value,
             color = colorState.value.toJsonAble(),
-            boundingRect = statusBarsInsetsState.value.toJsonAble()
+            insets = statusBarsInsetsState.value.toJsonAble(),
         )
     }
 
@@ -199,11 +213,18 @@ class NativeUiController(
         fun effect(): NavigationBarController {
             val systemUiController = rememberSystemUiController()
 
-            navigationBarsInsetsState.value = WindowInsets.navigationBars
+            navigationBarsInsetsState.value =
+                nativeUiController.getCurrentInsets(WindowInsetsCompat.Type.navigationBars())
+                    .toWindowsInsets()
 
             val color by colorState
             val style by styleState
+            var visible by visibleState
             DisposableEffect(color, style) {
+                debugNativeUi(
+                    "DisposableEffect", "visible:$visible; color:$color; style:$style"
+                )
+                systemUiController.isNavigationBarVisible = visible
                 systemUiController.setNavigationBarColor(
                     color = color,
                     darkIcons = when (style) {
@@ -212,11 +233,6 @@ class NativeUiController(
                         else -> color.luminance() > 0.5F
                     },
                 )
-                onDispose { }
-            }
-            var visible by visibleState
-            DisposableEffect(visible) {
-                systemUiController.isNavigationBarVisible = visible
                 onDispose { }
             }
 
@@ -242,7 +258,7 @@ class NativeUiController(
             val style: BarStyle,
             val overlay: Boolean,
             val color: ColorJson,
-            val boundingRect: RectJson,
+            val insets: InsetsJson,
         )
 
         fun toJsonAble() = NavigationBarState(
@@ -250,7 +266,7 @@ class NativeUiController(
             style = styleState.value,
             overlay = overlayState.value,
             color = colorState.value.toJsonAble(),
-            boundingRect = navigationBarsInsetsState.value.toJsonAble(),
+            insets = navigationBarsInsetsState.value.toJsonAble(),
         )
     }
 
@@ -389,17 +405,17 @@ class NativeUiController(
 
 
         data class SafeAreaState(
-            val cutoutRect: RectJson,
+            val cutoutInsets: InsetsJson,
             val overlay: Boolean,
-            val boundingOuterRect: RectJson,
-            val boundingInnerRect: RectJson,
+            val outerInsets: InsetsJson,
+            val innerInsets: InsetsJson,
         )
 
         fun toJsonAble() = SafeAreaState(
-            cutoutRect = cutoutInsetsState.value.toJsonAble(),
+            cutoutInsets = cutoutInsetsState.value.toJsonAble(),
             overlay = overlayState.value,
-            boundingOuterRect = outerAreaInsetsState.value.toJsonAble(),
-            boundingInnerRect = innerSafeAreaInsetsState.value.toJsonAble(),
+            outerInsets = outerAreaInsetsState.value.toJsonAble(),
+            innerInsets = innerSafeAreaInsetsState.value.toJsonAble(),
         )
     }
 
@@ -414,6 +430,13 @@ class NativeUiController(
 private operator fun WindowInsets.plus(safeAreaCutoutInsets: WindowInsets) =
     this.add(safeAreaCutoutInsets)
 
+@Composable
+fun Insets.toWindowsInsets() = WindowInsets(
+    top = top,
+    left = left,
+    right = right,
+    bottom = bottom,
+)
 
 fun NativeUiController.Companion.fromMultiWebView(mmid: Mmid) =
     ((MultiWebViewNMM.getCurrentWebViewController(mmid)

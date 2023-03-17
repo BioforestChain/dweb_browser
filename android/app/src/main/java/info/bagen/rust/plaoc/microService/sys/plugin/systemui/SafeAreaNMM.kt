@@ -17,6 +17,12 @@ class SafeAreaNMM : NativeMicroModule("safe-area.native-ui.sys.dweb") {
             "/getState" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid)
             },
+            /** 获取状态栏 */
+            "/setState" bind Method.GET to defineHandler { request, ipc ->
+                val controller = getController(ipc.remote.mmid)
+                QueryHelper.overlay(request)?.also { controller.overlayState.value = it }
+                return@defineHandler null
+            },
             /**
              * 开始数据订阅
              */

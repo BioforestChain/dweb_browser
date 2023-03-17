@@ -5,6 +5,7 @@ import {
   convertColorToArga,
   normalizeArgaToColor,
 } from "../../util/color.ts";
+import { insetsToDom, domInsetsToJson } from "../../util/insets.ts";
 import { $Coder } from "../../util/StateObserver.ts";
 import {
   $NavigationBarWritableState,
@@ -28,10 +29,12 @@ export class NavigationBarPlugin extends BarPlugin<
     decode: (raw: $NavigationBarRawState) => ({
       ...raw,
       color: normalizeArgaToColor(raw.color, COLOR_FORMAT.HEXA),
+      insets: insetsToDom(raw.insets),
     }),
     encode: (state: $NavigationBarState) => ({
       ...state,
       color: convertColorToArga(state.color),
+      insets: domInsetsToJson(state.insets),
     }),
   };
 
