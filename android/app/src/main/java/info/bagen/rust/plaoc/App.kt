@@ -5,19 +5,12 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import info.bagen.rust.plaoc.di.repositoryModule
-import info.bagen.rust.plaoc.di.appModules
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.PlaocUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidFileProperties
-import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.startKoin
-import org.koin.core.logger.Level
 
 class App : Application() {
     companion object {
@@ -37,12 +30,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         appContext = this
-        startKoin {
-            androidLogger(Level.ERROR)
-            androidContext(this@App)
-            androidFileProperties()
-            modules(appModules, repositoryModule)
-        }
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
         // startService(Intent(this@App, DwebBrowserService::class.java))
         DwebBrowserUtil.INSTANCE.bindDwebBrowserService()

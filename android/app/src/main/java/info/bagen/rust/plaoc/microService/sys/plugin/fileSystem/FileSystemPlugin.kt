@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.fileSystem
 
 import android.util.Log
-import com.king.mlkit.vision.camera.util.LogUtils
 import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.iterator
@@ -165,7 +164,6 @@ class FileSystemPlugin {
             }
             fileWriter.close()
         } catch (e: Throwable) {
-            LogUtils.d("write fail -> ${e.message}")
             return e.message.toString()
         } finally {
             try {
@@ -201,7 +199,6 @@ class FileSystemPlugin {
                 fileWriter.write(chunk)
             }
         } catch (e: Throwable) {
-            LogUtils.d("FileSystem#writeByteArray fail -> ${e.message}")
             return e.message.toString()
         } finally {
             fileWriter?.close()

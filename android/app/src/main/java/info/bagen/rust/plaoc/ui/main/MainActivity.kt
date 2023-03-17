@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.ui.app.AppViewIntent
 import info.bagen.rust.plaoc.ui.app.AppViewModel
@@ -34,6 +33,8 @@ class MainActivity : ComponentActivity() {
             .background(MaterialTheme.colors.primary)
         ) {
           Home(
+            mainViewModel = MainViewModel(),
+            appViewModel = AppViewModel(),
             onSearchAction = { action, data ->
               Toast.makeText(
                 this@MainActivity,
@@ -58,8 +59,8 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun Home(
-  mainViewModel: MainViewModel = viewModel() as MainViewModel,
-  appViewModel: AppViewModel = viewModel() as AppViewModel,
+  mainViewModel: MainViewModel,
+  appViewModel: AppViewModel,
   onSearchAction: ((SearchAction, String) -> Unit)? = null,
   onOpenDWebview: ((appId: String, dAppInfo: DAppInfoUI?) -> Unit)? = null
 ) {

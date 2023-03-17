@@ -53,7 +53,6 @@ import info.bagen.rust.plaoc.ui.entity.DCIMType
 import info.bagen.rust.plaoc.ui.theme.*
 import info.bagen.rust.plaoc.util.KEY_MEDIA_IS_LOADED
 import info.bagen.rust.plaoc.util.getBoolean
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 private fun getWindowWithDP(): Dp {
@@ -132,7 +131,7 @@ fun DCIMItemView(dcimInfo: DCIMInfo, dcimVM: DCIMViewModel, onClick: (DCIMInfo) 
 }
 
 @Composable
-fun DCIMGridView(dcimVM: DCIMViewModel = koinViewModel(), onClick: (DCIMInfo) -> Unit) {
+fun DCIMGridView(dcimVM: DCIMViewModel, onClick: (DCIMInfo) -> Unit) {
   LazyVerticalGrid(
     columns = GridCells.Fixed(4),//GridCells.Adaptive(minSize = 60.dp), // 一行四个，或者指定大小
     //contentPadding = PaddingValues(4.dp, 0.dp, 4.dp, 0.dp),

@@ -203,6 +203,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     suspend fun close(mmid: Mmid): Int {
         return runningApps.remove(mmid)?.let { microModule ->
             runCatching {
+
                 mmConnectsMap[microModule]?.remove(mmid) // 将这个连接关闭
                 microModule.shutdown()
                 1

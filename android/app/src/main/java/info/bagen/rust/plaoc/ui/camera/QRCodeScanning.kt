@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.ui.camera
 
 import android.Manifest
 import android.graphics.Point
+import android.util.Log
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -26,7 +27,6 @@ import com.king.mlkit.vision.camera.BaseCameraScan
 import com.king.mlkit.vision.camera.CameraScan
 import com.king.mlkit.vision.camera.analyze.Analyzer
 import com.king.mlkit.vision.camera.config.ResolutionCameraConfig
-import com.king.mlkit.vision.camera.util.LogUtils
 import com.king.mlkit.vision.camera.util.PermissionUtils
 import info.bagen.rust.plaoc.R
 
@@ -155,7 +155,7 @@ class QRCodeScanning(val activity: FragmentActivity, val scanType: ScanType) :
     if (PermissionUtils.checkPermission(activity, Manifest.permission.CAMERA)) {
       mCameraScan.startCamera()
     } else {
-      LogUtils.d("checkPermissionResult != PERMISSION_GRANTED")
+      Log.d("QRCodeScanning", "checkPermissionResult != PERMISSION_GRANTED")
       PermissionUtils.requestPermission(
         activity, Manifest.permission.CAMERA, CAMERA_PERMISSION_REQUEST_CODE
       )

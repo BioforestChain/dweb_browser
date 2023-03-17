@@ -19,12 +19,10 @@ import info.bagen.rust.plaoc.ui.entity.MediaInfo
 import info.bagen.rust.plaoc.ui.theme.ColorBackgroundBar
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.createMediaInfo
-import org.koin.android.ext.android.inject
-import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
 class DCIMActivity : ComponentActivity() {
-  val dcimViewModel: DCIMViewModel by inject()
+  val dcimViewModel: DCIMViewModel = DCIMViewModel()
 
   companion object {
     const val REQUEST_DCIM_CODE = 168
@@ -124,7 +122,7 @@ class DCIMActivity : ComponentActivity() {
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun DCIMGreeting(
-  onGridClick: () -> Unit, onViewerClick: () -> Unit, dcimVM: DCIMViewModel = koinViewModel()
+  onGridClick: () -> Unit, onViewerClick: () -> Unit, dcimVM: DCIMViewModel
 ) {
   LaunchedEffect(Unit) {
     /*dcimVM.loadDCIMInfo { maps ->

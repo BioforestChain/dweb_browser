@@ -14,11 +14,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
 import androidx.core.app.ActivityCompat
-import androidx.core.view.ViewCompat
-import com.king.mlkit.vision.camera.util.LogUtils
-import com.king.mlkit.vision.camera.util.PermissionUtils
+import androidx.core.view.WindowCompat
 import info.bagen.rust.plaoc.util.permission.EPermission
 import info.bagen.rust.plaoc.util.permission.PermissionUtil
 import info.bagen.rust.plaoc.ui.app.AppViewModel
@@ -38,21 +35,19 @@ import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Compani
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
 class BrowserActivity : AppCompatActivity() {
     companion object {
         const val REQUEST_CODE_PHOTO = 1
-        const val REQUEST_CODE_REQUEST_EXTERNAL_STORAGE = 2
     }
 
     var blueToothReceiver : BlueToothReceiver? = null
     fun getContext() = this
-    val qrCodeViewModel: QRCodeViewModel by viewModel()
-    private val dWebBrowserModel: DWebBrowserModel by viewModel()
-    private val appViewModel: AppViewModel by viewModel()
-    private val mainViewModel: MainViewModel by viewModel()
+    val qrCodeViewModel: QRCodeViewModel = QRCodeViewModel()
+    private val dWebBrowserModel: DWebBrowserModel = DWebBrowserModel()
+    private val appViewModel: AppViewModel = AppViewModel()
+    private val mainViewModel: MainViewModel = MainViewModel()
 
     @JvmName("getAppViewModel1")
     fun getAppViewModel(): AppViewModel {
@@ -67,7 +62,7 @@ class BrowserActivity : AppCompatActivity() {
         BrowserNMM.activityPo?.resolve(this)
         App.browserActivity = this
         setContent {
-            ViewCompat.getWindowInsetsController(LocalView.current)?.isAppearanceLightStatusBars =
+            WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
                 !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
             RustApplicationTheme {
                 Box(
@@ -76,7 +71,6 @@ class BrowserActivity : AppCompatActivity() {
                         .background(MaterialTheme.colors.primary)
                 ) {
                     Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
-                        LogUtils.d("搜索框内容响应：$action--$data")
                         when (action) {
                             SearchAction.Search -> {
                                 dWebBrowserModel.handleIntent(DWebBrowserIntent.OpenDWebBrowser(data))
@@ -154,11 +148,6 @@ class BrowserActivity : AppCompatActivity() {
                             PermissionUtil.openAppSettings()
                         }
                     })
-        } else if (requestCode == REQUEST_CODE_REQUEST_EXTERNAL_STORAGE && PermissionUtils.requestPermissionsResult(
-                Manifest.permission.READ_EXTERNAL_STORAGE, permissions, grantResults
-            )
-        ) {
-            startPickPhoto()
         } else if (requestCode == QRCodeScanning.CAMERA_PERMISSION_REQUEST_CODE) {
             grantResults.forEach {
                 if (it != PackageManager.PERMISSION_GRANTED) return
@@ -166,7 +155,6 @@ class BrowserActivity : AppCompatActivity() {
             qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
         }
     }
-
 
     override fun onDestroy() {
         // 退出APP关闭服务

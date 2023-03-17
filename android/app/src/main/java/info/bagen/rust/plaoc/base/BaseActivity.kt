@@ -5,8 +5,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 
 abstract class BaseActivity: AppCompatActivity() {
@@ -16,7 +15,7 @@ abstract class BaseActivity: AppCompatActivity() {
     initData()
     setContent {
       RustApplicationTheme {
-        ViewCompat.getWindowInsetsController(LocalView.current)?.isAppearanceLightStatusBars =
+        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
           !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
         InitViews()
       }

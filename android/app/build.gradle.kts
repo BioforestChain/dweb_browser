@@ -13,7 +13,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86"))
+        ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86", "x86_64"))
         //ndk.abiFilters = listOf("arm64-v8a")
         vectorDrawables {
             useSupportLibrary = true
@@ -86,7 +86,7 @@ android {
 
 dependencies {
 
-    val ktor_version = "2.2.3"
+//    val ktor_version = "2.2.3"
     /// 网络开发相关
     implementation(platform("org.http4k:http4k-bom:4.39.0.0"))
     implementation("org.http4k:http4k-core")
@@ -94,37 +94,33 @@ dependencies {
     implementation("org.http4k:http4k-client-okhttp")
     implementation("org.http4k:http4k-server-ktorcio")
 //    implementation("org.http4k:http4k-format-jackson") // payload to json
-    implementation("io.ktor:ktor-client-core:$ktor_version")
-
+//    implementation("io.ktor:ktor-client-core:$ktor_version")
 
     // Android 相关
-    implementation("androidx.work:work-runtime:2.7.1")
-    implementation("androidx.work:work-runtime-ktx:2.7.1")
-    implementation("androidx.work:work-rxjava2:2.7.1")
-    implementation("androidx.work:work-gcm:2.7.1")
-    implementation("androidx.work:work-multiprocess:2.7.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+//    implementation("androidx.work:work-runtime:2.7.1")
+//    implementation("androidx.work:work-runtime-ktx:2.7.1")
+//    implementation("androidx.work:work-rxjava2:2.7.1")
+//    implementation("androidx.work:work-gcm:2.7.1")
+//    implementation("androidx.work:work-multiprocess:2.7.1")
+//    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
     implementation("androidx.core:core-splashscreen:1.0.0-beta02")
-    implementation("androidx.core:core-ktx:1.8.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.5.1")
+//    implementation("androidx.navigation:navigation-fragment-ktx:2.5.1")
     implementation("androidx.navigation:navigation-ui-ktx:2.5.1")
     implementation("androidx.gridlayout:gridlayout:1.0.0")
-    val accompanist_version = "0.29.2-rc"
-    implementation("com.google.accompanist:accompanist-webview:$accompanist_version")
-    implementation("com.google.accompanist:accompanist-navigation-material:$accompanist_version")
-    implementation("com.google.accompanist:accompanist-navigation-animation:$accompanist_version")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanist_version")
+    val accompanistVersion = "0.29.2-rc"
+    implementation("com.google.accompanist:accompanist-webview:$accompanistVersion")
+    implementation("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
+    implementation("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
     implementation("androidx.profileinstaller:profileinstaller:1.2.0-alpha02")
     testImplementation("org.junit.jupiter:junit-jupiter")
-    val appcompat_version = "1.6.1"
-    implementation("androidx.appcompat:appcompat:$appcompat_version")
-    implementation("androidx.appcompat:appcompat-resources:$appcompat_version")
-    val constraintlayout_version = "2.1.4"
-    implementation("androidx.constraintlayout:constraintlayout:$constraintlayout_version")
-    val core_version = "1.9.0"
-    implementation("androidx.core:core-ktx:$core_version")
+    val appcompatVersion = "1.6.1"
+    implementation("androidx.appcompat:appcompat:$appcompatVersion")
+    implementation("androidx.appcompat:appcompat-resources:$appcompatVersion")
+//    val constraintlayoutVersion = "2.1.4"
+//    implementation("androidx.constraintlayout:constraintlayout:$constraintlayoutVersion")
+    val coreVersion = "1.9.0"
+    implementation("androidx.core:core-ktx:$coreVersion")
     implementation("androidx.datastore:datastore:1.0.0")
     implementation("androidx.datastore:datastore-preferences:1.1.0-alpha01")
 
@@ -132,7 +128,6 @@ dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2023.01.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
-
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material:material")
     implementation("androidx.compose.material3:material3")
@@ -150,17 +145,15 @@ dependencies {
 //    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
     implementation("com.daveanthonythomas.moshipack:moshipack:1.0.1") // message-pack
 
-
     //扫码核心库
     implementation(project(":mlkit-camera-core"))
     implementation(project(":mlkit-barcode-scanning"))
-    implementation("com.github.jenly1314.AppUpdater:app-dialog:1.1.0")
+//    implementation("com.github.jenly1314.AppUpdater:app-dialog:1.1.0")
 
     /// 测试相关
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.4.0")
-
 
     testImplementation(platform("org.junit:junit-bom:5.9.2"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher") {
@@ -171,8 +164,8 @@ dependencies {
 
     // exoplayer
     //implementation 'com.google.android.exoplayer:exoplayer:2.14.1'
-    implementation("com.google.android.exoplayer:exoplayer-core:2.14.1")
-    implementation("com.google.android.exoplayer:exoplayer-ui:2.14.1")
+    implementation("com.google.android.exoplayer:exoplayer-core:2.18.4")
+    implementation("com.google.android.exoplayer:exoplayer-ui:2.18.4")
     // 由于引入exoplayer后导致com.google.guava:listenablefuture not found -> https://github.com/google/ExoPlayer/issues/7993
     implementation("com.google.guava:guava:29.0-android")
 
@@ -183,18 +176,13 @@ dependencies {
     // 解压文件
     implementation("org.apache.commons:commons-compress:1.21")
 
-    // 增加注入ViewModel // 将implementation改为api是为了让app主应用能够调用到
-    implementation("io.insert-koin:koin-androidx-compose:3.2.1")
-    implementation("io.insert-koin:koin-android:3.1.2")
-    implementation("io.insert-koin:koin-android-compat:3.1.2")
-
     // 加载图片 coil
     implementation("io.coil-kt:coil:2.2.2")
-    implementation("io.coil-kt:coil-svg:2.2.2")
     implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation("io.coil-kt:coil-svg:2.2.2")
     implementation("io.coil-kt:coil-video:2.2.2")
     implementation("io.coil-kt:coil-gif:2.2.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1") // 因为导入coil后，编译失败，duplicate
+//    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1") // 因为导入coil后，编译失败，duplicate
 
     /// 依赖
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

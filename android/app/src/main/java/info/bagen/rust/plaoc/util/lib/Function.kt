@@ -4,8 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import com.king.mlkit.vision.camera.util.LogUtils
-
+import android.util.Log
 
 fun Bitmap.drawBitmap(block: (canvas: Canvas, paint: Paint) -> Unit): Bitmap {
     var result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
@@ -22,7 +21,7 @@ fun Bitmap.drawBitmap(block: (canvas: Canvas, paint: Paint) -> Unit): Bitmap {
         canvas.save()
         canvas.restore()
     } catch (e: Throwable) {
-        LogUtils.w(e.message)
+        Log.w("Bitmap.drawBitmap", "${e.message}")
     }
     return result
 }
@@ -42,7 +41,7 @@ fun Bitmap.drawRect(block: (canvas: Canvas, paint: Paint) -> Unit): Bitmap {
         canvas.save()
         canvas.restore()
     } catch (e: Throwable) {
-        LogUtils.w(e.message)
+        Log.w("Bitmap.drawRect", "${e.message}")
     }
     return result
 }
