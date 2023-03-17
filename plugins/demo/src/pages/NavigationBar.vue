@@ -1,137 +1,143 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import { NavigatorBarPlugin, NavigationBarPluginEvents } from "@bfex/plugin";
+import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import { NavigationBarPlugin, NAVIGATION_BAR_STYLE, $NavigationBarState } from "@bfex/plugin";
 
-const title = "Navigation Bar";
+const title = "NavigationBar";
 
 const $logPanel = ref<typeof LogPanel>();
-const $NavigatorbarPlugin = ref<NavigatorBarPlugin>();
+const $navigationbarPlugin = ref<NavigationBarPlugin>();
 
 let console: Console;
-let navigator: NavigatorBarPlugin;
-onMounted(() => {
+let navigationbar: NavigationBarPlugin;
+onMounted(async () => {
   console = toConsole($logPanel);
-  navigator = $NavigatorbarPlugin.value!;
-  listen_change();
-  listen_hide();
-  listen_show();
+  navigationbar = $navigationbarPlugin.value!;
+  onNavigationBarChange(await navigationbar.getState());
 });
 
-const color = ref("#000000");
-const visiable = ref(false);
-const transparency = ref(false);
-const overlay = ref(false);
-// 防止颜色刷新过快
-// watch(color, async (newColor, oldColor) => {
-//   console.info(newColor, oldColor)
-//   throttle(function () {
-//     oldColor = newColor
-//   }, 500)
-// })
-
-const setColor = async () => {
-  await navigator.setColor({ color: color.value });
-  console.info("set Color", color.value);
+const onNavigationBarChange = (info: $NavigationBarState) => {
+  color.value = info.color;
+  style.value = info.style;
+  overlay.value = info.overlay;
+  visible.value = info.visible;
 };
 
-const getColor = async () => {
-  const res = await navigator.getColor();
-  console.info("get Color", res.color);
-};
+const color = ref<string>(null as never);
+const setColor = defineLogAction(
+  async () => {
+    await navigationbar.setColor(color.value);
+  },
+  { name: "setColor", args: [color], logPanel: $logPanel }
+);
+const getColor = defineLogAction(
+  async () => {
+    color.value = await navigationbar.getColor();
+  },
+  { name: "getColor", args: [color], logPanel: $logPanel }
+);
 
-const getVisible = async () => {
-  const res = await navigator.getVisible().then((res) => res.text());
-  console.info("get visiable", res);
-};
+const style = ref<NAVIGATION_BAR_STYLE>(null as never);
+const setStyle = defineLogAction(
+  async () => {
+    await navigationbar.setStyle(style.value);
+  },
+  { name: "setStyle", args: [style], logPanel: $logPanel }
+);
+const getStyle = defineLogAction(
+  async () => {
+    style.value = await navigationbar.getStyle();
+  },
+  { name: "getStyle", args: [style], logPanel: $logPanel }
+);
 
-const setVisible = async () => {
-  if (visiable.value === true) {
-    await navigator.show();
-  } else {
-    await navigator.hide();
+const overlay = ref<boolean>(null as never);
+const setOverlay = defineLogAction(() => navigationbar.setOverlay(overlay.value), {
+  name: "setOverlay",
+  args: [overlay],
+  logPanel: $logPanel,
+});
+const getOverlay = defineLogAction(
+  async () => {
+    overlay.value = await navigationbar.getOverlay();
+  },
+  {
+    name: "getOverlay",
+    args: [overlay],
+    logPanel: $logPanel,
   }
-  console.info("set visiable", visiable.value);
-};
-
-const setTransparency = async () => {
-  await navigator.setTransparency({ isTransparent: transparency.value });
-  console.info("set transparency", transparency.value);
-};
-
-const getTransparency = async () => {
-  const res = await navigator.getTransparency().then((res) => res.text());
-  console.info("get transparency", res);
-};
-
-const setOverlay = async () => {
-  await navigator.setOverlay({ isOverlay: overlay.value });
-  console.info("set overlay", overlay.value);
-};
-
-const getOverlay = async () => {
-  const res = await navigator.getOverlay().then((res) => res.text());
-  console.info("get overlay", res);
-};
-
-const listen_show = async () => {
-  navigator.onShow(() => {
-    console.info("listen_show");
-  });
-};
-
-const listen_hide = async () => {
-  navigator.onHide(() => {
-    console.info("listen_show");
-  });
-};
-const listen_change = async () => {
-  navigator.onChange(() => {
-    console.info("listen_show");
-  });
-};
+);
+const visible = ref<boolean>(null as never);
+const setVisible = defineLogAction(() => navigationbar.setVisible(visible.value), {
+  name: "setVisible",
+  args: [visible],
+  logPanel: $logPanel,
+});
+const getVisible = defineLogAction(
+  async () => {
+    visible.value = await navigationbar.getVisible();
+  },
+  {
+    name: "getOverlay",
+    args: [visible],
+    logPanel: $logPanel,
+  }
+);
 </script>
-
 <template>
-  <dweb-navigator ref="$NavigatorbarPlugin"></dweb-navigator>
+  <dweb-navigation-bar ref="$navigationbarPlugin" @change="onNavigationBarChange($event.detail)"></dweb-navigation-bar>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/navigationbar.svg" :alt="title" />
     </figure>
-
     <article class="card-body">
-      <h2 class="card-title">Navigation Bar Color</h2>
+      <h2 class="card-title">Navigation Bar Background Color</h2>
       <v-color-picker v-model="color" :modes="['rgba']"></v-color-picker>
+
       <div class="justify-end card-actions btn-group">
-        <button class="rounded-full btn btn-accent" @click="setColor">Set</button>
-        <button class="rounded-full btn btn-accent" @click="getColor">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == color" @click="setColor">
+          Set
+        </button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getColor">Get</button>
       </div>
     </article>
 
     <article class="card-body">
-      <h2 class="card-title">Navigation Bar visible</h2>
-      <input class="toggle toggle-accent" type="checkbox" v-model="visiable" />
+      <h2 class="card-title">Navigation Bar Style</h2>
+      <select class="w-full max-w-xs select" name="navigationbar-style" id="navigationbar-style" v-model="style">
+        <option value="DEFAULT">Default</option>
+        <option value="DARK">Dark</option>
+        <option value="LIGHT">Light</option>
+      </select>
       <div class="justify-end card-actions btn-group">
-        <button class="rounded-full btn btn-accent" @click="setVisible">Set</button>
-        <button class="rounded-full btn btn-accent" @click="getVisible">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == style" @click="setStyle">
+          Set
+        </button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getStyle">Get</button>
       </div>
     </article>
 
     <article class="card-body">
-      <h2 class="card-title">Navigation Bar Transparency WebView</h2>
-      <input class="toggle toggle-accent" type="checkbox" v-model="transparency" />
-      <div class="justify-end card-actions btn-group">
-        <button class="inline-block rounded-full btn btn-accent" @click="setTransparency">Set</button>
-        <button class="inline-block rounded-full btn btn-accent" @click="getTransparency">Get</button>
-      </div>
-    </article>
+      <h2 class="card-title">Navigation Bar Overlays WebView</h2>
+      <input class="toggle" type="checkbox" id="navigationbar-overlay" v-model="overlay" />
 
-    <article class="card-body">
-      <h2 class="card-title">Navigation Bar Overlay WebView</h2>
-      <input class="toggle toggle-accent" type="checkbox" v-model="overlay" />
       <div class="justify-end card-actions btn-group">
-        <button class="inline-block rounded-full btn btn-accent" @click="setOverlay">Set</button>
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == overlay" @click="setOverlay">
+          Set
+        </button>
         <button class="inline-block rounded-full btn btn-accent" @click="getOverlay">Get</button>
+      </div>
+    </article>
+
+    <article class="card-body">
+      <h2 class="card-title">Navigation Bar Visible</h2>
+      <input class="toggle" type="checkbox" id="navigationbar-overlay" v-model="visible" />
+
+      <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" :disabled="null == visible" @click="setVisible">
+          Set
+        </button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getVisible">Get</button>
       </div>
     </article>
   </div>
