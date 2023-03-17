@@ -85,7 +85,7 @@ const getVisible = defineLogAction(
 );
 </script>
 <template>
-  <dweb-navigation-bar ref="$navigationbarPlugin" @change="onNavigationBarChange($event.detail)"></dweb-navigation-bar>
+  <dweb-navigation-bar ref="$navigationbarPlugin" @stateChange="onNavigationBarChange($event.detail)"></dweb-navigation-bar>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/navigationbar.svg" :alt="title" />

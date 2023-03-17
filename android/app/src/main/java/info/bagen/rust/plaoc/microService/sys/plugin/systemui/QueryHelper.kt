@@ -18,6 +18,7 @@ class QueryHelper {
             NativeMicroModule.ResponseRegistry.registryJsonAble(WindowInsets::class.java) { it.toJsonAble() }
             NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.StatusBarController::class.java) { it.toJsonAble() }
             NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.NavigationBarController::class.java) { it.toJsonAble() }
+            NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.SafeAreaController::class.java) { it.toJsonAble() }
         }
 
         fun init() {

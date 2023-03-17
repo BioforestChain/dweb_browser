@@ -264,7 +264,7 @@ open class MultiWebViewActivity : PermissionActivity() {
                                 .background(Color.Blue)
                                 .fillMaxSize()
                         ) {
-                            val modifierPadding by nativeUiController.safeArea.contentAreaInsetsState
+                            val modifierPadding by nativeUiController.safeArea.outerAreaInsetsState
                             WebView(
                                 state = state,
                                 navigator = navigator,

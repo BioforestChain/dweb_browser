@@ -7,28 +7,13 @@ import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class NavigationBarNMM : NativeMicroModule("navigation-bar.sys.dweb") {
+class SafeAreaNMM : NativeMicroModule("safe-area.native-ui.sys.dweb") {
 
-
-    private fun getController(mmid: Mmid) =
-        NativeUiController.fromMultiWebView(mmid).navigationBar
+    private fun getController(mmid: Mmid) = NativeUiController.fromMultiWebView(mmid).safeArea
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
-            /**
-             * 设置导航栏
-             */
-            "/setState" bind Method.GET to defineHandler { request, ipc ->
-                val controller = getController(ipc.remote.mmid)
-                QueryHelper.color(request)?.also { controller.colorState.value = it }
-                QueryHelper.style(request)?.also { controller.styleState.value = it }
-                QueryHelper.overlay(request)?.also { controller.overlayState.value = it }
-                QueryHelper.visible(request)?.also { controller.visibleState.value = it }
-                return@defineHandler null
-            },
-            /**
-             * 获取导航栏
-             */
+            /** 获取状态栏 */
             "/getState" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid)
             },
@@ -48,6 +33,5 @@ class NavigationBarNMM : NativeMicroModule("navigation-bar.sys.dweb") {
     }
 
     override suspend fun _shutdown() {
-        TODO("Not yet implemented")
     }
 }

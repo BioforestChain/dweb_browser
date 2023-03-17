@@ -16,7 +16,6 @@ class StatusBarNMM : NativeMicroModule("status-bar.sys.dweb") {
         NativeUiController.fromMultiWebView(mmid).statusBar
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        QueryHelper.init() // 初始化
         apiRouting = routes(
             /** 获取状态栏 */
             "/getState" bind Method.GET to defineHandler { _, ipc ->

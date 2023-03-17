@@ -4,8 +4,11 @@ import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import info.bagen.rust.plaoc.util.IsChange
 
-open class StateObservable(private val getStateJson: () -> String) {
-    val stateChanges = IsChange(false)
+open class StateObservable(
+    needFirstCall: Boolean = false,
+    private val getStateJson: () -> String,
+) {
+    val stateChanges = IsChange(needFirstCall)
     val changeSignal = SimpleSignal()
     inline fun observe(noinline cb: SimpleCallback) = changeSignal.listen(cb)
 
@@ -21,6 +24,12 @@ open class StateObservable(private val getStateJson: () -> String) {
                 )
             }
         }
+    }
+
+    inline fun notifyObserver() {
+        runBlockingCatching {
+            changeSignal.emit()
+        }.getOrNull()
     }
 
     fun stopObserve(ipc: Ipc) = observerIpcMap.remove(ipc)?.let { off ->

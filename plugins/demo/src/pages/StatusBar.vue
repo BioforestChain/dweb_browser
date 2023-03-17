@@ -85,7 +85,7 @@ const getVisible = defineLogAction(
 );
 </script>
 <template>
-  <dweb-status-bar ref="$statusbarPlugin" @change="onStatusBarChange($event.detail)"></dweb-status-bar>
+  <dweb-status-bar ref="$statusbarPlugin" @stateChange="onStatusBarChange($event.detail)"></dweb-status-bar>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/statusbar.svg" :alt="title" />

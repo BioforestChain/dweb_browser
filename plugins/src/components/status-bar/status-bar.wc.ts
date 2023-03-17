@@ -1,8 +1,15 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { $OffListener } from "../../helper/createSignal.ts";
+import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { statusBarPlugin } from "./status-bar.plugin.ts";
+import { $StatusBarRawState, $StatusBarState } from "./status-bar.type.ts";
 
-export class HTMLDwebStatusBarElement extends HTMLElement {
+export class HTMLDwebStatusBarElement extends HTMLStateObserverElement<
+  $StatusBarRawState,
+  $StatusBarState
+> {
+  constructor() {
+    super(statusBarPlugin.state);
+  }
   readonly plugin = statusBarPlugin;
   @cacheGetter()
   get setColor() {
@@ -47,29 +54,6 @@ export class HTMLDwebStatusBarElement extends HTMLElement {
   @cacheGetter()
   get getOverlay() {
     return statusBarPlugin.getOverlay;
-  }
-  constructor() {
-    super();
-    (async () => {
-      for await (const state of statusBarPlugin.state.jsonlines()) {
-        console.log("status-bar changed", state);
-      }
-    })();
-  }
-  private _onchange?: $OffListener;
-  async connectedCallback() {
-    this._onchange = statusBarPlugin.state.onChange((info) => {
-      this.dispatchEvent(new CustomEvent("change", { detail: info }));
-    });
-    await statusBarPlugin.state.startObserve(); // 开始监听
-    await statusBarPlugin.getState(true); // 强制刷新
-  }
-  async disconnectedCallback() {
-    if (this._onchange) {
-      this._onchange();
-      this._onchange = undefined;
-    }
-    await statusBarPlugin.state.stopObserve();
   }
 }
 
