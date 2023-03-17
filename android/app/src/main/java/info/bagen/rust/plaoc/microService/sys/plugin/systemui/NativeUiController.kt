@@ -9,12 +9,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
-import info.bagen.rust.plaoc.util.IsChange
 import java.lang.reflect.Type
 
 
@@ -24,12 +24,16 @@ inline fun debugNativeUi(tag: String, msg: Any? = "", err: Throwable? = null) =
 class NativeUiController(
     val activity: ComponentActivity,
 ) {
+    val windowInsetsControllerCompat by lazy {
+        WindowCompat.getInsetsController(
+            activity.window, activity.window.decorView
+        )
+    }
 
     val statusBar = StatusBarController(activity, this)
     val navigationBar = NavigationBarController(activity, this)
     val virtualKeyboard = VirtualKeyboardController(activity, this)
 
-    //    val contentArea = ContentAreaController(activity, this)
     val safeArea = SafeAreaController(activity, this)
 
 
@@ -40,6 +44,8 @@ class NativeUiController(
          */
         SideEffect {
             WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+            /// system-bar 一旦隐藏（visible = false），那么被手势划出来后，过一会儿自动回去
+            windowInsetsControllerCompat.systemBarsBehavior = BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         statusBar.effect()
         navigationBar.effect()
@@ -76,15 +82,11 @@ class NativeUiController(
         }
 
         override fun deserialize(
-            json: JsonElement,
-            typeOfT: Type,
-            context: JsonDeserializationContext
+            json: JsonElement, typeOfT: Type, context: JsonDeserializationContext
         ): BarStyle = from(json.asString)
 
         override fun serialize(
-            src: BarStyle,
-            typeOfSrc: Type,
-            context: JsonSerializationContext
+            src: BarStyle, typeOfSrc: Type, context: JsonSerializationContext
         ): JsonElement = JsonPrimitive(src.style)
 
     }
@@ -112,8 +114,12 @@ class NativeUiController(
 
             val color by colorState
             val style by styleState
-            val visible by visibleState
-            DisposableEffect(color, style) {
+            var visible by visibleState
+            DisposableEffect(visible, color, style) {
+                debugNativeUi(
+                    "DisposableEffect", "visible:${visible}"
+                )
+                systemUiController.isStatusBarVisible = visible
                 systemUiController.setStatusBarColor(
                     color = color,
                     darkIcons = when (style) {
@@ -122,10 +128,6 @@ class NativeUiController(
                         else -> color.luminance() > 0.5F
                     },
                 )
-                onDispose {}
-            }
-            DisposableEffect(visible) {
-                systemUiController.isStatusBarVisible = visible
                 onDispose {}
             }
 
@@ -138,9 +140,7 @@ class NativeUiController(
 
                 it.effectChange {
                     debugNativeUi("StatusBar", "CHANGED")
-                    runBlockingCatching {
-                        observer.changeSignal.emit()
-                    }.getOrNull()
+                    observer.notifyObserver()
                 }
             }
 
@@ -203,7 +203,6 @@ class NativeUiController(
 
             val color by colorState
             val style by styleState
-            val visible by visibleState
             DisposableEffect(color, style) {
                 systemUiController.setNavigationBarColor(
                     color = color,
@@ -215,6 +214,7 @@ class NativeUiController(
                 )
                 onDispose { }
             }
+            var visible by visibleState
             DisposableEffect(visible) {
                 systemUiController.isNavigationBarVisible = visible
                 onDispose { }
@@ -229,9 +229,7 @@ class NativeUiController(
 
                 it.effectChange {
                     debugNativeUi("StatusBar", "CHANGED")
-                    runBlockingCatching {
-                        observer.changeSignal.emit()
-                    }.getOrNull()
+                    observer.notifyObserver()
                 }
             }
 
@@ -272,11 +270,6 @@ class NativeUiController(
         val showState = mutableStateOf(false)
 
         val imeInsets = mutableStateOf(WindowInsets(0))
-//            @Composable get() = WindowInsets.ime
-
-//        @OptIn(ExperimentalLayoutApi::class)
-//        val isImeVisible = mutableStateOf(false)
-//            @Composable get() = WindowInsets.isImeVisible
 
         @OptIn(ExperimentalComposeUiApi::class)
         @Composable
@@ -295,115 +288,10 @@ class NativeUiController(
             return this
         }
     }
-//
-//
-//    class ContentAreaController(
-//        val activity: ComponentActivity, val nativeUiController: NativeUiController
-//    ) {
-//        /**
-//         * 边距，当我们与 system ui 不层叠渲染是（overlay=false），我们就需要通过 padding 来对我们的视图进行边距调整
-//         * 它将会影响元素的内宽高
-//         */
-//        val modifierPaddingState = mutableStateOf(PaddingValues())
-//
-//        /**
-//         * 偏移量，有时候我们并不想改变元素的宽高，而只是想进行一定程度的偏移
-//         * 比如可以做一些警告的抖动特效
-//         */
-//        val modifierOffsetState = mutableStateOf(IntOffset(0, 0))
-//
-//        /**
-//         * 缩放量
-//         */
-//        val modifierScaleState = mutableStateOf(Pair(0.0F, 0.0F))
-//
-//
-//        private val isContentLayoutChanged = IsChange(true)
-//
-//        /**
-//         * 使得当前 ContentController 生效
-//         */
-//        @Composable
-//        fun effect(): ContentAreaController {
-//            val statusBar = nativeUiController.statusBar
-//            val virtualKeyboard = nativeUiController.virtualKeyboard
-//            val navigationBar = nativeUiController.navigationBar
-//            val safeArea = nativeUiController.safeArea
-//
-//            // isContentLayoutChanged
-//            isContentLayoutChanged.let {
-//                val isSafeAreaOverlay by it.rememberByState(safeArea.overlayState)
-//                val safeAreaCutoutInsets by it.rememberByState(safeArea.cutoutInsetsState)
-//
-//                val isStatusBarOverlay by it.rememberByState(statusBar.overlayState)
-//                val statusBarsInsets by it.rememberByState(statusBar.statusBarsInsetsState)
-//
-//                val isVirtualKeyboardOverlay by it.rememberByState(virtualKeyboard.overlayState)
-//                val imeInsets by it.rememberByState(virtualKeyboard.imeInsets)
-//
-//                val isNavigationBarOverlay by it.rememberByState(navigationBar.overlayState)
-//                val navigationBarsInsets by it.rememberByState(navigationBar.navigationBarsInsetsState)
-//
-//                it.effectChange {
-//                    debugNativeUi(
-//                        "LAYOUT-CHANGE", """
-//                            isSafeAreaOverlay: $isSafeAreaOverlay
-//                            safeAreaCutoutInsets: $safeAreaCutoutInsets
-//                            isStatusBarOverlay: $isStatusBarOverlay
-//                            statusBarsInsets: $statusBarsInsets
-//                            isVirtualKeyboardOverlay: $isVirtualKeyboardOverlay
-//                            imeInsets: $imeInsets
-//                            isNavigationBarOverlay: $isNavigationBarOverlay
-//                            navigationBarsInsets: $navigationBarsInsets
-//                            """.trimIndent()
-//                    )
-//
-//                    modifierPaddingState.value = WindowInsets(0).let {
-//                        var res = it
-//                        /// 顶部
-//                        if (isStatusBarOverlay && isSafeAreaOverlay) {
-//                        } else if (isStatusBarOverlay && !isSafeAreaOverlay) {
-//                            res = res.add(statusBarsInsets)
-//                        } else if (!isStatusBarOverlay && isSafeAreaOverlay) {
-//                            res = res.add(safeAreaCutoutInsets)
-//                        } else {
-//                            val density = LocalDensity.current
-//                            val cutoutTop = safeAreaCutoutInsets.getTop(density)
-//                            val statusTop = statusBarsInsets.getTop(density)
-//                            val topInsets =
-//                                if (cutoutTop > statusTop) safeAreaCutoutInsets else statusBarsInsets
-//
-//                            res = res.add(topInsets)
-//                        }
-//                        /// 底部
-//                        // 底部带键盘
-//                        if (isVirtualKeyboardOverlay && isNavigationBarOverlay) {
-//
-//                        } else if (isVirtualKeyboardOverlay && !isNavigationBarOverlay) {
-//                            res = res.add(navigationBarsInsets)
-//                        } else if (!isVirtualKeyboardOverlay && isNavigationBarOverlay) {
-//                            res = res.add(imeInsets)
-//                        } else if (!isVirtualKeyboardOverlay && !isNavigationBarOverlay) {
-//                            val density = LocalDensity.current
-//                            val imeBottom = imeInsets.getBottom(density)
-//                            val navBottom = navigationBarsInsets.getBottom(
-//                                density
-//                            )
-//                            val bottomInsets =
-//                                if (imeBottom > navBottom) imeInsets else navigationBarsInsets
-//
-//                            res = res.add(bottomInsets)
-//                        }
-//                        println("modifierPaddingState: $res")
-//                        res
-//                    }.asPaddingValues()
-//                }
-//            }
-//
-//            return this
-//        }
-//    }
 
+    /**
+     * 安全区域，被 设备的顶部流海、状态栏、导航栏等原生UI所影响后，分割出inner、outer两个部分
+     */
     class SafeAreaController(
         val activity: ComponentActivity, val nativeUiController: NativeUiController
     ) {
@@ -412,12 +300,22 @@ class NativeUiController(
          */
         val cutoutInsetsState = mutableStateOf(WindowInsets(0))
 
+        /**
+         * 是否要覆盖刘海屏
+         */
         val overlayState = mutableStateOf(true)
 
-        val safeAreaInsetsState = mutableStateOf(WindowInsets(0))
-        val contentAreaInsetsState = mutableStateOf(WindowInsets(0))
+        /**
+         * 内部区域
+         */
+        val innerSafeAreaInsetsState = mutableStateOf(WindowInsets(0))
 
-        private val isSafeAreaRectChanged = IsChange(true)
+        /**
+         * 外部区域
+         */
+        val outerAreaInsetsState = mutableStateOf(WindowInsets(0))
+
+        val observer = StateObservable { gson.toJson(toJsonAble()) }
 
         @Composable
         fun effect(): SafeAreaController {
@@ -428,7 +326,7 @@ class NativeUiController(
             val navigationBar = nativeUiController.navigationBar
             val safeArea = this
 
-            isSafeAreaRectChanged.let {
+            observer.stateChanges.let {
                 val isSafeAreaOverlay by it.rememberByState(safeArea.overlayState)
                 val safeAreaCutoutInsets by it.rememberByState(safeArea.cutoutInsetsState)
 
@@ -441,54 +339,74 @@ class NativeUiController(
                 val isNavigationBarOverlay by it.rememberByState(navigationBar.overlayState)
                 val navigationBarsInsets by it.rememberByState(navigationBar.navigationBarsInsetsState)
 
-                var RES_safeAreaInsets = WindowInsets(0)
-                var RES_contentArea = WindowInsets(0)
+                it.effectChange {
+                    var RES_safeAreaInsets = WindowInsets(0)
+                    var RES_contentArea = WindowInsets(0)
 
-                /// 顶部
-                if (isStatusBarOverlay && isSafeAreaOverlay) {
-                    // 都覆盖，那么就写入safeArea，contentArea不需要调整
-                    RES_safeAreaInsets += safeAreaCutoutInsets.union(statusBarsInsets)
-                } else if (isStatusBarOverlay && !isSafeAreaOverlay) {
-                    // safeArea只写入状态栏，contentArea写入剩余的
-                    RES_safeAreaInsets += safeAreaCutoutInsets
-                    RES_contentArea += safeAreaCutoutInsets.exclude(statusBarsInsets)
-                } else if (!isStatusBarOverlay && isSafeAreaOverlay) {
-                    // safeArea只写入安全区域，contentArea写入剩余的
-                    RES_safeAreaInsets += statusBarsInsets
-                    RES_contentArea += statusBarsInsets.exclude(safeAreaCutoutInsets)
-                } else {
-                    // 都不覆盖，全部写入 contentArea
-                    RES_contentArea += safeAreaCutoutInsets.union(statusBarsInsets)
+                    /// 顶部
+                    if (isStatusBarOverlay && isSafeAreaOverlay) {
+                        // 都覆盖，那么就写入safeArea，contentArea不需要调整
+                        RES_safeAreaInsets += safeAreaCutoutInsets.union(statusBarsInsets)
+                    } else if (isStatusBarOverlay && !isSafeAreaOverlay) {
+                        // safeArea只写入状态栏，contentArea写入剩余的
+                        RES_safeAreaInsets += safeAreaCutoutInsets
+                        RES_contentArea += safeAreaCutoutInsets.exclude(statusBarsInsets)
+                    } else if (!isStatusBarOverlay && isSafeAreaOverlay) {
+                        // safeArea只写入安全区域，contentArea写入剩余的
+                        RES_safeAreaInsets += statusBarsInsets
+                        RES_contentArea += statusBarsInsets.exclude(safeAreaCutoutInsets)
+                    } else {
+                        // 都不覆盖，全部写入 contentArea
+                        RES_contentArea += safeAreaCutoutInsets.union(statusBarsInsets)
+                    }
+                    /// 底部
+                    // 底部带键盘
+                    if (isVirtualKeyboardOverlay && isNavigationBarOverlay) {
+                        // 都覆盖，那么就写入safeArea，contentArea不需要调整
+                        RES_safeAreaInsets += navigationBarsInsets.union(imeInsets)
+                    } else if (isVirtualKeyboardOverlay && !isNavigationBarOverlay) {
+                        // safeArea只写入键盘，contentArea写入剩余的
+                        RES_safeAreaInsets += imeInsets
+                        RES_contentArea += imeInsets.exclude(navigationBarsInsets)
+                    } else if (!isVirtualKeyboardOverlay && isNavigationBarOverlay) {
+                        // safeArea只写入底部栏，contentArea写入剩余的
+                        RES_safeAreaInsets += navigationBarsInsets
+                        RES_contentArea += navigationBarsInsets.exclude(imeInsets)
+                    } else if (!isVirtualKeyboardOverlay && !isNavigationBarOverlay) {
+
+                        // 都不覆盖，全部写入 contentArea
+                        RES_contentArea += navigationBarsInsets.union(imeInsets)
+                    }
+
+                    innerSafeAreaInsetsState.value = RES_safeAreaInsets
+                    outerAreaInsetsState.value = RES_contentArea
+                    debugNativeUi("SafeArea", "CHANGED")
+                    observer.notifyObserver()
                 }
-                /// 底部
-                // 底部带键盘
-                if (isVirtualKeyboardOverlay && isNavigationBarOverlay) {
-                    // 都覆盖，那么就写入safeArea，contentArea不需要调整
-                    RES_safeAreaInsets += navigationBarsInsets.union(imeInsets)
-                } else if (isVirtualKeyboardOverlay && !isNavigationBarOverlay) {
-                    // safeArea只写入键盘，contentArea写入剩余的
-                    RES_safeAreaInsets += imeInsets
-                    RES_contentArea += imeInsets.exclude(navigationBarsInsets)
-                } else if (!isVirtualKeyboardOverlay && isNavigationBarOverlay) {
-                    // safeArea只写入底部栏，contentArea写入剩余的
-                    RES_safeAreaInsets += navigationBarsInsets
-                    RES_contentArea += navigationBarsInsets.exclude(imeInsets)
-                } else if (!isVirtualKeyboardOverlay && !isNavigationBarOverlay) {
-
-                    // 都不覆盖，全部写入 contentArea
-                    RES_contentArea += navigationBarsInsets.union(imeInsets)
-                }
-
-                safeAreaInsetsState.value = RES_safeAreaInsets
-                contentAreaInsetsState.value = RES_contentArea
-
             }
             return this
         }
+
+
+        data class SafeAreaState(
+            val cutoutRect: RectJson,
+            val overlay: Boolean,
+            val boundingOuterRect: RectJson,
+            val boundingInnerRect: RectJson,
+        )
+
+        fun toJsonAble() = SafeAreaState(
+            cutoutRect = cutoutInsetsState.value.toJsonAble(),
+            overlay = overlayState.value,
+            boundingOuterRect = outerAreaInsetsState.value.toJsonAble(),
+            boundingInnerRect = innerSafeAreaInsetsState.value.toJsonAble(),
+        )
     }
 
     companion object {
-
+        init {
+            QueryHelper.init() // 初始化
+        }
     }
 
 }
