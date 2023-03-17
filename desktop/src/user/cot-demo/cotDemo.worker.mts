@@ -59,7 +59,7 @@ const main = async () => {
       `file:///cot-demo${pathname}?mode=stream`
     );
     console.timeEnd(`open file ${pathname}`);
-    console.log(`${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`)
+    // console.log(`${remoteIpcResponse.statusCode} ${JSON.stringify(remoteIpcResponse.headers.toJSON())}`)
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
      * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。

@@ -52,7 +52,7 @@ class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
                     },
                     query_rotationDegrees(request)
                 )
-                var result = mutableListOf<String>()
+                val result = mutableListOf<String>()
                 process(image).forEach {
                     result.add(String(it.data))
                 }

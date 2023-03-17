@@ -5,8 +5,7 @@ import {
 
 export class BarcodeScannerPlugin extends BasePlugin {
   readonly tagName = "dweb-barcode-scanning";
-  // private _formats = SupportedFormat.QR_CODE;
-  // private _direction: string = CameraDirection.BACK;
+
   // private _video: HTMLVideoElement | null = null;
   // private _options: ScanOptions | null = null;
   // private _backgroundColor: string | null = null;
