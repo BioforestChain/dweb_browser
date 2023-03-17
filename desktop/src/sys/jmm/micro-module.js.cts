@@ -1,10 +1,12 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
-import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
+import { Ipc, IpcHeaders, IpcRequest, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { MicroModule } from "../../core/micro-module.cjs";
 import type { $IpcSupportProtocols } from "../../helper/types.cjs";
 import { buildUrl } from "../../helper/urlHelper.cjs";
 import { Native2JsIpc } from "../js-process/ipc.native2js.cjs";
+import { IpcEvent } from "../../core/ipc/IpcEvent.cjs"
+ 
 import type { JmmMetadata } from "./JmmMetadata.cjs";
 import chalk from "chalk";
 
@@ -35,18 +37,19 @@ export class JsMicroModule extends MicroModule {
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private _process_id?: string;
+  /**
+   * 一个 jsMM 可能连接多个模块
+   */
+  private _remoteIpcs = new Map<string, Ipc>()
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
     this.onConnect((ipc) => {
+      
       // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
       ipc.onRequest(async (request) => {
-        // console.log('[micro-module.js.cts ipc onRequest]',JSON.stringify(request))
-        // console.log('[micro-module.js.cts ipc onRequest request.parsed_url.href]',request.parsed_url.href)
-        // console.log('[micro-module.js.cts ]   ipc ', ipc.remote.mmid)
-        // console.log(chalk.red(`[micro-module.js.cts 这里错误，传递 init 参数否则无法正确的创建ipc通信🔗]`))
         // console.log(chalk.red(`[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`))
         const  init = request.method === "POST" || request.method === "PUT"  
                     ? { method: request.method, body: await request.body.stream()}
@@ -62,10 +65,30 @@ export class JsMicroModule extends MicroModule {
         // console.log('ipc.onMessage', request)
       })
 
-      ipc.onEvent(() =>{
-        console.log('ipc. onEvent')
+      /** 
+       * 处理从 js-process.cts 发送过来的 
+       * messate.type === IPC_MESSAGE_TYPE.EVENT
+       * 
+       */
+      ipc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === ipc */) =>{
+       
+        if(ipcEventMessage.name === "dns/connect"){
+          if(Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data')
+          // 创建同 远程模块的 ipc 通道
+          const mmid = JSON.parse(ipcEventMessage.data as string).mmid
+          const [remoteIpc, localIpc] = await context.dns.connect(mmid)
+          this._remoteIpcs.set(mmid, remoteIpc)
+          ipc.postMessage(IpcEvent.fromText("dns/connect", "done"))
+          // 直接转发
+          remoteIpc.onEvent((event, _ipc) => ipc.postMessage(event))
+          return;
+        }
+
+        const remoteIpc = this._remoteIpcs.get(ipcEventMessage.name)
+        if(remoteIpc === undefined) throw new Error('没有匹配的 remoteIpc')
+        remoteIpc.postMessage(ipcEventMessage)
+
       })
-      console.log('onConencted')
     })
 
 
@@ -76,7 +99,7 @@ export class JsMicroModule extends MicroModule {
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
     streamIpc.onRequest(async (request) => {
-      console.log('-----------------------2', request.parsed_url)
+      // console.log('-----------------------2', request.parsed_url)
       if (request.parsed_url.pathname.endsWith("/")) {
         streamIpc.postMessage(
           IpcResponse.fromText(
@@ -130,6 +153,7 @@ export class JsMicroModule extends MicroModule {
     });
 
     jsIpc.onEvent(async (ipcEvent) => {
+      console.log('接收到连接的请求')
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
         const [targetIpc] = await context.dns.connect(mmid);

@@ -159,6 +159,11 @@ export class JsProcessMicroModule implements $MicroModule {
       this.fetchIpc.postMessage(
         IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
       );
+
+      // 这个接口接受到到指令
+      this.fetchIpc.onMessage((message, messagePortIpc) => {
+        ipc_po.resolve(messagePortIpc)
+      })
       return ipc_po;
     }).promise;
   }

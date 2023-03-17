@@ -11,6 +11,8 @@ import type { Remote } from "comlink";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 import type { $NativeWindow } from "../../helper/openNativeWindow.cjs";
+import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
+import chalk from "chalk";
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
@@ -236,6 +238,18 @@ export class StatusbarNMM extends NativeMicroModule {
         return result;
       },
     });
+
+    this.onConnect(ipc => {
+      // ipc.onMessage((ipcEvent, nativeIpc) => {
+      //   console.log(chalk.red('statusbar,main.cts 接受到了消息'),ipcEvent);
+      //   ipc.postMessage(IpcEvent.fromText('test from statusbar', "----"))
+      // })
+
+      ipc.onEvent((ipcEvent, nativeIpc) => {
+        console.log(chalk.red('statusbar,main.cts 接受到了消息'),ipcEvent);
+        ipc.postMessage(IpcEvent.fromText('test from statusbar', "----"))
+      })
+    })
   }
 
   private async _sendToStatusbarHtml(appUrl: string) {

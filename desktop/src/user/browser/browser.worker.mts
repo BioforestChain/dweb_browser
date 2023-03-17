@@ -10,6 +10,11 @@
 // import { streamReadAll } from "../../helper/readableStreamHelper.cjs";
 import { wwwServerOnRequest } from "./www-server-on-request.mjs"
 import { apiServerOnRequest } from "./api-server-on-request.mjs"
+import chalk from "chalk"
+
+import type { $OnIpcEventMessage } from "../../core/ipc/const.cjs"
+
+ 
 
  
 
@@ -33,9 +38,52 @@ const main = async () => {
       .text();
   }
 
+   
+  // 等待他人的连接
+  {
+    jsProcess.onConnect((ipc) => {
+      console.log('browser.worker.mts onConnect')
+      ipc.onEvent((event, ipc) => {
+        console.log("got event:", ipc.remote.mmid, event.name, event.text);
+        setTimeout(() => {
+          ipc.postMessage(IpcEvent.fromText(event.name, "echo:" + event.text));
+        }, 500);
+      });
+    });
+  }
+
+  // 后期需要更改 把这个移动到 js-process.worker.mts 中
+  // 只接连接全部的plugins
+  const { IpcEvent } = ipc;
+  const statusbarSysDwebIpc = await createConnect("statusbar.sys.dweb");
+  statusbarSysDwebIpc.onEvent((event, ipc) => {
+    console.error("got event:", ipc.remote.mmid, event.name, event.text);
+  });
+  statusbarSysDwebIpc.postMessage({value: "value"});
+
+  async function createConnect(mmid: $MMID){
+    const ipc = await jsProcess.connect(mmid);
+    return {
+      // onMessage:ipc.onMessage,
+      // 暂时只暴露onEvent
+      onEvent: (cb: $OnIpcEventMessage) => ipc.onEvent(cb),
+      // onReqeust: ipc.onRequest,
+      postMessage: async (data: unknown /** JSON 字符串 */) => {
+        let str = ""
+        try{
+          str = JSON.stringify(data)
+        }catch(err){
+          throw new Error(`非法的 data 无法转化为 json`)
+        }
+        ipc.postMessage(IpcEvent.fromText(mmid, str))
+      },
+      ipc: ipc
+    }
+  }
 }
 
 main();
+
 
 
  
