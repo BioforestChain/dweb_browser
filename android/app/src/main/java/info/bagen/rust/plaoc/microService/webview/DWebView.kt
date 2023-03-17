@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
+import org.http4k.lens.Header
 
 
 inline fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -204,13 +205,13 @@ class DWebView(
                     )
                 }.getOrThrow()
                 println("shouldInterceptRequest response: ${request.url}  [${response.headers.joinToString { "${it.first}=${it.second} " }}]")
-                val headersMap = response.headers.toMap().toMutableMap()
+                val contentType = Header.CONTENT_TYPE(response)
                 return WebResourceResponse(
-                    response.header("Content-Type"),
-                    null,
+                    contentType?.value,
+                    contentType?.directives?.find { it.first == "charset" }?.second,
                     response.status.code,
                     response.status.description,
-                    headersMap,
+                    response.headers.toMap(),
                     response.body.stream,
                 )
             }
