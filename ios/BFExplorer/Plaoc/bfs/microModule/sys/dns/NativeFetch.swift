@@ -10,52 +10,53 @@ import Vapor
 import Alamofire
 
 typealias FetchAdaptor = (_ remote: MicroModule, _ request: Vapor.Request) async -> Vapor.Response?
-struct S_FetchAdaptor: Hashable {
-    var timestamp = Date().milliStamp
-    var fetchAdaptor: FetchAdaptor
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(timestamp)
-    }
-    
-    static func ==(lhs: S_FetchAdaptor, rhs: S_FetchAdaptor) -> Bool {
-        return lhs.timestamp == rhs.timestamp
-    }
-}
+//struct S_FetchAdaptor: Hashable {
+//    var timestamp = Date().milliStamp
+//    var fetchAdaptor: FetchAdaptor
+//
+//    func hash(into hasher: inout Hasher) {
+//        hasher.combine(timestamp)
+//    }
+//
+//    static func ==(lhs: S_FetchAdaptor, rhs: S_FetchAdaptor) -> Bool {
+//        return lhs.timestamp == rhs.timestamp
+//    }
+//}
 
-class NativeFetchAdaptersManager {
-    private var adapterOrderMap: [S_FetchAdaptor:Int] = [:]
-    private var orderdAdapters: [S_FetchAdaptor] = []
-    
-    var adapters: [S_FetchAdaptor] {
-        get {
-            orderdAdapters
-        }
-    }
-    
-    func append(order: Int = 0, adapter: @escaping FetchAdaptor) -> (()) async -> Bool {
-        let fetchAdaptor = S_FetchAdaptor(fetchAdaptor: adapter)
-        adapterOrderMap[fetchAdaptor] = order
-        orderdAdapters = adapterOrderMap.reduce(into: []) { $0.append(($1.key, $1.value)) }.sorted(by: { $0.1 < $1.1 }).map { $0.0 }
-        
-        return { _ in
-            return self.remove(fetchAdaptor: fetchAdaptor)
-        }
-    }
-    
-    func remove(fetchAdaptor: S_FetchAdaptor) -> Bool {
-        adapterOrderMap.removeValue(forKey: fetchAdaptor)
-        return true
-    }
-}
+//class NativeFetchAdaptersManager {
+//    private var adapterOrderMap: [S_FetchAdaptor:Int] = [:]
+//    private var orderdAdapters: [S_FetchAdaptor] = []
+//
+//    var adapters: [S_FetchAdaptor] {
+//        get {
+//            orderdAdapters
+//        }
+//    }
+//
+//    func append(order: Int = 0, adapter: @escaping FetchAdaptor) -> (()) async -> Bool {
+//        let fetchAdaptor = S_FetchAdaptor(fetchAdaptor: adapter)
+//        adapterOrderMap[fetchAdaptor] = order
+//        orderdAdapters = adapterOrderMap.reduce(into: []) { $0.append(($1.key, $1.value)) }.sorted(by: { $0.1 < $1.1 }).map { $0.0 }
+//
+//        return { _ in
+//            return self.remove(fetchAdaptor: fetchAdaptor)
+//        }
+//    }
+//
+//    func remove(fetchAdaptor: S_FetchAdaptor) -> Bool {
+//        adapterOrderMap.removeValue(forKey: fetchAdaptor)
+//        return true
+//    }
+//}
 
-var nativeFetchAdaptersManager = NativeFetchAdaptersManager()
+//var nativeFetchAdaptersManager = NativeFetchAdaptersManager()
+var nativeFetchAdaptersManager = AdapterManager<FetchAdaptor>()
 
 func localeFileFetch(remote: MicroModule, request: Vapor.Request) -> Vapor.Response? {
     if request.url.scheme == "file" && request.url.host == "", let url = URL(string: request.url.string) {
         let path = url.pathComponents.joined(separator: "/")
         
-        return request.fileio.streamFile(at: Bundle.main.bundlePath + "/app/sdk\(path)")
+        return request.fileio.streamFile(at: Bundle.main.bundlePath + "/app/\(path)")
     } else {
         return nil
     }
@@ -70,29 +71,13 @@ func alamofireFetch(request: Vapor.Request) -> Vapor.Response? {
         req.headers = Alamofire.HTTPHeaders(headers)
         
         if request.body.data != nil {
-            var data = request.body.data!
-            req.httpBody = data.readData(length: data.readableBytes)
+            req.httpBody = Data(request.body.data!.readableBytesView)
         } else if request.method == .POST || request.method == .PUT || request.method == .PATCH {
-            var req_body_stream: Data = Data()
-            var sequential = request.eventLoop.makeSucceededFuture(())
+            var buffer = try? request.body.collect().wait()
             
-            request.body.drain {
-                switch $0 {
-                case .buffer(var buffer):
-                    if buffer.readableBytes > 0 {
-                        req_body_stream.append(buffer.readData(length: buffer.readableBytes)!)
-                    }
-                    
-                    return sequential
-                case .error(_):
-                    return sequential
-                case .end:
-                    return sequential
-                }
+            if buffer!.readableBytes > 0 {
+                req.httpBodyStream = InputStream(data: Data(buffer!.readableBytesView))
             }
-            
-            
-            req.httpBodyStream = InputStream(data: req_body_stream)
         }
         
         var response: Vapor.Response = Response(status:.badRequest)
@@ -118,7 +103,7 @@ func alamofireFetch(request: Vapor.Request) -> Vapor.Response? {
 extension MicroModule {
     func nativeFetch(request: Vapor.Request) async -> Vapor.Response {
         for fetchAdapter in nativeFetchAdaptersManager.adapters {
-            let response = await fetchAdapter.fetchAdaptor(self, request)
+            let response = await fetchAdapter(self, request)
             if response != nil {
                 return response!
             }
@@ -128,11 +113,19 @@ extension MicroModule {
     }
     
     func nativeFetch(url: URI) async -> Vapor.Response {
-        await nativeFetch(request: Vapor.Request(application: HttpServer.app, method: .GET, url: url, on: HttpServer.app.eventLoopGroup.next()))
+        await nativeFetch(request: Vapor.Request(
+            application: HttpServer.app,
+            method: .GET,
+            url: url,
+            on: HttpServer.app.eventLoopGroup.next()))
     }
     
     func nativeFetch(url: String) async -> Vapor.Response {
-        await nativeFetch(request: Vapor.Request(application: HttpServer.app, method: .GET, url: URI(string: url), on: HttpServer.app.eventLoopGroup.next()))
+        await nativeFetch(request: Vapor.Request(
+            application: HttpServer.app,
+            method: .GET,
+            url: URI(string: url),
+            on: HttpServer.app.eventLoopGroup.next()))
     }
 }
 

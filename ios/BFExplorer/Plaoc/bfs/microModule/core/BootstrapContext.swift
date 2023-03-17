@@ -24,5 +24,5 @@ protocol DnsMicroModule {
 }
 
 protocol BootStrapContext {
-    var dns: DnsMicroModule { get }
+    var dns: DnsMicroModule { get set }
 }

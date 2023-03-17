@@ -78,6 +78,9 @@ class IpcBodyReceiver: IpcBody {
         return CACHE.metaId_ipcBodySender_Map[metaBody.metaId] ?? IpcBodyReceiver(metaBody: metaBody, ipc: ipc)
     }
     
+    /**
+     * @return {String | ByteArray | InputStream}
+     */
     static func metaToStream(metaBody: MetaBody, ipc: Ipc) -> InputStream {
         var metaBody = metaBody
         let stream_id = metaBody.streamId!
@@ -94,13 +97,20 @@ class IpcBodyReceiver: IpcBody {
                 data = nil
             }
             
+            /// 如果有初始帧，直接存起来
+            if data != nil {
+                controller.enqueue(data!)
+            }
+            
             _ = ipc.onMessage { (message, _) in
-                if let message = message as? IpcStreamData, message.stream_id == stream_id {
-//                    if stream_id == "rs-0" {
-//
-//                    }
+                if var message = message as? IpcStreamData, message.stream_id == stream_id {
+                    if stream_id == "rs-0" {
+                        print("ReadableStream stream_id: \(stream_id)")
+                    }
+                    controller.enqueue(message.binary)
                 } else if let message = message as? IpcStreamEnd, message.stream_id == stream_id {
-                    
+                    print("receiver/StreamEnd/\(ipc)/\(controller.stream)", message)
+                    controller.close()
                     
                     return SIGNAL_CTOR.OFF
                 }
@@ -111,6 +121,8 @@ class IpcBodyReceiver: IpcBody {
             print("receiver/postPullMessage/\(ipc)/")
             await ipc.postMessage(message: IpcStreamPull(stream_id: stream_id, desiredSize: 1))
         })
+        
+        print("receiver/\(ipc)/\(stream)", "start by stream-id:\(stream_id)")
         
         return stream
     }

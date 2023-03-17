@@ -98,9 +98,9 @@ class Ipc {
     }
     
     private lazy var _eventSignal = {
-        let signal = Signal<IpcRequestMessageArgs>()
+        let signal = Signal<IpcEventMessageArgs>()
         _ = _messageSignal.listen { (message, ipc) in
-            if let message = message as? IpcReqMessage {
+            if let message = message as? IpcEvent {
                 await signal.emit((message, ipc))
             }
             
@@ -110,7 +110,7 @@ class Ipc {
         return signal.listen
     }()
     
-    func onEvent(cb: @escaping OnIpcRequestMessage) -> IpcTupleBool {
+    func onEvent(cb: @escaping OnIpcEventMessage) -> IpcTupleBool {
         return _eventSignal(cb)
     }
     
@@ -159,13 +159,13 @@ class Ipc {
                     po.resolve(message.toIpcResponse(ipc: ipc))
 //                    return message.toIpcResponse()
                 }
-                
+
                 return SIGNAL_CTOR.OFF
             }
-            
+
             return await po.waitPromise()
         }
-        
+
         return await task.value
 //        return await po.waitPromise()
     }

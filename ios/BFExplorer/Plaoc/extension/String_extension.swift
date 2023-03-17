@@ -102,22 +102,34 @@ extension String {
         } ?? []
     }
     
-    //字符串编码
+    // 字符串编码
+    func encodeURI() -> String {
+        return self.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+    }
+    
     func encodeURIComponent() -> String {
-        let characterSet = NSMutableCharacterSet.urlQueryAllowed
-
-        return self.addingPercentEncoding(withAllowedCharacters: characterSet)?
-            .replacingOccurrences(of: "\\+", with: "%20")
-            .replacingOccurrences(of: "\\%21", with: "!")
-            .replacingOccurrences(of: "\\%27", with: "'")
-            .replacingOccurrences(of: "\\%28", with: "(")
-            .replacingOccurrences(of: "\\%29", with: ")")
-            .replacingOccurrences(of: "\\%7E", with: "~")
+        return self.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)?
+            .replacingOccurrences(of: ";", with: "%3B")
+            .replacingOccurrences(of: "/", with: "%2F")
+            .replacingOccurrences(of: "?", with: "%3F")
+            .replacingOccurrences(of: ":", with: "%3A")
+            .replacingOccurrences(of: "@", with: "$40")
+            .replacingOccurrences(of: "&", with: "%26")
+            .replacingOccurrences(of: "=", with: "%3D")
+            .replacingOccurrences(of: "+", with: "%2B")
+            .replacingOccurrences(of: "$", with: "%24")
+            .replacingOccurrences(of: ",", with: "%2C")
+            .replacingOccurrences(of: "#", with: "%23")
         ?? ""
     }
     
-    func encodeURI() -> String {
-        return self.addingPercentEncoding(withAllowedCharacters: .afURLQueryAllowed)?
+    // 字符串解码
+    func decodeURI() -> String {
+        return removingPercentEncoding ?? self
+    }
+    
+    func decodeURIComponent() -> String {
+        return removingPercentEncoding?
             .replacingOccurrences(of: "%3B", with: ";")
             .replacingOccurrences(of: "%2F", with: "/")
             .replacingOccurrences(of: "%3F", with: "?")
@@ -129,7 +141,7 @@ extension String {
             .replacingOccurrences(of: "%24", with: "$")
             .replacingOccurrences(of: "%2C", with: ",")
             .replacingOccurrences(of: "%23", with: "#")
-        ?? ""
+        ?? self
     }
     
     //字符串截断

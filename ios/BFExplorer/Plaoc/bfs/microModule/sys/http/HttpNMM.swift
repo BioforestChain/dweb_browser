@@ -20,6 +20,8 @@ class HttpNMM: NativeMicroModule {
     override init() {
         super.init()
         mmid = "http.sys.dweb"
+        
+        HttpServer.app.middleware.use(RequestMiddleware(httpNMM: self), at: .end)
     }
     
     struct RequestMiddleware: AsyncMiddleware {
@@ -32,7 +34,7 @@ class HttpNMM: NativeMicroModule {
             var header_host: String? = nil
             var header_x_dweb_host: String? = nil
             var header_user_agent_host: String? = nil
-            var query_x_web_host: String? = request.query[String.self, at: "X-Dweb-Host"]
+            let query_x_web_host: String? = request.query[String.self, at: "X-Dweb-Host"]
 
             for (key, value) in request.headers {
                 switch key {
@@ -100,8 +102,10 @@ class HttpNMM: NativeMicroModule {
 //                    detailMessage: "未找到"
 //                )
 //            }
+            
+            let vaporResponse = try await next.respond(to: request)
 
-            return try await next.respond(to: request)
+            return response ?? vaporResponse
         }
     }
 
@@ -143,7 +147,7 @@ class HttpNMM: NativeMicroModule {
         """))
     }
     
-    override func _bootstrap() async throws {
+    override func _bootstrap(bootstrapContext: BootStrapContext) async throws {
         /// 启动http后端服务
         HttpServer.createServer(22206)
         
@@ -153,31 +157,103 @@ class HttpNMM: NativeMicroModule {
         /// 为 nativeFetch 函数提供支持
         _ = _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { _, request in
             if request.url.scheme == "http" && request.url.host != nil && request.url.host!.hasSuffix(".dweb") {
-                return alamofireFetch(request: Request.new(url: request.url.string))
+                return await self.httpHandler(request: Request.new(method: request.method, url: request.url.string))
             } else {
                 return nil
             }
         })
     }
     
+    /**
+     * 监听请求
+     *
+     * 真实过来的请求有两种情况：
+     * 1. http://subdomain.localhost:24433
+     * 2. http://localhost:24433
+     * 前者是桌面端自身 chrome 支持的情况，后者才是常态。
+     * 但是我们返回给开发者的端口只有一个，这就意味着我们需要额外手段进行路由
+     *
+     * 如果这个请求是发生在 nativeFetch 中，我们会将请求的 url 改成 http://localhost:24433，同时在 headers.user-agent 的尾部加上 dweb-host/subdomain.localhost:24433
+     * 如果这个请求是 webview 中发出，我们一开始就会为整个 webview 设置 user-agent，使其行为和上条一致
+     *
+     * 如果在 webview 中，要跨域其它请求，那么 webview 的拦截器能对 get 请求进行简单的转译处理，
+     * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
+     * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
+     */
+    private func httpHandler(request: Request) async -> Response {
+        var header_host: String? = nil
+        var header_x_dweb_host: String? = nil
+        var header_user_agent_host: String? = nil
+        let query_x_web_host: String? = request.query[String.self, at: "X-Dweb-Host"]
+
+        for (key, value) in request.headers {
+            switch key {
+            case "Host":
+                header_host = value
+            case "X-Dweb-Host":
+                header_x_dweb_host = value
+            case "User-Agent":
+//                    // iOS 16之后的写法
+//                    do {
+//                        if let result = try /\sdweb-host\/(.+)\s*/.firstMatch(in: value) {
+//                            header_user_agent_host = result.output.1
+//                        }
+//                    } catch {
+//
+//                    }
+                let result = value.getMatches(regex: #"\sdweb-host\/(.+)\s*"#)
+                if !result.isEmpty {
+                    header_user_agent_host = result[0]
+                }
+            default:
+                break
+            }
+        }
+        
+        var host = query_x_web_host ?? header_x_dweb_host ?? header_user_agent_host ?? header_host ?? "*"
+        
+        if !host.contains(":") && host != "*" {
+            host += ":\(HttpServer.PORT)"
+        }
+        
+        var response: Response?
+        let gateway = self.gatewayMap[host]
+        if gateway != nil {
+            response = await gateway!.listener.hookHttpRequest(request: request)
+        }
+        
+        return response ?? Response(status: .notFound)
+    }
+    
     private func routerHandler() {
         let startRouteHandler: RouterHandler = { request, ipc async in
             let port = request.query[Int.self, at: "port"]
-            let subdomain = request.query[String.self]
+            let subdomain = request.query[String.self, at: "subdomain"]
             
-            return self.start(ipc: ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
+            return self.start(
+                ipc: ipc!, options: DwebHttpServerOptions(
+                    port: port ?? 80,
+                    subdomain: subdomain?.decodeURIComponent() ?? ""))
         }
         let listenRouteHandler: RouterHandler = { request, _ async in
-            guard let token = request.query[String.self, at: "token"] else {
+            guard let token = request.query[String.self, at: "token"],
+                  let routes = request.query[String.self, at: "routes"]
+            else {
                 return Response(status: .badRequest)
             }
+            
+            let _routes = JSONParse(routes, of: [Gateway.RouteConfig].self)
                     
-            return await self.listen(token: token, message: request)
+            return await self.listen(token: token.decodeURIComponent(), message: request, routes: _routes)
         }
         let closeRouteHandler: RouterHandler = { request, ipc async in
             let port = request.query[Int.self, at: "port"]
-            let subdomain = request.query[String.self]
-            return await self.close(ipc: ipc!, options: DwebHttpServerOptions(port: port ?? 80, subdomain: subdomain ?? ""))
+            let subdomain = request.query[String.self, at: "subdomain"]
+            return await self.close(
+                ipc: ipc!,
+                options: DwebHttpServerOptions(
+                    port: port ?? 80,
+                    subdomain: subdomain?.decodeURIComponent() ?? ""))
         }
         apiRouting["\(self.mmid)/start"] = startRouteHandler
         apiRouting["\(self.mmid)/listen"] = listenRouteHandler
@@ -189,14 +265,17 @@ class HttpNMM: NativeMicroModule {
         let httpHandler: (Request) async throws -> Response = { request async in
             await self.defineHandler(request: request)
         }
-        for pathComponent in ["start", "listen", "close"] {
+        for pathComponent in ["start", "close"] {
             group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
         }
+        group.on(.POST, ["listen"], use: httpHandler)
     }
     
     func getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions) -> ServerUrlInfo {
         let mmid = ipc.remote.mmid
-        let subdomainPrefix = options.subdomain == "" || options.subdomain.hasSuffix(".") ? options.subdomain : "\(options.subdomain)."
+        let subdomainPrefix = options.subdomain == "" || options.subdomain.hasSuffix(".")
+            ? options.subdomain
+            : "\(options.subdomain)."
         let port = options.port
         if port <= 0 || port >= 65536 {
             fatalError("invalid dweb http port: \(options.port)")
@@ -237,6 +316,9 @@ class HttpNMM: NativeMicroModule {
         var urlInfo: ServerUrlInfo
     }
     
+    /**
+     * 监听端口，启动服务
+     */
     private func start(ipc: Ipc, options: DwebHttpServerOptions) -> ServerStartResult {
         let serverUrlInfo = getServerUrlInfo(ipc: ipc, options: options)
         
@@ -245,6 +327,7 @@ class HttpNMM: NativeMicroModule {
         }
         
         let listener = Gateway.PortListener(ipc: ipc, host: serverUrlInfo.host)
+        /// ipc 在关闭的时候，自动释放所有的绑定
         _ = listener.onDestroy {
             _ = ipc.onClose {
                 Task {
@@ -256,7 +339,7 @@ class HttpNMM: NativeMicroModule {
             return nil
         }
         
-        let token = generateTokenBase64String(64)
+        let token = generateTokenBase64String(8)
         let gateway = Gateway(listener: listener, urlInfo: serverUrlInfo, token: token)
         gatewayMap[serverUrlInfo.host] = gateway
         tokenMap[token] = gateway
@@ -264,54 +347,72 @@ class HttpNMM: NativeMicroModule {
         return ServerStartResult(token: token, urlInfo: serverUrlInfo)
     }
     
-    private func listen(token: String, message: Request) async -> Response {
+    /**
+     *  绑定流监听
+     */
+    private func listen(token: String, message: Request, routes: [Gateway.RouteConfig]) async -> Response {
         let gateway = tokenMap[token]
         
         if gateway == nil {
             fatalError("no gateway with token: \(token)")
         }
         
-        let streamIpc = ReadableStreamIpc(remote: gateway!.listener.ipc.remote, role: .server)
-
-        var data = Data()
-        let sequential = message.eventLoop.makeSucceededFuture(())
-        message.body.drain {
-            switch $0 {
-            case .buffer(var buffer):
-                let _data = buffer.readData(length: buffer.readableBytes)
-                if _data != nil {
-                    data.append(_data!)
-                }
-                return sequential
-            case .error, .end:
-                return sequential
+        let streamIpc = ReadableStreamIpc(
+            remote: gateway!.listener.ipc.remote,
+            role: "http-gateway/\(gateway!.urlInfo.host)")
+        
+//        var data = Data()
+//        let sequential = message.eventLoop.makeSucceededFuture(())
+//        message.body.drain {
+//            switch $0 {
+//            case .buffer(var buffer):
+//                let _data = buffer.readData(length: buffer.readableBytes)
+//                if _data != nil {
+//                    data.append(_data!)
+//                }
+//                return sequential
+//            case .error, .end:
+//                return sequential
+//            }
+//        }
+//
+//        let stream = InputStream(data: data)
+//        await streamIpc.bindIncomeStream(stream: stream)
+//        let stream = InputStream(data: buffer!.readData(length: buffer!.readableBytes)!)
+        await streamIpc.bindIncomeStream(request: message)
+        
+        
+        
+        for routerConfig in routes {
+            _ = streamIpc.onClose {
+                _ = gateway!.listener.addRouter(config: routerConfig, streamIpc: streamIpc)
+                return .OFF
             }
         }
         
-        let stream = InputStream(data: data)
-        await streamIpc.bindIncomeStream(stream: stream)
+//        typealias ResponseBodyStream = (BodyStreamWriter) -> ()
+//        var a: ResponseBodyStream = { writer in
+//
+//        }
+//        message.body.drain(a)
         
-        return Response(status: .ok, body: .init(stream: { writer in
-            let stream = streamIpc.stream
-            let bufferSize = 1024
-            stream.open()
-            
-            while stream.hasBytesAvailable {
-                var data = Data()
-                var buffer = [UInt8](repeating: 0, count: bufferSize)
-                let bytesRead = stream.read(&buffer, maxLength: bufferSize)
-                if bytesRead < 0 {
-                    stream.close()
-                    _ = writer.write(.error("Error reading from stream" as! Error))
-                } else if bytesRead == 0 {
-                    stream.close()
-                    _ = writer.write(.end)
+        
+        let response = Response(status: .ok, body: .init(stream: { writer in
+            message.body.drain { body in
+                switch body {
+                case .buffer(let buffer):
+                    return writer.write(.buffer(buffer))
+                case .error(let error):
+                    return writer.write(.error(error))
+                case .end:
+                    return writer.write(.end)
                 }
-                data.append(buffer, count: bytesRead)
-                let byteBuffer = ByteBuffer(data: data)
-                _ = writer.write(.buffer(byteBuffer))
             }
         }))
+        
+
+        return Response(status: .ok, body: .init(stream: { $0.responseStreamWriter(stream: streamIpc.stream!) }))
+//        return response
     }
     
     private func close(ipc: Ipc, options: DwebHttpServerOptions) async -> Bool {
@@ -327,378 +428,3 @@ class HttpNMM: NativeMicroModule {
         }
     }
 }
-
-//let customProtocol = "http"
-//
-//enum REQUEST_METHOD: String {
-//    case get = "GET"
-//    case post = "POST"
-//    case put = "PUT"
-//    case delete = "DELETE"
-//    case options = "OPTIONS"
-//}
-//
-//struct HttpRequestInfo {
-//    var http_req_id: Int
-//    var url: String
-//    var method: REQUEST_METHOD
-//    var rawHeaders: [String]
-//}
-//
-//struct HttpResponseInfo {
-//    var http_req_id: Int
-//    var statusCode: Int
-//    var headers: [String:String]
-//    // string | Uint8Array | ReadableStream<Uint8Array | string>
-//    var body: Any
-//}
-//
-//class HttpListener {
-//    var host: String
-//    var port: Int
-//
-//    struct Streams {
-//        let input: InputStream
-//        let output: OutputStream
-//    }
-//
-//    init(host: String, port: Int) {
-//        self.host = host
-//        self.port = port
-//    }
-//
-//    lazy var origin: String = "\(customProtocol)://\(host)"
-//
-//    var _http_req_id_acc = 0
-//    func allocHttpReqId() -> Int {
-//        return _http_req_id_acc++
-//    }
-//
-////    func hookHttpRequest()
-//}
-//
-//struct ReqMathcher: Hashable {
-//    let pathname: String
-//    let matchMode: MatchMode
-//    let method: HTTPMethod
-//
-//    static func ==(lhs: ReqMathcher, rhs: ReqMathcher) -> Bool {
-//        return lhs.pathname == rhs.pathname
-//    }
-//
-//    func hash(into hasher: inout Hasher) {
-//        hasher.combine(pathname)
-//    }
-//}
-//
-////struct Router: Hashable {
-////    let routes: [ReqMathcher]
-////    var streamIpc: NativeIpc
-////
-////    func hash(into hasher: inout Hasher) {
-////        hasher.combine(streamIpc)
-////    }
-////
-////    static func == (lhs: Router, rhs: Router) -> Bool {
-////        return lhs.streamIpc == rhs.streamIpc
-////    }
-////}
-//
-//func isMatchReq(matcher: ReqMathcher, pathname: String, method: HTTPMethod) -> Bool {
-//    return (
-//        (matcher.method ?? HTTPMethod.GET) == method &&
-//        (matcher.matchMode == MatchMode.full
-//         ? pathname == matcher.pathname
-//         : matcher.matchMode == MatchMode.prefix
-//         ? pathname.hasPrefix(matcher.pathname)
-//         : false)
-//    )
-//}
-//
-//class PortListener {
-//    let ipc: NativeIpc?
-//    let host: String
-//    let origin: String
-//
-//    init(ipc: NativeIpc?, host: String, origin: String) {
-//        self.ipc = ipc
-//        self.host = host
-//        self.origin = origin
-//    }
-//
-//    private var _routers: Set<Router> = []
-//    func addRouter(router: Router) -> () -> Void {
-//        _routers.insert(router)
-//
-//        return {
-//            self._routers.remove(router)
-//            return
-//        }
-//    }
-//
-//    private func _isBindMatchReq(pathname: String, method: HTTPMethod) -> (Router, ReqMathcher)? {
-//        for bind in _routers {
-//            for pathMatcher in bind.routes {
-//                if isMatchReq(matcher: pathMatcher, pathname: pathname, method: method) {
-//                    return (bind, pathMatcher)
-//                }
-//            }
-//        }
-//
-//        return nil
-//    }
-//
-//    func hookHttpRequest(req: Request) {
-//        let url = req.url.path
-//        let method = req.method
-//
-//        var ipc_req_body_stream: Data = Data()
-//
-//        if method == .POST || method == .PUT {
-//            var sequential = req.eventLoop.makeSucceededFuture(())
-//
-//            req.body.drain {
-//                switch $0 {
-//                case .buffer(var buffer):
-//                    if buffer.readableBytes > 0 {
-//                        ipc_req_body_stream.append(buffer.readData(length: buffer.readableBytes)!)
-//                    }
-//
-//                    return sequential
-//                case .error(_):
-//                    return sequential
-//                case .end:
-//                    return sequential
-//                }
-//            }
-//        }
-//
-////        let filePath = rootFilePath(fileName: fileName) + path
-////        guard FileManager.default.fileExists(atPath: filePath) else { return "" }
-////        let stream = InputStream(fileAtPath: filePath)
-////        stream?.open()
-////        defer {
-////            stream?.close()
-////        }
-////
-////        let bufferSize = 1024
-////        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-////        defer {
-////            buffer.deallocate()
-////        }
-////        var result: String = ""
-////        while stream!.hasBytesAvailable {
-////            let length = stream!.read(buffer, maxLength: bufferSize)
-////            let data = Data(bytes: buffer, count: length)
-////            let content = String(data: data, encoding: .utf8) ?? ""
-////            result += content
-////        }
-////        return result
-//    }
-//}
-//
-//struct GetHostOptions {
-//    var ipc: NativeIpc?
-//    var port: Int?
-//    var subdomain: String?
-//}
-//
-//class HttpServerNMM: NativeMicroModule {
-//    var tokenMap: [/* token */String:PortListener] = [:]
-//    var gatewayMap: [/* host */String:PortListener] = [:]
-//
-//    convenience init() {
-//        self.init(mmid: "http.sys.dweb")
-//    }
-//
-//    let port = 22605
-//    override func _bootstrap() -> Any {
-//        Task(priority: .background) {
-//            do {
-//                HttpServer.createServer(port)
-//                let app = HttpServer.app
-//
-//                app.get(["\(self.mmid)", "listen"]) { req in
-//
-//                    guard let port = req.query[Int.self, at: "port"],
-//                          let subdomain = req.query[String.self, at: "subdomain"],
-//                          let mmid = req.query[String.self, at: "mmid"]
-//                    else {
-//                        return ""
-//                    }
-//
-//                    let (_, origin) = self.listen(hostOptions: HostParam(port: port, mmid: mmid, subdomain: subdomain))
-//                    print(origin)
-//
-//                    return origin
-//                }
-//
-//                app.get(["\(self.mmid)", "unlisten"]) { req in
-//                    guard let port = req.query[Int.self, at: "port"],
-//                          let subdomain = req.query[String.self, at: "subdomain"],
-//                          let mmid = req.query[String.self, at: "mmid"]
-//                    else {
-//                        return false
-//                    }
-//
-//                    return self.unlisten(hostOptions: HostParam(port: port, mmid: mmid, subdomain: subdomain))
-//                }
-//
-//                app.middleware.use(RequestMiddleware())
-//
-//                try app.start()
-//            } catch {
-//                fatalError("http server start error: \(error)")
-//            }
-//        }
-//    }
-//
-//    struct RequestMiddleware: AsyncMiddleware {
-//        func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
-//            var host = "*"
-//
-//            if request.headers.contains(name: "User-Agent") {
-//                host = request.headers.first(name: "User-Agent")!
-//
-//                print("RequestMiddleware host: \(host)")
-//            }
-//
-//            // 网关未找到判断
-//            let gateway = DnsNMM.shared.httpServerNMM.gatewayMap[host]
-//            if gateway == nil && !request.url.path.hasPrefix("/http.sys.dweb") {
-//                return await DnsNMM.shared.httpServerNMM.defaultErrorResponse(
-//                    req: request,
-//                    statusCode: .badGateway,
-//                    errorMessage: "Bad Gateway",
-//                    detailMessage: "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
-//                )
-//            }
-//
-//            // 未找到路由判断
-//            let app = HttpServer.app
-//            let routes = app.routes.all
-//            if !routes.contains(where: { route in
-//                let routePath = "/" + route.path.map { "\($0)" }.joined(separator: "/")
-//                if routePath == request.url.path && route.method == request.method {
-//                    return true
-//                } else {
-//                    return false
-//                }
-//            }) {
-//                return await DnsNMM.shared.httpServerNMM.defaultErrorResponse(
-//                    req: request,
-//                    statusCode: .notFound,
-//                    errorMessage: "not found",
-//                    detailMessage: "未找到"
-//                )
-//            }
-//
-//            return try await next.respond(to: request)
-//        }
-//    }
-//
-//    /// 网关错误，默认返回
-//    func defaultErrorResponse(req: Request, statusCode: HTTPResponseStatus, errorMessage: String, detailMessage: String) async -> Response {
-//        var headerJsonString = ""
-//        _ = req.headers.map { item in
-//            headerJsonString += "\(item.name): \(item.value)\n"
-//        }
-//        var headers = HTTPHeaders()
-//        headers.add(name: .contentType, value: "text/html")
-//
-//        return Response(status: statusCode, headers: headers, body: .init(string: """
-//            <!DOCTYPE html>
-//                <html>
-//                    <head>
-//                        <meta charset="UTF-8" />
-//                        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-//                        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-//                        <title>\(statusCode.code)</title>
-//                    </head>
-//                    <body>
-//                        <h1 style="color:red;margin-top:50px;">[\(statusCode.code)] \(errorMessage)</h1>
-//                        <blockquote>\(detailMessage)</blockquote>
-//                        <div>
-//                          <h2>URL:</h2>
-//                          <pre>\(req.url)</pre>
-//                        </div>
-//                        <div>
-//                          <h2>METHOD:</h2>
-//                          <pre>\(req.method)</pre>
-//                        </div>
-//                        <div>
-//                          <h2>HEADERS:</h2>
-//                          <pre>\(headerJsonString)</pre>
-//                        </div>
-//                  </body>
-//            </html>
-//        """))
-//    }
-//
-//    private func listen(hostOptions: HostParam) -> (String, String) {
-//        let host = self.getHost(hostOption: HostParam(port: hostOptions.port, mmid: hostOptions.mmid, subdomain: hostOptions.subdomain))
-//        let origin = "\(customProtocol)://\(host)"
-//
-//        // TODO: 未完成base64加密
-//        let token = "dweb-browser-random-token"
-//
-//        self.gatewayMap[host] = PortListener(ipc: nil, host: host, origin: origin)
-//        return (token, origin)
-//    }
-//
-//    private func unlisten(hostOptions: HostParam) -> Bool {
-//        let host = self.getHost(hostOption: HostParam(port: hostOptions.port, mmid: hostOptions.mmid, subdomain: hostOptions.subdomain))
-//
-//        let gateway = self.gatewayMap[host]
-//
-//        if gateway == nil {
-//            return false
-//        }
-//
-//        self.tokenMap.removeValue(forKey: host)
-//        self.gatewayMap.removeValue(forKey: host)
-//
-//        return true
-//    }
-//
-//    struct HostParam {
-//        var port: Int
-//        var mmid: MMID
-//        var subdomain: String
-//    }
-//
-//    func parserHostParam(host: String) -> HostParam? {
-//        if host.hasSuffix("localhost:\(self.port)") {
-//            let host = host.replacingOccurrences(of: "localhost\(self.port)", with: "")
-//            let hostArr = host.split(separator: ".")
-//
-//            if hostArr.count >= 3 {
-//                let dwebPart = hostArr.last
-//
-//                if !dwebPart!.hasPrefix("dweb") {
-//                    return nil
-//                }
-//                guard let port = Int(dwebPart!.replacingOccurrences(of: "dweb-", with: "")) else {
-//                    return nil
-//                }
-//                let mmid = hostArr[hostArr.count-3...hostArr.count-1].joined(separator: ".") + ".dweb"
-//                let subdomain = hostArr[0...hostArr.count-3].joined(separator: ".")
-//
-//                return HostParam(port: port, mmid: mmid, subdomain: subdomain)
-//            } else {
-//                return nil
-//            }
-//        } else {
-//            return nil
-//        }
-//    }
-//
-//    func getHost(hostOption: HostParam) -> String {
-//        return "\(hostOption.subdomain).\(hostOption.mmid)-\(hostOption.port).\(HttpServer.address!)"
-//    }
-//
-//    deinit {
-//        HttpServer.app.shutdown()
-//    }
-//}
-

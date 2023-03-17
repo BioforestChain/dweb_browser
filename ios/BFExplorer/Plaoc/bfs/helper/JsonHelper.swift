@@ -18,17 +18,17 @@ func JSONStringify<T: Codable>(_ data: T) -> String? {
 }
 
 /// 反序列化
-func JSONParse<T: Codable>(_ str: String) -> T? {
+func JSONParse<T: Codable>(_ str: String, of type: T.Type) -> T {
     do {
         let jsonData = str.utf8Data()
         
         if jsonData == nil {
-            return nil
+            fatalError("data JSONParse error: \(str)")
         }
         
-        return try JSONDecoder().decode(T.self, from: jsonData!)
+        return try JSONDecoder().decode(type, from: jsonData!)
     } catch {
-        fatalError("data JSONParse error: \(str)")
+        fatalError("data JSONParse error: \(error.localizedDescription)")
     }
 }
 
@@ -37,35 +37,22 @@ func jsonToIpcMessage(data: String, ipc: Ipc) -> IpcMessage? {
         return IpcMessageString(data: data)
     }
     
-    let jsonData = data.utf8Data()
+    let message = JSONParse(data, of: IpcMessageData.self)
     
-    if jsonData == nil {
-        return nil
+    if message.type == .request {
+        return JSONParse(data, of: IpcReqMessage.self)
+    } else if message.type == .response {
+        return JSONParse(data, of: IpcResMessage.self)
+    } else if message.type == .stream_data {
+        return JSONParse(data, of: IpcStreamData.self)
+    } else if message.type == .stream_pull {
+        return JSONParse(data, of: IpcStreamPull.self)
+    } else if message.type == .stream_end {
+        return JSONParse(data, of: IpcStreamEnd.self)
+    } else if message.type == .stream_abort {
+        return JSONParse(data, of: IpcStreamAbort.self)
     }
     
-    do {
-        let decoder = JSONDecoder()
-        let message = try decoder.decode(IpcMessageData.self, from: jsonData!)
-        
-        if message.type == .request {
-            let req = try decoder.decode(IpcReqMessage.self, from: jsonData!)
-            return req
-        } else if message.type == .response {
-            let res = try decoder.decode(IpcResMessage.self, from: jsonData!)
-            return res
-        } else if message.type == .stream_data {
-            return try decoder.decode(IpcStreamData.self, from: jsonData!)
-        } else if message.type == .stream_pull {
-            return try decoder.decode(IpcStreamPull.self, from: jsonData!)
-        } else if message.type == .stream_end {
-            return try decoder.decode(IpcStreamEnd.self, from: jsonData!)
-        } else if message.type == .stream_abort {
-            return try decoder.decode(IpcStreamAbort.self, from: jsonData!)
-        }
-        
-        return nil
-    } catch {
-        return nil
-    }
+    return nil
 }
 

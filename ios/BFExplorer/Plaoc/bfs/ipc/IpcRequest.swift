@@ -106,31 +106,27 @@ final class IpcRequest {
                 binary: Data(buffer: request.body.data!),
                 ipc: ipc)
         } else if request.method == .POST || request.method == .PUT || request.method == .PATCH {
-            var ipc_req_body_stream: Data = Data()
-            var sequential = request.eventLoop.makeSucceededFuture(())
+            var buffer = try? request.body.collect().wait()
             
-            request.body.drain {
-                switch $0 {
-                case .buffer(var buffer):
-                    if buffer.readableBytes > 0 {
-                        ipc_req_body_stream.append(buffer.readData(length: buffer.readableBytes)!)
-                    }
-                    
-                    return sequential
-                case .error(_):
-                    return sequential
-                case .end:
-                    return sequential
-                }
+            if buffer != nil {
+                let ipc_req_body_stream = Data(buffer!.readableBytesView)
+                
+                return fromStream(
+                    req_id: req_id,
+                    method: IpcMethod.from(vaporMethod: request.method),
+                    url: request.url.string, headers: IpcHeaders(request.headers),
+                    stream: InputStream(data: ipc_req_body_stream),
+                    ipc: ipc,
+                    size: Int64(ipc_req_body_stream.count))
+            } else {
+                return fromText(
+                    req_id: req_id,
+                    url: request.url.string,
+                    method: IpcMethod.from(vaporMethod: request.method),
+                    headers: IpcHeaders(request.headers),
+                    text: "",
+                    ipc: ipc)
             }
-            
-            return fromStream(
-                req_id: req_id,
-                method: IpcMethod.from(vaporMethod: request.method),
-                url: request.url.string, headers: IpcHeaders(request.headers),
-                stream: InputStream(data: ipc_req_body_stream),
-                ipc: ipc,
-                size: Int64(ipc_req_body_stream.count))
         } else {
             return fromText(
                 req_id: req_id,
@@ -148,15 +144,25 @@ final class IpcRequest {
         
         var buffer: ByteBuffer
         
-        if body.bodyHub.text != nil {
-            buffer = .init(string: body.bodyHub.text!)
-        } else if body.bodyHub.u8a != nil {
-            buffer = .init(data: body.bodyHub.u8a!)
-        } else if body.bodyHub.stream != nil {
-            buffer = .init(data: Data(reading: body.bodyHub.stream!))
+        if let resBody = body.raw as? String {
+            buffer = .init(string: resBody)
+        } else if let resBody = body.raw as? Data {
+            buffer = .init(data: resBody)
+        } else if let resBody = body.raw as? InputStream {
+            buffer = .init(data: Data(reading: resBody))
         } else {
             fatalError("invalid body to request: \(body)")
         }
+        
+//        if body.bodyHub.text != nil {
+//            buffer = .init(string: body.bodyHub.text!)
+//        } else if body.bodyHub.u8a != nil {
+//            buffer = .init(data: body.bodyHub.u8a!)
+//        } else if body.bodyHub.stream != nil {
+//            buffer = .init(data: Data(reading: body.bodyHub.stream!))
+//        } else {
+//            fatalError("invalid body to request: \(body)")
+//        }
         
         return Request.new(method: HTTPMethod(rawValue: method.rawValue), url: self.url, collectedBody: buffer)
     }

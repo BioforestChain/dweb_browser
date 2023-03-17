@@ -50,7 +50,7 @@ class ReadableStream: InputStream {
     
     init(
         cid: String? = nil,
-        onStart: @escaping AsyncCallback<ReadableStreamController, Void>,
+        onStart: @escaping Callback<ReadableStreamController, Void>,
         onPull: @escaping AsyncCallback<(Int, ReadableStreamController), Void>
     ) {
         self.cid = cid
@@ -58,9 +58,9 @@ class ReadableStream: InputStream {
         self.uid = "#s\(ReadableStream.id_acc.store(1, ordering: .releasing))" + (cid != nil ? "(\(cid!))" : "")
         super.init(data: _data)
         
+        onStart(controller)
         Task {
-            await onStart(controller)
-            
+//            await onStart(controller)
             for await chunk in dataChannel.values {
                 _dataLock.withLock {
                     _data += chunk
@@ -69,6 +69,7 @@ class ReadableStream: InputStream {
                 // 收到数据了，尝试解锁通知等待者
                 _observerInt += 1
             }
+            
             // 关闭数据通道了，尝试解锁通知等待者
             _observerInt = -1
             
@@ -104,39 +105,99 @@ class ReadableStream: InputStream {
         uid
     }
     
-    func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) async -> Int {
-        await withCheckedContinuation { continuation in
-            // 如果下标满足条件，直接返回
-            if _data.count >= len {
-                continuation.resume(returning: super.read(buffer, maxLength: len))
-            }
-            
-            let semaphore = DispatchSemaphore(value: 0)
-            let task = Task {
-                if observerData.value == -1 {
-                    print("REQUEST-DATA/END/\(uid)", "\(_data.count)/\(len)")
-                    semaphore.signal()
-                } else if _data.count >= len {
-                    print("REQUEST-DATA/CHANGER/\(uid)", "\(_data.count)/\(len)")
-                    semaphore.signal()
-                } else {
-                    print("REQUEST-DATA/WAITING-&-PULL/\(uid)", "\(_data.count)/\(len)")
-                    let desireSize = len - _data.count
-                    await onPull((desireSize, controller))
-                }
-            }
-            
-            semaphore.wait()
-            task.cancel()
-            
-            if len < 0 {
-                continuation.resume(returning: -1)
-            } else if len == 0 {
-                continuation.resume(returning: 0)
+//    func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) async -> Int {
+//        await withCheckedContinuation { continuation in
+//            // 如果下标满足条件，直接返回
+//            if _data.count >= len {
+//                continuation.resume(returning: super.read(buffer, maxLength: len))
+//            }
+//
+//            let semaphore = DispatchSemaphore(value: 0)
+//            let task = Task {
+//                if observerData.value == -1 {
+//                    print("REQUEST-DATA/END/\(uid)", "\(_data.count)/\(len)")
+//                    semaphore.signal()
+//                } else if _data.count >= len {
+//                    print("REQUEST-DATA/CHANGER/\(uid)", "\(_data.count)/\(len)")
+//                    semaphore.signal()
+//                } else {
+//                    print("REQUEST-DATA/WAITING-&-PULL/\(uid)", "\(_data.count)/\(len)")
+//                    let desireSize = len - _data.count
+//                    await onPull((desireSize, controller))
+//                }
+//            }
+//
+//            semaphore.wait()
+//            task.cancel()
+//
+//            if len < 0 {
+//                continuation.resume(returning: -1)
+//            } else if len == 0 {
+//                continuation.resume(returning: 0)
+//            } else {
+//                continuation.resume(returning: super.read(buffer, maxLength: _data.count))
+//            }
+//        }
+//    }
+    
+    private func requestData(requestSize: Int) -> Data {
+        // 如果下标满足条件，直接返回
+        if _data.count >= requestSize {
+            return _data
+        }
+        
+//        let wait = PromiseOut<()>()
+        let sem = DispatchSemaphore(value: 0)
+        let task = Task {
+            if observerData.value == -1 {
+                print("REQUEST-DATA/END/\(uid)", "\(_data.count)/\(requestSize)")
+//                wait.resolve(())
+                sem.signal()
+            } else if _data.count >= requestSize {
+                print("REQUEST-DATA/CHANGER/\(uid)", "\(_data.count)/\(requestSize)")
+//                wait.resolve(())
+                sem.signal()
             } else {
-                continuation.resume(returning: super.read(buffer, maxLength: _data.count))
+                print("REQUEST-DATA/WAITING-&-PULL/\(uid)", "\(_data.count)/\(requestSize)")
+                let desireSize = requestSize - _data.count
+                await onPull((desireSize, controller))
             }
         }
+        
+        sem.wait()
+//        try! wait.waitPromise()
+//        try? wait.promise()
+        task.cancel()
+        
+        return _data
+    }
+    
+    /**
+     * 可读数据长度
+     */
+//    func available() async -> Int {
+//        requestData(requestSize: 1).count
+//    }
+    func available() -> Int {
+        requestData(requestSize: 1).count
+    }
+    
+    override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+        let data = requestData(requestSize: len)
+        var len = data.count
+        
+        if len < 0 {
+            // 流已读完
+            return -1
+        } else if len == 0 {
+            return 0
+        }
+        
+        // 处理最后一次读取的时候可能不没有len的长度，取实际长度
+        len = _data.count < len ? _data.count : len
+        
+        // 返回读取的长度
+        return super.read(buffer, maxLength: len)
     }
     
     override func close() {
@@ -153,93 +214,3 @@ class ReadableStream: InputStream {
     }
 }
 
-
-//class ReadableStream: InputStream {
-//    private let dataChannel = PassthroughSubject<ByteBuffer, Never>()
-//    private lazy var controller = ReadableStreamController(dataChannel, getStream: { self })
-//
-//    // 数据源
-//    private var _data: Data = Data()
-//
-//    class ReadableStreamController {
-//        private let dataChannel: PassthroughSubject<ByteBuffer, Never>
-//        private let getStream: () -> ReadableStream
-//        var stream: ReadableStream {
-//            get {
-//                getStream()
-//            }
-//        }
-//
-//        init(_ dataCannel: PassthroughSubject<ByteBuffer, Never>, getStream: @escaping () -> ReadableStream) {
-//            self.dataChannel = dataCannel
-//            self.getStream = getStream
-//        }
-//
-//        func enqueue(_ data: ByteBuffer) {
-//            dataChannel.send(data)
-//        }
-//    }
-//
-//    private let semaphore = DispatchSemaphore(value: -1)
-//    private var dataSize = 0
-//    private var dataSizeState: Int {
-//        get {
-//            self.dataSize
-//        }
-//        set {
-//            if newValue == -1 {
-//                self.semaphore.signal()
-//            }
-//
-//            self.dataSize = newValue
-//        }
-//    }
-//
-//    private var pullSignal = Signal<(Int)>()
-//
-//    init(onStart: ((ReadableStreamController)) -> Void, onPull: @escaping ((Int, ReadableStreamController)) async -> Void) {
-//        super.init(data: self._data)
-//        _ = onStart(controller)
-//
-//        _ = pullSignal.listen { size in
-//            await onPull((size, self.controller))
-//            return nil
-//        }
-//
-//        Task {
-//            for await value in dataChannel.values {
-//                var buffer = value
-//                self._data.append(buffer.readData(length: buffer.readableBytes)!)
-//                self.dataSizeState = self._data.count
-//            }
-//
-//            self.dataSizeState = -1
-//        }
-//    }
-//
-//    private static var id_acc = 0
-//    private var uid: String {
-//        return "#s\(ReadableStream.id_acc++)"
-//    }
-//    func toString() -> String {
-//        return uid
-//    }
-//
-//    override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-//        // 如果长度满足条件，直接返回
-//        if len <= _data.count {
-//            return super.read(buffer, maxLength: len)
-//        }
-//
-//        dataSizeState = len - _data.count
-//        Task {
-//            await pullSignal.emit((dataSizeState))
-//        }
-//        semaphore.wait()
-//
-//        let len = _data.count
-//        _ = super.read(buffer, maxLength: len)
-//
-//        return len
-//    }
-//}

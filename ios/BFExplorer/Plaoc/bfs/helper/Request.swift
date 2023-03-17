@@ -26,6 +26,7 @@ extension Request {
             )
         }
         
+        print("url: \(url)")
         request.route = HttpServer.app.routes.all.first(where: { route in
             if request.url.scheme == "file" && request.url.host != nil {
                 if route.path.string == (request.url.host!+request.url.path) && route.method == request.method {

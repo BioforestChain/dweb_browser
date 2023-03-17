@@ -19,13 +19,17 @@ struct IpcEvent {
         let data: Data?
     }
     
-    lazy var binary: Data = {
-        dataToBinary(data: data, encoding: encoding)
-    }()
+    var binary: Data {
+        get {
+            dataToBinary(data: data, encoding: encoding)
+        }
+    }
     
-    lazy var text: String = {
-        dataToText(data: data, encoding: encoding)
-    }()
+    var text: String {
+        get {
+            dataToText(data: data, encoding: encoding)
+        }
+    }
 }
 
 extension IpcEvent: IpcMessage {

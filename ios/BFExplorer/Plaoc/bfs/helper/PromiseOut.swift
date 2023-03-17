@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import Vapor
 
 class PromiseOut<T: Any> {
     static func resolve(_ value: T) -> PromiseOut<T> {
@@ -14,28 +15,42 @@ class PromiseOut<T: Any> {
         promiseOut.resolve(value)
         return promiseOut
     }
-    
+
     static func reject(_ e: Error) -> PromiseOut<T> {
         let promiseOut = PromiseOut()
         promiseOut.reject(e)
         return promiseOut
     }
-    
+
     private let _subject = PassthroughSubject<T, Error>()
-    
+
     func resolve(_ value: T) {
         _subject.send(value)
     }
-    
+
     func reject(_ e: Error) {
         _subject.send(completion: .failure(e))
     }
-    
+
     var value: T?
     private var cancellable: AnyCancellable?
     var isFinished: Bool = false
     var isResolved: Bool = false
-    
+
+    func waitPromise() -> T {
+        let sem = DispatchSemaphore(value: 0)
+
+        Task {
+            defer {
+                sem.signal()
+            }
+            _ = await waitPromise()
+        }
+
+        sem.wait()
+        return value!
+    }
+
     func waitPromise() async -> T {
         return await withCheckedContinuation { continuation in
             self.cancellable = self._subject.sink(receiveCompletion: { complete in
@@ -53,7 +68,20 @@ class PromiseOut<T: Any> {
             })
         }
     }
-    
+
+    func promise() throws -> T {
+        let sem = DispatchSemaphore(value: 0)
+        Task {
+            defer {
+                sem.signal()
+            }
+            _ = try await promise()
+        }
+
+        sem.wait()
+        return value!
+    }
+
     func promise() async throws -> T {
         return try await withCheckedThrowingContinuation { continuation in
             self.cancellable = _subject.sink(receiveCompletion: { complete in
@@ -71,9 +99,130 @@ class PromiseOut<T: Any> {
             })
         }
     }
-    
+
     deinit {
         cancellable?.cancel()
+    }
+}
+
+class PromiseOut1<T> {
+    var value: T?
+    var e: Error?
+    private let group = DispatchGroup()
+
+    func resolve(_ value: T) {
+        self.value = value
+        group.leave()
+        isResolved = true
+        isFinished = true
+    }
+
+    func reject(_ e: Error) {
+        self.e = e
+        group.leave()
+        isFinished = true
+    }
+
+    var isFinished: Bool = false
+    var isResolved: Bool = false
+
+    func waitPromise() -> T {
+        group.enter()
+        group.wait()
+
+        if e != nil {
+            fatalError(e!.localizedDescription)
+        } else if value == nil {
+            fatalError("value can not nil")
+        }
+
+        return value!
+    }
+}
+
+class PromiseOut2<T> {
+    private var promise: ((Result<T, String>) -> Void)?
+    private var future: Future<T, String>?
+    init() {
+        self.future = Future<T, String>() { promise in
+            self.promise = promise
+        }
+    }
+    
+    private let sem = DispatchSemaphore(value: 0)
+    private var value: T?
+    private var e: String?
+    func resolve(_ value: T) {
+        promise!(.success(value))
+    }
+    
+    func reject(_ e: String) {
+        promise!(.failure(e))
+    }
+    
+    var isFinished = false
+    var isResolved = false
+    func waitPromise() throws -> T {
+        let cancellable = future!.sink(receiveCompletion: { complete in
+            switch complete {
+            case .failure(let e):
+                self.e = e
+                self.sem.signal()
+            case .finished:
+                self.isFinished = true
+            }
+        }, receiveValue: { value in
+            self.value = value
+            self.isResolved = true
+            self.sem.signal()
+        })
+        
+        sem.wait()
+        cancellable.cancel()
+        if e != nil {
+            throw e!
+        } else if value == nil {
+            throw "value is nil"
+        }
+        
+        defer {
+            isFinished = true
+        }
+        
+        return value!
+    }
+}
+extension String: LocalizedError {
+    public var errorDescription: String? { return self }
+}
+
+class PromiseOut3<T> {
+    var eventLoop: EventLoop
+    lazy var promise: EventLoopPromise<T> = {
+        self.eventLoop.makePromise(of: T.self)
+    }()
+    
+    init(eventLoop: EventLoop = HttpServer.app.eventLoopGroup.next()) {
+        self.eventLoop = eventLoop
+    }
+    
+    func resolve(_ value: T) {
+        promise.succeed(value)
+        isResolved = true
+    }
+    
+    func reject(_ e: String) {
+        promise.fail(e)
+    }
+    
+    var isResolved = false
+    var isFinished = false
+    
+    func waitPromise() throws -> T {
+        defer {
+            isFinished = true
+        }
+        return try promise.futureResult.wait()
     }
 }
 

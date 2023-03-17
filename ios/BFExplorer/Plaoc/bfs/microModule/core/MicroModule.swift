@@ -48,11 +48,7 @@ class MicroModule: MicroModuleInfo {
     func bootstrap(bootstrapContext: BootStrapContext) async {
         await beforeBootstrap(bootstrapContext: bootstrapContext)
         
-        do {
-            try await self._bootstrap(bootstrapContext: bootstrapContext)
-        } catch {
-            
-        }
+        try? await self._bootstrap(bootstrapContext: bootstrapContext)
         
         await self.afterBootstrap(dnsMM: bootstrapContext)
     }

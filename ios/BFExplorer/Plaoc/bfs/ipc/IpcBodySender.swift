@@ -30,6 +30,7 @@ class IpcBodySender: IpcBody {
         self.ipc = ipc
         super.init()
         self.raw = raw
+        self.metaBody = bodyAsMeta(body: raw, ipc: ipc)
         
         CACHE.raw_ipcBody_WMap[CACHE.IpcBodyKey(key: raw)] = self
         IPC.usableByIpc(ipc: ipc, ipcBody: self)
@@ -259,23 +260,29 @@ class IpcBodySender: IpcBody {
             
             print("sender/PULLING/\(stream)", stream_id)
             
-            if stream.hasBytesAvailable {
-                _isStreamClosed = true
-                print("sender/READ/\(stream)", " >> \(stream_id)")
-                let message = IpcStreamData.fromBinary(stream_id: stream_id, data: stream.readData())
-                for ipc in usedIpcMap.keys {
-                    await ipc.postMessage(message: message)
-                }
-            } else {
-                print("sender/END/\(stream)", " >> \(stream_id)")
+            if let stream = stream as? ReadableStream {
+                let availableLen = await stream.available()
                 
-                /// 无论是不是被 aborted，都发送结束信号
-                let message = IpcStreamEnd(stream_id: stream_id)
-                for ipc in usedIpcMap.keys {
-                    await ipc.postMessage(message: message)
+                switch availableLen {
+                case 0, -1:
+                    print("sender/END/\(stream)", "\(availableLen) >> \(stream_id)")
+                    
+                    /// 无论是不是被 aborted，都发送结束信号
+                    let message = IpcStreamEnd(stream_id: stream_id)
+                    for ipc in usedIpcMap.keys {
+                        await ipc.postMessage(message: message)
+                    }
+                    
+                    emitStreamClose()
+                default:
+                    // 开光了， 流已经开始被读取
+                    _isStreamOpened = true
+                    print("sender/READ/\(stream)", "\(availableLen) >> \(stream_id)")
+                    let message = IpcStreamData.fromBinary(stream_id: stream_id, data: stream.readData(size: availableLen))
+                    for ipc in usedIpcMap.keys {
+                        await ipc.postMessage(message: message)
+                    }
                 }
-                
-                emitStreamClose()
             }
             
             // 发送完成，解锁
@@ -301,7 +308,14 @@ class IpcBodySender: IpcBody {
             streamType = MetaBody.IpcMetaBodyType(type: .stream_with_binary)
         }
         
-        return MetaBody(type: streamType, senderUid: ipc.uid, data: streamFirstData)
+        let metaBody = MetaBody(type: streamType, senderUid: ipc.uid, data: streamFirstData, streamId: stream_id)
+        // 流对象，写入缓存
+        CACHE.metaId_ipcBodySender_Map[metaBody.metaId] = self
+        _ = abortSignal.listen {
+            CACHE.metaId_receiverIpc_Map.removeValue(forKey: metaBody.metaId)
+        }
+        
+        return metaBody
     }
     
     

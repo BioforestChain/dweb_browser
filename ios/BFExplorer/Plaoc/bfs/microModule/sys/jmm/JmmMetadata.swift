@@ -9,6 +9,7 @@ import Foundation
 
 struct JmmMetadata: Codable {
     let id: Mmid
+    var server: MainServer // 打开应用地址
     var title: String = ""
     var subtitle: String = ""
     var icon: String = ""
@@ -38,6 +39,17 @@ struct JmmMetadata: Codable {
      * 所以如果是 staticWebServers 定义的链接，那么自然而然地，页面会等到 staticWebServer 启动后得到响应，不会错过请求。
      */
     var openDwebViewList: [OpenWebView] = []
+    
+    struct MainServer: Codable {
+        /**
+         * 应用文件夹的目录
+         */
+        let root: String
+        /**
+         * 入口文件
+         */
+        let entry: String
+    }
     
     /**
      * 静态网络服务定义

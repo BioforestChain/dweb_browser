@@ -22,6 +22,8 @@ class HttpServer: ObservableObject {
         configure(app, host: host, port: port)
         bindingPort = port
         origin = "\(PREFIX)localhost:\(port)"
+        
+        try? app.start()
     }
     
     static func configure(_ app: Application, host: String, port: Int) {

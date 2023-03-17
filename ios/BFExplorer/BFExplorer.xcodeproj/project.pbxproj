@@ -190,6 +190,7 @@
 		F0BADEBD2990DA8F00B8DCCF /* AppInfoMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BADEBB2990DA8F00B8DCCF /* AppInfoMgr.swift */; };
 		F0BADEBE2990DA8F00B8DCCF /* AppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BADEBC2990DA8F00B8DCCF /* AppManager.swift */; };
 		F0E4B66A29713E78005ECC4C /* guid in Resources */ = {isa = PBXBuildFile; fileRef = F0E4B66929713E78005ECC4C /* guid */; };
+		F306E6CB29C448D10005F512 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = F306E6CA29C448D10005F512 /* Vapor */; };
 		F3088F3D2987549C008E7F82 /* UserDefaultManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3088F3C2987549C008E7F82 /* UserDefaultManager.swift */; };
 		F3088F3F298757AA008E7F82 /* FileOpenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3088F3E298757AA008E7F82 /* FileOpenManager.swift */; };
 		F334FCC029A3725600DA520C /* MessagePortIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F334FCBF29A3725600DA520C /* MessagePortIpc.swift */; };
@@ -215,8 +216,8 @@
 		F33B31E4295A858B000EB302 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33B31E3295A858B000EB302 /* ToastManager.swift */; };
 		F33B31E6295A8AA6000EB302 /* SplashScreenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33B31E5295A8AA6000EB302 /* SplashScreenManager.swift */; };
 		F33BE3CD2966DE1B006D30B9 /* app in Resources */ = {isa = PBXBuildFile; fileRef = F33BE3CC2966DE1B006D30B9 /* app */; };
+		F34DFFC829C14ED200038490 /* Flow in Frameworks */ = {isa = PBXBuildFile; productRef = F34DFFC729C14ED200038490 /* Flow */; };
 		F354063429B817BD001C2AB5 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = F354063329B817BD001C2AB5 /* Request.swift */; };
-		F359A495299A10260080EAD7 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = F359A494299A10260080EAD7 /* Vapor */; };
 		F359A497299A109B0080EAD7 /* HttpServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A496299A109B0080EAD7 /* HttpServer.swift */; };
 		F359A49B299DB1830080EAD7 /* IpcHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A49A299DB1830080EAD7 /* IpcHeaders.swift */; };
 		F359A49F299DD4750080EAD7 /* EncodingHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F359A49E299DD4750080EAD7 /* EncodingHelper.swift */; };
@@ -533,8 +534,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F306E6CB29C448D10005F512 /* Vapor in Frameworks */,
 				A95784E17034B1A6095B4719 /* Pods_BFExplorer.framework in Frameworks */,
-				F359A495299A10260080EAD7 /* Vapor in Frameworks */,
+				F34DFFC829C14ED200038490 /* Flow in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1262,7 +1264,8 @@
 			);
 			name = BFExplorer;
 			packageProductDependencies = (
-				F359A494299A10260080EAD7 /* Vapor */,
+				F34DFFC729C14ED200038490 /* Flow */,
+				F306E6CA29C448D10005F512 /* Vapor */,
 			);
 			productName = OrionUI;
 			productReference = 1903641426EB427D00B82B1C /* BFExplorer.app */;
@@ -1293,7 +1296,8 @@
 			);
 			mainGroup = 1903640B26EB427D00B82B1C;
 			packageReferences = (
-				F359A493299A10260080EAD7 /* XCRemoteSwiftPackageReference "vapor" */,
+				F34DFFC629C14ED200038490 /* XCRemoteSwiftPackageReference "Flow" */,
+				F306E6C929C448D10005F512 /* XCRemoteSwiftPackageReference "vapor" */,
 			);
 			productRefGroup = 1903641526EB427D00B82B1C /* Products */;
 			projectDirPath = "";
@@ -1829,21 +1833,34 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		F359A493299A10260080EAD7 /* XCRemoteSwiftPackageReference "vapor" */ = {
+		F306E6C929C448D10005F512 /* XCRemoteSwiftPackageReference "vapor" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/vapor/vapor.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.74.1;
+			};
+		};
+		F34DFFC629C14ED200038490 /* XCRemoteSwiftPackageReference "Flow" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/alexito4/Flow.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		F359A494299A10260080EAD7 /* Vapor */ = {
+		F306E6CA29C448D10005F512 /* Vapor */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = F359A493299A10260080EAD7 /* XCRemoteSwiftPackageReference "vapor" */;
+			package = F306E6C929C448D10005F512 /* XCRemoteSwiftPackageReference "vapor" */;
 			productName = Vapor;
+		};
+		F34DFFC729C14ED200038490 /* Flow */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F34DFFC629C14ED200038490 /* XCRemoteSwiftPackageReference "Flow" */;
+			productName = Flow;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

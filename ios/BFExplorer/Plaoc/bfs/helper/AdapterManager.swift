@@ -30,7 +30,7 @@ class AdapterManager<T> {
         }
     }
     
-    func append(order: Int = 0, adapter: T) -> (()) -> Bool {
+    func append(order: Int = 0, adapter: T) -> Callback<(), Bool> {
         let adapterKey = AdapterKey(adapter: adapter)
         adapterOrderMap[adapterKey] = order
         orderAdapters = adapterOrderMap.reduce(into: []) { $0.append(($1.key, $1.value)) }.sorted(by: { $0.1 < $1.1 }).map { $0.0.adapter }

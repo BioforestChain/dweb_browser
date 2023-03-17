@@ -17,7 +17,7 @@ class BrowserNMM: NativeMicroModule {
     
 //    static var activityPo: PromiseOut<>
     
-    override func _bootstrap() async throws {
+    override func _bootstrap(bootstrapContext: BootStrapContext) async throws {
         await MainActor.run {
             guard let app = UIApplication.shared.delegate as? AppDelegate else { return }
             

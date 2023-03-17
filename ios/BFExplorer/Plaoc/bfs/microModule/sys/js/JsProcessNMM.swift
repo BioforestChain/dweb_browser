@@ -8,6 +8,7 @@
 import WebKit
 import Foundation
 import Vapor
+import Flow
 
 class JsProcessNMM: NativeMicroModule {
 //    private var nww: WKWebView? = nil
@@ -24,6 +25,12 @@ class JsProcessNMM: NativeMicroModule {
 //        nativeFetch(url: "file:///bundle/js-process.worker.js").text()!
 //    }()
     
+    private var JS_PROCESS_WORKER_CODE: String {
+        get async {
+            await nativeFetch(url: "file:///bundle/js-process.worker.js").text()!
+        }
+    }
+    
     private let CORS_HEADERS = [
         "Content-Type": "application/javascript",
         "Access-Control-Allow-Origin": "*",
@@ -31,7 +38,7 @@ class JsProcessNMM: NativeMicroModule {
         "Access-Control-Allow-Methods": "*"
     ]
     
-    private let INTERNAL_PATH = "/<internal>".encodeURIComponent()
+    private let INTERNAL_PATH = "/<internal>".encodeURI()
     
     private func getJsProcessWebApi(urlInfo: HttpNMM.ServerUrlInfo) -> JsProcessWebApi {
         return DispatchQueue.main.sync {
@@ -41,32 +48,112 @@ class JsProcessNMM: NativeMicroModule {
         }
     }
     
-    override func _bootstrap() async throws {
-        // 必须要为每个js空间注册，否则无法使用
-//        nww = webView
+    override func _bootstrap(bootstrapContext: BootStrapContext) async throws {
+        /// 主页的网页服务
         let mainServer = await self.createHttpDwebServer(options: DwebHttpServerOptions())
         _ = _afterShutdownSignal.listen {
             mainServer.close()
             return nil
         }
         
+        // 提供基本的主页服务
         let serverIpc = await mainServer.listen()
-        _ = serverIpc.onRequest { request, ipc in
-            let response = await self.nativeFetch(url: "file:///bundle/js-process\(request.uri!.path)")
-            await ipc.postMessage(message: IpcResponse.fromResponse(req_id: request.req_id, response: response, ipc: ipc).ipcResMessage)
-            return nil
+        _ = serverIpc.onRequest { ipcReqMessage, ipc in
+            let ipcRequest = ipcReqMessage.toIpcRequest(ipc: ipc)
+            
+            // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
+            if ipcRequest.uri!.path.hasPrefix(self.INTERNAL_PATH) {
+                let internalUri = URL(string: ipcRequest.uri!.path)!
+                    .replacePath(ipcRequest.uri!.path.slice(self.INTERNAL_PATH.count, -1))
+                
+                if internalUri.path == "/bootstrap.js" {
+                    return await ipc.postMessage(message: IpcResponse.fromText(
+                        req_id: ipcRequest.req_id,
+                        text: await self.JS_PROCESS_WORKER_CODE,
+                        headers: .init(self.CORS_HEADERS),
+                        ipc: ipc).ipcResMessage)
+                } else {
+                    return await ipc.postMessage(message: IpcResponse.fromText(
+                        req_id: ipcRequest.req_id,
+                        text: "// no found \(internalUri.path)",
+                        headers: .init(self.CORS_HEADERS),
+                        ipc: ipc).ipcResMessage)
+                }
+            } else {
+                let response = await self.nativeFetch(url: "file:///bundle/js-process\(ipcRequest.uri!.path)")
+                return await ipc.postMessage(message: IpcResponse.fromResponse(
+                    req_id: ipcRequest.req_id,
+                    response: response,
+                    ipc: ipc).ipcResMessage)
+            }
         }
+        
+        let bootstrap_url = mainServer.startResult.urlInfo.buildInternalUrl()
+            .replacePath("\(INTERNAL_PATH)/bootstrap.js").absoluteString
+        
+        print("mainServer: \(mainServer.startResult)")
         
         let apis = getJsProcessWebApi(urlInfo: mainServer.startResult.urlInfo)
         
+        var ipcProcessIdMap: [Ipc:[String:PromiseOut<Int>]] = [:]
+        let ipcProcessIdMapLock = NSLock()
+        /// 创建 web worker
+        // request 需要携带一个流，来为 web worker 提供代码服务
         let createProcessRouteHandler: RouterHandler = { request, ipc async in
-            let main_pathname = request.query[String.self, at: "main_pathname"]
-            return await self.createProcessAndRun(ipc: ipc!, apis: apis, main_pathname: main_pathname!, requestMessage: request)
+            let po = ipcProcessIdMapLock.withLock {
+                let process_id = request.query[String.self, at: "process_id"]!
+                var processIdMap = ipcProcessIdMap[ipc!]
+                if processIdMap == nil {
+                    _ = ipc!.onClose {
+                        ipcProcessIdMap.removeValue(forKey: ipc!)
+                        return .OFF
+                    }
+                    ipcProcessIdMap[ipc!] = [:]
+                    processIdMap = [:]
+                }
+                if processIdMap!.keys.contains(where: { $0 == process_id }) {
+                    fatalError("ipc: \(ipc!.remote.mmid)/processId: \(process_id) has already using")
+                }
+                
+                let po = PromiseOut<Int>()
+                ipcProcessIdMap[ipc!]![process_id] = po
+                
+                return po
+            }
+            
+            let entry = request.query[String.self, at: "entry"]
+            
+            let result = await self.createProcessAndRun(
+                ipc: ipc!,
+                apis: apis,
+                bootstrap_url: bootstrap_url,
+                entry: entry,
+                requestMessage: request)
+            
+            // 返回流，因为构建了一个双工通讯用于代码提供服务
+            po.resolve(result.processHandler.info.process_id)
+            
+            // 返回流，因为构建了一个双工通讯用于代码提供服务
+            return result.streamIpc.stream
         }
-        let createIpcRouteHandler: RouterHandler = { request, _ async in
-            let process_id = request.query[Int.self, at: "process_id"]
-            await apis.createIpc(process_id: process_id!)
-            return Response(status: .ok)
+        /// 创建 web 通讯管道
+        let createIpcRouteHandler: RouterHandler = { request, ipc async in
+            let processId = request.query[String.self, at: "process_id"]
+            
+            /**
+             * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
+             * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
+             */
+            let mmid = request.query[Mmid.self, at: "mmid"]
+            let process_id = await ipcProcessIdMapLock.withLock {
+                ipcProcessIdMap[ipc!]?[processId!]
+            }?.waitPromise()
+            
+            if process_id == nil {
+                fatalError("ipc: \(ipc!.remote.mmid)/processId: \(processId ?? "") invalid")
+            }
+            
+            return await self.createIpc(ipc: ipc!, apis: apis, process_id: process_id!, mmid: mmid!)
         }
         apiRouting["\(self.mmid)/create-process"] = createProcessRouteHandler
         apiRouting["\(self.mmid)/create-ipc"] = createIpcRouteHandler
@@ -77,17 +164,17 @@ class JsProcessNMM: NativeMicroModule {
         let httpHandler: (Request) async throws -> Response = { request async in
             await self.defineHandler(request: request)
         }
-        for pathComponent in ["create-process", "create-ipc"] {
-            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
-        }
+        group.on(.POST, ["create-process"], use: httpHandler)
+        group.on(.GET, ["create-ipc"], use: httpHandler)
     }
     
     private func createProcessAndRun(
         ipc: Ipc,
         apis: JsProcessWebApi,
-        main_pathname: String = "/index.js",
+        bootstrap_url: String,
+        entry: String?,
         requestMessage: Request
-    ) async -> Response {
+    ) async -> CreateProcessAndRunResult {
         /**
          * 用自己的域名的权限为它创建一个子域名
          */
@@ -96,24 +183,26 @@ class JsProcessNMM: NativeMicroModule {
         /**
          * 远端是代码服务，所以这里是 client 的身份
          */
-        let streamIpc = ReadableStreamIpc(remote: ipc.remote, role: .client)
-        var data = Data()
-        let sequential = requestMessage.eventLoop.makeSucceededFuture(())
-        requestMessage.body.drain {
-            switch $0 {
-            case .buffer(var buffer):
-                let _data = buffer.readData(length: buffer.readableBytes)
-                if _data != nil {
-                    data.append(_data!)
-                }
-                return sequential
-            case .error, .end:
-                return sequential
-            }
-        }
-        
-        let stream = InputStream(data: data)
-        await streamIpc.bindIncomeStream(stream: stream)
+        let streamIpc = ReadableStreamIpc(remote: ipc.remote, role: "code-proxy-server")
+//        var data = Data()
+//        let sequential = requestMessage.eventLoop.makeSucceededFuture(())
+//        requestMessage.body.drain {
+//            switch $0 {
+//            case .buffer(var buffer):
+//                let _data = buffer.readData(length: buffer.readableBytes)
+//                if _data != nil {
+//                    data.append(_data!)
+//                }
+//                return sequential
+//            case .error, .end:
+//                return sequential
+//            }
+//        }
+//
+//        let stream = InputStream(data: data)
+//        await streamIpc.bindIncomeStream(stream: stream)
+        var buffer = try? await requestMessage.body.collect().get()
+        await streamIpc.bindIncomeStream(data: buffer!.readableBytes > 0 ? buffer!.readData(length: buffer!.readableBytes)! : nil)
         
         /**
          * 代理监听
@@ -122,57 +211,62 @@ class JsProcessNMM: NativeMicroModule {
          * 我们会对回来的代码进行处理，然后再执行
          */
         let codeProxyServerIpc = await httpDwebServer.listen()
-        let JS_PROCESS_WORKER_CODE = await nativeFetch(url: "file:///bundle/js-process.worker.js").text()!
-        _ = codeProxyServerIpc.onRequest { request, ipc in
-            if request.uri!.path.hasPrefix(self.INTERNAL_PATH) {
-                let internalUri = request.uri!.path.slice(0, self.INTERNAL_PATH.count).pathComponents.string
-                
-                if internalUri == "/bootstrap.js" {
-                    await ipc.postMessage(message: IpcResponse.fromText(req_id: request.req_id, statusCode: 200, text: JS_PROCESS_WORKER_CODE, headers: IpcHeaders(self.CORS_HEADERS), ipc: ipc).ipcResMessage)
-                } else {
-                    await ipc.postMessage(message: IpcResponse.fromText(req_id: request.req_id, statusCode: 404, text: "// no found \(internalUri)", headers: IpcHeaders(self.CORS_HEADERS), ipc: ipc).ipcResMessage)
-                }
-            } else {
-                Task {
-                    let response = await streamIpc.request(request: request.toRequest())
-                    for (key, value) in self.CORS_HEADERS {
-                        response.headers.add(name: key, value: value)
-                    }
-                    
-                    await ipc.postResponse(req_id: request.req_id, response: response)
-                }
+        _ = codeProxyServerIpc.onRequest { ipcReqMessage, ipc in
+            // 转发给远端来处理
+            let response = await streamIpc.request(request: ipcReqMessage.toIpcRequest(ipc: ipc).toRequest())
+            for (key, value) in self.CORS_HEADERS {
+                response.headers.add(name: key, value: value)
             }
-            
+            await ipc.postResponse(req_id: ipcReqMessage.req_id, response: response)
             return nil
         }
         
-        let bootstrap_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
-            .replacePath("\(INTERNAL_PATH)/bootstrap.js")
-            .appending("mmid", value: ipc.remote.mmid)
-            .appending("host", value: httpDwebServer.startResult.urlInfo.host)
-            .absoluteString
+        struct JsProcessMetadata: Codable {
+            let mmid: Mmid
+        }
+        
+        // TODO: 需要传过来，而不是自己构建
+        let metadata = JsProcessMetadata(mmid: ipc.remote.mmid)
+        
+        let env = [
+            "host": httpDwebServer.startResult.urlInfo.host,
+            "debug": "true",
+            "ipc-support-protocols": ""
+        ]
         
         /**
          * 创建一个通往 worker 的消息通道
          */
-        let processHandler = await apis.createProcess(env_script_url: bootstrap_url, remoteModule: ipc.remote)
+        let processHandler = await apis.createProcess(
+            env_script_url: bootstrap_url,
+            metadata_json: JSONStringify(metadata)!,
+            env_json: ChangeTools.dicValueString(env)!,
+            remoteModule: ipc.remote,
+            host: httpDwebServer.startResult.urlInfo.host
+        )
         
-        /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
-        // TODO: 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
-        _ = processHandler.ipc.onRequest { ipcRequest, ipc in
-            let request = ipcRequest.toRequest()
-            let response = await ipc.remote.nativeFetch(request: request)
-            let ipcResponse = IpcResponse.fromResponse(req_id: ipcRequest.req_id, response: response, ipc: ipc)
-            
-            await ipc.postMessage(message: ipcResponse.ipcResMessage)
-            
-            return nil
+        /**
+         * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
+         *
+         * TODO:  所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
+         */
+        _ = processHandler.ipc.onMessage { (workerIpcMessage, _) in
+            /**
+             * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
+             */
+            await ipc.postMessage(message: workerIpcMessage)
+        }
+        _ = ipc.onMessage { (remoteIpcMessage, _) in
+            await processHandler.ipc.postMessage(message: remoteIpcMessage)
         }
         
         /**
          * 开始执行代码
          */
-        await apis.runProcessMain(process_id: processHandler.info.process_id, options: JsProcessWebApi.RunProcessMainOptions(main_url: httpDwebServer.startResult.urlInfo.buildInternalUrl().replacePath(main_pathname).absoluteString))
+        await apis.runProcessMain(
+            process_id: processHandler.info.process_id,
+            options: JsProcessWebApi.RunProcessMainOptions(
+                main_url: httpDwebServer.startResult.urlInfo.buildInternalUrl().replacePath(entry ?? "/index.js").absoluteString))
         
         /// 绑定销毁
         /**
@@ -195,28 +289,21 @@ class JsProcessNMM: NativeMicroModule {
             return .OFF
         }
 
-        /// 返回自定义的 Response，里头携带我们定义的 ipcStream
-        return Response(status: .ok, body: .init(stream: { writer in
-            let stream = streamIpc.stream
-            let bufferSize = 1024
-            stream.open()
-            
-            while stream.hasBytesAvailable {
-                var data = Data()
-                var buffer = [UInt8](repeating: 0, count: bufferSize)
-                let bytesRead = stream.read(&buffer, maxLength: bufferSize)
-                if bytesRead < 0 {
-                    stream.close()
-                    _ = writer.write(.error("Error reading from stream" as! Error))
-                } else if bytesRead == 0 {
-                    stream.close()
-                    _ = writer.write(.end)
-                }
-                data.append(buffer, count: bytesRead)
-                let byteBuffer = ByteBuffer(data: data)
-                _ = writer.write(.buffer(byteBuffer))
-            }
-        }))
+        return CreateProcessAndRunResult(streamIpc: streamIpc, processHandler: processHandler)
+    }
+    
+    struct CreateProcessAndRunResult {
+        let streamIpc: ReadableStreamIpc
+        let processHandler: JsProcessWebApi.ProcessHandler
+    }
+    
+    private func createIpc(
+        ipc: Ipc,
+        apis: JsProcessWebApi,
+        process_id: Int,
+        mmid: Mmid
+    ) async -> Int {
+        return await apis.createIpc(process_id: process_id, mmid: mmid)
     }
 }
 
@@ -240,7 +327,7 @@ class HttpDwebServer {
         let po = PromiseOut<ReadableStreamIpc>()
         
         Task {
-            let streamIpc = await nmm.listenHttpDwebServer(token: startResult.token, routes: routes)
+            let streamIpc = await nmm.listenHttpDwebServer(startResult: startResult, routes: routes)
             po.resolve(streamIpc)
         }
         
@@ -261,186 +348,33 @@ extension MicroModule {
     }
     
     func startHttpDwebServer(options: DwebHttpServerOptions) async -> HttpNMM.ServerStartResult {
-        await nativeFetch(url: URI(string: "file://http.sys.dweb/start?port=\(options.port)&subdomain=\(options.subdomain)")).json(HttpNMM.ServerStartResult.self)
+        await nativeFetch(url: URL(string: "file://http.sys.dweb/start")!
+            .appending("port", value: "\(options.port)")
+            .appending("subdomain", value: options.subdomain.encodeURIComponent())
+            .absoluteString)
+        .json(HttpNMM.ServerStartResult.self)
     }
     
-    func listenHttpDwebServer(token: String, routes: [Gateway.RouteConfig]) async -> ReadableStreamIpc {
-        let ipc = ReadableStreamIpc(remote: self, role: .client)
-        await ipc.bindIncomeStream(stream: await nativeFetch(request: Request.new(url: "file://http.sys.dweb/listen?token=\(token)&routes=\(ChangeTools.arrayValueString(routes)!)")).stream())
+    func listenHttpDwebServer(startResult: HttpNMM.ServerStartResult, routes: [Gateway.RouteConfig]) async -> ReadableStreamIpc {
+        let ipc = ReadableStreamIpc(remote: self, role: "http-server/\(startResult.urlInfo.host)")
+        let response = await nativeFetch(request: Request.new(
+            method: .POST,
+            url: URL(string: "file://http.sys.dweb/listen")!
+                .appending("host", value: startResult.urlInfo.host.encodeURIComponent())
+                .appending("token", value: startResult.token.encodeURIComponent())
+                .appending("routes", value: JSONStringify(routes)!).absoluteString)
+        )
+        var buffer = try? await response.body.collect(on: HttpServer.app.eventLoopGroup.next()).get()
+        await ipc.bindIncomeStream(data: buffer!.readableBytes > 0 ? buffer!.readData(length: buffer!.readableBytes)! : nil)
         return ipc
     }
     
     func closeHttpDwebServer(options: DwebHttpServerOptions) async -> Bool {
-        await nativeFetch(url: URI(string: "file://http.sys.dweb/close?port=\(options.port)&subdomain=\(options.subdomain)")).boolean()
+        await nativeFetch(url: URL(string: "file://http.sys.dweb/close")!
+            .appending("port", value: "\(options.port)")
+            .appending("subdomain", value: options.subdomain.encodeURIComponent())
+            .absoluteString)
+        .boolean()
     }
 }
 
-
-//class JsProcessNMM: NativeMicroModule {
-//    private lazy var webview: WKWebView = {
-//        return WKWebView(frame: .zero)
-//    }()
-//
-//    var all_ipc_cache: [Int:NativeIpc] = [:]
-//
-//    private var acc_process_id = 0
-//
-//    convenience init() {
-//        self.init(mmid: "js.sys.dweb")
-//        _ = webview
-//
-//        Routers["/create-process"] = { args in
-//            guard let args = args as? [String:String] else { return nil }
-//
-//            if args["main_pathname"] == nil {
-//                return nil
-//            }
-//
-//            let process_id = self.acc_process_id++
-//
-//            // 必须要为每个js空间注册，否则无法使用
-//            self.webview.configuration.userContentController.add(LeadScriptHandle(messageHandle: self), contentWorld: WKContentWorld.world(name: String(process_id)), name: "webworkerOnmessage")
-//            self.webview.configuration.userContentController.add(LeadScriptHandle(messageHandle: self), contentWorld: WKContentWorld.world(name: String(process_id)), name: "logging")
-//            self.webview.configuration.userContentController.add(LeadScriptHandle(messageHandle: self), contentWorld: WKContentWorld.world(name: String(process_id)), name: "portForward")
-//
-//            self.hookJavascriptWorker(process_id: process_id, main_pathname: args["main_pathname"]!)
-//
-//            return process_id
-//        }
-//        Routers["/create-ipc"] = { args in
-//            guard let args = args as? [String:Int], let process_id = args["worker_id"] else { return nil }
-//
-//            if self.all_ipc_cache.index(forKey: process_id) == nil {
-//                print("JsProcessNMM create-ipc no found worker by id '\(process_id)'")
-//                return nil
-//            }
-//
-//            let text = #"""
-//                port1.onmessage = (evt) => {
-//                    evt.data["process_id"] = \(process_id);
-//                    window.webkit.messageHandlers.portForward.postMessage(evt.data);
-//                }
-//            """#
-//            self.evaluateJavaScript(text: text, process_id: process_id)
-//
-//            return process_id
-//        }
-//    }
-//
-//    override func _bootstrap() -> Any {
-//        return true
-//    }
-//
-//    func evaluateJavaScript(text: String, process_id: Int) {
-//        DispatchQueue.main.async {
-//            self.webview.evaluateJavaScript(text, in: nil, in: WKContentWorld.world(name: String(process_id))) { result in
-//                switch result {
-//                case .success(let suc):
-//                    print("suc: \(suc)")
-//                case .failure(let err):
-//                    print(err.localizedDescription)
-//                }
-//            }
-//        }
-//    }
-//
-//    func hookJavascriptWorker(process_id: Int, main_pathname: String) {
-//        DispatchQueue.global().async {
-//            do {
-//                let main_code = try String(contentsOf: main_pathname.hasPrefix("http") ? URL(string: main_pathname)! : URL(fileURLWithPath: main_pathname), encoding: .utf8)
-//                let injectWorkerDir = URL(fileURLWithPath: Bundle.main.bundlePath + "/app/injectWebView/worker.js")
-//                let injectWorkerCode = try String(contentsOf: injectWorkerDir, encoding: .utf8).replacingOccurrences(of: "\"use strict\";", with: "")
-//                let workerCode = """
-//                    data:utf-8,
-//                 ((module,exports=module.exports)=>{\(injectWorkerCode.encodeURIComponent());return module.exports})({exports:{}}).installEnv();
-//                 \(main_code.encodeURIComponent())
-//                """
-//
-//                let text = """
-//                    window.webkit.messageHandlers.logging.postMessage('xxxxxxxx');
-//                    const webworker = new Worker(`\(workerCode)`);
-//                    try {
-//                        webworker.onmessage = (evt) => {
-//                            if(typeof evt.data === 'string') {
-//                                window.webkit.messageHandlers.logging.postMessage(evt.data);
-//                            } else {
-//                                evt.data['process_id'] = \(process_id);
-//                                window.webkit.messageHandlers.webworkerOnmessage.postMessage(JSON.stringify(evt.data));
-//                            }
-//
-//                        }
-//                    } catch(e) {
-//                        window.webkit.messageHandlers.logging.postMessage('error');
-//                        window.webkit.messageHandlers.logging.postMessage(e.message);
-//                    }
-//                    ''
-//                """
-//                ClipboardManager.write(content: text, ofType: .string)
-//                self.evaluateJavaScript(text: text, process_id: process_id)
-//            } catch {
-//                print("JsProcessNMM hookJavascriptWorker error: \(error)")
-//            }
-//        }
-//    }
-//
-//    // ipc请求数据响应内容返回
-//    func ipcResponseMessage(res: IpcResponse, process_id: Int) {
-//        print(res.toDic())
-//        let resStr = ChangeTools.dicValueString(res.toDic())
-//        let text = """
-//            webworker.postMessage(['ipc-response', \(resStr!)], [\(resStr!)]);
-//            ''
-//        """
-//
-//        self.evaluateJavaScript(text: text, process_id: process_id)
-//    }
-//}
-//
-//extension JsProcessNMM: WKScriptMessageHandler {
-//    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-//        if message.name == "webworkerOnmessage" {
-//            print("webworkerOnmessage")
-//            guard let reqBody = message.body as? String else { return }
-//            let args = JSON.init(parseJSON: reqBody)
-//            let url = args["url"].stringValue
-//            let process_id = args["process_id"].intValue
-//
-////            if self.all_ipc_cache.index(forKey: process_id) == nil { return }
-//
-//            print(url)
-//            let resBody = DnsNMM.shared.nativeFetch(urlString: url, microModule: self)
-//
-//            var res: IpcResponse
-//            let req_id = args["req_id"].intValue
-//            let headers = ["Content-Type":"text/plain"]
-////            do {
-//                if let body = resBody as? String {
-//                    res = IpcResponse(req_id: req_id, statusCode: 200, body: body, headers: headers)
-//                } else if let body = resBody as? [String:Any] {
-//                    res = IpcResponse(req_id: req_id, statusCode: 200, body: ChangeTools.dicValueString(body) ?? "", headers: headers)
-//                } else if resBody != nil {
-////                    try res = IpcResponse(req_id: req_id, statusCode: 200, body: "\(resBody)", headers: headers)
-//                    res = IpcResponse(req_id: req_id, statusCode: 200, body: "\(resBody!)", headers: headers)
-//                } else {
-//                    res = IpcResponse(req_id: req_id, statusCode: 404, body: "no found handler for \(args["pathname"].stringValue)", headers: headers)
-//                }
-////            } catch let err {
-////                res = IpcResponse(req_id: req_id, statusCode: 500, body: "\(err)", headers: headers)
-////            }
-//
-//            self.ipcResponseMessage(res: res, process_id: process_id)
-//        } else if(message.name == "logging") {
-//            print(message.body)
-//        } else if(message.name == "portForward") {
-//            print("portForward")
-//            guard let data = message.body as? [String:Any], let process_id = data["process_id"] as? Int else { return }
-//
-//            let port1 = "\(process_id)_port1"
-//            let port2 = "\(process_id)_port2"
-//            let ipc = JsIpc(port1: port1, port2: port2)
-//            self.all_ipc_cache[process_id] = ipc
-//        }
-//    }
-//}
-                    
-                    

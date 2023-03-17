@@ -35,7 +35,7 @@ class Gateway {
         
         private var _routerSet: Set<StreamIpcRouter> = []
         
-        func addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc) -> () -> Bool {
+        func addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc) -> VoidCallback<Bool> {
             let route = StreamIpcRouter(config: config, streamIpc: streamIpc)
             _routerSet.insert(route)
             
@@ -62,7 +62,7 @@ class Gateway {
         
         /// 销毁
         private let destroySignal = Signal<()>()
-        func onDestroy(cb: @escaping () -> SIGNAL_CTOR?) -> () async -> Bool {
+        func onDestroy(cb: @escaping Callback<(), SIGNAL_CTOR>) -> AsyncVoidCallback<Bool> {
             destroySignal.listen(cb)
         }
         
@@ -81,27 +81,36 @@ class Gateway {
     class StreamIpcRouter: Hashable {
         let config: RouteConfig
         let streamIpc: ReadableStreamIpc
-        var isMatch: (_ request: Request) -> Bool
+        lazy var isMatch: (_ request: Request) -> Bool = {
+            switch config.matchMode {
+            case .PREFIX:
+                return { request in
+                    self.config.method == IpcMethod.from(vaporMethod: request.method) &&
+                    request.url.path.hasPrefix(self.config.pathname)
+                }
+            case .FULL:
+                return { request in
+                    self.config.method == IpcMethod.from(vaporMethod: request.method) &&
+                    request.url.path == self.config.pathname
+                }
+            }
+        }()
         
         init(config: RouteConfig, streamIpc: ReadableStreamIpc) {
             self.config = config
             self.streamIpc = streamIpc
-            
-            switch config.matchMode {
-            case .PREFIX:
-                isMatch = { request in
-                    config.method == IpcMethod.from(vaporMethod: request.method) && request.url.path.hasPrefix(config.pathname)
-                }
-            case .FULL:
-                isMatch = { request in
-                    config.method == IpcMethod.from(vaporMethod: request.method) && request.url.path == config.pathname
-                }
-            }
         }
         
         func handler(request: Request) async -> Response? {
             if isMatch(request) {
                 return await streamIpc.request(request: request)
+            } else if request.method == .OPTIONS {
+                // 处理Options请求
+                return Response(status: .ok, headers: .init([
+                    ("Access-Control-Allow-Methods", "*"),
+                    ("Access-Control-Allow-Origin", "*"),
+                    ("Access-Control-Allow-Headers", "*")
+                ]))
             } else {
                 return nil
             }

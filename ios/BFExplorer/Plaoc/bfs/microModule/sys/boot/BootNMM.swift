@@ -21,12 +21,14 @@ class BootNMM: NativeMicroModule {
         }
     }
     
-    override func _bootstrap() async throws {
+    override func _bootstrap(bootstrapContext: BootStrapContext) async throws {
         routerHandler()
         
         Task {
             for mmid in registerdMmids {
-                _ = await nativeFetch(url: "file://dns.sys.dweb/open?app_id=\(mmid.encodeURIComponent())")
+                _ = await nativeFetch(url: URL(string:"file://dns.sys.dweb/open")!
+                    .appending("app_id", value: mmid.encodeURIComponent())
+                    .absoluteString)
             }
         }
     }
@@ -78,50 +80,3 @@ class BootNMM: NativeMicroModule {
     }
 }
 
-//class BootNMM: NativeMicroModule {
-//    var registeredMmids: Set<String> = ["desktop.sys.dweb", "http.sys.dweb"]
-//
-////    private var Routers: [String:(Any) -> Any] = [:]
-//    override func _bootstrap() -> Any {
-//        for mmid in registeredMmids {
-//            DnsNMM.shared.nativeFetch(urlString: "file://dns.sys.dweb/open?app_id=\(mmid)", microModule: self)
-//        }
-//
-//        return true
-//    }
-//
-//    convenience init() {
-//        self.init(mmid: "boot.sys.dweb")
-//        Routers["/register"] = { args in
-//            guard let args = args as? [String:MMID] else { return false }
-//
-//            if args["app_id"] != nil {
-//                self.register(mmid: args["app_id"]!)
-//            }
-//
-//            return true
-//        }
-//        Routers["/unregister"] = { args in
-//            guard let args = args as? [String:MMID] else { return false }
-//
-//            if args["app_id"] != nil {
-//                self.unregister(mmid: args["app_id"]!)
-//            }
-//
-//            return true
-//        }
-//    }
-//
-//    private func register(mmid: String) -> Bool {
-//        registeredMmids.insert(mmid)
-//        return true
-//    }
-//
-//    private func unregister(mmid: String) -> Bool {
-//        if registeredMmids.contains(mmid) {
-//            registeredMmids.remove(mmid)
-//        }
-//
-//        return true
-//    }
-//}

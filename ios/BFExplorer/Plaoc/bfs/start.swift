@@ -32,11 +32,21 @@ func startDwebBrowser() async {
     let desktopJMM = DesktopJMM()
     dnsNMM.install(desktopJMM)
     
-    /// 启动程序
-    let bootNMM = BootNMM(initMmids: [
+    /**
+     *
+     * browserNMM.mmid,
+     * desktopJMM.mmid,
+     * cotDemoJMM.mmid,
+     * cotJMM.mmid,
+     * toyJMM.mmid,
+     */
+    let bootMmidList: Set<Mmid> = [
         browserNMM.mmid,
-        desktopJMM.mmid
-    ])
+//        desktopJMM.mmid
+    ]
+    
+    /// 启动程序
+    let bootNMM = BootNMM(initMmids: bootMmidList)
     dnsNMM.install(bootNMM)
     
     /// 启动
