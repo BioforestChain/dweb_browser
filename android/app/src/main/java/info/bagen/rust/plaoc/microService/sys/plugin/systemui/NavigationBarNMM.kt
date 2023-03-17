@@ -30,19 +30,19 @@ class NavigationBarNMM : NativeMicroModule("navigation-bar.sys.dweb") {
             /**
              * 获取导航栏
              */
-            "/getState" bind Method.GET to defineHandler { request, ipc ->
+            "/getState" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid)
             },
             /**
              * 开始数据订阅
              */
-            "/startObserve" bind Method.GET to defineHandler { request, ipc ->
+            "/startObserve" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid).observer.startObserve(ipc)
             },
             /**
              * 开始数据订阅
              */
-            "/stopObserve" bind Method.GET to defineHandler { request, ipc ->
+            "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
             },
         )

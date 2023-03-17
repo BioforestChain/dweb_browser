@@ -89,130 +89,6 @@ class NativeUiController(
 
     }
 
-//
-//    companion object {
-//
-//        @OptIn(ExperimentalLayoutApi::class)
-//        @Composable
-//        fun remember(activity: ComponentActivity): NativeUiController {
-//            val statusBarController = StatusBarController.remember(activity)
-//            val navigationBarController = NavigationBarController.remember(activity)
-//            val virtualKeyboardController = VirtualKeyboardController.remember(activity)
-//
-//            val modifierPaddingState = remember {
-//                mutableStateOf(PaddingValues())
-//            }
-//
-//            val modifierOffsetState = remember {
-//                mutableStateOf(IntOffset(0, 0))
-//            }
-//
-//            val modifierScaleState = remember {
-//                mutableStateOf(Pair(0.0F, 0.0F))
-//            }
-//
-//            val nativeUiController = remember {
-//                NativeUiController(
-//                    statusBarController = statusBarController,
-//                    navigationBarController = navigationBarController,
-//                    virtualKeyboardController = virtualKeyboardController,
-//                    modifierPaddingState = modifierPaddingState,
-//                    modifierOffsetState = modifierOffsetState,
-//                    modifierScaleState = modifierScaleState,
-//                )
-//            }
-//
-//
-////            val systemUiController = rememberSystemUiController()
-//
-////            val systemUi = rememberSystemUiController()
-////            val useDarkIcons = !isSystemInDarkTheme()
-////            DisposableEffect(systemUi, useDarkIcons) {
-////                // 更新所有系统栏的颜色为透明
-////                // 如果我们在浅色主题中使用深色图标
-////                systemUi.setSystemBarsColor(
-////                    color = Color.Transparent,
-////                    darkIcons = useDarkIcons,
-////                )
-////                onDispose {}
-////            }
-//
-//            /**
-//             * 使用这个 SystemUIController，会使得默认覆盖 系统 UI
-//             */
-//            SideEffect {
-//                WindowCompat.setDecorFitsSystemWindows(activity.window, false)
-//            }
-//
-//            // isSystemUILayoutChanged
-//            rememberIsChange(true).let {
-//
-//                val isStatusBarOverlay by it.rememberByState(statusBarController.overlayState)
-//                println("isStatusBarOverlay: $isStatusBarOverlay")
-//                val statusBarsInsets by it.rememberToState(statusBarController.statusBarsInsets)
-//                println("statusBarsInsets: $statusBarsInsets")
-//
-//                val isVirtualKeyboardOverlay by it.rememberByState(virtualKeyboardController.overlayState)
-//                println("isVirtualKeyboardOverlay: $isVirtualKeyboardOverlay")
-//                val isImeVisible by it.rememberToState(virtualKeyboardController.isImeVisible)
-//                println("isImeVisible: $isImeVisible")
-//                val imeInsets by it.rememberToState(virtualKeyboardController.imeInsets)
-//                println("imeInsets: $imeInsets")
-//
-//                val isNavigationBarOverlay by it.rememberByState(navigationBarController.overlayState)
-//                println("isNavigationBarOverlay: $isNavigationBarOverlay")
-//                val navigationBarsInsets by it.rememberToState(navigationBarController.navigationBarsInsets)
-//                println("navigationBarsInsets: $navigationBarsInsets")
-//
-//                it.effectChange {
-//                    debugNativeUi(
-//                        "LAYOUT-CHANGE", """
-//                            isStatusBarOverlay: $isStatusBarOverlay
-//                            statusBarsInsets: $statusBarsInsets
-//                            isVirtualKeyboardOverlay: $isVirtualKeyboardOverlay
-//                            isImeVisible: $isImeVisible
-//                            imeInsets: $imeInsets
-//                            isNavigationBarOverlay: $isNavigationBarOverlay
-//                            navigationBarsInsets: $navigationBarsInsets
-//                            """.trimIndent()
-//                    )
-//                    modifierPaddingState.value = WindowInsets(0).let {
-//                        var res = it
-//                        /// 顶部
-//                        if (isStatusBarOverlay) {
-//                        } else {
-//                            res = res.add(statusBarsInsets)
-//                        }
-//                        /// 底部
-//                        // 底部带键盘
-//                        if (isVirtualKeyboardOverlay && isNavigationBarOverlay) {
-//
-//                        } else if (isVirtualKeyboardOverlay && !isNavigationBarOverlay) {
-//                            res = res.add(navigationBarsInsets)
-//                        } else if (!isVirtualKeyboardOverlay && isNavigationBarOverlay) {
-//                            res = res.add(imeInsets)
-//                        } else if (!isVirtualKeyboardOverlay && !isNavigationBarOverlay) {
-//                            val density = LocalDensity.current
-//                            val imeBottom = imeInsets.getBottom(density)
-//                            val navBottom = navigationBarsInsets.getBottom(
-//                                density
-//                            )
-//                            val bottomInsets = if (imeBottom > navBottom) imeInsets
-//                            else navigationBarsInsets
-//
-//                            res = res.add(bottomInsets)
-//                        }
-//                        println("modifierPaddingState: $res")
-//                        res
-//                    }.asPaddingValues()
-//                }
-//            }
-//
-//
-//            return nativeUiController
-//        }
-//    }
-
     class StatusBarController(
         val activity: ComponentActivity,
         val nativeUiController: NativeUiController,
@@ -238,13 +114,6 @@ class NativeUiController(
             val style by styleState
             val visible by visibleState
             DisposableEffect(color, style) {
-                debugNativeUi(
-                    "StatsBar", """
-                    color: $color
-                    style: $style
-                    visible: $visible
-                """.trimIndent()
-                )
                 systemUiController.setStatusBarColor(
                     color = color,
                     darkIcons = when (style) {
@@ -253,6 +122,9 @@ class NativeUiController(
                         else -> color.luminance() > 0.5F
                     },
                 )
+                onDispose {}
+            }
+            DisposableEffect(visible) {
                 systemUiController.isStatusBarVisible = visible
                 onDispose {}
             }
@@ -329,11 +201,10 @@ class NativeUiController(
 
             navigationBarsInsetsState.value = WindowInsets.navigationBars
 
-            val overlay by overlayState
             val color by colorState
             val style by styleState
             val visible by visibleState
-            DisposableEffect(overlay, color, style, visible) {
+            DisposableEffect(color, style) {
                 systemUiController.setNavigationBarColor(
                     color = color,
                     darkIcons = when (style) {
@@ -342,6 +213,9 @@ class NativeUiController(
                         else -> color.luminance() > 0.5F
                     },
                 )
+                onDispose { }
+            }
+            DisposableEffect(visible) {
                 systemUiController.isNavigationBarVisible = visible
                 onDispose { }
             }

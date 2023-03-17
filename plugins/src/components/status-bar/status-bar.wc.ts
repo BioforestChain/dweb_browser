@@ -1,38 +1,50 @@
+import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { $OffListener } from "../../helper/createSignal.ts";
 import { statusBarPlugin } from "./status-bar.plugin.ts";
 
 export class HTMLDwebStatusBarElement extends HTMLElement {
   readonly plugin = statusBarPlugin;
+  @cacheGetter()
   get setColor() {
     return statusBarPlugin.setColor;
   }
+  @cacheGetter()
   get getColor() {
     return statusBarPlugin.getColor;
   }
+  @cacheGetter()
   get setStyle() {
     return statusBarPlugin.setStyle;
   }
+  @cacheGetter()
   get getStyle() {
     return statusBarPlugin.getStyle;
   }
+  @cacheGetter()
   get show() {
     return statusBarPlugin.show;
   }
+  @cacheGetter()
   get hide() {
     return statusBarPlugin.hide;
   }
+  @cacheGetter()
   get setVisible() {
     return statusBarPlugin.setVisible;
   }
+  @cacheGetter()
   get getVisible() {
     return statusBarPlugin.getVisible;
   }
+  @cacheGetter()
   get getState() {
-    return statusBarPlugin.state.getState();
+    return statusBarPlugin.getState;
   }
+  @cacheGetter()
   get setOverlay() {
     return statusBarPlugin.setOverlay;
   }
+  @cacheGetter()
   get getOverlay() {
     return statusBarPlugin.getOverlay;
   }

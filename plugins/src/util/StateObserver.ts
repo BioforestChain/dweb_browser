@@ -27,9 +27,9 @@ export class StateObserver<RAW, STATE> {
         base: await BasePlugin.public_url,
       })
       .fetch()
-      .jsonlines(this.coder.encode);
+      .jsonlines(this.coder.decode);
     for await (const state of streamRead(jsonlines, options)) {
-      this.currentState = this.coder.decode(state);
+      this.currentState = state;
       yield state;
     }
   }

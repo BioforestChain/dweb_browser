@@ -24,14 +24,20 @@ class QueryHelper {
             // 确保 init 里头的类被注册
         }
 
-        fun color(req: Request) = Query.string().optional("color")(req)?.let {
+        val query_color = Query.string().optional("color")
+        val query_style = Query.string().optional("style")
+        val query_visible = Query.boolean().optional("visible")
+        val query_overlay = Query.boolean().optional("overlay")
+        inline fun color(req: Request) = query_color(req)?.let {
             gson.fromJson(it, ColorJson::class.java).toColor()
         }
-        fun style(req: Request) = Query.string().optional("style")(req)?.let {
+
+        inline fun style(req: Request) = query_style(req)?.let {
             NativeUiController.BarStyle.from(it)
         }
-        val visible = Query.boolean().optional("visible")
-        val overlay = Query.boolean().optional("overlay")
+
+        inline fun visible(req: Request) = query_visible(req)
+        inline fun overlay(req: Request) = query_overlay(req)
     }
 }
 
