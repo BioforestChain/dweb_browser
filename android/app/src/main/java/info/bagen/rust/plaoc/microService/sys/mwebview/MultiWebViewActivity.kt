@@ -12,17 +12,26 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.WebView
-import info.bagen.rust.plaoc.microService.browser.*
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import kotlinx.coroutines.launch
@@ -141,7 +150,7 @@ open class MultiWebViewActivity : PermissionActivity() {
     }
 
 
-    @OptIn(ExperimentalLayoutApi::class)
+    @OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         upsetRemoteMmid()
@@ -204,6 +213,10 @@ open class MultiWebViewActivity : PermissionActivity() {
                             }
                         }
 
+                        val keyboardController = LocalSoftwareKeyboardController.current
+                        var (text, setText) = remember {
+                            mutableStateOf("Close keyboard on done ime action (blue ✔️)")
+                        }
                         val chromeClient = remember {
                             object : AccompanistWebChromeClient() {
                                 override fun onJsBeforeUnload(
@@ -264,12 +277,28 @@ open class MultiWebViewActivity : PermissionActivity() {
                                 .background(Color.Blue)
                                 .fillMaxSize()
                         ) {
+                            BasicTextField(
+                                text,
+                                setText,
+                                keyboardOptions = KeyboardOptions(
+                                    imeAction = ImeAction.Search,
+                                    keyboardType = KeyboardType.Decimal
+                                ),
+                                keyboardActions = KeyboardActions(
+//                                    onDone = { keyboardController?.hide() }
+                                ),
+                                modifier = Modifier
+                                    .focusRequester(nativeUiController.virtualKeyboard.focusRequester)
+                                    .fillMaxWidth()
+                                    .zIndex(-1.0F)
+                            )
                             val modifierPadding by nativeUiController.safeArea.outerAreaInsetsState
                             WebView(
                                 state = state,
                                 navigator = navigator,
                                 modifier = Modifier
                                     .fillMaxSize()
+                                    .focusRequester(nativeUiController.virtualKeyboard.focusRequester)
                                     .padding(modifierPadding.asPaddingValues()),
                                 factory = { viewItem.webView },
                                 chromeClient = chromeClient,

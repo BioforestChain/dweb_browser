@@ -4,9 +4,12 @@ import {
   $InsetsWritableState,
 } from "../base/InsetsPlugin.ts";
 
-// deno-lint-ignore no-empty-interface
-export interface $VirtualKeyboardRawState extends $InsetsRawState {}
-// deno-lint-ignore no-empty-interface
-export interface $VirtualKeyboardState extends $InsetsState {}
-// deno-lint-ignore no-empty-interface
-export interface $VirtualKeyboardWritableState extends $InsetsWritableState {}
+export interface $VirtualKeyboardRawState extends $InsetsRawState {
+  visible: boolean;
+}
+export interface $VirtualKeyboardState extends $InsetsState {
+  visible: boolean;
+}
+export interface $VirtualKeyboardWritableState extends $InsetsWritableState {
+  visible: boolean;
+}

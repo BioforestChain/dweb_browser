@@ -27,6 +27,22 @@ export class HTMLDwebVirtualKeyboardElement extends HTMLStateObserverElement<
   get getOverlay() {
     return virtualKeyboardPlugin.getOverlay;
   }
+  @cacheGetter()
+  get getVisible() {
+    return virtualKeyboardPlugin.getVisible;
+  }
+  @cacheGetter()
+  get setVisible() {
+    return virtualKeyboardPlugin.setVisible;
+  }
+  @cacheGetter()
+  get show() {
+    return virtualKeyboardPlugin.show;
+  }
+  @cacheGetter()
+  get hide() {
+    return virtualKeyboardPlugin.hide;
+  }
 }
 customElements.define(
   virtualKeyboardPlugin.tagName,

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.*
 import com.google.gson.*
@@ -19,6 +20,7 @@ class VirtualKeyboardController(
     nativeUiController: NativeUiController,
 ) : InsetsController(activity, nativeUiController) {
 
+    val focusRequester = FocusRequester()
 
     /**
      * 是否显示
@@ -35,6 +37,7 @@ class VirtualKeyboardController(
         val visible by visibleState
         LocalSoftwareKeyboardController.current?.also { keyboard ->
             if (visible) {
+                focusRequester.requestFocus()
                 keyboard.show()
             } else {
                 keyboard.hide()

@@ -27,6 +27,7 @@ class VirtualKeyboardNMM : NativeMicroModule("virtual-keyboard.nativeui.sys.dweb
             "/setState" bind Method.GET to defineHandler { request, ipc ->
                 val controller = getController(ipc.remote.mmid)
                 QueryHelper.overlay(request)?.also { controller.overlayState.value = it }
+                QueryHelper.visible(request)?.also { controller.visibleState.value = it }
                 return@defineHandler null
             },
             /**

@@ -1,7 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { domInsetsToJson, insetsToDom } from "../../util/insets.ts";
-import { $Coder, StateObserver } from "../../util/StateObserver.ts";
+import { $Coder } from "../../util/StateObserver.ts";
 import { InsetsPlugin } from "../base/InsetsPlugin.ts";
 import {
   $VirtualKeyboardRawState,
@@ -43,6 +41,29 @@ export class VirtualKeyboardPlugin extends InsetsPlugin<
   @bindThis
   async getOverlay() {
     return (await this.state.getState()).overlay;
+  }
+  @bindThis
+  async getVisible() {
+    return (await this.getState()).visible;
+  }
+  @bindThis
+  setVisible(visible: boolean) {
+    return this.setStateByKey("visible", visible);
+  }
+  /**
+   * 显示虚拟键盘
+   */
+  @bindThis
+  show() {
+    return this.setVisible(true);
+  }
+
+  /**
+   * 隐藏虚拟键盘
+   */
+  @bindThis
+  hide() {
+    return this.setVisible(false);
   }
 }
 

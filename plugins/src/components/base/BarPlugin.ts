@@ -75,7 +75,7 @@ export abstract class BarPlugin<
   WRITABLE_STATE extends $BarWritableState
 > extends InsetsPlugin<RAW, STATE, WRITABLE_STATE> {
   /**
-   * 设置状态栏背景色
+   * 设置 Bar 背景色
    * @param r 0~255
    * @param g 0~255
    * @param b 0~255
@@ -94,7 +94,7 @@ export abstract class BarPlugin<
   }
 
   /**
-   * 设置状态栏风格
+   * 设置 Bar 风格
    * // 支持 light | dark | defalt
    * 据观测
    * 在系统主题为 Light 的时候, Default 意味着 白色字体
@@ -117,13 +117,7 @@ export abstract class BarPlugin<
   }
 
   /**
-   * 显示状态栏。
-   * 在 iOS 上，如果状态栏最初是隐藏的，并且初始样式设置为
-   * `UIStatusBarStyleLightContent`，第一次显示调用可能会在
-   * 动画将文本显示为深色然后过渡为浅色。 值得推荐
-   * 在第一次调用时使用 `Animation.None` 作为动画。
-   *
-   * @since 1.0.0
+   * 显示 Bar
    */
   @bindThis
   show() {
@@ -132,8 +126,6 @@ export abstract class BarPlugin<
 
   /**
    * Hide the bar.
-   *
-   * @since 1.0.0
    */
   @bindThis
   hide() {
@@ -149,7 +141,7 @@ export abstract class BarPlugin<
   }
 
   /**
-   * 设置状态栏是否应该覆盖 webview 以允许使用
+   * 设置 Bar 是否应该覆盖 webview 以允许使用
    * 它下面的空间。
    *
    */
