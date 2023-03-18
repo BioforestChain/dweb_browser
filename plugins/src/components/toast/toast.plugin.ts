@@ -1,5 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../basePlugin.ts";
+import { BasePlugin } from "../base/BasePlugin.ts";
 import type { IShowOptions } from "./toast.type.ts";
 import { IToastPlugin } from "./toast.type.ts";
 

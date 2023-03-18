@@ -1,4 +1,4 @@
-import { BasePlugin } from "../basePlugin.ts";
+import { BasePlugin } from "../base/BasePlugin.ts";
 
 export class ConfigPlugin extends BasePlugin {
   tagName = "dweb-config";

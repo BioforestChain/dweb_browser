@@ -1,4 +1,4 @@
-import { BasePlugin } from "../basePlugin.ts";
+import { BasePlugin } from "../base/BasePlugin.ts";
 import {
   SupportedFormat,
 } from "./barcode-scanning.type.ts";

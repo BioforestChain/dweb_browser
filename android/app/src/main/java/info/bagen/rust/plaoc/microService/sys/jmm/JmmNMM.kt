@@ -3,7 +3,10 @@ package info.bagen.rust.plaoc.microService.sys.jmm
 import info.bagen.rust.plaoc.datastore.JmmMetadataDB
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.encodeURIComponent
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.helper.json
 import info.bagen.rust.plaoc.microService.sys.dns.debugDNS
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
@@ -62,8 +65,9 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 apps.clear()
                 it.forEach { (key, value) ->
                     apps[key] = JsMicroModule(value)
-                    nativeFetch(Uri.of("file://dns.sys.dweb/install")
-                        .query("jmmMetadata", gson.toJson(value))
+                    nativeFetch(
+                        Uri.of("file://dns.sys.dweb/install")
+                            .query("jmmMetadata", gson.toJson(value))
                     )
                 }
             }

@@ -1,5 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { $BarRawState, $BarState, BarPlugin } from "../../util/bar.ts";
+import { $BarRawState, $BarState, BarPlugin } from "../base/BarPlugin.ts";
 import {
   COLOR_FORMAT,
   convertColorToArga,
@@ -23,15 +23,14 @@ export class NavigationBarPlugin extends BarPlugin<
   readonly tagName = "dweb-navigation-bar";
 
   constructor() {
-    super("navigation-bar.sys.dweb");
+    super("navigation-bar.nativeui.sys.dweb");
   }
-  coder: $Coder<$BarRawState, $BarState> = {
-    decode: (raw: $NavigationBarRawState) => ({
-      ...raw,
+  coder: $Coder<$NavigationBarRawState, $NavigationBarState> = {
+    decode: (raw) => ({
+      ...this.baseCoder.decode(raw),
       color: normalizeArgaToColor(raw.color, COLOR_FORMAT.HEXA),
-      insets: insetsToDom(raw.insets),
     }),
-    encode: (state: $NavigationBarState) => ({
+    encode: (state) => ({
       ...state,
       color: convertColorToArga(state.color),
       insets: domInsetsToJson(state.insets),
@@ -39,20 +38,18 @@ export class NavigationBarPlugin extends BarPlugin<
   };
 
   @bindThis
-  async setStates(state: Partial<$NavigationBarWritableState>) {
-    await this.fetchApi("/setState", {
-      search: {
-        ...state,
-        color: state.color ? convertColorToArga(state.color) : undefined,
-      },
+  async setState(state: Partial<$NavigationBarWritableState>) {
+    await this.commonSetState({
+      ...state,
+      color: state.color ? convertColorToArga(state.color) : undefined,
     });
   }
   @bindThis
-  setState<K extends keyof $NavigationBarWritableState>(
+  setStateByKey<K extends keyof $NavigationBarWritableState>(
     key: K,
     value: $NavigationBarWritableState[K]
   ) {
-    return this.setStates({
+    return this.setState({
       [key]: value,
     });
   }

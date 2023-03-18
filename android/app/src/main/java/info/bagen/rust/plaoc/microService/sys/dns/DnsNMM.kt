@@ -19,7 +19,7 @@ inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("fetch", tag, msg, err)
 
 inline fun <K, V> MutableMap<K, V>.runExistOrPut(
-    key: K, runExists:(V) -> Unit, defaultValue: () -> V
+    key: K, runExists: (V) -> Unit, defaultValue: () -> V
 ): V {
     val value = get(key)
     return if (value == null) {
@@ -94,6 +94,9 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
             )
         }
 
+        override suspend fun bootstrap(mmid: Mmid) {
+            dnsMM.open(mmid)
+        }
     }
 
     class MyBootstrapContext(override val dns: MyDnsMicroModule) : BootstrapContext {}
@@ -115,7 +118,10 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
         _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
             if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
                 val mmid = request.uri.host
-                debugFetch("DNS/fetchAdapter", "fromMM=${fromMM.mmid} >> requestMmid=$mmid: >> path=${request.uri.path} >> ${request.uri}")
+                debugFetch(
+                    "DNS/fetchAdapter",
+                    "fromMM=${fromMM.mmid} >> requestMmid=$mmid: >> path=${request.uri.path} >> ${request.uri}"
+                )
                 installApps[mmid]?.let {
                     val (fromIpc) = connectTo(fromMM, mmid, request)
                     return@let fromIpc.request(request)
@@ -184,7 +190,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     }
 
     /** 打开应用 */
-    suspend fun open(mmid: Mmid) : MicroModule {
+    suspend fun open(mmid: Mmid): MicroModule {
         return runningApps.runExistOrPut(
             key = mmid,
             runExists = {

@@ -1,14 +1,13 @@
-import { BasePlugin } from "../components/basePlugin.ts";
-import { bindThis } from "../helper/bindThis.ts";
-import { cacheGetter } from "../helper/cacheGetter.ts";
-import { $Transform } from "../helper/JsonlinesStream.ts";
-import { $AgbaColor } from "./color.ts";
-import { $Insets, DOMInsets } from "./insets.ts";
-import { $Rect } from "./rect.ts";
-import { $Coder, StateObserver } from "./StateObserver.ts";
+import { bindThis } from "../../helper/bindThis.ts";
+import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { $AgbaColor } from "../../util/color.ts";
+import { $Insets, DOMInsets } from "../../util/insets.ts";
+import { $Coder, StateObserver } from "../../util/StateObserver.ts";
+import { BasePlugin } from "./BasePlugin.ts";
+import { $InsetsRawState, $InsetsState, InsetsPlugin } from "./InsetsPlugin.ts";
 
 /**
- * 状态栏的风格
+ * 条栏的风格
  * Light 代表文字为黑色
  * Dark 代表文字为白色
  */
@@ -27,33 +26,33 @@ export enum BAR_STYLE {
 
   /**
    * The style is based on the device appearance.
-   * If the device is using Dark mode, the statusbar text will be light.
-   * If the device is using Light mode, the statusbar text will be dark.
+   * If the device is using Dark mode, the bar text will be light.
+   * If the device is using Light mode, the bar text will be dark.
    * On Android the default will be the one the app was launched with.
    *
    */
   Default = "DEFAULT",
 }
-export interface $BarRawState {
+export interface $BarRawState extends $InsetsRawState {
   /**
-   * Whether the status bar is visible or not.
+   * Whether the bar is visible or not.
    */
   visible: boolean;
 
   /**
-   * The current status bar style.
+   * The current bar style.
    */
   style: BAR_STYLE;
 
   /**
-   * The current status bar color.
+   * The current bar color.
    *
    * This option is only supported on Android.
    */
   color: $AgbaColor;
 
   /**
-   * Whether the statusbar is overlaid or not.
+   * Whether the bar is overlaid or not.
    *
    * This option is only supported on Android.
    */
@@ -61,7 +60,7 @@ export interface $BarRawState {
   insets: $Insets;
 }
 
-export interface $BarState {
+export interface $BarState extends $InsetsState {
   color: string;
   style: BAR_STYLE;
   overlay: boolean;
@@ -74,24 +73,7 @@ export abstract class BarPlugin<
   RAW extends $BarRawState,
   STATE extends $BarState,
   WRITABLE_STATE extends $BarWritableState
-> extends BasePlugin {
-  abstract coder: $Coder<RAW, STATE>;
-
-  @cacheGetter()
-  get state() {
-    return new StateObserver(
-      this,
-      () => this.fetchApi(`/getState`).object<RAW>(),
-      this.coder
-    );
-  }
-
-  abstract setStates(state: Partial<WRITABLE_STATE>): Promise<unknown>;
-  abstract setState<K extends keyof WRITABLE_STATE>(
-    key: K,
-    value: WRITABLE_STATE[K]
-  ): Promise<unknown>;
-
+> extends InsetsPlugin<RAW, STATE, WRITABLE_STATE> {
   /**
    * 设置状态栏背景色
    * @param r 0~255
@@ -101,7 +83,7 @@ export abstract class BarPlugin<
    */
   @bindThis
   setColor(color: string) {
-    return this.setState("color", color);
+    return this.setStateByKey("color", color);
   }
   /**
    *  获取背景颜色
@@ -123,7 +105,7 @@ export abstract class BarPlugin<
    */
   @bindThis
   setStyle(style: STATE["style"]) {
-    return this.setState("style", style);
+    return this.setStateByKey("style", style);
   }
   /**
    * 获取当前style
@@ -149,7 +131,7 @@ export abstract class BarPlugin<
   }
 
   /**
-   * Hide the status bar.
+   * Hide the bar.
    *
    * @since 1.0.0
    */
@@ -159,7 +141,7 @@ export abstract class BarPlugin<
   }
   @bindThis
   setVisible(visible: boolean) {
-    return this.setState("visible", visible);
+    return this.setStateByKey("visible", visible);
   }
   @bindThis
   async getVisible() {
@@ -170,13 +152,10 @@ export abstract class BarPlugin<
    * 设置状态栏是否应该覆盖 webview 以允许使用
    * 它下面的空间。
    *
-   * 此方法仅在 Android 上支持。
-   *
-   * @since 1.0.0
    */
   @bindThis
   setOverlay(overlay: boolean) {
-    return this.setState("overlay", overlay);
+    return this.setStateByKey("overlay", overlay);
   }
   @bindThis
   async getOverlay() {

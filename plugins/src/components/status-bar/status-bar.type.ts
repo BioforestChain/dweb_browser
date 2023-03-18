@@ -3,7 +3,7 @@ import {
   $BarRawState,
   $BarState,
   $BarWritableState,
-} from "../../util/bar.ts";
+} from "../base/BarPlugin.ts";
 export { STATUS_BAR_STYLE };
 
 export type $StatusBarRawState = $BarRawState;

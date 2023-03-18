@@ -1,5 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../basePlugin.ts";
+import { BasePlugin } from "../base/BasePlugin.ts";
 /**
  * TODO 挪到 nativeui 中控制
  */

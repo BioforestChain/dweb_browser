@@ -1,17 +1,17 @@
 import { $Insets, DOMInsets } from "../../util/insets.ts";
+import {
+  $InsetsRawState,
+  $InsetsState,
+  $InsetsWritableState,
+} from "../base/InsetsPlugin.ts";
 
-export interface $SafeAreaRawState {
+export interface $SafeAreaRawState extends $InsetsRawState {
   cutoutInsets: $Insets;
-  overlay: boolean;
   outerInsets: $Insets;
-  innerInsets: $Insets;
 }
-export interface $SafeAreaState {
+export interface $SafeAreaState extends $InsetsState {
   cutoutInsets: DOMInsets;
-  overlay: boolean;
   outerInsets: DOMInsets;
-  innerInsets: DOMInsets;
 }
-export interface $SafeAreaWritableState {
-  overlay: boolean;
-}
+// deno-lint-ignore no-empty-interface
+export interface $SafeAreaWritableState extends $InsetsWritableState {}

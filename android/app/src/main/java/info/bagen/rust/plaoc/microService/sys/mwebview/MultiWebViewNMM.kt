@@ -42,11 +42,15 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
             return controllerMap[mmid]
         }
+
+
     }
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        // 打开webview
+        /// nativeui 与 mwebview 是伴生关系
+        bootstrapContext.dns.bootstrap("nativeui.sys.dweb")
 
+        // 打开webview
         val query_url = Query.string().required("url")
         val query_webviewId = Query.string().required("webview_id")
 
@@ -96,7 +100,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
                     }
                 }
                 null
-            },)
+            },
+        )
     }
 
     override suspend fun _shutdown() {

@@ -1,12 +1,11 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { $BarRawState, $BarState, BarPlugin } from "../../util/bar.ts";
 import {
   COLOR_FORMAT,
   convertColorToArga,
   normalizeArgaToColor,
 } from "../../util/color.ts";
-import { domInsetsToJson, insetsToDom } from "../../util/insets.ts";
 import { $Coder } from "../../util/StateObserver.ts";
+import { BarPlugin } from "../base/BarPlugin.ts";
 import {
   $StatusBarWritableState,
   type $StatusBarRawState,
@@ -23,36 +22,32 @@ export class StatusBarPlugin extends BarPlugin<
   readonly tagName = "dweb-status-bar";
 
   constructor() {
-    super("status-bar.sys.dweb");
+    super("status-bar.nativeui.sys.dweb");
   }
-  coder: $Coder<$BarRawState, $BarState> = {
+  coder: $Coder<$StatusBarRawState, $StatusBarState> = {
     decode: (raw: $StatusBarRawState) => ({
-      ...raw,
+      ...this.baseCoder.decode(raw),
       color: normalizeArgaToColor(raw.color, COLOR_FORMAT.HEXA),
-      insets: insetsToDom(raw.insets),
     }),
     encode: (state: $StatusBarState) => ({
-      ...state,
+      ...this.baseCoder.encode(state),
       color: convertColorToArga(state.color),
-      insets: domInsetsToJson(state.insets),
     }),
   };
 
   @bindThis
-  async setStates(state: Partial<$StatusBarWritableState>) {
-    await this.fetchApi("/setState", {
-      search: {
-        ...state,
-        color: state.color ? convertColorToArga(state.color) : undefined,
-      },
+  async setState(state: Partial<$StatusBarWritableState>) {
+    await this.commonSetState({
+      ...state,
+      color: state.color ? convertColorToArga(state.color) : undefined,
     });
   }
   @bindThis
-  setState<K extends keyof $StatusBarWritableState>(
+  setStateByKey<K extends keyof $StatusBarWritableState>(
     key: K,
     value: $StatusBarWritableState[K]
   ) {
-    return this.setStates({
+    return this.setState({
       [key]: value,
     });
   }

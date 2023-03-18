@@ -1,33 +1,32 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.systemui
-
+package info.bagen.rust.plaoc.microService.sys.nativeui.virtualKeyboard
 
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.OffListener
-import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.sys.nativeui.NativeUiController
+import info.bagen.rust.plaoc.microService.sys.nativeui.fromMultiWebView
+import info.bagen.rust.plaoc.microService.sys.nativeui.helper.QueryHelper
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class StatusBarNMM : NativeMicroModule("status-bar.sys.dweb") {
+class VirtualKeyboardNMM : NativeMicroModule("virtual-keyboard.nativeui.sys.dweb") {
 
     private fun getController(mmid: Mmid) =
-        NativeUiController.fromMultiWebView(mmid).statusBar
+        NativeUiController.fromMultiWebView(mmid).virtualKeyboard
+
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+        QueryHelper.init()
         apiRouting = routes(
-            /** 获取状态栏 */
+            /** 获取状态 */
             "/getState" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid)
             },
-            /** 设置状态栏 */
+            /** 获取状态 */
             "/setState" bind Method.GET to defineHandler { request, ipc ->
                 val controller = getController(ipc.remote.mmid)
-                QueryHelper.color(request)?.also { controller.colorState.value = it }
-                QueryHelper.style(request)?.also { controller.styleState.value = it }
                 QueryHelper.overlay(request)?.also { controller.overlayState.value = it }
-                QueryHelper.visible(request)?.also { controller.visibleState.value = it }
                 return@defineHandler null
             },
             /**
@@ -46,6 +45,5 @@ class StatusBarNMM : NativeMicroModule("status-bar.sys.dweb") {
     }
 
     override suspend fun _shutdown() {
-        TODO("Not yet implemented")
     }
 }

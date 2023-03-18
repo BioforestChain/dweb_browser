@@ -1,4 +1,4 @@
-import { BasePlugin } from "../components/basePlugin.ts";
+import { BasePlugin } from "../components/base/BasePlugin.ts";
 import { bindThis } from "../helper/bindThis.ts";
 import { $Callback, createSignal } from "../helper/createSignal.ts";
 import { $Transform } from "../helper/JsonlinesStream.ts";

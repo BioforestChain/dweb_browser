@@ -17,7 +17,7 @@ export class HTMLDwebSafeAreaElement extends HTMLStateObserverElement<
   }
   @cacheGetter()
   get setState() {
-    return safeAreaPlugin.setState;
+    return safeAreaPlugin.setStateByKey;
   }
   @cacheGetter()
   get setOverlay() {

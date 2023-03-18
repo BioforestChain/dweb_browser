@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.systemui
+package info.bagen.rust.plaoc.microService.sys.nativeui.helper
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.graphics.Color
@@ -6,6 +6,10 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.ColorJson
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.helper.toJsonAble
+import info.bagen.rust.plaoc.microService.sys.nativeui.navigationBar.NavigationBarController
+import info.bagen.rust.plaoc.microService.sys.nativeui.safeArea.SafeAreaController
+import info.bagen.rust.plaoc.microService.sys.nativeui.statusBar.StatusBarController
+import info.bagen.rust.plaoc.microService.sys.nativeui.virtualKeyboard.VirtualKeyboardController
 import org.http4k.core.Request
 import org.http4k.lens.Query
 import org.http4k.lens.boolean
@@ -16,9 +20,10 @@ class QueryHelper {
         init {
             NativeMicroModule.ResponseRegistry.registryJsonAble(Color::class.java) { it.toJsonAble() }
             NativeMicroModule.ResponseRegistry.registryJsonAble(WindowInsets::class.java) { it.toJsonAble() }
-            NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.StatusBarController::class.java) { it.toJsonAble() }
-            NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.NavigationBarController::class.java) { it.toJsonAble() }
-            NativeMicroModule.ResponseRegistry.registryJsonAble(NativeUiController.SafeAreaController::class.java) { it.toJsonAble() }
+            NativeMicroModule.ResponseRegistry.registryJsonAble(StatusBarController::class.java) { it.toJsonAble() }
+            NativeMicroModule.ResponseRegistry.registryJsonAble(NavigationBarController::class.java) { it.toJsonAble() }
+            NativeMicroModule.ResponseRegistry.registryJsonAble(SafeAreaController::class.java) { it.toJsonAble() }
+            NativeMicroModule.ResponseRegistry.registryJsonAble(VirtualKeyboardController::class.java) { it.toJsonAble() }
         }
 
         fun init() {
@@ -34,7 +39,7 @@ class QueryHelper {
         }
 
         inline fun style(req: Request) = query_style(req)?.let {
-            NativeUiController.BarStyle.from(it)
+            BarStyle.from(it)
         }
 
         inline fun visible(req: Request) = query_visible(req)

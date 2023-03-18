@@ -9,6 +9,7 @@ import info.bagen.rust.plaoc.microService.sys.http.HttpNMM
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
+import info.bagen.rust.plaoc.microService.sys.nativeui.NativeUiNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.ScanningNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.TorchNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
@@ -19,10 +20,6 @@ import info.bagen.rust.plaoc.microService.sys.plugin.notification.NotificationNM
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionsNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.share.ShareNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.splash.SplashScreenNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.KeyboardNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.NavigationBarNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.SafeAreaNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.systemui.StatusBarNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.toast.ToastNMM
 import info.bagen.rust.plaoc.microService.user.CotDemoJMM
 import info.bagen.rust.plaoc.microService.user.CotJMM
@@ -97,14 +94,8 @@ suspend fun startDwebBrowser() {
 
     /// SplashScreen
     val splashScreenNMM = SplashScreenNMM().also { dnsNMM.install(it) }
-    /// keyboard
-    val keyboardNMM = KeyboardNMM().also { dnsNMM.install(it) }
-    /// statusBar
-    val statusBarNMM = StatusBarNMM().also { dnsNMM.install(it) }
-    ///navigation
-    val navigationBarNMM = NavigationBarNMM().also { dnsNMM.install(it) }
-    ///safeArea
-    val safeAreaNMM = SafeAreaNMM().also { dnsNMM.install(it) }
+    /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
+    NativeUiNMM().also { dnsNMM.install(it) }
 
     /// 安装Jmm
     val jmmNMM = JmmNMM().also { dnsNMM.install(it) }

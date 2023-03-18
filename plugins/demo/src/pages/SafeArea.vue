@@ -16,7 +16,7 @@ onMounted(async () => {
 });
 const onSafeAreaChange = (info: $SafeAreaState, type: string) => {
   overlay.value = info.overlay;
-  info.innerInsets.effect({ css_var_name: "safe-area" });
+  info.insets.effect({ css_var_name: "safe-area" });
   console.log(type, info);
 };
 

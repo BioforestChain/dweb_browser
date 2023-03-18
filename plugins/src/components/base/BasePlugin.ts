@@ -1,8 +1,8 @@
 // <reference types="https://esm.sh/v111/@types/web@0.0.96/index.d.ts" />
 /// <reference lib="dom"/>
-import { $makeExtends } from "../helper/$makeExtends.ts";
-import { fetchExtends } from "../helper/$makeFetchExtends.ts";
-import { createSignal } from "../helper/createSignal.ts";
+import { $makeExtends } from "../../helper/$makeExtends.ts";
+import { fetchExtends } from "../../helper/$makeFetchExtends.ts";
+import { createSignal } from "../../helper/createSignal.ts";
 
 export abstract class BasePlugin {
   abstract tagName: string;

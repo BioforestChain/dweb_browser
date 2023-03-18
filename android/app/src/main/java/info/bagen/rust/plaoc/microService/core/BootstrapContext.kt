@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.microService.core
 
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.ipc.Ipc
 import org.http4k.core.Request
 
 
@@ -24,4 +23,9 @@ interface DnsMicroModule {
      * 与其它应用建立连接
      */
     suspend fun connect(mmid: Mmid, reason: Request? = null): ConnectResult
+
+    /**
+     * 启动其它应用
+     */
+    suspend fun bootstrap(mmid: Mmid)
 }

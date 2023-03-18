@@ -1,5 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../basePlugin.ts";
+import { BasePlugin } from "../base/BasePlugin.ts";
 import type {
   HideOptions,
   ShowOptions,
@@ -12,7 +12,7 @@ export class SplashScreenPlugin
 {
   readonly tagName = "dweb-splash-screen";
   constructor(readonly mmid = "splash-screen.sys.dweb") {
-    super("splash-screen.sys.dweb");
+    super("splash-screen.nativeui.sys.dweb");
   }
 
   /**
