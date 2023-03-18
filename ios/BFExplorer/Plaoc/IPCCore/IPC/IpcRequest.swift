@@ -18,7 +18,7 @@ class IpcRequest {
     var urlString: String = ""
     var body: IpcBody?
     var ipc: Ipc?
-    var url: URL?
+    var uri: URI?
     
     required init() {
         
@@ -32,7 +32,7 @@ class IpcRequest {
         self.method = method
         self.headers = headers
         self.body = body
-        url = URL(string: urlString)
+        uri = URI(string: urlString)
         
         if let sender = body as? IpcBodySender, ipc != nil {
             IpcBodySender().IPCsender(ipc: ipc!, ipcBody: sender)

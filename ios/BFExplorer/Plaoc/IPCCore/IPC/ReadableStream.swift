@@ -9,7 +9,7 @@ import UIKit
 import Combine
 import Atomics
 
-enum MyError: Error {
+enum MyError: String, Error {
     case testError
 }
 

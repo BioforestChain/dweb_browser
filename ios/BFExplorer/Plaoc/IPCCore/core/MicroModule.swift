@@ -140,7 +140,7 @@ extension MicroModule {
                 return response
             }
         }
-        return NativeFetch.localeFileFetch(remote: self, request: request) ?? NetworkManager.downLoadBodyByRequest(request: request)
+        return localeFileFetch(remote: self, request: request) ?? NetworkManager.downLoadBodyByRequest(request: request)
     }
 }
 

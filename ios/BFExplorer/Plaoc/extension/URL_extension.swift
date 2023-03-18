@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Vapor
 
 extension URL {
     
@@ -71,5 +72,9 @@ extension URL {
             }
         }
         return authority
+    }
+    
+    func toUri() -> URI {
+        return URI(string: self.absoluteString)
     }
 }

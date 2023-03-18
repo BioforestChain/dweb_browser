@@ -244,6 +244,9 @@
 		F3950EB329B31B9500D9E338 /* HttpDwebServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EB229B31B9500D9E338 /* HttpDwebServer.swift */; };
 		F3950EB529B3335B00D9E338 /* MessagePortIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EB429B3335B00D9E338 /* MessagePortIpc.swift */; };
 		F3950EB729B3410E00D9E338 /* IpcReqMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3950EB629B3410E00D9E338 /* IpcReqMessage.swift */; };
+		F399849329C3F7FE005EEE4D /* Extends.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399849229C3F7FE005EEE4D /* Extends.swift */; };
+		F399849529C3FAFE005EEE4D /* NSObject_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399849429C3FAFE005EEE4D /* NSObject_extension.swift */; };
+		F399849729C4069C005EEE4D /* DWebViewClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399849629C4069C005EEE4D /* DWebViewClient.swift */; };
 		F399907A29A9AC64007C5403 /* NativeIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399907929A9AC64007C5403 /* NativeIpc.swift */; };
 		F399907E29A9ACD9007C5403 /* NativePort.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399907D29A9ACD9007C5403 /* NativePort.swift */; };
 		F399908029A9E56F007C5403 /* NativeMessageChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F399907F29A9E56F007C5403 /* NativeMessageChannel.swift */; };
@@ -545,6 +548,9 @@
 		F3950EB229B31B9500D9E338 /* HttpDwebServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpDwebServer.swift; sourceTree = "<group>"; };
 		F3950EB429B3335B00D9E338 /* MessagePortIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagePortIpc.swift; sourceTree = "<group>"; };
 		F3950EB629B3410E00D9E338 /* IpcReqMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcReqMessage.swift; sourceTree = "<group>"; };
+		F399849229C3F7FE005EEE4D /* Extends.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extends.swift; sourceTree = "<group>"; };
+		F399849429C3FAFE005EEE4D /* NSObject_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSObject_extension.swift; sourceTree = "<group>"; };
+		F399849629C4069C005EEE4D /* DWebViewClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebViewClient.swift; sourceTree = "<group>"; };
 		F399907929A9AC64007C5403 /* NativeIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeIpc.swift; sourceTree = "<group>"; };
 		F399907D29A9ACD9007C5403 /* NativePort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePort.swift; sourceTree = "<group>"; };
 		F399907F29A9E56F007C5403 /* NativeMessageChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeMessageChannel.swift; sourceTree = "<group>"; };
@@ -943,6 +949,7 @@
 				F3A0798D29C0448D00E46574 /* Int_extension.swift */,
 				F399B3F329C1BFDA0059D5D5 /* Request_extension.swift */,
 				F388A08529C2F5C60044BB7E /* URI_extension.swift */,
+				F399849429C3FAFE005EEE4D /* NSObject_extension.swift */,
 			);
 			path = extension;
 			sourceTree = "<group>";
@@ -1148,6 +1155,8 @@
 			children = (
 				F3873F1229B7207D00286989 /* DWebView.swift */,
 				F3873F1429B7230C00286989 /* WebViewEvaluator.swift */,
+				F399849229C3F7FE005EEE4D /* Extends.swift */,
+				F399849629C4069C005EEE4D /* DWebViewClient.swift */,
 			);
 			path = webView;
 			sourceTree = "<group>";
@@ -1601,7 +1610,9 @@
 				F0292DA52975502700C2E464 /* FWPopupItem.swift in Sources */,
 				F399B3E629C19A0B0059D5D5 /* MessagePort.swift in Sources */,
 				F3950EA729B1D15600D9E338 /* RouteConfig.swift in Sources */,
+				F399849329C3F7FE005EEE4D /* Extends.swift in Sources */,
 				F33B31E4295A858B000EB302 /* ToastManager.swift in Sources */,
+				F399849729C4069C005EEE4D /* DWebViewClient.swift in Sources */,
 				F385477629B81C75004DF9B6 /* StaticWebServer.swift in Sources */,
 				F091CB8C2951B91900FCE565 /* PermissionManager.swift in Sources */,
 				F399908029A9E56F007C5403 /* NativeMessageChannel.swift in Sources */,
@@ -1657,6 +1668,7 @@
 				182EF46328B62DE4001E039E /* UIImage+Text.swift in Sources */,
 				F3274D8129AC4C84007210D2 /* ReadableStreamIpc.swift in Sources */,
 				F39DE5B2299CDE9D0005B389 /* PromiseOut.swift in Sources */,
+				F399849529C3FAFE005EEE4D /* NSObject_extension.swift in Sources */,
 				F0292DA8297686CF00C2E464 /* AppVersionManager.swift in Sources */,
 				F388A08029C2A7030044BB7E /* MyDnsMicroModule.swift in Sources */,
 				F091CB8F2951B91900FCE565 /* FileSystemManager.swift in Sources */,

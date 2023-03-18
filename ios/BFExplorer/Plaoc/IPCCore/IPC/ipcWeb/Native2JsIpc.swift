@@ -10,10 +10,11 @@ import UIKit
 var ALL_MESSAGE_PORT_CACHE: [Int:MessagePort] = [:]
 var all_ipc_id_acc = 1
 
-func saveNative2JsIpcPort(port: WebMessagePort) {
+func saveNative2JsIpcPort(port: WebMessagePort) -> Int {
     let port_id = all_ipc_id_acc
     all_ipc_id_acc += 1
     ALL_MESSAGE_PORT_CACHE[port_id] = MessagePort.from(port: port)
+    return port_id
 }
 
 /**

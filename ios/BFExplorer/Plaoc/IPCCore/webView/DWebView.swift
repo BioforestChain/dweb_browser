@@ -7,96 +7,110 @@
 
 import UIKit
 import WebKit
+import Vapor
 
-class DWebView: UIView {
+class DWebView: WKWebView {
     
-    var mm: MicroModule?
+    var localeMM: MicroModule?
+    var remoteMM: MicroModule?
     var options: Options?
     private var readvPo = PromiseOut<Bool>()
-//    private let openSignal = Signal<Message>()
+    //    private let openSignal = Signal<Message>()
     private let closeSignal = SimpleSignal()
     
-    init(frame: CGRect, mm: MicroModule, options: Options) {
+    var filePathCallback: FilePathProtocol?
+    var requestPermissionCallback: RequestPermissionCallback?
+    
+    private var readyHelper: ReadyHelper?
+    
+    private var readyHelperLock = NSLock()
+    
+    private let internalWebClient = InternalWebViewClient.shared
+    
+    private var evaluator: WebViewEvaluator!
+    
+    init(frame: CGRect, localeMM: MicroModule, remoteMM: MicroModule, options: Options) {
         
-        super.init(frame: frame)
-        self.mm = mm
+        self.localeMM = localeMM
+        self.remoteMM = remoteMM
         self.options = options
         
-        self.addSubview(webView)
+        let config = DWebView.setUA(remoteMM: remoteMM, options: options)
+        super.init(frame: frame, configuration: config)
         
+        self.scrollView.contentInsetAdjustmentBehavior = .never
+        self.allowsBackForwardNavigationGestures = true
+        self.navigationDelegate = self
+        _ = dWebViewClient.addWebViewClient(client: self)
+        
+        internalWebClient.remoteMM = remoteMM
+        internalWebClient.localeMM = localeMM
+        
+        evaluator = WebViewEvaluator(webView: self)
+        
+        if let url = URL(string: options.urlString) {
+            load(URLRequest(url: url))
+        }
     }
     
-    func setUA() -> String{
+    static func setUA(remoteMM: MicroModule, options: Options) -> WKWebViewConfiguration {
         
-        let baseDwebHost = mm?.mmid
-        var dwebHost = baseDwebHost ?? ""
+        let config = WKWebViewConfiguration()
         
-        guard let url = URL(string: options?.urlString ?? ""), url.host != nil else { return "" }
+        let baseDwebHost = remoteMM.mmid
+        var dwebHost = baseDwebHost
+        
+        guard let url = URL(string: options.urlString), url.host != nil else { return config }
         if url.scheme == "http" && url.host!.hasSuffix(".dweb") {
             dwebHost = url.authority()
         }
         if !dwebHost.contains(":") {
             dwebHost += ":80"
         }
-        return "dweb-host/\(dwebHost)"
+        
+        config.applicationNameForUserAgent = "dweb-host/\(dwebHost)"
+        
+        let preference = WKPreferences()
+        preference.javaScriptCanOpenWindowsAutomatically = true
+        config.preferences = preference
+        
+        return config
     }
-    
-    private lazy var webView: WKWebView = {
-        
-        let config = WKWebViewConfiguration()
-        
-        config.userContentController = WKUserContentController()
-        
-        
-        config.userContentController.add(LeadScriptHandle(messageHandle: self), name: "resolve")
-        config.userContentController.add(LeadScriptHandle(messageHandle: self), name: "reject")
-        config.userContentController.add(LeadScriptHandle(messageHandle: self), name: "close")
-        config.userContentController.add(LeadScriptHandle(messageHandle: self), name: "close2")
-        
-        let userAgent = setUA()
-        config.applicationNameForUserAgent = userAgent
-        
-        let prefreen = WKPreferences()
-        prefreen.javaScriptCanOpenWindowsAutomatically = true
-        config.preferences = prefreen
-        config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
-        
-        
-        let webView = WKWebView(frame: self.bounds, configuration: config)
-        webView.navigationDelegate = self
-        webView.allowsBackForwardNavigationGestures = true
-        if #available(iOS 11.0, *) {
-            webView.scrollView.contentInsetAdjustmentBehavior = .never
-        } else {
-
-        }
-        
-        
-        return webView
-    }()
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    lazy var dWebViewClient: DWebViewClient = {
+        let client = DWebViewClient()
+        _ = client.addWebViewClient(client: self.internalWebClient)
+        return client
+    }()
+    
+    func onReady(cb: @escaping SimpleCallbcak) {
+        
+        if self.readyHelper == nil {
+            readyHelperLock.withLock {
+                self.readyHelper = ReadyHelper()
+                _ = self.dWebViewClient.addWebViewClient(client: self.readyHelper!)
+                _ = self.readyHelper?.afterReady(cb: { _ in
+                    print("ready")
+                })
+            }
+        }
+        _ = self.readyHelper?.afterReady(cb: cb)
     }
     
     private func afterReady() -> Bool{
         return readvPo.hasResult()
     }
     
-    func resolve(id: Int, data: String) {
-        operateMonitor.exposeWkwebViewMonitor.onNext(["type":"resolve","id": id,"data":data])
-    }
-    
-    func reject(id: Int, reason: String) {
-        operateMonitor.exposeWkwebViewMonitor.onNext(["type":"reject","id": id,"data":reason])
-    }
-    
     func evaluateSyncJavascriptCode(script: String) -> String {
-        return ""
+        return evaluator.evaluateSyncJavascriptCode(script: script)
     }
     
-    func evaluateAsyncJavascriptCode(script: String, afterEval: @escaping () -> Void) -> String {
-        return ""
+    func evaluateAsyncJavascriptCode(script: String, afterEval: @escaping () -> Void) async -> String {
+        return await evaluator.evaluateAsyncJavascriptCode(script: script, afterEval: afterEval)
     }
     
     func onClose(cb: @escaping SimpleCallbcak) -> OffListener {
@@ -113,30 +127,6 @@ class DWebView: UIView {
     
 }
 
-extension DWebView:  WKScriptMessageHandler {
-    //通过js调取原生操作
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        
-        if message.name == "resolve" {
-            //TODO 参数
-            resolve(id: 0, data: "")
-        } else if message.name == "reject" {
-            //TODO 参数
-            reject(id: 0, reason: "")
-        }
-    }
-    
-    private func openAppBoundDomains(urlString: String) -> Bool {
-        let domains = ["waterbang.top","plaoc.com"]
-        for domain in domains {
-            if urlString.contains(domain) {
-                return true
-            }
-        }
-        return false
-    }
-}
-
 extension DWebView: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -145,19 +135,19 @@ extension DWebView: WKNavigationDelegate {
         let host = request.url?.host ?? ""
         if request.httpMethod == "GET" && host.hasSuffix(",dweb") && request.url?.scheme == "http" {
             
-            if let response = mm?.nativeFetch(request: request) {
-                let header = IpcHeaders(content: response.headers.description)
-                let httpResponse = HTTPURLResponse(url: request.url!, statusCode: Int(response.status.code), httpVersion: nil, headerFields: header.headerDict)
-                guard let data = response.body.data else { return }
-                webView.loadSimulatedRequest(request, response: httpResponse!, responseData: data)
-            }
+//            if let response = mm?.nativeFetch(request: request) {
+//                let header = IpcHeaders(content: response.headers.description)
+//                let httpResponse = HTTPURLResponse(url: request.url!, statusCode: Int(response.status.code), httpVersion: nil, headerFields: header.headerDict)
+//                guard let data = response.body.data else { return }
+//                webView.loadSimulatedRequest(request, response: httpResponse!, responseData: data)
+//            }
             
-            decisionHandler(.cancel)
+            decisionHandler(.allow)
         } else {
             decisionHandler(.allow)
         }
     }
-
+    
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
         
         
@@ -165,7 +155,7 @@ extension DWebView: WKNavigationDelegate {
     }
     
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-      
+        
     }
     
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
@@ -191,10 +181,84 @@ extension DWebView: WKNavigationDelegate {
     
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         print("webViewWebContentProcessDidTerminate")
+        closeSignal.emit(())
     }
 }
 
 struct Options {
     
+    /**
+     * 要加载的页面
+     */
     var urlString: String
+    /**
+     * WebChromeClient.onJsBeforeUnload 的策略
+     *
+     * 用户可以额外地进行策略补充
+     */
+    var onJsBeforeUnloadStrategy = JsBeforeUnloadStrategy.Default
+    /**
+     * WebView.onDetachedFromWindow 的策略
+     *
+     * 如果修改了它，就务必注意 WebView 的销毁需要自己去管控
+     */
+    var onDetachedFromWindowStrategy = DetachedFromWindowStrategy.Default
+    
+    init(urlString: String, onJsBeforeUnloadStrategy: JsBeforeUnloadStrategy = .Default, onDetachedFromWindowStrategy: DetachedFromWindowStrategy = .Default) {
+        self.urlString = urlString
+        self.onJsBeforeUnloadStrategy = onJsBeforeUnloadStrategy
+        self.onDetachedFromWindowStrategy = onDetachedFromWindowStrategy
+    }
+}
+
+
+enum JsBeforeUnloadStrategy {
+    case Default
+    case Cancel
+    case Confirm
+}
+
+enum DetachedFromWindowStrategy {
+    case Default
+    case Ignore
+}
+
+
+class InternalWebViewClient: NSObject, WKNavigationDelegate {
+    
+    static let shared = InternalWebViewClient()
+    
+    var remoteMM: MicroModule?
+    var localeMM: MicroModule?
+    
+    override init() {
+        super.init()
+        
+    }
+    
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        
+        let request = navigationAction.request
+        let host = request.url?.host ?? ""
+        if request.httpMethod == "GET" && host.hasSuffix(",dweb") && (request.url?.scheme == "http"  || request.url?.scheme == "https") {
+            
+            let req = Request.new(url: request.url?.absoluteString ?? "")
+            var headers = HTTPHeaders()
+            for (key,value) in request.allHTTPHeaderFields ?? [:] {
+                headers.add(name: key, value: value)
+            }
+            headers.add(name: "X-Dweb-Proxy-Id", value: localeMM?.mmid ?? "")
+            req.headers = headers
+            
+            if let response = remoteMM?.nativeFetch(request: req) {
+                let header = IpcHeaders(content: response.headers.description)
+                let httpResponse = HTTPURLResponse(url: request.url!, statusCode: Int(response.status.code), httpVersion: "HTTP/1.1", headerFields: header.headerDict)
+                guard let data = response.body.data else { return }
+                webView.loadSimulatedRequest(request, response: httpResponse!, responseData: data)
+            }
+            decisionHandler(.cancel)
+        } else {
+            decisionHandler(.allow)
+        }
+    }
 }

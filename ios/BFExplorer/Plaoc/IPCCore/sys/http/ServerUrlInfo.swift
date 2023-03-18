@@ -22,7 +22,7 @@ struct ServerUrlInfo {
         self.internal_origin = internal_origin
         self.public_origin = public_origin
     }
-    //TODO
+    
     func buildPublicUrl() -> URL? {
         return URL(string: public_origin)!.addURLQuery(name: "X-DWeb-Host", value: host)
     }

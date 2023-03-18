@@ -23,6 +23,22 @@ protocol IpcMessage: HandyJSON {
     var type: IPC_MESSAGE_TYPE { get }
 }
 
+protocol ValueCallback {
+    
+    associatedtype T
+    func onReceiveValue(value: T)
+}
+
+protocol FilePathProtocol {
+    
+    func onReceiveValue(value: [URI])
+}
+
+protocol RequestPermissionCallback {
+    
+    func onReceiveValue(value: Bool)
+}
+
 typealias OnIpcMessage = ((IpcMessage, Ipc)) -> Void
 typealias OnIpcrequestMessage = ((IpcRequest,Ipc)) -> Void
 typealias OnIpcEventMessage = ((IpcEvent,Ipc)) -> Void
