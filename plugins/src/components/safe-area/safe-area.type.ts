@@ -13,5 +13,4 @@ export interface $SafeAreaState extends $InsetsState {
   cutoutInsets: DOMInsets;
   outerInsets: DOMInsets;
 }
-// deno-lint-ignore no-empty-interface
 export interface $SafeAreaWritableState extends $InsetsWritableState {}

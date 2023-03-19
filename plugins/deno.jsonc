@@ -20,7 +20,8 @@
   "lint": {
     "rules": {
       "exclude": [
-        "no-namespace"
+        "no-namespace",
+        "no-empty-interface"
       ]
     }
   },

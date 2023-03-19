@@ -20,20 +20,6 @@ const onVirtualKeyboardChange = (info: $VirtualKeyboardState, type: string) => {
   console.log(type, info);
 };
 
-const visible = ref<boolean>(undefined as never);
-const setVisible = defineLogAction(
-  async () => {
-    await virtualKeyboard.setVisible(visible.value);
-  },
-  { name: "setVisible", args: [], logPanel: $logPanel }
-);
-const getVisible = defineLogAction(
-  async () => {
-    return await virtualKeyboard.getVisible();
-  },
-  { name: "getVisible", args: [], logPanel: $logPanel }
-);
-
 const overlay = ref<boolean>(undefined as never);
 const setOverlay = defineLogAction(
   async () => {
@@ -58,25 +44,6 @@ const getOverlay = defineLogAction(
     <figure class="icon">
       <img src="../../assets/safearea.svg" :alt="title" />
     </figure>
-    <article class="card-body">
-      <h2 class="card-title">Virtual Keyboard Visible</h2>
-      <input class="input" type="text" value="normal input" />
-      <div
-        contenteditable
-        virtualkeyboardpolicy="manual"
-        inputmode="text"
-        ondblclick="navigator.virtualKeyboard.show();"
-      >
-        Double-click to edit.
-      </div>
-      <input class="toggle" type="checkbox" v-model="visible" />
-      <div class="justify-end card-actions btn-group">
-        <button class="inline-block rounded-full btn btn-accent" :disabled="null == visible" @click="setVisible">
-          Set
-        </button>
-        <button class="inline-block rounded-full btn btn-accent" @click="getVisible">Get</button>
-      </div>
-    </article>
     <article class="card-body">
       <h2 class="card-title">Virtual Keyboard Overlay</h2>
       <input class="toggle" type="checkbox" v-model="overlay" />

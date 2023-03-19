@@ -213,10 +213,6 @@ open class MultiWebViewActivity : PermissionActivity() {
                             }
                         }
 
-                        val keyboardController = LocalSoftwareKeyboardController.current
-                        var (text, setText) = remember {
-                            mutableStateOf("Close keyboard on done ime action (blue ✔️)")
-                        }
                         val chromeClient = remember {
                             object : AccompanistWebChromeClient() {
                                 override fun onJsBeforeUnload(
@@ -277,21 +273,6 @@ open class MultiWebViewActivity : PermissionActivity() {
                                 .background(Color.Blue)
                                 .fillMaxSize()
                         ) {
-                            BasicTextField(
-                                text,
-                                setText,
-                                keyboardOptions = KeyboardOptions(
-                                    imeAction = ImeAction.Search,
-                                    keyboardType = KeyboardType.Decimal
-                                ),
-                                keyboardActions = KeyboardActions(
-//                                    onDone = { keyboardController?.hide() }
-                                ),
-                                modifier = Modifier
-                                    .focusRequester(nativeUiController.virtualKeyboard.focusRequester)
-                                    .fillMaxWidth()
-                                    .zIndex(-1.0F)
-                            )
                             val modifierPadding by nativeUiController.safeArea.outerAreaInsetsState
                             WebView(
                                 state = state,

@@ -42,29 +42,6 @@ export class VirtualKeyboardPlugin extends InsetsPlugin<
   async getOverlay() {
     return (await this.state.getState()).overlay;
   }
-  @bindThis
-  async getVisible() {
-    return (await this.getState()).visible;
-  }
-  @bindThis
-  setVisible(visible: boolean) {
-    return this.setStateByKey("visible", visible);
-  }
-  /**
-   * 显示虚拟键盘
-   */
-  @bindThis
-  show() {
-    return this.setVisible(true);
-  }
-
-  /**
-   * 隐藏虚拟键盘
-   */
-  @bindThis
-  hide() {
-    return this.setVisible(false);
-  }
 }
 
 export const virtualKeyboardPlugin = new VirtualKeyboardPlugin();

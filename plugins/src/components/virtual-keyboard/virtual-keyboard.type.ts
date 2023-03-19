@@ -4,12 +4,6 @@ import {
   $InsetsWritableState,
 } from "../base/InsetsPlugin.ts";
 
-export interface $VirtualKeyboardRawState extends $InsetsRawState {
-  visible: boolean;
-}
-export interface $VirtualKeyboardState extends $InsetsState {
-  visible: boolean;
-}
-export interface $VirtualKeyboardWritableState extends $InsetsWritableState {
-  visible: boolean;
-}
+export interface $VirtualKeyboardRawState extends $InsetsRawState {}
+export interface $VirtualKeyboardState extends $InsetsState {}
+export interface $VirtualKeyboardWritableState extends $InsetsWritableState {}
