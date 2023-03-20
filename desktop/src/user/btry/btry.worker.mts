@@ -1,114 +1,31 @@
 /// <reference path="../../sys/js-process/js-process.worker.d.ts"/>
-
-// import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
-// import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-// import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
-// import html from "../../../assets/html/browser.html"
-
-// import type { Ipc } from "../../core/ipc/ipc.cjs";
-// import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
-// import { streamReadAll } from "../../helper/readableStreamHelper.cjs";
-import { wwwServerOnRequest } from "./www-server-on-request.mjs"
-import { apiServerOnRequest } from "./api-server-on-request.mjs"
+import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.cjs";
+ 
 import chalk from "chalk"
 
-import type { $OnIpcEventMessage } from "../../core/ipc/const.cjs"
-
- 
-
- 
-
 const main = async () => {
-  console.log('[browser.worker.mts exec]')
-  const { IpcEvent } = ipc;
-  const wwwServer = await http.createHttpDwebServer(jsProcess,{subdomain: "www", port: 443});
-  const apiServer = await http.createHttpDwebServer(jsProcess,{subdomain: "api", port: 443});
-
-  ;(await wwwServer.listen()).onRequest(wwwServerOnRequest)
-  ;(await apiServer.listen()).onRequest(apiServerOnRequest)
-
-  // 打开 browser.sys.dweb 配套的html 页面
-  // 验证 JSMM 之间通信 实现消息推送 不需要打开匹配的html
-  // {
-  //   const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-  //     url.pathname = "/index.html";
-  //   }).href
-  //   console.log("cot#open interUrl=>", interUrl)
-  //   const view_id = await jsProcess
-  //     .nativeFetch(
-  //       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
-  //     )
-  //     .text();
-  // }
-
+  console.log('[btry.worker.mts]')
+  const { IpcEvent } = ipc
    
   // 等待他人的连接
+  // ipcEvent 是属于推送消息
   {
     jsProcess.onConnect((ipc) => {
-      console.log('browser.worker.mts onConnect')
+      console.log('btry.worker.mts onConnect')
       ipc.onEvent((event, ipc) => {
-        console.log("got event:", ipc.remote.mmid, event.name, event.text);
+        console.log("btrygot event:", ipc.remote.mmid, event.name, event.text);
+        console.error('发送消息有问题？？双向通信接受方出问题了')
         setTimeout(() => {
           ipc.postMessage(IpcEvent.fromText(event.name, "echo:" + event.text));
         }, 500);
       });
 
-      ipc.onMessage(() => {
+      ipc.onMessage((event, ipc) => {
+        if(event.type === IPC_MESSAGE_TYPE.EVENT) return;
         console.error('ipc onmessage')
       })
     });
   }
-
-  // 主动连接 JSMM
-  setTimeout(async() => {
-    console.error('开始连接 JSMM btry.sys.dweb')
-    const jsMMIpc = await jsProcess.connect("btry.sys.dweb");
-
-    jsMMIpc.onMessage(() => {
-      console.log('browser.worker.mts jsMMIpc onmessage')
-    })
-    console.log('连接 btry.sys.dweb 成功')
-    jsMMIpc.postMessage(IpcEvent.fromText("btry.sys.dweb", "from browser value"))
-  }, 5000)
-
-
-
-
-
-
-
-
-
-
-  // 连接 NMM
-  // 后期需要更改 把这个移动到 js-process.worker.mts 中
-  // 只接连接全部的plugins
-  // const { IpcEvent } = ipc;
-  // const statusbarSysDwebIpc = await createConnect("statusbar.sys.dweb");
-  // statusbarSysDwebIpc.onEvent((event, ipc) => {
-  //   console.error("got event:", ipc.remote.mmid, event.name, event.text);
-  // });
-  // statusbarSysDwebIpc.postMessage({value: "value"});
-
-  // async function createConnect(mmid: $MMID){
-  //   const ipc = await jsProcess.connect(mmid);
-  //   return {
-  //     // onMessage:ipc.onMessage,
-  //     // 暂时只暴露onEvent
-  //     onEvent: (cb: $OnIpcEventMessage) => ipc.onEvent(cb),
-  //     // onReqeust: ipc.onRequest,
-  //     postMessage: async (data: unknown /** JSON 字符串 */) => {
-  //       let str = ""
-  //       try{
-  //         str = JSON.stringify(data)
-  //       }catch(err){
-  //         throw new Error(`非法的 data 无法转化为 json`)
-  //       }
-  //       ipc.postMessage(IpcEvent.fromText(mmid, str))
-  //     },
-  //     ipc: ipc
-  //   }
-  // }
 
   // 安装 
 }

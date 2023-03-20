@@ -242,6 +242,7 @@ export class JsProcessNMM extends NativeMicroModule {
       },
       output: "number",
       handler: async (args, ipc) => {
+        console.log(`js-process.cts /create-ipc`)
         const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
         if (process_id_po === undefined) {
           throw new Error(

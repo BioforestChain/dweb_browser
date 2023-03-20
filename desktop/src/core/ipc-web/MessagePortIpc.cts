@@ -33,13 +33,14 @@ export class MessagePortIpc extends Ipc {
       this.remote.ipc_support_protocols.message_pack;
 
     port.addEventListener("message", (event) => {
+      // console.log(event.data, this.support_raw, this.support_message_pack)
       const message = this.support_raw
         ? $messageToIpcMessage(event.data, this)
         : this.support_message_pack
-        ? $messagePackToIpcMessage(event.data, this)
-        : $jsonToIpcMessage(event.data, this);
+          ? $messagePackToIpcMessage(event.data, this)
+          : $jsonToIpcMessage(event.data, this);
       if (message === undefined) {
-        console.error("unkonwn message", event.data);
+        console.error("MessagePortIpc.cts unkonwn message", event.data);
         return;
       }
       if (message === "pong") {
@@ -59,6 +60,7 @@ export class MessagePortIpc extends Ipc {
   }
 
   _doPostMessage(message: $IpcMessage): void {
+    // console.log('MessagePortIpc.cts _doPostMessage', message)
     var message_data: any;
     var message_raw: IpcMessage<any>;
     if (message instanceof IpcRequest) {
@@ -76,6 +78,10 @@ export class MessagePortIpc extends Ipc {
     } else {
       message_data = JSON.stringify(message_raw);
     }
+    if(this.remote.mmid === "jmm.test.connect.dweb"){
+      // console.log('dopostmessage: ', message_data)
+    }
+    console.log('dopostmessage: ', message_data, this.remote.mmid)
     this.port.postMessage(message_data);
   }
 

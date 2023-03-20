@@ -41,13 +41,15 @@ export class JsMicroModule extends MicroModule {
    * 一个 jsMM 可能连接多个模块
    */
   private _remoteIpcs = new Map<string, Ipc>()
+  private _workerIpc: Native2JsIpc | undefined;
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
+    console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`)
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
     this.onConnect((ipc) => {
-      
+      console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
       // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
       ipc.onRequest(async (request) => {
         // console.log(chalk.red(`[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`))
@@ -71,21 +73,40 @@ export class JsMicroModule extends MicroModule {
        * 
        */
       ipc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === ipc */) =>{
-       
+        console.log(`[micro-module.js.cts ${this.mmid} ipc.onEvent]`, ipcEventMessage)
         if(ipcEventMessage.name === "dns/connect"){
           if(Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data')
           // 创建同 远程模块的 ipc 通道
           const mmid = JSON.parse(ipcEventMessage.data as string).mmid
           const [remoteIpc, localIpc] = await context.dns.connect(mmid)
           this._remoteIpcs.set(mmid, remoteIpc)
+          // 如果能够把 remoteIpc 直接返回回去就完美了
           ipc.postMessage(IpcEvent.fromText("dns/connect", "done"))
           // 直接转发
           remoteIpc.onEvent((event, _ipc) => ipc.postMessage(event))
           return;
         }
 
+        // 如何把 发送给
+        if(this.mmid === ipcEventMessage.name){
+          // console.log(chalk.red(`micro-module.js.cts ipc.onEvent 这里还有问题 还需要处理，无法把消息发送给对应的 worker`), ipcEventMessage, ipc);
+          // 测试代码 创建链接
+          // 判断是是有已经有了链接
+          this._workerIpc = this._workerIpc === undefined ? await  this._beConnect(this) : this._workerIpc;
+          this._workerIpc.postMessage(ipcEventMessage)
+          // 接受到 从 worker 中返回的消息
+          this._workerIpc.onMessage((message, _ipc /** 这个ipc 匹配的是 this._workerIpc*/) => {
+            // console.log('mcor-module.js.cts 接受到了worker 返回的消息', message)
+            // 把这个消息发送给 ipc
+            ipc.postMessage(message)
+          })
+          
+          return;
+        }
+
+      
         const remoteIpc = this._remoteIpcs.get(ipcEventMessage.name)
-        if(remoteIpc === undefined) throw new Error('没有匹配的 remoteIpc')
+        if(remoteIpc === undefined) throw new Error(`${this.mmid} 模块 ipc.onEvent 没有匹配的 remoteIpc`)
         remoteIpc.postMessage(ipcEventMessage)
 
       })
@@ -95,11 +116,8 @@ export class JsMicroModule extends MicroModule {
 
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
-    // console.log("[micro-module.js.cts _bootstrap:]", this.mmid)
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
-    // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
     streamIpc.onRequest(async (request) => {
-      // console.log('-----------------------2', request.parsed_url)
       if (request.parsed_url.pathname.endsWith("/")) {
         streamIpc.postMessage(
           IpcResponse.fromText(
@@ -171,20 +189,26 @@ export class JsMicroModule extends MicroModule {
       }
     });
 
+
+    
  
     
   }
   private _connecting_ipcs = new Set<Ipc>();
+  
   async _beConnect(from: MicroModule): Promise<Native2JsIpc> {
     const process_id = this._process_id;
     if (process_id === undefined) {
       throw new Error("process_id no found.");
     }
+    // console.log(chalk.red(`问题从这里开始 process_id === ${this._process_id}`))
     const port_id = await this.nativeFetch(
-      `file://js.sys.dweb/create-ipc?process_id=${process_id}`
+      `file://js.sys.dweb/create-ipc?process_id=${process_id}&mmid=${this.mmid}`
     ).number();
+   
     const outer_ipc = new Native2JsIpc(port_id, this);
     this._connecting_ipcs.add(outer_ipc);
+    this._workerIpc = outer_ipc /** 测试代码 */
     return outer_ipc;
   }
 

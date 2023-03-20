@@ -13,6 +13,7 @@ import { IpcStreamData } from "../ipc/IpcStreamData.cjs";
 import { IpcStreamEnd } from "../ipc/IpcStreamEnd.cjs";
 import { IpcStreamPull } from "../ipc/IpcStreamPull.cjs";
 import { MetaBody } from "../ipc/MetaBody.cjs";
+import chalk from "chalk";
 
 export type $JSON<T> = {
   [key in keyof T]: T[key] extends Function ? never : T[key];
@@ -26,9 +27,13 @@ export const $messageToIpcMessage = (
   data: $JSON<$IpcTransferableMessage> | $IpcSignalMessage,
   ipc: Ipc
 ) => {
+  // console.log(chalk.red(`$messageToIpcMessage.cts data`), data)
   if (isIpcSignalMessage(data)) {
     return data;
   }
+
+  data = (Object.prototype.toString.call(data).slice(8 , -1) === "String" ? JSON.parse(data as unknown as string)  : data) as  $JSON<$IpcTransferableMessage>;
+
   let message: undefined | $IpcMessage | $IpcSignalMessage;
 
   if (data.type === IPC_MESSAGE_TYPE.REQUEST) {
