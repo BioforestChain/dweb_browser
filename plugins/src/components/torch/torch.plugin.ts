@@ -6,7 +6,7 @@ import { BasePlugin } from "../base/BasePlugin.ts";
 export class TorchPlugin extends BasePlugin {
   readonly tagName = "dweb-torch";
   constructor() {
-    super("torch.sys.dweb");
+    super("torch.nativeui.sys.dweb");
   }
 
   /**
@@ -14,15 +14,15 @@ export class TorchPlugin extends BasePlugin {
    */
   @bindThis
   async toggleTorch() {
-    return await this.fetchApi("/toggleTorch");
+    return await this.fetchApi("/toggleTorch").boolean();
   }
 
   /**
    * 手电筒状态
    */
   @bindThis
-  async getTorchState() {
-    return await this.fetchApi("/torchState");
+  async getTorchState(): Promise<boolean> {
+    return await this.fetchApi("/torchState").boolean();
   }
 }
 

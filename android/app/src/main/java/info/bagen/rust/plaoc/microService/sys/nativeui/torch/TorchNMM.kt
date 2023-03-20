@@ -1,12 +1,13 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.camera
+package info.bagen.rust.plaoc.microService.sys.nativeui.torch
 
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.sys.plugin.camera.FlashLightUtils
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class TorchNMM:NativeMicroModule("torch.sys.dweb") {
+class TorchNMM:NativeMicroModule("torch.nativeui.sys.dweb") {
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
             // 打开关闭手电筒

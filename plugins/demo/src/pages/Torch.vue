@@ -2,49 +2,49 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { Tduration, ToastPlugin } from "@bfex/plugin";
+import type { Tduration, HTMLDwebTorchElement } from "@bfex/plugin";
 const title = "Toast";
 
 const $logPanel = ref<typeof LogPanel>();
-const $toastPlugin = ref<ToastPlugin>();
+const $torchPlugin = ref<HTMLDwebTorchElement>();
 
 let console: Console;
-let toast: ToastPlugin;
+let toast: HTMLDwebTorchElement;
 onMounted(() => {
   console = toConsole($logPanel);
-  toast = $toastPlugin.value!;
+  toast = $torchPlugin.value!;
 });
 
-// export default {};
-const toast_message = ref("我是toast🍓");
-const toast_duration = ref<Tduration>("short");
-const showToast = defineLogAction(
+
+const toggleTorch = defineLogAction(
   async () => {
-    return toast.show({ text: toast_message.value, duration: toast_duration.value });
+    return toast.toggleTorch();
   },
-  { name: "showToast", args: [toast_message, toast_duration], logPanel: $logPanel }
+  { name: "toggleTorch", args: [], logPanel: $logPanel }
 );
+
+const getState = defineLogAction(
+  async () => {
+    const result = await toast.getTorchState();
+    console.info("torch state", result)
+  },
+  { name: "getState", args: [], logPanel: $logPanel }
+);
+
 </script>
 <template>
-  <dweb-toast ref="$toastPlugin"></dweb-toast>
+  <dweb-torch ref="$torchPlugin"></dweb-torch>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/toast.svg" :alt="title" />
     </figure>
 
     <article class="card-body">
-      <h2 class="card-title">Show Toast</h2>
-      <FieldLabel label="Toast Message:">
-        <input type="text" id="toast-message" v-model="toast_message" />
-      </FieldLabel>
-      <FieldLabel label="Toast Duration:">
-        <select name="toast-duration" id="toast-duration" v-model="toast_duration">
-          <option value="long">long</option>
-          <option value="short">short</option>
-        </select>
-      </FieldLabel>
+      <h2 class="card-title">Torch</h2>
+
       <div class="justify-end card-actions">
-        <button class="inline-block rounded-full btn btn-accent" id="toast-show" @click="showToast()">Show</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="toggleTorch">toggle</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getState">state</button>
       </div>
     </article>
   </div>

@@ -11,7 +11,7 @@ import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.sys.nativeui.NativeUiNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.barcode.ScanningNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.camera.TorchNMM
+import info.bagen.rust.plaoc.microService.sys.nativeui.torch.TorchNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.*
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.FileSystemNMM
@@ -19,7 +19,6 @@ import info.bagen.rust.plaoc.microService.sys.plugin.haptics.HapticsNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.notification.NotificationNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionsNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.share.ShareNMM
-import info.bagen.rust.plaoc.microService.sys.nativeui.splashScreen.SplashScreenNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.toast.ToastNMM
 import info.bagen.rust.plaoc.microService.user.CotDemoJMM
 import info.bagen.rust.plaoc.microService.user.CotJMM

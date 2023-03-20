@@ -1,5 +1,7 @@
 /// <reference path="../../shims/ImageCapture.d.ts" />
+import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { CameraDirection } from "../camera/camera.type.ts";
+import { torchPlugin } from "../torch/torch.plugin.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
 import { SupportedFormat } from "./barcode-scanning.type.ts";
 
@@ -15,13 +17,23 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   constructor() {
     super();
   }
-
+  @cacheGetter()
   get process() {
     return this.plugin.process
   }
-
+  @cacheGetter()
   get stop() {
     return this.plugin.stop
+  }
+
+  @cacheGetter()
+  get toggleTorch() {
+    return torchPlugin.toggleTorch
+  }
+
+  @cacheGetter()
+  get getTorchState() {
+    return torchPlugin.getTorchState
   }
 
   /**
@@ -43,12 +55,21 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     await this._startVideo();
     return await this.taskPhoto(rotation, formats);
   }
-
   stopScanning() {
     this._activity = false
     this.stopCamera("user stop")
   }
 
+
+  /**
+   * 停止扫码
+   * @param error
+   */
+  // deno-lint-ignore no-explicit-any
+  stopCamera(error: any) {
+    console.error(error);
+    this._stop();
+  }
 
   /**
    * 不断识图的任务
@@ -139,16 +160,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._video.play();
   }
 
-  /**
-   * 停止扫码
-   * @param error
-   */
-  // deno-lint-ignore no-explicit-any
-  stopCamera(error: any) {
-    console.error(error);
-    this._stop(); // turn off the camera
-  }
-
   private _stop() {
     if (this._video) {
       this._video.pause();
@@ -176,7 +187,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * @param direction
    * @returns
    */
-  createElement(direction: CameraDirection = CameraDirection.BACK) {
+  private createElement(direction: CameraDirection = CameraDirection.BACK) {
     const body = document.body;
 
     const video = document.getElementById("video");
