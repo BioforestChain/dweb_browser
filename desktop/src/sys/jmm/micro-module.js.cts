@@ -48,22 +48,22 @@ export class JsMicroModule extends MicroModule {
     console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`)
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
-    this.onConnect((ipc) => {
+    this.onConnect((workerIpc, rease) => {
       console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
       // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
-      ipc.onRequest(async (request) => {
+      workerIpc.onRequest(async (request) => {
         // console.log(chalk.red(`[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`))
         const  init = request.method === "POST" || request.method === "PUT"  
                     ? { method: request.method, body: await request.body.stream()}
                     : { method: request.method}
 
         const response = await this.nativeFetch(request.parsed_url.href, init)
-        ipc.postMessage(
-          await IpcResponse.fromResponse(request.req_id, response, ipc)
+        workerIpc.postMessage(
+          await IpcResponse.fromResponse(request.req_id, response, workerIpc)
         )
       })
 
-      ipc.onMessage(async (request) => {
+      workerIpc.onMessage(async (request) => {
         // console.log('ipc.onMessage', request)
       })
 
@@ -72,7 +72,7 @@ export class JsMicroModule extends MicroModule {
        * messate.type === IPC_MESSAGE_TYPE.EVENT
        * 
        */
-      ipc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === ipc */) =>{
+       workerIpc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === workerIpc */) =>{
         console.log(`[micro-module.js.cts ${this.mmid} ipc.onEvent]`, ipcEventMessage)
         if(ipcEventMessage.name === "dns/connect"){
           if(Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data')
@@ -81,9 +81,9 @@ export class JsMicroModule extends MicroModule {
           const [remoteIpc, localIpc] = await context.dns.connect(mmid)
           this._remoteIpcs.set(mmid, remoteIpc)
           // 如果能够把 remoteIpc 直接返回回去就完美了
-          ipc.postMessage(IpcEvent.fromText("dns/connect", "done"))
-          // 直接转发
-          remoteIpc.onEvent((event, _ipc) => ipc.postMessage(event))
+          workerIpc.postMessage(IpcEvent.fromText("dns/connect", "done"))
+          // 从连接的模块中收到的 IpcEvent 直接转发
+          remoteIpc.onEvent((event, _ipc) => workerIpc.postMessage(event))
           return;
         }
 
@@ -96,9 +96,8 @@ export class JsMicroModule extends MicroModule {
           this._workerIpc.postMessage(ipcEventMessage)
           // 接受到 从 worker 中返回的消息
           this._workerIpc.onMessage((message, _ipc /** 这个ipc 匹配的是 this._workerIpc*/) => {
-            // console.log('mcor-module.js.cts 接受到了worker 返回的消息', message)
             // 把这个消息发送给 ipc
-            ipc.postMessage(message)
+            workerIpc.postMessage(message)
           })
           
           return;

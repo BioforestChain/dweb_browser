@@ -5102,9 +5102,6 @@ var MessagePortIpc = class extends Ipc {
     } else {
       message_data = JSON.stringify(message_raw);
     }
-    if (this.remote.mmid === "jmm.test.connect.dweb") {
-    }
-    console.log("dopostmessage: ", message_data, this.remote.mmid);
     this.port.postMessage(message_data);
   }
   _doClose() {

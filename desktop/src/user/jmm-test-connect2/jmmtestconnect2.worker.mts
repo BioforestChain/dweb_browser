@@ -14,13 +14,12 @@ const main = async() => {
     {
         setTimeout(async () => {
             const jsMMIpc = await jsProcess.connect('jmm.test.connect.dweb')
-
-            // jsMMIpc.onMessage((message, ipc) => {
-            //     console.log('jmm.text.connect.2.worker.mts 接受到了消息')
-
-            // })
+            jsMMIpc.onMessage((message, ipc) => {
+                console.log('jmm.text.connect.2.worker.mts 接受到了消息', message)
+            })
             // name 必须是指定的模块名称
-            // jsMMIpc.postMessage(IpcEvent.fromText('jmm.test.connect.dweb', "value"))
+            // 发送消息必须要有模块的名称
+            jsMMIpc.postMessage(IpcEvent.fromText('jmm.test.connect.dweb', "value"))
 
         }, 3000)
     }
