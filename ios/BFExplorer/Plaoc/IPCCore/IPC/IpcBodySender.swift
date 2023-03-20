@@ -68,7 +68,7 @@ class IpcBodySender: IpcBody {
         super.init()
         self.raw = raw
         self.ipc = ipc
-        self.bodyHub = hub
+//        self.bodyHub = hub
         self.metaBody = bodyAsMeta(body: raw, ipc: ipc)
         
         raw_ipcBody_WMap[raw] = self
@@ -129,14 +129,14 @@ class IpcBodySender: IpcBody {
     
     lazy private var hub: BodyHub = {
         var body = BodyHub()
-        body.data = self.raw
-        if let str = self.raw as? String {
-            body.text = str
-        } else if let bytes = self.raw as? [UInt8] {
-            body.u8a = bytes
-        } else if let stream = self.raw as? InputStream {
-            body.stream = stream
-        }
+//        body.data = self.raw
+//        if let str = self.raw as? String {
+//            body.text = str
+//        } else if let bytes = self.raw as? [UInt8] {
+//            body.u8a = bytes
+//        } else if let stream = self.raw as? InputStream {
+//            body.stream = stream
+//        }
         return body
     }()
     
@@ -186,7 +186,7 @@ class IpcBodySender: IpcBody {
             return -1 //随便返回数据
         }
         
-        
+    
         var streamType = IPC_META_BODY_TYPE.IPC_META_BODY_TYPE_STREAM_ID
         var streamFirstData: Any
         if let preStream = stream as? PreReadableInputStream, preStream.preReadableSize > 0 {

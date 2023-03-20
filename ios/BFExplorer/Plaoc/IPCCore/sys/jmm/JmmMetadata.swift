@@ -10,7 +10,7 @@ import HandyJSON
 
 class JmmMetadata: HandyJSON {
     
-    private var main_url: String = ""   // 打开应用地址
+    var server: MainServer? // 打开应用地址
     var id: String = ""
     private var staticWebServers: [StaticWebServer] = []  //静态网络服务
     /**
@@ -37,26 +37,20 @@ class JmmMetadata: HandyJSON {
     private var home: String = "" // 首页地址
     private var plugins: [String]?
     private var releaseDate: String = "" // 发布时间
+    var fileHash: String = ""
     
     required init() {
         
     }
     
-    init(id: String, urlString: String) {
-        self.main_url = urlString
+    init(id: String) {
         self.id = id
     }
     
-    func getMainUrlString() -> String {
-        return self.main_url
-    }
-    
-    func setMainUrl(urlString: String) {
-        self.main_url = urlString
-    }
+ 
     
     var defaultJmmMetadata: JmmMetadata = {
-        let model = JmmMetadata(id: "app.bilibili.dweb", urlString: "")
+        let model = JmmMetadata(id: "app.bilibili.dweb")
         model.downloadUrl = "https://shop.plaoc.com/W85DEFE5/W85DEFE5.bfsa"
         model.permissions = ["camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb"]
         model.iconUrl = "http://linge.plaoc.com/bilibili.png"

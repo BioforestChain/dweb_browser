@@ -121,6 +121,10 @@ class DWebView: WKWebView {
         closeSignal.emit(())
     }
     
+    func destory() {
+        
+    }
+    
     deinit {
         closeSignal.emit(())
     }

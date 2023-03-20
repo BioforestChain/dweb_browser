@@ -18,7 +18,7 @@ class IpcBodyReceiver: IpcBody {
         super.init()
         self.metaBody = metaBody
         self.ipc = ipc
-        self.bodyHub = hub
+//        self.bodyHub = hub
         
         // 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
         if metaBody?.isStream ?? false {
@@ -36,40 +36,40 @@ class IpcBodyReceiver: IpcBody {
     
     lazy private var hub: BodyHub = {
         var body = BodyHub()
-        guard metaBody != nil else { return body }
-        var data: Any?
-        if metaBody!.isStream {
-            guard let ipc = metaId_receiverIpc_Map[metaBody!.metaId] else {
-                print("no found ipc by metaId:\(metaBody!.metaId)")
-                return
-            }
-            metaToStream(metaBody: metaBody, ipc: ipc)
-        } else {
-            if metaBody!.encoding == .UTF8 {
-                if let dataStr = metaBody?.data as? String {
-                    data = dataStr
-                }
-            } else if metaBody!.encoding == .BINARY {
-                if let bytes = metaBody?.data as? [UInt8] {
-                    data = bytes
-                }
-            } else if metaBody!.encoding == .BASE64 {
-                if let dataStr = metaBody?.data as? String {
-                    data = dataStr.fromBase64()
-                }
-            } else {
-                print("invalid metaBody type:\(metaBody!.type)")
-                return
-            }
-        }
-        body.data = data
-        if let dataStr = data as? String {
-            body.text = dataStr
-        } else if let bytes = data as? [UInt8] {
-            body.u8a = bytes
-        } else if let stream = data as? InputStream {
-            body.stream = stream
-        }
+//        guard metaBody != nil else { return body }
+//        var data: Any?
+//        if metaBody!.isStream {
+//            guard let ipc = metaId_receiverIpc_Map[metaBody!.metaId] else {
+//                print("no found ipc by metaId:\(metaBody!.metaId)")
+//                return
+//            }
+//            metaToStream(metaBody: metaBody, ipc: ipc)
+//        } else {
+//            if metaBody!.encoding == .UTF8 {
+//                if let dataStr = metaBody?.data as? String {
+//                    data = dataStr
+//                }
+//            } else if metaBody!.encoding == .BINARY {
+//                if let bytes = metaBody?.data as? [UInt8] {
+//                    data = bytes
+//                }
+//            } else if metaBody!.encoding == .BASE64 {
+//                if let dataStr = metaBody?.data as? String {
+//                    data = dataStr.fromBase64()
+//                }
+//            } else {
+//                print("invalid metaBody type:\(metaBody!.type)")
+//                return
+//            }
+//        }
+//        body.data = data
+//        if let dataStr = data as? String {
+//            body.text = dataStr
+//        } else if let bytes = data as? [UInt8] {
+//            body.u8a = bytes
+//        } else if let stream = data as? InputStream {
+//            body.stream = stream
+//        }
         return body
     }()
     
@@ -80,8 +80,8 @@ class IpcBodyReceiver: IpcBody {
     func metaToStream(metaBody: MetaBody?, ipc: Ipc?) -> InputStream {
         
         let stream_id = metaBody?.streamId ?? ""
-        let stream = ReadableStream().startLoad(cid: "receiver-\(stream_id)") { controller in
-            
+        
+        let stream = ReadableStream(cid: "receiver-\(stream_id)") { controller in
             var firstData: [UInt8]?
             if metaBody?.encoding == .UTF8 {
                 firstData = (metaBody?.data as? String)?.fromUtf8()
@@ -91,11 +91,11 @@ class IpcBodyReceiver: IpcBody {
                 firstData = (metaBody?.data as? String)?.fromBase64()
             }
             if firstData != nil {
-                controller.enqueue(byteArray: firstData!)
+                controller.enqueue(Data(firstData!))
             }
             _ = ipc?.onMessage(cb: { message,_ in
                 if let request = message as? IpcStreamData, request.stream_id == stream_id {
-                    controller.enqueue(byteArray: request.binary ?? [])
+                    controller.enqueue(Data(request.binary ?? []))
                 } else if let request = message as? IpcStreamEnd, request.stream_id == stream_id {
                     controller.close()
                 }
@@ -103,6 +103,7 @@ class IpcBodyReceiver: IpcBody {
         } onPull: { desiredSize, controller in
             ipc?.postMessage(message: IpcStreamPull(stream_id: stream_id, desiredSize: 1))
         }
+
         return stream
     }
 }

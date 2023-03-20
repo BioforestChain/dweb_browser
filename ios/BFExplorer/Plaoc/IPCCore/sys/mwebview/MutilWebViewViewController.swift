@@ -7,52 +7,71 @@
 
 import UIKit
 
-class MutilWebViewViewController: UIViewController {
-
-    private var webViewList: [ViewItem] = []
-    private var remoteMmid: String = ""
-    private var webviewId_acc = 1
+class PermissionActivity: UIViewController {
+    
+    let PERMISSION_REQUEST_CODE_PHOTO = 2
+    var requestPermissionsResultMap: [Int: RequestPermissionsResult] = [:]
+    private var requestPermissionsCodeAcc = 1
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        
     }
     
-    func openWebView(module: MicroModule, urlString: String) -> ViewItem {
+    func requestPermissions(permissions: [String]) -> RequestPermissionsResult {
         
-        let tmp = webviewId_acc
-        webviewId_acc += 1
-        let webviewId = "#w\(tmp)"
+        let result = RequestPermissionsResult(code: requestPermissionsCodeAcc)
+        requestPermissionsCodeAcc += 1
         
-        let dWebView = DWebView(frame: self.view.bounds, mm: module, options: Options(urlString: urlString))
-        //TODO
-        
-        let item = ViewItem(webviewId: webviewId, dWebView: dWebView)
-        webViewList.append(item)
-        
-        return item
-    }
-   
-    //关闭WebView
-    func closeWebView(webviewId: String) -> Bool {
-        
-        for item in webViewList {
-            if item.webviewId == webviewId {
-                item.dWebView.removeFromSuperview()
-                return true
-            }
+        if permissions.count > 0 {
+            requestPermissionsResultMap[result.code] = result
+            //TODO  请求权限
+        } else {
+            result.done()
         }
-        return false
+        
+        result.waitPromise()
+        return result
     }
     
-    //将指定WebView移动到顶部显示
-    func moveToTopWebView(webviewId: String) -> Bool {
-        
-        guard let index = webViewList.firstIndex(where: { $0.webviewId == webviewId }) else { return false }
-        let item = webViewList.remove(at: index)
-        webViewList.append(item)
-        return true
-    }
+}
 
+class MutilWebViewViewController: PermissionActivity {
+
+    private var remoteMmid: String = ""
+    private var controller: MutilWebViewViewController?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+    }
+    
+    func upsetRemoteMmid() {
+         
+    }
+    
+}
+
+class RequestPermissionsResult {
+    
+    var code: Int
+    var grants: [String] = []
+    var denied: [String] = []
+    private let task = PromiseOut<Void>()
+    
+    var isGranted: Bool {
+        return denied.count == 0
+    }
+    
+    init(code: Int) {
+        self.code = code
+    }
+    
+    func done() {
+        task.resolver(())
+    }
+    
+    func waitPromise() {
+        task.waitPromise()
+    }
 }

@@ -13,7 +13,7 @@ class BrowserNMM: NativeMicroModule {
         super.init(mmid: "browser.sys.dweb")
     }
     
-    override func _bootstrap() throws {
+    override func _bootstrap(bootstrapContext: BootstrapContext) throws {
         guard let app = UIApplication.shared.delegate as? AppDelegate else { return }
         
         app.window = UIWindow(frame: UIScreen.main.bounds)

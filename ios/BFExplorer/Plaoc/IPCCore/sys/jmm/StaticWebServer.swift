@@ -7,7 +7,7 @@
 
 import UIKit
 
-class StaticWebServer {
+struct StaticWebServer {
 
     var root: String = ""
     var entry: String = "index.html"

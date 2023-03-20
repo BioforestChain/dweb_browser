@@ -32,7 +32,7 @@ extension [UInt8] {
     
     func toBase64Url() -> String {
         let content = toBase64()
-        let encodeUrlString = content?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        let encodeUrlString = content.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
         return encodeUrlString ?? ""
     }
 }

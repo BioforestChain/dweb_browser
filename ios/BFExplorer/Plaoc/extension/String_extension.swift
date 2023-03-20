@@ -196,4 +196,35 @@ extension String {
         return self.removingPercentEncoding ?? ""
     }
     
+    func encodeURIComponent() -> String {
+        return self.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)?
+            .replacingOccurrences(of: ";", with: "%3B")
+            .replacingOccurrences(of: "/", with: "%2F")
+            .replacingOccurrences(of: "?", with: "%3F")
+            .replacingOccurrences(of: ":", with: "%3A")
+            .replacingOccurrences(of: "@", with: "$40")
+            .replacingOccurrences(of: "&", with: "%26")
+            .replacingOccurrences(of: "=", with: "%3D")
+            .replacingOccurrences(of: "+", with: "%2B")
+            .replacingOccurrences(of: "$", with: "%24")
+            .replacingOccurrences(of: ",", with: "%2C")
+            .replacingOccurrences(of: "#", with: "%23")
+        ?? ""
+    }
+    
+    func decodeURIComponent() -> String {
+        return removingPercentEncoding?
+            .replacingOccurrences(of: "%3B", with: ";")
+            .replacingOccurrences(of: "%2F", with: "/")
+            .replacingOccurrences(of: "%3F", with: "?")
+            .replacingOccurrences(of: "%3A", with: ":")
+            .replacingOccurrences(of: "$40", with: "@")
+            .replacingOccurrences(of: "%26", with: "&")
+            .replacingOccurrences(of: "%3D", with: "=")
+            .replacingOccurrences(of: "%2B", with: "+")
+            .replacingOccurrences(of: "%24", with: "$")
+            .replacingOccurrences(of: "%2C", with: ",")
+            .replacingOccurrences(of: "%23", with: "#")
+        ?? self
+    }
 }

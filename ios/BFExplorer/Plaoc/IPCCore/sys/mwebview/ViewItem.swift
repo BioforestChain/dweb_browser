@@ -10,12 +10,12 @@ import UIKit
 class ViewItem {
 
     var webviewId: String
-    var dWebView: DWebView
+    var webView: DWebView
     var hidden: Bool = false
     
     init(webviewId: String, dWebView: DWebView, hidden: Bool = false) {
         self.webviewId = webviewId
-        self.dWebView = dWebView
+        self.webView = dWebView
         self.hidden = hidden
     }
 }

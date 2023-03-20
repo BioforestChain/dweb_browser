@@ -11,53 +11,110 @@ import HandyJSON
 
 class JmmNMM: NativeMicroModule {
     
-    private var HttpServer = HTTPServer()
-    var apps: [String: JsMicroModule] = [:]
+    static var apps: [String: JsMicroModule] = [:]
     private var installingApps: [String: InstallingAppInfo] = [:]
+    
+    static let hostName = "file://jmm.sys.dweb"
+    static var jmmNMM: JmmNMM?
     
     init() {
         super.init(mmid: "jmm.sys.dweb")
+        
+        // TODO 启动的时候，从数据库中恢复 apps 对象
+        Task {
+            
+        }
+        
+        JmmNMM.jmmNMM = self
     }
     
-    override func _bootstrap() throws {
+    static func getAndUpdateJmmNmmApps() -> [String: JsMicroModule] {
+        return apps
+    }
+    
+    static func nativeFetchFromJS(mmid: String) {
+        Task {
+            let response = self.apps[mmid]?.nativeFetch(urlstring: "file://dns.sys.dweb/open?app_id=\(mmid.encodeURIComponent())")
+            if response == nil {
+                print("JmmNMM no found jmm mmid \(mmid)")
+            }
+        }
+    }
+    
+    static func nativeFetchOpenInstall(jmmMetadata: JmmMetadata, url: String) {
+        Task {
+            jmmNMM?.nativeFetch(urlstring: "\(hostName)/open?mmid=\(jmmMetadata.id)&metadataUrl=\(url)")
+        }
+    }
+    
+    static func nativeFetchInstallDNS(jmmMetadata: JmmMetadata) {
+        Task {
+            jmmNMM?.nativeFetch(urlstring: "\(hostName)/install?metadata=\(jmmMetadata.toJSONString() ?? "")")
+        }
+    }
+    
+    override func _bootstrap(bootstrapContext: BootstrapContext) throws {
         
-        let app = HttpServer.app
+        for app in JmmNMM.apps.values {
+            bootstrapContext.dns.install(mm: app)
+        }
+        routerHandler(bootstrapContext: bootstrapContext)
+    }
+    
+    private func routerHandler(bootstrapContext: BootstrapContext) {
+        let installRouteHandler: RouterHandler = { request, ipc in
+            
+            let metadata = request.query[String.self, at: "metadata"] ?? ""
+            guard let jmmMetadata = JSONDeserializer<JmmMetadata>.deserializeFrom(json: metadata) else {
+                return false
+            }
+            
+            var module = JmmNMM.apps[jmmMetadata.id]
+            if module == nil {
+                module = JsMicroModule(metadata: jmmMetadata)
+                bootstrapContext.dns.install(mm: module!)
+                JmmNMM.apps[jmmMetadata.id] = module
+            }
+            return true
+        }
+        let uninstallRouteHandler: RouterHandler = { request, ipc in
+            let mmid = request.query[String.self, at: "mmid"] ?? ""
+            let jmm = JmmNMM.apps[mmid]
+            if jmm == nil {
+                fatalError("")
+            }
+            self.openJmmMatadataUninstallPage(jmmMetadata: jmm!.metadata)
+            return true
+        }
+        
+        let queryRouteHandler: RouterHandler = { request, ipc in
+            return AppsQueryResult(installedAppList: JmmNMM.apps.map { $1.metadata }, installingAppList: self.installingApps.map { $1 })
+        }
+        
+        let openRouteHandler: RouterHandler = { request, ipc in
+            let metadataUrl = request.query[String.self, at: "metadataUrl"] ?? ""
+            let jmmMetadata = JSONDeserializer<JmmMetadata>.deserializeFrom(json: self.nativeFetch(urlstring: metadataUrl)?.body.string ?? "")
+            self.openJmmMatadataInstallPage(jmmMetadata: jmmMetadata)
+            return jmmMetadata
+        }
+        apiRouting["\(self.mmid)/install"] = installRouteHandler
+        apiRouting["\(self.mmid)/uninstall"] = uninstallRouteHandler
+        apiRouting["\(self.mmid)/query"] = queryRouteHandler
+        apiRouting["\(self.mmid)/open"] = openRouteHandler
+        
+        // 添加路由处理方法到http路由中
+        let app = HTTPServer.app
         let group = app.grouped("\(mmid)")
-        
-        group.on(.GET, "install") { request -> Response in
-            let response = self.defineHandler(request: request) { reque in
-                let metadataUrl = request.query[String.self, at: "metadata-url"] ?? ""
-                let res = self.nativeFetch(urlstring: metadataUrl)
-                let jmmMetadata = JSONDeserializer<JmmMetadata>.deserializeFrom(json: res?.body.string)
-                
-                // TODO 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-                self.openJmmMatadataInstallPage(jmmMetadata: jmmMetadata)
-                return jmmMetadata
-            }
-            return response
+        let httpHandler: (Request) throws -> Response = { request in
+            self.defineHandler(request: request)
         }
-        
-        group.on(.GET, "uninstall") { request -> Response in
-            let response = self.defineHandler(req: request) { req, ipc in
-                let mmid = request.query[String.self, at: "mmid"] ?? ""
-                guard let jmm = self.apps[mmid] else { return false }
-                self.openJmmMatadataUninstallPage(jmmMetadata: jmm.metadata)
-                return true
-            }
-            return response
-        }
-        
-        group.on(.GET, "query") { request -> Response in
-            let response = self.defineHandler(req: request) { req, ipc in
-                let result = AppsQueryResult(installedAppList: self.apps.map({ $1.metadata}), installingAppList: self.installingApps.map { $1} )
-                return result
-            }
-            return response
+        for pathComponent in ["install", "uninstall", "query", "open"] {
+            group.on(.GET, [PathComponent(stringLiteral: pathComponent)], use: httpHandler)
         }
     }
     
     private func openJmmMatadataInstallPage(jmmMetadata: JmmMetadata?) {
-        
+        //TODO
     }
     
     private func openJmmMatadataUninstallPage(jmmMetadata: JmmMetadata?) {
