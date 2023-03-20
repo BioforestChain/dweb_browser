@@ -188,7 +188,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     const parent = document.createElement("div");
     parent.setAttribute(
       "style",
-      "position:absolute; top: 0; left: 0; width:100%; height: 100%; background-color: black;"
+      "position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;"
     );
     this._video = document.createElement("video");
     this._video.id = "video";
@@ -218,7 +218,9 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     parent.appendChild(this._video);
     if (!canvas) {
       this._canvas = document.createElement("canvas");
-      this._canvas.setAttribute("style", "width:100%; height: 100%;");
+      this._canvas.setAttribute("style", "visibility: hidden;");
+      this._canvas.width = 480
+      this._canvas.height = 360
       this._canvas.id = "canvas";
       parent.appendChild(this._canvas);
     }

@@ -8,10 +8,9 @@ import type {
 
 export class SplashScreenPlugin
   extends BasePlugin
-  implements ISplashScreenPlugin
-{
+  implements ISplashScreenPlugin {
   readonly tagName = "dweb-splash-screen";
-  constructor(readonly mmid = "splash-screen.sys.dweb") {
+  constructor() {
     super("splash-screen.nativeui.sys.dweb");
   }
 

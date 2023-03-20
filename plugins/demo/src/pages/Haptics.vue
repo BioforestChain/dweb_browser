@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import FieldLabel from "../components/FieldLabel.vue";
+import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 const title = "Haptics";
 </script>
 
@@ -13,7 +14,7 @@ const title = "Haptics";
       <FieldLabel label="Vibrate Pattern:">
         <input type="text" id="haptics-vibrate-pattern" placeholder="1,20,1,30" />
       </FieldLabel>
-      <button class="btn btn-accent inline-block rounded-full" id="haptics-vibrate">Vibrate</button>
+      <button class="inline-block rounded-full btn btn-accent" id="haptics-vibrate">Vibrate</button>
     </article>
   </div>
 </template>

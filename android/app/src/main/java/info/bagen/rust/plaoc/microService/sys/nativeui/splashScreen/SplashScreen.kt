@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.splash
+package info.bagen.rust.plaoc.microService.sys.nativeui.splashScreen
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter

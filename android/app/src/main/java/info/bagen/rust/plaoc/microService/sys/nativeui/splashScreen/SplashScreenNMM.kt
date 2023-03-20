@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.splash
+package info.bagen.rust.plaoc.microService.sys.nativeui.splashScreen
 
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
@@ -16,7 +16,7 @@ import org.http4k.lens.long
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class SplashScreenNMM : NativeMicroModule("splash.sys.dweb") {
+class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
 
 
     private val splashScreen: SplashScreen = SplashScreen(App.appContext, SplashScreenConfig())

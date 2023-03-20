@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.splash
+package info.bagen.rust.plaoc.microService.sys.nativeui.splashScreen
 
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
