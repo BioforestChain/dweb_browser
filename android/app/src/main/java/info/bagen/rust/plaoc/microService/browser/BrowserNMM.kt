@@ -4,7 +4,15 @@ import android.content.Intent
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.ipc.IpcEvent
+import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM.Companion.nativeFetchInstallApp
+import org.http4k.core.Uri
+import org.http4k.core.query
 
 
 class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
@@ -24,6 +32,11 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
         _afterShutdownSignal.listen { activity.finish() }
 
 
+    }
+
+    suspend fun openApp(mmid: Mmid) {
+        val (ipc) = bootstrapContext.dns.connect("file://$mmid")
+        ipc.postMessage(IpcEvent.fromUtf8("activity", ""))
     }
 
     override suspend fun _shutdown() {

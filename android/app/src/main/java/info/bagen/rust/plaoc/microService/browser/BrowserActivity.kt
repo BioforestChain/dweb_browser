@@ -90,6 +90,7 @@ class BrowserActivity : AppCompatActivity() {
                     }, onOpenDWebview = { appId, dAppInfo ->
                         /// TODO 这里是点击桌面app触发的事件
                         JmmNMM.nativeFetchFromJS(appId)
+
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                     QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)

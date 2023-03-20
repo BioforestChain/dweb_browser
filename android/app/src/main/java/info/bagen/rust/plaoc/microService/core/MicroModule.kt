@@ -26,6 +26,8 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
     }
 
     private var _bootstrapContext: BootstrapContext? = null
+    val bootstrapContext get() = _bootstrapContext ?: throw Exception("module no run.")
+
     protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
     private suspend fun afterBootstrap(dnsMM: BootstrapContext) {
         this.runningStateLock.resolve(true)

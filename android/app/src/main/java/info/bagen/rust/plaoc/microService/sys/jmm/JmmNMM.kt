@@ -3,11 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.jmm
 import info.bagen.rust.plaoc.datastore.JmmMetadataDB
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.encodeURIComponent
-import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.helper.json
-import info.bagen.rust.plaoc.microService.sys.dns.debugDNS
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
 import kotlinx.coroutines.Dispatchers
@@ -25,42 +21,34 @@ import org.http4k.routing.routes
 class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
         private val apps = mutableMapOf<Mmid, JsMicroModule>()
-        private var jmmNMM: JmmNMM? = null
 
         fun getAndUpdateJmmNmmApps() = apps
 
-        fun nativeFetchFromJS(mmid: Mmid) {
-            GlobalScope.launch(Dispatchers.IO) {
-                apps[mmid]?.nativeFetch(
-                    Uri.of("file://dns.sys.dweb/open")
-                        .query("app_id", mmid.encodeURIComponent())
-                ) ?: debugDNS("JmmNMM:nativeFetchFromJS", "no found JsMicroModule mmid $mmid")
-            }
+        suspend fun NativeMicroModule.nativeFetchFromJS(mmid: Mmid) {
+            nativeFetch(
+                Uri.of("file://dns.sys.dweb/open")
+                    .query("app_id", mmid.encodeURIComponent())
+            )
         }
 
-        fun nativeFetchInstallDNS(jmmMetadata: JmmMetadata) { // 安装完成后，需要注册到 DnsNMM 中
-            GlobalScope.launch(Dispatchers.IO) {
-                jmmNMM?.nativeFetch(
-                    Uri.of("file://dns.sys.dweb/install")
-                        .query("jmmMetadata", gson.toJson(jmmMetadata))
-                )
-            }
+        suspend fun NativeMicroModule.nativeFetchInstallDNS(jmmMetadata: JmmMetadata) { // 安装完成后，需要注册到 DnsNMM 中
+            nativeFetch(
+                Uri.of("file://dns.sys.dweb/install")
+                    .query("jmmMetadata", gson.toJson(jmmMetadata))
+            )
         }
 
-        fun nativeFetchInstallApp(jmmMetadata: JmmMetadata, url: String) {
-            GlobalScope.launch(Dispatchers.IO) {
-                jmmNMM?.nativeFetch(
-                    Uri.of("file://jmm.sys.dweb/install")
-                        .query("mmid", jmmMetadata.id).query("metadataUrl", url)
-                )
-            }
+        suspend fun NativeMicroModule.nativeFetchInstallApp(jmmMetadata: JmmMetadata, url: String) {
+            nativeFetch(
+                Uri.of("file://jmm.sys.dweb/install")
+                    .query("mmid", jmmMetadata.id).query("metadataUrl", url)
+            )
         }
     }
 
     init {
         // TODO 启动的时候，从数据库中恢复 apps 对象
-        jmmNMM = this
-        GlobalScope.launch(Dispatchers.IO) {
+        GlobalScope.launch(ioAsyncExceptionHandler) {
             JmmMetadataDB.queryJmmMetadataList().collectLatest {
                 apps.clear()
                 it.forEach { (key, value) ->

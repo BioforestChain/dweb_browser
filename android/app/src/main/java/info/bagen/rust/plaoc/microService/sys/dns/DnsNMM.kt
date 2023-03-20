@@ -18,20 +18,6 @@ import org.http4k.routing.routes
 inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("fetch", tag, msg, err)
 
-inline fun <K, V> MutableMap<K, V>.runExistOrPut(
-    key: K, runExists: (V) -> Unit, defaultValue: () -> V
-): V {
-    val value = get(key)
-    return if (value == null) {
-        val answer = defaultValue()
-        put(key, answer)
-        answer
-    } else {
-        runExists(value)
-        value
-    }
-}
-
 class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     private val installApps = mutableMapOf<Mmid, MicroModule>() // 已安装的应用
     private val runningApps = mutableMapOf<Mmid, MicroModule>() // 正在运行的应用
@@ -191,14 +177,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
 
     /** 打开应用 */
     suspend fun open(mmid: Mmid): MicroModule {
-        return runningApps.runExistOrPut(
-            key = mmid,
-            runExists = {
-                if (it is JsMicroModule) {
-                    it.nativeFetch(Uri.of("file://mwebview.sys.dweb/reOpen"))
-                }
-            }
-        ) {
+        return runningApps.getOrPut(mmid) {
             query(mmid)?.also {
                 bootstrapMicroModule(it)
             } ?: throw Exception("no found app: $mmid")

@@ -34,8 +34,6 @@ const main = async () => {
     port: 443,
   });
 
-
-
   const apiServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "api",
     port: 443,
@@ -87,6 +85,20 @@ const main = async () => {
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
       )
       .text();
+
+    // const windowHanlder = mwebview.openWindow(interUrl);
+    // windowHanlder.onClose(() => {});
+ 
+    // jsProcess.fetchIpc.onEvent((event) => {});
+
+    // jsProcess.onConnect((ipc) => {
+    //   if (ipc.remote.mmid == "browser.sys.dweb") {
+    //   }
+    //   ipc.onEvent((event)=>{
+    //     event.name ===  "activity"
+    //     mwebview.openWindow(interUrl);
+    //   });
+    // });
   }
   {
     // const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
