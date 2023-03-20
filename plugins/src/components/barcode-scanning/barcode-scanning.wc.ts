@@ -147,6 +147,14 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     const videoTracks = mediastream.getVideoTracks();
     if (videoTracks.length > 0 && this._canvas) {
       this._canvas.captureStream(100)
+      this._video.parentElement?.setAttribute("style", `
+      position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;
+      -webkit-transition:all 0.5s linear;
+   -moz-transition:all 0.5s linear;
+   -ms-transition:all 0.5s linear;
+   -o-transition:all 0.5s linear;
+   transition:all 0.5s linear;
+   visibility: visible;`);
       const ctx = this._canvas.getContext("2d");
       // 压缩为 100 * 100
       const update = () => requestAnimationFrame(() => {
@@ -177,7 +185,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     }
     if (this._canvas) {
       this._canvas.getContext("2d")?.clearRect(0, 0, this._canvas.width, this._canvas.height)
-      this._canvas.parentElement?.remove()
       this._canvas = null
     }
   }
@@ -199,7 +206,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     const parent = document.createElement("div");
     parent.setAttribute(
       "style",
-      "position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;"
+      "position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;visibility: hidden;"
     );
     this._video = document.createElement("video");
     this._video.id = "video";
