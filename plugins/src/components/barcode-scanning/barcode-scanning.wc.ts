@@ -10,52 +10,81 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   private _canvas: HTMLCanvasElement | null = null;
   private _formats = SupportedFormat.QR_CODE;
   private _direction: string = CameraDirection.BACK;
-  // private _imageCapturer: ImageCapture | null = null
+  private _activity = false
 
   constructor() {
     super();
   }
 
+  get process() {
+    return this.plugin.process
+  }
+
+  get stop() {
+    return this.plugin.stop
+  }
+
+  /**
+   * 看看是否支持扫码
+   * @returns boolean
+   */
   hasMedia = () => {
     return (navigator.getUserMedia =
       navigator.getUserMedia ||
       navigator.mozGetUserMedia ||
       navigator.webkitGetUserMedia);
   };
-
-  async startScan() {
+  /**
+   * 启动扫码
+   * @returns 
+   */
+  async startScanning(rotation = 0, formats = SupportedFormat.QR_CODE) {
     this.createElement();
     await this._startVideo();
-    return await this.taskPhoto()
+    return await this.taskPhoto(rotation, formats);
   }
 
-  // deno-lint-ignore no-explicit-any
-  async taskPhoto(): Promise<any> {
-    //   .then((res) => res)
-    //   .catch(this.stopCamera);
-    if (!this._canvas) return;
+  stopScanning() {
+    this._activity = false
+    this.stopCamera("user stop")
+  }
 
-    this._canvas.toBlob(async (imageBlob) => {
-      if (imageBlob) {
-        console.log("当前截取的帧=>", imageBlob.size)
-        const value = await this.plugin
-          .process(imageBlob)
-          .then((res) => res.json())
-          .catch((e) => {
-            console.log("识别失败:", e);
-            return e
-          });
-        const result = Array.from(value)
-        console.log("识别到扫码对象=>", result, result.length);
-        if (result.length > 0) {
-          this.stopCamera(result);
-          return result;
-        }
-        return await this.taskPhoto()
+
+  /**
+   * 不断识图的任务
+   * @returns 
+   */
+  private taskPhoto(rotation: number, formats: SupportedFormat): Promise<string[]> {
+    this._activity = true
+    return new Promise((resolve, reject) => {
+      const task = () => {
+        if (!this._canvas) return reject("Canvas service creation failed！")
+        if (!this._activity) return reject("user close")
+        this._canvas.toBlob(
+          async (imageBlob) => {
+            if (imageBlob) {
+              const value: string[] = await this.plugin
+                .process(imageBlob, rotation, formats)
+                .then((res) => res.json())
+                .catch(() => {
+                  this._activity = false
+                  return reject("502 service error");
+                });
+              const result = Array.from(value);
+              if (result.length > 0) {
+                this.stopCamera(result);
+                this._activity = false
+                return resolve(result);
+              }
+              return task();
+            }
+          },
+          "image/jpeg",
+          0.5 // lossy compression
+        );
       }
-
+      task()
     })
-
   }
 
   /**
@@ -71,12 +100,17 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
       await navigator.mediaDevices
         .getUserMedia(constraints)
-        .then(stream => {
-          this.gotMedia(stream)
+        .then((stream) => {
+          this.gotMedia(stream);
         })
         .catch((e) => {
           console.error("getUserMedia() failed: ", e);
+          throw new Error(
+            "You need to authorize the camera permission to use the scan code!"
+          );
         });
+    } else {
+      throw new Error("Your browser does not support scanning code!");
     }
   }
 
@@ -91,11 +125,16 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._video.srcObject = mediastream;
     const videoTracks = mediastream.getVideoTracks();
     if (videoTracks.length > 0 && this._canvas) {
-      this._canvas.captureStream(25)
-      const ctx = this._canvas.getContext('2d')
+      this._canvas.captureStream(100)
+      const ctx = this._canvas.getContext("2d");
       // 压缩为 100 * 100
-      ctx?.drawImage(this._video, 100, 100)
-      // this._imageCapturer = new ImageCapture(videoTracks[0]);
+      const update = () => requestAnimationFrame(() => {
+        if (ctx && this._video) {
+          ctx.drawImage(this._video, 0, 0, this._canvas?.width ?? 480, this._canvas?.height ?? 360);
+          update()
+        }
+      });
+      update()
     }
     this._video.play();
   }
@@ -110,8 +149,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._stop(); // turn off the camera
   }
 
-  // deno-lint-ignore no-explicit-any
-  private async _stop(): Promise<any> {
+  private _stop() {
     if (this._video) {
       this._video.pause();
 
@@ -123,8 +161,13 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
         const track = tracks[i];
         track.stop();
       }
-      await this._video.parentElement?.remove();
+      this._video.parentElement?.remove();
       this._video = null;
+    }
+    if (this._canvas) {
+      this._canvas.getContext("2d")?.clearRect(0, 0, this._canvas.width, this._canvas.height)
+      this._canvas.parentElement?.remove()
+      this._canvas = null
     }
   }
 
@@ -173,13 +216,13 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     }
 
     parent.appendChild(this._video);
-    body.appendChild(parent);
-
     if (!canvas) {
       this._canvas = document.createElement("canvas");
+      this._canvas.setAttribute("style", "width:100%; height: 100%;");
       this._canvas.id = "canvas";
-      body.appendChild(this._canvas)
+      parent.appendChild(this._canvas);
     }
+    body.appendChild(parent);
   }
 }
 

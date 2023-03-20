@@ -5,6 +5,7 @@ import type { MetaBody } from "./MetaBody.cjs";
 import { simpleEncoder } from "../../helper/encoding.cjs";
 import { IPC_DATA_ENCODING, IPC_MESSAGE_TYPE } from "./const.cjs";
 import { IpcStreamPull } from "./IpcStreamPull.cjs";
+import { PromiseOut } from '../../helper/PromiseOut.cjs';
 
 export class IpcBodyReceiver extends IpcBody {
   private static metaIdIpcMap = new Map<string, Ipc>();
@@ -55,6 +56,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
   }
   const stream_ipc = ipc;
   const stream_id = metaBody.streamId!;
+  let pulling: undefined | PromiseOut<void>
   const stream = new ReadableStream<Uint8Array>(
     {
       start(controller) {
@@ -78,6 +80,10 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         /// 监听事件
         const off = ipc.onMessage((message) => {
           if ("stream_id" in message && message.stream_id === stream_id) {
+            if (pulling !== undefined) {
+              pulling.resolve()
+              pulling = undefined
+            }
             if (message.type === IPC_MESSAGE_TYPE.STREAM_DATA) {
               controller.enqueue(message.binary);
             } else if (message.type === IPC_MESSAGE_TYPE.STREAM_END) {
@@ -88,15 +94,23 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         });
       },
       pull(controller) {
+        pulling = new PromiseOut()
         stream_ipc.postMessage(
           new IpcStreamPull(stream_id, controller.desiredSize)
         );
+        return pulling.promise
       },
     },
     {
-      /// 按需 pull
+      /// 按需 pull, 不可以0以上。否则一开始的时候就会发送pull指令，会导致远方直接把流给读取出来。
+      /// 这会导致一些优化的行为异常，有些时候流一旦开始读取了，其他读取者就不能再进入读取了。那么流转发就不能工作了
       highWaterMark: 0,
     }
   );
   return stream;
 };
+
+
+new WritableStream({
+
+})

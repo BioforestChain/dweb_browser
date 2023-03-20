@@ -1,7 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { domInsetsToJson, insetsToDom } from "../../util/insets.ts";
-import { $Coder, StateObserver } from "../../util/StateObserver.ts";
+import { $Coder } from "../../util/StateObserver.ts";
 import { InsetsPlugin } from "../base/InsetsPlugin.ts";
 import {
   $SafeAreaRawState,

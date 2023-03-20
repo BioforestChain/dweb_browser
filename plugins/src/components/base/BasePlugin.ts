@@ -7,7 +7,7 @@ import { createSignal } from "../../helper/createSignal.ts";
 export abstract class BasePlugin {
   abstract tagName: string;
 
-  constructor(readonly mmid: string) {}
+  constructor(readonly mmid: string) { }
 
   static internal_url: string = globalThis.location?.href ?? "http://localhost";
   static public_url: Promise<string> | string = "";
@@ -67,8 +67,9 @@ export abstract class BasePlugin {
 }
 interface $BuildRequestInit extends RequestInit {
   search?:
-    | ConstructorParameters<typeof URLSearchParams>[0]
-    | Record<string, any>;
+  | ConstructorParameters<typeof URLSearchParams>[0]
+  // deno-lint-ignore no-explicit-any
+  | Record<string, any>;
   base?: string;
 }
 interface $BuildRequestWithBaseInit extends $BuildRequestInit {

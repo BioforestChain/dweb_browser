@@ -28,14 +28,14 @@ const onFileChanged = defineLogAction(async ($event: Event) => {
   }
 }, { name: "process", args: [], logPanel: $logPanel })
 
-const onStop = async () => {
+const onStop = defineLogAction(async () => {
   await scanner.stop()
-}
+}, { name: "onStop", args: [], logPanel: $logPanel })
 
-const taskPhoto = async () => {
-  const result = await barcodeScanner.startScan()
+const taskPhoto = defineLogAction(async () => {
+  const result = await barcodeScanner.startScanning()
   console.info("taskPhoto:", result)
-}
+}, { name: "taskPhoto", args: [], logPanel: $logPanel })
 
 </script>
 

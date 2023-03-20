@@ -216,10 +216,10 @@ class ReadableStream(
      * 重写方法
      */
     @Throws(IOException::class)
-    override fun read(b: ByteArray, off: Int, len: Int): Int {
+    override fun read(b: ByteArray, off: Int, maxLen: Int): Int {
         try {
-            val data = requestData(len, false)
-            var len = len
+            val data = requestData(maxLen, false)
+            var len = maxLen - off
             if (ptr >= data.size || len < 0) {
                 //流已读完
                 return -1
@@ -227,9 +227,10 @@ class ReadableStream(
             if (len == 0) {
                 return 0
             }
+            val availableLen = data.size - ptr
 
             //处理最后一次读取的时候可能不没有len的长度，取实际长度
-            len = if (available() < len) available() else len
+            len = availableLen.coerceAtMost(len) // if (availableLen < len) availableLen else len
             System.arraycopy(data, ptr, b, off, len)
             ptr += len
             //返回读取的长度

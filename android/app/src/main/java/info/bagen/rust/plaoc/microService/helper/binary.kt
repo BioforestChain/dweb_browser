@@ -35,19 +35,28 @@ inline fun Int.toByteArray(): ByteArray {
 }
 
 
-inline fun InputStream.readInt(): Int {
-    val bytes = ByteArray(4)
-    if (read(bytes) != bytes.size) {
-        throw Exception("fail to read int(4 byte) in stream")
+private fun InputStream.tryReadByteArray(size: Int): Pair<ByteArray, Int> {
+    val bytes = ByteArray(size)
+    var offset = 0;
+    while (offset < size && available() >= 0) {
+        val readLen = read(bytes, offset, size)
+        offset += readLen
+    }
+    return Pair(bytes, offset)
+}
+
+fun InputStream.readInt(): Int {
+    val (bytes, readLen) = tryReadByteArray(4)
+    if (readLen < 4) {
+        throw Exception("fail to read int($readLen/4 byte) in stream")
     }
     return bytes.toInt()
 }
 
-inline fun InputStream.readByteArray(size: Int): ByteArray {
-    val bytes = ByteArray(size)
-    val readedSize = read(bytes)
-    if (readedSize != bytes.size) {
-        throw Exception("fail to read bytes($readedSize/$size byte) in stream")
+fun InputStream.readByteArray(size: Int): ByteArray {
+    val (bytes, readLen) = tryReadByteArray(size)
+    if (readLen < size) {
+        throw Exception("fail to read bytes($readLen/$size byte) in stream")
     }
     return bytes
 }

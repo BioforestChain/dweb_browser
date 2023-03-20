@@ -1,11 +1,11 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { $BarRawState, $BarState, BarPlugin } from "../base/BarPlugin.ts";
+import { BarPlugin } from "../base/BarPlugin.ts";
 import {
   COLOR_FORMAT,
   convertColorToArga,
   normalizeArgaToColor,
 } from "../../util/color.ts";
-import { insetsToDom, domInsetsToJson } from "../../util/insets.ts";
+import { domInsetsToJson } from "../../util/insets.ts";
 import { $Coder } from "../../util/StateObserver.ts";
 import {
   $NavigationBarWritableState,
