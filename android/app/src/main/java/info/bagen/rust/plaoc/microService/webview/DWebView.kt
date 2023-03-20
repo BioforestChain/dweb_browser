@@ -151,6 +151,12 @@ class DWebView(
         readyHelper.afterReady(cb)
     }
 
+    suspend fun waitReady() {
+        val readyPo = PromiseOut<Unit>()
+        onReady { readyPo.resolve(Unit) }
+        readyPo.waitPromise()
+    }
+
     private val evaluator = WebViewEvaluator(this)
     suspend fun getUrlInMain() = withContext(Dispatchers.Main) { url }
 

@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.mwebview
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
@@ -25,7 +26,29 @@ class MultiWebViewController(
         private var webviewId_acc = AtomicInteger(1)
     }
 
-    val webViewList = mutableStateListOf<ViewItem>()
+    private val webViewList = mutableStateListOf<ViewItem>()
+
+    @Composable
+    fun eachView(action: @Composable () -> Unit) =
+        webViewList.forEachIndexed { index, viewItem ->
+            _currentView = viewItem
+            _currentIndex = index
+            action()
+        }.also {
+            _currentView = null
+            _currentIndex = null
+        }
+
+
+    private var _currentView: ViewItem? = null
+    private var _currentIndex: Int? = null
+
+
+    val currentView get() = _currentView ?: throw Exception("no found viewItem") // @Composable?
+    val currentIndex get() = _currentIndex ?: throw Exception("no found viewItem") // @Composable?
+    val currentIsLast get() = currentIndex == webViewList.size - 1 // @Composable?
+    val currentIsFirst get() = currentIndex == 0 // @Composable?
+    val lastViewOrNull get() = webViewList.lastOrNull()
 
     data class ViewItem(
         val webviewId: String,
@@ -40,6 +63,7 @@ class MultiWebViewController(
             webView.activity?.let { NativeUiController(it) }
                 ?: throw Exception("webview un attached to activity")
         }
+
     }
 
     private var activityTask = PromiseOut<MultiWebViewActivity>()

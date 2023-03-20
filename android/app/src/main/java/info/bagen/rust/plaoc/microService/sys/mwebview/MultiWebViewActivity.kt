@@ -1,20 +1,15 @@
 package info.bagen.rust.plaoc.microService.sys.mwebview
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Message
-import android.webkit.JsResult
-import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,19 +17,12 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
-import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.WebView
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
-import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -116,7 +104,7 @@ open class MultiWebViewActivity : PermissionActivity() {
             controller.activity = this
             controller.onWebViewClose {
                 // 如果webview实例都销毁完了，那就关闭自己
-                if (controller.webViewList.size == 0) {
+                if (controller.lastViewOrNull == null) {
                     finish()
                 }
             }
@@ -127,7 +115,7 @@ open class MultiWebViewActivity : PermissionActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         // 选中图片
         if (requestCode == PERMISSION_REQUEST_CODE_PHOTO) {
-            controller?.webViewList?.last()?.webView?.also { webview ->
+            controller?.lastViewOrNull?.also { (_, webview) ->
                 webview.filePathCallback?.also {
                     it.onReceiveValue(
                         if (resultCode == RESULT_OK) arrayOf(data?.data!!) else emptyArray()
@@ -184,11 +172,7 @@ open class MultiWebViewActivity : PermissionActivity() {
 
             RustApplicationTheme {
 
-                val wc by remember(remoteMmid) {
-                    mutableStateOf(
-                        controller ?: throw Exception("no found controller")
-                    )
-                }
+                val wc = rememberViewController()
 //
 //                val nativeUiController = NativeUiController.remember(this)
 //
@@ -196,14 +180,14 @@ open class MultiWebViewActivity : PermissionActivity() {
 //                val modifierPadding by nativeUiController.modifierPaddingState
 //                val modifierScale by nativeUiController.modifierScaleState
 
-                wc.webViewList.forEachIndexed { index, viewItem ->
+                wc.eachView {
+                    val viewItem = wc.currentView
+                    val index = wc.currentIndex
                     key(viewItem.webviewId) {
                         val nativeUiController = viewItem.nativeUiController.effect()
 
                         val state = viewItem.state
                         val navigator = viewItem.navigator
-                        var beforeUnloadPrompt by remember { mutableStateOf("") }
-                        var beforeUnloadResult by remember { mutableStateOf<JsResult?>(null) }
                         BackHandler(true) {
                             if (navigator.canGoBack) {
                                 debugMultiWebView("NAV/${viewItem.webviewId}", "go back")
@@ -213,61 +197,9 @@ open class MultiWebViewActivity : PermissionActivity() {
                             }
                         }
 
-                        val chromeClient = remember {
-                            object : AccompanistWebChromeClient() {
-                                override fun onJsBeforeUnload(
-                                    view: WebView, url: String, message: String, result: JsResult
-                                ): Boolean {
-                                    debugMultiWebView(
-                                        "onJsBeforeUnload", "url:$url message:$message"
-                                    )
-                                    if (message.isNotEmpty()) {
-                                        if (index == wc.webViewList.size - 1) {
-                                            beforeUnloadPrompt = message
-                                            beforeUnloadResult = result
-                                        } else {
-                                            result.cancel()
-                                        }
-                                        return true
-                                    }
-                                    return super.onJsBeforeUnload(view, url, message, result)
-                                }
+                        rememberCoroutineScope()
 
-                                override fun onCreateWindow(
-                                    view: WebView,
-                                    isDialog: Boolean,
-                                    isUserGesture: Boolean,
-                                    resultMsg: Message
-                                ): Boolean {
-                                    val transport = resultMsg.obj;
-                                    if (transport is WebView.WebViewTransport) {
-                                        viewItem.coroutineScope.launch {
-                                            debugMultiWebView("opening")
-                                            val dWebView = wc.createDwebView("")
-                                            transport.webView = dWebView;
-                                            resultMsg.sendToTarget();
-
-                                            // 它是有内部链接的，所以等到它ok了再说
-                                            var url = dWebView.getUrlInMain()
-                                            if (url?.isEmpty() != true) {
-                                                val readyPo = PromiseOut<Unit>()
-                                                dWebView.onReady { readyPo.resolve(Unit) }
-                                                readyPo.waitPromise()
-                                                url = dWebView.getUrlInMain()
-                                            }
-                                            debugMultiWebView("opened", url)
-                                            wc.appendWebViewAsItem(dWebView)
-                                        }
-                                        return true
-                                    }
-
-                                    return super.onCreateWindow(
-                                        view, isDialog, isUserGesture, resultMsg
-                                    )
-                                }
-
-                            }
-                        }
+                        val chromeClient = remember { MutilWebViewChromeClient(wc) }
                         Box(
                             modifier = Modifier
                                 .background(Color.Blue)
@@ -285,32 +217,7 @@ open class MultiWebViewActivity : PermissionActivity() {
                                 chromeClient = chromeClient,
                             )
 
-                            beforeUnloadResult?.also { jsResult ->
-                                AlertDialog( //
-                                    title = { Text("确定要离开吗？") },
-                                    text = { Text(beforeUnloadPrompt) },
-                                    onDismissRequest = {
-                                        jsResult.cancel()
-                                        beforeUnloadResult = null
-                                    },
-                                    confirmButton = {
-                                        Button(onClick = {
-                                            jsResult.confirm()
-                                            beforeUnloadResult = null
-                                            wc.closeWebView(viewItem.webviewId)
-                                        }) {
-                                            Text("确定")
-                                        }
-                                    },
-                                    dismissButton = {
-                                        Button(onClick = {
-                                            jsResult.cancel()
-                                            beforeUnloadResult = null
-                                        }) {
-                                            Text("留下")
-                                        }
-                                    })
-                            }
+                            chromeClient.beforeUnloadDialog()
 
 //                            DebugPanel(viewItem)
                         }
@@ -367,6 +274,16 @@ open class MultiWebViewActivity : PermissionActivity() {
 
         }
     }
+
+    @SuppressLint("RememberReturnType")
+    @Composable
+    fun rememberViewController(): MultiWebViewController {
+        return remember(remoteMmid) {
+            controller ?: throw Exception("no found controller")
+        }
+    }
+
+
 }
 
 
