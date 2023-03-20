@@ -254,7 +254,11 @@ class IpcBodySender(
         suspend fun sender() {
             // 上锁，如果已经有锁，那说明已经在被读取了，直接退出
             if (sendingLock.getAndSet(true)) {
-                println("DOUBLE PULL!!!")
+                printerrln(
+                    "ipc-body",
+                    "DOUBLE PULL!!!",
+                    Exception("should not double pull before return ipcData, you maybe have bug.")
+                )
                 return
             }
 
