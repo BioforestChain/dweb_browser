@@ -16,21 +16,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import com.google.gson.JsonSyntaxException
-import info.bagen.rust.plaoc.util.permission.EPermission
-import info.bagen.rust.plaoc.util.permission.PermissionUtil
-import info.bagen.rust.plaoc.ui.app.AppViewModel
-import info.bagen.rust.plaoc.ui.camera.QRCodeIntent
-import info.bagen.rust.plaoc.ui.camera.QRCodeScanning
-import info.bagen.rust.plaoc.ui.camera.QRCodeScanningView
-import info.bagen.rust.plaoc.ui.camera.QRCodeViewModel
-import info.bagen.rust.plaoc.ui.main.Home
-import info.bagen.rust.plaoc.ui.main.MainViewModel
-import info.bagen.rust.plaoc.ui.main.SearchAction
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.gson
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
@@ -42,7 +33,18 @@ import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Compani
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.network.HttpClient
 import info.bagen.rust.plaoc.network.base.byteBufferToString
+import info.bagen.rust.plaoc.ui.app.AppViewModel
+import info.bagen.rust.plaoc.ui.camera.QRCodeIntent
+import info.bagen.rust.plaoc.ui.camera.QRCodeScanning
+import info.bagen.rust.plaoc.ui.camera.QRCodeScanningView
+import info.bagen.rust.plaoc.ui.camera.QRCodeViewModel
+import info.bagen.rust.plaoc.ui.main.Home
+import info.bagen.rust.plaoc.ui.main.MainViewModel
+import info.bagen.rust.plaoc.ui.main.SearchAction
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import info.bagen.rust.plaoc.util.permission.EPermission
+import info.bagen.rust.plaoc.util.permission.PermissionUtil
+import kotlinx.coroutines.launch
 import java.util.*
 
 class BrowserActivity : AppCompatActivity() {
@@ -50,7 +52,7 @@ class BrowserActivity : AppCompatActivity() {
         const val REQUEST_CODE_PHOTO = 1
     }
 
-    var blueToothReceiver : BlueToothReceiver? = null
+    var blueToothReceiver: BlueToothReceiver? = null
     fun getContext() = this
     val qrCodeViewModel: QRCodeViewModel = QRCodeViewModel()
     private val dWebBrowserModel: DWebBrowserModel = DWebBrowserModel()
@@ -87,13 +89,14 @@ class BrowserActivity : AppCompatActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colors.primary)
                 ) {
+                    val coroutineScope = rememberCoroutineScope()
                     Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
                         when (action) {
                             SearchAction.Search -> {
                                 if (!checkJmmMetadataJson(data) { jmmMetadata, url ->
-                                    // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
-                                    BrowserNMM.browserController?.installJMM(jmmMetadata, url)
-                                }) {
+                                        // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
+                                        BrowserNMM.browserController?.installJMM(jmmMetadata, url)
+                                    }) {
                                     dWebBrowserModel.handleIntent(
                                         DWebBrowserIntent.OpenDWebBrowser(data)
                                     )
@@ -112,7 +115,10 @@ class BrowserActivity : AppCompatActivity() {
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
                         /// TODO 这里是点击桌面app触发的事件
-                        BrowserNMM.browserController?.openApp(appId)
+                        coroutineScope.launch {
+                            BrowserNMM.browserController?.openApp(appId)
+                        }
+
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                     QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
