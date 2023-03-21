@@ -29,25 +29,13 @@ class MultiWebViewController(
     private val webViewList = mutableStateListOf<ViewItem>()
 
     @Composable
-    fun eachView(action: @Composable () -> Unit) =
+    fun eachView(action: @Composable (viewItem: ViewItem) -> Unit) =
         webViewList.forEachIndexed { index, viewItem ->
-            _currentView = viewItem
-            _currentIndex = index
-            action()
-        }.also {
-            _currentView = null
-            _currentIndex = null
+            action(viewItem)
         }
 
-
-    private var _currentView: ViewItem? = null
-    private var _currentIndex: Int? = null
-
-
-    val currentView get() = _currentView ?: throw Exception("no found viewItem") // @Composable?
-    val currentIndex get() = _currentIndex ?: throw Exception("no found viewItem") // @Composable?
-    val currentIsLast get() = currentIndex == webViewList.size - 1 // @Composable?
-    val currentIsFirst get() = currentIndex == 0 // @Composable?
+    fun isLastView(viewItem: ViewItem) = webViewList.lastOrNull() == viewItem
+    fun isFistView(viewItem: ViewItem) = webViewList.firstOrNull() == viewItem
     val lastViewOrNull get() = webViewList.lastOrNull()
 
     data class ViewItem(

@@ -180,9 +180,7 @@ open class MultiWebViewActivity : PermissionActivity() {
 //                val modifierPadding by nativeUiController.modifierPaddingState
 //                val modifierScale by nativeUiController.modifierScaleState
 
-                wc.eachView {
-                    val viewItem = wc.currentView
-                    val index = wc.currentIndex
+                wc.eachView { viewItem ->
                     key(viewItem.webviewId) {
                         val nativeUiController = viewItem.nativeUiController.effect()
 
@@ -198,8 +196,13 @@ open class MultiWebViewActivity : PermissionActivity() {
                         }
 
                         rememberCoroutineScope()
-
-                        val chromeClient = remember { MutilWebViewChromeClient(wc) }
+                        val chromeClient = remember {
+                            MutilWebViewChromeClient(
+                                wc,
+                                viewItem,
+                                wc.isLastView(viewItem)
+                            )
+                        }
                         Box(
                             modifier = Modifier
                                 .background(Color.Blue)
