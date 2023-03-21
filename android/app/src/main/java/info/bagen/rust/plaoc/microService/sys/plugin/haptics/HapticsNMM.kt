@@ -16,11 +16,12 @@ class HapticsNMM: NativeMicroModule("haptics.sys.dweb") {
     private val vibrateManage = VibrateManage()
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
  {
+     val query_type = Query.string().optional("style")
+     val query_duration = Query.long().required("duration")
         apiRouting = routes(
             /** 触碰轻质量物体 */
             "/impactLight" bind Method.GET to defineHandler { request ->
-                println("Clipboard#apiRouting read===>$mmid  ${request.uri.path} ")
-                val style = when (Query.string().optional("type")(request)) {
+                val style = when (query_type(request)) {
                     "MEDIUM" -> HapticsImpactType.MEDIUM
                     "HEAVY" -> HapticsImpactType.HEAVY
                     else -> HapticsImpactType.LIGHT
@@ -30,19 +31,13 @@ class HapticsNMM: NativeMicroModule("haptics.sys.dweb") {
             },
             /** 警告分隔的振动通知 */
             "/notification" bind Method.GET to defineHandler { request ->
-                println("Clipboard#apiRouting read===>$mmid  ${request.uri.path} ")
-                val type = when (Query.string().required("type")(request)) {
+                val type = when (query_type(request)) {
                     "SUCCESS" -> HapticsNotificationType.SUCCESS
                     "WARNING" -> HapticsNotificationType.WARNING
-                    "ERROR" -> HapticsNotificationType.ERROR
-                    else -> null
+                    else -> HapticsNotificationType.ERROR
                 }
-                if (type == null) {
-                    Response(Status.UNSATISFIABLE_PARAMETERS).body("HapticsNotification type param error null")
-                } else {
-                    vibrateManage.notification(type)
-                    Response(Status.OK)
-                }
+                vibrateManage.notification(type)
+                Response(Status.OK)
             },
             /** 单击手势的反馈振动 */
             "/vibrateClick" bind Method.GET to defineHandler { request ->
@@ -66,15 +61,13 @@ class HapticsNMM: NativeMicroModule("haptics.sys.dweb") {
             },
             /** 滴答 */
             "/vibrateTick" bind Method.GET to defineHandler { request ->
-                println("Clipboard#apiRouting vibrateTick===>$mmid  ${request.uri.path} ")
                 vibrateManage.vibrateTick()
                 Response(Status.OK)
             },
             /** 自定义传递 振动频率 */
             "/customize" bind Method.GET to defineHandler { request ->
-                val type = Query.long().required("type")(request)
-                println("Clipboard#apiRouting customize===>$mmid  ${request.uri.path} ")
-                vibrateManage.vibrate(type)
+                val duration = query_duration(request)
+                vibrateManage.vibrate(duration)
                 Response(Status.OK)
             },
         )

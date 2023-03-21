@@ -5,7 +5,7 @@ import { routes } from "./routes";
 
 const router = useRouter();
 
-router.push("/barcodescanning");
+router.push("/haptics");
 
 const drawer_controller = ref(false);
 
