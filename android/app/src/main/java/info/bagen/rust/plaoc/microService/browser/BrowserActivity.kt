@@ -27,6 +27,7 @@ import info.bagen.rust.plaoc.ui.main.Home
 import info.bagen.rust.plaoc.ui.main.MainViewModel
 import info.bagen.rust.plaoc.ui.main.SearchAction
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserControllerMap
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_CAN_BE_FOUND
@@ -89,7 +90,7 @@ class BrowserActivity : AppCompatActivity() {
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
                         /// TODO 这里是点击桌面app触发的事件
-                        JmmNMM.nativeFetchFromJS(appId)
+                        browserControllerMap[appId]?.openApp(appId)
 
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
