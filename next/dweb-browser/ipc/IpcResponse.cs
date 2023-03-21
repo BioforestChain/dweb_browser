@@ -21,12 +21,14 @@ namespace ipc
 		public int ReqId { get; set; }
 		public int StatusCode { get; set; }
 		public Dictionary<string, string> Headers { get; set; }
+        public SMetaBody MetaBody { get; set; }
 
-        public IpcResMessage(int req_id, int statusCode, Dictionary<string, string> headers)
+        public IpcResMessage(int req_id, int statusCode, Dictionary<string, string> headers, SMetaBody metaBody)
         {
             ReqId = req_id;
             StatusCode = statusCode;
             Headers = headers;
+            MetaBody = metaBody;
         }
 
         internal IpcResMessage()
@@ -91,6 +93,10 @@ namespace ipc
                     case "statusCode":
                         ipcResMessage.StatusCode = reader.GetInt16();
                         break;
+                    case "metaBody":
+                        // TODO: 反序列化 MetaBody 可能存在反序列化失败隐患，未测试
+                        ipcResMessage.MetaBody = (SMetaBody)SMetaBody.FromJson(reader.GetString()!)!;
+                        break;
                     case "headers":
                         var headers = new Dictionary<string, string>();
 
@@ -135,6 +141,7 @@ namespace ipc
             writer.WriteNumber("req_id", value.ReqId);
             writer.WriteNumber("type", (int)value.Type);
             writer.WriteNumber("statusCode", value.StatusCode);
+            writer.WriteString("metaBody", value.MetaBody.ToJson());
 
             // dictionary
             writer.WritePropertyName("headers");
@@ -142,7 +149,6 @@ namespace ipc
 
             foreach ((string key, string keyValue) in value.Headers)
             {
-
                 writer.WriteString(key, keyValue);
             }
 
