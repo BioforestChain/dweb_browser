@@ -3,11 +3,13 @@ package info.bagen.rust.plaoc.microService.sys.mwebview.CloseWatcher
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.mainAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewController
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -20,7 +22,6 @@ class CloseWatcher(
     companion object {
         val acc_id = AtomicInteger(1)
         const val JS_POLYFILL_KIT = "__native_close_watcher_kit__"
-        const val CREATE_CLOSE_WATCHER_PREFIX = "create-close-watcher/"
     }
 
     val consuming = mutableSetOf<String>()
@@ -32,24 +33,11 @@ class CloseWatcher(
              * js 创建 CloseWatcher
              */
             @JavascriptInterface
-            fun create(): String {
-                val consumeToken = java.util.Random().nextInt().toString()
+            fun registryToken(consumeToken: String) {
+                if (consumeToken.isNullOrBlank()) {
+                    throw Exception("CloseWatcher.registryToken invalid arguments");
+                }
                 consuming.add(consumeToken)
-                viewItem.webView.evaluateJavascript(
-                    """
-                        open("data:text/html,dweb-internal/${CREATE_CLOSE_WATCHER_PREFIX}$consumeToken");
-                        const tasks = (${JS_POLYFILL_KIT}._tasks||(${JS_POLYFILL_KIT}._tasks = new Map()));
-                        let resolve;
-                        const promise = new Promise(r => {
-                            resolve = r
-                        }).then(id => {
-                            tasks.delete("$consumeToken");
-                            return id;
-                        });
-                        tasks.set("$consumeToken", { promise, resolve });
-                        """.trimIndent()
-                ) {};
-                return consumeToken
             }
 
             /**
@@ -97,12 +85,14 @@ class CloseWatcher(
 //            ) {}.toBoolean();
 
             /// 尝试去触发客户端的监听，如果客户端有监听的话
-            viewItem.webView.evaluateJavascript(
-                """
-                const watcher = ${JS_POLYFILL_KIT}._watchers?.get("$id");
-                watcher?.dispatchEvent(new CloseEvent('close'));
-                """.trimIndent()
-            ) {}
+            withContext(mainAsyncExceptionHandler) {
+                viewItem.webView.evaluateJavascript(
+                    """
+                    ${JS_POLYFILL_KIT}._watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
+                    """.trimIndent()
+                ) {}
+            }
+
             if (!defaultPrevented) {
                 return destroy()
             }
@@ -125,8 +115,8 @@ class CloseWatcher(
     fun resolveToken(consumeToken: String, watcher: Watcher) {
         viewItem.webView.evaluateJavascript(
             """
-                ${JS_POLYFILL_KIT}._watchers?.get("$consumeToken")("${watcher.id}");
-                """.trimIndent()
+            ${JS_POLYFILL_KIT}._tasks?.get("$consumeToken")("${watcher.id}");
+            """.trimIndent()
         ) {};
     }
 

@@ -118,7 +118,7 @@ open class MultiWebViewActivity : PermissionActivity() {
         } ?: throw Exception("no found controller by mmid:$remoteMmid")
     }
 
-    override  fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         // 选中图片
         if (requestCode == PERMISSION_REQUEST_CODE_PHOTO) {
@@ -134,10 +134,10 @@ open class MultiWebViewActivity : PermissionActivity() {
         // 选中照片返回数据
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK && data != null) {
             val imageData = data.data?.toBitmap(contentResolver)
-             GlobalScope.launch(ioAsyncExceptionHandler) {
-                 controller?.getPhotoSignal?.emit(imageData)
-                 debugCameraNMM("REQUEST_IMAGE_CAPTURE", imageData)
-             }
+            GlobalScope.launch(ioAsyncExceptionHandler) {
+                controller?.getPhotoSignal?.emit(imageData)
+                debugCameraNMM("REQUEST_IMAGE_CAPTURE", imageData)
+            }
         }
         // 拍照返回数据处理
         if (requestCode == REQUEST_CAMERA_IMAGE && resultCode == RESULT_OK) {
@@ -246,6 +246,7 @@ open class MultiWebViewActivity : PermissionActivity() {
                                     .padding(modifierPadding.asPaddingValues()),
                                 factory = { viewItem.webView },
                                 chromeClient = chromeClient,
+                                captureBackPresses = false,
                             )
 
                             chromeClient.beforeUnloadDialog()

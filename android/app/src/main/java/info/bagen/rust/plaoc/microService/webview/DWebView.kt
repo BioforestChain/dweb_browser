@@ -330,6 +330,7 @@ class DWebView(
         settings.setSupportMultipleWindows(true)
         settings.allowFileAccess = false
         settings.javaScriptCanOpenWindowsAutomatically = true
+        settings.allowContentAccess = false
 
         super.setWebViewClient(internalWebViewClient)
         super.setWebChromeClient(internalWebChromeClient)

@@ -13,4 +13,6 @@ export const routes = [
   { title: "Torch", path: "/torch", component: () => import("./pages/Torch.vue") },
 
   { title: "Haptics", path: "/haptics", component: () => import("./pages/Haptics.vue") },
+
+  { title: "Close Watcher", path: "/closewatcher", component: () => import("./pages/CloseWatcher.vue") },
 ]; //satisfies RouteRecordRaw[];
