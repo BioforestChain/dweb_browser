@@ -20,7 +20,7 @@ class JsProcessNMM: NativeMicroModule {
     
     private let INTERNAL_PATH = "/<internal>".urlEncoder()
     
-    private let dwebServer = HTTPServer()
+    private let dwebServer = HttpServer()
     
     init() {
         super.init(mmid: "js.sys.dweb")
@@ -94,15 +94,15 @@ class JsProcessNMM: NativeMicroModule {
             return api
         }
     }
-    
+     
     private func routerHandler(apis: JsProcessWebApi, bootstrap_url: String) {
         
         var ipcProcessIdMap: [Ipc: [String:PromiseOut<Int>]] = [:]
         let ipcProcessIdMapLock = NSLock()
         // 创建 web worker
         // request 需要携带一个流，来为 web worker 提供代码服务
-        let createProcessRouteHandler: RouterHandler = { (request, ipc) -> InputStream in
-            guard ipc != nil else { return }
+        let createProcessRouteHandler: RouterHandler = { (request, ipc) -> InputStream? in
+            guard ipc != nil else { return nil }
             let po = ipcProcessIdMapLock.withLock {
                 let process_id = request.query[String.self, at: "process_id"]!
                 var processIdMap = ipcProcessIdMap[ipc!]
@@ -113,17 +113,17 @@ class JsProcessNMM: NativeMicroModule {
                     ipcProcessIdMap[ipc!] = [:]
                 }
                 if processIdMap!.keys.contains(process_id) {
-                    fatalError("ipc: \(ipc!.remote.mmid)/processId: \(process_id) has already using")
+                    fatalError("ipc: \(ipc!.remote?.mmid)/processId: \(process_id) has already using")
                 }
                 let pro = PromiseOut<Int>()
                 ipcProcessIdMap[ipc!]?[process_id] = pro
                 return pro
             }
-            
+
             let entry = request.query[String.self, at: "entry"]
-            let result = createProcessAndRun(ipc: ipc!, apis: apis, bootstrap_url: bootstrap_url, entry: entry, requestMessage: request)
+            let result = self.createProcessAndRun(ipc: ipc!, apis: apis, bootstrap_url: bootstrap_url, entry: entry, requestMessage: request)
             // 将自定义的 processId 与真实的 js-process_id 进行关联
-            po.resolver(result?.processHandler)
+            po.resolver(result!.processHandler.info.process_id)
             // 返回流，因为构建了一个双工通讯用于代码提供服务
             return result?.streamIpc.stream
         }
@@ -138,18 +138,18 @@ class JsProcessNMM: NativeMicroModule {
             let process_id = ipcProcessIdMapLock.withLock {
                 ipcProcessIdMap[ipc!]?[processId]
             }?.waitPromise()
-            
+
             if process_id == nil {
                 fatalError("ipc: \(ipc!.remote?.mmid)/processId: \(processId ) invalid")
             }
             return self.createIpc(ipc: ipc!, apis: apis, process_id: process_id!, mmid: mmid)
         }
-        
+
         apiRouting["\(self.mmid)/create-process"] = createProcessRouteHandler
         apiRouting["\(self.mmid)/create-ipc"] = createIpcRouteHandler
-        
+
         // 添加路由处理方法到http路由中
-        let app = HTTPServer.app
+        let app = HttpServer.app
         let group = app.grouped("\(mmid)")
         let httpHandler: (Request) async throws -> Response = { request async in
             await self.defineHandler(request: request)
@@ -159,9 +159,9 @@ class JsProcessNMM: NativeMicroModule {
     }
     
     override func _shutdown() { }
-    
+     
     private func createProcessAndRun(ipc: Ipc, apis: JsProcessWebApi,bootstrap_url: String, entry: String?, requestMessage: Request
-    ) async -> CreateProcessAndRunResult? {
+    ) -> CreateProcessAndRunResult? {
         
         //用自己的域名的权限为它创建一个子域名
         let httpDwebServer = createHttpDwebServer(options: DwebHttpServerOptions(subdomain: ipc.remote?.mmid ?? ""))
@@ -207,7 +207,7 @@ class JsProcessNMM: NativeMicroModule {
                 
             }
             
-            var mmid: String
+            var mmid: String?
             
             init(mmid: String) {
                 self.mmid = mmid
@@ -227,7 +227,7 @@ class JsProcessNMM: NativeMicroModule {
          * 创建一个通往 worker 的消息通道
          */
         
-        let processHandler = await apis.createProcess(env_script_url: bootstrap_url, metadata_json: metadata.toJSONString() ?? "", env_json: ChangeTools.dicValueString(env) ?? "", remoteModule: remote, host: httpDwebServer?.startResult.urlInfo.host ?? "")
+        let processHandler = apis.createProcess(env_script_url: bootstrap_url, metadata_json: metadata.toJSONString() ?? "", env_json: ChangeTools.dicValueString(env) ?? "", remoteModule: remote, host: httpDwebServer?.startResult.urlInfo.host ?? "")
         
         /**
          * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去

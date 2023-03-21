@@ -33,7 +33,9 @@ class NativeMicroModule: MicroModule {
     }
     
     init(mmid: String) {
+        
         super.init()
+        createNativeMicro()
         self.mmid = mmid
         
         _ = onConnect { clientIpc, req in

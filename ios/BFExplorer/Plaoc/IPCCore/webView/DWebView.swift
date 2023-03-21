@@ -41,6 +41,7 @@ class DWebView: WKWebView {
         self.scrollView.contentInsetAdjustmentBehavior = .never
         self.allowsBackForwardNavigationGestures = true
         self.navigationDelegate = self
+        
         _ = dWebViewClient.addWebViewClient(client: self)
         
         internalWebClient.remoteMM = remoteMM
@@ -51,6 +52,8 @@ class DWebView: WKWebView {
         if let url = URL(string: options.urlString) {
             load(URLRequest(url: url))
         }
+        
+        
     }
     
     static func setUA(remoteMM: MicroModule, options: Options) -> WKWebViewConfiguration {
@@ -146,7 +149,7 @@ extension DWebView: WKNavigationDelegate {
 //                webView.loadSimulatedRequest(request, response: httpResponse!, responseData: data)
 //            }
             
-            decisionHandler(.allow)
+            decisionHandler(.cancel)
         } else {
             decisionHandler(.allow)
         }

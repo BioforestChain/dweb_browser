@@ -60,7 +60,7 @@ class HttpNMM: NativeMicroModule {
             host = "*"
         } else {
             if !host!.contains(":") {
-                host = host! + ":" + "\(HTTPServer.PORT)"
+                host = host! + ":" + "\(HttpServer.PORT)"
             }
         }
         
@@ -77,27 +77,24 @@ class HttpNMM: NativeMicroModule {
     }
     
     override func _bootstrap(bootstrapContext: BootstrapContext) throws {
-        HTTPServer.createServer(22605)
+        HttpServer.createServer(22605)
         
         // 路由处理
         routerHandler()
         // 为 nativeFetch 函数提供支持
         
-        _ = afterShutdownSignal.listen({ _ in
-            let off = nativeFetchAdaptersManager.append { (remote, request) -> Response? in
-                if (request.url.scheme == "http" || request.url.scheme == "https"), ((request.url.host?.hasSuffix(".dweb")) != nil) {
-                    // 无需走网络层，直接内部处理掉
-                    guard let url = URL(string: request.url.string) else { return nil }
-                    request.headers.add(name: "X-Dweb-Host", value: url.getFullAuthority())
-                    request.url.scheme = "http"
-                    let content = request.url.string.regexReplacePattern(pattern: url.authority(), replaceString: HTTPServer.authority)
-                    request.url = URI(string: content)
-                    return self.httpHandler(request)
-                } else {
-                    return nil
-                }
+        _ = afterShutdownSignal.listen(nativeFetchAdaptersManager.append { (remote, request) -> Response? in
+            if (request.url.scheme == "http" || request.url.scheme == "https"), ((request.url.host?.hasSuffix(".dweb")) != nil) {
+                // 无需走网络层，直接内部处理掉
+                guard let url = URL(string: request.url.string) else { return nil }
+                request.headers.add(name: "X-Dweb-Host", value: url.getFullAuthority())
+                request.url.scheme = "http"
+                let content = request.url.string.regexReplacePattern(pattern: url.authority(), replaceString: HttpServer.authority)
+                request.url = URI(string: content)
+                return self.httpHandler(request)
+            } else {
+                return nil
             }
-            return off
         })
     }
     
@@ -126,7 +123,7 @@ class HttpNMM: NativeMicroModule {
         apiRouting["\(self.mmid)/close"] = closeRouteHandler
         
         // 添加路由处理方法到http路由中
-        let app = HTTPServer.app
+        let app = HttpServer.app
         let group = app.grouped("\(mmid)")
         let httpHandler: (Request) async throws -> Response = { request async in
             await self.defineHandler(request: request)
@@ -155,12 +152,12 @@ class HttpNMM: NativeMicroModule {
         
         let host = "\(subdomainPrefix)\(mmid):\(port)"
         let internal_origin = "http://\(host)"
-        let public_origin = HTTPServer.origin
+        let public_origin = HttpServer.origin
         return ServerUrlInfo(host: host, internal_origin: internal_origin, public_origin: public_origin)
     }
     
     override func _shutdown() throws {
-        HTTPServer.shutdown()
+        HttpServer.shutdown()
     }
     
     private func start(ipc: Ipc, options: DwebHttpServerOptions) -> ServerStartResult? {
@@ -203,6 +200,7 @@ class HttpNMM: NativeMicroModule {
                 gateway.listener.addRouter(config: config, streamIpc: streamIpc)
             }
         }
+        
         
         return Response(status: .ok, body: Response.Body(data: Data(buffer: buffer)))
     }

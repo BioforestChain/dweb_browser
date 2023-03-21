@@ -12,23 +12,23 @@ extension Request {
     static func new(method: HTTPMethod = .GET, url: String, collectedBody: ByteBuffer? = nil) -> Request {
         var request: Request
         if collectedBody != nil {
-            request = Request(application: HTTPServer.app,
+            request = Request(application: HttpServer.app,
                     method: method,
                     url: URI(string: url),
                     collectedBody: collectedBody!,
-                    on: HTTPServer.app.eventLoopGroup.next()
+                    on: HttpServer.app.eventLoopGroup.next()
             )
         } else {
-            request = Request(application: HTTPServer.app,
+            request = Request(application: HttpServer.app,
                                   method: method,
                                   url: URI(string: url),
-                                  on: HTTPServer.app.eventLoopGroup.next()
+                                  on: HttpServer.app.eventLoopGroup.next()
             )
         }
         
-        request.route = HTTPServer.app.routes.all.first(where: { route in
+        request.route = HttpServer.app.routes.all.first(where: { route in
             if request.url.scheme == "file" && request.url.host != nil {
-                if route.path.string == (request.url.host!+request.url.path) && route.method == request.method {
+                if route.path.string == (request.url.host! + request.url.path) && route.method == request.method {
                     return true
                 }
                 

@@ -12,7 +12,7 @@ import Combine
 import Alamofire
 import Vapor
 
-class FirstViewController: UIViewController {
+class FirstViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private var appNames: [String] = []
     private var buttons: [UIButton] = []
@@ -81,12 +81,23 @@ class FirstViewController: UIViewController {
             }
         }).disposed(by: disposeBag)
         
-        
-        
-        DispatchQueue.global().async {
-//            self.test()
-        }
+        let webView = CustomWebView(frame: CGRect(x: 0, y: 400, width: screen_width, height: 300), jsNames: [], appId: "", urlString: "")
+        webView.backgroundColor = .red
+        webView.openLocalWebView(name: "page2.html")
+        self.view.addSubview(webView)
        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(testAction(ges:)))
+        tap.delegate = self
+        webView.addGestureRecognizer(tap)
+    }
+    
+    @objc func testAction(ges: UITapGestureRecognizer) {
+        print("uitapget")
+        print(ges.view)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
     
     func test() {

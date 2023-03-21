@@ -84,7 +84,7 @@ class MultiWebViewNMM: NativeMicroModule {
         apiRouting["\(self.mmid)/reOpen"] = reOpenRouteHandler
         
         // 添加路由处理方法到http路由中
-        let app = HTTPServer.app
+        let app = HttpServer.app
         let group = app.grouped("\(mmid)")
         let httpHandler: (Request) async throws -> Response = { request in
             self.defineHandler(request: request)

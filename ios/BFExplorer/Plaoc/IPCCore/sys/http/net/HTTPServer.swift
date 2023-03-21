@@ -8,7 +8,7 @@
 import Foundation
 import Vapor
 
-class HTTPServer: ObservableObject {
+class HttpServer: ObservableObject {
     
     static let app = Application(.development)
     static var address: String?
@@ -30,6 +30,8 @@ class HTTPServer: ObservableObject {
         address = "\(host):\(port)"
         configure(app, host: host, port: port)
         bindingPort = port
+        
+        try? app.server.start()
     }
     
     static func configure(_ app: Application, host: String, port: Int) {

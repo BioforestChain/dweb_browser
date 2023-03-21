@@ -15,7 +15,7 @@ class PromiseOut<T> {
     
     public var promise: Promise<T>?
     
-    private var tmpValue: T?
+    var tmpValue: T?
     
     var value: T? {
         return (promise?.isResolved ?? false) ? self.tmpValue : nil

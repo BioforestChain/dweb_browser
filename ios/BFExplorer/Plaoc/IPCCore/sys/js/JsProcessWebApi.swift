@@ -29,18 +29,19 @@ class JsProcessWebApi: NSObject {
         return dWebView.evaluateSyncJavascriptCode(script: "typeof createProcess") == "function"
     }
     
-    func createProcess(env_script_url: String, metadata_json: String, env_json: String, remoteModule: MicroModuleInfo, host: String) async -> ProcessHandler {
-        await self.dWebView.configuration.userContentController.add(LeadScriptHandle(messageHandle: self),
+    //TODO 异步
+    func createProcess(env_script_url: String, metadata_json: String, env_json: String, remoteModule: MicroModuleInfo, host: String) -> ProcessHandler {
+        self.dWebView.configuration.userContentController.add(LeadScriptHandle(messageHandle: self),
                                                                     contentWorld: .world(name: remoteModule.mmid),
                                                                     name: "onmessage")
-        await self.dWebView.configuration.userContentController.add(LeadScriptHandle(messageHandle: self),
+        self.dWebView.configuration.userContentController.add(LeadScriptHandle(messageHandle: self),
                                                                     contentWorld: .world(name: remoteModule.mmid),
                                                                     name: "processId")
-        await self.dWebView.configuration.userContentController.add(LeadScriptHandle(messageHandle: self),
+        self.dWebView.configuration.userContentController.add(LeadScriptHandle(messageHandle: self),
                                                                     contentWorld: .world(name: remoteModule.mmid),
                                                                     name: "logging")
         
-        _ = await self.dWebView.callAsyncJavaScript("""
+        _ = self.dWebView.callAsyncJavaScript("""
             const {port1, port2} = new MessageChannel();
             port2.onmessage = (evt) => {
                 window.webkit.messageHandlers.onmessage.postMessage(evt.data);
@@ -54,15 +55,31 @@ class JsProcessWebApi: NSObject {
             }
         """.trimmingCharacters(in: .whitespacesAndNewlines), arguments: ["env_script_url":env_script_url], in: nil, in: .world(name: remoteModule.mmid))
         
-        return await withCheckedContinuation { continuation in
-            cancellable = processIdSubject.sink(receiveValue: { process_id in
-                self.processIdMmidMap[process_id] = remoteModule.mmid
-                self.messageIpcPort1 = MessagePortIpc(port: WebMessagePort(name: "\(process_id)", role: .port1), remote: remoteModule, role: .SERVER)
-                let processHandler = ProcessHandler(info: IpcProcessInfo(process_id: process_id), ipc: MessagePortIpc(port: MessagePort(port: WebMessagePort(name: "\(process_id)", role: .port2)), remote: remoteModule))
-                
-                continuation.resume(returning: processHandler)
-            })
-        }
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        var processHandler: ProcessHandler?
+        
+        cancellable = processIdSubject.sink(receiveValue: { process_id in
+            
+            self.processIdMmidMap[process_id] = remoteModule.mmid
+            self.messageIpcPort1 = MessagePortIpc(port: WebMessagePort(name: "\(process_id)", role: .port1), remote: remoteModule, role: .SERVER)
+            processHandler = ProcessHandler(info: IpcProcessInfo(process_id: process_id), ipc: MessagePortIpc(port: MessagePort(port: WebMessagePort(name: "\(process_id)", role: .port2)), remote: remoteModule))
+
+            semaphore.signal()
+        })
+        
+        semaphore.wait()
+        return processHandler!
+//        return ProcessHandler(info: IpcProcessInfo(process_id: 0), ipc: MessagePortIpc(port: MessagePort(port: WebMessagePort(name: "0", role: .port2)), remote: remoteModule))
+//        return await withCheckedContinuation { continuation in
+//            cancellable = processIdSubject.sink(receiveValue: { process_id in
+//                self.processIdMmidMap[process_id] = remoteModule.mmid
+//                self.messageIpcPort1 = MessagePortIpc(port: WebMessagePort(name: "\(process_id)", role: .port1), remote: remoteModule, role: .SERVER)
+//                let processHandler = ProcessHandler(info: IpcProcessInfo(process_id: process_id), ipc: MessagePortIpc(port: MessagePort(port: WebMessagePort(name: "\(process_id)", role: .port2)), remote: remoteModule))
+//
+//                continuation.resume(returning: processHandler)
+//            })
+//        }
     }
     func runProcessMain(process_id: Int, options: RunProcessMainOptions) {
         let mmid = processIdMmidMap[process_id]

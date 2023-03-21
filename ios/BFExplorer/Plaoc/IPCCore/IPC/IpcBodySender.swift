@@ -68,7 +68,7 @@ class IpcBodySender: IpcBody {
         super.init()
         self.raw = raw
         self.ipc = ipc
-//        self.bodyHub = hub
+        self.bodyHub = hub
         self.metaBody = bodyAsMeta(body: raw, ipc: ipc)
         
         raw_ipcBody_WMap[raw] = self

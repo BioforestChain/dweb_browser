@@ -115,7 +115,7 @@ class JsMicroModule: MicroModule {
                 if let url = URL(string: "file://js.sys.dweb/create-ipc")?.addURLQuery(name: "process_id", value: pid)?.addURLQuery(name: "mmid", value: event?.mmid) {
                     let portId = self.nativeFetch(url: url)?.int() ?? 0
                     let originIpc = Native2JsIpc(port_id: portId, remote: self)
-                    self.beConnect(ipc: originIpc, reason: Request.new(method: .GET, url: "file://$mmid/event/dns/connect"))
+                    self.beConnect(ipc: originIpc, reason: Request.new(method: .GET, url: "file://\(self.mmid)/event/dns/connect"))
                     /**
                      * 将两个消息通道间接互联
                      */

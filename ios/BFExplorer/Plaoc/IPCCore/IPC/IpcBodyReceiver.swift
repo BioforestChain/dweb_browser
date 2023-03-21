@@ -18,7 +18,7 @@ class IpcBodyReceiver: IpcBody {
         super.init()
         self.metaBody = metaBody
         self.ipc = ipc
-//        self.bodyHub = hub
+        self.bodyHub = hub
         
         // 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
         if metaBody?.isStream ?? false {

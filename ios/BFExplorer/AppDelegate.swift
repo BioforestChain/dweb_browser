@@ -29,7 +29,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         appVersionMgr.startCheck()
         window?.rootViewController = UINavigationController(rootViewController: FirstViewController())
         
-//        startDwebBrowser()
+//        DispatchQueue.global().async {
+//            self.startDwebBrowser()
+//        }
+        
         
         return true
     }

@@ -12,7 +12,7 @@ import Vapor
 typealias AppRun = ([String:String]) -> Any
 typealias Routers = [String:AppRun]
 
-class MicroModule: MicroModuleInfo {
+class MicroModule:  MicroModuleInfo {
     
     var mmid: String = ""
     var routers: Routers?
@@ -30,13 +30,14 @@ class MicroModule: MicroModuleInfo {
     var ipcSet = NSMutableSet()
     
     init() {
+//        super.init()
         runningStateLock.resolver(false)
         
     }
     
     func beforeBootstrap(bootstrapContext: BootstrapContext) {
         
-        if runningStateLock.hasResult() {
+        if runningStateLock.tmpValue ?? false {
             print("module \(self.mmid) already running")
             return
         }
@@ -179,5 +180,16 @@ extension MicroModule {
     func createHttpDwebServer(options: DwebHttpServerOptions) -> HttpDwebServer? {
         guard let serverStartResult = startHttpDwebServer(options: options) else { return nil }
         return HttpDwebServer(nmm: self, options: options, startResult: serverStartResult)
+    }
+}
+
+// 用于字典存储key区分
+extension MicroModule: Hashable {
+    static func ==(lhs: MicroModule, rhs: MicroModule) -> Bool {
+        return lhs.mmid == rhs.mmid
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(mmid)
     }
 }

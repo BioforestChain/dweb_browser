@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 class BrowserNMM: NativeMicroModule {
     
@@ -14,11 +15,15 @@ class BrowserNMM: NativeMicroModule {
     }
     
     override func _bootstrap(bootstrapContext: BootstrapContext) throws {
-        guard let app = UIApplication.shared.delegate as? AppDelegate else { return }
+      
+        DispatchQueue.main.async {
+            guard let app = UIApplication.shared.delegate as? AppDelegate else { return }
+            
+            app.window = UIWindow(frame: UIScreen.main.bounds)
+            app.window?.makeKeyAndVisible()
+            app.window?.rootViewController = UINavigationController(rootViewController: BrowserContainerViewController())
+        }
         
-        app.window = UIWindow(frame: UIScreen.main.bounds)
-        app.window?.makeKeyAndVisible()
-        app.window?.rootViewController = UINavigationController(rootViewController: BrowserContainerViewController())
     }
     
     override func _shutdown() throws {

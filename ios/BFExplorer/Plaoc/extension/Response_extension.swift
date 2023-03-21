@@ -18,7 +18,7 @@ extension Response {
     func json<T: Decodable>(_ typeOfT: T.Type) -> T {
         
         do {
-            var buffer = try self.body.collect(on: HTTPServer.app.eventLoopGroup.next()).wait()
+            var buffer = try self.body.collect(on: HttpServer.app.eventLoopGroup.next()).wait()
             return try JSONDecoder().decode(typeOfT, from: Data(buffer!.readableBytesView))
         } catch {
             fatalError("JSON decoder error: \(error.localizedDescription)")

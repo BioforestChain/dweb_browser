@@ -11,8 +11,8 @@ import SwiftSoup
 
 class DnsNMM: NativeMicroModule {
 
-//    private var mmConnectsMap: [MicroModule: [String: PromiseOut<ConnectResult>]] = [:]
-    private var mmConnectsMap = NSMutableDictionary()
+    private var mmConnectsMap: [MicroModule: [String: PromiseOut<ConnectResult>]] = [:]
+//    private var mmConnectsMap = NSMutableDictionary()
     private var runningApps: [String: MicroModule] = [:]
     private var installApps: [String: MicroModule] = [:]
     private var mmConnectsMapLock = NSLock()
@@ -29,7 +29,7 @@ class DnsNMM: NativeMicroModule {
     func connectTo(fromMM: MicroModule, toMmid: String, reason: Request) -> ConnectResult? {
     
         mmConnectsMapLock.withLock {
-            var connectsMap = self.mmConnectsMap[fromMM] as? [String: PromiseOut<ConnectResult>]
+            var connectsMap = self.mmConnectsMap[fromMM]
             if connectsMap == nil {
                 let map: [String: PromiseOut<ConnectResult>] = [:]
                 connectsMap = map
@@ -68,9 +68,7 @@ class DnsNMM: NativeMicroModule {
          * 对 nativeFetch 定义 file://xxx.dweb的解析
          */
      
-        _ = afterShutdownSignal.listen { _ in
-            
-            nativeFetchAdaptersManager.append { fromMM, request in
+        _ = afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request in
                 if request.url.scheme == "file", ((request.url.host?.hasSuffix(".dweb")) != nil) {
                     let mmid = request.url.host ?? ""
                     let micro = self.installApps[mmid]
@@ -84,7 +82,7 @@ class DnsNMM: NativeMicroModule {
                 }
                 return nil
             }
-        }
+        )
         
         routerHandler()
         
@@ -115,7 +113,7 @@ class DnsNMM: NativeMicroModule {
         apiRouting["\(self.mmid)/close"] = closeRouteHandler
         
         // 添加路由处理方法到http路由中
-        let app = HTTPServer.app
+        let app = HttpServer.app
         let group = app.grouped("\(mmid)")
         let httpHandler: (Request) async throws -> Response = { request async in
             await self.defineHandler(request: request)

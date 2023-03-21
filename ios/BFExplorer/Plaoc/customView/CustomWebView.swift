@@ -122,13 +122,19 @@ extension CustomWebView {
     
     func openLocalWebView(name: String) {
 
-        var path = name
-        path = "file://".appending(path)
-        if let url = URL(string: path) {
-            self.webView.load(URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 30))
-        }
+//        var path = name
+//        path = "file://".appending(path)
+//        if let url = URL(string: path) {
+//            self.webView.load(URLRequest(url: url))
+//        }
+        
+        let path = Bundle.main.bundlePath + "/" + name
+        
+        let filePath = "file://\(path)"
+        webView.loadFileURL(URL(string: filePath)!, allowingReadAccessTo: URL(fileURLWithPath: path))
     }
     
+
     func handleJavascriptString(inputJS: String) {
         webView.evaluateJavaScript(inputJS) { (response, error) in
             print( response , error)
@@ -212,7 +218,7 @@ extension CustomWebView: UIDocumentPickerDelegate {
 extension CustomWebView: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        
+        print(navigationAction.request.url?.absoluteString)
         decisionHandler(.allow)
     }
 

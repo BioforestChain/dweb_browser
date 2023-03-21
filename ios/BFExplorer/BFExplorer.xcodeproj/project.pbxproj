@@ -231,7 +231,7 @@
 		F388A08029C2A7030044BB7E /* MyDnsMicroModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F388A07F29C2A7030044BB7E /* MyDnsMicroModule.swift */; };
 		F388A08229C2A8130044BB7E /* MyBootstrapContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F388A08129C2A8130044BB7E /* MyBootstrapContext.swift */; };
 		F388A08629C2F5C60044BB7E /* URI_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F388A08529C2F5C60044BB7E /* URI_extension.swift */; };
-		F38DFD5C29BF0CDF00DF6079 /* desktop.worker.js in Resources */ = {isa = PBXBuildFile; fileRef = F38DFD5B29BF0CDF00DF6079 /* desktop.worker.js */; };
+		F38D9DF729C8756C003D8ED4 /* page2.html in Resources */ = {isa = PBXBuildFile; fileRef = F38D9DF629C8756C003D8ED4 /* page2.html */; };
 		F38DFD5E29BF1D9800DF6079 /* binary.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DFD5D29BF1D9800DF6079 /* binary.swift */; };
 		F394B8D129A88D6F002B14AA /* IpcNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */; };
 		F394B8D329A891BF002B14AA /* MicroModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F394B8D229A891BF002B14AA /* MicroModule.swift */; };
@@ -291,7 +291,6 @@
 		F3A27FCF29B58D7600EF4502 /* UsableIpcBodyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A27FCE29B58D7600EF4502 /* UsableIpcBodyMapper.swift */; };
 		F3A27FD329B5E32700EF4502 /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A27FD229B5E32700EF4502 /* Tools.swift */; };
 		F3A5A04C29AF2E990017F41D /* BootNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A04B29AF2E990017F41D /* BootNMM.swift */; };
-		F3A5A04F29AF35270017F41D /* RoutesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A04E29AF35270017F41D /* RoutesManager.swift */; };
 		F3A5A05129AF3F7E0017F41D /* NativeFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A05029AF3F7E0017F41D /* NativeFetch.swift */; };
 		F3A5A05329AF3F8F0017F41D /* DnsNMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5A05229AF3F8F0017F41D /* DnsNMM.swift */; };
 		F3A7016629C5629800C54E53 /* MainServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A7016529C5629800C54E53 /* MainServer.swift */; };
@@ -537,7 +536,7 @@
 		F388A07F29C2A7030044BB7E /* MyDnsMicroModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDnsMicroModule.swift; sourceTree = "<group>"; };
 		F388A08129C2A8130044BB7E /* MyBootstrapContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyBootstrapContext.swift; sourceTree = "<group>"; };
 		F388A08529C2F5C60044BB7E /* URI_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URI_extension.swift; sourceTree = "<group>"; };
-		F38DFD5B29BF0CDF00DF6079 /* desktop.worker.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = desktop.worker.js; sourceTree = "<group>"; };
+		F38D9DF629C8756C003D8ED4 /* page2.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = page2.html; sourceTree = "<group>"; };
 		F38DFD5D29BF1D9800DF6079 /* binary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = binary.swift; sourceTree = "<group>"; };
 		F394B8D029A88D6F002B14AA /* IpcNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IpcNetworkManager.swift; sourceTree = "<group>"; };
 		F394B8D229A891BF002B14AA /* MicroModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicroModule.swift; sourceTree = "<group>"; };
@@ -597,7 +596,6 @@
 		F3A27FCE29B58D7600EF4502 /* UsableIpcBodyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsableIpcBodyMapper.swift; sourceTree = "<group>"; };
 		F3A27FD229B5E32700EF4502 /* Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
 		F3A5A04B29AF2E990017F41D /* BootNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootNMM.swift; sourceTree = "<group>"; };
-		F3A5A04E29AF35270017F41D /* RoutesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutesManager.swift; sourceTree = "<group>"; };
 		F3A5A05029AF3F7E0017F41D /* NativeFetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFetch.swift; sourceTree = "<group>"; };
 		F3A5A05229AF3F8F0017F41D /* DnsNMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DnsNMM.swift; sourceTree = "<group>"; };
 		F3A7016529C5629800C54E53 /* MainServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainServer.swift; sourceTree = "<group>"; };
@@ -861,7 +859,6 @@
 		F05C41F42907F0E30082CC75 /* Plaoc */ = {
 			isa = PBXGroup;
 			children = (
-				F38DFD5A29BF0CC600DF6079 /* resources */,
 				F39DE589299B76DB0005B389 /* IPCCore */,
 				F0292D832975502700C2E464 /* PhotoHandle */,
 				F33BE3CC2966DE1B006D30B9 /* app */,
@@ -894,6 +891,7 @@
 				F091CB112951B8E400FCE565 /* CaptureViewController.swift */,
 				F091CB122951B8E400FCE565 /* SecondViewController.swift */,
 				F091CB132951B8E400FCE565 /* CustomTabbarViewController.swift */,
+				F38D9DF629C8756C003D8ED4 /* page2.html */,
 			);
 			path = controller;
 			sourceTree = "<group>";
@@ -1166,14 +1164,6 @@
 			path = webView;
 			sourceTree = "<group>";
 		};
-		F38DFD5A29BF0CC600DF6079 /* resources */ = {
-			isa = PBXGroup;
-			children = (
-				F38DFD5B29BF0CDF00DF6079 /* desktop.worker.js */,
-			);
-			path = resources;
-			sourceTree = "<group>";
-		};
 		F394B8CD29A88B30002B14AA /* core */ = {
 			isa = PBXGroup;
 			children = (
@@ -1305,7 +1295,6 @@
 		F3A5A04D29AF35180017F41D /* routes */ = {
 			isa = PBXGroup;
 			children = (
-				F3A5A04E29AF35270017F41D /* RoutesManager.swift */,
 				F384E5DA29B02C4200F9493B /* NetworkManager.swift */,
 			);
 			path = routes;
@@ -1322,16 +1311,8 @@
 				F3B0134A29AE0AE000F10504 /* http */,
 				F3B0134929AE0ADA00F10504 /* dns */,
 				F3B0134829AE0AD400F10504 /* boot */,
-				F3B0134729AE0ACE00F10504 /* base */,
 			);
 			path = sys;
-			sourceTree = "<group>";
-		};
-		F3B0134729AE0ACE00F10504 /* base */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = base;
 			sourceTree = "<group>";
 		};
 		F3B0134829AE0AD400F10504 /* boot */ = {
@@ -1469,9 +1450,9 @@
 				F0E4B66A29713E78005ECC4C /* guid in Resources */,
 				F01ABAEB28D2C7AC0038AF9C /* SourceHanSansCN-ExtraLight.otf in Resources */,
 				F01ABAEF28D2C9650038AF9C /* SourceHanSansCN-Medium.ttf in Resources */,
+				F38D9DF729C8756C003D8ED4 /* page2.html in Resources */,
 				F01ABAE828D2C7AC0038AF9C /* SourceHanSansCN-Light.otf in Resources */,
 				F01ABAEA28D2C7AC0038AF9C /* SourceHanSansCN-Heavy.otf in Resources */,
-				F38DFD5C29BF0CDF00DF6079 /* desktop.worker.js in Resources */,
 				F01ABAE728D2C7AC0038AF9C /* SourceHanSansCN-Bold.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1778,7 +1759,6 @@
 				F091CB3A2951B8EE00FCE565 /* ProgressAnimationView.swift in Sources */,
 				F091CBCE2951B93B00FCE565 /* XXWebView.swift in Sources */,
 				F384E5F129B0AA2A00F9493B /* JmmMetadata.swift in Sources */,
-				F3A5A04F29AF35270017F41D /* RoutesManager.swift in Sources */,
 				F0292DA42975502700C2E464 /* FWPopupCategory.swift in Sources */,
 				F3A0799029C047C500E46574 /* MetaBody.swift in Sources */,
 				F39DE59D299B77110005B389 /* createSignal.swift in Sources */,

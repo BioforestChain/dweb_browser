@@ -26,7 +26,10 @@ extension AppDelegate {
         let browserNMM = BrowserNMM()
         dnsNMM.install(mm: browserNMM)
         
-//        let jmmNMM = Jmm
+        let jmmNMM = JmmNMM()
+        dnsNMM.install(mm: jmmNMM)
+        
+        
         
         let bootNMM = BootNMM(initMmids: [browserNMM.mmid])
         dnsNMM.install(mm: bootNMM)

@@ -192,6 +192,7 @@ class Ipc: NSObject {
     
     func request(ipcRequest: IpcRequest) -> IpcResponse? {
         self.postMessage(message: ipcRequest)
+        
         let result = PromiseOut<IpcResponse>()
         
         _ = self.onMessage(cb: { (message, ipc) in
