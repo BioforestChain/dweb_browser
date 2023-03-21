@@ -1,6 +1,7 @@
 /// <reference path="../../shims/ImageCapture.d.ts" />
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { CameraDirection } from "../camera/camera.type.ts";
+import { CloseWatcher } from "../close-watcher/close-watcher.shim.ts";
 import { torchPlugin } from "../torch/torch.plugin.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
 import { SupportedFormat } from "./barcode-scanning.type.ts";
@@ -16,7 +17,16 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
   constructor() {
     super();
+    const closer = new CloseWatcher();
+    closer.addEventListener("close", (event) => {
+      console.log("CloseWatcher stopScanning", event.isTrusted, event.timeStamp);
+      if (this._activity) {
+        this.stopScanning()
+      }
+    });
   }
+
+
 
   /**
    * 返回扫码页面DOM
@@ -94,7 +104,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._activity = true
     return new Promise((resolve, reject) => {
       const task = () => {
-        if (!this._canvas) return reject("Canvas service creation failed！")
+        if (!this._canvas) return reject("service close！")
         if (!this._activity) return reject("user close")
         this._canvas.toBlob(
           async (imageBlob) => {

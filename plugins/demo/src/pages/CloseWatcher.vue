@@ -48,7 +48,7 @@ const closeDialog = () => {
       <dialog ref="$dialogEle">
         <div class="modal modal-open">
           <div class="modal-box">
-            <h3 class="font-bold text-lg">Dialog</h3>
+            <h3 class="text-lg font-bold">Dialog</h3>
             <p class="py-4">Hi</p>
             <div class="modal-action">
               <button class="btn" @click="closeDialog">Yay!</button>

@@ -5,7 +5,7 @@ import { routes } from "./routes";
 
 const router = useRouter();
 
-router.push("/haptics");
+router.push("/share");
 
 const drawer_controller = ref(false);
 

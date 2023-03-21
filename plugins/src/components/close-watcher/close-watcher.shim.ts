@@ -83,6 +83,7 @@ export class CloseWatcher extends EventTarget {
   }
   addEventListener<K extends keyof CloseWatcherEventMap>(
     type: K,
+    // deno-lint-ignore no-explicit-any
     listener: (this: CloseWatcher, ev: CloseWatcherEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions
   ): void;
@@ -92,10 +93,12 @@ export class CloseWatcher extends EventTarget {
     options?: boolean | AddEventListenerOptions
   ): void;
   addEventListener() {
+    // deno-lint-ignore no-explicit-any
     return (super.addEventListener as any)(...arguments);
   }
   removeEventListener<K extends keyof CloseWatcherEventMap>(
     type: K,
+    // deno-lint-ignore no-explicit-any
     listener: (this: CloseWatcher, ev: CloseWatcherEventMap[K]) => any,
     options?: boolean | EventListenerOptions
   ): void;
@@ -105,6 +108,7 @@ export class CloseWatcher extends EventTarget {
     options?: boolean | EventListenerOptions
   ): void;
   removeEventListener() {
+    // deno-lint-ignore no-explicit-any
     return (super.addEventListener as any)(...arguments);
   }
 }
@@ -112,6 +116,7 @@ interface CloseWatcherEventMap {
   close: CloseEvent;
 }
 
+// deno-lint-ignore no-explicit-any
 if (typeof (globalThis as any)["CloseWatcher"] === "undefined") {
   Object.assign(globalThis, { CloseWatcher });
 }

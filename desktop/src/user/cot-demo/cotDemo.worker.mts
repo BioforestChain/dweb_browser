@@ -105,11 +105,11 @@ const main = async () => {
     }).href;
     mainUrl.resolve(interUrl);
     // console.log("cot#open interUrl=>", interUrl);
-    // const view_id = await jsProcess
-    //   .nativeFetch(
-    //     `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
-    //   )
-    //   .text();
+    const view_id = await jsProcess
+      .nativeFetch(
+        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
+      )
+      .text();
 
     // const windowHanlder = mwebview.openWindow(interUrl);
     // windowHanlder.onClose(() => {});

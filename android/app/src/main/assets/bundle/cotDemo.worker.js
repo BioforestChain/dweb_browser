@@ -353,6 +353,9 @@ var main = async () => {
       url.pathname = "/index.html";
     }).href;
     mainUrl.resolve(interUrl);
+    const view_id2 = await jsProcess.nativeFetch(
+      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
+    ).text();
   }
   {
   }
