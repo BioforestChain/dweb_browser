@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import com.google.accompanist.web.WebView
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -186,16 +187,7 @@ open class MultiWebViewActivity : PermissionActivity() {
 
                         val state = viewItem.state
                         val navigator = viewItem.navigator
-                        BackHandler(true) {
-                            if (navigator.canGoBack) {
-                                debugMultiWebView("NAV/${viewItem.webviewId}", "go back")
-                                navigator.navigateBack()
-                            } else {
-                                wc.closeWebView(viewItem.webviewId)
-                            }
-                        }
 
-                        rememberCoroutineScope()
                         val chromeClient = remember {
                             MutilWebViewChromeClient(
                                 wc,
@@ -203,6 +195,20 @@ open class MultiWebViewActivity : PermissionActivity() {
                                 wc.isLastView(viewItem)
                             )
                         }
+
+                        BackHandler(true) {
+                            if (chromeClient.closeWatcherController.canClose) {
+                                viewItem.coroutineScope.launch {
+                                    chromeClient.closeWatcherController.close()
+                                }
+                            } else if (navigator.canGoBack) {
+                                debugMultiWebView("NAV/${viewItem.webviewId}", "go back")
+                                navigator.navigateBack()
+                            } else {
+                                wc.closeWebView(viewItem.webviewId)
+                            }
+                        }
+
                         Box(
                             modifier = Modifier
                                 .background(Color.Blue)
