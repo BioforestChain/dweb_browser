@@ -1,3 +1,25 @@
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __decorateClass = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result)
+    __defProp(target, key, result);
+  return result;
+};
+
+// src/helper/PromiseOut.mts
+var PromiseOut = class {
+  constructor() {
+    this.promise = new Promise((resolve, reject) => {
+      this.resolve = resolve;
+      this.reject = reject;
+    });
+  }
+};
+
 // src/helper/binaryHelper.cts
 var u8aConcat = (binaryList) => {
   let totalLength = 0;
@@ -41,7 +63,7 @@ var mapHelper = new class {
 }();
 
 // src/helper/PromiseOut.cts
-var PromiseOut = class {
+var PromiseOut2 = class {
   constructor() {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = resolve;
@@ -52,7 +74,7 @@ var PromiseOut = class {
     });
   }
   static resolve(v) {
-    const po = new PromiseOut();
+    const po = new PromiseOut2();
     po.resolve(v);
     return po;
   }
@@ -61,18 +83,63 @@ var PromiseOut = class {
   }
 };
 
+// src/helper/cacheGetter.cts
+var cacheGetter = () => {
+  return (target, prop, desp) => {
+    const source_fun = desp.get;
+    if (source_fun === void 0) {
+      throw new Error(`${target}.${prop} should has getter`);
+    }
+    desp.get = function() {
+      const result = source_fun.call(this);
+      if (desp.set) {
+        desp.get = () => result;
+      } else {
+        delete desp.set;
+        delete desp.get;
+        desp.value = result;
+        desp.writable = false;
+      }
+      Object.defineProperty(this, prop, desp);
+      return result;
+    };
+    return desp;
+  };
+};
+
 // src/helper/createSignal.cts
-var createSignal = () => {
-  return new Signal();
+var createSignal = (autoStart) => {
+  return new Signal(autoStart);
 };
 var Signal = class {
-  constructor() {
+  constructor(autoStart = true) {
     this._cbs = /* @__PURE__ */ new Set();
+    this._started = false;
+    this.start = () => {
+      if (this._started) {
+        return;
+      }
+      this._started = true;
+      if (this._cachedEmits.length) {
+        for (const args of this._cachedEmits) {
+          this._emit(args);
+        }
+        this._cachedEmits.length = 0;
+      }
+    };
     this.listen = (cb) => {
       this._cbs.add(cb);
+      this.start();
       return () => this._cbs.delete(cb);
     };
     this.emit = (...args) => {
+      if (this._started) {
+        this._emit(args);
+      } else {
+        this._cachedEmits.push(args);
+      }
+    };
+    this._emit = (args) => {
       for (const cb of this._cbs) {
         cb.apply(null, args);
       }
@@ -80,8 +147,17 @@ var Signal = class {
     this.clear = () => {
       this._cbs.clear();
     };
+    if (autoStart) {
+      this.start();
+    }
+  }
+  get _cachedEmits() {
+    return [];
   }
 };
+__decorateClass([
+  cacheGetter()
+], Signal.prototype, "_cachedEmits", 1);
 
 // src/helper/readableStreamHelper.cts
 var ReadableStreamOut = class {
@@ -103,10 +179,10 @@ var ReadableStreamOut = class {
     );
   }
   get onCancel() {
-    return (this._on_cancel_signal ??= createSignal()).listen;
+    return (this._on_cancel_signal ?? (this._on_cancel_signal = createSignal())).listen;
   }
   get onPull() {
-    return (this._on_pull_signal ??= createSignal()).listen;
+    return (this._on_pull_signal ?? (this._on_pull_signal = createSignal())).listen;
   }
 };
 
@@ -137,7 +213,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         }
         const streamPo = new ReadableStreamOut();
         const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid2) => {
-          const result = { ipc: new PromiseOut(), obs: /* @__PURE__ */ new Set() };
+          const result = { ipc: new PromiseOut2(), obs: /* @__PURE__ */ new Set() };
           result.ipc.resolve(jsProcess.connect(mmid2));
           result.ipc.promise.then((ipc2) => {
             ipc2.onEvent((event) => {
@@ -222,6 +298,23 @@ var cros = (headers) => {
 
 // src/user/cot-demo/cotDemo.worker.mts
 var main = async () => {
+  let view_id;
+  const mainUrl = new PromiseOut();
+  const tryOpenView = async () => {
+    const url = await mainUrl.promise;
+    jsProcess.nativeFetch(
+      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
+    ).text();
+  };
+  jsProcess.onConnect((ipc2) => {
+    console.log("on connect", ipc2);
+    ipc2.onEvent(async (event) => {
+      console.log("ookkkk", event);
+      if (event.name === "activity") {
+        tryOpenView();
+      }
+    });
+  });
   console.log("[cotDemo.worker.mts] main");
   const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
@@ -259,10 +352,7 @@ var main = async () => {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
-    console.log("cot#open interUrl=>", interUrl);
-    const view_id = await jsProcess.nativeFetch(
-      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
-    ).text();
+    mainUrl.resolve(interUrl);
   }
   {
   }

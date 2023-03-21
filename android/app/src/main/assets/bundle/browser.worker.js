@@ -1884,18 +1884,63 @@ var $dataToText = (data, encoding) => {
   throw new Error(`unknown encoding: ${encoding}`);
 };
 
+// src/helper/cacheGetter.cts
+var cacheGetter = () => {
+  return (target, prop, desp) => {
+    const source_fun = desp.get;
+    if (source_fun === void 0) {
+      throw new Error(`${target}.${prop} should has getter`);
+    }
+    desp.get = function() {
+      const result = source_fun.call(this);
+      if (desp.set) {
+        desp.get = () => result;
+      } else {
+        delete desp.set;
+        delete desp.get;
+        desp.value = result;
+        desp.writable = false;
+      }
+      Object.defineProperty(this, prop, desp);
+      return result;
+    };
+    return desp;
+  };
+};
+
 // src/helper/createSignal.cts
-var createSignal = () => {
-  return new Signal();
+var createSignal = (autoStart) => {
+  return new Signal(autoStart);
 };
 var Signal = class {
-  constructor() {
+  constructor(autoStart = true) {
     this._cbs = /* @__PURE__ */ new Set();
+    this._started = false;
+    this.start = () => {
+      if (this._started) {
+        return;
+      }
+      this._started = true;
+      if (this._cachedEmits.length) {
+        for (const args of this._cachedEmits) {
+          this._emit(args);
+        }
+        this._cachedEmits.length = 0;
+      }
+    };
     this.listen = (cb) => {
       this._cbs.add(cb);
+      this.start();
       return () => this._cbs.delete(cb);
     };
     this.emit = (...args) => {
+      if (this._started) {
+        this._emit(args);
+      } else {
+        this._cachedEmits.push(args);
+      }
+    };
+    this._emit = (args) => {
       for (const cb of this._cbs) {
         cb.apply(null, args);
       }
@@ -1903,8 +1948,17 @@ var Signal = class {
     this.clear = () => {
       this._cbs.clear();
     };
+    if (autoStart) {
+      this.start();
+    }
+  }
+  get _cachedEmits() {
+    return [];
   }
 };
+__decorateClass([
+  cacheGetter()
+], Signal.prototype, "_cachedEmits", 1);
 
 // src/helper/readableStreamHelper.cts
 async function* _doRead(reader) {
@@ -2085,30 +2139,6 @@ var IpcStreamAbort = class extends IpcMessage {
     super(5 /* STREAM_ABORT */);
     this.stream_id = stream_id;
   }
-};
-
-// src/helper/cacheGetter.cts
-var cacheGetter = () => {
-  return (target, prop, desp) => {
-    const source_fun = desp.get;
-    if (source_fun === void 0) {
-      throw new Error(`${target}.${prop} should has getter`);
-    }
-    desp.get = function() {
-      const result = source_fun.call(this);
-      if (desp.set) {
-        desp.get = () => result;
-      } else {
-        delete desp.set;
-        delete desp.get;
-        desp.value = result;
-        desp.writable = false;
-      }
-      Object.defineProperty(this, prop, desp);
-      return result;
-    };
-    return desp;
-  };
 };
 
 // src/core/ipc/IpcStreamData.cts
@@ -4685,10 +4715,10 @@ var Ipc = class {
     this._support_protobuf = false;
     this._support_raw = false;
     this._support_binary = false;
-    this._messageSignal = createSignal();
+    this._messageSignal = createSignal(false);
     this.onMessage = this._messageSignal.listen;
     this._closed = false;
-    this._closeSignal = createSignal();
+    this._closeSignal = createSignal(false);
     this.onClose = this._closeSignal.listen;
     this._reqresMap = /* @__PURE__ */ new Map();
     this._req_id_acc = 0;
@@ -4735,7 +4765,7 @@ var Ipc = class {
     this._doPostMessage(message);
   }
   get _onRequestSignal() {
-    const signal = createSignal();
+    const signal = createSignal(false);
     this.onMessage((request, ipc) => {
       if (request.type === 0 /* REQUEST */) {
         signal.emit(request, ipc);
@@ -4747,7 +4777,7 @@ var Ipc = class {
     return this._onRequestSignal.listen(cb);
   }
   get _onEventSignal() {
-    const signal = createSignal();
+    const signal = createSignal(false);
     this.onMessage((event, ipc) => {
       if (event.type === 6 /* EVENT */) {
         signal.emit(event, ipc);

@@ -3,7 +3,10 @@ package info.bagen.rust.plaoc.microService
 import android.os.Build
 
 enum class DEVELOPER(val deviceName: String) {
-    GAUBEE("Xiaomi/M2006J10C"), ANONYMOUS("*");
+    GAUBEE("Xiaomi/M2006J10C"),
+    HUANGLIN("HUAWEI/ELE-AL00"),
+    ANONYMOUS("*");
+
 
     companion object {
         fun find(deviceName: String) = values().find { it.deviceName == deviceName } ?: ANONYMOUS

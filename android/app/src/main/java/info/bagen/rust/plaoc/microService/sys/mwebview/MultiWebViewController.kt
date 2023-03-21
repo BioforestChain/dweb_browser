@@ -152,11 +152,6 @@ class MultiWebViewController(
         webViewList.forEach { viewItem ->
             if (viewItem.webviewId == webviewId) {
                 viewItem.coroutineScope.launch(Dispatchers.Main) {
-                    if (webViewList.size == 1) {
-                        localeMM.nativeFetch(
-                            Uri.of("file://dns.sys.dweb/close").query("app_id", mmid)
-                        )
-                    }
                     webViewList.remove(viewItem)
                     viewItem.webView.destroy()
                     webViewCloseSignal.emit(webviewId)

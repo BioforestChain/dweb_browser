@@ -1,6 +1,30 @@
+import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { cros, onApiRequest } from "./cotDemo.request.mjs";
 
 const main = async () => {
+  let view_id: Promise<string> | undefined;
+  const mainUrl = new PromiseOut<string>();
+  const tryOpenView = async () => {
+    const url = await mainUrl.promise;
+    // view_id ??=
+    jsProcess
+      .nativeFetch(
+        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
+      )
+      .text();
+  };
+  /// 根据桌面协议，收到activity后就会被唤醒
+  jsProcess.onConnect((ipc) => {
+    console.log("on connect", ipc);
+
+    ipc.onEvent(async (event) => {
+      console.log("ookkkk", event);
+      if (event.name === "activity") {
+        tryOpenView();
+      }
+    });
+  });
+
   console.log("[cotDemo.worker.mts] main");
   const { IpcResponse, IpcHeaders } = ipc;
 
@@ -79,26 +103,18 @@ const main = async () => {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
-    console.log("cot#open interUrl=>", interUrl);
-    const view_id = await jsProcess
-      .nativeFetch(
-        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
-      )
-      .text();
+    mainUrl.resolve(interUrl);
+    // console.log("cot#open interUrl=>", interUrl);
+    // const view_id = await jsProcess
+    //   .nativeFetch(
+    //     `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
+    //   )
+    //   .text();
 
     // const windowHanlder = mwebview.openWindow(interUrl);
     // windowHanlder.onClose(() => {});
- 
-    // jsProcess.fetchIpc.onEvent((event) => {});
 
-    // jsProcess.onConnect((ipc) => {
-    //   if (ipc.remote.mmid == "browser.sys.dweb") {
-    //   }
-    //   ipc.onEvent((event)=>{
-    //     event.name ===  "activity"
-    //     mwebview.openWindow(interUrl);
-    //   });
-    // });
+    // jsProcess.fetchIpc.onEvent((event) => {});
   }
   {
     // const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");

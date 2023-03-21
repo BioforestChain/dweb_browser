@@ -46,9 +46,15 @@ class JsProcessWebApi(val dWebView: DWebView) {
                 }, { once: true })
             })
             """.trimIndent(), afterEval = {
-            dWebView.postWebMessage(
-                WebMessage("js-process/create-process", arrayOf(port1)), Uri.EMPTY
-            );
+            try {
+
+                dWebView.postWebMessage(
+                    WebMessage("js-process/create-process", arrayOf(port1)), Uri.EMPTY
+                );
+            } catch (e: Exception) {
+                println("QQQQ");
+                e.printStackTrace()
+            }
         })
         debugJsProcess("processInfo", processInfo_json)
         val info = gson.fromJson(processInfo_json, ProcessInfo::class.java)

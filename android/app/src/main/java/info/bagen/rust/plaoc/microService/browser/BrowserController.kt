@@ -1,7 +1,9 @@
 package info.bagen.rust.plaoc.microService.browser
 
-import info.bagen.rust.plaoc.microService.core.MicroModule
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import org.http4k.core.Uri
@@ -10,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class BrowserController(
     private val mmid: Mmid,
-    private val localeMM: MicroModule,
+    private val localeMM: BrowserNMM,
 ) {
     companion object {
         private var browserId_acc = AtomicInteger(1)
@@ -40,10 +42,7 @@ class BrowserController(
         return BrowserItem("#browser${browserId_acc.getAndAdd(1)}")
     }
 
-    suspend fun openApp(mmid: Mmid) = localeMM.nativeFetch(
-        Uri.of("file://dns.sys.dweb/open")
-            .query("app_id", mmid.encodeURIComponent())
-    )
+    suspend fun openApp(mmid: Mmid) = localeMM.openApp(mmid)
 
     fun installJMM(jmmMetadata: JmmMetadata, url: String) =
         runBlockingCatching(ioAsyncExceptionHandler) {

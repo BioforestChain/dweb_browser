@@ -3,8 +3,6 @@ package info.bagen.rust.plaoc.microService.browser
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
@@ -12,11 +10,6 @@ import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import org.http4k.core.Method
-import org.http4k.routing.bind
-import org.http4k.routing.routes
 
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("browser", tag, msg, err)
@@ -28,20 +21,17 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
     }
 
     init {
-      browserController = BrowserController(mmid, this)
+        browserController = BrowserController(mmid, this)
     }
 
     @SuppressLint("SuspiciousIndentation")
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        GlobalScope.launch { openApp() }
+        openBrowserActivity()
     }
 
-    private suspend fun openApp(): String {
-        //val (ipc) = bootstrapContext.dns.connect("file://$mmid")
-        //ipc.postMessage(IpcEvent.fromUtf8("activity", ""))
-        openBrowserActivity()
-        browserController?.waitActivityCreated()
-        return browserController?.createApp()?.browserId ?: ""
+    suspend fun openApp(mmid: Mmid) {
+        val (ipc) = bootstrapContext.dns.connect(mmid)
+        ipc.postMessage(IpcEvent.fromUtf8("activity", ""))
     }
 
     override suspend fun _shutdown() {

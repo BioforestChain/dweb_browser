@@ -38,15 +38,15 @@ class CloseWatcher(
                 viewItem.webView.evaluateJavascript(
                     """
                         open("data:text/html,dweb-internal/${CREATE_CLOSE_WATCHER_PREFIX}$consumeToken");
-                        const watchers = (${JS_POLYFILL_KIT}._watchers||(${JS_POLYFILL_KIT}._watchers = new Map()));
+                        const tasks = (${JS_POLYFILL_KIT}._tasks||(${JS_POLYFILL_KIT}._tasks = new Map()));
                         let resolve;
                         const promise = new Promise(r => {
                             resolve = r
+                        }).then(id => {
+                            tasks.delete("$consumeToken");
+                            return id;
                         });
-                        watchers.set("$consumeToken", (id) => {
-                            watchers.set("$consumeToken", id);
-                            watchers.set(id, new EventTarget());
-                        });
+                        tasks.set("$consumeToken", { promise, resolve });
                         """.trimIndent()
                 ) {};
                 return consumeToken
@@ -77,7 +77,7 @@ class CloseWatcher(
                 return false
             }
             val defaultPrevented = false;
-            /// 目前，不实现cancel，因为没有合适的API来完美模拟实现
+            /// 目前，不实现cancel，因为没有合适的API来实现，虽然能模拟，但暂时没必要。等官方接口出来，我们自己的实现尽可能保持接口的简单性
 //           viewItem.webView.evaluateAsyncJavascriptCode(
 //                """
 //                new Promise((resolve,reject)=>{
@@ -95,6 +95,14 @@ class CloseWatcher(
 //                })
 //                """.trimIndent()
 //            ) {}.toBoolean();
+
+            /// 尝试去触发客户端的监听，如果客户端有监听的话
+            viewItem.webView.evaluateJavascript(
+                """
+                const watcher = ${JS_POLYFILL_KIT}._watchers?.get("$id");
+                watcher?.dispatchEvent(new CloseEvent('close'));
+                """.trimIndent()
+            ) {}
             if (!defaultPrevented) {
                 return destroy()
             }

@@ -65,7 +65,7 @@ export abstract class Ipc {
   }
   abstract readonly role: string;
 
-  protected _messageSignal = createSignal<$OnIpcMessage>();
+  protected _messageSignal = createSignal<$OnIpcMessage>(false);
   postMessage(message: $IpcMessage): void {
     if (this._closed) {
       return;
@@ -77,7 +77,7 @@ export abstract class Ipc {
 
   @cacheGetter()
   private get _onRequestSignal() {
-    const signal = createSignal<$OnIpcRequestMessage>();
+    const signal = createSignal<$OnIpcRequestMessage>(false);
     this.onMessage((request, ipc) => {
       if (request.type === IPC_MESSAGE_TYPE.REQUEST) {
         signal.emit(request, ipc);
@@ -92,7 +92,7 @@ export abstract class Ipc {
 
   @cacheGetter()
   private get _onEventSignal() {
-    const signal = createSignal<$OnIpcEventMessage>();
+    const signal = createSignal<$OnIpcEventMessage>(false);
     this.onMessage((event, ipc) => {
       if (event.type === IPC_MESSAGE_TYPE.EVENT) {
         signal.emit(event, ipc);
@@ -117,7 +117,7 @@ export abstract class Ipc {
     this._closeSignal.emit();
     this._closeSignal.clear();
   }
-  private _closeSignal = createSignal<() => unknown>();
+  private _closeSignal = createSignal<() => unknown>(false);
   onClose = this._closeSignal.listen;
 
   private readonly _reqresMap = new Map<number, PromiseOut<IpcResponse>>();

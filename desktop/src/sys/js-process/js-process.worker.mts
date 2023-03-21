@@ -163,7 +163,7 @@ export class JsProcessMicroModule implements $MicroModule {
     }).promise;
   }
 
-  private _connectSignal = createSignal<$Callback<[Ipc]>>();
+  private _connectSignal = createSignal<$Callback<[Ipc]>>(false);
   beConnect(ipc: Ipc) {
     ipc.onClose(() => {
       this._ipcConnectsMap.delete(ipc.remote.mmid);

@@ -3523,17 +3523,38 @@ var cacheGetter = () => {
 };
 
 // src/helper/createSignal.cts
-var createSignal = () => {
-  return new Signal();
+var createSignal = (autoStart) => {
+  return new Signal(autoStart);
 };
 var Signal = class {
-  constructor() {
+  constructor(autoStart = true) {
     this._cbs = /* @__PURE__ */ new Set();
+    this._started = false;
+    this.start = () => {
+      if (this._started) {
+        return;
+      }
+      this._started = true;
+      if (this._cachedEmits.length) {
+        for (const args of this._cachedEmits) {
+          this._emit(args);
+        }
+        this._cachedEmits.length = 0;
+      }
+    };
     this.listen = (cb) => {
       this._cbs.add(cb);
+      this.start();
       return () => this._cbs.delete(cb);
     };
     this.emit = (...args) => {
+      if (this._started) {
+        this._emit(args);
+      } else {
+        this._cachedEmits.push(args);
+      }
+    };
+    this._emit = (args) => {
       for (const cb of this._cbs) {
         cb.apply(null, args);
       }
@@ -3541,8 +3562,17 @@ var Signal = class {
     this.clear = () => {
       this._cbs.clear();
     };
+    if (autoStart) {
+      this.start();
+    }
+  }
+  get _cachedEmits() {
+    return [];
   }
 };
+__decorateClass([
+  cacheGetter()
+], Signal.prototype, "_cachedEmits", 1);
 
 // src/helper/PromiseOut.cts
 var PromiseOut = class {
@@ -3949,10 +3979,10 @@ var ReadableStreamOut = class {
     );
   }
   get onCancel() {
-    return (this._on_cancel_signal ??= createSignal()).listen;
+    return (this._on_cancel_signal ?? (this._on_cancel_signal = createSignal())).listen;
   }
   get onPull() {
-    return (this._on_pull_signal ??= createSignal()).listen;
+    return (this._on_pull_signal ?? (this._on_pull_signal = createSignal())).listen;
   }
 };
 
@@ -4596,10 +4626,10 @@ var Ipc = class {
     this._support_protobuf = false;
     this._support_raw = false;
     this._support_binary = false;
-    this._messageSignal = createSignal();
+    this._messageSignal = createSignal(false);
     this.onMessage = this._messageSignal.listen;
     this._closed = false;
-    this._closeSignal = createSignal();
+    this._closeSignal = createSignal(false);
     this.onClose = this._closeSignal.listen;
     this._reqresMap = /* @__PURE__ */ new Map();
     this._req_id_acc = 0;
@@ -4646,7 +4676,7 @@ var Ipc = class {
     this._doPostMessage(message);
   }
   get _onRequestSignal() {
-    const signal = createSignal();
+    const signal = createSignal(false);
     this.onMessage((request, ipc) => {
       if (request.type === 0 /* REQUEST */) {
         signal.emit(request, ipc);
@@ -4658,7 +4688,7 @@ var Ipc = class {
     return this._onRequestSignal.listen(cb);
   }
   get _onEventSignal() {
-    const signal = createSignal();
+    const signal = createSignal(false);
     this.onMessage((event, ipc) => {
       if (event.type === 6 /* EVENT */) {
         signal.emit(event, ipc);
@@ -5474,7 +5504,7 @@ var JsProcessMicroModule = class {
       "server" /* SERVER */
     );
     this._ipcConnectsMap = /* @__PURE__ */ new Map();
-    this._connectSignal = createSignal();
+    this._connectSignal = createSignal(false);
     const _beConnect = async (event) => {
       const data = event.data;
       if (Array.isArray(event.data) === false) {

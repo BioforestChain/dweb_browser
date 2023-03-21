@@ -10,3 +10,5 @@ export * from "./share/index.ts";
 export * from "./splash-screen/index.ts";
 export * from "./barcode-scanning/index.ts";
 export * from "./torch/index.ts";
+
+export * from "./close-watcher/index.ts";
