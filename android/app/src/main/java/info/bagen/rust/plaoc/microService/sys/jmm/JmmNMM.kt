@@ -6,8 +6,9 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.http4k.core.Method
@@ -18,45 +19,33 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
+@OptIn(DelicateCoroutinesApi::class)
 class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
         private val apps = mutableMapOf<Mmid, JsMicroModule>()
-
         fun getAndUpdateJmmNmmApps() = apps
-
-        suspend fun NativeMicroModule.nativeFetchFromJS(mmid: Mmid) {
-            nativeFetch(
-                Uri.of("file://dns.sys.dweb/open")
-                    .query("app_id", mmid.encodeURIComponent())
-            )
-        }
-
-        suspend fun NativeMicroModule.nativeFetchInstallDNS(jmmMetadata: JmmMetadata) { // 安装完成后，需要注册到 DnsNMM 中
-            nativeFetch(
-                Uri.of("file://dns.sys.dweb/install")
-                    .query("jmmMetadata", gson.toJson(jmmMetadata))
-            )
-        }
-
-        suspend fun NativeMicroModule.nativeFetchInstallApp(jmmMetadata: JmmMetadata, url: String) {
-            nativeFetch(
-                Uri.of("file://jmm.sys.dweb/install")
-                    .query("mmid", jmmMetadata.id).query("metadataUrl", url)
-            )
-        }
     }
 
     init {
-        // TODO 启动的时候，从数据库中恢复 apps 对象
+        // 启动的时候，从数据库中恢复 apps 对象
         GlobalScope.launch(ioAsyncExceptionHandler) {
-            JmmMetadataDB.queryJmmMetadataList().collectLatest {
-                apps.clear()
+            while (true) { // TODO 为了将 jmm.sys.dweb 启动，否则 bootstrapContext 会报错
+                delay(1000)
+                try {
+                    nativeFetch(Uri.of("file://dns.sys.dweb/open")
+                        .query("app_id", "jmm.sys.dweb".encodeURIComponent()))
+                    break
+                } catch (_: Exception) {}
+            }
+            JmmMetadataDB.queryJmmMetadataList().collectLatest { // TODO 只要datastore更新，这边就会实时更新
                 it.forEach { (key, value) ->
-                    apps[key] = JsMicroModule(value)
-                    nativeFetch(
-                        Uri.of("file://dns.sys.dweb/install")
-                            .query("jmmMetadata", gson.toJson(value))
-                    )
+                    apps.getOrPut(key) {
+                        JsMicroModule(value).also { jsMicroModule ->
+                            try {
+                              bootstrapContext.dns.install(jsMicroModule)
+                            } catch (_ : Exception) { }
+                        }
+                    }
                 }
             }
         }

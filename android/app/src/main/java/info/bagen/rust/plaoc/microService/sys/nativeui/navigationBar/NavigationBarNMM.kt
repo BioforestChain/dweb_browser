@@ -5,7 +5,7 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.sys.nativeui.NativeUiController
 import info.bagen.rust.plaoc.microService.sys.nativeui.helper.QueryHelper
-import info.bagen.rust.plaoc.microService.sys.nativeui.fromMultiWebView
+import info.bagen.rust.plaoc.microService.sys.nativeui.helper.fromMultiWebView
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes

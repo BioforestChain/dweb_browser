@@ -4,8 +4,9 @@ import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.*
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -13,9 +14,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
+import com.google.gson.JsonSyntaxException
 import info.bagen.rust.plaoc.util.permission.EPermission
 import info.bagen.rust.plaoc.util.permission.PermissionUtil
 import info.bagen.rust.plaoc.ui.app.AppViewModel
@@ -27,14 +32,16 @@ import info.bagen.rust.plaoc.ui.main.Home
 import info.bagen.rust.plaoc.ui.main.MainViewModel
 import info.bagen.rust.plaoc.ui.main.SearchAction
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserControllerMap
-import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
+import info.bagen.rust.plaoc.microService.helper.gson
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_CAN_BE_FOUND
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_REQUEST
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetoothOp
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
+import info.bagen.rust.plaoc.network.HttpClient
+import info.bagen.rust.plaoc.network.base.byteBufferToString
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import java.util.*
 
@@ -58,8 +65,17 @@ class BrowserActivity : AppCompatActivity() {
         return appViewModel
     }
 
+    private var remoteMmid by mutableStateOf("")
+    private var controller: BrowserController? = BrowserNMM.browserController
+
+    private fun upsetRemoteMmid() {
+        remoteMmid = intent.getStringExtra("mmid") ?: return finish()
+        controller?.activity = this
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        upsetRemoteMmid()
         BrowserNMM.activityPo?.resolve(this)
         App.browserActivity = this
         setContent {
@@ -74,8 +90,14 @@ class BrowserActivity : AppCompatActivity() {
                     Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
                         when (action) {
                             SearchAction.Search -> {
-                                dWebBrowserModel.handleIntent(DWebBrowserIntent.OpenDWebBrowser(data))
-                                //dWebBrowserModel.openDWebBrowser("https://shop.plaoc.com/bfs-metadata.json")
+                                if (!checkJmmMetadataJson(data) { jmmMetadata, url ->
+                                    // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
+                                    BrowserNMM.browserController?.installJMM(jmmMetadata, url)
+                                }) {
+                                    dWebBrowserModel.handleIntent(
+                                        DWebBrowserIntent.OpenDWebBrowser(data)
+                                    )
+                                }
                             }
                             SearchAction.OpenCamera -> {
                                 if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
@@ -90,8 +112,7 @@ class BrowserActivity : AppCompatActivity() {
                         }
                     }, onOpenDWebview = { appId, dAppInfo ->
                         /// TODO 这里是点击桌面app触发的事件
-                        browserControllerMap[appId]?.openApp(appId)
-
+                        BrowserNMM.browserController?.openApp(appId)
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                     QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
@@ -167,15 +188,6 @@ class BrowserActivity : AppCompatActivity() {
         blueToothReceiver = null
     }
 
-    // 打开相册
-    private fun startPickPhoto() {
-        val pickIntent = Intent(
-            Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        )
-        pickIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
-        startActivityForResult(pickIntent, REQUEST_CODE_PHOTO)
-    }
-
     // 创建查找对象
     class BlueToothReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -209,4 +221,23 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
+    private fun checkJmmMetadataJson(
+        url: String, openJmmActivity: (JmmMetadata, String) -> Unit
+    ): Boolean {
+        Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
+            if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
+                try {
+                    gson.fromJson(
+                        byteBufferToString(HttpClient().requestPath(url).body.payload),
+                        JmmMetadata::class.java
+                    ).apply { openJmmActivity(this, url) }
+
+                    return true
+                } catch (e: JsonSyntaxException) {
+                    Log.e("DWebBrowserModel", "checkJmmMetadataJson fail -> ${e.message}")
+                }
+            }
+        }
+        return false
+    }
 }

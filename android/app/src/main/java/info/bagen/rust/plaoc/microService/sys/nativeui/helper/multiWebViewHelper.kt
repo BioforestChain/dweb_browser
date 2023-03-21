@@ -1,7 +1,8 @@
-package info.bagen.rust.plaoc.microService.sys.nativeui
+package info.bagen.rust.plaoc.microService.sys.nativeui.helper
 
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
+import info.bagen.rust.plaoc.microService.sys.nativeui.NativeUiController
 
 fun NativeUiController.Companion.fromMultiWebView(mmid: Mmid) =
     ((MultiWebViewNMM.getCurrentWebViewController(mmid)

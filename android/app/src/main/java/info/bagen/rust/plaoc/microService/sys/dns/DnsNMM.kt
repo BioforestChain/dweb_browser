@@ -1,10 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.dns
 
-import com.google.gson.JsonSyntaxException
 import info.bagen.rust.plaoc.microService.core.*
 import info.bagen.rust.plaoc.microService.helper.*
-import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
-import info.bagen.rust.plaoc.microService.sys.jmm.JsMicroModule
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -132,19 +129,6 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
             "/close" bind Method.GET to defineHandler { request ->
                 debugDNS("close/$mmid", request.uri.path)
                 close(query_app_id(request))
-                true
-            },
-            // TODO 动态注册 JsMicroModule
-            "/install" bind Method.GET to defineHandler { request, ipc ->
-                debugDNS("install/${ipc.remote.mmid}", "query->${request.query("jmmMetadata")}")
-                try {
-                    gson.fromJson(query_jmm_metadata(request), JmmMetadata::class.java)
-                } catch (e: JsonSyntaxException) {
-                    debugDNS("install/${ipc.remote.mmid}", "fail -> ${e.message}")
-                    null
-                }?.also { jmmMetadata ->
-                    install(JsMicroModule(jmmMetadata))
-                }
                 true
             })
         /// 启动 boot 模块

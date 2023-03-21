@@ -1,19 +1,12 @@
 package info.bagen.rust.plaoc.microService.browser
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.JsonSyntaxException
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
-import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
-import info.bagen.rust.plaoc.network.HttpClient
-import info.bagen.rust.plaoc.network.base.byteBufferToString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -48,10 +41,6 @@ sealed class DWebBrowserIntent {
 class DWebBrowserModel : ViewModel() {
     val uiState = DWebBrowserUIState()
     private val dWebBrowserTree: HashMap<String, ArrayList<DWebBrowserItem>> = hashMapOf()
-
-    class DWebBrowser(val viewId: String, val instance: DWebBrowserItem)
-
-    private val dWebBrowserList = listOf<DWebBrowser>()
 
     fun handleIntent(action: DWebBrowserIntent) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -92,12 +81,7 @@ class DWebBrowserModel : ViewModel() {
         }
     }
 
-    fun openDWebBrowser(origin: String, processId: String? = null): String {
-        // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
-        if (checkJmmMetadataJson(origin) { jmmMetadata, url ->
-                JmmNMM.nativeFetchInstallApp(jmmMetadata, url)
-            }) return "0"
-
+    private fun openDWebBrowser(origin: String, processId: String? = null): String {
         // 先产生 processId 返回值，然后再执行界面，否则在 Main 执行无法获取返回值
         val ret = Uri.parse(origin)?.host?.let { host ->
             var dWebBrowserItem: DWebBrowserItem
@@ -127,26 +111,6 @@ class DWebBrowserModel : ViewModel() {
             retValue
         } ?: "0"
         return ret
-    }
-
-    private fun checkJmmMetadataJson(
-        url: String, openJmmActivity: (JmmMetadata, String) -> Unit
-    ): Boolean {
-        Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
-            if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
-                try {
-                    gson.fromJson(
-                        byteBufferToString(HttpClient().requestPath(url).body.payload),
-                        JmmMetadata::class.java
-                    ).apply { openJmmActivity(this, url) }
-
-                    return true
-                } catch (e: JsonSyntaxException) {
-                    Log.e("DWebBrowserModel", "checkJmmMetadataJson fail -> ${e.message}")
-                }
-            }
-        }
-        return false
     }
 
     private fun showDWebBrowser(

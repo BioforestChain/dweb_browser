@@ -17,7 +17,6 @@ import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.datastore.JmmMetadataDB
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.sys.jmm.DownLoadObserver
-import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.*
 import info.bagen.rust.plaoc.ui.app.AppViewIntent
 import info.bagen.rust.plaoc.ui.app.AppViewModel
@@ -157,7 +156,8 @@ class DwebBrowserService : Service() {
         ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath(), mmid = jmmMetadata.id)
       if (unzip) {
         JmmMetadataDB.saveJmmMetadata(jmmMetadata.id, jmmMetadata)
-        JmmNMM.nativeFetchInstallDNS(jmmMetadata)
+        // TODO 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
+        // BrowserNMM.getBrowserController().installApp(jmmMetadata.id)
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.INSTALLED)
       } else {
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)
