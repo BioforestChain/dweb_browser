@@ -67,18 +67,18 @@ dns.install(jmmtestconnectJMM2)
 
 
 dns.install(new BootNMM([
-  // "http.sys.dweb",
-  // "mwebview.sys.dweb",
-  // "js.sys.dweb",
-  // "statusbar.sys.dweb",
-  // "btry.sys.dweb",
-  // "browser.sys.dweb"
+  "http.sys.dweb",
+  "mwebview.sys.dweb",
+  "js.sys.dweb",
+  "statusbar.sys.dweb",
+  "btry.sys.dweb",
+  "browser.sys.dweb"
   // cotDemoJMM.mmid
 
   // 下面是专门用来测是 connect
-  "js.sys.dweb",
-  jmmtestconnectJMM.mmid,
-  jmmtestconnectJMM2.mmid
+  // "js.sys.dweb",
+  // jmmtestconnectJMM.mmid,
+  // jmmtestconnectJMM2.mmid
 ]));
 
 Object.assign(globalThis, { dns: dns });
