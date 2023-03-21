@@ -18,6 +18,10 @@ dns.install(desktopJmm);
 // dns.install(new BrowserNMM())
 import { browserJMM } from "./user/browser/browser.main.cjs";
 dns.install(browserJMM);
+
+import { btryJMM } from "./user/btry/btry.main.cjs"
+dns.install(btryJMM)
+
 // 安装 cot
 import { cotJMM } from "./user/cot/cot.main.cjs";
 dns.install(cotJMM);
@@ -54,12 +58,27 @@ dns.install(new PluginsNMM());
 import { JMMMetadata } from "./sys/jmm-metadata/jmm-metadata.cjs";
 dns.install(new JMMMetadata());
 
+
+// 安装 jmm.test.connect.dweb
+import { jmmtestconnectJMM } from "./user/jmm-test-connect/jmmtestconnect.main.cjs";
+import { jmmtestconnectJMM2 } from "./user/jmm-test-connect2/jmmtestconnect2.main.cjs";
+dns.install(jmmtestconnectJMM)
+dns.install(jmmtestconnectJMM2)
+
+
 dns.install(new BootNMM([
   "http.sys.dweb",
   "mwebview.sys.dweb",
   "js.sys.dweb",
   "statusbar.sys.dweb",
-  cotDemoJMM.mmid
+  "btry.sys.dweb",
+  "browser.sys.dweb"
+  // cotDemoJMM.mmid
+
+  // 下面是专门用来测是 connect
+  // "js.sys.dweb",
+  // jmmtestconnectJMM.mmid,
+  // jmmtestconnectJMM2.mmid
 ]));
 
 Object.assign(globalThis, { dns: dns });

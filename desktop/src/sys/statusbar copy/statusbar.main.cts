@@ -13,10 +13,7 @@ import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 import type { $NativeWindow } from "../../helper/openNativeWindow.cjs";
 import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
 import chalk from "chalk";
-import type { $BootstrapContext } from "../../core/bootstrapContext.cjs"
-import { Console } from "node:console";
 
- 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
 export class StatusbarNMM extends NativeMicroModule {
@@ -38,61 +35,7 @@ export class StatusbarNMM extends NativeMicroModule {
   private _allocId = 0;
   // 必须要通过这样启动才可以
 
-  async _bootstrap(context: $BootstrapContext) {
-    console.log(chalk.green(`[${this.mmid} _bootstrap]`))
-
-
-    // 发起联系的请求
-    const [httpIpc] = await context.dns.connect('http.sys.dweb')
-    // 向 httpIpc 发起初始化消息
-    httpIpc
-      .postMessage(
-        IpcEvent
-          .fromText(
-            "http.sys.dweb", 
-            JSON.stringify({
-              action: "filter/request",
-              host: this.mmid,
-              urlPre: "/wait_for_operation"
-            })
-          )
-      )
-    // 测试项 statusbar.html 发送消息
-    // statusbar 当前匹配的第三方url
-    // http://www.browser.sys.dweb-443.localhost:22605/index.html?X-Dweb-Host=www.browser.sys.dweb%3A443#/toast
-    // 当前第三方的url
-    // http://www.browser.sys.dweb-443.localhost:22605/index.html?X-Dweb-Host=www.browser.sys.dweb%3A443
-    // setTimeout(() => {
-    //   console.log('发送了消息')
-    //   httpIpc
-    //     .postMessage(
-    //       IpcEvent
-    //         .fromText(
-    //           "http.sys.dweb", 
-    //           JSON.stringify({
-    //             action: "operation",
-    //             operationName: "setBackgroundColor",
-    //             value: "#F00F",
-    //             from: "来自于那个 href"
-    //           })
-    //         )
-    //     )
-    // }, 5000)
-
-
-    {
-      this.onConnect(ipc => {
-        // console.log(chalk.red(`${this.mmid} 还没有处理 onConnect`))
-        // ipc.onRequest((request, ipc) => {
-        //   console.log(`statusbar.main.cts request: `, request.parsed_url)
-        // })
-        ipc.onEvent((ipcEvent, nativeIpc) => {
-          console.log(chalk.red(`${this.mmid} 还没有处理 ipcEvent`))
-        })
-      })
-    }
-
-
+  async _bootstrap() {
     const dwebServer = await createHttpDwebServer(this, {});
     // this._close_dweb_server = close;
     /// 从本地文件夹中读取数据返回，
@@ -154,18 +97,15 @@ export class StatusbarNMM extends NativeMicroModule {
           return;
         }
 
-        let statusbarPluginRequestArry =
-          this._statusbarPluginsRequestMap.get(
+        let statusbarPluginsNoReleaseRequest =
+          this._statusbarPluginsNoReleaseRequestMap.get(
             appUrlFromStatusbarHtml
           ) as $StatusbarPluginsRequestQueueItem[];
-
-        console.log("statusbarPluginRequestArry", statusbarPluginRequestArry)
-        let itemIndex = 
-          statusbarPluginRequestArry.findIndex(
-            (_item) => _item.id === id
-          );
-        let item = statusbarPluginRequestArry[itemIndex];
-        statusbarPluginRequestArry.splice(itemIndex, 1);
+        let itemIndex = statusbarPluginsNoReleaseRequest.findIndex(
+          (_item) => _item.id === id
+        );
+        let item = statusbarPluginsNoReleaseRequest[itemIndex];
+        statusbarPluginsNoReleaseRequest.splice(itemIndex, 1);
         // 返回的就是一个 json
         const data = await readStream(request.body.raw as ReadableStream);
         item.callback(
@@ -181,6 +121,7 @@ export class StatusbarNMM extends NativeMicroModule {
         );
         // 返回 /operation_return 的请求
         ipc.postMessage(
+          // 如果这里不是发送一个 这个是否表示可以一直发送
           await IpcResponse.fromText(
             request.req_id,
             200,
@@ -191,6 +132,34 @@ export class StatusbarNMM extends NativeMicroModule {
             ipc
           )
         );
+      }
+
+      // todo 最好有一个时间限定防止超时过期
+      if (request.parsed_url.pathname === "/operation_from_html") {
+        const appUrlFromStatusbarHtml =
+          request.parsed_url.searchParams.get("app_url");
+        if (appUrlFromStatusbarHtml === null) {
+          ipc.postMessage(
+            await IpcResponse.fromText(
+              request.req_id,
+              400,
+              new IpcHeaders({
+                "Content-type": "text/plain",
+              }),
+              "确实少 app_url 查询参数",
+              ipc
+            )
+          );
+          return;
+        }
+
+        // 添加到队列中
+        this._statusbarHtmlRequestMap.set(appUrlFromStatusbarHtml, {
+          ipc: ipc,
+          request: request,
+          appUrl: appUrlFromStatusbarHtml,
+        });
+        this._sendToStatusbarHtml(appUrlFromStatusbarHtml);
       }
     });
 
@@ -271,74 +240,17 @@ export class StatusbarNMM extends NativeMicroModule {
       },
     });
 
-    // 监听设置状态栏
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/operation",
-      method: "GET",
-      matchMode: "full", // 是需要匹配整个pathname 还是 前缀匹配即可
-      input: {
-        app_url: "string",
-        red: "string", 
-        green: "string", 
-        blue: "string", 
-        alpha: "string"
-      },
-      output: "boolean",
-      handler: async (args, client_ipc, request) => {
-        const appUrlFromApp = request.parsed_url.searchParams.get("app_url");
-        if (appUrlFromApp === null) {
-          /**已经测试走过了 */
-          return IpcResponse.fromText(
-            request.req_id,
-            400,
-            new IpcHeaders({
-              "Content-type": "text/plain",
-            }),
-            "缺少 app_url 查询参数",
-            client_ipc
-          );
-        }
+    this.onConnect(ipc => {
+      // ipc.onMessage((ipcEvent, nativeIpc) => {
+      //   console.log(chalk.red('statusbar,main.cts 接受到了消息'),ipcEvent);
+      //   ipc.postMessage(IpcEvent.fromText('test from statusbar', "----"))
+      // })
 
-        let statusbarPluginRequest =
-          this._statusbarPluginsRequestMap.get(appUrlFromApp);
-        const id = `${this._allocId++}`
-        const result = await new Promise<IpcResponse>((resolve) => {
-          if (statusbarPluginRequest === undefined) {
-            statusbarPluginRequest = [];
-            this._statusbarPluginsRequestMap.set(
-              appUrlFromApp,
-              statusbarPluginRequest
-            );
-          }
-          statusbarPluginRequest.push({
-            body: request.body.raw as ReadableStream<Uint8Array>,
-            callback: (reponse: IpcResponse) => {
-              resolve(reponse);
-            },
-            req_id: request.req_id,
-            id: id,
-          });
-  
-          // 执行发送的函数
-          httpIpc
-          .postMessage(
-            IpcEvent
-              .fromText(
-                "http.sys.dweb", 
-                JSON.stringify({
-                  action: "operation",
-                  operationName: "setBackgroundColor",
-                  value: converRGBAToHexa(args.red, args.green, args.blue, args.alpha),
-                  from: args.app_url,
-                  id: id
-                })
-              )
-          )
-        });
-        return result;
-      },
+      ipc.onEvent((ipcEvent, nativeIpc) => {
+        console.log(chalk.red('statusbar,main.cts 接受到了消息'),ipcEvent);
+        ipc.postMessage(IpcEvent.fromText('test from statusbar', "----"))
+      })
     })
-    
   }
 
   private async _sendToStatusbarHtml(appUrl: string) {
@@ -439,17 +351,3 @@ export enum $StatusbarStyle {
 export type $isOverlays =
   | "0" // 不覆盖
   | "1"; // 覆盖
-
-
-// 把 RGB 颜色转为 16进制颜色
-function converRGBAToHexa(r:string, g:string, b:string, a:string){
-    let hexaR = parseInt(r).toString(16).toUpperCase()
-    let hexaG = parseInt(g).toString(16).toUpperCase()
-    let hexaB = parseInt(b).toString(16).toUpperCase()
-    let hexaA = parseInt(a).toString(16).toUpperCase()
-    hexaR = hexaR.length === 1 ? `0${hexaR}` : hexaR;
-    hexaG = hexaG.length === 1 ? `0${hexaG}` : hexaG;
-    hexaB = hexaB.length === 1 ? `0${hexaB}` : hexaB;
-    hexaA = hexaA.length === 1 ? `0${hexaA}` : hexaA;
-    return `#${hexaR}${hexaG}${hexaB}${hexaA}`
-}

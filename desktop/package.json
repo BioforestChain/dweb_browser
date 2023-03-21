@@ -40,12 +40,21 @@
         "dev:toy.worker": "npm run bundle:toy.worker -- --watch",
         "bundle:browser.worker": "node ./esbuild.browser.worker.js",
         "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
+        "bundle:btry.worker": "node ./esbuild.btry.worker.js",
+        "dev:btry.worker": "npm run bundle:btry.worker -- --watch",
         "bundle:multi-webview.html": "vite build src/sys/multi-webview/assets/ --outDir=../../../../bundle/multi-webview --emptyOutDir -c electron-vite.config.ts",
         "dev:multi-webview.html": "npm run bundle:multi-webview.html -- --minify=false --watch",
         "start:win": "chcp 65001 && electron .",
         "start": "clear && electron ./",
         "备注": "如果出现一些莫名的问题，请删除 dis 重新编译和 bundle 运行 pnpm dev",
-        "如果需要采用彩色的输出到终端": "FORCE_COLOR=true pnpm start"
+        "如果需要采用彩色的输出到终端": "FORCE_COLOR=true pnpm start",
+        "专门用来测试的": "",
+        "dev:test":"concurrently npm:dev:test:*",
+        "dev:test:tsc": "tsc -w --preserveWatchOutput",
+        "bundle:jmm.test.connect.worker": "esbuild ./src/user/jmm-test-connect/jmmtestconnect.worker.mts --outfile=./bundle/jmmtestconnect.worker.js --bundle --format=esm",
+        "dev:test:jm.test.connect.worker": "npm run bundle:jmm.test.connect.worker -- --watch",
+        "bundle:jmm.test.connect2.worker": "esbuild ./src/user/jmm-test-connect2/jmmtestconnect2.worker.mts --outfile=./bundle/jmmtestconnect2.worker.js --bundle --format=esm",
+        "dev:test:jm.test.connect2.worker": "npm run bundle:jmm.test.connect2.worker -- --watch"
     },
     "devDependencies": {
         "@types/lodash": "^4.14.191",

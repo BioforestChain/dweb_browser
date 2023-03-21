@@ -137,7 +137,7 @@ export class JsProcessNMM extends NativeMicroModule {
     console.log('[js-process _bootstrap]')
     const mainServer = await createHttpDwebServer(this, {});
     (await mainServer.listen()).onRequest(async (request, ipc) => {
-      console.log("[js-process mainServer onRequest ]request.parsed_url.pathname", request.parsed_url.pathname)
+      // console.log("[js-process mainServer onRequest ]request.parsed_url.pathname", request.parsed_url.pathname)
       // return;
       const pathname = request.parsed_url.pathname;
       if(pathname.endsWith('/bootstrap.js')){
@@ -184,7 +184,7 @@ export class JsProcessNMM extends NativeMicroModule {
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );
-      console.log( '[js-process. openNativeWindow]')
+      // console.log( '[js-process. openNativeWindow]')
       // 打开 devtools
       nww.webContents.openDevTools();
       this._after_shutdown_signal.listen(() => {
@@ -242,6 +242,7 @@ export class JsProcessNMM extends NativeMicroModule {
       },
       output: "number",
       handler: async (args, ipc) => {
+        console.log(`js-process.cts /create-ipc`)
         const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
         if (process_id_po === undefined) {
           throw new Error(

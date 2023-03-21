@@ -1,12 +1,14 @@
 import chalk from "chalk";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
-import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
+import { Ipc, IpcHeaders, IpcRequest, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { MicroModule } from "../../core/micro-module.cjs";
 import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.cjs";
 import type { $IpcSupportProtocols } from "../../helper/types.cjs";
 import { buildUrl } from "../../helper/urlHelper.cjs";
 import { Native2JsIpc } from "../js-process/ipc.native2js.cjs";
+import { IpcEvent } from "../../core/ipc/IpcEvent.cjs"
+ 
 import type { JmmMetadata } from "./JmmMetadata.cjs";
 
 /**
@@ -36,12 +38,19 @@ export class JsMicroModule extends MicroModule {
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private _process_id?: string;
+  /**
+   * 一个 jsMM 可能连接多个模块
+   */
+  private _remoteIpcs = new Map<string, Ipc>()
+  private _workerIpc: Native2JsIpc | undefined;
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
+    console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`)
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
-    this.onConnect((ipc) => {
+    this.onConnect((workerIpc, rease) => {
+      console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
       // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
       ipc.onRequest(async (request) => {
         // console.log('[micro-module.js.cts ipc onRequest]',JSON.stringify(request))
@@ -63,7 +72,7 @@ export class JsMicroModule extends MicroModule {
         );
       });
 
-      ipc.onMessage(async (request) => {
+      workerIpc.onMessage(async (request) => {
         // console.log('ipc.onMessage', request)
       });
 
@@ -75,9 +84,7 @@ export class JsMicroModule extends MicroModule {
 
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
-    // console.log("[micro-module.js.cts _bootstrap:]", this.mmid)
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
-    // console.log("[micro-module.js.cts 执行 onRequest:]", this.mmid)
     streamIpc.onRequest(async (request) => {
       console.log("-----------------------2", request.parsed_url);
       if (request.parsed_url.pathname.endsWith("/")) {
@@ -133,6 +140,7 @@ export class JsMicroModule extends MicroModule {
     });
 
     jsIpc.onEvent(async (ipcEvent) => {
+      console.log('接收到连接的请求')
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
         const [targetIpc] = await context.dns.connect(mmid);
@@ -151,16 +159,20 @@ export class JsMicroModule extends MicroModule {
     });
   }
   private _connecting_ipcs = new Set<Ipc>();
+  
   async _beConnect(from: MicroModule): Promise<Native2JsIpc> {
     const process_id = this._process_id;
     if (process_id === undefined) {
       throw new Error("process_id no found.");
     }
+    // console.log(chalk.red(`问题从这里开始 process_id === ${this._process_id}`))
     const port_id = await this.nativeFetch(
-      `file://js.sys.dweb/create-ipc?process_id=${process_id}`
+      `file://js.sys.dweb/create-ipc?process_id=${process_id}&mmid=${this.mmid}`
     ).number();
+   
     const outer_ipc = new Native2JsIpc(port_id, this);
     this._connecting_ipcs.add(outer_ipc);
+    this._workerIpc = outer_ipc /** 测试代码 */
     return outer_ipc;
   }
 

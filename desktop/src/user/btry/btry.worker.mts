@@ -1,64 +1,33 @@
 /// <reference path="../../sys/js-process/js-process.worker.d.ts"/>
-
-// import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
-// import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-// import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
-// import html from "../../../assets/html/browser.html"
-
-// import type { Ipc } from "../../core/ipc/ipc.cjs";
-// import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
-// import { streamReadAll } from "../../helper/readableStreamHelper.cjs";
-import { wwwServerOnRequest } from "./www-server-on-request.mjs"
-import { createApiServerOnRequest } from "./api-server-on-request.mjs"
+import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.cjs";
+ 
 import chalk from "chalk"
 
-import type { $OnIpcEventMessage } from "../../core/ipc/const.cjs"
-
- 
-
- 
-
 const main = async () => {
-  console.log('[browser.worker.mts exec]')
-  const { IpcEvent } = ipc;
-  const wwwServer = await http.createHttpDwebServer(jsProcess,{subdomain: "www", port: 443});
-  const apiServer = await http.createHttpDwebServer(jsProcess,{subdomain: "api", port: 443});
-  // console.log('url: ', wwwServer.startResult.urlInfo.internal_origin)
-  // http://www.browser.sys.dweb-443.localhost:22605/index.html?X-Dweb-Host=www.browser.sys.dweb%3A443#/toast)
-  ;(await wwwServer.listen()).onRequest(wwwServerOnRequest)
-  ;(await apiServer.listen()).onRequest(await createApiServerOnRequest(wwwServer.startResult.urlInfo.internal_origin))
-
-  // 打开 browser.sys.dweb 配套的html 页面
-  // 验证 JSMM 之间通信 实现消息推送 不需要打开匹配的html
-  {
-    const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-      url.pathname = "/index.html";
-    }).href
-    console.log("cot#open interUrl=>", interUrl)
-    const view_id = await jsProcess
-      .nativeFetch(
-        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
-      )
-      .text();
-  }
-
+  console.log('[btry.worker.mts]')
+  const { IpcEvent } = ipc
    
   // 等待他人的连接
+  // ipcEvent 是属于推送消息
   {
     jsProcess.onConnect((ipc) => {
-      console.log('browser.worker.mts onConnect')
+      console.log('btry.worker.mts onConnect')
       ipc.onEvent((event, ipc) => {
-        console.log("got event:", ipc.remote.mmid, event.name, event.text);
+        console.log("btrygot event:", ipc.remote.mmid, event.name, event.text);
+        console.error('发送消息有问题？？双向通信接受方出问题了')
         setTimeout(() => {
           ipc.postMessage(IpcEvent.fromText(event.name, "echo:" + event.text));
         }, 500);
       });
 
-      ipc.onMessage(() => {
+      ipc.onMessage((event, ipc) => {
+        if(event.type === IPC_MESSAGE_TYPE.EVENT) return;
         console.error('ipc onmessage')
       })
     });
   }
+
+  // 安装 
 }
 
 main();

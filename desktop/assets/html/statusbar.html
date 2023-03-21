@@ -200,6 +200,7 @@
 
         // 设置背景色
         function setBackgroundColor(color /*十六进制的值*/){
+            console.log('设置了背景颜色', color)
             document.documentElement.style.setProperty('--background-color', color)
         }
 
@@ -228,33 +229,42 @@
             监听操作的方法
         */
         async function awaitOperation(){
-          
-            fetch("http://statusbar.sys.dweb-80.localhost:22605/operation_from_html?app_url="+appUrl)
+            fetch("http://statusbar.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+appUrl)
             .then(async (res) => {
-                awaitOperation()
-                const id = res.headers.get('id')
-                const value = await res.json()
-                switch(value.action){
-                    case "set_background_color":  setBackgroundColor(value.value);fetchReturn(value.value, id);break;
-                    case "set_style": setStyle(value.value);fetchReturn(value.value, id); break;
-                    case "get_style": fetchReturn(style, id); break;
-                    case "get_height": fetchReturn(getHeight(), id);break;
-                    case "set_overlays": setOverlays(value.value);fetchReturn(value.value, id); break;
-                    case "get_overlays": fetchReturn(isOverlays ? "1" : "0", id);break;
-                    default: fetchReturn(new Error('没有匹配功能'));
-                }
+                console.log('res: ', res)
+                const reader = res.body.getReader()
+                let loop = true;
+                do{
+                    const {value, done} = await reader.read()
+                    loop = !done
+                    if(!value) continue;
+                    const o = JSON.parse(new TextDecoder().decode(value))
+                    console.log('o: ', o)
+                    console.log("appUrl.startsWith(o.from): ", appUrl.startsWith(o.from))
+                    if(!appUrl.startsWith(o.from)) continue;
+                    switch(o.operationName){
+                        case "setBackgroundColor":  setBackgroundColor(o.value);fetchReturn(o.value, o.id, o.from);break;
+                        case "set_style": setStyle(o.value);fetchReturn(o.value, o.id, o.from); break;
+                        case "get_style": fetchReturn(style, o.id, o.from); break;
+                        case "get_height": fetchReturn(getHeight(), o.id, o.from);break;
+                        case "set_overlays": setOverlays(o.value);fetchReturn(o.value, o.id, o.from); break;
+                        case "get_overlays": fetchReturn(isOverlays ? "1" : "0", o.id, o.from);break;
+                        default: console.error('statusbar 没有匹配的功能 o.operationName === ', o.operationName)
+                    }
+                }while(loop)
             })
             .catch(err => {
                 console.error('statusbar err： ', err)
             })
         }
+
         awaitOperation()
 
 
         // 通过发送请求把数据传送回去
-        function fetchReturn(value,id){
+        function fetchReturn(value,id, from){
             fetch(
-                "http://statusbar.sys.dweb-80.localhost:22605/operation_return?app_url="+appUrl,
+                "http://statusbar.sys.dweb-80.localhost:22605/operation_return?app_url="+from,
                 {
                     method: 'POST',
                     body: JSON.stringify({ value: value}),
@@ -265,9 +275,6 @@
                      
                 }
             )
-            // .then(res =>{
-            //     console.log('statusbar.html 返回的数据成功', res)
-            // })
             .catch(err => console.error("fetchReturn 出错", err))
         }
       
@@ -301,6 +308,8 @@
                 index = index > 3 ? 0 : index;
             },1000)
         }
+        console.warn('执行了测试代码设置背景色是 hongse')
+        setBackgroundColor("#FF0000FF");
         // testBackgroundColor()
 
     </script>

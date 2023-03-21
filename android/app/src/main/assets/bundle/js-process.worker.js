@@ -5035,11 +5035,13 @@ __decorateClass([
 ], IpcEvent.prototype, "jsonAble", 1);
 
 // src/core/ipc-web/$messageToIpcMessage.cts
+var import_chalk2 = __toESM(require_source());
 var isIpcSignalMessage = (msg) => msg === "close" || msg === "ping" || msg === "pong";
 var $messageToIpcMessage = (data, ipc) => {
   if (isIpcSignalMessage(data)) {
     return data;
   }
+  data = Object.prototype.toString.call(data).slice(8, -1) === "String" ? JSON.parse(data) : data;
   let message;
   if (data.type === 0 /* REQUEST */) {
     message = new IpcRequest(
@@ -5072,8 +5074,9 @@ var $messageToIpcMessage = (data, ipc) => {
 
 // src/core/ipc-web/$jsonToIpcMessage.cts
 var $jsonToIpcMessage = (data, ipc) => {
+  const _data = Object.prototype.toString.call(data).slice(8, -1) === "Object" ? data : JSON.parse(data);
   return $messageToIpcMessage(
-    isIpcSignalMessage(data) ? data : JSON.parse(data),
+    isIpcSignalMessage(data) ? data : _data,
     ipc
   );
 };
@@ -5103,7 +5106,7 @@ var MessagePortIpc = class extends Ipc {
     port.addEventListener("message", (event) => {
       const message = this.support_raw ? $messageToIpcMessage(event.data, this) : this.support_message_pack ? $messagePackToIpcMessage(event.data, this) : $jsonToIpcMessage(event.data, this);
       if (message === void 0) {
-        console.error("unkonwn message", event.data);
+        console.error("MessagePortIpc.cts unkonwn message", event.data);
         return;
       }
       if (message === "pong") {
@@ -5506,6 +5509,7 @@ var JsProcessMicroModule = class {
     this._ipcConnectsMap = /* @__PURE__ */ new Map();
     this._connectSignal = createSignal(false);
     const _beConnect = async (event) => {
+      console.log(`js-process.worker.mts _beConnect `, event.data);
       const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
@@ -5564,16 +5568,21 @@ var JsProcessMicroModule = class {
       this.fetchIpc.postMessage(
         IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
       );
+      this.fetchIpc.onMessage((message, messagePortIpc) => {
+        ipc_po.resolve(messagePortIpc);
+      });
       return ipc_po;
     }).promise;
   }
   beConnect(ipc) {
+    console.log("---js-process.worker.mts beConnect");
     ipc.onClose(() => {
       this._ipcConnectsMap.delete(ipc.remote.mmid);
     });
     this._connectSignal.emit(ipc);
   }
   onConnect(cb) {
+    console.log("js-process.worker.mts onConnect cb");
     return this._connectSignal.listen(cb);
   }
 };

@@ -85,6 +85,7 @@ export class JsProcessMicroModule implements $MicroModule {
 
   constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
     const _beConnect = async (event: MessageEvent) => {
+      console.log(`js-process.worker.mts _beConnect `, event.data)
       const data = event.data as any[];
       if (Array.isArray(event.data) === false) {
         return;
@@ -159,18 +160,25 @@ export class JsProcessMicroModule implements $MicroModule {
       this.fetchIpc.postMessage(
         IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
       );
+
+      // 这个接口接受到到指令
+      this.fetchIpc.onMessage((message, messagePortIpc) => {
+        ipc_po.resolve(messagePortIpc)
+      })
       return ipc_po;
     }).promise;
   }
 
   private _connectSignal = createSignal<$Callback<[Ipc]>>(false);
   beConnect(ipc: Ipc) {
+    console.log('---js-process.worker.mts beConnect')
     ipc.onClose(() => {
       this._ipcConnectsMap.delete(ipc.remote.mmid);
     });
     this._connectSignal.emit(ipc);
   }
   onConnect(cb: $Callback<[Ipc]>) {
+    console.log('js-process.worker.mts onConnect cb')
     return this._connectSignal.listen(cb);
   }
 }
