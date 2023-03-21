@@ -63,7 +63,7 @@ class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
             "/stop" bind Method.GET to defineHandler { request ->
                 stop()
                 return@defineHandler true
-            },
+            }
         )
     }
 

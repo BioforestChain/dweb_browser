@@ -17,6 +17,17 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   constructor() {
     super();
   }
+
+  /**
+   * 返回扫码页面DOM
+   * 根据这个DOM 用户可以自定义样式
+   * @returns HTMLElement
+   */
+  @cacheGetter()
+  get getView() {
+    return this._video?.parentElement
+  }
+
   @cacheGetter()
   get process() {
     return this.plugin.process
@@ -34,6 +45,11 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   @cacheGetter()
   get getTorchState() {
     return torchPlugin.getTorchState
+  }
+
+  @cacheGetter()
+  get getPhoto() {
+    return this.plugin.getPhoto
   }
 
   /**
@@ -55,18 +71,17 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     await this._startVideo();
     return await this.taskPhoto(rotation, formats);
   }
+  /**
+   * 停止扫码
+   */
   stopScanning() {
     this._activity = false
     this.stopCamera("user stop")
   }
 
 
-  /**
-   * 停止扫码
-   * @param error
-   */
   // deno-lint-ignore no-explicit-any
-  stopCamera(error: any) {
+  private stopCamera(error: any) {
     console.error(error);
     this._stop();
   }

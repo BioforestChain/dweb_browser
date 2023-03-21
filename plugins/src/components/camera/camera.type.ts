@@ -32,7 +32,7 @@ export interface ImageOptions {
    *
    * @since 1.0.0
    */
-  resultType: CameraResultType;
+  resultType?: CameraResultType;
   /**
    * Whether to save the photo to the gallery.
    * If the photo was picked from the gallery, it will only be saved if edited.

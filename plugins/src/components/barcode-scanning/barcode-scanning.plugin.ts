@@ -1,5 +1,7 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
+import { cameraPlugin } from "../camera/camera.plugin.ts";
+import type { ImageOptions } from "../camera/camera.type.ts";
 import {
   SupportedFormat,
 } from "./barcode-scanning.type.ts";
@@ -37,6 +39,14 @@ export class BarcodeScannerPlugin extends BasePlugin {
   @bindThis
   async stop() {
     return await this.fetchApi(`/stop`)
+  }
+
+  /**
+   * 打开相册
+   */
+  @bindThis
+  getPhoto(options: ImageOptions = {}) {
+    return cameraPlugin.getPhoto(options);
   }
 
 }

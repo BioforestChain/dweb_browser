@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import { barcodeScannerPlugin, HTMLDwebBarcodeScanningElement } from '@bfex/plugin';
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import { CameraSource } from "@bfex/plugin/types/components/camera/camera.type";
 
 const title = "Scanner";
 
@@ -17,25 +18,30 @@ onMounted(() => {
   barcodeScanner = $barcodeScannerPlugin.value!;
 });
 
+const result = ref()
 
 const onFileChanged = defineLogAction(async ($event: Event) => {
   const target = $event.target as HTMLInputElement;
   if (target && target.files?.[0]) {
     const img = target.files[0]
     console.info("photo ==> ", img.name, img.type, img.size)
-    const result = await scanner.process(img).then(res => res.text())
-    console.info("photo process", result)
+    result.value = await scanner.process(img).then(res => res.text())
   }
-}, { name: "process", args: [], logPanel: $logPanel })
+}, { name: "process", args: [result], logPanel: $logPanel })
 
 const onStop = defineLogAction(async () => {
   await scanner.stop()
 }, { name: "onStop", args: [], logPanel: $logPanel })
 
 const taskPhoto = defineLogAction(async () => {
-  const result = await barcodeScanner.startScanning()
-  console.info("taskPhoto:", result)
-}, { name: "taskPhoto", args: [], logPanel: $logPanel })
+  result.value = await barcodeScanner.startScanning()
+}, { name: "taskPhoto", args: [result], logPanel: $logPanel })
+
+const cameraSource = ref<CameraSource>("PHOTOS" as never)
+
+const getPhoto = defineLogAction(async () => {
+  result.value = await barcodeScanner.getPhoto({ source: cameraSource.value })
+}, { name: "getPhoto", args: [result], logPanel: $logPanel })
 
 </script>
 
@@ -52,6 +58,18 @@ const taskPhoto = defineLogAction(async () => {
       </FieldLabel>
       <button class="inline-block rounded-full btn btn-accent" @click="taskPhoto">scanner</button>
       <button class="inline-block rounded-full btn btn-accent" @click="onStop">stop</button>
+    </article>
+
+    <article class="card-body">
+      <h2 class="card-title">get Photo</h2>
+      <select class="w-full max-w-xs select" v-model="cameraSource">
+        <option value="PROMPT">PROMPT</option>
+        <option value="CAMERA">CAMERA</option>
+        <option value="PHOTOS">PHOTOS</option>
+      </select>
+      <div class="justify-end card-actions">
+        <button class="inline-block rounded-full btn btn-accent" @click="getPhoto">getPhoto</button>
+      </div>
     </article>
   </div>
 

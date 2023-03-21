@@ -1,11 +1,26 @@
-// import { ImageCapture } from "../../../deps.ts";
+import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-// import { CameraDirection } from "./camera.type.ts";
+import type { ImageOptions } from "./camera.type.ts";
 
 export class CameraPlugin extends BasePlugin {
-  tagName = "camera.sys.dweb";
+  tagName = "dweb-camera";
 
-  // getPhoto(options: ImageOptions): Promise<Photo> {
-
-  // }
+  constructor() {
+    super("camera.sys.dweb")
+  }
+  /**
+  * 打开相册
+  */
+  @bindThis
+  async getPhoto(options: ImageOptions) {
+    return await this.fetchApi("/getPhoto", {
+      search: {
+        resultType: options.resultType,
+        source: options.source,
+        quality: options.quality
+      }
+    }).binary()
+  }
 }
+
+export const cameraPlugin = new CameraPlugin()

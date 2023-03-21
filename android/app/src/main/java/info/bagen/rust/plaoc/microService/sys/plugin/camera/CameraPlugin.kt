@@ -14,7 +14,8 @@ import androidx.activity.result.ActivityResult
 import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.sys.plugin.device.Device
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*
@@ -23,15 +24,17 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 
-class CameraPlugin {
+class CameraPlugin(val mmid: Mmid) {
     // Permission alias constants
     val CAMERA = "camera"
     val PHOTOS = "photos"
 
-    private val ProcessCameraImage: Int = 91
-    private val ProcessPickedImage: Int = 92
-    private val ProcessPickedImages: Int = 93
-    private val ProcessEditedImage: Int = 94
+    companion object {
+         const val REQUEST_CAMERA_IMAGE: Int = 91
+         const val REQUEST_IMAGE_CAPTURE: Int = 92
+         const val REQUEST_IMAGES_CAPTURE: Int = 93
+         const val REQUEST_EDITED_IMAGE: Int = 94
+    }
 
     // Message constants
     private val INVALID_RESULT_TYPE_ERROR = "Invalid resultType option"
@@ -119,9 +122,9 @@ class CameraPlugin {
                     onCallback?.let { it("User cancelled photos app") }
                 }
             })
-//        App.dwebViewActivity?.let { activity ->
-//            fragment.show(activity.supportFragmentManager, "capacitorModalsActionSheet")
-//        }
+        getCurrentWebViewController(mmid)?.let { it ->
+            fragment.show(it.activity!!.supportFragmentManager, "capacitorModalsActionSheet")
+        }
     }
 
     private fun showCamera(onCallback: ((String) -> Unit)?) {
@@ -188,21 +191,21 @@ class CameraPlugin {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (takePictureIntent.resolveActivity(App.appContext.packageManager) != null) {
                 // If we will be saving the photo, send the target file along
-                try {
-                    val appId: String = Device.getId() //getAppId()
-                    val photoFile: File = CameraUtils.createImageFile()
-                    imageFileSavePath = photoFile.absolutePath
-                    // TODO: Verify provider config exists
-                    imageFileUri =
-                        FileProvider.getUriForFile(App.appContext, "$appId.fileprovider", photoFile)
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri)
-                } catch (ex: Throwable) {
-                    onCallback?.let { it("$IMAGE_FILE_SAVE_ERROR -- $ex") }
-                    return
-                }
-//                App.dwebViewActivity?.let { activity ->
-//                    startActivityForResult(activity, takePictureIntent, ProcessCameraImage, null)
+//                try {
+//                    val appId: String = Device.getId() //getAppId()
+//                    val photoFile: File = CameraUtils.createImageFile()
+//                    imageFileSavePath = photoFile.absolutePath
+//                    // TODO: Verify provider config exists
+//                    imageFileUri =
+//                        FileProvider.getUriForFile(App.appContext, "$appId.fileprovider", photoFile)
+//                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri)
+//                } catch (ex: Throwable) {
+//                    onCallback?.let { it("$IMAGE_FILE_SAVE_ERROR -- $ex") }
+//                    return
 //                }
+                getCurrentWebViewController(mmid)?.let { it ->
+                    startActivityForResult(it.activity!!, takePictureIntent, REQUEST_CAMERA_IMAGE, null)
+                }
             } else {
                 onCallback?.let { it(NO_CAMERA_ACTIVITY_ERROR) }
             }
@@ -224,13 +227,13 @@ class CameraPlugin {
                 val requestCode = if (multiple) {
                     intent.putExtra("multi-pick", true)
                     intent.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*"))
-                    ProcessPickedImages
+                    REQUEST_IMAGES_CAPTURE
                 } else {
-                    ProcessPickedImage
+                    REQUEST_IMAGE_CAPTURE
                 }
-//                App.dwebViewActivity?.let { activity ->
-//                    startActivityForResult(activity, intent, requestCode, null)
-//                }
+                getCurrentWebViewController(mmid)?.let { it ->
+                    startActivityForResult(it.activity!!, intent, requestCode, null)
+                }
             } catch (ex: ActivityNotFoundException) {
                 onCallback?.let { it(NO_PHOTO_ACTIVITY_ERROR) }
             }
@@ -314,7 +317,7 @@ class CameraPlugin {
                     }
                 }
                 ret.put("photos", photos)
-                //call.resolve(ret)
+//                call.resolve(ret)
             }
         } ?: {
             onCallback?.let { it("No images picked") }
@@ -678,13 +681,14 @@ class CameraPlugin {
         try {
             val tempImage = getTempImage(uri, bitmapOutputStream)
             val editIntent = createEditIntent(tempImage)
-//            App.dwebViewActivity?.let { activity ->
-//                if (editIntent != null) {
-//                    startActivityForResult(activity, editIntent, ProcessEditedImage, null)
-//                } else {
-//                    onCallback?.let { it(IMAGE_EDIT_ERROR) }
-//                }
-//            }
+
+            getCurrentWebViewController(mmid)?.let { it ->
+                if (editIntent != null) {
+                    startActivityForResult(it.activity!!, editIntent, REQUEST_EDITED_IMAGE, null)
+                } else {
+                    onCallback?.let { it(IMAGE_EDIT_ERROR) }
+                }
+            }
 
         } catch (ex: Throwable) {
             onCallback?.let { it("$IMAGE_EDIT_ERROR -- $ex") }
