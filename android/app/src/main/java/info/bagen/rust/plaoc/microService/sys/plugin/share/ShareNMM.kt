@@ -9,10 +9,11 @@ import android.os.Build
 import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.core.content.FileProvider
-import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
+import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -48,10 +49,10 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
         }
         apiRouting = routes(
             /** 分享*/
-            "/share" bind Method.GET to defineHandler { request ->
+            "/share" bind Method.GET to defineHandler { request,ipc ->
                 debugShare("ShareNMM#apiRouting","share===>$mmid  ${request.uri.path} ")
                 val ext = shareOption(request)
-                share(ext.title, ext.text, ext.url, ext.files, ext.dialogTitle) {
+                share(ipc.remote.mmid,ext.title, ext.text, ext.url, ext.files, ext.dialogTitle) {
                     Response(Status.OK).body(it)
                 }
                 Response(Status.INTERNAL_SERVER_ERROR)
@@ -69,6 +70,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
      * @param dialogTitle Set a title for the share modal. This option is only supported on Android.
      */
     fun share(
+        mmid:Mmid,
         title: String? = null,
         text: String? = null,
         url: String? = null,
@@ -112,7 +114,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
 
             if (files != null && files.isNotEmpty()) {
-                shareFiles(files, this, onErrorCallback)
+                shareFiles(mmid,files, this, onErrorCallback)
             }
         }
 
@@ -121,16 +123,16 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             flags = flags or PendingIntent.FLAG_MUTABLE
         }
         val pi = PendingIntent.getBroadcast(
-            App.appContext, 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
+            getCurrentWebViewController(mmid)?.activity, 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
         )
         val chooserIntent = Intent.createChooser(intent, dialogTitle, pi.intentSender).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
         }
-        App.appContext.startActivity(chooserIntent)
+        getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
     }
 
     private fun shareFiles(
-        files: List<String>, intent: Intent, onErrorCallback: (String) -> Unit
+        mmid: Mmid,files: List<String>, intent: Intent, onErrorCallback: (String) -> Unit
     ) {
         val arrayListFiles = arrayListOf<Uri>()
         try {
@@ -143,12 +145,14 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
                             type = "*/*"
                         }
                         intent.type = type
-                        val fileUrl = FileProvider.getUriForFile(
-                            App.appContext,
-                            "${App.appContext.packageName}.fileprovider",
-                            File(Uri.parse(file).path)
-                        )
-                        arrayListFiles.add(fileUrl)
+                        val fileUrl = getCurrentWebViewController(mmid)?.activity?.let {
+                            FileProvider.getUriForFile(
+                                it,
+                                "${getCurrentWebViewController(mmid)?.activity?.packageName}.fileprovider",
+                                File(Uri.parse(file).path)
+                            )
+                        }
+                        arrayListFiles.add(fileUrl!!)
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && filesList.size == 1) {
                             intent.setDataAndType(fileUrl, type)
@@ -190,7 +194,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
      * 分享文本
      */
     private fun shareText(
-        packageName: String?, className: String?, content: String?, title: String?, subject: String?
+        packageName: String?, className: String?, content: String?, title: String?, subject: String?,mmid: Mmid
     ) {
         val intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -208,14 +212,14 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             subject?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
         }
         val chooserIntent = Intent.createChooser(intent, "分享到：")
-        App.appContext.startActivity(chooserIntent)
+        getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
     }
 
     /**
      * 分享网页
      */
     private fun shareUrl(
-        packageName: String?, className: String?, content: String?, title: String?, subject: String?
+        packageName: String?, className: String?, content: String?, title: String?, subject: String?,mmid: Mmid
     ) {
         val intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -233,13 +237,13 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             subject?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
         }
         val chooserIntent = Intent.createChooser(intent, "分享到：")
-        App.appContext.startActivity(chooserIntent)
+        getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
     }
 
     /**
      * 分享图片
      */
-    private fun shareImg(packageName: String?, className: String?, file: File) {
+    private fun shareImg(packageName: String?, className: String?, file: File,mmid: Mmid) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
             val intent = Intent().apply {
@@ -253,16 +257,16 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
                 putExtra(Intent.EXTRA_STREAM, uri)
             }
             val chooserIntent = Intent.createChooser(intent, "分享到:")
-            App.appContext.startActivity(chooserIntent)
+            getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
         } else {
-            Toast.makeText(App.appContext, "文件不存在", Toast.LENGTH_SHORT).show()
+            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "文件不存在", Toast.LENGTH_SHORT).show()
         }
     }
 
     /**
      * 分享音乐
      */
-    private fun shareAudio(packageName: String?, className: String?, file: File) {
+    private fun shareAudio(packageName: String?, className: String?, file: File,mmid: Mmid) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
             val intent = Intent().apply {
@@ -276,20 +280,20 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
                 putExtra(Intent.EXTRA_STREAM, uri)
             }
             val chooserIntent = Intent.createChooser(intent, "分享到:")
-            App.appContext.startActivity(chooserIntent)
+            getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
         } else {
-            Toast.makeText(App.appContext, "文件不存在", Toast.LENGTH_SHORT).show()
+            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "文件不存在", Toast.LENGTH_SHORT).show()
         }
     }
 
     /**
      * 分享视频
      */
-    private fun shareVideo(packageName: String?, className: String?, file: File) {
-        setIntent("video/*", packageName, className, file)
+    private fun shareVideo(packageName: String?, className: String?, file: File,mmid: Mmid) {
+        setIntent("video/*", packageName, className, file,mmid)
     }
 
-    private fun setIntent(type: String?, packageName: String?, className: String?, file: File) {
+    private fun setIntent(type: String?, packageName: String?, className: String?, file: File,mmid: Mmid) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
             val intent = Intent()
@@ -302,9 +306,9 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             }
             intent.putExtra(Intent.EXTRA_STREAM, uri)
             val chooserIntent = Intent.createChooser(intent, "分享到:")
-            App.appContext.startActivity(chooserIntent)
+            getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
         } else {
-            Toast.makeText(App.appContext, "文件不存在", Toast.LENGTH_SHORT).show()
+            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "文件不存在", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -316,7 +320,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
      * @param file 图片文件
      */
     private fun shareImgToWXCircle(
-        title: String?, packageName: String?, className: String?, file: File
+        title: String?, packageName: String?, className: String?, file: File,mmid: Mmid
     ) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
@@ -327,9 +331,9 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             intent.type = "image/*"
             intent.putExtra(Intent.EXTRA_STREAM, uri)
             intent.putExtra("Kdescription", title)
-            App.appContext.startActivity(intent)
+            getCurrentWebViewController(mmid)?.activity?.startActivity(intent)
         } else {
-            Toast.makeText(App.appContext, "文件不存在", Toast.LENGTH_SHORT).show()
+            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "文件不存在", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -337,13 +341,13 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
      * 是否安装分享app
      * @param packageName
      */
-    private fun checkInstall(packageName: String): Boolean {
+    private fun checkInstall(packageName: String,mmid: Mmid): Boolean {
         return try {
-            App.appContext.packageManager.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
+            getCurrentWebViewController(mmid)?.activity?.packageManager?.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
             true
         } catch (e: PackageManager.NameNotFoundException) {
             e.printStackTrace()
-            Toast.makeText(App.appContext, "请先安装应用app", Toast.LENGTH_SHORT).show()
+            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "请先安装应用app", Toast.LENGTH_SHORT).show()
             false
         }
     }
@@ -351,12 +355,12 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
     /**
      * 跳转官方安装网址
      */
-    private fun toInstallWebView(url: String?) {
+    private fun toInstallWebView(url: String?,mmid: Mmid) {
         val intent = Intent().apply {
             action = Intent.ACTION_VIEW
             data = Uri.parse(url)
         }
-        App.appContext.startActivity(intent)
+        getCurrentWebViewController(mmid)?.activity?.startActivity(intent)
     }
 
     private fun stringCheck(str: String?): Boolean {
