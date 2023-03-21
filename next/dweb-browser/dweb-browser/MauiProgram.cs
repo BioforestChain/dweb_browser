@@ -11,15 +11,27 @@ public static class MauiProgram
 	public static MauiApp CreateMauiApp()
 	{
 		Console.WriteLine("Maui Start");
-		//var json = new IpcReqMessage().ToJson();
-		var json = new IpcReqMessage(
-			req_id : 0,
-			method: IpcMethod.Get,
-			url: "https://www.baidu.com",
-			headers: new Dictionary<string, string> { { "content-type", "application/json" }, { "encoding", "utf-8" } }
-		).ToJson();
+        //var json = new IpcReqMessage(
+        //	req_id : 0,
+        //	method: IpcMethod.Get,
+        //	url: "https://www.baidu.com",
+        //	headers: new Dictionary<string, string> { { "content-type", "application/json" }, { "encoding", "utf-8" } }
+        //).ToJson();
+        //      Console.WriteLine(json);
+        //Console.WriteLine(IpcReqMessage.FromJson(json));
+        //var json = IpcHeaders.With(
+        //	new Dictionary<string, string> { { "content-type", "application/json" }, { "encoding", "utf-8" } }
+        //).ToJson();
+        //      Console.WriteLine(json);
+        //Console.WriteLine(IpcHeaders.FromJson(json));
+
+        var json = new IpcResMessage(
+            req_id: 0,
+            statusCode: 404,
+            headers: new Dictionary<string, string> { { "content-type", "application/json" }, { "encoding", "utf-8" } }
+        ).ToJson();
         Console.WriteLine(json);
-		Console.WriteLine(IpcReqMessage.FromJson(json));
+        Console.WriteLine(IpcResMessage.FromJson(json));
         var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
