@@ -2,6 +2,7 @@ import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { cros, onApiRequest } from "./cotDemo.request.mjs";
 
 const main = async () => {
+  const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut<string>();
   const tryOpenView = async () => {
     const url = await mainUrl.promise;
@@ -20,7 +21,8 @@ const main = async () => {
       console.log("ookkkk", event);
       if (event.name === "activity") {
         hasActivity = true;
-        tryOpenView();
+        await tryOpenView();
+        ipc.postMessage(IpcEvent.fromText("ready", ""));
       }
     });
   });
