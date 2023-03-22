@@ -105,50 +105,48 @@ class ReadableStream(
 
     val isClosed get() = closePo.isFinished
 
+    val canReadSize get() = _data.size - ptr
 
     /**
      * 读取数据，在尽可能满足下标读取的情况下
      */
     private fun requestData(requestSize: Int, waitFull: Boolean): ByteArray {
-        val ownSize = { _data.size - ptr }
         var requestSize = if (waitFull) requestSize else 1
         // 如果下标满足条件，直接返回
-        if (ownSize() >= requestSize) {
+        if (canReadSize >= requestSize) {
             return _data
         }
 
-        runBlockingCatching {
-            readDataScope.async {
-                val wait = PromiseOut<Unit>()
-                val counterJob = launch {
-                    dataChangeObserver.observe { count ->
-                        when {
-                            count == -1 -> {
-                                debugStream("REQUEST-DATA/END/$uid", "${ownSize()}/$requestSize")
-                                wait.resolve(Unit) // 不需要抛出错误
-                            }
-                            ownSize() >= requestSize -> {
-                                debugStream(
-                                    "REQUEST-DATA/CHANGED/$uid", "${ownSize()}/$requestSize"
-                                )
-                                wait.resolve(Unit)
-                            }
-                            else -> {
-                                debugStream(
-                                    "REQUEST-DATA/WAITING-&-PULL/$uid", "${ownSize()}/$requestSize"
-                                )
-                                writeDataScope.launch {
-                                    val desiredSize = requestSize - ownSize()
-                                    onPull(Pair(desiredSize, controller))
-                                }
+        runBlockingCatching(readDataScope.coroutineContext) {// (readDataScope.coroutineContext)
+            val wait = PromiseOut<Unit>()
+            val counterJob = launch {
+                dataChangeObserver.observe { count ->
+                    when {
+                        count == -1 -> {
+                            debugStream("REQUEST-DATA/END/$uid", "${canReadSize}/$requestSize")
+                            wait.resolve(Unit) // 不需要抛出错误
+                        }
+                        canReadSize >= requestSize -> {
+                            debugStream(
+                                "REQUEST-DATA/CHANGED/$uid", "${canReadSize}/$requestSize"
+                            )
+                            wait.resolve(Unit)
+                        }
+                        else -> {
+                            debugStream(
+                                "REQUEST-DATA/WAITING-&-PULL/$uid", "${canReadSize}/$requestSize"
+                            )
+                            writeDataScope.launch {
+                                val desiredSize = requestSize - canReadSize
+                                onPull(Pair(desiredSize, controller))
                             }
                         }
                     }
                 }
-                wait.waitPromise()
-                counterJob.cancel()
-                debugStream("REQUEST-DATA/DONE/$uid", _data.size)
-            }.join()
+            }
+            wait.waitPromise()
+            counterJob.cancel()
+            debugStream("REQUEST-DATA/DONE/$uid", _data.size)
         }.getOrNull()
 
         return _data

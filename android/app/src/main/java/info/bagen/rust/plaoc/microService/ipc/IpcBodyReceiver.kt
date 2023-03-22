@@ -4,6 +4,7 @@ import info.bagen.rust.plaoc.microService.helper.SIGNAL_CTOR
 import info.bagen.rust.plaoc.microService.helper.fromBase64
 import info.bagen.rust.plaoc.microService.helper.fromUtf8
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 /**
@@ -70,8 +71,11 @@ class IpcBodyReceiver(
         fun metaToStream(metaBody: MetaBody, ipc: Ipc): InputStream {
             /// metaToStream
             val stream_id = metaBody.streamId!!;
+            /**
+             * 默认是暂停状态
+             */
+            val paused = AtomicBoolean(true);
             val stream = ReadableStream(cid = "receiver-${stream_id}", onStart = { controller ->
-
                 /// 如果有初始帧，直接存起来
                 when (metaBody.type.encoding) {
                     IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).fromUtf8()
@@ -95,11 +99,13 @@ class IpcBodyReceiver(
                     } else {
                     }
                 }
-            }, onPull = { (desiredSize, controller) ->
+            }, onPull = { (_, controller) ->
                 debugIpcBody(
                     "receiver/postPullMessage/$ipc/${controller.stream}", stream_id
                 )
-                ipc.postMessage(IpcStreamPull(stream_id, 1))
+                if (paused.getAndSet(false)) {
+                    ipc.postMessage(IpcStreamPulling(stream_id))
+                }
             });
 
             debugIpcBody("receiver/$ipc/$stream", "start by stream-id:${stream_id}")

@@ -4,8 +4,7 @@ import type { MetaBody } from "./MetaBody.cjs";
 
 import { simpleEncoder } from "../../helper/encoding.cjs";
 import { IPC_DATA_ENCODING, IPC_MESSAGE_TYPE } from "./const.cjs";
-import { IpcStreamPull } from "./IpcStreamPull.cjs";
-import { PromiseOut } from '../../helper/PromiseOut.cjs';
+import { IpcStreamPulling } from "./IpcStreamPulling.cjs";
 
 export class IpcBodyReceiver extends IpcBody {
   private static metaIdIpcMap = new Map<string, Ipc>();
@@ -50,13 +49,31 @@ export class IpcBodyReceiver extends IpcBody {
   }
   protected _bodyHub: BodyHub;
 }
+/**
+ * 读取者的状态
+ */
+const enum RECEIVER_STATE {
+  /**
+   * 数据持续拉取中
+   */
+  PULLING,
+  /**
+   * 数据暂停拉取
+   */
+  PAUSED,
+}
+
 const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
   if (ipc == null) {
     throw new Error(`miss ipc when ipc-response has stream-body`);
   }
   const stream_ipc = ipc;
   const stream_id = metaBody.streamId!;
-  let pulling: undefined | PromiseOut<void>
+
+  /**
+   * 默认是暂停状态
+   */
+  let paused = true;
   const stream = new ReadableStream<Uint8Array>(
     {
       start(controller) {
@@ -78,27 +95,27 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         }
 
         /// 监听事件
-        const off = ipc.onMessage((message) => {
-          if ("stream_id" in message && message.stream_id === stream_id) {
-            if (pulling !== undefined) {
-              pulling.resolve()
-              pulling = undefined
-            }
-            if (message.type === IPC_MESSAGE_TYPE.STREAM_DATA) {
-              controller.enqueue(message.binary);
-            } else if (message.type === IPC_MESSAGE_TYPE.STREAM_END) {
-              controller.close();
-              off();
+        const off = ipc.onStream((message) => {
+          if (message.stream_id === stream_id) {
+            // STREAM_DATA || STREAM_END
+            switch (message.type) {
+              case IPC_MESSAGE_TYPE.STREAM_DATA:
+                controller.enqueue(message.binary);
+                break;
+              case IPC_MESSAGE_TYPE.STREAM_END:
+                controller.close();
+                off();
+                break;
             }
           }
         });
       },
       pull(controller) {
-        pulling = new PromiseOut()
-        stream_ipc.postMessage(
-          new IpcStreamPull(stream_id, controller.desiredSize)
-        );
-        return pulling.promise
+        // console.log("start pulling", stream_id);
+        if (paused) {
+          paused = false;
+          stream_ipc.postMessage(new IpcStreamPulling(stream_id));
+        }
       },
     },
     {
@@ -110,7 +127,4 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
   return stream;
 };
 
-
-new WritableStream({
-
-})
+new WritableStream({});

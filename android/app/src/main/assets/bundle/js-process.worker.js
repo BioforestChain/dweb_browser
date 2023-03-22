@@ -55,9 +55,9 @@ var __privateSet = (obj, member, value, setter) => {
   return value;
 };
 
-// node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js
+// node_modules/color-name/index.js
 var require_color_name = __commonJS({
-  "node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js"(exports, module) {
+  "node_modules/color-name/index.js"(exports, module) {
     "use strict";
     module.exports = {
       "aliceblue": [240, 248, 255],
@@ -212,9 +212,9 @@ var require_color_name = __commonJS({
   }
 });
 
-// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js
+// node_modules/color-convert/conversions.js
 var require_conversions = __commonJS({
-  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js"(exports, module) {
+  "node_modules/color-convert/conversions.js"(exports, module) {
     var cssKeywords = require_color_name();
     var reverseKeywords = {};
     for (const key of Object.keys(cssKeywords)) {
@@ -883,9 +883,9 @@ var require_conversions = __commonJS({
   }
 });
 
-// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js
+// node_modules/color-convert/route.js
 var require_route = __commonJS({
-  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js"(exports, module) {
+  "node_modules/color-convert/route.js"(exports, module) {
     var conversions = require_conversions();
     function buildGraph() {
       const graph = {};
@@ -953,9 +953,9 @@ var require_route = __commonJS({
   }
 });
 
-// node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js
+// node_modules/color-convert/index.js
 var require_color_convert = __commonJS({
-  "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js"(exports, module) {
+  "node_modules/color-convert/index.js"(exports, module) {
     var conversions = require_conversions();
     var route = require_route();
     var convert = {};
@@ -1014,9 +1014,9 @@ var require_color_convert = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js
+// node_modules/ansi-styles/index.js
 var require_ansi_styles = __commonJS({
-  "node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js"(exports, module) {
+  "node_modules/ansi-styles/index.js"(exports, module) {
     "use strict";
     var wrapAnsi16 = (fn, offset) => (...args) => {
       const code = fn(...args);
@@ -1156,9 +1156,9 @@ var require_ansi_styles = __commonJS({
   }
 });
 
-// node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/browser.js
+// node_modules/supports-color/browser.js
 var require_browser = __commonJS({
-  "node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/browser.js"(exports, module) {
+  "node_modules/supports-color/browser.js"(exports, module) {
     "use strict";
     module.exports = {
       stdout: false,
@@ -1167,9 +1167,9 @@ var require_browser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js
+// node_modules/chalk/source/util.js
 var require_util = __commonJS({
-  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js"(exports, module) {
+  "node_modules/chalk/source/util.js"(exports, module) {
     "use strict";
     var stringReplaceAll = (string, substring, replacer) => {
       let index = string.indexOf(substring);
@@ -1206,9 +1206,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js
+// node_modules/chalk/source/templates.js
 var require_templates = __commonJS({
-  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js"(exports, module) {
+  "node_modules/chalk/source/templates.js"(exports, module) {
     "use strict";
     var TEMPLATE_REGEX = /(?:\\(u(?:[a-f\d]{4}|\{[a-f\d]{1,6}\})|x[a-f\d]{2}|.))|(?:\{(~)?(\w+(?:\([^)]*\))?(?:\.\w+(?:\([^)]*\))?)*)(?:[ \t]|(?=\r?\n)))|(\})|((?:.|[\r\n\f])+?)/gi;
     var STYLE_REGEX = /(?:^|\.)(\w+)(?:\(([^)]*)\))?/g;
@@ -1268,14 +1268,14 @@ var require_templates = __commonJS({
       }
       return results;
     }
-    function buildStyle(chalk3, styles) {
+    function buildStyle(chalk2, styles) {
       const enabled = {};
       for (const layer of styles) {
         for (const style of layer.styles) {
           enabled[style[0]] = layer.inverse ? null : style.slice(1);
         }
       }
-      let current = chalk3;
+      let current = chalk2;
       for (const [styleName, styles2] of Object.entries(enabled)) {
         if (!Array.isArray(styles2)) {
           continue;
@@ -1287,7 +1287,7 @@ var require_templates = __commonJS({
       }
       return current;
     }
-    module.exports = (chalk3, temporary) => {
+    module.exports = (chalk2, temporary) => {
       const styles = [];
       const chunks = [];
       let chunk = [];
@@ -1297,13 +1297,13 @@ var require_templates = __commonJS({
         } else if (style) {
           const string = chunk.join("");
           chunk = [];
-          chunks.push(styles.length === 0 ? string : buildStyle(chalk3, styles)(string));
+          chunks.push(styles.length === 0 ? string : buildStyle(chalk2, styles)(string));
           styles.push({ inverse, styles: parseStyle(style) });
         } else if (close) {
           if (styles.length === 0) {
             throw new Error("Found extraneous } in Chalk template literal");
           }
-          chunks.push(buildStyle(chalk3, styles)(chunk.join("")));
+          chunks.push(buildStyle(chalk2, styles)(chunk.join("")));
           chunk = [];
           styles.pop();
         } else {
@@ -1320,9 +1320,9 @@ var require_templates = __commonJS({
   }
 });
 
-// node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js
+// node_modules/chalk/source/index.js
 var require_source = __commonJS({
-  "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js"(exports, module) {
+  "node_modules/chalk/source/index.js"(exports, module) {
     "use strict";
     var ansiStyles = require_ansi_styles();
     var { stdout: stdoutColor, stderr: stderrColor } = require_browser();
@@ -1351,16 +1351,16 @@ var require_source = __commonJS({
       }
     };
     var chalkFactory = (options) => {
-      const chalk4 = {};
-      applyOptions(chalk4, options);
-      chalk4.template = (...arguments_) => chalkTag(chalk4.template, ...arguments_);
-      Object.setPrototypeOf(chalk4, Chalk.prototype);
-      Object.setPrototypeOf(chalk4.template, chalk4);
-      chalk4.template.constructor = () => {
+      const chalk3 = {};
+      applyOptions(chalk3, options);
+      chalk3.template = (...arguments_) => chalkTag(chalk3.template, ...arguments_);
+      Object.setPrototypeOf(chalk3, Chalk.prototype);
+      Object.setPrototypeOf(chalk3.template, chalk3);
+      chalk3.template.constructor = () => {
         throw new Error("`chalk.constructor()` is deprecated. Use `new chalk.Instance()` instead.");
       };
-      chalk4.template.Instance = ChalkClass;
-      return chalk4.template;
+      chalk3.template.Instance = ChalkClass;
+      return chalk3.template;
     };
     function Chalk(options) {
       return chalkFactory(options);
@@ -1471,7 +1471,7 @@ var require_source = __commonJS({
       return openAll + string + closeAll;
     };
     var template;
-    var chalkTag = (chalk4, ...strings) => {
+    var chalkTag = (chalk3, ...strings) => {
       const [firstString] = strings;
       if (!isArray(firstString) || !isArray(firstString.raw)) {
         return strings.join(" ");
@@ -1487,20 +1487,20 @@ var require_source = __commonJS({
       if (template === void 0) {
         template = require_templates();
       }
-      return template(chalk4, parts.join(""));
+      return template(chalk3, parts.join(""));
     };
     Object.defineProperties(Chalk.prototype, styles);
-    var chalk3 = Chalk();
-    chalk3.supportsColor = stdoutColor;
-    chalk3.stderr = Chalk({ level: stderrColor ? stderrColor.level : 0 });
-    chalk3.stderr.supportsColor = stderrColor;
-    module.exports = chalk3;
+    var chalk2 = Chalk();
+    chalk2.supportsColor = stdoutColor;
+    chalk2.stderr = Chalk({ level: stderrColor ? stderrColor.level : 0 });
+    chalk2.stderr.supportsColor = stderrColor;
+    module.exports = chalk2;
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js
+// node_modules/lodash/_trimmedEndIndex.js
 var require_trimmedEndIndex = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
+  "node_modules/lodash/_trimmedEndIndex.js"(exports, module) {
     var reWhitespace = /\s/;
     function trimmedEndIndex(string) {
       var index = string.length;
@@ -1512,9 +1512,9 @@ var require_trimmedEndIndex = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js
+// node_modules/lodash/_baseTrim.js
 var require_baseTrim = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseTrim.js"(exports, module) {
+  "node_modules/lodash/_baseTrim.js"(exports, module) {
     var trimmedEndIndex = require_trimmedEndIndex();
     var reTrimStart = /^\s+/;
     function baseTrim(string) {
@@ -1524,9 +1524,9 @@ var require_baseTrim = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js
+// node_modules/lodash/isObject.js
 var require_isObject = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObject.js"(exports, module) {
+  "node_modules/lodash/isObject.js"(exports, module) {
     function isObject(value) {
       var type = typeof value;
       return value != null && (type == "object" || type == "function");
@@ -1535,17 +1535,17 @@ var require_isObject = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js
+// node_modules/lodash/_freeGlobal.js
 var require_freeGlobal = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_freeGlobal.js"(exports, module) {
+  "node_modules/lodash/_freeGlobal.js"(exports, module) {
     var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
     module.exports = freeGlobal;
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js
+// node_modules/lodash/_root.js
 var require_root = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_root.js"(exports, module) {
+  "node_modules/lodash/_root.js"(exports, module) {
     var freeGlobal = require_freeGlobal();
     var freeSelf = typeof self == "object" && self && self.Object === Object && self;
     var root = freeGlobal || freeSelf || Function("return this")();
@@ -1553,18 +1553,18 @@ var require_root = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js
+// node_modules/lodash/_Symbol.js
 var require_Symbol = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_Symbol.js"(exports, module) {
+  "node_modules/lodash/_Symbol.js"(exports, module) {
     var root = require_root();
     var Symbol2 = root.Symbol;
     module.exports = Symbol2;
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js
+// node_modules/lodash/_getRawTag.js
 var require_getRawTag = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_getRawTag.js"(exports, module) {
+  "node_modules/lodash/_getRawTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var objectProto = Object.prototype;
     var hasOwnProperty = objectProto.hasOwnProperty;
@@ -1591,9 +1591,9 @@ var require_getRawTag = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js
+// node_modules/lodash/_objectToString.js
 var require_objectToString = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_objectToString.js"(exports, module) {
+  "node_modules/lodash/_objectToString.js"(exports, module) {
     var objectProto = Object.prototype;
     var nativeObjectToString = objectProto.toString;
     function objectToString(value) {
@@ -1603,9 +1603,9 @@ var require_objectToString = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js
+// node_modules/lodash/_baseGetTag.js
 var require_baseGetTag = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/_baseGetTag.js"(exports, module) {
+  "node_modules/lodash/_baseGetTag.js"(exports, module) {
     var Symbol2 = require_Symbol();
     var getRawTag = require_getRawTag();
     var objectToString = require_objectToString();
@@ -1622,9 +1622,9 @@ var require_baseGetTag = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js
+// node_modules/lodash/isObjectLike.js
 var require_isObjectLike = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isObjectLike.js"(exports, module) {
+  "node_modules/lodash/isObjectLike.js"(exports, module) {
     function isObjectLike(value) {
       return value != null && typeof value == "object";
     }
@@ -1632,9 +1632,9 @@ var require_isObjectLike = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js
+// node_modules/lodash/isSymbol.js
 var require_isSymbol = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/isSymbol.js"(exports, module) {
+  "node_modules/lodash/isSymbol.js"(exports, module) {
     var baseGetTag = require_baseGetTag();
     var isObjectLike = require_isObjectLike();
     var symbolTag = "[object Symbol]";
@@ -1645,9 +1645,9 @@ var require_isSymbol = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js
+// node_modules/lodash/toNumber.js
 var require_toNumber = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toNumber.js"(exports, module) {
+  "node_modules/lodash/toNumber.js"(exports, module) {
     var baseTrim = require_baseTrim();
     var isObject = require_isObject();
     var isSymbol = require_isSymbol();
@@ -1678,9 +1678,9 @@ var require_toNumber = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js
+// node_modules/lodash/toFinite.js
 var require_toFinite = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toFinite.js"(exports, module) {
+  "node_modules/lodash/toFinite.js"(exports, module) {
     var toNumber = require_toNumber();
     var INFINITY = 1 / 0;
     var MAX_INTEGER = 17976931348623157e292;
@@ -1699,9 +1699,9 @@ var require_toFinite = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js
+// node_modules/lodash/toInteger.js
 var require_toInteger = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/toInteger.js"(exports, module) {
+  "node_modules/lodash/toInteger.js"(exports, module) {
     var toFinite = require_toFinite();
     function toInteger(value) {
       var result = toFinite(value), remainder = result % 1;
@@ -1711,9 +1711,9 @@ var require_toInteger = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js
+// node_modules/lodash/before.js
 var require_before = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/before.js"(exports, module) {
+  "node_modules/lodash/before.js"(exports, module) {
     var toInteger = require_toInteger();
     var FUNC_ERROR_TEXT = "Expected a function";
     function before(n, func) {
@@ -1736,9 +1736,9 @@ var require_before = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js
+// node_modules/lodash/once.js
 var require_once = __commonJS({
-  "node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/once.js"(exports, module) {
+  "node_modules/lodash/once.js"(exports, module) {
     var before = require_before();
     function once5(func) {
       return before(2, func);
@@ -1747,7 +1747,7 @@ var require_once = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/int.mjs
 var UINT32_MAX = 4294967295;
 function setUint64(view, offset, value) {
   var high = value / 4294967296;
@@ -1772,7 +1772,7 @@ function getUint64(view, offset) {
   return high * 4294967296 + low;
 }
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/utf8.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/utf8.mjs
 var _a;
 var _b;
 var _c;
@@ -1897,7 +1897,7 @@ function utf8DecodeTD(bytes, inputOffset, byteLength) {
   return sharedTextDecoder.decode(stringBytes);
 }
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/ExtData.mjs
 var ExtData = (
   /** @class */
   function() {
@@ -1909,7 +1909,7 @@ var ExtData = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/DecodeError.mjs
 var __extends = function() {
   var extendStatics = function(d, b) {
     extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
@@ -1950,7 +1950,7 @@ var DecodeError = (
   }(Error)
 );
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/timestamp.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/timestamp.mjs
 var EXT_TIMESTAMP = -1;
 var TIMESTAMP32_MAX_SEC = 4294967296 - 1;
 var TIMESTAMP64_MAX_SEC = 17179869184 - 1;
@@ -2031,7 +2031,7 @@ var timestampExtension = {
   decode: decodeTimestampExtension
 };
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/ExtensionCodec.mjs
 var ExtensionCodec = (
   /** @class */
   function() {
@@ -2092,7 +2092,7 @@ var ExtensionCodec = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/typedArrays.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/typedArrays.mjs
 function ensureUint8Array(buffer) {
   if (buffer instanceof Uint8Array) {
     return buffer;
@@ -2112,7 +2112,7 @@ function createDataView(buffer) {
   return new DataView(bufferView.buffer, bufferView.byteOffset, bufferView.byteLength);
 }
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/Encoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/Encoder.mjs
 var DEFAULT_MAX_DEPTH = 100;
 var DEFAULT_INITIAL_BUFFER_SIZE = 2048;
 var Encoder = (
@@ -2458,7 +2458,7 @@ var Encoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/encode.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/encode.mjs
 var defaultEncodeOptions = {};
 function encode(value, options) {
   if (options === void 0) {
@@ -2468,12 +2468,12 @@ function encode(value, options) {
   return encoder.encodeSharedRef(value);
 }
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/utils/prettyByte.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/utils/prettyByte.mjs
 function prettyByte(byte) {
   return "".concat(byte < 0 ? "-" : "", "0x").concat(Math.abs(byte).toString(16).padStart(2, "0"));
 }
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/CachedKeyDecoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/CachedKeyDecoder.mjs
 var DEFAULT_MAX_KEY_LENGTH = 16;
 var DEFAULT_MAX_LENGTH_PER_KEY = 16;
 var CachedKeyDecoder = (
@@ -2538,7 +2538,7 @@ var CachedKeyDecoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/Decoder.mjs
 var __awaiter = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve) {
@@ -3334,7 +3334,7 @@ var Decoder = (
   }()
 );
 
-// node_modules/.pnpm/@msgpack/msgpack@2.8.0/node_modules/@msgpack/msgpack/dist.es5+esm/decode.mjs
+// node_modules/@msgpack/msgpack/dist.es5+esm/decode.mjs
 var defaultDecodeOptions = {};
 function decode(buffer, options) {
   if (options === void 0) {
@@ -3447,10 +3447,11 @@ var IPC_MESSAGE_TYPE = /* @__PURE__ */ ((IPC_MESSAGE_TYPE2) => {
   IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["REQUEST"] = 0] = "REQUEST";
   IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["RESPONSE"] = 1] = "RESPONSE";
   IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["STREAM_DATA"] = 2] = "STREAM_DATA";
-  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["STREAM_PULL"] = 3] = "STREAM_PULL";
-  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["STREAM_END"] = 4] = "STREAM_END";
-  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["STREAM_ABORT"] = 5] = "STREAM_ABORT";
-  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["EVENT"] = 6] = "EVENT";
+  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["STREAM_PULLING"] = 3] = "STREAM_PULLING";
+  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["STREAM_PAUSED"] = 4] = "STREAM_PAUSED";
+  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["STREAM_END"] = 5] = "STREAM_END";
+  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["STREAM_ABORT"] = 6] = "STREAM_ABORT";
+  IPC_MESSAGE_TYPE2[IPC_MESSAGE_TYPE2["EVENT"] = 7] = "EVENT";
   return IPC_MESSAGE_TYPE2;
 })(IPC_MESSAGE_TYPE || {});
 var IPC_DATA_ENCODING = /* @__PURE__ */ ((IPC_DATA_ENCODING2) => {
@@ -3575,14 +3576,45 @@ __decorateClass([
 ], Signal.prototype, "_cachedEmits", 1);
 
 // src/helper/PromiseOut.cts
+var isPromiseLike = (value) => {
+  return value instanceof Object && typeof value.then === "function";
+};
 var PromiseOut = class {
   constructor() {
+    this.is_resolved = false;
+    this.is_rejected = false;
+    this.is_finished = false;
     this.promise = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    }).then((res) => {
-      this._value = res;
-      return res;
+      this.resolve = (value) => {
+        try {
+          if (isPromiseLike(value)) {
+            value.then(this.resolve, this.reject);
+          } else {
+            this.is_resolved = true;
+            this.is_finished = true;
+            resolve(this.value = value);
+            this._runThen();
+            this._innerFinallyArg = Object.freeze({
+              status: "resolved",
+              result: this.value
+            });
+            this._runFinally();
+          }
+        } catch (err) {
+          this.reject(err);
+        }
+      };
+      this.reject = (reason) => {
+        this.is_rejected = true;
+        this.is_finished = true;
+        reject(this.reason = reason);
+        this._runCatch();
+        this._innerFinallyArg = Object.freeze({
+          status: "rejected",
+          reason: this.reason
+        });
+        this._runFinally();
+      };
     });
   }
   static resolve(v) {
@@ -3590,8 +3622,89 @@ var PromiseOut = class {
     po.resolve(v);
     return po;
   }
-  get value() {
-    return this._value;
+  onSuccess(innerThen) {
+    if (this.is_resolved) {
+      this.__callInnerThen(innerThen);
+    } else {
+      (this._innerThen || (this._innerThen = [])).push(innerThen);
+    }
+  }
+  onError(innerCatch) {
+    if (this.is_rejected) {
+      this.__callInnerCatch(innerCatch);
+    } else {
+      (this._innerCatch || (this._innerCatch = [])).push(innerCatch);
+    }
+  }
+  onFinished(innerFinally) {
+    if (this.is_finished) {
+      this.__callInnerFinally(innerFinally);
+    } else {
+      (this._innerFinally || (this._innerFinally = [])).push(innerFinally);
+    }
+  }
+  _runFinally() {
+    if (this._innerFinally) {
+      for (const innerFinally of this._innerFinally) {
+        this.__callInnerFinally(innerFinally);
+      }
+      this._innerFinally = void 0;
+    }
+  }
+  __callInnerFinally(innerFinally) {
+    queueMicrotask(async () => {
+      try {
+        await innerFinally(this._innerFinallyArg);
+      } catch (err) {
+        console.error(
+          "Unhandled promise rejection when running onFinished",
+          innerFinally,
+          err
+        );
+      }
+    });
+  }
+  _runThen() {
+    if (this._innerThen) {
+      for (const innerThen of this._innerThen) {
+        this.__callInnerThen(innerThen);
+      }
+      this._innerThen = void 0;
+    }
+  }
+  _runCatch() {
+    if (this._innerCatch) {
+      for (const innerCatch of this._innerCatch) {
+        this.__callInnerCatch(innerCatch);
+      }
+      this._innerCatch = void 0;
+    }
+  }
+  __callInnerThen(innerThen) {
+    queueMicrotask(async () => {
+      try {
+        await innerThen(this.value);
+      } catch (err) {
+        console.error(
+          "Unhandled promise rejection when running onSuccess",
+          innerThen,
+          err
+        );
+      }
+    });
+  }
+  __callInnerCatch(innerCatch) {
+    queueMicrotask(async () => {
+      try {
+        await innerCatch(this.value);
+      } catch (err) {
+        console.error(
+          "Unhandled promise rejection when running onError",
+          innerCatch,
+          err
+        );
+      }
+    });
   }
 };
 
@@ -4042,14 +4155,6 @@ var BodyHub = class {
   }
 };
 
-// src/core/ipc/IpcStreamAbort.cts
-var IpcStreamAbort = class extends IpcMessage {
-  constructor(stream_id) {
-    super(5 /* STREAM_ABORT */);
-    this.stream_id = stream_id;
-  }
-};
-
 // src/core/ipc/IpcStreamData.cts
 var _IpcStreamData = class extends IpcMessage {
   constructor(stream_id, data, encoding) {
@@ -4105,24 +4210,8 @@ __decorateClass([
 // src/core/ipc/IpcStreamEnd.cts
 var IpcStreamEnd = class extends IpcMessage {
   constructor(stream_id) {
-    super(4 /* STREAM_END */);
+    super(5 /* STREAM_END */);
     this.stream_id = stream_id;
-  }
-};
-
-// src/core/ipc/IpcStreamPull.cts
-var IpcStreamPull = class extends IpcMessage {
-  constructor(stream_id, desiredSize) {
-    super(3 /* STREAM_PULL */);
-    this.stream_id = stream_id;
-    if (desiredSize == null) {
-      desiredSize = 1;
-    } else if (Number.isFinite(desiredSize) === false) {
-      desiredSize = 1;
-    } else if (desiredSize < 1) {
-      desiredSize = 1;
-    }
-    this.desiredSize = desiredSize;
   }
 };
 
@@ -4202,10 +4291,10 @@ var _MetaBody = class {
     }
   }
   get type_isInline() {
-    return (this.type & 1 /* INLINE */) !== 0;
+    return (this.type & IPC_META_BODY_TYPE.INLINE) !== 0;
   }
   get type_isStream() {
-    return (this.type & 1 /* INLINE */) === 0;
+    return (this.type & IPC_META_BODY_TYPE.INLINE) === 0;
   }
   get jsonAble() {
     if (this.type_encoding === 8 /* BINARY */) {
@@ -4254,18 +4343,30 @@ var _IpcBodySender = class extends IpcBody {
     this.data = data;
     this.ipc = ipc;
     this.isStream = this.data instanceof ReadableStream;
-    this.pullSignal = createSignal();
-    this.abortSignal = createSignal();
+    this.streamCtorSignal = createSignal();
     /**
      * 被哪些 ipc 所真正使用，使用的进度分别是多少
      *
      * 这个进度 用于 类似流的 多发
      */
     this.usedIpcMap = /* @__PURE__ */ new Map();
-    /**
-     * 当前收到拉取的请求数
-     */
-    this.curPulledTimes = 0;
+    this.UsedIpcInfo = class UsedIpcInfo {
+      constructor(ipcBody, ipc, bandwidth = 0, fuse = 0) {
+        this.ipcBody = ipcBody;
+        this.ipc = ipc;
+        this.bandwidth = bandwidth;
+        this.fuse = fuse;
+      }
+      emitStreamPull(message) {
+        return this.ipcBody.emitStreamPull(this, message);
+      }
+      emitStreamPaused(message) {
+        return this.ipcBody.emitStreamPaused(this, message);
+      }
+      emitStreamAborted() {
+        return this.ipcBody.emitStreamAborted(this);
+      }
+    };
     this.closeSignal = createSignal();
     this.openSignal = createSignal();
     this._isStreamOpened = false;
@@ -4291,33 +4392,50 @@ var _IpcBodySender = class extends IpcBody {
    * 绑定使用
    */
   useByIpc(ipc) {
-    if (this.usedIpcMap.has(ipc)) {
-      return true;
+    const info = this.usedIpcMap.get(ipc);
+    if (info !== void 0) {
+      return info;
     }
     if (this.isStream && !this._isStreamOpened) {
-      this.usedIpcMap.set(ipc, 0);
+      const info2 = new this.UsedIpcInfo(this, ipc);
+      this.usedIpcMap.set(ipc, info2);
       this.closeSignal.listen(() => {
-        this.unuseByIpc(ipc);
+        this.emitStreamAborted(info2);
       });
-      return true;
+      return info2;
     }
-    return false;
   }
   /**
    * 拉取数据
    */
-  emitStreamPull(message, ipc) {
-    const pulledSize = this.usedIpcMap.get(ipc) + message.desiredSize;
-    this.usedIpcMap.set(ipc, pulledSize);
-    this.pullSignal.emit();
+  emitStreamPull(info, message) {
+    info.bandwidth = message.bandwidth;
+    this.streamCtorSignal.emit(0 /* PULLING */);
+  }
+  /**
+   * 暂停数据
+   */
+  emitStreamPaused(info, message) {
+    info.bandwidth = -1;
+    info.fuse = message.fuse;
+    let paused = true;
+    for (const info2 of this.usedIpcMap.values()) {
+      if (info2.bandwidth >= 0) {
+        paused = false;
+        break;
+      }
+    }
+    if (paused) {
+      this.streamCtorSignal.emit(1 /* PAUSED */);
+    }
   }
   /**
    * 解绑使用
    */
-  unuseByIpc(ipc) {
-    if (this.usedIpcMap.delete(ipc) != null) {
+  emitStreamAborted(info) {
+    if (this.usedIpcMap.delete(info.ipc) != null) {
       if (this.usedIpcMap.size === 0) {
-        this.abortSignal.emit();
+        this.streamCtorSignal.emit(2 /* ABORTED */);
       }
     }
   }
@@ -4375,11 +4493,28 @@ var _IpcBodySender = class extends IpcBody {
   $streamAsMeta(stream, ipc) {
     const stream_id = getStreamId(stream);
     const reader = binaryStreamRead(stream);
-    const sender = async () => {
-      if (this.curPulledTimes++ > 0) {
-        return;
-      }
-      while (this.curPulledTimes > 0) {
+    (async () => {
+      let pullingLock = new PromiseOut();
+      this.streamCtorSignal.listen((signal) => {
+        switch (signal) {
+          case 0 /* PULLING */: {
+            pullingLock.resolve();
+            break;
+          }
+          case 1 /* PAUSED */: {
+            if (pullingLock.is_finished) {
+              pullingLock = new PromiseOut();
+            }
+            break;
+          }
+          case 2 /* ABORTED */: {
+            reader.return();
+            this.emitStreamClose();
+          }
+        }
+      });
+      while (true) {
+        await pullingLock.promise;
         const availableLen = await reader.available();
         switch (availableLen) {
           case -1:
@@ -4394,23 +4529,17 @@ var _IpcBodySender = class extends IpcBody {
             break;
           default: {
             this.isStreamOpened = true;
-            const data = await reader.readBinary(availableLen);
-            const message = IpcStreamData.fromBinary(stream_id, data);
+            const message = IpcStreamData.fromBinary(
+              stream_id,
+              await reader.readBinary(availableLen)
+            );
             for (const ipc2 of this.usedIpcMap.keys()) {
               ipc2.postMessage(message);
             }
           }
         }
-        this.curPulledTimes = 0;
       }
-    };
-    this.pullSignal.listen(() => {
-      void sender();
-    });
-    this.abortSignal.listen(() => {
-      reader.return();
-      this.emitStreamClose();
-    });
+    })().catch(console.error);
     let streamType = 0 /* STREAM_ID */;
     let streamFirstData = "";
     if ("preReadableSize" in stream && typeof stream.preReadableSize === "number" && stream.preReadableSize > 0) {
@@ -4429,15 +4558,17 @@ IpcBodySender.$usableByIpc = (ipc, ipcBody) => {
     if (usableIpcBodyMapper === void 0) {
       const mapper = new UsableIpcBodyMapper();
       mapper.onDestroy(
-        ipc.onMessage((message) => {
-          if (message instanceof IpcStreamPull) {
-            const ipcBody2 = mapper.get(message.stream_id);
-            if (ipcBody2?.useByIpc(ipc)) {
-              ipcBody2.emitStreamPull(message, ipc);
-            }
-          } else if (message instanceof IpcStreamAbort) {
-            const ipcBody2 = mapper.get(message.stream_id);
-            ipcBody2?.unuseByIpc(ipc);
+        ipc.onStream((message) => {
+          switch (message.type) {
+            case 3 /* STREAM_PULLING */:
+              mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamPull(message);
+              break;
+            case 4 /* STREAM_PAUSED */:
+              mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamPaused(message);
+              break;
+            case 6 /* STREAM_ABORT */:
+              mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamAborted();
+              break;
           }
         })
       );
@@ -4687,10 +4818,22 @@ var Ipc = class {
   onRequest(cb) {
     return this._onRequestSignal.listen(cb);
   }
+  get _onStreamSignal() {
+    const signal = createSignal(false);
+    this.onMessage((request, ipc) => {
+      if ("stream_id" in request) {
+        signal.emit(request, ipc);
+      }
+    });
+    return signal;
+  }
+  onStream(cb) {
+    return this._onStreamSignal.listen(cb);
+  }
   get _onEventSignal() {
     const signal = createSignal(false);
     this.onMessage((event, ipc) => {
-      if (event.type === 6 /* EVENT */) {
+      if (event.type === 7 /* EVENT */) {
         signal.emit(event, ipc);
       }
     });
@@ -4751,6 +4894,9 @@ var Ipc = class {
 __decorateClass([
   cacheGetter()
 ], Ipc.prototype, "_onRequestSignal", 1);
+__decorateClass([
+  cacheGetter()
+], Ipc.prototype, "_onStreamSignal", 1);
 __decorateClass([
   cacheGetter()
 ], Ipc.prototype, "_onEventSignal", 1);
@@ -4879,6 +5025,15 @@ var IpcResMessage = class extends IpcMessage {
   }
 };
 
+// src/core/ipc/IpcStreamPulling.cts
+var IpcStreamPulling = class extends IpcMessage {
+  constructor(stream_id, bandwidth) {
+    super(3 /* STREAM_PULLING */);
+    this.stream_id = stream_id;
+    this.bandwidth = bandwidth ?? 0;
+  }
+};
+
 // src/core/ipc/IpcBodyReceiver.cts
 var _IpcBodyReceiver = class extends IpcBody {
   constructor(metaBody, ipc) {
@@ -4927,7 +5082,7 @@ var $metaToStream = (metaBody, ipc) => {
   }
   const stream_ipc = ipc;
   const stream_id = metaBody.streamId;
-  let pulling;
+  let paused = true;
   const stream = new ReadableStream(
     {
       start(controller) {
@@ -4946,27 +5101,25 @@ var $metaToStream = (metaBody, ipc) => {
         if (firstData) {
           controller.enqueue(firstData);
         }
-        const off = ipc.onMessage((message) => {
-          if ("stream_id" in message && message.stream_id === stream_id) {
-            if (pulling !== void 0) {
-              pulling.resolve();
-              pulling = void 0;
-            }
-            if (message.type === 2 /* STREAM_DATA */) {
-              controller.enqueue(message.binary);
-            } else if (message.type === 4 /* STREAM_END */) {
-              controller.close();
-              off();
+        const off = ipc.onStream((message) => {
+          if (message.stream_id === stream_id) {
+            switch (message.type) {
+              case 2 /* STREAM_DATA */:
+                controller.enqueue(message.binary);
+                break;
+              case 5 /* STREAM_END */:
+                controller.close();
+                off();
+                break;
             }
           }
         });
       },
       pull(controller) {
-        pulling = new PromiseOut();
-        stream_ipc.postMessage(
-          new IpcStreamPull(stream_id, controller.desiredSize)
-        );
-        return pulling.promise;
+        if (paused) {
+          paused = false;
+          stream_ipc.postMessage(new IpcStreamPulling(stream_id));
+        }
       }
     },
     {
@@ -4982,7 +5135,7 @@ new WritableStream({});
 // src/core/ipc/IpcEvent.cts
 var _IpcEvent = class extends IpcMessage {
   constructor(name, data, encoding) {
-    super(6 /* EVENT */);
+    super(7 /* EVENT */);
     this.name = name;
     this.data = data;
     this.encoding = encoding;
@@ -5034,8 +5187,16 @@ __decorateClass([
   cacheGetter()
 ], IpcEvent.prototype, "jsonAble", 1);
 
+// src/core/ipc/IpcStreamPaused.cts
+var IpcStreamPaused = class extends IpcMessage {
+  constructor(stream_id, fuse) {
+    super(4 /* STREAM_PAUSED */);
+    this.stream_id = stream_id;
+    this.fuse = fuse ?? 1;
+  }
+};
+
 // src/core/ipc-web/$messageToIpcMessage.cts
-var import_chalk2 = __toESM(require_source());
 var isIpcSignalMessage = (msg) => msg === "close" || msg === "ping" || msg === "pong";
 var $messageToIpcMessage = (data, ipc) => {
   if (isIpcSignalMessage(data)) {
@@ -5060,13 +5221,15 @@ var $messageToIpcMessage = (data, ipc) => {
       new IpcBodyReceiver(MetaBody.fromJSON(data.metaBody), ipc),
       ipc
     );
-  } else if (data.type === 6 /* EVENT */) {
+  } else if (data.type === 7 /* EVENT */) {
     message = new IpcEvent(data.name, data.data, data.encoding);
   } else if (data.type === 2 /* STREAM_DATA */) {
     message = new IpcStreamData(data.stream_id, data.data, data.encoding);
-  } else if (data.type === 3 /* STREAM_PULL */) {
-    message = new IpcStreamPull(data.stream_id, data.desiredSize);
-  } else if (data.type === 4 /* STREAM_END */) {
+  } else if (data.type === 3 /* STREAM_PULLING */) {
+    message = new IpcStreamPulling(data.stream_id, data.bandwidth);
+  } else if (data.type === 4 /* STREAM_PAUSED */) {
+    message = new IpcStreamPaused(data.stream_id, data.fuse);
+  } else if (data.type === 5 /* STREAM_END */) {
     message = new IpcStreamEnd(data.stream_id);
   }
   return message;
@@ -5172,7 +5335,8 @@ __export(ipc_exports, {
   IpcResponse: () => IpcResponse,
   IpcStreamData: () => IpcStreamData,
   IpcStreamEnd: () => IpcStreamEnd,
-  IpcStreamPull: () => IpcStreamPull,
+  IpcStreamPaused: () => IpcStreamPaused,
+  IpcStreamPulling: () => IpcStreamPulling,
   setStreamId: () => setStreamId,
   toIpcMethod: () => toIpcMethod
 });

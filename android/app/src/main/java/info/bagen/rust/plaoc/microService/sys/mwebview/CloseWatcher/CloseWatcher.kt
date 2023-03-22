@@ -134,11 +134,4 @@ class CloseWatcher(
         }
         return false
     }
-
-    /**
-     * 关闭指定的 CloseWatcher
-     */
-    fun cancel() {
-
-    }
 }

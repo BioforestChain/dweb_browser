@@ -10,8 +10,8 @@ import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.sys.js.JsProcessNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.sys.nativeui.NativeUiNMM
-import info.bagen.rust.plaoc.microService.sys.plugin.barcode.ScanningNMM
 import info.bagen.rust.plaoc.microService.sys.nativeui.torch.TorchNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.barcode.ScanningNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.clipboard.ClipboardNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.*
@@ -29,20 +29,23 @@ import info.bagen.rust.plaoc.microService.user.ToyJMM
 
 suspend fun startDwebBrowser() {
     /**
-     *
-     * "message-port-ipc",
-     * "stream-ipc",
-     * "stream",
-     * "fetch",
-     * "ipc-body",
-     * "http",
-     * "TIME-DURATION"
+    "message-port-ipc",
+    "stream-ipc",
+    "stream",
+    "fetch",
+    "fetch-file",
+    "ipc-body",
+    "http",
+    "TIME-DURATION"
+    "nativeui",
      */
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
             listOf<String>(
-                "fetch-file",
-                "nativeui",
+//                "message-port-ipc",
+//                "stream-ipc",
+//                "stream",
+//                "ipc-body",
             )
         )
         else -> debugTags.addAll(
@@ -66,7 +69,7 @@ suspend fun startDwebBrowser() {
     val browserNMM = BrowserNMM.browserController.localeMM.also { dnsNMM.install(it) }
 
     /// 相机
-    val cameraNMM = CameraNMM().also{ dnsNMM.install(it)}
+    val cameraNMM = CameraNMM().also { dnsNMM.install(it) }
     /// 扫码
     val scannerNMM = ScanningNMM().also { dnsNMM.install(it) }
     ///安装剪切板
@@ -122,7 +125,8 @@ suspend fun startDwebBrowser() {
     val bootMmidList = when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> listOf(
 //            cotJMM.mmid,
-            browserNMM.mmid,
+            cotDemoJMM.mmid,
+//            browserNMM.mmid,
         )
         DEVELOPER.HUANGLIN -> listOf(
             browserNMM.mmid,

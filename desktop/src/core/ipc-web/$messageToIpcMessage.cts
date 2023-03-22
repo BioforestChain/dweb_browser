@@ -11,9 +11,9 @@ import { IpcRequest } from "../ipc/IpcRequest.cjs";
 import { IpcResponse } from "../ipc/IpcResponse.cjs";
 import { IpcStreamData } from "../ipc/IpcStreamData.cjs";
 import { IpcStreamEnd } from "../ipc/IpcStreamEnd.cjs";
-import { IpcStreamPull } from "../ipc/IpcStreamPull.cjs";
+import { IpcStreamPaused } from "../ipc/IpcStreamPaused.cjs";
+import { IpcStreamPulling } from "../ipc/IpcStreamPulling.cjs";
 import { MetaBody } from "../ipc/MetaBody.cjs";
-import chalk from "chalk";
 
 export type $JSON<T> = {
   [key in keyof T]: T[key] extends Function ? never : T[key];
@@ -32,7 +32,11 @@ export const $messageToIpcMessage = (
     return data;
   }
 
-  data = (Object.prototype.toString.call(data).slice(8 , -1) === "String" ? JSON.parse(data as unknown as string)  : data) as  $JSON<$IpcTransferableMessage>;
+  data = (
+    Object.prototype.toString.call(data).slice(8, -1) === "String"
+      ? JSON.parse(data as unknown as string)
+      : data
+  ) as $JSON<$IpcTransferableMessage>;
 
   let message: undefined | $IpcMessage | $IpcSignalMessage;
 
@@ -57,8 +61,10 @@ export const $messageToIpcMessage = (
     message = new IpcEvent(data.name, data.data, data.encoding);
   } else if (data.type === IPC_MESSAGE_TYPE.STREAM_DATA) {
     message = new IpcStreamData(data.stream_id, data.data, data.encoding);
-  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_PULL) {
-    message = new IpcStreamPull(data.stream_id, data.desiredSize);
+  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_PULLING) {
+    message = new IpcStreamPulling(data.stream_id, data.bandwidth);
+  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_PAUSED) {
+    message = new IpcStreamPaused(data.stream_id, data.fuse);
   } else if (data.type === IPC_MESSAGE_TYPE.STREAM_END) {
     message = new IpcStreamEnd(data.stream_id);
   }

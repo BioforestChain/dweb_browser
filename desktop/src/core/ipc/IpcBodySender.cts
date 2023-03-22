@@ -1,12 +1,24 @@
 import { $Callback, createSignal } from "../../helper/createSignal.cjs";
+import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import { binaryStreamRead } from "../../helper/readableStreamHelper.cjs";
+import { IPC_MESSAGE_TYPE } from "./const.cjs";
 import type { Ipc } from "./ipc.cjs";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.cjs";
-import { IpcStreamAbort } from "./IpcStreamAbort.cjs";
 import { IpcStreamData } from "./IpcStreamData.cjs";
 import { IpcStreamEnd } from "./IpcStreamEnd.cjs";
-import { IpcStreamPull } from "./IpcStreamPull.cjs";
+import type { IpcStreamPaused } from "./IpcStreamPaused.cjs";
+import type { IpcStreamPulling } from "./IpcStreamPulling.cjs";
 import { IPC_META_BODY_TYPE, MetaBody } from "./MetaBody.cjs";
+
+/**
+ * 控制信号
+ */
+enum STREAM_CTOR_SIGNAL {
+  PULLING,
+  PAUSED,
+  ABORTED,
+}
+type $UsedIpcInfo = InstanceType<IpcBodySender["UsedIpcInfo"]>;
 
 export class IpcBodySender extends IpcBody {
   static from(data: $BodyData, ipc: Ipc) {
@@ -29,55 +41,91 @@ export class IpcBodySender extends IpcBody {
 
   readonly isStream = this.data instanceof ReadableStream;
 
-  private pullSignal = createSignal();
-  private abortSignal = createSignal();
+  private streamCtorSignal =
+    createSignal<(signal: STREAM_CTOR_SIGNAL) => unknown>();
 
   /**
    * 被哪些 ipc 所真正使用，使用的进度分别是多少
    *
    * 这个进度 用于 类似流的 多发
    */
-  private readonly usedIpcMap = new Map<Ipc, /* PulledSize */ number>();
+  private readonly usedIpcMap = new Map<Ipc, $UsedIpcInfo>();
+  private UsedIpcInfo = class UsedIpcInfo {
+    constructor(
+      readonly ipcBody: IpcBodySender,
+      readonly ipc: Ipc,
+      public bandwidth = 0,
+      public fuse = 0
+    ) {}
+    emitStreamPull(message: IpcStreamPulling) {
+      return this.ipcBody.emitStreamPull(this, message);
+    }
 
-  /**
-   * 当前收到拉取的请求数
-   */
-  private curPulledTimes = 0;
+    emitStreamPaused(message: IpcStreamPaused) {
+      return this.ipcBody.emitStreamPaused(this, message);
+    }
+
+    emitStreamAborted() {
+      return this.ipcBody.emitStreamAborted(this);
+    }
+  };
 
   /**
    * 绑定使用
    */
   private useByIpc(ipc: Ipc) {
-    if (this.usedIpcMap.has(ipc)) {
-      return true;
+    const info = this.usedIpcMap.get(ipc);
+    if (info !== undefined) {
+      return info;
     }
+    /// 如果是未开启的流，插入
     if (this.isStream && !this._isStreamOpened) {
-      this.usedIpcMap.set(ipc, 0);
+      const info = new this.UsedIpcInfo(this, ipc);
+      this.usedIpcMap.set(ipc, info);
       this.closeSignal.listen(() => {
-        this.unuseByIpc(ipc);
+        this.emitStreamAborted(info);
       });
-      return true;
+      return info;
     }
-    return false;
   }
   /**
    * 拉取数据
    */
-  private emitStreamPull(message: IpcStreamPull, ipc: Ipc) {
+  private emitStreamPull(info: $UsedIpcInfo, message: IpcStreamPulling) {
     /// desiredSize 仅作参考，我们以发过来的拉取次数为准
-    const pulledSize = this.usedIpcMap.get(ipc)! + message.desiredSize;
-    this.usedIpcMap.set(ipc, pulledSize);
-    this.pullSignal.emit();
+    info.bandwidth = message.bandwidth;
+    // 只要有一个开始读取，那么就可以开始
+    this.streamCtorSignal.emit(STREAM_CTOR_SIGNAL.PULLING);
+  }
+  /**
+   * 暂停数据
+   */
+  private emitStreamPaused(info: $UsedIpcInfo, message: IpcStreamPaused) {
+    /// 更新保险限制
+    info.bandwidth = -1;
+    info.fuse = message.fuse;
+
+    /// 如果所有的读取者都暂停了，那么就触发暂停
+    let paused = true;
+    for (const info of this.usedIpcMap.values()) {
+      if (info.bandwidth >= 0) {
+        paused = false;
+        break;
+      }
+    }
+    if (paused) {
+      this.streamCtorSignal.emit(STREAM_CTOR_SIGNAL.PAUSED);
+    }
   }
 
   /**
    * 解绑使用
    */
-  private unuseByIpc(ipc: Ipc) {
-    if (this.usedIpcMap.delete(ipc) != null) {
+  private emitStreamAborted(info: $UsedIpcInfo) {
+    if (this.usedIpcMap.delete(info.ipc) != null) {
       /// 如果没有任何消费者了，那么真正意义上触发 abort
       if (this.usedIpcMap.size === 0) {
-        this.abortSignal.emit();
+        this.streamCtorSignal.emit(STREAM_CTOR_SIGNAL.ABORTED);
       }
     }
   }
@@ -151,14 +199,36 @@ export class IpcBodySender extends IpcBody {
   ): MetaBody {
     const stream_id = getStreamId(stream);
     const reader = binaryStreamRead(stream);
+    (async () => {
+      /**
+       * 流的使用锁(Future 锁)
+       * 只有等到 Pulling 指令的时候才能读取并发送
+       */
+      let pullingLock = new PromiseOut<void>();
+      this.streamCtorSignal.listen((signal) => {
+        switch (signal) {
+          case STREAM_CTOR_SIGNAL.PULLING: {
+            pullingLock.resolve();
+            break;
+          }
+          case STREAM_CTOR_SIGNAL.PAUSED: {
+            if (pullingLock.is_finished) {
+              pullingLock = new PromiseOut();
+            }
+            break;
+          }
+          case STREAM_CTOR_SIGNAL.ABORTED: {
+            reader.return();
+            this.emitStreamClose();
+          }
+        }
+      });
 
-    const sender = async () => {
-      /// 如果原本就不为0，那么就说明已经在运行中了
-      if (this.curPulledTimes++ > 0) {
-        return;
-      }
-      /// 读满预期值
-      while (this.curPulledTimes > 0) {
+      /// 持续发送数据
+      while (true) {
+        // 等待流开始被拉取
+        await pullingLock.promise;
+
         // const desiredSize = this.maxPulledSize - this.curPulledSize;
         const availableLen = await reader.available();
         switch (availableLen) {
@@ -178,25 +248,17 @@ export class IpcBodySender extends IpcBody {
             // 开光了，流已经开始被读取
             this.isStreamOpened = true;
 
-            const data = await reader.readBinary(availableLen);
-            const message = IpcStreamData.fromBinary(stream_id, data);
+            const message = IpcStreamData.fromBinary(
+              stream_id,
+              await reader.readBinary(availableLen)
+            );
             for (const ipc of this.usedIpcMap.keys()) {
               ipc.postMessage(message);
             }
           }
         }
-
-        /// 只要发送过一次，那么就把所有请求指控，根据协议，我能发多少是多少，你不够的话，再来要
-        this.curPulledTimes = 0;
       }
-    };
-    this.pullSignal.listen(() => {
-      void sender();
-    });
-    this.abortSignal.listen(() => {
-      reader.return();
-      this.emitStreamClose();
-    });
+    })().catch(console.error);
 
     let streamType = IPC_META_BODY_TYPE.STREAM_ID;
     let streamFirstData: string | Uint8Array = "";
@@ -221,17 +283,26 @@ export class IpcBodySender extends IpcBody {
       if (usableIpcBodyMapper === undefined) {
         const mapper = new UsableIpcBodyMapper();
         mapper.onDestroy(
-          ipc.onMessage((message) => {
-            if (message instanceof IpcStreamPull) {
-              const ipcBody = mapper.get(message.stream_id);
-              // 一个流一旦开启了，那么就无法再被外部使用了
-              if (ipcBody?.useByIpc(ipc)) {
-                // ipc 将使用这个 body，也就是说接下来的 MessageData 也要通知一份给这个 ipc
-                ipcBody.emitStreamPull(message, ipc);
-              }
-            } else if (message instanceof IpcStreamAbort) {
-              const ipcBody = mapper.get(message.stream_id);
-              ipcBody?.unuseByIpc(ipc);
+          ipc.onStream((message) => {
+            switch (message.type) {
+              case IPC_MESSAGE_TYPE.STREAM_PULLING:
+                mapper
+                  .get(message.stream_id)
+                  ?.useByIpc(ipc)
+                  ?.emitStreamPull(message);
+                break;
+              case IPC_MESSAGE_TYPE.STREAM_PAUSED:
+                mapper
+                  .get(message.stream_id)
+                  ?.useByIpc(ipc)
+                  ?.emitStreamPaused(message);
+                break;
+              case IPC_MESSAGE_TYPE.STREAM_ABORT:
+                mapper
+                  .get(message.stream_id)
+                  ?.useByIpc(ipc)
+                  ?.emitStreamAborted();
+                break;
             }
           })
         );

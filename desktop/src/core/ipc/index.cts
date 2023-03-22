@@ -9,5 +9,6 @@ export * from "./IpcRequest.cjs";
 export * from "./IpcResponse.cjs";
 export * from "./IpcStreamData.cjs";
 export * from "./IpcStreamEnd.cjs";
-export * from "./IpcStreamPull.cjs";
+export * from "./IpcStreamPulling.cjs";
+export * from "./IpcStreamPaused.cjs";
 export * from "./IpcEvent.cjs";

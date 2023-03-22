@@ -7,6 +7,8 @@ import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcMethod
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import io.ktor.util.collections.*
+import okhttp3.internal.closeQuietly
+import okio.use
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -62,7 +64,6 @@ class Gateway(
     )
 
     class StreamIpcRouter(val config: RouteConfig, val streamIpc: ReadableStreamIpc) {
-
 
         val isMatch: (request: Request) -> Boolean by lazy {
             when (config.matchMode) {

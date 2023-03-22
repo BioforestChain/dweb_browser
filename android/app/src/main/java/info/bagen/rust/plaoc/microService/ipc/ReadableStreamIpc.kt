@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService.ipc
 
-import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.jsonToIpcMessage
 import kotlinx.coroutines.CoroutineName
@@ -41,9 +40,7 @@ class ReadableStreamIpc(
         debugStreamIpc("ON-PULL/${controller.stream}", size)
     })
 
-    @Synchronized
-    private suspend inline fun enqueue(data: ByteArray) = controller.enqueue(data)
-
+    private suspend fun enqueue(data: ByteArray) = controller.enqueue(data)
 
     private var _incomeStream: InputStream? = null
 
@@ -115,7 +112,17 @@ class ReadableStreamIpc(
         }
         debugStreamIpc("post/$stream", message.size)
         enqueue(message.size.toByteArray() + message)
+
+        debugStreamIpc("afterPost/canReadSize/$stream", stream.canReadSize)
+        if (stream.canReadSize > 0) {
+            pressureSignal.emit()
+        }
     }
+
+    /**
+     * 压力信号
+     */
+    val pressureSignal by lazy { SimpleSignal() }
 
     override suspend fun _doClose() {
         controller.close()

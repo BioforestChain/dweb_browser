@@ -7,6 +7,7 @@ import {
   $IpcMessage,
   $OnIpcEventMessage,
   $OnIpcRequestMessage,
+  $OnIpcStreamMessage,
   IPC_MESSAGE_TYPE,
   type $OnIpcMessage,
 } from "./const.cjs";
@@ -88,6 +89,20 @@ export abstract class Ipc {
 
   onRequest(cb: $OnIpcRequestMessage) {
     return this._onRequestSignal.listen(cb);
+  }
+
+  @cacheGetter()
+  private get _onStreamSignal() {
+    const signal = createSignal<$OnIpcStreamMessage>(false);
+    this.onMessage((request, ipc) => {
+      if ("stream_id" in request) {
+        signal.emit(request, ipc);
+      }
+    });
+    return signal;
+  }
+  onStream(cb: $OnIpcStreamMessage) {
+    return this._onStreamSignal.listen(cb);
   }
 
   @cacheGetter()

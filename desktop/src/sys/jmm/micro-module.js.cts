@@ -1,14 +1,13 @@
 import chalk from "chalk";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
-import { Ipc, IpcHeaders, IpcRequest, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
+import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { MicroModule } from "../../core/micro-module.cjs";
 import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.cjs";
 import type { $IpcSupportProtocols } from "../../helper/types.cjs";
 import { buildUrl } from "../../helper/urlHelper.cjs";
 import { Native2JsIpc } from "../js-process/ipc.native2js.cjs";
-import { IpcEvent } from "../../core/ipc/IpcEvent.cjs"
- 
+
 import type { JmmMetadata } from "./JmmMetadata.cjs";
 
 /**
@@ -41,18 +40,20 @@ export class JsMicroModule extends MicroModule {
   /**
    * 一个 jsMM 可能连接多个模块
    */
-  private _remoteIpcs = new Map<string, Ipc>()
+  private _remoteIpcs = new Map<string, Ipc>();
   private _workerIpc: Native2JsIpc | undefined;
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
-    console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`)
+    console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`);
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
-    this.onConnect((workerIpc, rease) => {
-      console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
+    this.onConnect((workerIpc) => {
+      console.log(
+        `[micro-module.js.cts ${this.mmid} onConnect by ${workerIpc.remote.mmid}]`
+      );
       // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
-      ipc.onRequest(async (request) => {
+      workerIpc.onRequest(async (request) => {
         // console.log('[micro-module.js.cts ipc onRequest]',JSON.stringify(request))
         // console.log('[micro-module.js.cts ipc onRequest request.parsed_url.href]',request.parsed_url.href)
         // console.log('[micro-module.js.cts ]   ipc ', ipc.remote.mmid)
@@ -67,8 +68,8 @@ export class JsMicroModule extends MicroModule {
           : { method: request.method };
 
         const response = await this.nativeFetch(request.parsed_url.href, init);
-        ipc.postMessage(
-          await IpcResponse.fromResponse(request.req_id, response, ipc)
+        workerIpc.postMessage(
+          await IpcResponse.fromResponse(request.req_id, response, workerIpc)
         );
       });
 
@@ -76,10 +77,9 @@ export class JsMicroModule extends MicroModule {
         // console.log('ipc.onMessage', request)
       });
 
-      ipc.onEvent(() => {
-        console.log("ipc. onEvent");
+      workerIpc.onEvent((event) => {
+        console.log("ipc.onEvent", event);
       });
-      console.log("onConencted");
     });
 
     const pid = Math.ceil(Math.random() * 1000).toString();
@@ -140,7 +140,7 @@ export class JsMicroModule extends MicroModule {
     });
 
     jsIpc.onEvent(async (ipcEvent) => {
-      console.log('接收到连接的请求')
+      console.log("接收到连接的请求");
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
         const [targetIpc] = await context.dns.connect(mmid);
@@ -159,7 +159,7 @@ export class JsMicroModule extends MicroModule {
     });
   }
   private _connecting_ipcs = new Set<Ipc>();
-  
+
   async _beConnect(from: MicroModule): Promise<Native2JsIpc> {
     const process_id = this._process_id;
     if (process_id === undefined) {
@@ -169,10 +169,10 @@ export class JsMicroModule extends MicroModule {
     const port_id = await this.nativeFetch(
       `file://js.sys.dweb/create-ipc?process_id=${process_id}&mmid=${this.mmid}`
     ).number();
-   
+
     const outer_ipc = new Native2JsIpc(port_id, this);
     this._connecting_ipcs.add(outer_ipc);
-    this._workerIpc = outer_ipc /** 测试代码 */
+    this._workerIpc = outer_ipc; /** 测试代码 */
     return outer_ipc;
   }
 

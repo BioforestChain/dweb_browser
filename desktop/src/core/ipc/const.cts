@@ -6,7 +6,8 @@ import type { IpcResMessage, IpcResponse } from "./IpcResponse.cjs";
 import type { IpcStreamAbort } from "./IpcStreamAbort.cjs";
 import type { IpcStreamData } from "./IpcStreamData.cjs";
 import type { IpcStreamEnd } from "./IpcStreamEnd.cjs";
-import type { IpcStreamPull } from "./IpcStreamPull.cjs";
+import type { IpcStreamPaused } from "./IpcStreamPaused.cjs";
+import type { IpcStreamPulling } from "./IpcStreamPulling.cjs";
 
 export const enum IPC_METHOD {
   GET = "GET",
@@ -65,8 +66,16 @@ export const enum IPC_MESSAGE_TYPE {
   RESPONSE,
   /** 类型：流数据，发送方 */
   STREAM_DATA,
-  /** 类型：流拉取，请求方 */
-  STREAM_PULL,
+  /** 类型：流拉取，请求方
+   * 发送方一旦收到该指令，就可以持续发送数据
+   * 该指令中可以携带一些“限流协议信息”，如果违背该协议，请求方可能会断开连接
+   */
+  STREAM_PULLING,
+  /** 类型：流暂停，请求方
+   * 发送方一旦收到该指令，就应当停止基本的数据发送
+   * 该指令中可以携带一些“保险协议信息”，描述仍然允许发送的一些数据类型、发送频率等。如果违背该协议，请求方可以会断开连接
+   */
+  STREAM_PAUSED,
   /** 类型：流关闭，发送方
    * 可能是发送完成了，也有可能是被中断了
    */
@@ -103,18 +112,19 @@ export type $IpcTransferableMessage =
   | IpcReqMessage
   | IpcResMessage
   | IpcEvent
-  | IpcStreamData
-  | IpcStreamPull
-  | IpcStreamEnd
-  | IpcStreamAbort;
+  | $IpcStreamMessage;
 
 /** 发送的消息 */
 export type $IpcMessage =
   | IpcRequest
   | IpcResponse
   | IpcEvent
+  | $IpcStreamMessage;
+
+export type $IpcStreamMessage =
   | IpcStreamData
-  | IpcStreamPull
+  | IpcStreamPulling
+  | IpcStreamPaused
   | IpcStreamEnd
   | IpcStreamAbort;
 
@@ -132,6 +142,11 @@ export type $OnIpcRequestMessage = (
 export type $OnIpcEventMessage = (
   /// 这里只会有两种类型的数据
   message: IpcEvent,
+  ipc: Ipc
+) => unknown;
+export type $OnIpcStreamMessage = (
+  /// 这里只会有两种类型的数据
+  message: $IpcStreamMessage,
   ipc: Ipc
 ) => unknown;
 
