@@ -2,17 +2,16 @@ import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { cros, onApiRequest } from "./cotDemo.request.mjs";
 
 const main = async () => {
-  let view_id: Promise<string> | undefined;
   const mainUrl = new PromiseOut<string>();
   const tryOpenView = async () => {
     const url = await mainUrl.promise;
-    // view_id ??=
-    jsProcess
+    const view_id = await jsProcess
       .nativeFetch(
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
       )
       .text();
   };
+  let hasActivity = false;
   /// 根据桌面协议，收到activity后就会被唤醒
   jsProcess.onConnect((ipc) => {
     console.log("on connect", ipc);
@@ -20,6 +19,7 @@ const main = async () => {
     ipc.onEvent(async (event) => {
       console.log("ookkkk", event);
       if (event.name === "activity") {
+        hasActivity = true;
         tryOpenView();
       }
     });
@@ -104,12 +104,10 @@ const main = async () => {
       url.pathname = "/index.html";
     }).href;
     mainUrl.resolve(interUrl);
-    // console.log("cot#open interUrl=>", interUrl);
-    const view_id = await jsProcess
-      .nativeFetch(
-        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
-      )
-      .text();
+    // 如果没有被 browser 激活，那么也尝试自启动
+    if (hasActivity === false) {
+      await tryOpenView();
+    }
 
     // const windowHanlder = mwebview.openWindow(interUrl);
     // windowHanlder.onClose(() => {});
