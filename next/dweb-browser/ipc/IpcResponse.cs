@@ -91,7 +91,6 @@ sealed class IpcResMessageConverter : JsonConverter<IpcResMessage>
                     ipcResMessage.StatusCode = reader.GetInt16();
                     break;
                 case "metaBody":
-                    // TODO: 反序列化 MetaBody 可能存在反序列化失败隐患，未测试
                     ipcResMessage.MetaBody = (SMetaBody)SMetaBody.FromJson(reader.GetString()!)!;
                     break;
                 case "headers":

@@ -102,7 +102,6 @@ sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>
                     ipcReqMessage.Method = new IpcMethod(reader.GetString() ?? "GET");
                     break;
                 case "metaBody":
-                    // TODO: 反序列化 MetaBody 可能存在反序列化失败隐患，未测试
                     ipcReqMessage.MetaBody = (SMetaBody)SMetaBody.FromJson(reader.GetString()!)!;
                     break;
                 case "headers":

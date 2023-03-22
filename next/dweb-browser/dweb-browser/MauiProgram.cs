@@ -28,7 +28,8 @@ public static class MauiProgram
         var json = new IpcResMessage(
             req_id: 0,
             statusCode: 404,
-            headers: new Dictionary<string, string> { { "content-type", "application/json" }, { "encoding", "utf-8" } }
+            headers: new Dictionary<string, string> { { "content-type", "application/json" }, { "encoding", "utf-8" } },
+            new SMetaBody(SMetaBody.IPC_META_BODY_TYPE.STREAM_ID, 0, "111", "222", 1)
         ).ToJson();
         Console.WriteLine(json);
         Console.WriteLine(IpcResMessage.FromJson(json));

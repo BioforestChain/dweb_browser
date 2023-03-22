@@ -16,4 +16,10 @@
   <ItemGroup>
     <PackageReference Include="MessagePack" Version="2.5.108" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="helper\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="helper\" />
+  </ItemGroup>
 </Project>
