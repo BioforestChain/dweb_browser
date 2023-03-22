@@ -119,7 +119,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         App.startActivity(activityClass.ctor) { intent ->
-            intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            // intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
 //            intent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

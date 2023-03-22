@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import org.http4k.core.*
 import java.util.*
 
-inline fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("jmm", tag, msg, err)
 
 open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {

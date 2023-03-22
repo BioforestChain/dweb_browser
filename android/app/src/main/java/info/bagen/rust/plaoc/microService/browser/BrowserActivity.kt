@@ -48,10 +48,6 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 class BrowserActivity : AppCompatActivity() {
-    companion object {
-        const val REQUEST_CODE_PHOTO = 1
-    }
-
     var blueToothReceiver: BlueToothReceiver? = null
     fun getContext() = this
     val qrCodeViewModel: QRCodeViewModel = QRCodeViewModel()
@@ -78,7 +74,6 @@ class BrowserActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         upsetRemoteMmid()
-        BrowserNMM.activityPo?.resolve(this)
         App.browserActivity = this
         setContent {
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =

@@ -38,6 +38,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 } catch (_: Exception) {}
             }
             JmmMetadataDB.queryJmmMetadataList().collectLatest { // TODO 只要datastore更新，这边就会实时更新
+                debugJMM("init/JmmNMM", "init Apps list -> ${it.size}")
                 it.forEach { (key, value) ->
                     apps.getOrPut(key) {
                         JsMicroModule(value).also { jsMicroModule ->
