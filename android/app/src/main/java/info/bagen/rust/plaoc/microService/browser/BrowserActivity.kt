@@ -39,6 +39,7 @@ import info.bagen.rust.plaoc.ui.camera.QRCodeIntent
 import info.bagen.rust.plaoc.ui.camera.QRCodeScanning
 import info.bagen.rust.plaoc.ui.camera.QRCodeScanningView
 import info.bagen.rust.plaoc.ui.camera.QRCodeViewModel
+import info.bagen.rust.plaoc.ui.loading.LoadingView
 import info.bagen.rust.plaoc.ui.main.Home
 import info.bagen.rust.plaoc.ui.main.MainViewModel
 import info.bagen.rust.plaoc.ui.main.SearchAction
@@ -114,11 +115,13 @@ class BrowserActivity : AppCompatActivity() {
                     }, onOpenDWebview = { appId, dAppInfo ->
                         /// TODO 这里是点击桌面app触发的事件
                         coroutineScope.launch {
+                            BrowserNMM.browserController.showLoading.value = true
                             BrowserNMM.browserController.openApp(appId)
                         }
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                     QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
+                    LoadingView(BrowserNMM.browserController.showLoading)
                 }
             }
         }
@@ -183,11 +186,18 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && !BrowserNMM.browserController.showLoading.value) {
             moveTaskToBack(true)
             return false
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (BrowserNMM.browserController.showLoading.value) { // 如果已经跳转了，这边直接改为隐藏
+            BrowserNMM.browserController.showLoading.value = false
+        }
     }
 
     override fun onDestroy() {

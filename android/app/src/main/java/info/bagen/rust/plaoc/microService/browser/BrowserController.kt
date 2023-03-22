@@ -1,5 +1,7 @@
 package info.bagen.rust.plaoc.microService.browser
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
@@ -11,8 +13,8 @@ import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
 
 class BrowserController(
-    open val mmid: Mmid,
-    open val localeMM: BrowserNMM,
+    val mmid: Mmid,
+    val localeMM: BrowserNMM,
 ) {
     companion object {
         private var browserId_acc = AtomicInteger(1)
@@ -32,6 +34,8 @@ class BrowserController(
                 activityTask.resolve(value)
             }
         }
+
+    val showLoading: MutableState<Boolean> = mutableStateOf(false)
 
     data class BrowserItem(
         val browserId: String,

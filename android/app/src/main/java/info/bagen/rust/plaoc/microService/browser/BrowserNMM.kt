@@ -32,6 +32,11 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
     suspend fun openApp(mmid: Mmid) {
         val (ipc) = bootstrapContext.dns.connect(mmid)
         ipc.postMessage(IpcEvent.fromUtf8("activity", ""))
+        ipc.onEvent {
+            if (it.event.name == "ready") { // 说法加载完成，可以隐藏加载框
+                browserController.showLoading.value = false
+            }
+        }
     }
 
     override suspend fun _shutdown() {
