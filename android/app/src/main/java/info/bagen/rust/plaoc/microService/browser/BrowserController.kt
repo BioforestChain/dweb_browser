@@ -11,8 +11,8 @@ import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
 
 class BrowserController(
-    private val mmid: Mmid,
-    private val localeMM: BrowserNMM,
+    open val mmid: Mmid,
+    open val localeMM: BrowserNMM,
 ) {
     companion object {
         private var browserId_acc = AtomicInteger(1)
@@ -44,11 +44,10 @@ class BrowserController(
 
     suspend fun openApp(mmid: Mmid) = localeMM.openApp(mmid)
 
-    fun installJMM(jmmMetadata: JmmMetadata, url: String) =
-        runBlockingCatching(ioAsyncExceptionHandler) {
-            localeMM.nativeFetch(
-                Uri.of("file://jmm.sys.dweb/install")
-                    .query("mmid", jmmMetadata.id).query("metadataUrl", url)
-            )
-        }.getOrThrow()
+    suspend fun installJMM(jmmMetadata: JmmMetadata, url: String) = localeMM.nativeFetch(
+        Uri.of("file://jmm.sys.dweb/install")
+            .query("mmid", jmmMetadata.id).query("metadataUrl", url)
+    )
+
+    fun openBrowserActivity() = localeMM.openBrowserActivity()
 }

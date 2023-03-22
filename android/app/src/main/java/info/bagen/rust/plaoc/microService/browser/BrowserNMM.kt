@@ -7,7 +7,6 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 
@@ -16,12 +15,13 @@ fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
     companion object {
-        var activityPo: PromiseOut<BrowserActivity>? = null
-        var browserController: BrowserController? = null
-    }
+        private val browserNMM: BrowserNMM by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+            BrowserNMM()
+        }
 
-    init {
-        browserController = BrowserController(mmid, this)
+        val browserController by lazy {
+            BrowserController("browser.sys.dweb", browserNMM)
+        }
     }
 
     @SuppressLint("SuspiciousIndentation")
@@ -37,15 +37,11 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
     override suspend fun _shutdown() {
     }
 
-    private suspend fun openBrowserActivity() {
-        val activity = PromiseOut<BrowserActivity>().also {
-            activityPo = it
-            App.startActivity(BrowserActivity::class.java) { intent ->
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-                intent.putExtras(Bundle().also { b -> b.putString("mmid", mmid) })
-            }
-        }.waitPromise()
-        _afterShutdownSignal.listen { activity.finish() }
+    fun openBrowserActivity() {
+        App.startActivity(BrowserActivity::class.java) { intent ->
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            intent.putExtras(Bundle().also { b -> b.putString("mmid", mmid) })
+        }
     }
 }

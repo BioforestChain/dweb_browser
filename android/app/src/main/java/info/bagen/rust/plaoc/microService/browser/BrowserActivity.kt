@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -90,7 +91,9 @@ class BrowserActivity : AppCompatActivity() {
                             SearchAction.Search -> {
                                 if (!checkJmmMetadataJson(data) { jmmMetadata, url ->
                                         // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
-                                        BrowserNMM.browserController?.installJMM(jmmMetadata, url)
+                                        coroutineScope.launch {
+                                            BrowserNMM.browserController?.installJMM(jmmMetadata, url)
+                                        }
                                     }) {
                                     dWebBrowserModel.handleIntent(
                                         DWebBrowserIntent.OpenDWebBrowser(data)
@@ -111,9 +114,8 @@ class BrowserActivity : AppCompatActivity() {
                     }, onOpenDWebview = { appId, dAppInfo ->
                         /// TODO 这里是点击桌面app触发的事件
                         coroutineScope.launch {
-                            BrowserNMM.browserController?.openApp(appId)
+                            BrowserNMM.browserController.openApp(appId)
                         }
-
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                     QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
@@ -178,6 +180,14 @@ class BrowserActivity : AppCompatActivity() {
             }
             qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(true)
+            return false
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onDestroy() {

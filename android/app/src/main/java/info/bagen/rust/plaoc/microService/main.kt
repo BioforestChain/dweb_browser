@@ -62,7 +62,7 @@ suspend fun startDwebBrowser() {
     val httpNMM = HttpNMM().also { dnsNMM.install(it) }
 
     /// 安装系统桌面
-    val browserNMM = BrowserNMM().also { dnsNMM.install(it) }
+    val browserNMM = BrowserNMM.browserController.localeMM.also { dnsNMM.install(it) }
 
     /// 相机
     val cameraNMM = CameraNMM().also{ dnsNMM.install(it)}
@@ -127,6 +127,7 @@ suspend fun startDwebBrowser() {
             browserNMM.mmid,
         )
         else -> listOf(
+            //browserNMM.mmid,
             cotDemoJMM.mmid,
         )
     }

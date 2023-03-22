@@ -25,14 +25,16 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewState
-import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
-import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM
 import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.ui.splash.SplashPrivacyDialog
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.KEY_ENABLE_AGREEMENT
 import info.bagen.rust.plaoc.util.getBoolean
 import info.bagen.rust.plaoc.util.saveBoolean
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,9 +69,16 @@ class SplashActivity : AppCompatActivity() {
   }
 }
 
-private fun startDwebBrowserProcess() = runBlockingCatching(commonAsyncExceptionHandler) {
-  startDwebBrowser()
-}.getOrNull()
+private fun startDwebBrowserProcess() {
+  GlobalScope.launch {
+    if (App.browserActivity == null) {
+      startDwebBrowser()
+    } else {
+      delay(1000)
+      BrowserNMM.browserController.openBrowserActivity()
+    }
+  }
+}
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
