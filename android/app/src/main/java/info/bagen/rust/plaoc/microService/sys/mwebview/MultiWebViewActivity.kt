@@ -28,6 +28,7 @@ import info.bagen.rust.plaoc.microService.helper.toBitmap
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraPlugin.Companion.REQUEST_CAMERA_IMAGE
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraPlugin.Companion.REQUEST_IMAGE_CAPTURE
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.debugCameraNMM
+import info.bagen.rust.plaoc.microService.sys.plugin.share.debugShare
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger
 open class PermissionActivity : AppCompatActivity() {
     companion object {
         val PERMISSION_REQUEST_CODE_PHOTO = 2
+        val RESULT_SHARE_CODE = 3
         private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
         private var requestPermissionsCodeAcc = AtomicInteger(1);
     }
@@ -145,6 +147,13 @@ open class MultiWebViewActivity : PermissionActivity() {
             GlobalScope.launch(ioAsyncExceptionHandler) {
                 controller?.getCameraSignal?.emit(imageBitmap)
                 debugCameraNMM("REQUEST_CAMERA_IMAGE", imageBitmap)
+            }
+        }
+        // 分享返回数据
+        if (requestCode == RESULT_SHARE_CODE && resultCode == RESULT_OK) {
+            GlobalScope.launch(ioAsyncExceptionHandler) {
+                controller?.getShareSignal?.emit(data?.dataString?:"OK")
+                debugShare("RESULT_SHARE_CODE",data?.dataString)
             }
         }
     }

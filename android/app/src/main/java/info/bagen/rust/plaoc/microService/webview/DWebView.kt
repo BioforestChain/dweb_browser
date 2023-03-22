@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.webview
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.provider.MediaStore
@@ -236,6 +237,8 @@ class DWebView(
         }
     }
     private val internalWebChromeClient = object : WebChromeClient() {
+
+
         override fun onShowFileChooser(
             webView: WebView,
             filePathCallback: ValueCallback<Array<android.net.Uri>>,
@@ -249,14 +252,13 @@ class DWebView(
 //                launchFileInput() TODO permission
             }
             val pickIntent = Intent(
-                Intent.ACTION_PICK,
+                Intent.ACTION_GET_CONTENT,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             )
-
-            pickIntent.setDataAndType(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                fileChooserParams.acceptTypes.joinToString(",")
-            )
+//            pickIntent.setDataAndType(
+//                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+//                fileChooserParams.acceptTypes.joinToString(",")
+//            )
             activity?.startActivityForResult(pickIntent, PERMISSION_REQUEST_CODE_PHOTO)
             return true
         }

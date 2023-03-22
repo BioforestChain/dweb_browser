@@ -34,7 +34,7 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
    * @returns
    */
   @bindThis
-  async share(options: ShareOptions): Promise<Response> {
+  async share(options: ShareOptions): Promise<string> {
     return await this.fetchApi(`/share`, {
       search: {
         dialogTitle: options?.dialogTitle,
@@ -43,7 +43,7 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
         url: options?.url,
         files: options?.files,
       },
-    });
+    }).text();
   }
 }
 export const sharePlugin = new SharePlugin();

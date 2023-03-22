@@ -72,5 +72,5 @@ export interface ISharePlugin {
    *
    * @since 1.0.0
    */
-  share(options: ShareOptions): Promise<Response>;
+  share(options: ShareOptions): Promise<string>;
 }

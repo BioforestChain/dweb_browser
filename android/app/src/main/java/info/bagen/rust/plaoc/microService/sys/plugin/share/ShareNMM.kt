@@ -12,8 +12,11 @@ import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
+import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity.Companion.RESULT_SHARE_CODE
+import info.bagen.rust.plaoc.microService.sys.plugin.camera.debugCameraNMM
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -52,10 +55,15 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             "/share" bind Method.GET to defineHandler { request,ipc ->
                 debugShare("ShareNMM#apiRouting","share===>$mmid  ${request.uri.path} ")
                 val ext = shareOption(request)
-                share(ipc.remote.mmid,ext.title, ext.text, ext.url, ext.files, ext.dialogTitle) {
-                    Response(Status.OK).body(it)
+                val result = PromiseOut<String>()
+                share(ipc.remote.mmid,ext.title, ext.text, ext.url, ext.files, ext.dialogTitle,result)
+
+                getCurrentWebViewController(ipc.remote.mmid)?.getShareData { it ->
+                    debugShare("share", "result => $it")
+                    result.resolve(it)
                 }
-                Response(Status.INTERNAL_SERVER_ERROR)
+
+               return@defineHandler result.waitPromise()
             },
         )
     }
@@ -76,14 +84,14 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
         url: String? = null,
         files: List<String>? = null,
         dialogTitle: String = "分享到：",
-        onErrorCallback: (String) -> Unit
+        po: PromiseOut<String>
     ) {
         if (text == null && url == null && (files == null || files.isEmpty())) {
-            onErrorCallback("Must provide a URL or Message or files")
+            po.reject(Exception("Must provide a URL or Message or files"))
             return
         }
         if (url != null && !isFileUrl(url) && !isHttpUrl(url)) {
-            onErrorCallback("Unsupported url")
+            po.reject(Exception("Unsupported url"))
             return
         }
 
@@ -108,13 +116,15 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
                 putExtra(Intent.EXTRA_TEXT, url)
                 setTypeAndNormalize("text/plain")
             } else if (url != null && isFileUrl(url)) {
-                TODO()
+                val filesArray = listOf<String>()
+                filesArray.plus(url)
+                shareFiles(mmid,filesArray,this, po)
             }
 
             title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
 
             if (files != null && files.isNotEmpty()) {
-                shareFiles(mmid,files, this, onErrorCallback)
+                shareFiles(mmid,files, this,po)
             }
         }
 
@@ -128,11 +138,11 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
         val chooserIntent = Intent.createChooser(intent, dialogTitle, pi.intentSender).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
         }
-        getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
+        getCurrentWebViewController(mmid)?.activity?.startActivityForResult(chooserIntent, RESULT_SHARE_CODE)
     }
 
     private fun shareFiles(
-        mmid: Mmid,files: List<String>, intent: Intent, onErrorCallback: (String) -> Unit
+        mmid: Mmid,files: List<String>, intent: Intent, po: PromiseOut<String>
     ) {
         val arrayListFiles = arrayListOf<Uri>()
         try {
@@ -159,7 +169,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
                             intent.putExtra(Intent.EXTRA_STREAM, fileUrl)
                         }
                     } else {
-                        onErrorCallback("only file urls are supported")
+                        po.reject(Exception(("only file urls are supported")))
                         return@OutLine
                     }
                 }
@@ -169,7 +179,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             }
             intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         } catch (e: Throwable) {
-            onErrorCallback(e.localizedMessage)
+            po.reject(e)
         }
     }
 

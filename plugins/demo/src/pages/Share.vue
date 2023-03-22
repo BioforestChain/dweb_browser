@@ -27,7 +27,8 @@ onMounted(() => {
 });
 
 const shareHandle = defineLogAction(async () => {
-  share.share(shareData)
+  const result = await share.share(shareData)
+  console.info("shareHandle=>", result)
 }, { name: "shareHandle", args: [], logPanel: $logPanel })
 
 const fileChange = ($event: Event) => {
@@ -57,7 +58,7 @@ const fileChange = ($event: Event) => {
         <input type="url" v-model="shareData.url" />
       </FieldLabel>
       <FieldLabel label="files:">
-        <input type="file" @change="fileChange($event)" accept="*/*" />
+        <input type="file" @change="fileChange($event)" />
       </FieldLabel>
 
       <div class="text-xs mockup-code min-w-max">
@@ -69,4 +70,6 @@ const fileChange = ($event: Event) => {
       </div>
     </article>
   </div>
+  <div class="divider">LOG</div>
+  <LogPanel ref="$logPanel"></LogPanel>
 </template>
