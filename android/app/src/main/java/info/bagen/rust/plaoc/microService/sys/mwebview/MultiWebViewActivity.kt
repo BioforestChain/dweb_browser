@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -29,10 +30,12 @@ import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraPlugin.Compani
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraPlugin.Companion.REQUEST_IMAGE_CAPTURE
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.debugCameraNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.share.debugShare
+import info.bagen.rust.plaoc.ui.main.MainActivity
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
+
 
 open class PermissionActivity : AppCompatActivity() {
     companion object {
@@ -150,7 +153,7 @@ open class MultiWebViewActivity : PermissionActivity() {
             }
         }
         // 分享返回数据
-        if (requestCode == RESULT_SHARE_CODE && resultCode == RESULT_OK) {
+        if (requestCode == RESULT_SHARE_CODE) {
             GlobalScope.launch(ioAsyncExceptionHandler) {
                 controller?.getShareSignal?.emit(data?.dataString?:"OK")
                 debugShare("RESULT_SHARE_CODE",data?.dataString)

@@ -12,3 +12,4 @@ export * from "./barcode-scanning/index.ts";
 export * from "./torch/index.ts";
 export * from "./close-watcher/index.ts";
 export * from "./haptics/index.ts"
+export * from "./file-system/index.ts"

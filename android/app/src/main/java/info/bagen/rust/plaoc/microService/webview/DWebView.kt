@@ -1,17 +1,21 @@
 package info.bagen.rust.plaoc.microService.webview
 
-import android.content.ActivityNotFoundException
+import android.Manifest
+import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.provider.MediaStore
 import android.view.ViewGroup
 import android.webkit.*
+import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.getFullAuthority
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity.Companion.PERMISSION_REQUEST_CODE_PHOTO
+import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
+import info.bagen.rust.plaoc.microService.sys.plugin.permission.debugPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -244,45 +248,41 @@ class DWebView(
             filePathCallback: ValueCallback<Array<android.net.Uri>>,
             fileChooserParams: FileChooserParams
         ): Boolean {
-            this@DWebView.filePathCallback?.also {
-                it.onReceiveValue(emptyArray())
-            }
+            val acceptTypes: List<String> = fileChooserParams.acceptTypes.toList()
+            val captureEnabled = fileChooserParams.isCaptureEnabled
+            val capturePhoto = captureEnabled && acceptTypes.contains("image/*")
+            val captureVideo = captureEnabled && acceptTypes.contains("video/*")
             this@DWebView.filePathCallback = filePathCallback
-            this@DWebView.requestPermissionCallback = ValueCallback {
-//                launchFileInput() TODO permission
-            }
+
             val pickIntent = Intent(
                 Intent.ACTION_GET_CONTENT,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             )
-//            pickIntent.setDataAndType(
-//                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-//                fileChooserParams.acceptTypes.joinToString(",")
-//            )
+            pickIntent.addCategory(Intent.CATEGORY_OPENABLE);
+
+            if (capturePhoto || captureVideo) {
+                pickIntent.setDataAndType(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    fileChooserParams.acceptTypes.joinToString(",")
+                )
+            }
             activity?.startActivityForResult(pickIntent, PERMISSION_REQUEST_CODE_PHOTO)
             return true
         }
 
         override fun onCloseWindow(window: WebView?) {
-            println("close")
             GlobalScope.launch(ioAsyncExceptionHandler) {
                 closeSignal.emit()
             }
             super.onCloseWindow(window)
         }
-//
-//        override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
-//            super.onShowCustomView(view, callback)
-//        }
-//
-//        override fun onHideCustomView() {
-//            super.onHideCustomView()
-//        }
 
         override fun onPermissionRequest(request: PermissionRequest) {
-            println("activity:$activity request.resources:${request.resources.joinToString { it }}")
+            debugPermission(
+                "onPermissionRequest",
+                "activity:$activity request.resources:${request.resources.joinToString { it }}"
+            )
             activity?.also {
-//                    PermissionManager.requestPermissions(it,request.resources[0])
                 GlobalScope.launch(ioAsyncExceptionHandler) {
                     val permissions = mutableListOf<String>()
                     for (res in request.resources) {
@@ -293,7 +293,10 @@ class DWebView(
                         }
                     }
                     val result = it.requestPermissions(permissions.toTypedArray())
-                    println("activity:$activity result:${result.grants.joinToString()}")
+                    debugPermission(
+                        "onPermissionRequest",
+                        "activity:$activity result:${result.grants.joinToString()}"
+                    )
                     it.runOnUiThread {
                         if (result.denied.size == 0) {
                             request.grant(request.resources)
@@ -330,9 +333,9 @@ class DWebView(
         settings.loadWithOverviewMode = true
         settings.loadsImagesAutomatically = true
         settings.setSupportMultipleWindows(true)
-        settings.allowFileAccess = false
+        settings.allowFileAccess = true
         settings.javaScriptCanOpenWindowsAutomatically = true
-        settings.allowContentAccess = false
+        settings.allowContentAccess = true
 
         super.setWebViewClient(internalWebViewClient)
         super.setWebChromeClient(internalWebChromeClient)

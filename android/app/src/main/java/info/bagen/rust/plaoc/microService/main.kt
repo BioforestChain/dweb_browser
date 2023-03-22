@@ -48,7 +48,8 @@ suspend fun startDwebBrowser() {
         else -> debugTags.addAll(
             listOf<String>(
 //                "Camera"
-                    "Share"
+                    "Share",
+//                "FileSystem"
             )
         )
     }

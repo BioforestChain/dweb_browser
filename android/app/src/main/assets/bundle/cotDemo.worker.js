@@ -298,19 +298,20 @@ var cros = (headers) => {
 
 // src/user/cot-demo/cotDemo.worker.mts
 var main = async () => {
-  let view_id;
   const mainUrl = new PromiseOut();
   const tryOpenView = async () => {
     const url = await mainUrl.promise;
-    jsProcess.nativeFetch(
+    const view_id = await jsProcess.nativeFetch(
       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
     ).text();
   };
+  let hasActivity = false;
   jsProcess.onConnect((ipc2) => {
     console.log("on connect", ipc2);
     ipc2.onEvent(async (event) => {
       console.log("ookkkk", event);
       if (event.name === "activity") {
+        hasActivity = true;
         tryOpenView();
       }
     });
@@ -353,9 +354,9 @@ var main = async () => {
       url.pathname = "/index.html";
     }).href;
     mainUrl.resolve(interUrl);
-    const view_id2 = await jsProcess.nativeFetch(
-      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
-    ).text();
+    if (hasActivity === false) {
+      await tryOpenView();
+    }
   }
   {
   }

@@ -1,10 +1,13 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
+import { toBase64 } from '../../helper/toBase64.ts';
 import type {
   CanShareResult,
   ShareOptions,
   ISharePlugin,
 } from "./share.type.ts";
+import { Directory } from "../file-system/file-system.type.ts";
+import { fileSystemPlugin } from "../file-system/file-system.plugin.ts";
 
 export class SharePlugin extends BasePlugin implements ISharePlugin {
   readonly tagName = "dweb-share";
@@ -35,15 +38,37 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
    */
   @bindThis
   async share(options: ShareOptions): Promise<string> {
+
+    let fileUri = ""
+    if (options.files) {
+      const file = options.files
+      // device shareing
+      await fileSystemPlugin.writeFile({
+        path: file.name,
+        data: await toBase64(file),
+        directory: Directory.Cache
+      });
+
+      const fileResult = await fileSystemPlugin.getUri({
+        directory: Directory.Cache,
+        path: file.name
+      });
+      fileUri = fileResult.uri
+    }
+
     return await this.fetchApi(`/share`, {
       search: {
         dialogTitle: options?.dialogTitle,
         title: options?.title,
         text: options?.text,
         url: options?.url,
-        files: options?.files,
+        files: fileUri,
       },
     }).text();
   }
 }
+
+
+
+
 export const sharePlugin = new SharePlugin();
