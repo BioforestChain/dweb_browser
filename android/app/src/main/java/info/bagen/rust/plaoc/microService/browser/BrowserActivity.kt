@@ -186,9 +186,14 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK && !BrowserNMM.browserController.showLoading.value) {
-            moveTaskToBack(true)
-            return false
+        if (keyCode == KeyEvent.KEYCODE_BACK && event?.repeatCount == 0) {
+            if (BrowserNMM.browserController.addViewList.size > 0) {
+                if (event.action == KeyEvent.ACTION_DOWN) BrowserNMM.browserController.removeLastView()
+                return true
+            } else if (!BrowserNMM.browserController.showLoading.value) {
+                moveTaskToBack(true)
+                return true
+            }
         }
         return super.onKeyDown(keyCode, event)
     }

@@ -1,12 +1,14 @@
 package info.bagen.rust.plaoc.microService.browser
 
 import android.net.Uri
+import android.view.ViewGroup
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -46,7 +48,20 @@ class DWebBrowserModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             when (action) {
                 is DWebBrowserIntent.OpenDWebBrowser -> {
-                    openDWebBrowser(action.origin, action.processId)
+                    // openDWebBrowser(action.origin, action.processId)
+                    viewModelScope.launch(Dispatchers.Main) {
+                        DWebView(
+                            context = App.browserActivity ?: App.appContext,
+                            localeMM = BrowserNMM.browserController.localeMM,
+                            remoteMM = BrowserNMM.browserController.localeMM,
+                            options = DWebView.Options(action.origin)
+                        ).also { webView ->
+                            BrowserNMM.browserController.appendView(webView) // TODO 添加到列表中
+                            App.browserActivity?.let {
+                                (it.window.decorView as ViewGroup).addView(webView)
+                            }
+                        }
+                    }
                 }
                 is DWebBrowserIntent.RemoveLast -> {
                     val last = uiState.dWebBrowserList.last()

@@ -1,7 +1,10 @@
 package info.bagen.rust.plaoc.microService.browser
 
+import android.view.View
+import android.view.ViewGroup
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
@@ -36,6 +39,23 @@ class BrowserController(
         }
 
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
+
+    val addViewList = mutableListOf<View>()
+    fun appendView(view: View) {
+        addViewList.add(view)
+    }
+    fun removeLastView() : Boolean {
+        try {
+            addViewList.removeLast().also { childView ->
+                App.browserActivity?.window?.decorView?.let { parentView ->
+                    (parentView as ViewGroup).removeView(childView)
+                }
+            }
+        } catch (e: NoSuchElementException) {
+            return false
+        }
+        return true
+    }
 
     data class BrowserItem(
         val browserId: String,
