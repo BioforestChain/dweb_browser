@@ -1,7 +1,6 @@
-﻿using ipc.helper;
+﻿namespace ipc;
 
-namespace ipc;
-
+[JsonConverter(typeof(IpcStreamDataConverter))]
 public class IpcStreamData : IpcMessage
 {
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_DATA;
@@ -27,8 +26,7 @@ public class IpcStreamData : IpcMessage
 
     public static IpcStreamData FromBinary(string stream_id, byte[] data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY);
     public static IpcStreamData FromBase64(string stream_id, byte[] data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BASE64);
-    public static IpcStreamData FromUtf8(string stream_id, byte[] data) =>
-        new IpcStreamData(stream_id, System.Text.UTF8Encoding.UTF8.GetString(data), IPC_DATA_ENCODING.UTF8);
+    public static IpcStreamData FromUtf8(string stream_id, byte[] data) => FromUtf8(stream_id, System.Text.UTF8Encoding.UTF8.GetString(data));
     public static IpcStreamData FromUtf8(string stream_id, string data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.UTF8);
 
     public Lazy<byte[]> Binary;

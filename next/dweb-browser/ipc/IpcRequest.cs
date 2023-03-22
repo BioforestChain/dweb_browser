@@ -2,14 +2,125 @@
 
 namespace ipc;
 
-public class IpcRequest
+public class IpcRequest: IpcMessage
 {
-    public IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.REQUEST;
-    public IpcMethod Method { get; set; } = IpcMethod.Get;
+    public int ReqId { get; set; }
+    public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.REQUEST;
+    public IpcMethod Method { get; set; }
+    public string Url { get; set; }
+    public IpcHeaders Headers { get; set; }
+    public IpcBody Body { get; set; }
+    public Ipc ReqIpc { get; set; }
 
-    public IpcRequest()
+    public IpcRequest(int req_id, string url, IpcMethod method, IpcHeaders headers, IpcBody body, Ipc ipc)
     {
+        ReqId = req_id;
+        Url = url;
+        Method = method;
+        Headers = headers;
+        Body = body;
+        ReqIpc = ipc;
+
+        _ipcReqMessage = new Lazy<IpcReqMessage>(new Func<IpcReqMessage>(() =>
+            new IpcReqMessage(req_id, method, url, headers.ToMap(), body.MetaBody)));
     }
+
+    public static IpcRequest FromText(int req_id, string url, IpcMethod method, IpcHeaders headers, string text, Ipc ipc) =>
+        new IpcRequest(req_id, url, method ?? IpcMethod.Get, headers ?? new IpcHeaders(), IpcBodySender.From(text, ipc), ipc);
+
+    public static IpcRequest FromBinary(int req_id, string url, IpcMethod method, IpcHeaders headers, byte[] binary, Ipc ipc) =>
+        new IpcRequest(
+            req_id,
+            url,
+            method,
+            (headers ??= new IpcHeaders()).Also(it =>
+            {
+                it.Init("Content-Type", "application/octet-stream");
+                it.Init("Content-Length", binary.Length.ToString());
+            }),
+            IpcBodySender.From(binary, ipc),
+            ipc);
+
+    public static IpcRequest FromStream(
+        int req_id,
+        string url,
+        IpcMethod method,
+        IpcHeaders headers,
+        Stream stream,
+        Ipc ipc,
+        Int64? size
+        ) => new IpcRequest(
+                req_id,
+                url,
+                method,
+                (headers ??= new IpcHeaders()).Also(it =>
+                {
+                    it.Init("Content-Type", "application/octet-stream");
+
+                    if (size != null)
+                    {
+                        headers.Init("Content-Length", size.ToString()!);
+                    }
+                }),
+                IpcBodySender.From(stream, ipc),
+                ipc);
+
+    public static IpcRequest FromRequest(int req_id, HttpRequestMessage request, Ipc ipc) =>
+        new IpcRequest(
+            req_id,
+            request.RequestUri!.ToString(),
+            IpcMethod.From(request.Method),
+            new IpcHeaders(request.Headers),
+            (request.Method.Method is "GET" or "HEAD")
+                ? IpcBodySender.From("", ipc)
+                :
+            request.Content == null
+                ? IpcBodySender.From("", ipc)
+                : request.Content!.ReadAsStream().Let(it => it.Length switch
+                    {
+                        0L => IpcBodySender.From("", ipc),
+                        _ => IpcBodySender.From(it, ipc)
+                    }
+                ),
+            ipc
+            );
+
+
+    public HttpRequestMessage ToRequest() =>
+        new HttpRequestMessage(new HttpMethod(Method.method), new Uri(Url)).Also(it =>
+            {
+                switch (Body.Raw)
+                {
+                    case string body:
+                        it.Content = new StringContent(body);
+                        break;
+                    case byte[] body:
+                        it.Content = new StreamContent(new MemoryStream().Let(s =>
+                        {
+                            s.Write(body, 0, body.Length);
+                            return s;
+                        }));
+                        break;
+                    case Stream body:
+                        it.Content = new StreamContent(body);
+                        break;
+                    default:
+                        throw new Exception($"invalid body to request: {Body.Raw}");
+                }
+
+                foreach (KeyValuePair<string, string> entry in Headers.ToMap())
+                {
+                    it.Content.Headers.Add(entry.Key, entry.Value);
+                }
+            });
+
+    private Lazy<IpcReqMessage> _ipcReqMessage { get; set; }
+    public IpcReqMessage LazyIpcReqMessage
+    {
+        get { return _ipcReqMessage.Value; }
+    }
+
+    public override string ToString() => $"#IpcRequest/{Method.method}/{Url}";
 }
 
 [JsonConverter(typeof(IpcReqMessageConverter))]

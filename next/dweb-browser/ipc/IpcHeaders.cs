@@ -6,52 +6,54 @@ namespace ipc;
 [JsonConverter(typeof(IpcHeadersConverter))]
 public class IpcHeaders
 {
-	private Dictionary<string, string> headersMap { get; set; }
+	private Dictionary<string, string> _headersMap { get; set; }
 
-	internal IpcHeaders()
-	{ }
+	public IpcHeaders()
+	{
+		_headersMap = new Dictionary<string, string>();
+	}
 
 	public IpcHeaders(HttpHeaders headers)
 	{
-        headersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
+        _headersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
     }
 
 	public static IpcHeaders With(Dictionary<string, string> headers)
 	{
-		return new IpcHeaders() { headersMap = headers };
+		return new IpcHeaders() { _headersMap = headers };
 	}
 
 	public void Set(string key, string value)
 	{
-		headersMap.Add(key.ToLower(), value);
+		_headersMap.Add(key.ToLower(), value);
 	}
 
 	public void Init(string key, string value)
 	{
-		if (!headersMap.ContainsKey(key))
+		if (!_headersMap.ContainsKey(key))
 		{
-			headersMap.Add(key.ToLower(), value);
+			_headersMap.Add(key.ToLower(), value);
 		}
 	}
 
 	public string? Get(string key)
 	{
-		return headersMap.GetValueOrDefault(key.ToLower());
+		return _headersMap.GetValueOrDefault(key.ToLower());
 	}
 
 	public string GetOrDefault(string key, string defaultValue)
 	{
-		return headersMap.GetValueOrDefault(key.ToLower()) ?? defaultValue;
+		return _headersMap.GetValueOrDefault(key.ToLower()) ?? defaultValue;
 	}
 
 	public bool Has(string key)
 	{
-		return headersMap.ContainsKey(key.ToLower());
+		return _headersMap.ContainsKey(key.ToLower());
 	}
 
 	public void Delete(string key)
 	{
-		headersMap.Remove(key.ToLower());
+		_headersMap.Remove(key.ToLower());
 	}
 
 	// TODO: IpcHeaders forEach 未实现
@@ -64,7 +66,7 @@ public class IpcHeaders
 	{
 		var list = new List<KeyValuePair<string, string>>();
 
-        foreach (KeyValuePair<string, string> entry in headersMap)
+        foreach (KeyValuePair<string, string> entry in _headersMap)
         {
 			list.Add(entry);
 		}
@@ -74,7 +76,7 @@ public class IpcHeaders
 
 	public Dictionary<string, string> ToMap()
 	{
-		return headersMap;
+		return _headersMap;
 	}
 
     /// <summary>

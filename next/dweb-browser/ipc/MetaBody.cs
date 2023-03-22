@@ -5,9 +5,11 @@ namespace ipc;
 public struct SMetaBody
 {
     /**
+     * <summary>
      * 类型信息，包含了 编码信息 与 形态信息
      * 编码信息是对 data 的解释
      * 形态信息（流、内联）是对 "是否启用 streamId" 的描述（注意，流也可以内联第一帧的数据）
+     * </summary>
      */
     public IPC_META_BODY_TYPE Type { get; set; }
     public int SenderUid { get; set; }
@@ -16,10 +18,12 @@ public struct SMetaBody
     public int? ReceiverUid { get; set; } = null;
 
     /**
+     * <summary>
      * 唯一id，指代这个数据的句柄
      *
      * 需要使用这个值对应的数据进行缓存操作
      * 远端可以发送句柄回来，这样可以省去一些数据的回传延迟。
+     * </summary>
      */
     public string MetaId = Token.RandomCryptoString(8);
 
@@ -41,28 +45,28 @@ public struct SMetaBody
     [Flags]
     public enum IPC_META_BODY_TYPE : int
     {
-        /** 流 */
+        /** <summary>流</summary> */
         STREAM_ID = 0,
 
-        /** 内联数据 */
+        /** <summary>内联数据</summary> */
         INLINE = 1,
 
-        /** 文本 json html 等 */
+        /** <summary>文本 json html 等</summary> */
         STREAM_WITH_TEXT = STREAM_ID | IPC_DATA_ENCODING.UTF8,
 
-        /** 使用文本表示的二进制 */
+        /** <summary>使用文本表示的二进制</summary> */
         STREAM_WITH_BASE64 = STREAM_ID | IPC_DATA_ENCODING.BASE64,
 
-        /** 二进制 */
+        /** <summary>二进制</summary> */
         STREAM_WITH_BINARY = STREAM_ID | IPC_DATA_ENCODING.BINARY,
 
-        /** 文本 json html 等 */
+        /** <summary>文本 json html 等</summary> */
         INLINE_TEXT = INLINE | IPC_DATA_ENCODING.UTF8,
 
-        /** 使用文本表示的二进制 */
+        /** <summary>使用文本表示的二进制</summary> */
         INLINE_BASE64 = INLINE | IPC_DATA_ENCODING.BASE64,
 
-        /** 二进制 */
+        /** <summary>二进制</summary> */
         INLINE_BINARY = INLINE | IPC_DATA_ENCODING.BINARY,
     }
 
@@ -126,6 +130,15 @@ public struct SMetaBody
             streamId: streamId,
             receiverUid: receiverUid
         );
+
+    public static SMetaBody FromBinary(
+        Ipc senderIpc,
+        byte[] data,
+        string? streamId = null,
+        int? receiverUid = null
+        ) => senderIpc.SupportBinary
+            ? FromBinary(senderIpc.Uid, data, streamId, receiverUid)
+            : FromBase64(senderIpc.Uid, Convert.ToBase64String(data), streamId, receiverUid);
 
 
     /// <summary>

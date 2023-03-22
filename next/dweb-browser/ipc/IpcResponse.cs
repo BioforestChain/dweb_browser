@@ -1,14 +1,104 @@
-﻿
+﻿using System.Net;
 namespace ipc;
 
-public class IpcResponse
+public class IpcResponse: IpcMessage
 {
-    public IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.RESPONSE;
+    public int ReqId { get; set; }
+    public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.RESPONSE;
+    public int StatusCode { get; set; }
+    public IpcHeaders Headers { get; set; }
+    public IpcBody Body { get; set; }
+    public Ipc ResIpc { get; set; }
 
     internal IpcResponse()
     {
     }
+
+    public IpcResponse(int req_id, int statusCode, IpcHeaders headers, IpcBody body, Ipc ipc)
+    {
+        ReqId = req_id;
+        StatusCode = statusCode;
+        Headers = headers;
+        Body = body;
+        ResIpc = ipc;
+
+        _ipcResMessage = new Lazy<IpcResMessage>(new Func<IpcResMessage>(() =>
+            new IpcResMessage(req_id, statusCode, headers.ToMap(), body.MetaBody)));
+    }
+
+    // TODO: FromJson 未完成
+    public static IpcResponse FromJson(int req_id, int statusCode, IpcHeaders headers, object jsonAble, Ipc ipc) =>
+        FromText(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "application/json")), jsonAble.ToString(), ipc);
+    public static IpcResponse FromText(int req_id, int statusCode, IpcHeaders headers, string text, Ipc ipc) =>
+        new IpcResponse(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "text/plain")), IpcBodySender.From(text, ipc), ipc);
+
+    public static IpcResponse FromBinary(int req_id, int statusCode, IpcHeaders headers, byte[] binary, Ipc ipc) =>
+        new IpcResponse(
+            req_id,
+            statusCode,
+            headers.Also(it =>
+            {
+                it.Init("Content-Type", "application/octet-stream");
+                it.Init("Content-Length", binary.Length.ToString());
+            }),
+            IpcBodySender.From(binary, ipc),
+            ipc);
+
+    public static IpcResponse FromStream(int req_id, int statusCode, IpcHeaders headers, Stream stream, Ipc ipc) =>
+        new IpcResponse(
+            req_id,
+            statusCode,
+            headers.Also(it => it.Init("Content-Type", "application/octet-stream")),
+            IpcBodySender.From(stream, ipc),
+            ipc);
+
+    public static IpcResponse FromResponse(int req_id, HttpResponseMessage response, Ipc ipc) =>
+        new IpcResponse(
+            req_id,
+            (int)response.StatusCode,
+            new IpcHeaders(response.Headers),
+            response.Content.ReadAsStream().Let(it => it.Length switch
+            {
+                0L => IpcBodySender.From("", ipc),
+                _ => IpcBodySender.From(it, ipc)
+            }),
+            ipc);
+
+    public HttpResponseMessage ToResponse() =>
+        new HttpResponseMessage((HttpStatusCode)StatusCode).Also(it =>
+        {
+            switch (Body.Raw)
+            {
+                case string body:
+                    it.Content = new StringContent(body);
+                    break;
+                case byte[] body:
+                    it.Content = new StreamContent(new MemoryStream().Let(s =>
+                    {
+                        s.Write(body, 0, body.Length);
+                        return s;
+                    }));
+                    break;
+                case Stream body:
+                    it.Content = new StreamContent(body);
+                    break;
+                default:
+                    throw new Exception($"invalid body to request: {Body.Raw}");
+            }
+
+            foreach (KeyValuePair<string, string> entry in Headers.ToMap())
+            {
+                it.Content.Headers.Add(entry.Key, entry.Value);
+            }
+        });
+
+    private Lazy<IpcResMessage> _ipcResMessage { get; set; }
+    public IpcResMessage LazyIpcResMessage
+    {
+        get { return _ipcResMessage.Value; }
+    }
 }
+
 
 [JsonConverter(typeof(IpcResMessageConverter))]
 public class IpcResMessage : IpcMessage

@@ -49,7 +49,7 @@ public class IpcMethod
         _method = method;
     }
 
-    public static IpcMethod from(HttpMethod method)
+    public static IpcMethod From(HttpMethod method)
     {
         return new IpcMethod(method.Method);
     }

@@ -3,34 +3,22 @@ namespace ipc.helper;
 
 public class EncodingConverter
 {
-	public static byte[] DataToBinary(object data, IPC_DATA_ENCODING encoding)
-	{
-		switch (encoding)
+	public static byte[] DataToBinary(object data, IPC_DATA_ENCODING encoding) =>
+		encoding switch
 		{
-			case IPC_DATA_ENCODING.BINARY:
-				return (byte[])data;
-			case IPC_DATA_ENCODING.BASE64:
-				return Convert.FromBase64String((string)data);
-			case IPC_DATA_ENCODING.UTF8:
-				return System.Text.UTF8Encoding.UTF8.GetBytes((string)data);
-			default:
-				throw new Exception("unknown encoding");
-		}
-	}
+			IPC_DATA_ENCODING.BINARY => (byte[])data,
+			IPC_DATA_ENCODING.BASE64 => Convert.FromBase64String((string)data),
+			IPC_DATA_ENCODING.UTF8 => System.Text.UTF8Encoding.UTF8.GetBytes((string)data),
+			_ => throw new Exception("unknown encoding"),
+		};
 
-	public static string DataToText(object data, IPC_DATA_ENCODING encoding)
-	{
-		switch (encoding)
+	public static string DataToText(object data, IPC_DATA_ENCODING encoding) =>
+		encoding switch
 		{
-			case IPC_DATA_ENCODING.BINARY:
-				return System.Text.UTF8Encoding.UTF8.GetString((byte[])data);
-			case IPC_DATA_ENCODING.BASE64:
-				return System.Text.UTF8Encoding.UTF8.GetString(Convert.FromBase64String((string)data));
-			case IPC_DATA_ENCODING.UTF8:
-				return (string)data;
-			default:
-				throw new Exception("unknown encoding");
-		}
-	}
+			IPC_DATA_ENCODING.BINARY => System.Text.UTF8Encoding.UTF8.GetString((byte[])data),
+			IPC_DATA_ENCODING.BASE64 => System.Text.UTF8Encoding.UTF8.GetString(Convert.FromBase64String((string)data)),
+			IPC_DATA_ENCODING.UTF8 => (string)data,
+			_ => throw new Exception("unknown encoding"),
+		};
 }
 
