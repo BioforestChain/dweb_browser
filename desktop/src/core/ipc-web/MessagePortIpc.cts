@@ -38,8 +38,8 @@ export class MessagePortIpc extends Ipc {
       const message = this.support_raw
         ? $messageToIpcMessage(event.data, this)
         : this.support_message_pack
-        ? $messagePackToIpcMessage(event.data, this)
-        : $jsonToIpcMessage(event.data, this);
+          ? $messagePackToIpcMessage(event.data, this)
+          : $jsonToIpcMessage(event.data, this);
       if (message === undefined) {
         console.error("MessagePortIpc.cts unkonwn message", event.data);
         return;
@@ -55,7 +55,7 @@ export class MessagePortIpc extends Ipc {
         this.port.postMessage("pong");
         return;
       }
-      console.log("web-message-port-ipc", "onmessage", message);
+      // console.log("web-message-port-ipc", "onmessage", message);
       this._messageSignal.emit(message, this);
     });
     port.start();

@@ -69,7 +69,6 @@ class SplashActivity : AppCompatActivity() {
   private fun startDwebBrowserProcess() {
     lifecycleScope.launch {
       startDwebBrowser()
-      delay(1000)
       BrowserNMM.browserController.openBrowserActivity()
     }
   }

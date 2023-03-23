@@ -68,20 +68,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
                 val url = queryUrl(request)
                 val remoteMm = ipc.asRemoteInstance()
                     ?: throw Exception("mwebview.sys.dweb/open should be call by locale")
-
                 val viewItem = openDwebView(remoteMm, url)
-//                subscribers.getOrPut(ipc) { ConcurrentSkipListSet<String>() }.also { refs ->
-//                    refs.add(viewItem.webviewId)
-//                }
-                mIpcMap.getOrPut(ipc) {
-                    ipc.onEvent {
-                        debugMultiWebView("event", "name=${it.event.name},data=${it.event.data}")
-                    }
-                    mutableMapOf()
-                }.apply { this[viewItem.webviewId] = viewItem }
-
-                //Response(Status.OK).body(viewItem.webviewId)
-                viewItem.webviewId
+                Response(Status.OK).body(viewItem.webviewId)
             },
             // 关闭指定 webview 窗口
             "/close" bind Method.GET to defineHandler { request, ipc ->
@@ -150,9 +138,12 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
                 remoteMm,
             )
         }
+
         openMultiWebViewActivity(remoteMmid)
         controller.waitActivityCreated()
-        return controller.openWebView(url)
+        val viewItem = controller.openWebView(url)
+        createIpc(viewItem)
+        return viewItem
     }
 
     suspend fun closeDwebView(remoteMmid: String, webviewId: String) {
@@ -163,5 +154,18 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             }
         }
         controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
+    }
+
+    fun createIpc(viewItem:MultiWebViewController.ViewItem) {
+        debugMultiWebView("createIpc", "viewItem: $viewItem ")
+//  subscribers.getOrPut(ipc) { ConcurrentSkipListSet<String>() }.also { refs ->
+//       refs.add(viewItem.webviewId)
+//     }
+//        mIpcMap.getOrPut(ipc) {
+//            ipc.onEvent {
+//                debugMultiWebView("event", "name=${it.event.name},data=${it.event.data}")
+//            }
+//            mutableMapOf()
+//        }.apply { this[viewItem.webviewId] = viewItem }
     }
 }

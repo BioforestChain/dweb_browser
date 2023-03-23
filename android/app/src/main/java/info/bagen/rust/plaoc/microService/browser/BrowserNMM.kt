@@ -13,15 +13,12 @@ import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("browser", tag, msg, err)
 
-class BrowserNMM private constructor() : NativeMicroModule("browser.sys.dweb") {
+class BrowserNMM() : NativeMicroModule("browser.sys.dweb") {
     companion object {
-        private val browserNMM: BrowserNMM by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-            BrowserNMM()
-        }
-
-        val browserController by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-            BrowserController("browser.sys.dweb", browserNMM)
-        }
+        lateinit var browserController: BrowserController
+    }
+    init {
+       browserController = BrowserController("browser.sys.dweb", this)
     }
 
     private val openIPCMap = mutableMapOf<Mmid, Ipc>()

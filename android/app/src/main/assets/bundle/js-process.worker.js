@@ -5289,7 +5289,6 @@ var MessagePortIpc = class extends Ipc {
         this.port.postMessage("pong");
         return;
       }
-      console.log("web-message-port-ipc", "onmessage", message);
       this._messageSignal.emit(message, this);
     });
     port.start();
