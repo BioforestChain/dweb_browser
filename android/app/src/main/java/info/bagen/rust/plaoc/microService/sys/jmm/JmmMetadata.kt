@@ -11,6 +11,7 @@ data class JmmMetadata(
     val downloadUrl: String = "", // 下载应用地址
     val images: List<String>? = null, // 应用截图
     val introduction: String = "", // 应用描述
+    val splashScreen: SplashScreen = SplashScreen(),
     val author: List<String>? = null, // 开发者，作者
     val version: String = "", // 应用版本
     val keywords: List<String>? = null, // 关键词
@@ -63,6 +64,8 @@ data class JmmMetadata(
     ):java.io.Serializable
 
     data class OpenWebView(val url: String = ""):java.io.Serializable
+    data class SplashScreen(val entry:String? = null)
+
 }
 
 val temp = """
@@ -121,6 +124,7 @@ val defaultJmmMetadata = JmmMetadata(
         "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ),
     home = "https://www.bfmeta.info/",
-    server = JmmMetadata.MainServer(root = "file:///bundle", entry = "/cot.worker.js")
+    server = JmmMetadata.MainServer(root = "file:///bundle", entry = "/cot.worker.js"),
+    splashScreen = JmmMetadata.SplashScreen(null)
 )
 

@@ -548,23 +548,6 @@ export interface FilesystemPlugin {
    */
   copy(options: CopyOptions): Promise<CopyResult>;
 
-  /**
-   * Check read/write permissions.
-   * Required on Android, only when using `Directory.Documents` or
-   * `Directory.ExternalStorage`.
-   *
-   * @since 1.0.0
-   */
-  checkPermissions(): Promise<PermissionStatus>;
-
-  /**
-   * Request read/write permissions.
-   * Required on Android, only when using `Directory.Documents` or
-   * `Directory.ExternalStorage`.
-   *
-   * @since 1.0.0
-   */
-  requestPermissions(): Promise<PermissionStatus>;
 }
 
 /**

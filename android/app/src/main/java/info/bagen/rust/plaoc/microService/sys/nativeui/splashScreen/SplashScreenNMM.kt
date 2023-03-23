@@ -1,11 +1,21 @@
 package info.bagen.rust.plaoc.microService.sys.nativeui.splashScreen
 
+import android.os.Handler
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM.Companion.getBfsMetaData
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewActivity
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -15,13 +25,18 @@ import org.http4k.lens.composite
 import org.http4k.lens.long
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.util.*
+import kotlin.concurrent.schedule
+
+inline fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
+    printdebugln("SplashScreen", tag, msg, err)
 
 class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
 
 
-    private val splashScreen: SplashScreen = SplashScreen(App.appContext, SplashScreenConfig())
-    private fun currentActivity(mmid: Mmid): MultiWebViewActivity? {
-        return MultiWebViewNMM.getCurrentWebViewController(mmid)?.activity
+//    private val splashScreen: SplashScreen = SplashScreen(App.appContext, SplashScreenConfig())
+    private fun currentController(mmid: Mmid): MultiWebViewController? {
+        return MultiWebViewNMM.getCurrentWebViewController(mmid)
     }
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
@@ -43,26 +58,42 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
             /** 显示*/
             "/show" bind Method.GET to defineHandler { request, ipc ->
                 val options = query_SplashScreenSettings(request)
-                val currentActivity = currentActivity(ipc.remote.mmid)
-                println("SplashScreenNMM#apiRouting show===>${options} $splashScreen  $currentActivity")
-                if (currentActivity != null) {
-                    splashScreen.show(currentActivity, options)
+                val currentController = currentController(ipc.remote.mmid)
+                val metadata = getBfsMetaData(ipc.remote.mmid)
+                debugSplashScreen("show","remoteId:${ipc.remote.mmid} show===>${options} ${metadata?.splashScreen}")
+                if (currentController != null && metadata !== null) {
+                    show(currentController,metadata,options)
                     return@defineHandler Response(Status.OK)
                 }
                 Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
             },
-            /** 显示*/
+            /** 隐藏*/
             "/hide" bind Method.GET to defineHandler { request, ipc ->
                 val options = query_HideOptions(request)
-                val currentActivity = currentActivity(ipc.remote.mmid)
-                println("SplashScreenNMM#apiRouting hide===>${options} $splashScreen  $currentActivity")
+                val currentActivity = currentController(ipc.remote.mmid)?.activity
+                debugSplashScreen("hide","apiRouting hide===>${options}")
                 if (currentActivity != null) {
-                    splashScreen.hide(options)
+//                    splashScreen.hide(options)
                     return@defineHandler Response(Status.OK)
                 }
                 Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
             },
         )
+    }
+
+    fun show(controller: MultiWebViewController,metadata: JmmMetadata,options: SplashScreenSettings) {
+        val webview = controller.lastViewOrNull?.webView
+        val entry = metadata.splashScreen.entry
+        if (webview !== null && entry !== null) {
+            GlobalScope.launch(Dispatchers.Main + commonAsyncExceptionHandler) {
+                webview.loadUrl(entry)
+                if (options.autoHide) {
+                    delay(options.showDuration)
+                    webview.goBack()
+                }
+            }
+
+        }
     }
 
     override suspend fun _shutdown() {

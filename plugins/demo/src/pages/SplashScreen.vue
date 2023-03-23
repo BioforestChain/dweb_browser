@@ -18,7 +18,7 @@ onMounted(async () => {
 
 const autoHidden = ref(1000)
 const show = defineLogAction(async () => {
-  const result = await (await splashScreen.show({ fadeOutDuration: autoHidden.value })).text()
+  const result = await (await splashScreen.show({ showDuration: autoHidden.value })).text()
   console.info("splash screen:", result)
 }, { name: "show", args: [autoHidden], logPanel: $logPanel })
 

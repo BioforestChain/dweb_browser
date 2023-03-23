@@ -1,16 +1,19 @@
 package info.bagen.rust.plaoc.microService.browser
 
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import com.google.gson.JsonSyntaxException
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
-import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
+import info.bagen.rust.plaoc.network.HttpClient
+import info.bagen.rust.plaoc.network.base.byteBufferToString
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.http4k.core.Uri
 import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
@@ -44,7 +47,8 @@ class BrowserController(
     fun appendView(view: View) {
         addViewList.add(view)
     }
-    fun removeLastView() : Boolean {
+
+    fun removeLastView(): Boolean {
         try {
             addViewList.removeLast().also { childView ->
                 App.browserActivity?.window?.decorView?.let { parentView ->
@@ -74,4 +78,26 @@ class BrowserController(
     )
 
     fun openBrowserActivity() = localeMM.openBrowserActivity()
+
+    fun checkJmmMetadataJson(
+        url: String
+    ): Boolean {
+        android.net.Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
+            if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
+                try {
+                    val jmmMetadata = gson.fromJson(
+                        byteBufferToString(HttpClient().requestPath(url).body.payload),
+                        JmmMetadata::class.java
+                    )
+                    GlobalScope.launch(ioAsyncExceptionHandler) {
+                        installJMM(jmmMetadata, url)
+                    }
+                    return true
+                } catch (e: JsonSyntaxException) {
+                    Log.e("DWebBrowserModel", "checkJmmMetadataJson fail -> ${e.message}")
+                }
+            }
+        }
+        return false
+    }
 }

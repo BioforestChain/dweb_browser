@@ -51,6 +51,15 @@ suspend fun startDwebBrowser() {
         DEVELOPER.HUANGLIN -> debugTags.addAll(
             listOf("Share", "fetch", "http", "jmm", "browser")
         )
+         DEVELOPER.ANONYMOUS -> debugTags.addAll(
+            listOf<String>(
+//                "Camera"
+//                "Share",
+//                "FileSystem",
+            "SplashScreen",
+                "jmm"
+            )
+         )
         else -> debugTags.addAll(
             listOf("Share", "fetch", "http", "jmm", "browser", "mwebview")
         )
@@ -130,10 +139,19 @@ suspend fun startDwebBrowser() {
         DEVELOPER.HUANGLIN -> listOf(
             browserNMM.mmid,
         )
+<<<<<<< HEAD
         else -> listOf(
             browserNMM.mmid,
             //cotDemoJMM.mmid,
         )
+=======
+        else -> {
+            listOf(
+                browserNMM.mmid,
+                cotDemoJMM.mmid,
+            )
+        }
+>>>>>>> c35bdca (✨ completed for install and splashScreen)
     }
 
     /// 启动程序
