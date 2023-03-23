@@ -98,20 +98,15 @@ public class IpcBodySender : IpcBody
 
     public static IpcBodySender From(object raw, Ipc ipc) => new IpcBodySender(raw, ipc);
 
-    private SMetaBody BodyAsMeta(object body, Ipc ipc)
+    private SMetaBody BodyAsMeta(object body, Ipc ipc) => body switch
     {
-        switch (body)
-        {
-            case string value:
-                return SMetaBody.FromText(ipc.Uid, value);
-            case byte[] value:
-                return SMetaBody.FromBinary(ipc, value);
-            case Stream value:
-                return StreamAsMeta(value, ipc);
-            default:
-                throw new Exception($"invalid body type {body}");
-        }
-    }
+        string value => SMetaBody.FromText(ipc.Uid, value),
+        byte[] value => SMetaBody.FromBinary(ipc, value),
+
+        Stream value => StreamAsMeta(value, ipc),
+        _ => throw new Exception($"invalid body type {body}"),
+
+    };
 
     private SMetaBody StreamAsMeta(Stream stream, Ipc ipc)
     {

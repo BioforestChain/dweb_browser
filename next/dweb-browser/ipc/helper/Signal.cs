@@ -38,7 +38,7 @@ public class Signal<Args>
     });
 
 
-    public virtual async Task Emit(Args args)
+    public virtual async Task EmitAsync(Args args)
     {
         var cbs = CpSet;
 
@@ -72,8 +72,8 @@ public class Signal<Args>
 
 public class SimpleSignal : Signal<byte>
 {
-    public override Task Emit(byte args)
+    public override Task EmitAsync(byte args)
     {
-        return base.Emit(0);
+        return base.EmitAsync(0);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http.Headers;
+using System.Reflection.PortableExecutable;
 
 namespace ipc;
 
@@ -18,17 +19,12 @@ public class IpcHeaders
         _headersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
     }
 
-	public static IpcHeaders With(Dictionary<string, string> headers)
-	{
-		return new IpcHeaders() { _headersMap = headers };
-	}
+	public static IpcHeaders With(Dictionary<string, string> headers) => new IpcHeaders() { _headersMap = headers };
 
-	public void Set(string key, string value)
-	{
-		_headersMap.Add(key.ToLower(), value);
-	}
 
-	public void Init(string key, string value)
+    public void Set(string key, string value) => _headersMap.Add(key.ToLower(), value);
+
+    public void Init(string key, string value)
 	{
 		if (!_headersMap.ContainsKey(key))
 		{
@@ -36,33 +32,21 @@ public class IpcHeaders
 		}
 	}
 
-	public string? Get(string key)
-	{
-		return _headersMap.GetValueOrDefault(key.ToLower());
-	}
+	public string? Get(string key) => _headersMap.GetValueOrDefault(key.ToLower());
 
-	public string GetOrDefault(string key, string defaultValue)
-	{
-		return _headersMap.GetValueOrDefault(key.ToLower()) ?? defaultValue;
-	}
+    public string GetOrDefault(string key, string defaultValue) => _headersMap.GetValueOrDefault(key.ToLower()) ?? defaultValue;
 
-	public bool Has(string key)
-	{
-		return _headersMap.ContainsKey(key.ToLower());
-	}
+    public bool Has(string key) => _headersMap.ContainsKey(key.ToLower());
 
-	public void Delete(string key)
-	{
-		_headersMap.Remove(key.ToLower());
-	}
+    public void Delete(string key) => _headersMap.Remove(key.ToLower());
 
-	// TODO: IpcHeaders forEach 未实现
-	//public void forEach(Func<string, string, Action<Tuple>> fn)
-	//{
+    // TODO: IpcHeaders forEach 未实现
+    //public void forEach(Func<string, string, Action<Tuple>> fn)
+    //{
 
-	//}
+    //}
 
-	public List<KeyValuePair<string, string>> ToList()
+    public List<KeyValuePair<string, string>> ToList()
 	{
 		var list = new List<KeyValuePair<string, string>>();
 
@@ -74,29 +58,20 @@ public class IpcHeaders
 		return list;
 	}
 
-	public Dictionary<string, string> ToMap()
-	{
-		return _headersMap;
-	}
+	public Dictionary<string, string> ToMap() => _headersMap;
 
     /// <summary>
     /// Serialize IpcHeaders
     /// </summary>
     /// <returns>JSON string representation of the IpcHeaders</returns>
-    public string ToJson()
-	{
-        return JsonSerializer.Serialize(this);
-    }
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcHeaders
     /// </summary>
     /// <param name="json">JSON string representation of IpcHeaders</param>
     /// <returns>An instance of a IpcHeaders object.</returns>
-    public static IpcHeaders? FromJson(string json)
-	{
-        return JsonSerializer.Deserialize<IpcHeaders>(json);
-    }
+    public static IpcHeaders? FromJson(string json) => JsonSerializer.Deserialize<IpcHeaders>(json);
 }
 
 sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>

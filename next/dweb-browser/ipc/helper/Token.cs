@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 
 namespace ipc;
 
-public class Token
+public static class Token
 {
     public static string Base64UrlEncode(byte[] input)
     {

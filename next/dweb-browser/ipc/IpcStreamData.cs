@@ -36,20 +36,14 @@ public class IpcStreamData : IpcMessage
     /// Serialize IpcStreamData
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamData</returns>
-    public string ToJson()
-    {
-        return JsonSerializer.Serialize(this);
-    }
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcStreamData
     /// </summary>
     /// <param name="json">JSON string representation of IpcStreamData</param>
     /// <returns>An instance of a IpcStreamData object.</returns>
-    public static IpcStreamData? FromJson(string json)
-    {
-        return JsonSerializer.Deserialize<IpcStreamData>(json);
-    }
+    public static IpcStreamData? FromJson(string json) => JsonSerializer.Deserialize<IpcStreamData>(json);
 }
 
 sealed class IpcStreamDataConverter : JsonConverter<IpcStreamData>

@@ -1,8 +1,18 @@
 ﻿
 namespace ipc.helper;
 
-public class EncodingConverter
+public static class EncodingConverter
 {
+	/**
+	 * <summary>
+	 * Convert base64 string、utf8 string、byte[] to utf8 byte[].
+	 * </summary> 
+	 * 
+	 * <param name="data">source data</param>
+	 * <param name="encoding">source data encoding type</param>
+	 * 
+	 * <returns>byte[]</returns>
+	 */
 	public static byte[] DataToBinary(object data, IPC_DATA_ENCODING encoding) =>
 		encoding switch
 		{
@@ -12,7 +22,17 @@ public class EncodingConverter
 			_ => throw new Exception("unknown encoding"),
 		};
 
-	public static string DataToText(object data, IPC_DATA_ENCODING encoding) =>
+    /**
+	 * <summary>
+	 * Convert byte[]、base64 string、string to utf8 string.
+	 * </summary>
+	 * 
+	 * <param name="data">source data</param>
+	 * <param name="encoding">source data encoding type</param>
+	 * 
+	 * <returns>string</returns>
+	 */
+    public static string DataToText(object data, IPC_DATA_ENCODING encoding) =>
 		encoding switch
 		{
 			IPC_DATA_ENCODING.BINARY => System.Text.UTF8Encoding.UTF8.GetString((byte[])data),

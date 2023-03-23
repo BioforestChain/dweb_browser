@@ -34,23 +34,17 @@ public class IpcEvent: IpcMessage
     /// Serialize IpcEvent
     /// </summary>
     /// <returns>JSON string representation of the IpcEvent</returns>
-    public string ToJson()
-    {
-        return JsonSerializer.Serialize(this);
-    }
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcEvent
     /// </summary>
     /// <param name="json">JSON string representation of IpcEvent</param>
     /// <returns>An instance of a IpcEvent object.</returns>
-    public static IpcEvent? FromJson(string json)
-    {
-        return JsonSerializer.Deserialize<IpcEvent>(json);
-    }
+    public static IpcEvent? FromJson(string json) => JsonSerializer.Deserialize<IpcEvent>(json);
 }
 
-public class IpcEventConverter : JsonConverter<IpcEvent>
+sealed class IpcEventConverter : JsonConverter<IpcEvent>
 {
     public override bool CanConvert(Type typeToConvert) =>
         typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;

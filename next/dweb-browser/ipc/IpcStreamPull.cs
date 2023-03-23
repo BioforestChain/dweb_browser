@@ -7,10 +7,10 @@ public class IpcStreamPull: IpcMessage
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_PULL;
 
     [JsonPropertyName("stream_id")]
-    public string StreamId { get; set; }
+    public string StreamId { get; init; }
 
     [JsonPropertyName("desiredSize")]
-    public int DesiredSize { get; set; }
+    public int DesiredSize { get; init; }
 
     public IpcStreamPull(string stream_id, int desiredSize = 1)
     {
@@ -22,18 +22,12 @@ public class IpcStreamPull: IpcMessage
     /// Serialize IpcStreamPull
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamPull</returns>
-    public string ToJson()
-    {
-        return JsonSerializer.Serialize(this);
-    }
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcStreamPull
     /// </summary>
     /// <param name="json">JSON string representation of IpcStreamPull</param>
     /// <returns>An instance of a IpcStreamPull object.</returns>
-    public static IpcStreamPull? FromJson(string json)
-    {
-        return JsonSerializer.Deserialize<IpcStreamPull>(json);
-    }
+    public static IpcStreamPull? FromJson(string json) => JsonSerializer.Deserialize<IpcStreamPull>(json);
 }

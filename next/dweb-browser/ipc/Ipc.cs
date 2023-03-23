@@ -53,14 +53,14 @@ public abstract class Ipc
 
     public override string ToString() => $"#i{Uid}";
 
-    public async Task PostMessage(IpcMessage message)
+    public async Task PostMessageAsync(IpcMessage message)
     {
 
     }
 
-    public async Task PostResponse(int req_id, HttpResponseMessage response)
+    public async Task PostResponseAsync(int req_id, HttpResponseMessage response)
     {
-        await PostMessage(IpcResponse.FromResponse(req_id, response, this));
+        await PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
     }
 
     protected Signal<Func<IpcMessageArgs, object?>> _messageSigal = new Signal<Func<IpcMessageArgs, object?>>();

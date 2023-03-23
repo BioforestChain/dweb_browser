@@ -3,16 +3,15 @@ namespace ipc;
 
 public class IpcResponse: IpcMessage
 {
-    public int ReqId { get; set; }
+    public int ReqId { get; init; }
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.RESPONSE;
-    public int StatusCode { get; set; }
+    public int StatusCode { get; init; }
     public IpcHeaders Headers { get; set; }
     public IpcBody Body { get; set; }
-    public Ipc ResIpc { get; set; }
+    public Ipc ResIpc { get; init; }
 
     internal IpcResponse()
-    {
-    }
+    { }
 
     public IpcResponse(int req_id, int statusCode, IpcHeaders headers, IpcBody body, Ipc ipc)
     {
@@ -126,20 +125,14 @@ public class IpcResMessage : IpcMessage
     /// Serialize IpcReqMessage
     /// </summary>
     /// <returns>JSON string representation of the IpcReqMessage</returns>
-    public string ToJson()
-    {
-        return JsonSerializer.Serialize(this);
-    }
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcReqMessage
     /// </summary>
     /// <param name="json">JSON string representation of IpcReqMessage</param>
     /// <returns>An instance of a IpcReqMessage object.</returns>
-    public static IpcReqMessage? FromJson(string json)
-    {
-        return JsonSerializer.Deserialize<IpcReqMessage>(json);
-    }
+    public static IpcReqMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessage>(json);
 }
 
 sealed class IpcResMessageConverter : JsonConverter<IpcResMessage>

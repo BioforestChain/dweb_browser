@@ -4,13 +4,13 @@ namespace ipc;
 
 public class IpcRequest: IpcMessage
 {
-    public int ReqId { get; set; }
+    public int ReqId { get; init; }
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.REQUEST;
-    public IpcMethod Method { get; set; }
-    public string Url { get; set; }
+    public IpcMethod Method { get; init; }
+    public string Url { get; init; }
     public IpcHeaders Headers { get; set; }
     public IpcBody Body { get; set; }
-    public Ipc ReqIpc { get; set; }
+    public Ipc ReqIpc { get; init; }
 
     public IpcRequest(int req_id, string url, IpcMethod method, IpcHeaders headers, IpcBody body, Ipc ipc)
     {
@@ -155,20 +155,14 @@ public class IpcReqMessage : IpcMessage
     /// Serialize IpcReqMessage
     /// </summary>
     /// <returns>JSON string representation of the IpcReqMessage</returns>
-    public string ToJson()
-    {
-        return JsonSerializer.Serialize(this);
-    }
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcReqMessage
     /// </summary>
     /// <param name="json">JSON string representation of IpcReqMessage</param>
     /// <returns>An instance of a IpcReqMessage object.</returns>
-    public static IpcReqMessage? FromJson(string json)
-    {
-        return JsonSerializer.Deserialize<IpcReqMessage>(json);
-    }
+    public static IpcReqMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessage>(json);
 }
 
 sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>

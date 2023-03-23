@@ -49,13 +49,7 @@ public class IpcMethod
         _method = method;
     }
 
-    public static IpcMethod From(HttpMethod method)
-    {
-        return new IpcMethod(method.Method);
-    }
+    public static IpcMethod From(HttpMethod method) => new IpcMethod(method.Method);
 
-    public override string ToString()
-    {
-        return _method;
-    }
+    public override string ToString() => _method;
 }
