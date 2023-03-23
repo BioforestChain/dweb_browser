@@ -231,31 +231,26 @@ export class IpcBodySender extends IpcBody {
 
         // const desiredSize = this.maxPulledSize - this.curPulledSize;
         const availableLen = await reader.available();
-        switch (availableLen) {
-          case -1:
-          case 0:
-            {
-              /// 不论是不是被 aborted，都发送结束信号
-              const message = new IpcStreamEnd(stream_id);
-              for (const ipc of this.usedIpcMap.keys()) {
-                ipc.postMessage(message);
-              }
+        if (availableLen > 0) {
+          // 开光了，流已经开始被读取
+          this.isStreamOpened = true;
 
-              this.emitStreamClose();
-            }
-            break;
-          default: {
-            // 开光了，流已经开始被读取
-            this.isStreamOpened = true;
-
-            const message = IpcStreamData.fromBinary(
-              stream_id,
-              await reader.readBinary(availableLen)
-            );
-            for (const ipc of this.usedIpcMap.keys()) {
-              ipc.postMessage(message);
-            }
+          const message = IpcStreamData.fromBinary(
+            stream_id,
+            await reader.readBinary(availableLen)
+          );
+          for (const ipc of this.usedIpcMap.keys()) {
+            ipc.postMessage(message);
           }
+        } else if (availableLen === -1) {
+          /// 不论是不是被 aborted，都发送结束信号
+          const message = new IpcStreamEnd(stream_id);
+          for (const ipc of this.usedIpcMap.keys()) {
+            ipc.postMessage(message);
+          }
+
+          this.emitStreamClose();
+          break;
         }
       }
     })().catch(console.error);

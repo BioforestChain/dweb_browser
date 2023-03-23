@@ -41,7 +41,7 @@ class MessagePort {
     }
 
     fun onWebMessage(cb: Callback<WebMessage>) = _messageSignal.listen(cb)
-    fun postMessage(event: WebMessage) = port.postMessage(event)
+    fun postMessage(data: String) = port.postMessage(WebMessage(data))
 
     fun close() = port.close()
 }
@@ -67,7 +67,7 @@ open class MessagePortIpc(
         val callback = port.onWebMessage { event ->
             when (val message = jsonToIpcMessage(event.data, ipc)) {
                 "close" -> close()
-                "ping" -> port.postMessage(WebMessage("pong"))
+                "ping" -> port.postMessage("pong")
                 "pong" -> debugMessagePortIpc("PONG/$ipc")
                 is IpcMessage -> {
                     debugMessagePortIpc("ON-MESSAGE/$ipc", message)
@@ -89,11 +89,11 @@ open class MessagePortIpc(
             is IpcStreamData -> gson.toJson(data)
             else -> gson.toJson(data)
         }
-        this.port.postMessage(WebMessage(message))
+        this.port.postMessage(message)
     }
 
     override suspend fun _doClose() {
-        this.port.postMessage(WebMessage("close"))
+        this.port.postMessage("close")
         this.port.close()
     }
 }

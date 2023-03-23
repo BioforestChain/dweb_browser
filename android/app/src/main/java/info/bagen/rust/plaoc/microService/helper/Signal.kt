@@ -46,12 +46,8 @@ open class Signal<Args> {
         val cbs = cpSet
         for (cb in cbs) {
             try {
-                /// 因为 cbs 和 listenerSet 已经不是同一个列表了，所以至少说执行之前要检查一下是否还在
-                if (!listenerSet.contains(cb)) {
-                    continue
-                }
                 when (cb(args)) {
-                    SIGNAL_CTOR.OFF -> listenerSet.remove(cb)
+                    SIGNAL_CTOR.OFF -> off(cb)
                     SIGNAL_CTOR.BREAK -> break
                 }
             } catch (e: Throwable) {

@@ -75,27 +75,28 @@ class IpcBodySender(
             }
 
             private val IpcUsableIpcBodyMap = WeakHashMap<Ipc, UsableIpcBodyMapper>()
-            private fun Ipc.getUsableIpcBodyMap(): UsableIpcBodyMapper = IpcUsableIpcBodyMap.getOrPut(this) {
-                debugIpcBody("ipcBodySenderUsableByIpc/OPEN/$this")
-                UsableIpcBodyMapper().also { mapper ->
-                    val off = onMessage { (message) ->
-                        when (message) {
-                            is IpcStreamPulling -> mapper.get(message.stream_id)?.useByIpc(this)
-                                ?.emitStreamPull(message)
-                            is IpcStreamPaused -> mapper.get(message.stream_id)?.useByIpc(this)
-                                ?.emitStreamPaused(message)
-                            is IpcStreamAbort -> mapper.get(message.stream_id)?.useByIpc(this)
-                                ?.emitStreamAborted()
-                            else -> {}
+            private fun Ipc.getUsableIpcBodyMap(): UsableIpcBodyMapper =
+                IpcUsableIpcBodyMap.getOrPut(this) {
+                    debugIpcBody("ipcBodySenderUsableByIpc/OPEN/$this")
+                    UsableIpcBodyMapper().also { mapper ->
+                        val off = onStream { (message) ->
+                            when (message) {
+                                is IpcStreamPulling -> mapper.get(message.stream_id)?.useByIpc(this)
+                                    ?.emitStreamPull(message)
+                                is IpcStreamPaused -> mapper.get(message.stream_id)?.useByIpc(this)
+                                    ?.emitStreamPaused(message)
+                                is IpcStreamAbort -> mapper.get(message.stream_id)?.useByIpc(this)
+                                    ?.emitStreamAborted()
+                                else -> {}
+                            }
+                        }
+                        mapper.onDestroy(off)
+                        mapper.onDestroy {
+                            debugIpcBody("ipcBodySenderUsableByIpc/CLOSE/$this")
+                            IpcUsableIpcBodyMap.remove(this)
                         }
                     }
-                    mapper.onDestroy(off)
-                    mapper.onDestroy {
-                        debugIpcBody("ipcBodySenderUsableByIpc/CLOSE/$this")
-                        IpcUsableIpcBodyMap.remove(this)
-                    }
                 }
-            }
 
 
             /**
@@ -143,13 +144,18 @@ class IpcBodySender(
      * ipc 将使用这个 body，也就是说接下来的 MessageData 也要通知一份给这个 ipc
      * 但一个流一旦开启了，那么就无法再被外部使用了
      */
-    private fun useByIpc(ipc: Ipc) = usedIpcMap[ipc] ?: if (isStream && !_isStreamOpened) {
-        /// 如果是未开启的流，插入
-        UsedIpcInfo(this, ipc).also { info ->
-            usedIpcMap[ipc] = info
-            closeSignal.listen {
-                emitStreamAborted(info)
+    private fun useByIpc(ipc: Ipc) = usedIpcMap[ipc] ?: if (isStream) {
+        if (!_isStreamOpened) {
+            /// 如果是未开启的流，插入
+            UsedIpcInfo(this, ipc).also { info ->
+                usedIpcMap[ipc] = info
+                closeSignal.listen {
+                    emitStreamAborted(info)
+                }
             }
+        } else {
+            debugger()
+            null
         }
     } else null
 

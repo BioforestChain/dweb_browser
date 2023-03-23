@@ -16,13 +16,13 @@ fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
     err?.printStackTrace()
 }
 
-/*fun debugger(vararg params: Any?) {
-    println("DEBUGGER")
-}*/
+fun debugger(vararg params: Any?) {
+    println("DEBUGGER 请打断点")
+}
 
 val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
     printerrln(ctx.toString(), e.message, e)
-    //debugger(ctx, e)
+    debugger(ctx, e)
 }
 val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
 val mainAsyncExceptionHandler = Dispatchers.Main + commonAsyncExceptionHandler

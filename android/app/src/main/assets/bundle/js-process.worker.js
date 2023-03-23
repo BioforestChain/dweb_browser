@@ -4516,27 +4516,22 @@ var _IpcBodySender = class extends IpcBody {
       while (true) {
         await pullingLock.promise;
         const availableLen = await reader.available();
-        switch (availableLen) {
-          case -1:
-          case 0:
-            {
-              const message = new IpcStreamEnd(stream_id);
-              for (const ipc2 of this.usedIpcMap.keys()) {
-                ipc2.postMessage(message);
-              }
-              this.emitStreamClose();
-            }
-            break;
-          default: {
-            this.isStreamOpened = true;
-            const message = IpcStreamData.fromBinary(
-              stream_id,
-              await reader.readBinary(availableLen)
-            );
-            for (const ipc2 of this.usedIpcMap.keys()) {
-              ipc2.postMessage(message);
-            }
+        if (availableLen > 0) {
+          this.isStreamOpened = true;
+          const message = IpcStreamData.fromBinary(
+            stream_id,
+            await reader.readBinary(availableLen)
+          );
+          for (const ipc2 of this.usedIpcMap.keys()) {
+            ipc2.postMessage(message);
           }
+        } else if (availableLen === -1) {
+          const message = new IpcStreamEnd(stream_id);
+          for (const ipc2 of this.usedIpcMap.keys()) {
+            ipc2.postMessage(message);
+          }
+          this.emitStreamClose();
+          break;
         }
       }
     })().catch(console.error);
@@ -4762,9 +4757,7 @@ var Ipc = class {
     this._closed = false;
     this._closeSignal = createSignal(false);
     this.onClose = this._closeSignal.listen;
-    this._reqresMap = /* @__PURE__ */ new Map();
     this._req_id_acc = 0;
-    this._inited_req_res = false;
   }
   /**
    * 是否支持使用 MessagePack 直接传输二进制
@@ -4854,22 +4847,20 @@ var Ipc = class {
   allocReqId(url) {
     return this._req_id_acc++;
   }
-  _initReqRes() {
-    if (this._inited_req_res) {
-      return;
-    }
-    this._inited_req_res = true;
+  get _reqresMap() {
+    const reqresMap = /* @__PURE__ */ new Map();
     this.onMessage((message) => {
       if (message.type === 1 /* RESPONSE */) {
-        const response_po = this._reqresMap.get(message.req_id);
+        const response_po = reqresMap.get(message.req_id);
         if (response_po) {
-          this._reqresMap.delete(message.req_id);
+          reqresMap.delete(message.req_id);
           response_po.resolve(message);
         } else {
           throw new Error(`no found response by req_id: ${message.req_id}`);
         }
       }
     });
+    return reqresMap;
   }
   // 先找到错误的位置
   // 需要确定两个问题
@@ -4880,14 +4871,14 @@ var Ipc = class {
   request(url, init) {
     const req_id = this.allocReqId();
     const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
+    const result = this.registerReqId(req_id);
     this.postMessage(ipcRequest);
-    return this.registerReqId(req_id).promise;
+    return result.promise;
   }
   /** 自定义注册 请求与响应 的id */
   registerReqId(req_id = this.allocReqId()) {
     const response_po = new PromiseOut();
     this._reqresMap.set(req_id, response_po);
-    this._initReqRes();
     return response_po;
   }
 };
@@ -4900,6 +4891,9 @@ __decorateClass([
 __decorateClass([
   cacheGetter()
 ], Ipc.prototype, "_onEventSignal", 1);
+__decorateClass([
+  cacheGetter()
+], Ipc.prototype, "_reqresMap", 1);
 
 // src/core/ipc/IpcResponse.cts
 var import_once2 = __toESM(require_once());
@@ -5117,6 +5111,7 @@ var $metaToStream = (metaBody, ipc) => {
       },
       pull(controller) {
         if (paused) {
+          console.log("start pulling", stream_id);
           paused = false;
           stream_ipc.postMessage(new IpcStreamPulling(stream_id));
         }
@@ -5197,12 +5192,8 @@ var IpcStreamPaused = class extends IpcMessage {
 };
 
 // src/core/ipc-web/$messageToIpcMessage.cts
-var isIpcSignalMessage = (msg) => msg === "close" || msg === "ping" || msg === "pong";
-var $messageToIpcMessage = (data, ipc) => {
-  if (isIpcSignalMessage(data)) {
-    return data;
-  }
-  data = Object.prototype.toString.call(data).slice(8, -1) === "String" ? JSON.parse(data) : data;
+var $isIpcSignalMessage = (msg) => msg === "close" || msg === "ping" || msg === "pong";
+var $objectToIpcMessage = (data, ipc) => {
   let message;
   if (data.type === 0 /* REQUEST */) {
     message = new IpcRequest(
@@ -5234,14 +5225,17 @@ var $messageToIpcMessage = (data, ipc) => {
   }
   return message;
 };
-
-// src/core/ipc-web/$jsonToIpcMessage.cts
+var $messageToIpcMessage = (data, ipc) => {
+  if ($isIpcSignalMessage(data)) {
+    return data;
+  }
+  return $objectToIpcMessage(data, ipc);
+};
 var $jsonToIpcMessage = (data, ipc) => {
-  const _data = Object.prototype.toString.call(data).slice(8, -1) === "Object" ? data : JSON.parse(data);
-  return $messageToIpcMessage(
-    isIpcSignalMessage(data) ? data : _data,
-    ipc
-  );
+  if ($isIpcSignalMessage(data)) {
+    return data;
+  }
+  return $objectToIpcMessage(JSON.parse(data), ipc);
 };
 
 // src/core/ipc-web/$messagePackToIpcMessage.cts
@@ -5283,6 +5277,7 @@ var MessagePortIpc = class extends Ipc {
         this.port.postMessage("pong");
         return;
       }
+      console.log("web-message-port-ipc", "onmessage", message);
       this._messageSignal.emit(message, this);
     });
     port.start();
@@ -5307,6 +5302,7 @@ var MessagePortIpc = class extends Ipc {
     this.port.postMessage(message_data);
   }
   _doClose() {
+    console.log("web-message-port-ipc", "onclose");
     this.port.postMessage("close");
     this.port.close();
   }

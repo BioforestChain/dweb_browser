@@ -7,9 +7,11 @@ import { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
 import { Ipc } from "../ipc/ipc.cjs";
 import { IpcRequest } from "../ipc/IpcRequest.cjs";
 import { IpcResponse } from "../ipc/IpcResponse.cjs";
-import { $jsonToIpcMessage } from "./$jsonToIpcMessage.cjs";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.cjs";
-import { $messageToIpcMessage } from "./$messageToIpcMessage.cjs";
+import {
+  $jsonToIpcMessage,
+  $messageToIpcMessage,
+} from "./$messageToIpcMessage.cjs";
 
 export class MessagePortIpc extends Ipc {
   constructor(
@@ -33,12 +35,11 @@ export class MessagePortIpc extends Ipc {
       this.remote.ipc_support_protocols.message_pack;
 
     port.addEventListener("message", (event) => {
-      // console.log(event.data, this.support_raw, this.support_message_pack)
       const message = this.support_raw
         ? $messageToIpcMessage(event.data, this)
         : this.support_message_pack
-          ? $messagePackToIpcMessage(event.data, this)
-          : $jsonToIpcMessage(event.data, this);
+        ? $messagePackToIpcMessage(event.data, this)
+        : $jsonToIpcMessage(event.data, this);
       if (message === undefined) {
         console.error("MessagePortIpc.cts unkonwn message", event.data);
         return;
@@ -54,6 +55,7 @@ export class MessagePortIpc extends Ipc {
         this.port.postMessage("pong");
         return;
       }
+      console.log("web-message-port-ipc", "onmessage", message);
       this._messageSignal.emit(message, this);
     });
     port.start();
@@ -78,11 +80,12 @@ export class MessagePortIpc extends Ipc {
     } else {
       message_data = JSON.stringify(message_raw);
     }
-     
+
     this.port.postMessage(message_data);
   }
 
   _doClose() {
+    console.log("web-message-port-ipc", "onclose");
     this.port.postMessage("close");
     this.port.close();
   }

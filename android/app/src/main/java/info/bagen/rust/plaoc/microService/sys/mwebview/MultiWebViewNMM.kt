@@ -55,15 +55,15 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val query_webviewId = Query.string().required("webview_id")
 
         val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
-        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
-            while (true) {
-                for ((ipc) in subscribers) {
-                    ipc.postMessage(IpcEvent.fromUtf8("close", "hi"))
-                }
-                delay(1000)
-            }
-        }
-        _afterShutdownSignal.listen { job.cancel() }
+//        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
+//            while (true) {
+//                for ((ipc) in subscribers) {
+//                    ipc.postMessage(IpcEvent.fromUtf8("close", "hi"))
+//                }
+//                delay(1000)
+//            }
+//        }
+//        _afterShutdownSignal.listen { job.cancel() }
 
         apiRouting = routes(
             // 打开一个 webview 作为窗口

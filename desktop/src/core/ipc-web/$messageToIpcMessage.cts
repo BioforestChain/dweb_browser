@@ -20,24 +20,12 @@ export type $JSON<T> = {
 };
 
 export type $IpcSignalMessage = "close" | "ping" | "pong";
-export const isIpcSignalMessage = (msg: unknown): msg is $IpcSignalMessage =>
+export const $isIpcSignalMessage = (msg: unknown): msg is $IpcSignalMessage =>
   msg === "close" || msg === "ping" || msg === "pong";
-
-export const $messageToIpcMessage = (
-  data: $JSON<$IpcTransferableMessage> | $IpcSignalMessage,
+export const $objectToIpcMessage = (
+  data: $JSON<$IpcTransferableMessage>,
   ipc: Ipc
 ) => {
-  // console.log(chalk.red(`$messageToIpcMessage.cts data`), data)
-  if (isIpcSignalMessage(data)) {
-    return data;
-  }
-
-  data = (
-    Object.prototype.toString.call(data).slice(8, -1) === "String"
-      ? JSON.parse(data as unknown as string)
-      : data
-  ) as $JSON<$IpcTransferableMessage>;
-
   let message: undefined | $IpcMessage | $IpcSignalMessage;
 
   if (data.type === IPC_MESSAGE_TYPE.REQUEST) {
@@ -69,4 +57,22 @@ export const $messageToIpcMessage = (
     message = new IpcStreamEnd(data.stream_id);
   }
   return message;
+};
+
+export const $messageToIpcMessage = (
+  data: $JSON<$IpcTransferableMessage> | $IpcSignalMessage,
+  ipc: Ipc
+) => {
+  if ($isIpcSignalMessage(data)) {
+    return data;
+  }
+
+  return $objectToIpcMessage(data, ipc);
+};
+export const $jsonToIpcMessage = (data: string, ipc: Ipc) => {
+  if ($isIpcSignalMessage(data)) {
+    return data;
+  }
+
+  return $objectToIpcMessage(JSON.parse(data), ipc);
 };

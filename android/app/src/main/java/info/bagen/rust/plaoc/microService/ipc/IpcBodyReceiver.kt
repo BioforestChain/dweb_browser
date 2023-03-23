@@ -84,7 +84,7 @@ class IpcBodyReceiver(
                     else -> null
                 }?.let { firstData -> controller.enqueue(firstData) }
 
-                ipc.onMessage { (message) ->
+                ipc.onStream { (message) ->
                     if (message is IpcStreamData && message.stream_id == stream_id) {
                         debugIpcBody(
                             "receiver/StreamData/$ipc/${controller.stream}", message
@@ -95,7 +95,7 @@ class IpcBodyReceiver(
                             "receiver/StreamEnd/$ipc/${controller.stream}", message
                         )
                         controller.close()
-                        return@onMessage SIGNAL_CTOR.OFF
+                        SIGNAL_CTOR.OFF
                     } else {
                     }
                 }

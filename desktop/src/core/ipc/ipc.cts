@@ -135,30 +135,28 @@ export abstract class Ipc {
   private _closeSignal = createSignal<() => unknown>(false);
   onClose = this._closeSignal.listen;
 
-  private readonly _reqresMap = new Map<number, PromiseOut<IpcResponse>>();
   private _req_id_acc = 0;
   allocReqId(url?: string) {
     return this._req_id_acc++;
   }
 
-  private _inited_req_res = false;
-  private _initReqRes() {
-    if (this._inited_req_res) {
-      return;
-    }
-    this._inited_req_res = true;
+  @cacheGetter()
+  private get _reqresMap() {
+    const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
     this.onMessage((message) => {
       if (message.type === IPC_MESSAGE_TYPE.RESPONSE) {
-        const response_po = this._reqresMap.get(message.req_id);
+        const response_po = reqresMap.get(message.req_id);
         if (response_po) {
-          this._reqresMap.delete(message.req_id);
+          reqresMap.delete(message.req_id);
           response_po.resolve(message);
         } else {
           throw new Error(`no found response by req_id: ${message.req_id}`);
         }
       }
     });
+    return reqresMap;
   }
+
   // 先找到错误的位置
   // 需要确定两个问题
   // 是否是应为报错导致无法响应后面的请求
@@ -182,14 +180,14 @@ export abstract class Ipc {
     const req_id = this.allocReqId();
     const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
 
+    const result = this.registerReqId(req_id);
     this.postMessage(ipcRequest);
-    return this.registerReqId(req_id).promise;
+    return result.promise;
   }
   /** 自定义注册 请求与响应 的id */
   registerReqId(req_id = this.allocReqId()) {
     const response_po = new PromiseOut<IpcResponse>();
     this._reqresMap.set(req_id, response_po);
-    this._initReqRes();
     return response_po;
   }
 }

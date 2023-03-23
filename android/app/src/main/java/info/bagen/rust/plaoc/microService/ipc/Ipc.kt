@@ -97,6 +97,18 @@ abstract class Ipc {
 
     fun onResponse(cb: OnIpcResponseMessage) = _responseSignal.listen(cb)
 
+    private val _streamSignal by lazy {
+        Signal<IpcStreamMessageArgs>().also { signal ->
+            _messageSignal.listen { args ->
+                if (args.message is IpcStream) {
+                    signal.emit(IpcStreamMessageArgs(args.message, args.ipc));
+                }
+            }
+        }
+    }
+
+    fun onStream(cb: OnIpcStreamMessage) = _streamSignal.listen(cb)
+
     private val _eventSignal by lazy {
         Signal<IpcEventMessageArgs>().also { signal ->
             _messageSignal.listen { args ->
@@ -162,16 +174,20 @@ abstract class Ipc {
     suspend fun request(url: Uri) =
         request(Request(Method.GET, url))
 
-    suspend fun request(ipcRequest: IpcRequest): IpcResponse {
-        this.postMessage(ipcRequest)
-        val result = PromiseOut<IpcResponse>();
-        this.onResponse { (response) ->
-            if (response.req_id == ipcRequest.req_id) {
+    private val _reqResMap by lazy {
+        mutableMapOf<Int, PromiseOut<IpcResponse>>().also { reqResMap ->
+            onResponse { (response) ->
+                val result = reqResMap.remove(response.req_id)
+                    ?: throw Exception("no found response by req_id: ${response.req_id}")
                 result.resolve(response)
-                return@onResponse SIGNAL_CTOR.OFF
-            } else {
             }
         }
+    }
+
+    suspend fun request(ipcRequest: IpcRequest): IpcResponse {
+        val result = PromiseOut<IpcResponse>();
+        _reqResMap[ipcRequest.req_id] = result;
+        this.postMessage(ipcRequest)
         return result.waitPromise()
     }
 

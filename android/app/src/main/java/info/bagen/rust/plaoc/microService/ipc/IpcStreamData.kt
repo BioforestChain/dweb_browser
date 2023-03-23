@@ -8,10 +8,10 @@ import java.lang.reflect.Type
 
 @JsonAdapter(IpcStreamData::class)
 data class IpcStreamData(
-    val stream_id: String,
+    override val stream_id: String,
     val data: Any /*String or ByteArray*/,
     val encoding: IPC_DATA_ENCODING
-) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA), JsonSerializer<IpcStreamData>,
+) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA), IpcStream, JsonSerializer<IpcStreamData>,
     JsonDeserializer<IpcStreamData> {
 
     companion object {

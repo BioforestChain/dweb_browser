@@ -49,19 +49,6 @@ export class IpcBodyReceiver extends IpcBody {
   }
   protected _bodyHub: BodyHub;
 }
-/**
- * 读取者的状态
- */
-const enum RECEIVER_STATE {
-  /**
-   * 数据持续拉取中
-   */
-  PULLING,
-  /**
-   * 数据暂停拉取
-   */
-  PAUSED,
-}
 
 const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
   if (ipc == null) {
@@ -111,8 +98,8 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         });
       },
       pull(controller) {
-        // console.log("start pulling", stream_id);
         if (paused) {
+          console.log("start pulling", stream_id);
           paused = false;
           stream_ipc.postMessage(new IpcStreamPulling(stream_id));
         }

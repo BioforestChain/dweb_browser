@@ -15,8 +15,8 @@ import type { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
 import { Ipc } from "../ipc/ipc.cjs";
 import { IpcRequest } from "../ipc/IpcRequest.cjs";
 import { IpcResponse } from "../ipc/IpcResponse.cjs";
-import { $jsonToIpcMessage } from "./$jsonToIpcMessage.cjs";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.cjs";
+import { $jsonToIpcMessage } from "./$messageToIpcMessage.cjs";
 
 /**
  * 基于 WebReadableStream 的IPC

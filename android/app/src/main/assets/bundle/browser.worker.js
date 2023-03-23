@@ -2567,27 +2567,22 @@ var _IpcBodySender = class extends IpcBody {
       while (true) {
         await pullingLock.promise;
         const availableLen = await reader.available();
-        switch (availableLen) {
-          case -1:
-          case 0:
-            {
-              const message = new IpcStreamEnd(stream_id);
-              for (const ipc3 of this.usedIpcMap.keys()) {
-                ipc3.postMessage(message);
-              }
-              this.emitStreamClose();
-            }
-            break;
-          default: {
-            this.isStreamOpened = true;
-            const message = IpcStreamData.fromBinary(
-              stream_id,
-              await reader.readBinary(availableLen)
-            );
-            for (const ipc3 of this.usedIpcMap.keys()) {
-              ipc3.postMessage(message);
-            }
+        if (availableLen > 0) {
+          this.isStreamOpened = true;
+          const message = IpcStreamData.fromBinary(
+            stream_id,
+            await reader.readBinary(availableLen)
+          );
+          for (const ipc3 of this.usedIpcMap.keys()) {
+            ipc3.postMessage(message);
           }
+        } else if (availableLen === -1) {
+          const message = new IpcStreamEnd(stream_id);
+          for (const ipc3 of this.usedIpcMap.keys()) {
+            ipc3.postMessage(message);
+          }
+          this.emitStreamClose();
+          break;
         }
       }
     })().catch(console.error);

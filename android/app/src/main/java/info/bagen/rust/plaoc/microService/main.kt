@@ -42,10 +42,10 @@ suspend fun startDwebBrowser() {
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
             listOf<String>(
-//                "message-port-ipc",
-//                "stream-ipc",
-//                "stream",
-//                "ipc-body",
+                "message-port-ipc",
+                "stream-ipc",
+                "stream",
+                "ipc-body",
             )
         )
         else -> debugTags.addAll(

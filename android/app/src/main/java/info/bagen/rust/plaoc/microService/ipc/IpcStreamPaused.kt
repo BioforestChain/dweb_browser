@@ -1,7 +1,7 @@
 package info.bagen.rust.plaoc.microService.ipc
 
 data class IpcStreamPaused(
-    val stream_id: String,
+    override val stream_id: String,
     /**
      * 保险丝次数
      * 虽然协议上暂停了，但保不齐对方有一些特殊的消息需要发过来
@@ -11,4 +11,4 @@ data class IpcStreamPaused(
      * 一旦该数值为0，对方再发送数据过来的时候，底层会直接断开连接。
      */
     val fuse: Int = 1,
-) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_PAUSED)
+) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_PAUSED), IpcStream

@@ -112,17 +112,8 @@ class ReadableStreamIpc(
         }
         debugStreamIpc("post/$stream", message.size)
         enqueue(message.size.toByteArray() + message)
-
-        debugStreamIpc("afterPost/canReadSize/$stream", stream.canReadSize)
-        if (stream.canReadSize > 0) {
-            pressureSignal.emit()
-        }
     }
 
-    /**
-     * 压力信号
-     */
-    val pressureSignal by lazy { SimpleSignal() }
 
     override suspend fun _doClose() {
         controller.close()
