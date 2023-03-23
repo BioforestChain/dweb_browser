@@ -62,7 +62,6 @@ export class MessagePortIpc extends Ipc {
   }
 
   _doPostMessage(message: $IpcMessage): void {
-    // console.log('MessagePortIpc.cts _doPostMessage', message)
     var message_data: any;
     var message_raw: IpcMessage<any>;
     if (message instanceof IpcRequest) {

@@ -48,21 +48,10 @@ export class JsMicroModule extends MicroModule {
     console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`);
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
-    this.onConnect((workerIpc) => {
-      console.log(
-        `[micro-module.js.cts ${this.mmid} onConnect by ${workerIpc.remote.mmid}]`
-      );
+    this.onConnect((ipc, rease) => {
+      console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
       // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
-      workerIpc.onRequest(async (request) => {
-        // console.log('[micro-module.js.cts ipc onRequest]',JSON.stringify(request))
-        // console.log('[micro-module.js.cts ipc onRequest request.parsed_url.href]',request.parsed_url.href)
-        // console.log('[micro-module.js.cts ]   ipc ', ipc.remote.mmid)
-        // console.log(chalk.red(`[micro-module.js.cts 这里错误，传递 init 参数否则无法正确的创建ipc通信🔗]`))
-        console.log(
-          chalk.red(
-            `[micro-module.js.cts 这里需要区分 请求的方法，如果请求的方法是 post | put 需要把 rquest init 带上]`
-          )
-        );
+      ipc.onRequest(async (request) => {
         const init = httpMethodCanOwnBody(request.method)
           ? { method: request.method, body: await request.body.stream() }
           : { method: request.method };
@@ -73,12 +62,49 @@ export class JsMicroModule extends MicroModule {
         );
       });
 
-      workerIpc.onMessage(async (request) => {
+      ipc.onMessage(async (request) => {
         // console.log('ipc.onMessage', request)
       });
 
-      workerIpc.onEvent((event) => {
-        console.log("ipc.onEvent", event);
+      /** 
+       * 处理从 js-process.cts 发送过来的 
+       * messate.type === IPC_MESSAGE_TYPE.EVENT
+       * 
+       */
+      ipc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === workerIpc */) => {
+        console.log(`[micro-module.js.cts ${this.mmid} ipc.onEvent]`, ipcEventMessage)
+        if(ipcEventMessage.name === "dns/connect"){
+          if(Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data')
+          // 创建同 远程模块的 ipc 通道
+          const mmid = JSON.parse(ipcEventMessage.data as string).mmid
+          const [remoteIpc, localIpc] = await context.dns.connect(mmid)
+          this._remoteIpcs.set(mmid, remoteIpc)
+          // 如果能够把 remoteIpc 直接返回回去就完美了
+          ipc.postMessage(IpcEvent.fromText("dns/connect", "done"))
+          // 从连接的模块中收到的 IpcEvent 直接转发
+          remoteIpc.onEvent((event, _ipc) => ipc.postMessage(event))
+          return;
+        }
+
+        // 如何把 发送给
+        if(this.mmid === ipcEventMessage.name){
+          // console.log(chalk.red(`micro-module.js.cts ipc.onEvent 这里还有问题 还需要处理，无法把消息发送给对应的 worker`), ipcEventMessage, ipc);
+          // 测试代码 创建链接
+          // 判断是是有已经有了链接
+          this._workerIpc = this._workerIpc === undefined ? await  this._beConnect(this) : this._workerIpc;
+          this._workerIpc.postMessage(ipcEventMessage)
+          // 接受到 从 worker 中返回的消息
+          this._workerIpc.onMessage((message, _ipc /** 这个ipc 匹配的是 this._workerIpc*/) => {
+            // 把这个消息发送给 ipc
+            ipc.postMessage(message)
+          })
+          
+          return;
+        }
+
+        const remoteIpc = this._remoteIpcs.get(ipcEventMessage.name)
+        if(remoteIpc === undefined) throw new Error(`${this.mmid} 模块 ipc.onEvent 没有匹配的 remoteIpc`)
+        remoteIpc.postMessage(ipcEventMessage)
       });
     });
 
@@ -86,7 +112,6 @@ export class JsMicroModule extends MicroModule {
     this._process_id = pid;
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     streamIpc.onRequest(async (request) => {
-      console.log("-----------------------2", request.parsed_url);
       if (request.parsed_url.pathname.endsWith("/")) {
         streamIpc.postMessage(
           IpcResponse.fromText(

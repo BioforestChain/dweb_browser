@@ -1,32 +1,18 @@
 /// <reference path="../../sys/js-process/js-process.worker.d.ts"/>
-
-// import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
-// import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-// import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
-// import html from "../../../assets/html/browser.html"
-
-// import type { Ipc } from "../../core/ipc/ipc.cjs";
-// import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
-// import { streamReadAll } from "../../helper/readableStreamHelper.cjs";
 import { wwwServerOnRequest } from "./www-server-on-request.mjs"
 import { createApiServerOnRequest } from "./api-server-on-request.mjs"
-import chalk from "chalk"
-
-import type { $OnIpcEventMessage } from "../../core/ipc/const.cjs"
-
- 
-
- 
+import { log } from "../../helper/devtools.cjs"
 
 const main = async () => {
-  console.log('[browser.worker.mts exec]')
+  log.green('[browser.worker.mts bootstrap]')
+  
   const { IpcEvent } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess,{subdomain: "www", port: 443});
   const apiServer = await http.createHttpDwebServer(jsProcess,{subdomain: "api", port: 443});
   // console.log('url: ', wwwServer.startResult.urlInfo.internal_origin)
   // http://www.browser.sys.dweb-443.localhost:22605/index.html?X-Dweb-Host=www.browser.sys.dweb%3A443#/toast)
   ;(await wwwServer.listen()).onRequest(wwwServerOnRequest)
-  ;(await apiServer.listen()).onRequest(await createApiServerOnRequest(wwwServer.startResult.urlInfo.internal_origin))
+  ;(await apiServer.listen()).onRequest(await createApiServerOnRequest(wwwServer.startResult.urlInfo.internal_origin, apiServer.startResult.urlInfo))
 
   // 打开 browser.sys.dweb 配套的html 页面
   // 验证 JSMM 之间通信 实现消息推送 不需要打开匹配的html
@@ -41,7 +27,6 @@ const main = async () => {
       )
       .text();
   }
-
    
   // 等待他人的连接
   {

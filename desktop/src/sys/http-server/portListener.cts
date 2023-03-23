@@ -59,7 +59,7 @@ export class PortListener {
     // if (res.closed) {
     //   throw new Error("http server response already closed");
     // }
-
+    
     const { url = "/", method = "GET" } = req;
     const parsed_url = parseUrl(url, this.origin);
     // console.log('parsed_url: ', parsed_url.href)
@@ -68,7 +68,7 @@ export class PortListener {
       defaultErrorResponse(req, res, 404, "no found");
       return;
     }
-    // console.log('parsed_url-2: ')
+    
 
     /**
      * 要通过 ipc 传输过去的 req.body
@@ -93,13 +93,13 @@ export class PortListener {
       //   : true
     ) {
       /** req body 的转发管道，转发到 响应服务端 */
+      
       const server_req_body_writter = new ReadableStreamOut<Uint8Array>();
-      (async () => {
+      ;(async () => {
         const client_req_body_reader = Readable.toWeb(req).getReader();
         client_req_body_reader.closed.then(() => {
           server_req_body_writter.controller.close();
         });
-
         /// 根据数据拉取的情况，从 req 中按需读取数据，这种按需读取会反压到 web 的请求层那边暂缓数据的发送
         for await (const _ of streamRead(
           streamFromCallback(
@@ -125,8 +125,7 @@ export class PortListener {
       body: ipc_req_body_stream,
       headers: req.headers as Record<string, string>,
     });
-    // console.log('parsed_url-3: ')
-
+    
     /// 写回 res 对象
     res.statusCode = http_response_info.statusCode;
     http_response_info.headers.forEach((value, name) => {

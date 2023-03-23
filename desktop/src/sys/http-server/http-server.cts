@@ -10,9 +10,9 @@ import { defaultErrorResponse } from "./defaultErrorResponse.cjs";
 import type { $DwebHttpServerOptions } from "./net/createNetServer.cjs";
 import { Http1Server } from "./net/Http1Server.cjs";
 import { PortListener } from "./portListener.cjs";
-import chalk from "chalk"
+import { log } from "../../helper/devtools.cjs"
 import type { IncomingMessage, OutgoingMessage } from "node:http";
-import { Decoder } from "@msgpack/msgpack";
+ 
 import type { IpcEvent } from "../../core/ipc/IpcEvent.cjs"
 
  
@@ -40,7 +40,6 @@ export class HttpServerNMM extends NativeMicroModule {
   private _tokenMap = new Map</* token */ string, $Gateway>();
   private _gatewayMap = new Map</* host */ string, $Gateway>();
 
-  private statusbarRes: OutgoingMessage | undefined;
   private _filterActions: Map<$FilterActionItem, Ipc> = new Map()
   private _filterActionsArray: $FilterActionItem[] = []
   private _filterActionResponse: Map<Ipc, Map<string,OutgoingMessage>> = new Map()
@@ -79,6 +78,11 @@ export class HttpServerNMM extends NativeMicroModule {
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     const info = await this._dwebServer.create();
     info.server.on("request", (req, res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");  
+      res.setHeader("Access-Control-Allow-Headers", "*");  
+      res.setHeader("Access-Control-Allow-Methods","*");  
+
+
       /// 获取 host
       var header_host: string | null = null;
       var header_x_dweb_host: string | null = null;
@@ -133,6 +137,8 @@ export class HttpServerNMM extends NativeMicroModule {
         /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
         host = "*";
       }
+
+      
      
       {
         // 保持住推送消息通道
@@ -149,12 +155,13 @@ export class HttpServerNMM extends NativeMicroModule {
         }
       }
 
+
       {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
         // console.log('[http-server.cts 接受到了 http 请求：gateway]',gateway)
         if (gateway == undefined) {
-          console.log(chalk.yellow('[http-server.cts 接受到了没有匹配的 gateway host===]'),host)
+          log.red(`[http-server.cts 接受到了没有匹配的 gateway host===] ${host}`);
           return defaultErrorResponse(
             req,
             res,
@@ -163,7 +170,7 @@ export class HttpServerNMM extends NativeMicroModule {
             "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
           );
         }
-  
+        
         // gateway.listener.ipc.request("/on-connect")
   
         // const gateway_timeout = setTimeout(() => {
@@ -172,6 +179,7 @@ export class HttpServerNMM extends NativeMicroModule {
         //   res.write;
         //   res.hasHeader;
         // }, 3e4 /* 30s 没有任何 body 写入的话，认为网关超时 */);
+        // 源代码
         void gateway.listener.hookHttpRequest(req, res);
       }
     });

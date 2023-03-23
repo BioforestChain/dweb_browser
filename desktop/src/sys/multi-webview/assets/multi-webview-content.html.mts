@@ -181,7 +181,7 @@ export class MultiWebViewContent extends LitElement{
 
         const host = document.querySelector(":host")
         // 如何把状态栏 这个 自定义标签 <dweb-status-bar /> 这个 自定义标签注入进去
-        // 同时 如何把这个额dweb-status-bar 这个标签同 statusbar.sys.dweb NMM 模块关联起来；
+        // 同时 如何把这个额dweb-status-bar 这个标签同 status-bar.sys.dweb NMM 模块关联起来；
         // 是否可以通过多为 <webview> 标签实现 通过 jsMM 实现？？
         // 
         return html`
@@ -195,7 +195,7 @@ export class MultiWebViewContent extends LitElement{
                     id="statusbar"
                     class="iframe-statusbar"
                     style="width: 100%;height: 48px;border: none; flex-grow: 0; flex-shrink: 0; position:relative; left: 0px; top: 0px;"
-                    src="http://statusbar.sys.dweb-80.localhost:22605/"
+                    src="http://status-bar.sys.dweb-80.localhost:22605/"
                     @load=${() => console.log('statusbar 载入完成')}
                     data-app-url=${this.src}
                 ></iframe>

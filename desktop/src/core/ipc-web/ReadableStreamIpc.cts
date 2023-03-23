@@ -17,6 +17,7 @@ import { IpcRequest } from "../ipc/IpcRequest.cjs";
 import { IpcResponse } from "../ipc/IpcResponse.cjs";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.cjs";
 import { $jsonToIpcMessage } from "./$messageToIpcMessage.cjs";
+import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.cjs"
 
 /**
  * 基于 WebReadableStream 的IPC
@@ -98,14 +99,26 @@ export class ReadableStreamIpc extends Ipc {
   private _len_u8a = new Uint8Array(this._len.buffer);
   _doPostMessage(message: $IpcMessage): void {
     var message_raw: IpcMessage<any>;
-    if (message instanceof IpcRequest) {
+    // 源代吗 在 处理 /internal/public-url 的时候无法正确的判断
+    // message instanceof IpcResponse === false
+    // 所以更改为使用message.type 判断 
+    // if (message instanceof IpcRequest) {
+    //   message_raw = message.ipcReqMessage();
+    // } else if (message instanceof IpcResponse) {
+    //   message_raw = message.ipcResMessage();
+    // } else {
+    //   message_raw = message;
+    // }
+   
+    // 使用 type 判断
+    if (message.type === IPC_MESSAGE_TYPE.REQUEST) {
       message_raw = message.ipcReqMessage();
-    } else if (message instanceof IpcResponse) {
+    } else if (message.type === IPC_MESSAGE_TYPE.RESPONSE) {
       message_raw = message.ipcResMessage();
     } else {
       message_raw = message;
     }
-
+    
     const message_data = this.support_message_pack
       ? encode(message_raw)
       : simpleEncoder(JSON.stringify(message_raw), "utf8");

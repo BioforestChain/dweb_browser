@@ -154,6 +154,7 @@
     
      
     <script type="text/javascript">
+        const symbolEto = Symbol("eto")
         // 需要实现的功能
         // 设置/获取背景颜色
         // 设置/获取主题
@@ -186,9 +187,15 @@
         function setStyle(_style){
             style = _style
             switch(style){
-                case "light": elContainerSetClass("container container-light"); break;
-                case "dark": elContainerSetClass('container container-dark'); break;
-                case "default": elContainerSetClass('container container-default'); break;
+                case style.toLocaleLowerCase() === "light" ? style : symbolEto: 
+                    elContainerSetClass("container container-light"); 
+                    break;
+                case style.toLocaleLowerCase() === "dark" ? style : symbolEto: 
+                    elContainerSetClass('container container-dark'); 
+                    break;
+                case style.toLocaleLowerCase() === "default" ? style : symbolEto: 
+                    elContainerSetClass('container container-default'); 
+                    break;
                 default: elContainerSetClass('container container-default');
             }
         }
@@ -205,7 +212,7 @@
         }
 
         // 获取背景色
-        function getBackgroundColor(color) /*必须要要返回一个 十六进制的值*/{
+        function getBackgroundColor() /*必须要要返回一个 十六进制的值*/{
             return document.documentElement.style.getPropertyValue('--background-color')
         }
         
@@ -229,7 +236,7 @@
             监听操作的方法
         */
         async function awaitOperation(){
-            fetch("http://statusbar.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+appUrl)
+            fetch("http://status-bar.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+appUrl)
             .then(async (res) => {
                 console.log('res: ', res)
                 const reader = res.body.getReader()
@@ -241,9 +248,11 @@
                     const o = JSON.parse(new TextDecoder().decode(value))
                     console.log('o: ', o)
                     console.log("appUrl.startsWith(o.from): ", appUrl.startsWith(o.from))
+                    console.log(`[statusbar.html] o.operationName === ${o.operationName}`)
                     if(!appUrl.startsWith(o.from)) continue;
                     switch(o.operationName){
                         case "setBackgroundColor":  setBackgroundColor(o.value);fetchReturn(o.value, o.id, o.from);break;
+                        case "getBackgroundColor": fetchReturn(getBackgroundColor(), o.id, o.from); break;
                         case "set_style": setStyle(o.value);fetchReturn(o.value, o.id, o.from); break;
                         case "get_style": fetchReturn(style, o.id, o.from); break;
                         case "get_height": fetchReturn(getHeight(), o.id, o.from);break;
@@ -264,7 +273,7 @@
         // 通过发送请求把数据传送回去
         function fetchReturn(value,id, from){
             fetch(
-                "http://statusbar.sys.dweb-80.localhost:22605/operation_return?app_url="+from,
+                "http://status-bar.sys.dweb-80.localhost:22605/operation_return?app_url="+from,
                 {
                     method: 'POST',
                     body: JSON.stringify({ value: value}),

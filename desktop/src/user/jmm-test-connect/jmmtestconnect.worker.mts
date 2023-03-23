@@ -13,6 +13,10 @@ const main = async() => {
                     remoteIpc.postMessage(IpcEvent.fromText('返回的消息 key', "返回的消息value"))
                 },1000)
             })
+
+            remoteIpc.onEvent((ipcEventMessage, ipc) => {
+                console.log('jmtestconnect.worker.mct onEvent', ipcEventMessage)
+            })
         })
     }
 }

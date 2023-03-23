@@ -40,8 +40,6 @@
         "dev:toy.worker": "npm run bundle:toy.worker -- --watch",
         "bundle:browser.worker": "node ./esbuild.browser.worker.js",
         "dev:browser.worker": "npm run bundle:browser.worker -- --watch",
-        "bundle:btry.worker": "node ./esbuild.btry.worker.js",
-        "dev:btry.worker": "npm run bundle:btry.worker -- --watch",
         "bundle:multi-webview.html": "vite build src/sys/multi-webview/assets/ --outDir=../../../../bundle/multi-webview --emptyOutDir -c electron-vite.config.ts",
         "dev:multi-webview.html": "npm run bundle:multi-webview.html -- --minify=false --watch",
         "start:win": "chcp 65001 && electron .",

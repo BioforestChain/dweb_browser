@@ -17,7 +17,7 @@ import chalk from "chalk";
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
 export class StatusbarNMM extends NativeMicroModule {
-  mmid = "statusbar.sys.dweb" as const;
+  mmid = "status-bar.sys.dweb" as const;
   private _uid_wapis_map = new Map<
     number,
     { nww: $NativeWindow; apis: Remote<$APIS> }
@@ -42,7 +42,7 @@ export class StatusbarNMM extends NativeMicroModule {
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
     (await dwebServer.listen()).onRequest(async (request, ipc) => {
       // 监听 http:// 协议的请求
-      // 通过 fetch("http://statusbar.sys.dweb-80.localhost:22605/") 访问的请求会被发送到这个位置
+      // 通过 fetch("http://status-bar.sys.dweb-80.localhost:22605/") 访问的请求会被发送到这个位置
       // console.log('[statusbar.main.cts onRequest---]: ', request)
       if (
         request.parsed_url.pathname === "/" ||
@@ -165,7 +165,7 @@ export class StatusbarNMM extends NativeMicroModule {
 
     // const root_url = new URL("/index.html", origin).href;
     // 下面注册的是
-    // jsProcess.fetch(`file://statusbar.sys.dweb/open?***}`) 事件监听器
+    // jsProcess.fetch(`file://status-bar.sys.dweb/open?***}`) 事件监听器
     // 监听启动请求 - 必须要有一个注册否则调用的地方 wati 就死了;
     // 监听请求页面
     // console.log('[statusbar.main.cts registerCommonIpcOnMessageHandler path /]')

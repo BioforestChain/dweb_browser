@@ -19,9 +19,6 @@ dns.install(desktopJmm);
 import { browserJMM } from "./user/browser/browser.main.cjs";
 dns.install(browserJMM);
 
-import { btryJMM } from "./user/btry/btry.main.cjs"
-dns.install(btryJMM)
-
 // 安装 cot
 import { cotJMM } from "./user/cot/cot.main.cjs";
 dns.install(cotJMM);
@@ -36,14 +33,9 @@ dns.install(new FileNMM());
 import { JmmNMM } from "./sys/jmm/jmm.cjs";
 dns.install(new JmmNMM());
 
-import { WWWNMM } from "./sys/www/www.cjs";
-dns.install(new WWWNMM());
 
-import { ApiNMM } from "./sys/api/api.cjs";
-dns.install(new ApiNMM());
-
-// 安装 statusbar.sys.dweb
-import { StatusbarNMM } from "./sys/statusbar/statusbar.main.cjs";
+// 安装 status-bar.sys.dweb
+import { StatusbarNMM } from "./sys/status-bar/status-bar.main.cjs";
 dns.install(new StatusbarNMM());
 
 // 安装 navigatorbar.sys.dweb
@@ -70,8 +62,7 @@ dns.install(new BootNMM([
   "http.sys.dweb",
   "mwebview.sys.dweb",
   "js.sys.dweb",
-  "statusbar.sys.dweb",
-  "btry.sys.dweb",
+  "status-bar.sys.dweb",
   "browser.sys.dweb"
   // cotDemoJMM.mmid
 

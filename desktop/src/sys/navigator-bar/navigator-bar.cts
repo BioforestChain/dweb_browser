@@ -53,7 +53,7 @@ export class NavigatorbarNMM extends NativeMicroModule {
 
         // const root_url = new URL("/index.html", origin).href;
         // 下面注册的是 
-        // jsProcess.fetch(`file://statusbar.sys.dweb/open?***}`) 事件监听器 
+        // jsProcess.fetch(`file://status-bar.sys.dweb/open?***}`) 事件监听器 
         // 监听启动请求 - 必须要有一个注册否则调用的地方 wati 就死了;
         // 监听请求页面
         // console.log('[statusbar.main.cts registerCommonIpcOnMessageHandler path /]')
