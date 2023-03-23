@@ -4,13 +4,26 @@ import { cros, onApiRequest } from "./cotDemo.request.mjs";
 const main = async () => {
   const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut<string>();
-  const tryOpenView = async () => {
+  const webviewSet = new Set<string>()
+
+  const tryOpenView = async (webview_id?: string) => {
+    if (webview_id && webviewSet.has(webview_id)) {
+      const result = await jsProcess
+        .nativeFetch(
+          `file://mwebview.sys.dweb/reOpen?view_id=${webview_id}`
+        )
+        .text();
+      return result
+    }
+    // open 
     const url = await mainUrl.promise;
     const view_id = await jsProcess
       .nativeFetch(
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
       )
       .text();
+    webviewSet.add(view_id)
+    return view_id
   };
   let hasActivity = false;
   /// 根据桌面协议，收到activity后就会被唤醒
@@ -18,11 +31,18 @@ const main = async () => {
     console.log("on connect", ipc);
 
     ipc.onEvent(async (event) => {
-      console.log("ookkkk", event);
-      if (event.name === "activity") {
+      console.log("cotDemo.worker => ", event);
+      if (event.name === "activity" && typeof event.data === "string") {
         hasActivity = true;
-        await tryOpenView();
-        ipc.postMessage(IpcEvent.fromText("ready", ""));
+        const view_id = await tryOpenView(event.data);
+        ipc.postMessage(IpcEvent.fromText("ready", view_id));
+        return
+      }
+      if (event.name === "close" && typeof event.data === "string") {
+        return webviewSet.delete(event.data)
+      }
+      if (event.name === "closeAll") {
+        webviewSet.clear()
       }
     });
   });

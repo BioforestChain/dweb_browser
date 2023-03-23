@@ -132,7 +132,7 @@ suspend fun startDwebBrowser() {
             browserNMM.mmid,
         )
         else -> listOf(
-            //browserNMM.mmid,
+            browserNMM.mmid,
             cotDemoJMM.mmid,
         )
     }

@@ -530,21 +530,37 @@ var cros = (headers) => {
 var main = async () => {
   const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut();
-  const tryOpenView = async () => {
+  const webviewSet = /* @__PURE__ */ new Set();
+  const tryOpenView = async (webview_id) => {
+    if (webview_id && webviewSet.has(webview_id)) {
+      const result = await jsProcess.nativeFetch(
+        `file://mwebview.sys.dweb/reOpen?view_id=${webview_id}`
+      ).text();
+      return result;
+    }
     const url = await mainUrl.promise;
     const view_id = await jsProcess.nativeFetch(
       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
     ).text();
+    webviewSet.add(view_id);
+    return view_id;
   };
   let hasActivity = false;
   jsProcess.onConnect((ipc2) => {
     console.log("on connect", ipc2);
     ipc2.onEvent(async (event) => {
-      console.log("ookkkk", event);
-      if (event.name === "activity") {
+      console.log("cotDemo.worker => ", event);
+      if (event.name === "activity" && typeof event.data === "string") {
         hasActivity = true;
-        await tryOpenView();
-        ipc2.postMessage(IpcEvent.fromText("ready", ""));
+        const view_id = await tryOpenView(event.data);
+        ipc2.postMessage(IpcEvent.fromText("ready", view_id));
+        return;
+      }
+      if (event.name === "close" && typeof event.data === "string") {
+        return webviewSet.delete(event.data);
+      }
+      if (event.name === "closeAll") {
+        webviewSet.clear();
       }
     });
   });
