@@ -7,10 +7,11 @@ const main = async () => {
   const webviewSet = new Set<string>()
 
   const tryOpenView = async (webview_id?: string) => {
+    console.log("tryOpenView", webview_id)
     if (webview_id && webviewSet.has(webview_id)) {
       const result = await jsProcess
         .nativeFetch(
-          `file://mwebview.sys.dweb/reOpen?view_id=${webview_id}`
+          `file://mwebview.sys.dweb/reOpen?webview_id=${encodeURIComponent(webview_id)}`
         )
         .text();
       return result
@@ -22,7 +23,16 @@ const main = async () => {
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
       )
       .text();
+    //if(webviewSet.size == 0) {
+      // const ipc = await jsProcess.connect("mwebview.sys.dweb")
+      // ipc.onEvent((event)=>{
+      //   console.log("connect", "mwebview.sys.dweb", event.name)
+      //   //event.name === 'state'
+      //   //JSON.parse(event.text)
+      // })
+    //}
     webviewSet.add(view_id)
+    
     return view_id
   };
   let hasActivity = false;
@@ -31,18 +41,13 @@ const main = async () => {
     console.log("on connect", ipc);
 
     ipc.onEvent(async (event) => {
-      console.log("cotDemo.worker => ", event);
+      console.log("cotDemo.worker => ", event.name, typeof event.data === "string");
       if (event.name === "activity" && typeof event.data === "string") {
         hasActivity = true;
         const view_id = await tryOpenView(event.data);
+        console.log("cotDemo.worker => activity", view_id);
         ipc.postMessage(IpcEvent.fromText("ready", view_id));
         return
-      }
-      if (event.name === "close" && typeof event.data === "string") {
-        return webviewSet.delete(event.data)
-      }
-      if (event.name === "closeAll") {
-        webviewSet.clear()
       }
     });
   });

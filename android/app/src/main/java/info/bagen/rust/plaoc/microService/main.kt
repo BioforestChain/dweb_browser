@@ -48,12 +48,11 @@ suspend fun startDwebBrowser() {
                 "ipc-body",
             )
         )
+        DEVELOPER.HUANGLIN -> debugTags.addAll(
+            listOf("Share", "fetch", "http", "jmm", "browser")
+        )
         else -> debugTags.addAll(
-            listOf<String>(
-//                "Camera"
-                    "Share",
-//                "FileSystem"
-            )
+            listOf("Share", "fetch", "http", "jmm", "browser", "mwebview")
         )
     }
 
@@ -133,7 +132,7 @@ suspend fun startDwebBrowser() {
         )
         else -> listOf(
             browserNMM.mmid,
-            cotDemoJMM.mmid,
+            //cotDemoJMM.mmid,
         )
     }
 

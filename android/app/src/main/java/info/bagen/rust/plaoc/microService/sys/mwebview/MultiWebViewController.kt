@@ -31,7 +31,7 @@ class MultiWebViewController(
 
     @Composable
     fun eachView(action: @Composable (viewItem: ViewItem) -> Unit) =
-        webViewList.forEachIndexed { index, viewItem ->
+        webViewList.forEachIndexed { _, viewItem ->
             action(viewItem)
         }
 
@@ -47,12 +47,10 @@ class MultiWebViewController(
         val coroutineScope: CoroutineScope,
         var hidden: Boolean = false
     ) {
-
         val nativeUiController by lazy {
             webView.activity?.let { NativeUiController(it) }
                 ?: throw Exception("webview un attached to activity")
         }
-
     }
 
     private var activityTask = PromiseOut<MultiWebViewActivity>()
@@ -74,13 +72,10 @@ class MultiWebViewController(
             }
         }
 
-
     /**
      * 打开WebView
      */
     suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
-
-//    private val openDwebViewLock = Mutex()
 
     suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
         val currentActivity = activity ?: App.appContext
@@ -91,35 +86,8 @@ class MultiWebViewController(
                 onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
             ), activity
         )
-//        dWebView.onOpen { message ->
-//            openDwebViewLock.withLock {
-//
-//                debugMultiWebView("opening")
-//                /**
-//                 * 此时url有webview内部在管理
-//                 */
-//                val subDwebView = createDwebView(localeMM, remoteMM, "")
-//                val transport = message.obj;
-//                if (transport is WebView.WebViewTransport) {
-//                    transport.webView = subDwebView;
-//                    message.sendToTarget();
-//                    // 它是有内部链接的，所以等到它ok了再说
-//                    val url = subDwebView.getUrlInMain()
-//                    if (url?.isEmpty() != true) {
-//                        val readyPo = PromiseOut<Unit>()
-//                        subDwebView.onReady { readyPo.resolve(Unit) }
-//                        readyPo.waitPromise()
-//                    }
-//
-//                    debugMultiWebView("opened", subDwebView.getUrlInMain())
-//                    appendWebViewAsItem(subDwebView)
-//                }
-//            }
-//
-//        }
         dWebView
     }
-
 
     @Synchronized
     fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching(Dispatchers.Main) {
@@ -155,12 +123,18 @@ class MultiWebViewController(
                     webViewList.remove(viewItem)
                     viewItem.webView.destroy()
                     webViewCloseSignal.emit(webviewId)
+                    (localeMM as MultiWebViewNMM).closeDwebView(remoteMM.mmid, webviewId)
                 }
                 return true
             }
         }
         return false
     }
+
+    /**
+     * 移除所有列表
+     */
+    fun destroyWebView() = webViewList.clear()
 
     /**
      * 将指定WebView移动到顶部显示

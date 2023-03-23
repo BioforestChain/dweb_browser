@@ -4,8 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -15,7 +15,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -30,7 +29,6 @@ import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraPlugin.Compani
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraPlugin.Companion.REQUEST_IMAGE_CAPTURE
 import info.bagen.rust.plaoc.microService.sys.plugin.camera.debugCameraNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.share.debugShare
-import info.bagen.rust.plaoc.ui.main.MainActivity
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -61,19 +59,11 @@ open class PermissionActivity : AppCompatActivity() {
     suspend fun requestPermissions(permissions: Array<String>): RequestPermissionsResult {
         val result = RequestPermissionsResult(requestPermissionsCodeAcc.getAndAdd(1))
 
-        val shouldRequestPermissions = permissions
-//            permissions.filter {
-//                ActivityCompat.shouldShowRequestPermissionRationale(this, it).also { isDenied ->
-//                    if (isDenied) {
-//                        result.denied.add(it)
-//                    }
-//                }
-//            }.toTypedArray()
-        if (shouldRequestPermissions.isNotEmpty()) {
+        if (permissions.isNotEmpty()) {
             requestPermissionsResultMap[result.code] = result
             runOnUiThread {
                 ActivityCompat.requestPermissions(
-                    this, shouldRequestPermissions, result.code
+                    this, permissions, result.code
                 )
             }
         } else {
@@ -103,8 +93,6 @@ open class PermissionActivity : AppCompatActivity() {
 }
 
 open class MultiWebViewActivity : PermissionActivity() {
-
-
     private var remoteMmid by mutableStateOf("")
     private var controller: MultiWebViewController? = null
 
@@ -161,60 +149,17 @@ open class MultiWebViewActivity : PermissionActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        upsetRemoteMmid()
+    override fun onDestroy() {
+        super.onDestroy()
+        controller?.destroyWebView()
     }
 
-    override fun onRestart() {
-        super.onRestart()
-        upsetRemoteMmid()
-
-    }
-
-
-    @OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         upsetRemoteMmid()
-
-        // This will lay out our app behind the system bars
-//        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-//        val metrics = WindowMetricsCalculator.getOrCreate()
-//            .computeCurrentWindowMetrics(this)
-//        val widthDp = (metrics.bounds.width() /
-//            resources.displayMetrics.density).dp
-//        val heightDp = (metrics.bounds.height() /
-//            resources.displayMetrics.density).dp
-//
-
         setContent {
-//
-//            val systemUiController = rememberSystemUiController()
-//            val useDarkIcons = !isSystemInDarkTheme()
-//            DisposableEffect(systemUiController, useDarkIcons) {
-//                // 更新所有系统栏的颜色为透明
-//                // 如果我们在浅色主题中使用深色图标
-//                systemUiController.setSystemBarsColor(
-//                    color = Color.Transparent,
-//                    darkIcons = useDarkIcons,
-//                )
-//
-//                onDispose {}
-//            }
-
-
             RustApplicationTheme {
-
                 val wc = rememberViewController()
-//
-//                val nativeUiController = NativeUiController.remember(this)
-//
-//                val modifierOffset by nativeUiController.modifierOffsetState
-//                val modifierPadding by nativeUiController.modifierPaddingState
-//                val modifierScale by nativeUiController.modifierScaleState
-
                 wc.eachView { viewItem ->
                     key(viewItem.webviewId) {
                         val nativeUiController = viewItem.nativeUiController.effect()
@@ -256,19 +201,21 @@ open class MultiWebViewActivity : PermissionActivity() {
                                     .fillMaxSize()
                                     .focusRequester(nativeUiController.virtualKeyboard.focusRequester)
                                     .padding(modifierPadding.asPaddingValues()),
-                                factory = { viewItem.webView },
+                                factory = {
+                                    // 修复 activity 已存在父级时导致的异常
+                                    viewItem.webView.parent?.let { parentView ->
+                                        (parentView as ViewGroup).removeAllViews()
+                                    }
+                                    viewItem.webView
+                                },
                                 chromeClient = chromeClient,
                                 captureBackPresses = false,
                             )
-
                             chromeClient.beforeUnloadDialog()
-
-//                            DebugPanel(viewItem)
                         }
 
                     }
                 }
-
             }
         }
     }
@@ -315,7 +262,6 @@ open class MultiWebViewActivity : PermissionActivity() {
             RowSwitchItem(
                 "navigationBarOverlay", nativeUiController.navigationBar.overlayState
             )
-
         }
     }
 
@@ -326,10 +272,7 @@ open class MultiWebViewActivity : PermissionActivity() {
             controller ?: throw Exception("no found controller")
         }
     }
-
-
 }
-
 
 class MultiWebViewPlaceholder1Activity : MultiWebViewActivity()
 class MultiWebViewPlaceholder2Activity : MultiWebViewActivity()
