@@ -106,6 +106,8 @@ class IpcBodyReceiver(
                 if (paused.getAndSet(false)) {
                     ipc.postMessage(IpcStreamPulling(stream_id))
                 }
+            }, onClose = {
+                ipc.postMessage(IpcStreamAbort(stream_id))
             });
 
             debugIpcBody("receiver/$ipc/$stream", "start by stream-id:${stream_id}")

@@ -205,7 +205,7 @@ export class IpcBodySender extends IpcBody {
        * 只有等到 Pulling 指令的时候才能读取并发送
        */
       let pullingLock = new PromiseOut<void>();
-      this.streamCtorSignal.listen((signal) => {
+      this.streamCtorSignal.listen(async (signal) => {
         switch (signal) {
           case STREAM_CTOR_SIGNAL.PULLING: {
             pullingLock.resolve();
@@ -218,7 +218,10 @@ export class IpcBodySender extends IpcBody {
             break;
           }
           case STREAM_CTOR_SIGNAL.ABORTED: {
-            reader.return();
+            /// stream 现在在 locked 状态，binaryStreamRead 的 reutrn 可以释放它的 locked
+            await reader.return();
+            /// 然后取消流的读取
+            await stream.cancel();
             this.emitStreamClose();
           }
         }

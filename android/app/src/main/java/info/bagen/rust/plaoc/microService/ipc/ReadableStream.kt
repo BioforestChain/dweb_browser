@@ -18,8 +18,9 @@ inline fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
  */
 class ReadableStream(
     cid: String? = null,
-    val onStart: suspend (arg: ReadableStreamController) -> Unit = {},
-    val onPull: suspend (arg: Pair<Int, ReadableStreamController>) -> Unit = {}
+    val onStart: suspend (controller: ReadableStreamController) -> Unit = {},
+    val onPull: suspend (arg: Pair<Int, ReadableStreamController>) -> Unit = {},
+    val onClose: suspend () -> Unit = {},
 ) : InputStream() {
 
     // 数据源
@@ -74,7 +75,7 @@ class ReadableStream(
         CoroutineScope(CoroutineName("readableStream/readData") + ioAsyncExceptionHandler)
 
     init {
-        runBlockingCatching {
+        runBlockingCatching{//(writeDataScope.coroutineContext)
             onStart(controller)
         }.getOrThrow()
         writeDataScope.launch {
@@ -92,6 +93,8 @@ class ReadableStream(
 
             // 执行关闭
             closePo.resolve(Unit)
+            // 执行生命周期回调
+            onClose()
         }
     }
 

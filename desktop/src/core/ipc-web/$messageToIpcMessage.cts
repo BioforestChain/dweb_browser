@@ -9,6 +9,7 @@ import { IpcEvent } from "../ipc/IpcEvent.cjs";
 import { IpcHeaders } from "../ipc/IpcHeaders.cjs";
 import { IpcRequest } from "../ipc/IpcRequest.cjs";
 import { IpcResponse } from "../ipc/IpcResponse.cjs";
+import { IpcStreamAbort } from "../ipc/IpcStreamAbort.cjs";
 import { IpcStreamData } from "../ipc/IpcStreamData.cjs";
 import { IpcStreamEnd } from "../ipc/IpcStreamEnd.cjs";
 import { IpcStreamPaused } from "../ipc/IpcStreamPaused.cjs";
@@ -53,6 +54,8 @@ export const $objectToIpcMessage = (
     message = new IpcStreamPulling(data.stream_id, data.bandwidth);
   } else if (data.type === IPC_MESSAGE_TYPE.STREAM_PAUSED) {
     message = new IpcStreamPaused(data.stream_id, data.fuse);
+  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_ABORT) {
+    message = new IpcStreamAbort(data.stream_id);
   } else if (data.type === IPC_MESSAGE_TYPE.STREAM_END) {
     message = new IpcStreamEnd(data.stream_id);
   }
