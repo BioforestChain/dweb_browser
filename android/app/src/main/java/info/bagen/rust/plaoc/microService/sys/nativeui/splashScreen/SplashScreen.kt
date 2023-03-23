@@ -27,6 +27,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 
@@ -371,6 +372,7 @@ class SplashScreen(
         if (activity.isFinishing) {
             return
         }
+
         buildViews(activity) // 将View添加到当前的界面
         if (isVisible) {
             onCallback?.let { it("OnCompleted", null) }

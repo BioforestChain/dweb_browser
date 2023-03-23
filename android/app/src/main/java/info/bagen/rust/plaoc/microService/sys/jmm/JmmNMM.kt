@@ -24,6 +24,11 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
         private val apps = mutableMapOf<Mmid, JsMicroModule>()
         fun getAndUpdateJmmNmmApps() = apps
+
+        /**获取当前App的数据配置*/
+        fun getBfsMetaData(mmid: Mmid): JmmMetadata? {
+            return apps[mmid]?.metadata
+        }
     }
 
     init {

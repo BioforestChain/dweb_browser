@@ -5,8 +5,8 @@ import { routes } from "./routes";
 
 const router = useRouter();
 
-router.push("/share");
-// router.push("/splashscreen");
+// router.push("/share");
+router.push("/splashscreen");
 
 
 const drawer_controller = ref(false);

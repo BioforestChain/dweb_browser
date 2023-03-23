@@ -5,6 +5,7 @@ import android.content.Intent
 import android.provider.MediaStore
 import android.view.ViewGroup
 import android.webkit.*
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
@@ -227,6 +228,16 @@ class DWebView(
                     response.headers.toMap(),
                     response.body.stream,
                 )
+            } else if(request.url.path?.endsWith("bfs-metadata.json") == true) {
+                println("shouldInterceptRequest host: ${request.url.path}")
+                browserController.checkJmmMetadataJson(request.url.toString())
+                val CORS_HEADERS = mapOf(
+                    Pair("Content-Type", "application/json"),
+                    Pair("Access-Control-Allow-Origin", "*"),
+                    Pair("Access-Control-Allow-Headers", "*"),
+                    Pair("Access-Control-Allow-Methods", "*"),
+                )
+                return  WebResourceResponse("application/json","",200,"OK",CORS_HEADERS,"OK".byteInputStream() )
             }
             return super.shouldInterceptRequest(view, request)
         }

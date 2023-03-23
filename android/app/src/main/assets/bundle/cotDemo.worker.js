@@ -541,9 +541,10 @@ var main = async () => {
   const mainUrl = new PromiseOut();
   const webviewSet = /* @__PURE__ */ new Set();
   const tryOpenView = async (webview_id) => {
+    console.log("tryOpenView", webview_id);
     if (webview_id && webviewSet.has(webview_id)) {
       const result = await jsProcess.nativeFetch(
-        `file://mwebview.sys.dweb/reOpen?view_id=${webview_id}`
+        `file://mwebview.sys.dweb/reOpen?webview_id=${encodeURIComponent(webview_id)}`
       ).text();
       return result;
     }
@@ -558,18 +559,13 @@ var main = async () => {
   jsProcess.onConnect((ipc2) => {
     console.log("on connect", ipc2);
     ipc2.onEvent(async (event) => {
-      console.log("cotDemo.worker => ", event);
+      console.log("cotDemo.worker => ", event.name, typeof event.data === "string");
       if (event.name === "activity" && typeof event.data === "string") {
         hasActivity = true;
         const view_id = await tryOpenView(event.data);
+        console.log("cotDemo.worker => activity", view_id);
         ipc2.postMessage(IpcEvent.fromText("ready", view_id));
         return;
-      }
-      if (event.name === "close" && typeof event.data === "string") {
-        return webviewSet.delete(event.data);
-      }
-      if (event.name === "closeAll") {
-        webviewSet.clear();
       }
     });
   });

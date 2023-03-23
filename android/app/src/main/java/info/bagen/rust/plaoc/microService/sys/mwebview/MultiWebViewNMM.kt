@@ -2,15 +2,15 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.*
-import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.ipc.Ipc
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -34,6 +34,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
             ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
         )
         val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
+
+        /**获取当前的controller*/
         fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
             return controllerMap[mmid]
         }

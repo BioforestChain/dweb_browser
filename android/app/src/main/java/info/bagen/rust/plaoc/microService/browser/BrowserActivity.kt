@@ -90,12 +90,7 @@ class BrowserActivity : AppCompatActivity() {
                     Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
                         when (action) {
                             SearchAction.Search -> {
-                                if (!checkJmmMetadataJson(data) { jmmMetadata, url ->
-                                        // 先判断下是否是json结尾，如果是并获取解析json为jmmMetadata，失败就照常打开网页，成功打开下载界面
-                                        coroutineScope.launch {
-                                            BrowserNMM.browserController?.installJMM(jmmMetadata, url)
-                                        }
-                                    }) {
+                                if (!BrowserNMM.browserController.checkJmmMetadataJson(data)) {
                                     dWebBrowserModel.handleIntent(
                                         DWebBrowserIntent.OpenDWebBrowser(data)
                                     )
@@ -247,23 +242,4 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkJmmMetadataJson(
-        url: String, openJmmActivity: (JmmMetadata, String) -> Unit
-    ): Boolean {
-        Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
-            if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
-                try {
-                    gson.fromJson(
-                        byteBufferToString(HttpClient().requestPath(url).body.payload),
-                        JmmMetadata::class.java
-                    ).apply { openJmmActivity(this, url) }
-
-                    return true
-                } catch (e: JsonSyntaxException) {
-                    Log.e("DWebBrowserModel", "checkJmmMetadataJson fail -> ${e.message}")
-                }
-            }
-        }
-        return false
-    }
 }

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.PlaocUtil
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,7 @@ class App : Application() {
         var browserActivity: BrowserActivity? = null
 
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
-            GlobalScope.launch(Dispatchers.IO) {
+            GlobalScope.launch(ioAsyncExceptionHandler) {
                 val intent = Intent(appContext, cls)
                 onIntent(intent)
                 appContext.startActivity(intent)
