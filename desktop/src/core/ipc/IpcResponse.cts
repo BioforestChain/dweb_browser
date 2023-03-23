@@ -51,22 +51,21 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     req_id: number,
     response: Response,
     ipc: Ipc,
-    asBinary = false
+    /// 如果有 content-length，说明大小是明确的，不要走流，直接传输就好，减少 IPC 的触发次数. TODO 需要注意大小是否过大，过大的话还是要分片传输。不过这种大二进制情况下一般是请求文件，应该直接使用句柄转发
+    asBinary = false // response.headers.get("content-length") !== null
   ) {
+    if (response.bodyUsed) {
+      throw new Error("body used");
+    }
     let ipcBody: IpcBody;
-    if (
-      response.body &&
-      !asBinary /* &&
-      /// 如果有 content-length，说明大小是明确的，不要走流，直接传输就好，减少 IPC 的触发次数
-      response.headers.get("content-length") === null */
-    ) {
-      setStreamId(response.body, response.url);
-      ipcBody = IpcBodySender.from(response.body, ipc);
-    } else {
+    if (asBinary || response.body == undefined) {
       ipcBody = IpcBodySender.from(
         binaryToU8a(await response.arrayBuffer()),
         ipc
       );
+    } else {
+      setStreamId(response.body, response.url);
+      ipcBody = IpcBodySender.from(response.body, ipc);
     }
 
     return new IpcResponse(

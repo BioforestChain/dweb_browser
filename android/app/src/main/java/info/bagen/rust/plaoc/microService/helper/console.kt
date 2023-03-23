@@ -90,5 +90,9 @@ fun printdebugln(scope: String, tag: String, msg: Any?, err: Throwable? = null) 
     if (!debugTags.contains(scope)) {
         return
     }
+    var msg = msg
+    if (msg is Lazy<*>) {
+        msg = msg.value
+    }
     printerrln("${now()} │ ${scope.padEnd(8, ' ')} │ $tag", msg, err)
 }

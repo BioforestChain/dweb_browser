@@ -40,6 +40,15 @@ export class PromiseOut<T = unknown> {
     po.resolve(v);
     return po;
   }
+  static sleep(ms: number) {
+    const po = new PromiseOut<void>();
+    let ti: any = setTimeout(() => {
+      ti = undefined;
+      po.resolve();
+    }, ms);
+    po.onFinished(() => ti !== undefined && clearTimeout(ti));
+    return po;
+  }
   promise: Promise<T>;
   is_resolved = false;
   is_rejected = false;

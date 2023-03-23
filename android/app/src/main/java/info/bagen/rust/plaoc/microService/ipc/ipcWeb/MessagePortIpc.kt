@@ -6,6 +6,7 @@ import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -16,6 +17,7 @@ class MessagePort {
     companion object {
         private val wm = WeakHashMap<WebMessagePort, MessagePort>()
         fun from(port: WebMessagePort): MessagePort = wm.getOrPut(port) { MessagePort(port) }
+        val messageScope = CoroutineScope(CoroutineName("webMessage") + ioAsyncExceptionHandler)
     }
 
     private lateinit var port: WebMessagePort
@@ -24,16 +26,20 @@ class MessagePort {
         this.port = port
     }
 
+    val messageChannel = Channel<WebMessage>(capacity = Channel.UNLIMITED)
+
     private val _messageSignal by lazy {
         val signal = Signal<WebMessage>()
-        val messageScope = CoroutineScope(CoroutineName("message") + ioAsyncExceptionHandler)
+        messageScope.launch {
+            for (event in messageChannel) {
+                signal.emit(event)
+            }
+        }
 
-        port.setWebMessageCallback(object :
-            WebMessagePort.WebMessageCallback() {
+        port.setWebMessageCallback(object : WebMessagePort.WebMessageCallback() {
             override fun onMessage(port: WebMessagePort, event: WebMessage) {
-                messageScope.launch {
-                    signal.emit(event)
-                }
+                messageChannel.trySend(event).getOrThrow()
+                /// TODO 尝试告知对方暂停，比如发送 StreamPaused
             }
         })
 
@@ -43,7 +49,15 @@ class MessagePort {
     fun onWebMessage(cb: Callback<WebMessage>) = _messageSignal.listen(cb)
     fun postMessage(data: String) = port.postMessage(WebMessage(data))
 
-    fun close() = port.close()
+    private var _isClosed = false
+    fun close() {
+        if (_isClosed) {
+            messageChannel.close()
+            return
+        }
+        _isClosed = true
+        port.close()
+    }
 }
 
 open class MessagePortIpc(
@@ -52,9 +66,7 @@ open class MessagePortIpc(
     private val role_type: IPC_ROLE,
 ) : Ipc() {
     constructor(
-        port: WebMessagePort,
-        remote: MicroModuleInfo,
-        role_type: IPC_ROLE
+        port: WebMessagePort, remote: MicroModuleInfo, role_type: IPC_ROLE
     ) : this(MessagePort.from(port), remote, role_type)
 
     override val role get() = role_type.role

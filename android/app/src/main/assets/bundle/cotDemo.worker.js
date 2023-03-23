@@ -227,6 +227,15 @@ var PromiseOut2 = class {
     po.resolve(v);
     return po;
   }
+  static sleep(ms) {
+    const po = new PromiseOut2();
+    let ti = setTimeout(() => {
+      ti = void 0;
+      po.resolve();
+    }, ms);
+    po.onFinished(() => ti !== void 0 && clearTimeout(ti));
+    return po;
+  }
   onSuccess(innerThen) {
     if (this.is_resolved) {
       this.__callInnerThen(innerThen);

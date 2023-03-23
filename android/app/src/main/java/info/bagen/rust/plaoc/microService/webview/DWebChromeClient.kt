@@ -13,9 +13,13 @@ class DWebChromeClient : WebChromeClient() {
 
     fun removeWebChromeClient(client: WebChromeClient) = extends.remove(client)
 
-    private fun inners(methodName: String) =
+    private fun inners(methodName: String, noise: Boolean = true) =
         extends.hasMethod(methodName)
-            .also { debugDWebView("WebChromeClient", "calling method: $methodName") }
+            .also {
+                if (it.isNotEmpty() && noise) {
+                    debugDWebView("WebChromeClient", "calling method: $methodName")
+                }
+            }
 
 
     override fun getDefaultVideoPoster(): Bitmap? {
@@ -38,7 +42,7 @@ class DWebChromeClient : WebChromeClient() {
     }
 
     override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
-        return inners("onConsoleMessage").lets { it.onConsoleMessage(consoleMessage) }
+        return inners("onConsoleMessage", false).lets { it.onConsoleMessage(consoleMessage) }
             ?: super.onConsoleMessage(
                 consoleMessage
             )
@@ -166,7 +170,13 @@ class DWebChromeClient : WebChromeClient() {
     }
 
     override fun onConsoleMessage(message: String?, lineNumber: Int, sourceID: String?) {
-        inners("onConsoleMessage").some { it.onConsoleMessage(message, lineNumber, sourceID) }
+        inners("onConsoleMessage", false).some {
+            it.onConsoleMessage(
+                message,
+                lineNumber,
+                sourceID
+            )
+        }
             ?: super.onConsoleMessage(message, lineNumber, sourceID)
     }
 

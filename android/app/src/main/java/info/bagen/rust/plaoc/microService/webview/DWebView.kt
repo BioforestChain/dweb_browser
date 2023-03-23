@@ -1,20 +1,16 @@
 package info.bagen.rust.plaoc.microService.webview
 
-import android.Manifest
-import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.provider.MediaStore
 import android.view.ViewGroup
 import android.webkit.*
-import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.getFullAuthority
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity.Companion.PERMISSION_REQUEST_CODE_PHOTO
-import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.debugPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -119,8 +115,7 @@ class DWebView(
             /**
              * 不会弹出提示框，总是确认，离开
              */
-            Confirm,
-            ;
+            Confirm, ;
         }
 
         enum class DetachedFromWindowStrategy {
@@ -207,6 +202,11 @@ class DWebView(
 //            println("internalWebViewClient=> ${request.url}")
             if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
                 /// http://*.dweb 由 MicroModule 来处理请求
+                debugDWebView("shouldInterceptRequest/REQUEST", lazy {
+                    "${request.url} [${
+                        request.requestHeaders.toList().joinToString { "${it.first}=${it.second} " }
+                    }]"
+                })
                 val response = runBlockingCatching(ioAsyncExceptionHandler) {
                     remoteMM.nativeFetch(
                         Request(
@@ -215,7 +215,9 @@ class DWebView(
                             .header("X-Dweb-Proxy-Id", localeMM.mmid)
                     )
                 }.getOrThrow()
-                println("shouldInterceptRequest response: ${request.url}  [${response.headers.joinToString { "${it.first}=${it.second} " }}]")
+                debugDWebView("shouldInterceptRequest/RESPONSE", lazy {
+                    "${request.url} [${response.headers.joinToString { "${it.first}=${it.second} " }}]"
+                })
                 val contentType = Header.CONTENT_TYPE(response)
                 return WebResourceResponse(
                     contentType?.value,
@@ -255,8 +257,7 @@ class DWebView(
             this@DWebView.filePathCallback = filePathCallback
 
             val pickIntent = Intent(
-                Intent.ACTION_GET_CONTENT,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                Intent.ACTION_GET_CONTENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             )
             pickIntent.addCategory(Intent.CATEGORY_OPENABLE);
 
@@ -343,19 +344,13 @@ class DWebView(
         if (options.onJsBeforeUnloadStrategy != Options.JsBeforeUnloadStrategy.Default) {
             dWebChromeClient.addWebChromeClient(object : WebChromeClient() {
                 override fun onJsBeforeUnload(
-                    view: WebView?,
-                    url: String?,
-                    message: String?,
-                    result: JsResult?
+                    view: WebView?, url: String?, message: String?, result: JsResult?
                 ): Boolean {
                     when (options.onJsBeforeUnloadStrategy) {
                         Options.JsBeforeUnloadStrategy.Cancel -> result?.cancel()
                         Options.JsBeforeUnloadStrategy.Confirm -> result?.confirm()
                         Options.JsBeforeUnloadStrategy.Default -> return super.onJsBeforeUnload(
-                            view,
-                            url,
-                            message,
-                            result
+                            view, url, message, result
                         )
                     }
                     return true
