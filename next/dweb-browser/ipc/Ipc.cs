@@ -7,10 +7,10 @@ using Mmid = String;
 
 public abstract class Ipc
 {
-    private static volatile int _uid_acc = 1;
-    private static volatile int _req_id_acc = 0;
+    private static int _uid_acc = 1;
+    private static int _req_id_acc = 0;
 
-    public int Uid { get; set; } = _uid_acc++;
+    public int Uid { get; set; } = Interlocked.Exchange(ref _uid_acc, Interlocked.Increment(ref _uid_acc));
 
     /**
      * <summary>

@@ -145,20 +145,14 @@ public struct SMetaBody
     /// Serialize MetaBody
     /// </summary>
     /// <returns>JSON string representation of the MetaBody</returns>
-    public string ToJson()
-    {
-        return JsonSerializer.Serialize(this);
-    }
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize MetaBody
     /// </summary>
     /// <param name="json">JSON string representation of MetaBody</param>
     /// <returns>An instance of a MetaBody object.</returns>
-    public static SMetaBody? FromJson(string json)
-    {
-        return JsonSerializer.Deserialize<SMetaBody>(json);
-    }
+    public static SMetaBody? FromJson(string json) => JsonSerializer.Deserialize<SMetaBody>(json);
 }
 
 sealed class MetaBodyConverter : JsonConverter<SMetaBody>

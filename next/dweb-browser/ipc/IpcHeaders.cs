@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Reflection.PortableExecutable;
 
@@ -46,19 +47,13 @@ public class IpcHeaders
 
     //}
 
-    public List<KeyValuePair<string, string>> ToList()
-	{
-		var list = new List<KeyValuePair<string, string>>();
-
+    public IEnumerable<KeyValuePair<string, string>> GetEnumerator()
+    {
         foreach (KeyValuePair<string, string> entry in _headersMap)
         {
-			list.Add(entry);
-		}
-
-		return list;
-	}
-
-	public Dictionary<string, string> ToMap() => _headersMap;
+            yield return entry;
+        }
+    }
 
     /// <summary>
     /// Serialize IpcHeaders
@@ -114,7 +109,7 @@ sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>
     {
 		writer.WriteStartObject();
 
-        foreach (KeyValuePair<string, string> entry in value.ToMap())
+        foreach (KeyValuePair<string, string> entry in value.GetEnumerator())
         {
 			Console.WriteLine($"key: {entry.Key} value: {entry.Value}");
 			writer.WriteString(entry.Key, entry.Value);

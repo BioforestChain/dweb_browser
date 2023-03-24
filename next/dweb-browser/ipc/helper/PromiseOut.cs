@@ -1,25 +1,26 @@
 ﻿namespace ipc.helper;
 
-public class PromiseOut<T>: TaskCompletionSource<T>
+public class PromiseOut<T>
 {
-	public T? Value { get; set; }
+	private TaskCompletionSource<T> task = new TaskCompletionSource<T>();
+    public T? Value { get; set; }
 
 	public PromiseOut()
 	{
-		_isFinished = new Lazy<bool>(new Func<bool>(() => this.Task.IsCompleted));
-		_isCanceled = new Lazy<bool>(new Func<bool>(() => this.Task.IsCanceled));
+		_isFinished = new Lazy<bool>(new Func<bool>(() => task.Task.IsCompleted));
+		_isCanceled = new Lazy<bool>(new Func<bool>(() => task.Task.IsCanceled));
 	}
 
 	public void Resolve(T value)
 	{
 		Value = value;
-		TrySetResult(value);
+		task.TrySetResult(value);
 		IsResolved = true;
 	}
 
 	public void Reject(string msg)
 	{
-		TrySetException(new Exception(msg));
+		task.TrySetException(new Exception(msg));
 	}
 
 	public bool IsResolved { get; set; } = false;
@@ -39,8 +40,8 @@ public class PromiseOut<T>: TaskCompletionSource<T>
 
     private CancellationTokenSource source = new CancellationTokenSource();
 
-	public T WaitPromise() => this.Task.Result;
+	public T WaitPromise() => task.Task.Result;
 
-    public async Task<T> WaitPromiseAsync() => await this.Task.WaitAsync(source.Token);
+    public async Task<T> WaitPromiseAsync() => await task.Task.WaitAsync(source.Token);
 }
 
