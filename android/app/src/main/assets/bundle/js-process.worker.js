@@ -4523,11 +4523,9 @@ var _IpcBodySender = class extends IpcBody {
           }
         }
       });
-      await PromiseOut.sleep(1e3).promise;
       while (true) {
         await pullingLock.promise;
         const availableLen = await reader.available();
-        console.log("sender", stream_id, availableLen);
         if (availableLen > 0) {
           this.isStreamOpened = true;
           const message = IpcStreamData.fromBinary(
