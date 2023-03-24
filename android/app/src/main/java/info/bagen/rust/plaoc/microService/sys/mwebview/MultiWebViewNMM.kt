@@ -7,7 +7,6 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.Ipc
@@ -41,7 +40,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         }
     }
 
-    private val mIpcMap = mutableStateMapOf<Ipc, MutableMap<String, MultiWebViewController.ViewItem>>()
+    private val mIpcMap =
+        mutableStateMapOf<Ipc, MutableMap<String, MultiWebViewController.ViewItem>>()
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// nativeui 与 mwebview 是伴生关系
@@ -146,17 +146,11 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         return viewItem
     }
 
-    suspend fun closeDwebView(remoteMmid: String, webviewId: String) {
-        for ((ipc, value) in mIpcMap) {
-            if (ipc.remote.mmid == remoteMmid) {
-                ipc.postMessage(IpcEvent.fromUtf8("state", "xxxxxx"))
-                break
-            }
-        }
-        controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
+    suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
+        return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
     }
 
-    fun createIpc(viewItem:MultiWebViewController.ViewItem) {
+    fun createIpc(viewItem: MultiWebViewController.ViewItem) {
         debugMultiWebView("createIpc", "viewItem: $viewItem ")
 //  subscribers.getOrPut(ipc) { ConcurrentSkipListSet<String>() }.also { refs ->
 //       refs.add(viewItem.webviewId)

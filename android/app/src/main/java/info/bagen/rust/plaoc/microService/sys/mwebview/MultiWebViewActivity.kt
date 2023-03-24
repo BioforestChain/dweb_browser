@@ -143,8 +143,8 @@ open class MultiWebViewActivity : PermissionActivity() {
         // 分享返回数据
         if (requestCode == RESULT_SHARE_CODE) {
             GlobalScope.launch(ioAsyncExceptionHandler) {
-                controller?.getShareSignal?.emit(data?.dataString?:"OK")
-                debugShare("RESULT_SHARE_CODE",data?.dataString)
+                controller?.getShareSignal?.emit(data?.dataString ?: "OK")
+                debugShare("RESULT_SHARE_CODE", data?.dataString)
             }
         }
     }
@@ -184,7 +184,9 @@ open class MultiWebViewActivity : PermissionActivity() {
                                 debugMultiWebView("NAV/${viewItem.webviewId}", "go back")
                                 navigator.navigateBack()
                             } else {
-                                wc.closeWebView(viewItem.webviewId)
+                                viewItem.coroutineScope.launch {
+                                    wc.closeWebView(viewItem.webviewId)
+                                }
                             }
                         }
 

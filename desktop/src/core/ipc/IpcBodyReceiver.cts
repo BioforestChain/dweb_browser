@@ -4,6 +4,7 @@ import type { MetaBody } from "./MetaBody.cjs";
 
 import { simpleEncoder } from "../../helper/encoding.cjs";
 import { IPC_DATA_ENCODING, IPC_MESSAGE_TYPE } from "./const.cjs";
+import { IpcStreamAbort } from "./IpcStreamAbort.cjs";
 import { IpcStreamPulling } from "./IpcStreamPulling.cjs";
 
 export class IpcBodyReceiver extends IpcBody {
@@ -103,6 +104,9 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
           paused = false;
           stream_ipc.postMessage(new IpcStreamPulling(stream_id));
         }
+      },
+      cancel() {
+        stream_ipc.postMessage(new IpcStreamAbort(stream_id));
       },
     },
     {
