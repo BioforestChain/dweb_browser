@@ -25,9 +25,19 @@ public class Signal<Args>
     public ConcurrentHashSet<Func<Args, object?>> ListenerSet = new ConcurrentHashSet<Func<Args, object?>>();
     public HashSet<Func<Args, object?>> CpSet = new HashSet<Func<Args, object?>>();
 
-	public Signal()
-	{
-	}
+    public Func<bool> Listen(Func<Args, object?> cb)
+    {
+        // TODO: emit 时的cbs 应该要同步进行修改？
+        ListenerSet.Add(cb).Also(it =>
+        {
+            if (it)
+            {
+                CpSet = ListenerSet.ToHashSet();
+            }
+        });
+
+        return () => Off(cb);
+    }
 
     public bool Off(Func<Args, object?> cb) => ListenerSet.TryRemove(cb).Also(it =>
     {
@@ -72,8 +82,5 @@ public class Signal<Args>
 
 public class SimpleSignal : Signal<byte>
 {
-    public override Task EmitAsync(byte args)
-    {
-        return base.EmitAsync(0);
-    }
+    public override async Task EmitAsync(byte args) => base.EmitAsync(0);
 }

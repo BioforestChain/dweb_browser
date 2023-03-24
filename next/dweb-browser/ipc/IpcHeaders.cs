@@ -111,7 +111,6 @@ sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>
 
         foreach (KeyValuePair<string, string> entry in value.GetEnumerator())
         {
-			Console.WriteLine($"key: {entry.Key} value: {entry.Value}");
 			writer.WriteString(entry.Key, entry.Value);
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Numerics;
 
 namespace ipc;
@@ -21,9 +22,6 @@ public class IpcRequest: IpcMessage
         Headers = headers;
         Body = body;
         ReqIpc = ipc;
-
-        _ipcReqMessage = new Lazy<IpcReqMessage>(new Func<IpcReqMessage>(() =>
-            new IpcReqMessage(req_id, method, url, headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value), body.MetaBody)));
     }
 
     public static IpcRequest FromText(int req_id, string url, IpcMethod method, IpcHeaders headers, string text, Ipc ipc) =>
@@ -115,10 +113,18 @@ public class IpcRequest: IpcMessage
                 }
             });
 
-    private Lazy<IpcReqMessage> _ipcReqMessage { get; set; }
     public IpcReqMessage LazyIpcReqMessage
     {
-        get { return _ipcReqMessage.Value; }
+        get
+        {
+            return new Lazy<IpcReqMessage>(new Func<IpcReqMessage>(() =>
+                new IpcReqMessage(
+                    ReqId,
+                    Method,
+                    Url,
+                    Headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value),
+                    Body.MetaBody))).Value;
+        }
     }
 
     public override string ToString() => $"#IpcRequest/{Method.method}/{Url}";

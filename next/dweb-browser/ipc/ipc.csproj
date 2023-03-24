@@ -23,4 +23,9 @@
   <ItemGroup>
     <Folder Include="helper\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

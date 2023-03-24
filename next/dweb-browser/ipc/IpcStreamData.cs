@@ -1,7 +1,7 @@
 ﻿namespace ipc;
 
 [JsonConverter(typeof(IpcStreamDataConverter))]
-public class IpcStreamData : IpcMessage
+public class IpcStreamData : IpcMessage, IpcStream
 {
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_DATA;
 

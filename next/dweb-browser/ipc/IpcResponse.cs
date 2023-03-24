@@ -20,9 +20,6 @@ public class IpcResponse: IpcMessage
         Headers = headers;
         Body = body;
         ResIpc = ipc;
-
-        _ipcResMessage = new Lazy<IpcResMessage>(new Func<IpcResMessage>(() =>
-            new IpcResMessage(req_id, statusCode, headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value), body.MetaBody)));
     }
 
     // TODO: FromJson 未完成
@@ -91,10 +88,17 @@ public class IpcResponse: IpcMessage
             }
         });
 
-    private Lazy<IpcResMessage> _ipcResMessage { get; set; }
     public IpcResMessage LazyIpcResMessage
     {
-        get { return _ipcResMessage.Value; }
+        get
+        {
+            return new Lazy<IpcResMessage>(new Func<IpcResMessage>(() =>
+                new IpcResMessage(
+                    ReqId,
+                    StatusCode,
+                    Headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value),
+                    Body.MetaBody))).Value;
+        }
     }
 }
 

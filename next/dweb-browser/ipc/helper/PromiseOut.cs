@@ -5,12 +5,6 @@ public class PromiseOut<T>
 	private TaskCompletionSource<T> task = new TaskCompletionSource<T>();
     public T? Value { get; set; }
 
-	public PromiseOut()
-	{
-		_isFinished = new Lazy<bool>(new Func<bool>(() => task.Task.IsCompleted));
-		_isCanceled = new Lazy<bool>(new Func<bool>(() => task.Task.IsCanceled));
-	}
-
 	public void Resolve(T value)
 	{
 		Value = value;
@@ -24,16 +18,14 @@ public class PromiseOut<T>
 	}
 
 	public bool IsResolved { get; set; } = false;
-	public Lazy<bool> _isFinished { get; set; }
 	public bool IsFinished
 	{
-		get { return _isFinished.Value; }
+		get { return new Lazy<bool>(new Func<bool>(() => task.Task.IsCompleted)).Value; }
 	}
 
-	public Lazy<bool> _isCanceled { get; set; }
 	public bool IsCanceled
 	{
-		get { return _isCanceled.Value; }
+		get { return new Lazy<bool>(new Func<bool>(() => task.Task.IsCanceled)).Value; }
 	}
 
 	public void Cancel() => source.Cancel();

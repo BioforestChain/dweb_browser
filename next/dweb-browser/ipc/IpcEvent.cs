@@ -13,9 +13,6 @@ public class IpcEvent: IpcMessage
         Name = name;
         Data = data;
         Encoding = encoding;
-
-        Binary = new Lazy<byte[]>(new Func<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding)));
-        Text = new Lazy<string>(new Func<string>(() => EncodingConverter.DataToText(Data, Encoding)));
     }
 
     internal IpcEvent()
@@ -27,8 +24,20 @@ public class IpcEvent: IpcMessage
     public static IpcEvent FromUtf8(string name, byte[] data) => FromUtf8(name, Convert.ToString(data) ?? "");
     public static IpcEvent FromUtf8(string name, string data) => new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8);
 
-    public Lazy<byte[]> Binary;
-    public Lazy<string> Text;
+    public Lazy<byte[]> Binary
+    {
+        get
+        {
+            return new Lazy<byte[]>(new Func<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding)));
+        }
+    }
+    public Lazy<string> Text
+    {
+        get
+        {
+            return new Lazy<string>(new Func<string>(() => EncodingConverter.DataToText(Data, Encoding)));
+        }
+    }
 
     /// <summary>
     /// Serialize IpcEvent
