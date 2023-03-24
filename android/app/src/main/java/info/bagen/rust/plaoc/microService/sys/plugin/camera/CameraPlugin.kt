@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.camera
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.*
@@ -11,7 +12,9 @@ import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
 import androidx.activity.result.ActivityResult
+import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.Mmid
@@ -34,6 +37,7 @@ class CameraPlugin(val mmid: Mmid) {
          const val REQUEST_IMAGE_CAPTURE: Int = 92
          const val REQUEST_IMAGES_CAPTURE: Int = 93
          const val REQUEST_EDITED_IMAGE: Int = 94
+        const val REQUEST_CAMERA_PERMISSION_CODE:Int = 94
     }
 
     // Message constants
@@ -60,7 +64,7 @@ class CameraPlugin(val mmid: Mmid) {
     private var settings = CameraSettings()
 
     fun getPhoto(
-        settings: CameraSettings = CameraSettings(), onCallback: ((String) -> Unit)? = null
+        settings: CameraSettings = CameraSettings(), onCallback: ((String) -> Unit)
     ) {
         isEdited = false
         this.settings = settings
@@ -82,7 +86,7 @@ class CameraPlugin(val mmid: Mmid) {
         onCallback?.let { it("not supported on android") }
     }
 
-    private fun doShow(onCallback: ((String) -> Unit)?) {
+    private fun doShow(onCallback: ((String) -> Unit)) {
         when (settings.source) {
             CameraSource.CAMERA -> showCamera(onCallback)
             CameraSource.PHOTOS -> showPhotos(onCallback)
@@ -94,7 +98,7 @@ class CameraPlugin(val mmid: Mmid) {
         promptHeader: String = "Photo",
         promptPhoto: String = "From Photos",
         promptPicture: String = "Take Picture",
-        onCallback: ((String) -> Unit)?
+        onCallback: ((String) -> Unit)
     ) {
         // We have all necessary permissions, open the camera
         val options: MutableList<String> = ArrayList()
@@ -127,7 +131,7 @@ class CameraPlugin(val mmid: Mmid) {
         }
     }
 
-    private fun showCamera(onCallback: ((String) -> Unit)?) {
+    private fun showCamera(onCallback: ((String) -> Unit)) {
         if (!App.appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
             onCallback?.let { it(NO_CAMERA_ERROR) }
             return
@@ -139,27 +143,19 @@ class CameraPlugin(val mmid: Mmid) {
         openPhotos(onCallback)
     }
 
-    private fun checkCameraPermissions(onCallback: ((String) -> Unit)?): Boolean {
-        // if the manifest does not contain the camera permissions key, we don't need to ask the user
-        /*val needCameraPerms: Boolean = isPermissionDeclared(CAMERA)
-        val hasCameraPerms = !needCameraPerms || getPermissionState(CAMERA) === PermissionState.GRANTED
-        val hasPhotoPerms = getPermissionState(PHOTOS) === PermissionState.GRANTED
-
-        // If we want to save to the gallery, we need two permissions
-        if (settings.saveToGallery && !(hasCameraPerms && hasPhotoPerms) && isFirstRequest) {
-          isFirstRequest = false
-          val aliases = if (needCameraPerms) {
-            arrayOf(CAMERA, PHOTOS)
-          } else {
-            arrayOf(PHOTOS)
-          }
-          requestPermissionForAliases(aliases, call, "cameraPermissionsCallback")
-          return false
-        } else if (!hasCameraPerms) {
-          requestPermissionForAlias(CAMERA, call, "cameraPermissionsCallback")
-          return false
-        }*/
-        return true
+    private fun checkCameraPermissions(activity: Activity?,onCallback: ((String) -> Unit)): Boolean {
+        if (activity == null) {
+             onCallback("not activity")
+            return  false
+        }
+        if (ContextCompat.checkSelfPermission(App.appContext, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted, request for permission
+            ActivityCompat.requestPermissions(activity,
+                arrayOf(Manifest.permission.CAMERA),
+                REQUEST_CAMERA_PERMISSION_CODE)
+        }
+        return  true
     }
 
     private fun checkPhotosPermissions(onCallback: ((String) -> Unit)?): Boolean {
@@ -170,15 +166,15 @@ class CameraPlugin(val mmid: Mmid) {
         return true
     }
 
-    private fun cameraPermissionsCallback(methodName: String, onCallback: ((String) -> Unit)?) {
+    private fun cameraPermissionsCallback(methodName: String, onCallback: ((String) -> Unit)) {
         if (methodName.equals("pickImages")) {
             openPhotos(true, true, onCallback)
         } else {
-            if (settings.source == CameraSource.CAMERA && getPermissionState(CAMERA) !== PackageManager.PERMISSION_GRANTED) {
-                onCallback?.let { it(PERMISSION_DENIED_ERROR_CAMERA) }
+            if (settings.source == CameraSource.CAMERA && getPermissionState(CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                onCallback(PERMISSION_DENIED_ERROR_CAMERA)
                 return
-            } else if (settings.source == CameraSource.PHOTOS && getPermissionState(PHOTOS) !== PackageManager.PERMISSION_GRANTED) {
-                onCallback?.let { it(PERMISSION_DENIED_ERROR_PHOTOS) }
+            } else if (settings.source == CameraSource.PHOTOS && getPermissionState(PHOTOS) != PackageManager.PERMISSION_GRANTED) {
+                onCallback(PERMISSION_DENIED_ERROR_PHOTOS)
                 return
             }
             doShow(onCallback)
@@ -186,28 +182,14 @@ class CameraPlugin(val mmid: Mmid) {
     }
 
     @SuppressLint("QueryPermissionsNeeded")
-    fun openCamera(onCallback: ((String) -> Unit)?) {
-        if (checkCameraPermissions(onCallback)) {
+    fun openCamera(onCallback: ((String) -> Unit)) {
+        val activity = getCurrentWebViewController(mmid)?.activity
+        if (checkCameraPermissions(activity,onCallback)) {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (takePictureIntent.resolveActivity(App.appContext.packageManager) != null) {
-                // If we will be saving the photo, send the target file along
-//                try {
-//                    val appId: String = Device.getId() //getAppId()
-//                    val photoFile: File = CameraUtils.createImageFile()
-//                    imageFileSavePath = photoFile.absolutePath
-//                    // TODO: Verify provider config exists
-//                    imageFileUri =
-//                        FileProvider.getUriForFile(App.appContext, "$appId.fileprovider", photoFile)
-//                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri)
-//                } catch (ex: Throwable) {
-//                    onCallback?.let { it("$IMAGE_FILE_SAVE_ERROR -- $ex") }
-//                    return
-//                }
-                getCurrentWebViewController(mmid)?.let { it ->
-                    startActivityForResult(it.activity!!, takePictureIntent, REQUEST_CAMERA_IMAGE, null)
-                }
+                activity?.startActivityForResult(takePictureIntent,REQUEST_CAMERA_IMAGE)
             } else {
-                onCallback?.let { it(NO_CAMERA_ACTIVITY_ERROR) }
+                onCallback(NO_CAMERA_ACTIVITY_ERROR)
             }
         }
     }

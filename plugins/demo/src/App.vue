@@ -6,7 +6,7 @@ import { routes } from "./routes";
 const router = useRouter();
 
 // router.push("/share");
-router.push("/splashscreen");
+router.push("/barcodescanning");
 
 
 const drawer_controller = ref(false);

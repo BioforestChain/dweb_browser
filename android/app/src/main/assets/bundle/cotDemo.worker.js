@@ -539,7 +539,7 @@ var cros = (headers) => {
 var main = async () => {
   const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut();
-  const webviewSet = /* @__PURE__ */ new Set();
+  const webviewSet = /* @__PURE__ */ new Map();
   const tryOpenView = async (webview_id) => {
     console.log("tryOpenView", webview_id);
     if (webview_id && webviewSet.has(webview_id)) {
@@ -552,14 +552,14 @@ var main = async () => {
     const view_id = await jsProcess.nativeFetch(
       `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
     ).text();
-    webviewSet.add(view_id);
+    if (webviewSet.size == 0) {
+    }
     return view_id;
   };
   let hasActivity = false;
   jsProcess.onConnect((ipc2) => {
-    console.log("on connect", ipc2);
     ipc2.onEvent(async (event) => {
-      console.log("cotDemo.worker => ", event.name, typeof event.data === "string");
+      console.log("cotDemo.worker => ", event.name, event.text);
       if (event.name === "activity" && typeof event.data === "string") {
         hasActivity = true;
         const view_id = await tryOpenView(event.data);

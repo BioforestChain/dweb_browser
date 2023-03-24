@@ -143,13 +143,13 @@ class MultiWebViewController(
 
     private val webViewCloseSignal = Signal<String>()
     private val webViewOpenSignal = Signal<String>()
-    val getCameraSignal = Signal<Bitmap>()
+    val getCameraSignal = Signal<Bitmap?>()
     val getPhotoSignal = Signal<Bitmap?>()
     val getShareSignal = Signal<String>()
 
     fun onWebViewClose(cb: Callback<String>) = webViewCloseSignal.listen(cb)
     fun onWebViewOpen(cb: Callback<String>) = webViewOpenSignal.listen(cb)
-    fun getCameraData(cb: Callback<Bitmap>) = getCameraSignal.listen(cb)
+    fun getCameraData(cb: Callback<Bitmap?>) = getCameraSignal.listen(cb)
     fun getPhotoData(cb: Callback<Bitmap?>) = getPhotoSignal.listen(cb)
     fun getShareData(cb: Callback<String>) = getShareSignal.listen(cb)
 }

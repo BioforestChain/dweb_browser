@@ -1,10 +1,14 @@
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
+import type { ViewTree } from "../../sys/multi-webview/assets/multi-webview.html.mjs";
+import { EVENT } from "./cotDemo.event.mjs";
 import { cros, onApiRequest } from "./cotDemo.request.mjs";
+
+
 
 const main = async () => {
   const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut<string>();
-  const webviewSet = new Set<string>()
+  const webviewSet = new Map<string, ViewTree>()
 
   const tryOpenView = async (webview_id?: string) => {
     console.log("tryOpenView", webview_id)
@@ -23,25 +27,26 @@ const main = async () => {
         `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
       )
       .text();
-    //if(webviewSet.size == 0) {
-      // const ipc = await jsProcess.connect("mwebview.sys.dweb")
-      // ipc.onEvent((event)=>{
-      //   console.log("connect", "mwebview.sys.dweb", event.name)
-      //   //event.name === 'state'
-      //   //JSON.parse(event.text)
-      // })
-    //}
-    webviewSet.add(view_id)
-    
+    if (webviewSet.size == 0) {
+      // const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
+      // Object.assign(globalThis, { mwebviewIpc });
+      // mwebviewIpc.onEvent((event) => {
+      //   console.log("cotDemo#got event:", event.name, event.text);
+      //   if (event.name === EVENT.State) {
+
+      //   }
+      // });
+
+    }
+
     return view_id
   };
   let hasActivity = false;
   /// 根据桌面协议，收到activity后就会被唤醒
   jsProcess.onConnect((ipc) => {
-    console.log("on connect", ipc);
 
     ipc.onEvent(async (event) => {
-      console.log("cotDemo.worker => ", event.name, typeof event.data === "string");
+      console.log("cotDemo.worker => ", event.name, event.text);
       if (event.name === "activity" && typeof event.data === "string") {
         hasActivity = true;
         const view_id = await tryOpenView(event.data);
