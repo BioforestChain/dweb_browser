@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM
 import info.bagen.rust.plaoc.microService.helper.encodeURIComponent
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.DownLoadObserver
@@ -116,11 +117,7 @@ class JmmManagerViewModel(jmmMetadata: JmmMetadata) : ViewModel() {
               )
             }
             DownLoadStatus.INSTALLED -> { // 点击打开app触发的事件
-              val mmid = uiState.downloadInfo.value.jmmMetadata.id
-              JmmNMM.getAndUpdateJmmNmmApps()[mmid]?.nativeFetch(
-                Uri.of("file://dns.sys.dweb/open")
-                  .query("app_id", mmid.encodeURIComponent())
-              )
+              BrowserNMM.browserController.openApp(uiState.downloadInfo.value.jmmMetadata.id)
             }
           }
         }

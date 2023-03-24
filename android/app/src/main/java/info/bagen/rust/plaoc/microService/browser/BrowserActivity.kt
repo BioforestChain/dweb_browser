@@ -4,9 +4,7 @@ import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.*
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -15,25 +13,17 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
-import com.google.gson.JsonSyntaxException
 import info.bagen.rust.plaoc.App
-import info.bagen.rust.plaoc.microService.helper.gson
-import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_CAN_BE_FOUND
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_REQUEST
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetoothOp
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
-import info.bagen.rust.plaoc.network.HttpClient
-import info.bagen.rust.plaoc.network.base.byteBufferToString
 import info.bagen.rust.plaoc.ui.app.AppViewModel
 import info.bagen.rust.plaoc.ui.camera.QRCodeIntent
 import info.bagen.rust.plaoc.ui.camera.QRCodeScanning
@@ -65,17 +55,8 @@ class BrowserActivity : AppCompatActivity() {
         return appViewModel
     }
 
-    private var remoteMmid by mutableStateOf("")
-    private var controller: BrowserController? = BrowserNMM.browserController
-
-    private fun upsetRemoteMmid() {
-        remoteMmid = intent.getStringExtra("mmid") ?: return finish()
-        controller?.activity = this
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        upsetRemoteMmid()
         App.browserActivity = this
         setContent {
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
@@ -182,7 +163,7 @@ class BrowserActivity : AppCompatActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK && event?.repeatCount == 0) {
-            if (BrowserNMM.browserController.addViewList.size > 0) {
+            if (BrowserNMM.browserController.hasDwebView) {
                 if (event.action == KeyEvent.ACTION_DOWN) BrowserNMM.browserController.removeLastView()
                 return true
             } else if (!BrowserNMM.browserController.showLoading.value) {
@@ -204,7 +185,7 @@ class BrowserActivity : AppCompatActivity() {
         // 退出APP关闭服务
         super.onDestroy()
         App.browserActivity = null
-        dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
+        dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveDWebBrowser)
         blueToothReceiver?.let { unregisterReceiver(it) }
         blueToothReceiver = null
     }

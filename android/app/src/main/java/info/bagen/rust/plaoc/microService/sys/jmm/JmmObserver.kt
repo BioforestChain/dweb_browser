@@ -1,10 +1,10 @@
 package info.bagen.rust.plaoc.microService.sys.jmm
 
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.util.moreThanTwoDigits
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -24,9 +24,9 @@ class DownLoadObserver(private val mmid: Mmid) {
     fun emit(
       mmid: Mmid, status: DownLoadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
     ) {
-      runBlockingCatching(Dispatchers.IO) {
+      runBlockingCatching(ioAsyncExceptionHandler) {
         val listener = DownLoadObserverListener(status, downLoadSize, totalSize)
-        downloadMap[mmid]?.iterator()?.forEach { observer -> observer.state.emit(listener) }
+        downloadMap[mmid]?.forEach { observer -> observer.state.emit(listener) }
       }
     }
 
