@@ -43,7 +43,13 @@ suspend fun startDwebBrowser() {
      */
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
-            listOf("message-port-ipc", "stream-ipc", "stream", "ipc-body")
+            listOf<String>(
+                "message-port-ipc",
+                "stream-ipc",
+                "stream",
+                "ipc-body",
+                "dwebview",
+            )
         )
         DEVELOPER.HuangLin, DEVELOPER.HLVirtual -> debugTags.addAll(
             listOf("Share", "fetch", "http", "jmm", "browser")

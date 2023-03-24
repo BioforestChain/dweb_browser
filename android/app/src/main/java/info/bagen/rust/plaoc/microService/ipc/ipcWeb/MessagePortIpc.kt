@@ -31,6 +31,8 @@ class MessagePort {
     private val _messageSignal by lazy {
         val signal = Signal<WebMessage>()
         messageScope.launch {
+            /// 这里为了确保消息的顺序正确性，比如使用channel来一帧一帧地读取数据，不可以直接用 launch 去异步执行 event，这会导致下层解析数据的顺序问题
+            /// 并发性需要到消息被解码出来后才能去执行并发。也就是非 IpcStream 类型的数据才可以走并发
             for (event in messageChannel) {
                 signal.emit(event)
             }
