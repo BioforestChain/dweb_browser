@@ -4,7 +4,9 @@ import android.os.Build
 
 enum class DEVELOPER(val deviceName: String) {
     GAUBEE("Xiaomi/M2006J10C"),
-    HUANGLIN("HUAWEI/ELE-AL00"),
+    HuangLin("HUAWEI/ELE-AL00"),
+    HLVirtual("Google/sdk_gphone64_x86_64"),
+    WaterBang("samsung/SM-A9080"),
     ANONYMOUS("*");
 
 
@@ -13,7 +15,7 @@ enum class DEVELOPER(val deviceName: String) {
         val CURRENT = find(Build.MANUFACTURER + "/" + Build.MODEL)
 
         init {
-            println("Hi Developer! ${CURRENT.deviceName}")
+            println("Hi Developer! ${CURRENT.deviceName} => ${Build.MANUFACTURER}/${Build.MODEL}")
         }
     }
 }

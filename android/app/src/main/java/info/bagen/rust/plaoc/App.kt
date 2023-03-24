@@ -7,9 +7,10 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.PlaocUtil
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -31,9 +32,17 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         appContext = this
+        startMicroModuleProcess() // 用于启动 microModule 底层服务
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
         // startService(Intent(this@App, DwebBrowserService::class.java))
         DwebBrowserUtil.INSTANCE.bindDwebBrowserService()
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun startMicroModuleProcess() {
+        GlobalScope.launch {
+            startDwebBrowser()
+        }
     }
 
     private class ActivityLifecycleCallbacksImp : ActivityLifecycleCallbacks {
