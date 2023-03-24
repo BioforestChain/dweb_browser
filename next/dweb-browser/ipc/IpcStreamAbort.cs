@@ -1,13 +1,13 @@
 ﻿
 namespace ipc;
 
-public class IpcStreamAbort : IpcMessage
+public class IpcStreamAbort : IpcMessage, IpcStream
 {
     [JsonPropertyName("type")]
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_ABORT;
 
     [JsonPropertyName("stream_id")]
-    public string StreamId { get; init; }
+    public string StreamId { get; set; }
 
     public IpcStreamAbort(string stream_id)
     {

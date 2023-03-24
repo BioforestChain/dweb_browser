@@ -19,20 +19,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewState
 import info.bagen.rust.plaoc.microService.browser.BrowserNMM
-import info.bagen.rust.plaoc.microService.startDwebBrowser
 import info.bagen.rust.plaoc.ui.splash.SplashPrivacyDialog
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
 import info.bagen.rust.plaoc.util.KEY_ENABLE_AGREEMENT
 import info.bagen.rust.plaoc.util.getBoolean
 import info.bagen.rust.plaoc.util.saveBoolean
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,14 +43,14 @@ class SplashActivity : AppCompatActivity() {
           SplashPrivacyDialog(
             openHome = {
               App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-              startDwebBrowserProcess()
+              BrowserNMM.browserController.openBrowserActivity()
             },
             openWebView = { url -> webUrl.value = url },
             closeApp = { finish() }
           )
           PrivacyView(url = webUrl)
         } else {
-          startDwebBrowserProcess()
+          BrowserNMM.browserController.openBrowserActivity()
         }
       }
     }
@@ -64,13 +59,6 @@ class SplashActivity : AppCompatActivity() {
   override fun onStop() {
     super.onStop()
     finish()
-  }
-
-  private fun startDwebBrowserProcess() {
-    lifecycleScope.launch {
-      startDwebBrowser()
-      BrowserNMM.browserController.openBrowserActivity()
-    }
   }
 }
 

@@ -1,5 +1,7 @@
 package info.bagen.rust.plaoc.microService.browser
 
+import android.content.Intent
+import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import com.google.gson.JsonSyntaxException
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.network.HttpClient
@@ -16,41 +20,19 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.http4k.core.Uri
 import org.http4k.core.query
-import java.util.concurrent.atomic.AtomicInteger
 
-class BrowserController(
-    val mmid: Mmid,
-    val localeMM: BrowserNMM,
-) {
-    companion object {
-        private var browserId_acc = AtomicInteger(1)
-    }
-
-    private var activityTask = PromiseOut<BrowserActivity>()
-    suspend fun waitActivityCreated() = activityTask.waitPromise()
-    var activity: BrowserActivity? = null
-        set(value) {
-            if (field == value) {
-                return
-            }
-            field = value
-            if (value == null) {
-                activityTask = PromiseOut()
-            } else {
-                activityTask.resolve(value)
-            }
-        }
-
+class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
 
-    val addViewList = mutableListOf<View>()
-    fun appendView(view: View) {
-        addViewList.add(view)
-    }
+    private val openIPCMap = mutableMapOf<Mmid, Ipc>()
+    private val dWebViewList = mutableListOf<View>()
+
+    fun appendView(view: View) = dWebViewList.add(view)
+    val hasDwebView get() = dWebViewList.size > 0
 
     fun removeLastView(): Boolean {
         try {
-            addViewList.removeLast().also { childView ->
+            dWebViewList.removeLast().also { childView ->
                 App.browserActivity?.window?.decorView?.let { parentView ->
                     (parentView as ViewGroup).removeView(childView)
                 }
@@ -61,27 +43,36 @@ class BrowserController(
         return true
     }
 
-    data class BrowserItem(
-        val browserId: String,
-        //val browser: BrowserActivity?,
-    )
-
-    fun createApp(): BrowserItem {
-        return BrowserItem("#browser${browserId_acc.getAndAdd(1)}")
+    suspend fun openApp(mmid: Mmid) {
+        openIPCMap.getOrPut(mmid) {
+            val (ipc) = localeMM.bootstrapContext.dns.connect(mmid)
+            ipc.onEvent {
+                if (it.event.name == "ready") { // 说法加载完成，可以隐藏加载框
+                    BrowserNMM.browserController.showLoading.value = false
+                    debugBrowser("openApp", "event::${it.event.name}==>${it.event.data}")
+                }
+            }
+            ipc
+        }.also { ipc ->
+            debugBrowser("openApp", "postMessage==>activity")
+            ipc.postMessage(IpcEvent.fromUtf8("activity", ""))
+        }
     }
 
-    suspend fun openApp(mmid: Mmid) = localeMM.openApp(mmid)
-
-    suspend fun installJMM(jmmMetadata: JmmMetadata, url: String) = localeMM.nativeFetch(
+    private suspend fun installJMM(jmmMetadata: JmmMetadata, url: String) = localeMM.nativeFetch(
         Uri.of("file://jmm.sys.dweb/install")
             .query("mmid", jmmMetadata.id).query("metadataUrl", url)
     )
 
-    fun openBrowserActivity() = localeMM.openBrowserActivity()
+    fun openBrowserActivity() {
+        App.startActivity(BrowserActivity::class.java) { intent ->
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            intent.putExtras(Bundle().also { b -> b.putString("mmid", mmid) })
+        }
+    }
 
-    fun checkJmmMetadataJson(
-        url: String
-    ): Boolean {
+    fun checkJmmMetadataJson(url: String): Boolean {
         android.net.Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
             if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
                 try {

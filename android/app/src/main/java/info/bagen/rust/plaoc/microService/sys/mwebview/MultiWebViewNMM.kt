@@ -7,10 +7,15 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.Ipc
+import io.ktor.util.collections.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -18,6 +23,7 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.util.concurrent.ConcurrentSkipListSet
 
 inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("mwebview", tag, msg, err)
@@ -41,7 +47,9 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         }
     }
 
-    private val mIpcMap = mutableStateMapOf<Ipc, MutableMap<String, MultiWebViewController.ViewItem>>()
+    val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
+    private val mIpcMap =
+        mutableStateMapOf<Ipc, MutableMap<String, MultiWebViewController.ViewItem>>()
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// nativeui 与 mwebview 是伴生关系
@@ -51,13 +59,10 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         val queryUrl = Query.string().required("url")
         val queryWebviewId = Query.string().required("webview_id")
 
-//        val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
 //        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
-//            while (true) {
-//                for ((ipc) in subscribers) {
-//                    ipc.postMessage(IpcEvent.fromUtf8("close", "hi"))
-//                }
-//                delay(1000)
+//            for ((ipc) in subscribers) {
+//                debugMultiWebView("createIpc =>", "jop: ${ipc.remote.mmid} ")
+////                    ipc.postMessage(IpcEvent.fromUtf8("close", "hi"))
 //            }
 //        }
 //        _afterShutdownSignal.listen { job.cancel() }
@@ -88,9 +93,9 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-                        val b = Bundle();
-                        b.putString("mmid", remoteMmid);
-                        intent.putExtras(b);
+                        val b = Bundle()
+                        b.putString("mmid", remoteMmid)
+                        intent.putExtras(b)
                     }
                 }
                 return@defineHandler Response(Status.OK).body(webViewId)
@@ -146,21 +151,22 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         return viewItem
     }
 
-    suspend fun closeDwebView(remoteMmid: String, webviewId: String) {
-        for ((ipc, value) in mIpcMap) {
-            if (ipc.remote.mmid == remoteMmid) {
-                ipc.postMessage(IpcEvent.fromUtf8("state", "xxxxxx"))
-                break
-            }
-        }
-        controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
+    suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
+        return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
     }
 
-    fun createIpc(viewItem:MultiWebViewController.ViewItem) {
+    fun createIpc(viewItem: MultiWebViewController.ViewItem) {
+
+//        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
+//            for ((ipc) in subscribers) {
+//                debugMultiWebView("createIpc", "jop: ${ipc.remote.mmid} ")
+//                ipc.postMessage(IpcEvent.fromUtf8("state", "hi"))
+//            }
+//        }
+//        _afterShutdownSignal.listen { job.cancel() }
+
         debugMultiWebView("createIpc", "viewItem: $viewItem ")
-//  subscribers.getOrPut(ipc) { ConcurrentSkipListSet<String>() }.also { refs ->
-//       refs.add(viewItem.webviewId)
-//     }
+
 //        mIpcMap.getOrPut(ipc) {
 //            ipc.onEvent {
 //                debugMultiWebView("event", "name=${it.event.name},data=${it.event.data}")

@@ -1,4 +1,6 @@
-﻿
+﻿using System.Collections.Concurrent;
+using System.Threading.Tasks.Dataflow;
+
 namespace ipc;
 
 /**
@@ -21,10 +23,9 @@ public class IpcBodySender : IpcBody
     public override object? Raw { get; }
     public Ipc SenderIpc { get; set; }
 
-    private Lazy<bool> _isStream { get; set; }
     public bool IsStream
     {
-        get { return _isStream.Value; }
+        get { return new Lazy<bool>(new Func<bool>(() => Raw is Stream)).Value; }
     }
 
     public bool IsStreamClosed
@@ -58,29 +59,113 @@ public class IpcBodySender : IpcBody
         }
     }
 
-    private Lazy<BodyHubType> _bodyHub { get; set; }
+    private void _emitStreamClose()
+    {
+        _isStreamOpened = true;
+        _isStreamClosed = true;
+    }
+
+    /**
+     * 控制信号
+     */
+    enum StreamStatusSignal
+    {
+        PULLING,
+        PAUSED,
+        ABORTED,
+    }
+
+    private BufferBlock<StreamStatusSignal> _streamStatusSignal = new BufferBlock<StreamStatusSignal>();
+
+    class IPC
+    {
+        public class UsableIpcBodyMapper
+        {
+            private Dictionary</*streamId*/string, IpcBodySender> _map { get; set; }
+
+            public UsableIpcBodyMapper(Dictionary<string, IpcBodySender> map)
+            {
+                _map = map;
+            }
+
+            public bool Add(string streamId, IpcBodySender ipcBody)
+            {
+                if (_map.ContainsKey(streamId))
+                {
+                    return false;
+                }
+
+                _map.Add(streamId, ipcBody);
+                return true;
+            }
+
+            public IpcBodySender? Get(string streamId) => _map[streamId];
+
+            public async Task<IpcBodySender?> Remove(string streamId)
+            {
+                var ipcBodySender = this.Get(streamId);
+
+                if (ipcBodySender is not null)
+                {
+                    _map.Remove(streamId);
+                }
+
+                if (_map.Count == 0)
+                {
+                    await this._destroySignal.EmitAsync(0);
+                    this._destroySignal.Clear();
+                }
+
+                return ipcBodySender;
+            }
+
+            private SimpleSignal _destroySignal = new SimpleSignal();
+
+            public Func<bool> OnDetroy(Func<byte, object?> cb) => _destroySignal.Listen(cb);
+        }
+
+        private static Dictionary<Ipc, UsableIpcBodyMapper> _ipcUsableIpcBodyMap = new Dictionary<Ipc, UsableIpcBodyMapper>();
+
+        //class IpcExtensions
+        //{
+        //    public UsableIpcBodyMapper _getUsableIpcBodyMap(this Ipc ipc)
+        //    {
+        //        //var usableIpcBodyMapper = _ipcUsableIpcBodyMap[ipc];
+
+        //        //if (usableIpcBodyMapper is null)
+        //        //{
+        //        //    usableIpcBodyMapper = new UsableIpcBodyMapper().Also(mapper =>
+        //        //    {
+        //        //        var off = ipc.OnStream((IpcStreamMessageArgs arg) => arg.stream switch
+        //        //            {
+        //        //                IpcStreamPulling message => mapper.Get(message.StreamId)?.use
+        //        //            });
+        //        //    });
+        //        //    _ipcUsableIpcBodyMap.Add(ipc);
+        //        //}
+        //    }
+        //}
+
+        public void UsableByIpc(Ipc ipc, IpcBodySender ipcBody)
+        {
+            if (!ipcBody.IsStream || ipcBody._isStreamOpened)
+            {
+                return;
+            }
+
+            var streamId = ipcBody.MetaBody.StreamId!;
+            //var usableIpcBodyMapper = ipc._getUsableIpcBodyMap();
+        }
+    }
+
     protected override BodyHubType BodyHub
     {
-        get { return _bodyHub.Value; }
-    }
-    public override SMetaBody MetaBody { get; set; }
-
-    public IpcBodySender(object raw, Ipc ipc): base()
-    {
-        CACHE.Raw_ipcBody_WMap.Add(raw, this);
-
-
-        Raw = raw;
-        SenderIpc = ipc;
-
-        _isStream = new Lazy<bool>(new Func<bool>(() => raw is Stream));
-
-        MetaBody = BodyAsMeta(Raw, SenderIpc);
-
-        _bodyHub = new Lazy<BodyHubType>(new Func<BodyHubType>(() => new BodyHubType().Also(it =>
+        get
+        {
+            return new Lazy<BodyHubType>(new Func<BodyHubType>(() => new BodyHubType().Also(it =>
             {
-                it.Data = raw;
-                switch (raw)
+                it.Data = Raw;
+                switch (Raw)
                 {
                     case string value:
                         it.Text = value;
@@ -92,11 +177,42 @@ public class IpcBodySender : IpcBody
                         it.BodyStream = value;
                         break;
                 }
-            })));
+            }))).Value;
+        }
+    }
+    public override SMetaBody MetaBody { get; set; }
+
+    public IpcBodySender(object raw, Ipc ipc)
+    {
+        CACHE.Raw_ipcBody_WMap.Add(raw, this);
+
+
+        Raw = raw;
+        SenderIpc = ipc;
+
+        MetaBody = BodyAsMeta(Raw, SenderIpc);
     }
 
 
     public static IpcBodySender From(object raw, Ipc ipc) => new IpcBodySender(raw, ipc);
+    private static Lazy<Dictionary<Stream, string>> _streamIdWM =
+        new Lazy<Dictionary<Stream, string>>(() => new Dictionary<Stream, string>());
+
+    private static int _stream_id_acc = 1;
+
+    private static string _getStreamId(Stream stream) => _streamIdWM.Value.Let(it =>
+        {
+            var streamId = it[stream];
+
+            if (streamId is null)
+            {
+                streamId = $"rs-{Interlocked.Exchange(ref _stream_id_acc, Interlocked.Increment(ref _stream_id_acc))}";
+            }
+
+            return streamId;
+        });
+
+
 
     private SMetaBody BodyAsMeta(object body, Ipc ipc) => body switch
     {
@@ -110,6 +226,63 @@ public class IpcBodySender : IpcBody
 
     private SMetaBody StreamAsMeta(Stream stream, Ipc ipc)
     {
+        var stream_id = _getStreamId(stream);
+
+        Console.WriteLine($"sender/INIT/{stream}", stream_id);
+
+        Task.Run(() =>
+        {
+            /**
+             * 只有等到 Pulling 指令的时候才能读取并发送
+             */
+            var pullingPo = new PromiseOut<bool>();
+
+            Task.Run(() =>
+            {
+                switch(_streamStatusSignal.Receive())
+                {
+                    case StreamStatusSignal.PULLING:
+                        pullingPo.Resolve(true);
+                        break;
+                    case StreamStatusSignal.PAUSED:
+                        if (pullingPo.IsFinished)
+                        {
+                            pullingPo = new PromiseOut<bool>();
+                        }
+                        break;
+                    case StreamStatusSignal.ABORTED:
+                        stream.Dispose();
+                        _emitStreamClose();
+                        break;
+                }
+            });
+
+            /// 持续发送数据
+            while (true)
+            {
+                // 等待流开始被拉取
+                pullingPo.WaitPromise();
+
+                Console.WriteLine($"sender/PULLING/{stream}", stream_id);
+                //switch (stream.CanRead)
+                //{
+
+                //}
+
+                switch (stream.ReadByte())
+                {
+                    case -1:
+                        Console.WriteLine($"sender/END/{stream}", $"-1 >> {stream_id}");
+
+                        /// 不论是不是被 aborted，都发送结束信号
+                        var message = new IpcStreamEnd(stream_id);
+                        break;
+                    case 0:
+                        break;
+                }
+            }
+        });
+
         return new SMetaBody();
     }
 }

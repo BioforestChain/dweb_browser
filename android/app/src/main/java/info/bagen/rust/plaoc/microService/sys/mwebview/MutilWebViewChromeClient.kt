@@ -6,10 +6,7 @@ import android.webkit.WebView
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import com.google.accompanist.web.AccompanistWebChromeClient
 import info.bagen.rust.plaoc.microService.helper.mainAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.sys.mwebview.CloseWatcher.CloseWatcher
@@ -58,6 +55,8 @@ class MutilWebViewChromeClient(
         var beforeUnloadResult by beforeUnloadController.resultState
         val jsResult = beforeUnloadResult ?: return
 
+        val sc = rememberCoroutineScope()
+
         AlertDialog(
             title = {
                 Text("确定要离开吗？")// TODO i18n
@@ -71,7 +70,9 @@ class MutilWebViewChromeClient(
                 Button(onClick = {
                     jsResult.confirm()
                     beforeUnloadResult = null
-                    wc.closeWebView(viewItem.webviewId)
+                    sc.launch {
+                        wc.closeWebView(viewItem.webviewId)
+                    }
                 }) {
                     Text("确定")// TODO i18n
                 }

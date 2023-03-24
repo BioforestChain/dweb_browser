@@ -138,6 +138,18 @@ var PromiseOut = class {
   }
 };
 
+// src/user/cot-demo/cotDemo.native.mts
+var nativeOpen = async (url) => {
+  return await jsProcess.nativeFetch(
+    `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
+  ).text();
+};
+var nativeActivate = async (webview_id) => {
+  return await jsProcess.nativeFetch(
+    `file://mwebview.sys.dweb/activate?webview_id=${encodeURIComponent(webview_id)}`
+  ).text();
+};
+
 // src/helper/binaryHelper.cts
 var u8aConcat = (binaryList) => {
   let totalLength = 0;
@@ -539,36 +551,28 @@ var cros = (headers) => {
 var main = async () => {
   const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut();
-  const webviewSet = /* @__PURE__ */ new Set();
+  const webviewSet = /* @__PURE__ */ new Map();
   const tryOpenView = async (webview_id) => {
     console.log("tryOpenView", webview_id);
     if (webview_id && webviewSet.has(webview_id)) {
-      const result = await jsProcess.nativeFetch(
-        `file://mwebview.sys.dweb/reOpen?webview_id=${encodeURIComponent(webview_id)}`
-      ).text();
-      return result;
+      return nativeActivate(webview_id);
     }
     const url = await mainUrl.promise;
-    const view_id = await jsProcess.nativeFetch(
-      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
-    ).text();
-    webviewSet.add(view_id);
+    const view_id = await nativeOpen(url);
+    if (webviewSet.size == 0) {
+      connectMwebview();
+    }
     return view_id;
   };
-  let hasActivity = false;
-  jsProcess.onConnect((ipc2) => {
-    console.log("on connect", ipc2);
-    ipc2.onEvent(async (event) => {
-      console.log("cotDemo.worker => ", event.name, typeof event.data === "string");
-      if (event.name === "activity" && typeof event.data === "string") {
-        hasActivity = true;
-        const view_id = await tryOpenView(event.data);
-        console.log("cotDemo.worker => activity", view_id);
-        ipc2.postMessage(IpcEvent.fromText("ready", view_id));
-        return;
+  const connectMwebview = async () => {
+    const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
+    Object.assign(globalThis, { mwebviewIpc });
+    mwebviewIpc.onEvent((event) => {
+      console.log("cotDemo#got event:", event.name, event.text);
+      if (event.name === "state" /* State */) {
       }
     });
-  });
+  };
   console.log("[cotDemo.worker.mts] main");
   const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
@@ -602,6 +606,19 @@ var main = async () => {
       )
     );
   });
+  let hasActivity = false;
+  jsProcess.onConnect((ipc2) => {
+    ipc2.onEvent(async (event) => {
+      console.log("cotDemo.worker => ", event.name, event.text);
+      if (event.name === "activity" && typeof event.data === "string") {
+        hasActivity = true;
+        const view_id = await tryOpenView(event.data);
+        console.log("cotDemo.worker => activity", view_id);
+        ipc2.postMessage(IpcEvent.fromText("ready", view_id));
+        return;
+      }
+    });
+  });
   {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
@@ -610,8 +627,6 @@ var main = async () => {
     if (hasActivity === false) {
       await tryOpenView();
     }
-  }
-  {
   }
 };
 main();

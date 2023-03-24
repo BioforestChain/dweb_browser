@@ -5032,6 +5032,14 @@ var IpcResMessage = class extends IpcMessage {
   }
 };
 
+// src/core/ipc/IpcStreamAbort.cts
+var IpcStreamAbort = class extends IpcMessage {
+  constructor(stream_id) {
+    super(6 /* STREAM_ABORT */);
+    this.stream_id = stream_id;
+  }
+};
+
 // src/core/ipc/IpcStreamPulling.cts
 var IpcStreamPulling = class extends IpcMessage {
   constructor(stream_id, bandwidth) {
@@ -5128,6 +5136,9 @@ var $metaToStream = (metaBody, ipc) => {
           paused = false;
           stream_ipc.postMessage(new IpcStreamPulling(stream_id));
         }
+      },
+      cancel() {
+        stream_ipc.postMessage(new IpcStreamAbort(stream_id));
       }
     },
     {
@@ -5194,14 +5205,6 @@ __decorateClass([
 __decorateClass([
   cacheGetter()
 ], IpcEvent.prototype, "jsonAble", 1);
-
-// src/core/ipc/IpcStreamAbort.cts
-var IpcStreamAbort = class extends IpcMessage {
-  constructor(stream_id) {
-    super(6 /* STREAM_ABORT */);
-    this.stream_id = stream_id;
-  }
-};
 
 // src/core/ipc/IpcStreamPaused.cts
 var IpcStreamPaused = class extends IpcMessage {

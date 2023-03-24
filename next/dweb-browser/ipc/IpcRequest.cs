@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Linq;
+using System.Numerics;
 
 namespace ipc;
 
@@ -20,9 +22,6 @@ public class IpcRequest: IpcMessage
         Headers = headers;
         Body = body;
         ReqIpc = ipc;
-
-        _ipcReqMessage = new Lazy<IpcReqMessage>(new Func<IpcReqMessage>(() =>
-            new IpcReqMessage(req_id, method, url, headers.ToMap(), body.MetaBody)));
     }
 
     public static IpcRequest FromText(int req_id, string url, IpcMethod method, IpcHeaders headers, string text, Ipc ipc) =>
@@ -108,16 +107,24 @@ public class IpcRequest: IpcMessage
                         throw new Exception($"invalid body to request: {Body.Raw}");
                 }
 
-                foreach (KeyValuePair<string, string> entry in Headers.ToMap())
+                foreach (KeyValuePair<string, string> entry in Headers.GetEnumerator())
                 {
                     it.Content.Headers.Add(entry.Key, entry.Value);
                 }
             });
 
-    private Lazy<IpcReqMessage> _ipcReqMessage { get; set; }
     public IpcReqMessage LazyIpcReqMessage
     {
-        get { return _ipcReqMessage.Value; }
+        get
+        {
+            return new Lazy<IpcReqMessage>(new Func<IpcReqMessage>(() =>
+                new IpcReqMessage(
+                    ReqId,
+                    Method,
+                    Url,
+                    Headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value),
+                    Body.MetaBody))).Value;
+        }
     }
 
     public override string ToString() => $"#IpcRequest/{Method.method}/{Url}";

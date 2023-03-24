@@ -125,26 +125,43 @@ open class MultiWebViewActivity : PermissionActivity() {
             }
         }
         // 选中照片返回数据
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK && data != null) {
-            val imageData = data.data?.toBitmap(contentResolver)
-            GlobalScope.launch(ioAsyncExceptionHandler) {
-                controller?.getPhotoSignal?.emit(imageData)
-                debugCameraNMM("REQUEST_IMAGE_CAPTURE", imageData)
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (resultCode == RESULT_OK && data != null) {
+                val imageData = data.data?.toBitmap(contentResolver)
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    controller?.getPhotoSignal?.emit(imageData)
+                    debugCameraNMM("REQUEST_IMAGE_CAPTURE", imageData)
+                }
+            } else {
+                // 没有选中图片直接返回
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    controller?.getPhotoSignal?.emit(null)
+                    debugCameraNMM("REQUEST_IMAGE_CAPTURE", "没有选中图片直接返回")
+                }
             }
+
         }
         // 拍照返回数据处理
-        if (requestCode == REQUEST_CAMERA_IMAGE && resultCode == RESULT_OK) {
-            val imageBitmap = data?.extras?.get("data") as Bitmap
-            GlobalScope.launch(ioAsyncExceptionHandler) {
-                controller?.getCameraSignal?.emit(imageBitmap)
-                debugCameraNMM("REQUEST_CAMERA_IMAGE", imageBitmap)
+        if (requestCode == REQUEST_CAMERA_IMAGE) {
+            if (resultCode == RESULT_OK && data != null) {
+                val imageBitmap = data.extras?.get("data") as Bitmap
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    controller?.getCameraSignal?.emit(imageBitmap)
+                    debugCameraNMM("REQUEST_CAMERA_IMAGE", imageBitmap)
+                }
+            } else {
+                // 没有拍照直接返回
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    controller?.getCameraSignal?.emit(null)
+                    debugCameraNMM("REQUEST_CAMERA_IMAGE", "没有拍照直接返回")
+                }
             }
         }
         // 分享返回数据
         if (requestCode == RESULT_SHARE_CODE) {
             GlobalScope.launch(ioAsyncExceptionHandler) {
-                controller?.getShareSignal?.emit(data?.dataString?:"OK")
-                debugShare("RESULT_SHARE_CODE",data?.dataString)
+                controller?.getShareSignal?.emit(data?.dataString ?: "OK")
+                debugShare("RESULT_SHARE_CODE", data?.dataString)
             }
         }
     }
@@ -184,7 +201,9 @@ open class MultiWebViewActivity : PermissionActivity() {
                                 debugMultiWebView("NAV/${viewItem.webviewId}", "go back")
                                 navigator.navigateBack()
                             } else {
-                                wc.closeWebView(viewItem.webviewId)
+                                viewItem.coroutineScope.launch {
+                                    wc.closeWebView(viewItem.webviewId)
+                                }
                             }
                         }
 

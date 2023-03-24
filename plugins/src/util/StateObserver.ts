@@ -15,7 +15,7 @@ export class StateObserver<RAW, STATE> {
       decode: $Transform<RAW, STATE>;
       encode: $Transform<STATE, RAW>;
     }
-  ) {}
+  ) { }
   startObserve() {
     return this.plugin.fetchApi(`/startObserve`);
   }

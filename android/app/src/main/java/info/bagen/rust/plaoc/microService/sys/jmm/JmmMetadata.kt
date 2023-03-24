@@ -64,7 +64,7 @@ data class JmmMetadata(
     ):java.io.Serializable
 
     data class OpenWebView(val url: String = ""):java.io.Serializable
-    data class SplashScreen(val entry:String? = null)
+    data class SplashScreen(val entry:String? = null):java.io.Serializable
 
 }
 

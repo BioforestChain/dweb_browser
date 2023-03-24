@@ -62,7 +62,7 @@ fun DWebBrowserView(dWebBrowserModel: DWebBrowserModel, item: DWebBrowserItem) {
                 .fillMaxSize()
                 .background(MaterialTheme.colors.background)
         ) {
-            BackHandler { dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveLast) }
+            BackHandler { dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveDWebBrowser) }
             AndroidView(factory = {
                 item.dWebBrowser
             })

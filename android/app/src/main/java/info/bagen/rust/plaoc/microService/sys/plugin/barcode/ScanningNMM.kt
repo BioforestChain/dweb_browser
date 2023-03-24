@@ -8,24 +8,13 @@ import com.google.mlkit.vision.common.InputImage
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
-import info.bagen.rust.plaoc.microService.ipc.Ipc
-import info.bagen.rust.plaoc.microService.ipc.IpcEvent
-import info.bagen.rust.plaoc.microService.sys.plugin.camera.FlashLightUtils
 import io.ktor.util.*
-import io.ktor.util.collections.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.int
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.util.concurrent.ConcurrentSkipListSet
 
 inline fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Scanning", tag, msg, err)

@@ -20,9 +20,6 @@ public class IpcResponse: IpcMessage
         Headers = headers;
         Body = body;
         ResIpc = ipc;
-
-        _ipcResMessage = new Lazy<IpcResMessage>(new Func<IpcResMessage>(() =>
-            new IpcResMessage(req_id, statusCode, headers.ToMap(), body.MetaBody)));
     }
 
     // TODO: FromJson 未完成
@@ -85,16 +82,23 @@ public class IpcResponse: IpcMessage
                     throw new Exception($"invalid body to request: {Body.Raw}");
             }
 
-            foreach (KeyValuePair<string, string> entry in Headers.ToMap())
+            foreach (KeyValuePair<string, string> entry in Headers.GetEnumerator())
             {
                 it.Content.Headers.Add(entry.Key, entry.Value);
             }
         });
 
-    private Lazy<IpcResMessage> _ipcResMessage { get; set; }
     public IpcResMessage LazyIpcResMessage
     {
-        get { return _ipcResMessage.Value; }
+        get
+        {
+            return new Lazy<IpcResMessage>(new Func<IpcResMessage>(() =>
+                new IpcResMessage(
+                    ReqId,
+                    StatusCode,
+                    Headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value),
+                    Body.MetaBody))).Value;
+        }
     }
 }
 

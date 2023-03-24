@@ -14,16 +14,34 @@ public enum IPC_MESSAGE_TYPE : int
     /** 类型：流拉取，请求方 */
     STREAM_PULL = 3,
 
+    /** 
+     * 类型：推送流，发送方
+     * 对方可能没有发送PULL过来，或者发送了被去重了，所以我们需要主动发送PUSH指令，对方收到后，如果状态允许，则会发送PULL指令过来拉取数据
+     */
+    STREAM_PAUSED = 4,
+
     /** 类型：流关闭，发送方
         * 可能是发送完成了，也有可能是被中断了
         */
-    STREAM_END = 4,
+    STREAM_END = 5,
 
     /** 类型：流中断，请求方 */
-    STREAM_ABORT = 5,
+    STREAM_ABORT = 6,
 
     /** 类型：事件 */
-    EVENT = 6,
+    EVENT = 7,
+}
+
+/**
+ * 可预读取的流
+ */
+interface PreReadableInputStream
+{
+    /**
+     * 对标 InputStream.available 函数
+     * 返回可预读的数据
+     */
+    int preReadableSize { get; set; }
 }
 
 [Flags]
@@ -50,4 +68,8 @@ public record IpcMessageArgs(IpcMessage Message, Ipc Mipc);
 
 public record IpcRequestMessageArgs(IpcRequest Request, Ipc Mipc);
 
+public record IpcResponseMessageArgs(IpcResponse response, Ipc Mipc);
+
 public record IpcEventMessageArgs(IpcEvent Event, Ipc Mipc);
+
+public record IpcStreamMessageArgs(IpcStream stream, Ipc Mipc);

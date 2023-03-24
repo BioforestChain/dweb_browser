@@ -4,8 +4,10 @@ import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.jsonToIpcMessage
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicReference
 
 
 inline fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -21,6 +23,11 @@ class ReadableStreamIpc(
     override val remote: MicroModuleInfo,
     override val role: String,
 ) : Ipc() {
+    companion object {
+        val incomeStreamCoroutineScope =
+            CoroutineScope(CoroutineName("income-stream") + ioAsyncExceptionHandler)
+    }
+
     constructor(
         remote: MicroModuleInfo,
         role: IPC_ROLE,
@@ -38,7 +45,10 @@ class ReadableStreamIpc(
         controller = it
     }, onPull = { (size, controller) ->
         debugStreamIpc("ON-PULL/${controller.stream}", size)
+    }, onClose = {
+        inComeStreamJob.getAndSet(null)?.cancel()
     })
+    private var inComeStreamJob = AtomicReference<Job?>(null)
 
     private suspend fun enqueue(data: ByteArray) = controller.enqueue(data)
 
@@ -52,6 +62,7 @@ class ReadableStreamIpc(
     /**
      * 输入流要额外绑定
      */
+    @Synchronized
     fun bindIncomeStream(stream: InputStream, coroutineName: String = role) {
         if (this._incomeStream !== null) {
             throw Exception("in come stream already binded.");
@@ -66,7 +77,7 @@ class ReadableStreamIpc(
 //                debugStreamIpc("LIVE/$stream")
 //            }
 //        }
-        val readStream: suspend CoroutineScope.() -> Unit = {
+        val readStream: suspend () -> Unit = {
             // 如果通道关闭并且没有剩余字节可供读取，则返回 true
             while (stream.available() > 0) {
                 val size = stream.readInt()
@@ -97,7 +108,8 @@ class ReadableStreamIpc(
             debugStreamIpc("END/$stream")
         }
         _incomeStream = stream
-        CoroutineScope(CoroutineName(coroutineName) + ioAsyncExceptionHandler).launch(block = readStream)
+        inComeStreamJob.getAndSet(incomeStreamCoroutineScope.async { readStream() })
+            ?.cancel() // 这里的cancel理论上不会触发
     }
 
     override suspend fun _doPostMessage(data: IpcMessage) {

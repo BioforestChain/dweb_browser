@@ -2,6 +2,10 @@ package info.bagen.rust.plaoc.microService.ipc
 
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -13,6 +17,8 @@ abstract class Ipc {
     companion object {
         private var uid_acc = AtomicInteger(1)
         private var req_id_acc = AtomicInteger(0);
+        private val ipcMessageCoroutineScope =
+            CoroutineScope(CoroutineName("ipc-message") + ioAsyncExceptionHandler)
     }
 
     val uid = uid_acc.getAndAdd(1)
@@ -77,7 +83,9 @@ abstract class Ipc {
         Signal<IpcRequestMessageArgs>().also { signal ->
             _messageSignal.listen { args ->
                 if (args.message is IpcRequest) {
-                    signal.emit(IpcRequestMessageArgs(args.message, args.ipc));
+                    ipcMessageCoroutineScope.launch {
+                        signal.emit(IpcRequestMessageArgs(args.message, args.ipc));
+                    }
                 }
             }
         }
@@ -89,7 +97,9 @@ abstract class Ipc {
         Signal<IpcResponseMessageArgs>().also { signal ->
             _messageSignal.listen { args ->
                 if (args.message is IpcResponse) {
-                    signal.emit(IpcResponseMessageArgs(args.message, args.ipc));
+                    ipcMessageCoroutineScope.launch {
+                        signal.emit(IpcResponseMessageArgs(args.message, args.ipc));
+                    }
                 }
             }
         }
@@ -98,13 +108,21 @@ abstract class Ipc {
     fun onResponse(cb: OnIpcResponseMessage) = _responseSignal.listen(cb)
 
     private val _streamSignal by lazy {
-        Signal<IpcStreamMessageArgs>().also { signal ->
-            _messageSignal.listen { args ->
-                if (args.message is IpcStream) {
-                    signal.emit(IpcStreamMessageArgs(args.message, args.ipc));
-                }
+        val signal = Signal<IpcStreamMessageArgs>()
+        /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
+        /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
+        val streamChannel = Channel<IpcStreamMessageArgs>(capacity = Channel.UNLIMITED)
+        ipcMessageCoroutineScope.launch {
+            for (message in streamChannel) {
+                signal.emit(message);
             }
         }
+        _messageSignal.listen { args ->
+            if (args.message is IpcStream) {
+                streamChannel.trySend(IpcStreamMessageArgs(args.message, args.ipc))
+            }
+        }
+        signal
     }
 
     fun onStream(cb: OnIpcStreamMessage) = _streamSignal.listen(cb)
@@ -113,7 +131,9 @@ abstract class Ipc {
         Signal<IpcEventMessageArgs>().also { signal ->
             _messageSignal.listen { args ->
                 if (args.message is IpcEvent) {
-                    signal.emit(IpcEventMessageArgs(args.message, args.ipc));
+                    ipcMessageCoroutineScope.launch {
+                        signal.emit(IpcEventMessageArgs(args.message, args.ipc));
+                    }
                 }
             }
         }

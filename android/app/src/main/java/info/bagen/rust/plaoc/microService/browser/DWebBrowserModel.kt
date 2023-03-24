@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService.browser
 
-import android.net.Uri
 import android.view.ViewGroup
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
@@ -10,9 +9,7 @@ import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 data class DWebBrowserUIState(
     val show: MutableState<Boolean> = mutableStateOf(false),
@@ -28,21 +25,21 @@ data class DWebBrowserItem(
 )
 
 sealed class DWebBrowserIntent {
-    object RemoveLast : DWebBrowserIntent() // 移除最后一项
-    object RemoveALL : DWebBrowserIntent() // 移除最后一项
+    // object RemoveLast : DWebBrowserIntent() // 移除最后一项
+    // object RemoveALL : DWebBrowserIntent() // 移除最后一项
 
     /**
      * @param origin 表示需要打开的地址
      * @param processId 表示当前分支号，类似夸克浏览器下面的新增按钮
      */
     class OpenDWebBrowser(val origin: String, val processId: String? = null) : DWebBrowserIntent()
-
-
+    object RemoveDWebBrowser : DWebBrowserIntent()
 }
 
 class DWebBrowserModel : ViewModel() {
     val uiState = DWebBrowserUIState()
-    private val dWebBrowserTree: HashMap<String, ArrayList<DWebBrowserItem>> = hashMapOf()
+    // private val dWebBrowserTree: HashMap<String, ArrayList<DWebBrowserItem>> = hashMapOf()
+    private var dwebView: DWebView? = null
 
     fun handleIntent(action: DWebBrowserIntent) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -50,7 +47,7 @@ class DWebBrowserModel : ViewModel() {
                 is DWebBrowserIntent.OpenDWebBrowser -> {
                     // openDWebBrowser(action.origin, action.processId)
                     viewModelScope.launch(Dispatchers.Main) {
-                        DWebView(
+                        dwebView = DWebView(
                             context = App.browserActivity ?: App.appContext,
                             localeMM = BrowserNMM.browserController.localeMM,
                             remoteMM = BrowserNMM.browserController.localeMM,
@@ -63,7 +60,11 @@ class DWebBrowserModel : ViewModel() {
                         }
                     }
                 }
-                is DWebBrowserIntent.RemoveLast -> {
+                is DWebBrowserIntent.RemoveDWebBrowser -> {
+                    dwebView?.destroy()
+                    dwebView = null
+                }
+                /*is DWebBrowserIntent.RemoveLast -> {
                     val last = uiState.dWebBrowserList.last()
                     if (last.dWebBrowser.canGoBack()) {
                         last.dWebBrowser.goBack()
@@ -91,12 +92,12 @@ class DWebBrowserModel : ViewModel() {
                         data.forEach { it.dWebBrowser.destroy() }
                     }
                     dWebBrowserTree.clear()
-                }
+                }*/
             }
         }
     }
 
-    private fun openDWebBrowser(origin: String, processId: String? = null): String {
+    /*private fun openDWebBrowser(origin: String, processId: String? = null): String {
         // 先产生 processId 返回值，然后再执行界面，否则在 Main 执行无法获取返回值
         val ret = Uri.parse(origin)?.host?.let { host ->
             var dWebBrowserItem: DWebBrowserItem
@@ -160,5 +161,5 @@ class DWebBrowserModel : ViewModel() {
                 dWebBrowserItem.show.value = true
             }
         }
-    }
+    }*/
 }

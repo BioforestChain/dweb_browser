@@ -73,22 +73,37 @@ public struct SMetaBody
     public class IpcMetaBodyType
     {
         public IPC_META_BODY_TYPE Type;
-        public Lazy<IPC_DATA_ENCODING> Encoding;
-        public Lazy<bool> IsInline;
-        public Lazy<bool> IsStream;
+        public Lazy<IPC_DATA_ENCODING> Encoding
+        {
+            get
+            {
+                return new Lazy<IPC_DATA_ENCODING>(new Func<IPC_DATA_ENCODING>(() =>
+                {
+                    var encoding = (int)Type & 0b11111110;
+                    return (IPC_DATA_ENCODING)encoding;
+                }));
+            }
+        }
+
+        public Lazy<bool> IsInline
+        {
+            get
+            {
+                return new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 1));
+            }
+        }
+
+        public Lazy<bool> IsStream
+        {
+            get
+            {
+                return new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 0));
+            }
+        }
 
         public IpcMetaBodyType(IPC_META_BODY_TYPE type)
         {
             Type = type;
-
-            Encoding = new Lazy<IPC_DATA_ENCODING>(new Func<IPC_DATA_ENCODING>(() =>
-            {
-                var encoding = (int)Type & 0b11111110;
-                return (IPC_DATA_ENCODING)encoding;
-            }));
-
-            IsInline = new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 1));
-            IsStream = new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 0));
         }
     }
 
@@ -145,20 +160,14 @@ public struct SMetaBody
     /// Serialize MetaBody
     /// </summary>
     /// <returns>JSON string representation of the MetaBody</returns>
-    public string ToJson()
-    {
-        return JsonSerializer.Serialize(this);
-    }
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize MetaBody
     /// </summary>
     /// <param name="json">JSON string representation of MetaBody</param>
     /// <returns>An instance of a MetaBody object.</returns>
-    public static SMetaBody? FromJson(string json)
-    {
-        return JsonSerializer.Deserialize<SMetaBody>(json);
-    }
+    public static SMetaBody? FromJson(string json) => JsonSerializer.Deserialize<SMetaBody>(json);
 }
 
 sealed class MetaBodyConverter : JsonConverter<SMetaBody>

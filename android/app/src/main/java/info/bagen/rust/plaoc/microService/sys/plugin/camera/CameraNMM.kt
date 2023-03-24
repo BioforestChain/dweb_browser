@@ -40,11 +40,14 @@ class CameraNMM() : NativeMicroModule("camera.sys.dweb") {
                 getCurrentWebViewController(ipc.remote.mmid)?.getPhotoData { bit ->
                     debugCameraNMM("getPhotoData", "result => $bit")
                     if (bit == null) {
-                        return@getPhotoData bitmap.reject(Exception("not found Photo"))
+                        return@getPhotoData bitmap.reject(Exception("The user did not select an image."))
                     }
                     bitmap.resolve(bit)
                 }
                 getCurrentWebViewController(ipc.remote.mmid)?.getCameraData {
+                    if(it == null) {
+                        return@getCameraData bitmap.reject(Exception("The user did not take a photo."))
+                    }
                     bitmap.resolve(it)
                     debugCameraNMM("getCameraData", "result => $it")
                 }

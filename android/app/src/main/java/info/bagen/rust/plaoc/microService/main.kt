@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService
 
-import android.os.Build
 import info.bagen.rust.plaoc.microService.browser.BrowserNMM
 import info.bagen.rust.plaoc.microService.helper.debugTags
 import info.bagen.rust.plaoc.microService.sys.boot.BootNMM
@@ -26,7 +25,6 @@ import info.bagen.rust.plaoc.microService.user.CotJMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 import info.bagen.rust.plaoc.microService.user.ToyJMM
 
-
 suspend fun startDwebBrowser() {
     /**
     "message-port-ipc",
@@ -38,6 +36,10 @@ suspend fun startDwebBrowser() {
     "http",
     "TIME-DURATION"
     "nativeui",
+    "mwebview",
+    "browser",
+    "jmm",
+    "SplashScreen"
      */
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
@@ -46,25 +48,19 @@ suspend fun startDwebBrowser() {
                 "stream-ipc",
                 "stream",
                 "ipc-body",
+                "dwebview",
             )
         )
-        DEVELOPER.HUANGLIN -> debugTags.addAll(
+        DEVELOPER.HuangLin, DEVELOPER.HLVirtual -> debugTags.addAll(
             listOf("Share", "fetch", "http", "jmm", "browser")
         )
-         DEVELOPER.ANONYMOUS -> debugTags.addAll(
-            listOf<String>(
-//                "Camera"
-//                "Share",
-//                "FileSystem",
-            "SplashScreen",
-                "mwebview"
-            )
-         )
+        DEVELOPER.WaterBang -> debugTags.addAll(
+            listOf("SplashScreen", "mwebview")
+        )
         else -> debugTags.addAll(
-            listOf("Share", "fetch", "http", "jmm", "browser", "mwebview")
+            listOf("SplashScreen", "mwebview")
         )
     }
-
 
     val dnsNMM = DnsNMM()
 
@@ -119,9 +115,6 @@ suspend fun startDwebBrowser() {
     val cotDemoJMM = CotDemoJMM().also { dnsNMM.install(it) }
     val toyJMM = ToyJMM().also { dnsNMM.install(it) }
 
-
-    println(Build.MANUFACTURER + "::" + Build.MODEL)
-
     /**
      *
      * browserNMM.mmid,
@@ -136,9 +129,8 @@ suspend fun startDwebBrowser() {
             cotDemoJMM.mmid,
 //            browserNMM.mmid,
         )
-        DEVELOPER.HUANGLIN -> listOf(
-            browserNMM.mmid,
-        )
+        DEVELOPER.HuangLin, DEVELOPER.HLVirtual -> listOf(browserNMM.mmid)
+        DEVELOPER.WaterBang -> listOf(cotDemoJMM.mmid)
         else -> {
             listOf(
                 browserNMM.mmid,

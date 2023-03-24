@@ -1,13 +1,13 @@
 ﻿
 namespace ipc;
 
-public class IpcStreamPull: IpcMessage
+public class IpcStreamPull: IpcMessage, IpcStream
 {
     [JsonPropertyName("type")]
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_PULL;
 
     [JsonPropertyName("stream_id")]
-    public string StreamId { get; init; }
+    public string StreamId { get; set; }
 
     [JsonPropertyName("desiredSize")]
     public int DesiredSize { get; init; }

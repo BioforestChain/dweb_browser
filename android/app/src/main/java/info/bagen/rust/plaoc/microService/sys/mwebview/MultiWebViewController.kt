@@ -9,17 +9,18 @@ import com.google.accompanist.web.WebViewState
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
-import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.nativeui.NativeUiController
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.*
-import org.http4k.core.Uri
-import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * MWebView 是为其它模块提供 GUI 的程序模块，所以这里需要传入两个模块：localeMM 与 remoteMM
+ * remoteMM 只是一层抽象，未来如何需要可以通过网络成实现
+ */
 class MultiWebViewController(
     val mmid: Mmid,
-    val localeMM: MicroModule,
+    val localeMM: MultiWebViewNMM,
     val remoteMM: MicroModule,
 ) {
 
@@ -115,21 +116,15 @@ class MultiWebViewController(
     /**
      * 关闭WebView
      */
-    @Synchronized
-    fun closeWebView(webviewId: String): Boolean {
-        webViewList.forEach { viewItem ->
-            if (viewItem.webviewId == webviewId) {
-                viewItem.coroutineScope.launch(Dispatchers.Main) {
-                    webViewList.remove(viewItem)
-                    viewItem.webView.destroy()
-                    webViewCloseSignal.emit(webviewId)
-                    (localeMM as MultiWebViewNMM).closeDwebView(remoteMM.mmid, webviewId)
-                }
-                return true
+    suspend fun closeWebView(webviewId: String) =
+        webViewList.find { it.webviewId == webviewId }?.let { viewItem ->
+            webViewList.remove(viewItem)
+            withContext(Dispatchers.Main) {
+                viewItem.webView.destroy()
             }
-        }
-        return false
-    }
+            webViewCloseSignal.emit(webviewId)
+            return true
+        } ?: false
 
     /**
      * 移除所有列表
@@ -148,13 +143,13 @@ class MultiWebViewController(
 
     private val webViewCloseSignal = Signal<String>()
     private val webViewOpenSignal = Signal<String>()
-    val getCameraSignal = Signal<Bitmap>()
+    val getCameraSignal = Signal<Bitmap?>()
     val getPhotoSignal = Signal<Bitmap?>()
     val getShareSignal = Signal<String>()
 
     fun onWebViewClose(cb: Callback<String>) = webViewCloseSignal.listen(cb)
     fun onWebViewOpen(cb: Callback<String>) = webViewOpenSignal.listen(cb)
-    fun getCameraData(cb: Callback<Bitmap>) = getCameraSignal.listen(cb)
+    fun getCameraData(cb: Callback<Bitmap?>) = getCameraSignal.listen(cb)
     fun getPhotoData(cb: Callback<Bitmap?>) = getPhotoSignal.listen(cb)
     fun getShareData(cb: Callback<String>) = getShareSignal.listen(cb)
 }
