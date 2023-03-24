@@ -119,6 +119,45 @@ __decorateClass([
   cacheGetter()
 ], Signal.prototype, "_cachedEmits", 1);
 
+// src/helper/readableStreamHelper.cts
+var ReadableStreamOut = class {
+  constructor(strategy) {
+    this.strategy = strategy;
+    this.stream = new ReadableStream(
+      {
+        cancel: (reason) => {
+          this._on_cancel_signal?.emit(reason);
+        },
+        start: (controller) => {
+          this.controller = controller;
+        },
+        pull: () => {
+          this._on_pull_signal?.emit();
+        }
+      },
+      this.strategy
+    );
+  }
+  get onCancel() {
+    return (this._on_cancel_signal ??= createSignal()).listen;
+  }
+  get onPull() {
+    return (this._on_pull_signal ??= createSignal()).listen;
+  }
+};
+
+// src/helper/mapHelper.cts
+var mapHelper = new class {
+  getOrPut(map, key, putter) {
+    if (map.has(key)) {
+      return map.get(key);
+    }
+    const put = putter(key);
+    map.set(key, put);
+    return put;
+  }
+}();
+
 // src/helper/PromiseOut.cts
 var isPromiseLike = (value) => {
   return value instanceof Object && typeof value.then === "function";
@@ -261,66 +300,6 @@ var PromiseOut = class {
   }
 };
 
-// src/helper/readableStreamHelper.cts
-var ReadableStreamOut = class {
-  constructor(strategy) {
-    this.strategy = strategy;
-    this.stream = new ReadableStream(
-      {
-        cancel: (reason) => {
-          this._on_cancel_signal?.emit(reason);
-        },
-        start: (controller) => {
-          this.controller = controller;
-        },
-        pull: () => {
-          this._on_pull_signal?.emit();
-        }
-      },
-      this.strategy
-    );
-  }
-  get onCancel() {
-    return (this._on_cancel_signal ??= createSignal()).listen;
-  }
-  get onPull() {
-    return (this._on_pull_signal ??= createSignal()).listen;
-  }
-};
-
-// src/helper/mapHelper.cts
-var mapHelper = new class {
-  getOrPut(map, key, putter) {
-    if (map.has(key)) {
-      return map.get(key);
-    }
-    const put = putter(key);
-    map.set(key, put);
-    return put;
-  }
-}();
-
-// src/helper/PromiseOut.cts
-var PromiseOut = class {
-  constructor() {
-    this.promise = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    }).then((res) => {
-      this._value = res;
-      return res;
-    });
-  }
-  static resolve(v) {
-    const po = new PromiseOut();
-    po.resolve(v);
-    return po;
-  }
-  get value() {
-    return this._value;
-  }
-};
-
 // src/helper/encoding.cts
 var textEncoder = new TextEncoder();
 var simpleEncoder = (data, encoding) => {
@@ -381,7 +360,7 @@ async function apiServerOnRequest(ipcRequest, ipc2, www_server_internal_origin, 
     case (pathname.startsWith("/internal") ? pathname : symbolETO):
       apiServerOnRequestInternal(ipcRequest, ipc2, www_server_internal_origin, apiServerUrlInfo);
       break;
-    case (pathname.startsWith("/status-bar.sys.dweb") ? pathname : symbolETO):
+    case (pathname.startsWith("/status-bar.nativeui.sys.dweb") ? pathname : symbolETO):
       apiServerOnRequestStatusbar(ipcRequest, ipc2, pathname, www_server_internal_origin);
       break;
     default:
@@ -427,15 +406,19 @@ function apiServerOnRequestInternalObserver(ipcRequest, ipc2, www_server_interna
     const result = { ipc: new PromiseOut(), obs: /* @__PURE__ */ new Set() };
     result.ipc.resolve(jsProcess.connect(mmid2));
     result.ipc.promise.then((ipc3) => {
-      console.error("connect\u4E4B\u540E ipc.remote.mmid: ", ipc3.remote.mmid);
+      log.red(`connect\u4E4B\u540E ipc.remote.mmid \u8FD8\u6CA1\u6709\u5904\u7406\u5B8C\u6210: conenct target ${mmid2}`);
       ipc3.postMessage(
         IpcEvent.fromText(
-          "send-url",
-          www_server_internal_origin
+          mmid2,
+          // JSMM 向connect 发送消息name需要 指向mmid
+          JSON.stringify({
+            action: "send/url",
+            value: www_server_internal_origin
+          })
         )
       );
       ipc3.onEvent((event) => {
-        console.log("on-event", event);
+        console.error("on-event \u8FD8\u6CA1\u6709\u9A8C\u8BC1", event);
         if (event.name !== "observe") {
           return;
         }
@@ -469,8 +452,14 @@ function apiServerOnRequestInternalObserver(ipcRequest, ipc2, www_server_interna
 }
 async function apiServerOnRequestStatusbar(ipcRequest, ipc2, pathname, internal_origin) {
   switch (pathname) {
-    case (pathname.endsWith("setBackgroundColor") ? pathname : symbolETO):
-      statusbarSetBackgroundColor(ipcRequest, ipc2, internal_origin);
+    case (pathname.startsWith("/status-bar.nativeui.sys.dweb/startObserve") ? pathname : symbolETO):
+      apiServerOnRequestStatusbarStartObserve(ipcRequest, ipc2, internal_origin);
+      break;
+    case (pathname.startsWith("/status-bar.nativeui.sys.dweb/getState") ? pathname : symbolETO):
+      apiServerOnRequestStatusbarGetState(ipcRequest, ipc2, internal_origin);
+      break;
+    case (pathname.endsWith("/status-bar.nativeui.sys.dweb/setState") ? pathname : symbolETO):
+      apiServerOnRequestStatusbarSetState(ipcRequest, ipc2, internal_origin);
       break;
     case (pathname.endsWith("/getInfo") ? pathname : symbolETO):
       apiServerGetBackgroundColor(ipcRequest, ipc2, internal_origin);
@@ -479,11 +468,37 @@ async function apiServerOnRequestStatusbar(ipcRequest, ipc2, pathname, internal_
       apiServerSetStyle(ipcRequest, ipc2, internal_origin);
       break;
     default:
-      log.red(`\u7F3A\u5C11 statusbar-bar.sys.dweb \u5904\u7406\u5668 ${ipcRequest.parsed_url} pathname === ${pathname}`);
+      throw new Error(`\u7F3A\u5C11 statusbar-bar.sys.dweb \u5904\u7406\u5668 ${ipcRequest.parsed_url} pathname === ${pathname}`);
   }
 }
-async function statusbarSetBackgroundColor(ipcRequest, ipc2, internal_origin) {
-  const response = await jsProcess.nativeFetch(`file://status-bar.sys.dweb/operation/set_background_color${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
+async function apiServerOnRequestStatusbarStartObserve(ipcRequest, ipc2, internal_origin) {
+  log.red(`apiServerOnRequestStatusbarStartObserve path /status-bar.nativeui.sys.dweb/startObserve \u8FD8\u6CA1\u6709\u5904\u7406`);
+}
+async function apiServerOnRequestStatusbarGetState(ipcRequest, ipc2, internal_origin) {
+  const response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/get_state${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
+  ipc2.postMessage(
+    await IpcResponse2.fromResponse(
+      ipcRequest.req_id,
+      response,
+      ipc2
+    )
+  );
+}
+async function apiServerOnRequestStatusbarSetState(ipcRequest, ipc2, internal_origin) {
+  let response;
+  log.green(`statusbarSetState `);
+  console.log(decodeURIComponent(ipcRequest.parsed_url.search));
+  if (ipcRequest.parsed_url.searchParams.get("color") !== null) {
+    response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_background_color${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
+  } else if (ipcRequest.parsed_url.searchParams.get("style") !== null) {
+    response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_style${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
+  } else if (ipcRequest.parsed_url.searchParams.get("overlay") !== null) {
+    response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_overlay${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
+  } else if (ipcRequest.parsed_url.searchParams.get("visible") !== null) {
+    response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_visible${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
+  } else {
+    throw new Error(`\u8FD8\u6709 setState \u6CA1\u6709\u5904\u7406`);
+  }
   ipc2.postMessage(
     await IpcResponse2.fromResponse(
       ipcRequest.req_id,
@@ -493,7 +508,7 @@ async function statusbarSetBackgroundColor(ipcRequest, ipc2, internal_origin) {
   );
 }
 async function apiServerGetBackgroundColor(ipcRequest, ipc2, internal_origin) {
-  const response = await jsProcess.nativeFetch(`file://status-bar.sys.dweb/operation/get_background_color?app_url=${internal_origin}`);
+  const response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/get_background_color?app_url=${internal_origin}`);
   ipc2.postMessage(
     await IpcResponse2.fromResponse(
       ipcRequest.req_id,
@@ -504,7 +519,7 @@ async function apiServerGetBackgroundColor(ipcRequest, ipc2, internal_origin) {
 }
 async function apiServerSetStyle(ipcRequest, ipc2, internal_origin) {
   log.red(`api-server-on-request.mts ipcRequest.parsed_url.search==${ipcRequest.parsed_url.search}`);
-  const response = await jsProcess.nativeFetch(`file://status-bar.sys.dweb/operation/set_style${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
+  const response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_style${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
   ipc2.postMessage(
     await IpcResponse2.fromResponse(
       ipcRequest.req_id,

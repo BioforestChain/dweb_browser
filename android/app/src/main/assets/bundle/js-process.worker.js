@@ -1268,14 +1268,14 @@ var require_templates = __commonJS({
       }
       return results;
     }
-    function buildStyle(chalk3, styles) {
+    function buildStyle(chalk2, styles) {
       const enabled = {};
       for (const layer of styles) {
         for (const style of layer.styles) {
           enabled[style[0]] = layer.inverse ? null : style.slice(1);
         }
       }
-      let current = chalk3;
+      let current = chalk2;
       for (const [styleName, styles2] of Object.entries(enabled)) {
         if (!Array.isArray(styles2)) {
           continue;
@@ -1287,7 +1287,7 @@ var require_templates = __commonJS({
       }
       return current;
     }
-    module.exports = (chalk3, temporary) => {
+    module.exports = (chalk2, temporary) => {
       const styles = [];
       const chunks = [];
       let chunk = [];
@@ -1297,13 +1297,13 @@ var require_templates = __commonJS({
         } else if (style) {
           const string = chunk.join("");
           chunk = [];
-          chunks.push(styles.length === 0 ? string : buildStyle(chalk3, styles)(string));
+          chunks.push(styles.length === 0 ? string : buildStyle(chalk2, styles)(string));
           styles.push({ inverse, styles: parseStyle(style) });
         } else if (close) {
           if (styles.length === 0) {
             throw new Error("Found extraneous } in Chalk template literal");
           }
-          chunks.push(buildStyle(chalk3, styles)(chunk.join("")));
+          chunks.push(buildStyle(chalk2, styles)(chunk.join("")));
           chunk = [];
           styles.pop();
         } else {
@@ -1351,16 +1351,16 @@ var require_source = __commonJS({
       }
     };
     var chalkFactory = (options) => {
-      const chalk4 = {};
-      applyOptions(chalk4, options);
-      chalk4.template = (...arguments_) => chalkTag(chalk4.template, ...arguments_);
-      Object.setPrototypeOf(chalk4, Chalk.prototype);
-      Object.setPrototypeOf(chalk4.template, chalk4);
-      chalk4.template.constructor = () => {
+      const chalk3 = {};
+      applyOptions(chalk3, options);
+      chalk3.template = (...arguments_) => chalkTag(chalk3.template, ...arguments_);
+      Object.setPrototypeOf(chalk3, Chalk.prototype);
+      Object.setPrototypeOf(chalk3.template, chalk3);
+      chalk3.template.constructor = () => {
         throw new Error("`chalk.constructor()` is deprecated. Use `new chalk.Instance()` instead.");
       };
-      chalk4.template.Instance = ChalkClass;
-      return chalk4.template;
+      chalk3.template.Instance = ChalkClass;
+      return chalk3.template;
     };
     function Chalk(options) {
       return chalkFactory(options);
@@ -1471,7 +1471,7 @@ var require_source = __commonJS({
       return openAll + string + closeAll;
     };
     var template;
-    var chalkTag = (chalk4, ...strings) => {
+    var chalkTag = (chalk3, ...strings) => {
       const [firstString] = strings;
       if (!isArray(firstString) || !isArray(firstString.raw)) {
         return strings.join(" ");
@@ -1487,14 +1487,14 @@ var require_source = __commonJS({
       if (template === void 0) {
         template = require_templates();
       }
-      return template(chalk4, parts.join(""));
+      return template(chalk3, parts.join(""));
     };
     Object.defineProperties(Chalk.prototype, styles);
-    var chalk3 = Chalk();
-    chalk3.supportsColor = stdoutColor;
-    chalk3.stderr = Chalk({ level: stderrColor ? stderrColor.level : 0 });
-    chalk3.stderr.supportsColor = stderrColor;
-    module.exports = chalk3;
+    var chalk2 = Chalk();
+    chalk2.supportsColor = stdoutColor;
+    chalk2.stderr = Chalk({ level: stderrColor ? stderrColor.level : 0 });
+    chalk2.stderr.supportsColor = stderrColor;
+    module.exports = chalk2;
   }
 });
 

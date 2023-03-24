@@ -35,16 +35,12 @@ dns.install(new JmmNMM());
 
 
 // 安装 status-bar.sys.dweb
-import { StatusbarNMM } from "./sys/status-bar/status-bar.main.cjs";
-dns.install(new StatusbarNMM());
+import { StatusbarNativeUiNMM } from "./sys/native-ui/status-bar/status-bar.main.cjs";
+dns.install(new StatusbarNativeUiNMM());
 
 // 安装 navigatorbar.sys.dweb
-import { NavigatorbarNMM } from "./sys/navigator-bar/navigator-bar.cjs";
-dns.install(new NavigatorbarNMM());
-
-// 安装 plugins.sys.dweb 服务
-import { PluginsNMM } from "./sys/plugin/plugins.main.cjs";
-dns.install(new PluginsNMM());
+import { NavigatorBarNativeUiNMM } from "./sys/native-ui/navigator-bar/navigator-bar.cjs";
+dns.install(new NavigatorBarNativeUiNMM());
 
 // 安装 jmmMetadata.sys.dweb
 import { JMMMetadata } from "./sys/jmm-metadata/jmm-metadata.cjs";
@@ -62,7 +58,7 @@ dns.install(new BootNMM([
   "http.sys.dweb",
   "mwebview.sys.dweb",
   "js.sys.dweb",
-  "status-bar.sys.dweb",
+  "status-bar.nativeui.sys.dweb",
   "browser.sys.dweb"
   // cotDemoJMM.mmid
 

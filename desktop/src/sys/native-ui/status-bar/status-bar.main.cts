@@ -2,25 +2,25 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
-import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
+import { IpcHeaders } from "../../../core/ipc/IpcHeaders.cjs";
+import { IpcResponse } from "../../../core/ipc/IpcResponse.cjs";
+import { NativeMicroModule } from "../../../core/micro-module.native.cjs";
+import { createHttpDwebServer } from "../../http-server/$createHttpDwebServer.cjs";
 
 import type { Remote } from "comlink";
-import type { Ipc } from "../../core/ipc/ipc.cjs";
-import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
-import type { $NativeWindow } from "../../helper/openNativeWindow.cjs";
-import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
+import type { Ipc } from "../../../core/ipc/ipc.cjs";
+import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
+import type { $NativeWindow } from "../../../helper/openNativeWindow.cjs";
+import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
 import chalk from "chalk";
-import type { $BootstrapContext } from "../../core/bootstrapContext.cjs"
-import { log } from "../../helper/devtools.cjs"
+import type { $BootstrapContext } from "../../../core/bootstrapContext.cjs"
+import { log } from "../../../helper/devtools.cjs"
 
  
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
-export class StatusbarNMM extends NativeMicroModule {
-  mmid = "status-bar.sys.dweb" as const;
+export class StatusbarNativeUiNMM extends NativeMicroModule {
+  mmid = "status-bar.nativeui.sys.dweb" as const;
   private _uid_wapis_map = new Map<
     number,
     { nww: $NativeWindow; apis: Remote<$APIS> }
@@ -32,9 +32,10 @@ export class StatusbarNMM extends NativeMicroModule {
   >(); // statusbar.plugins发起更改状态栏设置的请求队列
   private _allocId = 0;
   // 必须要通过这样启动才可以
-
+  private _allConnects: Map<string, Ipc> = new Map()
+  
   async _bootstrap(context: $BootstrapContext) {
-    console.log(chalk.green(`[${this.mmid} _bootstrap]`))
+    log.green(`[${this.mmid} _bootstrap]`)
 
 
     // 发起联系的请求
@@ -78,42 +79,60 @@ export class StatusbarNMM extends NativeMicroModule {
 
 
     {
-      this.onConnect(ipc => {
+      this.onConnect( async (ipc) => {
         log.red(`${this.mmid} 还没有处理 onConnect ipc.remote.mmid = ${ipc.remote.mmid}`,)
         
         ipc.onEvent((ipcEvent, nativeIpc) => {
-          console.log(chalk.red(`${this.mmid} 还没有处理 ipcEvent`))
-
-          if(ipcEvent.name === "send-ur"){
-            
+          log.red(`${this.mmid} 还没有处理 ipcEvent }`)
+          console.log('ipcEvent: ', ipcEvent)
+          let data: any
+          if(typeof ipcEvent.data === "string"){
+            data = JSON.parse(ipcEvent.data)
+          }else{
+            throw new Error(`status-bar.main.cts ipc.onEvent 还没有处理 ipcEvent.data ${ipcEvent.data}`)
           }
-        })
 
-        
+          if(data.action === "send/url"){
+            this._allConnects.set(data.value, nativeIpc)
 
-        //测试项监听的 数据更改的消息
-        // 测试监听
-        if(ipc.remote.mmid !== "http.sys.dweb"){
-          ipc.postMessage(
-            IpcEvent.fromText(
-              "observe",
-              JSON.stringify({value: "value"})
+            // 测试推送消息
+            ipc.postMessage(
+              IpcEvent.fromText(
+                "observe",
+                JSON.stringify(
+                  {
+                    color: "#FFFFFFFF",
+                    insets: {
+                        bottom: 80,
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                    },
+                    overlay: false,
+                    style: "DEFAULT",
+                    visible: true
+                })
+              )
             )
-          )
-        }
-        
+            return;
+          }
+          
+        })
+         
       })
     }
 
 
     const dwebServer = await createHttpDwebServer(this, {});
+    log.green(`[${this.mmid}] ${dwebServer.startResult.urlInfo.internal_origin}`);
     // this._close_dweb_server = close;
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
-    (await dwebServer.listen()).onRequest(async (request, ipc) => {
+    ;(await dwebServer.listen()).onRequest(async (request, ipc) => {
       // 监听 http:// 协议的请求
       // 通过 fetch("http://status-bar.sys.dweb-80.localhost:22605/") 访问的请求会被发送到这个位置
       // console.log('[statusbar.main.cts onRequest---]: ', request)
+      
       if (
         request.parsed_url.pathname === "/" ||
         request.parsed_url.pathname === "/index.html"
@@ -176,21 +195,36 @@ export class StatusbarNMM extends NativeMicroModule {
           statusbarPluginRequestArry.findIndex(
             (_item) => _item.id === id
           );
+
+        if(itemIndex === -1){
+          throw new Error(`[status-bar.main.cts statusbarPluginRequestArry 没有发现匹配的 item]`)
+        }  
         let item = statusbarPluginRequestArry[itemIndex];
         statusbarPluginRequestArry.splice(itemIndex, 1);
         // 返回的就是一个 json
-        const data = await readStream(request.body.raw as ReadableStream);
+        // const data = await readStream(request.body.raw as ReadableStream);
+        // item.callback(
+        //   await IpcResponse.fromJson(
+        //     item.req_id,
+        //     200,
+        //     new IpcHeaders({
+        //       "Content-type": "application/json",
+        //     }),
+        //     data,
+        //     ipc
+        //   )
+        // );
+
         item.callback(
-          await IpcResponse.fromJson(
+          IpcResponse.fromStream(
             item.req_id,
             200,
-            new IpcHeaders({
-              "Content-type": "text/plain",
-            }),
-            data,
-            ipc
+            request.headers,
+            await request.body.stream(),
+            ipc,
           )
-        );
+        )
+
         // 返回 /operation_return 的请求
         ipc.postMessage(
           await IpcResponse.fromText(
@@ -205,6 +239,8 @@ export class StatusbarNMM extends NativeMicroModule {
         );
       }
     });
+
+    
 
     // const root_url = new URL("/index.html", origin).href;
     // 下面注册的是
@@ -237,12 +273,155 @@ export class StatusbarNMM extends NativeMicroModule {
       matchMode: "full", // 是需要匹配整个pathname 还是 前缀匹配即可
       input: {
         app_url: "string",
-        red: "string", 
-        green: "string", 
-        blue: "string", 
-        alpha: "string"
+        color: "object"
       },
       output: "boolean",
+      handler: async (args, client_ipc, request) => {
+        if (args.app_url === null) {
+          /**已经测试走过了 */
+          return IpcResponse.fromText(
+            request.req_id,
+            400,
+            new IpcHeaders({
+              "Content-type": "text/plain",
+            }),
+            "缺少 app_url 查询参数",
+            client_ipc
+          );
+        }
+        log.red(`${JSON.stringify(args)}`)
+        log.red(`args.color: ${args.color} ${Reflect.get(args.color,'red')}`)
+        return this._statusbarPluginRequestAdd(
+          args.app_url,
+          request,
+          (id: string) => {
+            // 执行发送的函数
+            httpIpc
+            .postMessage(
+              IpcEvent
+                .fromText(
+                  "http.sys.dweb", 
+                  JSON.stringify({
+                    action: "operation",
+                    operationName: "setBackgroundColor",
+                    value: converRGBAToHexa(
+                      Reflect.get(args.color, 'red'),
+                      Reflect.get(args.color, 'green'),
+                      Reflect.get(args.color, 'blue'),
+                      Reflect.get(args.color, 'alpha'),
+                    ),
+                    from: args.app_url,
+                    id: id
+                  })
+                )
+            )
+          }
+        )
+      },
+    })
+
+    // 监听设置状态visible
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/operation/set_visible",
+      method: "GET",
+      matchMode: "full", // 是需要匹配整个pathname 还是 前缀匹配即可
+      input: {
+        app_url: "string",
+        visible: "boolean"
+      },
+      output: "boolean",
+      handler: async (args, client_ipc, request) => {
+        if (args.app_url === null) {
+          /**已经测试走过了 */
+          return IpcResponse.fromText(
+            request.req_id,
+            400,
+            new IpcHeaders({
+              "Content-type": "text/plain",
+            }),
+            "缺少 app_url 查询参数",
+            client_ipc
+          );
+        }
+        log.red(`${JSON.stringify(args)}`)
+        return this._statusbarPluginRequestAdd(
+          args.app_url,
+          request,
+          (id: string) => {
+            // 执行发送的函数
+            httpIpc
+            .postMessage(
+              IpcEvent
+                .fromText(
+                  "http.sys.dweb", 
+                  JSON.stringify({
+                    action: "operation",
+                    operationName: "set_visible",
+                    value: args.visible,
+                    from: args.app_url,
+                    id: id
+                  })
+                )
+            )
+          }
+        )
+      },
+    })
+
+     // 监听设置状态栏 overlay
+     this.registerCommonIpcOnMessageHandler({
+      pathname: "/operation/set_overlay",
+      method: "GET",
+      matchMode: "full", // 是需要匹配整个pathname 还是 前缀匹配即可
+      input: {
+        app_url: "string",
+        overlay: "boolean"
+      },
+      output: "boolean",
+      handler: async (args, client_ipc, request) => {
+        if (args.app_url === null) {
+          /**已经测试走过了 */
+          return IpcResponse.fromText(
+            request.req_id,
+            400,
+            new IpcHeaders({
+              "Content-type": "text/plain",
+            }),
+            "缺少 app_url 查询参数",
+            client_ipc
+          );
+        }
+       
+        return this._statusbarPluginRequestAdd(
+          args.app_url,
+          request,
+          (id: string) => {
+            // 执行发送的函数
+            httpIpc
+            .postMessage(
+              IpcEvent
+                .fromText(
+                  "http.sys.dweb", 
+                  JSON.stringify({
+                    action: "operation",
+                    operationName: "set_overlay",
+                    value: args.overlay,
+                    from: args.app_url,
+                    id: id
+                  })
+                )
+            )
+          }
+        )
+      },
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/operation/get_state",
+      method: "GET",
+      matchMode: "full", // 是需要匹配整个pathname 还是 前缀匹配即可
+      input: {app_url: "string"},
+      output: {},
       handler: async (args, client_ipc, request) => {
         if (args.app_url === null) {
           /**已经测试走过了 */
@@ -261,7 +440,6 @@ export class StatusbarNMM extends NativeMicroModule {
           args.app_url,
           request,
           (id: string) => {
-            // 执行发送的函数
             httpIpc
             .postMessage(
               IpcEvent
@@ -269,54 +447,16 @@ export class StatusbarNMM extends NativeMicroModule {
                   "http.sys.dweb", 
                   JSON.stringify({
                     action: "operation",
-                    operationName: "setBackgroundColor",
-                    value: converRGBAToHexa(args.red, args.green, args.blue, args.alpha),
+                    operationName: "get_state",
+                    value: "",
                     from: args.app_url,
                     id: id
                   })
                 )
             )
           }
-        )
-
-        // let statusbarPluginRequest =
-        //   this._statusbarPluginsRequestMap.get(args.app_url);
-        // const id = `${this._allocId++}`
-        // const result = await new Promise<IpcResponse>((resolve) => {
-        //   if (statusbarPluginRequest === undefined) {
-        //     statusbarPluginRequest = [];
-        //     this._statusbarPluginsRequestMap.set(
-        //       args.app_url,
-        //       statusbarPluginRequest
-        //     );
-        //   }
-        //   statusbarPluginRequest.push({
-        //     body: request.body.raw as ReadableStream<Uint8Array>,
-        //     callback: (reponse: IpcResponse) => {
-        //       resolve(reponse);
-        //     },
-        //     req_id: request.req_id,
-        //     id: id,
-        //   });
-  
-        //   // 执行发送的函数
-        //   httpIpc
-        //   .postMessage(
-        //     IpcEvent
-        //       .fromText(
-        //         "http.sys.dweb", 
-        //         JSON.stringify({
-        //           action: "operation",
-        //           operationName: "setBackgroundColor",
-        //           value: converRGBAToHexa(args.red, args.green, args.blue, args.alpha),
-        //           from: args.app_url,
-        //           id: id
-        //         })
-        //       )
-        //   )
-        // });
-        // return result;
-      },
+        );
+      }
     })
 
     // 监听获取状态栏颜色

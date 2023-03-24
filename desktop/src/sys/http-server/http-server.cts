@@ -159,7 +159,6 @@ export class HttpServerNMM extends NativeMicroModule {
       {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
-        // console.log('[http-server.cts 接受到了 http 请求：gateway]',gateway)
         if (gateway == undefined) {
           log.red(`[http-server.cts 接受到了没有匹配的 gateway host===] ${host}`);
           return defaultErrorResponse(

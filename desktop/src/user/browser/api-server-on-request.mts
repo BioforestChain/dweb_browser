@@ -27,7 +27,7 @@ export async function apiServerOnRequest(ipcRequest: IpcRequest, ipc: Ipc, www_s
         case pathname.startsWith("/internal") ? pathname : symbolETO:
             apiServerOnRequestInternal(ipcRequest, ipc, www_server_internal_origin, apiServerUrlInfo);
             break;
-        case pathname.startsWith("/status-bar.sys.dweb") ? pathname : symbolETO:
+        case pathname.startsWith("/status-bar.nativeui.sys.dweb") ? pathname : symbolETO:
             apiServerOnRequestStatusbar(ipcRequest, ipc, pathname, www_server_internal_origin);
             break;
         default: throw new Error(`[缺少处理器] ${ipcRequest.parsed_url}`);
@@ -84,20 +84,23 @@ function apiServerOnRequestInternalObserver(ipcRequest: IpcRequest, ipc: Ipc, ww
 
         result.ipc.resolve(jsProcess.connect(mmid));
         result.ipc.promise.then((ipc) => {
-            console.error('connect之后 ipc.remote.mmid: ', ipc.remote.mmid)
+            log.red(`connect之后 ipc.remote.mmid 还没有处理完成: conenct target ${mmid}`)
             // 一个 window 对象有多个 app 被打开的情况下，
             // status-bar.sys.dweb 无法判断当前 APP 所匹配的 status-bar
             // 之前是根据 url 判断的 
             // 所以需要报 app_url 发送给 status-bar.sys.dweb 
             ipc.postMessage(
                 IpcEvent.fromText(
-                    'send-url',
-                    www_server_internal_origin
+                    mmid, // JSMM 向connect 发送消息name需要 指向mmid
+                    JSON.stringify({
+                        action: "send/url",
+                        value: www_server_internal_origin
+                    })
                 )
             )
 
             ipc.onEvent((event) => {
-                console.log("on-event", event);
+                console.error("on-event 还没有验证", event);
                 if (event.name !== "observe") {
                     return;
                 }
@@ -135,8 +138,14 @@ function apiServerOnRequestInternalObserver(ipcRequest: IpcRequest, ipc: Ipc, ww
 
 async function apiServerOnRequestStatusbar(ipcRequest: IpcRequest, ipc: Ipc, pathname: string, internal_origin: string){
     switch(pathname){
-        case pathname.endsWith("setBackgroundColor") ? pathname : symbolETO:
-            statusbarSetBackgroundColor(ipcRequest, ipc, internal_origin);
+        case pathname.startsWith("/status-bar.nativeui.sys.dweb/startObserve") ? pathname : symbolETO:
+            apiServerOnRequestStatusbarStartObserve(ipcRequest, ipc, internal_origin);
+            break;
+        case pathname.startsWith("/status-bar.nativeui.sys.dweb/getState") ? pathname : symbolETO:
+            apiServerOnRequestStatusbarGetState(ipcRequest, ipc, internal_origin);
+            break;
+        case pathname.endsWith("/status-bar.nativeui.sys.dweb/setState") ? pathname : symbolETO:
+            apiServerOnRequestStatusbarSetState(ipcRequest, ipc, internal_origin);
             break;
         case pathname.endsWith('/getInfo') ? pathname : symbolETO:
             apiServerGetBackgroundColor(ipcRequest, ipc, internal_origin);
@@ -144,19 +153,46 @@ async function apiServerOnRequestStatusbar(ipcRequest: IpcRequest, ipc: Ipc, pat
         case pathname.endsWith(`/setStyle`) ? pathname : symbolETO:
             apiServerSetStyle(ipcRequest, ipc, internal_origin);
             break;
-        default: log.red(`缺少 statusbar-bar.sys.dweb 处理器 ${ipcRequest.parsed_url} pathname === ${pathname}`)
+        default: throw new Error(`缺少 statusbar-bar.sys.dweb 处理器 ${ipcRequest.parsed_url} pathname === ${pathname}`)
     }
 }
 
+async function apiServerOnRequestStatusbarStartObserve(ipcRequest: IpcRequest, ipc: Ipc, internal_origin: string){
+    log.red(`apiServerOnRequestStatusbarStartObserve path /status-bar.nativeui.sys.dweb/startObserve 还没有处理`)
+}
 
+async function apiServerOnRequestStatusbarGetState(ipcRequest: IpcRequest, ipc: Ipc, internal_origin: string){
+    const response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/get_state${ipcRequest.parsed_url.search}&app_url=${internal_origin}`)
+    ipc.postMessage(
+        await IpcResponse.fromResponse(
+            ipcRequest.req_id,
+            response,
+            ipc
+        )
+    )
+}
 
 /**
  * 设置状态栏的背景色
  * @param ipcRequest 
  * @param ipc 
  */
- async function statusbarSetBackgroundColor(ipcRequest: IpcRequest, ipc: Ipc, internal_origin: string){
-    const response = await jsProcess.nativeFetch(`file://status-bar.sys.dweb/operation/set_background_color${ipcRequest.parsed_url.search}&app_url=${internal_origin}`)
+ async function apiServerOnRequestStatusbarSetState(ipcRequest: IpcRequest, ipc: Ipc, internal_origin: string){
+    let response: Response;
+    log.green(`statusbarSetState `)
+    console.log(decodeURIComponent(ipcRequest.parsed_url.search))
+    // ?X-Dweb-Host=api.browser.sys.dweb:443&color={"red":255,"green":255,"blue":255,"alpha":255}
+    if(ipcRequest.parsed_url.searchParams.get('color') !== null){ // 设置背景色
+        response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_background_color${ipcRequest.parsed_url.search}&app_url=${internal_origin}`)
+    }else if(ipcRequest.parsed_url.searchParams.get('style') !== null){
+        response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_style${ipcRequest.parsed_url.search}&app_url=${internal_origin}`)
+    }else if(ipcRequest.parsed_url.searchParams.get("overlay") !== null){
+        response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_overlay${ipcRequest.parsed_url.search}&app_url=${internal_origin}`)
+    }else if(ipcRequest.parsed_url.searchParams.get('visible') !== null){
+        response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_visible${ipcRequest.parsed_url.search}&app_url=${internal_origin}`)
+    }else{
+        throw new Error(`还有 setState 没有处理`)
+    }
     ipc.postMessage(
         await IpcResponse.fromResponse(
             ipcRequest.req_id,
@@ -173,7 +209,7 @@ async function apiServerOnRequestStatusbar(ipcRequest: IpcRequest, ipc: Ipc, pat
  * @param internal_origin 
  */
 async function apiServerGetBackgroundColor(ipcRequest: IpcRequest, ipc: Ipc, internal_origin: string){
-    const response = await jsProcess.nativeFetch(`file://status-bar.sys.dweb/operation/get_background_color?app_url=${internal_origin}`)
+    const response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/get_background_color?app_url=${internal_origin}`)
     ipc.postMessage(
         await IpcResponse.fromResponse(
             ipcRequest.req_id,
@@ -191,7 +227,7 @@ async function apiServerGetBackgroundColor(ipcRequest: IpcRequest, ipc: Ipc, int
  */
 async function apiServerSetStyle(ipcRequest: IpcRequest, ipc: Ipc, internal_origin: string){
     log.red(`api-server-on-request.mts ipcRequest.parsed_url.search==${ipcRequest.parsed_url.search}`)
-    const response = await jsProcess.nativeFetch(`file://status-bar.sys.dweb/operation/set_style${ipcRequest.parsed_url.search}&app_url=${internal_origin}`)
+    const response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_style${ipcRequest.parsed_url.search}&app_url=${internal_origin}`)
     ipc.postMessage(
         await IpcResponse.fromResponse(
             ipcRequest.req_id,
@@ -213,5 +249,18 @@ type $IpcResponse = InstanceType<typeof IpcResponse>;
 type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;
 type $IpcHeaders = InstanceType<typeof IpcHeaders>;
+
+export interface $StatusBarState{
+    color: string // 十六进制
+    insets: {
+        bottom: number;
+        left: number;
+        right: number;
+        top: number;
+    },
+    overlay: boolean;
+    style: "DEFAULT" | "DARK" | "LIGHT";
+    visible: boolean;
+}
 
  

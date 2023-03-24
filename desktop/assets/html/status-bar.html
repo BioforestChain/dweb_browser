@@ -7,7 +7,7 @@
     <style type="text/css">
         :root{
             --height: 48px;
-            --background-color: #FFFF;
+            --background-color: #FFFFFFFF;
             --cell-width: 80px;
         }
         html{
@@ -154,6 +154,19 @@
     
      
     <script type="text/javascript">
+        var state = {
+            color: "#FFFFFFFF",
+            style: "DEFAULT",
+            inserts: {
+                bottom: 48,
+                left: 0,
+                right: 0,
+                top: 0,
+            },
+            overlay: false,
+            visible: true
+
+        }
         const symbolEto = Symbol("eto")
         // 需要实现的功能
         // 设置/获取背景颜色
@@ -186,6 +199,7 @@
         // 通过设置 .container 的color 实现
         function setStyle(_style){
             style = _style
+            state.style = style;
             switch(style){
                 case style.toLocaleLowerCase() === "light" ? style : symbolEto: 
                     elContainerSetClass("container container-light"); 
@@ -207,13 +221,13 @@
 
         // 设置背景色
         function setBackgroundColor(color /*十六进制的值*/){
-            console.log('设置了背景颜色', color)
             document.documentElement.style.setProperty('--background-color', color)
+            state.color = color;
         }
 
         // 获取背景色
         function getBackgroundColor() /*必须要要返回一个 十六进制的值*/{
-            return document.documentElement.style.getPropertyValue('--background-color')
+            return state.color
         }
         
         // 设置 容器的 class
@@ -223,8 +237,8 @@
 
         // 设置 statusbar 是否覆盖
         function setOverlays(value){
-            isOverlays = value == "0" ? false : true;
-            iframe.style.position = isOverlays ? "absolute" : "relative";
+            state.overlay = value
+            iframe.style.position = state.overlay ? "absolute" : "relative";
         }
 
         // 获取 状态栏的高度
@@ -232,11 +246,25 @@
             return elContainer.getBoundingClientRect().height;
         }
 
+        // 设置是否可见
+        function setVisible(visible){
+            state.visible = visible 
+            iframe.style.height = state.visible ? "48px" : "0px";
+            iframe.style.overflow = state.visible ? "visible" : "hidden"
+        }
+
+        /**
+         * 获取状态
+         */
+        function getState(){
+            return state;
+        }
+
         /*
             监听操作的方法
         */
         async function awaitOperation(){
-            fetch("http://status-bar.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+appUrl)
+            fetch("http://status-bar.nativeui.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+appUrl)
             .then(async (res) => {
                 console.log('res: ', res)
                 const reader = res.body.getReader()
@@ -252,12 +280,10 @@
                     if(!appUrl.startsWith(o.from)) continue;
                     switch(o.operationName){
                         case "setBackgroundColor":  setBackgroundColor(o.value);fetchReturn(o.value, o.id, o.from);break;
-                        case "getBackgroundColor": fetchReturn(getBackgroundColor(), o.id, o.from); break;
+                        case "get_state": fetchReturn(getState(), o.id, o.from); break;
                         case "set_style": setStyle(o.value);fetchReturn(o.value, o.id, o.from); break;
-                        case "get_style": fetchReturn(style, o.id, o.from); break;
-                        case "get_height": fetchReturn(getHeight(), o.id, o.from);break;
-                        case "set_overlays": setOverlays(o.value);fetchReturn(o.value, o.id, o.from); break;
-                        case "get_overlays": fetchReturn(isOverlays ? "1" : "0", o.id, o.from);break;
+                        case "set_overlay": setOverlays(o.value);fetchReturn(o.value, o.id, o.from); break;
+                        case "set_visible": setVisible(o.value); fetchReturn(o.value, o.id, o.from);break;
                         default: console.error('statusbar 没有匹配的功能 o.operationName === ', o.operationName)
                     }
                 }while(loop)
@@ -273,10 +299,10 @@
         // 通过发送请求把数据传送回去
         function fetchReturn(value,id, from){
             fetch(
-                "http://status-bar.sys.dweb-80.localhost:22605/operation_return?app_url="+from,
+                "http://status-bar.nativeui.sys.dweb-80.localhost:22605/operation_return?app_url="+from,
                 {
                     method: 'POST',
-                    body: JSON.stringify({ value: value}),
+                    body: value,
                     headers: {
                         "Content-Type": "application/json; charset=UTF-8",
                         "id": id
@@ -294,6 +320,7 @@
         // 测试代码---------------------------------------------
         // 测试 主题
         function testSetStyle(){
+            
             const styles = ["light", 'dark', 'default'];
             let index = 0;
             setInterval(() => {

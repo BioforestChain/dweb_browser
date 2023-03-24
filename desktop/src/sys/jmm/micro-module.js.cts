@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
-import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
+import { Ipc, IpcEvent, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { MicroModule } from "../../core/micro-module.cjs";
 import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.cjs";
 import type { $IpcSupportProtocols } from "../../helper/types.cjs";
@@ -9,6 +9,7 @@ import { buildUrl } from "../../helper/urlHelper.cjs";
 import { Native2JsIpc } from "../js-process/ipc.native2js.cjs";
 
 import type { JmmMetadata } from "./JmmMetadata.cjs";
+ 
 
 /**
  * 所有的js程序都只有这么一个动态的构造器
@@ -57,8 +58,8 @@ export class JsMicroModule extends MicroModule {
           : { method: request.method };
 
         const response = await this.nativeFetch(request.parsed_url.href, init);
-        workerIpc.postMessage(
-          await IpcResponse.fromResponse(request.req_id, response, workerIpc)
+        ipc.postMessage(
+          await IpcResponse.fromResponse(request.req_id, response, ipc)
         );
       });
 
@@ -103,7 +104,7 @@ export class JsMicroModule extends MicroModule {
         }
 
         const remoteIpc = this._remoteIpcs.get(ipcEventMessage.name)
-        if(remoteIpc === undefined) throw new Error(`${this.mmid} 模块 ipc.onEvent 没有匹配的 remoteIpc`)
+        if(remoteIpc === undefined) throw new Error(`${this.mmid} 模块 ipc.onEvent 没有匹配的 remoteIpc ipcEventMessage.name = ${ipcEventMessage.name}`)
         remoteIpc.postMessage(ipcEventMessage)
       });
     });
