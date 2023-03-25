@@ -2,8 +2,8 @@
 
 public abstract class IpcBody
 {
-	public class CACHE
-	{
+    public class CACHE
+    {
         /**
          * <summary>
          * 任意的 RAW 背后都会有一个 IpcBodySender/IpcBodyReceiver
@@ -27,22 +27,22 @@ public abstract class IpcBody
 		 * </summary>
 		 */
         public static readonly Dictionary<string, IpcBody> MetaId_ipcBodySender_Map = new Dictionary<string, IpcBody>();
-	}
+    }
 
-	protected internal class BodyHubType
-	{
-		public string? Text { get; set; } = null;
-		public Stream? BodyStream { get; set; } = null;
-		public byte[]? U8a { get; set; } = null;
-		public object? Data { get; set; } = null;
-	}
+    protected internal class BodyHubType
+    {
+        public string? Text { get; set; } = null;
+        public Stream? BodyStream { get; set; } = null;
+        public byte[]? U8a { get; set; } = null;
+        public object? Data { get; set; } = null;
+    }
 
-	protected abstract BodyHubType BodyHub { get; }
+    protected abstract BodyHubType BodyHub { get; }
 
-	public abstract SMetaBody MetaBody { get; set; }
+    public abstract SMetaBody MetaBody { get; set; }
     public abstract object? Raw { get; }
 
-	private Lazy<byte[]> _u8a
+    private Lazy<byte[]> _u8a
     {
         get
         {
@@ -61,9 +61,9 @@ public abstract class IpcBody
         }
     }
 
-	public byte[] U8a() => _u8a.Value;
+    public byte[] U8a() => _u8a.Value;
 
-	private Lazy<Stream> _stream
+    private Lazy<Stream> _stream
     {
         get
         {
@@ -76,9 +76,9 @@ public abstract class IpcBody
         }
     }
 
-	public Stream BodyStream() => _stream.Value;
+    public Stream BodyStream() => _stream.Value;
 
-	private Lazy<string> _text
+    private Lazy<string> _text
     {
         get
         {
@@ -88,6 +88,6 @@ public abstract class IpcBody
         }
     }
 
-	public string Text() => _text.Value;
+    public string Text() => _text.Value;
 }
 

@@ -48,33 +48,36 @@ public class Signal<Args>
     });
 
 
-    public virtual async Task EmitAsync(Args args)
+    public async Task EmitAsync(Args args)
     {
-        var cbs = CpSet;
-
-        foreach (Func<Args, object?> cb in cbs)
+        await Task.Run(() =>
         {
-            try
-            {
-                if (ListenerSet.Contains(cb))
-                {
-                    continue;
-                }
+            var cbs = CpSet;
 
-                switch (cb(args))
+            foreach (Func<Args, object?> cb in cbs)
+            {
+                try
                 {
-                    case SIGNAL_CTOR.OFF:
-                        ListenerSet.TryRemove(cb);
-                        break;
-                    case SIGNAL_CTOR.BREAK:
-                        break;
+                    if (ListenerSet.Contains(cb))
+                    {
+                        continue;
+                    }
+
+                    switch (cb(args))
+                    {
+                        case SIGNAL_CTOR.OFF:
+                            ListenerSet.TryRemove(cb);
+                            break;
+                        case SIGNAL_CTOR.BREAK:
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.StackTrace);
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.StackTrace);
-            }
-        }
+        });
     }
 
     public void Clear() => ListenerSet.Clear();
@@ -82,5 +85,5 @@ public class Signal<Args>
 
 public class SimpleSignal : Signal<byte>
 {
-    public override async Task EmitAsync(byte args) => base.EmitAsync(0);
+    public async Task EmitAsync() => await base.EmitAsync(0);
 }

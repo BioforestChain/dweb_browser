@@ -1,7 +1,7 @@
 ﻿
 namespace ipc;
 
-public class IpcStreamPulling: IpcMessage, IpcStream
+public class IpcStreamPulling : IpcMessage, IpcStream
 {
     [JsonPropertyName("type")]
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_PULL;

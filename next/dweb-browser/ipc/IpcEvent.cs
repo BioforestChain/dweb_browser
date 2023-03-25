@@ -1,6 +1,6 @@
 ﻿namespace ipc;
 
-public class IpcEvent: IpcMessage
+public class IpcEvent : IpcMessage
 {
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.EVENT;
 
@@ -9,7 +9,7 @@ public class IpcEvent: IpcMessage
     public IPC_DATA_ENCODING Encoding { get; set; }
 
     public IpcEvent(string name, object data, IPC_DATA_ENCODING encoding)
-	{
+    {
         Name = name;
         Data = data;
         Encoding = encoding;

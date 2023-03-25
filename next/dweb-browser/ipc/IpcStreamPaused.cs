@@ -1,7 +1,7 @@
 ﻿
 namespace ipc;
 
-public class IpcStreamPaused: IpcMessage, IpcStream
+public class IpcStreamPaused : IpcMessage, IpcStream
 {
     [JsonPropertyName("type")]
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_PAUSED;

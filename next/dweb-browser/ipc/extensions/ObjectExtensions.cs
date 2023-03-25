@@ -1,5 +1,5 @@
 ﻿
-namespace ipc.helper;
+namespace ipc.extensions;
 
 static class ObjectExtensions
 {

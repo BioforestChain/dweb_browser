@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace ipc;
 
-public class IpcRequest: IpcMessage
+public class IpcRequest : IpcMessage
 {
     public int ReqId { get; init; }
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.REQUEST;

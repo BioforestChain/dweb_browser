@@ -1,7 +1,7 @@
 ﻿using System.Net;
 namespace ipc;
 
-public class IpcResponse: IpcMessage
+public class IpcResponse : IpcMessage
 {
     public int ReqId { get; init; }
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.RESPONSE;

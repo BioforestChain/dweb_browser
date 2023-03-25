@@ -19,13 +19,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="helper\" />
+    <None Remove="extensions\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="helper\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Log4net.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Folder Include="extensions\" />
   </ItemGroup>
 </Project>

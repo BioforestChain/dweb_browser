@@ -2,38 +2,42 @@
 
 public class PromiseOut<T>
 {
-	private TaskCompletionSource<T> task = new TaskCompletionSource<T>();
+    private TaskCompletionSource<T> task = new TaskCompletionSource<T>();
     public T? Value { get; set; }
 
-	public void Resolve(T value)
-	{
-		Value = value;
-		task.TrySetResult(value);
-		IsResolved = true;
-	}
+    public void Resolve(T value)
+    {
+        Value = value;
+        task.TrySetResult(value);
+        IsResolved = true;
+    }
 
-	public void Reject(string msg)
-	{
-		task.TrySetException(new Exception(msg));
-	}
+    public void Reject(string msg)
+    {
+        task.TrySetException(new Exception(msg));
+    }
 
-	public bool IsResolved { get; set; } = false;
-	public bool IsFinished
-	{
-		get { return new Lazy<bool>(new Func<bool>(() => task.Task.IsCompleted)).Value; }
-	}
+    public bool IsResolved { get; set; } = false;
+    public bool IsFinished
+    {
+        get { return new Lazy<bool>(new Func<bool>(() => task.Task.IsCompleted)).Value; }
+    }
 
-	public bool IsCanceled
-	{
-		get { return new Lazy<bool>(new Func<bool>(() => task.Task.IsCanceled)).Value; }
-	}
+    public bool IsCanceled
+    {
+        get
+        {
+            return new Lazy<bool>(new Func<bool>(() =>
+                task.Task.IsCanceled || source.IsCancellationRequested)).Value;
+        }
+    }
 
-	public void Cancel() => source.Cancel();
+    public void Cancel() => source.Cancel();
 
     private CancellationTokenSource source = new CancellationTokenSource();
 
-	public T WaitPromise() => task.Task.Result;
+    public T WaitPromise() => task.Task.Result;
 
-    public async Task<T> WaitPromiseAsync() => await task.Task.WaitAsync(source.Token);
+    public Task<T> WaitPromiseAsync() => task.Task.WaitAsync(source.Token);
 }
 

@@ -7,7 +7,6 @@ namespace ipc_test
     {
         public Log(ITestOutputHelper output)
         {
-
             Console.SetOut(new ConsoleWriter(output));
         }
 
@@ -20,7 +19,7 @@ namespace ipc_test
                 this.output = output;
             }
 
-            public override void WriteLine(string m)
+            public override void WriteLine(string? m)
             {
                 output.WriteLine(m);
             }

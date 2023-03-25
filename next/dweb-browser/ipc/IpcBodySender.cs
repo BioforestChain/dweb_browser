@@ -239,7 +239,7 @@ public class IpcBodySender : IpcBody
 
             Task.Run(() =>
             {
-                switch(_streamStatusSignal.Receive())
+                switch (_streamStatusSignal.Receive())
                 {
                     case StreamStatusSignal.PULLING:
                         pullingPo.Resolve(true);

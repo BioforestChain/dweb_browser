@@ -44,7 +44,7 @@ public class EncodingCoverterTest : Log
     {
         Action actual = () => EncodingConverter.DataToBinary("", (IPC_DATA_ENCODING)3);
 
-        var ex = Assert.Throws<Exception> (actual);
+        var ex = Assert.Throws<Exception>(actual);
 
         Assert.Equal("unknown encoding", ex.Message);
     }

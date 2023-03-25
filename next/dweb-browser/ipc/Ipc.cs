@@ -184,7 +184,6 @@ public abstract class Ipc
 
         _closed = true;
         await DoClose();
-        
     }
 
     public bool IsClosed
@@ -223,7 +222,7 @@ public abstract class Ipc
             await Close();
         }
 
-        await _destroySignal.EmitAsync(0);
+        await _destroySignal.EmitAsync();
         _destroySignal.Clear();
     }
 
