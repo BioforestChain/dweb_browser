@@ -32,8 +32,8 @@ public struct SMetaBody
         IPC_META_BODY_TYPE type,
         int senderUid,
         Object data,
-        string? streamId,
-        int? receiverUid)
+        string? streamId = null,
+        int? receiverUid = null)
     {
         Type = type;
         SenderUid = senderUid;

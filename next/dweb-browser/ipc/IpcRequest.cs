@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Numerics;
-
-namespace ipc;
+﻿namespace ipc;
 
 public class IpcRequest : IpcMessage
 {

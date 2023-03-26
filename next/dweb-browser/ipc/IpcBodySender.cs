@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Threading.Tasks.Dataflow;
+﻿using System.Threading.Tasks.Dataflow;
 
 namespace ipc;
 
@@ -59,12 +58,6 @@ public class IpcBodySender : IpcBody
         }
     }
 
-    private void _emitStreamClose()
-    {
-        _isStreamOpened = true;
-        _isStreamClosed = true;
-    }
-
     /**
      * 控制信号
      */
@@ -77,8 +70,11 @@ public class IpcBodySender : IpcBody
 
     private BufferBlock<StreamStatusSignal> _streamStatusSignal = new BufferBlock<StreamStatusSignal>();
 
-    class IPC
+    public class IPC
     {
+        /// <summary>
+        /// 某个 IPC 它所能读取的 ipcBody
+        /// </summary>
         public class UsableIpcBodyMapper
         {
             private Dictionary</*streamId*/string, IpcBodySender> _map { get; set; }
@@ -126,27 +122,14 @@ public class IpcBodySender : IpcBody
 
         private static Dictionary<Ipc, UsableIpcBodyMapper> _ipcUsableIpcBodyMap = new Dictionary<Ipc, UsableIpcBodyMapper>();
 
-        //class IpcExtensions
-        //{
-        //    public UsableIpcBodyMapper _getUsableIpcBodyMap(this Ipc ipc)
-        //    {
-        //        //var usableIpcBodyMapper = _ipcUsableIpcBodyMap[ipc];
-
-        //        //if (usableIpcBodyMapper is null)
-        //        //{
-        //        //    usableIpcBodyMapper = new UsableIpcBodyMapper().Also(mapper =>
-        //        //    {
-        //        //        var off = ipc.OnStream((IpcStreamMessageArgs arg) => arg.stream switch
-        //        //            {
-        //        //                IpcStreamPulling message => mapper.Get(message.StreamId)?.use
-        //        //            });
-        //        //    });
-        //        //    _ipcUsableIpcBodyMap.Add(ipc);
-        //        //}
-        //    }
-        //}
-
-        public void UsableByIpc(Ipc ipc, IpcBodySender ipcBody)
+        /**
+        * <summary>
+        * ipc 将会使用 ipcBody
+        * 那么只要这个 ipc 接收到 pull 指令，就意味着成为"使用者"，那么这个 ipcBody 都会开始读取数据出来发送
+        * 在开始发送第一帧数据之前，其它 ipc 也可以通过 pull 指令来参与成为"使用者"
+        * </summary>
+        */
+        public static void UsableByIpc(Ipc ipc, IpcBodySender ipcBody)
         {
             if (!ipcBody.IsStream || ipcBody._isStreamOpened)
             {
@@ -154,8 +137,154 @@ public class IpcBodySender : IpcBody
             }
 
             var streamId = ipcBody.MetaBody.StreamId!;
-            //var usableIpcBodyMapper = ipc._getUsableIpcBodyMap();
+            var usableIpcBodyMapper = _ipcUsableIpcBodyMap[ipc];
+
+            if (usableIpcBodyMapper is null)
+            {
+                usableIpcBodyMapper = new UsableIpcBodyMapper(new Dictionary<string, IpcBodySender>());
+
+                var off = ipc.OnStream((IpcStreamMessageArgs args) => args.stream switch
+                    {
+                        IpcStreamPulling ipcStream =>
+                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamPull(ipcStream),
+                        IpcStreamPaused ipcStream =>
+                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamPaused(ipcStream),
+                        IpcStreamAbort ipcStream =>
+                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamAborted(),
+                        _ => null,
+                    });
+
+                usableIpcBodyMapper.OnDetroy((_) => off);
+                usableIpcBodyMapper.OnDetroy((_) => _ipcUsableIpcBodyMap.Remove(ipc));
+
+                if (usableIpcBodyMapper.Add(streamId, ipcBody))
+                {
+                    ipcBody.OnStreamClose((_) => usableIpcBodyMapper.Remove(streamId));
+                }
+            }
         }
+    }
+
+    /// <summary>被哪些 ipc 所真正使用，以及它们对应的信息</summary>
+    private Dictionary<Ipc, UsedIpcInfo> _usedIpcMap = new Dictionary<Ipc, UsedIpcInfo>();
+
+    /// <summary>
+    /// 绑定使用
+    /// ipc 将使用这个 body，也就是说接下来的 MessageData 也要通知一份给这个 ipc
+    /// 但一个流一旦开启了，那么就无法再被外部使用了
+    /// </summary>
+    internal class UsedIpcInfo
+    {
+        internal IpcBodySender UIpcBody { get; set; }
+        internal Ipc Uipc { get; set; }
+        internal int Bandwidth { get; set; }
+        internal int Fuse { get; set; }
+
+        internal UsedIpcInfo(IpcBodySender ipcBody, Ipc ipc, int bandwidth = 0, int fuse = 0)
+        {
+            UIpcBody = ipcBody;
+            Uipc = ipc;
+            Bandwidth = bandwidth;
+            Fuse = fuse;
+        }
+
+        internal Task EmitStreamPull(IpcStreamPulling message) =>
+            UIpcBody.EmitStreamPullAsync(this, message);
+
+        internal Task EmitStreamPaused(IpcStreamPaused message) =>
+            UIpcBody.EmitStreamPausedAsync(this, message);
+
+        internal Task EmitStreamAborted() => UIpcBody.EmitStreamAbortedAsync(this);
+    }
+
+    private UsedIpcInfo? _useByIpc(Ipc ipc)
+    {
+        var usedIpcInfo = _usedIpcMap[ipc];
+
+        if (usedIpcInfo is null)
+        {
+            if (IsStream)
+            {
+                if (!_isStreamOpened)
+                {
+                    return new UsedIpcInfo(this, ipc).Also(usedIpcInfo =>
+                    {
+                        _usedIpcMap[ipc] = usedIpcInfo;
+                        _closeSignal.Listen((_) => EmitStreamAbortedAsync(usedIpcInfo));
+                    });
+                }
+                else
+                {
+                    Console.WriteLine("useByIpc should not happend");
+                }
+            }
+        }
+
+        return usedIpcInfo;
+    }
+
+    /// <summary>
+    /// 拉取数据
+    /// </summary>
+    private Task EmitStreamPullAsync(UsedIpcInfo info, IpcStreamPulling message) => Task.Run(() =>
+        {
+            /// 更新带宽限制
+            info.Bandwidth = message.Bandwidth;
+            /// 只要有一个开始读取，那么就可以开始
+            _streamStatusSignal.Post(StreamStatusSignal.PULLING);
+        });
+
+    /// <summary>
+    /// 暂停数据
+    /// </summary>
+    private Task EmitStreamPausedAsync(UsedIpcInfo info, IpcStreamPaused message) => Task.Run(() =>
+        {
+            /// 更新保险限制
+            info.Bandwidth = -1;
+            info.Fuse = message.Fuse;
+
+            /// 如果所有的读取者都暂停了，那么就触发暂停
+            var paused = true;
+            foreach (UsedIpcInfo _info in _usedIpcMap.Values)
+            {
+                if (info.Bandwidth >= 0)
+                {
+                    paused = false;
+                    break;
+                }
+            }
+            if (paused)
+            {
+                _streamStatusSignal.Post(StreamStatusSignal.PAUSED);
+            }
+        });
+
+    /// <summary>
+    /// 解绑使用
+    /// </summary>
+    private Task EmitStreamAbortedAsync(UsedIpcInfo info) => Task.Run(() =>
+        {
+            if (_usedIpcMap.Remove(info.Uipc))
+            {
+                if (_usedIpcMap.Count == 0)
+                {
+                    _streamStatusSignal.Post(StreamStatusSignal.ABORTED);
+                }
+            }
+        });
+
+    private SimpleSignal _closeSignal = new SimpleSignal();
+
+    public Func<bool> OnStreamClose(Func<byte, object?> cb) => _closeSignal.Listen(cb);
+
+    private SimpleSignal _openSignal = new SimpleSignal();
+
+    public Func<bool> OnStreamOpen(Func<byte, object?> cb) => _openSignal.Listen(cb);
+
+    private void _emitStreamClose()
+    {
+        _isStreamOpened = true;
+        _isStreamClosed = true;
     }
 
     protected override BodyHubType BodyHub
@@ -185,7 +314,7 @@ public class IpcBodySender : IpcBody
     public IpcBodySender(object raw, Ipc ipc)
     {
         CACHE.Raw_ipcBody_WMap.Add(raw, this);
-
+        IPC.UsableByIpc(ipc, this);
 
         Raw = raw;
         SenderIpc = ipc;
@@ -194,7 +323,10 @@ public class IpcBodySender : IpcBody
     }
 
 
-    public static IpcBodySender From(object raw, Ipc ipc) => new IpcBodySender(raw, ipc);
+    public static IpcBodySender From(object raw, Ipc ipc) =>
+        (CACHE.Raw_ipcBody_WMap[raw] is not null
+            ? (IpcBodySender)CACHE.Raw_ipcBody_WMap[raw]
+            : null) ?? new IpcBodySender(raw, ipc);
     private static Lazy<Dictionary<Stream, string>> _streamIdWM =
         new Lazy<Dictionary<Stream, string>>(() => new Dictionary<Stream, string>());
 
@@ -213,7 +345,6 @@ public class IpcBodySender : IpcBody
         });
 
 
-
     private SMetaBody BodyAsMeta(object body, Ipc ipc) => body switch
     {
         string value => SMetaBody.FromText(ipc.Uid, value),
@@ -221,7 +352,6 @@ public class IpcBodySender : IpcBody
 
         Stream value => StreamAsMeta(value, ipc),
         _ => throw new Exception($"invalid body type {body}"),
-
     };
 
     private SMetaBody StreamAsMeta(Stream stream, Ipc ipc)
@@ -230,14 +360,14 @@ public class IpcBodySender : IpcBody
 
         Console.WriteLine($"sender/INIT/{stream}", stream_id);
 
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             /**
              * 只有等到 Pulling 指令的时候才能读取并发送
              */
             var pullingPo = new PromiseOut<bool>();
 
-            Task.Run(() =>
+            await Task.Run(() =>
             {
                 switch (_streamStatusSignal.Receive())
                 {
@@ -264,10 +394,6 @@ public class IpcBodySender : IpcBody
                 pullingPo.WaitPromise();
 
                 Console.WriteLine($"sender/PULLING/{stream}", stream_id);
-                //switch (stream.CanRead)
-                //{
-
-                //}
 
                 switch (stream.ReadByte())
                 {
@@ -275,15 +401,68 @@ public class IpcBodySender : IpcBody
                         Console.WriteLine($"sender/END/{stream}", $"-1 >> {stream_id}");
 
                         /// 不论是不是被 aborted，都发送结束信号
-                        var message = new IpcStreamEnd(stream_id);
+                        var ipcStreamEnd = new IpcStreamEnd(stream_id);
+
+                        foreach (Ipc ipc in _usedIpcMap.Keys)
+                        {
+                            await ipc.PostMessageAsync(ipcStreamEnd);
+                        }
+
+                        _emitStreamClose();
+
                         break;
                     case 0:
+                        Console.WriteLine($"sender/EMPTY/{stream}", stream_id);
+                        break;
+                    case int availableLen:
+                        // 开光了，流已经开始被读取
+                        _isStreamOpened = true;
+                        Console.WriteLine($"sender/READ/{stream}", $"{availableLen} >> {stream_id}");
+
+                        var buffer = new byte[availableLen];
+                        await stream.ReadAsync(buffer, 0, availableLen);
+                        await stream.FlushAsync();
+                        var ipcStreamData = IpcStreamData.FromBinary(stream_id, buffer);
+
+                        foreach (Ipc ipc in _usedIpcMap.Keys)
+                        {
+                            await ipc.PostMessageAsync(ipcStreamData);
+                        }
+
                         break;
                 }
             }
         });
 
-        return new SMetaBody();
+        // 写入第一帧数据
+        var streamType = SMetaBody.IPC_META_BODY_TYPE.STREAM_ID;
+        SMetaBody metaBody = default;
+
+        if (stream is PreReadableInputStream prestream && prestream.preReadableSize > 0)
+        {
+            streamType = SMetaBody.IPC_META_BODY_TYPE.STREAM_WITH_BINARY;
+            var streamFirstData = new byte[prestream.preReadableSize];
+            stream.Read(streamFirstData, 0, prestream.preReadableSize);
+            stream.Flush();
+
+            metaBody = new SMetaBody(streamType, ipc.Uid, streamFirstData, stream_id);
+        }
+
+        if (streamType == SMetaBody.IPC_META_BODY_TYPE.STREAM_ID)
+        {
+            metaBody = new SMetaBody(streamType, ipc.Uid, "", stream_id);
+        }
+
+        return metaBody!.Also(it =>
+        {
+            // 流对象，写入缓存
+            CACHE.MetaId_ipcBodySender_Map[it.MetaId] = this;
+            Task.Run(() => _streamStatusSignal.Receive() switch
+            {
+                StreamStatusSignal.ABORTED => CACHE.MetaId_ipcBodySender_Map.Remove(it.MetaId),
+                _ => false
+            });
+        });
     }
 }
 

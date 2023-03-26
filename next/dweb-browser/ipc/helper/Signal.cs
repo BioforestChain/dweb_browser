@@ -48,9 +48,7 @@ public class Signal<Args>
     });
 
 
-    public async Task EmitAsync(Args args)
-    {
-        await Task.Run(() =>
+    public Task EmitAsync(Args args) => Task.Run(() =>
         {
             var cbs = CpSet;
 
@@ -78,12 +76,11 @@ public class Signal<Args>
                 }
             }
         });
-    }
 
     public void Clear() => ListenerSet.Clear();
 }
 
 public class SimpleSignal : Signal<byte>
 {
-    public async Task EmitAsync() => await base.EmitAsync(0);
+    public Task EmitAsync() => base.EmitAsync(0);
 }

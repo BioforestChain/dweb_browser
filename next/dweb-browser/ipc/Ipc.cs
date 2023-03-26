@@ -63,10 +63,8 @@ public abstract class Ipc
         await _doPostMessageAsync(message);
     }
 
-    public async Task PostResponseAsync(int req_id, HttpResponseMessage response)
-    {
-        await PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
-    }
+    public Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
+        PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
 
     protected Signal<IpcMessageArgs> _messageSigal = new Signal<IpcMessageArgs>();
 
@@ -229,11 +227,11 @@ public abstract class Ipc
     /**
      * 发送请求
      */
-    public async Task<HttpResponseMessage> Request(string url) =>
-        await this.Request(new HttpRequestMessage(HttpMethod.Get, new Uri(url)));
+    public Task<HttpResponseMessage> Request(string url) =>
+        this.Request(new HttpRequestMessage(HttpMethod.Get, new Uri(url)));
 
-    public async Task<HttpResponseMessage> Request(Uri url) =>
-        await this.Request(new HttpRequestMessage(HttpMethod.Get, url));
+    public Task<HttpResponseMessage> Request(Uri url) =>
+        this.Request(new HttpRequestMessage(HttpMethod.Get, url));
 
     private Dictionary<int, PromiseOut<IpcResponse>> _reqResMap
     {
