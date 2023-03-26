@@ -28,16 +28,21 @@ public class PromiseOut<T>
         get
         {
             return new Lazy<bool>(new Func<bool>(() =>
-                task.Task.IsCanceled || source.IsCancellationRequested)).Value;
+                task.Task.IsCanceled || ((_token is not null).Let(_ =>
+                    _token!.Value.IsCancellationRequested)))).Value;
         }
     }
 
-    public void Cancel() => source.Cancel();
+    public void Cancel() => task.TrySetCanceled();
 
-    private CancellationTokenSource source = new CancellationTokenSource();
+    private CancellationToken? _token { get; set; }
 
     public T WaitPromise() => task.Task.Result;
 
-    public Task<T> WaitPromiseAsync() => task.Task.WaitAsync(source.Token);
+    public Task<T> WaitPromiseAsync(CancellationToken token)
+    {
+        _token = token;
+        return task.Task.WaitAsync(_token!.Value);
+    }
 }
 
