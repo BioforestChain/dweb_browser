@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.core
 
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import org.http4k.core.Request
 
 
@@ -98,7 +99,11 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
      * 尝试连接到指定对象
      */
     suspend fun connect(mmid: Mmid, reason: Request? = null) =
-        this._bootstrapContext?.dns?.connect(mmid, reason)
+        this.bootstrapContext.dns.let {
+            it.bootstrap(mmid)
+            it.connect(mmid)
+        }
+
 
     /**
      * 收到一个连接，触发相关事件
@@ -108,11 +113,16 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
         ipc.onClose {
             this._ipcSet.remove(ipc);
         };
+        ipc.onEvent { (event, ipc) ->
+            if (event.name == "activity") {
+                onActivity(event, ipc)
+            }
+        }
 
         _connectSignal.emit(Pair(ipc, reason))
     }
 
-
+    protected open suspend fun onActivity(event: IpcEvent, ipc: Ipc) {}
 }
 
 typealias IpcConnectArgs = Pair<Ipc, Request>

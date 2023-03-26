@@ -19,7 +19,8 @@ object JsonUtil {
       appInfo.iconPath = FilesUtil.getAppIconPathName(appInfo)
       return appInfo
     } catch (e: Throwable) {
-      Log.d(TAG, "getAppInfoFromLinkJson e->$e")
+      Log.d(TAG, "getAppInfoFromLinkJson e->")
+      e.printStackTrace()
     }
     return null
   }

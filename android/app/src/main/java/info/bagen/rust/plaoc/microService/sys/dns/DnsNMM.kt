@@ -1,7 +1,12 @@
 package info.bagen.rust.plaoc.microService.sys.dns
 
 import info.bagen.rust.plaoc.microService.core.*
-import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -20,7 +25,10 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     private val runningApps = mutableMapOf<Mmid, MicroModule>() // 正在运行的应用
 
     suspend fun bootstrap() {
-        bootstrapMicroModule(this)
+        if (!this.running) {
+            bootstrapMicroModule(this)
+        }
+        onActivity()
     }
 
     /** 对等连接列表 */
@@ -85,9 +93,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     class MyBootstrapContext(override val dns: MyDnsMicroModule) : BootstrapContext {}
 
     suspend fun bootstrapMicroModule(fromMM: MicroModule) {
-        GlobalScope.launch(ioAsyncExceptionHandler) {
-            fromMM.bootstrap(MyBootstrapContext(MyDnsMicroModule(this@DnsNMM, fromMM)))
-        }.join()
+        fromMM.bootstrap(MyBootstrapContext(MyDnsMicroModule(this@DnsNMM, fromMM)))
     }
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
@@ -131,10 +137,17 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                 close(query_app_id(request))
                 true
             })
+
+    }
+
+    override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
+        onActivity(event)
+    }
+
+    suspend fun onActivity(event: IpcEvent = IpcEvent.fromUtf8("activity", "")) {
         /// 启动 boot 模块
-        GlobalScope.launch(ioAsyncExceptionHandler) {
-            open("boot.sys.dweb")
-        }
+        open("boot.sys.dweb")
+        connect("boot.sys.dweb").ipcForFromMM.postMessage(event)
     }
 
     override suspend fun _shutdown() {

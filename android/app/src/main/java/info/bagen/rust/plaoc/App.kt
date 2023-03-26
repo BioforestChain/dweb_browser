@@ -6,11 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.startDwebBrowser
+import info.bagen.rust.plaoc.microService.sys.dns.DnsNMM
 import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import info.bagen.rust.plaoc.util.PlaocUtil
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -20,11 +22,33 @@ class App : Application() {
 
         var browserActivity: BrowserActivity? = null
 
+        val grant = PromiseOut<Boolean>()
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
             GlobalScope.launch(ioAsyncExceptionHandler) {
+                if (!grant.waitPromise()) {
+                    /// TODO 用户拒绝协议应该做的事情
+                }
+
                 val intent = Intent(appContext, cls)
                 onIntent(intent)
                 appContext.startActivity(intent)
+            }
+        }
+
+
+        private val dnsNMMPo = PromiseOut<DnsNMM>()
+        fun startMicroModuleProcess() {
+            if (dnsNMMPo.isResolved) {
+                runBlockingCatching {
+                    dnsNMMPo.value!!.bootstrap()
+                }.getOrThrow()
+            } else {
+                synchronized(dnsNMMPo) {
+                    val dnsNMM = runBlockingCatching {
+                        startDwebBrowser()
+                    }.getOrThrow()
+                    dnsNMMPo.resolve(dnsNMM)
+                }
             }
         }
     }
@@ -32,18 +56,11 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         appContext = this
-        startMicroModuleProcess() // 用于启动 microModule 底层服务
         PlaocUtil.addShortcut(this) // 添加桌面快捷方式
         // startService(Intent(this@App, DwebBrowserService::class.java))
         DwebBrowserUtil.INSTANCE.bindDwebBrowserService()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun startMicroModuleProcess() {
-        GlobalScope.launch {
-            startDwebBrowser()
-        }
-    }
 
     private class ActivityLifecycleCallbacksImp : ActivityLifecycleCallbacks {
         override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {

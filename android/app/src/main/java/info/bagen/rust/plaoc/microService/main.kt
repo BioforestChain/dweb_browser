@@ -25,7 +25,7 @@ import info.bagen.rust.plaoc.microService.user.CotJMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 import info.bagen.rust.plaoc.microService.user.ToyJMM
 
-suspend fun startDwebBrowser() {
+suspend fun startDwebBrowser(): DnsNMM {
     /**
     "message-port-ipc",
     "stream-ipc",
@@ -126,15 +126,14 @@ suspend fun startDwebBrowser() {
     val bootMmidList = when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> listOf(
 //            cotJMM.mmid,
-            cotDemoJMM.mmid,
-//            browserNMM.mmid,
+//            cotDemoJMM.mmid,
+            browserNMM.mmid,
         )
         DEVELOPER.HuangLin, DEVELOPER.HLVirtual -> listOf(browserNMM.mmid)
         DEVELOPER.WaterBang -> listOf(cotDemoJMM.mmid)
         else -> {
             listOf(
                 browserNMM.mmid,
-                cotDemoJMM.mmid,
             )
         }
     }
@@ -146,4 +145,5 @@ suspend fun startDwebBrowser() {
 
     /// 启动
     dnsNMM.bootstrap()
+    return dnsNMM
 }

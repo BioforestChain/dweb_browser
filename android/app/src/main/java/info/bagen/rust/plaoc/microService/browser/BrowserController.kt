@@ -45,7 +45,7 @@ class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
 
     suspend fun openApp(mmid: Mmid) {
         openIPCMap.getOrPut(mmid) {
-            val (ipc) = localeMM.bootstrapContext.dns.connect(mmid)
+            val (ipc) = localeMM.connect(mmid)
             ipc.onEvent {
                 if (it.event.name == "ready") { // 说法加载完成，可以隐藏加载框
                     BrowserNMM.browserController.showLoading.value = false
@@ -63,14 +63,6 @@ class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
         Uri.of("file://jmm.sys.dweb/install")
             .query("mmid", jmmMetadata.id).query("metadataUrl", url)
     )
-
-    fun openBrowserActivity() {
-        App.startActivity(BrowserActivity::class.java) { intent ->
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-            intent.putExtras(Bundle().also { b -> b.putString("mmid", mmid) })
-        }
-    }
 
     fun checkJmmMetadataJson(url: String): Boolean {
         android.net.Uri.parse(url).lastPathSegment?.let { lastPathSegment ->

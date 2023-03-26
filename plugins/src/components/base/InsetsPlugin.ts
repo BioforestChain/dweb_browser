@@ -61,9 +61,12 @@ export abstract class InsetsPlugin<
       search: state,
     }).ok();
   }
+  static rid_acc = 1;
   @bindThis
   protected async commonGetState<S extends $InsetsRawState>() {
-    return await this.fetchApi("/getState").object<S>();
+    return await this.fetchApi("/getState", {
+      search: { rid: InsetsPlugin.rid_acc++ },
+    }).object<S>();
   }
 
   get getState() {

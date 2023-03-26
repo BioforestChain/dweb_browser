@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.DownLoadStatus
 import info.bagen.rust.plaoc.ui.download.DownLoadIntent
 import info.bagen.rust.plaoc.ui.download.DownLoadViewModel
@@ -120,7 +121,7 @@ class AppViewModel(private val repository: AppRepository = AppRepository()) : Vi
   }*/
 
   fun handleIntent(action: AppViewIntent) {
-    viewModelScope.launch(Dispatchers.IO) {
+    viewModelScope.launch(ioAsyncExceptionHandler) {
       /* channel.send(action) // 进行发送操作，可以根据传参进行发送 */
       when (action) {
         is AppViewIntent.LoadAppInfoList -> loadAppInfoList()

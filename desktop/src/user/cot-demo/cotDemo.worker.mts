@@ -4,21 +4,19 @@ import { EVENT } from "./cotDemo.event.mjs";
 import { nativeOpen, nativeActivate } from "./cotDemo.native.mjs";
 import { cros, onApiRequest } from "./cotDemo.request.mjs";
 
-
-
 const main = async () => {
   const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut<string>();
-  const webviewSet = new Map<string, ViewTree>()
+  const webviewSet = new Map<string, ViewTree>();
 
   /**尝试打开view */
   const tryOpenView = async (webview_id?: string) => {
-    console.log("tryOpenView", webview_id)
+    console.log("tryOpenView", webview_id);
     if (webview_id && webviewSet.has(webview_id)) {
       // activate
       return nativeActivate(webview_id)
     }
-    // open 
+    // open
     const url = await mainUrl.promise;
     const view_id = await nativeOpen(url)
     if (webviewSet.size == 0) {

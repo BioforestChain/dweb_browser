@@ -65,6 +65,7 @@ fun Home(
   onOpenDWebview: ((appId: String, dAppInfo: DAppInfoUI?) -> Unit)? = null
 ) {
   LaunchedEffect(Unit) {
+    println("App.appContext.getBoolean(KEY_FIRST_LAUNCH, true): ${App.appContext.getBoolean(KEY_FIRST_LAUNCH, true)}")
     if (App.appContext.getBoolean(KEY_FIRST_LAUNCH, true)) {
       FilesUtil.copyAssetsToRecommendAppDir()
       App.appContext.saveBoolean(KEY_FIRST_LAUNCH, false)
