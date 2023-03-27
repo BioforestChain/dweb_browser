@@ -109,7 +109,7 @@ val temp = """
 """.trimIndent()
 
 val defaultJmmMetadata = JmmMetadata(
-    id = "bfmeta.user.dweb",
+    id = "cotdemo.user.dweb",
     downloadUrl = "https://shop.plaoc.com/KEJPMHLA/KEJPMHLA.bfsa",
     permissions = arrayListOf("camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb"),
     icon = "https://www.bfmeta.info/imgs/logo3.webp",

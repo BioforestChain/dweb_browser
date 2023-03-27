@@ -2,17 +2,29 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.lifecycle.MutableLiveData
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
+import info.bagen.rust.plaoc.microService.ipc.Ipc
+import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import info.bagen.rust.plaoc.microService.sys.nativeui.NativeUiController
 import info.bagen.rust.plaoc.microService.webview.DWebView
+import io.ktor.util.collections.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
+import org.json.JSONObject
+import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.properties.Delegates
 
 /**
  * MWebView 是为其它模块提供 GUI 的程序模块，所以这里需要传入两个模块：localeMM 与 remoteMM
@@ -28,7 +40,7 @@ class MultiWebViewController(
         private var webviewId_acc = AtomicInteger(1)
     }
 
-    private val webViewList = mutableStateListOf<ViewItem>()
+    private var webViewList = mutableStateListOf<ViewItem>()
 
     @Composable
     fun eachView(action: @Composable (viewItem: ViewItem) -> Unit) =
@@ -39,6 +51,14 @@ class MultiWebViewController(
     fun isLastView(viewItem: ViewItem) = webViewList.lastOrNull() == viewItem
     fun isFistView(viewItem: ViewItem) = webViewList.firstOrNull() == viewItem
     val lastViewOrNull get() = webViewList.lastOrNull()
+
+    private val mIpcMap = mutableMapOf<Mmid, Ipc>()
+
+    data class MWebViewState(
+        val webviewId: String,
+        val isActivated: Boolean,
+    )
+
 
     data class ViewItem(
         val webviewId: String,
@@ -76,7 +96,10 @@ class MultiWebViewController(
     /**
      * 打开WebView
      */
-    suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
+    suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url)).also {
+        debugMultiWebView("openWebView =>", it.webviewId)
+        updateStateHook("openWebView")
+    }
 
     suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
         val currentActivity = activity ?: App.appContext
@@ -118,7 +141,10 @@ class MultiWebViewController(
      */
     suspend fun closeWebView(webviewId: String) =
         webViewList.find { it.webviewId == webviewId }?.let { viewItem ->
-            webViewList.remove(viewItem)
+            debugMultiWebView("closeWebView =>", viewItem.webviewId)
+            webViewList.remove(viewItem).also {
+                if (it) updateStateHook("closeWebView")
+            }
             withContext(Dispatchers.Main) {
                 viewItem.webView.destroy()
             }
@@ -134,12 +160,34 @@ class MultiWebViewController(
     /**
      * 将指定WebView移动到顶部显示
      */
-    fun moveToTopWebView(webviewId: String): Boolean {
+    suspend fun moveToTopWebView(webviewId: String): Boolean {
         val viewItem = webViewList.find { it.webviewId == webviewId } ?: return false
         webViewList.remove(viewItem)
-        webViewList.add(viewItem)
+        webViewList.add(viewItem).also { add ->
+            if (add) updateStateHook("moveToTopWebView")
+        }
         return true
     }
+    private suspend fun updateStateHook(handle: String) {
+        debugMultiWebView(
+            "updateStateHook $handle",
+            "localeMM:${localeMM.mmid} mmid:$mmid ${webViewList.size}"
+        )
+        val currentState = JSONObject()
+        webViewList.map {
+            currentState.put(it.webviewId,gson.toJson(MWebViewState(it.webviewId, it.hidden)))
+        }
+        mIpcMap.getOrPut(mmid) {
+            val (ipc) = localeMM.connect(mmid)
+            ipc.onEvent {
+                debugMultiWebView("event", "name=${it.event.name},data=${it.event.data}")
+            }
+            ipc
+        }.also {ipc ->
+            ipc.postMessage(IpcEvent.fromUtf8("state", currentState.toString()))
+        }
+    }
+
 
     private val webViewCloseSignal = Signal<String>()
     private val webViewOpenSignal = Signal<String>()

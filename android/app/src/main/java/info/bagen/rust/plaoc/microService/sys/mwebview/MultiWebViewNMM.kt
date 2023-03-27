@@ -47,10 +47,6 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         }
     }
 
-    val subscribers = ConcurrentMap<Ipc, ConcurrentSkipListSet<String>>()
-    private val mIpcMap =
-        mutableStateMapOf<Ipc, MutableMap<String, MultiWebViewController.ViewItem>>()
-
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// nativeui 与 mwebview 是伴生关系
         bootstrapContext.dns.bootstrap("nativeui.sys.dweb")
@@ -58,14 +54,6 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         // 打开webview
         val queryUrl = Query.string().required("url")
         val queryWebviewId = Query.string().required("webview_id")
-
-//        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
-//            for ((ipc) in subscribers) {
-//                debugMultiWebView("createIpc =>", "jop: ${ipc.remote.mmid} ")
-////                    ipc.postMessage(IpcEvent.fromUtf8("close", "hi"))
-//            }
-//        }
-//        _afterShutdownSignal.listen { job.cancel() }
 
         apiRouting = routes(
             // 打开一个 webview 作为窗口
@@ -84,7 +72,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
                 closeDwebView(remoteMmid, webviewId)
             },
             // 界面没有关闭，用于重新唤醒
-            "/reOpen" bind Method.GET to defineHandler { request, ipc ->
+            "/activate" bind Method.GET to defineHandler { request, ipc ->
                 val remoteMmid = ipc.remote.mmid
                 val webViewId = queryWebviewId(request)
                 debugMultiWebView("REOPEN-WEBVIEW", "remote-mmid: $remoteMmid==>$webViewId")
@@ -146,32 +134,11 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
 
         openMultiWebViewActivity(remoteMmid)
         controller.waitActivityCreated()
-        val viewItem = controller.openWebView(url)
-        createIpc(viewItem)
-        return viewItem
+        return  controller.openWebView(url)
     }
 
-    suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
+    private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
         return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
     }
 
-    fun createIpc(viewItem: MultiWebViewController.ViewItem) {
-
-//        val job = GlobalScope.launch(ioAsyncExceptionHandler) {
-//            for ((ipc) in subscribers) {
-//                debugMultiWebView("createIpc", "jop: ${ipc.remote.mmid} ")
-//                ipc.postMessage(IpcEvent.fromUtf8("state", "hi"))
-//            }
-//        }
-//        _afterShutdownSignal.listen { job.cancel() }
-
-        debugMultiWebView("createIpc", "viewItem: $viewItem ")
-
-//        mIpcMap.getOrPut(ipc) {
-//            ipc.onEvent {
-//                debugMultiWebView("event", "name=${it.event.name},data=${it.event.data}")
-//            }
-//            mutableMapOf()
-//        }.apply { this[viewItem.webviewId] = viewItem }
-    }
 }

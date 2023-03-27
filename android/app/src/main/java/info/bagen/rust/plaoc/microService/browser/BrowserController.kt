@@ -1,7 +1,5 @@
 package info.bagen.rust.plaoc.microService.browser
 
-import android.content.Intent
-import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -47,15 +45,15 @@ class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
         openIPCMap.getOrPut(mmid) {
             val (ipc) = localeMM.connect(mmid)
             ipc.onEvent {
-                if (it.event.name == "ready") { // 说法加载完成，可以隐藏加载框
+                if (it.event.name == EIpcEvent.Ready.event) { // webview加载完成，可以隐藏加载框
                     BrowserNMM.browserController.showLoading.value = false
-                    debugBrowser("openApp", "event::${it.event.name}==>${it.event.data}")
+                    debugBrowser("openApp", "event::${it.event.name}==>${it.event.data}  from==> $mmid ")
                 }
             }
             ipc
         }.also { ipc ->
             debugBrowser("openApp", "postMessage==>activity")
-            ipc.postMessage(IpcEvent.fromUtf8("activity", ""))
+            ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         }
     }
 
