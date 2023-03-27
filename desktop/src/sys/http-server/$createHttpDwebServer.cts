@@ -19,7 +19,7 @@ export const createHttpDwebServer = async (
   return new HttpDwebServer(microModule, options, startResult);
 };
 
-class HttpDwebServer {
+export class HttpDwebServer {
   constructor(
     private readonly nmm: $MicroModule,
     private readonly options: $DwebHttpServerOptions,

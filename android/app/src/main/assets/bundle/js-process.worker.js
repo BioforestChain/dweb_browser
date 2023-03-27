@@ -5426,6 +5426,7 @@ var mapHelper = new class {
 // src/sys/http-server/$createHttpDwebServer.cts
 var createHttpDwebServer_exports = {};
 __export(createHttpDwebServer_exports, {
+  HttpDwebServer: () => HttpDwebServer,
   closeHttpDwebServer: () => closeHttpDwebServer,
   createHttpDwebServer: () => createHttpDwebServer,
   listenHttpDwebServer: () => listenHttpDwebServer,

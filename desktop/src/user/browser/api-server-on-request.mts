@@ -179,7 +179,6 @@ async function apiServerOnRequestStatusbarGetState(ipcRequest: IpcRequest, ipc: 
  */
  async function apiServerOnRequestStatusbarSetState(ipcRequest: IpcRequest, ipc: Ipc, internal_origin: string){
     let response: Response;
-    log.green(`statusbarSetState `)
     console.log(decodeURIComponent(ipcRequest.parsed_url.search))
     // ?X-Dweb-Host=api.browser.sys.dweb:443&color={"red":255,"green":255,"blue":255,"alpha":255}
     if(ipcRequest.parsed_url.searchParams.get('color') !== null){ // 设置背景色

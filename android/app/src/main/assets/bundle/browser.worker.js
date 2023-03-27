@@ -486,7 +486,6 @@ async function apiServerOnRequestStatusbarGetState(ipcRequest, ipc2, internal_or
 }
 async function apiServerOnRequestStatusbarSetState(ipcRequest, ipc2, internal_origin) {
   let response;
-  log.green(`statusbarSetState `);
   console.log(decodeURIComponent(ipcRequest.parsed_url.search));
   if (ipcRequest.parsed_url.searchParams.get("color") !== null) {
     response = await jsProcess.nativeFetch(`file://status-bar.nativeui.sys.dweb/operation/set_background_color${ipcRequest.parsed_url.search}&app_url=${internal_origin}`);
