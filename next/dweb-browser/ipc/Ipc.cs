@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Threading.Tasks.Dataflow;
 
 namespace ipc;
 
@@ -125,20 +126,32 @@ public abstract class Ipc
         get
         {
             return new Lazy<Signal<IpcStreamMessageArgs>>(new Func<Signal<IpcStreamMessageArgs>>(() =>
-                new Signal<IpcStreamMessageArgs>().Also(signal =>
+            {
+                var signal = new Signal<IpcStreamMessageArgs>();
+                /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
+                /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
+                var streamChannel = new BufferBlock<IpcStreamMessageArgs>();
+                Task.Run(async () =>
                 {
-                    _messageSigal.Listen(new Func<IpcMessageArgs, object?>(args =>
+                    await foreach (IpcStreamMessageArgs message in streamChannel.ReceiveAllAsync())
                     {
-                        if (args.Message is IpcStream ipcStream)
-                        {
-                            signal.EmitAsync(new IpcStreamMessageArgs(ipcStream, args.Mipc));
+                        await signal.EmitAsync(message);
+                    }
+                });
 
-                            return true;
-                        }
+                _messageSigal.Listen((IpcMessageArgs args) =>
+                {
+                    if (args.Message is IpcStream stream)
+                    {
+                        streamChannel.Post(new IpcStreamMessageArgs(stream, args.Mipc));
+                        return true;
+                    }
 
-                        return false;
-                    }));
-                })), true).Value;
+                    return false;
+                });
+
+                return signal;
+            }), true).Value;
         }
     }
 
