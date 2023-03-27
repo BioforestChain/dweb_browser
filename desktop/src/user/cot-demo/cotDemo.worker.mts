@@ -1,7 +1,7 @@
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
-import { EVENT, WebViewState } from "./cotDemo.event.mjs";
-import { nativeOpen, nativeActivate } from "./cotDemo.native.mjs";
-import { cros, onApiRequest } from "./cotDemo.request.mjs";
+import { EVENT, WebViewState } from "../tool/tool.event.mjs";
+import { nativeOpen, nativeActivate } from "../tool/tool.native.mjs";
+import { cros, onApiRequest } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
 
 const main = async () => {

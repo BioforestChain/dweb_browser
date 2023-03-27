@@ -10,7 +10,6 @@ const origin_dir = path.join(__dirname, "../");
 
 const tasks = [
   "bundle",
-  "cot",
 ].map((dirname) => {
   return {
     from: path.join(origin_dir, dirname),

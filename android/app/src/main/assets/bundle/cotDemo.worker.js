@@ -138,7 +138,7 @@ var PromiseOut = class {
   }
 };
 
-// src/user/cot-demo/cotDemo.native.mts
+// src/user/tool/tool.native.mts
 var nativeOpen = async (url) => {
   return await jsProcess.nativeFetch(
     `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
@@ -437,7 +437,7 @@ var ReadableStreamOut = class {
   }
 };
 
-// src/user/cot-demo/cotDemo.request.mts
+// src/user/tool/tool.request.mts
 var { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
