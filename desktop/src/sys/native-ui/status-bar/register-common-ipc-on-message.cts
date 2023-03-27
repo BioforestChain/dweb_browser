@@ -51,7 +51,7 @@ export class CommonMesasgeRoutes{
                     if(args.app_url === null) {
                         return responseNoAppUrl(request.req_id, ipc)
                     }
-                    return this._nmm._statusbarPluginRequestAdd(
+                    return this._nmm.pluginsRequest.add(
                         args.app_url,
                         request,
                         (id: string) => {
@@ -97,11 +97,12 @@ export class CommonMesasgeRoutes{
                 ipc: Ipc,
                 request: IpcRequest
             ) => {
+                console.log('request', request)
                 if(args.app_url === null) {
                     return responseNoAppUrl(request.req_id, ipc)
                 }
             
-                return this._nmm._statusbarPluginRequestAdd(
+                return this._nmm.pluginsRequest.add(
                     args.app_url,
                     request,
                     (id: string) => {
@@ -130,7 +131,7 @@ export class CommonMesasgeRoutes{
             matchMode: "full", // 是需要匹配整个pathname 还是 前缀匹配即可
             input: {
                 app_url: "string",
-                visible: "boolean"
+                overlay: "boolean"
             },
             output: "boolean",
             handler: async (
@@ -145,7 +146,7 @@ export class CommonMesasgeRoutes{
                     return responseNoAppUrl(request.req_id, ipc)
                 }
             
-                return this._nmm._statusbarPluginRequestAdd(
+                return this._nmm.pluginsRequest.add(
                     args.app_url,
                     request,
                     (id: string) => {
@@ -189,7 +190,7 @@ export class CommonMesasgeRoutes{
                     return responseNoAppUrl(request.req_id, ipc)
                 }
                 
-                return this._nmm._statusbarPluginRequestAdd(
+                return this._nmm.pluginsRequest.add(
                     args.app_url,
                     request,
                     (id: string) => {
@@ -231,7 +232,7 @@ export class CommonMesasgeRoutes{
                     return responseNoAppUrl(request.req_id, ipc)
                 }
             
-                return this._nmm._statusbarPluginRequestAdd(
+                return this._nmm.pluginsRequest.add(
                     args.app_url,
                     request,
                     (id: string) => {

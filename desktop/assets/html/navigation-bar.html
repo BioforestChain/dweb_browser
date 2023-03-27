@@ -3,8 +3,12 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>navigator-bar</title>
+    <title>navgation-bar</title>
     <style type="text/css">
+        :root{
+            --background-color: "#FFFFFFFF";
+            background: var(--background-color);
+        }
         body{
             box-sizing: border-box;
             margin: 0px;
@@ -12,7 +16,6 @@
             height: 70px;
             border-top: 1px solid #0001;
         }
-        
     </style>
 </head>
 <body>
@@ -22,11 +25,24 @@
             <div class="label-container"></div>
         </div>
     </template>
-    <navigator-bar></navigator-bar>
+    <navgation-bar></navgation-bar>
     
     <!-- 创建一个WebComponent -->
     <script type="text/javascript">
-        class NavigatorBar extends HTMLElement{
+        let state = {
+            color: "#FFFFFF",
+            style: "DEFAULT",
+            overlay: false,
+            visible: true,
+            insets: {
+                top: 70,
+                right: 0,
+                bottom: 0,
+                left: 0
+            }
+        }
+
+        class NavigationBar extends HTMLElement{
             _root
             _fragement = document.createDocumentFragment()
             _elStyle = document.createElement('style')
@@ -44,10 +60,9 @@
             }
 
             connectedCallback(){
-                this._iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#navigator-bar');
+                this._iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#navgation-bar');
                 this._appUrl = this._iframe.dataset.appUrl
                 this._awaitOperation()
-                console.log('this._appUrl: ', this._appUrl)
             }
 
             _init(){
@@ -64,7 +79,13 @@
 
             _initTemplate = () => {
                 this._template = document.querySelector('#template');
+                
                 return this;
+            }
+
+            _initState = () => {
+                this._iframe.style.height = `${state.top}px`;
+                document.documentElement.style.setProperty('--background-color', state.color);
             }
 
             /**
@@ -95,7 +116,7 @@
 
             // 点击事件的触发
             _clickItem = (item) => {
-                if(this._listenerClickId === null) console.error('navigatorbar 点击事件还没有监听')
+                if(this._listenerClickId === null) console.error('NavigationBar 点击事件还没有监听')
                 this._fetchReturn(item.id, this. _listenerClickId)
                 this._listenerClickId = null;
             }
@@ -111,9 +132,8 @@
             监听操作的方法
             */
             _awaitOperation = async () =>{
-                fetch("http://navigatorbar.sys.dweb-80.localhost:22605/operation_from_html?app_url="+this._appUrl)
+                fetch("http://navigation-bar.nativeui.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+this._appUrl)
                 .then(async (res) => {
-                    this._awaitOperation()
                     const id = res.headers.get('id')
                     const value = await res.json()
                     switch(value.action){
@@ -132,7 +152,7 @@
             // 用来发送返回的数据
             _fetchReturn = (value,id) => {
                 fetch(
-                    "http://navigatorbar.sys.dweb-80.localhost:22605/operation_return?app_url="+this._appUrl,
+                    "http://navigation-bar.nativeui.sys.dweb-80.localhost:22605/operation_return?app_url="+this._appUrl,
                     {
                         method: 'POST',
                         body: JSON.stringify({ value: value}),
@@ -145,9 +165,18 @@
                 )
                 .catch(err => console.error("fetchReturn 出错", err))
             }
+
+            _setBackgroundColor = (color) => {
+                document.documentElement.style.setProperty("--background-color", color)
+                return this;
+            }
+
+            _setStyle = (style) => {
+
+            }
         }
 
-        customElements.define('navigator-bar', NavigatorBar)
+        customElements.define('navgation-bar', NavigationBar)
 
         function createStyle(){
             return `

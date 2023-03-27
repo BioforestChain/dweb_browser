@@ -6,7 +6,7 @@ import { IpcHeaders } from "../../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../../core/micro-module.native.cjs";
 import { createHttpDwebServer } from "../../http-server/$createHttpDwebServer.cjs";
-
+import { WWWServer } from "./www-server.cjs"
 import type { Remote } from "comlink";
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
@@ -14,19 +14,43 @@ import type { $NativeWindow } from "../../../helper/openNativeWindow.cjs";
 import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
 import chalk from "chalk";
 import type { $BootstrapContext } from "../../../core/bootstrapContext.cjs"
+import type { $StatusbarPluginsRequestQueueItem } from "../types.cjs"
 import { log } from "../../../helper/devtools.cjs"
+import { PluginsRequest } from "../plugins-request.cjs"
+import { AllConnects } from "./on-connect-callback.cjs";
+import { intercept } from "../intercept-http.cjs"
+
 
  
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
-export class NavigatorBarNativeUiNMM extends NativeMicroModule {
+export class NavigationBarNMM extends NativeMicroModule {
   mmid = "navigation-bar.nativeui.sys.dweb" as const;
+  httpIpc: Ipc | undefined
+  pluginsRequest = new PluginsRequest();
   private _uid_wapis_map = new Map<
     number,
     { nww: $NativeWindow; apis: Remote<$APIS> }
   >();
+  private _allConnects: AllConnects = new AllConnects()
+ 
 
   _bootstrap = async (context: any) => {
+    log.green(`[${this.mmid} _bootstrap]`)
+
+    {
+      this.onConnect(this._allConnects.onConnect)
+    }
+
+    {
+      const [httpIpc] = await context.dns.connect('http.sys.dweb')
+      // 向 httpIpc 发起初始化消息
+      intercept(httpIpc, this.mmid)
+      this.httpIpc = httpIpc
+    }
+    {
+      new WWWServer(this)
+    }
 
   }
 

@@ -1,6 +1,6 @@
 
-import type { Ipc } from "../../../core/ipc/ipc.cjs";
-import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
+import type { Ipc } from "../../core/ipc/ipc.cjs";
+import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
  
 // 拦截 htpp 请求 保持住res不返回
 // 用来向 UI 发送消息

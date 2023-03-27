@@ -10,12 +10,12 @@ import type { HttpDwebServer } from "../../http-server/$createHttpDwebServer.cjs
 import type { $IpcMessage  } from "../../../core/ipc/const.cjs";
 import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
 import type { Ipc } from "../../../core/ipc/ipc.cjs"
-import type { StatusbarNativeUiNMM } from "./status-bar.main.cjs"
+import type { NavigationBarNMM } from "./navigation-bar.cjs"
  
 export class WWWServer{
     server: HttpDwebServer | undefined;
     constructor(
-        readonly nmm: StatusbarNativeUiNMM,
+        readonly nmm: NavigationBarNMM,
     ){
        this._int()
     }
@@ -31,10 +31,12 @@ export class WWWServer{
             case IPC_MESSAGE_TYPE.REQUEST: 
                 this._onRequest(message, ipc);
                 break;
+              default: throw new Error(`${this.nmm.mmid} 还有没有处理器的 www-server onMessage ${JSON.stringify(message)}`,)
         }
     }
 
     private _onRequest = (request: IpcRequest , ipc: Ipc) => {
+      console.log(request.parsed_url)
         const pathname = request.parsed_url.pathname;
         switch(pathname){
             case "/" || "/index.html":
@@ -55,7 +57,7 @@ export class WWWServer{
                 new IpcHeaders({
                 "Content-type": "text/html",
                 }),
-                await reqadHtmlFile('status-bar'),
+                await reqadHtmlFile('navigation-bar'),
                 ipc
             )
         );
@@ -156,3 +158,4 @@ export class WWWServer{
     } 
 
 }
+

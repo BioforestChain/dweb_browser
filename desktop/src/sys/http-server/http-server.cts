@@ -81,8 +81,6 @@ export class HttpServerNMM extends NativeMicroModule {
       res.setHeader("Access-Control-Allow-Origin", "*");  
       res.setHeader("Access-Control-Allow-Headers", "*");  
       res.setHeader("Access-Control-Allow-Methods","*");  
-
-
       /// 获取 host
       var header_host: string | null = null;
       var header_x_dweb_host: string | null = null;
@@ -137,8 +135,6 @@ export class HttpServerNMM extends NativeMicroModule {
         /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
         host = "*";
       }
-
-      
      
       {
         // 保持住推送消息通道
@@ -155,12 +151,10 @@ export class HttpServerNMM extends NativeMicroModule {
         }
       }
 
-
       {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
         if (gateway == undefined) {
-          log.red(`[http-server.cts 接受到了没有匹配的 gateway host===] ${host}`);
           return defaultErrorResponse(
             req,
             res,
@@ -183,9 +177,6 @@ export class HttpServerNMM extends NativeMicroModule {
       }
     });
 
-    
-
-     
 
     /// 监听 IPC 请求 /start
     this.registerCommonIpcOnMessageHandler({

@@ -266,7 +266,6 @@
         async function awaitOperation(){
             fetch("http://status-bar.nativeui.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+appUrl)
             .then(async (res) => {
-                console.log('res: ', res)
                 const reader = res.body.getReader()
                 let loop = true;
                 do{
@@ -274,9 +273,6 @@
                     loop = !done
                     if(!value) continue;
                     const o = JSON.parse(new TextDecoder().decode(value))
-                    console.log('o: ', o)
-                    console.log("appUrl.startsWith(o.from): ", appUrl.startsWith(o.from))
-                    console.log(`[statusbar.html] o.operationName === ${o.operationName}`)
                     if(!appUrl.startsWith(o.from)) continue;
                     switch(o.operationName){
                         case "setBackgroundColor":  setBackgroundColor(o.value);fetchReturn(o.value, o.id, o.from);break;

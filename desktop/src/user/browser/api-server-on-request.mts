@@ -30,6 +30,9 @@ export async function apiServerOnRequest(ipcRequest: IpcRequest, ipc: Ipc, www_s
         case pathname.startsWith("/status-bar.nativeui.sys.dweb") ? pathname : symbolETO:
             apiServerOnRequestStatusbar(ipcRequest, ipc, pathname, www_server_internal_origin);
             break;
+        // case pathname.startsWith("/navigation-bar.nativeui.sys.dweb") ? pathname : symbolETO:
+        //     apiServerOnRequestNavigationBar(ipcRequest, ipc, pathname, www_server_internal_origin); 
+        //     break;
         default: throw new Error(`[缺少处理器] ${ipcRequest.parsed_url}`);
 
     }

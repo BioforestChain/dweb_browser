@@ -100,7 +100,6 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
       },
       pull(controller) {
         if (paused) {
-          console.log("start pulling", stream_id);
           paused = false;
           stream_ipc.postMessage(new IpcStreamPulling(stream_id));
         }
