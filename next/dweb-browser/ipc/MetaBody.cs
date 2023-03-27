@@ -81,7 +81,7 @@ public struct SMetaBody
                 {
                     var encoding = (int)Type & 0b11111110;
                     return (IPC_DATA_ENCODING)encoding;
-                }));
+                }), true);
             }
         }
 
@@ -89,7 +89,7 @@ public struct SMetaBody
         {
             get
             {
-                return new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 1));
+                return new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 1), true);
             }
         }
 
@@ -97,7 +97,7 @@ public struct SMetaBody
         {
             get
             {
-                return new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 0));
+                return new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 0), true);
             }
         }
 

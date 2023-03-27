@@ -57,7 +57,7 @@ public abstract class IpcBody
                         }
                     })
                     ?? BodyHub.Text?.Let(it => Convert.FromBase64String(it))
-                    ?? throw new Exception("invalid body type").Also(it => CACHE.Raw_ipcBody_WMap.Add(it, this))));
+                    ?? throw new Exception("invalid body type").Also(it => CACHE.Raw_ipcBody_WMap.Add(it, this))), true);
         }
     }
 
@@ -72,7 +72,7 @@ public abstract class IpcBody
                 {
                     s.Write(it.Value, 0, it.Value.Length);
                     return s;
-                }))))).Also(it => CACHE.Raw_ipcBody_WMap.Add(it, this));
+                })))), true).Also(it => CACHE.Raw_ipcBody_WMap.Add(it, this));
         }
     }
 
@@ -83,7 +83,7 @@ public abstract class IpcBody
         get
         {
             return new Lazy<string>(new Func<string>(() =>
-                (BodyHub.Text ?? _u8a.Let(it => System.Text.UTF8Encoding.UTF8.GetString(it.Value)))))
+                (BodyHub.Text ?? _u8a.Let(it => System.Text.UTF8Encoding.UTF8.GetString(it.Value)))), true)
                 .Also(it => CACHE.Raw_ipcBody_WMap.Add(it, this));
         }
     }

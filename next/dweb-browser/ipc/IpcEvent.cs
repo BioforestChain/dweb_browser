@@ -28,14 +28,14 @@ public class IpcEvent : IpcMessage
     {
         get
         {
-            return new Lazy<byte[]>(new Func<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding)));
+            return new Lazy<byte[]>(new Func<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding)), true);
         }
     }
     public Lazy<string> Text
     {
         get
         {
-            return new Lazy<string>(new Func<string>(() => EncodingConverter.DataToText(Data, Encoding)));
+            return new Lazy<string>(new Func<string>(() => EncodingConverter.DataToText(Data, Encoding)), true);
         }
     }
 

@@ -119,7 +119,7 @@ public class IpcRequest : IpcMessage
                     Method,
                     Url,
                     Headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value),
-                    Body.MetaBody))).Value;
+                    Body.MetaBody)), true).Value;
         }
     }
 

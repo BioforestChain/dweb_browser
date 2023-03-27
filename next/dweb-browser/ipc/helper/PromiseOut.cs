@@ -20,7 +20,7 @@ public class PromiseOut<T>
     public bool IsResolved { get; set; } = false;
     public bool IsFinished
     {
-        get { return new Lazy<bool>(new Func<bool>(() => task.Task.IsCompleted)).Value; }
+        get { return new Lazy<bool>(new Func<bool>(() => task.Task.IsCompleted), true).Value; }
     }
 
     public bool IsCanceled
@@ -28,8 +28,7 @@ public class PromiseOut<T>
         get
         {
             return new Lazy<bool>(new Func<bool>(() =>
-                task.Task.IsCanceled || ((_token is not null).Let(_ =>
-                    _token!.Value.IsCancellationRequested)))).Value;
+                task.Task.IsCanceled || ((_token is not null) && _token!.Value.IsCancellationRequested)), true).Value;
         }
     }
 

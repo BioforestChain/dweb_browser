@@ -16,9 +16,6 @@ public class IpcStreamData : IpcMessage, IpcStream
         StreamId = stream_id;
         Data = data;
         Encoding = encoding;
-
-        Binary = new Lazy<byte[]>(new Func<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding)));
-        Text = new Lazy<string>(new Func<string>(() => EncodingConverter.DataToText(Data, Encoding)));
     }
 
     internal IpcStreamData()
@@ -29,8 +26,20 @@ public class IpcStreamData : IpcMessage, IpcStream
     public static IpcStreamData FromUtf8(string stream_id, byte[] data) => FromUtf8(stream_id, System.Text.UTF8Encoding.UTF8.GetString(data));
     public static IpcStreamData FromUtf8(string stream_id, string data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.UTF8);
 
-    public Lazy<byte[]> Binary;
-    public Lazy<string> Text;
+    public Lazy<byte[]> Binary
+    {
+        get
+        {
+            return new Lazy<byte[]>(new Func<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding)), true);
+        }
+    }
+    public Lazy<string> Text
+    {
+        get
+        {
+            return new Lazy<string>(new Func<string>(() => EncodingConverter.DataToText(Data, Encoding)), true);
+        }
+    }
 
     /// <summary>
     /// Serialize IpcStreamData

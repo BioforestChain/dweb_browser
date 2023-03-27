@@ -97,7 +97,7 @@ public class IpcResponse : IpcMessage
                     ReqId,
                     StatusCode,
                     Headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value),
-                    Body.MetaBody))).Value;
+                    Body.MetaBody)), true).Value;
         }
     }
 }

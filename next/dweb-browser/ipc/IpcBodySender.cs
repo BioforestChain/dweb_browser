@@ -24,7 +24,7 @@ public class IpcBodySender : IpcBody
 
     public bool IsStream
     {
-        get { return new Lazy<bool>(new Func<bool>(() => Raw is Stream)).Value; }
+        get { return new Lazy<bool>(new Func<bool>(() => Raw is Stream), true).Value; }
     }
 
     public bool IsStreamClosed
@@ -306,7 +306,7 @@ public class IpcBodySender : IpcBody
                         it.BodyStream = value;
                         break;
                 }
-            }))).Value;
+            })), true).Value;
         }
     }
     public override SMetaBody MetaBody { get; set; }
@@ -328,7 +328,7 @@ public class IpcBodySender : IpcBody
             ? (IpcBodySender)CACHE.Raw_ipcBody_WMap[raw]
             : null) ?? new IpcBodySender(raw, ipc);
     private static Lazy<Dictionary<Stream, string>> _streamIdWM =
-        new Lazy<Dictionary<Stream, string>>(() => new Dictionary<Stream, string>());
+        new Lazy<Dictionary<Stream, string>>(() => new Dictionary<Stream, string>(), true);
 
     private static int _stream_id_acc = 1;
 
@@ -394,10 +394,11 @@ public class IpcBodySender : IpcBody
                 pullingPo.WaitPromise();
 
                 Console.WriteLine($"sender/PULLING/{stream}", stream_id);
+                
 
-                switch (stream.ReadByte())
+                switch (stream.Length)
                 {
-                    case -1:
+                    case 0L:
                         Console.WriteLine($"sender/END/{stream}", $"-1 >> {stream_id}");
 
                         /// 不论是不是被 aborted，都发送结束信号
@@ -409,19 +410,38 @@ public class IpcBodySender : IpcBody
                         }
 
                         _emitStreamClose();
-
                         break;
-                    case 0:
-                        Console.WriteLine($"sender/EMPTY/{stream}", stream_id);
-                        break;
-                    case int availableLen:
+                    case Int64 availableLen:
                         // 开光了，流已经开始被读取
                         _isStreamOpened = true;
                         Console.WriteLine($"sender/READ/{stream}", $"{availableLen} >> {stream_id}");
 
-                        var buffer = new byte[availableLen];
-                        await stream.ReadAsync(buffer, 0, availableLen);
+                        // TODO: 流读取是否大于Int32.MaxValue,待优化
+                        //byte[] buffer = new byte[1];
+                        int bytesRead = 0;
+                        stream.Position = 0;
+                        //if (availableLen > Int32.MaxValue)
+                        //{
+                        //    buffer = new byte[availableLen];
+                        //    Int64 offset = 0;
+                        //    do
+                        //    {
+                        //        bytesRead = await stream.ReadAsync(buffer, offset, Int32.MaxValue);
+                        //        await stream.FlushAsync();
+                        //    } while (bytesRead > 0);
+                        //}
+                        //else
+                        //{
+                        //    bytesRead = (Int32)availableLen;
+                        //    buffer = new BinaryReader(stream).ReadBytes(bytesRead);
+                        //    await stream.ReadAsync(buffer, 0, bytesRead);
+                        //    await stream.FlushAsync();
+                        //}
+                        bytesRead = (Int32)availableLen;
+                        byte[] buffer = new BinaryReader(stream).ReadBytes(bytesRead);
+                        await stream.ReadAsync(buffer, 0, bytesRead);
                         await stream.FlushAsync();
+
                         var ipcStreamData = IpcStreamData.FromBinary(stream_id, buffer);
 
                         foreach (Ipc ipc in _usedIpcMap.Keys)
