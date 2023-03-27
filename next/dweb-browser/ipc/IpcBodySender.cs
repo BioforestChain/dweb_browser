@@ -303,7 +303,7 @@ public class IpcBodySender : IpcBody
                         it.U8a = value;
                         break;
                     case Stream value:
-                        it.BodyStream = value;
+                        it.Stream = value;
                         break;
                 }
             })), true).Value;
@@ -323,16 +323,13 @@ public class IpcBodySender : IpcBody
     }
 
 
-    public static IpcBodySender From(object raw, Ipc ipc) =>
-        (CACHE.Raw_ipcBody_WMap[raw] is not null
-            ? (IpcBodySender)CACHE.Raw_ipcBody_WMap[raw]
-            : null) ?? new IpcBodySender(raw, ipc);
-    private static Lazy<Dictionary<Stream, string>> s_streamIdWM =
-        new Lazy<Dictionary<Stream, string>>(() => new Dictionary<Stream, string>(), true);
+    public static IpcBody From(object raw, Ipc ipc) =>
+        (CACHE.Raw_ipcBody_WMap.TryGet(raw) ?? new IpcBodySender(raw, ipc));
+    private static Dictionary<Stream, string> s_streamIdWM = new Dictionary<Stream, string>();
 
     private static int s_stream_id_acc = 1;
 
-    private static string s_getStreamId(Stream stream) => s_streamIdWM.Value.Let(it =>
+    private static string s_getStreamId(Stream stream) => s_streamIdWM.Let(it =>
         {
             var streamId = it[stream];
 
@@ -394,7 +391,7 @@ public class IpcBodySender : IpcBody
                 pullingPo.WaitPromise();
 
                 Console.WriteLine($"sender/PULLING/{stream}", stream_id);
-                
+
 
                 switch (stream.Length)
                 {

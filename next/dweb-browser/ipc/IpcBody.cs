@@ -1,4 +1,6 @@
-﻿namespace ipc;
+﻿using System.Text;
+
+namespace ipc;
 
 public abstract class IpcBody
 {
@@ -10,7 +12,7 @@ public abstract class IpcBody
          * 将它们缓存起来，那么使用这些 RAW 确保只拿到同一个 IpcBody，这对 RAW-Stream 很重要，流不可以被多次打开读取
          * </summary>
          */
-        public static readonly Dictionary<object, IpcBody> Raw_ipcBody_WMap = new Dictionary<object, IpcBody>();
+        public static readonly WeakMap<object, IpcBody> Raw_ipcBody_WMap = new WeakMap<object, IpcBody>();
 
         /**
          * <summary>
@@ -32,7 +34,7 @@ public abstract class IpcBody
     protected internal class BodyHubType
     {
         public string? Text { get; set; } = null;
-        public Stream? BodyStream { get; set; } = null;
+        public Stream? Stream { get; set; } = null;
         public byte[]? U8a { get; set; } = null;
         public object? Data { get; set; } = null;
     }
@@ -42,52 +44,46 @@ public abstract class IpcBody
     public abstract SMetaBody MetaBody { get; set; }
     public abstract object? Raw { get; }
 
-    private Lazy<byte[]> _u8a
+    private Lazy<byte[]> _u8a;
+    public byte[] U8a { get { return _u8a.Value; } }
+    private static byte[] InitU8A(IpcBody ipcBody)
     {
-        get
-        {
-            return new Lazy<byte[]>(new Func<byte[]>(() =>
-                BodyHub.U8a
-                    ?? BodyHub.BodyStream?.Let(it =>
-                    {
-                        using (var memoryStream = new MemoryStream())
-                        {
-                            it.CopyTo(memoryStream);
-                            return memoryStream.ToArray();
-                        }
-                    })
-                    ?? BodyHub.Text?.Let(it => Convert.FromBase64String(it))
-                    ?? throw new Exception("invalid body type").Also(it => CACHE.Raw_ipcBody_WMap.Add(it, this))), true);
-        }
+        var BodyHub = ipcBody.BodyHub;
+        var u8a = BodyHub.U8a
+        ?? BodyHub.Stream?.ToByteArray()
+        ?? BodyHub.Text?.FromBase64()
+        ?? throw new Exception("invalid body type");
+
+        CACHE.Raw_ipcBody_WMap.Add(u8a, ipcBody);
+        return u8a;
     }
 
-    public byte[] U8a() => _u8a.Value;
 
-    private Lazy<Stream> _stream
+    private Lazy<Stream> _stream;
+    public Stream Stream { get { return _stream.Value; } }
+    private static Stream InitStream(IpcBody ipcBody)
     {
-        get
-        {
-            return new Lazy<Stream>(new Func<Stream>(() =>
-                (BodyHub.BodyStream ?? _u8a.Let(it => new MemoryStream().Let(s =>
-                {
-                    s.Write(it.Value, 0, it.Value.Length);
-                    return s;
-                })))), true).Also(it => CACHE.Raw_ipcBody_WMap.Add(it, this));
-        }
+        var BodyHub = ipcBody.BodyHub;
+        var stream = BodyHub.Stream ?? new MemoryStream(ipcBody.U8a);
+        CACHE.Raw_ipcBody_WMap.Add(stream, ipcBody);
+        return stream;
     }
 
-    public Stream BodyStream() => _stream.Value;
-
-    private Lazy<string> _text
+    private Lazy<string> _text;
+    public string Text { get { return _text.Value; } }
+    private static string InitText(IpcBody ipcBody)
     {
-        get
-        {
-            return new Lazy<string>(new Func<string>(() =>
-                (BodyHub.Text ?? _u8a.Let(it => System.Text.UTF8Encoding.UTF8.GetString(it.Value)))), true)
-                .Also(it => CACHE.Raw_ipcBody_WMap.Add(it, this));
-        }
+        var BodyHub = ipcBody.BodyHub;
+        var text = BodyHub.Text ?? ipcBody.U8a.ToUtf8();
+        CACHE.Raw_ipcBody_WMap.Add(text, ipcBody);
+        return text;
     }
 
-    public string Text() => _text.Value;
+    public IpcBody()
+    {
+        _u8a = new Lazy<byte[]>(() => InitU8A(this), true);
+        _stream = new Lazy<Stream>(() => InitStream(this), true);
+        _text = new Lazy<string>(() => InitText(this), true);
+    }
 }
 
