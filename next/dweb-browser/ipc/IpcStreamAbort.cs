@@ -18,7 +18,7 @@ public class IpcStreamAbort : IpcMessage, IpcStream
     /// Serialize IpcStreamAbort
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamAbort</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcStreamAbort

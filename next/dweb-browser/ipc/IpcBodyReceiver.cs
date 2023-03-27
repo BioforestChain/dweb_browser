@@ -13,6 +13,22 @@ public class IpcBodyReceiver : IpcBody
     {
         MetaBody = metaBody;
         ReceiverIpc = ipc;
+
+        var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
+        if (ipcMetaBodyType.IsStream.Value)
+        {
+            var cipc = CACHE.MetaId_receiverIpc_Map[MetaBody.MetaId];
+            if (cipc is null)
+            {
+                ReceiverIpc.OnClose((_) =>
+                {
+                    return CACHE.MetaId_receiverIpc_Map.Remove(MetaBody.MetaId);
+                });
+
+                MetaBody = MetaBody with { ReceiverUid = ReceiverIpc.Uid };
+                CACHE.MetaId_receiverIpc_Map[MetaBody.MetaId] = ReceiverIpc;
+            }
+        }
     }
 
     protected override BodyHubType BodyHub

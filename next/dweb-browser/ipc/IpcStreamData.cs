@@ -45,7 +45,7 @@ public class IpcStreamData : IpcMessage, IpcStream
     /// Serialize IpcStreamData
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamData</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcStreamData

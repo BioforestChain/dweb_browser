@@ -22,7 +22,7 @@ public class IpcStreamPull : IpcMessage, IpcStream
     /// Serialize IpcStreamPull
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamPull</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcStreamPull

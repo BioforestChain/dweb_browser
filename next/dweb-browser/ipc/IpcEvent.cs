@@ -43,7 +43,7 @@ public class IpcEvent : IpcMessage
     /// Serialize IpcEvent
     /// </summary>
     /// <returns>JSON string representation of the IpcEvent</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcEvent

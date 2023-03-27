@@ -18,7 +18,7 @@ public class IpcStreamEnd : IpcMessage, IpcStream
     /// Serialize IpcStreamEnd
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamEnd</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcStreamEnd

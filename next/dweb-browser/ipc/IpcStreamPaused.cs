@@ -29,7 +29,7 @@ public class IpcStreamPaused : IpcMessage, IpcStream
     /// Serialize IpcStreamPaused
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamPaused</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcStreamPaused

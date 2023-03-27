@@ -129,7 +129,7 @@ public class IpcResMessage : IpcMessage
     /// Serialize IpcReqMessage
     /// </summary>
     /// <returns>JSON string representation of the IpcReqMessage</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcReqMessage

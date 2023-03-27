@@ -27,7 +27,7 @@ public class IpcStreamPulling : IpcMessage, IpcStream
     /// Serialize IpcStreamPulling
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamPulling</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcStreamPulling
