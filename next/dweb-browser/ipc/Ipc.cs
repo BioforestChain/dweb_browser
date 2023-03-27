@@ -7,10 +7,10 @@ using Mmid = String;
 
 public abstract class Ipc
 {
-    private static int _uid_acc = 1;
-    private static int _req_id_acc = 0;
+    private static int s_uid_acc = 1;
+    private static int s_req_id_acc = 0;
 
-    public int Uid { get; set; } = Interlocked.Exchange(ref _uid_acc, Interlocked.Increment(ref _uid_acc));
+    public int Uid { get; set; } = Interlocked.Exchange(ref s_uid_acc, Interlocked.Increment(ref s_uid_acc));
 
     /**
      * <summary>
@@ -271,6 +271,6 @@ public abstract class Ipc
     public async Task<HttpResponseMessage> Request(HttpRequestMessage request) =>
         (await this.Request(IpcRequest.FromRequest(AllocReqId(), request, this))).ToResponse();
 
-    public int AllocReqId() => Interlocked.Exchange(ref _req_id_acc, Interlocked.Increment(ref _req_id_acc));
+    public int AllocReqId() => Interlocked.Exchange(ref s_req_id_acc, Interlocked.Increment(ref s_req_id_acc));
 }
 

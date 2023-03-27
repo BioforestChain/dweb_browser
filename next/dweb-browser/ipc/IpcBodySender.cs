@@ -120,7 +120,7 @@ public class IpcBodySender : IpcBody
             public Func<bool> OnDetroy(Func<byte, object?> cb) => _destroySignal.Listen(cb);
         }
 
-        private static Dictionary<Ipc, UsableIpcBodyMapper> _ipcUsableIpcBodyMap = new Dictionary<Ipc, UsableIpcBodyMapper>();
+        private static Dictionary<Ipc, UsableIpcBodyMapper> s_ipcUsableIpcBodyMap = new Dictionary<Ipc, UsableIpcBodyMapper>();
 
         /**
         * <summary>
@@ -137,7 +137,7 @@ public class IpcBodySender : IpcBody
             }
 
             var streamId = ipcBody.MetaBody.StreamId!;
-            var usableIpcBodyMapper = _ipcUsableIpcBodyMap[ipc];
+            var usableIpcBodyMapper = s_ipcUsableIpcBodyMap[ipc];
 
             if (usableIpcBodyMapper is null)
             {
@@ -155,7 +155,7 @@ public class IpcBodySender : IpcBody
                     });
 
                 usableIpcBodyMapper.OnDetroy((_) => off);
-                usableIpcBodyMapper.OnDetroy((_) => _ipcUsableIpcBodyMap.Remove(ipc));
+                usableIpcBodyMapper.OnDetroy((_) => s_ipcUsableIpcBodyMap.Remove(ipc));
 
                 if (usableIpcBodyMapper.Add(streamId, ipcBody))
                 {
@@ -327,18 +327,18 @@ public class IpcBodySender : IpcBody
         (CACHE.Raw_ipcBody_WMap[raw] is not null
             ? (IpcBodySender)CACHE.Raw_ipcBody_WMap[raw]
             : null) ?? new IpcBodySender(raw, ipc);
-    private static Lazy<Dictionary<Stream, string>> _streamIdWM =
+    private static Lazy<Dictionary<Stream, string>> s_streamIdWM =
         new Lazy<Dictionary<Stream, string>>(() => new Dictionary<Stream, string>(), true);
 
-    private static int _stream_id_acc = 1;
+    private static int s_stream_id_acc = 1;
 
-    private static string _getStreamId(Stream stream) => _streamIdWM.Value.Let(it =>
+    private static string s_getStreamId(Stream stream) => s_streamIdWM.Value.Let(it =>
         {
             var streamId = it[stream];
 
             if (streamId is null)
             {
-                streamId = $"rs-{Interlocked.Exchange(ref _stream_id_acc, Interlocked.Increment(ref _stream_id_acc))}";
+                streamId = $"rs-{Interlocked.Exchange(ref s_stream_id_acc, Interlocked.Increment(ref s_stream_id_acc))}";
             }
 
             return streamId;
@@ -356,7 +356,7 @@ public class IpcBodySender : IpcBody
 
     private SMetaBody StreamAsMeta(Stream stream, Ipc ipc)
     {
-        var stream_id = _getStreamId(stream);
+        var stream_id = s_getStreamId(stream);
 
         Console.WriteLine($"sender/INIT/{stream}", stream_id);
 
