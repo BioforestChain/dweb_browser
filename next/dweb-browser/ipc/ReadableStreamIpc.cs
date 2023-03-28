@@ -53,18 +53,18 @@ public class ReadableStreamIpc : Ipc
     public override string ToString() => base.ToString() + "@ReadableStreamIpc";
 
     /// <seealso cref="https://stackoverflow.com/questions/60812587/c-sharp-non-nullable-field-lateinit"/>
-    private ReadbleStream.ReadableStreamController _controller = null!;
+    private ReadableStream.ReadableStreamController _controller = null!;
 
-    public ReadbleStream Stream
+    public ReadableStream Stream
     {
         get
         {
-            return new ReadbleStream(
+            return new ReadableStream(
                 Role,
-                new Action<ReadbleStream.ReadableStreamController>(controller => _controller = controller),
-                new Action<(int, ReadbleStream.ReadableStreamController)>(args =>
+                (controller => _controller = controller),
+                (args =>
                     Console.WriteLine($"ON-PULL/{args.Item2.Stream}", args.Item1)),
-                new Action(() => Console.WriteLine()));
+                (() => Console.WriteLine()));
         }
     }
 
@@ -87,7 +87,7 @@ public class ReadableStreamIpc : Ipc
      * 输入流要额外绑定
      * </summary>
      */
-    public void BindIncomeStream(ReadbleStream stream)
+    public void BindIncomeStream(ReadableStream stream)
     {
         if (_incomeStream is not null)
         {

@@ -88,7 +88,7 @@ public class PromiseOutTest : Log
     public void PromiseOut_Bench_ReturnsAtomicInteger()
     {
         var times = 10000;
-        Int64 result1 = 0, result2 = 0;
+        long result1 = 0, result2 = 0;
 
         for (int i = 0; i < times; i++)
         {

@@ -408,7 +408,7 @@ public class IpcBodySender : IpcBody
 
                         _emitStreamClose();
                         break;
-                    case Int64 availableLen:
+                    case long availableLen:
                         // 开光了，流已经开始被读取
                         _isStreamOpened = true;
                         Console.WriteLine($"sender/READ/{stream}", $"{availableLen} >> {stream_id}");

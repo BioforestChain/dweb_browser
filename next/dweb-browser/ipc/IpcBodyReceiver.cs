@@ -105,9 +105,9 @@ public class IpcBodyReceiver : IpcBody
          * 默认是暂停状态
          */
         var paused = 1;
-        var stream = new ReadbleStream(
+        var stream = new ReadableStream(
             $"receiver-{stream_id}",
-            new Action<ReadbleStream.ReadableStreamController>(controller =>
+            (controller =>
             {
                 /// 如果有初始帧，直接存起来
                 var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(metaBody.Type);
@@ -144,7 +144,7 @@ public class IpcBodyReceiver : IpcBody
                     return null;
                 });
             }),
-            new Action<(int, ReadbleStream.ReadableStreamController)>(async args =>
+            (async args =>
             {
                 var controller = args.Item2;
                 Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", stream_id);
@@ -153,7 +153,7 @@ public class IpcBodyReceiver : IpcBody
                     await ipc.PostMessageAsync(new IpcStreamPulling(stream_id));
                 }
             }),
-            new Action(async () => await ipc.PostMessageAsync(new IpcStreamAbort(stream_id))));
+            (async () => await ipc.PostMessageAsync(new IpcStreamAbort(stream_id))));
 
         Console.WriteLine($"receiver/{ipc}/{stream}");
 

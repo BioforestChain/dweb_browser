@@ -73,7 +73,7 @@ public class MemoryStreamTest: Log
 
 		var buffer = new byte[10];
 
-		Int64 offset = 0;
+		long offset = 0;
 		while (true)
 		{
 			stream.Position = 0;
@@ -121,7 +121,7 @@ public class MemoryStreamTest: Log
 		{
 			Console.WriteLine("Task2 start");
 			var buffer = new byte[11];
-			while (stream.Read(buffer) <= 0)
+			while (stream.Read(buffer) >= 0)
 			{
 				Console.WriteLine("no byte read");
 			}

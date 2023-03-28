@@ -43,7 +43,7 @@ public class IpcRequest : IpcMessage
         IpcHeaders headers,
         Stream stream,
         Ipc ipc,
-        Int64? size
+        long? size
         ) => new IpcRequest(
                 req_id,
                 url,

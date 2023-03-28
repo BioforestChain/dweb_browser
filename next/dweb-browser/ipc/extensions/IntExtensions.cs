@@ -6,10 +6,10 @@ public static class IntExtensions
 	public static byte[] toByteArray(this int self) => BitConverter.GetBytes(self);
 
 	/// <summary>
-	/// convert int64 to int32
+	/// convert long to int32
 	/// </summary>
 	/// <returns>return int32</returns>
-	public static int toInt(this Int64 self)
+	public static int toInt(this long self)
 	{
 		try
 		{
