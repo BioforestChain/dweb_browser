@@ -15,7 +15,7 @@ public class IpcBodyReceiver : IpcBody
         ReceiverIpc = ipc;
 
         var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
-        if (ipcMetaBodyType.IsStream.Value)
+        if (ipcMetaBodyType.IsStream)
         {
             var cipc = CACHE.MetaId_receiverIpc_Map[MetaBody.MetaId];
             if (cipc is null)
@@ -40,7 +40,7 @@ public class IpcBodyReceiver : IpcBody
                 object data = default;
                 var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
 
-                if (ipcMetaBodyType.IsStream.Value)
+                if (ipcMetaBodyType.IsStream)
                 {
                     var ipc = CACHE.MetaId_receiverIpc_Map[MetaBody.MetaId]
                         ?? throw new Exception($"no found ipc by metaId: {MetaBody.MetaId}");
@@ -49,7 +49,7 @@ public class IpcBodyReceiver : IpcBody
                 }
                 else
                 {
-                    switch (ipcMetaBodyType.Encoding.Value)
+                    switch (ipcMetaBodyType.Encoding)
                     {
                         case IPC_DATA_ENCODING.UTF8:
                             data = (string)MetaBody.Data;
@@ -112,7 +112,7 @@ public class IpcBodyReceiver : IpcBody
                 /// 如果有初始帧，直接存起来
                 var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(metaBody.Type);
 
-                switch(ipcMetaBodyType.Encoding.Value)
+                switch (ipcMetaBodyType.Encoding)
                 {
                     case IPC_DATA_ENCODING.UTF8:
                         controller.Enqueue(((string)metaBody.Data).FromUtf8());
@@ -132,7 +132,7 @@ public class IpcBodyReceiver : IpcBody
                     if (args.stream is IpcStreamData data && data.StreamId == stream_id)
                     {
                         Console.WriteLine($"receiver/StreamData/{ipc}/{controller.Stream}", data);
-                        controller.Enqueue(data.Binary.Value);
+                        controller.Enqueue(data.Binary);
                     }
                     else if (args.stream is IpcStreamEnd end && end.StreamId == stream_id)
                     {

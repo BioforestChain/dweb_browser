@@ -13,8 +13,6 @@ public class IpcStreamAbort : IpcMessage, IpcStream
         StreamId = stream_id;
     }
 
-    internal IpcStreamAbort() { }
-
     /// <summary>
     /// Serialize IpcStreamAbort
     /// </summary>
@@ -41,12 +39,13 @@ sealed class IpcStreamAbortConverter : JsonConverter<IpcStreamAbort>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new Exception("Expected StartObject token");
 
-        var ipcStreamAbort = new IpcStreamAbort();
+        IPC_MESSAGE_TYPE type = default;
+        string stream_id = default;
 
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return ipcStreamAbort;
+                return new IpcStreamAbort(stream_id ?? "");
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new Exception("Expected PropertyName token");
@@ -58,10 +57,10 @@ sealed class IpcStreamAbortConverter : JsonConverter<IpcStreamAbort>
             switch (propName)
             {
                 case "type":
-                    ipcStreamAbort.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
                     break;
                 case "stream_id":
-                    ipcStreamAbort.StreamId = reader.GetString() ?? "";
+                    stream_id = reader.GetString() ?? "";
                     break;
             }
         }

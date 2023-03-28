@@ -13,10 +13,10 @@ public class IpcEvent : IpcMessage
         Name = name;
         Data = data;
         Encoding = encoding;
-    }
 
-    internal IpcEvent()
-    { }
+        _binary = new Lazy<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding), true);
+        _text = new Lazy<string>(() => EncodingConverter.DataToText(Data, Encoding), true);
+    }
 
     public static IpcEvent FromBinary(string name, byte[] data) => new IpcEvent(name, data, IPC_DATA_ENCODING.BINARY);
     public static IpcEvent FromBase64(string name, byte[] data) =>
@@ -24,19 +24,15 @@ public class IpcEvent : IpcMessage
     public static IpcEvent FromUtf8(string name, byte[] data) => FromUtf8(name, Convert.ToString(data) ?? "");
     public static IpcEvent FromUtf8(string name, string data) => new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8);
 
-    public Lazy<byte[]> Binary
+    private Lazy<byte[]> _binary;
+    public byte[] Binary
     {
-        get
-        {
-            return new Lazy<byte[]>(new Func<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding)), true);
-        }
+        get { return _binary.Value; }
     }
-    public Lazy<string> Text
+    private Lazy<string> _text;
+    public string Text
     {
-        get
-        {
-            return new Lazy<string>(new Func<string>(() => EncodingConverter.DataToText(Data, Encoding)), true);
-        }
+        get { return _text.Value; }
     }
 
     /// <summary>
@@ -64,12 +60,15 @@ sealed class IpcEventConverter : JsonConverter<IpcEvent>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new Exception("Expected StartObject token");
 
-        var ipcEvent = new IpcEvent();
+        IPC_MESSAGE_TYPE type = default;
+        IPC_DATA_ENCODING encoding = default;
+        string name = default;
+        string data = default;
 
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return ipcEvent;
+                return new IpcEvent(name ?? "", data ?? "", encoding);
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new Exception("Expected PropertyName token");
@@ -81,16 +80,16 @@ sealed class IpcEventConverter : JsonConverter<IpcEvent>
             switch (propName)
             {
                 case "type":
-                    ipcEvent.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
                     break;
                 case "encoding":
-                    ipcEvent.Encoding = (IPC_DATA_ENCODING)reader.GetInt16();
+                    encoding = (IPC_DATA_ENCODING)reader.GetInt16();
                     break;
                 case "name":
-                    ipcEvent.Name = reader.GetString() ?? "";
+                    name = reader.GetString() ?? "";
                     break;
                 case "data":
-                    ipcEvent.Data = reader.GetString() ?? "";
+                    data = reader.GetString() ?? "";
                     break;
             }
         }

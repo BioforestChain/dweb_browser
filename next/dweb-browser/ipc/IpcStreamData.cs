@@ -16,29 +16,25 @@ public class IpcStreamData : IpcMessage, IpcStream
         StreamId = stream_id;
         Data = data;
         Encoding = encoding;
-    }
 
-    internal IpcStreamData()
-    { }
+        _binary = new Lazy<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding), true);
+        _text = new Lazy<string>(() => EncodingConverter.DataToText(Data, Encoding), true);
+    }
 
     public static IpcStreamData FromBinary(string stream_id, byte[] data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY);
     public static IpcStreamData FromBase64(string stream_id, byte[] data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BASE64);
     public static IpcStreamData FromUtf8(string stream_id, byte[] data) => FromUtf8(stream_id, System.Text.UTF8Encoding.UTF8.GetString(data));
     public static IpcStreamData FromUtf8(string stream_id, string data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.UTF8);
 
-    public Lazy<byte[]> Binary
+    private Lazy<byte[]> _binary;
+    public byte[] Binary
     {
-        get
-        {
-            return new Lazy<byte[]>(new Func<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding)), true);
-        }
+        get { return _binary.Value; }
     }
-    public Lazy<string> Text
+    private Lazy<string> _text;
+    public string Text
     {
-        get
-        {
-            return new Lazy<string>(new Func<string>(() => EncodingConverter.DataToText(Data, Encoding)), true);
-        }
+        get { return _text.Value; }
     }
 
     /// <summary>
@@ -67,12 +63,14 @@ sealed class IpcStreamDataConverter : JsonConverter<IpcStreamData>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new Exception("Expected StartObject token");
 
-        var ipcStreamData = new IpcStreamData();
-
+        IPC_MESSAGE_TYPE type = default;
+        IPC_DATA_ENCODING encoding = default;
+        string stream_id = default;
+        string data = default;
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return ipcStreamData;
+                return new IpcStreamData(stream_id ?? "", data ?? "", encoding);
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new Exception("Expected PropertyName token");
@@ -84,16 +82,16 @@ sealed class IpcStreamDataConverter : JsonConverter<IpcStreamData>
             switch (propName)
             {
                 case "type":
-                    ipcStreamData.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
                     break;
                 case "encoding":
-                    ipcStreamData.Encoding = (IPC_DATA_ENCODING)reader.GetInt16();
+                    encoding = (IPC_DATA_ENCODING)reader.GetInt16();
                     break;
                 case "stream_id":
-                    ipcStreamData.StreamId = reader.GetString() ?? "";
+                    stream_id = reader.GetString() ?? "";
                     break;
                 case "data":
-                    ipcStreamData.Data = reader.GetString() ?? "";
+                    data = reader.GetString() ?? "";
                     break;
             }
         }

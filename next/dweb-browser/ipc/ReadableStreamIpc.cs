@@ -76,12 +76,9 @@ public class ReadableStreamIpc : Ipc
     {
         get
         {
-            return new Lazy<byte[]>(new Func<byte[]>(() =>
-            {
-                var pong = "pong".FromUtf8();
+            var pong = "pong".FromUtf8();
 
-                return pong.Length.toByteArray().Combine(pong);
-            }), true).Value;
+            return pong.Length.toByteArray().Combine(pong);
         }
     }
 

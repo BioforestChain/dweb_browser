@@ -151,9 +151,6 @@ public class IpcReqMessage : IpcMessage
         MetaBody = metaBody;
     }
 
-    internal IpcReqMessage()
-    { }
-
     /// <summary>
     /// Serialize IpcReqMessage
     /// </summary>
@@ -183,11 +180,16 @@ sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new JsonException("Expected StartObject token");
 
-        var ipcReqMessage = new IpcReqMessage();
+        int req_id = default;
+        IPC_MESSAGE_TYPE type = default;
+        string url = default;
+        IpcMethod method = default;
+        SMetaBody metaBody = default;
+        var headers = new Dictionary<string, string>();
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return ipcReqMessage;
+                return new IpcReqMessage(req_id, method ?? IpcMethod.Get, url ?? "", headers, metaBody);
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new JsonException("Expected PropertyName token");
@@ -199,23 +201,21 @@ sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>
             switch (propName)
             {
                 case "req_id":
-                    ipcReqMessage.ReqId = reader.GetInt32();
+                    req_id = reader.GetInt32();
                     break;
                 case "type":
-                    ipcReqMessage.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
                     break;
                 case "url":
-                    ipcReqMessage.Url = reader.GetString() ?? "";
+                    url = reader.GetString() ?? "";
                     break;
                 case "method":
-                    ipcReqMessage.Method = new IpcMethod(reader.GetString() ?? "GET");
+                    method = new IpcMethod(reader.GetString() ?? "GET");
                     break;
                 case "metaBody":
-                    ipcReqMessage.MetaBody = (SMetaBody)SMetaBody.FromJson(reader.GetString()!)!;
+                    metaBody = (SMetaBody)SMetaBody.FromJson(reader.GetString()!)!;
                     break;
                 case "headers":
-                    var headers = new Dictionary<string, string>();
-
                     while (reader.Read())
                     {
                         if (reader.TokenType == JsonTokenType.StartObject)
@@ -225,7 +225,6 @@ sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>
 
                         if (reader.TokenType == JsonTokenType.EndObject)
                         {
-                            ipcReqMessage.Headers = headers;
                             break;
                         }
 
@@ -238,7 +237,6 @@ sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>
                             headers.Add(memberName, reader.GetString() ?? "");
                         }
                     }
-
 
                     break;
             }

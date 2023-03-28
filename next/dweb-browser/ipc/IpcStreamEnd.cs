@@ -15,8 +15,6 @@ public class IpcStreamEnd : IpcMessage, IpcStream
         StreamId = stream_id;
     }
 
-    internal IpcStreamEnd() { }
-
     /// <summary>
     /// Serialize IpcStreamEnd
     /// </summary>
@@ -43,12 +41,12 @@ sealed class IpcStreamEndConverter : JsonConverter<IpcStreamEnd>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new Exception("Expected StartObject token");
 
-        var ipcStreamEnd = new IpcStreamEnd();
-
+        IPC_MESSAGE_TYPE type = default;
+        string stream_id = default;
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return ipcStreamEnd;
+                return new IpcStreamEnd(stream_id ?? "");
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new Exception("Expected PropertyName token");
@@ -60,10 +58,10 @@ sealed class IpcStreamEndConverter : JsonConverter<IpcStreamEnd>
             switch (propName)
             {
                 case "type":
-                    ipcStreamEnd.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
                     break;
                 case "stream_id":
-                    ipcStreamEnd.StreamId = reader.GetString() ?? "";
+                    stream_id = reader.GetString() ?? "";
                     break;
             }
         }

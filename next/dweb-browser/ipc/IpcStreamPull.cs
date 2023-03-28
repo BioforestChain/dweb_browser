@@ -19,8 +19,6 @@ public class IpcStreamPull : IpcMessage, IpcStream
         DesiredSize = desiredSize;
     }
 
-    internal IpcStreamPull() { }
-
     /// <summary>
     /// Serialize IpcStreamPull
     /// </summary>
@@ -47,12 +45,14 @@ sealed class IpcStreamPullConverter : JsonConverter<IpcStreamPull>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new Exception("Expected StartObject token");
 
-        var ipcStreamPull = new IpcStreamPull();
+        IPC_MESSAGE_TYPE type = default;
+        string stream_id = default;
+        int desiredSize = default;
 
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return ipcStreamPull;
+                return new IpcStreamPull(stream_id ?? "", desiredSize);
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new Exception("Expected PropertyName token");
@@ -64,13 +64,13 @@ sealed class IpcStreamPullConverter : JsonConverter<IpcStreamPull>
             switch (propName)
             {
                 case "type":
-                    ipcStreamPull.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
                     break;
                 case "stream_id":
-                    ipcStreamPull.StreamId = reader.GetString() ?? "";
+                    stream_id = reader.GetString() ?? "";
                     break;
                 case "desiredSize":
-                    ipcStreamPull.DesiredSize = reader.GetInt32();
+                    desiredSize = reader.GetInt32();
                     break;
             }
         }

@@ -17,18 +17,28 @@ public class PromiseOut<T>
         task.TrySetException(new Exception(msg));
     }
 
-    public bool IsResolved { get; set; } = false;
-    public bool IsFinished
+    public PromiseOut()
     {
-        get { return new Lazy<bool>(new Func<bool>(() => task.Task.IsCompleted), true).Value; }
+        _isCanceled = new Lazy<bool>(() =>
+            task.Task.IsCanceled || ((_token is not null) && _token!.Value.IsCancellationRequested), true);
+
+        _isFinished = new Lazy<bool>(() => task.Task.IsCompleted, true);
     }
 
+    public bool IsResolved { get; set; } = false;
+
+    private Lazy<bool> _isFinished;
+    public bool IsFinished
+    {
+        get { return _isFinished.Value; }
+    }
+
+    private Lazy<bool> _isCanceled;
     public bool IsCanceled
     {
         get
         {
-            return new Lazy<bool>(new Func<bool>(() =>
-                task.Task.IsCanceled || ((_token is not null) && _token!.Value.IsCancellationRequested)), true).Value;
+            return _isCanceled.Value;
         }
     }
 

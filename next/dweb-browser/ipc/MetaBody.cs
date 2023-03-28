@@ -73,37 +73,36 @@ public struct SMetaBody
     public class IpcMetaBodyType
     {
         public IPC_META_BODY_TYPE Type;
-        public Lazy<IPC_DATA_ENCODING> Encoding
+        private Lazy<IPC_DATA_ENCODING> _encoding;
+        public IPC_DATA_ENCODING Encoding
         {
-            get
-            {
-                return new Lazy<IPC_DATA_ENCODING>(new Func<IPC_DATA_ENCODING>(() =>
-                {
-                    var encoding = (int)Type & 0b11111110;
-                    return (IPC_DATA_ENCODING)encoding;
-                }), true);
-            }
+            get { return _encoding.Value; }
         }
 
-        public Lazy<bool> IsInline
+        private Lazy<bool> _isInline;
+        public bool IsInline
         {
-            get
-            {
-                return new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 1), true);
-            }
+            get { return _isInline.Value; }
         }
 
-        public Lazy<bool> IsStream
+        private Lazy<bool> _isStream;
+        public bool IsStream
         {
-            get
-            {
-                return new Lazy<bool>(new Func<bool>(() => ((int)Type & 1) == 0), true);
-            }
+            get { return _isStream.Value; }
         }
 
         public IpcMetaBodyType(IPC_META_BODY_TYPE type)
         {
             Type = type;
+
+            _encoding = new Lazy<IPC_DATA_ENCODING>(() =>
+            {
+                var encoding = (int)Type & 0b11111110;
+                return (IPC_DATA_ENCODING)encoding;
+            }, true);
+
+            _isInline = new Lazy<bool>(() => ((int)Type & 1) == 1, true);
+            _isStream = new Lazy<bool>(() => ((int)Type & 1) == 0, true);
         }
     }
 
@@ -181,12 +180,17 @@ sealed class MetaBodyConverter : JsonConverter<SMetaBody>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new JsonException("Expected StartObject token");
 
-        var metaBody = new SMetaBody();
+        SMetaBody.IPC_META_BODY_TYPE type = default;
+        int senderUid = default;
+        string data = default;
+        string? stream_id = null;
+        int? receiverUid = null;
+        string metaId = default;
 
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return metaBody;
+                return new SMetaBody(type, senderUid, data ?? "", stream_id, receiverUid) { MetaId = metaId ?? "" };
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new JsonException("Expected PropertyName token");
@@ -198,22 +202,22 @@ sealed class MetaBodyConverter : JsonConverter<SMetaBody>
             switch (propName)
             {
                 case "type":
-                    metaBody.Type = (SMetaBody.IPC_META_BODY_TYPE)reader.GetInt64();
+                    type = (SMetaBody.IPC_META_BODY_TYPE)reader.GetInt64();
                     break;
                 case "senderUid":
-                    metaBody.SenderUid = reader.GetInt32();
+                    senderUid = reader.GetInt32();
                     break;
                 case "data":
-                    metaBody.Data = reader.GetString() ?? "";
+                    data = reader.GetString() ?? "";
                     break;
                 case "streamId":
-                    metaBody.StreamId = reader.GetString() ?? null;
+                    stream_id = reader.GetString() ?? null;
                     break;
                 case "receiverUid":
-                    metaBody.ReceiverUid = reader.GetInt32();
+                    receiverUid = reader.GetInt32();
                     break;
                 case "metaId":
-                    metaBody.MetaId = reader.GetString() ?? "";
+                    metaId = reader.GetString() ?? "";
                     break;
             }
         }

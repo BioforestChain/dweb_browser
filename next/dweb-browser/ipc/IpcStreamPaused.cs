@@ -26,8 +26,6 @@ public class IpcStreamPaused : IpcMessage, IpcStream
         StreamId = stream_id;
     }
 
-    internal IpcStreamPaused() { }
-
     /// <summary>
     /// Serialize IpcStreamPaused
     /// </summary>
@@ -54,12 +52,13 @@ sealed class IpcStreamPausedConverter : JsonConverter<IpcStreamPaused>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new Exception("Expected StartObject token");
 
-        var ipcStreamPaused = new IpcStreamPaused();
-
+        IPC_MESSAGE_TYPE type = default;
+        string stream_id = default;
+        int fuse = default;
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return ipcStreamPaused;
+                return new IpcStreamPaused(stream_id ?? "") { Fuse = fuse };
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new Exception("Expected PropertyName token");
@@ -71,13 +70,13 @@ sealed class IpcStreamPausedConverter : JsonConverter<IpcStreamPaused>
             switch (propName)
             {
                 case "type":
-                    ipcStreamPaused.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
                     break;
                 case "stream_id":
-                    ipcStreamPaused.StreamId = reader.GetString() ?? "";
+                    stream_id = reader.GetString() ?? "";
                     break;
                 case "fuse":
-                    ipcStreamPaused.Fuse = reader.GetInt16();
+                    fuse = reader.GetInt16();
                     break;
             }
         }

@@ -24,8 +24,6 @@ public class IpcStreamPulling : IpcMessage, IpcStream
         StreamId = stream_id;
     }
 
-    internal IpcStreamPulling() { }
-
     /// <summary>
     /// Serialize IpcStreamPulling
     /// </summary>
@@ -52,12 +50,14 @@ sealed class IpcStreamPullingConverter : JsonConverter<IpcStreamPulling>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new Exception("Expected StartObject token");
 
-        var ipcStreamPulling = new IpcStreamPulling();
+        IPC_MESSAGE_TYPE type = default;
+        string stream_id = default;
+        int bandwidth = default;
 
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
-                return ipcStreamPulling;
+                return new IpcStreamPulling(stream_id ?? "") { Bandwidth = bandwidth };
 
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new Exception("Expected PropertyName token");
@@ -69,13 +69,13 @@ sealed class IpcStreamPullingConverter : JsonConverter<IpcStreamPulling>
             switch (propName)
             {
                 case "type":
-                    ipcStreamPulling.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
                     break;
                 case "stream_id":
-                    ipcStreamPulling.StreamId = reader.GetString() ?? "";
+                    stream_id = reader.GetString() ?? "";
                     break;
                 case "bandwidth":
-                    ipcStreamPulling.Bandwidth = reader.GetInt16();
+                    bandwidth = reader.GetInt16();
                     break;
             }
         }

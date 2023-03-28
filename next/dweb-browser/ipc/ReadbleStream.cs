@@ -24,6 +24,9 @@ public class ReadbleStream : MemoryStream
         OnPull = onPull;
         OnClose = onClose;
 
+        _lazyController = new Lazy<ReadableStreamController>(() =>
+             new ReadableStreamController(_bufferBlock, () => this), true);
+
         Task.Run(() => onStart(_controller)).Wait();
 
         Task.Run(async () =>
@@ -88,15 +91,12 @@ public class ReadbleStream : MemoryStream
     }
 
     private BufferBlock<byte[]> _bufferBlock = new BufferBlock<byte[]>();
+    private Lazy<ReadableStreamController> _lazyController;
     private ReadableStreamController _controller
     {
         get
         {
-            return new Lazy<ReadableStreamController>(
-                new Func<ReadableStreamController>(() =>
-                    new ReadableStreamController(
-                        _bufferBlock,
-                        new Func<ReadbleStream>(() => this))), true).Value;
+            return _lazyController.Value;
         }
     }
 
@@ -166,5 +166,7 @@ public class ReadbleStream : MemoryStream
     {
         return _requestData(1, true) ? (int)this.Length : 0;
     }
+
+
 }
 
