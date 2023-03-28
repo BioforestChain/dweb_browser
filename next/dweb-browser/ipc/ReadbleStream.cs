@@ -71,7 +71,7 @@ public class ReadbleStream : MemoryStream
             GetStream = getStream;
         }
 
-        public ReadbleStream RStream
+        public ReadbleStream Stream
         {
             get { return GetStream(); }
         }

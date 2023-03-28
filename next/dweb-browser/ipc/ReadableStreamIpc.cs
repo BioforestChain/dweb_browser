@@ -15,7 +15,7 @@ public class ReadableStreamIpc : Ipc
     }
 
     public override MicroModuleInfo Remote { get; set; }
-    public override string Role { get; set; }
+    public override string Role { get; }
 
     public override Task DoClose() => Task.Run(() => _controller.Close());
 
@@ -80,7 +80,7 @@ public class ReadableStreamIpc : Ipc
             {
                 var pong = "pong".FromUtf8();
 
-                return BitConverter.GetBytes(pong.Length).Concat(pong).ToArray();
+                return pong.Length.toByteArray().Combine(pong);
             }), true).Value;
         }
     }

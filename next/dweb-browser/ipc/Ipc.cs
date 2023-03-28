@@ -50,7 +50,7 @@ public abstract class Ipc
     // TODO: MicroModule还未实现
     //public MicroModule AsRemoteInstance()
 
-    public abstract string Role { get; set; }
+    public abstract string Role { get; }
 
     public override string ToString() => $"#i{Uid}";
 
