@@ -1,12 +1,13 @@
 ﻿
 namespace ipc;
 
+[JsonConverter(typeof(IpcStreamPullingConverter))]
 public class IpcStreamPulling : IpcMessage, IpcStream
 {
-    [JsonPropertyName("type")]
+    //[JsonPropertyName("type")]
     public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_PULL;
 
-    [JsonPropertyName("stream_id")]
+    //[JsonPropertyName("stream_id")]
     public string StreamId { get; set; }
 
     /**
@@ -15,13 +16,15 @@ public class IpcStreamPulling : IpcMessage, IpcStream
      * 如果出现负数，往往是代表对方的数据处理出现了阻塞，与 Paused 不同，Paused 代表的是逻辑上的暂停，可能是挂起去处理其它事情去了，
      * 而负数的带宽代表物理意义上的阻塞，此时更不该再发送更多的数据过去
      */
-    [JsonPropertyName("bandwidth")]
+    //[JsonPropertyName("bandwidth")]
     public int Bandwidth { get; set; } = 0;
 
     public IpcStreamPulling(string stream_id)
     {
         StreamId = stream_id;
     }
+
+    internal IpcStreamPulling() { }
 
     /// <summary>
     /// Serialize IpcStreamPulling
@@ -37,3 +40,56 @@ public class IpcStreamPulling : IpcMessage, IpcStream
     public static IpcStreamPulling? FromJson(string json) => JsonSerializer.Deserialize<IpcStreamPulling>(json);
 }
 
+sealed class IpcStreamPullingConverter : JsonConverter<IpcStreamPulling>
+{
+    public override bool CanConvert(Type typeToConvert) =>
+        typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
+
+
+    public override IpcStreamPulling? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+            throw new Exception("Expected StartObject token");
+
+        var ipcStreamPulling = new IpcStreamPulling();
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+                return ipcStreamPulling;
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+                throw new Exception("Expected PropertyName token");
+
+            var propName = reader.GetString();
+
+            reader.Read();
+
+            switch (propName)
+            {
+                case "type":
+                    ipcStreamPulling.Type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    break;
+                case "stream_id":
+                    ipcStreamPulling.StreamId = reader.GetString() ?? "";
+                    break;
+                case "bandwidth":
+                    ipcStreamPulling.Bandwidth = reader.GetInt16();
+                    break;
+            }
+        }
+
+        throw new JsonException("Expected EndObject token");
+    }
+
+    public override void Write(Utf8JsonWriter writer, IpcStreamPulling value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+
+        writer.WriteNumber("type", (int)value.Type);
+        writer.WriteString("stream_id", value.StreamId);
+        writer.WriteNumber("bandwidth", value.Bandwidth);
+
+        writer.WriteEndObject();
+    }
+}

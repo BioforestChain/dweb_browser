@@ -136,7 +136,7 @@ public class IpcResMessage : IpcMessage
     /// </summary>
     /// <param name="json">JSON string representation of IpcReqMessage</param>
     /// <returns>An instance of a IpcReqMessage object.</returns>
-    public static IpcReqMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessage>(json);
+    public static IpcResMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcResMessage>(json);
 }
 
 sealed class IpcResMessageConverter : JsonConverter<IpcResMessage>

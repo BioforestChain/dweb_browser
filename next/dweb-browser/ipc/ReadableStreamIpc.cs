@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using System.Linq;
+using ipc.ipcWeb;
 
 namespace ipc;
 
@@ -89,7 +90,7 @@ public class ReadableStreamIpc: Ipc
      * 输入流要额外绑定
      * </summary>
      */
-    public void BindIncomeStream(Stream stream)
+    public void BindIncomeStream(ReadbleStream stream)
     {
         if (_incomeStream is not null)
         {
@@ -103,9 +104,45 @@ public class ReadableStreamIpc: Ipc
 
         Task.Run(async () =>
         {
-            //while()
-            //while(await stream.Re)
+            while (stream.Available() > 0)
+            {
+                byte[] buffer = new byte[4];
+                var size = await stream.ReadAsync(buffer, 0, buffer.Length);
+
+                // 心跳包？
+                if (size <= 0)
+                {
+                    continue;
+                }
+
+                Console.WriteLine($"size/{stream}", size);
+
+                // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
+                var message = MessageToIpcMessage.JsonToIpcMessage(buffer.ToUtf8(), this);
+                switch (message)
+                {
+                    case "close":
+                        await Close();
+                        break;
+                    case "ping":
+                        await Enqueue(_PONG_DATA);
+                        break;
+                    case "pong":
+                        Console.WriteLine($"PONG/{stream}");
+                        break;
+                    case IpcMessage ipcMessage:
+                        Console.WriteLine($"ON-MESSAGE/{this}", ipcMessage);
+                        await _messageSigal.EmitAsync(new IpcMessageArgs(ipcMessage, this));
+                        break;
+                    default:
+                        throw new Exception($"unknown message: {message}");
+                }
+            }
+
+            Console.WriteLine($"END/{stream}");
         });
+
+        _incomeStream = stream;
     }
 }
 

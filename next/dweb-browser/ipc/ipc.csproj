@@ -16,13 +16,16 @@
   <ItemGroup>
     <PackageReference Include="MessagePack" Version="2.5.108" />
     <PackageReference Include="ConcurrentHashSet" Version="1.3.0" />
+    <PackageReference Include="ObservableValue" Version="1.2.0" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="helper\" />
     <None Remove="extensions\" />
+    <None Remove="ipcWeb\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="helper\" />
     <Folder Include="extensions\" />
+    <Folder Include="ipcWeb\" />
   </ItemGroup>
 </Project>

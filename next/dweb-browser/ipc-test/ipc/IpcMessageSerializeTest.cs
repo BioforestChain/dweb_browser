@@ -1,5 +1,6 @@
 ﻿
 using System.Text;
+using System.Text.Json;
 using Xunit.Abstractions;
 
 namespace ipc_test.ipc;
@@ -16,6 +17,15 @@ public class IpcMessageSerializeTest : Log
 	{
 		Assert.Equal(@"{""type"":6,""stream_id"":""stream_id""}", new IpcStreamAbort("stream_id").ToJson());
 	}
+
+	//[Fact]
+	//public void FromJson_IpcStreamAbort_ReturnsIpcStreamAbort()
+	//{
+		//Console.WriteLine(IpcStreamAbort.FromJson(@"{""type"":6,""stream_id"":""stream_id""}"));
+		//Console.WriteLine(new IpcStreamAbort("stream_id").ToJson());
+		//Console.WriteLine(IpcStreamAbort.FromJson(new IpcStreamAbort("stream_id").ToJson()));
+		//Console.WriteLine(JsonSerializer.Deserialize<IpcMessageType>(@"{""type"":6,""stream_id"":""stream_id""}"));
+	//}
 
 	[Fact]
 	[Trait("Ipc", "IpcMessage")]
