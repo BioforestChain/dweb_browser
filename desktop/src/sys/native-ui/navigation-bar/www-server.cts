@@ -36,7 +36,6 @@ export class WWWServer{
     }
 
     private _onRequest = (request: IpcRequest , ipc: Ipc) => {
-      console.log(request.parsed_url)
         const pathname = request.parsed_url.pathname;
         switch(pathname){
             case "/" || "/index.html":

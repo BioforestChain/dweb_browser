@@ -257,14 +257,14 @@
          * 获取状态
          */
         function getState(){
-            return state;
+            return JSON.stringify(state);
         }
 
         /*
             监听操作的方法
         */
         async function awaitOperation(){
-            fetch("http://status-bar.nativeui.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+appUrl)
+            fetch("http://status-bar.nativeui.sys.dweb-80.localhost:22605/status-bar-ui/wait_for_operation?app_url="+appUrl)
             .then(async (res) => {
                 const reader = res.body.getReader()
                 let loop = true;
@@ -273,9 +273,10 @@
                     loop = !done
                     if(!value) continue;
                     const o = JSON.parse(new TextDecoder().decode(value))
+                    console.log('请求的结果： ', o)
                     if(!appUrl.startsWith(o.from)) continue;
                     switch(o.operationName){
-                        case "setBackgroundColor":  setBackgroundColor(o.value);fetchReturn(o.value, o.id, o.from);break;
+                        case "set_background_color":  setBackgroundColor(o.value);fetchReturn(o.value, o.id, o.from);break;
                         case "get_state": fetchReturn(getState(), o.id, o.from); break;
                         case "set_style": setStyle(o.value);fetchReturn(o.value, o.id, o.from); break;
                         case "set_overlay": setOverlays(o.value);fetchReturn(o.value, o.id, o.from); break;
@@ -294,8 +295,9 @@
 
         // 通过发送请求把数据传送回去
         function fetchReturn(value,id, from){
+            console.log('value: ', value)
             fetch(
-                "http://status-bar.nativeui.sys.dweb-80.localhost:22605/operation_return?app_url="+from,
+                "http://status-bar.nativeui.sys.dweb-80.localhost:22605/status-bar-ui/operation_return?app_url="+from,
                 {
                     method: 'POST',
                     body: value,

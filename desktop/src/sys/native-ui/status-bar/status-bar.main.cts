@@ -6,6 +6,8 @@ import { WWWServer }from "./www-server.cjs";
 import { CommonMesasgeRoutes } from "./register-common-ipc-on-message.cjs";
 import { PluginsRequest } from "../plugins-request.cjs"
 import { log } from "../../../helper/devtools.cjs"
+import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
+import { HttpConnect } from "./http-connect.cjs"
 import type { $Schema1, $Schema2 } from "../../../helper/types.cjs" 
 import type {  $RequestCommonHanlderSchema } from "../../../core/micro-module.native.cjs"
 import type { Remote } from "comlink";
@@ -27,33 +29,32 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
   >();
   pluginsRequest = new PluginsRequest();
   private _allConnects: AllConnects = new AllConnects()
+  private _httpConnect: any;
 
   _bootstrap = async (context: $BootstrapContext) => {
     log.green(`[${this.mmid} _bootstrap]`)
+
     {
       this.onConnect(this._allConnects.onConnect)
     }
     
     {
-      const [httpIpc] = await context.dns.connect('http.sys.dweb')
-      // 向 httpIpc 发起初始化消息
-      intercept(httpIpc, this.mmid)
-      this.httpIpc = httpIpc
+      new HttpConnect(this,context, this.mmid);
     }
    
     {
       new WWWServer(this)
     }
     
-    {
-      new CommonMesasgeRoutes(this)
-      .routes
-      .forEach(
-        (item: $RequestCommonHanlderSchema<$Schema1, $Schema2>) => {
-          this.registerCommonIpcOnMessageHandler(item);
-        }
-      );
-    }
+    // {
+    //   new CommonMesasgeRoutes(this)
+    //   .routes
+    //   .forEach(
+    //     (item: $RequestCommonHanlderSchema<$Schema1, $Schema2>) => {
+    //       this.registerCommonIpcOnMessageHandler(item);
+    //     }
+    //   );
+    // }
   }
   
 

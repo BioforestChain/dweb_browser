@@ -1,10 +1,6 @@
 
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
 import type { IpcEvent as $IpcEvent} from "../../../core/ipc/IpcEvent.cjs";
-// import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
-import type{ NativeMicroModule } from "../../../core/micro-module.native.cjs";
-import type { NavigatorBarNativeUiNMM } from "./navgation-bar.cjs"
-
 export class AllConnects {
     allConnects: Map<string, Ipc> = new Map()
     onConnect = (ipc: Ipc) => {

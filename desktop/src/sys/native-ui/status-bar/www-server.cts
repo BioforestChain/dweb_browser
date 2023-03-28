@@ -40,9 +40,6 @@ export class WWWServer{
             case "/" || "/index.html":
                 this._onRequestIndex(request, ipc);
                 break;
-            case "/operation_return":
-              this._onRequestOperationReturn(request, ipc);
-              break;
             default: throw new Error(`${this.nmm.mmid} 还有没有处理器的 www-server request ${request.url}`,)
         }
     }
@@ -61,98 +58,4 @@ export class WWWServer{
         );
         return this;
     }
-
-    private _onRequestOperationReturn = async (request: IpcRequest , ipc: Ipc) => {
-        const id = request.headers.get("id");
-        const appUrlFromStatusbarHtml =
-          request.parsed_url.searchParams.get("app_url");
-        if (!id) {
-            return this._noId(request.req_id, ipc)
-        }
-
-        if (appUrlFromStatusbarHtml === null) {
-            return this._noAppUrl(request.req_id, ipc)
-        }
-        
-        let statusbarPluginRequestArry =
-          this.nmm.pluginsRequest.list.get(
-            appUrlFromStatusbarHtml
-          );
-
-        if(statusbarPluginRequestArry === undefined){
-            throw new Error('statusbarPluginRequestArry === undefined')
-        }
-
-        let itemIndex = 
-          statusbarPluginRequestArry.findIndex(
-            (_item) => _item.id === id
-          );
-
-        if(itemIndex === -1){
-          throw new Error(`[status-bar.main.cts statusbarPluginRequestArry 没有发现匹配的 item]`)
-        }  
-
-        let item = statusbarPluginRequestArry[itemIndex];
-        statusbarPluginRequestArry.splice(itemIndex, 1);
-
-        item.callback(
-          IpcResponse.fromStream(
-            item.req_id,
-            200,
-            request.headers,
-            await request.body.stream(),
-            ipc,
-          )
-        )
-
-        // 返回 /operation_return 的请求
-        ipc.postMessage(
-          await IpcResponse.fromText(
-            request.req_id,
-            200,
-            new IpcHeaders({
-              "Content-type": "text/plain",
-            }),
-            "ok",
-            ipc
-          )
-        );
-    }
-
-    private _noAppUrl = async (
-        req_id: number,
-        ipc: Ipc
-    ) => {
-        /**已经测试走过了 */
-        ipc.postMessage(
-            IpcResponse.fromText(
-                req_id,
-                400,
-                new IpcHeaders({
-                "Content-type": "text/plain",
-                }),
-                "缺少 app_url 查询参数",
-                ipc
-            )
-        )
-    } 
-
-    private _noId = async (
-        req_id: number,
-        ipc: Ipc
-    ) => {
-        /**已经测试走过了 */
-        ipc.postMessage(
-            IpcResponse.fromText(
-                req_id,
-                400,
-                new IpcHeaders({
-                "Content-type": "text/plain",
-                }),
-                "headers 缺少了 id 标识符",
-                ipc
-            )
-        )
-    } 
-
 }

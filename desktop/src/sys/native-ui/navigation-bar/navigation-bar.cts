@@ -45,7 +45,7 @@ export class NavigationBarNMM extends NativeMicroModule {
     {
       const [httpIpc] = await context.dns.connect('http.sys.dweb')
       // 向 httpIpc 发起初始化消息
-      intercept(httpIpc, this.mmid)
+      // intercept(httpIpc, this.mmid)
       this.httpIpc = httpIpc
     }
     {

@@ -14,9 +14,8 @@ import { log } from "../../helper/devtools.cjs"
 import type { IncomingMessage, OutgoingMessage } from "node:http";
 import type http from "node:http";
  
-import { IpcEvent } from "../../core/ipc/IpcEvent.cjs"
-import url from "node:url";
-import querystring from "node:querystring"
+import type { IpcEvent } from "../../core/ipc/IpcEvent.cjs"
+
  
 interface $Gateway {
   listener: PortListener;
@@ -24,43 +23,11 @@ interface $Gateway {
   token: string;
 }
 
-export interface $BaseAction{
-  action: string;
-}
-
-export type $BaseRouteMethod = "POST" | "GET" | "PUT"
-
-export interface $BaseRoute{
-  pathname: string;
-  matchMode: "prefix" | "full";
-  method: $BaseRouteMethod
-}
-
-/**
- * 路由
- */
- export interface $Route extends $BaseRoute{ 
-  ipc: Ipc,
-  res?: Map<string, OutgoingMessage>
-}
-
 // 过滤请求项
-export interface $FilterActionItem extends $BaseAction{
-  action: "filter/request";
+export interface $FilterActionItem{
+  action: string;
   host: $MMID;
   urlPre: string;
-}
-
-export interface $AddRouteAddActionItem extends $BaseAction, $Route{
-  action: "routes/add",
-}
-
-export interface $StateSendActionItem extends $BaseAction, $BaseRoute{
-  action: "state/send",
-  body: string;
-  headers?: {[key: string]: string},
-  done: boolean; // 是否需要需要关闭 res
-  to: string; // 发送给那个陈旭匹配的 插件
 }
 
 /**
@@ -73,7 +40,7 @@ export class HttpServerNMM extends NativeMicroModule {
 
   private _tokenMap = new Map</* token */ string, $Gateway>();
   private _gatewayMap = new Map</* host */ string, $Gateway>();
-  private _info: {
+  private _info:  Promise<{
     hostname: string;
     port: number;
     host: string;
@@ -84,48 +51,132 @@ export class HttpServerNMM extends NativeMicroModule {
         protocol: string;
         port: number;
     };
-  } | undefined
+  }> | undefined
   private _filterActions: Map<$FilterActionItem, Ipc> = new Map()
   private _filterActionsArray: $FilterActionItem[] = []
   private _filterActionResponse: Map<Ipc, Map<string,OutgoingMessage>> = new Map()
-  private _routes: Map<Ipc, Map<string, $Route>> = new Map()
 
   protected async _bootstrap() {
-    log.green(`${this.mmid} _bootstrap`)
+    console.log('[http-server.cts _bootstrap]')
 
     // 用来接受 推送的消息
     this.onConnect((remoteIpc) => {
-      remoteIpc.onEvent((ipcEventMessage, ipc) => {
-        const data = createBaseAction(ipcEventMessage.data);
-        switch(data.action){
-          case "routes/add":
-            this.ipcEventOnAddRoutes(ipcEventMessage, remoteIpc);
-            break;
-          case "state/send":
-            this.ipcEventOnStateSend(ipcEventMessage, remoteIpc);
-            break;
-          default: throw new Error(`[http-sever onConnect 还有没有匹配的 IpcEvent 处理方式] ${JSON.stringify(ipcEventMessage)}`)
+      remoteIpc.onEvent((ipcEventMessage, remoteIpc) => {
+        const data = createFilterActionItem(ipcEventMessage.data)
+        // 过滤请求
+        if(data.action === "filter/request"){
+          this._filterActions.set(data, remoteIpc)
+          let iterator = this._filterActions.keys()
+          this._filterActionsArray = []
+          let loop: boolean = true;
+          do{
+            const {value, done} = iterator.next()
+            loop = !done
+            value ? this._filterActionsArray.push(value) : "";
+          }while(loop)
+          return;
         }
+
+        // 如果是操作 转发消息
+        if(data.action === "operation"){
+          this._pushMessage(ipcEventMessage, remoteIpc)
+          return;
+        }
+        const errStr = `[http-sever onConnect 还有没有匹配的 IpcEvent 处理方式] ${JSON.stringify(ipcEventMessage)}`
+        throw new Error(errStr)
       })
     })
 
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
-    this._info = await this._dwebServer.create();
-    this._info.server.on("request", async (req, res) => {
+    const info = await this._dwebServer.create();
+    info.server.on("request", (req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");  
       res.setHeader("Access-Control-Allow-Headers", "*");  
       res.setHeader("Access-Control-Allow-Methods","*");  
       /// 获取 host
-      const host = this.getHostByReq(req)
-      
+      var header_host: string | null = null;
+      var header_x_dweb_host: string | null = null;
+      var header_user_agent_host: string | null = null;
+      var query_x_web_host: string | null = new URL(
+        req.url || "/",
+        this._dwebServer.origin
+      ).searchParams.get("X-Dweb-Host");
+      for (const [key, value] of Object.entries(req.headers)) {
+        switch (key) {
+          case "host":
+          case "Host": {
+            if (typeof value === "string") {
+              header_host = value;
+              /// 桌面模式下，我们没有对链接进行拦截，将其转化为 `public_origin?X-Dweb-Host` 这种链接形式 ，因为支持 *.localhost 通配符这种域名
+              /// 所以这里只需要将 host 中的信息提取出来
+              if (value.endsWith(`.${this._dwebServer.authority}`)) {
+                query_x_web_host = value
+                  .slice(0, -this._dwebServer.authority.length - 1)
+                  .replace(/-(\d+)/, ":$1");
+              }
+            }
+            break;
+          }
+          case "x-dweb-host":
+          case "X-Dweb-Host": {
+            if (typeof value === "string") {
+              header_x_dweb_host = value;
+            }
+          }
+          case "user-agent":
+          case "User-Agent": {
+            if (typeof value === "string") {
+              const host = value.match(/\sdweb-host\/(.+)\s*/)?.[1];
+              if (typeof host === "string") {
+                header_user_agent_host = host;
+              }
+            }
+          }
+        }
+      }
 
-      // 是否有匹配的路由 拦截路由 分发请求
+      let host =
+        query_x_web_host ||
+        header_x_dweb_host ||
+        header_user_agent_host ||
+        header_host;
+      if (typeof host === "string" && host.includes(":") === false) {
+        host += ":" + info.protocol.port;
+      }
+      if (typeof host !== "string") {
+        /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
+        host = "*";
+      }
+
+
       {
-        if(await this.distributeRequest(req, res)){
+        // 监听 就不直接返回了 把 res 保存起来
+        if(req.url === "/add_route"){ /** 监听 */
+          log.red('/listen')
+          console.log(req.headers)
+        }
+
+
+      }
+    
+     
+      {
+        // 保持住推送消息通道
+        const filterActionItem 
+          = this
+              ._filterActionsArray
+              .find(item => (
+                host?.startsWith(item.host) && req.url?.startsWith(item.urlPre)
+              ))
+                                  
+        if(filterActionItem !== undefined){
+          this._saveRes(filterActionItem, req, res)
           return;
         }
       }
-       
+
+
+
       {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
@@ -281,8 +332,35 @@ export class HttpServerNMM extends NativeMicroModule {
     return true;
   }
 
-  // 获取 host
-  getHostByReq = (req: IncomingMessage) => {
+  // 保存res
+  private async _saveRes(filterActionItem: $FilterActionItem, req: IncomingMessage, res: OutgoingMessage){
+    const ipc = this._filterActions.get(filterActionItem) 
+    if(ipc === undefined) throw new Error('没有匹配的 Ipc')
+    const url = new URL(req.url as string, `http://${req.headers.host}`);
+    const app_url = url.searchParams.get("app_url")
+    if(app_url === null) throw new Error('req 缺少 app_url 参数')
+    let _map = this._filterActionResponse.get(ipc)
+    if(_map === undefined){
+      _map = new Map<string, OutgoingMessage>()
+    }
+    _map.set(app_url, res)
+    this._filterActionResponse.set(ipc, _map)
+  }
+
+  // 向 html 推送消息
+  private async _pushMessage(ipcEventMessage: IpcEvent, ipc: Ipc){
+    const resMap = this._filterActionResponse.get(ipc)
+    if(resMap === undefined) throw new Error('没有匹配的 Ipc')
+    const iterator = resMap.values()
+    let loop: boolean = true;
+    do{
+      const {value, done} = iterator.next()
+      loop = !done;
+      value ? value.write(ipcEventMessage.data) : '';
+    }while(loop)
+  }
+
+  getHostByReq(req: IncomingMessage, res: OutgoingMessage){
     /// 获取 host
     var header_host: string | null = null;
     var header_x_dweb_host: string | null = null;
@@ -331,7 +409,7 @@ export class HttpServerNMM extends NativeMicroModule {
       header_user_agent_host ||
       header_host;
     if (typeof host === "string" && host.includes(":") === false) {
-      host += ":" + this._info?.protocol.port;
+      host += ":" + info.protocol.port;
     }
     if (typeof host !== "string") {
       /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
@@ -339,130 +417,7 @@ export class HttpServerNMM extends NativeMicroModule {
     }
     return host;
   }
-
-  // 添加路由的操作
-  ipcEventOnAddRoutes(ipcEventMessage: IpcEvent, remoteIpc: Ipc) {
-    const data = createAddRoutesActionItem(ipcEventMessage.data)
-    // 一个 ipc 对应一个map
-    let _map = this._routes.get(remoteIpc)
-    if(_map === undefined){
-      _map = new Map()
-      this._routes.set(remoteIpc, _map)
-    }
-    // 重复添加只保留一个
-    const key = createRouteKey(data)
-    _map.set(key, {
-      pathname: data.pathname,
-      matchMode: data.matchMode,
-      method: data.method,
-      ipc: remoteIpc,
-    })
-    const route = _map.get(key)
-  }
-
-  // 分发请求
-  distributeRequest = async (req: IncomingMessage, res: OutgoingMessage) => {
-    let has = false;
-    const pathname = url.parse(req.url as string,).pathname;
-    const full = createRouteKeyByArgs(
-      pathname as string,
-      "full",
-      req.method as $BaseRouteMethod
-    )
-    const prefix = createRouteKeyByArgs(
-      pathname as string,
-      'prefix',
-      req.method as $BaseRouteMethod
-    )
-    const parentRoutes = this._routes.values();
-    let loop = true
-    do{
-      const {value, done} = parentRoutes.next() 
-      loop = !done
-      if(done) continue;
-      let route = value.get(full)
-      if(route !== undefined){
-        route.ipc.postMessage(
-          IpcEvent.fromText(
-            'request/distribute',
-            await createDistributeRequestData(route, req)
-          )
-        )
-        has = true;
-        
-        // 保存 res
-        let _res = route.res;
-        if(!_res){
-          _res = new Map()
-          route.res = _res;
-        }
-
-        _res.set(req.headers.origin as string, res)
-      }
-
-      route = value.get(prefix)
-      if(route !== undefined){
-        route.ipc.postMessage(
-          IpcEvent.fromText(
-            'request/distribute',
-            await createDistributeRequestData(route, req)
-          )
-        )
-        has = true;
-        // 保存 res
-        let _res = route.res;
-        if(!_res){
-          _res = new Map()
-          route.res = _res;
-        }
-        _res.set(req.headers.origin as string, res)
-      }
-
-    }while(loop)
-
-    return has;
-  }
-
-  // 把数据通过 res 发送给匹配的对象
-  ipcEventOnStateSend = (ipcEventMessage: IpcEvent, ipc: Ipc) => {
-    const data = createStateSendActionItem(ipcEventMessage.data);
-    const parentRoutes = this._routes.values()
-    let loop = true;
-    console.log('发送数据')
-    do{
-      const {value, done} = parentRoutes.next() 
-      loop = !done
-      if(done) continue;
-      const routes = value.values()
-      let insideLoop = true;
-      do{
-        const {value, done} = routes.next()
-        insideLoop = !done
-        if(done) continue;
-        if(createRouteKey(value) !== createRouteKey(data)) continue;
-        const res = value.res?.get(data.to)
-        if(!res) continue;
-        res.write(
-          typeof data.body === "string" 
-            ? data.body 
-            : JSON.stringify(data.body)
-        )
-        if(!data.done)continue;
-        res.end()
-        value.res?.delete(data.to)
-      }while(insideLoop)
-    }while(loop)
-  }
-}
-
-function createBaseAction(data: string | Uint8Array){
-  if(Array.isArray(data)) throw new Error('[http-sever.cts createBaseAction 非法的参数 data 只能够是JSON字符串]')
-  try{
-    const o = JSON.parse(data as string) as $BaseAction;
-    return o
-  }catch(err){
-    throw err;
-  }
+  
 }
 
 function createFilterActionItem(data: string | Uint8Array){
@@ -474,77 +429,5 @@ function createFilterActionItem(data: string | Uint8Array){
     throw err;
   }
 }
-
-function createAddRoutesActionItem(data: string | Uint8Array){
-  if(Array.isArray(data)) throw new Error('[http-sever.cts createAddRoutesActionItem 非法的参数 data 只能够是JSON字符串]')
-  try{
-    const o = JSON.parse(data as string) as $AddRouteAddActionItem;
-    return o
-  }catch(err){
-    throw err;
-  }
-}
-
-function createStateSendActionItem(data: string | Uint8Array){
-  if(Array.isArray(data)) throw new Error('[http-sever.cts createStateSendActionItem 非法的参数 data 只能够是JSON字符串]')
-  try{
-    const o = JSON.parse(data as string) as $StateSendActionItem;
-    return o
-  }catch(err){
-    throw err;
-  }
-}
-
-async function createDistributeRequestData(
-  route: $Route,
-  req: IncomingMessage
-): Promise<string>{
-  return new Promise(resolve => {
-    let data: Uint8Array = new Uint8Array()
-    if(req.method === "POST"){
-      req.on('data', (chunk) => {
-        data = Uint8Array.from([...data, ...chunk])
-      })
-      req.on('end', () => {
-        console.log(new TextDecoder().decode(data))
-        resolve(JSON.stringify({
-          pathname: route.pathname,
-          method: req.method,
-          url: req.url,
-          headers: req.headers,
-          matchMode: route.matchMode,
-          body: new TextDecoder().decode(data)
-        }))
-      })
-    }else{
-      resolve(JSON.stringify({
-        pathname: route.pathname,
-        method: req.method,
-        url: req.url,
-        headers: req.headers,
-        matchMode: route.matchMode,
-        body: null
-      }))
-    }
-
-  })
-}
-
-
-function createRouteKey(
-  route: $BaseRoute 
-){
-  return `${route.pathname}${route.matchMode}${route.method}`
-}
-
-function createRouteKeyByArgs(
-  pathname: string,
-  matchMode: string,
-  method: string,
-){
-  return `${pathname}${matchMode}${method}`
-}
-
-
 
 

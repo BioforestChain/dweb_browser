@@ -68,7 +68,6 @@ export class PortListener {
       defaultErrorResponse(req, res, 404, "no found");
       return;
     }
-    
 
     /**
      * 要通过 ipc 传输过去的 req.body
@@ -119,13 +118,12 @@ export class PortListener {
 
       ipc_req_body_stream = server_req_body_writter.stream;
     }
-
     const http_response_info = await hasMatch.bind.streamIpc.request(url, {
       method,
       body: ipc_req_body_stream,
       headers: req.headers as Record<string, string>,
     });
-    
+
     /// 写回 res 对象
     res.statusCode = http_response_info.statusCode;
     http_response_info.headers.forEach((value, name) => {
