@@ -29,6 +29,7 @@ public class IpcStreamAbort : IpcMessage, IpcStream
     public static IpcStreamAbort? FromJson(string json) => JsonSerializer.Deserialize<IpcStreamAbort>(json);
 }
 
+#region IpcStreamAbort序列化反序列化
 sealed class IpcStreamAbortConverter : JsonConverter<IpcStreamAbort>
 {
     public override bool CanConvert(Type typeToConvert) =>
@@ -78,3 +79,4 @@ sealed class IpcStreamAbortConverter : JsonConverter<IpcStreamAbort>
         writer.WriteEndObject();
     }
 }
+#endregion

@@ -53,6 +53,7 @@ public class IpcEvent : IpcMessage
     public static IpcEvent? FromJson(string json) => JsonSerializer.Deserialize<IpcEvent>(json);
 }
 
+#region IpcEvent序列化反序列化
 sealed class IpcEventConverter : JsonConverter<IpcEvent>
 {
     public override bool CanConvert(Type typeToConvert) =>
@@ -109,3 +110,4 @@ sealed class IpcEventConverter : JsonConverter<IpcEvent>
         writer.WriteEndObject();
     }
 }
+#endregion

@@ -38,7 +38,7 @@ public class IpcHeaders
 
     public void Delete(string key) => _headersMap.Remove(key.ToLower());
 
-    public void forEach(Action<string, string> fn)
+    public void ForEach(Action<string, string> fn)
     {
         foreach (KeyValuePair<string, string> entry in _headersMap)
         {
@@ -68,6 +68,7 @@ public class IpcHeaders
     public static IpcHeaders? FromJson(string json) => JsonSerializer.Deserialize<IpcHeaders>(json);
 }
 
+#region IpcHeaders序列化反序列化
 sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>
 {
     public override bool CanConvert(Type typeToConvert) =>
@@ -116,5 +117,5 @@ sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>
         writer.WriteEndObject();
     }
 }
-
+#endregion
 

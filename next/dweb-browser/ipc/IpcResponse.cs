@@ -8,7 +8,7 @@ public class IpcResponse : IpcMessage
     public int StatusCode { get; init; }
     public IpcHeaders Headers { get; set; }
     public IpcBody Body { get; set; }
-    public Ipc ResIpc { get; init; }
+    public Ipc Ipc { get; init; }
 
     internal IpcResponse()
     { }
@@ -19,7 +19,7 @@ public class IpcResponse : IpcMessage
         StatusCode = statusCode;
         Headers = headers;
         Body = body;
-        ResIpc = ipc;
+        Ipc = ipc;
     }
 
     // TODO: FromJson 未完成
@@ -139,6 +139,7 @@ public class IpcResMessage : IpcMessage
     public static IpcResMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcResMessage>(json);
 }
 
+#region IpcResMessage序列化反序列化
 sealed class IpcResMessageConverter : JsonConverter<IpcResMessage>
 {
     public override bool CanConvert(Type typeToConvert) =>
@@ -240,3 +241,4 @@ sealed class IpcResMessageConverter : JsonConverter<IpcResMessage>
         writer.WriteEndObject();
     }
 }
+#endregion

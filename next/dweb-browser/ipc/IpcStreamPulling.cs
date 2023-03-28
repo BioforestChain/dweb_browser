@@ -40,6 +40,7 @@ public class IpcStreamPulling : IpcMessage, IpcStream
     public static IpcStreamPulling? FromJson(string json) => JsonSerializer.Deserialize<IpcStreamPulling>(json);
 }
 
+#region IpcStreamPulling序列化反序列化
 sealed class IpcStreamPullingConverter : JsonConverter<IpcStreamPulling>
 {
     public override bool CanConvert(Type typeToConvert) =>
@@ -93,3 +94,4 @@ sealed class IpcStreamPullingConverter : JsonConverter<IpcStreamPulling>
         writer.WriteEndObject();
     }
 }
+#endregion

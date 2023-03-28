@@ -8,7 +8,7 @@ public class IpcRequest : IpcMessage
     public string Url { get; init; }
     public IpcHeaders Headers { get; set; }
     public IpcBody Body { get; set; }
-    public Ipc ReqIpc { get; init; }
+    public Ipc Ipc { get; init; }
 
     public IpcRequest(int req_id, string url, IpcMethod method, IpcHeaders headers, IpcBody body, Ipc ipc)
     {
@@ -17,7 +17,7 @@ public class IpcRequest : IpcMessage
         Method = method;
         Headers = headers;
         Body = body;
-        ReqIpc = ipc;
+        Ipc = ipc;
     }
 
     public static IpcRequest FromText(int req_id, string url, IpcMethod method, IpcHeaders headers, string text, Ipc ipc) =>
@@ -168,6 +168,7 @@ public class IpcReqMessage : IpcMessage
     public static IpcReqMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessage>(json);
 }
 
+#region IpcReqMessage序列化反序列化
 sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>
 {
     public override bool CanConvert(Type typeToConvert) =>
@@ -274,4 +275,4 @@ sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>
         writer.WriteEndObject();
     }
 }
-
+#endregion

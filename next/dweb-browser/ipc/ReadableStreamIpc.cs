@@ -4,15 +4,15 @@ using ipc.ipcWeb;
 
 namespace ipc;
 
-public class ReadableStreamIpc: Ipc
+public class ReadableStreamIpc : Ipc
 {
-	
 
-	public ReadableStreamIpc(MicroModuleInfo remote, String role)
-	{
+
+    public ReadableStreamIpc(MicroModuleInfo remote, String role)
+    {
         Remote = remote;
         Role = role;
-	}
+    }
 
     public override MicroModuleInfo Remote { get; set; }
     public override string Role { get; set; }
@@ -46,7 +46,7 @@ public class ReadableStreamIpc: Ipc
                 break;
         }
 
-        Console.WriteLine($"post/{RStream}", message.Length);
+        Console.WriteLine($"post/{Stream}", message.Length);
         return Enqueue(BitConverter.GetBytes(message.Length).Concat(message).ToArray());
     }
 
@@ -55,7 +55,7 @@ public class ReadableStreamIpc: Ipc
     /// <seealso cref="https://stackoverflow.com/questions/60812587/c-sharp-non-nullable-field-lateinit"/>
     private ReadbleStream.ReadableStreamController _controller = null!;
 
-    public ReadbleStream RStream
+    public ReadbleStream Stream
     {
         get
         {
@@ -63,7 +63,7 @@ public class ReadableStreamIpc: Ipc
                 Role,
                 new Action<ReadbleStream.ReadableStreamController>(controller => _controller = controller),
                 new Action<(int, ReadbleStream.ReadableStreamController)>(args =>
-                    Console.WriteLine($"ON-PULL/{args.Item2.RStream}", args.Item1)),
+                    Console.WriteLine($"ON-PULL/{args.Item2.Stream}", args.Item1)),
                 new Action(() => Console.WriteLine()));
         }
     }

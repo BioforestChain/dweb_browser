@@ -77,7 +77,7 @@ public class IpcBodyReceiver : IpcBody
                         it.U8a = byteArray;
                         break;
                     case Stream stream:
-                        it.BodyStream = stream;
+                        it.Stream = stream;
                         break;
                 }
             })), true).Value;
@@ -131,12 +131,12 @@ public class IpcBodyReceiver : IpcBody
                 {
                     if (args.stream is IpcStreamData data && data.StreamId == stream_id)
                     {
-                        Console.WriteLine($"receiver/StreamData/{ipc}/{controller.RStream}", data);
+                        Console.WriteLine($"receiver/StreamData/{ipc}/{controller.Stream}", data);
                         controller.Enqueue(data.Binary.Value);
                     }
                     else if (args.stream is IpcStreamEnd end && end.StreamId == stream_id)
                     {
-                        Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.RStream}", end);
+                        Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", end);
                         controller.Close();
                         return SIGNAL_CTOR.OFF;
                     }
@@ -144,16 +144,16 @@ public class IpcBodyReceiver : IpcBody
                     return null;
                 });
             }),
-            new Action<(int, ReadbleStream.ReadableStreamController)>(args =>
+            new Action<(int, ReadbleStream.ReadableStreamController)>(async args =>
             {
                 var controller = args.Item2;
-                Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.RStream}", stream_id);
+                Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", stream_id);
                 if (Interlocked.CompareExchange(ref paused, 1, 0) == 1)
                 {
-                    ipc.PostMessageAsync(new IpcStreamPulling(stream_id));
+                    await ipc.PostMessageAsync(new IpcStreamPulling(stream_id));
                 }
             }),
-            new Action(() => ipc.PostMessageAsync(new IpcStreamAbort(stream_id))));
+            new Action(async () => await ipc.PostMessageAsync(new IpcStreamAbort(stream_id))));
 
         Console.WriteLine($"receiver/{ipc}/{stream}");
 

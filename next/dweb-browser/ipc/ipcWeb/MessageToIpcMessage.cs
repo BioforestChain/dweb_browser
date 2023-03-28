@@ -5,12 +5,12 @@ namespace ipc.ipcWeb;
 
 public static class MessageToIpcMessage
 {
-	public static object? JsonToIpcMessage(string data, Ipc ipc)
-	{
-		if (data is "close" or "ping" or "pong")
-		{
-			return data;
-		}
+    public static object? JsonToIpcMessage(string data, Ipc ipc)
+    {
+        if (data is "close" or "ping" or "pong")
+        {
+            return data;
+        }
 
         try
         {
@@ -57,6 +57,6 @@ public static class MessageToIpcMessage
         {
             return data;
         }
-	}
+    }
 }
 

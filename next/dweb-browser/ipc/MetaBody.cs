@@ -170,6 +170,7 @@ public struct SMetaBody
     public static SMetaBody? FromJson(string json) => JsonSerializer.Deserialize<SMetaBody>(json);
 }
 
+#region MetaBody序列化反序列化
 sealed class MetaBodyConverter : JsonConverter<SMetaBody>
 {
     public override bool CanConvert(Type typeToConvert) =>
@@ -254,4 +255,4 @@ sealed class MetaBodyConverter : JsonConverter<SMetaBody>
         writer.WriteEndObject();
     }
 }
-
+#endregion

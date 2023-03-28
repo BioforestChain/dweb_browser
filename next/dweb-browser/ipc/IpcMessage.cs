@@ -16,6 +16,7 @@ public abstract class IpcMessage
 [JsonConverter(typeof(IpcMessageTypeConverter))]
 public record IpcMessageType(IPC_MESSAGE_TYPE Type);
 
+#region IpcMessageType序列化反序列化 - 用于IpcMessage反序列化判断IpcMessage子类类型
 public class IpcMessageTypeConverter : JsonConverter<IpcMessageType>
 {
     public override bool CanConvert(Type typeToConvert) => true;
@@ -62,6 +63,7 @@ public class IpcMessageTypeConverter : JsonConverter<IpcMessageType>
         writer.WriteEndObject();
     }
 }
+#endregion
 
 public interface IpcStream
 {

@@ -55,6 +55,7 @@ public class IpcStreamData : IpcMessage, IpcStream
     public static IpcStreamData? FromJson(string json) => JsonSerializer.Deserialize<IpcStreamData>(json);
 }
 
+#region IpcStreamData序列化反序列化
 sealed class IpcStreamDataConverter : JsonConverter<IpcStreamData>
 {
     public override bool CanConvert(Type typeToConvert) =>
@@ -112,4 +113,4 @@ sealed class IpcStreamDataConverter : JsonConverter<IpcStreamData>
         writer.WriteEndObject();
     }
 }
-
+#endregion
