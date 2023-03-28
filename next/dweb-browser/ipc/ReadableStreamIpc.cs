@@ -47,7 +47,7 @@ public class ReadableStreamIpc : Ipc
         }
 
         Console.WriteLine($"post/{Stream}", message.Length);
-        return Enqueue(BitConverter.GetBytes(message.Length).Concat(message).ToArray());
+        return Enqueue(message.Length.toByteArray().Combine(message));
     }
 
     public override string ToString() => base.ToString() + "@ReadableStreamIpc";
