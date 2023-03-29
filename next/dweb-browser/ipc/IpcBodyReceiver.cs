@@ -105,9 +105,8 @@ public class IpcBodyReceiver : IpcBody
          * 默认是暂停状态
          */
         var paused = 1;
-        var stream = new ReadableStream(
-            $"receiver-{stream_id}",
-            (controller =>
+        var stream = new ReadableStream($"receiver-{stream_id}",
+            onStart: controller =>
             {
                 /// 如果有初始帧，直接存起来
                 var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(metaBody.Type);
@@ -127,24 +126,44 @@ public class IpcBodyReceiver : IpcBody
                         break;
                 }
 
-                ipc.OnStream((IpcStreamMessageArgs args) =>
+
+                Ipc.OnStreamHanlder onStream = null!;
+                onStream = async (streamMessage, ipc) =>
                 {
-                    if (args.stream is IpcStreamData data && data.StreamId == stream_id)
+                    if (streamMessage is IpcStreamData data && data.StreamId == stream_id)
                     {
                         Console.WriteLine($"receiver/StreamData/{ipc}/{controller.Stream}", data);
-                        controller.Enqueue(data.Binary);
+                        await controller.EnqueueAsync(data.Binary);
                     }
-                    else if (args.stream is IpcStreamEnd end && end.StreamId == stream_id)
+                    else if (streamMessage is IpcStreamEnd end && end.StreamId == stream_id)
                     {
                         Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", end);
                         controller.Close();
-                        return SIGNAL_CTOR.OFF;
+                        ipc.onStream -= onStream;
                     }
 
-                    return null;
-                });
-            }),
-            (async args =>
+                };
+
+                ipc.onStream += onStream;
+
+                //ipc.OnStream(async (IpcStreamMessageArgs args) =>
+                //{
+                //    if (args.stream is IpcStreamData data && data.StreamId == stream_id)
+                //    {
+                //        Console.WriteLine($"receiver/StreamData/{ipc}/{controller.Stream}", data);
+                //        await controller.EnqueueAsync(data.Binary);
+                //    }
+                //    else if (args.stream is IpcStreamEnd end && end.StreamId == stream_id)
+                //    {
+                //        Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", end);
+                //        controller.Close();
+                //        return SIGNAL_CTOR.OFF;
+                //    }
+
+                //    return null;
+                //});
+            },
+            onPull: async args =>
             {
                 var controller = args.Item2;
                 Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", stream_id);
@@ -152,8 +171,12 @@ public class IpcBodyReceiver : IpcBody
                 {
                     await ipc.PostMessageAsync(new IpcStreamPulling(stream_id));
                 }
-            }),
-            (async () => await ipc.PostMessageAsync(new IpcStreamAbort(stream_id))));
+            },
+            onClose: async () =>
+            {
+                await ipc.PostMessageAsync(new IpcStreamAbort(stream_id));
+            }
+            ).Stream;
 
         Console.WriteLine($"receiver/{ipc}/{stream}");
 

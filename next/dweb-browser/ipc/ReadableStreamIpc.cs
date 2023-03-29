@@ -47,7 +47,7 @@ public class ReadableStreamIpc : Ipc
         }
 
         Console.WriteLine($"post/{Stream}", message.Length);
-        return Enqueue(message.Length.ToByteArray().Combine(message));
+        return EnqueueAsync(message.Length.ToByteArray().Combine(message));
     }
 
     public override string ToString() => base.ToString() + "@ReadableStreamIpc";
@@ -68,7 +68,7 @@ public class ReadableStreamIpc : Ipc
         }
     }
 
-    private Task Enqueue(byte[] data) => _controller.Enqueue(data);
+    private Task EnqueueAsync(byte[] data) => _controller.EnqueueAsync(data);
 
     private Stream? _incomeStream { get; set; } = null;
 
@@ -87,7 +87,7 @@ public class ReadableStreamIpc : Ipc
      * 输入流要额外绑定
      * </summary>
      */
-    public void BindIncomeStream(ReadableStream stream)
+    public void BindIncomeStream(Stream stream)
     {
         if (_incomeStream is not null)
         {
@@ -101,10 +101,10 @@ public class ReadableStreamIpc : Ipc
 
         Task.Run(async () =>
         {
-            while (stream.Available() > 0)
+            //var reader = new BinaryReader(stream);
+            while (stream.CanRead)
             {
-                byte[] buffer = new byte[4];
-                var size = await stream.ReadAsync(buffer, 0, buffer.Length);
+                var size = await stream.ReadIntAsync();
 
                 // 心跳包？
                 if (size <= 0)
@@ -115,14 +115,14 @@ public class ReadableStreamIpc : Ipc
                 Console.WriteLine($"size/{stream}", size);
 
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                var message = MessageToIpcMessage.JsonToIpcMessage(buffer.ToUtf8(), this);
+                var message = MessageToIpcMessage.JsonToIpcMessage(await stream.ReadBytesAsync(size), this);
                 switch (message)
                 {
                     case "close":
                         await Close();
                         break;
                     case "ping":
-                        await Enqueue(_PONG_DATA);
+                        await EnqueueAsync(_PONG_DATA);
                         break;
                     case "pong":
                         Console.WriteLine($"PONG/{stream}");

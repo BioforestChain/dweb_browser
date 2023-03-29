@@ -1,15 +1,20 @@
 ﻿
+using System.Linq;
 using ipc.extensions;
 
 namespace ipc.ipcWeb;
 
 public static class MessageToIpcMessage
 {
-    public static object? JsonToIpcMessage(string data, Ipc ipc)
+    private static byte[] closeString = "close".FromUtf8();
+    private static byte[] pingString = "ping".FromUtf8();
+    private static byte[] pongString = "pong".FromUtf8();
+
+    public static object? JsonToIpcMessage(byte[] data, Ipc ipc)
     {
-        if (data is "close" or "ping" or "pong")
+        if (data.SequenceEqual(closeString) || data.SequenceEqual(pingString) || data.SequenceEqual(pongString))
         {
-            return data;
+            return data.ToUtf8();
         }
 
         try
@@ -18,36 +23,36 @@ public static class MessageToIpcMessage
             switch (JsonSerializer.Deserialize<IpcMessageType>(data)!.Type)
             {
                 case IPC_MESSAGE_TYPE.REQUEST:
-                    result = IpcReqMessage.FromJson(data).Let(it =>
+                    result = JsonSerializer.Deserialize<IpcReqMessage>(data).Let(it =>
                     {
                         return new IpcRequest(
                             it!.ReqId, it.Url, it.Method, IpcHeaders.With(it.Headers), new IpcBodyReceiver(it.MetaBody, ipc), ipc);
                     });
                     break;
                 case IPC_MESSAGE_TYPE.RESPONSE:
-                    result = IpcResMessage.FromJson(data).Let(it =>
+                    result = JsonSerializer.Deserialize<IpcResMessage>(data).Let(it =>
                     {
                         return new IpcResponse(
                             it!.ReqId, it.StatusCode, IpcHeaders.With(it.Headers), new IpcBodyReceiver(it.MetaBody, ipc), ipc);
                     });
                     break;
                 case IPC_MESSAGE_TYPE.EVENT:
-                    result = IpcEvent.FromJson(data)!;
+                    result = JsonSerializer.Deserialize<IpcEvent>(data)!;
                     break;
                 case IPC_MESSAGE_TYPE.STREAM_DATA:
-                    result = IpcStreamData.FromJson(data)!;
+                    result = JsonSerializer.Deserialize<IpcStreamData>(data)!;
                     break;
                 case IPC_MESSAGE_TYPE.STREAM_PULL:
-                    result = IpcStreamPull.FromJson(data)!;
+                    result = JsonSerializer.Deserialize<IpcStreamPull>(data)!;
                     break;
                 case IPC_MESSAGE_TYPE.STREAM_PAUSED:
-                    result = IpcStreamPaused.FromJson(data)!;
+                    result = JsonSerializer.Deserialize<IpcStreamPaused>(data)!;
                     break;
                 case IPC_MESSAGE_TYPE.STREAM_END:
-                    result = IpcStreamEnd.FromJson(data)!;
+                    result = JsonSerializer.Deserialize<IpcStreamEnd>(data)!;
                     break;
                 case IPC_MESSAGE_TYPE.STREAM_ABORT:
-                    result = IpcStreamAbort.FromJson(data)!;
+                    result = JsonSerializer.Deserialize<IpcStreamAbort>(data)!;
                     break;
             }
 

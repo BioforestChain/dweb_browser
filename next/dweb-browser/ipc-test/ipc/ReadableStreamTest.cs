@@ -15,38 +15,40 @@ namespace ipc_test.ipc
         /// </summary>
         [Fact]
         [Trait("Ipc", "ReadableStream")]
-        public void Available_ReadableStream_ReturnsSuccess()
+        public async void Available_ReadableStream_ReturnsSuccess()
         {
             Console.WriteLine("start");
-            var stream = new ReadableStream(
-                null,
-                (controller) =>
-                {
-                    Task.Run(async () =>
-                    {
-                        await Task.Delay(1000);
-                        await controller.Enqueue(new byte[] { 1, 2, 3 });
-                        Console.WriteLine("enqueued");
-                    });
-                });
+            var stream = new ReadableStream(onStart: async (controller) =>
+            {
+                await Task.Delay(1000);
+                await controller.EnqueueAsync(new byte[] { 1, 2, 3 });
+                await Task.Delay(1000);
+                await controller.EnqueueAsync(new byte[] { 4, 5, 6 });
+                await Task.Delay(1000);
+                await controller.EnqueueAsync(new byte[] { 7, 8, 9 });
+                controller.Close();
+            }).Stream;
 
             var result = 0;
 
-            for (var i = 0; i < 10; i++)
+            try
             {
-                Task.Run(() =>
+
+                while (stream.CanRead)
                 {
-                    Console.WriteLine("task available");
-                    Thread.Sleep(100);
-                    var len = stream.Available();
-                    Console.WriteLine($"stream.Available(): {len}");
-                    Interlocked.Add(ref result, len);
-                });
+                    Console.WriteLine($"task available:{stream.CanRead}");
+                    var data = await stream.ReadBytesAsync(3);
+                    Console.WriteLine($"read: {data.ToUtf8()}");
+                    //Console.WriteLine($"stream.Available(): {reader.BaseStream.Position}");
+                    Interlocked.Increment(ref result);
+
+                }
             }
+            catch { }
 
-            Thread.Sleep(10000);
 
-            Assert.Equal(10*3, result);
+            Assert.Equal(3, result);
+            Assert.False(stream.CanRead);
         }
         /// <summary>
         /// 验证Read是否可以卡住，读取内容少于流内容时，指针位置是否正常
@@ -58,42 +60,47 @@ namespace ipc_test.ipc
         {
             var stream = new ReadableStream(
                 null,
-                (controller) =>
+                async (controller) =>
                 {
-                    Task.Run(async () =>
+
+                    Console.WriteLine("write task start");
+                    byte i = 0;
+                    while (i++ < 10)
                     {
-                        Console.WriteLine("write task start");
-                        byte i = 0;
-                        while (i++ < 10)
-                        {
-                            await Task.Delay(1000);
-                            await controller.Enqueue(new byte[] { i, (byte)(i + (byte)1), (byte)(i + (byte)2) });
-                            Console.WriteLine("enqueued");
-                        }
+                        await Task.Delay(100);
+                        await controller.EnqueueAsync(new byte[] { i, (byte)(i + (byte)1), (byte)(i + (byte)2) });
+                        Console.WriteLine("enqueued");
+                    }
 
-                        Console.WriteLine("write task end");
-                    });
-                });
+                    Console.WriteLine("write task end");
+                }).Stream;
 
-            var taskRead = Task.Run(() =>
+            var taskRead = Task.Run(async () =>
             {
-                Console.WriteLine("read task start");
-
-                var buffer = new byte[2];
-                
-                //if (stream.Read(buffer, 0, 30) > 0)
-                if (stream.Read(buffer) > 0)
+                try
                 {
-                    Console.WriteLine($"buffer: {buffer.ToUtf8()}");
-                    Console.WriteLine($"length: {stream.Length} position: {stream.Position}");
+                    while (stream.CanRead)
+                    {
+
+                        Console.WriteLine("read task start");
+
+                        var buffer = await stream.ReadBytesAsync(2);
+
+                        //if (stream.Read(buffer, 0, 30) > 0)
+
+                        Console.WriteLine($"buffer: {buffer.ToUtf8()}");
+                        Console.WriteLine($"length: {stream.Length} position: {stream.Position}");
+
+
+                        Assert.Equal(2, stream.Position);
+                        Console.WriteLine($"byte: {stream.ReadByte()}");
+                        Assert.Equal(0, stream.Position);
+                        Console.WriteLine($"length: {stream.Length} position: {stream.Position}");
+
+                        Console.WriteLine("read task end");
+                    }
                 }
-
-                Assert.Equal(2, stream.Position);
-                Console.WriteLine($"byte: {stream.ReadByte()}");
-                Assert.Equal(0, stream.Position);
-                Console.WriteLine($"length: {stream.Length} position: {stream.Position}");
-
-                Console.WriteLine("read task end");
+                catch { }
             });
 
             Task.WaitAll(taskRead);

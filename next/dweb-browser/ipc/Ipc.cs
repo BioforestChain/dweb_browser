@@ -157,6 +157,10 @@ public abstract class Ipc
 
     public Func<bool> OnStream(Func<IpcStreamMessageArgs, object?> cb) => _streamSignal.Listen(cb);
 
+    public delegate Task OnStreamHanlder(IpcStream stream, Ipc Mipc);
+    //public delegate Task OnStreamHanlder2(IpcStream stream, Ipc Mipc);
+    public event OnStreamHanlder onStream;
+
     private Signal<IpcEventMessageArgs> _eventSignal
     {
         get
