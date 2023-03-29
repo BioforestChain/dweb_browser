@@ -42,6 +42,9 @@ dns.install(new StatusbarNativeUiNMM());
 import { NavigationBarNMM } from "./sys/native-ui/navigation-bar/navigation-bar.cjs";
 dns.install(new NavigationBarNMM());
 
+import { SafeAreaNMM } from "./sys/native-ui/safe-area/safe-area.cjs"
+dns.install(new SafeAreaNMM())
+
 // 安装 jmmMetadata.sys.dweb
 import { JMMMetadata } from "./sys/jmm-metadata/jmm-metadata.cjs";
 dns.install(new JMMMetadata());
@@ -60,6 +63,7 @@ dns.install(new BootNMM([
   "js.sys.dweb",
   "status-bar.nativeui.sys.dweb",
   "navigation-bar.nativeui.sys.dweb",
+  "safe-area.nativeui.sys.dweb",
   "browser.sys.dweb"
   // cotDemoJMM.mmid
 
