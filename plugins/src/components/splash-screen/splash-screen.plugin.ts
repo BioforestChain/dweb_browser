@@ -19,7 +19,7 @@ export class SplashScreenPlugin
    * @param options
    */
   @bindThis
-  async show(options?: ShowOptions): Promise<Response> {
+  async show(options?: ShowOptions): Promise<boolean> {
     return await this.fetchApi(`/show`, {
       search: {
         autoHide: options?.autoHide,
@@ -27,7 +27,7 @@ export class SplashScreenPlugin
         fadeOutDuration: options?.fadeOutDuration,
         fadeInDuration: options?.fadeInDuration,
       },
-    });
+    }).boolean();
   }
 
   /**
@@ -35,12 +35,12 @@ export class SplashScreenPlugin
    * @param options
    */
   @bindThis
-  async hide(options?: HideOptions): Promise<Response> {
+  async hide(options?: HideOptions): Promise<boolean> {
     return await this.fetchApi(`/hide`, {
       search: {
         fadeOutDuration: options?.fadeOutDuration,
       },
-    });
+    }).boolean();
   }
 }
 export const splashScreenPlugin = new SplashScreenPlugin();

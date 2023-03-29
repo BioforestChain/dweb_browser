@@ -1,14 +1,10 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { toBase64 } from '../../helper/toBase64.ts';
 import type {
   CanShareResult,
   ShareOptions,
   ISharePlugin,
 } from "./share.type.ts";
-import { Directory } from "../file-system/file-system.type.ts";
-import { fileSystemPlugin } from "../file-system/file-system.plugin.ts";
-
 export class SharePlugin extends BasePlugin implements ISharePlugin {
   readonly tagName = "dweb-share";
 
@@ -17,8 +13,8 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
   }
 
   /**
+   *(desktop Only)
    * 判断是否能分享
-   * web Only
    * @returns
    */
   @bindThis
@@ -39,36 +35,27 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
   @bindThis
   async share(options: ShareOptions): Promise<string> {
 
-    let fileUri = ""
-    if (options.files) {
-      const file = options.files
-      // device shareing
-      await fileSystemPlugin.writeFile({
-        path: file.name,
-        data: await toBase64(file),
-        directory: Directory.Cache
-      });
-
-      const fileResult = await fileSystemPlugin.getUri({
-        directory: Directory.Cache,
-        path: file.name
-      });
-      fileUri = fileResult.uri
+    const data = new FormData()
+    if (options.files && options.files.length !== 0) {
+      for (const key in options.files) {
+        const file = options.files[key]
+        console.log("fileName=>", file.name)
+        data.append("files", file)
+      }
     }
 
-    return await this.fetchApi(`/share`, {
+    return await this.buildApiRequest("/share", {
       search: {
-        dialogTitle: options?.dialogTitle,
         title: options?.title,
         text: options?.text,
         url: options?.url,
-        files: fileUri,
       },
-    }).text();
+      method: "POST",
+      body: data,
+      base: await BasePlugin.public_url,
+    }).fetch().text()
   }
+
 }
-
-
-
 
 export const sharePlugin = new SharePlugin();

@@ -27,7 +27,7 @@ export interface ShareOptions {
    *
    * @since 4.1.0
    */
-  files?: File;
+  files?: File[];
 
   /**
    * Set a title for the share modal.

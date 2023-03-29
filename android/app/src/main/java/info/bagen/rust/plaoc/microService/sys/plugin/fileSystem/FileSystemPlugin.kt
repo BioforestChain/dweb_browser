@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.microService.sys.plugin.fileSystem
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import android.util.Base64
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.exeprions.CopyFailedException
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.exeprions.DirectoryExistsException
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.exeprions.DirectoryNotFoundException
@@ -11,7 +12,6 @@ import java.io.*
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.*
-import android.util.Base64
 
 typealias path = String
 
@@ -36,35 +36,20 @@ class FileSystemPlugin {
     }
 
     @Throws(IOException::class)
-    fun saveFile(file: File?, data: String, charset: Charset?, append: Boolean?) {
-        // if charset is not null assume its a plain text file the user wants to save
-        var data = data
-        if (charset != null) {
-            val writer = BufferedWriter(
-                OutputStreamWriter(
-                    FileOutputStream(
-                        file,
-                        append!!
-                    ), charset
-                )
-            )
-            writer.write(data)
-            writer.close()
-        } else {
-            //remove header from dataURL
-            if (data.contains(",")) {
-                data = data.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
+    fun saveFile(file: File?, data: InputStream, append: Boolean = false) {
+        FileOutputStream(file, append).use { outputStream ->
+            var read: Int
+            val bytes = ByteArray(DEFAULT_BUFFER_SIZE)
+            while (data.read(bytes).also { read = it } != -1) {
+                outputStream.write(bytes, 0, read)
             }
-            val fos = FileOutputStream(file, append!!)
-            fos.write(Base64.decode(data, Base64.NO_WRAP))
-            fos.close()
         }
     }
 
     @Throws(FileNotFoundException::class)
     fun deleteFile(file: String?, directory: String?): Boolean {
         val fileObject = getFileObject(file, directory)
-        if (fileObject == null || !fileObject.exists()) {
+        if (!fileObject.exists()) {
             throw FileNotFoundException("File does not exist")
         }
         return fileObject.delete()
@@ -173,17 +158,21 @@ class FileSystemPlugin {
             ?: throw IOException("Directory not found")
         return FileInputStream(File(androidDirectory, path))
     }
+
     fun getDirectory(directory: String?): File? {
         val c: Context = context!!
         when (directory) {
-            "DOCUMENTS" -> return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-            "DATA", "LIBRARY" -> return c.getFilesDir()
-            "CACHE" -> return c.getCacheDir()
-            "EXTERNAL" -> return c.getExternalFilesDir(null)
-            "EXTERNAL_STORAGE" -> return Environment.getExternalStorageDirectory()
+            EFileDirectory.Documents.location -> return Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS
+            )
+            EFileDirectory.Data.location, EFileDirectory.Library.location -> return c.getFilesDir()
+            EFileDirectory.Cache.location -> return c.getCacheDir()
+            EFileDirectory.External.location -> return c.getExternalFilesDir(null)
+            EFileDirectory.ExternalStorage.location -> return Environment.getExternalStorageDirectory()
         }
         return null
     }
+
     fun getFileObject(path: String?, directory: String?): File {
         if (directory == null) {
             val u = Uri.parse(path)
@@ -290,4 +279,76 @@ enum class PermissionState(val state: Int) {
 
     READ_WRITE_EXECUTE(READ.state or WRITE.state or EXECUTE.state);
 
+}
+
+enum class EFileDirectory(val location: String) {
+    /**
+     * The Documents directory
+     * On iOS it's the app's documents directory.
+     * Use this directory to store user-generated content.
+     * On Android it's the Public Documents folder, so it's accessible from other apps.
+     * It's not accesible on Android 10 unless the app enables legacy External Storage
+     * by adding `android:requestLegacyExternalStorage="true"` in the `application` tag
+     * in the `AndroidManifest.xml`.
+     * It's not accesible on Android 11 or newer.
+     *
+     * @since 1.0.0
+     */
+    Documents("DOCUMENTS"),
+
+
+    /**
+     * The Data directory
+     * On iOS it will use the Documents directory.
+     * On Android it's the directory holding application files.
+     * Files will be deleted when the application is uninstalled.
+     *
+     * @since 1.0.0
+     */
+    Data("DATA"),
+
+    /**
+     * The Library directory
+     * On iOS it will use the Library directory.
+     * On Android it's the directory holding application files.
+     * Files will be deleted when the application is uninstalled.
+     *
+     * @since 1.1.0
+     */
+    Library("LIBRARY"),
+
+    /**
+     * The Cache directory
+     * Can be deleted in cases of low memory, so use this directory to write app-specific files
+     * that your app can re-create easily.
+     *
+     * @since 1.0.0
+     */
+    Cache("CACHE"),
+
+    /**
+     * The external directory
+     * On iOS it will use the Documents directory
+     * On Android it's the directory on the primary shared/external
+     * storage device where the application can place persistent files it owns.
+     * These files are internal to the applications, and not typically visible
+     * to the user as media.
+     * Files will be deleted when the application is uninstalled.
+     *
+     * @since 1.0.0
+     */
+    External("EXTERNAL"),
+
+    /**
+     * The external storage directory
+     * On iOS it will use the Documents directory
+     * On Android it's the primary shared/external storage directory.
+     * It's not accesible on Android 10 unless the app enables legacy External Storage
+     * by adding `android:requestLegacyExternalStorage="true"` in the `application` tag
+     * in the `AndroidManifest.xml`.
+     * It's not accesible on Android 11 or newer.
+     *
+     * @since 1.0.0
+     */
+    ExternalStorage("EXTERNAL_STORAGE"),
 }

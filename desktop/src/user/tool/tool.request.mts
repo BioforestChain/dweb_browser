@@ -90,6 +90,7 @@ export async function onApiRequest(
       if (request.method === "POST") {
         const response = await jsProcess.nativeFetch(path, {
           body: request.body.raw,
+          headers: request.headers,
           method: request.method,
         });
 

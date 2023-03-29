@@ -5,8 +5,8 @@ import { routes } from "./routes";
 
 const router = useRouter();
 
-// router.push("/share");
-router.push("/barcodescanning");
+router.push("/share");
+// router.push("/barcodescanning");
 
 
 const drawer_controller = ref(false);

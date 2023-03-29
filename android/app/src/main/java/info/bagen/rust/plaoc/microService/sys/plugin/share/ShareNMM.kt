@@ -1,27 +1,25 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.share
 
 import android.app.PendingIntent
-import android.content.ComponentName
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
-import android.widget.Toast
 import androidx.core.content.FileProvider
-import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.BuildConfig
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
+import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
 import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity.Companion.RESULT_SHARE_CODE
+import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.EFileDirectory
+import org.http4k.core.Body
 import org.http4k.core.Method
-import org.http4k.lens.Query
-import org.http4k.lens.composite
-import org.http4k.lens.string
+import org.http4k.core.MultipartFormBody
+import org.http4k.lens.*
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.io.File
@@ -31,39 +29,58 @@ data class ShareOptions(
     val title: String?,
     val text: String?,
     val url: String?,
-    val files: List<String>?,
-    val dialogTitle: String
 )
 
-inline fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Share", tag, msg, err)
 
 class ShareNMM : NativeMicroModule("share.sys.dweb") {
+
+    private val plugin = CacheFilePlugin()
+
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+
+        val filesField = FormField.composite {
+            bytes().multi.optional("files")
+        }
         val shareOption = Query.composite { spec ->
             ShareOptions(
-               dialogTitle = string().required("dialogTitle")(spec),
-               title = string().optional("title")(spec),
-               text = string().optional("text")(spec),
-               url = string().optional("url")(spec),
-               files = string().multi.optional("files")(spec),
-           )
+                title = string().optional("title")(spec),
+                text = string().optional("text")(spec),
+                url = string().optional("url")(spec)
+            )
         }
         apiRouting = routes(
             /** 分享*/
-            "/share" bind Method.GET to defineHandler { request,ipc ->
+            "/share" bind Method.POST to defineHandler { request, ipc ->
                 val ext = shareOption(request)
+                val receivedForm = MultipartFormBody.from(request)
+                val fileByteArray = receivedForm.files("files")
+                // 注册activity
+                plugin.fileSystemPlugin.Filesystem(getCurrentWebViewController(ipc.remote.mmid)?.activity)
+                val files = mutableListOf<String>()
                 val result = PromiseOut<String>()
-                debugShare("open_share","share===>${ipc.remote.mmid}  ${ext.files} ")
-
-                share(ipc.remote.mmid,ext.title, ext.text, ext.url,ext.files, ext.dialogTitle,result)
-
+                // 写入缓存
+                runBlockingCatching {
+                    fileByteArray.map { file ->
+                        val url = plugin.writeFile(
+                            file.filename,
+                            EFileDirectory.Cache.location,
+                            file.content,
+                            false
+                        )
+                        files.add(url)
+                    }
+                }
+                debugShare("open_share", "share===>${ipc.remote.mmid}  ${files}")
+                share(ipc.remote.mmid, ext.title, ext.text, ext.url, files, result)
+                // 等待结果回调
                 getCurrentWebViewController(ipc.remote.mmid)?.getShareData { it ->
                     debugShare("share", "result => $it")
                     result.resolve(it)
                 }
 
-               return@defineHandler result.waitPromise()
+                return@defineHandler result.waitPromise()
             },
         )
     }
@@ -75,16 +92,14 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
      * @param text Set some text to share
      * @param url Set a URL to share, can be http, https or file:// URL
      * @param files Array of file:// URLs of the files to be shared. Only supported on iOS and Android.
-     * @param dialogTitle Set a title for the share modal. This option is only supported on Android.
      */
     fun share(
-        mmid:Mmid,
+        mmid: Mmid,
         title: String? = null,
         text: String? = null,
         url: String? = null,
         files: List<String>? = null,
-        dialogTitle: String = "分享到：",
-        po: PromiseOut<String>
+        po: PromiseOut<String>,
     ) {
         if (text == null && url == null && (files == null || files.isEmpty())) {
             po.resolve("Must provide a URL or Message or files")
@@ -118,13 +133,13 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             } else if (url != null && isFileUrl(url)) {
                 val filesArray = mutableListOf<String>()
                 filesArray.plus(url)
-                shareFiles(mmid,filesArray,this, po)
+                shareFiles(mmid, filesArray, this, po)
             }
 
             title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
 
             if (files != null && files.isNotEmpty()) {
-                shareFiles(mmid,files, this,po)
+                shareFiles(mmid, files, this, po)
             }
         }
 
@@ -133,21 +148,26 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             flags = flags or PendingIntent.FLAG_MUTABLE
         }
         val pi = PendingIntent.getBroadcast(
-            getCurrentWebViewController(mmid)?.activity, 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
+            getCurrentWebViewController(mmid)?.activity,
+            0,
+            Intent(Intent.EXTRA_CHOSEN_COMPONENT),
+            flags
         )
-        val chooserIntent = Intent.createChooser(intent, dialogTitle, pi.intentSender).apply {
+        val chooserIntent = Intent.createChooser(intent, title, pi.intentSender).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
         }
-        getCurrentWebViewController(mmid)?.activity?.startActivityForResult(chooserIntent, RESULT_SHARE_CODE)
+        getCurrentWebViewController(mmid)?.activity?.startActivityForResult(
+            chooserIntent,
+            RESULT_SHARE_CODE
+        )
     }
 
     private fun shareFiles(
-        mmid: Mmid,files: List<String>, intent: Intent, po: PromiseOut<String>
+        mmid: Mmid, files: List<String>, intent: Intent, po: PromiseOut<String>
     ) {
         val arrayListFiles = arrayListOf<Uri>()
         try {
             files.forEach { file ->
-                println("filexx=> $file")
                 if (isFileUrl(file)) {
                     var type = getMimeType(file)
                     if (type == null || files.size > 1) {
@@ -171,7 +191,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
                         intent.putExtra(Intent.EXTRA_STREAM, fileUrl)
                     }
                 } else {
-                    debugShare("shareFiles","only file urls are supported")
+                    debugShare("shareFiles", "only file urls are supported")
                     po.resolve("only file urls are supported")
                     return
                 }
@@ -181,7 +201,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
             }
             intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         } catch (e: Throwable) {
-            po.resolve(e.message?:"share file error")
+            po.resolve(e.message ?: "share file error")
         }
     }
 
@@ -202,192 +222,8 @@ class ShareNMM : NativeMicroModule("share.sys.dweb") {
         return type
     }
 
-    /**
-     * 分享文本
-     */
-    private fun shareText(
-        packageName: String?, className: String?, content: String?, title: String?, subject: String?,mmid: Mmid
-    ) {
-        val intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            type = "text/plain"
-
-            if (stringCheck(className) && stringCheck(packageName)) {
-                val componentName = ComponentName(packageName!!, className!!)
-                component = componentName
-            } else if (stringCheck(packageName)) {
-                setPackage(packageName)
-            }
-
-            content?.let { putExtra(Intent.EXTRA_TEXT, it) }
-            title?.let { putExtra(Intent.EXTRA_TITLE, it) }
-            subject?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
-        }
-        val chooserIntent = Intent.createChooser(intent, "分享到：")
-        getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
-    }
-
-    /**
-     * 分享网页
-     */
-    private fun shareUrl(
-        packageName: String?, className: String?, content: String?, title: String?, subject: String?,mmid: Mmid
-    ) {
-        val intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            type = "text/plain"
-
-            if (stringCheck(className) && stringCheck(packageName)) {
-                val componentName = ComponentName(packageName!!, className!!)
-                component = componentName
-            } else if (stringCheck(packageName)) {
-                setPackage(packageName)
-            }
-
-            content?.let { putExtra(Intent.EXTRA_TEXT, it) }
-            title?.let { putExtra(Intent.EXTRA_TITLE, it) }
-            subject?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
-        }
-        val chooserIntent = Intent.createChooser(intent, "分享到：")
-        getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
-    }
-
-    /**
-     * 分享图片
-     */
-    private fun shareImg(packageName: String?, className: String?, file: File,mmid: Mmid) {
-        if (file.exists()) {
-            val uri: Uri = Uri.fromFile(file)
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "image/*"
-                if (stringCheck(packageName) && stringCheck(className)) {
-                    component = ComponentName(packageName!!, className!!)
-                } else if (stringCheck(packageName)) {
-                    setPackage(packageName)
-                }
-                putExtra(Intent.EXTRA_STREAM, uri)
-            }
-            val chooserIntent = Intent.createChooser(intent, "分享到:")
-            getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
-        } else {
-            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "文件不存在", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * 分享音乐
-     */
-    private fun shareAudio(packageName: String?, className: String?, file: File,mmid: Mmid) {
-        if (file.exists()) {
-            val uri: Uri = Uri.fromFile(file)
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "audio/*"
-                if (stringCheck(packageName) && stringCheck(className)) {
-                    component = ComponentName(packageName!!, className!!)
-                } else if (stringCheck(packageName)) {
-                    setPackage(packageName)
-                }
-                putExtra(Intent.EXTRA_STREAM, uri)
-            }
-            val chooserIntent = Intent.createChooser(intent, "分享到:")
-            getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
-        } else {
-            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "文件不存在", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * 分享视频
-     */
-    private fun shareVideo(packageName: String?, className: String?, file: File,mmid: Mmid) {
-        setIntent("video/*", packageName, className, file,mmid)
-    }
-
-    private fun setIntent(type: String?, packageName: String?, className: String?, file: File,mmid: Mmid) {
-        if (file.exists()) {
-            val uri: Uri = Uri.fromFile(file)
-            val intent = Intent()
-            intent.action = Intent.ACTION_SEND
-            intent.type = type
-            if (stringCheck(packageName) && stringCheck(className)) {
-                intent.component = ComponentName(packageName!!, className!!)
-            } else if (stringCheck(packageName)) {
-                intent.setPackage(packageName)
-            }
-            intent.putExtra(Intent.EXTRA_STREAM, uri)
-            val chooserIntent = Intent.createChooser(intent, "分享到:")
-            getCurrentWebViewController(mmid)?.activity?.startActivity(chooserIntent)
-        } else {
-            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "文件不存在", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * 分享多张图片和文字至朋友圈
-     * @param title
-     * @param packageName
-     * @param className
-     * @param file 图片文件
-     */
-    private fun shareImgToWXCircle(
-        title: String?, packageName: String?, className: String?, file: File,mmid: Mmid
-    ) {
-        if (file.exists()) {
-            val uri: Uri = Uri.fromFile(file)
-            val intent = Intent()
-            val comp = ComponentName(packageName!!, className!!)
-            intent.component = comp
-            intent.action = Intent.ACTION_SEND
-            intent.type = "image/*"
-            intent.putExtra(Intent.EXTRA_STREAM, uri)
-            intent.putExtra("Kdescription", title)
-            getCurrentWebViewController(mmid)?.activity?.startActivity(intent)
-        } else {
-            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "文件不存在", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * 是否安装分享app
-     * @param packageName
-     */
-    private fun checkInstall(packageName: String,mmid: Mmid): Boolean {
-        return try {
-            getCurrentWebViewController(mmid)?.activity?.packageManager?.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
-            true
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-            Toast.makeText(getCurrentWebViewController(mmid)?.activity, "请先安装应用app", Toast.LENGTH_SHORT).show()
-            false
-        }
-    }
-
-    /**
-     * 跳转官方安装网址
-     */
-    private fun toInstallWebView(url: String?,mmid: Mmid) {
-        val intent = Intent().apply {
-            action = Intent.ACTION_VIEW
-            data = Uri.parse(url)
-        }
-        getCurrentWebViewController(mmid)?.activity?.startActivity(intent)
-    }
-
-    private fun stringCheck(str: String?): Boolean {
-        return str?.isNotEmpty() ?: false
-    }
 
     override suspend fun _shutdown() {
         TODO("Not yet implemented")
     }
 }
-
-data class ShareOption(
-    val title: String? = null,
-    val text: String? = null,
-    val url: String? = null,
-    val files: Array<String>? = null,
-    val dialogTitle: String? = null,
-)

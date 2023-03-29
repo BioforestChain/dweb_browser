@@ -10,7 +10,7 @@ const title = "Share";
 const $logPanel = ref<typeof LogPanel>();
 const $sharePlugin = ref<HTMLDwebShareElement>();
 
-// let console: Console;
+let console: Console;
 let share: HTMLDwebShareElement;
 
 
@@ -23,7 +23,7 @@ const shareData = reactive({
 })
 
 onMounted(() => {
-  // console = toConsole($logPanel);
+  console = toConsole($logPanel);
   share = $sharePlugin.value!;
 });
 
@@ -37,7 +37,7 @@ const fileChange = ($event: Event) => {
   if (target && target.files?.[0]) {
     console.log("event", $event)
     console.log("target.files=>", target.files[0])
-    shareData.files = target.files[0]
+    shareData.files = target.files
   }
 }
 

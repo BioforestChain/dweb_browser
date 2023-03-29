@@ -271,6 +271,7 @@ class DWebView(
                 Intent.ACTION_GET_CONTENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             )
             pickIntent.addCategory(Intent.CATEGORY_OPENABLE);
+            pickIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
 
             if (capturePhoto || captureVideo) {
                 pickIntent.setDataAndType(

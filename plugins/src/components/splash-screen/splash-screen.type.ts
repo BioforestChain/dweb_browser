@@ -222,13 +222,13 @@ export interface ISplashScreenPlugin {
    *
    * @since 1.0.0
    */
-  show(options?: ShowOptions): Promise<Response>;
+  show(options?: ShowOptions): Promise<boolean>;
   /**
    * Hide the splash screen
    *
    * @since 1.0.0
    */
-  hide(options?: HideOptions): Promise<Response>;
+  hide(options?: HideOptions): Promise<boolean>;
 }
 
 /**

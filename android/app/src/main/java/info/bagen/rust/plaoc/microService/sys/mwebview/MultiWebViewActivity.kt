@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
@@ -116,12 +117,25 @@ open class MultiWebViewActivity : PermissionActivity() {
         // 选中图片
         if (requestCode == PERMISSION_REQUEST_CODE_PHOTO) {
             controller?.lastViewOrNull?.also { (_, webview) ->
-                webview.filePathCallback?.also {
-                    it.onReceiveValue(
-                        if (resultCode == RESULT_OK) arrayOf(data?.data!!) else emptyArray()
-                    )
-                    webview.filePathCallback = null
+                if (resultCode == RESULT_OK) {
+                    val uris = data?.clipData?.let { clipData ->
+                        val count = clipData.itemCount
+                        val uris = ArrayList<Uri>()
+                        for (i in 0 until count) {
+                            clipData.getItemAt(i)?.uri?.let { uri ->
+                                uris.add(uri)
+                            }
+                        }
+                        uris.toTypedArray()
+                    } ?: arrayOf(data?.data)
+                    // 调用回调函数，将Uri数组传递给WebView
+                    webview.filePathCallback?.onReceiveValue(uris as Array<Uri>?)
+                } else {
+                    // 取消选择文件操作，调用回调函数并传递null值
+                    webview.filePathCallback?.onReceiveValue(null)
                 }
+                webview.filePathCallback = null
+
             }
         }
         // 选中照片返回数据
