@@ -1,15 +1,10 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 import { NativeMicroModule } from "../../../core/micro-module.native.cjs";
-import { intercept } from "../intercept-http.cjs"
 import { AllConnects } from "./on-connect-callback.cjs";
 import { WWWServer }from "./www-server.cjs";
-import { CommonMesasgeRoutes } from "./register-common-ipc-on-message.cjs";
 import { PluginsRequest } from "../plugins-request.cjs"
 import { log } from "../../../helper/devtools.cjs"
-import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
 import { HttpConnect } from "./http-connect.cjs"
-import type { $Schema1, $Schema2 } from "../../../helper/types.cjs" 
-import type {  $RequestCommonHanlderSchema } from "../../../core/micro-module.native.cjs"
 import type { Remote } from "comlink";
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
@@ -29,7 +24,6 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
   >();
   pluginsRequest = new PluginsRequest();
   private _allConnects: AllConnects = new AllConnects()
-  private _httpConnect: any;
 
   _bootstrap = async (context: $BootstrapContext) => {
     log.green(`[${this.mmid} _bootstrap]`)
@@ -46,15 +40,6 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
       new WWWServer(this)
     }
     
-    // {
-    //   new CommonMesasgeRoutes(this)
-    //   .routes
-    //   .forEach(
-    //     (item: $RequestCommonHanlderSchema<$Schema1, $Schema2>) => {
-    //       this.registerCommonIpcOnMessageHandler(item);
-    //     }
-    //   );
-    // }
   }
   
 

@@ -9,11 +9,11 @@ export const routes = [
         matchMode: "full",
         method: "POST"
     },
-    {
-        pathname: "/operation_return",
-        matchMode: "full",
-        method: "GET"
-    },
+    // {
+    //     pathname: "/operation_return",
+    //     matchMode: "full",
+    //     method: "GET"
+    // },
     {
         pathname: "/status-bar.nativeui.sys.dweb/startObserve",
         matchMode: "prefix",

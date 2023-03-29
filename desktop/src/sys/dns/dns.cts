@@ -31,6 +31,14 @@ class MyDnsMicroModule implements $DnsMicroModule {
       reason ?? new Request(`file://${mmid}`)
     );
   }
+  // 私有的一对一的连接
+  async privateConnect(toMmid: $MMID, reason?: Request){
+    return new Promise(async (resolve) => {
+      const toMM = await this.dnsNN.open(toMmid);
+      const connects = await connectMicroModules(this.fromMM, toMM, reason ? reason : new Request(`file://${toMmid}`));
+      resolve(connects)
+    })
+  }
 }
 class MyBootstrapContext implements $BootstrapContext {
   constructor(readonly dns: MyDnsMicroModule) {}
@@ -62,6 +70,8 @@ export class DnsNMM extends NativeMicroModule {
     reason: Request
   ) {
     /// 拦截到了，走自定义总线
+    // 全部的 connect 都是保存在dns中
+    // 多个不同的模块 connect 一个相同模块，这个相同模块如果发送消息，发起连接的不同模块都会受到消息
     const connectsMap = mapHelper.getOrPut(
       this.mmConnectsMap,
       fromMM,

@@ -211,15 +211,6 @@ export class MultiWebViewContent extends LitElement{
                         allowpopups
                         @dom-ready=${this.onDomReady}
                     ></webview>
-                    <!--
-                    <iframe
-                        src=${ifDefined(this.src)}
-                        @load=${() => console.log('cot-demo 载入完成')}
-                        style="display: ${this.isShow ? "block" : 'none'};width: 100%;height: 48px;border: none; flex-grow: 0; flex-shrink: 0; position:relative; left: 0px; top: 0px;"
-                        data-app-url=${this.src}
-                    ></iframe>
-                    <button class="show" @click=${this.onShow}>show</button>
-                    -->
                 </div>
                 <!-- navgation-bar -->
                 <iframe 

@@ -19,7 +19,7 @@ import { log } from "../../../helper/devtools.cjs"
 import { PluginsRequest } from "../plugins-request.cjs"
 import { AllConnects } from "./on-connect-callback.cjs";
 import { intercept } from "../intercept-http.cjs"
-
+import { HttpConnect } from "./http-connect.cjs"
 
  
 // @ts-ignore
@@ -43,11 +43,9 @@ export class NavigationBarNMM extends NativeMicroModule {
     }
 
     {
-      const [httpIpc] = await context.dns.connect('http.sys.dweb')
-      // 向 httpIpc 发起初始化消息
-      // intercept(httpIpc, this.mmid)
-      this.httpIpc = httpIpc
+      new HttpConnect(this, context, this.mmid);
     }
+    
     {
       new WWWServer(this)
     }

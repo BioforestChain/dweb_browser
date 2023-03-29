@@ -5,16 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>navgation-bar</title>
     <style type="text/css">
-        :root{
-            --background-color: "#FFFFFFFF";
-            background: var(--background-color);
-        }
         body{
+            position: relative;
             box-sizing: border-box;
             margin: 0px;
             width: 100%;
             height: 70px;
-            border-top: 1px solid #0001;
+            /* background-color: #FFFFFFFF; */
+            border-top: 1px solid #FFFFFFFF;
         }
     </style>
 </head>
@@ -29,8 +27,9 @@
     
     <!-- 创建一个WebComponent -->
     <script type="text/javascript">
+
         let state = {
-            color: "#FFFFFF",
+            color: "#FFFFFFFF",
             style: "DEFAULT",
             overlay: false,
             visible: true,
@@ -40,6 +39,10 @@
                 bottom: 0,
                 left: 0
             }
+        }
+
+        log = (...args) => {
+                console.log(`navigation-bar.html`, ...args)
         }
 
         class NavigationBar extends HTMLElement{
@@ -74,18 +77,23 @@
             _initStyle = () => {
                 this._elStyle.setAttribute('type', "text/css")
                 this._elStyle.innerText = createStyle()
+                this._root.append(this._elStyle);
                 return this;
             }
 
             _initTemplate = () => {
                 this._template = document.querySelector('#template');
-                
                 return this;
             }
 
             _initState = () => {
                 this._iframe.style.height = `${state.top}px`;
                 document.documentElement.style.setProperty('--background-color', state.color);
+            }
+
+            getState = () => {
+                
+                return JSON.stringify(state);
             }
 
             /**
@@ -105,14 +113,7 @@
                 this._root.append(this._fragement);
                 this._show()
             }
-
-            _show = () =>{
-                this._iframe.style.height = this._iframeHeightShow;
-            }
-
-            _hide = () => {
-                this._iframe.style.height = this._iframeHeightHide;
-            }
+ 
 
             // 点击事件的触发
             _clickItem = (item) => {
@@ -132,17 +133,45 @@
             监听操作的方法
             */
             _awaitOperation = async () =>{
-                fetch("http://navigation-bar.nativeui.sys.dweb-80.localhost:22605/wait_for_operation?app_url="+this._appUrl)
+                fetch("http://navigation-bar.nativeui.sys.dweb-80.localhost:22605/navigation-bar-ui/wait_for_operation?app_url="+this._appUrl)
                 .then(async (res) => {
-                    const id = res.headers.get('id')
-                    const value = await res.json()
-                    switch(value.action){
-                        case "set_content": this.setNavigatorbarContent(JSON.parse(value.value)); this._fetchReturn(value.value, id);break;
-                        case "show": this._show(); this._fetchReturn("ok", id);break;
-                        case "hide": this._hide(); this._fetchReturn('ok', id);break;
-                        case "listener_click": this._listenerClick(id); break;
-                        default: this._fetchReturn(null, id);
+                    console.log('----navigation-bar.html 接受到了操作请求')
+                    const reader = res.body.getReader();
+                    let loop = true;
+                    do{
+                        const {value, done} = await reader.read()
+                        loop = !done;
+                        if(!value) continue;
+                        const data = JSON.parse(new TextDecoder().decode(value))
+                        if(!this._appUrl.startsWith(data.from)) continue;
+                        log("等待操作的请求： ", data)
+                        switch(data.operationName){
+                            case "get_state":
+                                this._fetchReturn(this.getState(), data.id, data.from);
+                                break;
+                            case "set_background_color":   
+                                this._setBackgroundColor(data.value); 
+                                this._fetchReturn(data.value, data.id, data.from); 
+                                break;
+                            case "set_style":
+                                this._setStyle(data.value); 
+                                this._fetchReturn(data.value, data.id, data.from);
+                                break;
+                            case "set_overlay":
+                                this._setOverlay(data.value); 
+                                this._fetchReturn(data.value, data.id, data.from);
+                                break;
+                            case "set_visible":
+                                this._setVisible(data.value); 
+                                this._fetchReturn(data.value, data.id, data.form);
+                                break;
+                            // case "set_content": this.setNavigatorbarContent(JSON.parse(value.value)); this._fetchReturn(value.value, id);break;
+                            // case "show": this._show(); this._fetchReturn("ok", id);break;
+                            // case "hide": this._hide(); this._fetchReturn('ok', id);break;
+                            // case "listener_click": this._listenerClick(id); break;
+                            default: throw new Error(`navigation-bar.html 操作没有匹配的处理器 ${data.operationName}`);
                     }
+                    }while(loop)
                 })
                 .catch(err => {
                     console.error('statusbar err： ', err)
@@ -150,12 +179,12 @@
             }
 
             // 用来发送返回的数据
-            _fetchReturn = (value,id) => {
+            _fetchReturn = (data,id, from) => {
                 fetch(
-                    "http://navigation-bar.nativeui.sys.dweb-80.localhost:22605/operation_return?app_url="+this._appUrl,
+                    "http://navigation-bar.nativeui.sys.dweb-80.localhost:22605/navigation-bar-ui/operation_return?app_url="+this._appUrl,
                     {
                         method: 'POST',
-                        body: JSON.stringify({ value: value}),
+                        body: data,
                         headers: {
                             "Content-Type": "application/json; charset=UTF-8",
                             "id": id
@@ -167,11 +196,26 @@
             }
 
             _setBackgroundColor = (color) => {
-                document.documentElement.style.setProperty("--background-color", color)
+                console.log('设置了颜色： ', color)
+                state.color = color;
+                document.querySelector("navgation-bar").style.background = state.color
                 return this;
             }
 
             _setStyle = (style) => {
+                state.style = style;
+                console.warn(`navigation-bar.html 设置了 style 但是还不知道处理如何的效果`)
+            }
+
+            _setOverlay = (overlay) => {
+                state.overlay = overlay;
+                this._iframe.style.position = overlay ? "absolute" : "relative";
+                console.log("overlay ", overlay)
+            }
+
+            _setVisible = (visible) => {
+                state.visible = visible;
+                this._iframe.style.display = visible ? "block" : "none";
 
             }
         }
@@ -186,6 +230,7 @@
                     align-items: center;
                     width: 100%;
                     height: 100%;
+                    background: #FFFFFFFF;
                     
                 }
                 .item-container{

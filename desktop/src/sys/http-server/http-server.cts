@@ -99,10 +99,10 @@ export class HttpServerNMM extends NativeMicroModule {
         const data = createBaseAction(ipcEventMessage.data);
         switch(data.action){
           case "routes/add":
-            this.ipcEventOnAddRoutes(ipcEventMessage, remoteIpc);
+            this.ipcEventOnAddRoutes(ipcEventMessage, ipc);
             break;
           case "state/send":
-            this.ipcEventOnStateSend(ipcEventMessage, remoteIpc);
+            this.ipcEventOnStateSend(ipcEventMessage, ipc);
             break;
           default: throw new Error(`[http-sever onConnect 还有没有匹配的 IpcEvent 处理方式] ${JSON.stringify(ipcEventMessage)}`)
         }
@@ -130,6 +130,7 @@ export class HttpServerNMM extends NativeMicroModule {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
         if (gateway == undefined) {
+          log.red(`[http-server onRequest 既没分发也没有匹配 gatewaty请求] ${req.url}`)
           return defaultErrorResponse(
             req,
             res,
@@ -137,6 +138,7 @@ export class HttpServerNMM extends NativeMicroModule {
             "Bad Gateway",
             "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
           );
+          
         }
         
         // gateway.listener.ipc.request("/on-connect")
@@ -183,7 +185,6 @@ export class HttpServerNMM extends NativeMicroModule {
       input: { token: "string", routes: "object" },
       output: "object",
       handler: async (args, ipc, message) => {
-        console.log("收到处理请求的双工通道");
         return this.listen(args.token, message, args.routes as $ReqMatcher[]);
       },
     });
@@ -362,6 +363,8 @@ export class HttpServerNMM extends NativeMicroModule {
 
   // 分发请求
   distributeRequest = async (req: IncomingMessage, res: OutgoingMessage) => {
+    // console.log(req.url)
+    // console.log(req.headers)
     let has = false;
     const pathname = url.parse(req.url as string,).pathname;
     const full = createRouteKeyByArgs(
@@ -416,9 +419,12 @@ export class HttpServerNMM extends NativeMicroModule {
           route.res = _res;
         }
         _res.set(req.headers.origin as string, res)
+        console.log('route.res: ', route.res?.keys())
       }
 
     }while(loop)
+
+
 
     return has;
   }
@@ -428,7 +434,7 @@ export class HttpServerNMM extends NativeMicroModule {
     const data = createStateSendActionItem(ipcEventMessage.data);
     const parentRoutes = this._routes.values()
     let loop = true;
-    console.log('发送数据')
+    console.log('http-server ipcEventOnStateSend 准备发送数据')
     do{
       const {value, done} = parentRoutes.next() 
       loop = !done
@@ -447,6 +453,7 @@ export class HttpServerNMM extends NativeMicroModule {
             ? data.body 
             : JSON.stringify(data.body)
         )
+        console.log('写入了数据： ', data)
         if(!data.done)continue;
         res.end()
         value.res?.delete(data.to)
@@ -506,7 +513,6 @@ async function createDistributeRequestData(
         data = Uint8Array.from([...data, ...chunk])
       })
       req.on('end', () => {
-        console.log(new TextDecoder().decode(data))
         resolve(JSON.stringify({
           pathname: route.pathname,
           method: req.method,

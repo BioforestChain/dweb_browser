@@ -1,7 +1,7 @@
 import type { $BootstrapContext } from "../../../core/bootstrapContext.cjs"
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
 import type { $IpcMessage } from "../../../core/ipc/const.cjs"
-import type { StatusbarNativeUiNMM } from "./status-bar.main.cjs"
+import type { NavigationBarNMM } from "./navigation-bar.cjs"
 import { IPC_MESSAGE_TYPE } from "../../../core/ipc/const.cjs"
 import { routes } from "./http-route.cjs"
 import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
@@ -19,7 +19,7 @@ export class HttpConnect{
   private _startObserve = new Map<string,$RequestDistributeIpcEventData>() 
   private _observe = new Map<string, $RequestDistributeIpcEventData>()
   constructor(
-      private readonly _nmm: StatusbarNativeUiNMM,
+      private readonly _nmm: NavigationBarNMM,
       private readonly _context:  $BootstrapContext,
       private readonly _mmid: $MMID
   ){
@@ -27,7 +27,9 @@ export class HttpConnect{
   }
 
   _init = async () => {
-    const [httpIpc] = await this._context.dns.connect('http.sys.dweb')
+    // const [httpIpc] = await this._context.dns.connect('http.sys.dweb')
+    // console.log(this._context, this._context.connect)
+    const [httpIpc] = await (this._context.dns as any).privateConnect('http.sys.dweb')
     httpIpc.onMessage(this._httpIpcOnMessage)
     // 向 httpIpc 发起初始化消息
     // intercept(httpIpc, this._mmid)
@@ -59,7 +61,7 @@ export class HttpConnect{
         case "request/distribute":
             this._httpIpcOnEventRequestDistribute(ipcMessage, httpIpc);
             break;
-        default: throw new Error(`[status-bar.nativeui.sys.dweb htp-ipc-on-event] 还没没处理的 message ${ipcMessage.name}`);
+        default: throw new Error(`[navigation-bar.nativeui.sys.dweb htp-ipc-on-event] 还没没处理的 message ${ipcMessage.name}`);
     }
   } 
 
@@ -67,25 +69,25 @@ export class HttpConnect{
     const data = creageRequestDistributeIpcEventData(ipcEvent.data)
     const pathname = url.parse(data.url).pathname;
     switch(pathname){
-      case "/status-bar.nativeui.sys.dweb/getState":
+      case "/navigation-bar.nativeui.sys.dweb/getState":
         this._httpIpcOnEventRequestDistributeGetState(data, httpIpc);
         break;
-      case "/status-bar.nativeui.sys.dweb/setState":
+      case "/navigation-bar.nativeui.sys.dweb/setState":
         this._httpIpcOnEventRequestDistributeSetState(data, httpIpc);
         break;
-      case "/status-bar.nativeui.sys.dweb/startObserve":
+      case "/navigation-bar.nativeui.sys.dweb/startObserve":
         this._httpIpcOnEventRequestDistributeStartObserve(data, httpIpc);
         break;
-      case "/status-bar-ui/wait_for_operation":
+      case "/navigation-bar-ui/wait_for_operation":
         this._httpIpcOnEventRequestDistributeWaitForOperation(data, httpIpc);
         break;
-      case "/status-bar-ui/operation_return":
+      case "/navigation-bar-ui/operation_return":
         this._httpIpcOnEventRequestDistributeWaitForOperationReturn(data, httpIpc);
         break;
-      case "/internal/observe":
-        this._httpIpcOnEventRequestDistributeInternalObserve(data, httpIpc);
-        break;
-      default: throw new Error(`status-bar.nativeui.sys.dweb http-connect _httpIpcOnEventRequestDistribute 还有没有处理的路由 ${pathname}`)
+      // case "/internal/observe":
+      //   this._httpIpcOnEventRequestDistributeInternalObserve(data, httpIpc);
+      //   break;
+      default: throw new Error(`navigation-bar.nativeui.sys.dweb http-connect _httpIpcOnEventRequestDistribute 还有没有处理的路由 ${pathname}`)
     }
   }
 
@@ -108,10 +110,9 @@ export class HttpConnect{
   _httpIpcOnEventRequestDistributeWaitForOperationReturn = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
     // 如何发送给请求的
     const id = data.headers.id
-    if(id === undefined) throw new Error(`status-bar.nativeui.sys.dweb _httpIpcOnEventRequestDistributeWaitForOperationReturn id === undefined`)
+    if(id === undefined) throw new Error(`navigation-bar.nativeui.sys.dweb _httpIpcOnEventRequestDistributeWaitForOperationReturn id === undefined`)
     const _d = this._reqs.get(parseInt(id))
-    if(_d === undefined) throw new Error(`status-bar.nativeui.sys.dweb _httpIpcOnEventRequestDistributeWaitForOperationReturn d === undefined`)
-    const app_url =  data.url.split("app_url=")[1]
+    if(_d === undefined) throw new Error(`navigation-bar.nativeui.sys.dweb _httpIpcOnEventRequestDistributeWaitForOperationReturn d === undefined`)
     httpIpc.postMessage(
       IpcEvent.fromText(
         "http.sys.dweb",
@@ -122,7 +123,7 @@ export class HttpConnect{
           method: _d.method,
           done: true,
           body: data.body,
-          to: app_url // 发送那个 app 对应 statusbar
+          to: _d.headers.origin // 发送那个 app 对应 statusbar
         })
       )
     )
@@ -151,6 +152,7 @@ export class HttpConnect{
   _httpIpcOnEventRequestDistributeGetState = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
     const id = this._allcId++;
     this._reqs.set(id, data)
+    log.red(`navigation-bar.nativeui.sys.dweb _httpIpcOnEventRequestDistributeGetState 发送数据给 nativeUI`)
     this._postMessageToUI(
       {
         action: "operation",
