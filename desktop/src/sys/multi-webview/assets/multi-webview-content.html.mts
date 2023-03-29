@@ -229,7 +229,14 @@ export class MultiWebViewContent extends LitElement{
                     @load=${() => console.log('safe-area 载入完成')}
                     data-app-url=${this.src}
                 ></iframe>
-                
+                <iframe 
+                    id="virtual-keyboard"
+                    class="iframe-virtual-keyboard"
+                    style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
+                    src="http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605"
+                    @load=${() => console.log('virtual-keyboard 载入完成')}
+                    data-app-url=${this.src}
+                ></iframe>
                 <!-- 底部黑线 -->
                 <div class="bottom-line-container"></div>
             </div>

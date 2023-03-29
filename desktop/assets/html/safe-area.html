@@ -7,7 +7,7 @@
 </head>
 <body>
     <script type="text/javascript">
-        const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#statusbar');
+        const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#safe-area');
         const appUrl = iframe.dataset.appUrl
         if(!iframe) console.error('safe-area 发生错误, 没有找到挂在的 iframe')
         const state = {

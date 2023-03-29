@@ -1,0 +1,124 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vitual-keyboard</title>
+    <style type="text/css">
+        body{
+            /* background-color: #FF000003; */
+            background: #F003;
+        }
+    </style>
+</head>
+<body>
+    virtual-keyboard
+    <script type="text/javascript">
+        console.error('还没有解决 打开多个页面的情况')
+        let navigationBarHeight;
+        const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#virtual-keyboard');
+        const appUrl = iframe.dataset.appUrl
+        if(!iframe) console.error('virtual-keyboard 发生错误, 没有找到挂在的 iframe')
+        const state = {
+            overlay: false,
+            insets: {
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+            },
+        }
+        function getState(){
+            console.error('vitual-keyboard.html 获取状态 只返回了一个模拟的值')
+            // 测试状态需要显示 keyboard
+            show()
+            const elContainer = iframe.parentElement;
+            const elContainerRect = elContainer.getBoundingClientRect();
+            const iframeRect = iframe.getBoundingClientRect();
+            console.log(
+                elContainerRect,
+                iframeRect
+            )
+            const o = {
+                top: iframeRect.top - elContainerRect.top - 10/* 10 === 边框效果的宽度*/,
+                right: iframeRect.width,
+                bottom: iframeRect.top - elContainerRect.top - 10 + iframeRect.height,
+                left: 0,
+            }
+            state.inset = o;
+            return JSON.stringify(state);
+        }
+
+        function setOverlay(value){
+            console.error('virtual-keyboard.html 设置列 overlay 但是还没有处理逻辑',value)
+            state.overlay = value
+        }
+
+        function show(){
+            const elNavigationBar = iframe.parentElement.querySelector("#navgation-bar");
+            navigationBarHeight = elNavigationBar.style.height;
+            elNavigationBar.style.height = "0px"
+            iframe.style.height = "200px"
+            console.log('navigationBarHeight: ', navigationBarHeight)
+        }
+
+        function hidden(){
+            // 隐藏导航栏
+            ifram.style.height = "0px"
+        }
+
+
+         /*
+            监听操作的方法
+        */
+        async function awaitOperation(){
+            fetch("http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605/virtual-keyboard-ui/wait_for_operation?app_url="+appUrl)
+            .then(async (res) => {
+                const reader = res.body.getReader()
+                let loop = true;
+                do{
+                    const {value, done} = await reader.read()
+                    loop = !done
+                    if(!value) continue;
+                    const o = JSON.parse(new TextDecoder().decode(value))
+                    console.log('virtual-keyboard.html 请求的结果： ', o)
+                    if(!appUrl.startsWith(o.from)) continue;
+                    switch(o.operationName){
+                        case "get_state":
+                            fetchReturn(getState(), o.id, o.from);
+                            break;
+                        case "set_overlay":
+                            setOverlay(o.value);
+                            fetchReturn(o.value, o.id, o.from);
+                            break;
+                        default: console.error('virtual-keyboard 没有匹配的功能 o.operationName === ', o.operationName)
+                    }
+                }while(loop)
+            })
+            .catch(err => {
+                console.error('statusbar err： ', err)
+            })
+        }
+
+        // 通过发送请求把数据传送回去
+        function fetchReturn(value,id, from){
+            console.log('value: ', value)
+            fetch(
+                "http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605/virtual-keyboard-ui/operation_return?app_url="+from,
+                {
+                    method: 'POST',
+                    body: value,
+                    headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                        "id": id
+                    }
+                }
+            )
+            .catch(err => console.error("fetchReturn 出错", err))
+        }
+
+        awaitOperation()
+        
+    </script>
+</body>
+</html>

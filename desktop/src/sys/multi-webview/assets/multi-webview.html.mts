@@ -349,6 +349,7 @@ export class ViewTree extends LitElement {
                 @dom-ready=${(event: CustomEvent<CustomEventDomReadyDetail>) => {
                   this.onWebviewReady(webview, event.detail.event.target as WebviewTag);
                 }}
+                data-app-url=${webview.src}
               ></multi-webview-content>
             `;
           }
