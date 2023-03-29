@@ -1,6 +1,6 @@
 namespace ipc.extensions;
 
-static class StreamExtensions
+public static class StreamExtensions
 {
     public static byte[] ToByteArray(this Stream self)
     {

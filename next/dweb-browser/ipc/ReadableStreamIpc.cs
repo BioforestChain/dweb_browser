@@ -47,7 +47,7 @@ public class ReadableStreamIpc : Ipc
         }
 
         Console.WriteLine($"post/{Stream}", message.Length);
-        return Enqueue(message.Length.toByteArray().Combine(message));
+        return Enqueue(message.Length.ToByteArray().Combine(message));
     }
 
     public override string ToString() => base.ToString() + "@ReadableStreamIpc";
@@ -78,7 +78,7 @@ public class ReadableStreamIpc : Ipc
         {
             var pong = "pong".FromUtf8();
 
-            return pong.Length.toByteArray().Combine(pong);
+            return pong.Length.ToByteArray().Combine(pong);
         }
     }
 

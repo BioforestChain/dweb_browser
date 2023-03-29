@@ -3,13 +3,13 @@ namespace ipc.extensions;
 
 public static class IntExtensions
 {
-	public static byte[] toByteArray(this int self) => BitConverter.GetBytes(self);
+	public static byte[] ToByteArray(this int self) => BitConverter.GetBytes(self);
 
 	/// <summary>
 	/// convert long to int32
 	/// </summary>
 	/// <returns>return int32</returns>
-	public static int toInt(this long self)
+	public static int ToInt(this long self)
 	{
 		try
 		{

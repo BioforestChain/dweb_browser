@@ -81,11 +81,11 @@ public class MemoryStreamTest: Log
 			/// Read 和 ReadExactly 差异就在第三个字段
 			/// 如果流的内容长度不足第三个字段指定的长度时
 			/// Read可以正常读取，不受影响，而ReadExactly则会直接抛出异常
-			//stream.Read(buffer, offset.toInt(), (buffer.LongLength - offset).toInt());
-			stream.ReadExactly(buffer, offset.toInt(), (buffer.LongLength - offset).toInt());
+			//stream.Read(buffer, offset.ToInt(), (buffer.LongLength - offset).ToInt());
+			stream.ReadExactly(buffer, offset.ToInt(), (buffer.LongLength - offset).ToInt());
 			offset += stream.Position;
 			Console.WriteLine($"offset: {offset}");
-			Console.WriteLine($"remains: {(buffer.LongLength - offset).toInt()}");
+			Console.WriteLine($"remains: {(buffer.LongLength - offset).ToInt()}");
 
 			if (offset >= buffer.LongLength)
 			{

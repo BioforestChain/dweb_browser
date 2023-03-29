@@ -1,7 +1,7 @@
 
 namespace ipc.extensions;
 
-static class StringExtensions
+public static class StringExtensions
 {
     public static byte[] FromBase64(this string self) => Convert.FromBase64String(self);
 

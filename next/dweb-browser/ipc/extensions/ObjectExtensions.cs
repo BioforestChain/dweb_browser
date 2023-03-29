@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace ipc.extensions;
 
-static class ObjectExtensions
+public static class ObjectExtensions
 {
     // Kotlin: fun <T, R> T.let(block: (T) -> R): R
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

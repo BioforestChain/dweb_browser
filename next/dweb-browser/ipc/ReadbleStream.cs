@@ -6,7 +6,6 @@ namespace ipc;
 public class ReadableStream : MemoryStream
 {
     public string? Cid { get; set; }
-    //public Action<ReadableStreamController> OnStart { get; set; }
     public Action<(int, ReadableStreamController)> OnPull { get; set; }
     public Action OnClose { get; set; }
 
@@ -43,7 +42,7 @@ public class ReadableStream : MemoryStream
 
                 //await WriteAsync(chunk, 0, chunk.Length);
                 _data = _data.Combine(chunk);
-                Console.WriteLine($"DATA-IN/{Uid} +{chunk.Length} ~> {this.Length}");
+                Console.WriteLine($"DATA-IN/{Uid} +{chunk.Length} ~> {_data.Length}");
 
                 _dataLock.ReleaseMutex();
 
@@ -118,7 +117,6 @@ public class ReadableStream : MemoryStream
 
     public override string ToString() => Uid;
 
-    //private int _requestData(int requestSize, bool waitFull)
     private byte[] _requestData(int requestSize, bool waitFull)
     {
         var size = waitFull ? requestSize : 1;
@@ -126,7 +124,6 @@ public class ReadableStream : MemoryStream
         // 如果下标满足条件，直接返回
         if (CanReadSize >= size)
         {
-            //return CanReadSize.toInt();
             return _data;
         }
 
@@ -157,7 +154,7 @@ public class ReadableStream : MemoryStream
 
                         Task.Run(() =>
                         {
-                            int desiredSize = (size - CanReadSize).toInt();
+                            int desiredSize = (size - CanReadSize).ToInt();
                             OnPull((desiredSize, _controller));
                         });
                     }
@@ -170,34 +167,33 @@ public class ReadableStream : MemoryStream
             Console.WriteLine($"REQUEST-DATA/DONE/{Uid} {this.Length}");
         }).Wait();
 
-        //return CanReadSize.toInt();
         return _data;
     }
 
     public int Available()
     {
-        //return _requestData(1, true);
         return _requestData(1, true).Length;
     }
 
+    public override long Length => _data.Length;
+    public override long Position { get => ptr; set => ptr = value.ToInt(); }
+
     public override int Read(Span<byte> buffer)
     {
-        //var len = _requestData(1, true);
         var data = _requestData(1, true);
         // 读取到没有数据后，会返回-1
-        //return len > 0 ? _data[ptr++] : -1;
-        //data.CopyTo(buffer, 0);
-        new Span<byte>(data, ptr, buffer.Length).CopyTo(buffer);
-        return ptr < _data.Length ? _data[ptr++] : -1;
+        var len = data.Length >= buffer.Length ? buffer.Length : data.Length;
+        new Span<byte>(data, ptr, len).CopyTo(buffer);
+        return ptr < _data.Length ? _data[ptr+=len] : -1;
     }
 
     public override int Read(byte[] buffer, int offset, int count)
     {
         try
         {
-            var remain = _requestData(count, false);
+            var data = _requestData(count, false);
 
-            if (ptr >= this.Length || count < 0)
+            if (ptr >= data.Length || count < 0)
             {
                 // 流已读完
                 return -1;
@@ -209,13 +205,33 @@ public class ReadableStream : MemoryStream
             }
 
             //return base.Read(buffer, offset, count);
-            var len = CanReadSize > count ? count : CanReadSize.toInt();
+            var len = CanReadSize > count ? count : CanReadSize.ToInt();
             _data.CopyTo(buffer, 0);
 
             ptr += len;
 
             // 返回读取的长度
             return len;
+        }
+        finally
+        {
+            _gc();
+        }
+    }
+
+    public override int ReadByte()
+    {
+        try
+        {
+            var data = _requestData(1, true);
+
+            // 流已读完
+            if (ptr >= data.Length)
+            {
+                return -1;
+            }
+
+            return data[ptr++];
         }
         finally
         {
