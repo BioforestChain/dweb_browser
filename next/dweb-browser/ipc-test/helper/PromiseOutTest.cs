@@ -9,16 +9,16 @@ public class PromiseOutTest : Log
 
     [Fact]
     [Trait("Helper", "PromiseOut")]
-    public void PromiseOut_Resolve_ReturnsSuccess()
+    public async void PromiseOut_Resolve_ReturnsSuccess()
     {
         Console.WriteLine("start");
         var startTime = DateTime.Now;
         Console.WriteLine($"start: {startTime}");
         var po = new PromiseOut<bool>();
         Console.WriteLine($"Task start: {DateTime.Now}");
-        Task.Run(() => SleepResolve(1000, po));
+        _ = Task.Run(() => SleepResolve(1000, po));
         Console.WriteLine($"Task end: {DateTime.Now}");
-        var b = po.WaitPromise();
+        var b = await po.WaitPromiseAsync();
         Console.WriteLine($"resolve value: {b.ToString()}");
         var endTime = DateTime.Now;
         Console.WriteLine($"end: {endTime}");
@@ -35,13 +35,13 @@ public class PromiseOutTest : Log
 
     [Fact]
     [Trait("Helper", "PromiseOut")]
-    public void PromiseOut_Reject_ReturnsFailure()
+    public async void PromiseOut_Reject_ReturnsFailure()
     {
         var po = new PromiseOut<bool>();
         try
         {
-            Task.Run(() => SleepReject(1000, po, "QAQ"));
-            po.WaitPromise();
+            _ = Task.Run(() => SleepReject(1000, po, "QAQ"));
+            await po.WaitPromiseAsync();
         }
         catch (Exception e)
         {
@@ -58,34 +58,34 @@ public class PromiseOutTest : Log
 
     [Fact]
     [Trait("Helper", "PromiseOut")]
-    public void PromiseOut_MultiAwait_ReturnsResolved()
+    public async void PromiseOut_MultiAwait_ReturnsResolved()
     {
         var po = new PromiseOut<bool>();
 
         var startTime = DateTime.Now;
 
-        Task.Run(() => SleepResolve(1000, po));
-        Task.Run(() => SleepResolve(1000, po));
-        Task.Run(() => SleepWait(po, 1));
-        Task.Run(() => SleepWait(po, 2));
+        _ = Task.Run(() => SleepResolve(1000, po));
+        _ = Task.Run(() => SleepResolve(1000, po));
+        _ = Task.Run(() => SleepWait(po, 1));
+        _ = Task.Run(() => SleepWait(po, 2));
 
         Console.WriteLine("start wait 3");
-        po.WaitPromise();
+        await po.WaitPromiseAsync();
         Console.WriteLine("resolved 3");
 
         Assert.Equal(1, (DateTime.Now - startTime).Seconds);
     }
 
-    internal static void SleepWait(PromiseOut<bool> po, int sort)
+    internal static async void SleepWait(PromiseOut<bool> po, int sort)
     {
         Console.WriteLine($"start wait {sort}");
-        po.WaitPromise();
+        await po.WaitPromiseAsync();
         Console.WriteLine($"resolve {sort}");
     }
 
     [Fact]
     [Trait("Helper", "PromiseOut")]
-    public void PromiseOut_Bench_ReturnsAtomicInteger()
+    public async void PromiseOut_Bench_ReturnsAtomicInteger()
     {
         var times = 10000;
         long result1 = 0, result2 = 0;
@@ -93,22 +93,22 @@ public class PromiseOutTest : Log
         for (int i = 0; i < times; i++)
         {
             var po = new PromiseOut<bool>();
-            Task.Run(() =>
+            _ = Task.Run(async () =>
             {
-                Thread.Sleep(100);
+                await Task.Delay(100);
                 Interlocked.Increment(ref result1);
                 po.Resolve(true);
             });
-            Task.Run(() =>
+            _ = Task.Run(async () =>
             {
-                po.WaitPromise();
+                await po.WaitPromiseAsync();
                 Interlocked.Increment(ref result2);
             });
         }
 
         while (Interlocked.Read(ref result2) < times)
         {
-            Thread.Sleep(200);
+            await Task.Delay(200);
             Console.WriteLine($"times result1: {Interlocked.Read(ref result1)} result2: {Interlocked.Read(ref result2)}");
         }
 

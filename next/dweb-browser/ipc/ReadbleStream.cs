@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks.Dataflow;
-using Open.Observable;
 
 namespace ipc;
 
@@ -16,7 +15,9 @@ public class ReadableStream : MemoryStream
 
     private Mutex _dataLock = new Mutex(false);
 
-    private ObservableValue<int> _dataChangeObserver = ObservableValue.Create<int>(0);
+
+    delegate void DataChangeEvent(long size);
+    private event DataChangeEvent _dataChangeObserver;
 
     public ReadableStream(
         string? cid = null,
@@ -47,11 +48,11 @@ public class ReadableStream : MemoryStream
                 _dataLock.ReleaseMutex();
 
                 // 收到数据了，尝试解锁通知等待者
-                _dataChangeObserver.OnNext(_dataChangeObserver.Value + 1);
+                _dataChangeObserver?.Invoke(_data.Length);
             }
 
             // 关闭数据通道了，尝试解锁通知等待者
-            _dataChangeObserver.OnNext(-1);
+            _dataChangeObserver?.Invoke(-1);
 
             // 执行关闭
             _closePo.Resolve(true);
@@ -62,7 +63,7 @@ public class ReadableStream : MemoryStream
 
     private PromiseOut<bool> _closePo = new PromiseOut<bool>();
 
-    public void AfterClosed() => _closePo.WaitPromise();
+    public Task<bool> AfterClosed() => _closePo.WaitPromiseAsync();
 
     public bool IsClosed { get { return _closePo.IsFinished; } }
 
@@ -127,43 +128,38 @@ public class ReadableStream : MemoryStream
             return _data;
         }
 
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             var wait = new PromiseOut<bool>();
-            CancellationTokenSource source = new CancellationTokenSource();
-
-            var task = Task.Run(() =>
+            DataChangeEvent ob = count =>
             {
-                _dataChangeObserver.Subscribe(count =>
+                Console.WriteLine($"count: {count} CanReadSize: {CanReadSize}");
+                Console.WriteLine($"Length: {Length} Position: {Position}");
+                if (count == -1)
                 {
-                    Console.WriteLine($"count: {count} CanReadSize: {CanReadSize}");
-                    Console.WriteLine($"Length: {Length} Position: {Position}");
-                    if (count == -1)
-                    {
-                        Console.WriteLine($"REQUEST-DATA/END/{Uid} {CanReadSize}/{size}");
-                        wait.Resolve(true);
-                    }
-                    else if (CanReadSize >= size)
-                    {
-                        Console.WriteLine($"REQUEST-DATA/CHANGED/{Uid} {CanReadSize}/{size}");
-                        wait.Resolve(false);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"REQUEST-DATA/WAITING-&-PULL/{Uid} {CanReadSize}/{size}");
+                    Console.WriteLine($"REQUEST-DATA/END/{Uid} {CanReadSize}/{size}");
+                    wait.Resolve(true);
+                }
+                else if (CanReadSize >= size)
+                {
+                    Console.WriteLine($"REQUEST-DATA/CHANGED/{Uid} {CanReadSize}/{size}");
+                    wait.Resolve(false);
+                }
+                else
+                {
+                    Console.WriteLine($"REQUEST-DATA/WAITING-&-PULL/{Uid} {CanReadSize}/{size}");
 
-                        Task.Run(() =>
-                        {
-                            int desiredSize = (size - CanReadSize).ToInt();
-                            OnPull((desiredSize, _controller));
-                        });
-                    }
-                });
-            }, source.Token);
+                    Task.Run(() =>
+                    {
+                        int desiredSize = (size - CanReadSize).ToInt();
+                        OnPull((desiredSize, _controller));
+                    });
+                }
+            };
+            _dataChangeObserver += ob;
 
-            wait.WaitPromise();
-            _dataChangeObserver.Dispose();
-            source.Cancel();
+            await wait.WaitPromiseAsync();
+            _dataChangeObserver -= ob;
             Console.WriteLine($"REQUEST-DATA/DONE/{Uid} {this.Length}");
         }).Wait();
 
@@ -180,11 +176,18 @@ public class ReadableStream : MemoryStream
 
     public override int Read(Span<byte> buffer)
     {
-        var data = _requestData(1, true);
-        // 读取到没有数据后，会返回-1
-        var len = data.Length >= buffer.Length ? buffer.Length : data.Length;
-        new Span<byte>(data, ptr, len).CopyTo(buffer);
-        return ptr < _data.Length ? _data[ptr+=len] : -1;
+        try
+        {
+            var data = _requestData(1, true);
+            // 读取到没有数据后，会返回-1
+            var len = data.Length >= buffer.Length ? buffer.Length : data.Length;
+            new Span<byte>(data, ptr, len).CopyTo(buffer);
+            return ptr < _data.Length ? _data[ptr += len] : -1;
+        }
+        finally
+        {
+            _gc();
+        }
     }
 
     public override int Read(byte[] buffer, int offset, int count)

@@ -1,4 +1,6 @@
-﻿namespace ipc.helper;
+﻿using System.Threading.Tasks;
+
+namespace ipc.helper;
 
 public class PromiseOut<T>
 {
@@ -7,9 +9,11 @@ public class PromiseOut<T>
 
     public void Resolve(T value)
     {
-        Value = value;
-        task.TrySetResult(value);
-        IsResolved = true;
+        if (task.TrySetResult(value))
+        {
+            Value = value;
+        }
+
     }
 
     public void Reject(string msg)
@@ -17,41 +21,13 @@ public class PromiseOut<T>
         task.TrySetException(new Exception(msg));
     }
 
-    public PromiseOut()
-    {
-        _isCanceled = new Lazy<bool>(() =>
-            task.Task.IsCanceled || ((_token is not null) && _token!.Value.IsCancellationRequested), true);
+    public bool IsResolved { get { lock (task) { return task.Task.IsCompletedSuccessfully; } } }
 
-        _isFinished = new Lazy<bool>(() => task.Task.IsCompleted, true);
-    }
+    public bool IsFinished { get { lock (task) { return task.Task.IsCompleted; } } }
 
-    public bool IsResolved { get; set; } = false;
+    public bool IsCanceled { get { lock (task) { return task.Task.IsCanceled; } } }
 
-    private Lazy<bool> _isFinished;
-    public bool IsFinished
-    {
-        get { return _isFinished.Value; }
-    }
-
-    private Lazy<bool> _isCanceled;
-    public bool IsCanceled
-    {
-        get
-        {
-            return _isCanceled.Value;
-        }
-    }
-
-    public void Cancel() => task.TrySetCanceled();
-
-    private CancellationToken? _token { get; set; }
-
-    public T WaitPromise() => task.Task.Result;
-
-    public Task<T> WaitPromiseAsync(CancellationToken token)
-    {
-        _token = token;
-        return task.Task.WaitAsync(_token!.Value);
-    }
+    //public T WaitPromise() => task.Task.Result;
+    public Task<T> WaitPromiseAsync() => task.Task.WaitAsync(CancellationToken.None);
 }
 

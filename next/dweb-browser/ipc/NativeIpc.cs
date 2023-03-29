@@ -54,11 +54,11 @@ public class NativePort<I, O>
         /**
          * 等待 close 信号被发出，那么就关闭出口、触发事件
          */
-        Task.Run(() =>
+        Task.Run(async () =>
         {
-            _closePo.WaitPromise();
+            await _closePo.WaitPromiseAsync();
             _channel_out.Complete();
-            _closeSignal.EmitAsync();
+            await _closeSignal.EmitAsync();
             Console.WriteLine($"port-closed/{this}");
         });
     }

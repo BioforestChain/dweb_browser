@@ -21,7 +21,7 @@ namespace ipc_test
 
             public override void WriteLine(string? m)
             {
-                output.WriteLine(m);
+                output.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")}\t| {m}");
             }
         }
     }

@@ -278,7 +278,7 @@ public abstract class Ipc
         var result = new PromiseOut<IpcResponse>();
         _reqResMap[ipcRequest.ReqId] = result;
         await PostMessageAsync(ipcRequest);
-        return result.WaitPromise();
+        return await result.WaitPromiseAsync();
     }
 
     public async Task<HttpResponseMessage> Request(HttpRequestMessage request) =>

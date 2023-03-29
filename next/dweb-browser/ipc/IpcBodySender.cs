@@ -388,7 +388,7 @@ public class IpcBodySender : IpcBody
             while (true)
             {
                 // 等待流开始被拉取
-                pullingPo.WaitPromise();
+                await pullingPo.WaitPromiseAsync();
 
                 Console.WriteLine($"sender/PULLING/{stream}", stream_id);
 
