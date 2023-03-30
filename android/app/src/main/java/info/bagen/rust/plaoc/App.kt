@@ -20,8 +20,6 @@ class App : Application() {
     companion object {
         lateinit var appContext: Context
 
-        var browserActivity: BrowserActivity? = null
-
         val grant = PromiseOut<Boolean>()
         fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
             GlobalScope.launch(ioAsyncExceptionHandler) {

@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_CAN_BE_FOUND
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_REQUEST
@@ -50,15 +51,12 @@ class BrowserActivity : AppCompatActivity() {
 
     @JvmName("getAppViewModel1")
     fun getAppViewModel(): AppViewModel {
-        // tansocc.com
-        // ua dweb-host/browser.android.dweb
-        // file://dns.sys.dweb/install?url=.zip
         return appViewModel
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        App.browserActivity = this
+        browserController.activity = this
         setContent {
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
                 !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
@@ -185,7 +183,7 @@ class BrowserActivity : AppCompatActivity() {
     override fun onDestroy() {
         // 退出APP关闭服务
         super.onDestroy()
-        App.browserActivity = null
+        browserController.activity = null
         dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveDWebBrowser)
         blueToothReceiver?.let { unregisterReceiver(it) }
         blueToothReceiver = null

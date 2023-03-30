@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat.registerReceiver
 import info.bagen.rust.plaoc.util.JsonUtil
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.browser.BrowserActivity
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
@@ -61,11 +62,11 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
             "/open" bind Method.GET to defineHandler { request ->
                 var result = "Application for bluetooth rejected"
                 // 如果蓝牙是关闭的
-                if (bluetoothAdapter?.isEnabled == false && App.browserActivity != null) {
+                if (bluetoothAdapter?.isEnabled == false && browserController.activity != null) {
                     val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                     // 向用户请求启动蓝牙 （requestCode – 如果 >= 0，该代码将在活动退出时在 onActivityResult() 中返回，用于定位）
                     startActivityForResult(
-                        App.browserActivity!!,
+                        browserController.activity!!,
                         enableBtIntent,
                         BLUETOOTH_REQUEST,
                         null
@@ -177,7 +178,7 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                     Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
                         putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, time)
                     }
-                App.browserActivity?.let {
+                browserController.activity?.let {
                     startActivityForResult(it, discoverableIntent, BLUETOOTH_CAN_BE_FOUND, null)
                     return@defineHandler Response(Status.OK).body("""{"canBeFound":"${bluetooth_found.waitPromise()}"}""")
                 }
@@ -190,15 +191,15 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
 
     /** 查找新的蓝牙设备*/
     private suspend fun findBluetooth(): String {
-        if (App.browserActivity == null) {
+        if (browserController.activity == null) {
             return "App initialization not completed"
         }
         // 发现设备时注册广播。
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        App.browserActivity?.blueToothReceiver = BrowserActivity.BlueToothReceiver()
+        browserController.activity?.blueToothReceiver = BrowserActivity.BlueToothReceiver()
         registerReceiver(
             App.appContext,
-            App.browserActivity!!.blueToothReceiver,
+            browserController.activity!!.blueToothReceiver,
             filter,
             ContextCompat.RECEIVER_VISIBLE_TO_INSTANT_APPS
         )

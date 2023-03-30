@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.google.accompanist.web.WebView
+import info.bagen.rust.plaoc.microService.core.AndroidNativeMicroModule.Companion.controllerMap
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.toBitmap
@@ -100,7 +101,7 @@ open class MultiWebViewActivity : PermissionActivity() {
         remoteMmid = intent.getStringExtra("mmid") ?: return finish()
         controller?.activity = null
 
-        controller = MultiWebViewNMM.controllerMap[remoteMmid]?.also { controller ->
+        controller = controllerMap[remoteMmid]?.also { controller ->
             controller.activity = this
             controller.onWebViewClose {
                 // 如果webview实例都销毁完了，那就关闭自己

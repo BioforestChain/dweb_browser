@@ -18,7 +18,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.Mmid
-import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*
@@ -27,17 +26,17 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 
-class CameraPlugin(val mmid: Mmid) {
+class CameraPlugin(val currentActivity: Activity?) {
     // Permission alias constants
     val CAMERA = "camera"
     val PHOTOS = "photos"
 
     companion object {
-         const val REQUEST_CAMERA_IMAGE: Int = 91
-         const val REQUEST_IMAGE_CAPTURE: Int = 92
-         const val REQUEST_IMAGES_CAPTURE: Int = 93
-         const val REQUEST_EDITED_IMAGE: Int = 94
-        const val REQUEST_CAMERA_PERMISSION_CODE:Int = 94
+        const val REQUEST_CAMERA_IMAGE: Int = 91
+        const val REQUEST_IMAGE_CAPTURE: Int = 92
+        const val REQUEST_IMAGES_CAPTURE: Int = 93
+        const val REQUEST_EDITED_IMAGE: Int = 94
+        const val REQUEST_CAMERA_PERMISSION_CODE: Int = 94
     }
 
     // Message constants
@@ -126,9 +125,7 @@ class CameraPlugin(val mmid: Mmid) {
                     onCallback?.let { it("User cancelled photos app") }
                 }
             })
-        getCurrentWebViewController(mmid)?.let { it ->
-            fragment.show(it.activity!!.supportFragmentManager, "capacitorModalsActionSheet")
-        }
+//            fragment.show(currentActivity.supportFragmentManager, "capacitorModalsActionSheet")
     }
 
     private fun showCamera(onCallback: ((String) -> Unit)) {
@@ -143,19 +140,25 @@ class CameraPlugin(val mmid: Mmid) {
         openPhotos(onCallback)
     }
 
-    private fun checkCameraPermissions(activity: Activity?,onCallback: ((String) -> Unit)): Boolean {
+    private fun checkCameraPermissions(
+        activity: Activity?,
+        onCallback: ((String) -> Unit)
+    ): Boolean {
         if (activity == null) {
-             onCallback("not activity")
-            return  false
+            onCallback("not activity")
+            return false
         }
         if (ContextCompat.checkSelfPermission(App.appContext, Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             // Permission is not granted, request for permission
-            ActivityCompat.requestPermissions(activity,
+            ActivityCompat.requestPermissions(
+                activity,
                 arrayOf(Manifest.permission.CAMERA),
-                REQUEST_CAMERA_PERMISSION_CODE)
+                REQUEST_CAMERA_PERMISSION_CODE
+            )
         }
-        return  true
+        return true
     }
 
     private fun checkPhotosPermissions(onCallback: ((String) -> Unit)?): Boolean {
@@ -183,11 +186,10 @@ class CameraPlugin(val mmid: Mmid) {
 
     @SuppressLint("QueryPermissionsNeeded")
     fun openCamera(onCallback: ((String) -> Unit)) {
-        val activity = getCurrentWebViewController(mmid)?.activity
-        if (checkCameraPermissions(activity,onCallback)) {
+        if (checkCameraPermissions(currentActivity, onCallback)) {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (takePictureIntent.resolveActivity(App.appContext.packageManager) != null) {
-                activity?.startActivityForResult(takePictureIntent,REQUEST_CAMERA_IMAGE)
+                currentActivity?.startActivityForResult(takePictureIntent, REQUEST_CAMERA_IMAGE)
             } else {
                 onCallback(NO_CAMERA_ACTIVITY_ERROR)
             }
@@ -213,9 +215,7 @@ class CameraPlugin(val mmid: Mmid) {
                 } else {
                     REQUEST_IMAGE_CAPTURE
                 }
-                getCurrentWebViewController(mmid)?.let { it ->
-                    startActivityForResult(it.activity!!, intent, requestCode, null)
-                }
+                currentActivity?.startActivityForResult(intent, requestCode, null)
             } catch (ex: ActivityNotFoundException) {
                 onCallback?.let { it(NO_PHOTO_ACTIVITY_ERROR) }
             }
@@ -664,12 +664,10 @@ class CameraPlugin(val mmid: Mmid) {
             val tempImage = getTempImage(uri, bitmapOutputStream)
             val editIntent = createEditIntent(tempImage)
 
-            getCurrentWebViewController(mmid)?.let { it ->
-                if (editIntent != null) {
-                    startActivityForResult(it.activity!!, editIntent, REQUEST_EDITED_IMAGE, null)
-                } else {
-                    onCallback?.let { it(IMAGE_EDIT_ERROR) }
-                }
+            if (editIntent != null) {
+                currentActivity?.startActivityForResult(editIntent, REQUEST_EDITED_IMAGE, null)
+            } else {
+                onCallback?.let { it(IMAGE_EDIT_ERROR) }
             }
 
         } catch (ex: Throwable) {

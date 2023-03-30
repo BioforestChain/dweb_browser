@@ -22,7 +22,6 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
     }
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-
     }
 
     override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {

@@ -1,12 +1,12 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.camera
 
 import android.graphics.Bitmap
+import info.bagen.rust.plaoc.microService.core.AndroidNativeMicroModule
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
-import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.int
@@ -18,8 +18,7 @@ import java.io.ByteArrayOutputStream
 inline fun debugCameraNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Camera", tag, msg, err)
 
-class CameraNMM() : NativeMicroModule("camera.sys.dweb") {
-
+class CameraNMM() : AndroidNativeMicroModule("camera.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_source = Query.string().defaulted("source", "PHOTOS")
@@ -31,7 +30,7 @@ class CameraNMM() : NativeMicroModule("camera.sys.dweb") {
                 val source = CameraSource.valueOf(query_source(request))
                 val quality = query_quality(request);
                 debugCameraNMM("getPhoto", "uri: ${request.uri},remoteId: ${ipc.remote.mmid}")
-                val cameraPlugin = CameraPlugin(ipc.remote.mmid)
+                val cameraPlugin = CameraPlugin(getActivity(ipc.remote.mmid))
                 val bitmap = PromiseOut<Bitmap>()
                 cameraPlugin.getPhoto(CameraSettings(source = source)) {
                     debugCameraNMM("getPhoto error", "result => $it")

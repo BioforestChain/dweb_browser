@@ -12,6 +12,7 @@ import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewActivity
 import info.bagen.rust.plaoc.network.HttpClient
 import info.bagen.rust.plaoc.network.base.byteBufferToString
 import kotlinx.coroutines.GlobalScope
@@ -22,6 +23,22 @@ import org.http4k.core.query
 class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
 
+    private var activityTask = PromiseOut<BrowserActivity>()
+    suspend fun waitActivityCreated() = activityTask.waitPromise()
+
+    var activity: BrowserActivity? = null
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            if (value == null) {
+                activityTask = PromiseOut()
+            } else {
+                activityTask.resolve(value)
+            }
+        }
+
     private val openIPCMap = mutableMapOf<Mmid, Ipc>()
     private val dWebViewList = mutableListOf<View>()
 
@@ -31,7 +48,7 @@ class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
     fun removeLastView(): Boolean {
         try {
             dWebViewList.removeLast().also { childView ->
-                App.browserActivity?.window?.decorView?.let { parentView ->
+                activity?.window?.decorView?.let { parentView ->
                     (parentView as ViewGroup).removeView(childView)
                 }
             }

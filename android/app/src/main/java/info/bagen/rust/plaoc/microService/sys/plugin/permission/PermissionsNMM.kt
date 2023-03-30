@@ -1,6 +1,7 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.permission
 
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
@@ -52,7 +53,7 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
     }
 
     private fun applyPermission(permission: String, mmid: Mmid) {
-        App.browserActivity?.let {
+        browserController.activity?.let {
             PermissionManager.requestPermissions(
                 it,
                 permission
@@ -63,7 +64,7 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
     }
 
     private fun applyPermissions(permissions: ArrayList<String>, mmid: Mmid) {
-        App.browserActivity?.let {
+        browserController.activity?.let {
             PermissionManager.requestPermissions(
                 it,
                 permissions

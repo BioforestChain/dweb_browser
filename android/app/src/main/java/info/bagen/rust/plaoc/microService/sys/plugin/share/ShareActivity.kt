@@ -11,7 +11,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 
-class ShareActivity :AppCompatActivity(){
+class ShareActivity : AppCompatActivity(){
 
     companion object {
         val RESULT_SHARE_CODE = 3

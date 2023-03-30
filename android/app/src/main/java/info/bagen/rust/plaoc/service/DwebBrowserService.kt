@@ -15,6 +15,7 @@ import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastAction
 import info.bagen.rust.plaoc.broadcast.BFSBroadcastReceiver
 import info.bagen.rust.plaoc.datastore.JmmMetadataDB
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.sys.jmm.DownLoadObserver
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.*
@@ -87,7 +88,7 @@ class DwebBrowserService : Service() {
       downLoadInfo.notificationId,
       downLoadInfo.jmmMetadata.title
     ) // 显示通知
-    App.browserActivity?.let {activity -> // 为了让App接收到有下载的请求
+    browserController.activity?.let {activity -> // 为了让App接收到有下载的请求
       activity.getAppViewModel().handleIntent(
         AppViewIntent.ServiceDownLoadNotify(downLoadInfo.jmmMetadata.id, downLoadInfo.path)
       )

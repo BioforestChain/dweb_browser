@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.core.AndroidNativeMicroModule
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
@@ -28,19 +29,10 @@ import java.util.concurrent.ConcurrentSkipListSet
 inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("mwebview", tag, msg, err)
 
-class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
+class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
     class ActivityClass(var mmid: Mmid, val ctor: Class<out MultiWebViewActivity>)
 
     companion object {
-        val activityClassList = mutableListOf(
-            ActivityClass("", MultiWebViewPlaceholder1Activity::class.java),
-            ActivityClass("", MultiWebViewPlaceholder2Activity::class.java),
-            ActivityClass("", MultiWebViewPlaceholder3Activity::class.java),
-            ActivityClass("", MultiWebViewPlaceholder4Activity::class.java),
-            ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
-        )
-        val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
-
         /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的*/
         fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
             return controllerMap[mmid]
@@ -133,11 +125,12 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         }
 
         openMultiWebViewActivity(remoteMmid)
-        controller.waitActivityCreated()
+        activitySignal.emit(Pair(remoteMmid,controller.waitActivityCreated()))
         return  controller.openWebView(url)
     }
 
     private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
+        onDestroySignal.emit(remoteMmid)
         return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
     }
 

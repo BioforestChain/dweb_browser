@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import info.bagen.rust.plaoc.ui.app.AppViewIntent
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -21,7 +22,7 @@ class BFSBroadcastReceiver : BroadcastReceiver() {
             intent?.let {
                 when (it.action) {
                     BFSBroadcastAction.BFSInstallApp.action -> {
-                        App.browserActivity?.let { mainActivity ->
+                        browserController.activity?.let { mainActivity ->
                             val path = it.getStringExtra("path") ?: ""
                             mainActivity.getAppViewModel()
                                 .handleIntent(AppViewIntent.BFSInstallApp(path))

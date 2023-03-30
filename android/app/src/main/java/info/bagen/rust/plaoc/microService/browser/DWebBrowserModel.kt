@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,13 +49,13 @@ class DWebBrowserModel : ViewModel() {
                     // openDWebBrowser(action.origin, action.processId)
                     viewModelScope.launch(Dispatchers.Main) {
                         dwebView = DWebView(
-                            context = App.browserActivity ?: App.appContext,
+                            context = browserController.activity ?: App.appContext,
                             localeMM = BrowserNMM.browserController.localeMM,
                             remoteMM = BrowserNMM.browserController.localeMM,
                             options = DWebView.Options(action.origin)
                         ).also { webView ->
                             BrowserNMM.browserController.appendView(webView) // TODO 添加到列表中
-                            App.browserActivity?.let {
+                            browserController.activity?.let {
                                 (it.window.decorView as ViewGroup).addView(webView)
                             }
                         }
