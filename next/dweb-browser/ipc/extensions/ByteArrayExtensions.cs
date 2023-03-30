@@ -22,8 +22,15 @@ public static class ByteArrayExtensions
     /// </summary>
     /// <param name="message">second byteArray</param>
     /// <returns></returns>
-    public static byte[] Combine(this byte[] self, byte[] message) =>
-        self.Concat(message).ToArray();
-
-
+    /// https://stackoverflow.com/questions/415291/best-way-to-combine-two-or-more-byte-arrays-in-c-sharp
+    public static byte[] Combine(this byte[] self, params byte[][] arrays) {
+        byte[] rv = new byte[arrays.Sum(a => a.Length)];
+        int offset = 0;
+        foreach (byte[] array in arrays)
+        {
+            System.Buffer.BlockCopy(array, 0, rv, offset, array.Length);
+            offset += array.Length;
+        }
+        return rv;
+    }
 }
