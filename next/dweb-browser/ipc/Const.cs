@@ -64,12 +64,4 @@ public enum IPC_ROLE
     CLIENT,
 }
 
-public record IpcMessageArgs(IpcMessage Message, Ipc Mipc);
 
-public record IpcRequestMessageArgs(IpcRequest Request, Ipc Mipc);
-
-public record IpcResponseMessageArgs(IpcResponse response, Ipc Mipc);
-
-public record IpcEventMessageArgs(IpcEvent Event, Ipc Mipc);
-
-public record IpcStreamMessageArgs(IpcStream stream, Ipc Mipc);

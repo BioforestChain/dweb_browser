@@ -99,7 +99,7 @@ public class IpcBodySender : IpcBody
 
             public async Task<IpcBodySender?> Remove(string streamId)
             {
-                var ipcBodySender = this.Get(streamId);
+                var ipcBodySender = Get(streamId);
 
                 if (ipcBodySender is not null)
                 {
@@ -108,16 +108,23 @@ public class IpcBodySender : IpcBody
 
                 if (_map.Count == 0)
                 {
-                    await this._destroySignal.EmitAsync(0);
-                    this._destroySignal.Clear();
+                    if (DestroySignal is not null)
+                    {
+                        DestroySignal.Invoke();
+                        foreach (DestroySignalHandler cb in DestroySignal.GetInvocationList().Cast<DestroySignalHandler>())
+                        {
+                            DestroySignal -= cb;
+                        }
+                    }
                 }
 
                 return ipcBodySender;
             }
 
-            private SimpleSignal _destroySignal = new SimpleSignal();
+            public delegate void DestroySignalHandler();
+            public event DestroySignalHandler DestroySignal = null!;
 
-            public Func<bool> OnDetroy(Func<byte, object?> cb) => _destroySignal.Listen(cb);
+            public void OnDetroy(DestroySignalHandler cb) => DestroySignal += cb;
         }
 
         private static Dictionary<Ipc, UsableIpcBodyMapper> s_ipcUsableIpcBodyMap = new Dictionary<Ipc, UsableIpcBodyMapper>();
@@ -143,23 +150,34 @@ public class IpcBodySender : IpcBody
             {
                 usableIpcBodyMapper = new UsableIpcBodyMapper(new Dictionary<string, IpcBodySender>());
 
-                var off = ipc.OnStream((IpcStreamMessageArgs args) => args.stream switch
+                Ipc.StreamSignalHanlder off = null!;
+                off = async args =>
+                {
+                    switch (args.Item1)
                     {
-                        IpcStreamPulling ipcStream =>
-                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamPull(ipcStream),
-                        IpcStreamPaused ipcStream =>
-                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamPaused(ipcStream),
-                        IpcStreamAbort ipcStream =>
-                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamAborted(),
-                        _ => null,
-                    });
+                        case IpcStreamPulling ipcStream:
+                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamPull(ipcStream);
+                            break;
+                        case IpcStreamPaused ipcStream:
+                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamPaused(ipcStream);
+                            break;
+                        case IpcStreamAbort ipcStream:
+                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamAborted();
+                            break;
+                        default:
+                            break;
+                    }
 
-                usableIpcBodyMapper.OnDetroy((_) => off);
-                usableIpcBodyMapper.OnDetroy((_) => s_ipcUsableIpcBodyMap.Remove(ipc));
+                    ipc.StreamSignal -= off;
+                };
+
+                ipc.StreamSignal += off;
+
+                usableIpcBodyMapper.OnDetroy(() => s_ipcUsableIpcBodyMap.Remove(ipc));
 
                 if (usableIpcBodyMapper.Add(streamId, ipcBody))
                 {
-                    ipcBody.OnStreamClose((_) => usableIpcBodyMapper.Remove(streamId));
+                    ipcBody.OnStreamClose(() => usableIpcBodyMapper.Remove(streamId));
                 }
             }
         }
@@ -210,7 +228,8 @@ public class IpcBodySender : IpcBody
                     return new UsedIpcInfo(this, ipc).Also(usedIpcInfo =>
                     {
                         _usedIpcMap[ipc] = usedIpcInfo;
-                        _closeSignal.Listen((_) => EmitStreamAbortedAsync(usedIpcInfo));
+                        // _closeSignal.Listen((_) => EmitStreamAbortedAsync(usedIpcInfo));
+                        CloseSignal += () => EmitStreamAbortedAsync(usedIpcInfo);
                     });
                 }
                 else
@@ -273,13 +292,15 @@ public class IpcBodySender : IpcBody
             }
         });
 
-    private SimpleSignal _closeSignal = new SimpleSignal();
+    public delegate void CloseSignalHandler();
+    public event CloseSignalHandler CloseSignal = null!;
 
-    public Func<bool> OnStreamClose(Func<byte, object?> cb) => _closeSignal.Listen(cb);
+    public void OnStreamClose(CloseSignalHandler cb) => CloseSignal += cb;
 
-    private SimpleSignal _openSignal = new SimpleSignal();
+    public delegate void OpenSignalHandler();
+    public event OpenSignalHandler OpenSignal = null!;
 
-    public Func<bool> OnStreamOpen(Func<byte, object?> cb) => _openSignal.Listen(cb);
+    public void OnStreamOpen(OpenSignalHandler cb) => OpenSignal += cb;
 
     private void _emitStreamClose()
     {
@@ -324,7 +345,7 @@ public class IpcBodySender : IpcBody
 
 
     public static IpcBody From(object raw, Ipc ipc) =>
-        (CACHE.Raw_ipcBody_WMap.TryGet(raw) ?? new IpcBodySender(raw, ipc));
+        CACHE.Raw_ipcBody_WMap.TryGetValue(raw, out IpcBody ipcBody) ? ipcBody : new IpcBodySender(raw, ipc);
     private static Dictionary<Stream, string> s_streamIdWM = new Dictionary<Stream, string>();
 
     private static int s_stream_id_acc = 1;
@@ -473,7 +494,7 @@ public class IpcBodySender : IpcBody
         return metaBody!.Also(it =>
         {
             // 流对象，写入缓存
-            CACHE.MetaId_ipcBodySender_Map[it.MetaId] = this;
+            CACHE.MetaId_ipcBodySender_Map.AddOrUpdate(it.MetaId, this);
             Task.Run(() => _streamStatusSignal.Receive() switch
             {
                 StreamStatusSignal.ABORTED => CACHE.MetaId_ipcBodySender_Map.Remove(it.MetaId),

@@ -8,25 +8,24 @@ namespace ipc;
  */
 public class IpcBodyReceiver : IpcBody
 {
-    public Ipc ReceiverIpc { get; set; }
+    public Ipc Ipc { get; set; }
     public IpcBodyReceiver(SMetaBody metaBody, Ipc ipc)
     {
         MetaBody = metaBody;
-        ReceiverIpc = ipc;
+        Ipc = ipc;
 
         var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
         if (ipcMetaBodyType.IsStream)
         {
-            var cipc = CACHE.MetaId_receiverIpc_Map[MetaBody.MetaId];
-            if (cipc is null)
+            if (!CACHE.MetaId_receiverIpc_Map.TryGetValue(MetaBody.MetaId, out Ipc? cipc))
             {
-                ReceiverIpc.OnClose((_) =>
+                Ipc.OnClose(() =>
                 {
-                    return CACHE.MetaId_receiverIpc_Map.Remove(MetaBody.MetaId);
+                    CACHE.MetaId_receiverIpc_Map.Remove(MetaBody.MetaId);
                 });
 
-                MetaBody = MetaBody with { ReceiverUid = ReceiverIpc.Uid };
-                CACHE.MetaId_receiverIpc_Map[MetaBody.MetaId] = ReceiverIpc;
+                MetaBody = MetaBody with { ReceiverUid = Ipc.Uid };
+                CACHE.MetaId_receiverIpc_Map.AddOrUpdate(MetaBody.MetaId, Ipc);
             }
         }
     }
@@ -42,10 +41,12 @@ public class IpcBodyReceiver : IpcBody
 
                 if (ipcMetaBodyType.IsStream)
                 {
-                    var ipc = CACHE.MetaId_receiverIpc_Map[MetaBody.MetaId]
-                        ?? throw new Exception($"no found ipc by metaId: {MetaBody.MetaId}");
+                    if (!CACHE.MetaId_receiverIpc_Map.TryGetValue(MetaBody.MetaId, out Ipc? ipc))
+                    {
+                        throw new Exception($"no found ipc by metaId: {MetaBody.MetaId}");
+                    }
 
-                    data = MetaToStream(MetaBody, ReceiverIpc);
+                    data = MetaToStream(MetaBody, ipc);
                 }
                 else
                 {
@@ -62,7 +63,6 @@ public class IpcBodyReceiver : IpcBody
                             break;
                         default:
                             throw new Exception($"invalid metaBody type {MetaBody.Type}");
-                            break;
                     }
                 }
 
@@ -92,7 +92,7 @@ public class IpcBodyReceiver : IpcBody
     }
 
     public static IpcBody From(SMetaBody metaBody, Ipc ipc) =>
-        CACHE.MetaId_ipcBodySender_Map[metaBody.MetaId] ?? new IpcBodyReceiver(metaBody, ipc);
+        CACHE.MetaId_ipcBodySender_Map.TryGetValue(metaBody.MetaId, out IpcBody? ipcBody) ? ipcBody : new IpcBodyReceiver(metaBody, ipc);
 
     /**
      * <returns> {String | ByteArray | InputStream} </returns>
@@ -127,24 +127,24 @@ public class IpcBodyReceiver : IpcBody
                 }
 
 
-                Ipc.OnStreamHanlder onStream = null!;
-                onStream = async (streamMessage, ipc) =>
+                Ipc.StreamSignalHanlder onStream = null!;
+                onStream = async args =>
                 {
-                    if (streamMessage is IpcStreamData data && data.StreamId == stream_id)
+                    if (args.Item1 is IpcStreamData data && data.StreamId == stream_id)
                     {
                         Console.WriteLine($"receiver/StreamData/{ipc}/{controller.Stream}", data);
                         await controller.EnqueueAsync(data.Binary);
                     }
-                    else if (streamMessage is IpcStreamEnd end && end.StreamId == stream_id)
+                    else if (args.Item1 is IpcStreamEnd end && end.StreamId == stream_id)
                     {
                         Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", end);
                         controller.Close();
-                        ipc.onStream -= onStream;
+                        ipc.StreamSignal -= onStream;
                     }
 
                 };
 
-                ipc.onStream += onStream;
+                ipc.StreamSignal += onStream;
 
                 //ipc.OnStream(async (IpcStreamMessageArgs args) =>
                 //{

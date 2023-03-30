@@ -1,5 +1,4 @@
 ﻿using MessagePack;
-using System.Linq;
 using ipc.ipcWeb;
 
 namespace ipc;
@@ -8,7 +7,7 @@ public class ReadableStreamIpc : Ipc
 {
 
 
-    public ReadableStreamIpc(MicroModuleInfo remote, String role)
+    public ReadableStreamIpc(MicroModuleInfo remote, string role)
     {
         Remote = remote;
         Role = role;
@@ -17,7 +16,7 @@ public class ReadableStreamIpc : Ipc
     public override MicroModuleInfo Remote { get; set; }
     public override string Role { get; }
 
-    public override Task DoClose() => Task.Run(() => _controller.Close());
+    public override Task DoClose() => Task.Run(_controller.Close);
 
     public override Task _doPostMessageAsync(IpcMessage data)
     {
@@ -25,7 +24,7 @@ public class ReadableStreamIpc : Ipc
         switch (SupportMessagePack)
         {
             case true:
-                message = MessagePack.MessagePackSerializer.ConvertFromJson(data.ToJson());
+                message = MessagePackSerializer.ConvertFromJson(data.ToJson());
                 break;
             case false:
                 switch (data)
@@ -61,10 +60,10 @@ public class ReadableStreamIpc : Ipc
         {
             return new ReadableStream(
                 Role,
-                (controller => _controller = controller),
-                (args =>
-                    Console.WriteLine($"ON-PULL/{args.Item2.Stream}", args.Item1)),
-                (() => Console.WriteLine()));
+                controller => _controller = controller,
+                args =>
+                    Console.WriteLine($"ON-PULL/{args.Item2.Stream}", args.Item1),
+                Console.WriteLine);
         }
     }
 
@@ -81,6 +80,9 @@ public class ReadableStreamIpc : Ipc
             return pong.Length.ToByteArray().Combine(pong);
         }
     }
+
+    protected new delegate void _messageSignalHandler(Tuple<IpcMessage, ReadableStreamIpc> tuple);
+    protected new event _messageSignalHandler _messageSignal = null!;
 
     /**
      * <summary>
@@ -129,7 +131,7 @@ public class ReadableStreamIpc : Ipc
                         break;
                     case IpcMessage ipcMessage:
                         Console.WriteLine($"ON-MESSAGE/{this}", ipcMessage);
-                        await _messageSigal.EmitAsync(new IpcMessageArgs(ipcMessage, this));
+                        _messageSignal.Invoke(Tuple.Create(ipcMessage, this));
                         break;
                     default:
                         throw new Exception($"unknown message: {message}");

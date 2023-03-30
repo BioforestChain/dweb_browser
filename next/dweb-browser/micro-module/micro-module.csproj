@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>micro_module</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ipc\ipc.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="core\" />
+    <None Remove="sys\" />
+    <None Remove="sys\dns\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="core\" />
+    <Folder Include="sys\" />
+    <Folder Include="sys\dns\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
+  </ItemGroup>
+</Project>

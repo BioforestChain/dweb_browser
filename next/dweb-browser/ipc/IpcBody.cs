@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace ipc;
 
@@ -12,7 +13,7 @@ public abstract class IpcBody
          * 将它们缓存起来，那么使用这些 RAW 确保只拿到同一个 IpcBody，这对 RAW-Stream 很重要，流不可以被多次打开读取
          * </summary>
          */
-        public static readonly WeakMap<object, IpcBody> Raw_ipcBody_WMap = new WeakMap<object, IpcBody>();
+        public static readonly ConditionalWeakTable<object, IpcBody> Raw_ipcBody_WMap = new();
 
         /**
          * <summary>
@@ -20,7 +21,7 @@ public abstract class IpcBody
 		 * 其它的 IPC 即便拿到了这个 metaBody 也是没有意义的，除非它是 INLINE
 		 * </summary>
 		 */
-        public static readonly Dictionary<string, Ipc> MetaId_receiverIpc_Map = new Dictionary<string, Ipc>();
+        public static readonly ConditionalWeakTable<string, Ipc> MetaId_receiverIpc_Map = new();
 
         /**
          * <summary>
@@ -28,7 +29,7 @@ public abstract class IpcBody
 		 * 这里主要是存储 流，因为它有明确的 open/close 生命周期
 		 * </summary>
 		 */
-        public static readonly Dictionary<string, IpcBody> MetaId_ipcBodySender_Map = new Dictionary<string, IpcBody>();
+        public static readonly ConditionalWeakTable<string, IpcBody> MetaId_ipcBodySender_Map = new();
     }
 
     protected internal class BodyHubType

@@ -1,10 +1,12 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks.Dataflow;
+﻿using System.Threading.Tasks.Dataflow;
 
 namespace ipc;
 
-using Mmid = String;
-
+using IpcMessageArgs = Tuple<IpcMessage, Ipc>;
+using IpcRequestMessageArgs = Tuple<IpcRequest, Ipc>;
+using IpcResponseMessageArgs = Tuple<IpcResponse, Ipc>;
+using IpcEventMessageArgs = Tuple<IpcEvent, Ipc>;
+using IpcStreamMessageArgs = Tuple<IpcStream, Ipc>;
 
 public abstract class Ipc
 {
@@ -44,7 +46,7 @@ public abstract class Ipc
 
     public interface MicroModuleInfo
     {
-        public Mmid mmid { get; set; }
+        public Mmid Mmid { get; init; }
     }
 
     // TODO: MicroModule还未实现
@@ -67,123 +69,85 @@ public abstract class Ipc
     public Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
         PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
 
-    protected Signal<IpcMessageArgs> _messageSigal = new Signal<IpcMessageArgs>();
-
-    public Func<bool> OnMessage(Func<IpcMessageArgs, object?> cb) => _messageSigal.Listen(cb);
+    protected delegate Task _messageSignalHandler(IpcMessageArgs ipcMessageArgs);
+    protected event _messageSignalHandler _messageSignal = null!;
 
     public abstract Task _doPostMessageAsync(IpcMessage data);
 
-    private Signal<IpcRequestMessageArgs> _requestSignal
+    public delegate Task RequestSignalHandler(IpcRequestMessageArgs ipcRequestMessageArgs);
+    public event RequestSignalHandler RequestSignal = null!;
+
+    public void OnRequest(RequestSignalHandler cb)
     {
-        get
+        RequestSignal += cb;
+        _messageSignal += async args =>
         {
-            return new Lazy<Signal<IpcRequestMessageArgs>>(new Func<Signal<IpcRequestMessageArgs>>(() =>
-                new Signal<IpcRequestMessageArgs>().Also(signal =>
-                {
-                    _messageSigal.Listen(new Func<IpcMessageArgs, object?>(args =>
-                    {
-                        if (args.Message is IpcRequest ipcRequest)
-                        {
-                            signal.EmitAsync(new IpcRequestMessageArgs(ipcRequest, args.Mipc));
-
-                            return true;
-                        }
-
-                        return false;
-                    }));
-                })), true).Value;
-        }
-    }
-
-    public Func<bool> OnRequest(Func<IpcRequestMessageArgs, object?> cb) => _requestSignal.Listen(cb);
-
-    private Signal<IpcResponseMessageArgs> _responseSignal
-    {
-        get
-        {
-            return new Lazy<Signal<IpcResponseMessageArgs>>(new Func<Signal<IpcResponseMessageArgs>>(() =>
-                new Signal<IpcResponseMessageArgs>().Also(signal =>
-                {
-                    _messageSigal.Listen(new Func<IpcMessageArgs, object?>(args =>
-                    {
-                        if (args.Message is IpcResponse ipcResponse)
-                        {
-                            signal.EmitAsync(new IpcResponseMessageArgs(ipcResponse, args.Mipc));
-
-                            return true;
-                        }
-
-                        return false;
-                    }));
-                })), true).Value;
-        }
-    }
-
-    public Func<bool> OnResponse(Func<IpcResponseMessageArgs, object?> cb) => _responseSignal.Listen(cb);
-
-    private Signal<IpcStreamMessageArgs> _streamSignal
-    {
-        get
-        {
-            return new Lazy<Signal<IpcStreamMessageArgs>>(new Func<Signal<IpcStreamMessageArgs>>(() =>
+            if (args.Item1 is IpcRequest ipcRequest)
             {
-                var signal = new Signal<IpcStreamMessageArgs>();
-                /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
-                /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
-                var streamChannel = new BufferBlock<IpcStreamMessageArgs>();
-                Task.Run(async () =>
-                {
-                    await foreach (IpcStreamMessageArgs message in streamChannel.ReceiveAllAsync())
-                    {
-                        await signal.EmitAsync(message);
-                    }
-                });
-
-                _messageSigal.Listen((IpcMessageArgs args) =>
-                {
-                    if (args.Message is IpcStream stream)
-                    {
-                        streamChannel.Post(new IpcStreamMessageArgs(stream, args.Mipc));
-                        return true;
-                    }
-
-                    return false;
-                });
-
-                return signal;
-            }), true).Value;
-        }
+                await RequestSignal?.Invoke(Tuple.Create(ipcRequest, args.Item2))!;
+            }
+        };
     }
 
-    public Func<bool> OnStream(Func<IpcStreamMessageArgs, object?> cb) => _streamSignal.Listen(cb);
+    public delegate Task ResponseSignalHandler(IpcResponseMessageArgs ipcResponseMessageArgs);
+    public event ResponseSignalHandler ResponseSignal = null!;
 
-    public delegate Task OnStreamHanlder(IpcStream stream, Ipc Mipc);
-    //public delegate Task OnStreamHanlder2(IpcStream stream, Ipc Mipc);
-    public event OnStreamHanlder onStream;
-
-    private Signal<IpcEventMessageArgs> _eventSignal
+    public void OnResponse(ResponseSignalHandler cb)
     {
-        get
+        ResponseSignal += cb;
+        _messageSignal += async args =>
         {
-            return new Lazy<Signal<IpcEventMessageArgs>>(new Func<Signal<IpcEventMessageArgs>>(() =>
-                new Signal<IpcEventMessageArgs>().Also(signal =>
-                {
-                    _messageSigal.Listen(new Func<IpcMessageArgs, object?>(args =>
-                    {
-                        if (args.Message is IpcEvent ipcEvent)
-                        {
-                            signal.EmitAsync(new IpcEventMessageArgs(ipcEvent, args.Mipc));
-
-                            return true;
-                        }
-
-                        return false;
-                    }));
-                })), true).Value;
-        }
+            if (args.Item1 is IpcResponse ipcResponse)
+            {
+                await ResponseSignal?.Invoke(Tuple.Create(ipcResponse, args.Item2))!;
+            }
+        };
     }
 
-    public Func<bool> OnEvent(Func<IpcEventMessageArgs, object?> cb) => _eventSignal.Listen(cb);
+    public delegate Task StreamSignalHanlder(IpcStreamMessageArgs ipcStreamMessageArgs);
+
+    public event StreamSignalHanlder StreamSignal = null!;
+
+    public void OnStream(StreamSignalHanlder cb)
+    {
+        StreamSignal += cb;
+
+        /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
+        /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
+        var streamChannel = new BufferBlock<IpcStreamMessageArgs>();
+        Task.Run(async () =>
+        {
+            await foreach (IpcStreamMessageArgs message in streamChannel.ReceiveAllAsync())
+            {
+                //await signal.EmitAsync(message);
+                await StreamSignal?.Invoke(message)!;
+            }
+        });
+
+        _messageSignal += async args =>
+        {
+            if (args.Item1 is IpcStream ipcStream)
+            {
+                await streamChannel.SendAsync(new IpcStreamMessageArgs(ipcStream, args.Item2));
+            }
+        };
+    }
+
+    public delegate Task EventSignalHandler(IpcEventMessageArgs ipcEventMessageArgs);
+    public EventSignalHandler EventSignal = null!;
+
+    public void OnEvent(EventSignalHandler cb)
+    {
+        EventSignal += cb;
+
+        _messageSignal += async args =>
+        {
+            if (args.Item1 is IpcEvent ipcEvent)
+            {
+                await EventSignal?.Invoke(Tuple.Create(ipcEvent, args.Item2))!;
+            }
+        };
+    }
 
 
     public abstract Task DoClose();
@@ -206,18 +170,20 @@ public abstract class Ipc
         get { return _closed; }
     }
 
-    private SimpleSignal _closeSignal = new SimpleSignal();
+    public delegate void CloseSignalHandler();
+    public CloseSignalHandler CloseSignal = null!;
 
-    public Func<bool> OnClose(Func<byte, object?> cb) => _closeSignal.Listen(cb);
+    public void OnClose(CloseSignalHandler cb) => CloseSignal += cb;
 
-    private SimpleSignal _destroySignal = new SimpleSignal();
+    public delegate void DestroySignalHandler();
+    public DestroySignalHandler DestroySignal = null!;
 
-    public Func<bool> OnDestory(Func<byte, object?> cb) => _destroySignal.Listen(cb);
+    public void OnDestory(DestroySignalHandler cb) => DestroySignal += cb;
 
     private bool _destroyed = false;
     public bool IsDestroy
     {
-        get { return _destroyed; }
+        get => _destroyed;
     }
 
     /**
@@ -237,8 +203,14 @@ public abstract class Ipc
             await Close();
         }
 
-        await _destroySignal.EmitAsync();
-        _destroySignal.Clear();
+        if (DestroySignal is not null)
+        {
+            DestroySignal.Invoke();
+            foreach (DestroySignalHandler cb in DestroySignal.GetInvocationList().Cast<DestroySignalHandler>())
+            {
+                DestroySignal -= cb;
+            }
+        }
     }
 
     /**
@@ -261,7 +233,7 @@ public abstract class Ipc
                     {
                         OnResponse((IpcResponseMessageArgs arg) =>
                         {
-                            var ipcResponse = arg.response;
+                            var ipcResponse = arg.Item1;
                             var res = reqResMap[ipcResponse.ReqId];
 
                             if (res is null)
@@ -270,7 +242,7 @@ public abstract class Ipc
                             }
 
                             res.Resolve(ipcResponse);
-                            return null;
+                            return Task.CompletedTask;
                         });
                     });
                 }), true).Value;

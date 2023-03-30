@@ -4,3 +4,4 @@ global using ipc.helper;
 global using ipc.extensions;
 global using System;
 global using Moq;
+global using Xunit.Abstractions;
