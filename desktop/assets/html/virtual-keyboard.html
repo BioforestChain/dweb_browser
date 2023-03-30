@@ -5,15 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>vitual-keyboard</title>
     <style type="text/css">
+        :root{
+            --key-alphabet-width: 50px;
+            --key-alphabet-height: 60px;
+            --row-padding-vertical: 3px;
+            --row-padding-horizontal: 2px;
+            --border-radius: 3px;
+        }
         body{
             /* background-color: #FF000003; */
-            background: #F003;
+            margin: 0px;
+            height: calc((var(--key-alphabet-height) + var(--row-padding-vertical) * 2) * 4 + var(--key-alphabet-height));
+            overflow: hidden;
+            background: #eee;
         }
+
+        .row{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--row-padding-vertical) var(--row-padding-horizontal);
+        }
+
+        .key-alphabet{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: var(--key-alphabet-width);
+            height: var(--key-alphabet-height);
+            border-radius: var(--border-radius);
+            background: #fff;
+        }
+
+        .line-2{
+            padding: var(--row-padding-vertical) calc(var(--row-padding-horizontal) + var(--key-alphabet-width) / 2);
+        }
+
+        .key-symbol{
+            --margin-horizontal: calc(var(--key-alphabet-width) * 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: calc(var(--key-alphabet-width) * 1.2);
+            height: var(--key-alphabet-height);
+            border-radius: var(--border-radius);
+            background: #aaa;
+        }
+
+       .key-symbol:first-child{
+            margin-right: var(--margin-horizontal);
+        }
+
+        .key-symbol:last-child{
+            margin-left: var(--margin-horizontal);
+        }
+
+        .line-4 .key-symbol:first-child{
+            margin-right:0px;
+        }
+
+        .line-4 .key-symbol:nth-of-type(2){
+            width: calc(var(--key-alphabet-width) * 1.3);
+        }
+
+        .key-space{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--border-radius);
+            width: calc(var(--key-alphabet-width) * 6);
+            height: var( --key-alphabet-height);
+            background: #fff;
+        }
+
+        .key-search{
+            width: calc(var(--key-alphabet-width) * 2);
+            height: var( --key-alphabet-height);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--border-radius);
+            background: #4096ff;
+            color: #fff;
+        }
+
     </style>
 </head>
 <body>
-    virtual-keyboard
+    <div class="container">
+        <div class="row line-1"></div>   
+        <div class="row line-2"></div>  
+        <div class="row line-3"></div> 
+        <div class="row line-4"></div> 
+    </div>
     <script type="text/javascript">
+        // 渲染 键盘内容的部分
+        const elLine1 = document.querySelector('.line-1');
+        const elLine2 = document.querySelector('.line-2');
+        const elLine3 = document.querySelector('.line-3');
+        const elLine4 = document.querySelector('.line-4');
+        // 设置内部元素的尺寸
+        const rowWidth = elLine1.getBoundingClientRect().width;
+        const alphabetWidth = rowWidth / 11 ;
+        const alphabetHeight = alphabetWidth * 1.3;
+        const rowPaddingVertical = 3;
+        const rowPaddingHorizontal = 2;
+        const bodyHeight = (alphabetHeight + rowPaddingVertical * 2) * 4 + alphabetHeight;
+        [
+            ["--key-alphabet-width",alphabetWidth],
+            ["--key-alphabet-height",alphabetHeight],
+            ["--row-padding-vertical", rowPaddingVertical],
+            ["--row-padding-horizontal",rowPaddingHorizontal]
+        ].forEach(([propertyName, n]) => {
+            console.log('propertyName: ', propertyName, n)
+            document.documentElement.style.setProperty(propertyName, n + 'px')
+        });
+
+        ["q", "w","e","r","t","y","u","i","o","p"].forEach(key => {
+            elLine1.appendChild(createElement(key, "key-alphabet"))
+        });
+
+        ["a","s","d","f","g","h","j","k","l"].forEach(key => {
+            elLine2.appendChild(createElement(key, "key-alphabet"))
+        });
+
+        ["&#8679","z","x","c","v","b","n","m","&#10005"].forEach(key => {
+            if(key.startsWith("&")){
+                elLine3.appendChild(createElement(key, "key-symbol"))
+            }else{
+                elLine3.appendChild(createElement(key, "key-alphabet"))
+            }
+        });
+
+        ["123", "&#128512","space","search"].forEach(key => {
+            if(key.startsWith("1")){
+                elLine4.appendChild(createElement(key, "key-symbol"))
+            }else if(key.startsWith("&")){
+                elLine4.appendChild(createElement(key, "key-symbol"))
+            }else if(key === "space"){
+                elLine4.appendChild(createElement(key, "key-space"))
+            }else{
+                elLine4.appendChild(createElement(key, "key-search"))
+            }
+        })
+
+        function createElement(key, classname){
+            const div = document.createElement('div');
+            div.setAttribute('class', classname);
+            div.innerHTML = key;
+            return div
+        }
+
+
+        
+         
+    </script>
+
+
+
+    <script type="text/javascript">
+
         console.error('还没有解决 打开多个页面的情况')
         let navigationBarHeight;
         const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#virtual-keyboard');
@@ -58,7 +209,7 @@
             const elNavigationBar = iframe.parentElement.querySelector("#navgation-bar");
             navigationBarHeight = elNavigationBar.style.height;
             elNavigationBar.style.height = "0px"
-            iframe.style.height = "200px"
+            iframe.style.height = `${bodyHeight}px`
             console.log('navigationBarHeight: ', navigationBarHeight)
         }
 
@@ -118,7 +269,6 @@
         }
 
         awaitOperation()
-        
-    </script>
+    </script> 
 </body>
 </html>

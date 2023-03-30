@@ -138,7 +138,7 @@ var PromiseOut = class {
   }
 };
 
-// src/user/tool/tool.native.mts
+// src/user/cot-demo/cotDemo.native.mts
 var nativeOpen = async (url) => {
   return await jsProcess.nativeFetch(
     `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
@@ -437,7 +437,7 @@ var ReadableStreamOut = class {
   }
 };
 
-// src/user/tool/tool.request.mts
+// src/user/cot-demo/cotDemo.request.mts
 var { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
@@ -504,7 +504,6 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
       if (request.method === "POST") {
         const response = await jsProcess.nativeFetch(path, {
           body: request.body.raw,
-          headers: request.headers,
           method: request.method
         });
         ipcResponse = await IpcResponse.fromResponse(
@@ -548,99 +547,33 @@ var cros = (headers) => {
   return headers;
 };
 
-// node_modules/deep-object-diff/mjs/utils.js
-var isDate = (d) => d instanceof Date;
-var isEmpty = (o) => Object.keys(o).length === 0;
-var isObject = (o) => o != null && typeof o === "object";
-var hasOwnProperty = (o, ...args) => Object.prototype.hasOwnProperty.call(o, ...args);
-var isEmptyObject = (o) => isObject(o) && isEmpty(o);
-var makeObjectWithoutPrototype = () => /* @__PURE__ */ Object.create(null);
-
-// node_modules/deep-object-diff/mjs/added.js
-var addedDiff = (lhs, rhs) => {
-  if (lhs === rhs || !isObject(lhs) || !isObject(rhs))
-    return {};
-  return Object.keys(rhs).reduce((acc, key) => {
-    if (hasOwnProperty(lhs, key)) {
-      const difference = addedDiff(lhs[key], rhs[key]);
-      if (isObject(difference) && isEmpty(difference))
-        return acc;
-      acc[key] = difference;
-      return acc;
-    }
-    acc[key] = rhs[key];
-    return acc;
-  }, makeObjectWithoutPrototype());
-};
-var added_default = addedDiff;
-
-// node_modules/deep-object-diff/mjs/deleted.js
-var deletedDiff = (lhs, rhs) => {
-  if (lhs === rhs || !isObject(lhs) || !isObject(rhs))
-    return {};
-  return Object.keys(lhs).reduce((acc, key) => {
-    if (hasOwnProperty(rhs, key)) {
-      const difference = deletedDiff(lhs[key], rhs[key]);
-      if (isObject(difference) && isEmpty(difference))
-        return acc;
-      acc[key] = difference;
-      return acc;
-    }
-    acc[key] = void 0;
-    return acc;
-  }, makeObjectWithoutPrototype());
-};
-var deleted_default = deletedDiff;
-
-// node_modules/deep-object-diff/mjs/updated.js
-var updatedDiff = (lhs, rhs) => {
-  if (lhs === rhs)
-    return {};
-  if (!isObject(lhs) || !isObject(rhs))
-    return rhs;
-  if (isDate(lhs) || isDate(rhs)) {
-    if (lhs.valueOf() == rhs.valueOf())
-      return {};
-    return rhs;
-  }
-  return Object.keys(rhs).reduce((acc, key) => {
-    if (hasOwnProperty(lhs, key)) {
-      const difference = updatedDiff(lhs[key], rhs[key]);
-      if (isEmptyObject(difference) && !isDate(difference) && (isEmptyObject(lhs[key]) || !isEmptyObject(rhs[key])))
-        return acc;
-      acc[key] = difference;
-      return acc;
-    }
-    return acc;
-  }, makeObjectWithoutPrototype());
-};
-var updated_default = updatedDiff;
-
-// node_modules/deep-object-diff/mjs/detailed.js
-var detailedDiff = (lhs, rhs) => ({
-  added: added_default(lhs, rhs),
-  deleted: deleted_default(lhs, rhs),
-  updated: updated_default(lhs, rhs)
-});
-var detailed_default = detailedDiff;
-
 // src/user/cot-demo/cotDemo.worker.mts
 var main = async () => {
   const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut();
-  const webViewMap = /* @__PURE__ */ new Map();
-  let oldWebviewState = [];
-  const tryOpenView = async () => {
-    console.log("cotDemo.worker tryOpenView=>", webViewMap.size);
-    if (webViewMap.size === 0) {
-      const url = await mainUrl.promise;
-      const view_id = await nativeOpen(url);
-      return view_id;
+  const webviewSet = /* @__PURE__ */ new Map();
+  const tryOpenView = async (webview_id) => {
+    console.log("tryOpenView", webview_id);
+    if (webview_id && webviewSet.has(webview_id)) {
+      return nativeActivate(webview_id);
     }
-    webViewMap.forEach((item, key) => {
-      nativeActivate(key);
+    const url = await mainUrl.promise;
+    const view_id = await nativeOpen(url);
+    if (webviewSet.size == 0) {
+      connectMwebview();
+    }
+    return view_id;
+  };
+  const connectMwebview = async () => {
+    const mwebviewIpc = await jsProcess.connect("mwebview.sys.dweb");
+    Object.assign(globalThis, { mwebviewIpc });
+    mwebviewIpc.onEvent((event) => {
+      console.log("cotDemo#got event:", event.name, event.text);
+      if (event.name === "state" /* State */) {
+      }
     });
   };
+  console.log("[cotDemo.worker.mts] main");
   const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
@@ -658,9 +591,11 @@ var main = async () => {
     if (pathname === "/") {
       pathname = "/index.html";
     }
+    console.time(`open file ${pathname}`);
     const remoteIpcResponse = await jsProcess.nativeRequest(
       `file:///cot-demo${pathname}?mode=stream`
     );
+    console.timeEnd(`open file ${pathname}`);
     ipc2.postMessage(
       new IpcResponse2(
         request.req_id,
@@ -672,43 +607,18 @@ var main = async () => {
     );
   });
   let hasActivity = false;
-  const connectBrowser = async () => {
-    const browserIpc = await jsProcess.connect("browser.sys.dweb");
-    Object.assign(globalThis, { browserIpc });
-    browserIpc.onEvent(async (event) => {
-      if (event.name === "activity") {
+  jsProcess.onConnect((ipc2) => {
+    ipc2.onEvent(async (event) => {
+      console.log("cotDemo.worker => ", event.name, event.text);
+      if (event.name === "activity" && typeof event.data === "string") {
         hasActivity = true;
-        const view_id = await tryOpenView();
-        browserIpc.postMessage(IpcEvent.fromText("ready", view_id ?? "activity"));
+        const view_id = await tryOpenView(event.data);
+        console.log("cotDemo.worker => activity", view_id);
+        ipc2.postMessage(IpcEvent.fromText("ready", view_id));
         return;
       }
     });
-  };
-  connectBrowser();
-  const connectGlobal = () => {
-    jsProcess.onConnect((ipc2) => {
-      ipc2.onEvent(async (event) => {
-        if (event.name === "state" /* State */ && typeof event.data === "string") {
-          const newState = JSON.parse(event.data);
-          const diff = detailed_default(oldWebviewState, newState);
-          oldWebviewState = newState;
-          diffFactory(diff);
-        }
-      });
-    });
-  };
-  connectGlobal();
-  const diffFactory = (diff) => {
-    for (const id in diff.added) {
-      webViewMap.set(id, JSON.parse(diff.added[id]));
-    }
-    for (const id in diff.deleted) {
-      webViewMap.delete(id);
-    }
-    for (const id in diff.updated) {
-      webViewMap.set(id, JSON.parse(diff.updated[id]));
-    }
-  };
+  });
   {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
