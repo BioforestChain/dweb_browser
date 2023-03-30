@@ -15,6 +15,12 @@ export const routes = [
         method: "GET"
     },
     {
+        pathname: "/virtual-keyboard.nativeui.sys.dweb/stopObserve",
+        matchMode: "full",
+        method: "GET"
+
+    },
+    {
         pathname:"/virtual-keyboard.nativeui.sys.dweb/getState",
         matchMode: "prefix",
         method: "GET"
@@ -24,12 +30,7 @@ export const routes = [
         matchMode: "prefix",
         method: "GET"
     },
-    // {
-    //     // /internal/observe?X-Dweb-Host=api.browser.sys.dweb%3A443&mmid=status-bar.nativeui.sys.dweb
-    //     pathname:"/internal/observe",
-    //     matchMode: "full",
-    //     method: "GET"
-    // }
+  
 ]
 
 

@@ -9,11 +9,6 @@ export const routes = [
         matchMode: "full",
         method: "POST"
     },
-    // {
-    //     pathname: "/operation_return",
-    //     matchMode: "full",
-    //     method: "GET"
-    // },
     {
         pathname: "/navigation-bar.nativeui.sys.dweb/startObserve",
         matchMode: "prefix",
@@ -29,12 +24,6 @@ export const routes = [
         matchMode: "prefix",
         method: "GET"
     },
-    // {
-    //     // /internal/observe?X-Dweb-Host=api.browser.sys.dweb%3A443&mmid=status-bar.nativeui.sys.dweb
-    //     pathname:"/internal/observe",
-    //     matchMode: "full",
-    //     method: "GET"
-    // }
 ]
 
 

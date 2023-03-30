@@ -203,6 +203,7 @@
         function setOverlay(value){
             console.error('virtual-keyboard.html 设置列 overlay 但是还没有处理逻辑',value)
             state.overlay = value
+            iframe.style.position = value ? "absolute" : "relative"
         }
 
         function show(){

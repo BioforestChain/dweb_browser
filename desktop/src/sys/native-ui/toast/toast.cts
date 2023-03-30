@@ -1,13 +1,3 @@
- 
-// state = {
-//     overlay: boolean
-//     insets: {
-//         left: number;
-//         top: number;
-//         right: number;
-//         bottom: number;
-//     }
-// }
 import { NativeMicroModule } from "../../../core/micro-module.native.cjs";
 import type { Remote } from "comlink";
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
@@ -20,24 +10,22 @@ import { HttpConnect } from "./http-connect.cjs"
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
-export class VirtualKeyboardNMM extends NativeMicroModule {
-  mmid = "virtual-keyboard.nativeui.sys.dweb" as const;
+export class ToastNMM extends NativeMicroModule {
+  mmid = "toast.nativeui.sys.dweb" as const;
   httpIpc: Ipc | undefined
   pluginsRequest = new PluginsRequest();
   private _uid_wapis_map = new Map<
     number,
     { nww: $NativeWindow; apis: Remote<$APIS> }
   >();
-//   private _allConnects: AllConnects = new AllConnects()
-
   _bootstrap = async (context: any) => {
     log.green(`[${this.mmid} _bootstrap]`)
     {
-        new WWWServer(this)
+      new WWWServer(this)
     }
 
     {
-        new HttpConnect(this, context)
+      new HttpConnect(this, context)
     }
 
   }

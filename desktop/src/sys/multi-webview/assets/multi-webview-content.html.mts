@@ -60,6 +60,7 @@ const allCss = [
         }
 
         .webview-container{
+            position: relative;
             flex-grow: 100;
             flex-shrink: 100;
             box-sizing: border-box;
@@ -69,6 +70,7 @@ const allCss = [
             overflow: hidden;
             overflow-y: auto;
             background: #fff;
+            border:1px solid red;
         }
 
         .webview{
@@ -211,6 +213,14 @@ export class MultiWebViewContent extends LitElement{
                         allowpopups
                         @dom-ready=${this.onDomReady}
                     ></webview>
+                    <iframe 
+                        id="toast"
+                        class="toast"
+                        style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; position: absolute; left: 0px; bottom: 0px"
+                        src="http://toast.nativeui.sys.dweb-80.localhost:22605"
+                        @load=${() => console.log('toast 载入完成')}
+                        data-app-url=${this.src}
+                    ></iframe>
                 </div>
                 <!-- navgation-bar -->
                 <iframe 

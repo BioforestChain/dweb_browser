@@ -75,6 +75,9 @@ export class HttpConnect{
       case "/virtual-keyboard.nativeui.sys.dweb/startObserve":
         this._httpIpcOnEventRequestDistributeStartObserve(data, httpIpc);
         break;
+      case "/virtual-keyboard.nativeui.sys.dweb/stopObserve":
+        this._httpIpcOnEventRequestDistributeStopOverve(data, httpIpc);
+        break;
       case "/virtual-keyboard-ui/wait_for_operation":
         this._httpIpcOnEventRequestDistributeWaitForOperation(data, httpIpc);
         break;
@@ -142,10 +145,17 @@ export class HttpConnect{
 
   _httpIpcOnEventRequestDistributeStartObserve = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
     // 保存起来
+    // 是否可以通过这个发送一个消息给 查看是否能够实现
     const app_url = data.headers.origin
     this._startObserve.set(app_url, data)
     log.red(`${this._nmm.mmid } _httpIpcOnEventRequestDistributeStartObserve 还没有实际的业务逻辑`)
   } 
+
+  _httpIpcOnEventRequestDistributeStopOverve = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
+    const app_url = data.headers.origin;
+    this._startObserve.delete(app_url);
+    log.red(`暂时在测试上用来添加一个 隐藏 vitrual-keyboard 的功能 但是还没有实现 `)
+  }
  
   _httpIpcOnEventRequestDistributeGetState = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
     const id = this._allcId++;

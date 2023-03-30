@@ -36,6 +36,4 @@ export class PluginsRequest{
       });
       return result;
     } 
-
-    
 }

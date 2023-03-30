@@ -48,6 +48,9 @@ dns.install(new SafeAreaNMM())
 import { VirtualKeyboardNMM } from "./sys/native-ui/virtual-keyboard/virtual-keyboard.cjs"
 dns.install(new VirtualKeyboardNMM())
 
+import { ToastNMM } from "./sys/native-ui/toast/toast.cjs";
+dns.install(new ToastNMM())
+
 // 安装 jmmMetadata.sys.dweb
 import { JMMMetadata } from "./sys/jmm-metadata/jmm-metadata.cjs";
 dns.install(new JMMMetadata());
@@ -68,6 +71,7 @@ dns.install(new BootNMM([
   "navigation-bar.nativeui.sys.dweb",
   "safe-area.nativeui.sys.dweb",
   "virtual-keyboard.nativeui.sys.dweb",
+  "toast.nativeui.sys.dweb",
   "browser.sys.dweb"
   // cotDemoJMM.mmid
 
