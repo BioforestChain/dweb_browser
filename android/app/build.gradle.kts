@@ -124,6 +124,12 @@ dependencies {
     implementation("androidx.core:core-ktx:$coreVersion")
     implementation("androidx.datastore:datastore:1.0.0")
     implementation("androidx.datastore:datastore-preferences:1.1.0-alpha01")
+    val activity_version = "1.6.1"
+    // Java language implementation
+    implementation("androidx.activity:activity:$activity_version")
+    // Kotlin
+    implementation("androidx.activity:activity-ktx:$activity_version")
+
 
     /// Compose 相关
     val composeBom = platform("androidx.compose:compose-bom:2023.01.00")
