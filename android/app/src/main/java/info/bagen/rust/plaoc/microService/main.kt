@@ -58,7 +58,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             listOf("Share","FileSystem")
         )
         else -> debugTags.addAll(
-            listOf("SplashScreen", "mwebview")
+            listOf("Share","FileSystem")
         )
     }
 

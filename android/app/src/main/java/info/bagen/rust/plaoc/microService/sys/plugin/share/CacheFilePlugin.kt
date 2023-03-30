@@ -11,35 +11,36 @@ class CacheFilePlugin {
 
     val fileSystemPlugin = FileSystemPlugin()
 
-    fun writeFile(path:String,directory:String?,data:InputStream,recursive:Boolean): String {
+    fun writeFile(path: String, directory: String?, data: InputStream, recursive: Boolean): String {
         if (directory != null) {
             // 创建目录，因为它可能不存在
             val androidDir = fileSystemPlugin.getDirectory(directory)
             if (androidDir != null) {
-                if (androidDir.exists() || androidDir.mkdirs()) {
+                return if (androidDir.exists() || androidDir.mkdirs()) {
                     // 路径也可能包括目录
                     val fileObject = File(androidDir, path)
-                    return if (fileObject.parentFile.exists() || recursive && fileObject.parentFile.mkdirs()) {
+                    val parentFile = fileObject.parentFile
+                    if (parentFile == null || parentFile.exists() || recursive && parentFile.mkdirs()) {
                         saveFile(fileObject, data)
                     } else {
                         "Parent folder doesn't exist"
                     }
                 } else {
-                    debugFileSystem("writeFile","Not able to create '$directory'!")
-                    return "NOT_CREATED_DIR"
+                    debugFileSystem("writeFile", "Not able to create '$directory'!")
+                    "NOT_CREATED_DIR"
                 }
             } else {
-                debugFileSystem("writeFile","Directory ID '$directory' is not supported by plugin")
-                return  "INVALID_DIR"
+                debugFileSystem("writeFile", "Directory ID '$directory' is not supported by plugin")
+                return "INVALID_DIR"
             }
         } else {
             // check file:// or no scheme uris
             val u = Uri.parse(path)
-            return if (u.scheme == null || u.scheme == "file") {
-                val fileObject = File(u.path)
-                if (fileObject.parentFile == null ||
-                    fileObject.parentFile.exists() || recursive && fileObject.parentFile.mkdirs()
-                ) {
+            val uriPath = u.path
+            return if ((u.scheme == null || u.scheme == "file") && uriPath !== null) {
+                val fileObject = File(path)
+                val parentFile = fileObject.parentFile
+                if (parentFile == null || parentFile.exists() || recursive && parentFile.mkdirs()) {
                     saveFile(fileObject, data)
                 } else {
                     "Parent folder doesn't exist"
@@ -50,13 +51,16 @@ class CacheFilePlugin {
         }
     }
 
-    private fun saveFile(file: File, data: InputStream, append:Boolean = false):String {
+    private fun saveFile(file: File, data: InputStream, append: Boolean = false): String {
         return try {
             fileSystemPlugin.saveFile(file, data, append)
-            debugFileSystem("saveFile","File '" + file.absolutePath + "' saved!")
+            debugFileSystem("saveFile", "File '" + file.absolutePath + "' saved!")
             Uri.fromFile(file).toString()
         } catch (ex: IOException) {
-            debugFileSystem("saveFile","Creating file '" + file.getPath() + "' failed. Error: " + ex.message)
+            debugFileSystem(
+                "saveFile",
+                "Creating file '" + file.getPath() + "' failed. Error: " + ex.message
+            )
             "FILE_NOTCREATED"
         } catch (ex: IllegalArgumentException) {
             "The supplied data is not valid base64 content."

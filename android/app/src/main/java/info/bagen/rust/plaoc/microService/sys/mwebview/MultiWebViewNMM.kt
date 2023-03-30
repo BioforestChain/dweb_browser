@@ -41,7 +41,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.sys.dweb") {
         )
         val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
 
-        /**获取当前的controller*/
+        /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的*/
         fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
             return controllerMap[mmid]
         }

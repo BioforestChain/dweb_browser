@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger
 open class PermissionActivity : AppCompatActivity() {
     companion object {
         val PERMISSION_REQUEST_CODE_PHOTO = 2
-        val RESULT_SHARE_CODE = 3
         private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
         private var requestPermissionsCodeAcc = AtomicInteger(1);
     }
@@ -127,9 +126,9 @@ open class MultiWebViewActivity : PermissionActivity() {
                             }
                         }
                         uris.toTypedArray()
-                    } ?: arrayOf(data?.data)
+                    } ?: arrayOf(data?.data!!)
                     // 调用回调函数，将Uri数组传递给WebView
-                    webview.filePathCallback?.onReceiveValue(uris as Array<Uri>?)
+                    webview.filePathCallback?.onReceiveValue(uris)
                 } else {
                     // 取消选择文件操作，调用回调函数并传递null值
                     webview.filePathCallback?.onReceiveValue(null)
@@ -169,13 +168,6 @@ open class MultiWebViewActivity : PermissionActivity() {
                     controller?.getCameraSignal?.emit(null)
                     debugCameraNMM("REQUEST_CAMERA_IMAGE", "没有拍照直接返回")
                 }
-            }
-        }
-        // 分享返回数据
-        if (requestCode == RESULT_SHARE_CODE) {
-            GlobalScope.launch(ioAsyncExceptionHandler) {
-                controller?.getShareSignal?.emit(data?.dataString ?: "OK")
-                debugShare("RESULT_SHARE_CODE", data?.dataString)
             }
         }
     }
