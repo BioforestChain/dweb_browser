@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.KeyEvent
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -13,31 +12,24 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_CAN_BE_FOUND
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_REQUEST
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetoothOp
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
-import info.bagen.rust.plaoc.microService.sys.plugin.permission.PermissionManager
 import info.bagen.rust.plaoc.ui.app.AppViewModel
+import info.bagen.rust.plaoc.ui.browser.BrowserView
+import info.bagen.rust.plaoc.ui.browser.BrowserViewModel
 import info.bagen.rust.plaoc.ui.camera.QRCodeIntent
 import info.bagen.rust.plaoc.ui.camera.QRCodeScanning
-import info.bagen.rust.plaoc.ui.camera.QRCodeScanningView
 import info.bagen.rust.plaoc.ui.camera.QRCodeViewModel
-import info.bagen.rust.plaoc.ui.loading.LoadingView
-import info.bagen.rust.plaoc.ui.main.Home
 import info.bagen.rust.plaoc.ui.main.MainViewModel
-import info.bagen.rust.plaoc.ui.main.SearchAction
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
-import info.bagen.rust.plaoc.util.permission.EPermission
 import info.bagen.rust.plaoc.util.permission.PermissionUtil
-import kotlinx.coroutines.launch
 import java.util.*
 
 class BrowserActivity : AppCompatActivity() {
@@ -68,7 +60,8 @@ class BrowserActivity : AppCompatActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colors.primary)
                 ) {
-                    val coroutineScope = rememberCoroutineScope()
+                    BrowserView(viewModel = BrowserViewModel())
+                    /*val coroutineScope = rememberCoroutineScope()
                     Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
                         when (action) {
                             SearchAction.Search -> {
@@ -98,7 +91,7 @@ class BrowserActivity : AppCompatActivity() {
                     })
                     MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
                     QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
-                    LoadingView(BrowserNMM.browserController.showLoading)
+                    LoadingView(BrowserNMM.browserController.showLoading)*/
                 }
             }
         }
@@ -162,7 +155,7 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+/*    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK && event?.repeatCount == 0) {
             if (BrowserNMM.browserController.hasDwebView) {
                 if (event.action == KeyEvent.ACTION_DOWN) BrowserNMM.browserController.removeLastView()
@@ -173,7 +166,7 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
-    }
+    }*/
 
     override fun onStop() {
         super.onStop()

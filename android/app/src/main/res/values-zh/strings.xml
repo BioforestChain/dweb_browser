@@ -58,4 +58,16 @@
   <string name="button_agree_continue">同意并继续</string>
   <string name="button_exit_app">退出应用</string>
   <string name="button_i_know">我知道了</string>
+
+  <!-- BrowserView 相关 -->
+  <string name="browser_search_hint">搜索或输入网址</string>
+  <string name="browser_nav_back">回退</string>
+  <string name="browser_nav_forward">前进</string>
+  <string name="browser_nav_share">分享</string>
+  <string name="browser_nav_book">书签</string>
+  <string name="browser_nav_favorite">收藏</string>
+  <string name="browser_nav_history">历史记录</string>
+  <string name="browser_nav_multiview">预览</string>
+  <string name="browser_nav_home">首页</string>
+  <string name="browser_nav_option">选项</string>
 </resources>

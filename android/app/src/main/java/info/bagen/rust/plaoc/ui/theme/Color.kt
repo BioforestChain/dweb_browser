@@ -14,6 +14,7 @@ val DarkBackground = Color(0xFF757575)
 val DarkSearch = Color(0xFF1A1A1A)
 val LightBackground = Color(0xFFF2F3F5)
 val LightSearch = Color(0xFFFFFFFF)
+val Blue = Color(0xFF2C69C9)
 
 val ColorGrayLevel1 = Color(0xffe6e6e6)
 val ColorGrayLevel2 = Color(0xffdbdbdb)
