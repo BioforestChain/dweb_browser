@@ -1,7 +1,12 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.share
 
+import android.app.Activity
+import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
+import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.AndroidNativeMicroModule
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
+import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.EFileDirectory
@@ -54,7 +59,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
                     files.add(url)
                 }
                 debugShare("open_share", "share===>${ipc.remote.mmid}  ${files}")
-                controller.startShareActivity(getActivity(ipc.remote.mmid))
+                openActivity(ipc.remote.mmid)
                 controller.waitActivityResultLauncherCreated()
                 SharePlugin.share(controller, ext.title, ext.text, ext.url, files, result)
                 // 等待结果回调
@@ -68,8 +73,15 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
         )
     }
 
-    override fun openActivity() {
-        TODO("Not yet implemented")
+    override fun openActivity(remoteMmid: Mmid) {
+        val activity = getActivity(remoteMmid)
+        val intent = Intent(getActivity(remoteMmid),ShareActivity::class.java)
+        intent.action = "info.bagen.dwebbrowser.share"
+        intent.`package` = App.appContext.packageName
+//         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+//         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        activity?.startActivity(intent)
     }
 
 

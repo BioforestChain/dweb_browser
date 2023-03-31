@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.AndroidNativeMicroModule
@@ -96,12 +97,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
     }
 
 
-    override fun openActivity() {
-        TODO("Not yet implemented")
-    }
-
-    @Synchronized
-    private fun openMultiWebViewActivity(remoteMmid: Mmid): ActivityClass {
+    override fun openActivity(remoteMmid: Mmid){
         val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
         val activityClass = activityClassList.find { it.mmid == remoteMmid } ?:
         // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
@@ -120,8 +116,8 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
             b.putString("mmid", remoteMmid);
             intent.putExtras(b);
         }
-        return activityClass
     }
+
 
     private suspend fun openDwebView(
         remoteMm: MicroModule,
@@ -137,7 +133,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
             )
         }
 
-        openMultiWebViewActivity(remoteMmid)
+        openActivity(remoteMmid)
         activitySignal.emit(Pair(remoteMmid, controller.waitActivityCreated()))
         return controller.openWebView(url)
     }

@@ -13,9 +13,6 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
         private val activityMap: MutableMap<Mmid, AppCompatActivity> = mutableMapOf()
     }
 
-    init {
-
-    }
 
 
     private var topActivity: AppCompatActivity? = null
@@ -33,7 +30,7 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
         return activityMap[mmid]
     }
     
-    abstract fun openActivity()
+    abstract fun openActivity(remoteMmid: Mmid)
 
 
     private fun onActivity(cb: Callback<MmidActivityArgs>) = activitySignal.listen(cb)

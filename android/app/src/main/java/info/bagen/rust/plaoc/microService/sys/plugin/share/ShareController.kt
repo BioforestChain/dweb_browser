@@ -7,11 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 
-class ShareController(
-//    val mmid: Mmid,
-//    val localeMM: ShareNMM,
-//    val remoteMM: MicroModule,
-) {
+class ShareController() {
 
     companion object {
          val controller = ShareController()
@@ -35,14 +31,4 @@ class ShareController(
                 activityResultLauncherTask.resolve(value)
             }
         }
-
-     fun startShareActivity(activity: Activity?) {
-         val intent = Intent(activity,ShareActivity::class.java)
-         intent.action = "info.bagen.dwebbrowser.share"
-         intent.`package` = App.appContext.packageName
-//         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-//         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-         activity?.startActivity(intent)
-    }
 }
