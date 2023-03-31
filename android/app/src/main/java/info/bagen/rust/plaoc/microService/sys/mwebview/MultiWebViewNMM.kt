@@ -33,6 +33,14 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
     class ActivityClass(var mmid: Mmid, val ctor: Class<out MultiWebViewActivity>)
 
     companion object {
+        val activityClassList = mutableListOf(
+            ActivityClass("", MultiWebViewPlaceholder1Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder2Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder3Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder4Activity::class.java),
+            ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
+        )
+        val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
         /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的*/
         fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
             return controllerMap[mmid]
@@ -125,8 +133,8 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
         }
 
         openMultiWebViewActivity(remoteMmid)
-        activitySignal.emit(Pair(remoteMmid,controller.waitActivityCreated()))
-        return  controller.openWebView(url)
+        activitySignal.emit(Pair(remoteMmid, controller.waitActivityCreated()))
+        return controller.openWebView(url)
     }
 
     private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {

@@ -27,34 +27,36 @@ class CameraNMM() : AndroidNativeMicroModule("camera.sys.dweb") {
         apiRouting = routes(
             // 打开相册
             "/getPhoto" bind Method.GET to defineHandler { request, ipc ->
-                val source = CameraSource.valueOf(query_source(request))
-                val quality = query_quality(request);
-                debugCameraNMM("getPhoto", "uri: ${request.uri},remoteId: ${ipc.remote.mmid}")
-                val cameraPlugin = CameraPlugin(getActivity(ipc.remote.mmid))
-                val bitmap = PromiseOut<Bitmap>()
-                cameraPlugin.getPhoto(CameraSettings(source = source)) {
-                    debugCameraNMM("getPhoto error", "result => $it")
-                    bitmap.reject(Exception(it))
-                }
-                getCurrentWebViewController(ipc.remote.mmid)?.getPhotoData { bit ->
-                    debugCameraNMM("getPhotoData", "result => $bit")
-                    if (bit == null) {
-                        return@getPhotoData bitmap.reject(Exception("The user did not select an image."))
-                    }
-                    bitmap.resolve(bit)
-                }
-                getCurrentWebViewController(ipc.remote.mmid)?.getCameraData {
-                    if(it == null) {
-                        return@getCameraData bitmap.reject(Exception("The user did not take a photo."))
-                    }
-                    bitmap.resolve(it)
-                    debugCameraNMM("getCameraData", "result => $it")
-                }
-
-                val result = bitmap.waitPromise()
-                val bao = ByteArrayOutputStream()
-                result.compress(Bitmap.CompressFormat.JPEG, quality, bao);
-                return@defineHandler bao.toByteArray()
+                // TODO 使用原生接口替代
+                return@defineHandler "使用原生接口替代"
+//                val source = CameraSource.valueOf(query_source(request))
+//                val quality = query_quality(request);
+//                debugCameraNMM("getPhoto", "uri: ${request.uri},remoteId: ${ipc.remote.mmid}")
+//                val cameraPlugin = CameraPlugin(getActivity(ipc.remote.mmid))
+//                val bitmap = PromiseOut<Bitmap>()
+//                cameraPlugin.getPhoto(CameraSettings(source = source)) {
+//                    debugCameraNMM("getPhoto error", "result => $it")
+//                    bitmap.reject(Exception(it))
+//                }
+//                getCurrentWebViewController(ipc.remote.mmid)?.getPhotoData { bit ->
+//                    debugCameraNMM("getPhotoData", "result => $bit")
+//                    if (bit == null) {
+//                        return@getPhotoData bitmap.reject(Exception("The user did not select an image."))
+//                    }
+//                    bitmap.resolve(bit)
+//                }
+//                getCurrentWebViewController(ipc.remote.mmid)?.getCameraData {
+//                    if(it == null) {
+//                        return@getCameraData bitmap.reject(Exception("The user did not take a photo."))
+//                    }
+//                    bitmap.resolve(it)
+//                    debugCameraNMM("getCameraData", "result => $it")
+//                }
+//
+//                val result = bitmap.waitPromise()
+//                val bao = ByteArrayOutputStream()
+//                result.compress(Bitmap.CompressFormat.JPEG, quality, bao);
+//                return@defineHandler bao.toByteArray()
             },
         )
     }

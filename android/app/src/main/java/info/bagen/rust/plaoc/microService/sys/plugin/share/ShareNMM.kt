@@ -2,7 +2,6 @@ package info.bagen.rust.plaoc.microService.sys.plugin.share
 
 import info.bagen.rust.plaoc.microService.core.AndroidNativeMicroModule
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
-import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.sys.plugin.fileSystem.EFileDirectory
@@ -43,8 +42,8 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
                 val ext = shareOption(request)
                 val receivedForm = MultipartFormBody.from(request)
                 val fileByteArray = receivedForm.files("files")
-
-
+                println("getActivity(ipc.remote.mmid) => ${getActivity(ipc.remote.mmid)}")
+                controller.startShareActivity(getActivity(ipc.remote.mmid))
                 val files = mutableListOf<String>()
                 val result = PromiseOut<String>()
                 // 写入缓存
@@ -59,7 +58,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
                 }
                 debugShare("open_share", "share===>${ipc.remote.mmid}  ${files}")
 
-                SharePlugin.share(getActivity(ipc.remote.mmid), ext.title, ext.text, ext.url, files, result)
+                SharePlugin.share(controller.waitActivityCreated(), ext.title, ext.text, ext.url, files, result)
                 // 等待结果回调
                 controller.activity?.getShareData { it ->
                     debugShare("share", "result => $it")

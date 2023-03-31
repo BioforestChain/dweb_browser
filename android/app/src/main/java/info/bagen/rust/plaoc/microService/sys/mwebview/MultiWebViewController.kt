@@ -35,7 +35,6 @@ class MultiWebViewController(
     val localeMM: MultiWebViewNMM,
     val remoteMM: MicroModule,
 ) {
-
     companion object {
         private var webviewId_acc = AtomicInteger(1)
     }

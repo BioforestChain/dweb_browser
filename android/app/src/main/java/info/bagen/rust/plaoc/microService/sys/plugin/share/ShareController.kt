@@ -1,6 +1,8 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.share
 
+import android.app.Activity
 import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 
@@ -32,11 +34,11 @@ class ShareController(
 
 
 
-     fun startShareActivity() {
-        App.startActivity(ShareActivity::class.java){
-            it.action = "info.bagen.dwebbrowser.share"
-            it.`package` = App.appContext.packageName
-            it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
-        }
+     fun startShareActivity(activity: Activity?) {
+         val intent = Intent(activity,ShareActivity::class.java)
+         intent.action = "info.bagen.dwebbrowser.share"
+         intent.`package` = App.appContext.packageName
+         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
+         activity?.startActivity(intent)
     }
 }
