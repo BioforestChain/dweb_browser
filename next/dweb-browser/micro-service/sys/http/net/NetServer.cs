@@ -10,20 +10,16 @@ public interface IProtocol
 
 public struct HttpProtocol : IProtocol
 {
-    private string v1;
-    private string v2;
-    private int v3;
-
-    public HttpProtocol(string v1, string v2, int v3) : this()
-    {
-        this.v1 = v1;
-        this.v2 = v2;
-        this.v3 = v3;
-    }
-
     public string Protocol { get; set; }
     public string Prefix { get; set; }
     public int Port { get; set; }
+
+    public HttpProtocol(string protocol, string prefix, int port) : this()
+    {
+        Protocol = protocol;
+        Prefix = prefix;
+        Port = port;
+    }
 }
 
 public interface IServerInfo<S>
