@@ -108,23 +108,16 @@ public class IpcBodySender : IpcBody
 
                 if (_map.Count == 0)
                 {
-                    if (DestroySignal is not null)
-                    {
-                        DestroySignal.Invoke();
-                        foreach (DestroySignalHandler cb in DestroySignal.GetInvocationList().Cast<DestroySignalHandler>())
-                        {
-                            DestroySignal -= cb;
-                        }
-                    }
+                    OnDestroyHandler.Emit();
+                    OnDestroyHandler.Clear();
                 }
 
                 return ipcBodySender;
             }
 
-            public delegate void DestroySignalHandler();
-            public event DestroySignalHandler DestroySignal = null!;
+            public SimpleEvent OnDestroyHandler = new();
 
-            public void OnDetroy(DestroySignalHandler cb) => DestroySignal += cb;
+            public void OnDetroy(OnSimpleMessageHandler cb) => OnDestroyHandler.Listen(cb);
         }
 
         private static Dictionary<Ipc, UsableIpcBodyMapper> s_ipcUsableIpcBodyMap = new Dictionary<Ipc, UsableIpcBodyMapper>();
@@ -150,28 +143,28 @@ public class IpcBodySender : IpcBody
             {
                 usableIpcBodyMapper = new UsableIpcBodyMapper(new Dictionary<string, IpcBodySender>());
 
-                Ipc.StreamSignalHanlder off = null!;
-                off = async args =>
+                OnMessageHandler<IpcStream, Ipc> off = null!;
+                off = async (ipcStream, ipc) =>
                 {
-                    switch (args.Item1)
+                    switch (ipcStream)
                     {
-                        case IpcStreamPulling ipcStream:
-                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamPull(ipcStream);
+                        case IpcStreamPulling ipcStreamPulling:
+                            usableIpcBodyMapper.Get(ipcStreamPulling.StreamId)?._useByIpc(ipc)?.EmitStreamPull(ipcStreamPulling);
                             break;
-                        case IpcStreamPaused ipcStream:
-                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamPaused(ipcStream);
+                        case IpcStreamPaused ipcStreamPaused:
+                            usableIpcBodyMapper.Get(ipcStreamPaused.StreamId)?._useByIpc(ipc)?.EmitStreamPaused(ipcStreamPaused);
                             break;
-                        case IpcStreamAbort ipcStream:
-                            usableIpcBodyMapper.Get(ipcStream.StreamId)?._useByIpc(ipc)?.EmitStreamAborted();
+                        case IpcStreamAbort ipcStreamAbort:
+                            usableIpcBodyMapper.Get(ipcStreamAbort.StreamId)?._useByIpc(ipc)?.EmitStreamAborted();
                             break;
                         default:
                             break;
                     }
 
-                    ipc.StreamSignal -= off;
+                    ipc.OnStreamEvent.Remove(off);
                 };
 
-                ipc.StreamSignal += off;
+                ipc.OnStreamEvent.Listen(off);
 
                 usableIpcBodyMapper.OnDetroy(() => s_ipcUsableIpcBodyMap.Remove(ipc));
 
@@ -228,8 +221,7 @@ public class IpcBodySender : IpcBody
                     return new UsedIpcInfo(this, ipc).Also(usedIpcInfo =>
                     {
                         _usedIpcMap[ipc] = usedIpcInfo;
-                        // _closeSignal.Listen((_) => EmitStreamAbortedAsync(usedIpcInfo));
-                        CloseSignal += () => EmitStreamAbortedAsync(usedIpcInfo);
+                        OnCloseHandler.Listen(() => EmitStreamAbortedAsync(usedIpcInfo));
                     });
                 }
                 else
@@ -292,15 +284,13 @@ public class IpcBodySender : IpcBody
             }
         });
 
-    public delegate void CloseSignalHandler();
-    public event CloseSignalHandler CloseSignal = null!;
+    public SimpleEvent OnCloseHandler = new();
 
-    public void OnStreamClose(CloseSignalHandler cb) => CloseSignal += cb;
+    public void OnStreamClose(OnSimpleMessageHandler cb) => OnCloseHandler.Listen(cb);
 
-    public delegate void OpenSignalHandler();
-    public event OpenSignalHandler OpenSignal = null!;
+    public SimpleEvent OnOpenHandler = new();
 
-    public void OnStreamOpen(OpenSignalHandler cb) => OpenSignal += cb;
+    public void OnStreamOpen(OnSimpleMessageHandler cb) => OnOpenHandler.Listen(cb);
 
     private void _emitStreamClose()
     {

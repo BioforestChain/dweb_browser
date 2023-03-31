@@ -127,24 +127,24 @@ public class IpcBodyReceiver : IpcBody
                 }
 
 
-                Ipc.StreamSignalHanlder onStream = null!;
-                onStream = async args =>
+                OnMessageHandler<IpcStream, Ipc> onStream = null!;
+                onStream = async (ipcStream, ipc) =>
                 {
-                    if (args.Item1 is IpcStreamData data && data.StreamId == stream_id)
+                    if (ipcStream is IpcStreamData data && data.StreamId == stream_id)
                     {
                         Console.WriteLine($"receiver/StreamData/{ipc}/{controller.Stream}", data);
                         await controller.EnqueueAsync(data.Binary);
                     }
-                    else if (args.Item1 is IpcStreamEnd end && end.StreamId == stream_id)
+                    else if (ipcStream is IpcStreamEnd end && end.StreamId == stream_id)
                     {
                         Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", end);
                         controller.Close();
-                        ipc.StreamSignal -= onStream;
+                        ipc.OnStreamEvent.Remove(onStream);
                     }
 
                 };
 
-                ipc.StreamSignal += onStream;
+                ipc.OnStreamEvent.Listen(onStream);
 
                 //ipc.OnStream(async (IpcStreamMessageArgs args) =>
                 //{

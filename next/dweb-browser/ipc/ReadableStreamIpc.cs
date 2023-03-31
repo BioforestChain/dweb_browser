@@ -81,8 +81,7 @@ public class ReadableStreamIpc : Ipc
         }
     }
 
-    protected new delegate void _messageSignalHandler(Tuple<IpcMessage, ReadableStreamIpc> tuple);
-    protected new event _messageSignalHandler _messageSignal = null!;
+    protected Event<IpcMessage, ReadableStreamIpc> _onMessageHandler = new();
 
     /**
      * <summary>
@@ -131,7 +130,7 @@ public class ReadableStreamIpc : Ipc
                         break;
                     case IpcMessage ipcMessage:
                         Console.WriteLine($"ON-MESSAGE/{this}", ipcMessage);
-                        _messageSignal.Invoke(Tuple.Create(ipcMessage, this));
+                        _onMessageHandler.Emit(ipcMessage, this);
                         break;
                     default:
                         throw new Exception($"unknown message: {message}");

@@ -7,8 +7,6 @@ public class NativeIpc : Ipc
     public NativePort<IpcMessage, IpcMessage> Port;
     public override MicroModuleInfo Remote { get; set; }
     private IPC_ROLE _role_type { get; set; }
-    protected new delegate void _messageSignalHandler(Tuple<IpcMessage, NativeIpc> tuple);
-    protected new event _messageSignalHandler _messageSignal = null!;
 
     public NativeIpc(NativePort<IpcMessage, IpcMessage> port, Ipc.MicroModuleInfo remote, IPC_ROLE role)
     {
@@ -19,9 +17,9 @@ public class NativeIpc : Ipc
         SupportRaw = true;
         SupportBinary = true;
 
-        Port.OnMessage((IpcMessage message) =>
+        Port.OnMessage(async (message) =>
         {
-            _messageSignal?.Invoke(Tuple.Create(message, this));
+            OnMessageEmit(message, this);
         });
 
         Task.Run(Port.StartAsync);
@@ -61,7 +59,7 @@ public class NativePort<I, O>
         {
             await _closePo.WaitPromiseAsync();
             _channel_out.Complete();
-            CloseSignal?.Invoke();
+            OnCloseEvent.Emit();
             Console.WriteLine($"port-closed/{this}");
         });
     }
@@ -89,17 +87,16 @@ public class NativePort<I, O>
         await foreach (I message in _channel_in.ReceiveAllAsync())
         {
             Console.WriteLine($"port-message-in/{this}");
-            MessageSignal?.Invoke(message);
+            OnMessageHandler.Emit(message);
             Console.WriteLine($"port-message-waiting/{this}");
         }
 
         Console.WriteLine($"port-message-end/{this}");
     }
 
-    public delegate void CloseSignalHandler();
-    public event CloseSignalHandler CloseSignal = null!;
+    public SimpleEvent OnCloseEvent = new();
 
-    public void OnClose(CloseSignalHandler cb) => CloseSignal += cb;
+    public void OnClose(OnSimpleMessageHandler cb) => OnCloseEvent.Listen(cb);
 
     public void Close()
     {
@@ -110,8 +107,7 @@ public class NativePort<I, O>
         }
     }
 
-    public delegate void MessageSignalHandler(I input);
-    public event MessageSignalHandler MessageSignal = null!;
+    public SingleEvent<I> OnMessageHandler = new();
 
     /**
      * <summary>
@@ -129,7 +125,7 @@ public class NativePort<I, O>
      * 监听消息
      * </summary>
      */
-    public void OnMessage(MessageSignalHandler cb) => MessageSignal += cb;
+    public void OnMessage(OnSingleMessageHandler<I> cb) => OnMessageHandler.Listen(cb);
 }
 
 public class NativeMessageChannel<T1, T2>

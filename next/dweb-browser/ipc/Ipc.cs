@@ -69,84 +69,79 @@ public abstract class Ipc
     public Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
         PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
 
-    public delegate Task _messageSignalHandler(IpcMessageArgs ipcMessageArgs);
-    public event _messageSignalHandler _messageSignal = null!;
+    private Event<IpcMessage, Ipc> _onMessageEvent = new();
+
+    public void OnMessageEmit(IpcMessage ipcMessage, Ipc ipc) => _onMessageEvent.Emit(ipcMessage, ipc);
 
     public abstract Task _doPostMessageAsync(IpcMessage data);
 
-    public delegate Task RequestSignalHandler(IpcRequestMessageArgs ipcRequestMessageArgs);
-    public event RequestSignalHandler RequestSignal = null!;
+    public Event<IpcRequest, Ipc> OnRequestEvent = new();
 
-    public void OnRequest(RequestSignalHandler cb)
+    public void OnRequest(OnMessageHandler<IpcRequest, Ipc> cb)
     {
-        RequestSignal += cb;
-        _messageSignal += async args =>
+        OnRequestEvent.Listen(cb);
+        _onMessageEvent.Listen(async (ipcMessage, ipc) =>
         {
-            if (args.Item1 is IpcRequest ipcRequest)
+            if (ipcMessage is IpcRequest ipcRequest)
             {
-                await RequestSignal?.Invoke(Tuple.Create(ipcRequest, args.Item2))!;
+                OnRequestEvent.Emit(ipcRequest, ipc);
             }
-        };
+        });
     }
 
-    public delegate Task ResponseSignalHandler(IpcResponseMessageArgs ipcResponseMessageArgs);
-    public event ResponseSignalHandler ResponseSignal = null!;
+    public Event<IpcResponse, Ipc> OnResponseEvent = new();
 
-    public void OnResponse(ResponseSignalHandler cb)
+    public void OnResponse(OnMessageHandler<IpcResponse, Ipc> cb)
     {
-        ResponseSignal += cb;
-        _messageSignal += async args =>
+        OnResponseEvent.Listen(cb);
+        _onMessageEvent.Listen(async (ipcMessage, ipc) =>
         {
-            if (args.Item1 is IpcResponse ipcResponse)
+            if (ipcMessage is IpcResponse ipcResponse)
             {
-                await ResponseSignal?.Invoke(Tuple.Create(ipcResponse, args.Item2))!;
+                OnResponseEvent.Emit(ipcResponse, ipc);
             }
-        };
+        });
     }
 
-    public delegate Task StreamSignalHanlder(IpcStreamMessageArgs ipcStreamMessageArgs);
+    public Event<IpcStream, Ipc> OnStreamEvent = new();
 
-    public event StreamSignalHanlder StreamSignal = null!;
-
-    public void OnStream(StreamSignalHanlder cb)
+    public void OnStream(OnMessageHandler<IpcStream, Ipc> cb)
     {
-        StreamSignal += cb;
+        OnStreamEvent.Listen(cb);
 
         /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
         /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
-        var streamChannel = new BufferBlock<IpcStreamMessageArgs>();
+        var streamChannel = new BufferBlock<KeyValuePair<IpcStream, Ipc>>();
         Task.Run(async () =>
         {
-            await foreach (IpcStreamMessageArgs message in streamChannel.ReceiveAllAsync())
+            await foreach (var message in streamChannel.ReceiveAllAsync())
             {
-                //await signal.EmitAsync(message);
-                await StreamSignal?.Invoke(message)!;
+                OnStreamEvent.Emit(message.Key, message.Value);
             }
         });
 
-        _messageSignal += async args =>
+        _onMessageEvent.Listen(async (ipcStream, ipc) =>
         {
-            if (args.Item1 is IpcStream ipcStream)
+            if (ipcStream is IpcStream stream)
             {
-                await streamChannel.SendAsync(new IpcStreamMessageArgs(ipcStream, args.Item2));
+                await streamChannel.SendAsync(KeyValuePair.Create(stream, ipc));
             }
-        };
+        });
     }
 
-    public delegate Task EventSignalHandler(IpcEventMessageArgs ipcEventMessageArgs);
-    public EventSignalHandler EventSignal = null!;
+    public Event<IpcEvent, Ipc> OnEventEvent = new();
 
-    public void OnEvent(EventSignalHandler cb)
+    public void OnEvent(OnMessageHandler<IpcEvent, Ipc> cb)
     {
-        EventSignal += cb;
+        OnEventEvent.Listen(cb);
 
-        _messageSignal += async args =>
+        _onMessageEvent.Listen(async (ipcMessage, ipc) =>
         {
-            if (args.Item1 is IpcEvent ipcEvent)
+            if (ipcMessage is IpcEvent ipcEvent)
             {
-                await EventSignal?.Invoke(Tuple.Create(ipcEvent, args.Item2))!;
+                OnEventEvent.Emit(ipcEvent, ipc);
             }
-        };
+        });
     }
 
 
@@ -170,15 +165,13 @@ public abstract class Ipc
         get { return _closed; }
     }
 
-    public delegate void CloseSignalHandler();
-    public CloseSignalHandler CloseSignal = null!;
+    public SimpleEvent OnCloseEvent = new();
 
-    public void OnClose(CloseSignalHandler cb) => CloseSignal += cb;
+    public void OnClose(OnSimpleMessageHandler cb) => OnCloseEvent.Listen(cb);
 
-    public delegate void DestroySignalHandler();
-    public DestroySignalHandler DestroySignal = null!;
+    public SimpleEvent OnDestoryEvent = new();
 
-    public void OnDestory(DestroySignalHandler cb) => DestroySignal += cb;
+    public void OnDestory(OnSimpleMessageHandler cb) => OnDestoryEvent.Listen(cb);
 
     private bool _destroyed = false;
     public bool IsDestroy
@@ -203,51 +196,37 @@ public abstract class Ipc
             await Close();
         }
 
-        if (DestroySignal is not null)
-        {
-            DestroySignal.Invoke();
-            foreach (DestroySignalHandler cb in DestroySignal.GetInvocationList().Cast<DestroySignalHandler>())
-            {
-                DestroySignal -= cb;
-            }
-        }
+        OnDestoryEvent.Clear();
     }
 
     /**
      * 发送请求
      */
     public Task<HttpResponseMessage> Request(string url) =>
-        this.Request(new HttpRequestMessage(HttpMethod.Get, new Uri(url)));
+        Request(new HttpRequestMessage(HttpMethod.Get, new Uri(url)));
 
     public Task<HttpResponseMessage> Request(Uri url) =>
-        this.Request(new HttpRequestMessage(HttpMethod.Get, url));
+        Request(new HttpRequestMessage(HttpMethod.Get, url));
 
-    private Dictionary<int, PromiseOut<IpcResponse>> _reqResMap
+    public Ipc()
     {
-        get
+        _reqResMap = new Dictionary<int, PromiseOut<IpcResponse>>().Also(reqResMap =>
         {
-            return new Lazy<Dictionary<int, PromiseOut<IpcResponse>>>(
-                new Func<Dictionary<int, PromiseOut<IpcResponse>>>(() =>
+            OnResponse(async (ipcResponse, ipc) =>
+            {
+                var res = reqResMap[ipcResponse.ReqId];
+
+                if (res is null)
                 {
-                    return new Dictionary<int, PromiseOut<IpcResponse>>().Also(reqResMap =>
-                    {
-                        OnResponse((IpcResponseMessageArgs arg) =>
-                        {
-                            var ipcResponse = arg.Item1;
-                            var res = reqResMap[ipcResponse.ReqId];
+                    throw new Exception($"no found response by req_id: {ipcResponse.ReqId}");
+                }
 
-                            if (res is null)
-                            {
-                                throw new Exception($"no found response by req_id: {ipcResponse.ReqId}");
-                            }
-
-                            res.Resolve(ipcResponse);
-                            return Task.CompletedTask;
-                        });
-                    });
-                }), true).Value;
-        }
+                res.Resolve(ipcResponse);
+            });
+        });
     }
+
+    private Dictionary<int, PromiseOut<IpcResponse>> _reqResMap;
 
     public async Task<IpcResponse> Request(IpcRequest ipcRequest)
     {
@@ -258,7 +237,7 @@ public abstract class Ipc
     }
 
     public async Task<HttpResponseMessage> Request(HttpRequestMessage request) =>
-        (await this.Request(IpcRequest.FromRequest(AllocReqId(), request, this))).ToResponse();
+        (await Request(IpcRequest.FromRequest(AllocReqId(), request, this))).ToResponse();
 
     public int AllocReqId() => Interlocked.Exchange(ref s_req_id_acc, Interlocked.Increment(ref s_req_id_acc));
 }
