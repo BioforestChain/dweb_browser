@@ -19,7 +19,7 @@ public class NativeIpc : Ipc
 
         Port.OnMessage += async (message, _) =>
         {
-            await OnMessageEmit(message, this);
+            await _OnMessageEmit(message, this);
         };
 
         Task.Run(Port.StartAsync);
