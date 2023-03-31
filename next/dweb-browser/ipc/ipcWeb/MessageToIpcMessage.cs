@@ -1,14 +1,11 @@
 ﻿
-using System.Linq;
-using ipc.extensions;
-
 namespace ipc.ipcWeb;
 
 public static class MessageToIpcMessage
 {
-    private static byte[] closeString = "close".FromUtf8();
-    private static byte[] pingString = "ping".FromUtf8();
-    private static byte[] pongString = "pong".FromUtf8();
+    private readonly static byte[] closeString = "close".FromUtf8();
+    private readonly static byte[] pingString = "ping".FromUtf8();
+    private readonly static byte[] pongString = "pong".FromUtf8();
 
     public static object? JsonToIpcMessage(byte[] data, Ipc ipc)
     {

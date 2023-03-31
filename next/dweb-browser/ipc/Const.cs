@@ -35,13 +35,13 @@ public enum IPC_MESSAGE_TYPE : int
 /**
  * 可预读取的流
  */
-interface PreReadableInputStream
+interface IPreReadableInputStream
 {
     /**
      * 对标 InputStream.available 函数
      * 返回可预读的数据
      */
-    int preReadableSize { get; set; }
+    int PreReadableSize { get; set; }
 }
 
 [Flags]

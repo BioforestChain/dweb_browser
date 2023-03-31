@@ -435,27 +435,7 @@ public class IpcBodySender : IpcBody
                         Console.WriteLine($"sender/READ/{stream}", $"{availableLen} >> {stream_id}");
 
                         // TODO: 流读取是否大于Int32.MaxValue,待优化
-                        //byte[] buffer = new byte[1];
-                        int bytesRead = 0;
-                        stream.Position = 0;
-                        //if (availableLen > Int32.MaxValue)
-                        //{
-                        //    buffer = new byte[availableLen];
-                        //    Int64 offset = 0;
-                        //    do
-                        //    {
-                        //        bytesRead = await stream.ReadAsync(buffer, offset, Int32.MaxValue);
-                        //        await stream.FlushAsync();
-                        //    } while (bytesRead > 0);
-                        //}
-                        //else
-                        //{
-                        //    bytesRead = (Int32)availableLen;
-                        //    buffer = new BinaryReader(stream).ReadBytes(bytesRead);
-                        //    await stream.ReadAsync(buffer, 0, bytesRead);
-                        //    await stream.FlushAsync();
-                        //}
-                        bytesRead = (Int32)availableLen;
+                        int bytesRead = availableLen.ToInt();
                         byte[] buffer = new BinaryReader(stream).ReadBytes(bytesRead);
                         await stream.ReadAsync(buffer, 0, bytesRead);
                         await stream.FlushAsync();
@@ -476,11 +456,11 @@ public class IpcBodySender : IpcBody
         var streamType = SMetaBody.IPC_META_BODY_TYPE.STREAM_ID;
         SMetaBody metaBody = default;
 
-        if (stream is PreReadableInputStream prestream && prestream.preReadableSize > 0)
+        if (stream is IPreReadableInputStream prestream && prestream.PreReadableSize > 0)
         {
             streamType = SMetaBody.IPC_META_BODY_TYPE.STREAM_WITH_BINARY;
-            var streamFirstData = new byte[prestream.preReadableSize];
-            stream.Read(streamFirstData, 0, prestream.preReadableSize);
+            var streamFirstData = new byte[prestream.PreReadableSize];
+            stream.Read(streamFirstData, 0, prestream.PreReadableSize);
             stream.Flush();
 
             metaBody = new SMetaBody(streamType, ipc.Uid, streamFirstData, stream_id);

@@ -69,8 +69,8 @@ public abstract class Ipc
     public Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
         PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
 
-    protected delegate Task _messageSignalHandler(IpcMessageArgs ipcMessageArgs);
-    protected event _messageSignalHandler _messageSignal = null!;
+    public delegate Task _messageSignalHandler(IpcMessageArgs ipcMessageArgs);
+    public event _messageSignalHandler _messageSignal = null!;
 
     public abstract Task _doPostMessageAsync(IpcMessage data);
 
