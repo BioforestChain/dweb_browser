@@ -1,9 +1,11 @@
 ﻿
 namespace micro_service.helper;
 
-public delegate Task Signal(Signal self);
-public delegate Task Signal<T1>(T1 arg1, Signal<T1> self);
-public delegate Task Signal<T1, T2>(T1 arg1, T2 arg2, Signal<T1, T2> self);
+public delegate Task? Signal(Signal self);
+public delegate Task? Signal<T1>(T1 arg1, Signal<T1> self);
+public delegate Task? Signal<T1, T2>(T1 arg1, T2 arg2, Signal<T1, T2> self);
+
+
 
 public static class SignalExtendsions
 {
@@ -17,13 +19,13 @@ public static class SignalExtendsions
         }
         if (list.Length == 1)
         {
-            await self(self);
+            await self(self).ForAwait();
         }
 
         for (int i = 0; i < list.Length; i++)
         {
             var cb = list[i];
-            await cb(cb);
+            await cb(cb).ForAwait();
         }
     }
     public static async Task Emit<T1>(this Signal<T1> self, T1 arg1)
@@ -36,13 +38,13 @@ public static class SignalExtendsions
         }
         if (list.Length == 1)
         {
-            await self(arg1, self);
+            await self(arg1, self).ForAwait();
         }
 
         for (int i = 0; i < list.Length; i++)
         {
             var cb = list[i];
-            await cb(arg1, cb);
+            await cb(arg1, cb).ForAwait();
         }
     }
     public static async Task Emit<T1, T2>(this Signal<T1, T2> self, T1 arg1, T2 arg2)
@@ -55,13 +57,13 @@ public static class SignalExtendsions
         }
         if (list.Length == 1)
         {
-            await self(arg1, arg2, self);
+            await self(arg1, arg2, self).ForAwait();
         }
 
         for (int i = 0; i < list.Length; i++)
         {
             var cb = list[i];
-            await cb(arg1, arg2, cb);
+            await cb(arg1, arg2, cb).ForAwait();
         }
     }
 }

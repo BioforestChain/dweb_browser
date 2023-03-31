@@ -1,15 +1,41 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
 namespace micro_service.extensions;
 
 public static class TaskExtensions
 {
-    public static Task ForAwait(this Task? task)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task ForAwait(this Task? task)
     {
-        return task ?? Task.CompletedTask;
+        if (task is Task t)
+        {
+            await t;
+        }
     }
-    public static Task<T> ForAwait<T>(this Task<T>? task, T defaultValue = default)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<T>? ForAwait<T>(this Task<T>? task, T defaultValue)
     {
-        return task ?? Task.FromResult(defaultValue);
+        T? result = defaultValue;
+        if (task is Task<T> t)
+        {
+            result = await t;
+        }
+        return result;
+    }
+
+
+
+    public static void Background(this Task task, Action<AggregateException>? onCatch = default)
+    {
+        task.ContinueWith(t =>
+        {
+            if (t.IsFaulted && t.Exception is not null)
+            {
+                onCatch?.Invoke(t.Exception);
+            }
+        });
     }
 
 }

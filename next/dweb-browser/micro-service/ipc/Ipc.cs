@@ -183,9 +183,12 @@ public abstract class Ipc
             {
                 await (OnStream?.Emit(args.Item1, args.Item2)).ForAwait();
             }
-        });
+        }).Background();
 
-        OnClose += async (_) => streamChannel.Complete();
+        OnClose += (_) => {
+            streamChannel.Complete();
+            return null;
+        };
 
     }
 
