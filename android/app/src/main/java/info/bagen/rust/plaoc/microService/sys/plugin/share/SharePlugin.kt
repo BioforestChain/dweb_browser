@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.BuildConfig
@@ -27,7 +28,7 @@ object SharePlugin {
      * @param files Array of file:// URLs of the files to be shared. Only supported on iOS and Android.
      */
     fun share(
-        currentActivity: Activity?,
+        controller: ShareController,
         title: String? = null,
         text: String? = null,
         url: String? = null,
@@ -66,13 +67,13 @@ object SharePlugin {
             } else if (url != null && isFileUrl(url)) {
                 val filesArray = mutableListOf<String>()
                 filesArray.add(url)
-                shareFiles( filesArray, this, po)
+                shareFiles(filesArray, this, po)
             }
 
             title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
 
             if (files != null && files.isNotEmpty()) {
-                shareFiles( files, this, po)
+                shareFiles(files, this, po)
             }
         }
 
@@ -88,12 +89,12 @@ object SharePlugin {
         )
         val chooserIntent = Intent.createChooser(intent, title, pi.intentSender).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
+            putExtra("result",controller.RESULT_SHARE_CODE)
         }
 
-        currentActivity?.startActivityForResult(
-            chooserIntent,
-            ShareActivity.RESULT_SHARE_CODE
-        )
+        controller.let {
+            it.resultLauncher?.launch(chooserIntent)
+        }
     }
 
     private fun shareFiles(files: List<String>, intent: Intent, po: PromiseOut<String>) {
@@ -156,12 +157,16 @@ object SharePlugin {
     }
 
 
-
     /**
      * 分享文本
      */
     private fun shareText(
-        packageName: String?, className: String?, content: String?, title: String?, subject: String?,mmid: Mmid
+        packageName: String?,
+        className: String?,
+        content: String?,
+        title: String?,
+        subject: String?,
+        mmid: Mmid
     ) {
         val intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -186,7 +191,12 @@ object SharePlugin {
      * 分享网页
      */
     private fun shareUrl(
-        packageName: String?, className: String?, content: String?, title: String?, subject: String?,mmid: Mmid
+        packageName: String?,
+        className: String?,
+        content: String?,
+        title: String?,
+        subject: String?,
+        mmid: Mmid
     ) {
         val intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -257,10 +267,16 @@ object SharePlugin {
      * 分享视频
      */
     private fun shareVideo(packageName: String?, className: String?, file: File, mmid: Mmid) {
-        setIntent("video/*", packageName, className, file,mmid)
+        setIntent("video/*", packageName, className, file, mmid)
     }
 
-    private fun setIntent(type: String?, packageName: String?, className: String?, file: File, mmid: Mmid) {
+    private fun setIntent(
+        type: String?,
+        packageName: String?,
+        className: String?,
+        file: File,
+        mmid: Mmid
+    ) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
             val intent = Intent()
@@ -308,7 +324,7 @@ object SharePlugin {
      * 是否安装分享app
      * @param packageName
      */
-    private fun checkInstall(packageName: String,mmid: Mmid): Boolean {
+    private fun checkInstall(packageName: String, mmid: Mmid): Boolean {
         return try {
 //            MultiWebViewNMM.getCurrentWebViewController(mmid)?.activity?.packageManager?.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
             true
@@ -322,13 +338,14 @@ object SharePlugin {
     /**
      * 跳转官方安装网址
      */
-    private fun toInstallWebView(url: String?,mmid: Mmid) {
+    private fun toInstallWebView(url: String?, mmid: Mmid) {
         val intent = Intent().apply {
             action = Intent.ACTION_VIEW
             data = Uri.parse(url)
         }
 //        MultiWebViewNMM.getCurrentWebViewController(mmid)?.activity?.startActivity(intent)
     }
+
     private fun stringCheck(str: String?): Boolean {
         return str?.isNotEmpty() ?: false
     }

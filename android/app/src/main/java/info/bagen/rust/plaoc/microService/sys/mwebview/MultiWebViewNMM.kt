@@ -95,6 +95,11 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
         apiRouting = null
     }
 
+
+    override fun openActivity() {
+        TODO("Not yet implemented")
+    }
+
     @Synchronized
     private fun openMultiWebViewActivity(remoteMmid: Mmid): ActivityClass {
         val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)

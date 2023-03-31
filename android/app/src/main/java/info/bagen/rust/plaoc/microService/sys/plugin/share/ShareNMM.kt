@@ -27,7 +27,6 @@ fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
 class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
 
     private val plugin = CacheFilePlugin()
-
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val shareOption = Query.composite { spec ->
             ShareOptions(
@@ -42,8 +41,6 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
                 val ext = shareOption(request)
                 val receivedForm = MultipartFormBody.from(request)
                 val fileByteArray = receivedForm.files("files")
-                println("getActivity(ipc.remote.mmid) => ${getActivity(ipc.remote.mmid)}")
-                controller.startShareActivity(getActivity(ipc.remote.mmid))
                 val files = mutableListOf<String>()
                 val result = PromiseOut<String>()
                 // 写入缓存
@@ -57,8 +54,9 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
                     files.add(url)
                 }
                 debugShare("open_share", "share===>${ipc.remote.mmid}  ${files}")
-
-                SharePlugin.share(controller.waitActivityCreated(), ext.title, ext.text, ext.url, files, result)
+                controller.startShareActivity(getActivity(ipc.remote.mmid))
+                controller.waitActivityResultLauncherCreated()
+                SharePlugin.share(controller, ext.title, ext.text, ext.url, files, result)
                 // 等待结果回调
                 controller.activity?.getShareData { it ->
                     debugShare("share", "result => $it")
@@ -69,6 +67,11 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
             },
         )
     }
+
+    override fun openActivity() {
+        TODO("Not yet implemented")
+    }
+
 
     override suspend fun _shutdown() {
         TODO("Not yet implemented")

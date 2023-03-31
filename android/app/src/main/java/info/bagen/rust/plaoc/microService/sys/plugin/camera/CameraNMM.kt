@@ -1,12 +1,13 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.camera
 
 import android.graphics.Bitmap
+import androidx.appcompat.app.AppCompatActivity
 import info.bagen.rust.plaoc.microService.core.AndroidNativeMicroModule
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.helper.printdebugln
-import info.bagen.rust.plaoc.microService.helper.runBlockingCatching
+import info.bagen.rust.plaoc.microService.helper.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.int
@@ -18,8 +19,7 @@ import java.io.ByteArrayOutputStream
 inline fun debugCameraNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Camera", tag, msg, err)
 
-class CameraNMM() : AndroidNativeMicroModule("camera.sys.dweb") {
-
+class CameraNMM() : NativeMicroModule("camera.sys.dweb") {
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_source = Query.string().defaulted("source", "PHOTOS")
         val query_quality = Query.int().defaulted("quality", 50)
@@ -60,6 +60,45 @@ class CameraNMM() : AndroidNativeMicroModule("camera.sys.dweb") {
             },
         )
     }
+
+    // 选中照片返回数据
+//    if (requestCode == REQUEST_IMAGE_CAPTURE) {
+//        if (resultCode == AppCompatActivity.RESULT_OK && data != null) {
+//            val imageData = data.data?.toBitmap(contentResolver)
+//            GlobalScope.launch(ioAsyncExceptionHandler) {
+//                controller?.getPhotoSignal?.emit(imageData)
+//                debugCameraNMM("REQUEST_IMAGE_CAPTURE", imageData)
+//            }
+//        } else {
+//            // 没有选中图片直接返回
+//            GlobalScope.launch(ioAsyncExceptionHandler) {
+//                controller?.getPhotoSignal?.emit(null)
+//                debugCameraNMM("REQUEST_IMAGE_CAPTURE", "没有选中图片直接返回")
+//            }
+//        }
+//
+//    }
+//    // 拍照返回数据处理
+//    if (requestCode == REQUEST_CAMERA_IMAGE) {
+//        if (resultCode == AppCompatActivity.RESULT_OK && data != null) {
+//            val imageBitmap = data.extras?.get("data") as Bitmap
+//            GlobalScope.launch(ioAsyncExceptionHandler) {
+//                controller?.getCameraSignal?.emit(imageBitmap)
+//                debugCameraNMM("REQUEST_CAMERA_IMAGE", imageBitmap)
+//            }
+//        } else {
+//            // 没有拍照直接返回
+//            GlobalScope.launch(ioAsyncExceptionHandler) {
+//                controller?.getCameraSignal?.emit(null)
+//                debugCameraNMM("REQUEST_CAMERA_IMAGE", "没有拍照直接返回")
+//            }
+//        }
+//    }
+
+//    val getCameraSignal = Signal<Bitmap?>()
+//    val getPhotoSignal = Signal<Bitmap?>()
+//    fun getCameraData(cb: Callback<Bitmap?>) = getCameraSignal.listen(cb)
+//    fun getPhotoData(cb: Callback<Bitmap?>) = getPhotoSignal.listen(cb)
 
 
     override suspend fun _shutdown() {

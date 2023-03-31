@@ -13,6 +13,11 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
         private val activityMap: MutableMap<Mmid, AppCompatActivity> = mutableMapOf()
     }
 
+    init {
+
+    }
+
+
     private var topActivity: AppCompatActivity? = null
 
     // 负责拿到最顶层的activity，即用户当前层
@@ -28,7 +33,8 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
         return activityMap[mmid]
     }
     
-//    abstract fun openActivity()
+    abstract fun openActivity()
+
 
     private fun onActivity(cb: Callback<MmidActivityArgs>) = activitySignal.listen(cb)
     private fun onDestroyActivity(cb: Callback<Mmid>) = onDestroySignal.listen(cb)

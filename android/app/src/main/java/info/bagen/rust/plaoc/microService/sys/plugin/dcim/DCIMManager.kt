@@ -22,7 +22,7 @@ class DCIMManager {
      */
     fun startDCIMActivityForResult(activity: Activity) {
         val intent = Intent(App.appContext, DCIMActivity::class.java)
-        activity.startActivityForResult(intent, REQUEST_DCIM_CODE)
+//        activity.startActivityForResult(intent, REQUEST_DCIM_CODE)
     }
 
     /**

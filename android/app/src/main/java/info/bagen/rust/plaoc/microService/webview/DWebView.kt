@@ -10,8 +10,7 @@ import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.getFullAuthority
-import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity
-import info.bagen.rust.plaoc.microService.sys.mwebview.PermissionActivity.Companion.PERMISSION_REQUEST_CODE_PHOTO
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewActivity
 import info.bagen.rust.plaoc.microService.sys.plugin.permission.debugPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -78,7 +77,7 @@ class DWebView(
     val localeMM: MicroModule,
     val remoteMM: MicroModule,
     val options: Options,
-    var activity: PermissionActivity? = null,
+    var activity: MultiWebViewActivity? = null,
 ) : WebView(context) {
 
     var filePathCallback: ValueCallback<Array<android.net.Uri>>? = null
@@ -272,14 +271,14 @@ class DWebView(
             )
             pickIntent.addCategory(Intent.CATEGORY_OPENABLE);
             pickIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-
+            // 如果是选择图片或者是视频
             if (capturePhoto || captureVideo) {
                 pickIntent.setDataAndType(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     fileChooserParams.acceptTypes.joinToString(",")
                 )
             }
-            activity?.startActivityForResult(pickIntent, PERMISSION_REQUEST_CODE_PHOTO)
+            activity?.resultLauncher?.launch(pickIntent)
             return true
         }
 

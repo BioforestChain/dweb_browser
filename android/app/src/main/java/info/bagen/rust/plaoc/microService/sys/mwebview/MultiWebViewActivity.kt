@@ -3,12 +3,12 @@ package info.bagen.rust.plaoc.microService.sys.mwebview
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -24,14 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.google.accompanist.web.WebView
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
-import info.bagen.rust.plaoc.microService.helper.toBitmap
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.controllerMap
-import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraPlugin.Companion.REQUEST_CAMERA_IMAGE
-import info.bagen.rust.plaoc.microService.sys.plugin.camera.CameraPlugin.Companion.REQUEST_IMAGE_CAPTURE
-import info.bagen.rust.plaoc.microService.sys.plugin.camera.debugCameraNMM
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -111,10 +105,11 @@ open class MultiWebViewActivity : PermissionActivity() {
         } ?: throw Exception("no found controller by mmid:$remoteMmid")
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        // 选中图片
-        if (requestCode == PERMISSION_REQUEST_CODE_PHOTO) {
+    val resultLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val resultCode: Int = result.resultCode
+            val data: Intent? = result.data
+            // 选中图片
             controller?.lastViewOrNull?.also { (_, webview) ->
                 if (resultCode == RESULT_OK) {
                     val uris = data?.clipData?.let { clipData ->
@@ -137,40 +132,6 @@ open class MultiWebViewActivity : PermissionActivity() {
 
             }
         }
-        // 选中照片返回数据
-        if (requestCode == REQUEST_IMAGE_CAPTURE) {
-            if (resultCode == RESULT_OK && data != null) {
-                val imageData = data.data?.toBitmap(contentResolver)
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    controller?.getPhotoSignal?.emit(imageData)
-                    debugCameraNMM("REQUEST_IMAGE_CAPTURE", imageData)
-                }
-            } else {
-                // 没有选中图片直接返回
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    controller?.getPhotoSignal?.emit(null)
-                    debugCameraNMM("REQUEST_IMAGE_CAPTURE", "没有选中图片直接返回")
-                }
-            }
-
-        }
-        // 拍照返回数据处理
-        if (requestCode == REQUEST_CAMERA_IMAGE) {
-            if (resultCode == RESULT_OK && data != null) {
-                val imageBitmap = data.extras?.get("data") as Bitmap
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    controller?.getCameraSignal?.emit(imageBitmap)
-                    debugCameraNMM("REQUEST_CAMERA_IMAGE", imageBitmap)
-                }
-            } else {
-                // 没有拍照直接返回
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    controller?.getCameraSignal?.emit(null)
-                    debugCameraNMM("REQUEST_CAMERA_IMAGE", "没有拍照直接返回")
-                }
-            }
-        }
-    }
 
     override fun onDestroy() {
         super.onDestroy()

@@ -130,7 +130,6 @@ dependencies {
     // Kotlin
     implementation("androidx.activity:activity-ktx:$activity_version")
 
-
     /// Compose 相关
     val composeBom = platform("androidx.compose:compose-bom:2023.01.00")
     implementation(composeBom)
