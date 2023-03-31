@@ -1,8 +1,12 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.share
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Signal
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
@@ -13,6 +17,7 @@ import kotlinx.coroutines.launch
 
 class ShareActivity : AppCompatActivity(){
 
+    private var isFirstOpen = true
     companion object {
         val RESULT_SHARE_CODE = 3
     }
@@ -21,6 +26,15 @@ class ShareActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         controller.activity = this
         debugShare("ShareActivity",this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isFirstOpen) {
+            isFirstOpen = false
+        } else {
+            finish()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

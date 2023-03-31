@@ -70,7 +70,8 @@
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"
             android:value="barcode" />
         <activity android:name=".microService.sys.plugin.share.ShareActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Transparent">
             <intent-filter>
                 <action android:name="info.bagen.dwebbrowser.share" />
             </intent-filter>

@@ -27,6 +27,8 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
     protected fun getActivity(mmid: Mmid): AppCompatActivity? {
         return activityMap[mmid]
     }
+    
+//    abstract fun openActivity()
 
     private fun onActivity(cb: Callback<MmidActivityArgs>) = activitySignal.listen(cb)
     private fun onDestroyActivity(cb: Callback<Mmid>) = onDestroySignal.listen(cb)

@@ -32,13 +32,13 @@ class ShareController(
             }
         }
 
-
-
      fun startShareActivity(activity: Activity?) {
          val intent = Intent(activity,ShareActivity::class.java)
          intent.action = "info.bagen.dwebbrowser.share"
          intent.`package` = App.appContext.packageName
-         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
+//         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+//         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
          activity?.startActivity(intent)
     }
 }
