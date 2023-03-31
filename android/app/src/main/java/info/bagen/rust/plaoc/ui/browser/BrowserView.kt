@@ -6,12 +6,11 @@ import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -23,12 +22,10 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -39,6 +36,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
@@ -47,27 +45,48 @@ import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.ui.theme.Blue
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalComposeUiApi::class)
+private val dimenTextFieldFontSize = 16.sp
+private val dimenSearchHorizontalAlign = 5.dp
+private val dimenSearchVerticalAlign = 10.dp
+private val dimenSearchRoundedCornerShape = 8.dp
+private val dimenShadowElevation = 4.dp
+private val dimenHorizontalPagerHorizontal = 20.dp
+private val dimenBottomHeight = 100.dp
+private val dimenSearchHeight = 40.dp
+
+private val bottomEnterAnimator = slideInVertically(
+  animationSpec = tween(100),//动画时长1s
+  initialOffsetY = {
+    it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
+  }
+) + fadeIn()
+private val bottomExitAnimator = slideOutVertically(
+  animationSpec = tween(100),//动画时长1s
+  targetOffsetY = {
+    it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
+  }
+) + fadeOut()
+
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun BrowserView(viewModel: BrowserViewModel) {
   val pagerStateSearch = rememberPagerState()
   val pagerStateWebView = rememberPagerState()
-  val scope = rememberCoroutineScope()
+  val localFocusManager = LocalFocusManager.current
 
   Column(modifier = Modifier.fillMaxSize()) {
-    Box(modifier = Modifier.weight(1f)) {
+    Box(modifier = Modifier
+      .weight(1f)
+      .clickable(
+        indication = null,
+        onClick = { localFocusManager.clearFocus() },
+        interactionSource = remember { MutableInteractionSource() }
+      )) {
       BrowserViewContent(viewModel, pagerStateSearch, pagerStateWebView)
     }
-    BrowserViewSearch(viewModel, pagerStateSearch)
-    BrowserViewBottomBar(viewModel) {
-      scope.launch {
-        pagerStateSearch.animateScrollToPage(pagerStateSearch.pageCount)
-        pagerStateWebView.animateScrollToPage(pagerStateWebView.pageCount)
-      }
-    }
+    BrowserViewBottomBar(viewModel, pagerStateSearch, pagerStateWebView)
   }
 }
 
@@ -86,10 +105,56 @@ private fun BrowserViewContent(
     count = viewModel.uiState.browserViewList.size, state = pagerState, userScrollEnabled = false
   ) { currentPage ->
     when (val item = viewModel.uiState.browserViewList[currentPage]) {
-      is BrowserMainView -> BrowserViewContentMain(viewModel, item)
+      is BrowserMainView -> BrowserViewContentMain(viewModel, item, pagerStateSearch)
       is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
     }
     viewModel.handleIntent(BrowserIntent.UpdateCurrentWebView(pagerStateSearch.currentPage))
+  }
+}
+
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+private fun BrowserViewBottomBar(
+  viewModel: BrowserViewModel, pagerStateSearch: PagerState, pagerStateWebView: PagerState
+) {
+  val coroutineScope = rememberCoroutineScope()
+  val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
+
+  val inputText = when (browserBaseView) {
+    is BrowserWebView -> {
+      parseInputText(browserBaseView.state.lastLoadedUrl ?: "")
+        ?: stringResource(id = R.string.browser_search_hint)
+    }
+    else -> stringResource(id = R.string.browser_search_hint)
+  }
+
+  Box {
+    Column(modifier = Modifier
+      .fillMaxWidth()
+      .height(20.dp).align(Alignment.BottomCenter)
+      .clickable { browserBaseView.showBottomBar.value = true }) {
+      Text(
+        text = inputText,
+        fontSize = 12.sp,
+        modifier = Modifier.align(Alignment.CenterHorizontally)
+      )
+    }
+
+    AnimatedVisibility(
+      visible = browserBaseView.showBottomBar.value,
+      enter = bottomEnterAnimator,
+      exit = bottomExitAnimator
+    ) {
+      Column(modifier = Modifier.fillMaxWidth()) {
+        BrowserViewSearch(viewModel, pagerStateSearch)
+        BrowserViewNavigatorBar(viewModel) {
+          coroutineScope.launch {
+            pagerStateSearch.animateScrollToPage(pagerStateSearch.pageCount)
+            pagerStateWebView.animateScrollToPage(pagerStateWebView.pageCount)
+          }
+        }
+      }
+    }
   }
 }
 
@@ -99,8 +164,8 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel, pagerState: PagerStat
   HorizontalPager(
     state = pagerState,
     count = viewModel.uiState.browserViewList.size,
-    contentPadding = PaddingValues(horizontal = 20.dp),
-    modifier = Modifier.background(Color.LightGray)
+    contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
+    modifier = Modifier.background(MaterialTheme.colors.primaryVariant)
   ) { currentPage ->
     if (currentPage == pagerState.pageCount - 1) viewModel.handleIntent(BrowserIntent.ShowMainView)
     when (val item = viewModel.uiState.browserViewList[currentPage]) {
@@ -111,13 +176,17 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel, pagerState: PagerStat
 }
 
 @Composable
-private fun BrowserViewBottomBar(viewModel: BrowserViewModel, onHome: () -> Unit) {
+private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel, onHome: () -> Unit) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .height(40.dp)
+      .height(dimenSearchHeight)
+      .background(MaterialTheme.colors.primaryVariant)
   ) {
-    val navigator = viewModel.uiState.currentBrowserWebView.value?.navigator
+    val navigator = when (val item = viewModel.uiState.currentBrowserBaseView.value) {
+      is BrowserWebView -> item.navigator
+      else -> null
+    }
     NavigatorButton(
       resId = R.drawable.ic_main_back,
       resName = R.string.browser_nav_back,
@@ -156,7 +225,7 @@ private fun RowScope.NavigatorButton(
     }) {
     Column(modifier = Modifier.align(Alignment.Center)) {
       Icon(
-        modifier = Modifier.padding(5.dp),
+        modifier = Modifier.padding(dimenSearchHorizontalAlign),
         bitmap = ImageBitmap.imageResource(id = resId),
         contentDescription = stringResource(id = resName),
         tint = if (show) Blue else Color.LightGray
@@ -165,10 +234,20 @@ private fun RowScope.NavigatorButton(
   }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
-private fun BrowserViewContentMain(viewModel: BrowserViewModel, browserMainView: BrowserMainView) {
+private fun BrowserViewContentMain(
+  viewModel: BrowserViewModel, browserMainView: BrowserMainView, pagerStateSearch: PagerState
+) {
   Box(modifier = Modifier.fillMaxSize()) {
-    BrowserMainView()
+    BrowserMainView(viewModel)
+  }
+  if (!browserMainView.show.value) {
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .background(Color.White.copy(pagerStateSearch.currentPageOffset))
+    )
   }
 }
 
@@ -179,6 +258,7 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
       viewModel.handleIntent(BrowserIntent.WebViewGoBack)
     }
   }
+  val localFocusManager = LocalFocusManager.current
   key(browserWebView.webViewId) {
     Box(modifier = Modifier.fillMaxSize()) {
       WebView(
@@ -186,8 +266,18 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
         navigator = browserWebView.navigator,
         factory = {
           browserWebView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
-          browserWebView.webView
-        },
+          browserWebView.webView.also {
+            it.setOnScrollChangeListener { view, scrollX, scrollY, oldScrollX, oldScrollY ->
+              if (scrollY == 0 || oldScrollY == 0) return@setOnScrollChangeListener
+              localFocusManager.clearFocus() // TODO 清除焦点
+              if (oldScrollY < scrollY - 5 && browserWebView.showBottomBar.value) {
+                browserWebView.showBottomBar.value = false // TODO 上滑，需要隐藏底部栏
+              } else if (oldScrollY > scrollY + 5 && !browserWebView.showBottomBar.value) {
+                browserWebView.showBottomBar.value = true // TODO 下滑，需要显示底部栏
+              }
+            }
+          }
+        }
       )
     }
   }
@@ -198,13 +288,16 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
 private fun SearchBox(
   baseView: BrowserBaseView, showCamera: Boolean = false, search: (String) -> Unit
 ) {
-  val focusRequester = remember { FocusRequester() }
   Box(
     modifier = Modifier
-      .padding(horizontal = 5.dp, vertical = 10.dp)
+      .padding(horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign)
       .fillMaxWidth()
-      .height(40.dp)
-      .clip(RoundedCornerShape(8.dp))
+      .shadow(
+        elevation = dimenShadowElevation,
+        shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
+      )
+      .height(dimenSearchHeight)
+      .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
       .background(Color.White)
   ) {
     val inputText = when (baseView) {
@@ -214,8 +307,8 @@ private fun SearchBox(
       }
       else -> mutableStateOf("")
     }
-    SearchTextField(inputText, showCamera, baseView.focus, focusRequester, search)
-    SearchText(inputText, showCamera, baseView.focus, focusRequester)
+    SearchTextField(inputText, showCamera, baseView.focus, search)
+    // SearchText(inputText, showCamera, baseView.focus, focusRequester)
   }
 }
 
@@ -242,141 +335,117 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
 }
 
 @Composable
-private fun BoxScope.SearchText(
+private fun SearchTextField(
   inputText: MutableState<String>,
   showCamera: Boolean = false,
   focus: MutableState<Boolean>,
-  focusRequester: FocusRequester
+  search: (String) -> Unit
 ) {
-  val scope = rememberCoroutineScope()
-  AnimatedVisibility(
-    visible = !focus.value,
-    enter = fadeIn(),
-    exit = fadeOut(),
+  val focusManager = LocalFocusManager.current
+  val currentText = remember { mutableStateOf(if (focus.value) inputText.value else "") }
+
+  BasicTextField(
+    value = currentText.value,
+    onValueChange = { currentText.value = it },
+    readOnly = false,
+    enabled = true,
     modifier = Modifier
-      .align(Alignment.Center)
-      .clickable {
-        focus.value = true
-        scope.launch {
-          delay(1000)
-          focusRequester.requestFocus()
+      .fillMaxSize()
+      .padding(horizontal = dimenSearchVerticalAlign)
+      .onFocusChanged {
+        focus.value = it.isFocused
+        if (!it.isFocused) {
+          currentText.value = ""
+        } else {
+          currentText.value = parseInputText(inputText.value, host = false) ?: inputText.value
         }
+      },
+    singleLine = true,
+    textStyle = TextStyle.Default.copy(
+      color = MaterialTheme.colors.onPrimary, fontSize = dimenTextFieldFontSize
+    ),
+    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+    keyboardActions = KeyboardActions(onSearch = {
+      if (currentText.value.isEmpty()) return@KeyboardActions
+      if (currentText.value != inputText.value) {
+        val requestUrl = Uri.parse(currentText.value)?.let { uri ->
+          if ((uri.scheme == "http" || uri.scheme == "https") && uri.host?.isNotEmpty() == true) {
+            currentText.value
+          } else null
+        } ?: "https://cn.bing.com/search?q=${currentText.value}"
+        search(requestUrl)
       }
-      .padding(horizontal = 8.dp)
-  ) {
-    Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-      Icon(
-        imageVector = Icons.Outlined.Search,
-        contentDescription = null,
-        tint = MaterialTheme.colors.onSecondary
-      )
+      focusManager.clearFocus() // 取消聚焦，就会间接的隐藏键盘
+    })
+  ) { innerTextField ->
+    Box {
+      Surface(modifier = Modifier.align(Alignment.Center)) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          AnimatedVisibility(visible = !focus.value) {
+            Icon(
+              imageVector = Icons.Outlined.Search,
+              contentDescription = null,
+              tint = MaterialTheme.colors.onSecondary
+            )
+          }
+          Box(
+            modifier = Modifier
+              .weight(1f)
+              .padding(horizontal = dimenSearchHorizontalAlign)
+          ) {
+            if ((focus.value && currentText.value.isEmpty()) ||
+              (!focus.value && inputText.value.isEmpty())
+            ) {
+              Text(
+                text = stringResource(id = R.string.browser_search_hint),
+                color = MaterialTheme.colors.onSecondary,
+                modifier = Modifier.align(Alignment.CenterStart),
+                fontSize = dimenTextFieldFontSize
+              )
+            } else if (!focus.value) {
+              parseInputText(inputText.value)?.let { text ->
+                Text(
+                  text = text,
+                  color = MaterialTheme.colors.onSecondary,
+                  modifier = Modifier.align(Alignment.Center),
+                  fontSize = dimenTextFieldFontSize
+                )
+              }
+            }
+            innerTextField()
+          }
 
-      Box(
-        modifier = Modifier
-          .weight(1f)
-          .padding(horizontal = 4.dp)
-      ) {
-        Uri.parse(inputText.value)?.host?.let { host ->
-          Text(text = host, modifier = Modifier.align(Alignment.Center))
-        } ?: Text(
-          text = stringResource(id = R.string.browser_search_hint),
-          modifier = Modifier.align(Alignment.CenterStart)
-        )
-      }
-
-      if (showCamera) {
-        Icon(
-          imageVector = ImageVector.vectorResource(id = R.drawable.ic_photo_camera_24),
-          contentDescription = null,
-          tint = MaterialTheme.colors.onSecondary,
-        )
+          if (currentText.value.isNotEmpty()) {
+            Icon(imageVector = Icons.Outlined.Close,
+              contentDescription = null,
+              tint = MaterialTheme.colors.onSecondary,
+              modifier = Modifier.clickable { currentText.value = "" })
+          } else if (showCamera) {
+            Icon(
+              imageVector = ImageVector.vectorResource(id = R.drawable.ic_photo_camera_24),
+              contentDescription = null,
+              tint = MaterialTheme.colors.onSecondary,
+            )
+          }
+        }
       }
     }
   }
 }
 
-@Composable
-private fun BoxScope.SearchTextField(
-  inputText: MutableState<String>,
-  showCamera: Boolean = false,
-  focus: MutableState<Boolean>,
-  focusRequester: FocusRequester,
-  search: (String) -> Unit
-) {
-  val focusManager = LocalFocusManager.current
-
-  AnimatedVisibility(
-    visible = focus.value,
-    enter = fadeIn(),
-    exit = fadeOut(),
-    modifier = Modifier
-      .align(Alignment.Center)
-      .padding(horizontal = 8.dp)
+/**
+ * 根据内容来判断
+ */
+private fun parseInputText(text: String, host: Boolean = true): String? {
+  val uri = Uri.parse(text)
+  return if (uri.host == "cn.bing.com" && uri.path == "/search"
+    && uri.getQueryParameter("q") != null
   ) {
-    BasicTextField(
-      value = inputText.value,
-      onValueChange = { inputText.value = it },
-      readOnly = false,
-      enabled = true,
-      modifier = Modifier
-        .fillMaxSize()
-        .focusRequester(focusRequester)
-        .focusable(),
-      singleLine = true,
-      textStyle = TextStyle.Default.copy(color = MaterialTheme.colors.onPrimary),
-      keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-      keyboardActions = KeyboardActions(onSearch = {
-        if (inputText.value.isEmpty()) return@KeyboardActions
-        focusManager.clearFocus() // 取消聚焦，就会间接的隐藏键盘
-        focusManager.moveFocus(FocusDirection.Next)
-        focus.value = false
-        val requestUrl = Uri.parse(inputText.value)?.let { uri ->
-          if ((uri.scheme == "http" || uri.scheme == "https") && uri.host?.isNotEmpty() == true) {
-            inputText.value
-          } else null
-        } ?: "https://cn.bing.com/search?q=${inputText.value}"
-        search(requestUrl)
-      })
-    ) { innerTextField ->
-      Box {
-        Surface(
-          modifier = Modifier.align(Alignment.Center),
-          shape = RoundedCornerShape(16.dp)
-        ) {
-          Row(
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Box(
-              modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 4.dp)
-            ) {
-              if (inputText.value.isEmpty()) {
-                Text(
-                  text = stringResource(id = R.string.browser_search_hint),
-                  color = MaterialTheme.colors.onSecondary,
-                  modifier = Modifier.align(Alignment.CenterStart)
-                )
-              }
-              innerTextField()
-            }
-
-            if (inputText.value.isNotEmpty()) {
-              Icon(imageVector = Icons.Outlined.Close,
-                contentDescription = null,
-                tint = MaterialTheme.colors.onSecondary,
-                modifier = Modifier.clickable { inputText.value = "" })
-            } else if (showCamera) {
-              Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.ic_photo_camera_24),
-                contentDescription = null,
-                tint = MaterialTheme.colors.onSecondary,
-              )
-            }
-          }
-        }
-      }
-    }
+    uri.getQueryParameter("q")
+  } else {
+    if (host) uri.host else text
   }
 }
 

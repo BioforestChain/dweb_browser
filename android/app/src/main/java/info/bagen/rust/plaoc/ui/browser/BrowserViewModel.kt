@@ -21,23 +21,26 @@ import java.util.concurrent.atomic.AtomicInteger
 
 data class BrowserUIState(
   val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(),
-  val currentBrowserWebView: MutableState<BrowserWebView?> = mutableStateOf(null),
+  val currentBrowserBaseView: MutableState<BrowserBaseView>,
 )
 
 interface BrowserBaseView {
-  val show: MutableState<Boolean>
-  val focus: MutableState<Boolean>
+  val show: MutableState<Boolean> // 用于首页是否显示遮罩
+  val focus: MutableState<Boolean> // 用于搜索框显示的内容，根据是否聚焦来判断
+  val showBottomBar: MutableState<Boolean> // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
 }
 
 data class BrowserMainView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
-  val aaa: String,
+  override val showBottomBar: MutableState<Boolean> = mutableStateOf(true),
+  val aaa: String
 ) : BrowserBaseView
 
 data class BrowserWebView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
+  override val showBottomBar: MutableState<Boolean> = mutableStateOf(true),
   val webView: WebView,
   val webViewId: String,
   val state: WebViewState,
@@ -55,14 +58,16 @@ sealed class BrowserIntent {
 }
 
 class BrowserViewModel : ViewModel() {
-  val uiState = BrowserUIState()
+  val uiState: BrowserUIState
 
   companion object {
     private var webviewId_acc = AtomicInteger(1)
   }
 
   init {
-    uiState.browserViewList.add(BrowserMainView(aaa = "主页啦"))
+    val browserMainView = BrowserMainView(aaa = "主页啦")
+    uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
+    uiState.browserViewList.add(browserMainView)
   }
 
   fun handleIntent(action: BrowserIntent) {
@@ -74,14 +79,14 @@ class BrowserViewModel : ViewModel() {
           }
         }
         is BrowserIntent.WebViewGoBack -> {
-          uiState.currentBrowserWebView.value?.navigator?.navigateBack()
+          uiState.currentBrowserBaseView.value.let { browserBaseView ->
+            if (browserBaseView is BrowserWebView) browserBaseView.navigator.navigateBack()
+          }
         }
         is BrowserIntent.UpdateCurrentWebView -> {
-          uiState.currentBrowserWebView.value =
-            when (val item = uiState.browserViewList[action.currentPage]) {
-              is BrowserWebView -> item
-              else -> null
-            }
+          if (action.currentPage >= 0 && action.currentPage < uiState.browserViewList.size) {
+            uiState.currentBrowserBaseView.value = uiState.browserViewList[action.currentPage]
+          }
         }
         is BrowserIntent.AddNewWebView -> {
           // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
@@ -102,20 +107,18 @@ class BrowserViewModel : ViewModel() {
               navigator = navigator
             ).also { item ->
               uiState.browserViewList.add(uiState.browserViewList.size - 1, item)
-              uiState.currentBrowserWebView.value = item
+              uiState.currentBrowserBaseView.value = item
             }
           }
         }
         is BrowserIntent.SearchWebView -> {
-          uiState.currentBrowserWebView.value?.let {
-            it.state.content = WebContent.Url(action.url)
+          uiState.currentBrowserBaseView.value.let { browserBaseView ->
+            if (browserBaseView is BrowserWebView) {
+              browserBaseView.state.content = WebContent.Url(action.url)
+            }
           }
         }
       }
     }
-  }
-
-  private fun createWebView() : WebView {
-    return WebView(App.appContext)
   }
 }
