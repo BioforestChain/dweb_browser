@@ -122,6 +122,9 @@ abstract class Ipc {
                 streamChannel.trySend(IpcStreamMessageArgs(args.message, args.ipc))
             }
         }
+        onClose {
+            streamChannel.close();
+        }
         signal
     }
 

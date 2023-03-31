@@ -63,9 +63,7 @@ public abstract class Ipc
     public Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
         PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
 
-    private event Signal<IpcMessage, Ipc>? _onMessage;
-
-    public Task? OnMessageEmit(IpcMessage ipcMessage, Ipc ipc) => _onMessage?.Emit(ipcMessage, ipc);
+    event Signal<IpcMessage, Ipc>? OnMessage;
 
     public abstract Task _doPostMessageAsync(IpcMessage data);
 
@@ -153,49 +151,41 @@ public abstract class Ipc
             };
         });
 
-        _onMessage += async (ipcMessage, ipc, _) =>
+        /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
+        /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
+        var streamChannel = new BufferBlock<(IpcStream, Ipc)>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
+
+        OnMessage += async (ipcMessage, ipc, _) =>
         {
             if (ipcMessage is IpcRequest ipcRequest)
             {
                 await (OnRequest?.Emit(ipcRequest, ipc)).ForAwait();
             }
-        };
-
-        _onMessage += async (ipcMessage, ipc, _) =>
-        {
-            if (ipcMessage is IpcResponse ipcResponse)
+            else if (ipcMessage is IpcResponse ipcResponse)
             {
                 await (OnResponse?.Emit(ipcResponse, ipc)).ForAwait();
             }
-        };
-
-        _onMessage += async (ipcMessage, ipc, _) =>
-        {
-            if (ipcMessage is IpcEvent ipcEvent)
+            else if (ipcMessage is IpcEvent ipcEvent)
             {
                 await (OnEvent?.Emit(ipcEvent, ipc)).ForAwait();
             }
+            else if (ipcMessage is IpcStream ipcStream)
+            {
+                streamChannel.Post((ipcStream, ipc));
+            }
         };
 
-        /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
-        /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
-        var streamChannel = new BufferBlock<KeyValuePair<IpcStream, Ipc>>();
 
         Task.Run(async () =>
         {
             await foreach (var args in streamChannel.ReceiveAllAsync())
             {
-                await (OnStream?.Emit(args.Key, args.Value)).ForAwait();
+                await (OnStream?.Emit(args.Item1, args.Item2)).ForAwait();
             }
         });
 
-        _onMessage += async (ipcMessage, ipc, _) =>
-        {
-            if (ipcMessage is IpcStream ipcStream)
-            {
-                await streamChannel.SendAsync(KeyValuePair.Create(ipcStream, ipc));
-            }
-        };
+        OnClose += async (_) => streamChannel.Complete();
+
     }
 
     private Dictionary<int, PromiseOut<IpcResponse>> _reqResMap;
