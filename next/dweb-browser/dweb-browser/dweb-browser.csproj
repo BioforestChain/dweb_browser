@@ -58,10 +58,4 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\ipc\ipc.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <None Remove="micro-module\" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="micro-module\" />
-	</ItemGroup>
 </Project>

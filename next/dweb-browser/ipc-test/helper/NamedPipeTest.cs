@@ -1,10 +1,5 @@
-﻿using System;
-using System.IO.Pipes;
+﻿using System.IO.Pipes;
 using System.Text;
-using Microsoft.Win32.SafeHandles;
-using Xunit.Abstractions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace ipc_test.helper;
 
 

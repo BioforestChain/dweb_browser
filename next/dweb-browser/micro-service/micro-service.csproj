@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>11.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <LangVersion>11.0</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="2.5.108" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="helper\" />
+    <None Remove="extensions\" />
+    <None Remove="ipc\" />
+    <None Remove="ipc\ipcWeb\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="helper\" />
+    <Folder Include="extensions\" />
+    <Folder Include="ipc\" />
+    <Folder Include="ipc\ipcWeb\" />
+  </ItemGroup>
+</Project>

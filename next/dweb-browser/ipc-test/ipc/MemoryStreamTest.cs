@@ -1,6 +1,4 @@
 ﻿
-using Xunit.Abstractions;
-
 namespace ipc_test.ipc;
 
 public class MemoryStreamTest: Log

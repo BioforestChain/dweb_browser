@@ -1,7 +1,4 @@
-﻿using System;
-using ipc.extensions;
-using Xunit.Abstractions;
-
+﻿
 namespace ipc_test.ipc
 {
     public class ReadableStreamTest : Log

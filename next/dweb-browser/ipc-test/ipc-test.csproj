@@ -31,14 +31,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ipc\ipc.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="helper\" />
     <None Remove="ipc\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="helper\" />
     <Folder Include="ipc\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\micro-service\micro-service.csproj" />
   </ItemGroup>
 </Project>

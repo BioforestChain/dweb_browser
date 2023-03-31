@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31611.283
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dweb-browser", "dweb-browser\dweb-browser.csproj", "{E29D03B4-6223-45F1-A60B-1C48C349E518}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ipc", "ipc\ipc.csproj", "{21E82AA7-DF10-49C9-97CB-0A1B2453219B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "micro-service", "micro-service\micro-service.csproj", "{21E82AA7-DF10-49C9-97CB-0A1B2453219B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ipc-test", "ipc-test\ipc-test.csproj", "{E5B5B653-AEE0-4717-9080-5723E5A2A0CF}"
 EndProject

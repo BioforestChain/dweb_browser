@@ -1,5 +1,4 @@
-﻿using Xunit.Abstractions;
-
+﻿
 namespace ipc_test.helper;
 
 public class PromiseOutTest : Log
