@@ -5,6 +5,35 @@ public delegate Task OnMessageHandler<T1, T2>(T1 ipcMessage, T2 ipc);
 public delegate Task OnSingleMessageHandler<T>(T ipcMessage);
 public delegate void OnSimpleMessageHandler();
 
+public delegate Task OnMessageParamsHandler(params object[]? args);
+
+public class ParamsEvent
+{
+    public event OnMessageParamsHandler OnMessage;
+
+    public void Listen(OnMessageParamsHandler cb) => OnMessage += cb;
+
+    public void Emit(params object[]? args)
+    {
+        if (OnMessage is null) return;
+        foreach (OnMessageParamsHandler cb in OnMessage.GetInvocationList().Cast<OnMessageParamsHandler>())
+        {
+            cb(args);
+        }
+    }
+
+    public void Remove(OnMessageParamsHandler cb) => OnMessage -= cb;
+
+    public void Clear()
+    {
+        if (OnMessage is null) return;
+        foreach (OnMessageParamsHandler cb in OnMessage.GetInvocationList().Cast<OnMessageParamsHandler>())
+        {
+            Remove(cb);
+        }
+    }
+}
+
 public class Event<T1, T2>
 {
 	public event OnMessageHandler<T1, T2> OnMessage;

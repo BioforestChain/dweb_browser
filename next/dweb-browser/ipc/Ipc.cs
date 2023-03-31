@@ -1,13 +1,6 @@
 ﻿using System.Threading.Tasks.Dataflow;
 
 namespace ipc;
-
-using IpcMessageArgs = Tuple<IpcMessage, Ipc>;
-using IpcRequestMessageArgs = Tuple<IpcRequest, Ipc>;
-using IpcResponseMessageArgs = Tuple<IpcResponse, Ipc>;
-using IpcEventMessageArgs = Tuple<IpcEvent, Ipc>;
-using IpcStreamMessageArgs = Tuple<IpcStream, Ipc>;
-
 public abstract class Ipc
 {
     private static int s_uid_acc = 1;
