@@ -108,16 +108,15 @@ public class IpcBodySender : IpcBody
 
                 if (_map.Count == 0)
                 {
-                    OnDestroyHandler.Emit();
-                    OnDestroyHandler.Clear();
+                    OnDetroy?.Emit();
+                    OnDetroy = null;
                 }
 
                 return ipcBodySender;
             }
 
-            public SimpleEvent OnDestroyHandler = new();
+            public event Signal? OnDetroy;
 
-            public void OnDetroy(OnSimpleMessageHandler cb) => OnDestroyHandler.Listen(cb);
         }
 
         private static Dictionary<Ipc, UsableIpcBodyMapper> s_ipcUsableIpcBodyMap = new Dictionary<Ipc, UsableIpcBodyMapper>();
@@ -137,41 +136,43 @@ public class IpcBodySender : IpcBody
             }
 
             var streamId = ipcBody.MetaBody.StreamId!;
-            var usableIpcBodyMapper = s_ipcUsableIpcBodyMap[ipc];
-
-            if (usableIpcBodyMapper is null)
+            var usableIpcBodyMapper = s_ipcUsableIpcBodyMap.GetValueOrPut(ipc, () =>
             {
-                usableIpcBodyMapper = new UsableIpcBodyMapper(new Dictionary<string, IpcBodySender>());
+                var mapper = new UsableIpcBodyMapper(new Dictionary<string, IpcBodySender>());
 
-                OnMessageHandler<IpcStream, Ipc> off = null!;
-                off = async (ipcStream, ipc) =>
+                Signal<IpcStream, Ipc> cb = async (ipcStream, ipc, self) =>
                 {
                     switch (ipcStream)
                     {
                         case IpcStreamPulling ipcStreamPulling:
-                            usableIpcBodyMapper.Get(ipcStreamPulling.StreamId)?._useByIpc(ipc)?.EmitStreamPull(ipcStreamPulling);
+                            await (mapper.Get(ipcStreamPulling.StreamId)?._useByIpc(ipc)?.EmitStreamPull(ipcStreamPulling)).ForAwait();
                             break;
                         case IpcStreamPaused ipcStreamPaused:
-                            usableIpcBodyMapper.Get(ipcStreamPaused.StreamId)?._useByIpc(ipc)?.EmitStreamPaused(ipcStreamPaused);
+                            await (mapper.Get(ipcStreamPaused.StreamId)?._useByIpc(ipc)?.EmitStreamPaused(ipcStreamPaused)).ForAwait();
                             break;
                         case IpcStreamAbort ipcStreamAbort:
-                            usableIpcBodyMapper.Get(ipcStreamAbort.StreamId)?._useByIpc(ipc)?.EmitStreamAborted();
+                            await (mapper.Get(ipcStreamAbort.StreamId)?._useByIpc(ipc)?.EmitStreamAborted()).ForAwait();
                             break;
                         default:
                             break;
                     }
 
-                    ipc.OnStreamEvent.Remove(off);
                 };
+                ipc.OnStream += cb;
 
-                ipc.OnStreamEvent.Listen(off);
+                mapper.OnDetroy += async (_) => ipc.OnStream -= cb;
+                mapper.OnDetroy += (_) => mapper.Remove(streamId);
 
-                usableIpcBodyMapper.OnDetroy(() => s_ipcUsableIpcBodyMap.Remove(ipc));
+                return mapper;
+            });
 
-                if (usableIpcBodyMapper.Add(streamId, ipcBody))
+
+            if (usableIpcBodyMapper.Add(streamId, ipcBody))
+            {
+                ipcBody.OnStreamClose += (_) =>
                 {
-                    ipcBody.OnStreamClose(() => usableIpcBodyMapper.Remove(streamId));
-                }
+                    return usableIpcBodyMapper.Remove(streamId);
+                };
             }
         }
     }
@@ -221,7 +222,7 @@ public class IpcBodySender : IpcBody
                     return new UsedIpcInfo(this, ipc).Also(usedIpcInfo =>
                     {
                         _usedIpcMap[ipc] = usedIpcInfo;
-                        OnCloseHandler.Listen(() => EmitStreamAbortedAsync(usedIpcInfo));
+                        OnStreamClose += (_) => EmitStreamAbortedAsync(usedIpcInfo);
                     });
                 }
                 else
@@ -284,13 +285,10 @@ public class IpcBodySender : IpcBody
             }
         });
 
-    public SimpleEvent OnCloseHandler = new();
+    public event Signal? OnStreamClose;
 
-    public void OnStreamClose(OnSimpleMessageHandler cb) => OnCloseHandler.Listen(cb);
+    public event Signal? OnStreamOpen;
 
-    public SimpleEvent OnOpenHandler = new();
-
-    public void OnStreamOpen(OnSimpleMessageHandler cb) => OnOpenHandler.Listen(cb);
 
     private void _emitStreamClose()
     {

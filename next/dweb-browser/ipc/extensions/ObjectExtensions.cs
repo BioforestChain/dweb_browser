@@ -19,5 +19,12 @@ public static class ObjectExtensions
         block(self);
         return self;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T SaveTo<T>(this T self, ref T to)
+    {
+        to = self;
+        return self;
+    }
 }
 

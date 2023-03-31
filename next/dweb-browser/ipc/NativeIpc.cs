@@ -94,7 +94,7 @@ public class NativePort<I, O>
         Console.WriteLine($"port-message-end/{this}");
     }
 
-    public SimpleEvent OnCloseEvent = new();
+    public event Signal? OnCloseEvent;
 
     public void OnClose(OnSimpleMessageHandler cb) => OnCloseEvent.Listen(cb);
 
@@ -107,7 +107,7 @@ public class NativePort<I, O>
         }
     }
 
-    public SingleEvent<I> OnMessageHandler = new();
+    public event Signal<I> OnMessageHandler;
 
     /**
      * <summary>

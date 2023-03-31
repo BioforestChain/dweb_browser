@@ -42,7 +42,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
         }
     }
 
-    protected SimpleSignal _afterShutdownSignal = new();
+    protected event AsyncSignal? _afterShutdownSignal;
 
     protected async Task _beforeShutdown()
     {
@@ -62,7 +62,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
     protected async Task _afterShutdown()
     {
         await _afterShutdownSignal.EmitAsync();
-        _afterShutdownSignal.Clear();
+        _afterShutdownSignal = null;
         _runningStateLock.Resolve(false);
         _bootstrapContext = null;
     }
@@ -90,20 +90,12 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
 
     /**
      * <summary>
-     * 内部程序与外部程序通讯的方法
-     * TODO 这里应该是可以是多个
-     * </summary>
-     */
-    private Signal<IpcConnectArgs> _connectSignal = new();
-
-    /**
-     * <summary>
      * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
      * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
      * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
      * </summary>
      */
-    protected Func<bool> OnConnect(Func<IpcConnectArgs, object?> cb) => _connectSignal.Listen(cb);
+    protected event AsyncSignal<IpcConnectArgs>? OnConnect;
 
     /**
      * <summary>
@@ -125,7 +117,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
     public Task BeConnect(Ipc ipc, HttpRequestMessage reason)
     {
         _ipcSet.Add(ipc);
-        ipc.OnClose(() => _ipcSet.Remove(ipc));
+        ipc.OnClose += () => _ipcSet.Remove(ipc);
         ipc.OnEvent(async args =>
         {
             if (args.Item1.Name == "activity")
@@ -134,7 +126,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
             }
         });
 
-        return _connectSignal.EmitAsync(new IpcConnectArgs(ipc, reason));
+        return OnConnect.EmitAsync(new IpcConnectArgs(ipc, reason));
     }
 
     protected abstract Task _onActivity(IpcEvent Event, Ipc ipc);

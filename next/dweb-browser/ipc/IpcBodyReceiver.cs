@@ -19,10 +19,10 @@ public class IpcBodyReceiver : IpcBody
         {
             if (!CACHE.MetaId_receiverIpc_Map.TryGetValue(MetaBody.MetaId, out Ipc? cipc))
             {
-                Ipc.OnClose(() =>
+                Ipc.OnClose += () =>
                 {
                     CACHE.MetaId_receiverIpc_Map.Remove(MetaBody.MetaId);
-                });
+                };
 
                 MetaBody = MetaBody with { ReceiverUid = Ipc.Uid };
                 CACHE.MetaId_receiverIpc_Map.AddOrUpdate(MetaBody.MetaId, Ipc);

@@ -62,81 +62,17 @@ public abstract class Ipc
     public Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
         PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
 
-    private Event<IpcMessage, Ipc> _onMessageEvent = new();
-
-    public void OnMessageEmit(IpcMessage ipcMessage, Ipc ipc) => _onMessageEvent.Emit(ipcMessage, ipc);
+    private event Signal<IpcMessage, Ipc> OnMessageEmit;
 
     public abstract Task _doPostMessageAsync(IpcMessage data);
 
-    public Event<IpcRequest, Ipc> OnRequestEvent = new();
+    public event Signal<IpcRequest, Ipc>? OnRequest;
 
-    public void OnRequest(OnMessageHandler<IpcRequest, Ipc> cb)
-    {
-        OnRequestEvent.Listen(cb);
-        _onMessageEvent.Listen(async (ipcMessage, ipc) =>
-        {
-            if (ipcMessage is IpcRequest ipcRequest)
-            {
-                OnRequestEvent.Emit(ipcRequest, ipc);
-            }
-        });
-    }
+    public event Signal<IpcResponse, Ipc>? OnResponse;
 
-    public Event<IpcResponse, Ipc> OnResponseEvent = new();
+    public event Signal<IpcStream, Ipc>? OnStream;
 
-    public void OnResponse(OnMessageHandler<IpcResponse, Ipc> cb)
-    {
-        OnResponseEvent.Listen(cb);
-        _onMessageEvent.Listen(async (ipcMessage, ipc) =>
-        {
-            if (ipcMessage is IpcResponse ipcResponse)
-            {
-                OnResponseEvent.Emit(ipcResponse, ipc);
-            }
-        });
-    }
-
-    public Event<IpcStream, Ipc> OnStreamEvent = new();
-
-    public void OnStream(OnMessageHandler<IpcStream, Ipc> cb)
-    {
-        OnStreamEvent.Listen(cb);
-
-        /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
-        /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
-        var streamChannel = new BufferBlock<KeyValuePair<IpcStream, Ipc>>();
-        Task.Run(async () =>
-        {
-            await foreach (var message in streamChannel.ReceiveAllAsync())
-            {
-                OnStreamEvent.Emit(message.Key, message.Value);
-            }
-        });
-
-        _onMessageEvent.Listen(async (ipcStream, ipc) =>
-        {
-            if (ipcStream is IpcStream stream)
-            {
-                await streamChannel.SendAsync(KeyValuePair.Create(stream, ipc));
-            }
-        });
-    }
-
-    public Event<IpcEvent, Ipc> OnEventEvent = new();
-
-    public void OnEvent(OnMessageHandler<IpcEvent, Ipc> cb)
-    {
-        OnEventEvent.Listen(cb);
-
-        _onMessageEvent.Listen(async (ipcMessage, ipc) =>
-        {
-            if (ipcMessage is IpcEvent ipcEvent)
-            {
-                OnEventEvent.Emit(ipcEvent, ipc);
-            }
-        });
-    }
-
+    public event Signal<IpcEvent, Ipc>? OnEvent;
 
     public abstract Task DoClose();
 
@@ -158,13 +94,9 @@ public abstract class Ipc
         get { return _closed; }
     }
 
-    public SimpleEvent OnCloseEvent = new();
+    public event Signal? OnClose;
 
-    public void OnClose(OnSimpleMessageHandler cb) => OnCloseEvent.Listen(cb);
-
-    public SimpleEvent OnDestoryEvent = new();
-
-    public void OnDestory(OnSimpleMessageHandler cb) => OnDestoryEvent.Listen(cb);
+    public event Signal? OnDestory;
 
     private bool _destroyed = false;
     public bool IsDestroy
@@ -189,7 +121,7 @@ public abstract class Ipc
             await Close();
         }
 
-        OnDestoryEvent.Clear();
+        OnDestory = null;
     }
 
     /**
@@ -203,6 +135,7 @@ public abstract class Ipc
 
     public Ipc()
     {
+
         _reqResMap = new Dictionary<int, PromiseOut<IpcResponse>>().Also(reqResMap =>
         {
             OnResponse(async (ipcResponse, ipc) =>
