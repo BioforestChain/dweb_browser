@@ -80,7 +80,7 @@ public class ReadableStreamIpc : Ipc
         }
     }
 
-    protected Signal<IpcMessage, ReadableStreamIpc>? _onMessage;
+    protected event Signal<IpcMessage, ReadableStreamIpc>? _onMessage;
 
     /**
      * <summary>

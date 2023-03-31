@@ -40,7 +40,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
         }
     }
 
-    protected Signal? _afterShutdownSignal;
+    protected event Signal? _afterShutdownSignal;
 
     protected async Task _beforeShutdown()
     {
@@ -93,7 +93,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
      * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
      * </summary>
      */
-    protected Signal<Ipc, HttpRequestMessage>? OnConnect;
+    protected event Signal<Ipc, HttpRequestMessage>? OnConnect;
 
     /**
      * <summary>
@@ -124,7 +124,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
             }
         };
 
-        return OnConnect.Emit(ipc, reason);
+        return (OnConnect?.Emit(ipc, reason)).ForAwait();
     }
 
     protected abstract Task _onActivity(IpcEvent Event, Ipc ipc);

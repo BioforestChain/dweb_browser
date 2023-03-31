@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks.Dataflow;
+﻿using System.Threading.Tasks.Dataflow;
 
 namespace micro_service.ipc;
 public abstract class Ipc
@@ -43,8 +42,7 @@ public abstract class Ipc
         public Mmid Mmid { get; init; }
     }
 
-    // TODO: MicroModule还未实现
-    //public MicroModule AsRemoteInstance()
+    public MicroModule? AsRemoteInstance() => Remote is MicroModule microModule ? microModule : null;
 
     public abstract string Role { get; }
 

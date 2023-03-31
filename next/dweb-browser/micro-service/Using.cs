@@ -5,6 +5,7 @@ global using micro_service.ipc;
 global using micro_service.ipc.ipcWeb;
 global using micro_service.helper;
 global using micro_service.extensions;
+global using micro_service.core;
 
 global using Mmid = System.String;
 

@@ -105,7 +105,7 @@ public class NativePort<I, O>
         }
     }
 
-    public Signal<I>? OnMessage;
+    public event Signal<I>? OnMessage;
 
     /**
      * <summary>

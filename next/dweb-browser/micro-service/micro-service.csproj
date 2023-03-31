@@ -21,11 +21,15 @@
     <None Remove="extensions\" />
     <None Remove="ipc\" />
     <None Remove="ipc\ipcWeb\" />
+    <None Remove="sys\http\" />
+    <None Remove="sys\http\net\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="helper\" />
     <Folder Include="extensions\" />
     <Folder Include="ipc\" />
     <Folder Include="ipc\ipcWeb\" />
+    <Folder Include="sys\http\" />
+    <Folder Include="sys\http\net\" />
   </ItemGroup>
 </Project>
