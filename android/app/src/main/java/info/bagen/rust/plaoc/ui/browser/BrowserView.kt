@@ -2,16 +2,19 @@ package info.bagen.rust.plaoc.ui.browser
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -35,14 +38,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.PagerState
-import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.web.LoadingState
-import com.google.accompanist.web.WebView
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.ui.theme.Blue
 import kotlinx.coroutines.launch
@@ -57,28 +56,35 @@ private val dimenBottomHeight = 100.dp
 private val dimenSearchHeight = 40.dp
 
 private val bottomEnterAnimator = slideInVertically(
-  animationSpec = tween(100),//动画时长1s
+  animationSpec = tween(300),//动画时长1s
   initialOffsetY = {
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   }
 ) + fadeIn()
 private val bottomExitAnimator = slideOutVertically(
-  animationSpec = tween(100),//动画时长1s
+  animationSpec = tween(300),//动画时长1s
   targetOffsetY = {
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   }
-) + fadeOut()
+)
 
-@OptIn(ExperimentalPagerApi::class)
+@Composable
+@Preview
+fun BrowserViewPreview() {
+  Text(text = "xxx")
+}
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BrowserView(viewModel: BrowserViewModel) {
   val pagerStateSearch = rememberPagerState()
   val pagerStateWebView = rememberPagerState()
   val localFocusManager = LocalFocusManager.current
 
-  Column(modifier = Modifier.fillMaxSize()) {
+  Box(modifier = Modifier.fillMaxSize()) {
     Box(modifier = Modifier
-      .weight(1f)
+      .fillMaxSize()
+      .padding(bottom = if (viewModel.uiState.currentBrowserBaseView.value.showBottomBar.value) dimenBottomHeight else dimenHorizontalPagerHorizontal)
       .clickable(
         indication = null,
         onClick = { localFocusManager.clearFocus() },
@@ -86,23 +92,29 @@ fun BrowserView(viewModel: BrowserViewModel) {
       )) {
       BrowserViewContent(viewModel, pagerStateSearch, pagerStateWebView)
     }
-    BrowserViewBottomBar(viewModel, pagerStateSearch, pagerStateWebView)
+    BrowserViewBottomBar(
+      viewModel,
+      pagerStateSearch, pagerStateWebView,
+      modifier = Modifier.align(Alignment.BottomCenter),
+    )
   }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewContent(
   viewModel: BrowserViewModel, pagerStateSearch: PagerState, pagerState: PagerState
 ) {
   LaunchedEffect(pagerStateSearch) {
-    snapshotFlow { pagerStateSearch.currentPageOffset }.collect { currentPageOffset ->
+    snapshotFlow { pagerStateSearch.currentPageOffsetFraction }.collect { currentPageOffset ->
       pagerState.scrollToPage(pagerStateSearch.currentPage, currentPageOffset)
     }
   }
   // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
   HorizontalPager(
-    count = viewModel.uiState.browserViewList.size, state = pagerState, userScrollEnabled = false
+    pageCount = viewModel.uiState.browserViewList.size,
+    beyondBoundsPageCount = 10,
+    state = pagerState, userScrollEnabled = false
   ) { currentPage ->
     when (val item = viewModel.uiState.browserViewList[currentPage]) {
       is BrowserMainView -> BrowserViewContentMain(viewModel, item, pagerStateSearch)
@@ -112,10 +124,11 @@ private fun BrowserViewContent(
   }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewBottomBar(
-  viewModel: BrowserViewModel, pagerStateSearch: PagerState, pagerStateWebView: PagerState
+  viewModel: BrowserViewModel, pagerStateSearch: PagerState, pagerStateWebView: PagerState,
+  modifier: Modifier = Modifier
 ) {
   val coroutineScope = rememberCoroutineScope()
   val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
@@ -128,10 +141,11 @@ private fun BrowserViewBottomBar(
     else -> stringResource(id = R.string.browser_search_hint)
   }
 
-  Box {
+  Box(modifier = modifier) {
     Column(modifier = Modifier
       .fillMaxWidth()
-      .height(20.dp).align(Alignment.BottomCenter)
+      .height(20.dp)
+      .align(Alignment.BottomCenter)
       .clickable { browserBaseView.showBottomBar.value = true }) {
       Text(
         text = inputText,
@@ -149,8 +163,8 @@ private fun BrowserViewBottomBar(
         BrowserViewSearch(viewModel, pagerStateSearch)
         BrowserViewNavigatorBar(viewModel) {
           coroutineScope.launch {
-            pagerStateSearch.animateScrollToPage(pagerStateSearch.pageCount)
-            pagerStateWebView.animateScrollToPage(pagerStateWebView.pageCount)
+            pagerStateSearch.animateScrollToPage(pagerStateSearch.currentPage)
+            pagerStateWebView.animateScrollToPage(pagerStateWebView.currentPage)
           }
         }
       }
@@ -158,16 +172,16 @@ private fun BrowserViewBottomBar(
   }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewSearch(viewModel: BrowserViewModel, pagerState: PagerState) {
   HorizontalPager(
     state = pagerState,
-    count = viewModel.uiState.browserViewList.size,
+    pageCount = viewModel.uiState.browserViewList.size,
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
     modifier = Modifier.background(MaterialTheme.colors.primaryVariant)
   ) { currentPage ->
-    if (currentPage == pagerState.pageCount - 1) viewModel.handleIntent(BrowserIntent.ShowMainView)
+    if (currentPage == pagerState.currentPage - 1) viewModel.handleIntent(BrowserIntent.ShowMainView)
     when (val item = viewModel.uiState.browserViewList[currentPage]) {
       is BrowserWebView -> BrowserViewSearchWeb(viewModel, item)
       is BrowserMainView -> BrowserViewSearchMain(viewModel, item, pagerState)
@@ -203,7 +217,10 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel, onHome: () -> U
     ) { /* TODO 将当前的地址添加到书签 */ }
     NavigatorButton(
       resId = R.drawable.ic_main_option, resName = R.string.browser_nav_option, show = true
-    ) { /* TODO 打开弹窗，里面有历史浏览记录和书签列表 */ }
+    ) {
+      // TODO 打开弹窗，里面有历史浏览记录和书签列表
+      viewModel.handleIntent(BrowserIntent.UpdatePopupViewState(PopupViewSate.Options))
+    }
     NavigatorButton(resId = R.drawable.ic_main_home,
       resName = R.string.browser_nav_home,
       show = navigator?.let { true } ?: false
@@ -234,7 +251,7 @@ private fun RowScope.NavigatorButton(
   }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewContentMain(
   viewModel: BrowserViewModel, browserMainView: BrowserMainView, pagerStateSearch: PagerState
@@ -242,13 +259,13 @@ private fun BrowserViewContentMain(
   Box(modifier = Modifier.fillMaxSize()) {
     BrowserMainView(viewModel)
   }
-  if (!browserMainView.show.value) {
+  /*if (!browserMainView.show.value) {
     Box(
       modifier = Modifier
         .fillMaxSize()
         .background(Color.White.copy(pagerStateSearch.currentPageOffset))
     )
-  }
+  }*/
 }
 
 @Composable
@@ -258,27 +275,10 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
       viewModel.handleIntent(BrowserIntent.WebViewGoBack)
     }
   }
-  val localFocusManager = LocalFocusManager.current
+
   key(browserWebView.webViewId) {
     Box(modifier = Modifier.fillMaxSize()) {
-      WebView(
-        state = browserWebView.state,
-        navigator = browserWebView.navigator,
-        factory = {
-          browserWebView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
-          browserWebView.webView.also {
-            it.setOnScrollChangeListener { view, scrollX, scrollY, oldScrollX, oldScrollY ->
-              if (scrollY == 0 || oldScrollY == 0) return@setOnScrollChangeListener
-              localFocusManager.clearFocus() // TODO 清除焦点
-              if (oldScrollY < scrollY - 5 && browserWebView.showBottomBar.value) {
-                browserWebView.showBottomBar.value = false // TODO 上滑，需要隐藏底部栏
-              } else if (oldScrollY > scrollY + 5 && !browserWebView.showBottomBar.value) {
-                browserWebView.showBottomBar.value = true // TODO 下滑，需要显示底部栏
-              }
-            }
-          }
-        }
-      )
+      BrowserWebView(viewModel = viewModel, browserWebView = browserWebView)
     }
   }
 }
@@ -449,7 +449,7 @@ private fun parseInputText(text: String, host: Boolean = true): String? {
   }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewSearchMain(
   viewModel: BrowserViewModel, browserMainView: BrowserMainView, pagerState: PagerState
@@ -459,11 +459,11 @@ private fun BrowserViewSearchMain(
   }
   // TODO 这边考虑加一层遮罩，颜色随着滑动而显示
   if (!browserMainView.show.value) {
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(Color.White.copy(pagerState.currentPageOffset))
-    )
+//    Box(
+//      modifier = Modifier
+//        .fillMaxSize()
+//        .background(Color.White.copy(pagerState.currentPageOffsetFraction))
+//    )
   }
 }
 

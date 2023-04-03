@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.rust.plaoc.R
-import kotlinx.coroutines.delay
 
 @Composable
 fun BrowserMainView(viewModel: BrowserViewModel) {
@@ -96,102 +95,109 @@ private fun HotSearchView(viewModel: BrowserViewModel) {
   Column(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(20.dp)
+      .padding(horizontal = 20.dp)
   ) {
     TitleText(id = R.string.browser_main_hot_search)
     Spacer(modifier = Modifier.height(10.dp))
 
-
-    val loadedState = remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-      delay(10000)
-      loadedState.value = true
-    }
-    val infiniteTransition = rememberInfiniteTransition()
-    val alpha by infiniteTransition.animateFloat(
-      initialValue = 0.6f, targetValue = 0.1f, animationSpec = infiniteRepeatable(
-        animation = tween(2000, easing = LinearEasing), repeatMode = RepeatMode.Reverse
-      )
-    )
-    Column(modifier = Modifier.alpha(if (loadedState.value) 1f else alpha)) {
-      Box(
-        modifier = Modifier
-          .size(320.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(100.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(230.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(120.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(200.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(260.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(320.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(100.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(230.dp, 22.dp)
-          .background(Color.LightGray)
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Box(
-        modifier = Modifier
-          .size(120.dp, 22.dp)
-          .background(Color.LightGray)
-      )
+    viewModel.uiState.hotLinkList.forEachOrEmpty(
+      empty = { ListLoadingView() }
+    ) {
+      Text(text = it.showHotText(), maxLines = 1, modifier = Modifier.clickable {
+        viewModel.handleIntent(BrowserIntent.AddNewWebView(it.webUrl))
+      })
       Spacer(modifier = Modifier.height(16.dp))
     }
   }
 }
 
+public inline fun <T> Iterable<T>.forEachOrEmpty(empty: () -> Unit, action: (T) -> Unit): Unit {
+  if (this.count() > 0) {
+    for (element in this) action(element)
+  } else {
+    empty()
+  }
+}
 
-data class HotWebsite(
-  val name: String,
-  val iconUrl: String,
-  val webUrl: String,
-)
+@Composable
+private fun ListLoadingView() {
+  val infiniteTransition = rememberInfiniteTransition()
+  val alpha by infiniteTransition.animateFloat(
+    initialValue = 0.8f, targetValue = 0.3f, animationSpec = infiniteRepeatable(
+      animation = tween(1000, easing = LinearEasing), repeatMode = RepeatMode.Reverse
+    )
+  )
+  Column(modifier = Modifier.alpha(alpha)) {
+    Box(
+      modifier = Modifier
+        .size(320.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(100.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(230.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(120.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(200.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(260.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(320.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(100.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(230.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .size(120.dp, 16.dp)
+        .background(Color.LightGray)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+  }
+}
 
-private val initHotWebsite = mutableListOf<HotWebsite>().also {
-  it.add(HotWebsite("斗鱼", "http://linge.plaoc.com/douyu.png", "https://www.douyu.com/"))
-  it.add(HotWebsite("网易", "http://linge.plaoc.com/163.png", "https://www.163.com/"))
-  it.add(HotWebsite("微博", "http://linge.plaoc.com/weibo.png", "https://weibo.com/"))
-  it.add(HotWebsite("豆瓣", "http://linge.plaoc.com/douban.png", "https://movie.douban.com/"))
-  it.add(HotWebsite("知乎", "http://linge.plaoc.com/zhihu.png", "https://www.zhihu.com/"))
-  it.add(HotWebsite("哔哩哔哩", "http://linge.plaoc.com/bilibili.png", "https://www.bilibili.com/"))
-  it.add(HotWebsite("腾讯新闻", "http://linge.plaoc.com/tencent.png", "https://www.qq.com/"))
-  it.add(HotWebsite("京东", "http://linge.plaoc.com/jingdong.png", "https://www.jd.com/"))
+private val initHotWebsite = mutableListOf<WebSiteInfo>().also {
+  it.add(WebSiteInfo(name = "斗鱼", iconUrl = "http://linge.plaoc.com/douyu.png", webUrl = "https://m.douyu.com/"))
+  it.add(WebSiteInfo(name = "网易", iconUrl = "http://linge.plaoc.com/163.png", webUrl = "https://3g.163.com/"))
+  it.add(WebSiteInfo(name = "微博", iconUrl = "http://linge.plaoc.com/weibo.png", webUrl = "https://m.weibo.cn/"))
+  it.add(WebSiteInfo(name = "豆瓣", iconUrl = "http://linge.plaoc.com/douban.png", webUrl = "https://m.douban.com/movie/"))
+  it.add(WebSiteInfo(name = "知乎", iconUrl = "http://linge.plaoc.com/zhihu.png", webUrl = "https://www.zhihu.com/"))
+  it.add(WebSiteInfo(name = "哔哩哔哩", iconUrl = "http://linge.plaoc.com/bilibili.png", webUrl = "https://m.bilibili.com/"))
+  it.add(WebSiteInfo(name = "腾讯新闻", iconUrl = "http://linge.plaoc.com/tencent.png", webUrl = "https://xw.qq.com/?f=qqcom"))
+  it.add(WebSiteInfo(name = "京东", iconUrl = "http://linge.plaoc.com/jingdong.png", webUrl = "https://m.jd.com/"))
 }

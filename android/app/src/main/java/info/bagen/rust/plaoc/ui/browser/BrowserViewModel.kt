@@ -1,10 +1,19 @@
 package info.bagen.rust.plaoc.ui.browser
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
 import android.webkit.WebView
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.WebContent
@@ -17,11 +26,14 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jsoup.Jsoup
 import java.util.concurrent.atomic.AtomicInteger
 
 data class BrowserUIState(
   val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(),
   val currentBrowserBaseView: MutableState<BrowserBaseView>,
+  val hotLinkList: MutableList<WebSiteInfo> = mutableStateListOf(),
+  val popupViewState: MutableState<PopupViewSate> = mutableStateOf(PopupViewSate.NULL),
 )
 
 interface BrowserBaseView {
@@ -46,18 +58,53 @@ data class BrowserWebView(
   val state: WebViewState,
   val navigator: WebViewNavigator,
   val coroutineScope: CoroutineScope,
-  val bitmap: Bitmap? = null
+  var bitmap: Bitmap? = null,
+  var loaded: Boolean = false,
 ) : BrowserBaseView
+
+data class WebSiteInfo(
+  val id: Int = 0,
+  val name: String,
+  val webUrl: String,
+  val iconUrl: String = "",
+) {
+  fun showHotText(): AnnotatedString {
+    val color = when (id) {
+      1 -> Color.Red
+      2 -> Color(0xFFFF6C2D)
+      3 -> Color(0xFFFF6C2D)
+      else -> Color.LightGray
+    }
+    return buildAnnotatedString {
+      withStyle(style = SpanStyle(color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
+        append("$id".padEnd(4, ' '))
+      }
+      withStyle(
+        style = SpanStyle(
+          color = Color.Black,
+          fontSize = 16.sp
+        )
+      ) {
+        append(name)
+      }
+    }
+  }
+}
+
+enum class PopupViewSate {
+  NULL, Options, BookList, HistoryList, Share
+}
 
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
   object WebViewGoBack : BrowserIntent()
+  class UpdatePopupViewState(val state: PopupViewSate = PopupViewSate.NULL) : BrowserIntent()
   class UpdateCurrentWebView(val currentPage: Int) : BrowserIntent()
   class AddNewWebView(val url: String) : BrowserIntent()
   class SearchWebView(val url: String) : BrowserIntent()
 }
 
-class BrowserViewModel : ViewModel() {
+class BrowserViewModel() : ViewModel() {
   val uiState: BrowserUIState
 
   companion object {
@@ -68,6 +115,7 @@ class BrowserViewModel : ViewModel() {
     val browserMainView = BrowserMainView(aaa = "主页啦")
     uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
     uiState.browserViewList.add(browserMainView)
+    viewModelScope.launch(ioAsyncExceptionHandler) { loadHotInfo() }
   }
 
   fun handleIntent(action: BrowserIntent) {
@@ -81,6 +129,13 @@ class BrowserViewModel : ViewModel() {
         is BrowserIntent.WebViewGoBack -> {
           uiState.currentBrowserBaseView.value.let { browserBaseView ->
             if (browserBaseView is BrowserWebView) browserBaseView.navigator.navigateBack()
+          }
+        }
+        is BrowserIntent.UpdatePopupViewState -> {
+          if (uiState.popupViewState.value == PopupViewSate.NULL) {
+            uiState.popupViewState.value = action.state
+          } else {
+            uiState.popupViewState.value = PopupViewSate.NULL
           }
         }
         is BrowserIntent.UpdateCurrentWebView -> {
@@ -101,7 +156,12 @@ class BrowserViewModel : ViewModel() {
             val navigator = WebViewNavigator(coroutineScope)
             BrowserWebView(
               webViewId = webviewId,
-              webView = WebView(App.appContext),
+              webView = MyWebView(App.appContext).also {
+                it.settings.apply {
+                  this.loadWithOverviewMode = true
+                  this.javaScriptEnabled = true
+                }
+              },
               state = state,
               coroutineScope = coroutineScope,
               navigator = navigator
@@ -111,6 +171,7 @@ class BrowserViewModel : ViewModel() {
             }
           }
         }
+
         is BrowserIntent.SearchWebView -> {
           uiState.currentBrowserBaseView.value.let { browserBaseView ->
             if (browserBaseView is BrowserWebView) {
@@ -119,6 +180,29 @@ class BrowserViewModel : ViewModel() {
           }
         }
       }
+    }
+  }
+
+  class MyWebView(context: Context) : WebView(context) {
+    @SuppressLint("MissingSuperCall")
+    override fun onDetachedFromWindow() {
+      return
+//      super.onDetachedFromWindow()
+    }
+  }
+
+  private suspend fun loadHotInfo() {
+    // val hotLink = "https://www.sinovision.net/portal.php?mod=center"
+    val hotLink = "https://top.baidu.com/board?tab=realtime"
+    // 加载全网热搜
+    var doc = Jsoup.connect(hotLink).ignoreHttpErrors(true).get()
+    var elementContent = doc.getElementsByClass("content_1YWBm")
+    var count = 1
+    elementContent.forEach { element ->
+      if (count > 10) return@forEach
+      val title = element.getElementsByClass("c-single-text-ellipsis").text()
+      val path = element.select("a").first()?.attr("href")
+      uiState.hotLinkList.add(WebSiteInfo(count++, title, webUrl = path ?: ""))
     }
   }
 }
