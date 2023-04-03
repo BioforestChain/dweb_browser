@@ -6,10 +6,10 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
 
-open class PermissionActivity : AppCompatActivity() {
+open class PermissionActivity : ComponentActivity() {
     companion object {
         val PERMISSION_REQUEST_CODE_PHOTO = 2
         private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()

@@ -1,7 +1,7 @@
 package info.bagen.rust.plaoc.microService.core
 
 
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import info.bagen.rust.plaoc.microService.helper.Callback
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.Signal
@@ -10,15 +10,15 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
 
     companion object {
         //  管理所有的activity
-        private val activityMap: MutableMap<Mmid, AppCompatActivity> = mutableMapOf()
+        private val activityMap: MutableMap<Mmid, ComponentActivity> = mutableMapOf()
     }
 
 
 
-    private var topActivity: AppCompatActivity? = null
+    private var topActivity: ComponentActivity? = null
 
     // 负责拿到最顶层的activity，即用户当前层
-    fun getTopActivity(): AppCompatActivity? {
+    fun getTopActivity(): ComponentActivity? {
         return topActivity
     }
 
@@ -26,7 +26,7 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
     protected val activitySignal = Signal<MmidActivityArgs>()
     protected val onDestroySignal = Signal<Mmid>()
 
-    protected fun getActivity(mmid: Mmid): AppCompatActivity? {
+    protected fun getActivity(mmid: Mmid): ComponentActivity? {
         return activityMap[mmid]
     }
     
@@ -51,4 +51,4 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
 
 }
 
-typealias MmidActivityArgs = Pair<Mmid, AppCompatActivity>
+typealias MmidActivityArgs = Pair<Mmid, ComponentActivity>

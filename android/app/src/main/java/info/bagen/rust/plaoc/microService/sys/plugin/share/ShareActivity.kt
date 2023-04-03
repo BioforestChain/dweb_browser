@@ -2,15 +2,15 @@ package info.bagen.rust.plaoc.microService.sys.plugin.share
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.plugin.share.ShareController.Companion.controller
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 
-class ShareActivity : AppCompatActivity() {
+class ShareActivity : ComponentActivity() {
 
     private var isFirstOpen = true
 
