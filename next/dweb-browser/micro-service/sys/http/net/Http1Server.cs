@@ -26,11 +26,14 @@ public class Http1Server
 		get => $"{PREFIX}{Authority}";
 	}
 
-	public IServerInfo<HttpClient> Create()
+	public Task<IServerInfo<HttpClient>> Create()
 	{
-		int local_port = _bindingPort = 22605;
+		int local_port = _bindingPort = PortHelper.FindPort(new int[] { 22605 });
 
-		return (NetServer.HttpCreateServer(new ListenOptions(local_port)));
+		return Task.Run(() =>
+		{
+			return (NetServer.HttpCreateServer(new ListenOptions(local_port)));
+        });
 	}
 
 	public void Destroy()

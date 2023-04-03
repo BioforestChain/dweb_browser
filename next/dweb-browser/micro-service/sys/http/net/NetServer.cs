@@ -34,28 +34,25 @@ public interface IServerInfo<S>
 
 public struct HttpServerInfo : IServerInfo<HttpClient>
 {
-    private HttpClient httpClient;
-    private HttpProtocol httpProtocol;
-
-    public HttpServerInfo(HttpClient httpClient, string host, string? hostname, int port, string origin, HttpProtocol httpProtocol) : this()
-    {
-        this.httpClient = httpClient;
-        Host = host;
-        Hostname = hostname;
-        Port = port;
-        Origin = origin;
-        this.httpProtocol = httpProtocol;
-    }
-
     public HttpClient Server { get; set; }
     public string Host { get; set; }
     public string Hostname { get; set; }
     public int Port { get; set; }
     public string Origin { get; set; }
     public IProtocol Protocol { get; set; }
+
+    public HttpServerInfo(HttpClient server, string host, string hostname, int port, string origin, IProtocol protocol)
+    {
+        Server = server;
+        Host = host;
+        Hostname = hostname;
+        Port = port;
+        Origin = origin;
+        Protocol = protocol;
+    }
 }
 
-public record ListenOptions(int Port, string? Hostname = "localhost");
+public record ListenOptions(int Port, string Hostname = "localhost");
 
 public static class NetServer
 {
