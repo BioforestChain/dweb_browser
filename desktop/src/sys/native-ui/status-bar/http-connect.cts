@@ -11,6 +11,18 @@ import querystring from "node:querystring"
 import url from "node:url"
 
 // 处理 同 http.sys.dweb 之间的连接
+
+// base sate
+// color: "#FFFFFFFF",
+// style: "DEFAULT",
+// insets: {
+//     bottom: 48,
+//     left: 0,
+//     right: 0,
+//     top: 0,
+// },
+// overlay: false,
+// visible: true
 export class HttpConnect{
   private _ipc: Ipc | undefined;
   private _allcId: number = 0;
@@ -18,6 +30,18 @@ export class HttpConnect{
   private _reqs = new Map<number, $RequestDistributeIpcEventData>()
   private _startObserve = new Map<string,$RequestDistributeIpcEventData>() 
   private _observe = new Map<string, $RequestDistributeIpcEventData>()
+  private _baseState = {
+    color: "#FFFFFFFF",
+    style: "DEFAULT",
+    insets: {
+        bottom: 48,
+        left: 0,
+        right: 0,
+        top: 0,
+    },
+    overlay: false,
+    visible: true
+  }
   constructor(
       private readonly _nmm: StatusbarNativeUiNMM,
       private readonly _context:  $BootstrapContext,
@@ -85,7 +109,7 @@ export class HttpConnect{
       case "/internal/observe":
         this._httpIpcOnEventRequestDistributeInternalObserve(data, httpIpc);
         break;
-      default: throw new Error(`status-bar.nativeui.sys.dweb http-connect _httpIpcOnEventRequestDistribute 还有没有处理的路由 ${pathname}`)
+      default: throw new Error(`${this._mmid} http-connect _httpIpcOnEventRequestDistribute 还有没有处理的路由 ${pathname}`)
     }
   }
 
@@ -121,12 +145,40 @@ export class HttpConnect{
           matchMode: _d.matchMode,
           method: _d.method,
           done: true,
+          headers: {
+            bodyType: "JSON"
+          },
           body: data.body,
           to: app_url // 发送那个 app 对应 statusbar
         })
       )
     )
     this._reqs.delete(id)
+
+    // log.red(`还需要查看是否 startObser 现阶段先直接范湖 用来测是 observe 是否可用`)
+    const observe = this._observe.get(app_url)
+    if(observe === undefined) {
+      log.red(`${this._mmid} http-connect observe === undefined ${app_url}`)
+      return;
+    }
+    const encode = new TextEncoder().encode(data.body+"\n")
+    httpIpc.postMessage(
+      IpcEvent.fromText(
+        "http.sys.dweb",
+        JSON.stringify({
+          action: "state/send",
+          pathname: observe.pathname,
+          matchMode: observe.matchMode,
+          method: observe.method,
+          done: false,
+          headers: {
+            bodyType: "Uint8Array"
+          },
+          body: encode,
+          to: app_url // 发送那个 app 对应 statusbar
+        })
+      )
+    )
   }
 
   /**
@@ -138,8 +190,10 @@ export class HttpConnect{
     // 如果状态发生改变 可以从这里进行触发
     // 需要注意的一般用不上 返回数据的方法 同 getState
     // 但是 done === false
+    
     const app_url= data.headers.origin;
     this._observe.set(app_url, data)
+    log.red(`接受到了 observe 的请求 app_url ${app_url}`)
   }
 
   _httpIpcOnEventRequestDistributeStartObserve = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
@@ -253,6 +307,9 @@ export class HttpConnect{
           matchMode: route.matchMode,
           method: route.method,
           done: false,
+          headers:{
+            bodyType: "Object"
+          },
           body: body
         })
       )
@@ -281,4 +338,19 @@ export interface $RequestDistributeIpcEventData{
   headers: any;
   matchMode: "full" | "prefix";
   body: any
+}
+
+export interface $State{
+  color: string;
+  style: string;
+  insets: $Insets;
+  overlay: boolean;
+  visible: boolean;
+}
+
+export interface $Insets{
+  bottom: number,
+  left: number,
+  right: number,
+  top: number,
 }

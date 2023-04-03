@@ -57,7 +57,7 @@ export interface $AddRouteAddActionItem extends $BaseAction, $Route{
 
 export interface $StateSendActionItem extends $BaseAction, $BaseRoute{
   action: "state/send",
-  body: string;
+  body: string | {[key: string]: number};
   headers?: {[key: string]: string},
   done: boolean; // 是否需要需要关闭 res
   to: string; // 发送给那个陈旭匹配的 插件
@@ -117,6 +117,41 @@ export class HttpServerNMM extends NativeMicroModule {
       res.setHeader("Access-Control-Allow-Methods","*");  
       /// 获取 host
       const host = this.getHostByReq(req)
+
+      {
+        // // 用来测测试 observe 
+        // let pathname = url.parse(req.url as string).pathname
+        
+        // if(pathname?.includes('observe')){
+          
+        //   console.log(querystring.parse(req.url as string).mmid)
+        //   console.log(req.headers)
+        //   console.log(req.url)
+        //   pathname = `/${querystring.parse(req.url as string).mmid}${pathname}`
+        //   log.red(pathname)
+        //   const o = {
+        //     color: "#FFFFFFFF",
+        //     style: "DEFAULT-",
+        //     insets: {
+        //         bottom: 148,
+        //         left: 10,
+        //         right: 0,
+        //         top: 0,
+        //     },
+        //     overlay: false,
+        //     visible: true
+        //   } 
+        //   // observe 会写是要 \n 有一个换行符，UI 才可以实现 for 循环获取数据
+        //   // 
+        //   setInterval(() => {
+        //     log.red('回写了')
+
+        //     const encode = new TextEncoder().encode(JSON.stringify(o)+"\n")
+        //     res.write(encode)
+        //   },3000)
+        //   return;
+        // }
+      }
       
 
       // 是否有匹配的路由 拦截路由 分发请求
@@ -366,7 +401,12 @@ export class HttpServerNMM extends NativeMicroModule {
     // console.log(req.url)
     // console.log(req.headers)
     let has = false;
-    const pathname = url.parse(req.url as string,).pathname;
+    let pathname = url.parse(req.url as string,).pathname;
+    if(pathname === null) return;
+    if(pathname.endsWith("observe")){
+      pathname = `/${querystring.parse(req.url as string).mmid}${pathname}`
+    }
+
     const full = createRouteKeyByArgs(
       pathname as string,
       "full",
@@ -419,13 +459,10 @@ export class HttpServerNMM extends NativeMicroModule {
           route.res = _res;
         }
         _res.set(req.headers.origin as string, res)
-        console.log('route.res: ', route.res?.keys())
+        // console.log('route.res: ', route.res?.keys())
       }
 
     }while(loop)
-
-
-
     return has;
   }
 
@@ -434,7 +471,7 @@ export class HttpServerNMM extends NativeMicroModule {
     const data = createStateSendActionItem(ipcEventMessage.data);
     const parentRoutes = this._routes.values()
     let loop = true;
-    console.log('http-server ipcEventOnStateSend 准备发送数据')
+    // console.log('http-server ipcEventOnStateSend 准备发送数据', data, data.body, Object.prototype.toString.call(data.body).slice(8, -1))
     do{
       const {value, done} = parentRoutes.next() 
       loop = !done
@@ -448,12 +485,19 @@ export class HttpServerNMM extends NativeMicroModule {
         if(createRouteKey(value) !== createRouteKey(data)) continue;
         const res = value.res?.get(data.to)
         if(!res) continue;
-        res.write(
-          typeof data.body === "string" 
-            ? data.body 
-            : JSON.stringify(data.body)
-        )
-        console.log('写入了数据： ', data)
+        let _data: any;
+        if(data.headers?.bodyType === "JSON"){
+          _data = data.body
+        }else if(data.headers?.bodyType === "Uint8Array"){
+          _data = Uint8Array.from(Object.values(data.body));
+        }else if(data.headers?.bodyType === "Object"){
+          _data = JSON.stringify(data.body)
+        }else{
+          log.red(`[http-server ipcEventOnStateSend 非法的 bodyType]`)
+          console.log(data)
+          throw new Error(`http-server ipcEventOnStateSend 非法的 bodyType ${data.headers?.bodyType}`)
+        }
+        res.write(_data)
         if(!data.done)continue;
         res.end()
         value.res?.delete(data.to)

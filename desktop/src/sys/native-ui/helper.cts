@@ -10,3 +10,23 @@ export function converRGBAToHexa(r:string, g:string, b:string, a:string){
     hexaA = hexaA.length === 1 ? `0${hexaA}` : hexaA;
     return `#${hexaR}${hexaG}${hexaB}${hexaA}`
 }
+
+/**
+ * 把十六进制的颜色转为  AgbaColor
+ * @param str 
+ */
+export function hexaToRGBA(str: string): $AgbaColor{
+    return{
+        red: parseInt(str.slice(1,3), 16),
+        green: parseInt(str.slice(3,5), 16),
+        blue: parseInt(str.slice(5,7), 16),
+        alpha: parseInt(str.slice(7), 16)
+    }
+}
+
+export type $AgbaColor = {
+    red: number;
+    green: number;
+    blue: number;
+    alpha: number;
+  };

@@ -7,7 +7,7 @@
     <style type="text/css">
         :root{
             --height: 48px;
-            --background-color: #FFFFFFFF;
+            /* --background-color: #FFFFFFFF; */
             --cell-width: 80px;
         }
         html{
@@ -19,7 +19,8 @@
             margin: 0px;
             width:100%;
             height: 100%;
-            background-color: #fff;
+            /* background-color: #fff; */
+            /* background-color: red; */
             
         }
         .container{
@@ -28,8 +29,7 @@
             align-items: center;
             width: 100%;
             height:100%;
-            background-color: var(--background-color);
-            border-bottom: 1px solid red;
+            /* background-color: var(--background-color); */
         }
 
         .container-light{
@@ -168,26 +168,6 @@
 
         }
         const symbolEto = Symbol("eto")
-        // 需要实现的功能
-        // 设置/获取背景颜色
-        // 设置/获取主题
-        // 设置/获取是否覆盖
-
-        // 主题 light | dark | default;
-        // 定义前景色
-        // 默认的值 default
-        let style="default"
-        
-        // 背景颜色
-        // 默认的值是 #FFF
-        // 备注 必须是大写的 十六进制的值
-        let backgroundColor="#FFFF"
-        
-        // 是否覆盖 
-        // 可能的值 boolean
-        // 默认的值 false 不覆盖
-        let isOverlays = false; 
-
         const elContainer = document.querySelector('.container')
         // statusbar 所在挂在的iframe 对象
         // 一点 multi-webview 发生了改变，那么这里的代码也需要发生改变
@@ -221,15 +201,10 @@
 
         // 设置背景色
         function setBackgroundColor(color /*十六进制的值*/){
-            document.documentElement.style.setProperty('--background-color', color)
+            document.documentElement.style.background = color
             state.color = color;
         }
 
-        // 获取背景色
-        function getBackgroundColor() /*必须要要返回一个 十六进制的值*/{
-            return state.color
-        }
-        
         // 设置 容器的 class
         function elContainerSetClass(classNames){
             elContainer.setAttribute('class', classNames)
@@ -239,11 +214,6 @@
         function setOverlays(value){
             state.overlay = value
             iframe.style.position = state.overlay ? "absolute" : "relative";
-        }
-
-        // 获取 状态栏的高度
-        function getHeight(){
-            return elContainer.getBoundingClientRect().height;
         }
 
         // 设置是否可见
@@ -257,7 +227,19 @@
          * 获取状态
          */
         function getState(){
-            return JSON.stringify(state);
+            return JSON.stringify({
+                ...state,
+                color: hexaToRGBA(state.color)
+            });
+        }
+
+        function hexaToRGBA(str){
+            return{
+                red: parseInt(str.slice(1,3), 16),
+                green: parseInt(str.slice(3,5), 16),
+                blue: parseInt(str.slice(5,7), 16),
+                alpha: parseInt(str.slice(7), 16)
+            }
         }
 
         /*
@@ -276,11 +258,11 @@
                     console.log('请求的结果： ', o)
                     if(!appUrl.startsWith(o.from)) continue;
                     switch(o.operationName){
-                        case "set_background_color":  setBackgroundColor(o.value);fetchReturn(o.value, o.id, o.from);break;
+                        case "set_background_color":  setBackgroundColor(o.value);fetchReturn(getState(), o.id, o.from);break;
                         case "get_state": fetchReturn(getState(), o.id, o.from); break;
-                        case "set_style": setStyle(o.value);fetchReturn(o.value, o.id, o.from); break;
-                        case "set_overlay": setOverlays(o.value);fetchReturn(o.value, o.id, o.from); break;
-                        case "set_visible": setVisible(o.value); fetchReturn(o.value, o.id, o.from);break;
+                        case "set_style": setStyle(o.value);fetchReturn(getState(), o.id, o.from); break;
+                        case "set_overlay": setOverlays(o.value);fetchReturn(getState(), o.id, o.from); break;
+                        case "set_visible": setVisible(o.value); fetchReturn(getState(), o.id, o.from);break;
                         default: console.error('statusbar 没有匹配的功能 o.operationName === ', o.operationName)
                     }
                 }while(loop)
@@ -310,42 +292,8 @@
             )
             .catch(err => console.error("fetchReturn 出错", err))
         }
-      
-      
-    </script>
-    <script type="text/javascript">
 
-        // 测试代码---------------------------------------------
-        // 测试 主题
-        function testSetStyle(){
-            
-            const styles = ["light", 'dark', 'default'];
-            let index = 0;
-            setInterval(() => {
-                _style = styles[index++]
-                console.log('设置了样式 ', _style)
-                setStyle(_style)
-                index = index > 2 ? 0 : index;
-                console.log('获取了当前主题', getStyle())
-            }, 1000)
-        }
-        // testSetStyle()
-
-
-        // 测试 背景色
-        function testBackgroundColor(){
-            const colors = ["#F00F","#0F0F","#00FF", "transparent"]
-            let index = 0;
-            setInterval(() => {
-                setBackgroundColor(colors[index++]);
-                console.log(getBackgroundColor())
-                index = index > 3 ? 0 : index;
-            },1000)
-        }
-        console.warn('执行了测试代码设置背景色是 hongse')
-        setBackgroundColor("#FF0000FF");
-        // testBackgroundColor()
-
+        
     </script>
 </body>
 </html>
