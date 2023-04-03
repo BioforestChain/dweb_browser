@@ -16,9 +16,9 @@ public record ConnectResult(Ipc IpcForFromMM, Ipc? IpcForToMM);
 
 public static class NativeConnect
 {
-    static readonly AdapterManager<ConnectAdapter> ConnectAdapterManager = new();
+    public static readonly AdapterManager<ConnectAdapter> ConnectAdapterManager = new();
 
-	static ConnectResult ConnectMicroModules(MicroModule fromMM, MicroModule toMM, HttpRequestMessage reason)
+	public static ConnectResult ConnectMicroModules(MicroModule fromMM, MicroModule toMM, HttpRequestMessage reason)
 	{
 		foreach (ConnectAdapter connectAdapter in ConnectAdapterManager.Adapters)
 		{

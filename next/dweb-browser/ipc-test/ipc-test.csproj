@@ -33,10 +33,12 @@
   <ItemGroup>
     <None Remove="helper\" />
     <None Remove="ipc\" />
+    <None Remove="http\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="helper\" />
     <Folder Include="ipc\" />
+    <Folder Include="http\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\micro-service\micro-service.csproj" />

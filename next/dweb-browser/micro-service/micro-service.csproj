@@ -23,6 +23,7 @@
     <None Remove="ipc\ipcWeb\" />
     <None Remove="sys\http\" />
     <None Remove="sys\http\net\" />
+    <None Remove="sys\boot\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="helper\" />
@@ -31,5 +32,6 @@
     <Folder Include="ipc\ipcWeb\" />
     <Folder Include="sys\http\" />
     <Folder Include="sys\http\net\" />
+    <Folder Include="sys\boot\" />
   </ItemGroup>
 </Project>
