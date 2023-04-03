@@ -126,7 +126,6 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
     }
 
     private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
-        onDestroySignal.emit(remoteMmid)
         return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
     }
 

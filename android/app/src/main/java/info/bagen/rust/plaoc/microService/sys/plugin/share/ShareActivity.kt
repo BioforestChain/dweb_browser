@@ -19,7 +19,7 @@ class ShareActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         controller.activity = this
 
-        controller.resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        controller.shareLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 val data: Intent? = result.data
                 val code = data?.getStringExtra("result")
             debugShare(
@@ -43,7 +43,7 @@ class ShareActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        controller.resultLauncher = null
+        controller.shareLauncher = null
     }
 
     private val getShareSignal = Signal<String>()

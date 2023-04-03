@@ -1,14 +1,17 @@
 package info.bagen.rust.plaoc.base
 
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat
+import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-abstract class BaseActivity: AppCompatActivity() {
+abstract class BaseActivity: ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -22,8 +25,20 @@ abstract class BaseActivity: AppCompatActivity() {
     }
   }
 
-  abstract fun initData() // 初始化数据，或者注册监听
+   open fun initData() {} // 初始化数据，或者注册监听
 
   @Composable
-  abstract fun InitViews() // 填充Compose布局
+  open fun InitViews() {}// 填充Compose布局
+
+
+  private val onDestroySignal = SimpleSignal()
+
+  fun onDestroyActivity(cb: SimpleCallback) = onDestroySignal.listen(cb)
+
+  override fun onDestroy() {
+    super.onDestroy()
+    GlobalScope.launch(ioAsyncExceptionHandler) {
+      onDestroySignal.emit()
+    }
+  }
 }

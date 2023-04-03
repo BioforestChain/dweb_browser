@@ -1,6 +1,5 @@
 package info.bagen.rust.plaoc.microService.sys.plugin.share
 
-import android.app.Activity
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
@@ -8,14 +7,11 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
-import android.widget.Toast
-import androidx.activity.result.ActivityResult
 import androidx.core.content.FileProvider
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.BuildConfig
 import info.bagen.rust.plaoc.microService.helper.Mmid
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
-import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import java.io.File
 
 object SharePlugin {
@@ -89,11 +85,10 @@ object SharePlugin {
         )
         val chooserIntent = Intent.createChooser(intent, title, pi.intentSender).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
-            putExtra("result",controller.RESULT_SHARE_CODE)
         }
 
         controller.let {
-            it.resultLauncher?.launch(chooserIntent)
+            it.shareLauncher?.launch(chooserIntent)
         }
     }
 

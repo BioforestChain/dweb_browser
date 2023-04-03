@@ -1,7 +1,5 @@
 package info.bagen.rust.plaoc.microService.sys.nativeui.splashScreen
 
-import android.os.Handler
-import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.Mmid
@@ -9,9 +7,8 @@ import info.bagen.rust.plaoc.microService.helper.commonAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM.Companion.getBfsMetaData
-import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
-import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewActivity
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewController
+import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -25,16 +22,12 @@ import org.http4k.lens.composite
 import org.http4k.lens.long
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.util.*
-import kotlin.concurrent.schedule
 
 inline fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("SplashScreen", tag, msg, err)
 
 class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
 
-
-//    private val splashScreen: SplashScreen = SplashScreen(App.appContext, SplashScreenConfig())
     private fun currentController(mmid: Mmid): MultiWebViewController? {
         return MultiWebViewNMM.getCurrentWebViewController(mmid)
     }

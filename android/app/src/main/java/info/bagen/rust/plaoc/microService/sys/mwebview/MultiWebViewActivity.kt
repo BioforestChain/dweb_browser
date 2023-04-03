@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +22,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.google.accompanist.web.WebView
+import info.bagen.rust.plaoc.base.BaseActivity
 import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewNMM.Companion.controllerMap
 import info.bagen.rust.plaoc.ui.theme.RustApplicationTheme
@@ -30,9 +30,8 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
 
-open class PermissionActivity : ComponentActivity() {
+open class PermissionActivity : BaseActivity() {
     companion object {
-        val PERMISSION_REQUEST_CODE_PHOTO = 2
         private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
         private var requestPermissionsCodeAcc = AtomicInteger(1);
     }
@@ -129,7 +128,6 @@ open class MultiWebViewActivity : PermissionActivity() {
                     webview.filePathCallback?.onReceiveValue(null)
                 }
                 webview.filePathCallback = null
-
             }
         }
 
