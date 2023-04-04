@@ -15,6 +15,11 @@ export const routes = [
         method: "GET"
     },
     {
+        pathname: "/status-bar.nativeui.sys.dweb/stopObserve",
+        matchMode: "prefix",
+        method: "GET"
+    },
+    {
         pathname:"/status-bar.nativeui.sys.dweb/getState",
         matchMode: "prefix",
         method: "GET"

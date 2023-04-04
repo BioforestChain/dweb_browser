@@ -11,18 +11,7 @@ import querystring from "node:querystring"
 import url from "node:url"
 
 // 处理 同 http.sys.dweb 之间的连接
-
-// base sate
-// color: "#FFFFFFFF",
-// style: "DEFAULT",
-// insets: {
-//     bottom: 48,
-//     left: 0,
-//     right: 0,
-//     top: 0,
-// },
-// overlay: false,
-// visible: true
+let isObserve: boolean = false
 export class HttpConnect{
   private _ipc: Ipc | undefined;
   private _allcId: number = 0;
@@ -30,18 +19,6 @@ export class HttpConnect{
   private _reqs = new Map<number, $RequestDistributeIpcEventData>()
   private _startObserve = new Map<string,$RequestDistributeIpcEventData>() 
   private _observe = new Map<string, $RequestDistributeIpcEventData>()
-  private _baseState = {
-    color: "#FFFFFFFF",
-    style: "DEFAULT",
-    insets: {
-        bottom: 48,
-        left: 0,
-        right: 0,
-        top: 0,
-    },
-    overlay: false,
-    visible: true
-  }
   constructor(
       private readonly _nmm: StatusbarNativeUiNMM,
       private readonly _context:  $BootstrapContext,
@@ -100,6 +77,9 @@ export class HttpConnect{
       case "/status-bar.nativeui.sys.dweb/startObserve":
         this._httpIpcOnEventRequestDistributeStartObserve(data, httpIpc);
         break;
+      case "/status-bar.nativeui.sys.dweb/stopObserve":
+        this._httpIpcOnEventRequestDistributeStopObserve(data, httpIpc);
+        break;
       case "/status-bar-ui/wait_for_operation":
         this._httpIpcOnEventRequestDistributeWaitForOperation(data, httpIpc);
         break;
@@ -155,7 +135,13 @@ export class HttpConnect{
     )
     this._reqs.delete(id)
 
+    console.log('d.pathname: ', _d.pathname)
+
     // log.red(`还需要查看是否 startObser 现阶段先直接范湖 用来测是 observe 是否可用`)
+    if(
+      !isObserve /** 是否还在监听中 */
+      || _d.pathname === '/status-bar.nativeui.sys.dweb/getState' /** 操作的路由不能够是 getState */ 
+    ) return;
     const observe = this._observe.get(app_url)
     if(observe === undefined) {
       log.red(`${this._mmid} http-connect observe === undefined ${app_url}`)
@@ -182,7 +168,7 @@ export class HttpConnect{
   }
 
   /**
-   * 监听
+   * 监听 
    * @param data 
    * @param httpIpc 
    */
@@ -196,12 +182,69 @@ export class HttpConnect{
     log.red(`接受到了 observe 的请求 app_url ${app_url}`)
   }
 
+  /**
+   * 
+   * @param data 开始监听
+   * @param httpIpc 
+   */
   _httpIpcOnEventRequestDistributeStartObserve = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
     // 保存起来
     const app_url = data.headers.origin
-    this._startObserve.set(app_url, data)
+    httpIpc.postMessage(
+      IpcEvent.fromText(
+        'http.sys.dweb',
+        JSON.stringify({
+          action: "state/send",
+          pathname: data.pathname,
+          matchMode: data.matchMode,
+          method: data.method,
+          done: true,
+          headers:{
+            bodyType: "string"
+          },
+          body:"",
+          to: app_url
+        })
+      )
+    )
+    isObserve = true;
   } 
+
+  /**
+   * 停止监听
+   * @param data 
+   * @param httpIpc 
+   */
+  _httpIpcOnEventRequestDistributeStopObserve = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
+    const app_url = data.headers.origin
+    httpIpc.postMessage(
+      IpcEvent.fromText(
+        'http.sys.dweb',
+        JSON.stringify({
+          action: "state/send",
+          pathname: data.pathname,
+          matchMode: data.matchMode,
+          method: data.method,
+          done: true,
+          headers:{
+            bodyType: "string"
+          },
+          body:"",
+          to: app_url
+        })
+      )
+    )
+    isObserve = false;
+    this._observe.delete(app_url)
+    log.red(`停止监听`)
+    console.log(`this._observe: `, this._observe.keys())
+  }
  
+  /**
+   * 获取状态
+   * @param data 
+   * @param httpIpc 
+   */
   _httpIpcOnEventRequestDistributeGetState = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
     const id = this._allcId++;
     this._reqs.set(id, data)

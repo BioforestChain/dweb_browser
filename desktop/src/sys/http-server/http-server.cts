@@ -406,6 +406,7 @@ export class HttpServerNMM extends NativeMicroModule {
     if(pathname.endsWith("observe")){
       pathname = `/${querystring.parse(req.url as string).mmid}${pathname}`
     }
+    log.red(`[http-server.cts 接受的到了请求] ${pathname}`)
 
     const full = createRouteKeyByArgs(
       pathname as string,
@@ -492,6 +493,8 @@ export class HttpServerNMM extends NativeMicroModule {
           _data = Uint8Array.from(Object.values(data.body));
         }else if(data.headers?.bodyType === "Object"){
           _data = JSON.stringify(data.body)
+        }else if(data.headers?.bodyType === "string"){
+          _data = data.body
         }else{
           log.red(`[http-server ipcEventOnStateSend 非法的 bodyType]`)
           console.log(data)
