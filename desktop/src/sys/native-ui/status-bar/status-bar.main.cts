@@ -1,16 +1,14 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 import { NativeMicroModule } from "../../../core/micro-module.native.cjs";
-import { AllConnects } from "./on-connect-callback.cjs";
 import { WWWServer }from "./www-server.cjs";
 import { PluginsRequest } from "../plugins-request.cjs"
 import { log } from "../../../helper/devtools.cjs"
-import { AddRoutesToHttp } from "./http-connect.cjs"
+import { AddRoutesToHttp } from "./add-routes-to-http.cjs"
 import type { Remote } from "comlink";
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
 import type { $NativeWindow } from "../../../helper/openNativeWindow.cjs";
 import type { $BootstrapContext } from "../../../core/bootstrapContext.cjs"
-
  
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
@@ -23,31 +21,22 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
     { nww: $NativeWindow; apis: Remote<$APIS> }
   >();
   pluginsRequest = new PluginsRequest();
-  private _allConnects: AllConnects = new AllConnects()
-
   _bootstrap = async (context: $BootstrapContext) => {
     log.green(`[${this.mmid} _bootstrap]`)
-
-    {
-      this.onConnect(this._allConnects.onConnect)
-    }
-    
     {
       new AddRoutesToHttp(this, context);
     }
-   
     {
       new WWWServer(this)
     }
-    
   }
-  
 
   _shutdown() {
     this._uid_wapis_map.forEach((wapi) => {
       wapi.nww.close();
     });
     this._uid_wapis_map.clear();
+    log.red(`还需要添加 删除 htt.sys.dweb 中添加的 route`)
   }
 }
 
@@ -71,4 +60,3 @@ export enum $StatusbarStyle {
 export type $isOverlays =
   | "0" // 不覆盖
   | "1"; // 覆盖
-

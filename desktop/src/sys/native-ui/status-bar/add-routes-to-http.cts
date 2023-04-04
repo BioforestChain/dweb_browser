@@ -2,7 +2,7 @@ import type { $BootstrapContext } from "../../../core/bootstrapContext.cjs"
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
 import type { StatusbarNativeUiNMM } from "./status-bar.main.cjs"
 import type { $RequestDistributeIpcEventData } from "../base/base-add-routes-to-http.cjs"
-import { routes } from "./http-route.cjs"
+import { routes } from "./route.cjs"
 import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
 import { converRGBAToHexa } from "../helper.cjs"
 import { log } from "../../../helper/devtools.cjs"
