@@ -24,7 +24,7 @@ data class JmmUIState(
 )
 
 enum class DownLoadStatus {
-  IDLE, DownLoading, DownLoadComplete, PAUSE, INSTALLED, FAIL
+  IDLE, DownLoading, DownLoadComplete, PAUSE, INSTALLED, FAIL, CANCEL
 }
 
 data class DownLoadInfo(
@@ -106,11 +106,10 @@ class JmmManagerViewModel(jmmMetadata: JmmMetadata) : ViewModel() {
       when (action) {
         is JmmIntent.ButtonFunction -> {
           when (uiState.downloadInfo.value.downLoadStatus) {
-            DownLoadStatus.IDLE, DownLoadStatus.FAIL -> { // 空闲点击是下载，失败点击也是重新下载
+            DownLoadStatus.IDLE, DownLoadStatus.FAIL, DownLoadStatus.CANCEL -> { // 空闲点击是下载，失败点击也是重新下载
               DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
             }
-            DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */
-            }
+            DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */ }
             DownLoadStatus.DownLoading, DownLoadStatus.PAUSE -> {
               DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadStatusChange(
                 uiState.downloadInfo.value.jmmMetadata.id

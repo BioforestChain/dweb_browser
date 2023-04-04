@@ -31,7 +31,10 @@ import java.io.File
 internal interface IDwebBrowserBinder {
   fun invokeDownloadAndSaveZip(downLoadInfo: DownLoadInfo)
   fun invokeDownloadStatusChange(mmid: Mmid)
+  fun invokeUpdateDownloadStatus(mmid: Mmid, controller: DownLoadController)
 }
+
+enum class DownLoadController{ PAUSE, RESUME, CANCEL }
 
 class DwebBrowserService : Service() {
   private val downloadMap = mutableMapOf<Mmid, DownLoadInfo>() // 用于监听下载列表
@@ -62,6 +65,10 @@ class DwebBrowserService : Service() {
     override fun invokeDownloadStatusChange(mmid: Mmid) {
       downloadStatusChange(mmid)
     }
+
+    override fun invokeUpdateDownloadStatus(mmid: Mmid, controller: DownLoadController) {
+      updateDownloadStatus(mmid, controller)
+    }
   }
 
   private fun registerBFSBroadcastReceiver() {
@@ -84,20 +91,27 @@ class DwebBrowserService : Service() {
     }
     downloadMap[downLoadInfo.jmmMetadata.id] = downLoadInfo
     NotificationUtil.INSTANCE.createNotificationForProgress(
-      downLoadInfo.jmmMetadata.id,
-      downLoadInfo.notificationId,
-      downLoadInfo.jmmMetadata.title
+      downLoadInfo.jmmMetadata.id, downLoadInfo.notificationId, downLoadInfo.jmmMetadata.title
     ) // 显示通知
-    browserController.activity?.let {activity -> // 为了让App接收到有下载的请求
-      activity.getAppViewModel().handleIntent(
-        AppViewIntent.ServiceDownLoadNotify(downLoadInfo.jmmMetadata.id, downLoadInfo.path)
-      )
-    }
+    browserController.activity?.getAppViewModel()?.handleIntent(
+      AppViewIntent.ServiceDownLoadNotify(downLoadInfo.jmmMetadata.id, downLoadInfo.path)
+    )
     DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     GlobalScope.launch(Dispatchers.IO) {
       ApiService.instance.downloadAndSave(
         downLoadInfo.jmmMetadata.downloadUrl, File(downLoadInfo.path),
-        isStop = { downLoadInfo.downLoadStatus == DownLoadStatus.PAUSE },
+        isStop = {
+          when (downLoadInfo.downLoadStatus) {
+            DownLoadStatus.PAUSE, DownLoadStatus.CANCEL -> {
+              DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
+              if (downLoadInfo.downLoadStatus == DownLoadStatus.CANCEL) {
+                downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // TODO 如果取消的话，那么就置为空
+              }
+              true
+            }
+            else -> false
+          }
+        },
         DLProgress = { current, total ->
           downLoadInfo.callDownLoadProgress(current, total)
         }
@@ -145,14 +159,6 @@ class DwebBrowserService : Service() {
       }
       DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.DownLoadComplete)
       runBlocking { delay(1000) }
-      // 如果完成后发现下载界面没有打开，手动打开
-      // JmmManagerActivity.startActivity(jmmMetadata)
-      // TODO 判断当前的下载的版本是否比较新，是否已存在。然后进行覆盖
-      /*when (compareDownloadApp()) {
-        NewAppUnzipType.LOW_VERSION -> return
-        else -> {}
-      }*/
-      runBlocking { delay(1000) }
       val unzip =
         ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath(), mmid = jmmMetadata.id)
       if (unzip) {
@@ -168,25 +174,36 @@ class DwebBrowserService : Service() {
     }
   }
 
-  fun downloadStatusChange(mmid: Mmid) {
-    downloadMap[mmid]?.apply {
-      if (size == dSize) return@apply // 如果下载完成，就不执行操作
-      when (this.downLoadStatus) {
-        DownLoadStatus.PAUSE -> {
-          this.downLoadStatus = DownLoadStatus.DownLoading
-          NotificationUtil.INSTANCE.updateNotificationForProgress(
-            (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "下载中"
-          )
-          DownLoadObserver.emit(this.jmmMetadata.id, downLoadStatus, dSize, size)
-          breakPointDownLoadAndSave(this)
-        }
-        else -> {
-          this.downLoadStatus = DownLoadStatus.PAUSE
-          NotificationUtil.INSTANCE.updateNotificationForProgress(
-            (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "暂停"
-          )
-          DownLoadObserver.emit(this.jmmMetadata.id, downLoadStatus, dSize, size)
-        }
+  fun downloadStatusChange(mmid: Mmid) = downloadMap[mmid]?.apply {
+    if (size == dSize) return@apply // 如果下载完成，就不执行操作
+    when (this.downLoadStatus) {
+      DownLoadStatus.PAUSE -> updateDownloadStatus(mmid, DownLoadController.RESUME)
+      else -> updateDownloadStatus(mmid, DownLoadController.PAUSE)
+    }
+  }
+
+  fun updateDownloadStatus(mmid: Mmid, controller: DownLoadController) = downloadMap[mmid]?.apply {
+    if (size == dSize) return@apply
+    when (controller) {
+      DownLoadController.PAUSE -> if (this.downLoadStatus != DownLoadStatus.DownLoading) {
+        this.downLoadStatus = DownLoadStatus.PAUSE
+        NotificationUtil.INSTANCE.updateNotificationForProgress(
+          (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "暂停"
+        )
+        DownLoadObserver.emit(this.jmmMetadata.id, downLoadStatus, dSize, size)
+      }
+      DownLoadController.RESUME -> if (this.downLoadStatus != DownLoadStatus.PAUSE) {
+        this.downLoadStatus = DownLoadStatus.DownLoading
+        NotificationUtil.INSTANCE.updateNotificationForProgress(
+          (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "下载中"
+        )
+        DownLoadObserver.emit(this.jmmMetadata.id, downLoadStatus, dSize, size)
+        breakPointDownLoadAndSave(this)
+      }
+      DownLoadController.CANCEL -> if (this.downLoadStatus != DownLoadStatus.CANCEL) {
+        this.downLoadStatus = DownLoadStatus.CANCEL
+        NotificationUtil.INSTANCE.cancelNotification(this.notificationId)
+        DownLoadObserver.emit(this.jmmMetadata.id, downLoadStatus, dSize, size)
       }
     }
   }

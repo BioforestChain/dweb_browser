@@ -133,7 +133,9 @@ private fun BoxScope.DownLoadButton(jmmViewModel: JmmManagerViewModel) {
   ) {
     var showLinearProgress = false
     val text = when (downLoadInfo.downLoadStatus) {
-      DownLoadStatus.IDLE -> "下载 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
+      DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
+        "下载 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
+      }
       DownLoadStatus.DownLoading -> {
         showLinearProgress = true
         "下载中".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)

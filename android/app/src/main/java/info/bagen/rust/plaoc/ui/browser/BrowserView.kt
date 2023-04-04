@@ -163,8 +163,8 @@ private fun BrowserViewBottomBar(
         BrowserViewSearch(viewModel, pagerStateSearch)
         BrowserViewNavigatorBar(viewModel) {
           coroutineScope.launch {
-            pagerStateSearch.animateScrollToPage(pagerStateSearch.currentPage)
-            pagerStateWebView.animateScrollToPage(pagerStateWebView.currentPage)
+            pagerStateSearch.animateScrollToPage(viewModel.uiState.browserViewList.size)
+            pagerStateWebView.animateScrollToPage(viewModel.uiState.browserViewList.size)
           }
         }
       }
