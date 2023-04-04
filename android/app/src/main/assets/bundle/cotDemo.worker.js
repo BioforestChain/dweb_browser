@@ -465,7 +465,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         );
         return;
       }
-      if (pathname === "/observe") {
+      if (pathname === "/observe" || pathname === "/observeUpdateProgress") {
         const streamPo = observeFactory(url);
         ipcResponse = IpcResponse.fromStream(
           request.req_id,
@@ -474,9 +474,6 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
           streamPo.stream,
           httpServerIpc
         );
-        return;
-      }
-      if (pathname === "/observeUpdateProgress") {
         return;
       }
       throw new Error(`unknown gateway: ${url.search}`);
@@ -525,6 +522,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
 }
 var observeFactory = (url) => {
   const mmid = url.searchParams.get("mmid");
+  console.log("cotDemo#url.mmid=>", mmid);
   if (mmid === null) {
     throw new Error("observe require mmid");
   }
@@ -535,7 +533,8 @@ var observeFactory = (url) => {
     result.ipc.promise.then((ipc2) => {
       ipc2.onEvent((event) => {
         console.log("on-event", event);
-        if (event.name !== "observe") {
+        console.log("cotDemo#event.name=>{%s} remote.mmid=>{%s}", event.name, ipc2.remote.mmid);
+        if (event.name !== "observe" /* State */ && event.name !== "observeUpdateProgress" /* UpdateProgress */) {
           return;
         }
         const observers2 = ipcObserversMap.get(ipc2.remote.mmid);

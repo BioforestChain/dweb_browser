@@ -10,6 +10,11 @@ export enum EVENT {
   Relaunch = "relaunch", // 当前实例退出时重新启动应用程序。
 }
 
+export enum OBSERVE {
+  State = "observe",
+  UpdateProgress = "observeUpdateProgress"
+}
+
 
 export type WebViewState = {
   "isActivated": boolean,

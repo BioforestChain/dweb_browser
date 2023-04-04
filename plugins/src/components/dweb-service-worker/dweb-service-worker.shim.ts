@@ -1,28 +1,39 @@
-import { BasePlugin } from "../base/BasePlugin.ts";
 
-class DwebServiceWorker extends BasePlugin {
+import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
+import { cacheGetter } from "../../helper/cacheGetter.ts";
 
-  updateController = new UpdateController()
+declare namespace globalThis {
+  const __app_upgrade_watcher_kit__: {
+    /**
+     * 该对象由 web 侧负责写入，由 native 侧去触发事件
+     */
+    _events: Map<string, EventTarget>;
+  }
+}
 
-  tagName = "dweb-service-worker";
+const app_upgrade_watcher_kit = globalThis.__app_upgrade_watcher_kit__;
 
-  constructor() {
-    super("dweb-service-worker.sys.dweb")
+if (app_upgrade_watcher_kit) {
+  app_upgrade_watcher_kit._events ??= new Map()
+}
+
+class DwebServiceWorker extends EventTarget {
+
+  updateContoller = new UpdateController()
+
+  @cacheGetter()
+  get update() {
+    return this.updateContoller
   }
 
-  /**拿到更新句柄 */
-  update() {
-    return this.updateController
+  @cacheGetter()
+  get close() {
+    return dwebServiceWorkerPlugin.close
   }
 
-  /**关闭后端 */
-  async close() {
-    return await this.fetchApi("/close")
-  }
-
-  /**重启后端 */
-  async restart() {
-    return await this.fetchApi("/restart")
+  @cacheGetter()
+  get restart() {
+    return dwebServiceWorkerPlugin.restart
   }
 
 
@@ -38,7 +49,10 @@ class DwebServiceWorker extends BasePlugin {
     options?: boolean | AddEventListenerOptions
   ): void;
 
+
   addEventListener() {
+    // deno-lint-ignore no-explicit-any
+    return (super.addEventListener as any)(...arguments);
   }
 
   removeEventListener<K extends keyof DwebWorkerEventMap>(
@@ -53,29 +67,33 @@ class DwebServiceWorker extends BasePlugin {
     options?: boolean | EventListenerOptions
   ): void;
   removeEventListener() {
-
+    // deno-lint-ignore no-explicit-any
+    return (super.addEventListener as any)(...arguments);
   }
 }
 
-class UpdateController extends BasePlugin {
+class UpdateController extends EventTarget {
 
-  tagName = "dweb-update-controller";
-
-  constructor() {
-    super("dweb-update-controller.sys.dweb")
-  }
 
   // 暂停
-  async pause() {
-    return await this.fetchApi("/pause")
+  @cacheGetter()
+  get pause() {
+    return dwebServiceWorkerPlugin.update().pause
   }
   // 重下
-  async remuse(): Promise<boolean> {
-    return await this.fetchApi("/remuse").boolean()
+  @cacheGetter()
+  get resume() {
+    return dwebServiceWorkerPlugin.update().resume
   }
   // 取消
-  async cancel(): Promise<boolean> {
-    return await this.fetchApi("/cancel").boolean()
+  @cacheGetter()
+  get cancel() {
+    return dwebServiceWorkerPlugin.update().cancel
+  }
+  // 取消
+  @cacheGetter()
+  get progress() {
+    return dwebServiceWorkerPlugin.update().progress
   }
 
   addEventListener<K extends keyof UpdateControllerMap>(
@@ -91,7 +109,8 @@ class UpdateController extends BasePlugin {
   ): void;
 
   addEventListener() {
-
+    // deno-lint-ignore no-explicit-any
+    return (super.addEventListener as any)(...arguments);
   }
   removeEventListener<K extends keyof UpdateControllerMap>(
     type: K,
@@ -105,12 +124,13 @@ class UpdateController extends BasePlugin {
     options?: boolean | EventListenerOptions
   ): void;
   removeEventListener() {
-
+    // deno-lint-ignore no-explicit-any
+    return (super.addEventListener as any)(...arguments);
   }
 }
 
 interface DwebWorkerEventMap {
-  updatefound: Event,
+  updatefound: Event, // 更新或重启的时候触发
   fetch: Event,
   onFetch: Event
 }

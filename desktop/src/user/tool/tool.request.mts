@@ -4,6 +4,7 @@ import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.cjs";
 import type { ServerUrlInfo } from "../../sys/http-server/const.js";
+import { OBSERVE } from "./tool.event.mjs";
 import { cros } from "./tool.native.mjs";
 
 const { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
@@ -45,8 +46,8 @@ export async function onApiRequest(
         );
         return
       }
-      // 监听属性
-      if (pathname === "/observe") {
+      // 监听属性  监听更新进度
+      if (pathname === "/observe" || pathname === "/observeUpdateProgress") {
         const streamPo = observeFactory(url)
         ipcResponse = IpcResponse.fromStream(
           request.req_id,
@@ -57,12 +58,6 @@ export async function onApiRequest(
         );
         return
       }
-      // 监听更新进度
-      if (pathname === "/observeUpdateProgress") {
-
-        return
-      }
-
       throw new Error(`unknown gateway: ${url.search}`);
     } else {
       // 转发file请求到目标NMM
@@ -113,8 +108,10 @@ export async function onApiRequest(
 }
 
 /**监听属性的变化 */
+/**监听更新进度的变化 */
 const observeFactory = (url: URL) => {
   const mmid = url.searchParams.get("mmid");
+  console.log("cotDemo#url.mmid=>", mmid)
   if (mmid === null) {
     throw new Error("observe require mmid");
   }
@@ -125,7 +122,8 @@ const observeFactory = (url: URL) => {
     result.ipc.promise.then((ipc) => {
       ipc.onEvent((event) => {
         console.log("on-event", event);
-        if (event.name !== "observe") {
+        console.log("cotDemo#event.name=>{%s} remote.mmid=>{%s}", event.name, ipc.remote.mmid)
+        if (event.name !== OBSERVE.State && event.name !== OBSERVE.UpdateProgress) {
           return;
         }
         const observers = ipcObserversMap.get(ipc.remote.mmid);
@@ -146,3 +144,4 @@ const observeFactory = (url: URL) => {
   });
   return streamPo
 }
+

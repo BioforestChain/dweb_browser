@@ -6,6 +6,8 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.ui.JmmManagerActivity
+import info.bagen.rust.plaoc.service.DownLoadController
+import info.bagen.rust.plaoc.util.DwebBrowserUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -87,6 +89,21 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 return@defineHandler AppsQueryResult(
                     apps.map { it.value.metadata },
                     installingApps.map { it.value })
+            },
+            "/pause" bind Method.GET to defineHandler { _, ipc ->
+                DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
+                    ipc.remote.mmid, DownLoadController.PAUSE
+                )
+            },
+            "/resume" bind Method.GET to defineHandler { _, ipc ->
+                DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
+                    ipc.remote.mmid, DownLoadController.RESUME
+                )
+            },
+            "/cancel" bind Method.GET to defineHandler { _, ipc ->
+                DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
+                    ipc.remote.mmid, DownLoadController.CANCEL
+                )
             }
         )
 

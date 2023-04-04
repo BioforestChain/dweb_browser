@@ -1,16 +1,12 @@
-package info.bagen.rust.plaoc.microService.sys.plugin.dwebServiceWorker
+package info.bagen.rust.plaoc.microService.sys.nativeui.dwebServiceWorker
 
-import info.bagen.rust.plaoc.microService.core.AndroidNativeMicroModule
 import info.bagen.rust.plaoc.microService.core.BootstrapContext
-import info.bagen.rust.plaoc.microService.helper.Mmid
+import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class DwebServiceWorkerNMM:AndroidNativeMicroModule("service-worker.sys.dweb") {
-    override fun openActivity(remoteMmid: Mmid) {
-        TODO("Not yet implemented")
-    }
+class DwebServiceWorkerNMM:NativeMicroModule("service-worker.nativeui.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
