@@ -1,6 +1,6 @@
 import type { $BootstrapContext } from "../../../core/bootstrapContext.cjs"
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
-import type { StatusbarNativeUiNMM } from "./status-bar.main.cjs"
+import type { NavigationBarNMM } from "./navigation-bar.cjs"
 import type { $RequestDistributeIpcEventData } from "../base/base-add-routes-to-http.cjs"
 import { routes } from "./route.cjs"
 import { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
@@ -13,12 +13,12 @@ import { BaseAddRoutesToHttp } from "../base/base-add-routes-to-http.cjs"
 /**
  * 向 http.sys.dweb 注册路由的类
  */
-export class AddRoutesToHttp extends BaseAddRoutesToHttp<StatusbarNativeUiNMM>{
+export class AddRoutesToHttp extends BaseAddRoutesToHttp<NavigationBarNMM>{
   private _allcId: number = 0;
   private _observe = new Map<string, $RequestDistributeIpcEventData>()
   private _isObserve: boolean = false;
   constructor(
-    nmm: StatusbarNativeUiNMM,
+    nmm: NavigationBarNMM,
     context:  $BootstrapContext,
   ){
     super(nmm, context, routes)
@@ -28,22 +28,22 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<StatusbarNativeUiNMM>{
     const data = this.creageRequestDistributeIpcEventData(ipcEvent.data)
     const pathname = url.parse(data.url).pathname;
     switch(pathname){
-      case "/status-bar.nativeui.sys.dweb/getState":
+      case "/navigation-bar.nativeui.sys.dweb/getState":
         this._httpIpcOnEventRequestDistributeGetState(data, httpIpc);
         break;
-      case "/status-bar.nativeui.sys.dweb/setState":
+      case "/navigation-bar.nativeui.sys.dweb/setState":
         this._httpIpcOnEventRequestDistributeSetState(data, httpIpc);
         break;
-      case "/status-bar.nativeui.sys.dweb/startObserve":
+      case "/navigation-bar.nativeui.sys.dweb/startObserve":
         this._httpIpcOnEventRequestDistributeStartObserve(data, httpIpc);
         break;
-      case "/status-bar.nativeui.sys.dweb/stopObserve":
+      case "/navigation-bar.nativeui.sys.dweb/stopObserve":
         this._httpIpcOnEventRequestDistributeStopObserve(data, httpIpc);
         break;
-      case "/status-bar-ui/wait_for_operation":
+        case "/navigation-bar-ui/wait_for_operation":
         this._httpIpcOnEventRequestDistributeWaitForOperationBase(data, httpIpc);
         break;
-      case "/status-bar-ui/operation_return":
+      case "/navigation-bar-ui/operation_return":
         this._httpIpcOnEventRequestDistributeOperationReturn(data, httpIpc);
         break;
       case "/internal/observe":
@@ -133,7 +133,7 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<StatusbarNativeUiNMM>{
       )
     }
 
-    throw new Error(`status-bar.nativeui.sys.dweb _httpIpcOnEventRequestDistributeSetState 还有没处理的 setState 请求`)
+    throw new Error(`${this._nmm.mmid} _httpIpcOnEventRequestDistributeSetState 还有没处理的 setState 请求`)
   }
 
   /**
@@ -222,8 +222,6 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<StatusbarNativeUiNMM>{
     )
     this._isObserve = false;
     this._observe.delete(app_url)
-    log.red(`停止监听`)
-    console.log(`this._observe: `, this._observe.keys())
   }
 
 
@@ -238,12 +236,12 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<StatusbarNativeUiNMM>{
     if(id === undefined) throw new Error(`status-bar.nativeui.sys.dweb _httpIpcOnEventRequestDistributeOperationReturn id === undefined`)
     const _d = this._reqs.get(parseInt(id))
     if(_d === undefined) throw new Error(`status-bar.nativeui.sys.dweb _httpIpcOnEventRequestDistributeOperationReturn d === undefined`)
+    // const app_url =  data.url.split("app_url=")[1]
     const _url = url.parse(data.url.split("app_url=")[1])
     const app_url = `${_url.protocol}//${_url.host}`
-    
     if(
       !this._isObserve /** 是否还在监听中 */
-      || _d.pathname === '/status-bar.nativeui.sys.dweb/getState' /** 操作的路由不能够是 getState */ 
+      || _d.pathname.endsWith('getState') /** 操作的路由不能够是 getState */ 
     ) return;
     const observe = this._observe.get(app_url)
     if(observe === undefined) {

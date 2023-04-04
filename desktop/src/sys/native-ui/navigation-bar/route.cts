@@ -1,4 +1,5 @@
-export const routes = [
+import type { $BaseRoute } from "../base/base-add-routes-to-http.cjs"
+export const routes: $BaseRoute[] = [
     {
         pathname: "/navigation-bar-ui/wait_for_operation",
         matchMode: "full",
@@ -15,6 +16,11 @@ export const routes = [
         method: "GET"
     },
     {
+        pathname: "/navigation-bar.nativeui.sys.dweb/stopObserve",
+        matchMode: "prefix",
+        method: "GET"
+    },
+    {
         pathname:"/navigation-bar.nativeui.sys.dweb/getState",
         matchMode: "prefix",
         method: "GET"
@@ -24,6 +30,12 @@ export const routes = [
         matchMode: "prefix",
         method: "GET"
     },
+    {
+        // /internal/observe?X-Dweb-Host=api.browser.sys.dweb%3A443&mmid=navigation-bar.nativeui.sys.dweb
+        pathname:"/navigation-bar.nativeui.sys.dweb/internal/observe",
+        matchMode: "full",
+        method: "GET"
+    }
 ]
 
 
