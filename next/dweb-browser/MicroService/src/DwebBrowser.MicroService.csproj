@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>11.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <LangVersion>11.0</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="2.5.108" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="ipc\ipcWeb\" />
+    <None Remove="sys\http\" />
+    <None Remove="sys\http\net\" />
+    <None Remove="sys\boot\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Helper\src\DwebBrowser.Helper.csproj" />
+  </ItemGroup>
+</Project>
