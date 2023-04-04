@@ -39,7 +39,7 @@ val DarkColorPalette = Colors(
 
 val LightColorPalette = Colors(
   primary = Color(0xFFF2F3F5),
-  primaryVariant = Color(0xFFCCCCCC),
+  primaryVariant = Color(0xFFE8EAED), // CCCCCC
   secondary = Color(0xFFBFBFBF),
   secondaryVariant = Color(0xFFBFBFBF),
   background = Color(0xFFFFFFFF),

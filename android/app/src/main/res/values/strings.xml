@@ -59,4 +59,19 @@
   <string name="button_agree_continue">Agree and Continue</string>
   <string name="button_exit_app">exit app</string>
   <string name="button_i_know">I Know</string>
+
+  <!-- BrowserView 相关 -->
+  <string name="browser_search_hint">Search or Input Website</string>
+  <string name="browser_nav_back">GoBack</string>
+  <string name="browser_nav_forward">Forward</string>
+  <string name="browser_nav_share">Share</string>
+  <string name="browser_nav_book">Book</string>
+  <string name="browser_nav_favorite">Favorite</string>
+  <string name="browser_nav_history">History</string>
+  <string name="browser_nav_multiview">Multiview</string>
+  <string name="browser_nav_home">Home</string>
+  <string name="browser_nav_option">Option</string>
+  <string name="browser_main_hot_web">Hot Website</string>
+  <string name="browser_main_my_book">My Bookmark</string>
+  <string name="browser_main_hot_search">Hot Search</string>
 </resources>
