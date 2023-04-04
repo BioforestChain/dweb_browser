@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,14 +52,15 @@ private fun TitleText(@StringRes id: Int) {
 }
 
 @Composable
-private fun IconView(model: Any?, text: String, modifier: Modifier = Modifier) {
-  Column(modifier = modifier.size(64.dp, 100.dp)) {
+private fun IconView(model: Any?, text: String, onClick: () -> Unit) {
+  Column(modifier = Modifier.size(64.dp, 100.dp)) {
     AsyncImage(
       model = model,
       contentDescription = text,
       modifier = Modifier
         .size(64.dp)
         .clip(RoundedCornerShape(16.dp))
+        .clickable { onClick() }
     )
     Spacer(modifier = Modifier.height(6.dp))
     Text(text = text, modifier = Modifier.align(Alignment.CenterHorizontally), maxLines = 2)
@@ -67,6 +69,7 @@ private fun IconView(model: Any?, text: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun HotWebSiteView(viewModel: BrowserViewModel) {
+  val screenWidth = LocalConfiguration.current.screenWidthDp.dp
   Column(
     modifier = Modifier
       .fillMaxWidth()
@@ -77,14 +80,14 @@ private fun HotWebSiteView(viewModel: BrowserViewModel) {
     LazyHorizontalGrid(
       rows = GridCells.Fixed(2),
       contentPadding = PaddingValues(horizontal = 0.dp),
-      horizontalArrangement = Arrangement.spacedBy(20.dp),
+      horizontalArrangement = Arrangement.spacedBy((screenWidth - 64.dp * 4 - 40.dp) / 3),
       verticalArrangement = Arrangement.spacedBy(0.dp),
       modifier = Modifier.height(200.dp)
     ) {
       items(initHotWebsite) {
-        IconView(model = it.iconUrl, text = it.name, modifier = Modifier.clickable {
+        IconView(model = it.iconUrl, text = it.name) {
           viewModel.handleIntent(BrowserIntent.AddNewWebView(it.webUrl))
-        })
+        }
       }
     }
   }

@@ -176,9 +176,9 @@ dependencies {
     // 由于引入exoplayer后导致com.google.guava:listenablefuture not found -> https://github.com/google/ExoPlayer/issues/7993
     implementation("com.google.guava:guava:29.0-android")
 
-    // 类似ViewPager功能
-    implementation("com.google.accompanist:accompanist-pager:0.27.0")
-    implementation("com.google.accompanist:accompanist-pager-indicators:0.27.0")
+    // 类似ViewPager功能 改为 androidx.compose.foundation.pager
+    //implementation("com.google.accompanist:accompanist-pager:0.27.0")
+    //implementation("com.google.accompanist:accompanist-pager-indicators:0.27.0")
 
     // 解压文件
     implementation("org.apache.commons:commons-compress:1.21")

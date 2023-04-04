@@ -3,7 +3,9 @@ package info.bagen.rust.plaoc.ui.browser
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import android.webkit.WebView
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +15,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -39,20 +42,20 @@ data class BrowserUIState(
 interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩
   val focus: MutableState<Boolean> // 用于搜索框显示的内容，根据是否聚焦来判断
-  val showBottomBar: MutableState<Boolean> // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
+  val showBottomBar: MutableTransitionState<Boolean> // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
 }
 
 data class BrowserMainView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
-  override val showBottomBar: MutableState<Boolean> = mutableStateOf(true),
+  override val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true),
   val aaa: String
 ) : BrowserBaseView
 
 data class BrowserWebView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
-  override val showBottomBar: MutableState<Boolean> = mutableStateOf(true),
+  override val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true),
   val webView: WebView,
   val webViewId: String,
   val state: WebViewState,
@@ -76,8 +79,10 @@ data class WebSiteInfo(
       else -> Color.LightGray
     }
     return buildAnnotatedString {
-      withStyle(style = SpanStyle(color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold)) {
-        append("$id".padEnd(4, ' '))
+      withStyle(style = SpanStyle(
+        color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = 5.sp
+      )) {
+        append("$id".padEnd(3, ' '))
       }
       withStyle(
         style = SpanStyle(
@@ -99,7 +104,8 @@ sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
   object WebViewGoBack : BrowserIntent()
   class UpdatePopupViewState(val state: PopupViewSate = PopupViewSate.NULL) : BrowserIntent()
-  class UpdateCurrentWebView(val currentPage: Int) : BrowserIntent()
+  class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
+  class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
   class AddNewWebView(val url: String) : BrowserIntent()
   class SearchWebView(val url: String) : BrowserIntent()
 }
@@ -138,10 +144,14 @@ class BrowserViewModel() : ViewModel() {
             uiState.popupViewState.value = PopupViewSate.NULL
           }
         }
-        is BrowserIntent.UpdateCurrentWebView -> {
+        is BrowserIntent.UpdateCurrentBaseView -> {
+          Log.e("lin.huang", "xxxxxxxxxxxxxxxxxxxx UpdateCurrentBaseView ${action.currentPage}")
           if (action.currentPage >= 0 && action.currentPage < uiState.browserViewList.size) {
             uiState.currentBrowserBaseView.value = uiState.browserViewList[action.currentPage]
           }
+        }
+        is BrowserIntent.UpdateBottomViewState -> {
+          uiState.currentBrowserBaseView.value.showBottomBar.targetState = action.show
         }
         is BrowserIntent.AddNewWebView -> {
           // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true

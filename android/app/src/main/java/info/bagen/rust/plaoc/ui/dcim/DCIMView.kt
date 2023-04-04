@@ -3,6 +3,7 @@ package info.bagen.rust.plaoc.ui.dcim
 import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,6 +15,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -42,9 +45,6 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.SvgDecoder
 import coil.decode.VideoFrameDecoder
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.PagerState
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.database.MediaDBManager
@@ -178,7 +178,7 @@ fun DCIMInfoViewer(dcimVM: DCIMViewModel, onViewerClick: () -> Unit) {
   }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DCIMHorizontalPager(dcimVM: DCIMViewModel) {
   var exists = false
@@ -196,7 +196,7 @@ fun DCIMHorizontalPager(dcimVM: DCIMViewModel) {
     checkPoint++
   }
   if (exists) {
-    var pagerState = PagerState(checkPoint)
+    val pagerState = PagerState(checkPoint)
     // 监听页面更改, 使用 snapshotFlow 函数来观察流的变化
     LaunchedEffect(pagerState) {
       snapshotFlow { pagerState.currentPage }.collect { page ->
@@ -204,7 +204,7 @@ fun DCIMHorizontalPager(dcimVM: DCIMViewModel) {
       }
     }
     HorizontalPager(
-      count = curShowlist.size, state = pagerState, modifier = Modifier.fillMaxSize()
+      pageCount = curShowlist.size, state = pagerState, modifier = Modifier.fillMaxSize()
     ) { loadPage ->
       // 该区块有三个参数：currentPage表示当前显示的界面，currentPageOffset表示滑动偏移量，loadPage表示加载界面
       if (loadPage >= 0 && loadPage < curShowlist.size) {

@@ -2,6 +2,7 @@ package info.bagen.rust.plaoc.ui.browser
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -38,12 +39,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.LoadingState
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.ui.theme.Blue
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val dimenTextFieldFontSize = 16.sp
@@ -60,19 +61,13 @@ private val bottomEnterAnimator = slideInVertically(
   initialOffsetY = {
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   }
-) + fadeIn()
+)
 private val bottomExitAnimator = slideOutVertically(
   animationSpec = tween(300),//动画时长1s
   targetOffsetY = {
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   }
 )
-
-@Composable
-@Preview
-fun BrowserViewPreview() {
-  Text(text = "xxx")
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -81,10 +76,10 @@ fun BrowserView(viewModel: BrowserViewModel) {
   val pagerStateWebView = rememberPagerState()
   val localFocusManager = LocalFocusManager.current
 
-  Box(modifier = Modifier.fillMaxSize()) {
+  Column(modifier = Modifier.fillMaxSize()) {
     Box(modifier = Modifier
       .fillMaxSize()
-      .padding(bottom = if (viewModel.uiState.currentBrowserBaseView.value.showBottomBar.value) dimenBottomHeight else dimenHorizontalPagerHorizontal)
+      .weight(1f)
       .clickable(
         indication = null,
         onClick = { localFocusManager.clearFocus() },
@@ -92,35 +87,36 @@ fun BrowserView(viewModel: BrowserViewModel) {
       )) {
       BrowserViewContent(viewModel, pagerStateSearch, pagerStateWebView)
     }
-    BrowserViewBottomBar(
-      viewModel,
-      pagerStateSearch, pagerStateWebView,
-      modifier = Modifier.align(Alignment.BottomCenter),
-    )
+    BrowserViewBottomBar(viewModel, pagerStateSearch, pagerStateWebView)
   }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewContent(
-  viewModel: BrowserViewModel, pagerStateSearch: PagerState, pagerState: PagerState
+  viewModel: BrowserViewModel, pagerStateSearch: PagerState, pagerStateWebView: PagerState
 ) {
   LaunchedEffect(pagerStateSearch) {
     snapshotFlow { pagerStateSearch.currentPageOffsetFraction }.collect { currentPageOffset ->
-      pagerState.scrollToPage(pagerStateSearch.currentPage, currentPageOffset)
+      pagerStateWebView.scrollToPage(pagerStateSearch.currentPage, currentPageOffset)
+    }
+  }
+  LaunchedEffect(pagerStateWebView) {
+    snapshotFlow { pagerStateWebView.currentPage }.collect { currentPage ->
+      viewModel.handleIntent(BrowserIntent.UpdateCurrentBaseView(currentPage))
     }
   }
   // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
   HorizontalPager(
+    state = pagerStateWebView,
     pageCount = viewModel.uiState.browserViewList.size,
-    beyondBoundsPageCount = 10,
-    state = pagerState, userScrollEnabled = false
+    beyondBoundsPageCount = 5,
+    userScrollEnabled = false
   ) { currentPage ->
     when (val item = viewModel.uiState.browserViewList[currentPage]) {
       is BrowserMainView -> BrowserViewContentMain(viewModel, item, pagerStateSearch)
       is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
     }
-    viewModel.handleIntent(BrowserIntent.UpdateCurrentWebView(pagerStateSearch.currentPage))
   }
 }
 
@@ -132,7 +128,6 @@ private fun BrowserViewBottomBar(
 ) {
   val coroutineScope = rememberCoroutineScope()
   val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
-
   val inputText = when (browserBaseView) {
     is BrowserWebView -> {
       parseInputText(browserBaseView.state.lastLoadedUrl ?: "")
@@ -146,7 +141,7 @@ private fun BrowserViewBottomBar(
       .fillMaxWidth()
       .height(20.dp)
       .align(Alignment.BottomCenter)
-      .clickable { browserBaseView.showBottomBar.value = true }) {
+      .clickable { viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true)) }) {
       Text(
         text = inputText,
         fontSize = 12.sp,
@@ -155,7 +150,7 @@ private fun BrowserViewBottomBar(
     }
 
     AnimatedVisibility(
-      visible = browserBaseView.showBottomBar.value,
+      visibleState = browserBaseView.showBottomBar,
       enter = bottomEnterAnimator,
       exit = bottomExitAnimator
     ) {
@@ -175,13 +170,16 @@ private fun BrowserViewBottomBar(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewSearch(viewModel: BrowserViewModel, pagerState: PagerState) {
+  LaunchedEffect(PagerState) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
+    delay(100)
+    pagerState.scrollToPage(pagerState.settledPage)
+  }
   HorizontalPager(
     state = pagerState,
     pageCount = viewModel.uiState.browserViewList.size,
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
     modifier = Modifier.background(MaterialTheme.colors.primaryVariant)
   ) { currentPage ->
-    if (currentPage == pagerState.currentPage - 1) viewModel.handleIntent(BrowserIntent.ShowMainView)
     when (val item = viewModel.uiState.browserViewList[currentPage]) {
       is BrowserWebView -> BrowserViewSearchWeb(viewModel, item)
       is BrowserMainView -> BrowserViewSearchMain(viewModel, item, pagerState)

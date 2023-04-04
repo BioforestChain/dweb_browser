@@ -4,9 +4,12 @@ import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
@@ -30,7 +33,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
-import com.google.accompanist.pager.*
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
@@ -41,7 +43,7 @@ import info.bagen.rust.plaoc.ui.entity.MediaType
 import info.bagen.rust.plaoc.util.FilesUtil
 import java.io.File
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SplashView(
   paths: ArrayList<String>,
@@ -57,7 +59,7 @@ fun SplashView(
       .background(Color.Black)
   ) {
     HorizontalPager(
-      count = paths.size, state = pagerState, modifier = Modifier.fillMaxSize()
+      pageCount = paths.size, state = pagerState, modifier = Modifier.fillMaxSize()
     ) { loadPage ->
       val path = paths[loadPage]
       when (FilesUtil.getFileType(path)) {
@@ -79,7 +81,7 @@ fun SplashView(
       }
     }
 
-    HorizontalPagerIndicator(
+    /*HorizontalPagerIndicator(
       pagerState = pagerState,
       modifier = Modifier
         .align(Alignment.BottomCenter)
@@ -87,7 +89,7 @@ fun SplashView(
       activeColor = activeColor,
       inactiveColor = inactiveColor,
       indicatorWidth = indicatorWidth
-    )
+    )*/
   }
 }
 
