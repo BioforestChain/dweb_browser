@@ -78,7 +78,7 @@ class DwebBrowserService : Service() {
   @OptIn(DelicateCoroutinesApi::class)
   fun downloadAndSaveZip(downLoadInfo: DownLoadInfo): Boolean {
     // 1. 根据path进行下载，并且创建notification
-    if (downloadMap.containsKey(downLoadInfo.jmmMetadata!!.id)) {
+    if (downloadMap.containsKey(downLoadInfo.jmmMetadata.id)) {
       Toast.makeText(this, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
       return true
     }

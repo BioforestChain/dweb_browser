@@ -214,6 +214,24 @@ var PromiseOut = class {
   }
 };
 
+// src/user/tool/tool.native.mts
+var cros = (headers) => {
+  headers.init("Access-Control-Allow-Origin", "*");
+  headers.init("Access-Control-Allow-Headers", "*");
+  headers.init("Access-Control-Allow-Methods", "*");
+  return headers;
+};
+var nativeOpen = async (url) => {
+  return await jsProcess.nativeFetch(
+    `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
+  ).text();
+};
+var nativeActivate = async (webview_id) => {
+  return await jsProcess.nativeFetch(
+    `file://mwebview.sys.dweb/activate?webview_id=${encodeURIComponent(webview_id)}`
+  ).text();
+};
+
 // src/helper/binaryHelper.cts
 var u8aConcat = (binaryList) => {
   let totalLength = 0;
@@ -521,37 +539,10 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
           }).href,
           httpServerIpc
         );
-      } else if (pathname === "/observe") {
-        const mmid = url.searchParams.get("mmid");
-        if (mmid === null) {
-          throw new Error("observe require mmid");
-        }
-        const streamPo = new ReadableStreamOut();
-        const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid2) => {
-          const result = { ipc: new PromiseOut2(), obs: /* @__PURE__ */ new Set() };
-          result.ipc.resolve(jsProcess.connect(mmid2));
-          result.ipc.promise.then((ipc2) => {
-            ipc2.onEvent((event) => {
-              console.log("on-event", event);
-              if (event.name !== "observe") {
-                return;
-              }
-              const observers2 = ipcObserversMap.get(ipc2.remote.mmid);
-              const jsonlineEnd = simpleEncoder("\n", "utf8");
-              if (observers2 && observers2.obs.size > 0) {
-                for (const ob2 of observers2.obs) {
-                  ob2.controller.enqueue(u8aConcat([event.binary, jsonlineEnd]));
-                }
-              }
-            });
-          });
-          return result;
-        });
-        const ob = { controller: streamPo.controller };
-        observers.obs.add(ob);
-        streamPo.onCancel(() => {
-          observers.obs.delete(ob);
-        });
+        return;
+      }
+      if (pathname === "/observe") {
+        const streamPo = observeFactory(url);
         ipcResponse = IpcResponse.fromStream(
           request.req_id,
           200,
@@ -559,9 +550,12 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
           streamPo.stream,
           httpServerIpc
         );
-      } else {
-        throw new Error(`unknown gateway: ${url.search}`);
+        return;
       }
+      if (pathname === "/observeUpdateProgress") {
+        return;
+      }
+      throw new Error(`unknown gateway: ${url.search}`);
     } else {
       const path = `file:/${url.pathname}${url.search}`;
       console.log("onRequestPath: ", path, request.method, request.body);
@@ -605,23 +599,38 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
     }
   }
 }
-var cros = (headers) => {
-  headers.init("Access-Control-Allow-Origin", "*");
-  headers.init("Access-Control-Allow-Headers", "*");
-  headers.init("Access-Control-Allow-Methods", "*");
-  return headers;
-};
-
-// src/user/tool/tool.native.mts
-var nativeOpen = async (url) => {
-  return await jsProcess.nativeFetch(
-    `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
-  ).text();
-};
-var nativeActivate = async (webview_id) => {
-  return await jsProcess.nativeFetch(
-    `file://mwebview.sys.dweb/activate?webview_id=${encodeURIComponent(webview_id)}`
-  ).text();
+var observeFactory = (url) => {
+  const mmid = url.searchParams.get("mmid");
+  if (mmid === null) {
+    throw new Error("observe require mmid");
+  }
+  const streamPo = new ReadableStreamOut();
+  const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid2) => {
+    const result = { ipc: new PromiseOut2(), obs: /* @__PURE__ */ new Set() };
+    result.ipc.resolve(jsProcess.connect(mmid2));
+    result.ipc.promise.then((ipc2) => {
+      ipc2.onEvent((event) => {
+        console.log("on-event", event);
+        if (event.name !== "observe") {
+          return;
+        }
+        const observers2 = ipcObserversMap.get(ipc2.remote.mmid);
+        const jsonlineEnd = simpleEncoder("\n", "utf8");
+        if (observers2 && observers2.obs.size > 0) {
+          for (const ob2 of observers2.obs) {
+            ob2.controller.enqueue(u8aConcat([event.binary, jsonlineEnd]));
+          }
+        }
+      });
+    });
+    return result;
+  });
+  const ob = { controller: streamPo.controller };
+  observers.obs.add(ob);
+  streamPo.onCancel(() => {
+    observers.obs.delete(ob);
+  });
+  return streamPo;
 };
 
 // src/user/cot/cot.worker.mts

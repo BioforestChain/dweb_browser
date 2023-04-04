@@ -14,6 +14,8 @@ export * from "./close-watcher/index.ts";
 export * from "./haptics/index.ts"
 export * from "./camera/index.ts"
 
+export * from "./dweb-service-worker/index.ts"
+
 // export * from "./file-system/index.ts" 暂不开放
 
 

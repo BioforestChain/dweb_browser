@@ -4,12 +4,12 @@ import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.cjs";
 import type { ServerUrlInfo } from "../../sys/http-server/const.js";
+import { cros } from "./tool.native.mjs";
 
 const { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;
-type $IpcHeaders = InstanceType<typeof IpcHeaders>;
 
 const ipcObserversMap = new Map<
   $MMID,
@@ -34,6 +34,7 @@ export async function onApiRequest(
     console.log("cotDemo#onApiRequest=>", url.href, request.method);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
+      // 转发public url
       if (pathname === "/public-url") {
         ipcResponse = IpcResponse.fromText(
           request.req_id,
@@ -42,38 +43,11 @@ export async function onApiRequest(
           serverurlInfo.buildPublicUrl(() => { }).href,
           httpServerIpc
         );
-      } else if (pathname === "/observe") {
-        const mmid = url.searchParams.get("mmid");
-        if (mmid === null) {
-          throw new Error("observe require mmid");
-        }
-        const streamPo = new ReadableStreamOut<Uint8Array>();
-        const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
-          const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };
-          result.ipc.resolve(jsProcess.connect(mmid));
-          result.ipc.promise.then((ipc) => {
-            ipc.onEvent((event) => {
-              console.log("on-event", event);
-              if (event.name !== "observe") {
-                return;
-              }
-              const observers = ipcObserversMap.get(ipc.remote.mmid);
-              const jsonlineEnd = simpleEncoder("\n", "utf8");
-              if (observers && observers.obs.size > 0) {
-                for (const ob of observers.obs) {
-                  ob.controller.enqueue(u8aConcat([event.binary, jsonlineEnd]));
-                }
-              }
-            });
-          });
-          return result;
-        });
-        const ob = { controller: streamPo.controller };
-        observers.obs.add(ob);
-        streamPo.onCancel(() => {
-          observers.obs.delete(ob);
-        });
-
+        return
+      }
+      // 监听属性
+      if (pathname === "/observe") {
+        const streamPo = observeFactory(url)
         ipcResponse = IpcResponse.fromStream(
           request.req_id,
           200,
@@ -81,10 +55,17 @@ export async function onApiRequest(
           streamPo.stream,
           httpServerIpc
         );
-      } else {
-        throw new Error(`unknown gateway: ${url.search}`);
+        return
       }
+      // 监听更新进度
+      if (pathname === "/observeUpdateProgress") {
+
+        return
+      }
+
+      throw new Error(`unknown gateway: ${url.search}`);
     } else {
+      // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
       console.log("onRequestPath: ", path, request.method, request.body);
       if (request.method === "POST") {
@@ -131,11 +112,37 @@ export async function onApiRequest(
   }
 }
 
-export const cros = (headers: $IpcHeaders) => {
-  headers.init("Access-Control-Allow-Origin", "*");
-  headers.init("Access-Control-Allow-Headers", "*"); // 要支持 X-Dweb-Host
-  headers.init("Access-Control-Allow-Methods", "*");
-  // headers.init("Connection", "keep-alive");
-  // headers.init("Transfer-Encoding", "chunked");
-  return headers;
-};
+/**监听属性的变化 */
+const observeFactory = (url: URL) => {
+  const mmid = url.searchParams.get("mmid");
+  if (mmid === null) {
+    throw new Error("observe require mmid");
+  }
+  const streamPo = new ReadableStreamOut<Uint8Array>();
+  const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
+    const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };
+    result.ipc.resolve(jsProcess.connect(mmid));
+    result.ipc.promise.then((ipc) => {
+      ipc.onEvent((event) => {
+        console.log("on-event", event);
+        if (event.name !== "observe") {
+          return;
+        }
+        const observers = ipcObserversMap.get(ipc.remote.mmid);
+        const jsonlineEnd = simpleEncoder("\n", "utf8");
+        if (observers && observers.obs.size > 0) {
+          for (const ob of observers.obs) {
+            ob.controller.enqueue(u8aConcat([event.binary, jsonlineEnd]));
+          }
+        }
+      });
+    });
+    return result;
+  });
+  const ob = { controller: streamPo.controller };
+  observers.obs.add(ob);
+  streamPo.onCancel(() => {
+    observers.obs.delete(ob);
+  });
+  return streamPo
+}
