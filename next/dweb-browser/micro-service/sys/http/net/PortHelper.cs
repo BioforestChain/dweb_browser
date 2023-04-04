@@ -6,8 +6,8 @@ namespace micro_service.sys.http.net;
 
 public static class PortHelper
 {
-	public static (bool, int?) IsPortInUse(int? try_port)
-	{
+    public static (bool, int?) IsPortInUse(int? try_port)
+    {
         int? port = try_port;
 
         if (port is null)

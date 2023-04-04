@@ -27,13 +27,13 @@ public interface IDnsMicroModule
      * 与其它应用建立连接
      * </summary>
      */
-    public Task<ConnectResult> Connect(Mmid mmid, HttpRequestMessage? reason = null);
+    public Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null);
 
     /**
      * <summary>
      * 启动其它应用
      * </summary>
      */
-    public Task Bootstrap(Mmid mmid);
+    public Task BootstrapAsync(Mmid mmid);
 }
 

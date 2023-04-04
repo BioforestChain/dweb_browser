@@ -18,19 +18,19 @@ public static class NativeConnect
 {
     public static readonly AdapterManager<ConnectAdapter> ConnectAdapterManager = new();
 
-	public static ConnectResult ConnectMicroModules(MicroModule fromMM, MicroModule toMM, HttpRequestMessage reason)
-	{
-		foreach (ConnectAdapter connectAdapter in ConnectAdapterManager.Adapters)
-		{
-			var connectResult = connectAdapter(fromMM, toMM, reason);
+    public static ConnectResult ConnectMicroModules(MicroModule fromMM, MicroModule toMM, HttpRequestMessage reason)
+    {
+        foreach (ConnectAdapter connectAdapter in ConnectAdapterManager.Adapters)
+        {
+            var connectResult = connectAdapter(fromMM, toMM, reason);
 
-			if (connectResult is not null)
-			{
-				return connectResult;
-			}
-		}
+            if (connectResult is not null)
+            {
+                return connectResult;
+            }
+        }
 
-		throw new Exception($"no support connect MicroModules, from:{fromMM.Mmid} to:{toMM.Mmid}");
-	}
+        throw new Exception($"no support connect MicroModules, from:{fromMM.Mmid} to:{toMM.Mmid}");
+    }
 }
 

@@ -1,4 +1,8 @@
 ﻿
+using micro_service.sys.dns;
+using System.Net;
+using System.Web;
+
 namespace micro_service.core;
 
 public abstract class MicroModule : Ipc.MicroModuleInfo
@@ -23,16 +27,16 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
     private IBootstrapContext? _bootstrapContext = null;
     public IBootstrapContext BootstrapContext { get => _bootstrapContext ?? throw new Exception("module no run."); }
 
-    protected abstract Task _bootstrap(IBootstrapContext bootstrapContext);
+    protected abstract Task _bootstrapAsync(IBootstrapContext bootstrapContext);
 
     private void _afterBootstrap(IBootstrapContext dnsMM) => _runningStateLock.Resolve(true);
 
-    public async Task Bootstrap(IBootstrapContext bootstrapContext)
+    public async Task BootstrapAsync(IBootstrapContext bootstrapContext)
     {
         await _beforeBootsStrap(bootstrapContext);
         try
         {
-            await _bootstrap(bootstrapContext);
+            await _bootstrapAsync(bootstrapContext);
         }
         finally
         {
@@ -40,9 +44,9 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
         }
     }
 
-    protected event Signal? _afterShutdownSignal;
+    protected event Signal? _onAfterShutdown;
 
-    protected async Task _beforeShutdown()
+    protected async Task _beforeShutdownAsync()
     {
         if (!await _runningStateLock.WaitPromiseAsync())
         {
@@ -55,27 +59,27 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
 
     }
 
-    protected abstract Task _shutdown();
+    protected abstract Task _shutdownAsync();
 
-    protected async Task _afterShutdown()
+    protected async Task _afterShutdownAsync()
     {
-        await (_afterShutdownSignal?.Emit()).ForAwait();
-        _afterShutdownSignal = null;
+        await (_onAfterShutdown?.Emit()).ForAwait();
+        _onAfterShutdown = null;
         _runningStateLock.Resolve(false);
         _bootstrapContext = null;
     }
 
-    public async Task Shutdown()
+    public async Task ShutdownAsync()
     {
-        await _beforeShutdown();
+        await _beforeShutdownAsync();
 
         try
         {
-            await _shutdown();
+            await _shutdownAsync();
         }
         finally
         {
-            await _afterShutdown();
+            await _afterShutdownAsync();
         }
     }
 
@@ -100,11 +104,11 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
      * 尝试连接到指定对象
      * </summary>
      */
-    public Task<ConnectResult> Connect(Mmid mmid, HttpRequestMessage? reason = null) =>
+    public Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null) =>
         _bootstrapContext!.Dns.Let(it =>
         {
-            it.Bootstrap(mmid);
-            return it.Connect(mmid);
+            it.BootstrapAsync(mmid);
+            return it.ConnectAsync(mmid);
         });
 
     /**
@@ -112,7 +116,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
      * 收到一个连接，触发相关事件
      * </summary>
      */
-    public Task BeConnect(Ipc ipc, HttpRequestMessage reason)
+    public Task BeConnectAsync(Ipc ipc, HttpRequestMessage reason)
     {
         _ipcSet.Add(ipc);
         ipc.OnClose += async (_) => _ipcSet.Remove(ipc);
@@ -120,13 +124,75 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
         {
             if (ipcMessage.Name == "activity")
             {
-                await _onActivity(ipcMessage, ipc);
+                await _onActivityAsync(ipcMessage, ipc);
             }
         };
 
         return (OnConnect?.Emit(ipc, reason)).ForAwait();
     }
 
-    protected abstract Task _onActivity(IpcEvent Event, Ipc ipc);
+    protected abstract Task _onActivityAsync(IpcEvent Event, Ipc ipc);
+
+    public async Task<HttpResponseMessage> NativeFetchAsync(HttpRequestMessage request)
+    {
+        foreach (var fetchAdapter in NativeFetch.NativeFetchAdaptersManager.Adapters)
+        {
+            var response = fetchAdapter(this, request);
+
+            if (response is not null)
+            {
+                return response;
+            }
+        }
+
+        return _localeFileFetch(this, request) ?? await new HttpClient().SendAsync(request);
+    }
+
+    private HttpResponseMessage? _localeFileFetch(MicroModule remote, HttpRequestMessage request)
+    {
+        if (request.RequestUri.Scheme == "file" && request.RequestUri.Host == "")
+        {
+            var query = HttpUtility.ParseQueryString(request.RequestUri.Query);
+
+            var mode = query["mode"] ?? "auto";
+            var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
+            var preRead = query["pre-read"]?.ToBooleanStrictOrNull() ?? false;
+
+            var src = request.RequestUri.AbsolutePath.Substring(1);
+
+            Console.WriteLine($"OPEN {src}");
+            string dirname = null!;
+            string filename = null!;
+
+            src.LastIndexOf('/').Also(it =>
+            {
+                switch (it)
+                {
+                    case -1:
+                        filename = src;
+                        dirname = "";
+                        break;
+                    default:
+                        filename = src.Substring(it + 1);
+                        dirname = src.Substring(0, it + 1);
+                        break;
+                }
+                src.Substring(0, it + 1);
+            });
+
+            // TODO: nativeFetch 本地文件读取未完成
+            /// 尝试打开文件，如果打开失败就走 404 no found 响应
+
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+
+        return null;
+    }
+
+    public Task<HttpResponseMessage> NativeFetchAsync(Uri url) =>
+        NativeFetchAsync(new HttpRequestMessage(HttpMethod.Get, url));
+
+    public Task<HttpResponseMessage> NativeFetchAsync(string url) =>
+        NativeFetchAsync(new HttpRequestMessage(HttpMethod.Get, new Uri(url)));
 }
 

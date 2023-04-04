@@ -18,29 +18,31 @@ public class BootNMM: NativeMicroModule
         {
             _registeredMmids.UnionWith(initMmids.ToHashSet());
         }
+
+        Router = new Dictionary<string, Func<Dictionary<string, string>, object>>();
 	}
 
     public override string Mmid { get; init; }
 
-    protected override Task _bootstrap(IBootstrapContext bootstrapContext)
+    protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         throw new NotImplementedException();
     }
 
-    protected override async Task _onActivity(IpcEvent Event, Ipc ipc)
+    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
     {
         foreach (var mmid in _registeredMmids)
         {
             Console.WriteLine($"launch {mmid}");
-            await BootstrapContext.Dns.Bootstrap(mmid);
-            var connectResult = await BootstrapContext.Dns.Connect(mmid);
+            await BootstrapContext.Dns.BootstrapAsync(mmid);
+            var connectResult = await BootstrapContext.Dns.ConnectAsync(mmid);
             await connectResult.IpcForFromMM.PostMessageAsync(Event);
         }
     }
 
-    protected override Task _shutdown()
+    protected override Task _shutdownAsync()
     {
-        throw new NotImplementedException();
+        return Task.Run(() => Router!.Clear());
     }
 
     /**
