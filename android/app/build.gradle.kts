@@ -96,6 +96,7 @@ dependencies {
     implementation("org.http4k:http4k-server-ktorcio")
 //    implementation("org.http4k:http4k-format-jackson") // payload to json
 //    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("org.jsoup:jsoup:1.15.3")
 
     // Android 相关
 //    implementation("androidx.work:work-runtime:2.7.1")
