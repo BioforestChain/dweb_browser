@@ -1,4 +1,5 @@
-export const routes = [
+import type { $BaseRoute } from "../base/base-add-routes-to-http.cjs"
+export const routes :$BaseRoute[] = [
     {
         pathname: "/status-bar-ui/wait_for_operation",
         matchMode: "full",

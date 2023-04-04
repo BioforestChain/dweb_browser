@@ -10,10 +10,10 @@ import { log } from "../../../helper/devtools.cjs"
 import querystring from "node:querystring"
 import url from "node:url"
 
-import { $BaseRoute, BaseHttpConnect, $RequestDistributeIpcEventData } from "../base/base-http-connect.cjs";
+import { $BaseRoute, BaseAddRoutesToHttp, $RequestDistributeIpcEventData } from "../base/base-add-routes-to-http.cjs";
 
 // 处理 同 http.sys.dweb 之间的连接
-export class HttpConnect extends BaseHttpConnect<ToastNMM>{
+export class HttpConnect extends BaseAddRoutesToHttp<ToastNMM>{
   private _ipc: Ipc | undefined;
   private _allcId: number = 0;
   private _startObserve = new Map<string,$RequestDistributeIpcEventData>() 
@@ -42,10 +42,10 @@ export class HttpConnect extends BaseHttpConnect<ToastNMM>{
       //   this._httpIpcOnEventRequestDistributeStopOverve(data, httpIpc);
       //   break;
       case "/toast-ui/wait_for_operation":
-        this._httpIpcOnEventRequestDistributeWaitForOperation(data, httpIpc);
+        this._httpIpcOnEventRequestDistributeWaitForOperationBase(data, httpIpc);
         break;
       case "/toast-ui/operation_return":
-        this._httpIpcOnEventRequestDistributeWaitForOperationReturn(data, httpIpc);
+        this._httpIpcOnEventRequestDistributeOperationReturnBase(data, httpIpc);
         break;
       // case "/internal/observe":
       //   this._httpIpcOnEventRequestDistributeInternalObserve(data, httpIpc);
@@ -60,7 +60,7 @@ export class HttpConnect extends BaseHttpConnect<ToastNMM>{
     const searchParams = querystring.parse(data.url);
     console.log('---id: ', id)
     this._postMessageToUI(
-      {
+      JSON.stringify({
         action: "operation",
         operationName: "show",
         value: {
@@ -70,7 +70,7 @@ export class HttpConnect extends BaseHttpConnect<ToastNMM>{
         },
         from: data.headers.origin,
         id: id
-      },
+      }),
       data.headers.origin
     )
   }

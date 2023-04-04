@@ -7,7 +7,6 @@
     <style type="text/css">
         :root{
             --height: 48px;
-            /* --background-color: #FFFFFFFF; */
             --cell-width: 80px;
         }
         html{
@@ -20,9 +19,6 @@
             margin: 0px;
             width:100%;
             height: 100%;
-            /* background-color: #fff; */
-            /* background-color: red; */
-            
         }
         .container{
             display: flex;
@@ -30,7 +26,6 @@
             align-items: center;
             width: 100%;
             height:100%;
-            /* background-color: var(--background-color); */
         }
 
         .container-light{
@@ -246,7 +241,7 @@
         /*
             监听操作的方法
         */
-        async function awaitOperation(){
+        ;(async function awaitOperation(){
             fetch("http://status-bar.nativeui.sys.dweb-80.localhost:22605/status-bar-ui/wait_for_operation?app_url="+appUrl)
             .then(async (res) => {
                 const reader = res.body.getReader()
@@ -271,10 +266,7 @@
             .catch(err => {
                 console.error('statusbar err： ', err)
             })
-        }
-
-        awaitOperation()
-
+        })();
 
         // 通过发送请求把数据传送回去
         function fetchReturn(value,id, from){

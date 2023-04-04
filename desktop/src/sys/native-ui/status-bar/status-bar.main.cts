@@ -4,7 +4,7 @@ import { AllConnects } from "./on-connect-callback.cjs";
 import { WWWServer }from "./www-server.cjs";
 import { PluginsRequest } from "../plugins-request.cjs"
 import { log } from "../../../helper/devtools.cjs"
-import { HttpConnect } from "./http-connect.cjs"
+import { AddRoutesToHttp } from "./http-connect.cjs"
 import type { Remote } from "comlink";
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
@@ -33,7 +33,7 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
     }
     
     {
-      new HttpConnect(this,context, this.mmid);
+      new AddRoutesToHttp(this, context);
     }
    
     {
