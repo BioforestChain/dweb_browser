@@ -1,10 +1,11 @@
-﻿using System;
-using System.Net;
+﻿using DwebBrowser.MicroService.Sys.Http.Net;
 
 namespace DwebBrowser.MicroService.Core;
 
 public abstract class NativeMicroModule : MicroModule
 {
+    public List<RouterHandlerType>? ApiRouting = null;
+
     static NativeMicroModule()
     {
         NativeConnect.ConnectAdapterManager.Append((fromMM, toMM, reason) =>
@@ -24,19 +25,53 @@ public abstract class NativeMicroModule : MicroModule
 
     }
 
+    // TODO: ResponseRegistry 静态初始化问题未解决
     public class ResponseRegistry
     {
         public static Dictionary<object, Func<object, HttpResponseMessage>> RegMap = new();
 
-        public static void RegistryResponse<T>(Type type, Func<T, HttpResponseMessage> handler) =>
+        public static void RegistryResponse<T>(T type, Func<T, HttpResponseMessage> handler) =>
             RegMap.TryAdd(type, handler as Func<object, HttpResponseMessage>);
 
-        //public static HttpResponseMessage Handler(object result)
+        //static ResponseRegistry()
         //{
-
+        //    RegistryResponse(typeof(byte[]), it =>
+        //    {
+        //        return new HttpResponseMessage(HttpStatusCode.OK).Also(res =>
+        //        {
+        //            res.Content = new ByteArrayContent(it);
+        //        });
+        //    });
         //}
 
-        public HttpResponseMessage AsJson(object result, Type type) =>
+        public static HttpResponseMessage Handler(object result)
+        {
+            switch (RegMap.GetValueOrDefault(result.GetType()))
+            {
+                case null:
+                    var superClassType = result.GetType().BaseType;
+
+                    while (superClassType != null)
+                    {
+                        // 尝试寻找继承关系
+                        switch (RegMap.GetValueOrDefault(superClassType))
+                        {
+                            case null:
+                                superClassType = superClassType.BaseType;
+                                break;
+                            default:
+                                return Handler(result);
+                        }
+                    }
+
+                    // 否则默认当成JSON来返回
+                    return AsJson(result);
+                default:
+                    return Handler(result);
+            }
+        }
+
+        public static HttpResponseMessage AsJson(object result) =>
             new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
             {
                 // 设置Json序列化选项
@@ -46,6 +81,31 @@ public abstract class NativeMicroModule : MicroModule
                     WriteIndented = true
                 };
                 it.Content = new StringContent(JsonSerializer.Serialize(result, options));
+                it.Headers.Add("Content-Type", "application/json");
             });
     }
+
+    //public async Task<HttpResponseMessage> DefineHandler(HttpRequestMessage request, Ipc? ipc = null)
+    //{
+    //    switch (await (HttpRouter.RouterHandler(request, ipc)))
+    //    {
+    //        case null:
+    //            return new HttpResponseMessage(HttpStatusCode.OK);
+    //        case HttpResponseMessage response:
+    //            return response;
+    //        case byte[] result:
+    //            return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
+    //            {
+    //                it.Content = new StreamContent(new MemoryStream().Let(s =>
+    //                {
+    //                    s.Write(result, 0, result.Length);
+    //                    return s;
+    //                }));
+    //            });
+    //        case Stream stream:
+    //            return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StreamContent(stream));
+    //        default:
+    //            return new HttpResponseMessage(HttpStatusCode.OK);
+    //    }
+    //}
 }

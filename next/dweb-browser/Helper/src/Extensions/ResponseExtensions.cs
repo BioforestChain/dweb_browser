@@ -32,5 +32,29 @@ public static class ResponseExtensions
 
         return responseMessage;
     }
+
+    public static HttpListenerResponse ToHttpListenerResponse(this HttpResponseMessage self, HttpListenerResponse res)
+    {
+        res.StatusCode = (int)self.StatusCode;
+
+        foreach (var header in self.Headers)
+        {
+            res.Headers[header.Key] = string.Join(",", header.Value);
+        }
+
+        foreach (var header in self.Content.Headers)
+        {
+            res.Headers[header.Key] = string.Join(",", header.Value);
+        }
+
+        res.ContentType = self.Content.Headers.ContentType?.MediaType;
+
+        using (var stream = self.Content.ReadAsStreamAsync().Result)
+        {
+            stream.CopyTo(res.OutputStream);
+        }
+
+        return res;
+    }
 }
 

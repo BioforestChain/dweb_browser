@@ -76,6 +76,15 @@ public static class NetServer
             }
         }, listener);
 
+        Task.Run(async () =>
+        {
+            while (true)
+            {
+                var context = await listener.GetContextAsync();
+                await HttpRouter.RouterHandler(context, null);
+            }
+        });
+
         return new HttpServerInfo(
             listener,
             host,

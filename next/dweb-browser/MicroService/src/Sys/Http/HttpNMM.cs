@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 using DwebBrowser.MicroService.Sys.Dns;
-using DwebBrowser.MicroService.Sys.Http.Net;
 
 namespace DwebBrowser.MicroService.Sys.Http;
 
@@ -145,42 +144,10 @@ public class HttpNMM : NativeMicroModule
 
     public record ServerStartResult(string token, ServerUrlInfo urlInfo);
 
-    public static HttpHandler DefineHandler(
-        Func<HttpRequestMessage, object?> handler)
-    {
-        return request =>
-        {
-            switch (handler(request))
-            {
-                case null:
-                    return new HttpResponseMessage(HttpStatusCode.OK);
-                case HttpResponseMessage response:
-                    return response;
-                case byte[] result:
-                    return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-                    {
-                        it.Content = new StreamContent(new MemoryStream().Let(s =>
-                        {
-                            s.Write(result, 0, result.Length);
-                            return s;
-                        }));
-                    });
-                case Stream stream:
-                    return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StreamContent(stream));
-                default:
-                    return new HttpResponseMessage(HttpStatusCode.OK);
-            }
-        };
-    }
-
-    public static HttpHandler DefineHandler(
-        Func<HttpRequestMessage, Ipc, object?> handler, Ipc ipc) =>
-        DefineHandler(request => handler(request, ipc));
-
-    protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
+    protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         // TODO: 异步Lambada表达式无法转化为Func<HttpRequestMessage, HttpResponseMessage>
-        DwebServer.CreateAsync(request =>
+        await DwebServer.CreateAsync(request =>
         {
             return _httpHandler(request).Result;
         });
@@ -202,13 +169,57 @@ public class HttpNMM : NativeMicroModule
         });
         _onAfterShutdown += async (_) => { cb(); };
 
-        return Task.Run(() => { });
+        HttpRouter.AddRoute(HttpMethod.Get.Method, "/start", async (request, ipc) =>
+        {
+            var dwebServerOptions = new DwebHttpServerOptions(
+                request.QueryValidate<int>("port", false),
+                request.QueryValidate<string>("subdomain", false));
+            return _start(ipc, dwebServerOptions);
+        });
+
+        HttpRouter.AddRoute(HttpMethod.Post.Method, "/listen", async (request, _) =>
+        {
+            var token = request.QueryValidate<string>("token");
+            var routes = JsonSerializer.Deserialize<List<Gateway.RouteConfig>>(request.QueryValidate<string>("routes"));
+            return _listen(token, request, routes);
+        });
+
+        HttpRouter.AddRoute(HttpMethod.Get.Method, "/close", async (request, ipc) =>
+        {
+            var dwebServerOptions = new DwebHttpServerOptions(
+                request.QueryValidate<int>("port", false),
+                request.QueryValidate<string>("subdomain", false));
+            return _close(ipc, dwebServerOptions);
+        });
     }
 
     protected override Task _shutdownAsync() => Task.Run(() => DwebServer.CloseServer());
 
     protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
     { }
+
+    private ServerStartResult _start(Ipc ipc, DwebHttpServerOptions options)
+    {
+        var serverUrlInfo = _getServerUrlInfo(ipc, options);
+        if (_gatewayMap.ContainsKey(serverUrlInfo.Host))
+        {
+            throw new Exception($"already in listen: {serverUrlInfo.Internal_Origin}");
+        }
+
+        var listener = new Gateway.PortListener(ipc, serverUrlInfo.Host);
+
+        /// ipc 在关闭的时候，自动释放所有的绑定
+        //listener.OnDestory += async (_) => { return (ipc.OnClose += async (_) => _close(ipc, options)); };
+        listener.OnDestory += async (_) => { ipc.OnClose += async (_) => _close(ipc, options); };
+
+        var token = Token.RandomCryptoString(8);
+
+        var gateway = new Gateway(listener, serverUrlInfo, token);
+        _gatewayMap.Add(serverUrlInfo.Host, gateway);
+        _tokenMap.Add(token, gateway);
+
+        return new ServerStartResult(token, serverUrlInfo);
+    }
 
     /**
      * <summary>

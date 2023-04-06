@@ -112,45 +112,58 @@ public class DnsNMM : NativeMicroModule
         public Task BootstrapAsync(string mmid) => _dnsMM.OpenAsync(mmid);
     }
 
-    protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
+    protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        return Task.Run(() =>
-        {
-            Install(this);
-            _runningApps.Add(Mmid, this);
+        Install(this);
+        _runningApps.Add(Mmid, this);
 
-            /**
-             * 对全局的自定义路由提供适配器
-             * 对 nativeFetch 定义 file://xxx.dweb的解析
-             */
-            var cb = NativeFetch.NativeFetchAdaptersManager.Append((fromMM, request) =>
+        /**
+         * 对全局的自定义路由提供适配器
+         * 对 nativeFetch 定义 file://xxx.dweb的解析
+         */
+        var cb = NativeFetch.NativeFetchAdaptersManager.Append((fromMM, request) =>
+        {
+            if (request.RequestUri is not null && request.RequestUri!.Scheme == "file"
+                && request.RequestUri.Host.EndsWith(".dweb"))
             {
-                if (request.RequestUri is not null && request.RequestUri!.Scheme == "file"
-                    && request.RequestUri.Host.EndsWith(".dweb"))
-                {
-                    var mmid = request.RequestUri.Host;
-                    Console.WriteLine($@"DNS/fetchAdapter
+                var mmid = request.RequestUri.Host;
+                Console.WriteLine($@"DNS/fetchAdapter
                         FromMM={fromMM.Mmid} >> requestMmid={mmid}: >> path={request.RequestUri.AbsolutePath}
                         >> {request.RequestUri}
                 ");
 
-                    var microModule = _installApps.GetValueOrDefault(mmid);
+                var microModule = _installApps.GetValueOrDefault(mmid);
 
-
-                    /// TODO: 异步返回lambada无法正确识别，待优化
-                    if (microModule is not null)
-                    {
-                        var connectResult = _connectTo(fromMM, mmid, request).Result;
-                        return connectResult.IpcForFromMM.Request(request).Result;
-                    }
-
-                    return new HttpResponseMessage(HttpStatusCode.BadGateway).Also(it =>
-                        it.Content = new StringContent(request.RequestUri.ToString()));
+                /// TODO: 异步返回lambada无法正确识别，待优化
+                if (microModule is not null)
+                {
+                    var connectResult = _connectTo(fromMM, mmid, request).Result;
+                    return connectResult.IpcForFromMM.Request(request).Result;
                 }
 
-                return null;
-            });
-            _onAfterShutdown += async (_) => { cb(); };
+                return new HttpResponseMessage(HttpStatusCode.BadGateway).Also(it =>
+                    it.Content = new StringContent(request.RequestUri.ToString()));
+            }
+
+            return null;
+        });
+        _onAfterShutdown += async (_) => { cb(); };
+
+        // 打开应用
+        HttpRouter.AddRoute(HttpMethod.Get.Method, "/open", async (request, _) =>
+        {
+            Console.WriteLine($"open/{Mmid} {request.RequestUri?.AbsolutePath}");
+            await OpenAsync(request.QueryValidate<Mmid>("mmid"));
+            return true;
+        });
+
+        // 关闭应用
+        // TODO 能否关闭一个应该应该由应用自己决定
+        HttpRouter.AddRoute(HttpMethod.Get.Method, "/close", async (request, _) =>
+        {
+            Console.WriteLine($"close/{Mmid} {request.RequestUri?.AbsolutePath}");
+            await OpenAsync(request.QueryValidate<string>("app_id"));
+            return true;
         });
     }
 

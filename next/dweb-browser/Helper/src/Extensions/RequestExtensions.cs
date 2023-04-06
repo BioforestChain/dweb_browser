@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Web;
 namespace DwebBrowser.Helper;
 
 public static class RequestExtensions
@@ -32,6 +33,29 @@ public static class RequestExtensions
         // Now you can use the requestMessage object to send the request
         // using HttpClient or any other HTTP client library
         return requestMessage;
+    }
+
+    public static T? QueryValidate<T>(this HttpRequestMessage self, string name, bool required = true)
+    {
+        if (self.RequestUri is null) throw new Exception("request uri is null");
+
+        try
+        {
+            var query = self.RequestUri.GetQuery(name);
+
+            if (query is not null)
+            {
+                return (T)Convert.ChangeType(query, typeof(T));
+            }
+            else
+            {
+                throw new Exception("query name is no found");
+            }
+        }
+        catch
+        {
+            return default;
+        }
     }
 }
 

@@ -2,7 +2,7 @@
 
 namespace DwebBrowser.MicroService.Sys.Boot;
 
-public class BootNMM: NativeMicroModule
+public class BootNMM : NativeMicroModule
 {
     /**
      * 开机启动项注册表
@@ -11,7 +11,7 @@ public class BootNMM: NativeMicroModule
     private HashSet<Mmid> _registeredMmids = new();
 
     public BootNMM(List<Mmid>? initMmids = null)
-	{
+    {
         Mmid = "boot.sys.dweb";
 
         if (initMmids is not null)
@@ -20,13 +20,20 @@ public class BootNMM: NativeMicroModule
         }
 
         Router = new Dictionary<string, Func<Dictionary<string, string>, object>>();
-	}
+    }
 
     public override string Mmid { get; init; }
 
-    protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
+    protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        throw new NotImplementedException();
+        HttpRouter.AddRoute(HttpMethod.Get.Method, "/register", async (_, ipc) =>
+        {
+            return _register(ipc!.Remote.Mmid);
+        });
+        HttpRouter.AddRoute(HttpMethod.Get.Method, "/unregister", async (_, ipc) =>
+        {
+            return _unregister(ipc.Remote.Mmid);
+        });
     }
 
     protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
@@ -40,9 +47,9 @@ public class BootNMM: NativeMicroModule
         }
     }
 
-    protected override Task _shutdownAsync()
+    protected override async Task _shutdownAsync()
     {
-        return Task.Run(() => Router!.Clear());
+        Router!.Clear();
     }
 
     /**
