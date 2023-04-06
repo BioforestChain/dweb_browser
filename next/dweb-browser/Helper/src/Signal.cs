@@ -10,59 +10,85 @@ public static class SignalExtendsions
 {
     public static async Task Emit(this Signal self)
     {
+        try
+        {
+            var list = (Signal[])self.GetInvocationList();
+            if (list == null)
+            {
+                return;
+            }
+            if (list.Length == 1)
+            {
+                await self(self).ForAwait();
+                return;
+            }
 
-        var list = (Signal[])self.GetInvocationList();
-        if (list == null)
-        {
-            return;
+            for (int i = 0; i < list.Length; i++)
+            {
+                var cb = list[i];
+                await cb(cb).ForAwait();
+                return;
+            }
         }
-        if (list.Length == 1)
+        catch (Exception e)
         {
-            await self(self).ForAwait();
-        }
-
-        for (int i = 0; i < list.Length; i++)
-        {
-            var cb = list[i];
-            await cb(cb).ForAwait();
+            System.Diagnostics.Debug.WriteLine(e);
         }
     }
     public static async Task Emit<T1>(this Signal<T1> self, T1 arg1)
     {
 
-        var list = (Signal<T1>[])self.GetInvocationList();
-        if (list == null)
+        try
         {
-            return;
-        }
-        if (list.Length == 1)
-        {
-            await self(arg1, self).ForAwait();
-        }
+            var list = self.GetInvocationList();
+            if (list == null)
+            {
+                return;
+            }
+            if (list.Length == 1)
+            {
+                await self(arg1, self).ForAwait();
+                return;
+            }
 
-        for (int i = 0; i < list.Length; i++)
+            for (int i = 0; i < list.Length; i++)
+            {
+                var cb = (Signal<T1>)list[i];
+                await cb(arg1, cb).ForAwait();
+                return;
+            }
+        }
+        catch (Exception e)
         {
-            var cb = list[i];
-            await cb(arg1, cb).ForAwait();
+            System.Diagnostics.Debug.WriteLine(e);
         }
     }
     public static async Task Emit<T1, T2>(this Signal<T1, T2> self, T1 arg1, T2 arg2)
     {
 
-        var list = (Signal<T1, T2>[])self.GetInvocationList();
-        if (list == null)
+        try
         {
-            return;
-        }
-        if (list.Length == 1)
-        {
-            await self(arg1, arg2, self).ForAwait();
-        }
+            var list = self.GetInvocationList();
+            if (list == null)
+            {
+                return;
+            }
+            if (list.Length == 1)
+            {
+                await self(arg1, arg2, self).ForAwait();
+                return;
+            }
 
-        for (int i = 0; i < list.Length; i++)
+            for (int i = 0; i < list.Length; i++)
+            {
+                var cb = (Signal<T1, T2>)list[i];
+                await cb(arg1, arg2, cb).ForAwait();
+                return;
+            }
+        }
+        catch (Exception e)
         {
-            var cb = list[i];
-            await cb(arg1, arg2, cb).ForAwait();
+            System.Diagnostics.Debug.WriteLine(e);
         }
     }
 }
