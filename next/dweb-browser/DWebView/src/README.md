@@ -4,7 +4,7 @@
 /// 创建，该对象直接继承于 WKWebView，所以可以直接作为 UIView 使用
 var dwebview = DWebView.Create();
 /// 同 Android 的 createWebMessageChannel 接口一样，创建出 WebMessageChannel，差别在于，Android 是同步函数，这里是异步函数。
-var channel = await dwebview.createWebMessageChannel();
+var channel = await dwebview.CreateWebMessageChannel();
 /// 事件监听，Signal<WebMessage>
 channel.port2.OnMessage += async (messageEvent, _) =>
 {
