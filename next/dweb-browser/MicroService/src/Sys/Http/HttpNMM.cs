@@ -1,11 +1,13 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
+using DwebBrowser.MicroService.Sys.Dns;
 using DwebBrowser.MicroService.Sys.Http.Net;
 
 namespace DwebBrowser.MicroService.Sys.Http;
 
 public class HttpNMM : NativeMicroModule
 {
-    public static Http1Server DwebServer { get; set; }
+    public static Http1Server DwebServer = new Http1Server();
     public override string Mmid { get; init; }
 
     /// 注册的域名与对应的 token
@@ -15,6 +17,97 @@ public class HttpNMM : NativeMicroModule
     public HttpNMM()
     {
         Mmid = "http.sys.dweb";
+    }
+
+
+    /**
+     * <summary>
+     * 监听请求
+     *
+     * 真实过来的请求有两种情况：
+     * 1. http://subdomain.localhost:24433
+     * 2. http://localhost:24433
+     * 前者是桌面端自身 chrome 支持的情况，后者才是常态。
+     * 但是我们返回给开发者的端口只有一个，这就意味着我们需要额外手段进行路由
+     *
+     * 如果这个请求是发生在 nativeFetch 中，我们会将请求的 url 改成 http://localhost:24433，同时在 headers.user-agent 的尾部加上 dweb-host/subdomain.localhost:24433
+     * 如果这个请求是 webview 中发出，我们一开始就会为整个 webview 设置 user-agent，使其行为和上条一致
+     *
+     * 如果在 webview 中，要跨域其它请求，那么 webview 的拦截器能对 get 请求进行简单的转译处理，
+     * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
+     * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
+     * </summary>
+     */
+    private async Task<HttpResponseMessage> _httpHandler(HttpRequestMessage request)
+    {
+        string? header_host = null;
+        string? header_x_dweb_host = null;
+        string? header_user_agent_host = null;
+        string? query_x_web_host = request.RequestUri?.GetQuery("X-Dweb-Host")?.DecodeURIComponent();
+
+        foreach (var entry in request.Headers)
+        {
+            switch (entry.Key)
+            {
+                case "Host":
+                    header_host = entry.Value.FirstOrDefault();
+                    break;
+                case "X-Dweb-Host":
+                    header_x_dweb_host = entry.Value.FirstOrDefault();
+                    break;
+                case "User-Agent":
+                    header_user_agent_host = _dwebHostRegex(entry.Value.FirstOrDefault());
+                    break;
+            }
+        }
+
+        var host = (query_x_web_host ?? header_x_dweb_host ?? header_user_agent_host ?? header_host).Let(host =>
+        {
+            if (host is null) return "*";
+
+            /// 如果没有端口，补全端口
+            if (!host.Contains(':'))
+            {
+                return host + ":" + Http1Server.PORT;
+            }
+
+            return host;
+        });
+
+        /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
+        /// TODO 30s 没有任何 body 写入的话，认为网关超时
+
+        /**
+         * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
+         * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
+         */
+        var response = _gatewayMap.GetValueOrDefault(host)?.Let(gateway =>
+        {
+            return gateway.Listener.HookHttpRequestAsync(request);
+        });
+
+        var notFound = new HttpResponseMessage(HttpStatusCode.NotFound);
+
+        return response is not null
+            ? (await response) is not null
+                ? (await response)! : notFound
+            : notFound;
+    }
+
+    private string? _dwebHostRegex(string? str)
+    {
+        if (str is null) return null;
+
+        var reg = new Regex(@"\sdweb-host/(\S+)");
+        MatchCollection matches = reg.Matches(str);
+
+        foreach (Match match in matches)
+        {
+            GroupCollection groups = match.Groups;
+            return groups[1].Value;
+        }
+
+        return null;
     }
 
     public struct ServerUrlInfo
@@ -52,7 +145,7 @@ public class HttpNMM : NativeMicroModule
 
     public record ServerStartResult(string token, ServerUrlInfo urlInfo);
 
-    public static Func<HttpRequestMessage, HttpResponseMessage> DefineHandler(
+    public static HttpHandler DefineHandler(
         Func<HttpRequestMessage, object?> handler)
     {
         return request =>
@@ -80,24 +173,42 @@ public class HttpNMM : NativeMicroModule
         };
     }
 
-    public static Func<HttpRequestMessage, HttpResponseMessage> DefineHandler(
+    public static HttpHandler DefineHandler(
         Func<HttpRequestMessage, Ipc, object?> handler, Ipc ipc) =>
         DefineHandler(request => handler(request, ipc));
 
     protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        throw new NotImplementedException();
+        // TODO: 异步Lambada表达式无法转化为Func<HttpRequestMessage, HttpResponseMessage>
+        DwebServer.CreateAsync(request =>
+        {
+            return _httpHandler(request).Result;
+        });
+
+        /// 为 nativeFetch 函数提供支持
+        var cb = NativeFetch.NativeFetchAdaptersManager.Append((fromMM, request) =>
+        {
+            if (request.RequestUri is not null &&
+                request.RequestUri.Scheme is "http" or "https" &&
+                request.RequestUri.Host.EndsWith(".dweb"))
+            {
+                // 无需走网络层，直接内部处理掉
+                request.Headers.Add("X-Dweb-Host", request.RequestUri.GetFullAuthority(request.RequestUri.Authority));
+                request.RequestUri = request.RequestUri.SetSchema("http").SetAuthority(DwebServer.Authority);
+                return _httpHandler(request).Result;
+            }
+
+            return null;
+        });
+        _onAfterShutdown += async (_) => { cb(); };
+
+        return Task.Run(() => { });
     }
 
-    protected override Task _shutdownAsync()
-    {
-        throw new NotImplementedException();
-    }
+    protected override Task _shutdownAsync() => Task.Run(() => DwebServer.CloseServer());
 
-    protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    {
-        throw new NotImplementedException();
-    }
+    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
+    { }
 
     /**
      * <summary>

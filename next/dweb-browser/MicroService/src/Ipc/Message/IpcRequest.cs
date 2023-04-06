@@ -103,9 +103,13 @@ public class IpcRequest : IpcMessage
                         throw new Exception($"invalid body to request: {Body.Raw}");
                 }
 
-                foreach (KeyValuePair<string, string> entry in Headers.GetEnumerator())
+                //foreach (KeyValuePair<string, string> entry in Headers.GetEnumerator())
+                //{
+                //    it.Content.Headers.Add(entry.Key, entry.Value);
+                //}
+                foreach (var entry in Headers.GetEnumerator())
                 {
-                    it.Content.Headers.Add(entry.Key, entry.Value);
+                    it.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
                 }
             });
 

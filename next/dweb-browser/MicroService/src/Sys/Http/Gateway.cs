@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Net;
 namespace DwebBrowser.MicroService.Sys.Http;
 
 public class Gateway

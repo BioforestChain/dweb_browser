@@ -32,16 +32,16 @@ public interface IServerInfo<S>
     public IProtocol Protocol { get; set; }
 }
 
-public struct HttpServerInfo : IServerInfo<HttpClient>
+public struct HttpServerInfo : IServerInfo<HttpListener>
 {
-    public HttpClient Server { get; set; }
+    public HttpListener Server { get; set; }
     public string Host { get; set; }
     public string Hostname { get; set; }
     public int Port { get; set; }
     public string Origin { get; set; }
     public IProtocol Protocol { get; set; }
 
-    public HttpServerInfo(HttpClient server, string host, string hostname, int port, string origin, IProtocol protocol)
+    public HttpServerInfo(HttpListener server, string host, string hostname, int port, string origin, IProtocol protocol)
     {
         Server = server;
         Host = host;
@@ -56,15 +56,28 @@ public record ListenOptions(int Port, string Hostname = "localhost");
 
 public static class NetServer
 {
-    public static IServerInfo<HttpClient> HttpCreateServer(ListenOptions listenOptions)
+    public static IServerInfo<HttpListener> HttpCreateServer(ListenOptions listenOptions, HttpHandler handler)
     {
         var host = $"{listenOptions.Hostname}:{listenOptions.Port}";
         var origin = $"http://{host}";
 
-        var httpClient = new HttpClient { BaseAddress = new Uri(origin) };
+        var listener = new HttpListener();
+        listener.Prefixes.Add(origin);
+        listener.Start();
+
+        listener.BeginGetContext((ar) =>
+        {
+            var listener = (HttpListener?)ar.AsyncState;
+
+            if (listener is not null)
+            {
+                var context = listener.EndGetContext(ar);
+                handler(context.Request.ToHttpRequestMessage());
+            }
+        }, listener);
 
         return new HttpServerInfo(
-            httpClient,
+            listener,
             host,
             listenOptions.Hostname,
             listenOptions.Port,

@@ -9,9 +9,9 @@ public class Http1Server
 
     private int _bindingPort = -1;
 
-    private IServerInfo<HttpClient>? _info;
+    private IServerInfo<HttpListener>? _info;
 
-    public IServerInfo<HttpClient>? Info
+    public IServerInfo<HttpListener>? Info
     {
         get => _info;
     }
@@ -26,19 +26,19 @@ public class Http1Server
         get => $"{PREFIX}{Authority}";
     }
 
-    public Task<IServerInfo<HttpClient>> CreateAsync()
+    public Task<IServerInfo<HttpListener>> CreateAsync(HttpHandler handler)
     {
         int local_port = _bindingPort = PortHelper.FindPort(new int[] { 22605 });
 
         return Task.Run(() =>
         {
-            return (NetServer.HttpCreateServer(new ListenOptions(local_port)));
+            return (NetServer.HttpCreateServer(new ListenOptions(local_port), handler));
         });
     }
 
-    public void Destroy()
+    public void CloseServer()
     {
-        _info?.Server.Dispose();
+        _info?.Server.Stop();
         _info = null;
     }
 }

@@ -3,7 +3,7 @@ using System.Buffers;
 using System.IO;
 using System.Diagnostics;
 
-namespace DwebBrowser.MicroServiceHelpers;
+namespace DwebBrowser.MicroServiceTests;
 
 public class EncodingCoverterTest
 {

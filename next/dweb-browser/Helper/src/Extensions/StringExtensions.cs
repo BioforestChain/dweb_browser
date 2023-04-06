@@ -1,4 +1,5 @@
 using System.Text;
+using System.Web;
 namespace DwebBrowser.Helper;
 
 public static class StringExtensions
@@ -15,5 +16,14 @@ public static class StringExtensions
         "false" => false,
         _ => null
     };
+
+    public static string EncodeURI(this string self) => HttpUtility.UrlEncode(self);
+
+    public static string DecodeURI(this string self) => HttpUtility.UrlDecode(self);
+
+    public static string EncodeURIComponent(this string self) => Uri.EscapeDataString(self);
+
+    public static string DecodeURIComponent(this string self) => Uri.UnescapeDataString(self);
+
 }
 

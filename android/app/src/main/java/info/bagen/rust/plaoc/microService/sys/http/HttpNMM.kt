@@ -62,7 +62,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
                 }
                 "User-Agent" -> {
                     if (value != null) {
-                        Regex("""\sdweb-host/(.+)\s*""").find(value)?.also { matchResult ->
+                        Regex("""\sdweb-host/(\S+)""").find(value)?.also { matchResult ->
                             header_user_agent_host = matchResult.groupValues[1]
                         }
                     }

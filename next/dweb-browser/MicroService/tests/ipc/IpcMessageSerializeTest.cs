@@ -1,4 +1,4 @@
-﻿namespace DwebBrowser.MicroServiceHelpers;
+﻿namespace DwebBrowser.MicroServiceTests;
 
 public class IpcMessageSerializeTest
 {
