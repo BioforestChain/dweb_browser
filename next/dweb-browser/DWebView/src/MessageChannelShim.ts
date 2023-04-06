@@ -10,14 +10,14 @@ const getPortId = (port: MessagePort) => {
     const current_port_id = portIdAcc++;
     port_id = current_port_id;
     ALL_PORT.set(port_id, port);
-    port.onmessage = (event) => {
+    port.addEventListener('message', (event) => {
       webkit.messageHandlers.webMessagePort.postMessage({
         type: 'message',
         id: current_port_id,
         data: event.data,
         ports: event.ports.map(getPortId),
       });
-    };
+    });
   }
   return port_id;
 };

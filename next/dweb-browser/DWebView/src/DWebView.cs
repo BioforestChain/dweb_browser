@@ -45,14 +45,14 @@ const getPortId = (port) => {
         const current_port_id = portIdAcc++;
         port_id = current_port_id;
         ALL_PORT.set(port_id, port);
-        port.onmessage = (event) => {
+        port.addEventListener('message', (event) => {
             webkit.messageHandlers.webMessagePort.postMessage({
                 type: 'message',
                 id: current_port_id,
                 data: event.data,
                 ports: event.ports.map(getPortId),
             });
-        };
+        });
     }
     return port_id;
 };
@@ -82,6 +82,7 @@ function nativeWindowPostMessage(data, ports_id) {
     const ports = ports_id.map(forceGetPort);
     dispatchEvent(new MessageEvent('message', { data, ports }));
 }
+
     ";
     internal static readonly WKContentWorld webMessagePortContentWorld = WKContentWorld.Create("web-message-port");
     internal static Dictionary<int, WebMessagePort> allPorts = new Dictionary<int, WebMessagePort>();
@@ -105,7 +106,6 @@ function nativeWindowPostMessage(data, ports_id) {
                     WebMessagePort[] ports = new WebMessagePort[0];//message.ValueForKey(new NSString("ports"));
 
                     var originPort = DWebView.allPorts[id] ?? throw new KeyNotFoundException();
-                    Console.WriteLine("onmessage: {0}", data);
                     await originPort._emitOnMessage(new WebMessage(data, ports));
                 }
             }

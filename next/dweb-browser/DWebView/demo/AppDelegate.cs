@@ -40,26 +40,24 @@ public class AppDelegate : UIApplicationDelegate
         btn.AddTarget(new EventHandler(async (sender, e) =>
         {
             var channel = await dwebview.createWebMessageChannel();
-            channel.port1.OnMessage += async (messageEvent, _) =>
-            {
-                Console.WriteLine("port1 on message: {0}", messageEvent.Data.ToString());
-            };
-            await channel.port1.Start();
+
             channel.port2.OnMessage += async (messageEvent, _) =>
             {
                 Console.WriteLine("port2 on message: {0}", messageEvent.Data.ToString());
             };
-            await channel.port2.Start();
             _ = Task.Run(async () =>
             {
                 var i = 0;
-                while (i++ < 3)
+                while (i++ < 5)
                 {
                     Console.WriteLine("postMessage {0}", i);
                     await channel.port1.PostMessage(new WebMessage(new NSString("你好" + i)));
-                    await Task.Delay(500);
+                    await Task.Delay(100);
+                    if (i >= 3)
+                    {
+                        await channel.port2.Start();
+                    }
                 }
-
                 await dwebview.PostMessage("你好", new WebMessagePort[] { channel.port1 });
             });
         })
