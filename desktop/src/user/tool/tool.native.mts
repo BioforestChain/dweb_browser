@@ -12,6 +12,7 @@ export const cros = (headers: $IpcHeaders) => {
   return headers;
 };
 
+/**开启新页面 */
 export const nativeOpen = async (url: string) => {
   return await jsProcess
     .nativeFetch(
@@ -27,6 +28,20 @@ export const nativeActivate = async (webview_id: string) => {
       `file://mwebview.sys.dweb/activate?webview_id=${encodeURIComponent(webview_id)}`
     )
     .text();
+}
+
+
+/**关闭app */
+export const closeApp = async (mmid: string) => {
+  return await jsProcess.nativeFetch(`file://dns.sys.dweb/close?app_id=${mmid}`).text()
+}
+// /**关闭http */
+// export const closeHttp = async (port: number, subdomain: string) => {
+//   return await jsProcess.nativeFetch(`file://dns.sys.dweb/close?port=${port}&subdomain=${subdomain}`).text()
+// }
+
+export const openApp = async (mmid: string) => {
+  return await jsProcess.nativeFetch(`file://dns.sys.dweb/open?app_id=${mmid}`).text()
 }
 
 

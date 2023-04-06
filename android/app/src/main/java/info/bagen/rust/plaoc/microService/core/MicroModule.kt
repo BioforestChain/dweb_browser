@@ -23,7 +23,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
             throw Exception("module ${this.mmid} already running");
         }
         this.runningStateLock = PromiseOut()
-        this._bootstrapContext = bootstrapContext // 保存contxt
+        this._bootstrapContext = bootstrapContext // 保存context
     }
 
     private var _bootstrapContext: BootstrapContext? = null

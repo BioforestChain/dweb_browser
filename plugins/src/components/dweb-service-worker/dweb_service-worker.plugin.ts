@@ -1,5 +1,4 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { streamRead } from "../../helper/readableStreamHelper.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 
 export class DwebServiceWorkerPlugin extends BasePlugin {
@@ -19,13 +18,13 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   /**关闭后端 */
   @bindThis
   async close() {
-    return await this.fetchApi("/close")
+    return await this.fetchApi("/close").boolean()
   }
 
   /**重启后端 */
   @bindThis
   async restart() {
-    return await this.fetchApi("/restart")
+    return await this.fetchApi("/restart").boolean()
   }
 
 }
@@ -38,17 +37,15 @@ class UpdateControllerPlugin extends BasePlugin {
 
   constructor() {
     super("jmm.sys.dweb")
-    this.init()
   }
 
   async init() {
-    console.log(`UpdateControllerPlugin =>${await this.getMMid()} , ${this.mmid}`)
   }
 
   // 暂停
   @bindThis
   async pause() {
-    return await this.fetchApi("/pause")
+    return await this.fetchApi("/pause").boolean()
   }
   // 重下
   @bindThis
@@ -61,20 +58,20 @@ class UpdateControllerPlugin extends BasePlugin {
     return await this.fetchApi("/cancel").boolean()
   }
   /**返回进度信息 */
-  @bindThis
-  async *progress(options?: { signal?: AbortSignal }) {
-    const jsonlines = await this
-      .buildInternalApiRequest("/observeUpdateProgress", {
-        search: { mmid: this.mmid },
-        base: await BasePlugin.public_url,
-      })
-      .fetch()
-      .jsonlines(Number);
-    for await (const progress of streamRead(jsonlines, options)) {
-      this.progressNum = progress
-      yield progress;
-    }
-  }
+  // @bindThis
+  // async *progress(options?: { signal?: AbortSignal }) {
+  //   const jsonlines = await this
+  //     .buildInternalApiRequest("/observeUpdateProgress", {
+  //       search: { mmid: this.mmid },
+  //       base: await BasePlugin.public_url,
+  //     })
+  //     .fetch()
+  //     .jsonlines(Number);
+  //   for await (const progress of streamRead(jsonlines, options)) {
+  //     this.progressNum = progress
+  //     yield progress;
+  //   }
+  // }
   @bindThis
   async getMMid() {
     return await BasePlugin.public_url

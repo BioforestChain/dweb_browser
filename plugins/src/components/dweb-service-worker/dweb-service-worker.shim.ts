@@ -90,11 +90,10 @@ class UpdateController extends EventTarget {
   get cancel() {
     return dwebServiceWorkerPlugin.update().cancel
   }
-  // 取消
-  @cacheGetter()
-  get progress() {
-    return dwebServiceWorkerPlugin.update().progress
-  }
+  // @cacheGetter()
+  // get progress() {
+  //   return dwebServiceWorkerPlugin.update().progress
+  // }
 
   addEventListener<K extends keyof UpdateControllerMap>(
     type: K,

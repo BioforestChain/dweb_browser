@@ -145,7 +145,6 @@ class BrowserViewModel() : ViewModel() {
           }
         }
         is BrowserIntent.UpdateCurrentBaseView -> {
-          Log.e("lin.huang", "xxxxxxxxxxxxxxxxxxxx UpdateCurrentBaseView ${action.currentPage}")
           if (action.currentPage >= 0 && action.currentPage < uiState.browserViewList.size) {
             uiState.currentBrowserBaseView.value = uiState.browserViewList[action.currentPage]
           }

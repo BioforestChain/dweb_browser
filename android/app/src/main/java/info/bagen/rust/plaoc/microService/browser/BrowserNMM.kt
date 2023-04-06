@@ -8,6 +8,11 @@ import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
+import org.http4k.core.Method
+import org.http4k.lens.Query
+import org.http4k.lens.string
+import org.http4k.routing.bind
+import org.http4k.routing.routes
 
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("browser", tag, msg, err)
@@ -16,12 +21,18 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
     companion object {
         lateinit var browserController: BrowserController
     }
-
     init {
         browserController = BrowserController("browser.sys.dweb", this)
     }
-
+    val query_app_id = Query.string().required("app_id")
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+        apiRouting = routes(
+            "/openApp" bind Method.GET to defineHandler { request ->
+                // TODO 直接调这个后端没启动
+               val mmid = query_app_id(request)
+                browserController.showLoading.value = true
+                return@defineHandler browserController.openApp(mmid)
+            })
     }
 
     override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {

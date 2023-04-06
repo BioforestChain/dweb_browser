@@ -11,11 +11,19 @@ class CotDemoJMM : JsMicroModule(
             root = "file:///bundle",
             entry = "/cotDemo.worker.js"
         ),
-        splashScreen = JmmMetadata.SplashScreen("https://www.bfmeta.org/")
+        splashScreen = JmmMetadata.SplashScreen("https://www.bfmeta.org/"),
+        staticWebServers = listOf(
+            JmmMetadata.StaticWebServer(
+                root = "file:///bundle",
+                entry = "/cotDemo.worker.js",
+                port = 80,
+                subdomain = "cotdemo.bfs.dweb"
+            )
+        )
     )
 ) {
-   init {
-       // TODO 测试打开的需要把metadata添加到 jmm app
-       getAndUpdateJmmNmmApps()[mmid] = this
-   }
+    init {
+        // TODO 测试打开的需要把metadata添加到 jmm app
+        getAndUpdateJmmNmmApps()[mmid] = this
+    }
 }

@@ -228,6 +228,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
     private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
+        debugHttp("close", "mmid: ${ipc.remote.mmid} ${serverUrlInfo.host}")
         return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
             tokenMap.remove(gateway.token)
             gateway.listener.destroy()

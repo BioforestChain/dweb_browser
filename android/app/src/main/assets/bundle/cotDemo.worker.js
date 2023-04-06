@@ -465,7 +465,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         );
         return;
       }
-      if (pathname === "/observe" || pathname === "/observeUpdateProgress") {
+      if (pathname === "/observe") {
         const streamPo = observeFactory(url);
         ipcResponse = IpcResponse.fromStream(
           request.req_id,
@@ -659,8 +659,36 @@ var main = async () => {
     port: 443
   });
   (await apiServer.listen()).onRequest(async (request, ipc2) => {
+    const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
+    if (url.pathname.startsWith("/service-worker.nativeui.sys.dweb")) {
+      const result = await serviceWorkerFactory(url, ipc2);
+      const ipcResponse = IpcResponse2.fromText(
+        request.req_id,
+        200,
+        void 0,
+        result,
+        ipc2
+      );
+      cros(ipcResponse.headers);
+      return ipc2.postMessage(ipcResponse);
+    }
     onApiRequest(apiServer.startResult.urlInfo, request, ipc2);
   });
+  const serviceWorkerFactory = async (url, ipc2) => {
+    const pathname = url.pathname;
+    console.log("demo#serviceWorkerFactory pathname=>", pathname);
+    const path = `file:/${url.pathname}${url.search}`;
+    const response = await jsProcess.nativeFetch(path);
+    if (pathname.endsWith("close") || pathname.endsWith("restart")) {
+      const apiServerResult = await apiServer.close();
+      const wwwServerResult = await wwwServer.close();
+      console.log("serviceWorkerFactory Close =>", apiServerResult, wwwServerResult);
+      if (!apiServerResult || !wwwServerResult) {
+        return "Backend server shutdown failed!!!";
+      }
+    }
+    return await response.text();
+  };
   (await wwwServer.listen()).onRequest(async (request, ipc2) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
@@ -721,6 +749,7 @@ var main = async () => {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
+    console.log("cotDemo#interUrl=>", interUrl);
     mainUrl.resolve(interUrl);
     if (hasActivity === false) {
       await tryOpenView();

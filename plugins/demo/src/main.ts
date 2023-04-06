@@ -2,7 +2,6 @@ import * as bfexPlugin from "@bfex/plugin";
 import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import App from "./App.vue";
-import "./dwebServiceWorker"
 import "./app.css";
 
 // Vuetify

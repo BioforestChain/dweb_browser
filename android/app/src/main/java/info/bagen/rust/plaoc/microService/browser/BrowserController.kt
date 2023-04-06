@@ -6,13 +6,11 @@ import android.view.ViewGroup
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.google.gson.JsonSyntaxException
-import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.helper.*
 import info.bagen.rust.plaoc.microService.ipc.Ipc
 import info.bagen.rust.plaoc.microService.ipc.IpcEvent
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
-import info.bagen.rust.plaoc.microService.sys.mwebview.MultiWebViewActivity
 import info.bagen.rust.plaoc.network.HttpClient
 import info.bagen.rust.plaoc.network.base.byteBufferToString
 import kotlinx.coroutines.GlobalScope
@@ -69,7 +67,7 @@ class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
             }
             ipc
         }.also { ipc ->
-            debugBrowser("openApp", "postMessage==>activity")
+            debugBrowser("openApp", "postMessage==>activity ${localeMM.mmid}  $mmid")
             ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         }
     }

@@ -541,7 +541,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         );
         return;
       }
-      if (pathname === "/observe" || pathname === "/observeUpdateProgress") {
+      if (pathname === "/observe") {
         const streamPo = observeFactory(url);
         ipcResponse = IpcResponse.fromStream(
           request.req_id,

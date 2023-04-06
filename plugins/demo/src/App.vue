@@ -5,7 +5,7 @@ import { routes } from "./routes";
 
 const router = useRouter();
 
-router.push("/statusbar")
+router.push("/serviceworker")
 // router.push("/share");
 // router.push("/barcodescanning");
 

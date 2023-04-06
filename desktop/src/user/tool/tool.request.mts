@@ -9,7 +9,7 @@ import { cros } from "./tool.native.mjs";
 
 const { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
-type $Ipc = InstanceType<typeof Ipc>;
+export type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;
 
 const ipcObserversMap = new Map<
@@ -46,8 +46,8 @@ export async function onApiRequest(
         );
         return
       }
-      // 监听属性  监听更新进度
-      if (pathname === "/observe" || pathname === "/observeUpdateProgress") {
+      // 监听属性 
+      if (pathname === "/observe") {
         const streamPo = observeFactory(url)
         ipcResponse = IpcResponse.fromStream(
           request.req_id,
@@ -108,7 +108,6 @@ export async function onApiRequest(
 }
 
 /**监听属性的变化 */
-/**监听更新进度的变化 */
 const observeFactory = (url: URL) => {
   const mmid = url.searchParams.get("mmid");
   console.log("cotDemo#url.mmid=>", mmid)
@@ -144,4 +143,5 @@ const observeFactory = (url: URL) => {
   });
   return streamPo
 }
+
 

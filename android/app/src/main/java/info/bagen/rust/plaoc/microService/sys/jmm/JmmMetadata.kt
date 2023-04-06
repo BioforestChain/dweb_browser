@@ -59,7 +59,7 @@ data class JmmMetadata(
          * 入口文件
          */
         val entry: String = "index.html",
-        val subdomain: String = "",
+        val subdomain: String = "cotdemo.bfs.dweb",
         val port: Int = 80,
     ):java.io.Serializable
 

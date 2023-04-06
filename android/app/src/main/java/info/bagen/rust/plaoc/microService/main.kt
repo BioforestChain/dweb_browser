@@ -39,7 +39,8 @@ suspend fun startDwebBrowser(): DnsNMM {
     "mwebview",
     "browser",
     "jmm",
-    "SplashScreen"
+    "SplashScreen",
+     "DwebServiceWorker"
      */
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
@@ -55,7 +56,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             listOf("Share", "fetch", "http", "jmm", "browser")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
-            listOf("Share","mwebview")
+            listOf("Share","DwebServiceWorker","http")
         )
         else -> debugTags.addAll(
             listOf("Share","FileSystem")

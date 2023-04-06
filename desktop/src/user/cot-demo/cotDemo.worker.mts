@@ -1,7 +1,7 @@
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
-import { nativeOpen, nativeActivate, cros } from "../tool/tool.native.mjs";
-import { onApiRequest } from "../tool/tool.request.mjs";
+import { nativeOpen, nativeActivate, cros, closeApp, openApp } from "../tool/tool.native.mjs";
+import { $Ipc, onApiRequest } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
 
 const main = async () => {
@@ -42,8 +42,53 @@ const main = async () => {
   });
 
   (await apiServer.listen()).onRequest(async (request, ipc) => {
+    const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
+
+    // serviceWorker
+    if (url.pathname.startsWith("/service-worker.nativeui.sys.dweb")) {
+      const result = await serviceWorkerFactory(url, ipc)
+      const ipcResponse = IpcResponse.fromText(
+        request.req_id,
+        200,
+        undefined,
+        result,
+        ipc
+      );
+      cros(ipcResponse.headers);
+      // 返回数据到前端
+      return ipc.postMessage(ipcResponse);
+    }
     onApiRequest(apiServer.startResult.urlInfo, request, ipc);
   });
+
+  // 转发serviceWorker 请求
+  const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
+    const pathname = url.pathname;
+    console.log("demo#serviceWorkerFactory pathname=>", pathname)
+    // 转发file请求到目标NMM 关闭前端
+    const path = `file:/${url.pathname}${url.search}`;
+    const response = await jsProcess.nativeFetch(path);
+
+    if (pathname.endsWith("close") || pathname.endsWith("restart")) {
+      // 关闭后端
+      const apiServerResult = await apiServer.close()
+      const wwwServerResult = await wwwServer.close()
+      console.log("serviceWorkerFactory Close =>", apiServerResult, wwwServerResult)
+      if (!apiServerResult || !wwwServerResult) {
+        return "Backend server shutdown failed!!!"
+      }
+    }
+
+    // 关闭App dns
+    // const close = await closeApp(ipc.remote.mmid)
+    // console.log("demo#serviceWorkerFactory close=>", close)
+
+    // const open = await openApp(ipc.remote.mmid)
+    // console.log("demo#serviceWorkerFactory open=>", open)
+
+    return await response.text()
+  }
+
 
 
   (await wwwServer.listen()).onRequest(async (request, ipc) => {
@@ -134,6 +179,7 @@ const main = async () => {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
+    console.log("cotDemo#interUrl=>", interUrl)
     mainUrl.resolve(interUrl);
     // 如果没有被 browser 激活，那么也尝试自启动
     if (hasActivity === false) {
