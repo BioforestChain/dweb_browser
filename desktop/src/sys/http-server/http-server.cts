@@ -406,7 +406,7 @@ export class HttpServerNMM extends NativeMicroModule {
     if(pathname.endsWith("observe")){
       pathname = `/${querystring.parse(req.url as string).mmid}${pathname}`
     }
-    log.red(`[http-server.cts 接受的到了请求] ${pathname}`)
+    log.green(`[http-server.cts 接受的到了请求] http://${req.headers.host}${pathname}`)
 
     const full = createRouteKeyByArgs(
       pathname as string,
