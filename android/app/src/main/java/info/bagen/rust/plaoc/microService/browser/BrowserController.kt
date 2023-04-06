@@ -13,13 +13,15 @@ import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.network.HttpClient
 import info.bagen.rust.plaoc.network.base.byteBufferToString
+import info.bagen.rust.plaoc.ui.browser.BrowserViewModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.http4k.core.Uri
 import org.http4k.core.query
 
-class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
+class BrowserController(val browserNMM: BrowserNMM) {
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
+    val browserViewModel = BrowserViewModel(this)
 
     private var activityTask = PromiseOut<BrowserActivity>()
     suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -58,7 +60,7 @@ class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
 
     suspend fun openApp(mmid: Mmid) {
         openIPCMap.getOrPut(mmid) {
-            val (ipc) = localeMM.connect(mmid)
+            val (ipc) = browserNMM.connect(mmid)
             ipc.onEvent {
                 if (it.event.name == EIpcEvent.Ready.event) { // webview加载完成，可以隐藏加载框
                     BrowserNMM.browserController.showLoading.value = false
@@ -72,7 +74,7 @@ class BrowserController(val mmid: Mmid, val localeMM: BrowserNMM) {
         }
     }
 
-    private suspend fun installJMM(jmmMetadata: JmmMetadata, url: String) = localeMM.nativeFetch(
+    private suspend fun installJMM(jmmMetadata: JmmMetadata, url: String) = browserNMM.nativeFetch(
         Uri.of("file://jmm.sys.dweb/install")
             .query("mmid", jmmMetadata.id).query("metadataUrl", url)
     )

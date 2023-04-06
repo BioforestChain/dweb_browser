@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.ui.browser
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.ViewGroup
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalFocusManager

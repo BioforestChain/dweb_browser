@@ -1,10 +1,6 @@
 package info.bagen.rust.plaoc.ui.browser
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
-import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
@@ -15,7 +11,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,8 +20,11 @@ import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.rust.plaoc.App
+import info.bagen.rust.plaoc.microService.browser.BrowserController
+import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.mainAsyncExceptionHandler
+import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -37,18 +37,21 @@ data class BrowserUIState(
   val currentBrowserBaseView: MutableState<BrowserBaseView>,
   val hotLinkList: MutableList<WebSiteInfo> = mutableStateListOf(),
   val popupViewState: MutableState<PopupViewSate> = mutableStateOf(PopupViewSate.NULL),
+  val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false)
 )
 
 interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩
   val focus: MutableState<Boolean> // 用于搜索框显示的内容，根据是否聚焦来判断
   val showBottomBar: MutableTransitionState<Boolean> // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
+  var bitmap: Bitmap?
 }
 
 data class BrowserMainView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true),
+  override var bitmap: Bitmap? = null,
   val aaa: String
 ) : BrowserBaseView
 
@@ -56,13 +59,12 @@ data class BrowserWebView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true),
-  val webView: WebView,
+  override var bitmap: Bitmap? = null,
+  val webView: DWebView,
   val webViewId: String,
   val state: WebViewState,
   val navigator: WebViewNavigator,
-  val coroutineScope: CoroutineScope,
-  var bitmap: Bitmap? = null,
-  var loaded: Boolean = false,
+  val coroutineScope: CoroutineScope
 ) : BrowserBaseView
 
 data class WebSiteInfo(
@@ -80,9 +82,9 @@ data class WebSiteInfo(
     }
     return buildAnnotatedString {
       withStyle(style = SpanStyle(
-        color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = 5.sp
+        color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold
       )) {
-        append("$id".padEnd(3, ' '))
+        append("$id".padEnd(5, ' '))
       }
       withStyle(
         style = SpanStyle(
@@ -96,8 +98,23 @@ data class WebSiteInfo(
   }
 }
 
-enum class PopupViewSate {
-  NULL, Options, BookList, HistoryList, Share
+enum class PopupViewSate(
+  private val height: Dp = 0.dp,
+  private val percentage: Float? = null
+) {
+  NULL(),
+  Options(height = 120.dp),
+  BookList(percentage = 0.9f),
+  HistoryList(percentage = 0.9f),
+  Share(percentage = 0.5f);
+
+  fun getLocalHeight(screenHeight: Dp? = null) : Dp {
+    return screenHeight?.let { screenHeight ->
+      percentage?.let { percentage ->
+        screenHeight * percentage
+      }
+    } ?: height
+  }
 }
 
 sealed class BrowserIntent {
@@ -106,12 +123,14 @@ sealed class BrowserIntent {
   class UpdatePopupViewState(val state: PopupViewSate = PopupViewSate.NULL) : BrowserIntent()
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
+  class UpdateMultiViewState(val show: Boolean) : BrowserIntent()
   class AddNewWebView(val url: String) : BrowserIntent()
   class SearchWebView(val url: String) : BrowserIntent()
 }
 
-class BrowserViewModel() : ViewModel() {
+class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
   val uiState: BrowserUIState
+  var promiseOutForCapture: PromiseOut<Bitmap> = PromiseOut()
 
   companion object {
     private var webviewId_acc = AtomicInteger(1)
@@ -152,6 +171,12 @@ class BrowserViewModel() : ViewModel() {
         is BrowserIntent.UpdateBottomViewState -> {
           uiState.currentBrowserBaseView.value.showBottomBar.targetState = action.show
         }
+        is BrowserIntent.UpdateMultiViewState -> {
+          if (action.show) {
+            uiState.currentBrowserBaseView.value.bitmap = promiseOutForCapture.waitPromise()
+          }
+          uiState.multiViewShow.targetState = action.show
+        }
         is BrowserIntent.AddNewWebView -> {
           // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
           uiState.browserViewList.lastOrNull()?.let {
@@ -160,17 +185,12 @@ class BrowserViewModel() : ViewModel() {
           // 创建 webview 并且打开
           withContext(mainAsyncExceptionHandler) {
             val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
-            val state = WebViewState(WebContent.Url(action.url ?: ""))
+            val state = WebViewState(WebContent.Url(action.url))
             val coroutineScope = CoroutineScope(CoroutineName(webviewId))
             val navigator = WebViewNavigator(coroutineScope)
             BrowserWebView(
               webViewId = webviewId,
-              webView = MyWebView(App.appContext).also {
-                it.settings.apply {
-                  this.loadWithOverviewMode = true
-                  this.javaScriptEnabled = true
-                }
-              },
+              webView = createDwebView(action.url),
               state = state,
               coroutineScope = coroutineScope,
               navigator = navigator
@@ -192,12 +212,15 @@ class BrowserViewModel() : ViewModel() {
     }
   }
 
-  class MyWebView(context: Context) : WebView(context) {
-    @SuppressLint("MissingSuperCall")
-    override fun onDetachedFromWindow() {
-      return
-//      super.onDetachedFromWindow()
-    }
+  private suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
+    val dWebView = DWebView(
+      App.appContext, browserController.browserNMM, browserController.browserNMM, DWebView.Options(
+        url = url,
+        /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
+        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+      ), null
+    )
+    dWebView
   }
 
   private suspend fun loadHotInfo() {

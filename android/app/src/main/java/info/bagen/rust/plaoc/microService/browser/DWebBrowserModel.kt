@@ -50,8 +50,8 @@ class DWebBrowserModel : ViewModel() {
                     viewModelScope.launch(Dispatchers.Main) {
                         dwebView = DWebView(
                             context = browserController.activity ?: App.appContext,
-                            localeMM = BrowserNMM.browserController.localeMM,
-                            remoteMM = BrowserNMM.browserController.localeMM,
+                            localeMM = BrowserNMM.browserController.browserNMM,
+                            remoteMM = BrowserNMM.browserController.browserNMM,
                             options = DWebView.Options(action.origin)
                         ).also { webView ->
                             BrowserNMM.browserController.appendView(webView) // TODO 添加到列表中

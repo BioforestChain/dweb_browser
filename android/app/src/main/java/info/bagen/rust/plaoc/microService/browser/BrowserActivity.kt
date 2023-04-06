@@ -24,7 +24,6 @@ import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Compani
 import info.bagen.rust.plaoc.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
 import info.bagen.rust.plaoc.ui.app.AppViewModel
 import info.bagen.rust.plaoc.ui.browser.BrowserView
-import info.bagen.rust.plaoc.ui.browser.BrowserViewModel
 import info.bagen.rust.plaoc.ui.camera.QRCodeIntent
 import info.bagen.rust.plaoc.ui.camera.QRCodeScanning
 import info.bagen.rust.plaoc.ui.camera.QRCodeViewModel
@@ -58,7 +57,7 @@ class BrowserActivity : AppCompatActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colors.primary)
                 ) {
-                    BrowserView(viewModel = BrowserViewModel())
+                    BrowserView(viewModel = browserController.browserViewModel)
                     /*val coroutineScope = rememberCoroutineScope()
                     Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
                         when (action) {

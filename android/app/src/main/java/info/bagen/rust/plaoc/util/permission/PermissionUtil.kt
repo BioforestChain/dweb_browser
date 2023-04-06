@@ -70,6 +70,7 @@ object PermissionUtil {
             return App.appContext.checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
         val hasPermission =
             ContextCompat.checkSelfPermission(App.appContext, permission)
+        Manifest.permission.INSTALL_PACKAGES
         return hasPermission == PackageManager.PERMISSION_GRANTED
     }
 

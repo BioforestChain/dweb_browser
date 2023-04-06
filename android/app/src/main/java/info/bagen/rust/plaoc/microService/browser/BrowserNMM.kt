@@ -22,7 +22,7 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
         lateinit var browserController: BrowserController
     }
     init {
-        browserController = BrowserController("browser.sys.dweb", this)
+        browserController = BrowserController(this)
     }
     val query_app_id = Query.string().required("app_id")
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
