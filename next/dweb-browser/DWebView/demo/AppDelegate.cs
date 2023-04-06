@@ -17,10 +17,10 @@ public class AppDelegate : UIApplicationDelegate
 
         // create a UIViewController with a single UILabel
         var vc = new UIViewController();
-        var webviewHelper = DWebView.Create(vc.View?.Frame);
-        vc.View!.AddSubview(webviewHelper);
+        var dwebview = DWebView.Create(vc.View?.Frame);
+        vc.View!.AddSubview(dwebview);
         //webviewHelper.webview.LoadRequest(new NSUrlRequest(new NSUrl("https://news.cnblogs.com")));
-        WebKit.WKNavigation wKNavigation = webviewHelper.LoadSimulatedRequest(new NSUrlRequest(new NSUrl("https://baidu.com")), @"
+        WebKit.WKNavigation wKNavigation = dwebview.LoadSimulatedRequest(new NSUrlRequest(new NSUrl("https://baidu.com")), @"
         <h1>你好</h1>
         <script>
         var a = 1;
@@ -39,7 +39,7 @@ public class AppDelegate : UIApplicationDelegate
         btn.Frame = new CGRect(100, 100, 100, 30);
         btn.AddTarget(new EventHandler(async (sender, e) =>
         {
-            var channel = await webviewHelper.createWebMessageChannel();
+            var channel = await dwebview.createWebMessageChannel();
             channel.port1.OnMessage += async (messageEvent, _) =>
             {
                 Console.WriteLine("port1 on message: {0}", messageEvent.Data.ToString());
@@ -60,7 +60,7 @@ public class AppDelegate : UIApplicationDelegate
                     await Task.Delay(500);
                 }
 
-                await webviewHelper.PostMessage("你好", new WebMessagePort[] { channel.port1 });
+                await dwebview.PostMessage("你好", new WebMessagePort[] { channel.port1 });
             });
         })
         , UIControlEvent.TouchUpInside);
