@@ -196,14 +196,25 @@ export class MultiWebViewContent extends LitElement{
             <div 
                 class="container ${ this.closing ? `closing-ani-view` : `opening-ani-view`}"
                 style="${containerStyleMap}"  
-                @animationend=${this.onAnimationend}  
+                @animationend=${this.onAnimationend} 
+                data-app-url=${this.src} 
             >
                 <!-- 启动了服务后确实能够显示内容 webview 请求状态栏的服务-->
                 <iframe
                     id="statusbar"
                     class="iframe-statusbar"
                     src="http://status-bar.nativeui.sys.dweb-80.localhost:22605/"
-                    @load=${() => console.log('statusbar 载入完成')}
+                    @load=${(e: Event) => {
+                        console.log('statusbar 载入完成')
+                        const iframe = e.target as HTMLIFrameElement;
+                        const contentWindow = iframe.contentWindow as Window;;
+                        // 把 status-bar 添加到容器上 
+                        // 把容器 元素传递给内部的内部的window
+                        const container = iframe.parentElement as HTMLDivElement;
+                        Reflect.set(container, "statusBar", iframe.contentWindow)
+                        Reflect.set(contentWindow, "parentElement", container);
+                        contentWindow.postMessage("loaded","*")
+                    }}
                     data-app-url=${this.src}
                 ></iframe>
                 <!-- 内容容器 -->
@@ -231,7 +242,7 @@ export class MultiWebViewContent extends LitElement{
                 <iframe 
                     id="navgation-bar"
                     class="iframe-navgation-bar"
-                    style="width:100%; height:70px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
+                    style="width:100%; height:20px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
                     src="http://navigation-bar.nativeui.sys.dweb-80.localhost:22605"
                     @load=${() => console.log('navgation-bar 载入完成')}
                     data-app-url=${this.src}

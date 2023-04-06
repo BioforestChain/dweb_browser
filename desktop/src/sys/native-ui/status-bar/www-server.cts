@@ -1,17 +1,12 @@
-import path from "node:path"
-import fsPromises from "node:fs/promises";
 import { log } from "../../../helper/devtools.cjs";
 import { IPC_MESSAGE_TYPE } from "../../../core/ipc/const.cjs"
 import { createHttpDwebServer } from "../../http-server/$createHttpDwebServer.cjs";
-import { IpcHeaders } from "../../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../../core/ipc/IpcResponse.cjs";
-import { reqadHtmlFile } from "../read-file.cjs"
 import type { HttpDwebServer } from "../../http-server/$createHttpDwebServer.cjs"
 import type { $IpcMessage  } from "../../../core/ipc/const.cjs";
 import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
 import type { Ipc } from "../../../core/ipc/ipc.cjs"
 import type { StatusbarNativeUiNMM } from "./status-bar.main.cjs"
- 
 export class WWWServer{
     server: HttpDwebServer | undefined;
     constructor(
@@ -34,28 +29,23 @@ export class WWWServer{
         }
     }
 
-    private _onRequest = (request: IpcRequest , ipc: Ipc) => {
-        const pathname = request.parsed_url.pathname;
-        switch(pathname){
-            case "/" || "/index.html":
-                this._onRequestIndex(request, ipc);
-                break;
-            default: throw new Error(`${this.nmm.mmid} 还有没有处理器的 www-server request ${request.url}`,)
+    private _onRequest = async (request: IpcRequest , ipc: Ipc) => {
+        let pathname = request.parsed_url.pathname;
+        if (pathname === "/" || pathname === "/index.html") {
+          pathname = "/html/status-bar.html";
         }
-    }
 
-    private _onRequestIndex = async (request: IpcRequest , ipc: Ipc) => {
-        ipc.postMessage(
-            await IpcResponse.fromText(
-                request.req_id,
-                200,
-                new IpcHeaders({
-                "Content-type": "text/html",
-                }),
-                await reqadHtmlFile('status-bar'),
-                ipc
-            )
+        const remoteIpcResponse = await this.nmm.nativeFetch(
+        `file:///assets/${pathname}?mode=stream`
         );
-        return this;
+        
+        ipc.postMessage(
+           await IpcResponse.fromResponse(
+            request.req_id,
+            remoteIpcResponse,
+            ipc
+           )
+        );
+      
     }
 }

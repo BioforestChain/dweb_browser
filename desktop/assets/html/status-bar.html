@@ -4,6 +4,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>statusbar</title>
+    <script type="text/javascript" src="../scripts/defined_app_url.js"></script>
+    <script type="text/javascript" src="../scripts/defined_plugins.js"></script>
     <style type="text/css">
         :root{
             --height: 48px;
@@ -13,14 +15,25 @@
             width:100%;
             height: var(--height);
             overflow: hidden;
-            background: #FFFFFFFF;
         }
         body{
+            position: relative;
             margin: 0px;
             width:100%;
             height: 100%;
         }
+        .background{
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFFFF;
+        }
         .container{
+            position: absolute;
+            left: 0px;
+            top: 0px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -29,15 +42,15 @@
         }
 
         .container-light{
-            color: #000;
+            color: #FFFFFFFF;
         }
 
         .container-dark{
-            color: #fff;
+            color: #000000FF;
         }
 
-        .container-defult{
-            color: #000;
+        .container-default{
+            color: #FFFFFFFF;
         }
 
         .left_container{
@@ -57,7 +70,7 @@
             height: 100%;
             border-bottom-left-radius: var(--border-radius);
             border-bottom-right-radius: var(--border-radius);
-            background: #000;
+            background: #222222;
         }
 
         .right_container{
@@ -76,8 +89,8 @@
     </style>
 </head>
 <body>
-    
-    <div class="container container-defult">
+    <div class="background"></div>
+    <div class="container container-dark">
         <div class="left_container">10:00</div>
         <div class="center_container"></div>
         <div class="right_container">
@@ -147,33 +160,34 @@
             </svg>
         </div>
     </div>
-    
-     
     <script type="text/javascript">
+        // window.parentElement === iframe 所在的容器元素
         var state = {
             color: "#FFFFFFFF",
-            style: "DEFAULT",
+            style: "DARK",
             insets: {
-                bottom: 48,
+                bottom: 0,
                 left: 0,
                 right: 0,
-                top: 0,
+                top: 48,
             },
             overlay: false,
             visible: true
-
         }
         const symbolEto = Symbol("eto")
+        const elBackground = document.querySelector('.background')
         const elContainer = document.querySelector('.container')
-        // statusbar 所在挂在的iframe 对象
-        // 一点 multi-webview 发生了改变，那么这里的代码也需要发生改变
-        const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#statusbar');
-        const appUrl = iframe.dataset.appUrl
-        if(!iframe) console.error('status-bar 发生错误, 没有找到挂在的 iframe')
 
+        window.addEventListener('message', windowOnMessage)
+        function windowOnMessage (){
+            awaitOperation()
+            window.removeEventListener('message', windowOnMessage)
+        }
+         
         // 设置主题
         // 通过设置 .container 的color 实现
         function setStyle(_style){
+            // _style === "DEFAULT"
             style = _style
             state.style = style;
             switch(style){
@@ -197,8 +211,8 @@
 
         // 设置背景色
         function setBackgroundColor(color /*十六进制的值*/){
-            document.documentElement.style.background = color
             state.color = color;
+            elBackground.style.background = state.color;
         }
 
         // 设置 容器的 class
@@ -207,16 +221,24 @@
         }
 
         // 设置 statusbar 是否覆盖
+        // overlay === true 背景色必须是透明的
+        // overlay === false 背景色 === state.color
+        // 需要同时检查 navigation-bar.overlay | virtual-keyboard.overlay 的值
+        // 如果 status-bar.overlay === navigation-bar.overlay === virtual-keyboard.overlay 的值相同
+        // 就必须要修改 safe-area.overlay 的值
         function setOverlays(value){
             state.overlay = value
-            iframe.style.position = state.overlay ? "absolute" : "relative";
+            window.statusBar.style.position = state.overlay ? "absolute" : "relative";
+            elBackground.style.background = state.overlay ? "transparent" : state.color;
+            console.error('还有联动没有处理')
+            // 同时背景需要透明化 但是不能够修改 sate 的值
         }
 
         // 设置是否可见
         function setVisible(visible){
             state.visible = visible 
-            iframe.style.height = state.visible ? "48px" : "0px";
-            iframe.style.overflow = state.visible ? "visible" : "hidden"
+            window.statusBar.style.height = state.visible ? "48px" : "0px";
+            window.statusBar.style.overflow = state.visible ? "visible" : "hidden"
         }
 
         /**
@@ -241,8 +263,8 @@
         /*
             监听操作的方法
         */
-        ;(async function awaitOperation(){
-            fetch("http://status-bar.nativeui.sys.dweb-80.localhost:22605/status-bar-ui/wait_for_operation?app_url="+appUrl)
+        async function awaitOperation(){
+            fetch("http://status-bar.nativeui.sys.dweb-80.localhost:22605/status-bar-ui/wait_for_operation?app_url="+window.appUrl)
             .then(async (res) => {
                 const reader = res.body.getReader()
                 let loop = true;
@@ -266,7 +288,7 @@
             .catch(err => {
                 console.error('statusbar err： ', err)
             })
-        })();
+        };
 
         // 通过发送请求把数据传送回去
         function fetchReturn(value,id, from){
@@ -285,7 +307,6 @@
             )
             .catch(err => console.error("fetchReturn 出错", err))
         }
-
         
     </script>
 </body>

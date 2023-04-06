@@ -11,8 +11,16 @@
         const appUrl = iframe.dataset.appUrl
         if(!iframe) console.error('safe-area 发生错误, 没有找到挂在的 iframe')
         const state = {
+            // 
             overlay: false,
+            insets: {
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+            },
             // 内部尺寸
+            // overlay === true 
             cutoutInsets: {
                 left: 0,
                 top: 0,
@@ -36,11 +44,30 @@
             const elContainerRect = elContainer.getBoundingClientRect()
             const elStatusbarRect = elStatusbar.getBoundingClientRect()
             const elLineRect = elLine.getBoundingClientRect();
-            // console.log(
-            //     elContainerRect,
-            //     elStatusbarRect,
-            //     elLineRect
-            // )
+            const iframeRect = iframe.getBoundingClientRect()
+            // outerInsets 的尺寸 === 整个屏幕的尺寸
+            let outerInsets = {
+                left: 0,
+                top: 0,
+                right: elContainerRect.width,
+                bottom: elContainerRect.height,
+            }
+
+            let cutoutInsets = {
+                top: 0,
+                right: elContainerRect.width / 3,
+                bottom: 48, // status-bar.height
+                left: elContainerRect.width / 3 ,
+            }
+
+            let insets = {
+                top: 48,
+                right: elContainerRect.width,
+                bottom: 70,
+                left: 0,
+            }
+            console.log('elContainerRect: ',elContainerRect)
+            console.log("iframeRect: ", iframeRect)
             return JSON.stringify(state);
         }
 
@@ -70,7 +97,7 @@
                             break;
                         case "set_overlay":
                             setOverlay(o.value);
-                            fetchReturn(o.value, o.id, o.from);
+                            fetchReturn(getState(), o.id, o.from);
                             break;
                         default: console.error('safe-area 没有匹配的功能 o.operationName === ', o.operationName)
                     }
