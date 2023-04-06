@@ -4,6 +4,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>vitual-keyboard</title>
+    <script type="text/javascript" src="../scripts/defined_app_url.js"></script>
+    <script type="text/javascript" src="../scripts/defined_plugins.js"></script>
     <style type="text/css">
         :root{
             --key-alphabet-width: 50px;
@@ -98,7 +100,10 @@
         <div class="row line-3"></div> 
         <div class="row line-4"></div> 
     </div>
+    <!-- 初始化键盘元素 -->
     <script type="text/javascript">
+        // 是否显示键盘
+        let visible = false;
         // 渲染 键盘内容的部分
         const elLine1 = document.querySelector('.line-1');
         const elLine2 = document.querySelector('.line-2');
@@ -155,21 +160,16 @@
             div.innerHTML = key;
             return div
         }
-
-
-        
          
     </script>
 
 
-
     <script type="text/javascript">
-
-        console.error('还没有解决 打开多个页面的情况')
-        let navigationBarHeight;
-        const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#virtual-keyboard');
-        const appUrl = iframe.dataset.appUrl
-        if(!iframe) console.error('virtual-keyboard 发生错误, 没有找到挂在的 iframe')
+        window.addEventListener('message', windowOnMessage)
+        function windowOnMessage (){
+            awaitOperation()
+            window.removeEventListener('message', windowOnMessage)
+        }
         const state = {
             overlay: false,
             insets: {
@@ -179,44 +179,29 @@
                 bottom: 0,
             },
         }
+        
         function getState(){
-            console.error('vitual-keyboard.html 获取状态 只返回了一个模拟的值')
-            // 测试状态需要显示 keyboard
-            show()
-            const elContainer = iframe.parentElement;
-            const elContainerRect = elContainer.getBoundingClientRect();
-            const iframeRect = iframe.getBoundingClientRect();
-            console.log(
-                elContainerRect,
-                iframeRect
-            )
-            const o = {
-                top: iframeRect.top - elContainerRect.top - 10/* 10 === 边框效果的宽度*/,
-                right: iframeRect.width,
-                bottom: iframeRect.top - elContainerRect.top - 10 + iframeRect.height,
-                left: 0,
-            }
-            state.inset = o;
+            state.insets.bottom = visible ? bodyHeight : 0       
             return JSON.stringify(state);
         }
 
+        /**
+         * 需要协同 status-bar.overlay | navigation-bar.overlay  然后设置 safe-area.overlay 的值；
+         */
         function setOverlay(value){
             console.error('virtual-keyboard.html 设置列 overlay 但是还没有处理逻辑',value)
             state.overlay = value
-            iframe.style.position = value ? "absolute" : "relative"
+            window.virtualKeyboard.style.position = value ? "absolute" : "relative"
+            console.error('还没有实现协同处理')
         }
 
         function show(){
-            const elNavigationBar = iframe.parentElement.querySelector("#navgation-bar");
-            navigationBarHeight = elNavigationBar.style.height;
-            elNavigationBar.style.height = "0px"
-            iframe.style.height = `${bodyHeight}px`
-            console.log('navigationBarHeight: ', navigationBarHeight)
+            window.virtualKeyboard.style.height = `${bodyHeight}px`
         }
 
         function hidden(){
             // 隐藏导航栏
-            ifram.style.height = "0px"
+            window.visualViewport.style.height = "0px"
         }
 
 
@@ -224,7 +209,7 @@
             监听操作的方法
         */
         async function awaitOperation(){
-            fetch("http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605/virtual-keyboard-ui/wait_for_operation?app_url="+appUrl)
+            fetch("http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605/virtual-keyboard-ui/wait_for_operation?app_url="+window.appUrl)
             .then(async (res) => {
                 const reader = res.body.getReader()
                 let loop = true;
@@ -234,14 +219,14 @@
                     if(!value) continue;
                     const o = JSON.parse(new TextDecoder().decode(value))
                     console.log('virtual-keyboard.html 请求的结果： ', o)
-                    if(!appUrl.startsWith(o.from)) continue;
+                    if(!window.appUrl.startsWith(o.from)) continue;
                     switch(o.operationName){
                         case "get_state":
                             fetchReturn(getState(), o.id, o.from);
                             break;
                         case "set_overlay":
                             setOverlay(o.value);
-                            fetchReturn(o.value, o.id, o.from);
+                            fetchReturn(getState(), o.id, o.from);
                             break;
                         default: console.error('virtual-keyboard 没有匹配的功能 o.operationName === ', o.operationName)
                     }
@@ -268,8 +253,6 @@
             )
             .catch(err => console.error("fetchReturn 出错", err))
         }
-
-        awaitOperation()
     </script> 
 </body>
 </html>

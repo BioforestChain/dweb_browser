@@ -1,4 +1,5 @@
-export const routes = [
+import type { $BaseRoute } from "../base/base-add-routes-to-http.cjs"
+export const routes :$BaseRoute[] = [
     {
         pathname: "/virtual-keyboard-ui/wait_for_operation",
         matchMode: "full",
@@ -16,9 +17,8 @@ export const routes = [
     },
     {
         pathname: "/virtual-keyboard.nativeui.sys.dweb/stopObserve",
-        matchMode: "full",
+        matchMode: "prefix",
         method: "GET"
-
     },
     {
         pathname:"/virtual-keyboard.nativeui.sys.dweb/getState",
@@ -30,7 +30,12 @@ export const routes = [
         matchMode: "prefix",
         method: "GET"
     },
-  
+    {
+        // /internal/observe?X-Dweb-Host=api.browser.sys.dweb%3A443&mmid=virtual-keyboard.nativeui.sys.dweb
+        pathname:"/virtual-keyboard.nativeui.sys.dweb/internal/observe",
+        matchMode: "full",
+        method: "GET"
+    }
 ]
 
 

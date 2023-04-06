@@ -16,6 +16,6 @@ export class WWWServer extends BaseWWWServer<StatusbarNativeUiNMM>{
         super(nmm)
     }
     _onRequestMore = async (message: $IpcMessage , ipc: Ipc) => {
-        log.red(`${this.nmm.mmid} base_www_server.cts _onMessage 还有消息没有处理 ${JSON.stringify(message)}`)
+        log.red(`${this.nmm.mmid} www-server.cts.cts _onMessage 还有消息没有处理 ${JSON.stringify(message)}`)
     }
 }

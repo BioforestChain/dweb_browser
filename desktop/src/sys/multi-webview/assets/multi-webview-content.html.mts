@@ -180,6 +180,16 @@ export class MultiWebViewContent extends LitElement{
         ))
     }
 
+    onPluginNativeUiLoadBase(e: Event){
+        const iframe = e.target as HTMLIFrameElement;
+        const contentWindow = iframe.contentWindow as Window;;
+        // 把 status-bar 添加到容器上 
+        // 把容器 元素传递给内部的内部的window
+        const container = iframe.parentElement as HTMLDivElement;
+        Reflect.set(contentWindow, "parentElement", container);
+        contentWindow.postMessage("loaded","*")
+    }
+
     override render(){
         const containerStyleMap = styleMap({
             "--z-index": this.zIndex + "",
@@ -206,14 +216,7 @@ export class MultiWebViewContent extends LitElement{
                     src="http://status-bar.nativeui.sys.dweb-80.localhost:22605/"
                     @load=${(e: Event) => {
                         console.log('statusbar 载入完成')
-                        const iframe = e.target as HTMLIFrameElement;
-                        const contentWindow = iframe.contentWindow as Window;;
-                        // 把 status-bar 添加到容器上 
-                        // 把容器 元素传递给内部的内部的window
-                        const container = iframe.parentElement as HTMLDivElement;
-                        Reflect.set(container, "statusBar", iframe.contentWindow)
-                        Reflect.set(contentWindow, "parentElement", container);
-                        contentWindow.postMessage("loaded","*")
+                        this.onPluginNativeUiLoadBase(e)
                     }}
                     data-app-url=${this.src}
                 ></iframe>
@@ -246,14 +249,7 @@ export class MultiWebViewContent extends LitElement{
                     src="http://navigation-bar.nativeui.sys.dweb-80.localhost:22605"
                     @load=${(e: Event) => {
                         console.log('navgation-bar 载入完成')
-                        const iframe = e.target as HTMLIFrameElement;
-                        const contentWindow = iframe.contentWindow as Window;;
-                        // 把 status-bar 添加到容器上 
-                        // 把容器 元素传递给内部的内部的window
-                        const container = iframe.parentElement as HTMLDivElement;
-                        Reflect.set(container, "statusBar", iframe.contentWindow)
-                        Reflect.set(contentWindow, "parentElement", container);
-                        contentWindow.postMessage("loaded","*")
+                        this.onPluginNativeUiLoadBase(e)
                     
                     }}
                     data-app-url=${this.src}
@@ -271,7 +267,10 @@ export class MultiWebViewContent extends LitElement{
                     class="iframe-virtual-keyboard"
                     style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
                     src="http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605"
-                    @load=${() => console.log('virtual-keyboard 载入完成')}
+                    @load=${(e: Event) => {
+                        console.log('virtual-keyboard 载入完成')
+                        this.onPluginNativeUiLoadBase(e)
+                    }}
                     data-app-url=${this.src}
                 ></iframe>
             </div>
