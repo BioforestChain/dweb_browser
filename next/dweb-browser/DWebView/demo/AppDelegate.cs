@@ -41,7 +41,7 @@ public class AppDelegate : UIApplicationDelegate
         {
             var channel = await dwebview.CreateWebMessageChannelC();
 
-            channel.port2.OnMessage += async (messageEvent, _) =>
+            channel.Port2.OnMessage += async (messageEvent, _) =>
             {
                 Console.WriteLine("port2 on message: {0}", messageEvent.Data.ToString());
             };
@@ -51,14 +51,14 @@ public class AppDelegate : UIApplicationDelegate
                 while (i++ < 5)
                 {
                     Console.WriteLine("postMessage {0}", i);
-                    await channel.port1.PostMessage(new WebMessage(new NSString("你好" + i)));
+                    await channel.Port1.PostMessage(new WebMessage(new NSString("你好" + i)));
                     await Task.Delay(100);
                     if (i >= 3)
                     {
-                        await channel.port2.Start();
+                        await channel.Port2.Start();
                     }
                 }
-                await dwebview.PostMessage("你好", new WebMessagePort[] { channel.port1 });
+                await dwebview.PostMessage("你好", new WebMessagePort[] { channel.Port1 });
             });
         })
         , UIControlEvent.TouchUpInside);
