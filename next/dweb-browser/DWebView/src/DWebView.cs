@@ -113,7 +113,7 @@ function nativeWindowPostMessage(data, ports_id) {
         }
     }
 
-    public async Task<WebMessageChannel> createWebMessageChannel()
+    public async Task<WebMessageChannel> CreateWebMessageChannelC()
     {
         /// 页面可能会被刷新，所以需要重新判断：函数可不可用
         var webMessagePortInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof nativeCreateMessageChannel==='function'", null, webMessagePortContentWorld);
