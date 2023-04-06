@@ -45,25 +45,25 @@ const allCss = [
             flex-shrink: 0;
         }
 
-        .bottom-line-container{
-            position: absolute;
-            z-index: 1;
-            left:0px;
-            bottom:0px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            width:100%;
-            height: var(--bottom-line-container-height);
-        }
+        // .bottom-line-container{
+        //     position: absolute;
+        //     z-index: 1;
+        //     left:0px;
+        //     bottom:0px;
+        //     display: flex;
+        //     justify-content: center;
+        //     align-items: flex-start;
+        //     width:100%;
+        //     height: var(--bottom-line-container-height);
+        // }
 
-        .bottom-line-container::after{
-            content: "";
-            width: 50%;
-            height:4px;
-            border-radius:4px;
-            background: #000;
-        }
+        // .bottom-line-container::after{
+        //     content: "";
+        //     width: 50%;
+        //     height:4px;
+        //     border-radius:4px;
+        //     background: #000;
+        // }
 
         .webview-container{
             position: relative;
@@ -244,7 +244,18 @@ export class MultiWebViewContent extends LitElement{
                     class="iframe-navgation-bar"
                     style="width:100%; height:20px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
                     src="http://navigation-bar.nativeui.sys.dweb-80.localhost:22605"
-                    @load=${() => console.log('navgation-bar 载入完成')}
+                    @load=${(e: Event) => {
+                        console.log('navgation-bar 载入完成')
+                        const iframe = e.target as HTMLIFrameElement;
+                        const contentWindow = iframe.contentWindow as Window;;
+                        // 把 status-bar 添加到容器上 
+                        // 把容器 元素传递给内部的内部的window
+                        const container = iframe.parentElement as HTMLDivElement;
+                        Reflect.set(container, "statusBar", iframe.contentWindow)
+                        Reflect.set(contentWindow, "parentElement", container);
+                        contentWindow.postMessage("loaded","*")
+                    
+                    }}
                     data-app-url=${this.src}
                 ></iframe>
                 <iframe 
@@ -263,8 +274,6 @@ export class MultiWebViewContent extends LitElement{
                     @load=${() => console.log('virtual-keyboard 载入完成')}
                     data-app-url=${this.src}
                 ></iframe>
-                <!-- 底部黑线 -->
-                <div class="bottom-line-container"></div>
             </div>
         `
     }

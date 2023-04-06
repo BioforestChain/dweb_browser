@@ -472,7 +472,7 @@ export class HttpServerNMM extends NativeMicroModule {
     const data = createStateSendActionItem(ipcEventMessage.data);
     const parentRoutes = this._routes.values()
     let loop = true;
-    // console.log('http-server ipcEventOnStateSend 准备发送数据', data, data.body, Object.prototype.toString.call(data.body).slice(8, -1))
+    // console.log('http-server ipcEventOnStateSend 准备发送数据', data.body)
     do{
       const {value, done} = parentRoutes.next() 
       loop = !done

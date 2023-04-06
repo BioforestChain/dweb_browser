@@ -165,7 +165,6 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<NavigationBarNMM>{
   _httpIpcOnEventRequestDistributeInternalObserve = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
     const app_url= data.headers.origin;
     this._observe.set(app_url, data)
-    log.red(`接受到了 observe 的请求 app_url ${app_url}`)
   }
 
   /**
