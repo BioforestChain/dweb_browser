@@ -15,13 +15,13 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     return this.updateController
   }
 
-  /**关闭后端 */
+  /**关闭前后端 */
   @bindThis
   async close() {
     return await this.fetchApi("/close").boolean()
   }
 
-  /**重启后端 */
+  /**重启后前端 */
   @bindThis
   async restart() {
     return await this.fetchApi("/restart").boolean()

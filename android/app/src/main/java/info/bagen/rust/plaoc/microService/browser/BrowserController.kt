@@ -69,7 +69,7 @@ class BrowserController(val browserNMM: BrowserNMM) {
             }
             ipc
         }.also { ipc ->
-            debugBrowser("openApp", "postMessage==>activity ${localeMM.mmid}  $mmid")
+            debugBrowser("openApp", "postMessage==>activity  $mmid")
             ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         }
     }
