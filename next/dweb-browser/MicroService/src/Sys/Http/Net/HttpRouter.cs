@@ -68,5 +68,30 @@ public static class HttpRouter
             return null;
         }
     }
+
+    public static async Task<HttpResponseMessage> RoutesWithContext(HttpRequestMessage request, Ipc ipc)
+    {
+        switch (await RouterHandler(request, ipc))
+        {
+            case null:
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            case HttpResponseMessage response:
+                return response;
+            case byte[] result:
+                return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
+                {
+                    //it.Content = new StreamContent(new MemoryStream().Let(s =>
+                    //{
+                    //    s.Write(result, 0, result.Length);
+                    //    return s;
+                    //}));
+                    it.Content = new ByteArrayContent(result);
+                });
+            case Stream stream:
+                return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StreamContent(stream));
+            default:
+                return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+    }
 }
 

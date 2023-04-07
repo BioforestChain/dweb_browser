@@ -56,7 +56,8 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
         _runningStateLock = new PromiseOut<bool>();
 
         /// 关闭所有的通讯
-
+        _ipcSet.ToList().ForEach(async it => await it.Close());
+        _ipcSet.Clear();
     }
 
     protected abstract Task _shutdownAsync();
@@ -97,7 +98,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
      * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
      * </summary>
      */
-    protected event Signal<Ipc, HttpRequestMessage>? OnConnect;
+    public event Signal<Ipc, HttpRequestMessage>? OnConnect;
 
     /**
      * <summary>
@@ -150,7 +151,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
 
     private HttpResponseMessage? _localeFileFetch(MicroModule remote, HttpRequestMessage request)
     {
-        if (request.RequestUri.Scheme == "file" && request.RequestUri.Host == "")
+        if (request.RequestUri is not null && request.RequestUri.Scheme == "file" && request.RequestUri.Host == "")
         {
             var query = HttpUtility.ParseQueryString(request.RequestUri.Query);
 

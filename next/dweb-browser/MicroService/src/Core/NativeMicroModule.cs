@@ -4,8 +4,6 @@ namespace DwebBrowser.MicroService.Core;
 
 public abstract class NativeMicroModule : MicroModule
 {
-    public List<RouterHandlerType>? ApiRouting = null;
-
     static NativeMicroModule()
     {
         NativeConnect.ConnectAdapterManager.Append((fromMM, toMM, reason) =>
@@ -23,6 +21,20 @@ public abstract class NativeMicroModule : MicroModule
             return null;
         });
 
+    }
+
+    public NativeMicroModule()
+    {
+        OnConnect += async (clientIpc, _, _) =>
+        {
+            clientIpc.OnRequest += async (ipcRequest, _, _) =>
+            {
+                Console.WriteLine($"NMM/Handler {ipcRequest.Url}");
+                var request = ipcRequest.ToRequest();
+                var response = await HttpRouter.RoutesWithContext(request, clientIpc);
+                await clientIpc.PostMessageAsync(IpcResponse.FromResponse(ipcRequest.ReqId, response, clientIpc));
+            };
+        };
     }
 
     // TODO: ResponseRegistry 静态初始化问题未解决
@@ -81,7 +93,7 @@ public abstract class NativeMicroModule : MicroModule
                     WriteIndented = true
                 };
                 it.Content = new StringContent(JsonSerializer.Serialize(result, options));
-                it.Headers.Add("Content-Type", "application/json");
+                it.Content.Headers.Add("Content-Type", "application/json");
             });
     }
 

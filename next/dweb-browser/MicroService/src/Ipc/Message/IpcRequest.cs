@@ -90,11 +90,7 @@ public class IpcRequest : IpcMessage
                         it.Content = new StringContent(body);
                         break;
                     case byte[] body:
-                        it.Content = new StreamContent(new MemoryStream().Let(s =>
-                        {
-                            s.Write(body, 0, body.Length);
-                            return s;
-                        }));
+                        it.Content = new ByteArrayContent(body);
                         break;
                     case Stream body:
                         it.Content = new StreamContent(body);
@@ -103,13 +99,17 @@ public class IpcRequest : IpcMessage
                         throw new Exception($"invalid body to request: {Body.Raw}");
                 }
 
-                //foreach (KeyValuePair<string, string> entry in Headers.GetEnumerator())
-                //{
-                //    it.Content.Headers.Add(entry.Key, entry.Value);
-                //}
                 foreach (var entry in Headers.GetEnumerator())
                 {
-                    it.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
+                    if (entry.Key.StartsWith("Content", true, null))
+                    {
+                        it.Content.Headers.Add(entry.Key, entry.Value);
+                    }
+                    else
+                    {
+                        it.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
+                    }
+                    
                 }
             });
 
