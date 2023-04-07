@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,12 +25,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.rust.plaoc.R
+import info.bagen.rust.plaoc.ui.view.Captureable
+import info.bagen.rust.plaoc.ui.view.rememberCaptureController
+import kotlinx.coroutines.delay
 
 @Composable
 fun BrowserMainView(viewModel: BrowserViewModel) {
-  LazyColumn {
-    item { HotWebSiteView(viewModel) }
-    item { HotSearchView(viewModel) }
+  val controller = rememberCaptureController()
+  val lazyListState = rememberLazyListState()
+  LaunchedEffect(lazyListState) {
+    delay(100)
+    snapshotFlow { lazyListState.isScrollInProgress }.collect{ scroll ->
+      if (!scroll) { controller.capture() }
+    }
+  }
+
+  Captureable(
+    controller = controller,
+    onCaptured = { imageBitmap, throwable ->
+      imageBitmap?.let { bitmap ->
+        viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
+      }
+    }) {
+    LazyColumn(state = lazyListState) {
+      item { HotWebSiteView(viewModel) }
+      item { HotSearchView(viewModel) }
+    }
   }
 
   /*Home(

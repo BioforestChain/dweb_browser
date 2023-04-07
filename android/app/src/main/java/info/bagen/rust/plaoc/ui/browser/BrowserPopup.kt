@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.ui.browser
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -12,13 +13,19 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Alignment.Companion.Top
+import androidx.compose.ui.Alignment.Companion.TopCenter
+import androidx.compose.ui.Alignment.Companion.TopStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -28,15 +35,18 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.ui.theme.Blue
 import info.bagen.rust.plaoc.ui.theme.DimenBottomBarHeight
+import info.bagen.rust.plaoc.util.BitmapUtil
 
 @Composable
 fun BoxScope.BrowserPopView(viewModel: BrowserViewModel) {
@@ -151,37 +161,32 @@ private fun RowScope.ButtonView(@DrawableRes drawId: Int, name: String, click: (
 @Composable
 fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
   val browserViewList = viewModel.uiState.browserViewList
-  val localConfig = LocalConfiguration.current
   AnimatedVisibility(visibleState = viewModel.uiState.multiViewShow) {
     Column(
       modifier = Modifier
         .fillMaxSize()
         .background(MaterialTheme.colors.primaryVariant)
-        /*.clickable(indication = null,
+        .clickable(indication = null,
           onClick = { },
-          interactionSource = remember { MutableInteractionSource() })*/
+          interactionSource = remember { MutableInteractionSource() }
+        )
     ) {
       if (browserViewList.size == 1) {
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f)
-        ) {
-          Image(
-            bitmap = browserViewList[0].bitmap?.asImageBitmap()
-              ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
-            contentDescription = null,
-            modifier = Modifier
-              .size(
-                localConfig.screenWidthDp.dp * 3 / 5, localConfig.screenHeightDp.dp / 2
-              )
-              .align(Alignment.TopCenter)
-          )
+        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+          Box(modifier = Modifier.align(TopCenter).padding(top = 20.dp)) {
+            MultiItemView(browserViewList[0], true)
+          }
         }
       } else {
-        LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.weight(1f)) {
+        val lazyGridState = rememberLazyGridState()
+        LazyVerticalGrid(
+          columns = GridCells.Fixed(2),
+          modifier = Modifier.weight(1f),
+          state = lazyGridState,
+          contentPadding = PaddingValues(20.dp)
+        ) {
           items(browserViewList.size) {
-
+            MultiItemView(browserViewList[it])
           }
         }
       }
@@ -216,6 +221,46 @@ fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
           color = Blue
         )
       }
+    }
+  }
+}
+
+@Composable
+private fun MultiItemView(browserBaseView: BrowserBaseView, onlyOne: Boolean = false) {
+  val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+  val sizePair = if (onlyOne) {
+    val with = screenWidth * 3 / 5
+    Pair(with, with * 9 / 6)
+  } else {
+    val with = screenWidth * 2 / 5
+    Pair(with, with * 9 / 6)
+  }
+  Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Image(
+      bitmap = browserBaseView.bitmap ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
+      contentDescription = null,
+      modifier = Modifier
+        .size(width = sizePair.first, height = sizePair.second)
+        .clip(RoundedCornerShape(16.dp))
+        .align(CenterHorizontally),
+      contentScale = ContentScale.FillBounds
+    )
+    val pair = when (browserBaseView) {
+      is BrowserMainView -> {
+        Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
+      }
+      is BrowserWebView -> {
+        Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
+      }
+      else -> {
+        Pair(null, null)
+      }
+    }
+    Row(modifier = Modifier.padding(6.dp)) {
+      pair.second?.asImageBitmap()?.let { imageBitmap ->
+        Icon(bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(20.dp))
+      }
+      Text(text = pair.first ?: "起始页", maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
   }
 }

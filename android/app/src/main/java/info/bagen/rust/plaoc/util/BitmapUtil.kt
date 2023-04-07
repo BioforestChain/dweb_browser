@@ -4,10 +4,15 @@ import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.media.ThumbnailUtils
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import android.provider.MediaStore.Video.Thumbnails.MINI_KIND
+import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
+import info.bagen.rust.plaoc.App
 
 object BitmapUtil {
 
@@ -119,5 +124,19 @@ object BitmapUtil {
       size,
       ThumbnailUtils.OPTIONS_RECYCLE_INPUT
     )
+  }
+
+  fun decodeBitmapFromResource(@DrawableRes drawableId: Int): Bitmap? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+      return BitmapFactory.decodeResource(App.appContext.resources, drawableId)
+    return ContextCompat.getDrawable(App.appContext, drawableId)?.let { drawable ->
+      Bitmap.createBitmap(
+        drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+      ).also {
+        val canvas = Canvas(it)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+      }
+    }
   }
 }

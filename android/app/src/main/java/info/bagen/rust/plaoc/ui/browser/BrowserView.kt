@@ -1,7 +1,6 @@
 package info.bagen.rust.plaoc.ui.browser
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
@@ -31,25 +30,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.applyCanvas
-import coil.compose.AsyncImage
 import com.google.accompanist.web.LoadingState
 import info.bagen.rust.plaoc.R
-import info.bagen.rust.plaoc.microService.helper.mainAsyncExceptionHandler
 import info.bagen.rust.plaoc.ui.theme.Blue
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 private val dimenTextFieldFontSize = 16.sp
 private val dimenSearchHorizontalAlign = 5.dp
@@ -104,20 +97,6 @@ private fun BrowserViewContent(
   LaunchedEffect(pagerStateWebView) {
     snapshotFlow { pagerStateWebView.currentPage }.collect { currentPage ->
       viewModel.handleIntent(BrowserIntent.UpdateCurrentBaseView(currentPage))
-    }
-  }
-  LaunchedEffect(viewModel.uiState.multiViewShow) {
-    snapshotFlow { viewModel.uiState.multiViewShow.currentState }.collect {
-      if (it) {
-        scope.launch(mainAsyncExceptionHandler) {
-          val bitmap =
-            Bitmap.createBitmap(localView.width, localView.height, Bitmap.Config.ARGB_8888)
-              .applyCanvas {
-                localView.draw(this)
-              }
-          viewModel.promiseOutForCapture.resolve(bitmap)
-        }
-      }
     }
   }
   Box(modifier = Modifier

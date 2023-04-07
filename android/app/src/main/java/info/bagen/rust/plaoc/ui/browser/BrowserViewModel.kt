@@ -1,11 +1,11 @@
 package info.bagen.rust.plaoc.ui.browser
 
-import android.graphics.Bitmap
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -21,7 +21,6 @@ import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.rust.plaoc.App
 import info.bagen.rust.plaoc.microService.browser.BrowserController
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.mainAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.webview.DWebView
@@ -44,22 +43,21 @@ interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩
   val focus: MutableState<Boolean> // 用于搜索框显示的内容，根据是否聚焦来判断
   val showBottomBar: MutableTransitionState<Boolean> // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
-  var bitmap: Bitmap?
+  var bitmap: ImageBitmap?
 }
 
 data class BrowserMainView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true),
-  override var bitmap: Bitmap? = null,
-  val aaa: String
+  override var bitmap: ImageBitmap? = null,
 ) : BrowserBaseView
 
 data class BrowserWebView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true),
-  override var bitmap: Bitmap? = null,
+  override var bitmap: ImageBitmap? = null,
   val webView: DWebView,
   val webViewId: String,
   val state: WebViewState,
@@ -130,14 +128,13 @@ sealed class BrowserIntent {
 
 class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
   val uiState: BrowserUIState
-  var promiseOutForCapture: PromiseOut<Bitmap> = PromiseOut()
 
   companion object {
     private var webviewId_acc = AtomicInteger(1)
   }
 
   init {
-    val browserMainView = BrowserMainView(aaa = "主页啦")
+    val browserMainView = BrowserMainView()
     uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
     uiState.browserViewList.add(browserMainView)
     viewModelScope.launch(ioAsyncExceptionHandler) { loadHotInfo() }
@@ -172,9 +169,6 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           uiState.currentBrowserBaseView.value.showBottomBar.targetState = action.show
         }
         is BrowserIntent.UpdateMultiViewState -> {
-          if (action.show) {
-            uiState.currentBrowserBaseView.value.bitmap = promiseOutForCapture.waitPromise()
-          }
           uiState.multiViewShow.targetState = action.show
         }
         is BrowserIntent.AddNewWebView -> {
