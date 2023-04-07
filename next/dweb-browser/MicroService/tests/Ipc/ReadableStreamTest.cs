@@ -1,4 +1,7 @@
-﻿namespace DwebBrowser.MicroServiceTests;
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace DwebBrowser.MicroServiceTests;
 
 public class ReadableStreamTest
 {

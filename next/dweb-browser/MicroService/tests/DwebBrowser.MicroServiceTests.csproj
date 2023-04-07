@@ -31,12 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="ipc\" />
     <None Remove="http\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ipc\" />
-    <Folder Include="http\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\DwebBrowser.MicroService.csproj" />

@@ -4,7 +4,7 @@ using System.Net;
 
 namespace DwebBrowser.MicroService.Sys.Dns;
 
-using FetchAdapter = Func<MicroModule, HttpRequestMessage, HttpResponseMessage?>;
+using FetchAdapter = Func<MicroModule, HttpRequestMessage, Task<HttpResponseMessage?>>;
 
 public class NativeFetch
 {

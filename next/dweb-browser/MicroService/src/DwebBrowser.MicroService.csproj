@@ -21,8 +21,12 @@
     <None Remove="sys\http\" />
     <None Remove="sys\http\net\" />
     <None Remove="sys\boot\" />
+    <None Remove="Sys\Jmm\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Helper\src\DwebBrowser.Helper.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Sys\Jmm\" />
   </ItemGroup>
 </Project>

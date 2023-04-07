@@ -32,7 +32,7 @@ public class BootNMM : NativeMicroModule
         });
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/unregister", async (_, ipc) =>
         {
-            return _unregister(ipc.Remote.Mmid);
+            return _unregister(ipc!.Remote.Mmid);
         });
     }
 

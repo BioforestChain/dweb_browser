@@ -138,7 +138,7 @@ public abstract class MicroModule : Ipc.MicroModuleInfo
     {
         foreach (var fetchAdapter in NativeFetch.NativeFetchAdaptersManager.Adapters)
         {
-            var response = fetchAdapter(this, request);
+            var response = await fetchAdapter(this, request);
 
             if (response is not null)
             {

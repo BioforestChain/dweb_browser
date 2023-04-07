@@ -121,7 +121,7 @@ public class DnsNMM : NativeMicroModule
          * 对全局的自定义路由提供适配器
          * 对 nativeFetch 定义 file://xxx.dweb的解析
          */
-        var cb = NativeFetch.NativeFetchAdaptersManager.Append((fromMM, request) =>
+        var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
         {
             if (request.RequestUri is not null && request.RequestUri!.Scheme == "file"
                 && request.RequestUri.Host.EndsWith(".dweb"))
@@ -134,11 +134,10 @@ public class DnsNMM : NativeMicroModule
 
                 var microModule = _installApps.GetValueOrDefault(mmid);
 
-                /// TODO: 异步返回lambada无法正确识别，待优化
                 if (microModule is not null)
                 {
-                    var connectResult = _connectTo(fromMM, mmid, request).Result;
-                    return connectResult.IpcForFromMM.Request(request).Result;
+                    var connectResult = await _connectTo(fromMM, mmid, request);
+                    return await connectResult.IpcForFromMM.Request(request);
                 }
 
                 return new HttpResponseMessage(HttpStatusCode.BadGateway).Also(it =>
