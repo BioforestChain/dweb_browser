@@ -259,7 +259,10 @@ export class MultiWebViewContent extends LitElement{
                     class="iframe-safe-area"
                     style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
                     src="http://safe-area.nativeui.sys.dweb-80.localhost:22605"
-                    @load=${() => console.log('safe-area 载入完成')}
+                    @load=${(e: Event) => {
+                        console.log('safe-area 载入完成')
+                        this.onPluginNativeUiLoadBase(e)
+                    }}
                     data-app-url=${this.src}
                 ></iframe>
                 <iframe 

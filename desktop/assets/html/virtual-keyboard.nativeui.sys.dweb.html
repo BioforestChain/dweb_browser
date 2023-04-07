@@ -189,23 +189,40 @@
          * 需要协同 status-bar.overlay | navigation-bar.overlay  然后设置 safe-area.overlay 的值；
          */
         function setOverlay(value){
-            console.error('virtual-keyboard.html 设置列 overlay 但是还没有处理逻辑',value)
+            const isSame = state.overlay === value;
             state.overlay = value
             window.virtualKeyboard.style.position = value ? "absolute" : "relative"
-            console.error('还没有实现协同处理')
+            if(isSame) return; // 相同不需要联动 safe-area
+            // 不相同需要联动 safe-area;
+            window.virtualKeyboard.contentWindow.overlayChange({type: 'virtual-keyboard', value: state.overlay})
         }
 
+        function setOverlayByVirtualKeyboard(value){
+            if(state.overlay === value) return;
+            state.overlay = value
+            window.virtualKeyboard.style.position = state.overlay ? "absolute" : "relative"
+            fetchReturn(getState(), "observe", window.appUrl)
+        }
+
+        /*
+            显示虚拟键盘
+        */
         function show(){
             window.virtualKeyboard.style.height = `${bodyHeight}px`
+            state.insets.bottom = bodyHeight;
         }
 
+        /**
+         * 隐藏虚拟键盘
+         */
         function hidden(){
             // 隐藏导航栏
             window.visualViewport.style.height = "0px"
+            state.insets.bottom = 0;
         }
 
 
-         /*
+        /*
             监听操作的方法
         */
         async function awaitOperation(){
@@ -252,6 +269,10 @@
                 }
             )
             .catch(err => console.error("fetchReturn 出错", err))
+        }
+
+        function getStateObject(){
+            return state
         }
     </script> 
 </body>

@@ -1,0 +1,171 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="../scripts/defined_app_url.js"></script>
+    <script type="text/javascript" src="../scripts/defined_plugins.js"></script>
+    <title>safe-area</title>
+</head>
+<body>
+    <script type="text/javascript">
+        window.addEventListener('message', windowOnMessage)
+        function windowOnMessage (){
+            awaitOperation()
+            window.removeEventListener('message', windowOnMessage)
+        }
+       
+        var state = {
+            overlay: false,
+            insets: {
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+            },
+            // 内部尺寸
+            // overlay === true 
+            cutoutInsets: {
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+            },
+            // 外部尺寸
+            outerInsets: {
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+            }
+        }
+
+        function getState(){
+            const statusBarState = window.statusBar.contentWindow.getStateObject()
+            const navigationBarState = window.navigationBar.contentWindow.getStateObject()
+            const virtualKeyboardState = window.virtualKeyboard.contentWindow.getStateObject()
+
+            let insets = {
+                top: state.overlay || statusBarState.overlay
+                        ? statusBarState.insets.top
+                        : 0,
+                right: 0,
+                bottom: state.overlay || navigationBarState.overlay || virtualKeyboardState.overlay
+                    ? navigationBarState.insets.bottom > virtualKeyboardState.insets.bottom 
+                        ? navigationBarState.insets.bottom
+                        : virtualKeyboardState.insets.bottom
+                    : 0,
+                left: 0,
+            }
+            
+            let outerInsets = {
+                top: state.overlay || statusBarState.overlay
+                        ? 0
+                        : statusBarState.insets.top,
+                right: 0,
+                bottom: state.overlay || navigationBarState.overlay || virtualKeyboardState.overlay
+                    ? 0
+                    : navigationBarState.insets.bottom > virtualKeyboardState.insets.bottom 
+                        ? navigationBarState.insets.bottom
+                        : virtualKeyboardState.insets.bottom,
+                left: 0,
+            }
+
+            let cutoutInsets = {
+                top: 48,// 之后需要修改 添加了 cut.nativeui.sys.dweb 用来描述 切口
+                right: 0,
+                bottom: 0,
+                left: 0 ,
+            }
+
+            state = {
+                ...state,
+                outerInsets,
+                cutoutInsets,
+                insets
+            }
+            return JSON.stringify(state);
+        }
+
+        function setOverlay(value){
+            console.log('----1')
+            state.overlay = value
+            console.log('----2')
+
+            window.statusBar.contentWindow.setOverlayByVirtualKeyboard(value)
+            console.log('----3')
+            window.navigationBar.contentWindow.setOverlayByVirtualKeyboard(value)
+            console.log('----4')
+            window.virtualKeyboard.contentWindow.setOverlayByVirtualKeyboard(value)
+            console.log('----5')
+            // 需要联动 status-bar.overlay | navigation.overlay | virtual-keyboard.overlay
+        }
+
+        /*
+            监听操作的方法
+        */
+        async function awaitOperation(){
+            fetch("http://safe-area.nativeui.sys.dweb-80.localhost:22605/safe-area-ui/wait_for_operation?app_url="+window.appUrl)
+            .then(async (res) => {
+                const reader = res.body.getReader()
+                let loop = true;
+                do{
+                    const {value, done} = await reader.read()
+                    loop = !done
+                    if(!value) continue;
+                    const o = JSON.parse(new TextDecoder().decode(value))
+                    console.log('safe-area.html 请求的结果： ', o)
+                    if(!window.appUrl.startsWith(o.from)) continue;
+                    switch(o.operationName){
+                        case "get_state":
+                            fetchReturn(getState(), o.id, o.from);
+                            break;
+                        case "set_overlay":
+                            setOverlay(o.value);
+                            fetchReturn(getState(), o.id, o.from);
+                            break;
+                        default: console.error('safe-area 没有匹配的功能 o.operationName === ', o.operationName)
+                    }
+                }while(loop)
+            })
+            .catch(err => {
+                console.error('safe-area.nativeui.sys.dweb  err： ', err)
+            })
+        }
+
+        // 通过发送请求把数据传送回去
+        function fetchReturn(value,id, from){
+            console.log('value: ', value)
+            fetch(
+                "http://safe-area.nativeui.sys.dweb-80.localhost:22605/safe-area-ui/operation_return?app_url="+from,
+                {
+                    method: 'POST',
+                    body: value,
+                    headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                        "id": id
+                    }
+                }
+            )
+            .catch(err => console.error("fetchReturn 出错", err))
+        }
+
+        /**
+         * status-bar.overlay | virtual-keyboard.overlay | navigation-bar.overlay 发生改变后触发
+         */ 
+        function overlayChange({type, value}){
+            const statusBarOverlay = JSON.parse(window.statusBar.contentWindow.getState()).overlay;
+            const navigationBarOverlay = JSON.parse(window.navigationBar.contentWindow.getState()).overlay;
+            const virtualKeybardOverlay = JSON.parse(window.virtualKeyboard.contentWindow.getState()).overlay;
+            const isSame = statusBarOverlay === navigationBarOverlay && navigationBarOverlay === virtualKeybardOverlay;
+
+            if(isSame && state.overlay !== statusBarOverlay){
+                state.overlay = statusBarOverlay;
+                fetchReturn(getState(), "observe", o.from)
+            }
+        }
+
+        
+    </script>
+</body>
+</html>

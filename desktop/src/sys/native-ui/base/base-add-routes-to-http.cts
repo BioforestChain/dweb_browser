@@ -145,7 +145,8 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
   _postMessageToUI = async (body: string /** JSON.STRING */, from: string) => {
     const route = this._waitForOperationRequestDistributeIpcEventData.get(from)
     if(route === undefined){
-      throw new Error(`${this._nmm.mmid} htt-connect _postMessageToUI route === undefined`)
+      console.log(this._waitForOperationRequestDistributeIpcEventData)
+      throw new Error(`${this._nmm.mmid} htt-connect _postMessageToUI route === undefined from===${from}`)
     }
     console.log('_postMesageToUI: body: ', body)
     // 把请求发送给 UI

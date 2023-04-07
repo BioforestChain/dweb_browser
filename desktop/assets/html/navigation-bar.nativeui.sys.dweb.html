@@ -70,7 +70,7 @@
 </body>
 <script type="text/javascript">
 
-    let state = {
+    var state = {
         color: "#FFFFFF00",
         style: "DEFAULT",
         overlay: false,
@@ -177,14 +177,27 @@
      * 需要同 status-bar | virtual-keyboard | safe-area 关联起来
      */
     function setOverlay(overlay){
+        const isSame = state.overlay === overlay;
         state.overlay = overlay;
         window.navigationBar.style.position = overlay ? "absolute" : "relative";
         elBackground.style.display = overlay ? "block" : "none";
         console.error('还没有关联起来')
+        if(isSame) return; // 相同不需要联动 safe-area
+        // 不相同需要联动 safe-area;
+        window.virtualKeyboard.contentWindow.overlayChange({type: 'navigation-bar', value: state.overlay})
+    }
+
+    function setOverlayByVirtualKeyboard(overlay){
+        if(state.overlay === overlay) return;
+        state.overlay = overlay
+        window.navigationBar.style.position = state.overlay ? "absolute" : "relative";
+        elBackground.style.display = state.overlay ? "block" : "none";
+        fetchReturn(getState(), "observe", window.appUrl)
     }
 
     function setVisible(visible){
         state.visible = visible;
+        state.insets.bottom = visible ? 20 : 0;
         window.navigationBar.style.display = visible ? "block" : "none";
     }
 
@@ -204,6 +217,10 @@
             blue: parseInt(str.slice(5,7), 16),
             alpha: parseInt(str.slice(7), 16)
         }
+    }
+
+    function getStateObject(){
+        return state
     }
 </script>
 </html>

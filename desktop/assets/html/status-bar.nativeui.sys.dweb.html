@@ -166,10 +166,10 @@
             color: "#FFFFFFFF",
             style: "DARK",
             insets: {
+                top: 48,
+                right: 0,
                 bottom: 0,
                 left: 0,
-                right: 0,
-                top: 48,
             },
             overlay: false,
             visible: true
@@ -226,17 +226,31 @@
         // 需要同时检查 navigation-bar.overlay | virtual-keyboard.overlay 的值
         // 如果 status-bar.overlay === navigation-bar.overlay === virtual-keyboard.overlay 的值相同
         // 就必须要修改 safe-area.overlay 的值
-        function setOverlays(value){
+        function setOverlay(value){
+            let isSame = state.overlay === value
             state.overlay = value
             window.statusBar.style.position = state.overlay ? "absolute" : "relative";
             elBackground.style.background = state.overlay ? "transparent" : state.color;
             console.error('还有联动没有处理')
+            if(isSame) return; // 相同不需要联动 safe-area
+            // 不相同需要联动 safe-area;
+            window.virtualKeyboard.contentWindow.overlayChange({type: 'status-bar', value: state.overlay})
+
             // 同时背景需要透明化 但是不能够修改 sate 的值
+        }
+
+        function setOverlayByVirtualKeyboard(value){
+            if(state.overlay === value) return;
+            state.overlay = value
+            window.statusBar.style.position = state.overlay ? "absolute" : "relative";
+            elBackground.style.background = state.overlay ? "transparent" : state.color;
+            fetchReturn(getState(), "observe", window.appUrl)
         }
 
         // 设置是否可见
         function setVisible(visible){
             state.visible = visible 
+            state.insets.top = visible ? 48 : 0;
             window.statusBar.style.height = state.visible ? "48px" : "0px";
             window.statusBar.style.overflow = state.visible ? "visible" : "hidden"
         }
@@ -279,7 +293,7 @@
                         case "set_background_color":  setBackgroundColor(o.value);fetchReturn(getState(), o.id, o.from);break;
                         case "get_state": fetchReturn(getState(), o.id, o.from); break;
                         case "set_style": setStyle(o.value);fetchReturn(getState(), o.id, o.from); break;
-                        case "set_overlay": setOverlays(o.value);fetchReturn(getState(), o.id, o.from); break;
+                        case "set_overlay": setOverlay(o.value);fetchReturn(getState(), o.id, o.from); break;
                         case "set_visible": setVisible(o.value); fetchReturn(getState(), o.id, o.from);break;
                         default: console.error('statusbar 没有匹配的功能 o.operationName === ', o.operationName)
                     }
@@ -306,6 +320,14 @@
                 }
             )
             .catch(err => console.error("fetchReturn 出错", err))
+        }
+
+        function getCutoutInset(){
+            return 48;
+        }
+
+        function getStateObject(){
+            return state
         }
         
     </script>
