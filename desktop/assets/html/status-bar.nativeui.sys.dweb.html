@@ -234,7 +234,7 @@
             console.error('还有联动没有处理')
             if(isSame) return; // 相同不需要联动 safe-area
             // 不相同需要联动 safe-area;
-            window.virtualKeyboard.contentWindow.overlayChange({type: 'status-bar', value: state.overlay})
+            window.safeArea.contentWindow.overlayChange({type: 'status-bar', value: state.overlay})
 
             // 同时背景需要透明化 但是不能够修改 sate 的值
         }

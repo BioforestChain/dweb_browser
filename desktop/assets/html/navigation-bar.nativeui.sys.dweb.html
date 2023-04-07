@@ -48,7 +48,7 @@
         }
 
         .line-default{
-            background: #000000FF;
+            background: #FFFFFFFF;
         }
 
         .line-dark{
@@ -64,15 +64,15 @@
     <div class="container">
         <div class="background"></div>
         <div class="line-container">
-            <div class="line line-default"></div>
+            <div class="line line-dark"></div>
         </div>
     </div>   
 </body>
 <script type="text/javascript">
 
     var state = {
-        color: "#FFFFFF00",
-        style: "DEFAULT",
+        color: "#FFFFFFFF",
+        style: "DARK",
         overlay: false,
         visible: true,
         insets: {
@@ -179,19 +179,19 @@
     function setOverlay(overlay){
         const isSame = state.overlay === overlay;
         state.overlay = overlay;
-        window.navigationBar.style.position = overlay ? "absolute" : "relative";
-        elBackground.style.display = overlay ? "block" : "none";
-        console.error('还没有关联起来')
+        window.navigationBar.style.position = state.overlay ? "absolute" : "relative";
+        elBackground.style.display = state.overlay ? "none" : "block";
+       
         if(isSame) return; // 相同不需要联动 safe-area
         // 不相同需要联动 safe-area;
-        window.virtualKeyboard.contentWindow.overlayChange({type: 'navigation-bar', value: state.overlay})
+        window.safeArea.contentWindow.overlayChange({type: 'navigation-bar', value: state.overlay})
     }
 
     function setOverlayByVirtualKeyboard(overlay){
         if(state.overlay === overlay) return;
         state.overlay = overlay
         window.navigationBar.style.position = state.overlay ? "absolute" : "relative";
-        elBackground.style.display = state.overlay ? "block" : "none";
+        elBackground.style.display = state.overlay ? "none" : "block";
         fetchReturn(getState(), "observe", window.appUrl)
     }
 

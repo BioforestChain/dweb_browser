@@ -6,7 +6,7 @@ import { log } from "../../../helper/devtools.cjs"
 import { PluginsRequest } from "../plugins-request.cjs"
 import { WWWServer } from "./www-server.cjs"
 // import { AllConnects } from "./on-connect-callback.cjs";
-import { HttpConnect } from "./http-connect.cjs"
+import { AddRoutesToHttp } from "./add-routes-to-http.cjs"
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
@@ -25,7 +25,7 @@ export class ToastNMM extends NativeMicroModule {
     }
 
     {
-      new HttpConnect(this, context)
+      new AddRoutesToHttp(this, context)
     }
 
   }

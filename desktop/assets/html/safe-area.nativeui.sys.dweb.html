@@ -88,17 +88,10 @@
         }
 
         function setOverlay(value){
-            console.log('----1')
             state.overlay = value
-            console.log('----2')
-
             window.statusBar.contentWindow.setOverlayByVirtualKeyboard(value)
-            console.log('----3')
             window.navigationBar.contentWindow.setOverlayByVirtualKeyboard(value)
-            console.log('----4')
             window.virtualKeyboard.contentWindow.setOverlayByVirtualKeyboard(value)
-            console.log('----5')
-            // 需要联动 status-bar.overlay | navigation.overlay | virtual-keyboard.overlay
         }
 
         /*
@@ -163,6 +156,9 @@
                 state.overlay = statusBarOverlay;
                 fetchReturn(getState(), "observe", o.from)
             }
+            const stateJson = getState()
+            fetchReturn(stateJson, "observe", window.appUrl)
+            console.error('必须要更新 safe-area state 而且需要发送出去')
         }
 
         

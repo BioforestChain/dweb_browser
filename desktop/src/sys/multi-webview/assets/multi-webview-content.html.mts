@@ -222,7 +222,6 @@ export class MultiWebViewContent extends LitElement{
                 ></iframe>
                 <!-- 内容容器 -->
                 <div class="webview-container">
-                    <!-- 这个 webview 是如何载入的了？？？ -->
                     <webview
                         id="view-${this.customWebviewId}"
                         class="webview"

@@ -1,11 +1,8 @@
 import type { $BootstrapContext } from "../../../core/bootstrapContext.cjs"
 import type { Ipc } from "../../../core/ipc/ipc.cjs";
-import type { $IpcMessage } from "../../../core/ipc/const.cjs"
 import type { ToastNMM } from "./toast.cjs"
 import type { IpcEvent } from "../../../core/ipc/IpcEvent.cjs";
-import { IPC_MESSAGE_TYPE } from "../../../core/ipc/const.cjs"
-import { routes } from "./http-route.cjs"
-import { converRGBAToHexa } from "../helper.cjs"
+import { routes } from "./route.cjs"
 import { log } from "../../../helper/devtools.cjs"
 import querystring from "node:querystring"
 import url from "node:url"
@@ -13,11 +10,7 @@ import url from "node:url"
 import { $BaseRoute, BaseAddRoutesToHttp, $RequestDistributeIpcEventData } from "../base/base-add-routes-to-http.cjs";
 
 // 处理 同 http.sys.dweb 之间的连接
-export class HttpConnect extends BaseAddRoutesToHttp<ToastNMM>{
-  private _ipc: Ipc | undefined;
-  private _allcId: number = 0;
-  private _startObserve = new Map<string,$RequestDistributeIpcEventData>() 
-  private _observe = new Map<string, $RequestDistributeIpcEventData>()
+export class AddRoutesToHttp extends BaseAddRoutesToHttp<ToastNMM>{
   constructor(
     nmm: ToastNMM,
     context:  $BootstrapContext,
@@ -32,15 +25,6 @@ export class HttpConnect extends BaseAddRoutesToHttp<ToastNMM>{
       case "/toast.sys.dweb/show":
         this._httpIpcOnEventRequestDistributeShow(data, httpIpc);
         break;
-      // case "/toast.sys.dweb/setState":
-      //   this._httpIpcOnEventRequestDistributeSetState(data, httpIpc);
-      //   break;
-      // case "/toast.sys.dweb/startObserve":
-      //   this._httpIpcOnEventRequestDistributeStartObserve(data, httpIpc);
-      //   break;
-      // case "/toast.sys.dweb/stopObserve":
-      //   this._httpIpcOnEventRequestDistributeStopOverve(data, httpIpc);
-      //   break;
       case "/toast-ui/wait_for_operation":
         this._httpIpcOnEventRequestDistributeWaitForOperationBase(data, httpIpc);
         break;
