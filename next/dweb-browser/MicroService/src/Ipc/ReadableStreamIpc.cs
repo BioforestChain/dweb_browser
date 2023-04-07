@@ -1,5 +1,4 @@
-﻿using MessagePack;
-
+﻿using PeterO.Cbor;
 namespace DwebBrowser.MicroService;
 
 public class ReadableStreamIpc : Ipc
@@ -20,10 +19,11 @@ public class ReadableStreamIpc : Ipc
     public override Task _doPostMessageAsync(IpcMessage data)
     {
         byte[] message = default;
-        switch (SupportMessagePack)
+        switch (SupportCbor)
         {
             case true:
-                message = MessagePackSerializer.ConvertFromJson(data.ToJson());
+                var cbor = CBORObject.FromJSONBytes(data.ToJson().FromUtf8());
+                message = cbor.EncodeToBytes();
                 break;
             case false:
                 switch (data)
@@ -94,9 +94,12 @@ public class ReadableStreamIpc : Ipc
             throw new Exception("income stream already binded.");
         }
 
-        if (SupportMessagePack)
+        if (SupportCbor)
         {
-            throw new Exception("还未实现 MessagePack 的编解码能力");
+            //var cbor = CBORObject.ReadJSON(stream);
+            //cbor.EncodeToBytes();
+
+            throw new Exception("还未实现 cbor 的编解码能力");
         }
 
         Task.Run(async () =>

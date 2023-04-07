@@ -6,10 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="extensions\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="extensions\" />
-  </ItemGroup>
 </Project>

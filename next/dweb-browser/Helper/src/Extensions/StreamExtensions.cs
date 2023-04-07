@@ -25,7 +25,7 @@ public static class StreamExtensions
         await self.ReadExactlyAsync(buffer);
         return buffer.ToInt();
     }
-    public static async Task<byte[]> ReadBytesAsync(this Stream self,int size)
+    public static async Task<byte[]> ReadBytesAsync(this Stream self, int size)
     {
         var buffer = new byte[size];
         await self.ReadExactlyAsync(buffer);

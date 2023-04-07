@@ -22,7 +22,8 @@ public static class ByteArrayExtensions
     /// <param name="message">second byteArray</param>
     /// <returns></returns>
     /// https://stackoverflow.com/questions/415291/best-way-to-combine-two-or-more-byte-arrays-in-c-sharp
-    public static byte[] Combine(this byte[] self, params byte[][] arrays) {
+    public static byte[] Combine(this byte[] self, params byte[][] arrays)
+    {
         byte[] rv = new byte[arrays.Sum(a => a.Length)];
         int offset = 0;
         foreach (byte[] array in arrays)

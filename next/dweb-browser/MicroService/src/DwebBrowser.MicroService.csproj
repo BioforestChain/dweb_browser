@@ -14,9 +14,6 @@
     <LangVersion>11.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.5.108" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="ipc\ipcWeb\" />
     <None Remove="sys\http\" />
     <None Remove="sys\http\net\" />
@@ -28,5 +25,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Sys\Jmm\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="PeterO.Cbor" Version="4.5.2" />
   </ItemGroup>
 </Project>

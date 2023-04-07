@@ -10,11 +10,11 @@ public abstract class Ipc
 
     /**
      * <summary>
-     * 是否支持 messagePack 协议传输：
-     * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
+     * 是否支持 Cbor 协议传输：
+     * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 Cbor 的编解码
      * </summary>
      */
-    public bool SupportMessagePack { get; set; } = false;
+    public bool SupportCbor { get; set; } = false;
 
     /**
      * <summary>
