@@ -4,6 +4,8 @@ import info.bagen.rust.plaoc.microService.core.BootstrapContext
 import info.bagen.rust.plaoc.microService.core.NativeMicroModule
 import info.bagen.rust.plaoc.microService.helper.printdebugln
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
+import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
+import info.bagen.rust.plaoc.microService.sys.http.closeHttpDwebServer
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmMetadata
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
 import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM.Companion.getBfsMetaData
@@ -42,22 +44,19 @@ class DwebServiceWorkerNMM:NativeMicroModule("service-worker.nativeui.sys.dweb")
                 // 关闭前端
                 controller.activity?.finish()
                 controller.destroyWebView()
+
                 // 调用重启
-                bootstrapContext.dns.bootstrap(ipc.remote.mmid)
-                val jsMetadata = getBfsMetaData(ipc.remote.mmid)
-                debugDwebServiceWorker("restart remote mmid =>","${ipc.remote.mmid}  jsModule: ${jsMetadata?.id}")
-                if (jsMetadata == null) {
-                    return@defineHandler Response(Status.NOT_FOUND).body("not found the ${ipc.remote.mmid} js module !!")
-                }
-//                nativeFetch("file://dns.sys.dweb/close?app_id=${ipc.remote.mmid}")
-//                jsMetadata.staticWebServers.forEach { httpService ->
-//                    println("xxxxjsMetadata.staticWebServersxxxx ${httpService.port}   ${httpService.subdomain}")
-//                    // 关闭http监听
-//                    nativeFetch("file://http.sys.dweb/close?port=${httpService.port}&subdomain=${httpService.subdomain}")
+                // TODO
+                //  val jsMetadata = getBfsMetaData(ipc.remote.mmid)
+//                debugDwebServiceWorker("restart remote mmid =>","${ipc.remote.mmid}  jsModule: ${jsMetadata?.id}")
+//                if (jsMetadata == null) {
+//                    return@defineHandler Response(Status.NOT_FOUND).body("not found the ${ipc.remote.mmid} js module !!")
 //                }
-                val jsModule = JsMicroModule(jsMetadata)
+                // 重新创建一个 jsModule
+//                val jsModule = JsMicroModule(jsMetadata)
+//                bootstrapContext.dns.bootstrap(jsModule.mmid)
 //                jsModule.bootstrap(bootstrapContext)
-//                nativeFetch("file://browser.sys.dweb/openApp?app_id=${ipc.remote.mmid}")
+//                nativeFetch("file://js.sys.dweb/close-process")
                 return@defineHandler  true
             }
         )

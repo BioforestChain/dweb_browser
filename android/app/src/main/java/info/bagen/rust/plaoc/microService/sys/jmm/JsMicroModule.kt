@@ -9,7 +9,6 @@ import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.ipc.ipcWeb.Native2JsIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
-import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.http4k.core.*
@@ -72,6 +71,8 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                 ).body(streamIpc.stream)
             ).stream()
         )
+        // 监听关闭事件
+        closeJsProcessSignal.listen { streamIpc.close() }
 
         /**
          * 拿到与js.sys.dweb模块的直连通道，它会将 Worker 中的数据带出来
@@ -148,9 +149,13 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
         _ipcSet.add(streamIpc);
     }
 
+    // 关停js 流
+    private val closeJsProcessSignal = SimpleSignal()
 
     override suspend fun _shutdown() {
         /// TODO 发送指令，关停js进程
+        debugJMM("closeJsProcessSignal emit", "$mmid/$metadata")
+        closeJsProcessSignal.emit()
         processId = null
     }
 

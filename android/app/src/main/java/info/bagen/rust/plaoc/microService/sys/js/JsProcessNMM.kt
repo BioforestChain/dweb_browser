@@ -162,8 +162,14 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
 
                 // 返回 port_id
                 createIpc(ipc, apis, process_id, mmid)
-            })
-
+            },
+            "/close-process" bind Method.GET to defineHandler { request, ipc ->
+                // TODO 是否可以在worker创建process 的时候直接关闭，而不调这个
+                ipc.close()
+                return@defineHandler true
+            }
+        )
+        /// 关闭process
     }
 
     override suspend fun _shutdown() {
@@ -267,7 +273,9 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          *
          * > 自己shutdown的时候，这些ipc会被关闭
          */
-        ipc.onClose { streamIpc.close() }
+        ipc.onClose {
+            streamIpc.close()
+        }
 
         /**
          * “代码IPC流通道”关闭的时候，关闭这个子域名

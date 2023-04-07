@@ -56,7 +56,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             listOf("Share", "fetch", "http", "jmm", "browser")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
-            listOf("Share","DwebServiceWorker","http")
+            listOf("Share","DwebServiceWorker","http","jmm","fetch")
         )
         else -> debugTags.addAll(
             listOf("Share","FileSystem")
@@ -113,7 +113,9 @@ suspend fun startDwebBrowser(): DnsNMM {
     /// 安装用户应用
     val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }
     val cotJMM = CotJMM().also { dnsNMM.install(it) }
-    val cotDemoJMM = CotDemoJMM().also { dnsNMM.install(it) }
+    val cotDemoJMM = CotDemoJMM().also {
+        dnsNMM.install(it)
+    }
     val toyJMM = ToyJMM().also { dnsNMM.install(it) }
 
     /**

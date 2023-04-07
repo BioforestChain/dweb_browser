@@ -1,14 +1,22 @@
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
+import { createSignal } from "../../helper/createSignal.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
-import { nativeOpen, nativeActivate, cros, closeApp, openApp } from "../tool/tool.native.mjs";
+import { nativeOpen, nativeActivate, cros, closeApp, openApp, closeHttp } from "../tool/tool.native.mjs";
 import { $Ipc, onApiRequest } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
 
 const main = async () => {
   const { IpcEvent } = ipc;
+  // 启动主页面的地址
   const mainUrl = new PromiseOut<string>();
+  // 管理webView
   const webViewMap = new Map<string, WebViewState>()
+  // 管理webview的状态，因为当前webview是通过状态判断操作的，比如激活，关闭
   let oldWebviewState: WebViewState[] = [];
+  // 跟 browser建立连接
+  const browserIpc = await jsProcess.connect("browser.sys.dweb");
+  // 关闭信号
+  const closeSignal = createSignal<() => unknown>()
 
   /**尝试打开view */
   const tryOpenView = async () => {
@@ -65,26 +73,34 @@ const main = async () => {
   const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
     const pathname = url.pathname;
     console.log("demo#serviceWorkerFactory pathname=>", pathname)
-    // 转发file请求到目标NMM 关闭前端
-    const path = `file:/${url.pathname}${url.search}`;
-    const response = await jsProcess.nativeFetch(path);
 
     if (pathname.endsWith("close") || pathname.endsWith("restart")) {
       // 关闭后端
       const apiServerResult = await apiServer.close()
       const wwwServerResult = await wwwServer.close()
-      console.log("serviceWorkerFactory Close =>", apiServerResult, wwwServerResult)
       if (!apiServerResult || !wwwServerResult) {
         return "Backend server shutdown failed!!!"
       }
     }
+    jsProcess.nativeFetch(`file://dns.sys.dweb/open?app_id=${jsProcess.mmid}`)
+
+
+    // 转发file请求到目标NMM 关闭前端
+    const path = `file:/${url.pathname}${url.search}`;
+    const response = await jsProcess.nativeFetch(path);
+
+    // jsProcess.nativeFetch("file://js.sys.dweb/close-process")
+
+
+    // 关闭connect
+    browserIpc.close()
+    closeSignal.emit()
+
+
 
     // 关闭App dns
     // const close = await closeApp(ipc.remote.mmid)
     // console.log("demo#serviceWorkerFactory close=>", close)
-
-    // const open = await openApp(ipc.remote.mmid)
-    // console.log("demo#serviceWorkerFactory open=>", open)
 
     return await response.text()
   }
@@ -124,7 +140,6 @@ const main = async () => {
 
   // 连接到browser
   const connectBrowser = async () => {
-    const browserIpc = await jsProcess.connect("browser.sys.dweb");
     Object.assign(globalThis, { browserIpc });
     browserIpc.onEvent(async (event) => {
       // console.log("cotDemo.worker event browser.sys.dweb", event.name, event.text);
@@ -137,6 +152,11 @@ const main = async () => {
         return
       }
     });
+    closeSignal.listen(() => {
+      console.log("close connent for ", browserIpc.remote.mmid)
+      browserIpc.postMessage(IpcEvent.fromText("close", ""))
+      browserIpc.close()
+    })
   }
   connectBrowser()
 
@@ -153,6 +173,12 @@ const main = async () => {
           diffFactory(diff)
         }
       });
+      // 没个人来连接都会注册监听，关闭时统一close
+      closeSignal.listen(() => {
+        console.log("close connent for ", ipc.remote.mmid)
+        ipc.postMessage(IpcEvent.fromText("close", ""))
+        ipc.close()
+      })
     });
   }
   connectGlobal()

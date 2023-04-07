@@ -190,12 +190,16 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
      */
     private fun start(ipc: Ipc, options: DwebHttpServerOptions): ServerStartResult {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
+        debugHttp("start","serverUrlInfo  ${serverUrlInfo.host}")
         if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
 
         val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
 
         /// ipc 在关闭的时候，自动释放所有的绑定
-        listener.onDestroy(ipc.onClose { close(ipc, options) })
+        listener.onDestroy(ipc.onClose {
+            debugHttp("start close","onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
+            close(ipc, options)
+        })
 
         val token = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
 

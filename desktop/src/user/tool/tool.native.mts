@@ -35,10 +35,13 @@ export const nativeActivate = async (webview_id: string) => {
 export const closeApp = async (mmid: string) => {
   return await jsProcess.nativeFetch(`file://dns.sys.dweb/close?app_id=${mmid}`).text()
 }
-// /**关闭http */
-// export const closeHttp = async (port: number, subdomain: string) => {
-//   return await jsProcess.nativeFetch(`file://dns.sys.dweb/close?port=${port}&subdomain=${subdomain}`).text()
-// }
+
+// 关闭跟jsProcess 建立的http连接
+// closeHttp(80, jsProcess.mmid);
+/**关闭http */
+export const closeHttp = async (port: number, subdomain: string) => {
+  return await jsProcess.nativeFetch(`file://http.sys.dweb/close?port=${port}&subdomain=${subdomain}`).text()
+}
 
 export const openApp = async (mmid: string) => {
   return await jsProcess.nativeFetch(`file://dns.sys.dweb/open?app_id=${mmid}`).text()

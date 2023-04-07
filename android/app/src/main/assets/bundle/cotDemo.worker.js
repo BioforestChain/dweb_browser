@@ -138,6 +138,25 @@ var PromiseOut = class {
   }
 };
 
+// src/helper/createSignal.mts
+var createSignal = () => {
+  return new Signal();
+};
+var Signal = class {
+  constructor() {
+    this._cbs = /* @__PURE__ */ new Set();
+    this.listen = (cb) => {
+      this._cbs.add(cb);
+      return () => this._cbs.delete(cb);
+    };
+    this.emit = (...args) => {
+      for (const cb of this._cbs) {
+        cb.apply(null, args);
+      }
+    };
+  }
+};
+
 // src/user/tool/tool.native.mts
 var cros = (headers) => {
   headers.init("Access-Control-Allow-Origin", "*");
@@ -365,10 +384,10 @@ var cacheGetter = () => {
 };
 
 // src/helper/createSignal.cts
-var createSignal = (autoStart) => {
-  return new Signal(autoStart);
+var createSignal2 = (autoStart) => {
+  return new Signal2(autoStart);
 };
-var Signal = class {
+var Signal2 = class {
   constructor(autoStart = true) {
     this._cbs = /* @__PURE__ */ new Set();
     this._started = false;
@@ -414,7 +433,7 @@ var Signal = class {
 };
 __decorateClass([
   cacheGetter()
-], Signal.prototype, "_cachedEmits", 1);
+], Signal2.prototype, "_cachedEmits", 1);
 
 // src/helper/readableStreamHelper.cts
 var ReadableStreamOut = class {
@@ -436,10 +455,10 @@ var ReadableStreamOut = class {
     );
   }
   get onCancel() {
-    return (this._on_cancel_signal ?? (this._on_cancel_signal = createSignal())).listen;
+    return (this._on_cancel_signal ?? (this._on_cancel_signal = createSignal2())).listen;
   }
   get onPull() {
-    return (this._on_pull_signal ?? (this._on_pull_signal = createSignal())).listen;
+    return (this._on_pull_signal ?? (this._on_pull_signal = createSignal2())).listen;
   }
 };
 
@@ -638,6 +657,8 @@ var main = async () => {
   const mainUrl = new PromiseOut();
   const webViewMap = /* @__PURE__ */ new Map();
   let oldWebviewState = [];
+  const browserIpc = await jsProcess.connect("browser.sys.dweb");
+  const closeSignal = createSignal();
   const tryOpenView = async () => {
     console.log("cotDemo.worker tryOpenView=>", webViewMap.size);
     if (webViewMap.size === 0) {
@@ -677,16 +698,18 @@ var main = async () => {
   const serviceWorkerFactory = async (url, ipc2) => {
     const pathname = url.pathname;
     console.log("demo#serviceWorkerFactory pathname=>", pathname);
-    const path = `file:/${url.pathname}${url.search}`;
-    const response = await jsProcess.nativeFetch(path);
     if (pathname.endsWith("close") || pathname.endsWith("restart")) {
       const apiServerResult = await apiServer.close();
       const wwwServerResult = await wwwServer.close();
-      console.log("serviceWorkerFactory Close =>", apiServerResult, wwwServerResult);
       if (!apiServerResult || !wwwServerResult) {
         return "Backend server shutdown failed!!!";
       }
     }
+    jsProcess.nativeFetch(`file://dns.sys.dweb/open?app_id=${jsProcess.mmid}`);
+    const path = `file:/${url.pathname}${url.search}`;
+    const response = await jsProcess.nativeFetch(path);
+    browserIpc.close();
+    closeSignal.emit();
     return await response.text();
   };
   (await wwwServer.listen()).onRequest(async (request, ipc2) => {
@@ -709,7 +732,6 @@ var main = async () => {
   });
   let hasActivity = false;
   const connectBrowser = async () => {
-    const browserIpc = await jsProcess.connect("browser.sys.dweb");
     Object.assign(globalThis, { browserIpc });
     browserIpc.onEvent(async (event) => {
       if (event.name === "activity") {
@@ -718,6 +740,11 @@ var main = async () => {
         browserIpc.postMessage(IpcEvent.fromText("ready", view_id ?? "activity"));
         return;
       }
+    });
+    closeSignal.listen(() => {
+      console.log("close connent for ", browserIpc.remote.mmid);
+      browserIpc.postMessage(IpcEvent.fromText("close", ""));
+      browserIpc.close();
     });
   };
   connectBrowser();
@@ -730,6 +757,11 @@ var main = async () => {
           oldWebviewState = newState;
           diffFactory(diff);
         }
+      });
+      closeSignal.listen(() => {
+        console.log("close connent for ", ipc2.remote.mmid);
+        ipc2.postMessage(IpcEvent.fromText("close", ""));
+        ipc2.close();
       });
     });
   };
