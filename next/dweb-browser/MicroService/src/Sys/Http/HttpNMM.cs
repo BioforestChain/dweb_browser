@@ -173,14 +173,14 @@ public class HttpNMM : NativeMicroModule
         {
             var dwebServerOptions = new DwebHttpServerOptions(
                 request.QueryValidate<int>("port", false),
-                request.QueryValidate<string>("subdomain", false));
+                request.QueryValidate<string>("subdomain", false) ?? "");
             return _start(ipc, dwebServerOptions);
         });
 
         HttpRouter.AddRoute(HttpMethod.Post.Method, "/listen", async (request, _) =>
         {
-            var token = request.QueryValidate<string>("token");
-            var routes = JsonSerializer.Deserialize<List<Gateway.RouteConfig>>(request.QueryValidate<string>("routes"));
+            var token = request.QueryValidate<string>("token")!;
+            var routes = JsonSerializer.Deserialize<List<Gateway.RouteConfig>>(request.QueryValidate<string>("routes")!);
             return _listen(token, request, routes);
         });
 
@@ -188,7 +188,7 @@ public class HttpNMM : NativeMicroModule
         {
             var dwebServerOptions = new DwebHttpServerOptions(
                 request.QueryValidate<int>("port", false),
-                request.QueryValidate<string>("subdomain", false));
+                request.QueryValidate<string>("subdomain", false) ?? "");
             return _close(ipc, dwebServerOptions);
         });
     }

@@ -153,7 +153,7 @@ public class DnsNMM : NativeMicroModule
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/open", async (request, _) =>
         {
             Console.WriteLine($"open/{Mmid} {request.RequestUri?.AbsolutePath}");
-            await OpenAsync(request.QueryValidate<Mmid>("mmid"));
+            await OpenAsync(request.QueryValidate<Mmid>("app_id")!);
             return true;
         });
 
@@ -162,7 +162,7 @@ public class DnsNMM : NativeMicroModule
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/close", async (request, _) =>
         {
             Console.WriteLine($"close/{Mmid} {request.RequestUri?.AbsolutePath}");
-            await OpenAsync(request.QueryValidate<string>("app_id"));
+            await OpenAsync(request.QueryValidate<string>("app_id")!);
             return true;
         });
     }

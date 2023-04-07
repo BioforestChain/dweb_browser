@@ -35,9 +35,10 @@ public static class RequestExtensions
         return requestMessage;
     }
 
-    public static T? QueryValidate<T>(this HttpRequestMessage self, string name, bool required = true)
+    private static T? QueryValidateOptional<T>(this HttpRequestMessage self, string name, out bool isDefault)
     {
-        if (self.RequestUri is null) throw new Exception("request uri is null");
+        isDefault = true;
+        if (self.RequestUri is null) return default(T);
 
         try
         {
@@ -45,16 +46,31 @@ public static class RequestExtensions
 
             if (query is not null)
             {
+                isDefault = false;
                 return (T)Convert.ChangeType(query, typeof(T));
             }
             else
             {
-                throw new Exception("query name is no found");
+                return default(T);
             }
         }
         catch
         {
-            return default;
+            return default(T);
+        }
+    }
+
+    public static T? QueryValidate<T>(this HttpRequestMessage self, string name, bool isRequired = true)
+    {
+        var result = QueryValidateOptional<T>(self, name, out bool isDefault);
+
+        if (isRequired && isDefault)
+        {
+            throw new Exception("required query is null");
+        }
+        else
+        {
+            return result;
         }
     }
 }
