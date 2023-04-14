@@ -3,8 +3,12 @@ package info.bagen.rust.plaoc.microService.webview
 import android.content.Context
 import android.content.Intent
 import android.provider.MediaStore
+import android.util.Log
 import android.view.ViewGroup
 import android.webkit.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import info.bagen.rust.plaoc.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.rust.plaoc.microService.core.MicroModule
 import info.bagen.rust.plaoc.microService.helper.*
@@ -195,6 +199,7 @@ class DWebView(
             super.setWebViewClient(it)
         }
     }
+
     private val internalWebViewClient = object : WebViewClient() {
         override fun shouldInterceptRequest(
             view: WebView, request: WebResourceRequest
@@ -317,7 +322,6 @@ class DWebView(
                 }
             } ?: request.deny()
         }
-
     }
 
     override fun setWebChromeClient(client: WebChromeClient?) {

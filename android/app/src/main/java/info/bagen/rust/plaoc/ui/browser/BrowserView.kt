@@ -260,7 +260,7 @@ private fun BrowserViewContentMain(
       .fillMaxSize()
       .padding(bottom = dimenBottomHeight)
   ) {
-    BrowserMainView(viewModel)
+    BrowserMainView(viewModel, browserMainView)
   }
   /*if (!browserMainView.show.value) {
     Box(

@@ -24,6 +24,8 @@ import info.bagen.rust.plaoc.microService.browser.BrowserController
 import info.bagen.rust.plaoc.microService.helper.ioAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.helper.mainAsyncExceptionHandler
 import info.bagen.rust.plaoc.microService.webview.DWebView
+import info.bagen.rust.plaoc.ui.view.CaptureController
+import info.bagen.rust.plaoc.ui.view.rememberCaptureController
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -43,6 +45,7 @@ interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩
   val focus: MutableState<Boolean> // 用于搜索框显示的内容，根据是否聚焦来判断
   val showBottomBar: MutableTransitionState<Boolean> // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
+  val controller: CaptureController
   var bitmap: ImageBitmap?
 }
 
@@ -50,6 +53,7 @@ data class BrowserMainView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true),
+  override val controller: CaptureController = CaptureController(),
   override var bitmap: ImageBitmap? = null,
 ) : BrowserBaseView
 
@@ -57,6 +61,7 @@ data class BrowserWebView(
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true),
+  override val controller: CaptureController = CaptureController(),
   override var bitmap: ImageBitmap? = null,
   val webView: DWebView,
   val webViewId: String,
@@ -169,6 +174,9 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           uiState.currentBrowserBaseView.value.showBottomBar.targetState = action.show
         }
         is BrowserIntent.UpdateMultiViewState -> {
+          if (action.show) {
+            uiState.currentBrowserBaseView.value.controller.capture()
+          }
           uiState.multiViewShow.targetState = action.show
         }
         is BrowserIntent.AddNewWebView -> {
@@ -213,7 +221,9 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
       ), null
-    )
+    ).also {
+      it.isDrawingCacheEnabled = true
+    }
     dWebView
   }
 

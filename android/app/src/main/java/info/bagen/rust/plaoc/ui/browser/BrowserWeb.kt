@@ -1,35 +1,40 @@
 package info.bagen.rust.plaoc.ui.browser
 
-import android.annotation.SuppressLint
 import android.util.Log
-import android.view.KeyEvent
 import android.view.ViewGroup
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalFocusManager
 import com.google.accompanist.web.*
 import info.bagen.rust.plaoc.ui.view.Captureable
-import info.bagen.rust.plaoc.ui.view.rememberCaptureController
+import kotlinx.coroutines.delay
 
-@SuppressLint("RememberReturnType")
 @Composable
 fun BrowserWebView(
   viewModel: BrowserViewModel,
   browserWebView: BrowserWebView,
 ) {
   val localFocusManager = LocalFocusManager.current
-  val controller = rememberCaptureController()
+
+  LaunchedEffect(browserWebView.webView) {
+    snapshotFlow { !browserWebView.state.isLoading }.collect {
+      if (it) {
+        delay(1000)
+        browserWebView.controller.capture()
+      }
+    }
+  }
 
   Captureable(
-    controller = controller,
+    controller = browserWebView.controller,
     onCaptured = { imageBitmap, throwable ->
-      imageBitmap?.let {
-        viewModel.uiState.currentBrowserBaseView.value.bitmap = it
+      Log.e("lin.huang", "xxxxxxxxxxxxx imageBitmap=$imageBitmap, throwable=$throwable")
+      imageBitmap?.let { bitmap ->
+        viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
       }
     }) {
     WebView(
       state = browserWebView.state,
       navigator = browserWebView.navigator,
-//    captureBackPresses = true,
       factory = {
         browserWebView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
         browserWebView.webView.apply {

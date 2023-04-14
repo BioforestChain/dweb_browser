@@ -4,13 +4,17 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.PixelCopy
 import android.view.View
 import android.view.Window
+import android.webkit.WebView
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,7 +60,10 @@ private inline fun ComposeView.applyCapture(
     LaunchedEffect(controller, onCaptured) {
       controller.captureRequests
         .mapNotNull { config -> drawToBitmapPostLaidOut(context, config) }
-        .onEach { bitmap -> onCaptured(bitmap.asImageBitmap(), null) }
+        .onEach { pair: Pair<Bitmap?, Throwable?> ->
+          //bitmap -> onCaptured(bitmap.asImageBitmap(), null)
+          onCaptured(pair.first?.asImageBitmap(), pair.second)
+        }
         .catch { error -> onCaptured(null, error) }
         .launchIn(this)
     }
@@ -66,12 +73,14 @@ private inline fun ComposeView.applyCapture(
 /**
  * Waits till this [View] is laid off and then draws it to the [Bitmap] with specified [config].
  */
-private suspend fun View.drawToBitmapPostLaidOut(context: Context, config: Bitmap.Config): Bitmap {
+private suspend fun View.drawToBitmapPostLaidOut(context: Context, config: Bitmap.Config) :
+    Pair<Bitmap?, Throwable?> {
   return suspendCoroutine { continuation ->
     doOnLayout { view ->
       try {
         // Initially, try to capture bitmap using drawToBitmap extension function
-        continuation.resume(view.drawToBitmap(config))
+        // continuation.resume(view.drawToBitmap(config))
+        continuation.resume(Pair(getBitmapFromView(view), null))
       } catch (e: IllegalArgumentException) {
         // For device with API version O(26) and above should draw Bitmap using PixelCopy
         // API. The reason behind this is it throws IllegalArgumentException saying
@@ -85,15 +94,43 @@ private suspend fun View.drawToBitmapPostLaidOut(context: Context, config: Bitma
             view = view,
             window = window,
             config = config,
-            onDrawn = { bitmap -> continuation.resume(bitmap) },
-            onError = { error -> continuation.resumeWithException(error) }
+            // onDrawn = { bitmap -> continuation.resume(bitmap) },
+            // onError = { error -> continuation.resumeWithException(error) } // 防止异常后就不再执行截屏
+            onDrawn = { bitmap -> continuation.resume(Pair(bitmap, null)) },
+            onError = { error -> continuation.resume(Pair(null, error)) }
           )
         } else {
-          continuation.resumeWithException(e)
+          // continuation.resumeWithException(e)
+          continuation.resume(Pair(null, e))
         }
       }
     }
   }
+}
+
+private fun getBitmapFromView(v: View): Bitmap? {
+  /*v.isDrawingCacheEnabled = true
+  v.buildDrawingCache()
+  // 重新测量一遍View的宽高
+  v.measure(View.MeasureSpec.makeMeasureSpec(v.width, View.MeasureSpec.EXACTLY),
+    View.MeasureSpec.makeMeasureSpec(v.height, View.MeasureSpec.EXACTLY))
+  // 确定View的位置
+  v.layout(v.x.toInt(), v.y.toInt(), v.x.toInt() + v.measuredWidth, v.y.toInt() + v.measuredHeight)
+  // 生成View宽高一样的Bitmap
+  //val bmp = Bitmap.createBitmap(v.drawingCache, 0, 0, v.measuredWidth, v.measuredHeight)
+  val bmp = Bitmap.createBitmap( v.measuredWidth, v.measuredHeight, Bitmap.Config.ARGB_8888)
+  v.isDrawingCacheEnabled = false
+  v.destroyDrawingCache()*/
+
+  val w = v.width
+  val h = v.height
+  val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+  val c = Canvas(bmp)
+  // 如果不设置canvas画布为白色，则生成透明
+  c.drawColor(Color.WHITE)
+  v.layout(0, 0, w, h)
+  v.draw(c)
+  return bmp
 }
 
 /**

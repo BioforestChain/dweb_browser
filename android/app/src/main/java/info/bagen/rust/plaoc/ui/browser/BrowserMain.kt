@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.ui.browser
 
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -26,26 +27,25 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.rust.plaoc.R
 import info.bagen.rust.plaoc.ui.view.Captureable
-import info.bagen.rust.plaoc.ui.view.rememberCaptureController
 import kotlinx.coroutines.delay
 
 @Composable
-fun BrowserMainView(viewModel: BrowserViewModel) {
-  val controller = rememberCaptureController()
+fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: BrowserMainView) {
   val lazyListState = rememberLazyListState()
   LaunchedEffect(lazyListState) {
     delay(100)
     snapshotFlow { lazyListState.isScrollInProgress }.collect{ scroll ->
-      if (!scroll) { controller.capture() }
+      if (!scroll) { delay(200); browserMainView.controller.capture() }
     }
   }
 
   Captureable(
-    controller = controller,
+    controller = browserMainView.controller,
     onCaptured = { imageBitmap, throwable ->
       imageBitmap?.let { bitmap ->
         viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
       }
+      throwable?.let { Log.w("BrowserMain", "BrowserMainView e->$it") }
     }) {
     LazyColumn(state = lazyListState) {
       item { HotWebSiteView(viewModel) }
