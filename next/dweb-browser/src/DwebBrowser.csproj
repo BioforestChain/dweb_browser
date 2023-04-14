@@ -56,12 +56,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ipc\ipc.csproj" />
-	</ItemGroup>
-	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\.DS_Store" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
+	  <ProjectReference Include="..\MicroService\src\DwebBrowser.MicroService.csproj" />
+	</ItemGroup>
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj" />
 	</ItemGroup>
 </Project>

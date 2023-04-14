@@ -11,16 +11,22 @@ public partial class DWebView : WKWebView
     public DWebView(CGRect frame, WKWebViewConfiguration configuration) : base(frame, configuration)
     {
     }
+    public DWebView(CGRect frame) : this(frame, new WKWebViewConfiguration())
+    {
+    }
+    public DWebView() : this(CGRect.Empty)
+    {
+    }
 
     //WKPreferences preferences;
     //WKWebpagePreferences webpagePreferences;
     //public WKUserContentController controller;
     //public WKWebViewConfiguration configuration { get => base.Configuration; }
-    static public DWebView Create(CGRect? frame = default)
+    public static DWebView Create(CGRect? frame = default)
     {
         return Create(frame ?? CGRect.Empty, new WKWebViewConfiguration());
     }
-    static public DWebView Create(CGRect frame, WKWebViewConfiguration configuration)
+    public static DWebView Create(CGRect frame, WKWebViewConfiguration configuration)
     {
 
         var preferences = configuration.Preferences;
