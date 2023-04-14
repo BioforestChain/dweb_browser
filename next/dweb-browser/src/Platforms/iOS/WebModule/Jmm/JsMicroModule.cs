@@ -15,12 +15,28 @@ public class JsMicroModule : MicroModule
 {
     static JsMicroModule()
     {
-        NativeConnect.ConnectAdapterManager.Append((fromMM, toMM, reason) =>
+        NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
         {
             if (toMM is JsMicroModule jmm)
             {
-                var pid = jmm._processId;
+                var pid = jmm._processId ?? throw new Exception($"JMM: {toMM.Mmid} no ready");
+                /**
+                 * 向js模块发起连接
+                 */
+                var portId = await (await toMM.NativeFetchAsync(new Uri("file://js.sys.dweb/create-ipc")
+                    .AppendQuery("process_id", pid)
+                    .AppendQuery("mmid", fromMM.Mmid))).IntAsync();
+
+                var originIpc = new Native2JsIpc(portId, toMM).Also(async it =>
+                {
+                    // 同样要被生命周期管理销毁
+                    await toMM.BeConnectAsync(it, reason);
+                });
+
+                return new ConnectResult(originIpc, null);
             }
+
+            return null;
         });
     }
 

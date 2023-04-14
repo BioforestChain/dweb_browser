@@ -10,7 +10,7 @@ namespace DwebBrowser.MicroService.Core;
  * </summary>
  */
 
-using ConnectAdapter = Func<MicroModule, MicroModule, HttpRequestMessage, ConnectResult?>;
+using ConnectAdapter = Func<MicroModule, MicroModule, HttpRequestMessage, Task<ConnectResult?>>;
 public record ConnectResult(Ipc IpcForFromMM, Ipc? IpcForToMM);
 
 
@@ -18,11 +18,11 @@ public static class NativeConnect
 {
     public static readonly AdapterManager<ConnectAdapter> ConnectAdapterManager = new();
 
-    public static ConnectResult ConnectMicroModules(MicroModule fromMM, MicroModule toMM, HttpRequestMessage reason)
+    public static async Task<ConnectResult> ConnectMicroModulesAsync(MicroModule fromMM, MicroModule toMM, HttpRequestMessage reason)
     {
         foreach (ConnectAdapter connectAdapter in ConnectAdapterManager.Adapters)
         {
-            var connectResult = connectAdapter(fromMM, toMM, reason);
+            var connectResult = await connectAdapter(fromMM, toMM, reason);
 
             if (connectResult is not null)
             {

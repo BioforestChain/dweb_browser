@@ -1,4 +1,5 @@
 ﻿using System.Net;
+
 namespace DwebBrowser.MicroService.Sys.Dns;
 
 public class DnsNMM : NativeMicroModule
@@ -63,7 +64,7 @@ public class DnsNMM : NativeMicroModule
                     {
                         var toMM = await OpenAsync(toMmid);
                         Console.WriteLine($"DNS/connect {fromMM.Mmid} => {toMmid}");
-                        var connects = NativeConnect.ConnectMicroModules(fromMM, toMM, reason);
+                        var connects = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
                         po.Resolve(connects);
                         connects.IpcForFromMM.OnClose += ((_) =>
                         {

@@ -62,7 +62,7 @@
 	  <None Remove="Resources\.DS_Store" />
 	  <None Remove="Shared\Jmm\" />
 	  <None Remove="Platforms\iOS\IpcWeb\" />
-	  <None Remove="Platforms\iOS\Shared\" />
+	  <None Remove="Platforms\iOS\Assets\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\.DS_Store" />
@@ -76,6 +76,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Platforms\iOS\IpcWeb\" />
-	  <Folder Include="Platforms\iOS\Shared\" />
+	  <Folder Include="Platforms\iOS\Assets\" />
 	</ItemGroup>
 </Project>
