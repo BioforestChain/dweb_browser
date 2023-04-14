@@ -18,7 +18,11 @@ public class IpcRequest : IpcMessage
         Headers = headers;
         Body = body;
         Ipc = ipc;
+
+        Uri = new Uri(url);
     }
+
+    public Uri Uri { get; init; }
 
     public static IpcRequest FromText(int req_id, string url, IpcMethod method, IpcHeaders headers, string text, Ipc ipc) =>
         new IpcRequest(req_id, url, method ?? IpcMethod.Get, headers ?? new IpcHeaders(), IpcBodySender.From(text, ipc), ipc);

@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text.Json;
 
 namespace DwebBrowser.Helper;
 
@@ -56,5 +57,37 @@ public static class ResponseExtensions
 
         return res;
     }
+
+    public static HttpResponseMessage Ok(this HttpResponseMessage self) =>
+        (int)self.StatusCode >= 400
+            ? throw new Exception(Enum.GetName(self.StatusCode))
+            : self;
+
+    public static Task<string> TextAsync(this HttpResponseMessage self) =>
+        self.Content.ReadAsStringAsync();
+
+    public static Task<Stream> StreamAsync(this HttpResponseMessage self) =>
+        self.Content.ReadAsStreamAsync();
+
+    public static async Task<int?> IntAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToIntOrNull();
+
+    public static async Task<long?> LongAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToLongOrNull();
+
+    public static async Task<float?> FloatAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToFloatOrNull();
+
+    public static async Task<double?> DoubleAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToDoubleOrNull();
+
+    public static async Task<decimal?> DecimalAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToDecimalOrNull();
+
+    public static async Task<bool?> BoolAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToBooleanStrictOrNull();
+
+    public static async Task<T?> Json<T>(this HttpResponseMessage self) =>
+        JsonSerializer.Deserialize<T>(await self.StreamAsync());
 }
 
