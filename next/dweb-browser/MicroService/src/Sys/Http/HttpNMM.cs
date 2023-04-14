@@ -7,7 +7,7 @@ namespace DwebBrowser.MicroService.Sys.Http;
 public class HttpNMM : NativeMicroModule
 {
     public static Http1Server DwebServer = new Http1Server();
-    public override string Mmid { get; init; }
+    public override Mmid Mmid { get; init; }
 
     /// 注册的域名与对应的 token
     private Dictionary</* token */string, Gateway> _tokenMap = new();
@@ -209,7 +209,6 @@ public class HttpNMM : NativeMicroModule
         var listener = new Gateway.PortListener(ipc, serverUrlInfo.Host);
 
         /// ipc 在关闭的时候，自动释放所有的绑定
-        //listener.OnDestory += async (_) => { return (ipc.OnClose += async (_) => _close(ipc, options)); };
         listener.OnDestory += async (_) => { ipc.OnClose += async (_) => _close(ipc, options); };
 
         var token = Token.RandomCryptoString(8);

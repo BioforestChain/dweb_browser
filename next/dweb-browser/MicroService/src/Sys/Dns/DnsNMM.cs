@@ -14,7 +14,7 @@ public class DnsNMM : NativeMicroModule
         Mmid = "dns.sys.dweb";
     }
 
-    public override string Mmid { get; init; }
+    public override Mmid Mmid { get; init; }
 
     public async Task Bootstrap()
     {

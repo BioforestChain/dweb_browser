@@ -22,7 +22,7 @@ public class BootNMM : NativeMicroModule
         Router = new Dictionary<string, Func<Dictionary<string, string>, object>>();
     }
 
-    public override string Mmid { get; init; }
+    public override Mmid Mmid { get; init; }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {

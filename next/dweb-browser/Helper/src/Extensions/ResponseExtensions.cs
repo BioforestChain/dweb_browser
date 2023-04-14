@@ -69,25 +69,32 @@ public static class ResponseExtensions
     public static Task<Stream> StreamAsync(this HttpResponseMessage self) =>
         self.Content.ReadAsStreamAsync();
 
-    public static async Task<int?> IntAsync(this HttpResponseMessage self) =>
-        (await self.TextAsync()).ToIntOrNull();
+    public static async Task<int> IntAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToIntOrNull()
+        ?? throw new Exception("response content can't converter to int.");
 
-    public static async Task<long?> LongAsync(this HttpResponseMessage self) =>
-        (await self.TextAsync()).ToLongOrNull();
+    public static async Task<long> LongAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToLongOrNull()
+        ?? throw new Exception("response content can't converter to long.");
 
-    public static async Task<float?> FloatAsync(this HttpResponseMessage self) =>
-        (await self.TextAsync()).ToFloatOrNull();
+    public static async Task<float> FloatAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToFloatOrNull()
+        ?? throw new Exception("response content can't converter to float.");
 
-    public static async Task<double?> DoubleAsync(this HttpResponseMessage self) =>
-        (await self.TextAsync()).ToDoubleOrNull();
+    public static async Task<double> DoubleAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToDoubleOrNull()
+        ?? throw new Exception("response content can't converter to double.");
 
-    public static async Task<decimal?> DecimalAsync(this HttpResponseMessage self) =>
-        (await self.TextAsync()).ToDecimalOrNull();
+    public static async Task<decimal> DecimalAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToDecimalOrNull()
+        ?? throw new Exception("response content can't converter to decimal.");
 
-    public static async Task<bool?> BoolAsync(this HttpResponseMessage self) =>
-        (await self.TextAsync()).ToBooleanStrictOrNull();
+    public static async Task<bool> BoolAsync(this HttpResponseMessage self) =>
+        (await self.TextAsync()).ToBooleanStrictOrNull()
+        ?? throw new Exception("response content can't converter to bool.");
 
-    public static async Task<T?> Json<T>(this HttpResponseMessage self) =>
-        JsonSerializer.Deserialize<T>(await self.StreamAsync());
+    public static async Task<T> Json<T>(this HttpResponseMessage self) =>
+        JsonSerializer.Deserialize<T>(await self.StreamAsync())
+        ?? throw new Exception("response content can't converter to generic type");
 }
 
