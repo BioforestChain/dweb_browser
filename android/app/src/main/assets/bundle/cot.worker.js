@@ -10,7 +10,7 @@ var __decorateClass = (decorators, target, key, kind) => {
   return result;
 };
 
-// node_modules/deep-object-diff/mjs/utils.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/utils.js
 var isDate = (d) => d instanceof Date;
 var isEmpty = (o) => Object.keys(o).length === 0;
 var isObject = (o) => o != null && typeof o === "object";
@@ -18,7 +18,7 @@ var hasOwnProperty = (o, ...args) => Object.prototype.hasOwnProperty.call(o, ...
 var isEmptyObject = (o) => isObject(o) && isEmpty(o);
 var makeObjectWithoutPrototype = () => /* @__PURE__ */ Object.create(null);
 
-// node_modules/deep-object-diff/mjs/added.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/added.js
 var addedDiff = (lhs, rhs) => {
   if (lhs === rhs || !isObject(lhs) || !isObject(rhs))
     return {};
@@ -36,7 +36,7 @@ var addedDiff = (lhs, rhs) => {
 };
 var added_default = addedDiff;
 
-// node_modules/deep-object-diff/mjs/deleted.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/deleted.js
 var deletedDiff = (lhs, rhs) => {
   if (lhs === rhs || !isObject(lhs) || !isObject(rhs))
     return {};
@@ -54,7 +54,7 @@ var deletedDiff = (lhs, rhs) => {
 };
 var deleted_default = deletedDiff;
 
-// node_modules/deep-object-diff/mjs/updated.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/updated.js
 var updatedDiff = (lhs, rhs) => {
   if (lhs === rhs)
     return {};
@@ -78,7 +78,7 @@ var updatedDiff = (lhs, rhs) => {
 };
 var updated_default = updatedDiff;
 
-// node_modules/deep-object-diff/mjs/detailed.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/detailed.js
 var detailedDiff = (lhs, rhs) => ({
   added: added_default(lhs, rhs),
   deleted: deleted_default(lhs, rhs),

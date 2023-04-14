@@ -71,13 +71,18 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                 ).body(streamIpc.stream)
             ).stream()
         )
-        // 监听关闭事件
-        closeJsProcessSignal.listen { streamIpc.close() }
 
         /**
          * 拿到与js.sys.dweb模块的直连通道，它会将 Worker 中的数据带出来
          */
         val (jsIpc) = bootstrapContext.dns.connect("js.sys.dweb")
+
+        // 监听关闭事件
+        closeJsProcessSignal.listen {
+            streamIpc.close()
+            jsIpc.close()
+        }
+
         /**
          * 这里 jmm 的对于 request 的默认处理方式是将这些请求直接代理转发出去
          * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
@@ -153,8 +158,9 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
     private val closeJsProcessSignal = SimpleSignal()
 
     override suspend fun _shutdown() {
-        /// TODO 发送指令，关停js进程
         debugJMM("closeJsProcessSignal emit", "$mmid/$metadata")
+        /// 发送指令，关停js进程
+        nativeFetch("file://js.sys.dweb/close-process?mmid=${mmid}")
         closeJsProcessSignal.emit()
         processId = null
     }

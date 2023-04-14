@@ -25,6 +25,7 @@ import info.bagen.rust.plaoc.microService.user.CotJMM
 import info.bagen.rust.plaoc.microService.user.DesktopJMM
 import info.bagen.rust.plaoc.microService.user.ToyJMM
 
+
 suspend fun startDwebBrowser(): DnsNMM {
     /**
     "message-port-ipc",
@@ -40,7 +41,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     "browser",
     "jmm",
     "SplashScreen",
-     "DwebServiceWorker"
+    "DwebServiceWorker"
      */
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
@@ -56,10 +57,10 @@ suspend fun startDwebBrowser(): DnsNMM {
             listOf("Share", "fetch", "http", "jmm", "browser")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
-            listOf("Share","DwebServiceWorker","http","jmm","fetch")
+            listOf("dwebview",  "http", "jmm")
         )
         else -> debugTags.addAll(
-            listOf("Share","FileSystem")
+            listOf("Share", "FileSystem")
         )
     }
 
@@ -111,12 +112,18 @@ suspend fun startDwebBrowser(): DnsNMM {
     val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
 
     /// 安装用户应用
-    val desktopJMM = DesktopJMM().also { dnsNMM.install(it) }
-    val cotJMM = CotJMM().also { dnsNMM.install(it) }
+    val desktopJMM = DesktopJMM().also {
+        dnsNMM.install(it)
+    }
+    val cotJMM = CotJMM().also {
+        dnsNMM.install(it)
+    }
     val cotDemoJMM = CotDemoJMM().also {
         dnsNMM.install(it)
     }
-    val toyJMM = ToyJMM().also { dnsNMM.install(it) }
+    val toyJMM = ToyJMM().also {
+        dnsNMM.install(it)
+    }
 
     /**
      *
@@ -133,7 +140,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             browserNMM.mmid,
         )
         DEVELOPER.HuangLin, DEVELOPER.HLVirtual -> listOf(browserNMM.mmid)
-        DEVELOPER.WaterBang -> listOf(cotDemoJMM.mmid,browserNMM.mmid)
+        DEVELOPER.WaterBang -> listOf(cotDemoJMM.mmid, browserNMM.mmid)
         else -> {
             listOf(
                 browserNMM.mmid,

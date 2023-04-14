@@ -19,7 +19,7 @@ const createProcess = async (
   fetch_port: MessagePort,
   name: string = new URL(env_script_url).hostname
 ) => {
-  console.log(env_script_url, fetch_port);
+  console.log("createProcess =>", env_script_url, fetch_port);
   const process_id = allocProcessId();
   const worker_url = URL.createObjectURL(
     new Blob(

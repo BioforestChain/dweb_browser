@@ -18,5 +18,5 @@ export enum OBSERVE {
 
 export type WebViewState = {
   "isActivated": boolean,
-  "webviewId": String
+  "webviewId": string
 }

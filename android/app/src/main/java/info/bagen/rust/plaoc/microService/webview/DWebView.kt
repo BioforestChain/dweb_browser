@@ -227,7 +227,6 @@ class DWebView(
                     response.body.stream,
                 )
             } else if(request.url.path?.endsWith("bfs-metadata.json") == true) {
-                println("shouldInterceptRequest host: ${request.url.path}")
                 browserController.checkJmmMetadataJson(request.url.toString())
                 val CORS_HEADERS = mapOf(
                     Pair("Content-Type", "application/json"),

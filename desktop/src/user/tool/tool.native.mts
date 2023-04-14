@@ -32,8 +32,12 @@ export const nativeActivate = async (webview_id: string) => {
 
 
 /**关闭app */
-export const closeApp = async (mmid: string) => {
-  return await jsProcess.nativeFetch(`file://dns.sys.dweb/close?app_id=${mmid}`).text()
+export const closeDwebView = async (webview_id: string) => {
+  return await jsProcess
+    .nativeFetch(
+      `file://mwebview.sys.dweb/close?webview_id=${encodeURIComponent(webview_id)}`
+    )
+    .text();
 }
 
 // 关闭跟jsProcess 建立的http连接

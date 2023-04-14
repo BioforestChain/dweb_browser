@@ -11,7 +11,10 @@ import info.bagen.rust.plaoc.microService.ipc.IpcResponse
 import info.bagen.rust.plaoc.microService.ipc.ReadableStreamIpc
 import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
 import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
+import info.bagen.rust.plaoc.microService.sys.http.closeHttpDwebServer
 import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
+import info.bagen.rust.plaoc.microService.sys.http.debugHttp
+import info.bagen.rust.plaoc.microService.sys.jmm.JmmNMM
 import info.bagen.rust.plaoc.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -163,13 +166,13 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 // 返回 port_id
                 createIpc(ipc, apis, process_id, mmid)
             },
-            "/close-process" bind Method.GET to defineHandler { request, ipc ->
-                // TODO 是否可以在worker创建process 的时候直接关闭，而不调这个
-                ipc.close()
+            /// 关闭process
+            "/close-process" bind Method.GET to defineHandler { request ->
+                val mmid = query_mmid(request)
+                closeHttpDwebServer(DwebHttpServerOptions(port = 80,subdomain = mmid))
                 return@defineHandler true
             }
         )
-        /// 关闭process
     }
 
     override suspend fun _shutdown() {
@@ -274,6 +277,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          * > 自己shutdown的时候，这些ipc会被关闭
          */
         ipc.onClose {
+            debugHttp("jsProcessNMM","🥥🍒 close the ipc")
             streamIpc.close()
         }
 

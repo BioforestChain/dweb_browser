@@ -174,6 +174,11 @@ var nativeActivate = async (webview_id) => {
     `file://mwebview.sys.dweb/activate?webview_id=${encodeURIComponent(webview_id)}`
   ).text();
 };
+var closeDwebView = async (webview_id) => {
+  return await jsProcess.nativeFetch(
+    `file://mwebview.sys.dweb/close?webview_id=${encodeURIComponent(webview_id)}`
+  ).text();
+};
 
 // src/helper/binaryHelper.cts
 var u8aConcat = (binaryList) => {
@@ -575,7 +580,7 @@ var observeFactory = (url) => {
   return streamPo;
 };
 
-// node_modules/deep-object-diff/mjs/utils.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/utils.js
 var isDate = (d) => d instanceof Date;
 var isEmpty = (o) => Object.keys(o).length === 0;
 var isObject = (o) => o != null && typeof o === "object";
@@ -583,7 +588,7 @@ var hasOwnProperty = (o, ...args) => Object.prototype.hasOwnProperty.call(o, ...
 var isEmptyObject = (o) => isObject(o) && isEmpty(o);
 var makeObjectWithoutPrototype = () => /* @__PURE__ */ Object.create(null);
 
-// node_modules/deep-object-diff/mjs/added.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/added.js
 var addedDiff = (lhs, rhs) => {
   if (lhs === rhs || !isObject(lhs) || !isObject(rhs))
     return {};
@@ -601,7 +606,7 @@ var addedDiff = (lhs, rhs) => {
 };
 var added_default = addedDiff;
 
-// node_modules/deep-object-diff/mjs/deleted.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/deleted.js
 var deletedDiff = (lhs, rhs) => {
   if (lhs === rhs || !isObject(lhs) || !isObject(rhs))
     return {};
@@ -619,7 +624,7 @@ var deletedDiff = (lhs, rhs) => {
 };
 var deleted_default = deletedDiff;
 
-// node_modules/deep-object-diff/mjs/updated.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/updated.js
 var updatedDiff = (lhs, rhs) => {
   if (lhs === rhs)
     return {};
@@ -643,7 +648,7 @@ var updatedDiff = (lhs, rhs) => {
 };
 var updated_default = updatedDiff;
 
-// node_modules/deep-object-diff/mjs/detailed.js
+// node_modules/.deno/deep-object-diff@1.1.9/node_modules/deep-object-diff/mjs/detailed.js
 var detailedDiff = (lhs, rhs) => ({
   added: added_default(lhs, rhs),
   deleted: deleted_default(lhs, rhs),
@@ -664,10 +669,14 @@ var main = async () => {
     if (webViewMap.size === 0) {
       const url = await mainUrl.promise;
       const view_id = await nativeOpen(url);
+      webViewMap.set(view_id, {
+        isActivated: true,
+        webviewId: view_id
+      });
       return view_id;
     }
     webViewMap.forEach((item, key) => {
-      nativeActivate(key);
+      nativeActivate(item.webviewId);
     });
   };
   const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2 } = ipc;
@@ -679,7 +688,8 @@ var main = async () => {
     subdomain: "api",
     port: 443
   });
-  (await apiServer.listen()).onRequest(async (request, ipc2) => {
+  const apiReadableStreamIpc = await apiServer.listen();
+  apiReadableStreamIpc.onRequest(async (request, ipc2) => {
     const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
     if (url.pathname.startsWith("/service-worker.nativeui.sys.dweb")) {
       const result = await serviceWorkerFactory(url, ipc2);
@@ -701,18 +711,22 @@ var main = async () => {
     if (pathname.endsWith("close") || pathname.endsWith("restart")) {
       const apiServerResult = await apiServer.close();
       const wwwServerResult = await wwwServer.close();
+      apiReadableStreamIpc.close();
+      wwwReadableStreamIpc.close();
       if (!apiServerResult || !wwwServerResult) {
         return "Backend server shutdown failed!!!";
       }
+      webViewMap.forEach(async (state) => {
+        await closeDwebView(state.webviewId);
+      });
+      const path = `file:/${url.pathname}${url.search}`;
+      const response = await jsProcess.nativeFetch(path);
+      return await response.text();
     }
-    jsProcess.nativeFetch(`file://dns.sys.dweb/open?app_id=${jsProcess.mmid}`);
-    const path = `file:/${url.pathname}${url.search}`;
-    const response = await jsProcess.nativeFetch(path);
-    browserIpc.close();
-    closeSignal.emit();
-    return await response.text();
+    return "no action for serviceWorker Factory !!!";
   };
-  (await wwwServer.listen()).onRequest(async (request, ipc2) => {
+  const wwwReadableStreamIpc = await wwwServer.listen();
+  wwwReadableStreamIpc.onRequest(async (request, ipc2) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -755,6 +769,7 @@ var main = async () => {
           const newState = JSON.parse(event.data);
           const diff = detailed_default(oldWebviewState, newState);
           oldWebviewState = newState;
+          console.log("cotDemo.worker mwebview diff=>", diff, newState);
           diffFactory(diff);
         }
       });
@@ -766,15 +781,17 @@ var main = async () => {
     });
   };
   connectGlobal();
-  const diffFactory = (diff) => {
+  const diffFactory = async (diff) => {
     for (const id in diff.added) {
       webViewMap.set(id, JSON.parse(diff.added[id]));
     }
     for (const id in diff.deleted) {
       webViewMap.delete(id);
+      await closeDwebView(id);
     }
     for (const id in diff.updated) {
       webViewMap.set(id, JSON.parse(diff.updated[id]));
+      await nativeActivate(id);
     }
   };
   {

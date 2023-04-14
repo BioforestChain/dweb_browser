@@ -1,7 +1,7 @@
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
-import { nativeOpen, nativeActivate, cros, closeApp, openApp, closeHttp } from "../tool/tool.native.mjs";
+import { nativeOpen, nativeActivate, cros, closeDwebView } from "../tool/tool.native.mjs";
 import { $Ipc, onApiRequest } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
 
@@ -25,12 +25,16 @@ const main = async () => {
       // open
       const url = await mainUrl.promise;
       const view_id = await nativeOpen(url)
+      webViewMap.set(view_id, {
+        isActivated: true,
+        webviewId: view_id
+      })
       return view_id
     }
     // 当前的策略是有多少个webview激活多少个
     webViewMap.forEach((item, key) => {
       // activate
-      nativeActivate(key)
+      nativeActivate(item.webviewId)
     })
   };
 
@@ -49,7 +53,9 @@ const main = async () => {
     port: 443,
   });
 
-  (await apiServer.listen()).onRequest(async (request, ipc) => {
+
+  const apiReadableStreamIpc = await apiServer.listen();
+  apiReadableStreamIpc.onRequest(async (request, ipc) => {
     const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
 
     // serviceWorker
@@ -75,39 +81,39 @@ const main = async () => {
     console.log("demo#serviceWorkerFactory pathname=>", pathname)
 
     if (pathname.endsWith("close") || pathname.endsWith("restart")) {
-      // 关闭后端
+      // 关闭api和文件的http服务
       const apiServerResult = await apiServer.close()
       const wwwServerResult = await wwwServer.close()
+      // 关闭ipc信道
+      apiReadableStreamIpc.close()
+      wwwReadableStreamIpc.close()
+
       if (!apiServerResult || !wwwServerResult) {
         return "Backend server shutdown failed!!!"
       }
+
+      // 关闭所有的DwebView
+      webViewMap.forEach(async (state) => {
+        await closeDwebView(state.webviewId)
+      })
+
+      // 转发file请求到目标NMM 关闭关闭activity，并且重启服务
+      const path = `file:/${url.pathname}${url.search}`;
+      const response = await jsProcess.nativeFetch(path);
+
+      // TODO 是否不需要手动关闭 connect
+      // browserIpc.close()
+      // closeSignal.emit()
+
+      return await response.text()
     }
-    jsProcess.nativeFetch(`file://dns.sys.dweb/open?app_id=${jsProcess.mmid}`)
 
-
-    // 转发file请求到目标NMM 关闭前端
-    const path = `file:/${url.pathname}${url.search}`;
-    const response = await jsProcess.nativeFetch(path);
-
-    // jsProcess.nativeFetch("file://js.sys.dweb/close-process")
-
-
-    // 关闭connect
-    browserIpc.close()
-    closeSignal.emit()
-
-
-
-    // 关闭App dns
-    // const close = await closeApp(ipc.remote.mmid)
-    // console.log("demo#serviceWorkerFactory close=>", close)
-
-    return await response.text()
+    return "no action for serviceWorker Factory !!!"
   }
 
 
-
-  (await wwwServer.listen()).onRequest(async (request, ipc) => {
+  const wwwReadableStreamIpc = await wwwServer.listen();
+  wwwReadableStreamIpc.onRequest(async (request, ipc) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -146,7 +152,7 @@ const main = async () => {
       // browser点击图标，需要开启的逻辑
       if (event.name === "activity") {
         hasActivity = true;
-        const view_id = await tryOpenView();
+        const view_id = await tryOpenView()
         // console.log("cotDemo.worker activity =>", view_id);
         browserIpc.postMessage(IpcEvent.fromText("ready", view_id ?? "activity"));
         return
@@ -169,11 +175,11 @@ const main = async () => {
           const newState = JSON.parse(event.data)
           const diff = detailedDiff(oldWebviewState, newState)
           oldWebviewState = newState
-          // console.log("cotDemo.worker mwebview diff=>", diff, newState);
+          console.log("cotDemo.worker mwebview diff=>", diff, newState);
           diffFactory(diff)
         }
       });
-      // 没个人来连接都会注册监听，关闭时统一close
+      // 每个人来连接都会注册监听，关闭时统一close
       closeSignal.listen(() => {
         console.log("close connent for ", ipc.remote.mmid)
         ipc.postMessage(IpcEvent.fromText("close", ""))
@@ -183,7 +189,7 @@ const main = async () => {
   }
   connectGlobal()
 
-  const diffFactory = (diff: DetailedDiff) => {
+  const diffFactory = async (diff: DetailedDiff) => {
     //  是否有新增
     for (const id in diff.added) {
       // console.log("cotDemo.worker added=>", id)
@@ -193,11 +199,13 @@ const main = async () => {
     for (const id in diff.deleted) {
       // console.log("cotDemo.worker deleted=>", id)
       webViewMap.delete(id)
+      await closeDwebView(id)
     }
     // 是否有更新
     for (const id in diff.updated) {
       // console.log("cotDemo.worker updated=>", id)
       webViewMap.set(id, JSON.parse(diff.updated[id as keyof typeof diff.updated]));
+      await nativeActivate(id)
     }
   }
 
