@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,16 +27,15 @@ import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.view.CaptureController
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.jsoup.Jsoup
 import java.util.concurrent.atomic.AtomicInteger
 
-data class BrowserUIState(
+data class BrowserUIState @OptIn(ExperimentalFoundationApi::class) constructor(
   val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(),
   val currentBrowserBaseView: MutableState<BrowserBaseView>,
+  val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
+  val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
   val hotLinkList: MutableList<WebSiteInfo> = mutableStateListOf(),
   val popupViewState: MutableState<PopupViewSate> = mutableStateOf(PopupViewSate.NULL),
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false)
@@ -127,9 +128,10 @@ sealed class BrowserIntent {
   class UpdatePopupViewState(val state: PopupViewSate = PopupViewSate.NULL) : BrowserIntent()
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
-  class UpdateMultiViewState(val show: Boolean) : BrowserIntent()
+  class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
   class AddNewWebView(val url: String) : BrowserIntent()
   class SearchWebView(val url: String) : BrowserIntent()
+  class RemoveBaseView(val id: Int) : BrowserIntent()
 }
 
 class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
@@ -146,6 +148,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
     viewModelScope.launch(ioAsyncExceptionHandler) { loadHotInfo() }
   }
 
+  @OptIn(ExperimentalFoundationApi::class)
   fun handleIntent(action: BrowserIntent) {
     viewModelScope.launch(ioAsyncExceptionHandler) {
       when (action) {
@@ -179,6 +182,12 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
             uiState.currentBrowserBaseView.value.controller.capture()
           }
           uiState.multiViewShow.targetState = action.show
+          action.index?.let { index ->
+            if (index >= 0 && index < uiState.browserViewList.size) {
+              uiState.pagerStateNavigator.scrollToPage(index)
+              uiState.pagerStateContent.scrollToPage(index)
+            }
+          }
         }
         is BrowserIntent.AddNewWebView -> {
           // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
@@ -210,6 +219,9 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
               browserBaseView.state.content = WebContent.Url(action.url)
             }
           }
+        }
+        is BrowserIntent.RemoveBaseView -> {
+          uiState.browserViewList.removeAt(action.id)
         }
       }
     }

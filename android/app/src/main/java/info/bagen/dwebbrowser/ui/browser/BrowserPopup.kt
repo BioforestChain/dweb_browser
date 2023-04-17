@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -164,17 +165,20 @@ fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         .background(MaterialTheme.colors.primaryVariant)
         .clickable(indication = null,
           onClick = { },
-          interactionSource = remember { MutableInteractionSource() }
-        )
+          interactionSource = remember { MutableInteractionSource() })
     ) {
       if (browserViewList.size == 1) {
-        Box(modifier = Modifier
-          .fillMaxWidth()
-          .weight(1f)) {
-          Box(modifier = Modifier
-            .align(TopCenter)
-            .padding(top = 20.dp)) {
-            MultiItemView(browserViewList[0], true)
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f)
+        ) {
+          Box(
+            modifier = Modifier
+              .align(TopCenter)
+              .padding(top = 20.dp)
+          ) {
+            MultiItemView(viewModel, browserViewList[0], true)
           }
         }
       } else {
@@ -183,10 +187,11 @@ fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
           columns = GridCells.Fixed(2),
           modifier = Modifier.weight(1f),
           state = lazyGridState,
-          contentPadding = PaddingValues(20.dp)
+          contentPadding = PaddingValues(vertical = 20.dp, horizontal = 20.dp),
+          horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
           items(browserViewList.size) {
-            MultiItemView(browserViewList[it])
+            MultiItemView(viewModel, browserViewList[it], index = it)
           }
         }
       }
@@ -226,7 +231,12 @@ fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
 }
 
 @Composable
-private fun MultiItemView(browserBaseView: BrowserBaseView, onlyOne: Boolean = false) {
+private fun MultiItemView(
+  viewModel: BrowserViewModel,
+  browserBaseView: BrowserBaseView,
+  onlyOne: Boolean = false,
+  index: Int = 0
+) {
   val screenWidth = LocalConfiguration.current.screenWidthDp.dp
   val sizePair = if (onlyOne) {
     val with = screenWidth * 3 / 5
@@ -235,32 +245,54 @@ private fun MultiItemView(browserBaseView: BrowserBaseView, onlyOne: Boolean = f
     val with = screenWidth * 2 / 5
     Pair(with, with * 9 / 6)
   }
-  Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    Image(
-      bitmap = browserBaseView.bitmap ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
-      contentDescription = null,
-      modifier = Modifier
-        .size(width = sizePair.first, height = sizePair.second)
-        .clip(RoundedCornerShape(16.dp))
-        .align(CenterHorizontally),
-      contentScale = ContentScale.FillBounds
-    )
-    val pair = when (browserBaseView) {
-      is BrowserMainView -> {
-        Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
+  Box(modifier = Modifier.size(width = sizePair.first, height = sizePair.second)) {
+    Column(horizontalAlignment = CenterHorizontally, modifier = Modifier.clickable {
+      viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, index))
+    }) {
+      Image(
+        bitmap = browserBaseView.bitmap ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
+        contentDescription = null,
+        modifier = Modifier
+          //.size(width = sizePair.first, height = sizePair.second)
+          .clip(RoundedCornerShape(16.dp))
+          .align(CenterHorizontally),
+        contentScale = ContentScale.FillBounds
+      )
+      val pair = when (browserBaseView) {
+        is BrowserMainView -> {
+          Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
+        }
+        is BrowserWebView -> {
+          Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
+        }
+        else -> {
+          Pair(null, null)
+        }
       }
-      is BrowserWebView -> {
-        Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
-      }
-      else -> {
-        Pair(null, null)
+      Row(modifier = Modifier.padding(6.dp)) {
+        pair.second?.asImageBitmap()?.let { imageBitmap ->
+          Icon(bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(20.dp))
+        }
+        Text(text = pair.first ?: "无标题", maxLines = 1, overflow = TextOverflow.Ellipsis)
       }
     }
-    Row(modifier = Modifier.padding(6.dp)) {
-      pair.second?.asImageBitmap()?.let { imageBitmap ->
-        Icon(bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(20.dp))
+
+    if (!(onlyOne || browserBaseView is BrowserMainView)) {
+      Box(modifier = Modifier
+        .padding(4.dp)
+        .clip(CircleShape)
+        .background(Color.White)
+        .align(Alignment.TopEnd)
+        .clickable {
+          viewModel.handleIntent(BrowserIntent.RemoveBaseView(index))
+        }) {
+        Icon(
+          imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
+          contentDescription = null,
+          modifier = Modifier.size(22.dp),
+          tint = Color.Gray
+        )
       }
-      Text(text = pair.first ?: "起始页", maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
   }
 }

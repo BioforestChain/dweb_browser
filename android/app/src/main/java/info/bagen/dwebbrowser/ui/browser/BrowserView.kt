@@ -14,7 +14,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -32,7 +31,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -54,28 +52,20 @@ private val dimenBottomHeight = 100.dp
 private val dimenSearchHeight = 40.dp
 private val dimenMinBottomHeight = 20.dp
 
-private val bottomEnterAnimator = slideInVertically(
-  animationSpec = tween(300),//动画时长1s
+private val bottomEnterAnimator = slideInVertically(animationSpec = tween(300),//动画时长1s
   initialOffsetY = {
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
-  }
-)
-private val bottomExitAnimator = slideOutVertically(
-  animationSpec = tween(300),//动画时长1s
+  })
+private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),//动画时长1s
   targetOffsetY = {
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
-  }
-)
+  })
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BrowserView(viewModel: BrowserViewModel) {
-  val pagerStateSearch = rememberPagerState()
-  val pagerStateWebView = rememberPagerState()
-
   Box(modifier = Modifier.fillMaxSize()) {
-    BrowserViewContent(viewModel, pagerStateSearch, pagerStateWebView)
-    BrowserViewBottomBar(viewModel, pagerStateSearch, pagerStateWebView)
+    BrowserViewContent(viewModel)
+    BrowserViewBottomBar(viewModel)
     BrowserPopView(viewModel)
     BrowserMultiPopupView(viewModel)
   }
@@ -83,38 +73,38 @@ fun BrowserView(viewModel: BrowserViewModel) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BrowserViewContent(
-  viewModel: BrowserViewModel, pagerStateSearch: PagerState, pagerStateWebView: PagerState
-) {
+private fun BrowserViewContent(viewModel: BrowserViewModel) {
   val localFocusManager = LocalFocusManager.current
-  val localView = LocalView.current
-  val scope = rememberCoroutineScope()
-  LaunchedEffect(pagerStateSearch) {
-    snapshotFlow { pagerStateSearch.currentPageOffsetFraction }.collect { currentPageOffset ->
-      pagerStateWebView.scrollToPage(pagerStateSearch.currentPage, currentPageOffset)
+  LaunchedEffect(viewModel.uiState.pagerStateNavigator) {
+    snapshotFlow { viewModel.uiState.pagerStateNavigator.currentPageOffsetFraction }.collect { currentPageOffset ->
+      viewModel.uiState.pagerStateContent.scrollToPage(
+        viewModel.uiState.pagerStateNavigator.currentPage, currentPageOffset
+      )
     }
   }
-  LaunchedEffect(pagerStateWebView) {
-    snapshotFlow { pagerStateWebView.currentPage }.collect { currentPage ->
+  LaunchedEffect(viewModel.uiState.pagerStateContent) {
+    snapshotFlow { viewModel.uiState.pagerStateContent.currentPage }.collect { currentPage ->
       viewModel.handleIntent(BrowserIntent.UpdateCurrentBaseView(currentPage))
     }
   }
-  Box(modifier = Modifier
-    .fillMaxSize()
-    .clickable(
-      indication = null,
-      onClick = { localFocusManager.clearFocus() },
-      interactionSource = remember { MutableInteractionSource() }
-    )) {
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .clickable(indication = null,
+        onClick = { localFocusManager.clearFocus() },
+        interactionSource = remember { MutableInteractionSource() })
+  ) {
     // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
     HorizontalPager(
-      state = pagerStateWebView,
+      state = viewModel.uiState.pagerStateContent,
       pageCount = viewModel.uiState.browserViewList.size,
       beyondBoundsPageCount = 5,
       userScrollEnabled = false
     ) { currentPage ->
       when (val item = viewModel.uiState.browserViewList[currentPage]) {
-        is BrowserMainView -> BrowserViewContentMain(viewModel, item, pagerStateSearch)
+        is BrowserMainView -> BrowserViewContentMain(
+          viewModel, item, viewModel.uiState.pagerStateNavigator
+        )
         is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
       }
     }
@@ -123,9 +113,7 @@ private fun BrowserViewContent(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BoxScope.BrowserViewBottomBar(
-  viewModel: BrowserViewModel, pagerStateSearch: PagerState, pagerStateWebView: PagerState
-) {
+private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
   val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
   val inputText = when (browserBaseView) {
     is BrowserWebView -> {
@@ -142,9 +130,7 @@ private fun BoxScope.BrowserViewBottomBar(
       .align(Alignment.BottomCenter)
       .clickable { viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true)) }) {
       Text(
-        text = inputText,
-        fontSize = 12.sp,
-        modifier = Modifier.align(Alignment.CenterHorizontally)
+        text = inputText, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally)
       )
     }
 
@@ -154,7 +140,7 @@ private fun BoxScope.BrowserViewBottomBar(
       exit = bottomExitAnimator
     ) {
       Column(modifier = Modifier.fillMaxWidth()) {
-        BrowserViewSearch(viewModel, pagerStateSearch)
+        BrowserViewSearch(viewModel)
         BrowserViewNavigatorBar(viewModel) {
           // 下面是切换主页的
           /*coroutineScope.launch {
@@ -170,20 +156,22 @@ private fun BoxScope.BrowserViewBottomBar(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BrowserViewSearch(viewModel: BrowserViewModel, pagerState: PagerState) {
+private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   LaunchedEffect(PagerState) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
     delay(100)
-    pagerState.scrollToPage(pagerState.settledPage)
+    viewModel.uiState.pagerStateNavigator.scrollToPage(viewModel.uiState.pagerStateNavigator.settledPage)
   }
   HorizontalPager(
-    state = pagerState,
+    state = viewModel.uiState.pagerStateNavigator,
     pageCount = viewModel.uiState.browserViewList.size,
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
     modifier = Modifier.background(MaterialTheme.colors.primaryVariant)
   ) { currentPage ->
     when (val item = viewModel.uiState.browserViewList[currentPage]) {
       is BrowserWebView -> BrowserViewSearchWeb(viewModel, item)
-      is BrowserMainView -> BrowserViewSearchMain(viewModel, item, pagerState)
+      is BrowserMainView -> BrowserViewSearchMain(
+        viewModel, item, viewModel.uiState.pagerStateNavigator
+      )
     }
   }
 }
@@ -212,8 +200,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel, onHome: () -> U
     ) { navigator?.navigateForward() }
     NavigatorButton(resId = R.drawable.ic_main_book,
       resName = R.string.browser_nav_book,
-      show = navigator?.let { true } ?: false
-    ) { /* TODO 将当前的地址添加到书签 */ }
+      show = navigator?.let { true } ?: false) { /* TODO 将当前的地址添加到书签 */ }
     NavigatorButton(
       resId = R.drawable.ic_main_menu, resName = R.string.browser_nav_option, show = true
     ) {
@@ -237,8 +224,7 @@ private fun RowScope.NavigatorButton(
   Box(modifier = Modifier
     .weight(1f)
     .padding(horizontal = 2.dp)
-    .clickable(enabled = show) { onClick() }
-  ) {
+    .clickable(enabled = show) { onClick() }) {
     Column(modifier = Modifier.align(Alignment.Center)) {
       Icon(
         modifier = Modifier.size(28.dp),
@@ -297,11 +283,12 @@ private fun SearchBox(
 ) {
   Box(
     modifier = Modifier
-      .padding(horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign)
+      .padding(
+        horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
+      )
       .fillMaxWidth()
       .shadow(
-        elevation = dimenShadowElevation,
-        shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
+        elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
       )
       .height(dimenSearchHeight)
       .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
@@ -402,9 +389,7 @@ private fun SearchTextField(
               .weight(1f)
               .padding(horizontal = dimenSearchHorizontalAlign)
           ) {
-            if ((focus.value && currentText.value.isEmpty()) ||
-              (!focus.value && inputText.value.isEmpty())
-            ) {
+            if ((focus.value && currentText.value.isEmpty()) || (!focus.value && inputText.value.isEmpty())) {
               Text(
                 text = stringResource(id = R.string.browser_search_hint),
                 color = MaterialTheme.colors.onSecondary,
@@ -447,9 +432,7 @@ private fun SearchTextField(
  */
 private fun parseInputText(text: String, host: Boolean = true): String? {
   val uri = Uri.parse(text)
-  return if (uri.host == "cn.bing.com" && uri.path == "/search"
-    && uri.getQueryParameter("q") != null
-  ) {
+  return if (uri.host == "cn.bing.com" && uri.path == "/search" && uri.getQueryParameter("q") != null) {
     uri.getQueryParameter("q")
   } else {
     if (host) uri.host else text

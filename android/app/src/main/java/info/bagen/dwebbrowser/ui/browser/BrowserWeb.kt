@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalFocusManager
+import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.ui.view.Captureable
 import kotlinx.coroutines.delay
@@ -22,6 +23,11 @@ fun BrowserWebView(
         delay(1000)
         browserWebView.controller.capture()
       }
+    }
+  }
+  LaunchedEffect(browserWebView.state) {
+    snapshotFlow { browserWebView.state.loadingState }.collect {
+      if (it is LoadingState.Loading) browserWebView.showBottomBar.targetState = true
     }
   }
 
