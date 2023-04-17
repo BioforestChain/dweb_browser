@@ -143,5 +143,3 @@ const observeFactory = (url: URL) => {
   });
   return streamPo
 }
-
-

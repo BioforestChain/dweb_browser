@@ -57,7 +57,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             listOf("Share", "fetch", "http", "jmm", "browser")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
-            listOf("dwebview",  "http", "jmm")
+            listOf("nativeui",  "http", "jmm")
         )
         else -> debugTags.addAll(
             listOf("Share", "FileSystem")

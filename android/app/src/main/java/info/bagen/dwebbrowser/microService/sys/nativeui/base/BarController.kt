@@ -33,6 +33,7 @@ abstract class BarController(
 
     @Composable
     protected open override fun observerWatchStates(stateChanges: IsChange) {
+
         super.observerWatchStates(stateChanges)
         stateChanges.rememberByState(colorState)
         stateChanges.rememberByState(styleState)

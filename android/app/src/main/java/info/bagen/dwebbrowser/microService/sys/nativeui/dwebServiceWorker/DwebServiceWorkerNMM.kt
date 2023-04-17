@@ -23,29 +23,19 @@ class DwebServiceWorkerNMM : NativeMicroModule("service-worker.nativeui.sys.dweb
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
-            "/close" bind Method.GET to defineHandler { request, ipc ->
-                // 关闭前端
-                val controller = getCurrentWebViewController(ipc.remote.mmid)
-                debugDwebServiceWorker("close", controller)
-                if (controller !== null) {
-                    controller.activity?.finish()
-                    controller.destroyWebView()
-                    return@defineHandler true
-                }
-                Response(Status.INTERNAL_SERVER_ERROR).body("not found WebView Controller!")
-            },
+//            "/close" bind Method.GET to defineHandler { request, ipc ->
+//                val controller = getCurrentWebViewController(ipc.remote.mmid)
+//                debugDwebServiceWorker("close", controller)
+//                if (controller !== null) {
+//                    controller.activity?.finish()
+//                    controller.destroyWebView()
+//                    return@defineHandler true
+//                }
+//                Response(Status.INTERNAL_SERVER_ERROR).body("not found WebView Controller!")
+//            },
             "/restart" bind Method.GET to defineHandler { request, ipc ->
-                val controller = getCurrentWebViewController(ipc.remote.mmid)
-                debugDwebServiceWorker("restart", controller)
-                if (controller == null) {
-                    return@defineHandler Response(Status.INTERNAL_SERVER_ERROR).body("not found WebView Controller!")
-                }
-                // 关闭前端
-                controller.activity?.finish()
-                controller.destroyWebView()
                 // 关闭后端连接
                 nativeFetch("file://dns.sys.dweb/close?app_id=${ipc.remote.mmid}")
-
                 // 调用重启
                 runBlockingCatching(ioAsyncExceptionHandler) {
                     // TODO 神奇的操作

@@ -1,17 +1,15 @@
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
+import { webViewMap, closeFront, restartApp } from "../tool/app.handle.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import { nativeOpen, nativeActivate, cros, closeDwebView } from "../tool/tool.native.mjs";
 import { $Ipc, onApiRequest } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
-import { cotDemoJMM } from "./cotDemo.main.cjs";
 
 const main = async () => {
   const { IpcEvent } = ipc;
   // 启动主页面的地址
   const mainUrl = new PromiseOut<string>();
-  // 管理webView
-  const webViewMap = new Map<string, WebViewState>()
   // 管理webview的状态，因为当前webview是通过状态判断操作的，比如激活，关闭
   let oldWebviewState: WebViewState[] = [];
   // 跟 browser建立连接
@@ -80,36 +78,24 @@ const main = async () => {
   const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
     const pathname = url.pathname;
     console.log("demo#serviceWorkerFactory pathname=>", pathname)
-
-    if (pathname.endsWith("close") || pathname.endsWith("restart")) {
-      // 关闭api和文件的http服务
-      const apiServerResult = await apiServer.close()
-      const wwwServerResult = await wwwServer.close()
-      // 关闭ipc信道
-      apiReadableStreamIpc.close()
-      wwwReadableStreamIpc.close()
-
-      if (!apiServerResult || !wwwServerResult) {
-        return "Backend server shutdown failed!!!"
-      }
-
-      // 关闭所有的DwebView
-      webViewMap.forEach(async (state) => {
-        await closeDwebView(state.webviewId)
-      })
-
-      // 转发file请求到目标NMM 关闭关闭activity，并且重启服务
-      const path = `file:/${url.pathname}${url.search}`;
-      const response = await jsProcess.nativeFetch(path);
-
-      // TODO 是否不需要手动关闭 connect
-      browserIpc.close()
-      closeSignal.emit()
-      cotDemoJMM.shutdown()
-
-      return await response.text()
+    // 关闭前端
+    if (pathname.endsWith("close")) {
+      return closeFront()
     }
+    // 重启app，伴随着前后端重启
+    if (pathname.endsWith("restart")) {
+      return restartApp(url, [apiServer, wwwServer], [apiReadableStreamIpc, wwwReadableStreamIpc])
+    }
+    // 卸载app
 
+
+
+    // TODO 手动关闭 connect
+    // browserIpc.close()
+    // closeSignal.emit()
+    // cotDemoJMM.shutdown()
+
+    // return await response.text()
     return "no action for serviceWorker Factory !!!"
   }
 

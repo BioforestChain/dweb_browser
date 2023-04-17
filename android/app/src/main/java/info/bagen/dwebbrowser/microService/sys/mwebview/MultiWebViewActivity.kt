@@ -134,6 +134,7 @@ open class MultiWebViewActivity : PermissionActivity() {
     override fun onDestroy() {
         super.onDestroy()
         controller?.destroyWebView()
+        controllerMap.remove(remoteMmid)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
