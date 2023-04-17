@@ -105,6 +105,10 @@ public class MessagePortIpc : Ipc
         OnDestory += async (_) => { Port.OnWebMessage -= callback; };
     }
 
+    public MessagePortIpc(WebMessagePort port, Ipc.MicroModuleInfo remote, IPC_ROLE rote_type)
+        : this(MessagePort.From(port), remote, rote_type) { }
+    
+
     public override Task _doPostMessageAsync(IpcMessage data)
     {
         string message;

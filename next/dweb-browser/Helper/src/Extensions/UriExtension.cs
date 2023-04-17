@@ -44,5 +44,8 @@ public static class UriExtension
 
     public static Uri SetAuthority(this Uri self, string authority) =>
         new Uri(self.AbsoluteUri.Replace(self.Authority, authority));
+
+    public static Uri Path(this Uri self, string path) =>
+        new Uri(self.AbsoluteUri.Replace(self.AbsolutePath, path));
 }
 
