@@ -1,14 +1,14 @@
 package info.bagen.rust.plaoc
 
-import info.bagen.rust.plaoc.microService.core.BootstrapContext
-import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.fromUtf8
-import info.bagen.rust.plaoc.microService.helper.readByteArray
-import info.bagen.rust.plaoc.microService.helper.text
-import info.bagen.rust.plaoc.microService.ipc.*
-import info.bagen.rust.plaoc.microService.sys.dns.DnsNMM
-import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
-import info.bagen.rust.plaoc.microService.sys.dns.nativeFetchAdaptersManager
+import info.bagen.dwebbrowser.microService.core.BootstrapContext
+import info.bagen.dwebbrowser.microService.core.NativeMicroModule
+import info.bagen.dwebbrowser.microService.ipc.*
+import info.bagen.dwebbrowser.microService.helper.fromUtf8
+import info.bagen.dwebbrowser.microService.helper.readByteArray
+import info.bagen.dwebbrowser.microService.helper.text
+import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
+import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import info.bagen.dwebbrowser.microService.sys.dns.nativeFetchAdaptersManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

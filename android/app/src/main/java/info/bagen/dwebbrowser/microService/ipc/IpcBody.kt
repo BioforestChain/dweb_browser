@@ -1,0 +1,86 @@
+package info.bagen.dwebbrowser.microService.ipc
+
+import info.bagen.dwebbrowser.microService.helper.fromBase64
+import info.bagen.dwebbrowser.microService.helper.printdebugln
+import info.bagen.dwebbrowser.microService.helper.toUtf8
+import java.io.InputStream
+import java.util.*
+
+
+inline fun debugIpcBody(tag: String, msg: Any = "", err: Throwable? = null) =
+    printdebugln("ipc-body", tag, msg, err)
+
+abstract class IpcBody {
+    /**
+     * 缓存，这里不提供辅助函数，只是一个统一的存取地方，
+     * 写入缓存者要自己维护缓存释放的逻辑
+     */
+    class CACHE {
+        companion object {
+            /**
+             * 任意的 RAW 背后都会有一个 IpcBodySender/IpcBodyReceiver
+             * 将它们缓存起来，那么使用这些 RAW 确保只拿到同一个 IpcBody，这对 RAW-Stream 很重要，流不可以被多次打开读取
+             */
+            val raw_ipcBody_WMap = WeakHashMap<Any, IpcBody>()
+
+            /**
+             * 每一个 metaBody 背后，都会有第一个 接收者IPC，这直接定义了它的应该由谁来接收这个数据，
+             * 其它的 IPC 即便拿到了这个 metaBody 也是没有意义的，除非它是 INLINE
+             */
+            val metaId_receiverIpc_Map = mutableMapOf<String, Ipc>()
+
+            /**
+             * 每一个 metaBody 背后，都会有一个 IpcBodySender,
+             * 这里主要是存储 流，因为它有明确的 open/close 生命周期
+             */
+            val metaId_ipcBodySender_Map = mutableMapOf<String, IpcBodySender>()
+        }
+
+    }
+
+
+    protected inner class BodyHub {
+        var text: String? = null
+        var stream: InputStream? = null
+        var u8a: ByteArray? = null
+        var data: Any? = null
+    }
+
+    protected abstract val bodyHub: BodyHub
+    abstract val metaBody: MetaBody
+
+    open val raw get() = bodyHub.data
+
+    private val _u8a by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+        (bodyHub.u8a ?: bodyHub.stream?.let {
+            it.readBytes()
+        } ?: bodyHub.text?.let {
+            it.fromBase64()
+        } ?: throw Exception("invalid body type")).also {
+            CACHE.raw_ipcBody_WMap[it] = this
+        }
+    }
+
+    suspend fun u8a() = this._u8a
+
+    private val _stream by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+        (bodyHub.stream ?: _u8a.let {
+            it.inputStream()
+        }).also {
+            CACHE.raw_ipcBody_WMap[it] = this
+        }
+    }
+
+    fun stream() = this._stream
+
+    private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+        (bodyHub.text ?: _u8a.let {
+            it.toUtf8()
+        }).also {
+            CACHE.raw_ipcBody_WMap[it] = this
+        }
+    }
+
+    fun text() = this._text
+
+}

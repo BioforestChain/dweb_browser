@@ -20,4 +20,4 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class info.bagen.rust.plaoc.** { *; }
+-keep class info.bagen.dwebbrowser.** { *; }

@@ -1,7 +1,7 @@
 package info.bagen.rust.plaoc
 
-import info.bagen.rust.plaoc.microService.helper.toByteArray
-import info.bagen.rust.plaoc.microService.helper.toInt
+import info.bagen.dwebbrowser.microService.helper.toByteArray
+import info.bagen.dwebbrowser.microService.helper.toInt
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

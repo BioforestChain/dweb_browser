@@ -1,5 +1,6 @@
 package info.bagen.rust.plaoc.microService.ipc
 
+import info.bagen.dwebbrowser.microService.ipc.ReadableStream
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

@@ -1,16 +1,16 @@
 package info.bagen.rust.plaoc
 
-import info.bagen.rust.plaoc.microService.core.BootstrapContext
-import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.text
-import info.bagen.rust.plaoc.microService.ipc.IpcHeaders
-import info.bagen.rust.plaoc.microService.ipc.IpcResponse
-import info.bagen.rust.plaoc.microService.sys.boot.BootNMM
-import info.bagen.rust.plaoc.microService.sys.dns.DnsNMM
-import info.bagen.rust.plaoc.microService.sys.dns.nativeFetch
-import info.bagen.rust.plaoc.microService.sys.http.DwebHttpServerOptions
-import info.bagen.rust.plaoc.microService.sys.http.HttpNMM
-import info.bagen.rust.plaoc.microService.sys.http.createHttpDwebServer
+import info.bagen.dwebbrowser.microService.core.BootstrapContext
+import info.bagen.dwebbrowser.microService.core.NativeMicroModule
+import info.bagen.dwebbrowser.microService.helper.text
+import info.bagen.dwebbrowser.microService.ipc.IpcHeaders
+import info.bagen.dwebbrowser.microService.ipc.IpcResponse
+import info.bagen.dwebbrowser.microService.sys.boot.BootNMM
+import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
+import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import info.bagen.dwebbrowser.microService.sys.http.DwebHttpServerOptions
+import info.bagen.dwebbrowser.microService.sys.http.HttpNMM
+import info.bagen.dwebbrowser.microService.sys.http.createHttpDwebServer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay

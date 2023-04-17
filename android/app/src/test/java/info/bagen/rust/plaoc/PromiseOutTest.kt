@@ -1,10 +1,8 @@
 package info.bagen.rust.plaoc
 
-import info.bagen.rust.plaoc.microService.helper.PromiseOut
+import info.bagen.dwebbrowser.microService.helper.PromiseOut
 import kotlinx.coroutines.*
-import kotlinx.coroutines.future.await
 import org.junit.jupiter.api.Test
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 

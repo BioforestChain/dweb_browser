@@ -5,7 +5,7 @@ plugins {
 android {
     compileSdk = 33
     defaultConfig {
-        applicationId = "info.bagen.rust.plaoc"
+        applicationId = "info.bagen.dwebbrowser"
         minSdk = 28
         targetSdk = 33
         versionCode = 1
@@ -80,7 +80,7 @@ android {
             excludes += "/META-INF/DEPENDENCIES"
         }
     }
-    namespace = "info.bagen.rust.plaoc"
+    namespace = "info.bagen.dwebbrowser"
 }
 
 

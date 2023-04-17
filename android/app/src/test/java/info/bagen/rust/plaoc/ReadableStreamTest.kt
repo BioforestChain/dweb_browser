@@ -1,11 +1,11 @@
 package info.bagen.rust.plaoc
 
-import info.bagen.rust.plaoc.microService.core.BootstrapContext
-import info.bagen.rust.plaoc.microService.core.NativeMicroModule
-import info.bagen.rust.plaoc.microService.helper.Signal
-import info.bagen.rust.plaoc.microService.helper.text
-import info.bagen.rust.plaoc.microService.helper.toByteArray
-import info.bagen.rust.plaoc.microService.ipc.*
+import info.bagen.dwebbrowser.microService.core.BootstrapContext
+import info.bagen.dwebbrowser.microService.core.NativeMicroModule
+import info.bagen.dwebbrowser.microService.helper.Signal
+import info.bagen.dwebbrowser.microService.helper.text
+import info.bagen.dwebbrowser.microService.ipc.*
+import info.bagen.dwebbrowser.microService.helper.toByteArray
 import kotlinx.coroutines.*
 import org.http4k.core.Method
 import org.http4k.core.Request
