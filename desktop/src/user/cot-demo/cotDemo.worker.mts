@@ -4,6 +4,7 @@ import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import { nativeOpen, nativeActivate, cros, closeDwebView } from "../tool/tool.native.mjs";
 import { $Ipc, onApiRequest } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
+import { cotDemoJMM } from "./cotDemo.main.cjs";
 
 const main = async () => {
   const { IpcEvent } = ipc;
@@ -102,8 +103,9 @@ const main = async () => {
       const response = await jsProcess.nativeFetch(path);
 
       // TODO 是否不需要手动关闭 connect
-      // browserIpc.close()
-      // closeSignal.emit()
+      browserIpc.close()
+      closeSignal.emit()
+      cotDemoJMM.shutdown()
 
       return await response.text()
     }

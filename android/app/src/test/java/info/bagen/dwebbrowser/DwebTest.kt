@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc
+package info.bagen.dwebbrowser
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule

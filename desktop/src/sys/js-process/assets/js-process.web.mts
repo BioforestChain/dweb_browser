@@ -121,6 +121,14 @@ const createIpc = async (
   process.worker.removeEventListener("message", onEnvReady);
   return;
 };
+/**
+ * 彻底退出后端，即删除APP的worker
+ * @param process_id 
+ */
+const destroyProcess = (process_id: number) => {
+  const process = _forceGetProcess(process_id);
+  process.worker.terminate()
+}
 
 const on_create_process_signal = createSignal();
 
@@ -128,6 +136,7 @@ export const APIS = {
   createProcess,
   runProcessMain,
   createIpc,
+  destroyProcess
 };
 export type $RunMainConfig = {
   main_url: string;

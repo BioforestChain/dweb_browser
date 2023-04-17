@@ -42,7 +42,7 @@ class ExampleStartupBenchmark {
 
     @Test
     fun startup() = benchmarkRule.measureRepeated(
-        packageName = "info.bagen.rust.plaoc",
+        packageName = "info.bagen.dwebbrowser",
         metrics = listOf(StartupTimingMetric()),
         iterations = 5,
         startupMode = StartupMode.COLD

@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.microService.ipc
+package info.bagen.rust.dwebbrowser.microService.ipc
 
 import org.http4k.asByteBuffer
 import org.http4k.core.MemoryBody

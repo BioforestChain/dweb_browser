@@ -7,7 +7,7 @@ android {
     compileSdkVersion = build_versions.compileSdk
     buildToolsVersion = build_versions.buildTools
     defaultConfig {
-        applicationId = "info.bagen.rust.plaoc"
+        applicationId = "info.bagen.dwebbrowser"
         minSdkVersion 28
         targetSdkVersion 33
         versionCode = 1

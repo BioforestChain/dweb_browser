@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc
+package info.bagen.dwebbrowser
 
 import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.ipc.IPC_MESSAGE_TYPE

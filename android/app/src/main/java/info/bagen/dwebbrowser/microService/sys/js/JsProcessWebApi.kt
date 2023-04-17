@@ -71,6 +71,13 @@ class JsProcessWebApi(val dWebView: DWebView) {
         """.trimIndent()
         ).let {}
 
+    suspend fun destroyProcess(process_id: Int) =
+        dWebView.evaluateAsyncJavascriptCode(
+            """
+        destroyProcess($process_id)
+        """.trimIndent()
+        ).let {}
+
     suspend fun createIpc(process_id: Int, mmid: Mmid) = withContext(Dispatchers.Main) {
         val channel = dWebView.createWebMessageChannel()
         val port1 = channel[0]
@@ -95,6 +102,8 @@ class JsProcessWebApi(val dWebView: DWebView) {
         })
         saveNative2JsIpcPort(port2)
     }
+
+
 
     fun destroy() {
         dWebView.destroy()

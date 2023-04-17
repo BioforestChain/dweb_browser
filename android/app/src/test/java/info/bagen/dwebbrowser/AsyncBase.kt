@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc;
+package info.bagen.dwebbrowser;
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler

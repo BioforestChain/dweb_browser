@@ -10,10 +10,7 @@ import info.bagen.dwebbrowser.microService.ipc.IpcHeaders
 import info.bagen.dwebbrowser.microService.ipc.IpcResponse
 import info.bagen.dwebbrowser.microService.ipc.ReadableStreamIpc
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.sys.http.DwebHttpServerOptions
-import info.bagen.dwebbrowser.microService.sys.http.closeHttpDwebServer
-import info.bagen.dwebbrowser.microService.sys.http.createHttpDwebServer
-import info.bagen.dwebbrowser.microService.sys.http.debugHttp
+import info.bagen.dwebbrowser.microService.sys.http.*
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -52,10 +49,13 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// 主页的网页服务
         val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
-            // 在模块关停的时候，要关闭端口监听
-            _afterShutdownSignal.listen { server.close() }
             // 提供基本的主页服务
             val serverIpc = server.listen();
+            // 在模块关停的时候，要关闭端口监听
+            _afterShutdownSignal.listen {
+                server.close()
+                serverIpc.close()
+            }
             serverIpc.onRequest { (request, ipc) ->
                 // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
                 if (request.uri.path.startsWith(INTERNAL_PATH)) {
@@ -94,36 +94,19 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             mainServer.startResult.urlInfo.buildInternalUrl().path("$INTERNAL_PATH/bootstrap.js")
                 .toString()
 
-
-        val afterReadyPo = PromiseOut<Unit>()
-        /// WebView 实例
-        val apis = withContext(Dispatchers.Main) {
-            WebView.setWebContentsDebuggingEnabled(true)
-
-            val urlInfo = mainServer.startResult.urlInfo
-            JsProcessWebApi(
-                DWebView(
-                    App.appContext, this@JsProcessNMM, this@JsProcessNMM, DWebView.Options(
-                        url = urlInfo.buildInternalUrl().path("/index.html").toString()
-                    )
-                )
-            ).also { api ->
-                _afterShutdownSignal.listen { api.destroy() }
-                api.dWebView.onReady { afterReadyPo.resolve(Unit) }
-            }
-        }
-        afterReadyPo.waitPromise()
-
+        val apis = createJsProcessWeb(mainServer)
         val query_entry = Query.string().optional("entry")
         val query_process_id = Query.string().required("process_id")
         val query_mmid = Query.string().required("mmid")
 
         val ipcProcessIdMap = mutableMapOf<Ipc, MutableMap<String, PromiseOut<Int>>>()
+        val processIpcMap = mutableMapOf<String,Ipc>()
         val ipcProcessIdMapLock = Mutex()
         apiRouting = routes(
             /// 创建 web worker
             // request 需要携带一个流，来为 web worker 提供代码服务
             "/create-process" bind Method.POST to defineHandler { request, ipc ->
+                processIpcMap[ipc.remote.mmid] = ipc
                 val po = ipcProcessIdMapLock.withLock {
                     val processId = query_process_id(request)
                     val processIdMap = ipcProcessIdMap.getOrPut(ipc) {
@@ -166,12 +149,36 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                 createIpc(ipc, apis, process_id, mmid)
             },
             /// 关闭process
-            "/close-process" bind Method.GET to defineHandler { request ->
-                val mmid = query_mmid(request)
-                closeHttpDwebServer(DwebHttpServerOptions(port = 80,subdomain = mmid))
+            "/close-process" bind Method.GET to defineHandler { request,ipc ->
+                closeHttpDwebServer(DwebHttpServerOptions(port = 80,subdomain = ipc.remote.mmid))
+                val processIpc = processIpcMap[ipc.remote.mmid]
+                processIpc?.close()
                 return@defineHandler true
             }
         )
+    }
+
+
+    private suspend fun createJsProcessWeb(mainServer: HttpDwebServer):JsProcessWebApi {
+        val afterReadyPo = PromiseOut<Unit>()
+        /// WebView 实例
+        val apis = withContext(Dispatchers.Main) {
+            WebView.setWebContentsDebuggingEnabled(true)
+
+            val urlInfo = mainServer.startResult.urlInfo
+            JsProcessWebApi(
+                DWebView(
+                    App.appContext, this@JsProcessNMM, this@JsProcessNMM, DWebView.Options(
+                        url = urlInfo.buildInternalUrl().path("/index.html").toString()
+                    )
+                )
+            ).also { api ->
+                _afterShutdownSignal.listen { api.destroy() }
+                api.dWebView.onReady { afterReadyPo.resolve(Unit) }
+            }
+        }
+        afterReadyPo.waitPromise()
+        return apis
     }
 
     override suspend fun _shutdown() {
@@ -278,6 +285,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         ipc.onClose {
             debugHttp("jsProcessNMM","🥥🍒 close the ipc")
             streamIpc.close()
+            codeProxyServerIpc.close()
         }
 
         /**
@@ -285,6 +293,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
          */
         streamIpc.onClose {
             httpDwebServer.close();
+            apis.destroyProcess(processHandler.info.process_id)
         }
 
         return CreateProcessAndRunResult(streamIpc, processHandler)

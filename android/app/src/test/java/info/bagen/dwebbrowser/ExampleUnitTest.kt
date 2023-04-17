@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc
+package info.bagen.dwebbrowser
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

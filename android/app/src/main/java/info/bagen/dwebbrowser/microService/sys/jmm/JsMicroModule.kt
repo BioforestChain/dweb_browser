@@ -145,6 +145,11 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                     targetIpc.onMessage { (ipcMessage) ->
                         originIpc.postMessage(ipcMessage)
                     }
+                    // 监听关闭事件
+                    closeJsProcessSignal.listen {
+                        targetIpc.close()
+                        originIpc.close()
+                    }
                 }
             }
             null
@@ -160,7 +165,7 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
     override suspend fun _shutdown() {
         debugJMM("closeJsProcessSignal emit", "$mmid/$metadata")
         /// 发送指令，关停js进程
-        nativeFetch("file://js.sys.dweb/close-process?mmid=${mmid}")
+        nativeFetch("file://js.sys.dweb/close-process")
         closeJsProcessSignal.emit()
         processId = null
     }

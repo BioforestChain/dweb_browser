@@ -1,6 +1,6 @@
-package info.bagen.rust.plaoc.learn
+package info.bagen.dwebbrowser.learn
 
-import info.bagen.rust.plaoc.AsyncBase
+import info.bagen.dwebbrowser.AsyncBase
 import info.bagen.dwebbrowser.microService.helper.now
 import info.bagen.dwebbrowser.microService.helper.toByteArray
 import info.bagen.dwebbrowser.microService.helper.toInt

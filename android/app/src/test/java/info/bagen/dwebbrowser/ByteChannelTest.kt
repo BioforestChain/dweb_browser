@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc
+package info.bagen.dwebbrowser
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*

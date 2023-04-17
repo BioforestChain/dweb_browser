@@ -1,4 +1,4 @@
-package info.bagen.rust.plaoc.learn
+package info.bagen.dwebbrowser.learn
 
 import org.junit.jupiter.api.Test
 

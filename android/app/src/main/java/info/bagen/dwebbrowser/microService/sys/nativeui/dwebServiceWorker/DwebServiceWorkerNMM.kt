@@ -4,6 +4,7 @@ import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.printdebugln
+import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM.Companion.getBfsMetaData
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
@@ -45,13 +46,8 @@ class DwebServiceWorkerNMM : NativeMicroModule("service-worker.nativeui.sys.dweb
                 // 关闭后端连接
                 nativeFetch("file://dns.sys.dweb/close?app_id=${ipc.remote.mmid}")
 
-                val jsMetadata = getBfsMetaData(ipc.remote.mmid)
-                    ?: return@defineHandler Response(Status.NOT_FOUND).body("not found the ${ipc.remote.mmid} js module !!")
-                // 重新创建一个 jsModule
-                val jsModule = JsMicroModule(jsMetadata)
-                bootstrapContext.dns.install(jsModule)
                 // 调用重启
-                GlobalScope.launch(ioAsyncExceptionHandler) {
+                runBlockingCatching(ioAsyncExceptionHandler) {
                     // TODO 神奇的操作
                     delay(200)
                     bootstrapContext.dns.bootstrap(ipc.remote.mmid)
