@@ -6,15 +6,15 @@ public abstract class NativeMicroModule : MicroModule
 {
     static NativeMicroModule()
     {
-        NativeConnect.ConnectAdapterManager.Append((fromMM, toMM, reason) =>
+        NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
         {
             if (toMM is NativeMicroModule nmm)
             {
                 var channel = new NativeMessageChannel<IpcMessage, IpcMessage>();
                 var toNativeIpc = new NativeIpc(channel.Port1, fromMM, IPC_ROLE.SERVER);
                 var fromNativeIpc = new NativeIpc(channel.Port2, nmm, IPC_ROLE.CLIENT);
-                fromMM.BeConnectAsync(fromNativeIpc, reason);
-                nmm.BeConnectAsync(toNativeIpc, reason);
+                await fromMM.BeConnectAsync(fromNativeIpc, reason);
+                await nmm.BeConnectAsync(toNativeIpc, reason);
                 return new ConnectResult(fromNativeIpc, toNativeIpc);
             }
 

@@ -66,9 +66,6 @@
 	  <None Remove="Platforms\iOS\WebModule\Js\" />
 	</ItemGroup>
 	<ItemGroup>
-	  <BundleResource Include="Resources\.DS_Store" />
-	</ItemGroup>
-	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
 	  <ProjectReference Include="..\MicroService\src\DwebBrowser.MicroService.csproj" />
 	</ItemGroup>
