@@ -1,7 +1,7 @@
 import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import type { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
 import type { WebViewState } from "./tool.event.mjs";
-import { closeDwebView } from "./tool.native.mjs";
+import { closeDwebView, emitUpdateFoundEvent } from "./tool.native.mjs";
 
 // 管理webView
 export const webViewMap = new Map<string, WebViewState>()
@@ -18,6 +18,9 @@ export const restartApp = async (
   servers: HttpDwebServer[],
   ipcs: ReadableStreamIpc[]
 ) => {
+
+  return await emitUpdateFoundEvent()
+
   // 关闭api和文件的http服务
   servers.forEach((server) => {
     server.close();

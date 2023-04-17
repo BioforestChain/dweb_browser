@@ -58,6 +58,7 @@ class MultiWebViewController(
       var hidden: Boolean = false
     ) {
         val nativeUiController by lazy {
+
             webView.activity?.let { NativeUiController(it) }
                 ?: throw Exception("webview un attached to activity")
         }

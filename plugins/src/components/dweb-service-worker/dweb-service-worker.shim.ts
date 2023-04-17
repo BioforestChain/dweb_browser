@@ -1,23 +1,109 @@
 
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { DwebWorkerEventMap, ListenerCallback, UpdateControllerMap, WindowListenerHandle } from "./dweb-service-worker.type.ts";
 
 declare namespace globalThis {
   const __app_upgrade_watcher_kit__: {
     /**
      * 该对象由 web 侧负责写入，由 native 侧去触发事件
      */
-    _events: Map<string, EventTarget>;
+    _listeners: { [eventName: string]: ListenerCallback[] };
+    _windowListeners: { [eventName: string]: WindowListenerHandle };
   }
 }
+// deno-lint-ignore no-explicit-any
+(globalThis as any).__app_upgrade_watcher_kit__ = {}
 
 const app_upgrade_watcher_kit = globalThis.__app_upgrade_watcher_kit__;
 
 if (app_upgrade_watcher_kit) {
-  app_upgrade_watcher_kit._events ??= new Map()
+  app_upgrade_watcher_kit._listeners ??= {}
+  app_upgrade_watcher_kit._windowListeners ??= {}
 }
 
-class DwebServiceWorker extends EventTarget {
+class BaseEvent<K extends keyof (UpdateControllerMap & DwebWorkerEventMap)> extends EventTarget {
+  /**
+ *  dwebview 注册一个监听事件
+ * @param eventName 
+ * @param listenerFunc 
+ * @returns 
+ */
+  addEventListener(
+    eventName: K,
+    listenerFunc: ListenerCallback,
+    options?: boolean | AddEventListenerOptions
+  ): EventTarget {
+    // 监听一个事件
+    const listeners = app_upgrade_watcher_kit._listeners[eventName];
+    if (!listeners) {
+      app_upgrade_watcher_kit._listeners[eventName] = [];
+    }
+
+    app_upgrade_watcher_kit._listeners[eventName].push(listenerFunc);
+
+    // 看看有没有添加过监听
+    const windowListener = app_upgrade_watcher_kit._windowListeners[eventName];
+    if (windowListener && !windowListener.registered) {
+      this.addWindowListener(windowListener, options);
+    }
+    const remove = () => this.removeEventListener(eventName, listenerFunc);
+
+    // deno-lint-ignore no-explicit-any
+    const p: any = Promise.resolve({ remove });
+    // 注册一个移除监听的方法
+    Object.defineProperty(p, 'remove', {
+      value: async () => {
+        console.warn(`Using addListener() without 'await' is deprecated.`);
+        await remove();
+      },
+    });
+
+    return p;
+  }
+
+  /**添加一个监听器 */
+  private addWindowListener(handle: WindowListenerHandle, options?: boolean | AddEventListenerOptions): void {
+    super.addEventListener(handle.windowEventName, handle.handler, options)
+    handle.registered = true;
+  }
+
+  /**移除监听器 */
+  removeEventListener(
+    eventName: K,
+    listenerFunc: ListenerCallback,
+    options?: boolean | EventListenerOptions
+  ) {
+    const listeners = app_upgrade_watcher_kit._listeners[eventName];
+    if (!listeners) {
+      return;
+    }
+
+    const index = listeners.indexOf(listenerFunc);
+    app_upgrade_watcher_kit._listeners[eventName].splice(index, 1);
+
+    // 如果监听器为空，移除监听器
+    if (!app_upgrade_watcher_kit._listeners[eventName].length) {
+      this.removeWindowListener(app_upgrade_watcher_kit._windowListeners[eventName], options);
+    }
+  }
+
+  /**移除全局监听 */
+  private removeWindowListener(handle: WindowListenerHandle, options?: boolean | EventListenerOptions): void {
+    if (!handle) {
+      return;
+    }
+    super.removeEventListener(handle.windowEventName, handle.handler, options);
+    handle.registered = false;
+  }
+  /**是否存在 */
+  protected hasListeners(eventName: string): boolean {
+    return !!app_upgrade_watcher_kit._listeners[eventName].length;
+  }
+}
+
+
+class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
 
   updateContoller = new UpdateController()
 
@@ -36,44 +122,9 @@ class DwebServiceWorker extends EventTarget {
     return dwebServiceWorkerPlugin.restart
   }
 
-
-  addEventListener<K extends keyof DwebWorkerEventMap>(
-    type: K,
-    // deno-lint-ignore no-explicit-any
-    listener: (this: DwebServiceWorker, ev: DwebWorkerEventMap[K]) => any,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-  addEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-
-
-  addEventListener() {
-    // deno-lint-ignore no-explicit-any
-    return (super.addEventListener as any)(...arguments);
-  }
-
-  removeEventListener<K extends keyof DwebWorkerEventMap>(
-    type: K,
-    // deno-lint-ignore no-explicit-any
-    listener: (this: DwebServiceWorker, ev: DwebWorkerEventMap[K]) => any,
-    options?: boolean | EventListenerOptions
-  ): void;
-  removeEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions
-  ): void;
-  removeEventListener() {
-    // deno-lint-ignore no-explicit-any
-    return (super.addEventListener as any)(...arguments);
-  }
 }
 
-class UpdateController extends EventTarget {
-
+class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
 
   // 暂停
   @cacheGetter()
@@ -94,51 +145,18 @@ class UpdateController extends EventTarget {
   // get progress() {
   //   return dwebServiceWorkerPlugin.update().progress
   // }
-
-  addEventListener<K extends keyof UpdateControllerMap>(
-    type: K,
-    // deno-lint-ignore no-explicit-any
-    listener: (this: DwebServiceWorker, ev: UpdateControllerMap[K]) => any,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-  addEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-
-  addEventListener() {
-    // deno-lint-ignore no-explicit-any
-    return (super.addEventListener as any)(...arguments);
-  }
-  removeEventListener<K extends keyof UpdateControllerMap>(
-    type: K,
-    // deno-lint-ignore no-explicit-any
-    listener: (this: DwebServiceWorker, ev: UpdateControllerMap[K]) => any,
-    options?: boolean | EventListenerOptions
-  ): void;
-  removeEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions
-  ): void;
-  removeEventListener() {
-    // deno-lint-ignore no-explicit-any
-    return (super.addEventListener as any)(...arguments);
-  }
-}
-
-interface DwebWorkerEventMap {
-  updatefound: Event, // 更新或重启的时候触发
-  fetch: Event,
-  onFetch: Event
-}
-
-interface UpdateControllerMap {
-  start: Event, // 监听启动
-  progress: Event, // 进度每秒触发一次
-  end: Event, // 结束
-  cancel: Event, // 取消
 }
 
 export const dwebServiceWorker = new DwebServiceWorker()
+
+// deno-lint-ignore no-explicit-any
+if (typeof (globalThis as any)["DwebServiceWorker"] === "undefined") {
+  Object.assign(globalThis, { DwebServiceWorker });
+}
+
+// deno-lint-ignore no-explicit-any
+if (typeof (globalThis as any)["UpdateController"] === "undefined") {
+  Object.assign(globalThis, { UpdateController });
+}
+
+

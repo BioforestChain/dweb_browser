@@ -179,10 +179,16 @@ var closeDwebView = async (webview_id) => {
     `file://mwebview.sys.dweb/close?webview_id=${encodeURIComponent(webview_id)}`
   ).text();
 };
+var emitUpdateFoundEvent = async () => {
+  return await jsProcess.nativeFetch(
+    `file://service-worker.nativeui.sys.dweb/emitUpdateFoundEvent`
+  ).text();
+};
 
 // src/user/tool/app.handle.mts
 var webViewMap = /* @__PURE__ */ new Map();
 var restartApp = async (url, servers, ipcs) => {
+  return await emitUpdateFoundEvent();
   servers.forEach((server) => {
     server.close();
   });

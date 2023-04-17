@@ -2,13 +2,8 @@ package info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.printdebugln
-import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
+import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM.Companion.getBfsMetaData
-import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
-import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
 import kotlinx.coroutines.*
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -23,16 +18,11 @@ class DwebServiceWorkerNMM : NativeMicroModule("service-worker.nativeui.sys.dweb
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
-//            "/close" bind Method.GET to defineHandler { request, ipc ->
-//                val controller = getCurrentWebViewController(ipc.remote.mmid)
-//                debugDwebServiceWorker("close", controller)
-//                if (controller !== null) {
-//                    controller.activity?.finish()
-//                    controller.destroyWebView()
-//                    return@defineHandler true
-//                }
-//                Response(Status.INTERNAL_SERVER_ERROR).body("not found WebView Controller!")
-//            },
+            // 提供给应用自卸载
+            "/uninstall" bind Method.GET to defineHandler { request, ipc ->
+                debugDwebServiceWorker("uninstall", "应用触发自卸载")
+                Response(Status.INTERNAL_SERVER_ERROR).body("error for remove app!")
+            },
             "/restart" bind Method.GET to defineHandler { request, ipc ->
                 // 关闭后端连接
                 nativeFetch("file://dns.sys.dweb/close?app_id=${ipc.remote.mmid}")
@@ -42,12 +32,14 @@ class DwebServiceWorkerNMM : NativeMicroModule("service-worker.nativeui.sys.dweb
                     delay(200)
                     bootstrapContext.dns.bootstrap(ipc.remote.mmid)
                 }
-                return@defineHandler true
+            },
+            "emitUpdateFoundEvent"  bind Method.GET to defineHandler { request, ipc ->
+                // 触发UpdateFound 事件
+                emitEvent(ipc.remote.mmid,ServiceWorkerEvent.UpdateFound.name)
             }
         )
     }
 
     override suspend fun _shutdown() {
-        TODO("Not yet implemented")
     }
 }

@@ -40,5 +40,14 @@ export const closeDwebView = async (webview_id: string) => {
     .text();
 }
 
+/**触发更新事件 */
+export const emitUpdateFoundEvent = async () => {
+  return await jsProcess
+    .nativeFetch(
+      `file://service-worker.nativeui.sys.dweb/emitUpdateFoundEvent`
+    )
+    .text();
+}
+
 
 
