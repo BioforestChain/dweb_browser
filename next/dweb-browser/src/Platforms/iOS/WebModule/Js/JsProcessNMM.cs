@@ -9,12 +9,8 @@ namespace DwebBrowser.WebModule.Js;
 
 public class JsProcessNMM : NativeMicroModule
 {
-    public override string Mmid { get; init; }
-
-    public JsProcessNMM()
+    public JsProcessNMM():base("js.sys.dweb")
     {
-        Mmid = "js.sys.dweb";
-
         _LAZY_JS_PROCESS_WORKER_CODE = new Lazy<string>(() =>
             Task.Run(async () => await (await NativeFetchAsync("file:///bundle/js-process.worker.js")).TextAsync()).Result);
     }

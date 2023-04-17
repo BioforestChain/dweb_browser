@@ -10,10 +10,8 @@ public class BootNMM : NativeMicroModule
      */
     private HashSet<Mmid> _registeredMmids = new();
 
-    public BootNMM(List<Mmid>? initMmids = null)
+    public BootNMM(List<Mmid>? initMmids = null):base("boot.sys.dweb")
     {
-        Mmid = "boot.sys.dweb";
-
         if (initMmids is not null)
         {
             _registeredMmids.UnionWith(initMmids.ToHashSet());
@@ -21,8 +19,6 @@ public class BootNMM : NativeMicroModule
 
         Router = new Dictionary<string, Func<Dictionary<string, string>, object>>();
     }
-
-    public override Mmid Mmid { get; init; }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {

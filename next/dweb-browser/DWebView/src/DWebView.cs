@@ -3,44 +3,65 @@ using System;
 using WebKit;
 using UIKit;
 using static CoreFoundation.DispatchSource;
+using DwebBrowser.MicroService;
+using DwebBrowser.MicroService.Sys.Dns;
+using DwebBrowser.MicroService.Core;
+using System.Xml;
+using AngleSharp;
+using AngleSharp.Html.Parser;
 
 namespace DwebBrowser.DWebView;
 
 public partial class DWebView : WKWebView
 {
-    public DWebView(CGRect frame, WKWebViewConfiguration configuration) : base(frame, configuration)
+    MicroModule localeMM;
+    MicroModule remoteMM;
+    Options options;
+
+    public DWebView(CGRect frame, MicroModule localeMM, MicroModule remoteMM, Options options, WKWebViewConfiguration configuration) : base(frame, configuration)
     {
+        this.localeMM = localeMM;
+        this.remoteMM = remoteMM;
+        this.options = options;
+        if (options.url.Length > 0)
+        {
+            LoadURL(options.url);
+        }
     }
-    public DWebView(CGRect frame) : this(frame, new WKWebViewConfiguration())
-    {
-    }
-    public DWebView() : this(CGRect.Empty)
+    public DWebView(CGRect? frame, MicroModule localeMM, MicroModule? remoteMM, Options? options, WKWebViewConfiguration? configuration) : this(frame ?? CGRect.Empty, localeMM, remoteMM ?? localeMM, options ?? Options.Empty, configuration ?? CreateDWebViewConfiguration())
     {
     }
 
-    //WKPreferences preferences;
-    //WKWebpagePreferences webpagePreferences;
-    //public WKUserContentController controller;
-    //public WKWebViewConfiguration configuration { get => base.Configuration; }
-    public static DWebView Create(CGRect? frame = default)
-    {
-        return Create(frame ?? CGRect.Empty, new WKWebViewConfiguration());
+    public class Options
+    {   /**
+         * 要加载的页面
+         */
+        public string url;
+        public Options(string url)
+        {
+            this.url = url;
+        }
+        public static Options Empty = new Options("");
     }
-    public static DWebView Create(CGRect frame, WKWebViewConfiguration configuration)
-    {
 
+
+    public static WKWebViewConfiguration CreateDWebViewConfiguration()
+    {
+        var configuration = new WKWebViewConfiguration();
         var preferences = configuration.Preferences;
-        preferences.JavaScriptCanOpenWindowsAutomatically = true;
+        //preferences.JavaScriptCanOpenWindowsAutomatically = true;
         preferences.JavaScriptEnabled = true;
 
         var webpagePreferences = configuration.DefaultWebpagePreferences ?? new WKWebpagePreferences();
         webpagePreferences.AllowsContentJavaScript = true;
         configuration.DefaultWebpagePreferences = webpagePreferences;
 
-        var webview = new DWebView(frame, configuration);
-        return webview;
+        return configuration;
 
     }
+    /// <summary>
+    ///  这段代码使用 MessageChannelShim.ts 文件来生成，到 https://www.typescriptlang.org/play 粘贴这个文件的代码即可
+    /// </summary>
     static readonly string webMessagePortPrepareCode = @"
 const ALL_PORT = new Map();
 let portIdAcc = 1;
@@ -156,6 +177,48 @@ function nativeWindowPostMessage(data, ports_id) {
                 NSArray.FromNSObjects(message.Ports.Select(port => new NSNumber(port.portId)).ToArray())
             });
         await base.CallAsyncJavaScriptAsync("nativeWindowPostMessage(data,ports)", arguments, null, webMessagePortContentWorld);
+    }
+    Task LoadURL(string url) => LoadURL(new Uri(url));
+
+    HtmlParser htmlParser = new HtmlParser();
+
+    async Task LoadURL(Uri url, HttpMethod? method = default)
+    {
+        var uri = url.ToString();
+        var nsUrlRequest = new NSUrlRequest(new NSUrl(uri));
+
+
+        /// 如果是 dweb 域名，这是需要进行模拟加载的
+        if (url.Host.EndsWith(".dweb") && url.Scheme is "http" or "https")
+        {
+            var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
+            var response = await remoteMM.NativeFetchAsync(request);
+
+            var nsUrlResponse = new NSUrlResponse(nsUrlRequest.Url, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream", new IntPtr(response.Content.Headers.ContentLength ?? 0), response.Content.Headers.ContentType?.CharSet);
+            string responseData = await response.Content.ReadAsStringAsync() ?? "";
+
+            var document = htmlParser.ParseDocument(responseData);
+            var baseNode = document.Head?.QuerySelector("base");
+            if (baseNode is null)
+            {
+                baseNode = document.CreateElement("base");
+                document.Head!.InsertBefore(baseNode, document.Head.FirstChild);
+            }
+            var origin = baseNode.GetAttribute("href") ?? uri;
+            if (!origin.StartsWith("http://localhost:20222"))
+            {
+                baseNode.SetAttribute("href", $"http://localhost:20222/X-Dweb-Href/{origin}");
+                responseData = document.ToHtml();
+            }
+
+            /// 模拟加载
+            var nsData = NSData.FromString(responseData);
+            var nsNavigation = LoadSimulatedRequest(nsUrlRequest, nsUrlResponse, nsData);
+        }
+        else
+        {
+            var nsNavigation = LoadRequest(nsUrlRequest);
+        }
     }
 }
 

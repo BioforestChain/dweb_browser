@@ -7,7 +7,11 @@ namespace DwebBrowser.MicroService.Core;
 
 public abstract partial class MicroModule : Ipc.MicroModuleInfo
 {
-    public abstract Mmid Mmid { get; init; }
+    public Mmid Mmid { get; init; }
+    public MicroModule(Mmid mmid)
+    {
+        this.Mmid = mmid;
+    }
     public Router? Router = null;
 
     private PromiseOut<bool> _runningStateLock = new PromiseOut<bool>();
@@ -134,5 +138,5 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
 
     protected abstract Task _onActivityAsync(IpcEvent Event, Ipc ipc);
 
-    
+
 }

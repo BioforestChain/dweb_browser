@@ -13,5 +13,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Helper\src\DwebBrowser.Helper.csproj" />
+    <ProjectReference Include="..\..\MicroService\src\DwebBrowser.MicroService.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="1.0.1" />
   </ItemGroup>
 </Project>

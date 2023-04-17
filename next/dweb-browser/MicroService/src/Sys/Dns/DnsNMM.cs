@@ -10,12 +10,9 @@ public class DnsNMM : NativeMicroModule
     // 正在运行的应用
     private Dictionary<Mmid, MicroModule> _runningApps = new();
 
-    public DnsNMM()
+    public DnsNMM():base("dns.sys.dweb")
     {
-        Mmid = "dns.sys.dweb";
     }
-
-    public override Mmid Mmid { get; init; }
 
     public async Task Bootstrap()
     {

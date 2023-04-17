@@ -11,8 +11,6 @@ namespace DwebBrowser.WebModule.Jmm;
 
 public class JmmNMM : NativeMicroModule
 {
-    public override string Mmid { get; init; }
-
     private static Dictionary<Mmid, JsMicroModule> s_apps = new();
     public static Dictionary<Mmid, JsMicroModule> GetAndUpdateJmmNmmApps() => s_apps;
 
@@ -24,10 +22,8 @@ public class JmmNMM : NativeMicroModule
     public static JmmMetadata? GetBfsMetaData(Mmid mmid) => s_apps.GetValueOrDefault(mmid)?.Metadata;
 
 
-    public JmmNMM()
+    public JmmNMM():base("jmm.sys.dweb")
     {
-        Mmid = "jmm.sys.dweb";
-
         Task.Run(async () =>
         {
             while (true)

@@ -23,7 +23,7 @@ public abstract class NativeMicroModule : MicroModule
 
     }
 
-    public NativeMicroModule()
+    public NativeMicroModule(Mmid mmid) : base(mmid)
     {
         OnConnect += async (clientIpc, _, _) =>
         {

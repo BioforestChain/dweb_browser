@@ -7,15 +7,12 @@ namespace DwebBrowser.MicroService.Sys.Http;
 public class HttpNMM : NativeMicroModule
 {
     public static Http1Server DwebServer = new Http1Server();
-    public override Mmid Mmid { get; init; }
-
     /// 注册的域名与对应的 token
     private Dictionary</* token */string, Gateway> _tokenMap = new();
     private Dictionary</* host */string, Gateway> _gatewayMap = new();
 
-    public HttpNMM()
+    public HttpNMM():base("http.sys.dweb")
     {
-        Mmid = "http.sys.dweb";
     }
 
 
