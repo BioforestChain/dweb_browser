@@ -207,7 +207,7 @@ function nativeWindowPostMessage(data, ports_id) {
             var origin = baseNode.GetAttribute("href") ?? uri;
             if (!origin.StartsWith("http://localhost:20222"))
             {
-                baseNode.SetAttribute("href", $"http://localhost:20222/X-Dweb-Href/{origin}");
+                baseNode.SetAttribute("href", $"http://localhost:20222{X_DWEB_HREF}{origin}");
                 responseData = document.ToHtml();
             }
 
@@ -220,5 +220,7 @@ function nativeWindowPostMessage(data, ports_id) {
             var nsNavigation = LoadRequest(nsUrlRequest);
         }
     }
+
+    public static readonly string X_DWEB_HREF = "/X-Dweb-Href/";
 }
 
