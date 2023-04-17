@@ -15,6 +15,8 @@ import info.bagen.dwebbrowser.util.PlaocUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+const val ActualBranch = true // 用户临时区分上架时的分支,false为上架的apk
+
 class App : Application() {
   companion object {
     lateinit var appContext: Context

@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.ui.app
 
+import info.bagen.dwebbrowser.ActualBranch
 import info.bagen.dwebbrowser.network.ApiService
 import info.bagen.dwebbrowser.network.base.fold
 import info.bagen.dwebbrowser.ui.entity.AppInfo
@@ -10,10 +11,15 @@ import kotlinx.coroutines.flow.flow
 
 class AppRepository(private val api: ApiService = ApiService.instance) {
 
-  suspend fun loadAppInfoList() = FilesUtil.getAppInfoList() //loadAppInfoListTest()
+  suspend fun loadAppInfoList() = if (ActualBranch) {
+    FilesUtil.getAppInfoList()
+  } else {
+    loadAppInfoListTest()
+  }
+
 
   suspend fun loadDAppUrl(appInfo: AppInfo): DAppInfoUI? {
-//        return loadDAppUrlTest(appInfo)
+    if (!ActualBranch) return loadDAppUrlTest(appInfo)
     val dAppInfo = FilesUtil.getDAppInfo(appInfo.bfsAppId)
     dAppInfo?.let { info ->
       val dAppUrl = appInfo.bfsAppId // FilesUtil.getAppDenoUrl(appInfo, info)

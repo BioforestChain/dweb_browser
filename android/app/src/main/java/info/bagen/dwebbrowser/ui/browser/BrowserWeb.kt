@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.ui.browser
 
-import android.util.Log
 import android.view.ViewGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +28,6 @@ fun BrowserWebView(
   Captureable(
     controller = browserWebView.controller,
     onCaptured = { imageBitmap, throwable ->
-      Log.e("lin.huang", "xxxxxxxxxxxxx imageBitmap=$imageBitmap, throwable=$throwable")
       imageBitmap?.let { bitmap ->
         viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
       }
