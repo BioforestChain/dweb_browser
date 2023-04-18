@@ -74,6 +74,7 @@
 	  <None Remove="Resources\Assets\multi-webview\index.html" />
 	  <None Remove="Resources\Assets\toy.worker.js" />
 	  <None Remove="Resources\Assets\" />
+	  <None Remove="Platforms\iOS\WebModule\User\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -86,6 +87,7 @@
 	  <Folder Include="Platforms\iOS\IpcWeb\" />
 	  <Folder Include="Platforms\iOS\WebModule\Js\" />
 	  <Folder Include="Resources\Assets\" />
+	  <Folder Include="Platforms\iOS\WebModule\User\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\browser.worker.js" />

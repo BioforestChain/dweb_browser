@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
+#nullable enable
+
 namespace DwebBrowser.WebModule.Jmm;
 
 public class JmmMetadata

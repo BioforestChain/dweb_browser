@@ -5,6 +5,7 @@ using DwebBrowser.MicroService.Sys.Http.Net;
 using DwebBrowser.Helper;
 using System.Linq;
 
+
 #nullable enable
 
 namespace DwebBrowser.WebModule.Jmm;
@@ -22,8 +23,9 @@ public class JmmNMM : NativeMicroModule
     public static JmmMetadata? GetBfsMetaData(Mmid mmid) => s_apps.GetValueOrDefault(mmid)?.Metadata;
 
 
-    public JmmNMM():base("jmm.sys.dweb")
+    public JmmNMM() : base("jmm.sys.dweb")
     {
+        // 启动的时候，从数据库中恢复 s_apps 对象
         Task.Run(async () =>
         {
             while (true)
@@ -39,7 +41,22 @@ public class JmmNMM : NativeMicroModule
                 { }
             }
 
-            // TODO: JmmMetadataDB功能未实现
+            JmmMetadataDB.QueryJmmMetadataList().Also(it =>
+            {
+                it.ForEach(entry =>
+                {
+                    s_apps.GetValueOrPut(entry.Key, () =>
+                        new JsMicroModule(entry.Value).Also(jsMicroModule =>
+                        {
+                            try
+                            {
+                                BootstrapContext.Dns.Install(jsMicroModule);
+                            }
+                            catch { }
+                        })
+                    );
+                });
+            });
         });
     }
 
@@ -101,12 +118,12 @@ public class JmmNMM : NativeMicroModule
 
     protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
     {
-        
+
     }
 
     protected override async Task _shutdownAsync()
     {
-        
+
     }
 }
 
