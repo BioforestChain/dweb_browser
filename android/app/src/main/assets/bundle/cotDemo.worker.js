@@ -188,7 +188,7 @@ var emitUpdateFoundEvent = async () => {
 // src/user/tool/app.handle.mts
 var webViewMap = /* @__PURE__ */ new Map();
 var restartApp = async (url, servers, ipcs) => {
-  return await emitUpdateFoundEvent();
+  await emitUpdateFoundEvent();
   servers.forEach((server) => {
     server.close();
   });

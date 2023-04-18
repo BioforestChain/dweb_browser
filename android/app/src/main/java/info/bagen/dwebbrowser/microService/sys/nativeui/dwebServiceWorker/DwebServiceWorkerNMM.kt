@@ -34,8 +34,9 @@ class DwebServiceWorkerNMM : NativeMicroModule("service-worker.nativeui.sys.dweb
                 }
             },
             "emitUpdateFoundEvent"  bind Method.GET to defineHandler { request, ipc ->
+                debugDwebServiceWorker("emitUpdateFoundEvent",ipc.remote.mmid)
                 // 触发UpdateFound 事件
-                emitEvent(ipc.remote.mmid,ServiceWorkerEvent.UpdateFound.name)
+               return@defineHandler emitEvent(ipc.remote.mmid,ServiceWorkerEvent.UpdateFound.event)
             }
         )
     }

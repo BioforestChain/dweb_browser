@@ -53,9 +53,9 @@ class BaseEvent<K extends keyof (UpdateControllerMap & DwebWorkerEventMap)> exte
     const p: any = Promise.resolve({ remove });
     // 注册一个移除监听的方法
     Object.defineProperty(p, 'remove', {
-      value: async () => {
+      value: () => {
         console.warn(`Using addListener() without 'await' is deprecated.`);
-        await remove();
+        remove();
       },
     });
 

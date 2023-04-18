@@ -3,14 +3,10 @@ import { onMounted, ref } from 'vue';
 import { dwebServiceWorker as sw } from "@bfex/plugin"
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 const $logPanel = ref<typeof LogPanel>();
-
-
 let console: Console;
-
-
+console = toConsole($logPanel);
 
 onMounted(async () => {
-  console = toConsole($logPanel);
   sw.addEventListener("updatefound", (event) => {
     console.log("Dweb Service Worker update found!", event);
   })

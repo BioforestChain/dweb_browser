@@ -18,9 +18,7 @@ export const restartApp = async (
   servers: HttpDwebServer[],
   ipcs: ReadableStreamIpc[]
 ) => {
-
-  return await emitUpdateFoundEvent()
-
+  await emitUpdateFoundEvent()
   // 关闭api和文件的http服务
   servers.forEach((server) => {
     server.close();

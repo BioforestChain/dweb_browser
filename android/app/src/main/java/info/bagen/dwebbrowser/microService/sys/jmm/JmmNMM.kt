@@ -9,6 +9,8 @@ import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
+import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.ServiceWorkerEvent
+import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.service.DownLoadController
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -98,12 +100,17 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                     ipc.remote.mmid, DownLoadController.PAUSE
                 )
             },
+            /**重下*/
             "/resume" bind Method.GET to defineHandler { _, ipc ->
+                // 重下触发开始事件
+                emitEvent(ipc.remote.mmid,ServiceWorkerEvent.Start.event)
                 DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
                     ipc.remote.mmid, DownLoadController.RESUME
                 )
             },
             "/cancel" bind Method.GET to defineHandler { _, ipc ->
+                // 触发取消事件
+                emitEvent(ipc.remote.mmid,ServiceWorkerEvent.Cancel.event)
                 DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
                     ipc.remote.mmid, DownLoadController.CANCEL
                 )
