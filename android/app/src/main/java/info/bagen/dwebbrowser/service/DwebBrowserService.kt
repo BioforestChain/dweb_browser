@@ -163,6 +163,7 @@ class DwebBrowserService : Service() {
   }
 
   private fun DownLoadInfo.callDownLoadProgress(current: Long, total: Long) {
+    this.downLoadStatus = DownLoadStatus.DownLoading
     this.size = total
     this.dSize = current
     NotificationUtil.INSTANCE.updateNotificationForProgress(
@@ -173,6 +174,7 @@ class DwebBrowserService : Service() {
     sendStatusToEmitEvent(mmid, ServiceWorkerEvent.Progress.event, "${(current * 1.0 / total * 100).toInt()}") // 通知前台，下载进度
 
     if (current == total) {
+      this.downLoadStatus = DownLoadStatus.DownLoadComplete
       NotificationUtil.INSTANCE.updateNotificationForProgress(
         100, notificationId, "下载完成"
       ) {
@@ -197,8 +199,12 @@ class DwebBrowserService : Service() {
         // TODO 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
         // BrowserNMM.getBrowserController().installApp(jmmMetadata.id)
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.INSTALLED)
+        sendStatusToEmitEvent(this.jmmMetadata.id, ServiceWorkerEvent.End.event)
+        this.downLoadStatus = DownLoadStatus.INSTALLED
       } else {
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)
+        sendStatusToEmitEvent(this.jmmMetadata.id, ServiceWorkerEvent.End.event)
+        this.downLoadStatus = DownLoadStatus.FAIL
       }
       downloadMap.remove(jmmMetadata.id) // 下载完成后需要移除
       DownLoadObserver.close(jmmMetadata.id) // 移除当前mmid所有关联推送
@@ -216,20 +222,23 @@ class DwebBrowserService : Service() {
   fun updateDownloadStatus(mmid: Mmid, controller: DownLoadController) = downloadMap[mmid]?.apply {
     if (size == dSize) return@apply
     when (controller) {
-      DownLoadController.PAUSE -> if (this.downLoadStatus != DownLoadStatus.DownLoading) {
+      DownLoadController.PAUSE -> if (this.downLoadStatus == DownLoadStatus.DownLoading) {
         this.downLoadStatus = DownLoadStatus.PAUSE
         NotificationUtil.INSTANCE.updateNotificationForProgress(
           (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "暂停"
         )
         DownLoadObserver.emit(this.jmmMetadata.id, downLoadStatus, dSize, size)
       }
-      DownLoadController.RESUME -> if (this.downLoadStatus != DownLoadStatus.PAUSE) {
+      DownLoadController.RESUME -> if (this.downLoadStatus == DownLoadStatus.PAUSE) {
         this.downLoadStatus = DownLoadStatus.DownLoading
         NotificationUtil.INSTANCE.updateNotificationForProgress(
           (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "下载中"
         )
         DownLoadObserver.emit(this.jmmMetadata.id, downLoadStatus, dSize, size)
         breakPointDownLoadAndSave(this)
+      } else {
+        downloadMap.remove(this.jmmMetadata.id)
+        downloadAndSaveZip(this)
       }
       DownLoadController.CANCEL -> if (this.downLoadStatus != DownLoadStatus.CANCEL) {
         this.downLoadStatus = DownLoadStatus.CANCEL

@@ -101,17 +101,15 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                     ipc.remote.mmid, DownLoadController.PAUSE
                 )
             },
-            /**重下*/
+            /**继续下载*/
             "/resume" bind Method.GET to defineHandler { _, ipc ->
-                // 重下触发开始事件
-                emitEvent(ipc.remote.mmid,ServiceWorkerEvent.Start.event)
+                debugJMM("resume",ipc.remote.mmid)
                 DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
                     ipc.remote.mmid, DownLoadController.RESUME
                 )
             },
             "/cancel" bind Method.GET to defineHandler { _, ipc ->
-                // 触发取消事件
-                emitEvent(ipc.remote.mmid,ServiceWorkerEvent.Cancel.event)
+                debugJMM("cancel",ipc.remote.mmid)
                 DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
                     ipc.remote.mmid, DownLoadController.CANCEL
                 )

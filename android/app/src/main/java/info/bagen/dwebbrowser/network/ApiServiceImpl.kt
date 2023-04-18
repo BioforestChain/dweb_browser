@@ -26,6 +26,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     httpClient.requestPath(path = path, bodyMode = Stream)
       .let { httpResponse ->
+        println("xx${file?.absoluteFile}")
         val fileOutputStream:FileOutputStream? = file?.let { FileOutputStream(file) }
         try {
           if (!httpResponse.status.successful) { // 如果网络请求失败，直接抛异常

@@ -7,6 +7,7 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 class CotDemoJMM : JsMicroModule(
     JmmMetadata(
         id = "cotdemo.bfs.dweb",  // TODO warning 不能写大写
+        version = "1.0.0",
         server = JmmMetadata.MainServer(
             root = "file:///bundle",
             entry = "/cotDemo.worker.js"
