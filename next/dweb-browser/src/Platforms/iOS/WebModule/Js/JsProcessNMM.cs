@@ -33,6 +33,13 @@ public class JsProcessNMM : NativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
+        // 将本地资源文件读取添加到适配器中
+        var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (mm, request) =>
+        {
+            return LocaleFile.LocaleFileFetch(mm, request);
+        });
+        _onAfterShutdown += async (_) => { cb(); };
+
         /// 主页的网页服务
         var mainServer = (await CreateHttpDwebServer(new DwebHttpServerOptions())).Also(async server =>
         {
