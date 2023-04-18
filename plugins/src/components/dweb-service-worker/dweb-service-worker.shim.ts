@@ -8,7 +8,8 @@ declare namespace globalThis {
     /**
      * 该对象由 web 侧负责写入，由 native 侧去触发事件
      */
-    _listeners: { [eventName: string]: ListenerCallback[] };
+    // deno-lint-ignore no-explicit-any
+    _listeners: { [eventName: string]: ListenerCallback<any>[] };
     _windowListeners: { [eventName: string]: WindowListenerHandle };
   }
 }
@@ -31,7 +32,8 @@ class BaseEvent<K extends keyof (UpdateControllerMap & DwebWorkerEventMap)> exte
  */
   addEventListener(
     eventName: K,
-    listenerFunc: ListenerCallback,
+    // deno-lint-ignore no-explicit-any
+    listenerFunc: ListenerCallback<any>,
     options?: boolean | AddEventListenerOptions
   ): EventTarget {
     // 监听一个事件
@@ -71,7 +73,8 @@ class BaseEvent<K extends keyof (UpdateControllerMap & DwebWorkerEventMap)> exte
   /**移除监听器 */
   removeEventListener(
     eventName: K,
-    listenerFunc: ListenerCallback,
+    // deno-lint-ignore no-explicit-any
+    listenerFunc: ListenerCallback<any>,
     options?: boolean | EventListenerOptions
   ) {
     const listeners = app_upgrade_watcher_kit._listeners[eventName];
@@ -122,6 +125,27 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     return dwebServiceWorkerPlugin.restart
   }
 
+  /**
+*  dwebview 注册一个监听事件
+* @param eventName 
+* @param listenerFunc 
+* @returns 
+*/
+  addEventListener<K extends keyof DwebWorkerEventMap>(
+    eventName: K,
+    listenerFunc: ListenerCallback<DwebWorkerEventMap[K]>,
+    options?: boolean | AddEventListenerOptions
+  ): EventTarget {
+    return super.addEventListener(eventName, listenerFunc, options)
+  }
+
+  /**移除监听器 */
+  removeEventListener<K extends keyof DwebWorkerEventMap>(
+    eventName: K,
+    listenerFunc: ListenerCallback<DwebWorkerEventMap[K]>,
+    options?: boolean | EventListenerOptions
+  ) { return super.removeEventListener(eventName, listenerFunc, options) }
+
 }
 
 class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
@@ -145,6 +169,28 @@ class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
   // get progress() {
   //   return dwebServiceWorkerPlugin.update().progress
   // }
+
+  /**
+*  dwebview 注册一个监听事件
+* @param eventName 
+* @param listenerFunc 
+* @returns 
+*/
+  addEventListener<K extends keyof UpdateControllerMap>(
+    eventName: K,
+    listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
+    options?: boolean | AddEventListenerOptions
+  ): EventTarget {
+    return super.addEventListener(eventName, listenerFunc, options)
+  }
+
+  /**移除监听器 */
+  removeEventListener<K extends keyof UpdateControllerMap>(
+    eventName: K,
+    listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
+    options?: boolean | EventListenerOptions
+  ) { return super.removeEventListener(eventName, listenerFunc, options) }
+
 }
 
 export const dwebServiceWorker = new DwebServiceWorker()
