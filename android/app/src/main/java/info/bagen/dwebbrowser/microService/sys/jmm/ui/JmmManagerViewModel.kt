@@ -9,6 +9,7 @@ import info.bagen.dwebbrowser.microService.browser.BrowserNMM
 import info.bagen.dwebbrowser.microService.sys.jmm.DownLoadObserver
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
+import info.bagen.dwebbrowser.service.compareAppVersionHigh
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import info.bagen.dwebbrowser.util.NotificationUtil
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +21,7 @@ data class JmmUIState(
 )
 
 enum class DownLoadStatus {
-  IDLE, DownLoading, DownLoadComplete, PAUSE, INSTALLED, FAIL, CANCEL
+  IDLE, DownLoading, DownLoadComplete, PAUSE, INSTALLED, FAIL, CANCEL, NewVersion
 }
 
 data class DownLoadInfo(
@@ -35,11 +36,19 @@ data class DownLoadInfo(
 
 fun createDownLoadInfoByJmm(jmmMetadata: JmmMetadata): DownLoadInfo {
   return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(jmmMetadata.id)) {
-    // 表示当前mmid已存在，显示为打开
-    DownLoadInfo(
-      jmmMetadata = jmmMetadata,
-      downLoadStatus = DownLoadStatus.INSTALLED
-    )
+    // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新
+    val curJmmMetadata = JmmNMM.getAndUpdateJmmNmmApps()[jmmMetadata.id]!!.metadata
+    if (compareAppVersionHigh(curJmmMetadata.version, jmmMetadata.version)) {
+      DownLoadInfo(
+        jmmMetadata = jmmMetadata,
+        downLoadStatus = DownLoadStatus.NewVersion
+      )
+    } else {
+      DownLoadInfo(
+        jmmMetadata = jmmMetadata,
+        downLoadStatus = DownLoadStatus.INSTALLED
+      )
+    }
   } else {
     DownLoadInfo(
       jmmMetadata = jmmMetadata,
@@ -102,7 +111,7 @@ class JmmManagerViewModel(jmmMetadata: JmmMetadata) : ViewModel() {
       when (action) {
         is JmmIntent.ButtonFunction -> {
           when (uiState.downloadInfo.value.downLoadStatus) {
-            DownLoadStatus.IDLE, DownLoadStatus.FAIL, DownLoadStatus.CANCEL -> { // 空闲点击是下载，失败点击也是重新下载
+            DownLoadStatus.IDLE, DownLoadStatus.FAIL, DownLoadStatus.CANCEL, DownLoadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
               DwebBrowserUtil.INSTANCE.mBinderService?.invokeDownloadAndSaveZip(uiState.downloadInfo.value)
             }
             DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */ }

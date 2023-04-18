@@ -136,6 +136,9 @@ private fun BoxScope.DownLoadButton(jmmViewModel: JmmManagerViewModel) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
         "下载 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
       }
+      DownLoadStatus.NewVersion -> {
+        "更新 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
+      }
       DownLoadStatus.DownLoading -> {
         showLinearProgress = true
         "下载中".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)

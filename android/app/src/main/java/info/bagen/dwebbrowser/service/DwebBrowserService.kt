@@ -244,11 +244,7 @@ class DwebBrowserService : Service() {
       run OutSide@{
         appViewModel.uiState.appViewStateList.forEach { tempAppViewState ->
           if (tempAppViewState.appInfo?.bfsAppId == appInfo.bfsAppId) {
-            if (compareAppVersionHigh(
-                tempAppViewState.appInfo!!.version,
-                appInfo.version
-              )
-            ) {
+            if (compareAppVersionHigh(tempAppViewState.appInfo!!.version, appInfo.version)) {
               ret = NewAppUnzipType.OVERRIDE
               appViewModel.handleIntent(
                 AppViewIntent.OverrideDownloadApp(appViewState, appInfo, zipFile)
@@ -274,32 +270,32 @@ class DwebBrowserService : Service() {
     return ret
   }
 
-  private fun compareAppVersionHigh(localVersion: String, compareVersion: String): Boolean {
-    var localSplit = localVersion.split(".")
-    val compareSplit = compareVersion.split(".")
-    var tempLocalVersion = localVersion
-    if (localSplit.size < compareSplit.size) {
-      val cha = compareSplit.size - localSplit.size
-      for (i in 0 until cha) {
-        tempLocalVersion += ".0"
-      }
-      localSplit = tempLocalVersion.split(".")
-    }
-    try {
-      for (i in compareSplit.indices) {
-        val local = Integer.parseInt(localSplit[i])
-        val compare = Integer.parseInt(compareSplit[i])
-        if (compare > local) return true
-      }
-    } catch (e: Throwable) {
-      Log.e("DwebBrowserService", "compareAppVersionHigh issue -> $localVersion, $compareVersion")
-    }
-    return false
-  }
-
   private fun sendStatusToEmitEvent(mmid: Mmid, eventName: String, data: String? = null) {
     GlobalScope.launch(Dispatchers.IO) {
       emitEvent(mmid, ServiceWorkerEvent.Progress.event, data) // 通知前台，下载进度
     }
   }
+}
+
+fun compareAppVersionHigh(localVersion: String, compareVersion: String): Boolean {
+  var localSplit = localVersion.split(".")
+  val compareSplit = compareVersion.split(".")
+  var tempLocalVersion = localVersion
+  if (localSplit.size < compareSplit.size) {
+    val cha = compareSplit.size - localSplit.size
+    for (i in 0 until cha) {
+      tempLocalVersion += ".0"
+    }
+    localSplit = tempLocalVersion.split(".")
+  }
+  try {
+    for (i in compareSplit.indices) {
+      val local = Integer.parseInt(localSplit[i])
+      val compare = Integer.parseInt(compareSplit[i])
+      if (compare > local) return true
+    }
+  } catch (e: Throwable) {
+    Log.e("DwebBrowserService", "compareAppVersionHigh issue -> $localVersion, $compareVersion")
+  }
+  return false
 }
