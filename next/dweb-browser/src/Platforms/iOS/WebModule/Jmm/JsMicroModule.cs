@@ -40,9 +40,8 @@ public class JsMicroModule : MicroModule
         });
     }
 
-    public JsMicroModule(JmmMetadata metadata)
+    public JsMicroModule(JmmMetadata metadata): base(metadata.Id)
     {
-        Mmid = metadata.Id;
         Metadata = metadata;
     }
 
@@ -55,8 +54,6 @@ public class JsMicroModule : MicroModule
      * </summary>
      */
     private string? _processId = null;
-
-    public override string Mmid { get => throw new NotImplementedException(); init => throw new NotImplementedException(); }
 
     private record DnsConnectEvent(Mmid mmid);
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
