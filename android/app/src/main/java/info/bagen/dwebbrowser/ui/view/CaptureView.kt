@@ -3,16 +3,15 @@ package info.bagen.dwebbrowser.ui.view
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Rect
+import android.graphics.*
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.PixelCopy
 import android.view.View
 import android.view.Window
+import android.webkit.WebView
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,14 +53,11 @@ private inline fun ComposeView.applyCapture(
   setContent {
     content()
     LaunchedEffect(controller, onCaptured) {
-      controller.captureRequests
-        .mapNotNull { config -> drawToBitmapPostLaidOut(context, config) }
+      controller.captureRequests.mapNotNull { config -> drawToBitmapPostLaidOut(context, config) }
         .onEach { pair: Pair<Bitmap?, Throwable?> ->
           //bitmap -> onCaptured(bitmap.asImageBitmap(), null)
           onCaptured(pair.first?.asImageBitmap(), pair.second)
-        }
-        .catch { error -> onCaptured(null, error) }
-        .launchIn(this)
+        }.catch { error -> onCaptured(null, error) }.launchIn(this)
     }
   }
 }
@@ -69,8 +65,10 @@ private inline fun ComposeView.applyCapture(
 /**
  * Waits till this [View] is laid off and then draws it to the [Bitmap] with specified [config].
  */
-private suspend fun View.drawToBitmapPostLaidOut(context: Context, config: Bitmap.Config):
-    Pair<Bitmap?, Throwable?> {
+private suspend fun View.drawToBitmapPostLaidOut(
+  context: Context,
+  config: Bitmap.Config
+): Pair<Bitmap?, Throwable?> {
   return suspendCoroutine { continuation ->
     doOnLayout { view ->
       try {
@@ -86,15 +84,13 @@ private suspend fun View.drawToBitmapPostLaidOut(context: Context, config: Bitma
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
           val window = context.findActivity().window
 
-          drawBitmapWithPixelCopy(
-            view = view,
+          drawBitmapWithPixelCopy(view = view,
             window = window,
             config = config,
             // onDrawn = { bitmap -> continuation.resume(bitmap) },
             // onError = { error -> continuation.resumeWithException(error) } // 防止异常后就不再执行截屏
             onDrawn = { bitmap -> continuation.resume(Pair(bitmap, null)) },
-            onError = { error -> continuation.resume(Pair(null, error)) }
-          )
+            onError = { error -> continuation.resume(Pair(null, error)) })
         } else {
           // continuation.resumeWithException(e)
           continuation.resume(Pair(null, e))
@@ -118,13 +114,11 @@ private fun getBitmapFromView(v: View): Bitmap? {
   v.isDrawingCacheEnabled = false
   v.destroyDrawingCache()*/
 
-  val w = v.width
-  val h = v.height
-  val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+  val bmp = Bitmap.createBitmap(v.width, v.height, Bitmap.Config.ARGB_8888)
   val c = Canvas(bmp)
   // 如果不设置canvas画布为白色，则生成透明
   c.drawColor(Color.WHITE)
-  v.layout(0, 0, w, h)
+  v.layout(0, 0, v.width, v.height)
   v.draw(c)
   return bmp
 }
@@ -150,17 +144,13 @@ private fun drawBitmapWithPixelCopy(
   val rect = Rect(x, y, x + width, y + height)
 
   PixelCopy.request(
-    window,
-    rect,
-    bitmap,
-    { copyResult ->
+    window, rect, bitmap, { copyResult ->
       if (copyResult == PixelCopy.SUCCESS) {
         onDrawn(bitmap)
       } else {
         onError(RuntimeException("Failed to draw bitmap"))
       }
-    },
-    Handler(Looper.getMainLooper())
+    }, Handler(Looper.getMainLooper())
   )
 }
 
@@ -204,4 +194,32 @@ class CaptureController internal constructor() {
 @Composable
 fun rememberCaptureController(): CaptureController {
   return remember { CaptureController() }
+}
+
+/**
+ * Waits till this [WebView] is laid off and then draws it to the [Bitmap] with specified [config].
+ */
+suspend fun WebView.drawToBitmapPostLaidOut(cy: Int) = suspendCoroutine { continuation ->
+  continuation.resume(getBitmapFromWebView(this, cy))
+}
+
+private fun getBitmapFromWebView(webView: WebView, cy: Int): Pair<Bitmap?, Throwable?> {
+  return try {
+    /*val picture = webView.capturePicture()
+    val bitmap = Bitmap.createBitmap(webView.width, webView.height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    picture.draw(canvas) // 画布产生的截图是整个webview的，所以之后需要进行图片裁剪
+    val bmp = Bitmap.createBitmap(bitmap, 0, cy, webView.width, webView.height, null, false)
+    Pair(bitmap, null)*/
+    val scale = webView.scale
+    val width = webView.width
+    val height = (webView.height * scale).toInt()
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    webView.draw(canvas) // 这个绘制图片仍然是整个webview，但是只有当前显示部分有内容，其他部分都是空白的，所以仍然需要做下面的截图操作
+    val bmp = Bitmap.createBitmap(bitmap, 0, cy, webView.width, webView.height, null, false)
+    Pair(bmp, null)
+  } catch (e: java.lang.Exception) {
+    Pair(null, e)
+  }
 }

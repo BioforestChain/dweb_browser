@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
+import androidx.compose.ui.Alignment.Companion.TopStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -40,6 +41,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.theme.Blue
 import info.bagen.dwebbrowser.ui.theme.DimenBottomBarHeight
@@ -238,14 +240,14 @@ private fun MultiItemView(
   index: Int = 0
 ) {
   val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-  val sizePair = if (onlyOne) {
-    val with = screenWidth * 3 / 5
-    Pair(with, with * 9 / 6)
+  val sizeTriple = if (onlyOne) {
+    val with = screenWidth - 120.dp
+    Triple(with, with * 9 / 6 - 60.dp, with * 9 / 6)
   } else {
-    val with = screenWidth * 2 / 5
-    Pair(with, with * 9 / 6)
+    val with = (screenWidth - 60.dp) / 2
+    Triple(with, with * 9 / 6 - 40.dp, with * 9 / 6)
   }
-  Box(modifier = Modifier.size(width = sizePair.first, height = sizePair.second)) {
+  Box(modifier = Modifier.size(width = sizeTriple.first, height = sizeTriple.third)) {
     Column(horizontalAlignment = CenterHorizontally, modifier = Modifier.clickable {
       viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, index))
     }) {
@@ -253,12 +255,14 @@ private fun MultiItemView(
         bitmap = browserBaseView.bitmap ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
         contentDescription = null,
         modifier = Modifier
-          //.size(width = sizePair.first, height = sizePair.second)
+          .size(width = sizeTriple.first, height = sizeTriple.second)
           .clip(RoundedCornerShape(16.dp))
+          .background(Color.White)
           .align(CenterHorizontally),
-        contentScale = ContentScale.FillBounds
+        contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
+        alignment = TopStart
       )
-      val pair = when (browserBaseView) {
+      val contentPair = when (browserBaseView) {
         is BrowserMainView -> {
           Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
         }
@@ -269,11 +273,18 @@ private fun MultiItemView(
           Pair(null, null)
         }
       }
-      Row(modifier = Modifier.padding(6.dp)) {
-        pair.second?.asImageBitmap()?.let { imageBitmap ->
-          Icon(bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(20.dp))
+      Row(
+        modifier = Modifier
+          .width(sizeTriple.first)
+          .align(CenterHorizontally)
+          .padding(top = 4.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = CenterVertically
+      ) {
+        contentPair.second?.asImageBitmap()?.let { imageBitmap ->
+          Icon(bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp))
         }
-        Text(text = pair.first ?: "无标题", maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(text = contentPair.first ?: "无标题", maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp)
       }
     }
 
@@ -289,7 +300,7 @@ private fun MultiItemView(
         Icon(
           imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
           contentDescription = null,
-          modifier = Modifier.size(22.dp),
+          modifier = Modifier.size(18.dp),
           tint = Color.Gray
         )
       }

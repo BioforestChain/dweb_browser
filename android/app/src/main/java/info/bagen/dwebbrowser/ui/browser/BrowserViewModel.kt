@@ -125,6 +125,7 @@ enum class PopupViewSate(
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
   object WebViewGoBack : BrowserIntent()
+  class PictureCapture(val page: Int) : BrowserIntent()
   class UpdatePopupViewState(val state: PopupViewSate = PopupViewSate.NULL) : BrowserIntent()
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
@@ -162,6 +163,12 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
             if (browserBaseView is BrowserWebView) browserBaseView.navigator.navigateBack()
           }
         }
+        is BrowserIntent.PictureCapture -> {
+          delay(1000)
+          uiState.browserViewList.subList(action.page - 1, action.page + 1).forEach {
+            it.controller.capture()
+          }
+        }
         is BrowserIntent.UpdatePopupViewState -> {
           if (uiState.popupViewState.value == PopupViewSate.NULL) {
             uiState.popupViewState.value = action.state
@@ -182,10 +189,10 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
             uiState.currentBrowserBaseView.value.controller.capture()
           }
           uiState.multiViewShow.targetState = action.show
-          action.index?.let { index ->
-            if (index >= 0 && index < uiState.browserViewList.size) {
-              uiState.pagerStateNavigator.scrollToPage(index)
-              uiState.pagerStateContent.scrollToPage(index)
+          action.index?.let {
+            viewModelScope.launch(mainAsyncExceptionHandler) {
+              uiState.pagerStateNavigator.scrollToPage(it)
+              uiState.pagerStateContent.scrollToPage(it)
             }
           }
         }

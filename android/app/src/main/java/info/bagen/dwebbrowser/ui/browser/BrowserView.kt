@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -61,8 +62,15 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BrowserView(viewModel: BrowserViewModel) {
+  LaunchedEffect(viewModel.uiState) { // 用于截图，滑动界面后，截图操作
+    snapshotFlow { viewModel.uiState.pagerStateNavigator.settledPage }.collect {
+      viewModel.handleIntent(BrowserIntent.PictureCapture(it))
+    }
+  }
+
   Box(modifier = Modifier.fillMaxSize()) {
     BrowserViewContent(viewModel)
     BrowserViewBottomBar(viewModel)
@@ -111,7 +119,6 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
   val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
