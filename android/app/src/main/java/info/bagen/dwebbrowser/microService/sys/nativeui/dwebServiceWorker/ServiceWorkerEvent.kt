@@ -15,9 +15,10 @@ enum class ServiceWorkerEvent(val event: String) {
     Progress("progress"), // 进度每秒触发一次
     End("end"), // 结束
     Cancel("cancel"), // 取消
+    Pause("pause"), // 暂停
 }
 
-suspend fun emitEvent(mmid: Mmid, eventName: String): Boolean {
+suspend fun emitEvent(mmid: Mmid, eventName: String, data: String? = null): Boolean {
     val controller = MultiWebViewNMM.getCurrentWebViewController(mmid) ?: return false
     /// 尝试去触发客户端的监听，如果客户端有监听的话
     withContext(mainAsyncExceptionHandler) {
@@ -27,7 +28,7 @@ suspend fun emitEvent(mmid: Mmid, eventName: String): Boolean {
                 try{
                     const listeners = ${DWEB_SERVICE_WORKER}._listeners["$eventName"];
                     if (listeners.length !== 0) {
-                      listeners.forEach(listener => listener(new Event("$eventName")));
+                      listeners.forEach(listener => listener("$data"));
                       resolve(true)
                     }
                     resolve(false)

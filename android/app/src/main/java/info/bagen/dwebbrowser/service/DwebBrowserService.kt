@@ -22,6 +22,8 @@ import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserC
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.sys.jmm.DownLoadObserver
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.*
+import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.ServiceWorkerEvent
+import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.app.AppViewIntent
 import info.bagen.dwebbrowser.ui.app.AppViewModel
 import info.bagen.dwebbrowser.ui.app.AppViewState
@@ -101,15 +103,20 @@ class DwebBrowserService : Service() {
     )
     DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     GlobalScope.launch(Dispatchers.IO) {
+      sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.downloadAndSave(
         downLoadInfo.jmmMetadata.downloadUrl, File(downLoadInfo.path),
         isStop = {
           when (downLoadInfo.downLoadStatus) {
-            DownLoadStatus.PAUSE, DownLoadStatus.CANCEL -> {
+            DownLoadStatus.PAUSE -> {
               DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
-              if (downLoadInfo.downLoadStatus == DownLoadStatus.CANCEL) {
-                downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // TODO 如果取消的话，那么就置为空
-              }
+              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Pause.event) // 通知前台，暂停下载
+              true
+            }
+            DownLoadStatus.CANCEL -> {
+              DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
+              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Cancel.event) // 通知前台，取消下载
+              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // TODO 如果取消的话，那么就置为空
               true
             }
             else -> false
@@ -126,9 +133,25 @@ class DwebBrowserService : Service() {
   @OptIn(DelicateCoroutinesApi::class)
   private fun breakPointDownLoadAndSave(downLoadInfo: DownLoadInfo) {
     GlobalScope.launch(Dispatchers.IO) {
+      sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.breakpointDownloadAndSave(
         downLoadInfo.jmmMetadata.downloadUrl, File(downLoadInfo.path), downLoadInfo.size,
-        isStop = { downLoadInfo.downLoadStatus == DownLoadStatus.PAUSE },
+        isStop = {
+          when (downLoadInfo.downLoadStatus) {
+            DownLoadStatus.PAUSE -> {
+              DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
+              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Pause.event) // 通知前台，暂停下载
+              true
+            }
+            DownLoadStatus.CANCEL -> {
+              DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
+              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Cancel.event) // 通知前台，取消下载
+              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // TODO 如果取消的话，那么就置为空
+              true
+            }
+            else -> false
+          }
+        },
         DLProgress = { current, total ->
           downLoadInfo.callDownLoadProgress(current, total)
         }
@@ -143,6 +166,8 @@ class DwebBrowserService : Service() {
       (current * 1.0 / total * 100).toInt(), notificationId
     )
     DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.DownLoading, current, total)
+    val mmid = this.jmmMetadata.id
+    sendStatusToEmitEvent(mmid, ServiceWorkerEvent.Progress.event, "${(current * 1.0 / total * 100).toInt()} %") // 通知前台，下载进度
 
     if (current == total) {
       NotificationUtil.INSTANCE.updateNotificationForProgress(
@@ -270,5 +295,11 @@ class DwebBrowserService : Service() {
       Log.e("DwebBrowserService", "compareAppVersionHigh issue -> $localVersion, $compareVersion")
     }
     return false
+  }
+
+  private fun sendStatusToEmitEvent(mmid: Mmid, eventName: String, data: String? = null) {
+    GlobalScope.launch(Dispatchers.IO) {
+      emitEvent(mmid, ServiceWorkerEvent.Progress.event, data) // 通知前台，下载进度
+    }
   }
 }
