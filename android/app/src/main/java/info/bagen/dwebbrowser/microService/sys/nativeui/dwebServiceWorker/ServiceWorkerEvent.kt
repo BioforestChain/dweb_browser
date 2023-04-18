@@ -18,8 +18,15 @@ enum class ServiceWorkerEvent(val event: String) {
     Pause("pause"), // 暂停
 }
 
-suspend fun emitEvent(mmid: Mmid, eventName: String, data: String? = null): Boolean {
+suspend fun emitEvent(mmid: Mmid, eventName: String, data: String = ""): Boolean {
     val controller = MultiWebViewNMM.getCurrentWebViewController(mmid) ?: return false
+    var payload = """new Event($eventName)"""
+    // progress,fetch,onFetch为自定义构造返回
+    if (eventName == ServiceWorkerEvent.Progress.event ||
+        eventName == ServiceWorkerEvent.Fetch.event || eventName == ServiceWorkerEvent.OnFetch.event) {
+        payload = data
+    }
+
     /// 尝试去触发客户端的监听，如果客户端有监听的话
     withContext(mainAsyncExceptionHandler) {
         controller.lastViewOrNull?.webView?.evaluateAsyncJavascriptCode(
@@ -28,7 +35,7 @@ suspend fun emitEvent(mmid: Mmid, eventName: String, data: String? = null): Bool
                 try{
                     const listeners = ${DWEB_SERVICE_WORKER}._listeners["$eventName"];
                     if (listeners.length !== 0) {
-                      listeners.forEach(listener => listener("$data"));
+                      listeners.forEach(listener => listener($payload));
                       resolve(true)
                     }
                     resolve(false)
@@ -40,3 +47,18 @@ suspend fun emitEvent(mmid: Mmid, eventName: String, data: String? = null): Bool
     }
     return true
 }
+
+//        ServiceWorkerEvent.Fetch.event-> {
+//          payload = """
+//              new FetchEvent("fetch",{
+//              })
+//          """.trimIndent()
+//        }
+//        ServiceWorkerEvent.OnFetch.event -> {
+//            payload = """
+//              new OnFetchEvent("fetch",{
+//                response:Response(),
+//                serverId:0
+//              })
+//          """.trimIndent()
+//        }

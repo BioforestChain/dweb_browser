@@ -26,7 +26,6 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   async restart() {
     return await this.fetchApi("/restart").boolean()
   }
-
 }
 
 
@@ -40,6 +39,16 @@ class UpdateControllerPlugin extends BasePlugin {
   }
 
   async init() {
+  }
+
+  /**下载 */
+  @bindThis
+  async download(metadataUrl: string) {
+    return await this.fetchApi(`/install`, {
+      search: {
+        metadataUrl
+      }
+    })
   }
 
   // 暂停

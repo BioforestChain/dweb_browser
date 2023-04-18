@@ -56,7 +56,6 @@ const main = async () => {
   const apiReadableStreamIpc = await apiServer.listen();
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
     const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
-
     // serviceWorker
     if (url.pathname.startsWith("/service-worker.nativeui.sys.dweb")) {
       const result = await serviceWorkerFactory(url, ipc)

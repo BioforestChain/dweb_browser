@@ -20,7 +20,10 @@ import info.bagen.dwebbrowser.broadcast.BFSBroadcastReceiver
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.microService.helper.Mmid
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.sys.jmm.DownLoadObserver
+import info.bagen.dwebbrowser.microService.sys.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.*
 import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.ServiceWorkerEvent
 import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.emitEvent
@@ -167,7 +170,7 @@ class DwebBrowserService : Service() {
     )
     DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.DownLoading, current, total)
     val mmid = this.jmmMetadata.id
-    sendStatusToEmitEvent(mmid, ServiceWorkerEvent.Progress.event, "${(current * 1.0 / total * 100).toInt()} %") // 通知前台，下载进度
+    sendStatusToEmitEvent(mmid, ServiceWorkerEvent.Progress.event, "${(current * 1.0 / total * 100).toInt()}") // 通知前台，下载进度
 
     if (current == total) {
       NotificationUtil.INSTANCE.updateNotificationForProgress(
@@ -269,10 +272,10 @@ class DwebBrowserService : Service() {
     }
     return ret
   }
-
-  private fun sendStatusToEmitEvent(mmid: Mmid, eventName: String, data: String? = null) {
-    GlobalScope.launch(Dispatchers.IO) {
-      emitEvent(mmid, ServiceWorkerEvent.Progress.event, data) // 通知前台，下载进度
+  private fun sendStatusToEmitEvent(mmid: Mmid, eventName: String, data: String = "") {
+    debugJMM("sendStatusToEmitEvent=>","mmid=>$mmid eventName=>$eventName data=>$data")
+    runBlockingCatching(ioAsyncExceptionHandler) {
+      emitEvent(mmid, eventName, data) // 通知前台，下载进度
     }
   }
 }

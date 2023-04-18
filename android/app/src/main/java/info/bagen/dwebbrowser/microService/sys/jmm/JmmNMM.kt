@@ -75,6 +75,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 val metadataUrl = queryMetadataUrl(request)
                 val jmmMetadata =
                     nativeFetch(metadataUrl).json<JmmMetadata>(JmmMetadata::class.java)
+                debugJMM("install",jmmMetadata)
                 // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
                 openJmmMetadataInstallPage(jmmMetadata) /*{ metadata ->
                     JsMicroModule(metadata).apply {

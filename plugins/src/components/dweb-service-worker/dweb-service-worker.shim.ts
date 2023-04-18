@@ -150,6 +150,11 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
 
 class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
 
+  @cacheGetter()
+  get download() {
+    return dwebServiceWorkerPlugin.update().download
+  }
+
   // 暂停
   @cacheGetter()
   get pause() {

@@ -77,3 +77,14 @@ export class OnFetchEvent extends Event {
     this.waitUntilPromise = response;
   }
 }
+
+
+// deno-lint-ignore no-explicit-any
+if (typeof (globalThis as any)["FetchEvent"] === "undefined") {
+  Object.assign(globalThis, { FetchEvent });
+}
+
+// deno-lint-ignore no-explicit-any
+if (typeof (globalThis as any)["OnFetchEvent"] === "undefined") {
+  Object.assign(globalThis, { OnFetchEvent });
+}
