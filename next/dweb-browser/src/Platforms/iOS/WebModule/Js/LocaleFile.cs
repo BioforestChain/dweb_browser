@@ -3,6 +3,10 @@ using DwebBrowser.Helper;
 using System.Net;
 using System.Web;
 using System.IO;
+using ObjCRuntime;
+using System.Runtime.InteropServices;
+using Foundation;
+using MobileCoreServices;
 
 #nullable enable
 
@@ -57,10 +61,13 @@ public static class LocaleFile
                 });
 
                 /// 尝试打开文件，如果打开失败就走 404 no found 响应
-                var filenameList = Directory.GetFileSystemEntries(AssetsPath()) ?? Array.Empty<string>();
+                var absoluteDir = Path.Combine(AssetsPath(), dirname);
+                var filenameList = Directory.GetFileSystemEntries(absoluteDir) ?? Array.Empty<string>();
 
                 HttpResponseMessage response = null!;
-                if (!filenameList.Contains(filename))
+                
+                var targetPath = Path.Combine(absoluteDir, filename);
+                if (!filenameList.Contains(targetPath))
                 {
                     Console.WriteLine($"NO-FOUND {request.RequestUri.AbsolutePath}");
                     response = new HttpResponseMessage(HttpStatusCode.NotFound).Also(it =>
@@ -70,12 +77,14 @@ public static class LocaleFile
                 }
                 else
                 {
+                    src = Path.Combine(AssetsPath(), src);
                     response = new HttpResponseMessage(HttpStatusCode.OK);
 
                     // buffer 模式，就是直接全部读取出来
                     // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍，如果分片次数少于2次，那么就直接发送，没必要分片
                     if (mode is not "stream")
                     {
+                        Console.WriteLine("auto mode");
                         /**
                          * 打开一个读取流
                          */
@@ -85,22 +94,33 @@ public static class LocaleFile
                              * 一次性发送
                              */
                             response.Content = new ByteArrayContent(fs.ToByteArray());
+
+                            // TODO: 添加MimeType
+                            //var extension = Path.GetExtension(src);
+                            //var uttype = UniformTypeIdentifiers.UTType.CreateFromExtension(extension);
+                            //var mimeType = uttype.PreferredMimeType;
+                            //response.Content.Headers.Add("Content-Type", mimeType);
                         }
+
+                        return response;
                     }
                     else
                     {
-                        using (var fs = File.OpenRead(src))
-                        {
-                            response.Content = new StreamContent(fs);
-                        }
+                        Console.WriteLine("stream mode");
+                        var fs = File.OpenRead(src);
+                        response.Content = new StreamContent(fs);
+                        //var extension = Path.GetExtension(src);
+                        //var uttype = UniformTypeIdentifiers.UTType.CreateFromExtension(extension);
+                        //var mimeType = uttype.PreferredMimeType;
+                        //response.Content.Headers.Add("Content-Type", mimeType);
+                        return response;
                     }
-
-                    return response;
                 }
             }
         }
-        catch
+        catch(Exception e)
         {
+            Console.WriteLine($"Exception: {e.Message}");
             return new HttpResponseMessage(HttpStatusCode.InternalServerError);
         }
 

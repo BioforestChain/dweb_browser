@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DwebBrowser.HelperTests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DwebBrowser.DWebViewDemo", "DWebView\demo\DwebBrowser.DWebViewDemo.csproj", "{242008B8-4637-4194-A0C9-3E9090AB4CFB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DwebBrowserIOSUnitTest", "DwebBrowserIOSUnitTest\DwebBrowserIOSUnitTest.csproj", "{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -119,6 +121,18 @@ Global
 		{242008B8-4637-4194-A0C9-3E9090AB4CFB}.Debug|iPhone.Build.0 = Debug|Any CPU
 		{242008B8-4637-4194-A0C9-3E9090AB4CFB}.Release|iPhone.ActiveCfg = Release|Any CPU
 		{242008B8-4637-4194-A0C9-3E9090AB4CFB}.Release|iPhone.Build.0 = Release|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}.Release|iPhone.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,12 +4,13 @@ using DwebBrowser.MicroService.Message;
 using DwebBrowser.MicroService.Sys.Http.Net;
 using DwebBrowser.Helper;
 using System.Text.Json;
+using WebKit;
 
 namespace DwebBrowser.WebModule.Js;
 
 public class JsProcessNMM : NativeMicroModule
 {
-    public JsProcessNMM():base("js.sys.dweb")
+    public JsProcessNMM() : base("js.sys.dweb")
     {
         _LAZY_JS_PROCESS_WORKER_CODE = new Lazy<string>(() =>
             Task.Run(async () => await (await NativeFetchAsync("file:///bundle/js-process.worker.js")).TextAsync()).Result);
@@ -101,7 +102,7 @@ public class JsProcessNMM : NativeMicroModule
         HttpRouter.AddRoute(HttpMethod.Post.Method, "/create-process", async (request, ipc) =>
         {
             processIpcMap.Add(ipc.Remote.Mmid, ipc);
-            PromiseOut<int> po = null!; 
+            PromiseOut<int> po = null!;
             ipcProcessIdMapLock.WaitOne();
 
             var processId = request.QueryValidate<string>("process_id")!;
@@ -177,7 +178,17 @@ public class JsProcessNMM : NativeMicroModule
         var afterReadyPo = new PromiseOut<bool>();
         /// WebView 实例
         var urlInfo = mainServer.StartResult.urlInfo;
-        var apis = new JsProcessWebApi(new DWebView.DWebView()).Also(api =>
+
+        // TODO: WebView实例 配置信息设置未完成
+        var config = new WKWebViewConfiguration();
+        //config.ApplicationNameForUserAgent = $"dweb-host/{}"
+        var perference = new WKPreferences();
+        perference.JavaScriptCanOpenWindowsAutomatically = true;
+        config.Preferences = perference;
+        var apis = new JsProcessWebApi(new DWebView.DWebView(
+            frame: null, localeMM: this, remoteMM: this,
+            new DWebView.DWebView.Options(urlInfo.BuildInternalUrl().Path("/index.html").ToString()),
+            config)).Also(api =>
         {
             _onAfterShutdown += async (_) => { api.Destroy(); };
 
@@ -314,12 +325,12 @@ public class JsProcessNMM : NativeMicroModule
     protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
     {
 
-        
+
     }
 
     protected override async Task _shutdownAsync()
     {
-        
+
     }
 }
 
