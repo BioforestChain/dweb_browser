@@ -63,24 +63,9 @@ public static class LocaleFile
                 var src = request.RequestUri.AbsolutePath.Substring(1);
 
                 Console.WriteLine($"OPEN {src}");
-                string dirname = null!;
-                string filename = null!;
+                string dirname = Path.GetDirectoryName(src) ?? "";
+                string filename = Path.GetFileName(src) ?? "";
 
-                src.LastIndexOf('/').Also(it =>
-                {
-                    switch (it)
-                    {
-                        case -1:
-                            filename = src;
-                            dirname = "";
-                            break;
-                        default:
-                            filename = src.Substring(it + 1);
-                            dirname = src.Substring(0, it + 1);
-                            break;
-                    }
-                    src.Substring(0, it + 1);
-                });
 
                 /// 尝试打开文件，如果打开失败就走 404 no found 响应
                 var absoluteDir = Path.Combine(AssetsPath(), dirname);

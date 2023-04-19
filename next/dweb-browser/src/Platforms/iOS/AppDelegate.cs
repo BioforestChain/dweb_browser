@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace DwebBrowser ;
+namespace DwebBrowser.Platforms.iOS;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

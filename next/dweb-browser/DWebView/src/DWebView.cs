@@ -4,11 +4,14 @@ using WebKit;
 using UIKit;
 using static CoreFoundation.DispatchSource;
 using DwebBrowser.MicroService;
+using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Sys.Dns;
 using DwebBrowser.MicroService.Core;
 using System.Xml;
 using AngleSharp;
 using AngleSharp.Html.Parser;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.DWebView;
 
@@ -184,9 +187,9 @@ function nativeWindowPostMessage(data, ports_id) {
 
     async Task LoadURL(Uri url, HttpMethod? method = default)
     {
-        var uri = url.ToString();
+        string uri = url.ToString() ?? throw new ArgumentException();
         var nsUrlRequest = new NSUrlRequest(new NSUrl(uri));
-
+        WKNavigation? nsNavigation;
 
         /// 如果是 dweb 域名，这是需要进行模拟加载的
         if (url.Host.EndsWith(".dweb") && url.Scheme is "http" or "https")
@@ -204,23 +207,46 @@ function nativeWindowPostMessage(data, ports_id) {
                 baseNode = document.CreateElement("base");
                 document.Head!.InsertBefore(baseNode, document.Head.FirstChild);
             }
-            var origin = baseNode.GetAttribute("href") ?? uri;
-            if (!origin.StartsWith("http://localhost:20222"))
+            string origin = baseNode.GetAttribute("href")?.Let((href) => new Uri(url, href).ToString()) ?? uri;
+            string gatewayOrigin = HttpNMM.DwebServer.Origin;
+            if (!origin.StartsWith(gatewayOrigin))
             {
-                baseNode.SetAttribute("href", $"http://localhost:20222{X_DWEB_HREF}{origin}");
+                baseNode.SetAttribute("href", $"{gatewayOrigin}{HttpNMM.X_DWEB_HREF}{origin}");
                 responseData = document.ToHtml();
             }
 
             /// 模拟加载
             var nsData = NSData.FromString(responseData);
-            var nsNavigation = LoadSimulatedRequest(nsUrlRequest, nsUrlResponse, nsData);
+            nsNavigation = LoadSimulatedRequest(nsUrlRequest, nsUrlResponse, nsData);
         }
         else
         {
-            var nsNavigation = LoadRequest(nsUrlRequest);
+            nsNavigation = LoadRequest(nsUrlRequest);
+        }
+
+        if (!OnReady.IsEmpty())
+        {
+            this.NavigationDelegate = new OnReadyDelegate(OnReady);
         }
     }
 
-    public static readonly string X_DWEB_HREF = "/X-Dweb-Href/";
+    public event Signal OnReady;
+
+    class OnReadyDelegate : WKNavigationDelegate
+    {
+        Signal _onReady;
+        public OnReadyDelegate(Signal onReady)
+        {
+            this._onReady = onReady;
+        }
+
+        public override void DidFinishNavigation(WKWebView webView, WKNavigation navigation)
+        {
+            base.DidFinishNavigation(webView, navigation);
+            _ = _onReady.Emit();
+        }
+    }
+
+
 }
 

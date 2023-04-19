@@ -7,11 +7,12 @@ namespace DwebBrowser.MicroService.Sys.Http;
 public class HttpNMM : NativeMicroModule
 {
     public static Http1Server DwebServer = new Http1Server();
+    public static readonly string X_DWEB_HREF = "/X-Dweb-Href/";
     /// 注册的域名与对应的 token
     private Dictionary</* token */string, Gateway> _tokenMap = new();
     private Dictionary</* host */string, Gateway> _gatewayMap = new();
 
-    public HttpNMM():base("http.sys.dweb")
+    public HttpNMM() : base("http.sys.dweb")
     {
     }
 
@@ -36,6 +37,12 @@ public class HttpNMM : NativeMicroModule
      */
     private async Task<HttpResponseMessage> _httpHandler(HttpRequestMessage request)
     {
+        if (request.RequestUri?.AbsolutePath.StartsWith(X_DWEB_HREF) is true)
+        {
+            request.RequestUri = new Uri(request.RequestUri.AbsolutePath.Substring(X_DWEB_HREF.Length));
+        }
+
+
         string? header_host = null;
         string? header_x_dweb_host = null;
         string? header_user_agent_host = null;

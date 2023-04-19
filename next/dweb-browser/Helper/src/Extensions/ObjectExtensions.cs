@@ -26,5 +26,6 @@ public static class ObjectExtensions
         to = self;
         return self;
     }
+
 }
 

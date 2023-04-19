@@ -4,6 +4,7 @@ using DwebBrowser.DWebView;
 using DwebBrowser.MicroService;
 using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Message;
+using DwebBrowser.MicroService.Sys.Http;
 using DwebBrowser.MicroService.Sys.Http.Net;
 
 namespace demo;
@@ -51,9 +52,9 @@ public class AppDelegate : UIApplicationDelegate
         {
             if (request.RequestUri?.OriginalString is "localhost:20222")
             {
-                if (request.RequestUri.AbsolutePath.StartsWith(DWebView.X_DWEB_HREF))
+                if (request.RequestUri.AbsolutePath.StartsWith(HttpNMM.X_DWEB_HREF))
                 {
-                    request.RequestUri = new Uri(request.RequestUri.AbsolutePath.Substring(DWebView.X_DWEB_HREF.Length));
+                    request.RequestUri = new Uri(request.RequestUri.AbsolutePath.Substring(HttpNMM.X_DWEB_HREF.Length));
                 }
             }
             if (request.RequestUri?.AbsolutePath is "/index.html")

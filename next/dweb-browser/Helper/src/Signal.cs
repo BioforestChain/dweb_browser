@@ -8,6 +8,10 @@ public delegate Task? Signal<T1, T2>(T1 arg1, T2 arg2, Signal<T1, T2> self);
 
 public static class SignalExtendsions
 {
+    public static bool IsEmpty(this Signal self)
+    {
+        return self.GetInvocationList().Length is 0;
+    }
     public static async Task Emit(this Signal self)
     {
         try
