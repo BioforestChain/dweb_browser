@@ -71,6 +71,7 @@
   <string name="browser_nav_home">首页</string>
   <string name="browser_nav_option">选项</string>
   <string name="browser_main_hot_web">热门网站</string>
+  <string name="browser_main_my_app">我的应用</string>
   <string name="browser_main_my_book">我的书签</string>
   <string name="browser_main_hot_search">全网热搜</string>
 </resources>

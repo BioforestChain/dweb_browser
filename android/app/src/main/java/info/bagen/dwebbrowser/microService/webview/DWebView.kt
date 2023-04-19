@@ -354,8 +354,7 @@ class DWebView(
         settings.allowFileAccess = true
         settings.javaScriptCanOpenWindowsAutomatically = true
         settings.allowContentAccess = true
-        setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        println("isHardwareAccelerated: ${this.isHardwareAccelerated}");
+        setLayerType(View.LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
 
         super.setWebViewClient(internalWebViewClient)
         super.setWebChromeClient(internalWebChromeClient)

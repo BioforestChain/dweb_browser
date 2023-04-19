@@ -23,24 +23,29 @@ import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.BrowserController
+import info.bagen.dwebbrowser.microService.browser.BrowserNMM
+import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
+import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.view.CaptureController
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.jsoup.Jsoup
 import java.util.concurrent.atomic.AtomicInteger
 
 data class BrowserUIState @OptIn(ExperimentalFoundationApi::class) constructor(
-    val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(),
-    val currentBrowserBaseView: MutableState<BrowserBaseView>,
-    val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
-    val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
-    val hotLinkList: MutableList<WebSiteInfo> = mutableStateListOf(),
-    val popupViewState: MutableState<PopupViewSate> = mutableStateOf(PopupViewSate.NULL),
-    val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
-    val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true) , // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
-
+  val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(),
+  val currentBrowserBaseView: MutableState<BrowserBaseView>,
+  val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
+  val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
+  val hotLinkList: MutableList<WebSiteInfo> = mutableStateListOf(),
+  val popupViewState: MutableState<PopupViewSate> = mutableStateOf(PopupViewSate.NULL),
+  val myInstallApp: MutableList<JmmMetadata> = mutableStateListOf(),
+  val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
+  val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
 )
 
 interface BrowserBaseView {
@@ -122,16 +127,16 @@ enum class PopupViewSate(
 }
 
 sealed class BrowserIntent {
-    object ShowMainView : BrowserIntent()
-    object WebViewGoBack : BrowserIntent()
-    class PictureCapture(val page: Int) : BrowserIntent()
-    class UpdatePopupViewState(val state: PopupViewSate = PopupViewSate.NULL) : BrowserIntent()
-    class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
-    class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
-    class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
-    class AddNewWebView(val url: String) : BrowserIntent()
-    class SearchWebView(val url: String) : BrowserIntent()
-    class RemoveBaseView(val id: Int) : BrowserIntent()
+  object ShowMainView : BrowserIntent()
+  object WebViewGoBack : BrowserIntent()
+  class UpdatePopupViewState(val state: PopupViewSate = PopupViewSate.NULL) : BrowserIntent()
+  class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
+  class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
+  class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
+  class AddNewWebView(val url: String) : BrowserIntent()
+  class SearchWebView(val url: String) : BrowserIntent()
+  class RemoveBaseView(val id: Int) : BrowserIntent()
+  class OpenDwebBrowser(val mmid: Mmid) : BrowserIntent()
 }
 
 class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
@@ -141,99 +146,102 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         private var webviewId_acc = AtomicInteger(1)
     }
 
-    init {
-        val browserMainView = BrowserMainView()
-        uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
-        uiState.browserViewList.add(browserMainView)
-        viewModelScope.launch(ioAsyncExceptionHandler) { loadHotInfo() }
-    }
-
-    @OptIn(ExperimentalFoundationApi::class)
-    fun handleIntent(action: BrowserIntent) {
-        viewModelScope.launch(ioAsyncExceptionHandler) {
-            when (action) {
-                is BrowserIntent.ShowMainView -> {
-                    uiState.browserViewList.lastOrNull()?.also {
-                        it.show.value = true
-                    }
-                }
-                is BrowserIntent.WebViewGoBack -> {
-                    uiState.currentBrowserBaseView.value.let { browserBaseView ->
-                        if (browserBaseView is BrowserWebView) browserBaseView.navigator.navigateBack()
-                    }
-                }
-                is BrowserIntent.PictureCapture -> {
-                    delay(1000)
-                    uiState.browserViewList.subList(action.page - 1, action.page + 1).forEach {
-                        it.controller.capture()
-                    }
-                }
-                is BrowserIntent.UpdatePopupViewState -> {
-                    if (uiState.popupViewState.value == PopupViewSate.NULL) {
-                        uiState.popupViewState.value = action.state
-                    } else {
-                        uiState.popupViewState.value = PopupViewSate.NULL
-                    }
-                }
-                is BrowserIntent.UpdateCurrentBaseView -> {
-                    if (action.currentPage >= 0 && action.currentPage < uiState.browserViewList.size) {
-                        uiState.currentBrowserBaseView.value =
-                            uiState.browserViewList[action.currentPage]
-                    }
-                }
-                is BrowserIntent.UpdateBottomViewState -> {
-                    uiState.showBottomBar.targetState = action.show
-                }
-                is BrowserIntent.UpdateMultiViewState -> {
-                    if (action.show) {
-                        uiState.currentBrowserBaseView.value.controller.capture()
-                    }
-                    uiState.multiViewShow.targetState = action.show
-                    action.index?.let {
-                        viewModelScope.launch(mainAsyncExceptionHandler) {
-                            uiState.pagerStateNavigator.scrollToPage(it)
-                            uiState.pagerStateContent.scrollToPage(it)
-                        }
-                    }
-                }
-                is BrowserIntent.AddNewWebView -> {
-                    // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
-                    uiState.browserViewList.lastOrNull()?.let {
-                        it.show.value = false
-                    }
-                    // 创建 webview 并且打开
-                    withContext(mainAsyncExceptionHandler) {
-                        val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
-                        val state = WebViewState(WebContent.Url(action.url))
-                        val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-                        val navigator = WebViewNavigator(coroutineScope)
-                        val webView = createDwebView(action.url)
-                        BrowserWebView(
-                            webViewId = webviewId,
-                            webView = webView,
-                            state = state,
-                            coroutineScope = coroutineScope,
-                            navigator = navigator
-                        ).also { item ->
-                            uiState.browserViewList.add(uiState.browserViewList.size - 1, item)
-                            uiState.currentBrowserBaseView.value = item
-                        }
-                    }
-                }
-
-                is BrowserIntent.SearchWebView -> {
-                    uiState.currentBrowserBaseView.value.let { browserBaseView ->
-                        if (browserBaseView is BrowserWebView) {
-                            browserBaseView.state.content = WebContent.Url(action.url)
-                        }
-                    }
-                }
-                is BrowserIntent.RemoveBaseView -> {
-                    uiState.browserViewList.removeAt(action.id)
-                }
-            }
+  init {
+    val browserMainView = BrowserMainView()
+    uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
+    uiState.browserViewList.add(browserMainView)
+    viewModelScope.launch(ioAsyncExceptionHandler) {
+      loadHotInfo()
+      // 挂在数据变化
+      MutableStateFlow(JmmNMM.getAndUpdateJmmNmmApps()).collect {
+        uiState.myInstallApp.clear()
+        it.forEach { (_, value) ->
+          uiState.myInstallApp.add(value.metadata)
         }
+      }
     }
+  }
+
+  @OptIn(ExperimentalFoundationApi::class)
+  fun handleIntent(action: BrowserIntent) {
+    viewModelScope.launch(ioAsyncExceptionHandler) {
+      when (action) {
+        is BrowserIntent.ShowMainView -> {
+          uiState.browserViewList.lastOrNull()?.also {
+            it.show.value = true
+          }
+        }
+        is BrowserIntent.WebViewGoBack -> {
+          uiState.currentBrowserBaseView.value.let { browserBaseView ->
+            if (browserBaseView is BrowserWebView) browserBaseView.navigator.navigateBack()
+          }
+        }
+        is BrowserIntent.UpdatePopupViewState -> {
+          if (uiState.popupViewState.value == PopupViewSate.NULL) {
+            uiState.popupViewState.value = action.state
+          } else {
+            uiState.popupViewState.value = PopupViewSate.NULL
+          }
+        }
+        is BrowserIntent.UpdateCurrentBaseView -> {
+          if (action.currentPage >= 0 && action.currentPage < uiState.browserViewList.size) {
+            uiState.currentBrowserBaseView.value = uiState.browserViewList[action.currentPage]
+          }
+        }
+        is BrowserIntent.UpdateBottomViewState -> {
+          uiState.showBottomBar.targetState = action.show
+        }
+        is BrowserIntent.UpdateMultiViewState -> {
+          if (action.show) {
+            uiState.currentBrowserBaseView.value.controller.capture()
+          }
+          uiState.multiViewShow.targetState = action.show
+          action.index?.let {
+            viewModelScope.launch(mainAsyncExceptionHandler) {
+              uiState.pagerStateNavigator.scrollToPage(it)
+              uiState.pagerStateContent.scrollToPage(it)
+            }
+          }
+        }
+        is BrowserIntent.AddNewWebView -> {
+          // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
+          uiState.browserViewList.lastOrNull()?.let {
+            it.show.value = false
+          }
+          // 创建 webview 并且打开
+          withContext(mainAsyncExceptionHandler) {
+            val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
+            val state = WebViewState(WebContent.Url(action.url))
+            val coroutineScope = CoroutineScope(CoroutineName(webviewId))
+            val navigator = WebViewNavigator(coroutineScope)
+            BrowserWebView(
+              webViewId = webviewId,
+              webView = createDwebView(action.url),
+              state = state,
+              coroutineScope = coroutineScope,
+              navigator = navigator
+            ).also { item ->
+              uiState.browserViewList.add(uiState.browserViewList.size - 1, item)
+              uiState.currentBrowserBaseView.value = item
+            }
+          }
+        }
+        is BrowserIntent.OpenDwebBrowser -> {
+          BrowserNMM.browserController.openApp(action.mmid)
+        }
+        is BrowserIntent.SearchWebView -> {
+          uiState.currentBrowserBaseView.value.let { browserBaseView ->
+            if (browserBaseView is BrowserWebView) {
+              browserBaseView.state.content = WebContent.Url(action.url)
+            }
+          }
+        }
+        is BrowserIntent.RemoveBaseView -> {
+          uiState.browserViewList.removeAt(action.id)
+        }
+      }
+    }
+  }
 
     private suspend fun createDwebView(url: String): DWebView =
         withContext(mainAsyncExceptionHandler) {

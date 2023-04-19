@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.ui.browser
 
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,26 +50,13 @@ fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: BrowserMainVie
       imageBitmap?.let { bitmap ->
         viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
       }
-      throwable?.let { Log.w("BrowserMain", "BrowserMainView e->$it") }
     }) {
     LazyColumn(state = lazyListState) {
       item { HotWebSiteView(viewModel) }
+      item { InstalledApp(viewModel) }
       item { HotSearchView(viewModel) }
     }
   }
-
-  /*Home(
-    mainViewModel = MainViewModel(),
-    appViewModel = AppViewModel(),
-    onSearchAction = { action, data ->
-      when (action) {
-        SearchAction.Search -> {}
-        SearchAction.OpenCamera -> {}
-      }
-    }, onOpenDWebview = { appId, dAppInfo ->
-      // TODO 这里是点击桌面app触发的事件
-    }
-  )*/
 }
 
 @Composable
@@ -113,6 +100,34 @@ private fun HotWebSiteView(viewModel: BrowserViewModel) {
       items(initHotWebsite) {
         IconView(model = it.iconUrl, text = it.name) {
           viewModel.handleIntent(BrowserIntent.AddNewWebView(it.webUrl))
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun InstalledApp(viewModel: BrowserViewModel) {
+  if (viewModel.uiState.myInstallApp.size <= 0) return // 如果没有内容就不显示该项
+  val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+  Column(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(20.dp)
+  ) {
+    TitleText(id = R.string.browser_main_my_app)
+    Spacer(modifier = Modifier.height(10.dp))
+
+    LazyVerticalGrid(
+      columns = GridCells.Fixed(4),
+      contentPadding = PaddingValues(horizontal = 0.dp),
+      horizontalArrangement = Arrangement.spacedBy((screenWidth - 64.dp * 4 - 40.dp) / 3),
+      verticalArrangement = Arrangement.spacedBy(0.dp),
+      modifier = Modifier.heightIn(max = 200.dp)
+    ) {
+      items(viewModel.uiState.myInstallApp) {
+        IconView(model = it.icon, text = it.title) {
+          viewModel.handleIntent(BrowserIntent.OpenDwebBrowser(it.id))
         }
       }
     }

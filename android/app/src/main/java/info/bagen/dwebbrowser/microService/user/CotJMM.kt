@@ -11,7 +11,9 @@ class CotJMM : JsMicroModule(
             root = "file:///bundle",
             entry = "/cot.worker.js"
         ),
-        splashScreen = JmmMetadata.SplashScreen("https://www.bfmeta.org/")
+        splashScreen = JmmMetadata.SplashScreen("https://www.bfmeta.org/"),
+        icon = "https://www.bfmeta.info/imgs/logo3.webp",
+        title = "Cot"
     )
 ) {
     init {

@@ -20,7 +20,9 @@ class CotDemoJMM : JsMicroModule(
                 port = 80,
                 subdomain = "cotdemo.bfs.dweb"
             )
-        )
+        ),
+        icon = "https://www.bfmeta.info/imgs/logo3.webp",
+        title = "CotDemo"
     )
 ) {
     init {

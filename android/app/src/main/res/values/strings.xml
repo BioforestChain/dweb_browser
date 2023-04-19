@@ -72,6 +72,7 @@
   <string name="browser_nav_home">Home</string>
   <string name="browser_nav_option">Option</string>
   <string name="browser_main_hot_web">Hot Website</string>
+  <string name="browser_main_my_app">My App</string>
   <string name="browser_main_my_book">My Bookmark</string>
   <string name="browser_main_hot_search">Hot Search</string>
 </resources>
