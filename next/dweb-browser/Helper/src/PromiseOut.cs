@@ -3,6 +3,9 @@ namespace DwebBrowser.Helper;
 
 public class PromiseOut<T>
 {
+    public static PromiseOut<T> StaticResolve(T value) => new PromiseOut<T>().Also(it => it.Resolve(value));
+    public static PromiseOut<T> StaticReject(string msg) => new PromiseOut<T>().Also(it => it.Reject(msg));
+
     private TaskCompletionSource<T> task = new TaskCompletionSource<T>();
     public T? Value { get; set; }
 

@@ -17,5 +17,6 @@ public class Program
         // you can specify it here.
         UIApplication.Main(args, null, typeof(AppDelegate));
         //var x = new DWebView.DWebView();
+        Console.WriteLine("Main End!!!");
     }
 }

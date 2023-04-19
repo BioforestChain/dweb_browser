@@ -13,13 +13,13 @@ global using Mmid = System.String;
 global using Router = System.Collections.Generic.Dictionary<
     string, System.Func<System.Collections.Generic.Dictionary<string, string>, object>>;
 
-//global using HttpHandler = System.Func<
-//    System.Net.Http.HttpRequestMessage,
-//    System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage>>;
-
 global using HttpHandler = System.Func<
     System.Net.Http.HttpRequestMessage,
-    System.Net.Http.HttpResponseMessage>;
+    System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage>>;
+
+//global using HttpHandler = System.Func<
+//    System.Net.Http.HttpRequestMessage,
+//    System.Net.Http.HttpResponseMessage>;
 
 global using RouterHandlerType = System.Func<
     System.Net.Http.HttpRequestMessage,

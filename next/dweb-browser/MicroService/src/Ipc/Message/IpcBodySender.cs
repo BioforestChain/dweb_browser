@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks.Dataflow;
+﻿using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks.Dataflow;
 
 namespace DwebBrowser.MicroService.Message;
 
@@ -119,7 +121,7 @@ public class IpcBodySender : IpcBody
 
         }
 
-        private static Dictionary<Ipc, UsableIpcBodyMapper> s_ipcUsableIpcBodyMap = new Dictionary<Ipc, UsableIpcBodyMapper>();
+        private static ConditionalWeakTable<Ipc, UsableIpcBodyMapper> s_ipcUsableIpcBodyMap = new();
 
         /**
         * <summary>
@@ -322,7 +324,7 @@ public class IpcBodySender : IpcBody
 
     public IpcBodySender(object raw, Ipc ipc)
     {
-        CACHE.Raw_ipcBody_WMap.Add(raw, this);
+        CACHE.Raw_ipcBody_WMap.TryAdd(raw, this);
         IPC.UsableByIpc(ipc, this);
 
         Raw = raw;
@@ -334,21 +336,14 @@ public class IpcBodySender : IpcBody
 
     public static IpcBody From(object raw, Ipc ipc) =>
         CACHE.Raw_ipcBody_WMap.TryGetValue(raw, out IpcBody ipcBody) ? ipcBody : new IpcBodySender(raw, ipc);
-    private static Dictionary<Stream, string> s_streamIdWM = new Dictionary<Stream, string>();
+    private static ConditionalWeakTable<Stream, string> s_streamIdWM = new();
 
     private static int s_stream_id_acc = 1;
 
-    private static string s_getStreamId(Stream stream) => s_streamIdWM.Let(it =>
-        {
-            var streamId = it[stream];
-
-            if (streamId is null)
-            {
-                streamId = $"rs-{Interlocked.Exchange(ref s_stream_id_acc, Interlocked.Increment(ref s_stream_id_acc))}";
-            }
-
-            return streamId;
-        });
+    private static string s_getStreamId(Stream stream) => s_streamIdWM.GetValueOrPut(stream, () =>
+    {
+        return $"rs-{Interlocked.Exchange(ref s_stream_id_acc, Interlocked.Increment(ref s_stream_id_acc))}";
+    });
 
 
     private SMetaBody BodyAsMeta(object body, Ipc ipc) => body switch
@@ -462,7 +457,7 @@ public class IpcBodySender : IpcBody
         return metaBody!.Also(it =>
         {
             // 流对象，写入缓存
-            CACHE.MetaId_ipcBodySender_Map.AddOrUpdate(it.MetaId, this);
+            CACHE.MetaId_ipcBodySender_Map.TryAdd(it.MetaId, this);
             Task.Run(() => _streamStatusSignal.Receive() switch
             {
                 StreamStatusSignal.ABORTED => CACHE.MetaId_ipcBodySender_Map.Remove(it.MetaId),

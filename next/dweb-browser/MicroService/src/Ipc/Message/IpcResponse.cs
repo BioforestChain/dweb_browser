@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http;
 namespace DwebBrowser.MicroService.Message;
 
 public class IpcResponse : IpcMessage
@@ -50,10 +51,21 @@ public class IpcResponse : IpcMessage
             req_id,
             (int)response.StatusCode,
             new IpcHeaders(response.Headers),
-            response.Content.ReadAsStream().Let(it => it.Length switch
+            //response.Content.ReadAsStream().Let(it => it.Length switch
+            //{
+            //    0L => IpcBodySender.From("", ipc),
+            //    _ => IpcBodySender.From(it, ipc)
+            //}),
+            // TODO: 无法使用Length来判断是否为空，直接使用流，有待优化
+            //IpcBodySender.From(response.Content.ReadAsStream(), ipc),
+            response.Content.ReadAsStream().Let(it =>
             {
-                0L => IpcBodySender.From("", ipc),
-                _ => IpcBodySender.From(it, ipc)
+                if (it.CanRead)
+                {
+                    return IpcBodySender.From(it, ipc);
+                }
+
+                return IpcBodySender.From("", ipc);
             }),
             ipc);
 

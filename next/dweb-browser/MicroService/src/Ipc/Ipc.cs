@@ -139,7 +139,7 @@ public abstract class Ipc
         {
             OnResponse += async (ipcResponse, ipc, self) =>
             {
-                var res = reqResMap[ipcResponse.ReqId];
+                var res = reqResMap.GetValueOrDefault(ipcResponse.ReqId);
 
                 if (res is null)
                 {
@@ -195,7 +195,7 @@ public abstract class Ipc
     public async Task<IpcResponse> Request(IpcRequest ipcRequest)
     {
         var result = new PromiseOut<IpcResponse>();
-        _reqResMap[ipcRequest.ReqId] = result;
+        _reqResMap.Add(ipcRequest.ReqId, result);
         await PostMessageAsync(ipcRequest);
         return await result.WaitPromiseAsync();
     }

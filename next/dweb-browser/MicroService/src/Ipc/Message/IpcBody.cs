@@ -20,7 +20,7 @@ public abstract class IpcBody
 		 * 其它的 IPC 即便拿到了这个 metaBody 也是没有意义的，除非它是 INLINE
 		 * </summary>
 		 */
-        public static readonly ConditionalWeakTable<string, Ipc> MetaId_receiverIpc_Map = new();
+        public static readonly Dictionary<string, Ipc> MetaId_receiverIpc_Map = new();
 
         /**
          * <summary>
@@ -28,7 +28,7 @@ public abstract class IpcBody
 		 * 这里主要是存储 流，因为它有明确的 open/close 生命周期
 		 * </summary>
 		 */
-        public static readonly ConditionalWeakTable<string, IpcBody> MetaId_ipcBodySender_Map = new();
+        public static readonly Dictionary<string, IpcBody> MetaId_ipcBodySender_Map = new();
     }
 
     protected internal class BodyHubType

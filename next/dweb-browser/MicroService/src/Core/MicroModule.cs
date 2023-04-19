@@ -14,7 +14,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
     }
     public Router? Router = null;
 
-    private PromiseOut<bool> _runningStateLock = new PromiseOut<bool>();
+    private PromiseOut<bool> _runningStateLock = PromiseOut<bool>.StaticResolve(false);
     public bool Running { get => _runningStateLock.Value; }
 
     private async Task _beforeBootsStrap(IBootstrapContext bootstrapContext)

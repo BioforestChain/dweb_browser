@@ -17,7 +17,7 @@ public class IpcBodyReceiver : IpcBody
         var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
         if (ipcMetaBodyType.IsStream)
         {
-            if (!CACHE.MetaId_receiverIpc_Map.TryGetValue(MetaBody.MetaId, out Ipc? cipc))
+            CACHE.MetaId_receiverIpc_Map.GetValueOrPut(MetaBody.MetaId, () =>
             {
                 Ipc.OnClose += async (_) =>
                 {
@@ -25,8 +25,8 @@ public class IpcBodyReceiver : IpcBody
                 };
 
                 MetaBody = MetaBody with { ReceiverUid = Ipc.Uid };
-                CACHE.MetaId_receiverIpc_Map.AddOrUpdate(MetaBody.MetaId, Ipc);
-            }
+                return Ipc;
+            });
         }
     }
 

@@ -21,7 +21,7 @@ public class DnsNMM : NativeMicroModule
             await BootstrapMicroModule(this);
         }
 
-        await OnActivity(null);
+        await OnActivity();
     }
 
     public Task BootstrapMicroModule(MicroModule fromMM) =>
@@ -166,7 +166,7 @@ public class DnsNMM : NativeMicroModule
 
     protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc) => OnActivity(Event);
 
-    public async Task OnActivity(IpcEvent? Event)
+    public async Task OnActivity(IpcEvent? Event = null)
     {
         if (Event is null)
         {

@@ -40,7 +40,7 @@ public static class PortHelper
     {
         foreach (var favorite_port in favorite_ports)
         {
-            if (IsPortInUse(favorite_port).Item1)
+            if (!IsPortInUse(favorite_port).Item1)
             {
                 return favorite_port;
             }

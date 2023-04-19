@@ -150,10 +150,10 @@ public class HttpNMM : NativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        // TODO: 异步Lambada表达式无法转化为Func<HttpRequestMessage, HttpResponseMessage>
-        await DwebServer.CreateAsync(request =>
+        /// 启动http后端服务
+        DwebServer.CreateServer(async request =>
         {
-            return _httpHandler(request).Result;
+            return await _httpHandler(request);
         });
 
         /// 为 nativeFetch 函数提供支持
