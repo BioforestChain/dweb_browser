@@ -1,8 +1,10 @@
 package info.bagen.dwebbrowser.microService.ipc
 
 import info.bagen.dwebbrowser.microService.helper.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -97,9 +99,14 @@ class NativePort<I, O>(
     /**
      * 发送消息，这个默认会阻塞
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun postMessage(msg: O) {
         debugNativeIpc("message-out/$this >> $msg")
-        channel_out.send(msg)
+        if (!channel_out.isClosedForSend) {
+            channel_out.send(msg)
+        } else {
+            debugNativeIpc("postMessage"," handle the closed channel case!")
+        }
     }
 
     /**

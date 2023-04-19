@@ -193,7 +193,8 @@ var restartApp = async (url, servers, ipcs) => {
     await closeDwebView(state.webviewId);
   });
   const path = `file:/${url.pathname}${url.search}`;
-  return await jsProcess.nativeFetch(path).text();
+  jsProcess.nativeFetch(path);
+  return "ok";
 };
 var closeFront = () => {
   webViewMap.forEach(async (state) => {

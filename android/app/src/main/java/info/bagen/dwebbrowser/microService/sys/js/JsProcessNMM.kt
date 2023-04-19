@@ -51,11 +51,6 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
         val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
             // 提供基本的主页服务
             val serverIpc = server.listen();
-            // 在模块关停的时候，要关闭端口监听
-            _afterShutdownSignal.listen {
-                server.close()
-                serverIpc.close()
-            }
             serverIpc.onRequest { (request, ipc) ->
                 // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
                 if (request.uri.path.startsWith(INTERNAL_PATH)) {
@@ -152,6 +147,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
             "/close-process" bind Method.GET to defineHandler { request,ipc ->
                 closeHttpDwebServer(DwebHttpServerOptions(port = 80,subdomain = ipc.remote.mmid))
                 val processIpc = processIpcMap[ipc.remote.mmid]
+                debugJsProcess("close-process",processIpc?.remote?.mmid)
                 processIpc?.close()
                 return@defineHandler true
             }
@@ -173,7 +169,6 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
                     )
                 )
             ).also { api ->
-                _afterShutdownSignal.listen { api.destroy() }
                 api.dWebView.onReady { afterReadyPo.resolve(Unit) }
             }
         }
@@ -182,7 +177,6 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     }
 
     override suspend fun _shutdown() {
-
     }
 
     private suspend fun createProcessAndRun(

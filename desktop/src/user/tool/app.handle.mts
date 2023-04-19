@@ -23,7 +23,6 @@ export const restartApp = async (
     server.close();
   });
   // 关闭ipc信道
-
   ipcs.forEach((ipc) => {
     ipc.close();
   });
@@ -34,7 +33,9 @@ export const restartApp = async (
 
   // 转发file请求到目标NMM 并且重启服务
   const path = `file:/${url.pathname}${url.search}`;
-  return await jsProcess.nativeFetch(path).text();
+  // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
+  jsProcess.nativeFetch(path);
+  return "ok"
 };
 
 /**

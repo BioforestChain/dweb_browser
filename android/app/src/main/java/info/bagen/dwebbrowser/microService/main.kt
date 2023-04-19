@@ -38,10 +38,11 @@ suspend fun startDwebBrowser(): DnsNMM {
     "TIME-DURATION"
     "nativeui",
     "mwebview",
+    "native-ipc" ,
     "browser",
     "jmm",
     "SplashScreen",
-    "DwebServiceWorker"
+     "js-process"
      */
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
@@ -57,7 +58,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             listOf("Share", "fetch", "http", "jmm", "browser")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
-            listOf( "jmm","DwebServiceWorker")
+            listOf( "jmm","js-process")
         )
         else -> debugTags.addAll(
             listOf("Share", "FileSystem")

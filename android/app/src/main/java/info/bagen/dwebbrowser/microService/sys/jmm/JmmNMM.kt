@@ -9,8 +9,8 @@ import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
-import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.ServiceWorkerEvent
-import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.emitEvent
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.service.DownLoadController
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import kotlinx.coroutines.DelicateCoroutinesApi

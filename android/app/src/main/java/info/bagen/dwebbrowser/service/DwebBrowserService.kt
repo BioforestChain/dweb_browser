@@ -25,8 +25,8 @@ import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.sys.jmm.DownLoadObserver
 import info.bagen.dwebbrowser.microService.sys.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.*
-import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.ServiceWorkerEvent
-import info.bagen.dwebbrowser.microService.sys.nativeui.dwebServiceWorker.emitEvent
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.app.AppViewIntent
 import info.bagen.dwebbrowser.ui.app.AppViewModel
 import info.bagen.dwebbrowser.ui.app.AppViewState

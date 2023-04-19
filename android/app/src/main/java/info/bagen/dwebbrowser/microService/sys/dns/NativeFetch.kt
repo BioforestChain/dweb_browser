@@ -32,9 +32,9 @@ private val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
  * 安全的 AssetManager 文件读取工具
  */
 class ChunkAssetsFileStream(
-  val src: String,
-  val chunkSize: Int = defaultChunkSize,
-  override val preReadableSize: Int = chunkSize
+    val src: String,
+    val chunkSize: Int = defaultChunkSize,
+    override val preReadableSize: Int = chunkSize
 ) : InputStream(), PreReadableInputStream {
     companion object {
         /// 默认1mb切一次
@@ -179,7 +179,7 @@ val networkFetch =
     ApacheClient(responseBodyMode = BodyMode.Stream, requestBodyMode = BodyMode.Stream)
 
 suspend fun MicroModule.nativeFetch(request: Request): Response {
-    for (fetchAdapter in info.bagen.dwebbrowser.microService.sys.dns.nativeFetchAdaptersManager.adapters) {
+    for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
         val response = fetchAdapter(this, request)
         if (response != null) {
             return response

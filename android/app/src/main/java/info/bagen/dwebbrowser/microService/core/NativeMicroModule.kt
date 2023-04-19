@@ -89,8 +89,8 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
                         var superJavaClass = javaClass.superclass
                         while (superJavaClass != null) {
                             // 尝试寻找继承关系
-                            when (val handler = regMap[superJavaClass!!]) {
-                                null -> superJavaClass = superJavaClass!!.superclass
+                            when (val handler = regMap[superJavaClass]) {
+                                null -> superJavaClass = superJavaClass.superclass
                                 else -> return handler(result)
                             }
                         }
