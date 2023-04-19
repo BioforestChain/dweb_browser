@@ -193,7 +193,6 @@
             state.overlay = value
             window.virtualKeyboard.style.position = value ? "absolute" : "relative"
             if(isSame) return; // 相同不需要联动 safe-area
-            // 不相同需要联动 safe-area;
             window.safeArea.contentWindow.overlayChange({type: 'virtual-keyboard', value: state.overlay})
         }
 

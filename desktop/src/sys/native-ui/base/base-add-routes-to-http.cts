@@ -408,7 +408,7 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
 export interface $BaseRoute{
   pathname: string;
   matchMode: "full" | "prefix";
-  method: "POST" | "GET" | "PUT"
+  method: "POST" | "GET" | "PUT" | "OPTIONS"
 }
 
 export interface $RequestDistributeIpcEventData{

@@ -28,7 +28,7 @@ export interface $BaseAction{
   action: string;
 }
 
-export type $BaseRouteMethod = "POST" | "GET" | "PUT"
+export type $BaseRouteMethod = "POST" | "GET" | "PUT" | "OPTIONS"
 
 export interface $BaseRoute{
   pathname: string;
@@ -152,6 +152,31 @@ export class HttpServerNMM extends NativeMicroModule {
         //   return;
         // }
       }
+
+      // {
+      //   // precess 会发送两次数据
+      //   // 一次是 检测 直接返回 200 第二次是获取数据 
+      //   // 第二次是 post 发送数据体
+        
+      //   // 测试代码 用来处理 barcode-scanning 
+
+      //   let pathname = url.parse(req.url as string,).pathname;
+      //   // console.log('pathname: ', pathname)
+      //   if(pathname === "/barcode-scanning.sys.dweb/process"){
+      //     res.writeHead(200, {
+      //       'Content-Type': 'text/plain',
+      //       'Access-Control-Allow-Origin': '*',
+      //       'Access-Control-Allow-Headers':
+      //         'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild, sessionToken',
+      //       'Access-Control-Allow-Methods': 'PUT, POST, GET, DELETE, OPTIONS',
+      //     });
+      //     res.end('');
+      //     log.red('0-------')
+      //     // console.log(req)
+      //     return;
+      //   }
+      // }
+
       
 
       // 是否有匹配的路由 拦截路由 分发请求
@@ -406,7 +431,8 @@ export class HttpServerNMM extends NativeMicroModule {
     if(pathname.endsWith("observe")){
       pathname = `/${querystring.parse(req.url as string).mmid}${pathname}`
     }
-    log.green(`[http-server.cts 接受的到了请求] http://${req.headers.host}${pathname}`)
+    log.log(`[http-server.cts 分发请求] http://${req.headers.host}${pathname}  METHOD===${req.method}`)
+    
 
     const full = createRouteKeyByArgs(
       pathname as string,
@@ -419,6 +445,11 @@ export class HttpServerNMM extends NativeMicroModule {
       req.method as $BaseRouteMethod
     )
     const parentRoutes = this._routes.values();
+    // console.log(
+    //   full,
+    //   prefix,
+    //   parentRoutes
+    // )
     let loop = true
     do{
       const {value, done} = parentRoutes.next() 
@@ -560,13 +591,17 @@ async function createDistributeRequestData(
         data = Uint8Array.from([...data, ...chunk])
       })
       req.on('end', () => {
+        console.log('data: ', data)
         resolve(JSON.stringify({
           pathname: route.pathname,
           method: req.method,
           url: req.url,
           headers: req.headers,
           matchMode: route.matchMode,
-          body: new TextDecoder().decode(data)
+          // 原是版本
+          // body: new TextDecoder().decode(data)
+          // 新版本
+          body: data
         }))
       })
     }else{

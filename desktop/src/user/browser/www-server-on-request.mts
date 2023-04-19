@@ -4,6 +4,7 @@ import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 const { IpcResponse, IpcHeaders } = ipc;
 
 export async function wwwServerOnRequest(request: IpcRequest, ipc: Ipc){
+
     let pathname = request.parsed_url.pathname;
         pathname = pathname === "/" ? "/index.html" : pathname;
         

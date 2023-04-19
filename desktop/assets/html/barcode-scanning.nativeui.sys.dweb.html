@@ -1,0 +1,68 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>barcode-scanning.nativeui.sys.dweb html</title>
+   
+</head>
+<body>
+    <script type="text/javascript">
+
+        window.addEventListener('message', windowOnMessage)
+        function windowOnMessage (){
+            awaitOperation()
+            window.removeEventListener('message', windowOnMessage)
+        }
+
+        /*
+            监听操作的方法
+        */
+        async function awaitOperation(){
+            fetch("http://barcode-scanning.nativeui.sys.dweb-80.localhost:22605/barcode-scanning-ui/wait_for_operation?app_url="+window.appUrl)
+            .then(async (res) => {
+                const reader = res.body.getReader()
+                let loop = true;
+                do{
+                    const {value, done} = await reader.read()
+                    loop = !done
+                    if(!value) continue;
+                    const o = JSON.parse(new TextDecoder().decode(value))
+                    console.log('请求的结果： ', o)
+                    if(!appUrl.startsWith(o.from)) continue;
+                    switch(o.operationName){
+                        // case "set_background_color":  setBackgroundColor(o.value);fetchReturn(getState(), o.id, o.from);break;
+                        // case "get_state": fetchReturn(getState(), o.id, o.from); break;
+                        // case "set_style": setStyle(o.value);fetchReturn(getState(), o.id, o.from); break;
+                        // case "set_overlay": setOverlay(o.value);fetchReturn(getState(), o.id, o.from); break;
+                        // case "set_visible": setVisible(o.value); fetchReturn(getState(), o.id, o.from);break;
+                        default: console.error('statusbar 没有匹配的功能 o.operationName === ', o.operationName)
+                    }
+                }while(loop)
+            })
+            .catch(err => {
+                console.error('statusbar err： ', err)
+            })
+        };
+
+        // 通过发送请求把数据传送回去
+        function fetchReturn(value,id, from){
+            console.log('value: ', value)
+            fetch(
+                "http://barcode-scanning.nativeui.sys.dweb-80.localhost:22605/barcode-scanning-ui/operation_return?app_url="+from,
+                {
+                    method: 'POST',
+                    body: value,
+                    headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                        "id": id
+                    }
+                     
+                }
+            )
+            .catch(err => console.error("fetchReturn 出错", err))
+        }
+      
+    </script>
+</body>
+</html>

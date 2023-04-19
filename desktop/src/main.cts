@@ -48,6 +48,9 @@ dns.install(new SafeAreaNMM())
 import { VirtualKeyboardNMM } from "./sys/native-ui/virtual-keyboard/virtual-keyboard.cjs"
 dns.install(new VirtualKeyboardNMM())
 
+import { BarcodeScanningNativeUiNMM } from "./sys/native-ui/barcode-scanning/barcode-scanning.cjs";
+dns.install(new BarcodeScanningNativeUiNMM())
+
 import { ToastNMM } from "./sys/native-ui/toast/toast.cjs";
 dns.install(new ToastNMM())
 
@@ -71,6 +74,7 @@ dns.install(new BootNMM([
   "navigation-bar.nativeui.sys.dweb",
   "safe-area.nativeui.sys.dweb",
   "virtual-keyboard.nativeui.sys.dweb",
+  "barcode-scanning.nativeui.sys.dweb",
   "toast.nativeui.sys.dweb",
   "browser.sys.dweb"
   // cotDemoJMM.mmid
