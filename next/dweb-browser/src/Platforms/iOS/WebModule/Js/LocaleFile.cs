@@ -2,9 +2,6 @@
 using DwebBrowser.Helper;
 using System.Net;
 using System.Web;
-using System.IO;
-using ObjCRuntime;
-using System.Runtime.InteropServices;
 using Foundation;
 using MobileCoreServices;
 
@@ -25,6 +22,31 @@ public static class LocaleFile
     /// </summary>
     /// <returns></returns>
     public static string AssetsPath() => Path.Combine(RootPath(), "Assets");
+
+    /// <summary>
+    /// 获取文件MimeType
+    /// </summary>
+    /// <param name="filepath"></param>
+    /// <returns></returns>
+    public static string? GetMimeType(string filepath)
+    {
+        try
+        {
+            var url = NSUrl.FromFilename(filepath);
+            var suc = url.TryGetResource(NSUrl.ContentTypeKey, out NSObject obj);
+
+            if (suc)
+            {
+                return UTType.GetPreferredTag(obj.ToString(), UTType.TagClassMIMEType);
+            }
+
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     public static HttpResponseMessage? LocaleFileFetch(MicroModule remote, HttpRequestMessage request)
     {
@@ -65,7 +87,7 @@ public static class LocaleFile
                 var filenameList = Directory.GetFileSystemEntries(absoluteDir) ?? Array.Empty<string>();
 
                 HttpResponseMessage response = null!;
-                
+
                 var targetPath = Path.Combine(absoluteDir, filename);
                 if (!filenameList.Contains(targetPath))
                 {
@@ -95,11 +117,12 @@ public static class LocaleFile
                              */
                             response.Content = new ByteArrayContent(fs.ToByteArray());
 
-                            // TODO: 添加MimeType
-                            //var extension = Path.GetExtension(src);
-                            //var uttype = UniformTypeIdentifiers.UTType.CreateFromExtension(extension);
-                            //var mimeType = uttype.PreferredMimeType;
-                            //response.Content.Headers.Add("Content-Type", mimeType);
+                            var mimeType = GetMimeType(src);
+                            if (mimeType is not null)
+                            {
+                                response.Content.Headers.Add("Content-Type", mimeType);
+                            }
+
                         }
 
                         return response;
@@ -109,16 +132,18 @@ public static class LocaleFile
                         Console.WriteLine("stream mode");
                         var fs = File.OpenRead(src);
                         response.Content = new StreamContent(fs);
-                        //var extension = Path.GetExtension(src);
-                        //var uttype = UniformTypeIdentifiers.UTType.CreateFromExtension(extension);
-                        //var mimeType = uttype.PreferredMimeType;
-                        //response.Content.Headers.Add("Content-Type", mimeType);
+                        var mimeType = GetMimeType(src);
+                        if (mimeType is not null)
+                        {
+                            Console.WriteLine($"mimeType: {mimeType}");
+                            response.Content.Headers.Add("Content-Type", mimeType);
+                        }
                         return response;
                     }
                 }
             }
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             Console.WriteLine($"Exception: {e.Message}");
             return new HttpResponseMessage(HttpStatusCode.InternalServerError);
