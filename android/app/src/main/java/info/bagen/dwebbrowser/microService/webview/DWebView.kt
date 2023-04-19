@@ -3,11 +3,12 @@ package info.bagen.dwebbrowser.microService.webview
 import android.content.Context
 import android.content.Intent
 import android.provider.MediaStore
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
-import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.core.MicroModule
+import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.http.getFullAuthority
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewActivity
@@ -73,28 +74,28 @@ inline fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
  * DWebView 会提供基本的修改脚本，来方便开发者定制这些情况（比方说在一些 iframe、WebWorker 中，或者一些沙盒API中需要额外的定制化服务）
  */
 class DWebView(
-  context: Context,
-  val localeMM: MicroModule,
-  val remoteMM: MicroModule,
-  val options: Options,
-  var activity: MultiWebViewActivity? = null,
+    context: Context,
+    val localeMM: MicroModule,
+    val remoteMM: MicroModule,
+    val options: Options,
+    var activity: MultiWebViewActivity? = null,
 ) : WebView(context) {
 
     var filePathCallback: ValueCallback<Array<android.net.Uri>>? = null
     var requestPermissionCallback: ValueCallback<Boolean>? = null
 
     data class Options(
-      /**
+        /**
          * 要加载的页面
          */
         val url: String,
-      /**
+        /**
          * WebChromeClient.onJsBeforeUnload 的策略
          *
          * 用户可以额外地进行策略补充
          */
         val onJsBeforeUnloadStrategy: JsBeforeUnloadStrategy = JsBeforeUnloadStrategy.Default,
-      /**
+        /**
          * WebView.onDetachedFromWindow 的策略
          *
          * 如果修改了它，就务必注意 WebView 的销毁需要自己去管控
@@ -227,7 +228,7 @@ class DWebView(
                     response.headers.toMap(),
                     response.body.stream,
                 )
-            } else if(request.url.path?.endsWith("bfs-metadata.json") == true) {
+            } else if (request.url.path?.endsWith("bfs-metadata.json") == true) {
                 browserController.checkJmmMetadataJson(request.url.toString())
                 val CORS_HEADERS = mapOf(
                     Pair("Content-Type", "application/json"),
@@ -235,7 +236,14 @@ class DWebView(
                     Pair("Access-Control-Allow-Headers", "*"),
                     Pair("Access-Control-Allow-Methods", "*"),
                 )
-                return  WebResourceResponse("application/json","",200,"OK",CORS_HEADERS,"OK".byteInputStream() )
+                return WebResourceResponse(
+                    "application/json",
+                    "",
+                    200,
+                    "OK",
+                    CORS_HEADERS,
+                    "OK".byteInputStream()
+                )
             }
             return super.shouldInterceptRequest(view, request)
         }
@@ -346,6 +354,8 @@ class DWebView(
         settings.allowFileAccess = true
         settings.javaScriptCanOpenWindowsAutomatically = true
         settings.allowContentAccess = true
+        setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        println("isHardwareAccelerated: ${this.isHardwareAccelerated}");
 
         super.setWebViewClient(internalWebViewClient)
         super.setWebChromeClient(internalWebChromeClient)
