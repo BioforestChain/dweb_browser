@@ -1,13 +1,11 @@
 package info.bagen.dwebbrowser.microService.sys.dns
 
 import info.bagen.dwebbrowser.microService.core.*
-import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -136,8 +134,18 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                 debugDNS("close/$mmid", request.uri.path)
                 close(query_app_id(request))
                 true
+            },
+            // 应用重启
+            "/restart" bind Method.GET to defineHandler { request, ipc ->
+                // 关闭后端连接
+                close(ipc.remote.mmid)
+                // 调用重启
+                runBlockingCatching(ioAsyncExceptionHandler) {
+                    // TODO 神奇的操作
+                    delay(200)
+                    bootstrapContext.dns.bootstrap(ipc.remote.mmid)
+                }
             })
-
     }
 
     override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {

@@ -32,7 +32,6 @@ export async function onApiRequest(
   let ipcResponse: undefined | $IpcResponse;
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
-    console.log("cotDemo#onApiRequest=>", url.href, request.method);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
       // 转发public url

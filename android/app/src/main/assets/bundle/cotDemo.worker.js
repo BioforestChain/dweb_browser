@@ -179,16 +179,10 @@ var closeDwebView = async (webview_id) => {
     `file://mwebview.sys.dweb/close?webview_id=${encodeURIComponent(webview_id)}`
   ).text();
 };
-var emitUpdateFoundEvent = async () => {
-  return await jsProcess.nativeFetch(
-    `file://service-worker.nativeui.sys.dweb/emitUpdateFoundEvent`
-  ).text();
-};
 
 // src/user/tool/app.handle.mts
 var webViewMap = /* @__PURE__ */ new Map();
 var restartApp = async (url, servers, ipcs) => {
-  await emitUpdateFoundEvent();
   servers.forEach((server) => {
     server.close();
   });
@@ -503,7 +497,6 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
   let ipcResponse;
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
-    console.log("cotDemo#onApiRequest=>", url.href, request.method);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
       if (pathname === "/public-url") {
@@ -718,7 +711,8 @@ var main = async () => {
   const apiReadableStreamIpc = await apiServer.listen();
   apiReadableStreamIpc.onRequest(async (request, ipc2) => {
     const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
-    if (url.pathname.startsWith("/service-worker.nativeui.sys.dweb")) {
+    console.log("demo#apiReadableStreamIpc pathname=>", url.pathname);
+    if (url.pathname.startsWith("/dns.sys.dweb")) {
       const result = await serviceWorkerFactory(url, ipc2);
       const ipcResponse = IpcResponse2.fromText(
         request.req_id,
@@ -734,7 +728,6 @@ var main = async () => {
   });
   const serviceWorkerFactory = async (url, ipc2) => {
     const pathname = url.pathname;
-    console.log("demo#serviceWorkerFactory pathname=>", pathname);
     if (pathname.endsWith("close")) {
       return closeFront();
     }

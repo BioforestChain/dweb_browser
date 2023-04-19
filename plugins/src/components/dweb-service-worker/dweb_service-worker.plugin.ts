@@ -7,7 +7,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   updateController = new UpdateControllerPlugin()
 
   constructor() {
-    super("service-worker.nativeui.sys.dweb")
+    super("dns.sys.dweb")
   }
   /**拿到更新句柄 */
   @bindThis

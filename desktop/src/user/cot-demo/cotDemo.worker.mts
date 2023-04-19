@@ -56,8 +56,9 @@ const main = async () => {
   const apiReadableStreamIpc = await apiServer.listen();
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
     const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
+    console.log("demo#apiReadableStreamIpc pathname=>", url.pathname)
     // serviceWorker
-    if (url.pathname.startsWith("/service-worker.nativeui.sys.dweb")) {
+    if (url.pathname.startsWith("/dns.sys.dweb")) {
       const result = await serviceWorkerFactory(url, ipc)
       const ipcResponse = IpcResponse.fromText(
         request.req_id,
@@ -76,7 +77,6 @@ const main = async () => {
   // 转发serviceWorker 请求
   const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
     const pathname = url.pathname;
-    console.log("demo#serviceWorkerFactory pathname=>", pathname)
     // 关闭前端
     if (pathname.endsWith("close")) {
       return closeFront()

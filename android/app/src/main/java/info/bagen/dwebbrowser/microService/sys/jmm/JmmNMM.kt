@@ -77,12 +77,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                     nativeFetch(metadataUrl).json<JmmMetadata>(JmmMetadata::class.java)
                 debugJMM("install",jmmMetadata)
                 // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-                openJmmMetadataInstallPage(jmmMetadata) /*{ metadata ->
-                    JsMicroModule(metadata).apply {
-                        apps[jmmMetadata.id] = this // 添加应用
-                        bootstrapContext.dns.install(this) // 注册应用
-                    }
-                }*/
+                openJmmMetadataInstallPage(jmmMetadata)
                 return@defineHandler jmmMetadata
             },
             "/uninstall" bind Method.GET to defineHandler { request, ipc ->
@@ -126,20 +121,11 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     data class InstallingAppInfo(var progress: Float, val jmmMetadata: JmmMetadata)
 
     private val installingApps = mutableMapOf<Mmid, InstallingAppInfo>()
-    private suspend fun openJmmMetadataInstallPage(
-        jmmMetadata: JmmMetadata/*, installDNS: (JmmMetadata) -> Unit*/
+    private  fun openJmmMetadataInstallPage(
+        jmmMetadata: JmmMetadata
     ) {
         // 打开安装的界面
         JmmManagerActivity.startActivity(jmmMetadata)
-        // 拿到安装的状态
-        /*val observe = DownLoadObserver(jmmMetadata.id)
-        GlobalScope.launch(Dispatchers.IO) {
-            observe.observe {
-                if (it.downLoadStatus == DownLoadStatus.INSTALLED) {
-                    installDNS(jmmMetadata)
-                }
-            }
-        }*/
     }
 
     private fun openJmmMatadataUninstallPage(jmmMetadata: JmmMetadata) {
