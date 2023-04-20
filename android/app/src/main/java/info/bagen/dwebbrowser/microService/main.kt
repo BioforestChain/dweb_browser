@@ -11,6 +11,7 @@ import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.sys.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.sys.nativeui.torch.TorchNMM
 import info.bagen.dwebbrowser.microService.sys.plugin.barcode.ScanningNMM
+import info.bagen.dwebbrowser.microService.sys.plugin.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.plugin.camera.CameraNMM
 import info.bagen.dwebbrowser.microService.sys.plugin.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.plugin.device.*
@@ -58,7 +59,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             listOf("Share", "fetch", "http", "jmm", "browser")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
-            listOf( "jmm","js-process","http")
+            listOf( "jmm")
         )
         else -> debugTags.addAll(
             listOf("Share", "FileSystem")
@@ -105,6 +106,8 @@ suspend fun startDwebBrowser(): DnsNMM {
     val hapticsNMM = HapticsNMM().also { dnsNMM.install(it) }
     /// 手电筒
     val torchNMM = TorchNMM().also() { dnsNMM.install(it) }
+    /// 生物识别
+    val biometricsNMM = BiometricsNMM().also { dnsNMM.install(it) }
 
     /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
     NativeUiNMM().also { dnsNMM.install(it) }

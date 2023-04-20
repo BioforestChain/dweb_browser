@@ -190,6 +190,8 @@ dependencies {
     implementation("io.coil-kt:coil-video:2.2.2")
     implementation("io.coil-kt:coil-gif:2.2.2")
 //    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1") // 因为导入coil后，编译失败，duplicate
+    // 生物识别
+    implementation("androidx.biometric:biometric:1.2.0-alpha05")
 
     /// 依赖
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

@@ -13,6 +13,7 @@ export * from "./torch/index.ts";
 export * from "./close-watcher/index.ts";
 export * from "./haptics/index.ts"
 export * from "./camera/index.ts"
+export * from "./biometrics/index.ts"
 
 export * from "./dweb-service-worker/index.ts"
 

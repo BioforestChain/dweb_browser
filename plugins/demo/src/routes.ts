@@ -16,4 +16,5 @@ export const routes = [
 
   { title: "Close Watcher", path: "/closewatcher", component: () => import("./pages/CloseWatcher.vue") },
   { title: "Dweb ServiceWorker", path: "/serviceworker", component: () => import("./pages/DwebServiceWorker.vue") },
+  { title: "Biometrics", path: "/biometrics", component: () => import("./pages/Biometrics.vue") },
 ]; //satisfies RouteRecordRaw[];

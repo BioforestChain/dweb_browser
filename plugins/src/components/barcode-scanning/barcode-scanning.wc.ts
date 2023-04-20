@@ -26,8 +26,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     });
   }
 
-
-
   /**
    * 返回扫码页面DOM
    * 根据这个DOM 用户可以自定义样式
