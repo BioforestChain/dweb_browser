@@ -74,7 +74,6 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
 
 
   private _httpIpcOnEvent = async (ipcMessage: IpcEvent, httpIpc: Ipc) => {
-    console.log('base-http-connect _httpIpcOnEvent')
     switch(ipcMessage.name){
       case "request/distribute":
           this._httpIpcOnEventRequestDistribute(ipcMessage, httpIpc);
@@ -140,7 +139,7 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           headers:{
             bodyType: "JSON"
           },
-          body: data.body,
+          body: new TextDecoder().decode(Buffer.from(data.body)),
           to: _d.headers.origin // 发送那个 app 对应 virtual-keyboard
         })
       )
@@ -167,6 +166,7 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
       log.red(`${this._nmm.mmid} http-connect observe === undefined ${app_url}`)
       return;
     }
+     
     httpIpc.postMessage(
       IpcEvent.fromText(
         "http.sys.dweb",
@@ -179,7 +179,7 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           headers: {
             bodyType: "Uint8Array"
           },
-          body: this._encoder.encode(data.body+"\n"),
+          body: this._encoder.encode(new TextDecoder().decode(Buffer.from(data.body))+"\n"),
           to: app_url // 发送那个 app 对应 statusbar
         })
       )

@@ -118,67 +118,6 @@ export class HttpServerNMM extends NativeMicroModule {
       /// 获取 host
       const host = this.getHostByReq(req)
 
-      {
-        // // 用来测测试 observe 
-        // let pathname = url.parse(req.url as string).pathname
-        
-        // if(pathname?.includes('observe')){
-          
-        //   console.log(querystring.parse(req.url as string).mmid)
-        //   console.log(req.headers)
-        //   console.log(req.url)
-        //   pathname = `/${querystring.parse(req.url as string).mmid}${pathname}`
-        //   log.red(pathname)
-        //   const o = {
-        //     color: "#FFFFFFFF",
-        //     style: "DEFAULT-",
-        //     insets: {
-        //         bottom: 148,
-        //         left: 10,
-        //         right: 0,
-        //         top: 0,
-        //     },
-        //     overlay: false,
-        //     visible: true
-        //   } 
-        //   // observe 会写是要 \n 有一个换行符，UI 才可以实现 for 循环获取数据
-        //   // 
-        //   setInterval(() => {
-        //     log.red('回写了')
-
-        //     const encode = new TextEncoder().encode(JSON.stringify(o)+"\n")
-        //     res.write(encode)
-        //   },3000)
-        //   return;
-        // }
-      }
-
-      // {
-      //   // precess 会发送两次数据
-      //   // 一次是 检测 直接返回 200 第二次是获取数据 
-      //   // 第二次是 post 发送数据体
-        
-      //   // 测试代码 用来处理 barcode-scanning 
-
-      //   let pathname = url.parse(req.url as string,).pathname;
-      //   // console.log('pathname: ', pathname)
-      //   if(pathname === "/barcode-scanning.sys.dweb/process"){
-      //     res.writeHead(200, {
-      //       'Content-Type': 'text/plain',
-      //       'Access-Control-Allow-Origin': '*',
-      //       'Access-Control-Allow-Headers':
-      //         'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild, sessionToken',
-      //       'Access-Control-Allow-Methods': 'PUT, POST, GET, DELETE, OPTIONS',
-      //     });
-      //     res.end('');
-      //     log.red('0-------')
-      //     // console.log(req)
-      //     return;
-      //   }
-      // }
-
-      
-
       // 是否有匹配的路由 拦截路由 分发请求
       {
         if(await this.distributeRequest(req, res)){
@@ -503,7 +442,6 @@ export class HttpServerNMM extends NativeMicroModule {
     const data = createStateSendActionItem(ipcEventMessage.data);
     const parentRoutes = this._routes.values()
     let loop = true;
-    // console.log('http-server ipcEventOnStateSend 准备发送数据', data.body)
     do{
       const {value, done} = parentRoutes.next() 
       loop = !done
@@ -585,23 +523,20 @@ async function createDistributeRequestData(
   req: IncomingMessage
 ): Promise<string>{
   return new Promise(resolve => {
-    let data: Uint8Array = new Uint8Array()
+    // let data: Uint8Array = new Uint8Array()
+    let chunks = Buffer.alloc(0);
     if(req.method === "POST"){
       req.on('data', (chunk) => {
-        data = Uint8Array.from([...data, ...chunk])
+        chunks = Buffer.concat([chunks, chunk])
       })
       req.on('end', () => {
-        console.log('data: ', data)
         resolve(JSON.stringify({
           pathname: route.pathname,
           method: req.method,
           url: req.url,
           headers: req.headers,
           matchMode: route.matchMode,
-          // 原是版本
-          // body: new TextDecoder().decode(data)
-          // 新版本
-          body: data
+          body: chunks
         }))
       })
     }else{
