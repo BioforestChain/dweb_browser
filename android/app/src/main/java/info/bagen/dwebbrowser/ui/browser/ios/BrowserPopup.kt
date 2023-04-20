@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.ui.browser
+package info.bagen.dwebbrowser.ui.browser.ios
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
@@ -43,12 +43,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
+import info.bagen.dwebbrowser.ui.entity.BrowserMainView
+import info.bagen.dwebbrowser.ui.entity.BrowserWebView
+import info.bagen.dwebbrowser.ui.entity.PopupViewSate
 import info.bagen.dwebbrowser.ui.theme.Blue
 import info.bagen.dwebbrowser.ui.theme.DimenBottomBarHeight
 import info.bagen.dwebbrowser.util.BitmapUtil
 
 @Composable
-fun BoxScope.BrowserPopView(viewModel: BrowserViewModel) {
+internal fun BoxScope.BrowserPopView(viewModel: BrowserViewModel) {
   val screenHeight = LocalConfiguration.current.screenHeightDp.dp
   val localHeight = viewModel.uiState.popupViewState.value.getLocalHeight(screenHeight)
   val maxHeight = (screenHeight.value * 0.9f).dp - localHeight

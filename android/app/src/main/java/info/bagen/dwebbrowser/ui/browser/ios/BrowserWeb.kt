@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.ui.browser
+package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.annotation.SuppressLint
 import android.view.MotionEvent
@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
+import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.view.drawToBitmapPostLaidOut
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -20,7 +21,7 @@ import kotlinx.coroutines.flow.onEach
 
 @SuppressLint("ClickableViewAccessibility")
 @Composable
-fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
+internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
   val localFocusManager = LocalFocusManager.current
   var webViewY = 0 // 用于截图的时候进行定位截图
   LaunchedEffect(browserWebView.webView) {

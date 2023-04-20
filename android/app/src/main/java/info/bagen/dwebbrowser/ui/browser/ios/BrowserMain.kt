@@ -1,11 +1,10 @@
-package info.bagen.dwebbrowser.ui.browser
+package info.bagen.dwebbrowser.ui.browser.ios
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -21,19 +20,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.ui.entity.BrowserMainView
+import info.bagen.dwebbrowser.ui.entity.HotspotInfo
 import info.bagen.dwebbrowser.ui.view.Captureable
 import kotlinx.coroutines.delay
 
 @Composable
-fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: BrowserMainView) {
+internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: BrowserMainView) {
   val lazyListState = rememberLazyListState()
   LaunchedEffect(lazyListState) {
     delay(100)
@@ -51,10 +55,37 @@ fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: BrowserMainVie
         viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
       }
     }) {
-    LazyColumn(state = lazyListState) {
+    HomePage() // 暂时屏蔽下面的内容，直接显示空白主页
+    /*LazyColumn(state = lazyListState) {
       item { HotWebSiteView(viewModel) }
       item { InstalledApp(viewModel) }
       item { HotSearchView(viewModel) }
+    }*/
+  }
+}
+
+@OptIn(ExperimentalTextApi::class)
+@Composable
+private fun HomePage() {
+  val localConfiguration = LocalConfiguration.current.screenWidthDp.dp
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      AsyncImage(
+        model = R.mipmap.ic_launcher,
+        contentDescription = "home",
+        modifier = Modifier.size(localConfiguration / 3)
+      )
+      Spacer(modifier = Modifier.height(16.dp))
+      val gradient = listOf(
+        Color(0xFF71D78E), Color(0xFF548FE3)
+      )
+      Text(
+        text = stringResource(id = R.string.app_name),
+        style = TextStyle(
+          brush = Brush.linearGradient(gradient), fontSize = 36.sp
+        ),
+        maxLines = 1,
+      )
     }
   }
 }
@@ -235,58 +266,58 @@ private fun ListLoadingView() {
   }
 }
 
-private val initHotWebsite = mutableListOf<WebSiteInfo>().also {
+private val initHotWebsite = mutableListOf<HotspotInfo>().also {
   it.add(
-    WebSiteInfo(
+    HotspotInfo(
       name = "斗鱼",
       iconUrl = "http://linge.plaoc.com/douyu.png",
       webUrl = "https://m.douyu.com/"
     )
   )
   it.add(
-    WebSiteInfo(
+    HotspotInfo(
       name = "网易",
       iconUrl = "http://linge.plaoc.com/163.png",
       webUrl = "https://3g.163.com/"
     )
   )
   it.add(
-    WebSiteInfo(
+    HotspotInfo(
       name = "微博",
       iconUrl = "http://linge.plaoc.com/weibo.png",
       webUrl = "https://m.weibo.cn/"
     )
   )
   it.add(
-    WebSiteInfo(
+    HotspotInfo(
       name = "豆瓣",
       iconUrl = "http://linge.plaoc.com/douban.png",
       webUrl = "https://m.douban.com/movie/"
     )
   )
   it.add(
-    WebSiteInfo(
+    HotspotInfo(
       name = "知乎",
       iconUrl = "http://linge.plaoc.com/zhihu.png",
       webUrl = "https://www.zhihu.com/"
     )
   )
   it.add(
-    WebSiteInfo(
+    HotspotInfo(
       name = "哔哩哔哩",
       iconUrl = "http://linge.plaoc.com/bilibili.png",
       webUrl = "https://m.bilibili.com/"
     )
   )
   it.add(
-    WebSiteInfo(
+    HotspotInfo(
       name = "腾讯新闻",
       iconUrl = "http://linge.plaoc.com/tencent.png",
       webUrl = "https://xw.qq.com/?f=qqcom"
     )
   )
   it.add(
-    WebSiteInfo(
+    HotspotInfo(
       name = "京东",
       iconUrl = "http://linge.plaoc.com/jingdong.png",
       webUrl = "https://m.jd.com/"

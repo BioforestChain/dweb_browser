@@ -24,7 +24,7 @@ import info.bagen.dwebbrowser.microService.sys.plugin.device.BluetoothNMM.Compan
 import info.bagen.dwebbrowser.microService.sys.plugin.device.BluetoothNMM.Companion.bluetoothOp
 import info.bagen.dwebbrowser.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
 import info.bagen.dwebbrowser.ui.app.AppViewModel
-import info.bagen.dwebbrowser.ui.browser.BrowserView
+import info.bagen.dwebbrowser.ui.browser.ios.BrowserView
 import info.bagen.dwebbrowser.ui.camera.QRCodeIntent
 import info.bagen.dwebbrowser.ui.camera.QRCodeScanning
 import info.bagen.dwebbrowser.ui.camera.QRCodeScanningView
@@ -227,5 +227,4 @@ class BrowserActivity : AppCompatActivity() {
       BluetoothNMM.findBluetoothResult.resolve(result)
     }
   }
-
 }

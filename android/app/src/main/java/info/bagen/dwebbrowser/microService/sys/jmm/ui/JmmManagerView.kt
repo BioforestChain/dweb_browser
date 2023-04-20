@@ -340,7 +340,7 @@ fun InstallItemPermissionView(index: Int, mmid: String, size: Int) {
   ) {
     Row {
       AsyncImage(
-        model = R.mipmap.ic_launcher_round,
+        model = R.mipmap.ic_launcher,
         contentDescription = null,
         modifier = Modifier
           .align(Alignment.CenterVertically)

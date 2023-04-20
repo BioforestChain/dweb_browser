@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.ui.browser
+package info.bagen.dwebbrowser.ui.browser.ios
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -6,16 +6,6 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.WebContent
@@ -30,7 +20,10 @@ import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.webview.DWebView
-import info.bagen.dwebbrowser.ui.view.CaptureController
+import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
+import info.bagen.dwebbrowser.ui.entity.BrowserWebView
+import info.bagen.dwebbrowser.ui.entity.PopupViewSate
+import info.bagen.dwebbrowser.ui.entity.HotspotInfo
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jsoup.Jsoup
@@ -41,90 +34,13 @@ data class BrowserUIState @OptIn(ExperimentalFoundationApi::class) constructor(
   val currentBrowserBaseView: MutableState<BrowserBaseView>,
   val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
   val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
-  val hotLinkList: MutableList<WebSiteInfo> = mutableStateListOf(),
+  val hotLinkList: MutableList<HotspotInfo> = mutableStateListOf(),
   val popupViewState: MutableState<PopupViewSate> = mutableStateOf(PopupViewSate.NULL),
   val myInstallApp: MutableList<JmmMetadata> = mutableStateListOf(),
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
+  val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
 )
-
-interface BrowserBaseView {
-    val show: MutableState<Boolean> // 用于首页是否显示遮罩
-    val focus: MutableState<Boolean> // 用于搜索框显示的内容，根据是否聚焦来判断
-    val controller: CaptureController
-    var bitmap: ImageBitmap?
-}
-
-data class BrowserMainView(
-    override val show: MutableState<Boolean> = mutableStateOf(true),
-    override val focus: MutableState<Boolean> = mutableStateOf(false),
-    override val controller: CaptureController = CaptureController(),
-    override var bitmap: ImageBitmap? = null,
-) : BrowserBaseView
-
-data class BrowserWebView(
-    override val show: MutableState<Boolean> = mutableStateOf(true),
-    override val focus: MutableState<Boolean> = mutableStateOf(false),
-    override val controller: CaptureController = CaptureController(),
-    override var bitmap: ImageBitmap? = null,
-    val webView: DWebView,
-    val webViewId: String,
-    val state: WebViewState,
-    val navigator: WebViewNavigator,
-    val coroutineScope: CoroutineScope
-) : BrowserBaseView
-
-data class WebSiteInfo(
-    val id: Int = 0,
-    val name: String,
-    val webUrl: String,
-    val iconUrl: String = "",
-) {
-    fun showHotText(): AnnotatedString {
-        val color = when (id) {
-            1 -> Color.Red
-            2 -> Color(0xFFFF6C2D)
-            3 -> Color(0xFFFF6C2D)
-            else -> Color.LightGray
-        }
-        return buildAnnotatedString {
-            withStyle(
-                style = SpanStyle(
-                    color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold
-                )
-            ) {
-                append("$id".padEnd(5, ' '))
-            }
-            withStyle(
-                style = SpanStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp
-                )
-            ) {
-                append(name)
-            }
-        }
-    }
-}
-
-enum class PopupViewSate(
-    private val height: Dp = 0.dp,
-    private val percentage: Float? = null
-) {
-    NULL(),
-    Options(height = 120.dp),
-    BookList(percentage = 0.9f),
-    HistoryList(percentage = 0.9f),
-    Share(percentage = 0.5f);
-
-    fun getLocalHeight(screenHeight: Dp? = null): Dp {
-        return screenHeight?.let { screenHeight ->
-            percentage?.let { percentage ->
-                screenHeight * percentage
-            }
-        } ?: height
-    }
-}
 
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
@@ -133,6 +49,7 @@ sealed class BrowserIntent {
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
   class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
+  class UpdateSearchEngineState(val show: Boolean) : BrowserIntent()
   class AddNewWebView(val url: String) : BrowserIntent()
   class SearchWebView(val url: String) : BrowserIntent()
   class RemoveBaseView(val id: Int) : BrowserIntent()
@@ -147,7 +64,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
     }
 
   init {
-    val browserMainView = BrowserMainView()
+    val browserMainView = info.bagen.dwebbrowser.ui.entity.BrowserMainView()
     uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
     uiState.browserViewList.add(browserMainView)
     viewModelScope.launch(ioAsyncExceptionHandler) {
@@ -203,6 +120,9 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
             }
           }
         }
+        is BrowserIntent.UpdateSearchEngineState -> {
+          uiState.showSearchEngine.targetState = action.show
+        }
         is BrowserIntent.AddNewWebView -> {
           // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
           uiState.browserViewList.lastOrNull()?.let {
@@ -239,6 +159,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id)
         }
+        else -> {}
       }
     }
   }
@@ -272,7 +193,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
             if (count > 10) return@forEach
             val title = element.getElementsByClass("c-single-text-ellipsis").text()
             val path = element.select("a").first()?.attr("href")
-            uiState.hotLinkList.add(WebSiteInfo(count++, title, webUrl = path ?: ""))
+            uiState.hotLinkList.add(HotspotInfo(count++, title, webUrl = path ?: ""))
         }
     }
 }

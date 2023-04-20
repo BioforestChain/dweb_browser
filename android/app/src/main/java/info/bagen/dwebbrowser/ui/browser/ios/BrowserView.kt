@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.ui.browser
+package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -40,18 +40,22 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebViewNavigator
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
+import info.bagen.dwebbrowser.ui.entity.BrowserMainView
+import info.bagen.dwebbrowser.ui.entity.BrowserWebView
+import info.bagen.dwebbrowser.ui.entity.PopupViewSate
 import info.bagen.dwebbrowser.ui.theme.Blue
 import kotlinx.coroutines.delay
 
-private val dimenTextFieldFontSize = 16.sp
-private val dimenSearchHorizontalAlign = 5.dp
-private val dimenSearchVerticalAlign = 10.dp
-private val dimenSearchRoundedCornerShape = 8.dp
-private val dimenShadowElevation = 4.dp
-private val dimenHorizontalPagerHorizontal = 20.dp
-private val dimenBottomHeight = 100.dp
-private val dimenSearchHeight = 40.dp
-private val dimenMinBottomHeight = 20.dp
+internal val dimenTextFieldFontSize = 16.sp
+internal val dimenSearchHorizontalAlign = 5.dp
+internal val dimenSearchVerticalAlign = 10.dp
+internal val dimenSearchRoundedCornerShape = 8.dp
+internal val dimenShadowElevation = 4.dp
+internal val dimenHorizontalPagerHorizontal = 20.dp
+internal val dimenBottomHeight = 100.dp
+internal val dimenSearchHeight = 40.dp
+internal val dimenMinBottomHeight = 20.dp
 
 private val bottomEnterAnimator = slideInVertically(animationSpec = tween(300),//动画时长1s
   initialOffsetY = {
@@ -65,10 +69,11 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
 @Composable
 fun BrowserView(viewModel: BrowserViewModel) {
   Box(modifier = Modifier.fillMaxSize()) {
-    BrowserViewContent(viewModel)
-    BrowserViewBottomBar(viewModel)
-    BrowserPopView(viewModel)
-    BrowserMultiPopupView(viewModel)
+    BrowserViewContent(viewModel)   // 中间主体部分
+    BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
+    BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
+    BrowserPopView(viewModel)       // 用于处理弹出框
+    BrowserMultiPopupView(viewModel)// 用于显示多界面
   }
 }
 
@@ -90,10 +95,10 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
   }
   Box(
     modifier = Modifier
-        .fillMaxSize()
-        .clickable(indication = null,
-            onClick = { localFocusManager.clearFocus() },
-            interactionSource = remember { MutableInteractionSource() })
+      .fillMaxSize()
+      .clickable(indication = null,
+        onClick = { localFocusManager.clearFocus() },
+        interactionSource = remember { MutableInteractionSource() })
   ) {
     // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
     HorizontalPager(
@@ -133,10 +138,10 @@ fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
 private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
   Box(modifier = Modifier.align(Alignment.BottomCenter)) {
     Column(modifier = Modifier
-        .fillMaxWidth()
-        .height(dimenMinBottomHeight)
-        .align(Alignment.BottomCenter)
-        .clickable { viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true)) }) {
+      .fillMaxWidth()
+      .height(dimenMinBottomHeight)
+      .align(Alignment.BottomCenter)
+      .clickable { viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true)) }) {
       MiniTitle(viewModel)
     }
 
@@ -186,12 +191,14 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
 private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel, onHome: () -> Unit) {
   Row(
     modifier = Modifier
-        .fillMaxWidth()
-        .height(dimenSearchHeight)
-        .background(MaterialTheme.colors.primaryVariant)
+      .fillMaxWidth()
+      .height(dimenSearchHeight)
+      .background(MaterialTheme.colors.primaryVariant)
   ) {
-    var navigator: WebViewNavigator? = null
-
+    val navigator = when(val item = viewModel.uiState.currentBrowserBaseView.value) {
+      is BrowserWebView -> item.navigator
+      else -> null
+    }
     NavigatorButton(
       resId = R.drawable.ic_main_back,
       resName = R.string.browser_nav_back,
@@ -226,9 +233,9 @@ private fun RowScope.NavigatorButton(
   @DrawableRes resId: Int, @StringRes resName: Int, show: Boolean, onClick: () -> Unit
 ) {
   Box(modifier = Modifier
-      .weight(1f)
-      .padding(horizontal = 2.dp)
-      .clickable(enabled = show) { onClick() }) {
+    .weight(1f)
+    .padding(horizontal = 2.dp)
+    .clickable(enabled = show) { onClick() }) {
     Column(modifier = Modifier.align(Alignment.Center)) {
       Icon(
         modifier = Modifier.size(28.dp),
@@ -247,8 +254,8 @@ private fun BrowserViewContentMain(
 ) {
   Box(
     modifier = Modifier
-        .fillMaxSize()
-        .padding(bottom = dimenBottomHeight)
+      .fillMaxSize()
+      .padding(bottom = dimenBottomHeight)
   ) {
     BrowserMainView(viewModel, browserMainView)
   }
@@ -272,8 +279,8 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
   key(browserWebView.webViewId) {
     Box(
       modifier = Modifier
-          .fillMaxSize()
-          .padding(bottom = if (viewModel.uiState.showBottomBar.currentState) dimenBottomHeight else dimenHorizontalPagerHorizontal)
+        .fillMaxSize()
+        .padding(bottom = if (viewModel.uiState.showBottomBar.currentState) dimenBottomHeight else dimenHorizontalPagerHorizontal)
     ) {
       BrowserWebView(viewModel = viewModel, browserWebView = browserWebView)
     }
@@ -283,21 +290,24 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
 @SuppressLint("UnrememberedMutableState")
 @Composable
 private fun SearchBox(
-  baseView: BrowserBaseView, showCamera: Boolean = false, search: (String) -> Unit
+  viewModel: BrowserViewModel,
+  baseView: BrowserBaseView,
+  showCamera: Boolean = false,
+  search: (String) -> Unit
 ) {
   Box(
     modifier = Modifier
-        .padding(
-            horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
-        )
-        .fillMaxWidth()
-        .shadow(
-            elevation = dimenShadowElevation,
-            shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
-        )
-        .height(dimenSearchHeight)
-        .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
-        .background(Color.White)
+      .padding(
+        horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
+      )
+      .fillMaxWidth()
+      .shadow(
+        elevation = dimenShadowElevation,
+        shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
+      )
+      .height(dimenSearchHeight)
+      .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
+      .background(Color.White)
   ) {
     val inputText = when (baseView) {
       is BrowserWebView -> {
@@ -306,7 +316,7 @@ private fun SearchBox(
       }
       else -> mutableStateOf("")
     }
-    SearchTextField(inputText, showCamera, baseView.focus, search)
+    SearchTextField(viewModel, inputText, showCamera, baseView.focus, search)
     // SearchText(inputText, showCamera, baseView.focus, focusRequester)
   }
 }
@@ -322,9 +332,9 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
         LinearProgressIndicator(
           progress = loadingState.progress,
           modifier = Modifier
-              .fillMaxWidth()
-              .height(2.dp)
-              .align(Alignment.BottomCenter),
+            .fillMaxWidth()
+            .height(2.dp)
+            .align(Alignment.BottomCenter),
           color = Color.Blue
         )
       }
@@ -335,6 +345,7 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
 
 @Composable
 private fun SearchTextField(
+  viewModel: BrowserViewModel,
   inputText: MutableState<String>,
   showCamera: Boolean = false,
   focus: MutableState<Boolean>,
@@ -345,21 +356,24 @@ private fun SearchTextField(
 
   BasicTextField(
     value = currentText.value,
-    onValueChange = { currentText.value = it },
+    onValueChange = {
+      currentText.value = it
+      viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(it.isNotEmpty()))
+    },
     readOnly = false,
     enabled = true,
     modifier = Modifier
-        .fillMaxSize()
-        .padding(horizontal = dimenSearchVerticalAlign)
-        .onFocusChanged {
-            focus.value = it.isFocused
-            if (!it.isFocused) {
-                currentText.value = ""
-            } else {
-                currentText.value =
-                    parseInputText(inputText.value, host = false) ?: inputText.value
-            }
-        },
+      .fillMaxSize()
+      .padding(horizontal = dimenSearchVerticalAlign)
+      .onFocusChanged {
+        focus.value = it.isFocused
+        if (!it.isFocused) {
+          currentText.value = ""
+        } else {
+          currentText.value =
+            parseInputText(inputText.value, host = false) ?: inputText.value
+        }
+      },
     singleLine = true,
     textStyle = TextStyle.Default.copy(
       color = MaterialTheme.colors.onPrimary, fontSize = dimenTextFieldFontSize
@@ -392,8 +406,8 @@ private fun SearchTextField(
           }
           Box(
             modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = dimenSearchHorizontalAlign)
+              .weight(1f)
+              .padding(horizontal = dimenSearchHorizontalAlign)
           ) {
             if ((focus.value && currentText.value.isEmpty()) || (!focus.value && inputText.value.isEmpty())) {
               Text(
@@ -419,7 +433,10 @@ private fun SearchTextField(
             Icon(imageVector = Icons.Outlined.Close,
               contentDescription = null,
               tint = MaterialTheme.colors.onSecondary,
-              modifier = Modifier.clickable { currentText.value = "" })
+              modifier = Modifier.clickable {
+                currentText.value = ""
+                viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
+              })
           } else if (showCamera) {
             Icon(
               imageVector = ImageVector.vectorResource(id = R.drawable.ic_photo_camera_24),
@@ -450,7 +467,7 @@ private fun parseInputText(text: String, host: Boolean = true): String? {
 private fun BrowserViewSearchMain(
   viewModel: BrowserViewModel, browserMainView: BrowserMainView, pagerState: PagerState
 ) {
-  SearchBox(browserMainView, showCamera = true) { url ->
+  SearchBox(viewModel, browserMainView, showCamera = true) { url ->
     viewModel.handleIntent(BrowserIntent.AddNewWebView(url))
   }
   // TODO 这边考虑加一层遮罩，颜色随着滑动而显示
@@ -465,7 +482,7 @@ private fun BrowserViewSearchMain(
 
 @Composable
 private fun BrowserViewSearchWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
-  SearchBox(browserWebView, showCamera = false) { url ->
+  SearchBox(viewModel, browserWebView, showCamera = false) { url ->
     viewModel.handleIntent(BrowserIntent.SearchWebView(url))
   }
 }
