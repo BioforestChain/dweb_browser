@@ -1,5 +1,4 @@
-﻿using System.Net;
-
+﻿
 namespace DwebBrowser.MicroService.Sys.Dns;
 
 public class DnsNMM : NativeMicroModule
@@ -63,15 +62,13 @@ public class DnsNMM : NativeMicroModule
                         Console.WriteLine($"DNS/connect {fromMM.Mmid} => {toMmid}");
                         var connects = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
                         po.Resolve(connects);
-                        connects.IpcForFromMM.OnClose += ((_) =>
+                        connects.IpcForFromMM.OnClose += async (_) =>
                         {
                             lock (_mmConnectsMap)
                             {
                                 connectsMap.Remove(toMmid);
                             }
-
-                            return null;
-                        });
+                        };
                     }).Background();
                 });
             });
@@ -201,7 +198,7 @@ public class DnsNMM : NativeMicroModule
     /** <summary>打开应用</summary> */
     public Task<MicroModule> OpenAsync(Mmid mmid) =>
         Task.Run(() => _runningApps.GetValueOrPut(mmid, () =>
-            Query(mmid)?.Also(it => BootstrapMicroModule(it)) ?? throw new Exception($"no found app {mmid}")));
+            Query(mmid)?.Also(async it => await BootstrapMicroModule(it)) ?? throw new Exception($"no found app {mmid}")));
 
     /** <summary>关闭应用</summary> */
     public async Task<int> Close(Mmid mmid)

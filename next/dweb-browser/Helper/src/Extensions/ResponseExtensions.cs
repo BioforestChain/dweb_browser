@@ -69,6 +69,9 @@ public static class ResponseExtensions
     public static Task<Stream> StreamAsync(this HttpResponseMessage self) =>
         self.Content.ReadAsStreamAsync();
 
+    public static Stream Stream(this HttpResponseMessage self) =>
+        self.Content.ReadAsStream();
+
     public static async Task<int> IntAsync(this HttpResponseMessage self) =>
         (await self.TextAsync()).ToIntOrNull()
         ?? throw new Exception("response content can't converter to int.");
@@ -93,8 +96,34 @@ public static class ResponseExtensions
         (await self.TextAsync()).ToBooleanStrictOrNull()
         ?? throw new Exception("response content can't converter to bool.");
 
-    public static async Task<T> Json<T>(this HttpResponseMessage self) =>
-        JsonSerializer.Deserialize<T>(await self.StreamAsync())
-        ?? throw new Exception("response content can't converter to generic type");
+    //public static async Task<T> Json<T>(this HttpResponseMessage self) =>
+    //    JsonSerializer.Deserialize<T>(await self.StreamAsync())
+    //    ?? throw new Exception("response content can't converter to generic type");
+    public static async Task<T> Json<T>(this HttpResponseMessage self)
+    {
+        try
+        {
+            switch (self.Content.ToString())
+            {
+                case "System.Net.Http.StringContent":
+                    var result = JsonSerializer.Deserialize<T>(await self.TextAsync())!;
+                    Console.WriteLine($"result: {result}");
+                    return result;
+                case "System.IO.MemoryStream":
+                case "System.Net.Http.StreamContent":
+                    return JsonSerializer.Deserialize<T>(await self.StreamAsync())!;
+            }
+
+            throw new Exception("response content can't converter to generic type");
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine($"stacktrace: {e.StackTrace}");
+            Console.WriteLine($"exception json deserializer: {e.Message}");
+            throw e;
+        }
+        
+    }
+        
 }
 

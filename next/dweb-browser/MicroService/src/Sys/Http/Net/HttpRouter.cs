@@ -1,7 +1,5 @@
-﻿using System;
+﻿
 namespace DwebBrowser.MicroService.Sys.Http.Net;
-
-
 
 public static class HttpRouter
 {
@@ -61,7 +59,9 @@ public static class HttpRouter
         if (_routes.TryGetValue(request.Method.Method, out var methodRoutes) && request.RequestUri is not null &&
            methodRoutes.TryGetValue(request.RequestUri.AbsolutePath, out var handler))
         {
-            return await handler(request, ipc);
+            var res = await handler(request, ipc);
+            Console.WriteLine($"res: {res}");
+            return res;
         }
         else
         {
@@ -71,27 +71,23 @@ public static class HttpRouter
 
     public static async Task<HttpResponseMessage> RoutesWithContext(HttpRequestMessage request, Ipc ipc)
     {
-        switch (await RouterHandler(request, ipc))
+        object? res;
+        return (res = await RouterHandler(request, ipc)) switch
         {
-            case null:
-                return new HttpResponseMessage(HttpStatusCode.OK);
-            case HttpResponseMessage response:
-                return response;
-            case byte[] result:
-                return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-                {
-                    //it.Content = new StreamContent(new MemoryStream().Let(s =>
-                    //{
-                    //    s.Write(result, 0, result.Length);
-                    //    return s;
-                    //}));
-                    it.Content = new ByteArrayContent(result);
-                });
-            case Stream stream:
-                return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StreamContent(stream));
-            default:
-                return new HttpResponseMessage(HttpStatusCode.OK);
-        }
+            null => new HttpResponseMessage(HttpStatusCode.OK),
+            HttpResponseMessage response => response,
+            byte[] result => new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
+                            {
+                                //it.Content = new StreamContent(new MemoryStream().Let(s =>
+                                //{
+                                //    s.Write(result, 0, result.Length);
+                                //    return s;
+                                //}));
+                                it.Content = new ByteArrayContent(result);
+                            }),
+            Stream stream => new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StreamContent(stream)),
+            _ => NativeMicroModule.ResponseRegistry.Handler(res),
+        };
     }
 }
 

@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
 
 namespace DwebBrowser.MicroService.Message;
@@ -421,7 +420,7 @@ public class IpcBodySender : IpcBody
                         int bytesRead = availableLen.ToInt();
                         byte[] buffer = new BinaryReader(stream).ReadBytes(bytesRead);
                         await stream.ReadAsync(buffer, 0, bytesRead);
-                        await stream.FlushAsync();
+                        //await stream.FlushAsync();
 
                         var ipcStreamData = IpcStreamData.FromBinary(stream_id, buffer);
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Web;
-using System.Net;
-
+﻿
 namespace DwebBrowser.MicroService.Core;
 
 using FetchAdapter = Func<MicroModule, HttpRequestMessage, Task<HttpResponseMessage?>>;

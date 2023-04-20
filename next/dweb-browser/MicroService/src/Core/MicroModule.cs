@@ -1,9 +1,4 @@
-﻿
-using DwebBrowser.MicroService.Sys.Dns;
-using System.Net;
-using System.Web;
-
-namespace DwebBrowser.MicroService.Core;
+﻿namespace DwebBrowser.MicroService.Core;
 
 public abstract partial class MicroModule : Ipc.MicroModuleInfo
 {

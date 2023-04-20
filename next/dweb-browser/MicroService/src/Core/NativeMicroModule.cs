@@ -38,23 +38,27 @@ public abstract class NativeMicroModule : MicroModule
     }
 
     // TODO: ResponseRegistry 静态初始化问题未解决
-    public class ResponseRegistry
+    public static class ResponseRegistry
     {
-        public static Dictionary<object, Func<object, HttpResponseMessage>> RegMap = new();
+        static readonly Dictionary<Type, Func<object, HttpResponseMessage>> RegMap = new();
 
-        public static void RegistryResponse<T>(T type, Func<T, HttpResponseMessage> handler) =>
-            RegMap.TryAdd(type, handler as Func<object, HttpResponseMessage>);
+        public static void RegistryResponse<T>(Type type, Func<T, HttpResponseMessage> handler)
+        {
+            RegMap.Add(type, obj => handler((T)obj));
+        }
 
-        //static ResponseRegistry()
-        //{
-        //    RegistryResponse(typeof(byte[]), it =>
-        //    {
-        //        return new HttpResponseMessage(HttpStatusCode.OK).Also(res =>
-        //        {
-        //            res.Content = new ByteArrayContent(it);
-        //        });
-        //    });
-        //}
+        static ResponseRegistry()
+        {
+            RegistryResponse<byte[]>(typeof(byte[]), item =>
+                new HttpResponseMessage(HttpStatusCode.OK).Also(res => res.Content = new StreamContent(new MemoryStream(item))));
+            RegistryResponse<Stream>(typeof(Stream), item =>
+                new HttpResponseMessage(HttpStatusCode.OK).Also(res => res.Content = new StreamContent(item)));
+        }
+
+        public static void RegistryJsonAble<T>(Type type, Func<T, object> handler)
+        {
+            RegistryResponse<T>(type, item => AsJson(handler(item)));
+        }
 
         public static HttpResponseMessage Handler(object result)
         {
@@ -83,8 +87,8 @@ public abstract class NativeMicroModule : MicroModule
             }
         }
 
-        public static HttpResponseMessage AsJson(object result) =>
-            new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
+        static HttpResponseMessage AsJson(object result) =>
+            new HttpResponseMessage(HttpStatusCode.OK).Also(res =>
             {
                 // 设置Json序列化选项
                 var options = new JsonSerializerOptions
@@ -92,8 +96,8 @@ public abstract class NativeMicroModule : MicroModule
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                     WriteIndented = true
                 };
-                it.Content = new StringContent(JsonSerializer.Serialize(result, options));
-                it.Content.Headers.Add("Content-Type", "application/json");
+                res.Content = new StringContent(JsonSerializer.Serialize(result, options));
+                res.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
             });
     }
 

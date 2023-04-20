@@ -71,13 +71,20 @@ public class JsMicroModule : MicroModule
             await ipc.PostMessageAsync(IpcResponse.FromResponse(request.ReqId, response, ipc));
         };
 
-        var response = await NativeFetchAsync(
+        //streamIpc.BindIncomeStream(await (await NativeFetchAsync(
+        //        new HttpRequestMessage(
+        //            HttpMethod.Get, new Uri("file://js.sys.dweb/create-process")).Also(
+        //            it => { it.Content = new StreamContent(streamIpc.Stream.Stream); })
+        //        )).Content.ReadAsStreamAsync());
+        streamIpc.BindIncomeStream(await (await NativeFetchAsync(
                 new HttpRequestMessage(
-                    HttpMethod.Get, new Uri("file://js.sys.dweb/create-process")).Also(
+                    HttpMethod.Get,
+                    new Uri("file://js.sys.dweb/create-process")
+                        .AppendQuery("entry", Metadata.Server.Entry)
+                        .AppendQuery("process_id", pid))
+                .Also(
                     it => { it.Content = new StreamContent(streamIpc.Stream.Stream); })
-                );
-
-        streamIpc.BindIncomeStream(await response.Content.ReadAsStreamAsync());
+                )).StreamAsync());
 
         // 监听关闭事件
         _onCloseJsProcess += (_) => streamIpc.Close();

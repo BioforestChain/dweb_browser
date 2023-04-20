@@ -1,6 +1,4 @@
 ﻿
-using static DwebBrowser.MicroService.Message.IpcBodySender;
-
 namespace DwebBrowser.MicroService.Sys.Http.Net;
 
 public interface IProtocol

@@ -21,7 +21,7 @@ static class MicroModuleExtendions
 }
 public class MicroService
 {
-    static public async Task<DnsNMM> Start()
+    public static async Task<DnsNMM> Start()
     {
         var dnsNMM = new DnsNMM();
         /// 安装系统应用

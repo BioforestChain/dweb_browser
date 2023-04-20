@@ -1,4 +1,4 @@
-﻿using DwebBrowser.Helper;
+﻿
 using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.MicroService.Sys.Http.Net
@@ -58,18 +58,33 @@ namespace DwebBrowser.MicroService.Core
                 .AppendQuery("subdomain", options.subdomain)))
             .Json<HttpNMM.ServerStartResult>();
 
+        //public async Task<ReadableStreamIpc> ListenHttpDwebServer(
+        //    HttpNMM.ServerStartResult startResult, Gateway.RouteConfig[] routes) =>
+        //    new ReadableStreamIpc(this, $"http-server/{startResult.urlInfo.Host}").Also(async it =>
+        //    it.BindIncomeStream(
+        //        await (await NativeFetchAsync(
+        //            new HttpRequestMessage(
+        //                HttpMethod.Post,
+        //                new Uri("file://http.sys.dweb/listen")
+        //                    .AppendQuery("host", startResult.urlInfo.Host)
+        //                    .AppendQuery("token", startResult.token)
+        //                    .AppendQuery("routes", JsonSerializer.Serialize(routes)))))
+        //        .StreamAsync()));
         public async Task<ReadableStreamIpc> ListenHttpDwebServer(
             HttpNMM.ServerStartResult startResult, Gateway.RouteConfig[] routes) =>
             new ReadableStreamIpc(this, $"http-server/{startResult.urlInfo.Host}").Also(async it =>
-            it.BindIncomeStream(
-                await (await NativeFetchAsync(
+            {
+                var res = await NativeFetchAsync(
                     new HttpRequestMessage(
                         HttpMethod.Post,
                         new Uri("file://http.sys.dweb/listen")
                             .AppendQuery("host", startResult.urlInfo.Host)
                             .AppendQuery("token", startResult.token)
-                            .AppendQuery("routes", JsonSerializer.Serialize(routes)))))
-                .StreamAsync()));
+                            .AppendQuery("routes", JsonSerializer.Serialize(routes))));
+
+                var stream = await res.StreamAsync();
+                it.BindIncomeStream(stream);
+            });
 
         public async Task<bool> CloseHttpDwebServer(DwebHttpServerOptions options) =>
             await (await NativeFetchAsync(new Uri("file://http.sys.dweb/close")

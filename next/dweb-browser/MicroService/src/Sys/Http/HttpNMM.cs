@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
-using DwebBrowser.MicroService.Sys.Dns;
+﻿using System.Text.RegularExpressions;
 
 namespace DwebBrowser.MicroService.Sys.Http;
 
@@ -115,9 +113,12 @@ public class HttpNMM : NativeMicroModule
 
     public struct ServerUrlInfo
     {
-        public string Host;
-        public string Internal_Origin;
-        public string Public_Origin;
+        [JsonPropertyName("host")]
+        public string Host { get; set; }
+        [JsonPropertyName("internal_origin")]
+        public string Internal_Origin { get; set; }
+        [JsonPropertyName("public_origin")]
+        public string Public_Origin { get; set; }
 
         public ServerUrlInfo(string host, string internal_origin, string public_origin)
         {
@@ -127,7 +128,7 @@ public class HttpNMM : NativeMicroModule
         }
 
         public Uri BuildPublicUrl() => new Uri(Public_Origin).AppendQuery("X-Dweb-Host", Host);
-        public Uri BuildInternalUrl() => new Uri(Internal_Origin);
+        public Uri BuildInternalUrl() => new(Internal_Origin);
     }
 
     private ServerUrlInfo _getServerUrlInfo(Ipc ipc, DwebHttpServerOptions options)
@@ -151,10 +152,7 @@ public class HttpNMM : NativeMicroModule
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         /// 启动http后端服务
-        DwebServer.CreateServer(async request =>
-        {
-            return await _httpHandler(request);
-        });
+        DwebServer.CreateServer(_httpHandler);
 
         /// 为 nativeFetch 函数提供支持
         var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
@@ -221,7 +219,10 @@ public class HttpNMM : NativeMicroModule
         _gatewayMap.Add(serverUrlInfo.Host, gateway);
         _tokenMap.Add(token, gateway);
 
-        return new ServerStartResult(token, serverUrlInfo);
+        var serverStartResult = new ServerStartResult(token, serverUrlInfo);
+
+        //return new ServerStartResult(token, serverUrlInfo);
+        return serverStartResult;
     }
 
     /**
