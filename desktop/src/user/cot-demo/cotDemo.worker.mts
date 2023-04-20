@@ -5,6 +5,7 @@ import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import { nativeOpen, nativeActivate, cros, closeDwebView } from "../tool/tool.native.mjs";
 import { $Ipc, onApiRequest } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
+import { cotDemoJMM } from "./cotDemo.main.cjs";
 
 const main = async () => {
   const { IpcEvent } = ipc;
@@ -54,6 +55,8 @@ const main = async () => {
 
 
   const apiReadableStreamIpc = await apiServer.listen();
+  const wwwReadableStreamIpc = await wwwServer.listen();
+
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
     const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
     console.log("demo#apiReadableStreamIpc pathname=>", url.pathname)
@@ -83,7 +86,7 @@ const main = async () => {
     }
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
-      return restartApp(url, [apiServer, wwwServer], [apiReadableStreamIpc, wwwReadableStreamIpc])
+      return restartApp([apiServer, wwwServer], [apiReadableStreamIpc, wwwReadableStreamIpc])
     }
     // 卸载app
 
@@ -99,7 +102,6 @@ const main = async () => {
   }
 
 
-  const wwwReadableStreamIpc = await wwwServer.listen();
   wwwReadableStreamIpc.onRequest(async (request, ipc) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {

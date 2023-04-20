@@ -6,7 +6,6 @@ import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.commonAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.printdebugln
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM.Companion.getBfsMetaData
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewController
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM
 import kotlinx.coroutines.Dispatchers
@@ -52,10 +51,13 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
             "/show" bind Method.GET to defineHandler { request, ipc ->
                 val options = query_SplashScreenSettings(request)
                 val currentController = currentController(ipc.remote.mmid)
-                val metadata = getBfsMetaData(ipc.remote.mmid)
-                debugSplashScreen("show","remoteId:${ipc.remote.mmid} show===>${options} ${metadata?.splashScreen}")
+                val metadata = bootstrapContext.dns.query(ipc.remote.mmid)?.metadata
+                debugSplashScreen(
+                    "show",
+                    "remoteId:${ipc.remote.mmid} show===>${options} ${metadata?.splashScreen}"
+                )
                 if (currentController != null && metadata !== null) {
-                    show(currentController,metadata,options)
+                    show(currentController, metadata, options)
                     return@defineHandler Response(Status.OK)
                 }
                 Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
@@ -64,7 +66,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
             "/hide" bind Method.GET to defineHandler { request, ipc ->
                 val options = query_HideOptions(request)
                 val currentActivity = currentController(ipc.remote.mmid)?.activity
-                debugSplashScreen("hide","apiRouting hide===>${options}")
+                debugSplashScreen("hide", "apiRouting hide===>${options}")
                 if (currentActivity != null) {
 //                    splashScreen.hide(options)
                     return@defineHandler Response(Status.OK)
@@ -74,7 +76,11 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
         )
     }
 
-    fun show(controller: MultiWebViewController, metadata: JmmMetadata, options: SplashScreenSettings) {
+    fun show(
+        controller: MultiWebViewController,
+        metadata: JmmMetadata,
+        options: SplashScreenSettings
+    ) {
         val webview = controller.lastViewOrNull?.webView
         val entry = metadata.splashScreen.entry
         if (webview !== null && entry !== null) {

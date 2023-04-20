@@ -9,8 +9,6 @@ import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
-import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
-import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.service.DownLoadController
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -31,11 +29,6 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
         private val apps = mutableMapOf<Mmid, JsMicroModule>()
         fun getAndUpdateJmmNmmApps() = apps
-
-        /**获取当前App的数据配置*/
-        fun getBfsMetaData(mmid: Mmid): JmmMetadata? {
-            return apps[mmid]?.metadata
-        }
     }
 
     init {

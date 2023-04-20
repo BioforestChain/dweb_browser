@@ -10,8 +10,6 @@ import type {
 import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.cjs";
 import type { $BootstrapContext } from "./bootstrapContext.cjs";
 import type { Ipc } from "./ipc/index.cjs";
-
-import chalk from "chalk";
 export abstract class MicroModule implements $MicroModule {
   abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract mmid: $MMID;

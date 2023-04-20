@@ -1,17 +1,18 @@
 package info.bagen.dwebbrowser.microService.sys.jmm
 
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.ConnectResult
-import info.bagen.dwebbrowser.microService.core.MicroModule
-import info.bagen.dwebbrowser.microService.core.connectAdapterManager
+import info.bagen.dwebbrowser.microService.core.*
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.IpcResponse
 import info.bagen.dwebbrowser.microService.ipc.ReadableStreamIpc
 import info.bagen.dwebbrowser.microService.ipc.ipcWeb.Native2JsIpc
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.http4k.core.*
+import org.http4k.routing.bind
+import org.http4k.routing.routes
 import java.util.*
 
 fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -48,9 +49,11 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
      * 所以不会和其它程序所使用的 pid 冲突
      */
     private var processId: String? = null
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        debugJMM("bootstrap...", "$mmid/$metadata")
-        val pid = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
+
+    // 关停js 流
+    private val closeJsProcessSignal = SimpleSignal()
+    val pid = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
+    private suspend fun createNativeStream(): ReadableStreamIpc {
         processId = pid
         val streamIpc = ReadableStreamIpc(this, "code-server")
         streamIpc.onRequest { (request, ipc) ->
@@ -59,7 +62,6 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
             } else {
                 nativeFetch(metadata.server.root + request.uri.path)
             }
-
             ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
         }
         streamIpc.bindIncomeStream(
@@ -71,7 +73,13 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                 ).body(streamIpc.stream)
             ).stream()
         )
+        return streamIpc
+    }
 
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+        debugJMM("bootstrap...", "$mmid/$metadata")
+
+        val streamIpc = createNativeStream()
         /**
          * 拿到与js.sys.dweb模块的直连通道，它会将 Worker 中的数据带出来
          */
@@ -152,15 +160,15 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
                     }
                 }
             }
+            if (ipcEvent.name == "restart") {
+                // 调用重启
+                bootstrapContext.dns.restart(mmid)
+            }
             null
         }
-
-        debugJMM("running!!", mmid)
         _ipcSet.add(streamIpc);
+        debugJMM("running!!", mmid)
     }
-
-    // 关停js 流
-    private val closeJsProcessSignal = SimpleSignal()
 
     override suspend fun _shutdown() {
         debugJMM("closeJsProcessSignal emit", "$mmid/$metadata")

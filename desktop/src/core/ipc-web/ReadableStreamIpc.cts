@@ -13,8 +13,6 @@ import type {
 } from "../../helper/types.cjs";
 import type { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.cjs";
 import { Ipc } from "../ipc/ipc.cjs";
-import { IpcRequest } from "../ipc/IpcRequest.cjs";
-import { IpcResponse } from "../ipc/IpcResponse.cjs";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.cjs";
 import { $jsonToIpcMessage } from "./$messageToIpcMessage.cjs";
 import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.cjs"
@@ -109,7 +107,7 @@ export class ReadableStreamIpc extends Ipc {
     // } else {
     //   message_raw = message;
     // }
-   
+
     // 使用 type 判断
     if (message.type === IPC_MESSAGE_TYPE.REQUEST) {
       message_raw = message.ipcReqMessage();
@@ -118,7 +116,7 @@ export class ReadableStreamIpc extends Ipc {
     } else {
       message_raw = message;
     }
-    
+
     const message_data = this.support_message_pack
       ? encode(message_raw)
       : simpleEncoder(JSON.stringify(message_raw), "utf8");

@@ -4,6 +4,7 @@ import info.bagen.dwebbrowser.microService.core.*
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
+import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -73,6 +74,23 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
             // TODO 作用域保护
             dnsMM.uninstall(mm)
         }
+        override fun query(mmid: Mmid): JsMicroModule? {
+            val microModule = dnsMM.query(mmid)
+            if (microModule is JsMicroModule) {
+                return microModule
+            }
+            return null
+        }
+        override fun restart(mmid:Mmid) {
+            // 调用重启
+            GlobalScope.launch(ioAsyncExceptionHandler) {
+                // 关闭后端连接
+                dnsMM.close(mmid)
+                // TODO 防止启动过快出现闪屏
+                delay(200)
+                dnsMM.open(mmid)
+            }
+        }
 
         override suspend fun connect(
           mmid: Mmid, reason: Request?
@@ -134,18 +152,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                 debugDNS("close/$mmid", request.uri.path)
                 close(query_app_id(request))
                 true
-            },
-            // 应用重启
-            "/restart" bind Method.GET to defineHandler { request, ipc ->
-                // 关闭后端连接
-                close(ipc.remote.mmid)
-                // 调用重启
-                runBlockingCatching(ioAsyncExceptionHandler) {
-                    // TODO 神奇的操作
-                    delay(200)
-                    bootstrapContext.dns.bootstrap(ipc.remote.mmid)
-                }
-            })
+            },)
     }
 
     override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
@@ -176,7 +183,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     }
 
     /** 查询应用 */
-    private suspend inline fun query(mmid: Mmid): MicroModule? {
+    fun query(mmid: Mmid): MicroModule? {
         return installApps[mmid]
     }
 

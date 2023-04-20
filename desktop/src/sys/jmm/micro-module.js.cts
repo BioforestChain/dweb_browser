@@ -9,7 +9,7 @@ import { buildUrl } from "../../helper/urlHelper.cjs";
 import { Native2JsIpc } from "../js-process/ipc.native2js.cjs";
 
 import type { JmmMetadata } from "./JmmMetadata.cjs";
- 
+
 
 /**
  * 所有的js程序都只有这么一个动态的构造器
@@ -74,8 +74,8 @@ export class JsMicroModule extends MicroModule {
        */
       ipc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === workerIpc */) => {
         console.log(`[micro-module.js.cts ${this.mmid} ipc.onEvent]`, ipcEventMessage)
-        if(ipcEventMessage.name === "dns/connect"){
-          if(Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data')
+        if (ipcEventMessage.name === "dns/connect") {
+          if (Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data')
           // 创建同 远程模块的 ipc 通道
           const mmid = JSON.parse(ipcEventMessage.data as string).mmid
           const [remoteIpc, localIpc] = await context.dns.connect(mmid)
@@ -88,23 +88,23 @@ export class JsMicroModule extends MicroModule {
         }
 
         // 如何把 发送给
-        if(this.mmid === ipcEventMessage.name){
+        if (this.mmid === ipcEventMessage.name) {
           // console.log(chalk.red(`micro-module.js.cts ipc.onEvent 这里还有问题 还需要处理，无法把消息发送给对应的 worker`), ipcEventMessage, ipc);
           // 测试代码 创建链接
           // 判断是是有已经有了链接
-          this._workerIpc = this._workerIpc === undefined ? await  this._beConnect(this) : this._workerIpc;
+          this._workerIpc = this._workerIpc === undefined ? await this._beConnect(this) : this._workerIpc;
           this._workerIpc.postMessage(ipcEventMessage)
           // 接受到 从 worker 中返回的消息
           this._workerIpc.onMessage((message, _ipc /** 这个ipc 匹配的是 this._workerIpc*/) => {
             // 把这个消息发送给 ipc
             ipc.postMessage(message)
           })
-          
+
           return;
         }
 
         const remoteIpc = this._remoteIpcs.get(ipcEventMessage.name)
-        if(remoteIpc === undefined) throw new Error(`${this.mmid} 模块 ipc.onEvent 没有匹配的 remoteIpc ipcEventMessage.name = ${ipcEventMessage.name}`)
+        if (remoteIpc === undefined) throw new Error(`${this.mmid} 模块 ipc.onEvent 没有匹配的 remoteIpc ipcEventMessage.name = ${ipcEventMessage.name}`)
         remoteIpc.postMessage(ipcEventMessage)
       });
     });

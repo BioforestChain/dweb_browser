@@ -23,7 +23,7 @@ import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import * as http from "../http-server/$createHttpDwebServer.cjs";
 
 export class Metadata<T extends $Metadata = $Metadata> {
-  constructor(readonly data: T, readonly env: Record<string, string>) {}
+  constructor(readonly data: T, readonly env: Record<string, string>) { }
   envString(key: string) {
     const val = this.envStringOrNull(key);
     if (val == null) {
@@ -150,6 +150,13 @@ export class JsProcessMicroModule implements $MicroModule {
   nativeRequest(url: RequestInfo | URL, init?: RequestInit) {
     const args = normalizeFetchArgs(url, init);
     return this._nativeRequest(args.parsed_url, args.request_init);
+  }
+  /**重启 */
+  restart() {
+    // 发送指令
+    this.fetchIpc.postMessage(
+      IpcEvent.fromText("restart", "")
+    );
   }
 
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();

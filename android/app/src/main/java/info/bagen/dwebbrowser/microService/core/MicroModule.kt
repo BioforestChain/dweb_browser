@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.core
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
-import org.http4k.core.Request
+import org.http4k.core.*
 
 
 typealias Router = MutableMap<String, AppRun>
@@ -123,6 +123,43 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
     }
 
     protected open suspend fun onActivity(event: IpcEvent, ipc: Ipc) {}
+
+//    protected var apiRouting: RoutingHttpHandler? = null
+//    protected val requestContexts = RequestContexts()
+//    protected val requestContextKey_ipc = RequestContextKey.required<Ipc>(requestContexts)
+//
+//    protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
+//        runBlockingCatching {
+//            when (val result = handler(request)) {
+//                null, Unit -> {
+//                    Response(Status.OK)
+//                }
+//                is Response -> result
+//                is ByteArray -> Response(Status.OK).body(MemoryBody(result))
+//                is InputStream -> Response(Status.OK).body(result)
+//                else -> {
+//                    // 如果有注册处理函数，那么交给处理函数进行处理
+//                    NativeMicroModule.ResponseRegistry.handle(result)
+//                }
+//            }
+//        }.getOrElse { ex ->
+//            debugDNS("NMM/Error", request.uri, ex)
+//            Response(Status.INTERNAL_SERVER_ERROR).body(
+//                """
+//                    <p>${request.uri}</p>
+//                    <pre>${ex.message ?: "Unknown Error"}</pre>
+//                    """.trimIndent()
+//
+//            )
+//        }
+//
+//    }
+//
+//    protected fun defineHandler(handler: suspend (request: Request, ipc: Ipc) -> Any?) =
+//        defineHandler { request ->
+//            handler(request, requestContextKey_ipc(request))
+//        }
+//
 }
 
 typealias IpcConnectArgs = Pair<Ipc, Request>

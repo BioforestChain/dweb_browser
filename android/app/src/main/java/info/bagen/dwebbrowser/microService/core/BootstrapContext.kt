@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.core
 
 import info.bagen.dwebbrowser.microService.helper.Mmid
+import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import org.http4k.core.Request
 
 
@@ -18,6 +19,16 @@ interface DnsMicroModule {
      * 动态卸载应用
      */
     fun uninstall(mm: MicroModule)
+
+    /**
+     * 动态js应用查询
+     */
+    fun query(mmid: Mmid): JsMicroModule?
+
+    /**
+     * 重启应用
+     */
+    fun restart(mmid:Mmid)
 
     /**
      * 与其它应用建立连接

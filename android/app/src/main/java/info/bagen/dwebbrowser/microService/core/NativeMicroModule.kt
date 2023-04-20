@@ -108,7 +108,6 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
 
         }
     }
-
     protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
         runBlockingCatching {
             when (val result = handler(request)) {

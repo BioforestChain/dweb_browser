@@ -14,27 +14,24 @@ export const webViewMap = new Map<string, WebViewState>()
  * @param ipcs 
  */
 export const restartApp = async (
-  url: URL,
   servers: HttpDwebServer[],
   ipcs: ReadableStreamIpc[]
 ) => {
   // 关闭api和文件的http服务
-  servers.forEach((server) => {
-    server.close();
+  const serverOp = servers.map(async (server) => {
+    await server.close();
   });
   // 关闭ipc信道
-  ipcs.forEach((ipc) => {
+  const opcOp = ipcs.map((ipc) => {
     ipc.close();
   });
+  await Promise.all([serverOp, opcOp])
   // 关闭所有的DwebView
   webViewMap.forEach(async (state) => {
     await closeDwebView(state.webviewId);
   });
-
-  // 转发file请求到目标NMM 并且重启服务
-  const path = `file:/${url.pathname}${url.search}`;
   // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-  jsProcess.nativeFetch(path);
+  jsProcess.restart()
   return "ok"
 };
 

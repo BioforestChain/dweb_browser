@@ -157,11 +157,6 @@ export abstract class Ipc {
     return reqresMap;
   }
 
-  // 先找到错误的位置
-  // 需要确定两个问题
-  // 是否是应为报错导致无法响应后面的请求
-  // 如果是是否可以避免报错？？
-
   /** 发起请求并等待响应 */
   // 会提供给 http-server模块的 gateway.listener.hookHttpRequest
   request(
@@ -170,10 +165,10 @@ export abstract class Ipc {
       method?: string;
       body?: /* json+text */
       | string
-        /* base64 */
-        | Uint8Array
-        /* stream+base64 */
-        | ReadableStream<Uint8Array>;
+      /* base64 */
+      | Uint8Array
+      /* stream+base64 */
+      | ReadableStream<Uint8Array>;
       headers?: IpcHeaders | HeadersInit;
     }
   ) {

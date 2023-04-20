@@ -1,3 +1,5 @@
+import type { $BootstrapContext } from "../core/bootstrapContext.cjs";
+
 export type $MMID = `${string}.dweb`;
 
 export type $PromiseMaybe<T> = Promise<Awaited<T>> | T;
