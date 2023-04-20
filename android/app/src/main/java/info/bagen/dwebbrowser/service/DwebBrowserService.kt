@@ -21,6 +21,7 @@ import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.sys.jmm.DownLoadObserver
 import info.bagen.dwebbrowser.microService.sys.jmm.debugJMM
@@ -94,7 +95,9 @@ class DwebBrowserService : Service() {
   fun downloadAndSaveZip(downLoadInfo: DownLoadInfo): Boolean {
     // 1. 根据path进行下载，并且创建notification
     if (downloadMap.containsKey(downLoadInfo.jmmMetadata.id)) {
-      Toast.makeText(this, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
+      GlobalScope.launch(mainAsyncExceptionHandler) {
+        Toast.makeText(this@DwebBrowserService, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
+      }
       return true
     }
     downloadMap[downLoadInfo.jmmMetadata.id] = downLoadInfo
