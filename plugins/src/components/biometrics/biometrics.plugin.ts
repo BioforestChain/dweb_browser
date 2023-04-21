@@ -19,7 +19,7 @@ export class BiometricsPlugin extends BasePlugin {
   }
   /**
    * 生物识别
-   * @returns boolean
+   * @returns 
    */
   @bindThis
   async biometrics(): Promise<BioetricsResult> {

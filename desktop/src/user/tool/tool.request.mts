@@ -34,6 +34,7 @@ export async function onApiRequest(
     const url = new URL(request.url, serverurlInfo.internal_origin);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
+      console.log("/public-url=>", pathname)
       // 转发public url
       if (pathname === "/public-url") {
         ipcResponse = IpcResponse.fromText(
@@ -43,7 +44,6 @@ export async function onApiRequest(
           serverurlInfo.buildPublicUrl(() => { }).href,
           httpServerIpc
         );
-        return
       }
       // 监听属性 
       if (pathname === "/observe") {
@@ -55,9 +55,7 @@ export async function onApiRequest(
           streamPo.stream,
           httpServerIpc
         );
-        return
       }
-      throw new Error(`unknown gateway: ${url.search}`);
     } else {
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
@@ -84,6 +82,9 @@ export async function onApiRequest(
           // true
         );
       }
+    }
+    if (!ipcResponse) {
+      throw new Error(`unknown gateway: ${url.search}`);
     }
 
     cros(ipcResponse.headers);

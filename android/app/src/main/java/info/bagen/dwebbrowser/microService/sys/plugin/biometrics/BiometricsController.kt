@@ -1,8 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.plugin.biometrics
 
 
-import android.content.Intent
-import androidx.activity.result.ActivityResultLauncher
 import info.bagen.dwebbrowser.microService.helper.PromiseOut
 
 class BiometricsController {

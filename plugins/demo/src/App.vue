@@ -5,10 +5,10 @@ import { routes } from "./routes";
 
 const router = useRouter();
 
-router.push("/biometrics")
+// router.push("/biometrics")
 // router.push("/serviceworker")
 // router.push("/share");
-// router.push("/barcodescanning");
+router.push("/barcodescanning");
 
 
 const drawer_controller = ref(false);
@@ -64,11 +64,10 @@ const apiUrl = new URL(location.href);
           <ul class="p-4 bg-opacity-50 menu w-80 glass bg-base-100">
             <!-- Sidebar content here -->
             <li v-for="route in routes" :key="route.path">
-              <router-link :to="route.path" @click="
-                () => {
+              <router-link :to="route.path" @click="() => {
                   drawer_controller = false;
                 }
-              ">{{ route.title }}</router-link>
+                ">{{ route.title }}</router-link>
             </li>
           </ul>
         </div>

@@ -73,8 +73,6 @@ class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
                         it.cornerPoints.toList()
                     )
                 })
-
-
             }
             .addOnFailureListener { err ->
                 task.reject(err)

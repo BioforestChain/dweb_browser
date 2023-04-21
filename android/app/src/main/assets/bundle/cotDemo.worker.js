@@ -2344,6 +2344,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
     const url = new URL(request.url, serverurlInfo.internal_origin);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
+      console.log("/public-url=>", pathname);
       if (pathname === "/public-url") {
         ipcResponse = IpcResponse.fromText(
           request.req_id,
@@ -2353,7 +2354,6 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
           }).href,
           httpServerIpc
         );
-        return;
       }
       if (pathname === "/observe") {
         const streamPo = observeFactory(url);
@@ -2364,9 +2364,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
           streamPo.stream,
           httpServerIpc
         );
-        return;
       }
-      throw new Error(`unknown gateway: ${url.search}`);
     } else {
       const path = `file:/${url.pathname}${url.search}`;
       console.log("onRequestPath: ", path, request.method, request.body);
@@ -2391,6 +2389,9 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
           // true
         );
       }
+    }
+    if (!ipcResponse) {
+      throw new Error(`unknown gateway: ${url.search}`);
     }
     cros(ipcResponse.headers);
     httpServerIpc.postMessage(ipcResponse);

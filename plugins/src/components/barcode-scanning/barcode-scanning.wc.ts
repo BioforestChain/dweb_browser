@@ -55,10 +55,10 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     return torchPlugin.getTorchState
   }
 
-  @cacheGetter()
-  get getPhoto() {
-    return this.plugin.getPhoto
-  }
+  // @cacheGetter()
+  // get getPhoto() {
+  //   return this.plugin.getPhoto
+  // }
 
   /**
    * 看看是否支持扫码
@@ -107,14 +107,14 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
         this._canvas.toBlob(
           async (imageBlob) => {
             if (imageBlob) {
-              const value: string[] = await this.plugin
+              const value = await this.plugin
                 .process(imageBlob, rotation, formats)
-                .then((res) => res.json())
+                .then((res) => res)
                 .catch(() => {
                   this._activity = false
                   return reject("502 service error");
                 });
-              const result = Array.from(value);
+              const result = Array.from(value ?? []);
               if (result.length > 0) {
                 this.stopCamera(result);
                 this._activity = false

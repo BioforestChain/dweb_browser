@@ -1,33 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-
-export class DwebServiceWorkerPlugin extends BasePlugin {
-  tagName = "dweb-service-worker";
-
-  updateController = new UpdateControllerPlugin()
-
-  constructor() {
-    super("dns.sys.dweb")
-  }
-  /**拿到更新句柄 */
-  @bindThis
-  update() {
-    return this.updateController
-  }
-
-  /**关闭前后端 */
-  @bindThis
-  async close() {
-    return await this.fetchApi("/close").boolean()
-  }
-
-  /**重启后前端 */
-  @bindThis
-  async restart() {
-    return await this.fetchApi("/restart").boolean()
-  }
-}
-
+import { BFSMetaData } from "./dweb-service-worker.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
   tagName = "dweb-update-controller";
@@ -43,17 +16,17 @@ class UpdateControllerPlugin extends BasePlugin {
 
   /**下载 */
   @bindThis
-  async download(metadataUrl: string) {
+  async download(metadataUrl: string): Promise<BFSMetaData> {
     return await this.fetchApi(`/install`, {
       search: {
         metadataUrl
       }
-    })
+    }).object()
   }
 
   // 暂停
   @bindThis
-  async pause() {
+  async pause(): Promise<boolean> {
     return await this.fetchApi("/pause").boolean()
   }
   // 重下
@@ -84,6 +57,33 @@ class UpdateControllerPlugin extends BasePlugin {
   @bindThis
   async getMMid() {
     return await BasePlugin.public_url
+  }
+}
+
+export class DwebServiceWorkerPlugin extends BasePlugin {
+  tagName = "dweb-service-worker";
+
+  updateController = new UpdateControllerPlugin()
+
+  constructor() {
+    super("dns.sys.dweb")
+  }
+  /**拿到更新句柄 */
+  @bindThis
+  update(): UpdateControllerPlugin {
+    return this.updateController
+  }
+
+  /**关闭前后端 */
+  @bindThis
+  async close(): Promise<boolean> {
+    return await this.fetchApi("/close").boolean()
+  }
+
+  /**重启后前端 */
+  @bindThis
+  async restart(): Promise<boolean> {
+    return await this.fetchApi("/restart").boolean()
   }
 }
 

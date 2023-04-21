@@ -1,7 +1,7 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { cameraPlugin } from "../camera/camera.plugin.ts";
-import type { ImageOptions } from "../camera/camera.type.ts";
+// import { cameraPlugin } from "../camera/camera.plugin.ts";
+// import type { ImageOptions } from "../camera/camera.type.ts";
 import {
   SupportedFormat,
 } from "./barcode-scanning.type.ts";
@@ -21,8 +21,8 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @returns 
    */
   @bindThis
-  async process(blob: Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
-    return await this.buildApiRequest("/process", {
+  async process(blob: Blob, rotation = 0, formats = SupportedFormat.QR_CODE): Promise<string[]> {
+    const value = await this.buildApiRequest("/process", {
       search: {
         rotation,
         formats,
@@ -30,7 +30,9 @@ export class BarcodeScannerPlugin extends BasePlugin {
       method: "POST",
       body: blob,
       base: await BasePlugin.public_url,
-    }).fetch()
+    }).fetch().object<string[]>()
+    const result = Array.from(value ?? []);
+    return result
   }
   /**
    * 停止扫码
@@ -38,16 +40,16 @@ export class BarcodeScannerPlugin extends BasePlugin {
    */
   @bindThis
   async stop() {
-    return await this.fetchApi(`/stop`)
+    return await this.fetchApi(`/stop`).boolean()
   }
 
-  /**
-   * 打开相册
-   */
-  @bindThis
-  getPhoto(options: ImageOptions = {}) {
-    return cameraPlugin.getPhoto(options);
-  }
+  // /**
+  //  * 打开相册
+  //  */
+  // @bindThis
+  // getPhoto(options: ImageOptions = {}) {
+  //   return cameraPlugin.getPhoto(options);
+  // }
 
 }
 

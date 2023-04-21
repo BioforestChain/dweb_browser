@@ -25,7 +25,7 @@ const onFileChanged = defineLogAction(async ($event: Event) => {
   if (target && target.files?.[0]) {
     const img = target.files[0]
     console.info("photo ==> ", img.name, img.type, img.size)
-    result.value = await scanner.process(img).then(res => res.text())
+    result.value = await scanner.process(img)
   }
 }, { name: "process", args: [result], logPanel: $logPanel })
 
@@ -39,9 +39,9 @@ const taskPhoto = defineLogAction(async () => {
 
 const cameraSource = ref<CameraSource>("PHOTOS" as never)
 
-const getPhoto = defineLogAction(async () => {
-  result.value = await barcodeScanner.getPhoto({ source: cameraSource.value })
-}, { name: "getPhoto", args: [result], logPanel: $logPanel })
+// const getPhoto = defineLogAction(async () => {
+//   result.value = await barcodeScanner.getPhoto({ source: cameraSource.value })
+// }, { name: "getPhoto", args: [result], logPanel: $logPanel })
 
 </script>
 
@@ -60,7 +60,7 @@ const getPhoto = defineLogAction(async () => {
       <button class="inline-block rounded-full btn btn-accent" @click="onStop">stop</button>
     </article>
 
-    <article class="card-body">
+    <!-- <article class="card-body">
       <h2 class="card-title">get Photo</h2>
       <select class="w-full max-w-xs select" v-model="cameraSource">
         <option value="PROMPT">PROMPT</option>
@@ -70,7 +70,7 @@ const getPhoto = defineLogAction(async () => {
       <div class="justify-end card-actions">
         <button class="inline-block rounded-full btn btn-accent" @click="getPhoto">getPhoto</button>
       </div>
-    </article>
+    </article> -->
   </div>
 
   <div class="divider">LOG</div>
