@@ -5,6 +5,7 @@ using DwebBrowser.MicroService.Sys.Http.Net;
 using DwebBrowser.Helper;
 using System.Text.Json;
 using WebKit;
+using System.Diagnostics;
 
 namespace DwebBrowser.WebModule.Js;
 
@@ -93,6 +94,7 @@ public class JsProcessNMM : NativeMicroModule
             .ToString();
 
         var apis = await _createJsProcessWeb(mainServer);
+
         var ipcProcessIdMap = new Dictionary<Ipc, Dictionary<string, PromiseOut<int>>>();
         var processIpcMap = new Dictionary<string, Ipc>();
         var ipcProcessIdMapLock = new Mutex();
@@ -175,29 +177,37 @@ public class JsProcessNMM : NativeMicroModule
 
     private async Task<JsProcessWebApi> _createJsProcessWeb(HttpDwebServer mainServer)
     {
-        var afterReadyPo = new PromiseOut<bool>();
+        var afterReadyPo = new PromiseOut<JsProcessWebApi>();
         /// WebView 实例
         var urlInfo = mainServer.StartResult.urlInfo;
 
-        // TODO: WebView实例 配置信息设置未完成
-        var config = new WKWebViewConfiguration();
-        //config.ApplicationNameForUserAgent = $"dweb-host/{}"
-        var perference = new WKPreferences();
-        perference.JavaScriptCanOpenWindowsAutomatically = true;
-        config.Preferences = perference;
-        var apis = new JsProcessWebApi(new DWebView.DWebView(
-            frame: null, localeMM: this, remoteMM: this,
-            new DWebView.DWebView.Options(urlInfo.BuildInternalUrl().Path("/index.html").ToString()),
-            config)).Also(api =>
+        var options = new DWebView.DWebView.Options(urlInfo.BuildInternalUrl().Path("/index.html").ToString());
+        try
         {
-            _onAfterShutdown += async (_) => { api.Destroy(); };
+            _ = MainQueue.Run(() =>
+             {
 
-            // TODO: 创建JsProcessWeb未完成
-            //api.DWebView
-        });
+                 var dwebview = new DWebView.DWebView(null, this, this, options, null);
 
-        await afterReadyPo.WaitPromiseAsync();
-        return apis;
+                 var apis = new JsProcessWebApi(dwebview).Also(api =>
+                 {
+                     _onAfterShutdown += async (_) => { api.Destroy(); };
+
+                     // TODO: 创建JsProcessWeb未完成
+                     //api.DWebView
+                 });
+                 dwebview.OnReady += async (_) => afterReadyPo.Resolve(apis);
+
+             });
+            var apis = await afterReadyPo.WaitPromiseAsync();
+            return apis;
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e);
+            throw e;
+        }
+
     }
 
     private async Task<CreateProcessAndRunResult> _createProcessAndRun(
@@ -334,3 +344,76 @@ public class JsProcessNMM : NativeMicroModule
     }
 }
 
+
+public static class MainQueue
+{
+    static int mainThreadId = int.MinValue;
+
+    public static void Init()
+    {
+        Init(Environment.CurrentManagedThreadId);
+    }
+
+    public static void Init(int mainThreadId)
+    {
+        if (MainQueue.mainThreadId != int.MinValue) throw new NotSupportedException("you may call Init() only once");
+        MainQueue.mainThreadId = mainThreadId;
+    }
+
+    public static bool IsOnMain
+    {
+        get
+        {
+            if (mainThreadId == int.MinValue) throw new NotSupportedException("you have to call Init() first");
+            return Environment.CurrentManagedThreadId == mainThreadId;
+        }
+    }
+
+    static void EnsureInvokeOnMainThread(Action action)
+    {
+        if (IsOnMain)
+        {
+            action();
+        }
+        else
+        {
+            Device.BeginInvokeOnMainThread(action);
+        }
+    }
+
+    public static Task Queue(Action action)
+    {
+        var tcs = new TaskCompletionSource<object>();
+        Device.BeginInvokeOnMainThread(() =>
+        {
+            try
+            {
+                action?.Invoke();
+                tcs.SetResult(null);
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
+        });
+        return tcs.Task;
+    }
+
+    public static Task Run(Action action)
+    {
+        var tcs = new TaskCompletionSource<object>();
+        EnsureInvokeOnMainThread(() =>
+        {
+            try
+            {
+                action?.Invoke();
+                tcs.SetResult(null);
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
+        });
+        return tcs.Task;
+    }
+}

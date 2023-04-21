@@ -14,8 +14,7 @@ public static class UriExtension
 
     public static string? GetQuery(this Uri self, string name)
     {
-        var url = new UriBuilder(self.AbsoluteUri);
-        var query = HttpUtility.ParseQueryString(url.Query);
+        var query = HttpUtility.ParseQueryString(self.Query);
         return query[name];
     }
 
