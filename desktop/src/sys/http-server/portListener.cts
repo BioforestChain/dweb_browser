@@ -3,6 +3,7 @@ import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import { $isMatchReq, $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
+import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.cjs";
 import {
   ReadableStreamOut,
   streamFromCallback,
@@ -34,6 +35,12 @@ export class PortListener {
     return () => this._routers.delete(router);
   }
 
+  /**
+   * 判断是否有绑定的请求
+   * @param pathname
+   * @param method
+   * @returns
+   */
   private _isBindMatchReq(pathname: string, method: string) {
     for (const bind of this._routers) {
       for (const pathMatcher of bind.routes) {
@@ -52,10 +59,10 @@ export class PortListener {
     // if (res.closed) {
     //   throw new Error("http server response already closed");
     // }
-
+    
     const { url = "/", method = "GET" } = req;
     const parsed_url = parseUrl(url, this.origin);
-
+    // console.log('parsed_url: ', parsed_url.href)
     const hasMatch = this._isBindMatchReq(parsed_url.pathname, method);
     if (hasMatch === undefined) {
       defaultErrorResponse(req, res, 404, "no found");
@@ -74,8 +81,7 @@ export class PortListener {
     /// 参考文档 https://www.rfc-editor.org/rfc/rfc9110.html#name-method-definitions
     if (
       /// 理论上除了 GET/HEAD/OPTIONS 之外的method （比如 DELETE）是允许包含 BODY 的，但这类严格的对其进行限制，未来可以通过启动监听时的配置来解除限制
-      method === "POST" ||
-      method === "PUT"
+      httpMethodCanOwnBody(method)
       // &&
       // /// HTTP/1.x 的规范：（我们自己的 file: 参考了该标准）
       // (this.protocol === "http:" || this.protocol === "file:")
@@ -86,13 +92,13 @@ export class PortListener {
       //   : true
     ) {
       /** req body 的转发管道，转发到 响应服务端 */
+      
       const server_req_body_writter = new ReadableStreamOut<Uint8Array>();
-      (async () => {
+      ;(async () => {
         const client_req_body_reader = Readable.toWeb(req).getReader();
         client_req_body_reader.closed.then(() => {
           server_req_body_writter.controller.close();
         });
-
         /// 根据数据拉取的情况，从 req 中按需读取数据，这种按需读取会反压到 web 的请求层那边暂缓数据的发送
         for await (const _ of streamRead(
           streamFromCallback(
@@ -112,7 +118,6 @@ export class PortListener {
 
       ipc_req_body_stream = server_req_body_writter.stream;
     }
-
     const http_response_info = await hasMatch.bind.streamIpc.request(url, {
       method,
       body: ipc_req_body_stream,
@@ -121,16 +126,16 @@ export class PortListener {
 
     /// 写回 res 对象
     res.statusCode = http_response_info.statusCode;
-    for (const [name, value] of Object.entries(http_response_info.headers)) {
+    http_response_info.headers.forEach((value, name) => {
       res.setHeader(name, value);
-    }
+    });
     /// 204 和 304 不可以包含 body
     if (
       http_response_info.statusCode !== 204 &&
       http_response_info.statusCode !== 304
     ) {
       // await (await http_response_info.stream()).pipeTo(res)
-      const http_response_body = http_response_info.body;
+      const http_response_body = http_response_info.body.raw;
       if (http_response_body instanceof ReadableStream) {
         streamReadAll(http_response_body, {
           map(chunk) {

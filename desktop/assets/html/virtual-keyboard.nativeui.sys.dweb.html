@@ -1,0 +1,278 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vitual-keyboard</title>
+    <script type="text/javascript" src="../scripts/defined_app_url.js"></script>
+    <script type="text/javascript" src="../scripts/defined_plugins.js"></script>
+    <style type="text/css">
+        :root{
+            --key-alphabet-width: 50px;
+            --key-alphabet-height: 60px;
+            --row-padding-vertical: 3px;
+            --row-padding-horizontal: 2px;
+            --border-radius: 3px;
+        }
+        body{
+            /* background-color: #FF000003; */
+            margin: 0px;
+            height: calc((var(--key-alphabet-height) + var(--row-padding-vertical) * 2) * 4 + var(--key-alphabet-height));
+            overflow: hidden;
+            background: #eee;
+        }
+
+        .row{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--row-padding-vertical) var(--row-padding-horizontal);
+        }
+
+        .key-alphabet{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: var(--key-alphabet-width);
+            height: var(--key-alphabet-height);
+            border-radius: var(--border-radius);
+            background: #fff;
+        }
+
+        .line-2{
+            padding: var(--row-padding-vertical) calc(var(--row-padding-horizontal) + var(--key-alphabet-width) / 2);
+        }
+
+        .key-symbol{
+            --margin-horizontal: calc(var(--key-alphabet-width) * 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: calc(var(--key-alphabet-width) * 1.2);
+            height: var(--key-alphabet-height);
+            border-radius: var(--border-radius);
+            background: #aaa;
+        }
+
+       .key-symbol:first-child{
+            margin-right: var(--margin-horizontal);
+        }
+
+        .key-symbol:last-child{
+            margin-left: var(--margin-horizontal);
+        }
+
+        .line-4 .key-symbol:first-child{
+            margin-right:0px;
+        }
+
+        .line-4 .key-symbol:nth-of-type(2){
+            width: calc(var(--key-alphabet-width) * 1.3);
+        }
+
+        .key-space{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--border-radius);
+            width: calc(var(--key-alphabet-width) * 6);
+            height: var( --key-alphabet-height);
+            background: #fff;
+        }
+
+        .key-search{
+            width: calc(var(--key-alphabet-width) * 2);
+            height: var( --key-alphabet-height);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--border-radius);
+            background: #4096ff;
+            color: #fff;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row line-1"></div>   
+        <div class="row line-2"></div>  
+        <div class="row line-3"></div> 
+        <div class="row line-4"></div> 
+    </div>
+    <!-- 初始化键盘元素 -->
+    <script type="text/javascript">
+        // 是否显示键盘
+        let visible = false;
+        // 渲染 键盘内容的部分
+        const elLine1 = document.querySelector('.line-1');
+        const elLine2 = document.querySelector('.line-2');
+        const elLine3 = document.querySelector('.line-3');
+        const elLine4 = document.querySelector('.line-4');
+        // 设置内部元素的尺寸
+        const rowWidth = elLine1.getBoundingClientRect().width;
+        const alphabetWidth = rowWidth / 11 ;
+        const alphabetHeight = alphabetWidth * 1.3;
+        const rowPaddingVertical = 3;
+        const rowPaddingHorizontal = 2;
+        const bodyHeight = (alphabetHeight + rowPaddingVertical * 2) * 4 + alphabetHeight;
+        [
+            ["--key-alphabet-width",alphabetWidth],
+            ["--key-alphabet-height",alphabetHeight],
+            ["--row-padding-vertical", rowPaddingVertical],
+            ["--row-padding-horizontal",rowPaddingHorizontal]
+        ].forEach(([propertyName, n]) => {
+            console.log('propertyName: ', propertyName, n)
+            document.documentElement.style.setProperty(propertyName, n + 'px')
+        });
+
+        ["q", "w","e","r","t","y","u","i","o","p"].forEach(key => {
+            elLine1.appendChild(createElement(key, "key-alphabet"))
+        });
+
+        ["a","s","d","f","g","h","j","k","l"].forEach(key => {
+            elLine2.appendChild(createElement(key, "key-alphabet"))
+        });
+
+        ["&#8679","z","x","c","v","b","n","m","&#10005"].forEach(key => {
+            if(key.startsWith("&")){
+                elLine3.appendChild(createElement(key, "key-symbol"))
+            }else{
+                elLine3.appendChild(createElement(key, "key-alphabet"))
+            }
+        });
+
+        ["123", "&#128512","space","search"].forEach(key => {
+            if(key.startsWith("1")){
+                elLine4.appendChild(createElement(key, "key-symbol"))
+            }else if(key.startsWith("&")){
+                elLine4.appendChild(createElement(key, "key-symbol"))
+            }else if(key === "space"){
+                elLine4.appendChild(createElement(key, "key-space"))
+            }else{
+                elLine4.appendChild(createElement(key, "key-search"))
+            }
+        })
+
+        function createElement(key, classname){
+            const div = document.createElement('div');
+            div.setAttribute('class', classname);
+            div.innerHTML = key;
+            return div
+        }
+         
+    </script>
+
+
+    <script type="text/javascript">
+        window.addEventListener('message', windowOnMessage)
+        function windowOnMessage (){
+            awaitOperation()
+            window.removeEventListener('message', windowOnMessage)
+        }
+        const state = {
+            overlay: false,
+            insets: {
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+            },
+        }
+        
+        function getState(){
+            state.insets.bottom = visible ? bodyHeight : 0       
+            return JSON.stringify(state);
+        }
+
+        /**
+         * 需要协同 status-bar.overlay | navigation-bar.overlay  然后设置 safe-area.overlay 的值；
+         */
+        function setOverlay(value){
+            const isSame = state.overlay === value;
+            state.overlay = value
+            window.virtualKeyboard.style.position = value ? "absolute" : "relative"
+            if(isSame) return; // 相同不需要联动 safe-area
+            window.safeArea.contentWindow.overlayChange({type: 'virtual-keyboard', value: state.overlay})
+        }
+
+        function setOverlayByVirtualKeyboard(value){
+            if(state.overlay === value) return;
+            state.overlay = value
+            window.virtualKeyboard.style.position = state.overlay ? "absolute" : "relative"
+            fetchReturn(getState(), "observe", window.appUrl)
+        }
+
+        /*
+            显示虚拟键盘
+        */
+        function show(){
+            window.virtualKeyboard.style.height = `${bodyHeight}px`
+            state.insets.bottom = bodyHeight;
+        }
+
+        /**
+         * 隐藏虚拟键盘
+         */
+        function hidden(){
+            // 隐藏导航栏
+            window.visualViewport.style.height = "0px"
+            state.insets.bottom = 0;
+        }
+
+
+        /*
+            监听操作的方法
+        */
+        async function awaitOperation(){
+            fetch("http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605/virtual-keyboard-ui/wait_for_operation?app_url="+window.appUrl)
+            .then(async (res) => {
+                const reader = res.body.getReader()
+                let loop = true;
+                do{
+                    const {value, done} = await reader.read()
+                    loop = !done
+                    if(!value) continue;
+                    const o = JSON.parse(new TextDecoder().decode(value))
+                    console.log('virtual-keyboard.html 请求的结果： ', o)
+                    if(!window.appUrl.startsWith(o.from)) continue;
+                    switch(o.operationName){
+                        case "get_state":
+                            fetchReturn(getState(), o.id, o.from);
+                            break;
+                        case "set_overlay":
+                            setOverlay(o.value);
+                            fetchReturn(getState(), o.id, o.from);
+                            break;
+                        default: console.error('virtual-keyboard 没有匹配的功能 o.operationName === ', o.operationName)
+                    }
+                }while(loop)
+            })
+            .catch(err => {
+                console.error('statusbar err： ', err)
+            })
+        }
+
+        // 通过发送请求把数据传送回去
+        function fetchReturn(value,id, from){
+            console.log('value: ', value)
+            fetch(
+                "http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605/virtual-keyboard-ui/operation_return?app_url="+from,
+                {
+                    method: 'POST',
+                    body: value,
+                    headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                        "id": id
+                    }
+                }
+            )
+            .catch(err => console.error("fetchReturn 出错", err))
+        }
+
+        function getStateObject(){
+            return state
+        }
+    </script> 
+</body>
+</html>

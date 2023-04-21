@@ -7,7 +7,8 @@ const resolveTo = createResolveTo(__dirname);
 
 export const openNativeWindow = async (
   url: string,
-  options: BrowserWindowConstructorOptions = {}
+  options: BrowserWindowConstructorOptions = {},
+  webContentsConfig: { userAgent?: (userAgent: string) => string } = {}
 ) => {
   const { MainPortToRenderPort } = await import("./electronPortMessage.mjs");
   await app.whenReady();
@@ -22,6 +23,11 @@ export const openNativeWindow = async (
   };
 
   const win = new BrowserWindow(options);
+  if (webContentsConfig.userAgent) {
+    win.webContents.setUserAgent(
+      webContentsConfig.userAgent(win.webContents.userAgent)
+    );
+  }
 
   const show_po = new PromiseOut<void>();
   win.once("ready-to-show", () => {
@@ -39,6 +45,7 @@ export const openNativeWindow = async (
     import_port: MessagePort;
     export_port: MessagePort;
   }>();
+
   win.webContents.ipc.once("renderPort", (event) => {
     const [import_port, export_port] = event.ports;
 
@@ -47,7 +54,8 @@ export const openNativeWindow = async (
       export_port: MainPortToRenderPort(export_port),
     });
   });
-  console.log("url", url);
+  
+  console.log("[openNativeWindow.cts]url", url);
   await win.loadURL(url);
   await show_po.promise;
 

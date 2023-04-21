@@ -1,0 +1,9 @@
+{
+  "deno.enable": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "search.useIgnoreFiles": true,
+  "search.useParentIgnoreFiles": true,
+  "[svelte]": {
+    "editor.defaultFormatter": "svelte.svelte-vscode"
+  }
+}

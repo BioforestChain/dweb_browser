@@ -22,7 +22,7 @@ export const $typeNameParser = <T extends $TypeName2>(
         break;
       }
       case "boolean": {
-        param = value === "" ? false : Boolean(value.toLowerCase());
+        param = value === "" || value === "false" ? false : Boolean(value.toLowerCase());
         break;
       }
       case "mmid": {

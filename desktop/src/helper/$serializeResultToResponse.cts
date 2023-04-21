@@ -1,5 +1,4 @@
 import { Ipc, IpcRequest, IpcResponse } from "../core/ipc/index.cjs";
-import { IpcHeaders } from "../core/ipc/IpcHeaders.cjs";
 import { isBinary } from "./binaryHelper.cjs";
 import type { $Schema2, $Schema2ToType } from "./types.cjs";
 
@@ -17,11 +16,19 @@ export const $serializeResultToResponse = <S extends $Schema2>(schema: S) => {
       return IpcResponse.fromBinary(
         request.req_id,
         200,
+        undefined,
         result,
-        new IpcHeaders({}),
+        ipc
+      );
+    } else if (result instanceof ReadableStream) {
+      return IpcResponse.fromStream(
+        request.req_id,
+        200,
+        undefined,
+        result,
         ipc
       );
     }
-    return IpcResponse.fromJson(request.req_id, 200, result);
+    return IpcResponse.fromJson(request.req_id, 200, undefined, result, ipc);
   };
 };

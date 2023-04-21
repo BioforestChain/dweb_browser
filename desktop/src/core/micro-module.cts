@@ -1,72 +1,117 @@
 import { fetchExtends } from "../helper/$makeFetchExtends.cjs";
+import { createSignal } from "../helper/createSignal.cjs";
+import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.cjs";
 import { PromiseOut } from "../helper/PromiseOut.cjs";
-import type { $MicroModule, $MMID, $PromiseMaybe } from "../helper/types.cjs";
+import type {
+  $IpcSupportProtocols,
+  $MicroModule,
+  $MMID,
+} from "../helper/types.cjs";
+import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.cjs";
+import type { $BootstrapContext } from "./bootstrapContext.cjs";
 import type { Ipc } from "./ipc/index.cjs";
-
 export abstract class MicroModule implements $MicroModule {
+  abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract mmid: $MMID;
-  running = false;
-  protected before_bootstrap() {
-    if (this.running) {
+  get isRunning() {
+    return this._running_state_lock.promise;
+  }
+  private _running_state_lock = PromiseOut.resolve(false);
+  protected async before_bootstrap(context: $BootstrapContext) {
+    if (await this._running_state_lock.promise) {
       throw new Error(`module ${this.mmid} alreay running`);
     }
-    this.running = true;
+    this._running_state_lock = new PromiseOut();
   }
-  private _bootstrap_lock?: Promise<void>;
-  protected abstract _bootstrap(): unknown;
-  protected after_bootstrap() {}
-  async bootstrap() {
-    this.before_bootstrap();
 
-    const bootstrap_lock = new PromiseOut<void>();
-    this._bootstrap_lock = bootstrap_lock.promise;
+  protected abstract _bootstrap(context: $BootstrapContext): unknown;
+
+  protected async after_bootstrap(context: $BootstrapContext) {
+    this._running_state_lock.resolve(true);
+  }
+  async bootstrap(context: $BootstrapContext) {
+    await this.before_bootstrap(context);
+
     try {
-      await this._bootstrap();
+      await this._bootstrap(context);
     } finally {
-      bootstrap_lock.resolve();
-      this._bootstrap_lock = undefined;
-
-      this.after_bootstrap();
+      this.after_bootstrap(context);
     }
   }
-  protected before_shutdown() {
-    if (this.running === false) {
-      throw new Error(`module ${this.mmid} alreay shutdown`);
+  protected async before_shutdown() {
+    if (false === (await this._running_state_lock.promise)) {
+      throw new Error(`module ${this.mmid} already shutdown`);
     }
-    this.running = false;
+    this._running_state_lock = new PromiseOut();
   }
-  private _shutdown_lock?: Promise<void>;
   protected abstract _shutdown(): unknown;
-  protected after_shutdown() {}
-  async shutdown() {
-    if (this._bootstrap_lock) {
-      await this._bootstrap_lock;
-    }
 
-    const shutdown_lock = new PromiseOut<void>();
-    this._shutdown_lock = shutdown_lock.promise;
-    this.before_shutdown();
+  protected readonly _after_shutdown_signal = createSignal<() => unknown>();
+
+  protected after_shutdown() {
+    this._after_shutdown_signal.emit();
+    this._after_shutdown_signal.clear();
+    this._running_state_lock.resolve(false);
+  }
+  async shutdown() {
+    await this.before_shutdown();
+
     try {
       await this._shutdown();
     } finally {
-      shutdown_lock.resolve();
-      this._shutdown_lock = undefined;
-
       this.after_shutdown();
     }
   }
-  /** 外部程序与内部程序建立链接的方法 */
-  protected abstract _connect(from: MicroModule): $PromiseMaybe<Ipc>;
-  async connect(from: MicroModule) {
-    if (this.running === false) {
-      throw new Error("module no running");
-    }
-    await this._bootstrap_lock;
-    return this._connect(from);
+
+  protected _ipcSet = new Set<Ipc>();
+  /**
+   * 内部程序与外部程序通讯的方法
+   * TODO 这里应该是可以是多个
+   */
+  private readonly _connectSignal = createSignal<$OnIpcConnect>();
+
+  /**
+   * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
+   * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
+   * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
+   */
+  protected onConnect(cb: $OnIpcConnect) {
+    return this._connectSignal.listen(cb);
+  }
+  async beConnect(ipc: Ipc, reason: Request) {
+    this._ipcSet.add(ipc);
+    ipc.onClose(() => {
+      this._ipcSet.delete(ipc);
+    });
+    this._connectSignal.emit(ipc, reason);
   }
 
-  fetch(url: RequestInfo | URL, init?: RequestInit) {
-    /// 强制注入上下文
-    return Object.assign(fetch.call(this, url, init), fetchExtends);
+  private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    const args = normalizeFetchArgs(url, init);
+
+    // nativeFetch 会遍历发送给 全部的适配器
+    // 一但那个适配器返回的 不是 undefined 就采用那个适配器返回的结果
+    // 适配器一个是 localFileFetch.cts 专门用来执行 file:///
+    // 另一个适配器是 dns.cts nativeFetchAdaptersManager.append 添加的结果
+    // 用来执行 file://****.dweb
+    // console.log('[micro-module.cts _nativeFetch url: ]', JSON.stringify(url))
+    // console.log('[micro-module.cts _nativeFetch init: ]', JSON.stringify(init))
+    // console.log('[micro-module.cts _nativeFetch args: ]', JSON.stringify(args))
+    // // console.log('[micro-module.cts _nativeFetch args.request_init: ]', args.request_init)
+    // console.log(chalk.red('[micro-module.cts init 没有传过来导致是 get 请求]'))
+    for (const adapter of nativeFetchAdaptersManager.adapters) {
+      const response = await adapter(this, args.parsed_url, args.request_init);
+      if (response !== undefined) {
+        return response;
+      }
+    }
+    return fetch(args.parsed_url, args.request_init);
+  }
+
+  nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    // console.log('[micro-module.cts nativeFetch init: ]', init)
+    return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 }
+
+type $OnIpcConnect = (ipc: Ipc, reason: Request) => unknown;

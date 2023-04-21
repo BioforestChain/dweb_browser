@@ -1,3 +1,6 @@
 /build
 /src/main/libs
 /src/main/jni
+/src/main/assets/bundle
+/src/main/assets/cot
+/src/main/assets/cot-demo

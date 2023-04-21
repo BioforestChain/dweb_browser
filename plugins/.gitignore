@@ -1,0 +1,5 @@
+./build
+
+./demo/src/index.js
+
+*.bak

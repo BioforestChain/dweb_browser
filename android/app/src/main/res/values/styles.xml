@@ -8,4 +8,9 @@
   <style name="capacitor_immersive_style" parent="capacitor_full_screen_style">
     <item name="android:windowTranslucentNavigation">true</item>
   </style>
+  <style name="Theme.AppCompat.Transparent" parent="Theme.AppCompat.NoActionBar">
+    <item name="android:windowBackground">@android:color/transparent</item>
+    <item name="android:windowFullscreen">true</item>
+    <item name="android:windowIsTranslucent">true</item>
+  </style>
 </resources>

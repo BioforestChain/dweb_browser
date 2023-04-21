@@ -12,6 +12,10 @@ ios/BFExplorer/BFExplorer.xcodeproj/project.pbxproj
 local.properties
 build/
 *.log
+android/app/src/main/assets/cot-demo/
+
+# desktop
+
 
 # node/deno/typescript
 node_modules/
@@ -22,3 +26,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
+
+
+#plugins
+plugins/build

@@ -1,3 +1,5 @@
+import type { $BootstrapContext } from "../core/bootstrapContext.cjs";
+
 export type $MMID = `${string}.dweb`;
 
 export type $PromiseMaybe<T> = Promise<Awaited<T>> | T;
@@ -34,9 +36,20 @@ export type $TypeName2 = `${$TypeName1}${"?" | ""}`;
 export type $Schema1 = Record<string, $TypeName2>;
 export type $Schema2 = Record<string, $TypeName2> | $TypeName2;
 
-export interface $MicroModule {
+/**
+ * 通讯支持的传输协议
+ */
+export interface $IpcSupportProtocols {
+  message_pack: boolean;
+  protobuf: boolean;
+  raw: boolean;
+}
+export interface $IpcMicroModuleInfo {
+  readonly ipc_support_protocols: $IpcSupportProtocols;
   readonly mmid: $MMID;
-  fetch(
+}
+export interface $MicroModule extends $IpcMicroModuleInfo {
+  nativeFetch(
     input: RequestInfo | URL,
     init?: RequestInit
   ): Promise<Response> &

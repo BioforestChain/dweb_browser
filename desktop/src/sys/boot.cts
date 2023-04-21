@@ -2,24 +2,38 @@ import { NativeMicroModule } from "../core/micro-module.native.cjs";
 import type { $MMID } from "../helper/types.cjs";
 
 export class BootNMM extends NativeMicroModule {
+  constructor(private initMmids?: Iterable<$MMID>) {
+    super();
+  }
   mmid = "boot.sys.dweb" as const;
-  private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]);
+  // private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]); // 被优化
+  private registeredMmids = new Set<$MMID>(
+    this.initMmids
+    // [
+    // "file.sys.dweb",
+    // "jmm.sys.dweb",
+    // "www.sys.dweb",
+    // "api.sys.dweb",
+    // "plugins.sys.dweb",
+    // "browser.sys.dweb",
+    // ]
+  );
   async _bootstrap() {
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/register",
       matchMode: "full",
-      input: { },
+      input: {},
       output: "boolean",
-      hanlder: async (args,ipc) => {
+      handler: async (args, ipc) => {
         return await this.register(ipc.remote.mmid);
       },
     });
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/unregister",
       matchMode: "full",
       input: {},
       output: "boolean",
-      hanlder: async (args,ipc) => {
+      handler: async (args, ipc) => {
         return await this.unregister(ipc.remote.mmid);
       },
     });
@@ -27,7 +41,7 @@ export class BootNMM extends NativeMicroModule {
     /// 开始启动开机项
     for (const mmid of this.registeredMmids) {
       /// TODO 这里应该使用总线进行通讯，而不是拿到core直接调用。在未来分布式系统中，core模块可能是远程模块
-      this.fetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
+      await this.nativeFetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
       //  await core.open(mmid);
     }
   }

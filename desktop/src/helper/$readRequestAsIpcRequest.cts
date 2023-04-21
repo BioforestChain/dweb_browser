@@ -1,7 +1,7 @@
-import type { IpcRequest } from "../core/ipc/index.cjs";
 import { binaryToU8a, isBinary } from "./binaryHelper.cjs";
 import { simpleEncoder } from "./encoding.cjs";
 import { headersToRecord } from "./headersToRecord.cjs";
+import { httpMethodCanOwnBody } from "./httpMethodCanOwnBody.cjs";
 
 /** 将 request 参数解构 成 ipcRequest 的参数 */
 
@@ -10,7 +10,7 @@ export const $readRequestAsIpcRequest = async (request_init: RequestInit) => {
   const method = request_init.method ?? "GET";
 
   /// 读取 body
-  if (method === "POST" || method === "PUT") {
+  if (httpMethodCanOwnBody(method)) {
     if (request_init.body instanceof ReadableStream) {
       body = request_init.body;
       // const reader = (
@@ -41,8 +41,5 @@ export const $readRequestAsIpcRequest = async (request_init: RequestInit) => {
   /// 读取 headers
   const headers = headersToRecord(request_init.headers);
 
-  return { method, body, headers } satisfies Pick<
-    IpcRequest,
-    "method" | "body" | "headers"
-  >;
+  return { method, body, headers };
 };

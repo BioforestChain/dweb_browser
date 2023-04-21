@@ -1,5 +1,7 @@
 import type { Remote } from "comlink";
 import { transfer } from "comlink";
+import { once } from "lodash";
+import path from "path";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import {
@@ -11,19 +13,16 @@ import {
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { $isMatchReq, $ReqMatcher } from "../../helper/$ReqMatcher.cjs";
-import {
-  createResolveTo,
-  resolveToRootFile,
-} from "../../helper/createResolveTo.cjs";
-import { createSignal } from "../../helper/createSignal.cjs";
-import {
-  $NativeWindow,
-  openNativeWindow,
-} from "../../helper/openNativeWindow.cjs";
+import { createResolveTo } from "../../helper/createResolveTo.cjs";
+import { mapHelper } from "../../helper/mapHelper.cjs";
+import { openNativeWindow } from "../../helper/openNativeWindow.cjs";
+import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $PromiseMaybe } from "../../helper/types.cjs";
-import { parseUrl } from "../../helper/urlHelper.cjs";
-import { createHttpDwebServer } from "../http-server/$listenHelper.cjs";
+import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 import { saveNative2JsIpcPort } from "./ipc.native2js.cjs";
+import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.cjs"
+import chalk from "chalk"
+ 
 
 const resolveTo = createResolveTo(__dirname);
 
@@ -36,15 +35,15 @@ class ImportLinker {
     /** 我们将托管用户的代码，响应虚拟环境中的 import 请求 */
     readonly importMaps: Array<{
       pathMatcher: $ReqMatcher;
-      hanlder: (parsed_url: URL) => $PromiseMaybe<$Code>;
+      handler: (parsed_url: URL) => $PromiseMaybe<$Code>;
     }> = []
-  ) {}
+  ) { }
 
   link(url: string) {
     const parsed_url = new URL(url, this.origin);
     for (const item of this.importMaps) {
       if ($isMatchReq(item.pathMatcher, parsed_url.pathname)) {
-        return item.hanlder(parsed_url);
+        return item.handler(parsed_url);
       }
     }
   }
@@ -62,8 +61,15 @@ const _ipcErrorResponse = (
   statusCode: number,
   errorMessage: string
 ) => {
+  const headers = new IpcHeaders(CORS_HEADERS);
   ipc.postMessage(
-    IpcResponse.fromText(requestMessage.req_id, statusCode, errorMessage)
+    IpcResponse.fromText(
+      requestMessage.req_id,
+      statusCode,
+      headers,
+      errorMessage,
+      ipc
+    )
   );
 };
 
@@ -73,17 +79,24 @@ const _ipcSuccessResponse = (
   ipc: Ipc,
   code: $Code
 ) => {
-  const headers = new IpcHeaders({ "Content-Type": code.mime });
+  const headers = new IpcHeaders(CORS_HEADERS);
+  headers.set("Content-Type", code.mime);
   ipc.postMessage(
     typeof code.data === "string"
-      ? IpcResponse.fromText(requestMessage.req_id, 200, code.data, headers)
+      ? IpcResponse.fromText(
+        requestMessage.req_id,
+        200,
+        headers,
+        code.data,
+        ipc
+      )
       : IpcResponse.fromBinary(
-          requestMessage.req_id,
-          200,
-          code.data,
-          headers,
-          ipc
-        )
+        requestMessage.req_id,
+        200,
+        headers,
+        code.data,
+        ipc
+      )
   );
 };
 
@@ -95,11 +108,17 @@ const _ipcResponseFromImportLinker = async (
 ) => {
   const code = await importLinker.link(request.url);
   if (code === undefined) {
-    _ipcErrorResponse(request, ipc, 404, "No Found");
+    _ipcErrorResponse(request, ipc, 404, "// No Found");
   } else {
     _ipcSuccessResponse(request, ipc, code);
   }
 };
+const CORS_HEADERS = [
+  ["Content-Type", "application/javascript"],
+  ["Access-Control-Allow-Origin", "*"],
+  ["Access-Control-Allow-Headers", "*"], // 要支持 X-Dweb-Host
+  ["Access-Control-Allow-Methods", "*"],
+] satisfies HeadersInit;
 
 /**
  * 将指定的js运行在后台的一个管理器，
@@ -107,113 +126,142 @@ const _ipcResponseFromImportLinker = async (
  */
 export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.sys.dweb` as const;
-  private nww?: $NativeWindow;
-  private _on_shutdown_signal = createSignal<() => unknown>();
+
+  private JS_PROCESS_WORKER_CODE = once(() => {
+    return this.nativeFetch("file:///bundle/js-process.worker.js").text();
+  });
+
+  private INTERNAL_PATH = encodeURI("/<internal>");
 
   async _bootstrap() {
-    const webServer = await createHttpDwebServer(this, {});
-    (await webServer.listen()).onRequest(async (request, ipc) => {
+    console.log('[js-process _bootstrap]')
+    const mainServer = await createHttpDwebServer(this, {});
+    (await mainServer.listen()).onRequest(async (request, ipc) => {
+      // console.log("[js-process mainServer onRequest ]request.parsed_url.pathname", request.parsed_url.pathname)
+      // return;
+      const pathname = request.parsed_url.pathname;
+      if(pathname.endsWith('/bootstrap.js')){
+        return ipc.postMessage(
+          await IpcResponse.fromText(
+            request.req_id,
+            200,
+            new IpcHeaders({
+              "Content-Type": "text/javascript"
+            }),
+            await this.JS_PROCESS_WORKER_CODE(),
+            ipc
+          )
+        );
+      }
+
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
-          await this.fetch(
-            resolveToRootFile("bundle/js-process" + request.parsed_url.pathname)
+          await this.nativeFetch(
+            "file:///bundle/js-process" + request.parsed_url.pathname
           ),
           ipc
         )
       );
     });
-    this._on_shutdown_signal.listen(webServer.close);
-
-    const {
-      origin: internal_origin,
-      listen: internal_start,
-      close: internal_close,
-    } = await createHttpDwebServer(this, {
-      subdomain: "internal",
-    });
-
-    const JS_PROCESS_WORKER_CODE = await this.fetch(
-      resolveToRootFile("bundle/js-process.worker.js")
-    ).text();
-    /**
-     * 内部的代码
-     */
-    const internal_importLinker = new ImportLinker(internal_origin, [
-      {
-        pathMatcher: {
-          pathname: "/bootstrap.js",
-          matchMode: "full",
-        },
-        hanlder(url) {
-          return {
-            mime: "application/javascript",
-            data: JS_PROCESS_WORKER_CODE,
-          };
-        },
-      },
-    ]);
-    (await internal_start()).onRequest(
-      async (request, internal_httpServerIpc) => {
-        void _ipcResponseFromImportLinker(
-          internal_httpServerIpc,
-          internal_importLinker,
-          request
-        );
+    const bootstrap_url = mainServer.startResult.urlInfo.buildInternalUrl(
+      (url) => {
+        url.pathname = `${this.INTERNAL_PATH}/bootstrap.js`;
       }
-    );
-    this._on_shutdown_signal.listen(internal_close);
+    ).href;
 
-    const nww = (this.nww = await openNativeWindow(
-      webServer.origin + "/index.html",
-      {
-        /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
-        show: require.main?.filename.endsWith(".html"),
-      }
-    ));
+    this._after_shutdown_signal.listen(mainServer.close);
 
-    const apis = nww.getApis<$APIS>();
+    const apis = await (async () => {
+      const urlInfo = mainServer.startResult.urlInfo;
+      const nww = await openNativeWindow(
+        mainServer.startResult.urlInfo.buildInternalUrl((url) => {
+          url.pathname = "/index.html";
+        }).href,
+        {
+          /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
+          show: require.main?.filename.endsWith(".html"),
+        },
+        { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
+      );
+      // console.log( '[js-process. openNativeWindow]')
+      // 打开 devtools
+      nww.webContents.openDevTools();
+      this._after_shutdown_signal.listen(() => {
+        nww.close();
+      });
+      return nww.getApis<$APIS>();
+    })();
+
+    const ipcProcessIdMap = new WeakMap<Ipc, Map<string, PromiseOut<number>>>();
+
     /// 创建 web worker
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       method: "POST",
       pathname: "/create-process",
       matchMode: "full",
-      input: { main_pathname: "string" },
+      input: { entry: "string", process_id: "string" },
       output: "object",
-      hanlder: (args, ipc, requestMessage) => {
-        return this.createProcessAndRun(
+      handler: async (args, ipc, requestMessage) => {
+        const processIdMap = mapHelper.getOrPut(
+          ipcProcessIdMap,
+          ipc,
+          () => new Map()
+        );
+
+        if (processIdMap.has(args.process_id)) {
+          throw new Error(
+            `ipc:${ipc.remote.mmid}/processId:${args.process_id} has already using`
+          );
+        }
+        const po = new PromiseOut<number>();
+        processIdMap.set(args.process_id, po);
+
+        const result = await this.createProcessAndRun(
           ipc,
           apis,
-          `${internal_importLinker.origin}/bootstrap.js?mmid=${ipc.remote.mmid}`,
-          args.main_pathname,
+          bootstrap_url,
+          args.entry,
           requestMessage
         );
+        po.resolve(result.processInfo.process_id);
+        return result.streamIpc.stream;
       },
     });
     /// 创建 web 通讯管道
-    this.registerCommonIpcOnMessageHanlder({
+    this.registerCommonIpcOnMessageHandler({
       pathname: "/create-ipc",
       matchMode: "full",
-      input: { process_id: "number" },
+      input: {
+        process_id: "string",
+        /**
+         * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
+         * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
+         */
+        mmid: "string",
+      },
       output: "number",
-      hanlder: async (args) => {
-        const port2 = await apis.createIpc(args.process_id);
-        return saveNative2JsIpcPort(port2);
+      handler: async (args, ipc) => {
+        console.log(`js-process.cts /create-ipc`)
+        const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
+        if (process_id_po === undefined) {
+          throw new Error(
+            `ipc:${ipc.remote.mmid}/processId:${args.process_id} invalid`
+          );
+        }
+        const process_id = await process_id_po.promise;
+        const port_id = await this.createIpc(ipc, apis, process_id, args.mmid);
+        return port_id;
       },
     });
   }
-  async _shutdown() {
-    this.nww?.close();
-    this.nww = undefined;
-
-    this._on_shutdown_signal.emit();
-  }
+  async _shutdown() { }
 
   private async createProcessAndRun(
     ipc: Ipc,
     apis: Remote<$APIS>,
     bootstrap_url: string,
-    main_pathname = "/index.js",
+    entry = "/index.js",
     requestMessage: IpcRequest
   ) {
     /**
@@ -227,35 +275,58 @@ export class JsProcessNMM extends NativeMicroModule {
      * 远端是代码服务，所以这里是 client 的身份
      */
     const streamIpc = new ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT);
-    void streamIpc.bindIncomeStream(requestMessage.stream());
+    void streamIpc.bindIncomeStream(requestMessage.body.stream());
 
     /**
      * 让远端提供 esm 模块代码
      * 这里我们将请求转发给对方，要求对方以一定的格式提供代码回来，
      * 我们会对回来的代码进行处理，然后再执行
      */
-    const importLinker = new ImportLinker(httpDwebServer.origin, [
-      {
-        pathMatcher: {
-          pathname: "/",
-          matchMode: "prefix",
-        },
-        async hanlder(url) {
-          /// TODO 对代码进行翻译处理
-          const response = await streamIpc.request(url.href);
+    const importLinker = new ImportLinker(
+      httpDwebServer.startResult.urlInfo.internal_origin,
+      [
+        {
+          pathMatcher: {
+            pathname: "/",
+            matchMode: "prefix",
+          },
+          handler: async (url) => {
+            // <internal>开头的是特殊路径：交由内部处理，不会推给远端处理
+            if (url.pathname.startsWith(this.INTERNAL_PATH)) {
+              url.pathname = url.pathname.substring(this.INTERNAL_PATH.length);
+              if (url.pathname === "/bootstrap.js") {
+                return {
+                  mime: "application/javascript",
+                  data: await this.JS_PROCESS_WORKER_CODE(),
+                };
+              }
+            }
 
-          return {
-            /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
-            mime: "application/javascript",
-            data: await response.text(),
-          };
+            /// TODO 对代码进行翻译处理
+            const response = await streamIpc.request(url.href);
+
+            return {
+              /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
+              mime: "application/javascript",
+              data: await response.body.text(),
+            };
+          },
         },
-      },
-    ]);
+      ]
+    );
 
     (await httpDwebServer.listen()).onRequest((request, ipc) => {
       void _ipcResponseFromImportLinker(ipc, importLinker, request);
     });
+
+    /// TODO 需要传过来，而不是自己构建
+    const metadata = JSON.stringify({ mmid: ipc.remote.mmid });
+    /// TODO env 允许远端传过来扩展
+    const env = JSON.stringify({
+      host: httpDwebServer.startResult.urlInfo.host,
+      debug: "true",
+      "ipc-support-protocols": "raw message_pack",
+    } satisfies Record<string, string>);
 
     /**
      * 创建一个通往 worker 的消息通道
@@ -263,6 +334,10 @@ export class JsProcessNMM extends NativeMicroModule {
     const channel_for_worker = new MessageChannel();
     const processInfo = await apis.createProcess(
       bootstrap_url,
+      metadata,
+      env,
+      // JSON.stringify(metadata),
+      // JSON.stringify(env),
       transfer(channel_for_worker.port2, [channel_for_worker.port2])
     );
 
@@ -273,15 +348,14 @@ export class JsProcessNMM extends NativeMicroModule {
     const ipc_to_worker = new MessagePortIpc(
       channel_for_worker.port1,
       ipc.remote,
-      IPC_ROLE.CLIENT,
-      false
+      IPC_ROLE.CLIENT
     );
     /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
-    ipc_to_worker.onRequest(async (ipcMessage, worker_ipc) => {
-      const response = await ipc.remote.fetch(ipcMessage.url, ipcMessage);
-      worker_ipc.postMessage(
-        await IpcResponse.fromResponse(ipcMessage.req_id, response, worker_ipc)
-      );
+    ipc_to_worker.onMessage((ipcMessage) => {
+      ipc.postMessage(ipcMessage);
+    });
+    ipc.onMessage((ipcMessage) => {
+      ipc_to_worker.postMessage(ipcMessage);
     });
 
     // this.processImportsMap.set(host, processImports);
@@ -290,7 +364,9 @@ export class JsProcessNMM extends NativeMicroModule {
      * 开始执行代码
      */
     await apis.runProcessMain(processInfo.process_id, {
-      main_url: parseUrl(main_pathname, httpDwebServer.origin).href,
+      main_url: httpDwebServer.startResult.urlInfo.buildInternalUrl((url) => {
+        url.pathname = entry;
+      }).href,
     });
 
     /// 绑定销毁
@@ -308,9 +384,28 @@ export class JsProcessNMM extends NativeMicroModule {
     streamIpc.onClose(() => {
       httpDwebServer.close();
     });
-
-    return new Response(streamIpc.stream, { status: 200 });
+    return {
+      streamIpc,
+      processInfo,
+    };
   }
 
+  private async createIpc(
+    ipc: Ipc,
+    apis: Remote<$APIS>,
+    process_id: number,
+    mmid: string
+  ) {
+    /**
+     * 创建一个通往 worker 的消息通道
+     */
+    const channel_for_worker = new MessageChannel();
+    await apis.createIpc(
+      process_id,
+      mmid,
+      transfer(channel_for_worker.port2, [channel_for_worker.port2])
+    );
+    return saveNative2JsIpcPort(channel_for_worker.port1);
+  }
   // static singleton = once(() => new JsProcessManager());
 }

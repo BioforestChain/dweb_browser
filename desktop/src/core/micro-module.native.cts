@@ -1,8 +1,9 @@
+import chalk from "chalk";
 import { $deserializeRequestToParams } from "../helper/$deserializeRequestToParams.cjs";
 import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.cjs";
 import { $serializeResultToResponse } from "../helper/$serializeResultToResponse.cjs";
-import { createSignal } from "../helper/createSignal.cjs";
 import type {
+  $IpcSupportProtocols,
   $PromiseMaybe,
   $Schema1,
   $Schema1ToType,
@@ -12,45 +13,37 @@ import type {
 import { NativeIpc } from "./ipc.native.cjs";
 import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.cjs";
 import { MicroModule } from "./micro-module.cjs";
+import { connectAdapterManager } from "./nativeConnect.cjs";
+
+connectAdapterManager.append((fromMM, toMM, reason) => {
+  // // 原始代码
+  // if (toMM instanceof NativeMicroModule) {
+  //   const channel = new MessageChannel();
+  //   const { port1, port2 } = channel;
+  //   const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
+  //   const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
+  //   fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
+  //   toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
+  //   return [fromNativeIpc, toNativeIpc];
+  // }
+
+  // 测试代码
+  const channel = new MessageChannel();
+  const { port1, port2 } = channel;
+  const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
+  const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
+  fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
+  toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
+  return [fromNativeIpc, toNativeIpc];
+});
 
 export abstract class NativeMicroModule extends MicroModule {
+  readonly ipc_support_protocols: $IpcSupportProtocols = {
+    message_pack: true,
+    protobuf: true,
+    raw: true,
+  };
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
-  private _connectting_ipcs = new Set<Ipc>();
-  _connect(from: MicroModule): NativeIpc {
-    const channel = new MessageChannel();
-    const { port1, port2 } = channel;
-    const inner_ipc = new NativeIpc(port2, from, IPC_ROLE.SERVER);
-
-    this._connectting_ipcs.add(inner_ipc);
-    inner_ipc.onClose(() => {
-      this._connectting_ipcs.delete(inner_ipc);
-    });
-
-    this._connectSignal.emit(inner_ipc);
-    return new NativeIpc(port1, this, IPC_ROLE.CLIENT);
-  }
-
-  /**
-   * 内部程序与外部程序通讯的方法
-   * TODO 这里应该是可以是多个
-   */
-  protected _connectSignal = createSignal<(ipc: Ipc) => unknown>();
-  /**
-   * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
-   * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
-   * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
-   */
-  protected onConnect = this._connectSignal.listen;
-
-  override after_shutdown() {
-    super.after_shutdown();
-    for (const inner_ipc of this._connectting_ipcs) {
-      inner_ipc.close();
-    }
-    this._connectting_ipcs.clear();
-  }
-
-  ///
 
   private _commmon_ipc_on_message_hanlders =
     new Set<$RequestCustomHanlderSchema>();
@@ -65,14 +58,18 @@ export abstract class NativeMicroModule extends MicroModule {
       client_ipc.onRequest(async (request) => {
         const { pathname } = request.parsed_url;
         let response: IpcResponse | undefined;
+        // 添加了一个判断 如果没有注册匹配请求的监听器会有信息弹出到 终端;
+        let has = false;
         for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {
           if ($isMatchReq(hanlder_schema, pathname, request.method)) {
+            has = true;
             try {
-              const result = await hanlder_schema.hanlder(
+              const result = await hanlder_schema.handler(
                 hanlder_schema.input(request),
                 client_ipc,
                 request
               );
+
               if (result instanceof IpcResponse) {
                 response = result;
               } else {
@@ -83,29 +80,51 @@ export abstract class NativeMicroModule extends MicroModule {
                 );
               }
             } catch (err) {
+              console.log("err: ", err);
               let body: string;
               if (err instanceof Error) {
-                body = err.message;
+                body = err.stack ?? err.message;
               } else {
                 body = String(err);
               }
-              response = IpcResponse.fromJson(request.req_id, 500, body);
+              response = IpcResponse.fromJson(
+                request.req_id,
+                500,
+                undefined,
+                body,
+                client_ipc
+              );
             }
             break;
           }
         }
+
+        if (!has) {
+          /** 没有匹配的事件处理器 弹出终端 优化了开发体验 */
+          console.log(
+            chalk.red(
+              "[micro-module.native.cts 没有匹配的注册方法 mmid===]",
+              this.mmid
+            ),
+            "请求的方法是",
+            request
+          );
+        }
+
         if (response === undefined) {
           response = IpcResponse.fromText(
             request.req_id,
             404,
-            `no found hanlder for '${pathname}'`
+            undefined,
+            `no found hanlder for '${pathname}'`,
+            client_ipc
           );
         }
         client_ipc.postMessage(response);
       });
     });
   }
-  protected registerCommonIpcOnMessageHanlder<
+  protected registerCommonIpcOnMessageHandler<
     I extends $Schema1,
     O extends $Schema2
   >(common_hanlder_schema: $RequestCommonHanlderSchema<I, O>) {
@@ -123,7 +142,7 @@ export abstract class NativeMicroModule extends MicroModule {
 }
 
 interface $RequestHanlderSchema<ARGS, RES> extends $ReqMatcher {
-  readonly hanlder: (
+  readonly handler: (
     args: ARGS,
     client_ipc: Ipc,
     ipc_request: IpcRequest

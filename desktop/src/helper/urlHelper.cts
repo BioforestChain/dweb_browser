@@ -21,7 +21,7 @@ export const updateUrlOrigin = (url: string | URL, new_origin: string) => {
 export const buildUrl = (
   url: URL,
   ext: {
-    search?: string | URLSearchParams | Record<string, unknown>;
+    search?: string | URLSearchParams | Record<string, unknown> | {};
     pathname?: string;
   }
 ) => {

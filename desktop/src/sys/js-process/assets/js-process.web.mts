@@ -1,15 +1,5 @@
 import { createSignal } from "../../../helper/createSignal.mjs";
-import { exportApis } from "../../../helper/openNativeWindow.preload.mjs";
 import { PromiseOut } from "../../../helper/PromiseOut.mjs";
-
-// /** 将一个 MessagePort 变成一个真正的 MessagePort */
-// const asMessagePort = (origin: MessagePort) => {
-//   if (origin instanceof MessagePort) {
-//     return origin;
-//   }
-//   origin = new
-
-// };
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 const ALL_PROCESS_MAP = new Map<
@@ -24,12 +14,45 @@ const allocProcessId = () => acc_process_id++;
 
 const createProcess = async (
   env_script_url: string,
-  fetch_port: MessagePort
+  metadata_json: string,
+  env_json: string,
+  fetch_port: MessagePort,
+  name: string = new URL(env_script_url).hostname
 ) => {
+  console.log("createProcess =>", env_script_url, fetch_port);
   const process_id = allocProcessId();
-
+  const worker_url = URL.createObjectURL(
+    new Blob(
+      [
+        `import("${env_script_url}").then(async({installEnv,Metadata})=>{
+          void installEnv(new Metadata(${metadata_json},${env_json}));
+          postMessage("ready")
+        },(err)=>postMessage("ERROR:"+err))`,
+      ],
+      {
+        // esm 代码必须有正确的 mime
+        type: "application/javascript",
+      }
+    )
+  );
   /// https://caniuse.com/mdn-api_worker_worker_ecmascript_modules 需要 2019 年之后的 WebView 支持： Safari 15+ || Chrome 80+
-  const worker = new Worker(env_script_url, { type: "module" });
+  const worker = new Worker(worker_url, {
+    type: "module",
+    name: name,
+  });
+  await new Promise<void>((resolve, reject) => {
+    worker.addEventListener(
+      "message",
+      (event) => {
+        if (event.data === "ready") {
+          resolve();
+        } else {
+          reject(event.data);
+        }
+      },
+      { once: true }
+    );
+  });
 
   worker.postMessage(["fetch-ipc-channel", fetch_port], [fetch_port]);
   /// 等待启动任务完成
@@ -75,12 +98,37 @@ const runProcessMain = (process_id: number, config: $RunMainConfig) => {
   process.worker.postMessage(["run-main", config]);
 };
 
-const createIpc = (process_id: number) => {
+const createIpc = async (
+  process_id: number,
+  mmid: string,
+  ipc_port: MessagePort
+) => {
   const process = _forceGetProcess(process_id);
-  const channel = new MessageChannel();
-  process.worker.postMessage(["ipc-channel", channel.port2], [channel.port2]);
-  return channel.port1;
+  process.worker.postMessage(["ipc-connect", mmid], [ipc_port]);
+  /// 等待连接任务完成
+  const connect_ready_po = new PromiseOut<void>();
+  const onEnvReady = (event: MessageEvent) => {
+    if (
+      Array.isArray(event.data) &&
+      event.data[0] === "ipc-connect-ready" &&
+      event.data[1] === mmid
+    ) {
+      connect_ready_po.resolve();
+    }
+  };
+  process.worker.addEventListener("message", onEnvReady);
+  await connect_ready_po.promise;
+  process.worker.removeEventListener("message", onEnvReady);
+  return;
 };
+/**
+ * 彻底退出后端，即删除APP的worker
+ * @param process_id 
+ */
+const destroyProcess = (process_id: number) => {
+  const process = _forceGetProcess(process_id);
+  process.worker.terminate()
+}
 
 const on_create_process_signal = createSignal();
 
@@ -88,6 +136,7 @@ export const APIS = {
   createProcess,
   runProcessMain,
   createIpc,
+  destroyProcess
 };
 export type $RunMainConfig = {
   main_url: string;
@@ -102,5 +151,3 @@ on_create_process_signal.listen(({ process_id, env_script_url }) => {
     <span>URL:${env_script_url}</span>
   </div>`;
 });
-
-exportApis(APIS);

@@ -1,7 +1,10 @@
+
 dist
 bundle
 git-sim_media
 .*.bak
-
+temp
+cot
+app
 
 proxy/src/index.cjs

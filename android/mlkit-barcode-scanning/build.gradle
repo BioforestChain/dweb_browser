@@ -28,6 +28,7 @@ android {
         abortOnError false
         warning 'InvalidPackage'
     }
+    namespace 'com.king.mlkit.vision.barcode'
 }
 
 //task javadoc(type: Javadoc) {
