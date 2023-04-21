@@ -74,7 +74,7 @@ public class ReadableStreamIpc : Ipc
     {
         get
         {
-            var pong = "pong".FromUtf8();
+            var pong = "pong"u8;
 
             return pong.Length.ToByteArray().Combine(pong);
         }

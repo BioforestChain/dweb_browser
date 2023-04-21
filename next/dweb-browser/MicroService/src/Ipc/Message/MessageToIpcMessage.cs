@@ -3,9 +3,9 @@ namespace DwebBrowser.MicroService.Message;
 
 public static class MessageToIpcMessage
 {
-    private readonly static byte[] closeString = "close".FromUtf8();
-    private readonly static byte[] pingString = "ping".FromUtf8();
-    private readonly static byte[] pongString = "pong".FromUtf8();
+    private readonly static byte[] closeString = "close"u8.ToArray();
+    private readonly static byte[] pingString = "ping"u8.ToArray();
+    private readonly static byte[] pongString = "pong"u8.ToArray();
 
     public static object? JsonToIpcMessage(byte[] data, Ipc ipc)
     {
