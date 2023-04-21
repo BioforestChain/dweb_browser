@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
+import info.bagen.dwebbrowser.datastore.WebsiteDB
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.view.drawToBitmapPostLaidOut
 import kotlinx.coroutines.delay
@@ -24,18 +25,17 @@ import kotlinx.coroutines.flow.onEach
 internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
   val localFocusManager = LocalFocusManager.current
   var webViewY = 0 // 用于截图的时候进行定位截图
-  LaunchedEffect(browserWebView.webView) {
-    snapshotFlow { !browserWebView.state.isLoading }.collect {
-      if (it) {
-        delay(500)
-        browserWebView.controller.capture()
-      }
-    }
-  }
   LaunchedEffect(browserWebView.state) { // 点击跳转时，加载状态变化，将底部栏显示
     snapshotFlow { browserWebView.state.loadingState }.collect {
       if (it is LoadingState.Loading) {
         viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true))
+      }
+      if (it is LoadingState.Finished) {
+        delay(500)
+        viewModel.handleIntent(BrowserIntent.SaveNewWebSiteInfo(
+          browserWebView.state.pageTitle, browserWebView.state.lastLoadedUrl
+        ))
+        browserWebView.controller.capture()
       }
     }
   }

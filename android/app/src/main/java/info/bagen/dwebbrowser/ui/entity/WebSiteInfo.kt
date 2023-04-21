@@ -21,7 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 data class WebSiteInfo(
   val title: String,
   val url: String,
-  val icon: ImageBitmap?,
+  val icon: ImageBitmap? = null,
 )
 
 interface BrowserBaseView {
@@ -54,7 +54,6 @@ enum class PopupViewSate(
   private val height: Dp = 0.dp,
   private val percentage: Float? = null
 ) {
-  NULL(),
   Options(height = 120.dp),
   BookList(percentage = 0.9f),
   HistoryList(percentage = 0.9f),

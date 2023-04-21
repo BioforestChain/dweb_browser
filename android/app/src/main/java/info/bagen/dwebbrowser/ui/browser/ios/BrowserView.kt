@@ -38,7 +38,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.LoadingState
-import com.google.accompanist.web.WebViewNavigator
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
@@ -46,6 +45,7 @@ import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.entity.PopupViewSate
 import info.bagen.dwebbrowser.ui.theme.Blue
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp
@@ -70,7 +70,7 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
 fun BrowserView(viewModel: BrowserViewModel) {
   Box(modifier = Modifier.fillMaxSize()) {
     BrowserViewContent(viewModel)   // 中间主体部分
-    BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
+    // BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
     BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
     BrowserPopView(viewModel)       // 用于处理弹出框
     BrowserMultiPopupView(viewModel)// 用于显示多界面
@@ -108,9 +108,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       userScrollEnabled = false
     ) { currentPage ->
       when (val item = viewModel.uiState.browserViewList[currentPage]) {
-        is BrowserMainView -> BrowserViewContentMain(
-          viewModel, item, viewModel.uiState.pagerStateNavigator
-        )
+        is BrowserMainView -> BrowserViewContentMain(viewModel, item)
         is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
       }
     }
@@ -152,14 +150,7 @@ private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
     ) {
       Column(modifier = Modifier.fillMaxWidth()) {
         BrowserViewSearch(viewModel)
-        BrowserViewNavigatorBar(viewModel) {
-          // 下面是切换主页的
-          /*coroutineScope.launch {
-            pagerStateSearch.animateScrollToPage(viewModel.uiState.browserViewList.size)
-            pagerStateWebView.animateScrollToPage(viewModel.uiState.browserViewList.size)
-          }*/
-          viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(true))
-        }
+        BrowserViewNavigatorBar(viewModel)
       }
     }
   }
@@ -187,8 +178,10 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel, onHome: () -> Unit) {
+private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
+  val scope = rememberCoroutineScope()
   Row(
     modifier = Modifier
       .fillMaxWidth()
@@ -209,21 +202,20 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel, onHome: () -> U
       resName = R.string.browser_nav_forward,
       show = navigator?.canGoForward ?: false
     ) { navigator?.navigateForward() }
-    NavigatorButton(resId = R.drawable.ic_main_book,
-      resName = R.string.browser_nav_book,
-      show = navigator?.let { true } ?: false) { /* TODO 将当前的地址添加到书签 */ }
     NavigatorButton(
-      resId = R.drawable.ic_main_menu, resName = R.string.browser_nav_option, show = true
+      resId = navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
+      resName = navigator?.let { R.string.browser_nav_add } ?: R.string.browser_nav_scan,
+      show = true
+    ) { /* TODO 将当前的地址添加到书签 */ }
+    NavigatorButton(
+      resId = R.drawable.ic_main_multi, resName = R.string.browser_nav_multi, show = true
     ) {
-      // TODO 打开弹窗，里面有历史浏览记录和书签列表
-      viewModel.handleIntent(BrowserIntent.UpdatePopupViewState(PopupViewSate.Options))
+      viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(true))
     }
     NavigatorButton(
-      resId = R.drawable.ic_main_multi,
-      resName = R.string.browser_nav_home,
-      show = true //navigator?.let { true } ?: false
+      resId = R.drawable.ic_main_option, resName = R.string.browser_nav_option, show = true
     ) {
-      onHome() // 打开主页
+      scope.launch { viewModel.uiState.modalBottomSheetState.show() }
     }
   }
 }
@@ -247,11 +239,8 @@ private fun RowScope.NavigatorButton(
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BrowserViewContentMain(
-  viewModel: BrowserViewModel, browserMainView: BrowserMainView, pagerStateSearch: PagerState
-) {
+private fun BrowserViewContentMain(viewModel: BrowserViewModel, browserMainView: BrowserMainView) {
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -259,13 +248,6 @@ private fun BrowserViewContentMain(
   ) {
     BrowserMainView(viewModel, browserMainView)
   }
-  /*if (!browserMainView.show.value) {
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(Color.White.copy(pagerStateSearch.currentPageOffset))
-    )
-  }*/
 }
 
 @Composable
