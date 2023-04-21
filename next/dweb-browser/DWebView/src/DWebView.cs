@@ -65,7 +65,7 @@ public partial class DWebView : WKWebView
     /// <summary>
     ///  这段代码使用 MessageChannelShim.ts 文件来生成，到 https://www.typescriptlang.org/play 粘贴这个文件的代码即可
     /// </summary>
-    static readonly string webMessagePortPrepareCode = @"
+    static readonly string webMessagePortPrepareCode = $$"""
 const ALL_PORT = new Map();
 let portIdAcc = 1;
 const PORTS_ID = new WeakMap();
@@ -113,7 +113,7 @@ function nativeWindowPostMessage(data, ports_id) {
     dispatchEvent(new MessageEvent('message', { data, ports }));
 }
 
-    ";
+    """;
     internal static readonly WKContentWorld webMessagePortContentWorld = WKContentWorld.Create("web-message-port");
     internal static Dictionary<int, WebMessagePort> allPorts = new Dictionary<int, WebMessagePort>();
 
@@ -152,7 +152,7 @@ function nativeWindowPostMessage(data, ports_id) {
             await base.EvaluateJavaScriptAsync(new NSString(webMessagePortPrepareCode), null, webMessagePortContentWorld);
             base.Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld, "webMessagePort");
         }
-        var ports_id = (NSArray)await base.EvaluateJavaScriptAsync(@"nativeCreateMessageChannel()", null, webMessagePortContentWorld);
+        var ports_id = (NSArray)await base.EvaluateJavaScriptAsync("nativeCreateMessageChannel()", null, webMessagePortContentWorld);
 
         var port1_id = (int)ports_id.GetItem<NSNumber>(0);
         var port2_id = (int)ports_id.GetItem<NSNumber>(1);

@@ -60,7 +60,7 @@ public class AppDelegate : UIApplicationDelegate
             if (request.RequestUri?.AbsolutePath is "/index.html")
             {
                 var response = new HttpResponseMessage(HttpStatusCode.OK);
-                response.Content = new StringContent(@"
+                response.Content = new StringContent($$"""
                     <h1>你好!!</h1>
                     <h1>你好!!</h1>
                     <h1>你好!!</h1>
@@ -71,13 +71,13 @@ public class AppDelegate : UIApplicationDelegate
                     <script>
                     var a = 1;
                     addEventListener('message',(event)=>{
-                        const ele = document.createElement(""h1"");
+                        const ele = document.createElement("h1");
                         ele.style.color = 'red';
-                        ele.innerHTML = [event.data,...event.ports].join("" "");
+                        ele.innerHTML = [event.data,...event.ports].join(" ");
                         document.body.insertBefore(ele, document.body.firstChild);
                     });
                     </script>
-                    ", new MediaTypeHeaderValue("text/html", "utf-8"));
+                    """, new MediaTypeHeaderValue("text/html", "utf-8"));
                 return response;
             }
             else if (request.RequestUri?.AbsolutePath is "/hi.png")
@@ -101,19 +101,6 @@ public class AppDelegate : UIApplicationDelegate
         NetServer.HttpCreateServer(new ListenOptions(20222), httpHanlder);
         var dwebview = new DWebView(vc.View?.Frame, localeNmm, localeNmm, new DWebView.Options("https://test.sys.dweb/index.html"), null);
         vc.View!.AddSubview(dwebview);
-        ////webviewHelper.webview.LoadRequest(new NSUrlRequest(new NSUrl("https://news.cnblogs.com")));
-        //WebKit.WKNavigation wKNavigation = dwebview.LoadSimulatedRequest(new NSUrlRequest(new NSUrl("https://baidu.com")), @"
-        //<h1>你好</h1>
-        //<script>
-        //var a = 1;
-        //addEventListener('message',(event)=>{
-        //    const ele = document.createElement(""h1"");
-        //    ele.style.color = 'red';
-        //    ele.innerHTML = [event.data,...event.ports].join("" "");
-        //    document.body.insertBefore(ele, document.body.firstChild);
-        //});
-        //</script>
-        //");
 
         var btn = new UIButton();
         btn.SetTitle("创建Channel", UIControlState.Normal);
