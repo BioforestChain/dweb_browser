@@ -70,7 +70,7 @@ dns.install(new BootNMM([
   "navigation-bar.nativeui.sys.dweb",
   "safe-area.nativeui.sys.dweb",
   "virtual-keyboard.nativeui.sys.dweb",
-  "barcode-scanning.nativeui.sys.dweb",
+  "barcode-scanning.sys.dweb",
   "toast.nativeui.sys.dweb",
   "browser.sys.dweb"
   // cotDemoJMM.mmid

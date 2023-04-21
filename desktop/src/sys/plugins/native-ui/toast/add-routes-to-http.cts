@@ -42,7 +42,6 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<ToastNMM>{
     const id = this._allcId++;
     this._reqs.set(id, data)
     const searchParams = querystring.parse(data.url);
-    console.log('---id: ', id)
     this._postMessageToUI(
       JSON.stringify({
         action: "operation",
@@ -55,7 +54,11 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<ToastNMM>{
         from: data.headers.origin,
         id: id
       }),
-      data.headers.origin
+      data.headers.origin,
+      {
+        ...data.headers,
+        bodyType: "application/json"
+      }
     )
   }
 

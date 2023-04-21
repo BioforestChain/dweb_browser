@@ -456,20 +456,25 @@ export class HttpServerNMM extends NativeMicroModule {
         const res = value.res?.get(data.to)
         if(!res) continue;
         let _data: any;
-        if(data.headers?.bodyType === "JSON"){
-          _data = data.body
+        console.log('data', data, data.headers?.bodyType)
+        if(data.headers?.bodyType.includes('json')){
+          _data = Buffer.from(data.body as unknown as Buffer)
         }else if(data.headers?.bodyType === "Uint8Array"){
           _data = Uint8Array.from(Object.values(data.body));
         }else if(data.headers?.bodyType === "Object"){
           _data = JSON.stringify(data.body)
-        }else if(data.headers?.bodyType === "string"){
+        }else if(data.headers?.bodyType.includes('text/plain')){
           _data = data.body
+        }else if(data.headers?.bodyType.includes('image/png')){
+          _data = Buffer.from(data.body as unknown as Buffer)
         }else{
           log.red(`[http-server ipcEventOnStateSend 非法的 bodyType]`)
           console.log(data)
           throw new Error(`http-server ipcEventOnStateSend 非法的 bodyType ${data.headers?.bodyType}`)
         }
+        console.log("--_data: ", _data)
         res.write(_data)
+        console.log('data.done: ', data.done)
         if(!data.done)continue;
         res.end()
         value.res?.delete(data.to)

@@ -275,6 +275,17 @@ export class MultiWebViewContent extends LitElement{
                     }}
                     data-app-url=${this.src}
                 ></iframe>
+                <iframe 
+                    id="barcode-scanning"
+                    class="iframe-barcode-scanning"
+                    style="width:100%; height:100px; border:1px solid red; flex-grow:0; flex-shrink:0; overflow: hidden; position: absolute; left: 0px; bottom: 0px; z-index: 100;"
+                    src="http://barcode-scanning.sys.dweb-80.localhost:22605"
+                    @load=${(e: Event) => {
+                        console.log('barcode-scanning 载入完成')
+                        this.onPluginNativeUiLoadBase(e)
+                    }}
+                    data-app-url=${this.src}
+                ></iframe>
             </div>
         `
     }

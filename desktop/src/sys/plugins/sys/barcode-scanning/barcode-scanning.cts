@@ -12,7 +12,7 @@ import type { $BootstrapContext } from "../../../../core/bootstrapContext.cjs"
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
 export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
-  mmid = "barcode-scanning.nativeui.sys.dweb" as const;
+  mmid = "barcode-scanning.sys.dweb" as const;
   httpIpc: Ipc | undefined
  
   private _uid_wapis_map = new Map<

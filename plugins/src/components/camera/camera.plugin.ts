@@ -13,13 +13,19 @@ export class CameraPlugin extends BasePlugin {
   */
   @bindThis
   async getPhoto(options: ImageOptions) {
+    console.log('--')
     return await this.fetchApi("/getPhoto", {
       search: {
         resultType: options.resultType,
         source: options.source,
         quality: options.quality
       }
-    }).binary()
+    })
+    // .then(
+    //   res => console.log('res: ', res),
+    //   err => console.log('err: ', err)
+    // )
+    .binary()
   }
 }
 

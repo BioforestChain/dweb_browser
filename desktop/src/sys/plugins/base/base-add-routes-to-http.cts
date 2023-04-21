@@ -136,10 +136,11 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           matchMode: _d.matchMode,
           method: _d.method,
           done: true,
-          headers:{
-            bodyType: "JSON"
+          headers: {
+            ...data.headers,
+            bodyType: data.headers['content-type']
           },
-          body: new TextDecoder().decode(Buffer.from(data.body)),
+          body: data.body,
           to: _d.headers.origin // 发送那个 app 对应 virtual-keyboard
         })
       )
@@ -177,6 +178,7 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           method: observe.method,
           done: false,
           headers: {
+            ...data.headers,
             bodyType: "Uint8Array"
           },
           body: this._encoder.encode(new TextDecoder().decode(Buffer.from(data.body))+"\n"),
@@ -237,7 +239,8 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           method: data.method,
           done: true,
           headers:{
-            bodyType: "string"
+            ...data.headers,
+            bodyType: "text/plain"
           },
           body:"",
           to: app_url
@@ -264,7 +267,8 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           method: data.method,
           done: true,
           headers:{
-            bodyType: "string"
+            ...data.headers,
+            bodyType: "text/plain"
           },
           body:"",
           to: app_url
@@ -302,7 +306,11 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
         from: data.headers.origin,
         id: id
       }),
-      data.headers.origin
+      data.headers.origin,
+      {
+        ...data.headers,
+        bodyType: "application/json"
+      }
     )
   }
 
@@ -328,7 +336,11 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           from: data.headers.origin,
           id: id
         }),
-        data.headers.origin
+        data.headers.origin,
+        {
+          ...data.headers,
+          bodyType: "application/json"
+        }
       )
     }
     
@@ -341,7 +353,11 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           from: data.headers.origin,
           id: id
         }),
-        data.headers.origin
+        data.headers.origin,
+        {
+          ...data.headers,
+          bodyType: "application/json"
+        }
       )
     }
 
@@ -354,7 +370,11 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           from: data.headers.origin,
           id: id
         }),
-        data.headers.origin
+        data.headers.origin,
+        {
+          ...data.headers,
+          bodyType: "application/json"
+        }
       )
     }
 
@@ -367,7 +387,11 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           from: data.headers.origin,
           id: id
         }),
-        data.headers.origin
+        data.headers.origin,
+        {
+          ...data.headers,
+          bodyType: "application/json"
+        }
       )
     }
 
@@ -379,7 +403,7 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
    * @param body 
    * @param from 
    */
-  protected _postMessageToUI = async (body: string /** JSON.STRING */, from: string) => {
+  protected _postMessageToUI = async (body: string /** JSON.STRING */, from: string, headers: unknown) => {
     const route = this._waitForOperationRequestDistributeIpcEventData.get(from)
     if(route === undefined){
       console.log(this._waitForOperationRequestDistributeIpcEventData)
@@ -395,9 +419,7 @@ export abstract class BaseAddRoutesToHttp<T extends NativeMicroModule>{
           matchMode: route.matchMode,
           method: route.method,
           done: false,
-          headers:{
-            bodyType: "JSON"
-          },
+          headers: headers,
           body: body
         })
       )

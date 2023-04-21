@@ -12,6 +12,22 @@ export const routes :$BaseRoute[] = [
         matchMode: "prefix",
         method: "POST"
     },
+    {
+        pathname: "/barcode-scanning-ui/wait_for_operation",
+        matchMode: "prefix",
+        method: "GET"
+    },
+    {
+        pathname: "/barcode-scanning-ui/operation_return",
+        matchMode: "prefix",
+        method: "POST"
+    },
+    {
+        pathname: "/camera.sys.dweb/getPhoto",
+        matchMode: "prefix",
+        method: "GET"
+    }
+
 ]
 
 

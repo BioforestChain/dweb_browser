@@ -27,6 +27,16 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<BarcodeScanningNativeUi
       case "/barcode-scanning.sys.dweb/process":
           this._httpIpcOnEventRequestDistributeProcess(data, httpIpc);
           break;
+      case "/barcode-scanning-ui/wait_for_operation":
+        this._httpIpcOnEventRequestDistributeWaitForOperationBase(data, httpIpc);
+        break;
+      case "/barcode-scanning-ui/operation_return":
+        this._httpIpcOnEventRequestDistributeOperationReturnBase(data, httpIpc)
+        break;
+      case "/camera.sys.dweb/getPhoto":
+        this._httpIpcOnEventRequestDistributeGetPhoto(data, httpIpc)
+        console.log('"/camera.sys.dweb/getPhoto": ', ipcEvent)
+        break;
       default: throw new Error(`${this._nmm.mmid} http-connect _httpIpcOnEventRequestDistribute 还有没有处理的路由 ${pathname}`)
     }
   }
@@ -59,7 +69,8 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<BarcodeScanningNativeUi
           method: data.method,
           done: true,
           headers:{
-            bodyType: "string"
+            ...data.headers,
+            bodyType: "text/plain"
           },
           body: "",
           to: data.headers.origin // 发送那个 app 对应 virtual-keyboard
@@ -89,7 +100,8 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<BarcodeScanningNativeUi
               method: data.method,
               done: true,
               headers:{
-                bodyType: "string"
+                ...data.headers,
+                bodyType: "text/plain"
               },
               body: JSON.stringify(result === null ? []: [result.data]),
               to: data.headers.origin // 发送那个 app 对应 virtual-keyboard
@@ -97,5 +109,27 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<BarcodeScanningNativeUi
           )
         )
       })
-    };
+  };
+
+  private _httpIpcOnEventRequestDistributeGetPhoto = async (data: $RequestDistributeIpcEventData, httpIpc: Ipc) => {
+    // 向 UI 发送选择文件的请求
+    const id = this._allcId++;
+    this._reqs.set(id, data)
+    this._postMessageToUI(
+      JSON.stringify({
+        action: "operation",
+        operationName: "getPhoto",
+        value: "",
+        from: data.headers.origin,
+        id: id
+      }),
+      data.headers.origin,
+      {
+        ...data.headers,
+        bodyType: "application/json"
+      }
+    )
   }
+}
+
+  
