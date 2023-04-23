@@ -72,7 +72,7 @@ export class NetworkPlugin extends BaseEvent<keyof NetworkStatusMap> {
       connected: true,
       connectionType: connectionType,
     };
-
+    this.notifyListeners("onLine", new Event("onLine"));
     this.notifyListeners("change", status);
   };
 
@@ -81,7 +81,7 @@ export class NetworkPlugin extends BaseEvent<keyof NetworkStatusMap> {
       connected: false,
       connectionType: "none",
     };
-
+    this.notifyListeners("offLine", new Event("offLine"));
     this.notifyListeners("change", status);
   };
 }

@@ -1,5 +1,7 @@
 export interface NetworkStatusMap {
   change: ConnectionStatus;
+  onLine: Event,
+  offLine:Event
 }
 
 /**

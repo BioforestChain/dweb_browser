@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { dwebServiceWorker } from "@bfex/plugin"
 import { routes } from "./routes";
 
 const router = useRouter();
@@ -8,8 +9,16 @@ const router = useRouter();
 // router.push("/biometrics")
 // router.push("/serviceworker")
 // router.push("/share");
-// router.push("/barcodescanning");
-router.push("/network");
+router.push("/barcodescanning");
+// router.push("/network");
+
+dwebServiceWorker.addEventListener("pause", (event) => {
+  console.log("app暂停🍋", event)
+})
+
+dwebServiceWorker.addEventListener("resume", (event) => {
+  console.log("app 恢复🍉", event)
+})
 
 
 const drawer_controller = ref(false);

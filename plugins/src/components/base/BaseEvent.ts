@@ -91,12 +91,12 @@ export class BaseEvent<K extends string> extends EventTarget {
     handle.registered = false;
   }
   /**是否存在 */
-  protected hasListeners(eventName: string): boolean {
+  protected hasListeners(eventName: K): boolean {
     return !!this.app_kit._listeners[eventName].length;
   }
 
   // deno-lint-ignore no-explicit-any
-  protected notifyListeners(eventName: string, data: any): void {
+  protected notifyListeners(eventName: K, data: any): void {
     const listeners = this.app_kit._listeners[eventName];
     if (listeners) {
       listeners.forEach((listener) => listener(data));

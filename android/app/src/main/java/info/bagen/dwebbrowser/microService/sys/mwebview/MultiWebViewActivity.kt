@@ -30,6 +30,7 @@ import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM.Companio
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -137,14 +138,14 @@ open class MultiWebViewActivity : PermissionActivity() {
 
     override fun onResume() {
         super.onResume()
-        runBlockingCatching(ioAsyncExceptionHandler) {
-            emitEvent(remoteMmid, ServiceWorkerEvent.Resume.event, """new Event("resume")""")
+        GlobalScope.launch(ioAsyncExceptionHandler) {
+            emitEvent(remoteMmid, ServiceWorkerEvent.Resume.event)
         }
     }
 
     override fun onPause() {
         super.onPause()
-        runBlockingCatching(ioAsyncExceptionHandler) {
+        GlobalScope.launch(ioAsyncExceptionHandler) {
             emitEvent(remoteMmid, ServiceWorkerEvent.Pause.event, """new Event("pause")""")
         }
     }
