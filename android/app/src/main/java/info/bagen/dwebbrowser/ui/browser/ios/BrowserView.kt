@@ -22,8 +22,10 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -31,6 +33,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -42,7 +45,6 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
-import info.bagen.dwebbrowser.ui.entity.PopupViewSate
 import info.bagen.dwebbrowser.ui.theme.Blue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -70,7 +72,7 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
 fun BrowserView(viewModel: BrowserViewModel) {
   Box(modifier = Modifier.fillMaxSize()) {
     BrowserViewContent(viewModel)   // 中间主体部分
-    // BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
+    BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
     BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
     BrowserPopView(viewModel)       // 用于处理弹出框
     BrowserMultiPopupView(viewModel)// 用于显示多界面
@@ -178,7 +180,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
@@ -206,7 +208,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       resId = navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
       resName = navigator?.let { R.string.browser_nav_add } ?: R.string.browser_nav_scan,
       show = true
-    ) { /* TODO 将当前的地址添加到书签 */ }
+    ) {  }
     NavigatorButton(
       resId = R.drawable.ic_main_multi, resName = R.string.browser_nav_multi, show = true
     ) {
@@ -215,7 +217,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
     NavigatorButton(
       resId = R.drawable.ic_main_option, resName = R.string.browser_nav_option, show = true
     ) {
-      scope.launch { viewModel.uiState.modalBottomSheetState.show() }
+      scope.launch { viewModel.uiState.modalBottomSheetState.partialExpand() }
     }
   }
 }
@@ -325,6 +327,7 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
   }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun SearchTextField(
   viewModel: BrowserViewModel,
@@ -334,6 +337,7 @@ private fun SearchTextField(
   search: (String) -> Unit
 ) {
   val focusManager = LocalFocusManager.current
+  val keyboardController = LocalSoftwareKeyboardController.current
   val currentText = remember { mutableStateOf(if (focus.value) inputText.value else "") }
 
   BasicTextField(
@@ -341,6 +345,7 @@ private fun SearchTextField(
     onValueChange = {
       currentText.value = it
       viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(it.isNotEmpty()))
+      viewModel.handleIntent(BrowserIntent.UpdateInputText(it))
     },
     readOnly = false,
     enabled = true,
@@ -349,30 +354,36 @@ private fun SearchTextField(
       .padding(horizontal = dimenSearchVerticalAlign)
       .onFocusChanged {
         focus.value = it.isFocused
-        if (!it.isFocused) {
-          currentText.value = ""
+        val text = if (!it.isFocused) {
+          ""
         } else {
-          currentText.value =
-            parseInputText(inputText.value, host = false) ?: inputText.value
+          parseInputText(inputText.value, host = false) ?: inputText.value
         }
+        currentText.value = text
+        viewModel.handleIntent(BrowserIntent.UpdateInputText(text))
       },
     singleLine = true,
     textStyle = TextStyle.Default.copy(
       color = MaterialTheme.colors.onPrimary, fontSize = dimenTextFieldFontSize
     ),
-    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-    keyboardActions = KeyboardActions(onSearch = {
-      if (currentText.value.isEmpty()) return@KeyboardActions
-      if (currentText.value != inputText.value) {
-        val requestUrl = Uri.parse(currentText.value)?.let { uri ->
-          if ((uri.scheme == "http" || uri.scheme == "https") && uri.host?.isNotEmpty() == true) {
-            currentText.value
-          } else null
-        } ?: "https://cn.bing.com/search?q=${currentText.value}"
-        search(requestUrl)
+    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done/*ImeAction.Search*/),
+    keyboardActions = KeyboardActions(
+      onDone = {
+        keyboardController?.hide()
+      },
+      onSearch = {
+        if (currentText.value.isEmpty()) return@KeyboardActions
+        if (currentText.value != inputText.value) {
+          val requestUrl = Uri.parse(currentText.value)?.let { uri ->
+            if ((uri.scheme == "http" || uri.scheme == "https") && uri.host?.isNotEmpty() == true) {
+              currentText.value
+            } else null
+          } ?: "https://cn.bing.com/search?q=${currentText.value}"
+          search(requestUrl)
+        }
+        focusManager.clearFocus() // 取消聚焦，就会间接的隐藏键盘
       }
-      focusManager.clearFocus() // 取消聚焦，就会间接的隐藏键盘
-    })
+    )
   ) { innerTextField ->
     Box {
       Surface(modifier = Modifier.align(Alignment.Center)) {
@@ -415,17 +426,18 @@ private fun SearchTextField(
             Icon(imageVector = Icons.Outlined.Close,
               contentDescription = null,
               tint = MaterialTheme.colors.onSecondary,
-              modifier = Modifier.clickable {
+              modifier = Modifier.size(25.dp).clickable {
                 currentText.value = ""
+                viewModel.handleIntent(BrowserIntent.UpdateInputText(""))
                 viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
               })
-          } else if (showCamera) {
+          }/* else if (showCamera) {
             Icon(
               imageVector = ImageVector.vectorResource(id = R.drawable.ic_photo_camera_24),
               contentDescription = null,
               tint = MaterialTheme.colors.onSecondary,
             )
-          }
+          }*/
         }
       }
     }
@@ -450,6 +462,7 @@ private fun BrowserViewSearchMain(
   viewModel: BrowserViewModel, browserMainView: BrowserMainView, pagerState: PagerState
 ) {
   SearchBox(viewModel, browserMainView, showCamera = true) { url ->
+    viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false)) // 隐藏搜索内容
     viewModel.handleIntent(BrowserIntent.AddNewWebView(url))
   }
   // TODO 这边考虑加一层遮罩，颜色随着滑动而显示
@@ -465,6 +478,7 @@ private fun BrowserViewSearchMain(
 @Composable
 private fun BrowserViewSearchWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
   SearchBox(viewModel, browserWebView, showCamera = false) { url ->
+    viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false)) // 隐藏搜索内容
     viewModel.handleIntent(BrowserIntent.SearchWebView(url))
   }
 }

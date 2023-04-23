@@ -66,12 +66,12 @@ internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: Brows
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-private fun HomePage() {
+fun HomePage() {
   val localConfiguration = LocalConfiguration.current.screenWidthDp.dp
   Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
       AsyncImage(
-        model = R.mipmap.ic_launcher,
+        model = R.drawable.ic_launcher,
         contentDescription = "home",
         modifier = Modifier.size(localConfiguration / 3)
       )
