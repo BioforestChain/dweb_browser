@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.ipc.*
-import info.bagen.dwebbrowser.microService.helper.fromUtf8
+import info.bagen.dwebbrowser.microService.helper.toUtf8
 import info.bagen.dwebbrowser.microService.helper.readByteArray
 import info.bagen.dwebbrowser.microService.helper.text
 import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
@@ -134,7 +134,7 @@ class NativeIpcTest : AsyncBase() {
                 println("开始发送 $i")
                 val chunk = "[$i]"
                 body += chunk
-                controller.enqueue(chunk.fromUtf8())
+                controller.enqueue(chunk.toByteArray())
             }
             controller.close()
         }

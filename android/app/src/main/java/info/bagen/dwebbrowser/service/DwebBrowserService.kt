@@ -26,7 +26,7 @@ import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.sys.jmm.DownLoadObserver
 import info.bagen.dwebbrowser.microService.sys.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.*
-import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.DownloadControllerEvent
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.app.AppViewIntent
 import info.bagen.dwebbrowser.ui.app.AppViewModel
@@ -109,19 +109,19 @@ class DwebBrowserService : Service() {
     )
     DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     GlobalScope.launch(Dispatchers.IO) {
-      sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Start.event) // 通知前台，开始下载
+      sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.downloadAndSave(
         downLoadInfo.jmmMetadata.downloadUrl, File(downLoadInfo.path),
         isStop = {
           when (downLoadInfo.downLoadStatus) {
             DownLoadStatus.PAUSE -> {
               DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
-              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Pause.event) // 通知前台，暂停下载
+              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Pause.event) // 通知前台，暂停下载
               true
             }
             DownLoadStatus.CANCEL -> {
               DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
-              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Cancel.event) // 通知前台，取消下载
+              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Cancel.event) // 通知前台，取消下载
               downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // TODO 如果取消的话，那么就置为空
               true
             }
@@ -139,19 +139,19 @@ class DwebBrowserService : Service() {
   @OptIn(DelicateCoroutinesApi::class)
   private fun breakPointDownLoadAndSave(downLoadInfo: DownLoadInfo) {
     GlobalScope.launch(Dispatchers.IO) {
-      sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Start.event) // 通知前台，开始下载
+      sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.breakpointDownloadAndSave(
         downLoadInfo.jmmMetadata.downloadUrl, File(downLoadInfo.path), downLoadInfo.size,
         isStop = {
           when (downLoadInfo.downLoadStatus) {
             DownLoadStatus.PAUSE -> {
               DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
-              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Pause.event) // 通知前台，暂停下载
+              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Pause.event) // 通知前台，暂停下载
               true
             }
             DownLoadStatus.CANCEL -> {
               DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
-              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, ServiceWorkerEvent.Cancel.event) // 通知前台，取消下载
+              sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Cancel.event) // 通知前台，取消下载
               downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // TODO 如果取消的话，那么就置为空
               true
             }
@@ -174,7 +174,7 @@ class DwebBrowserService : Service() {
     )
     DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.DownLoading, current, total)
     val mmid = this.jmmMetadata.id
-    sendStatusToEmitEvent(mmid, ServiceWorkerEvent.Progress.event, "${(current * 1.0 / total * 100).toInt()}") // 通知前台，下载进度
+    sendStatusToEmitEvent(mmid, DownloadControllerEvent.Progress.event, "${(current * 1.0 / total * 100).toInt()}") // 通知前台，下载进度
 
     if (current == total) {
       this.downLoadStatus = DownLoadStatus.DownLoadComplete
@@ -202,11 +202,11 @@ class DwebBrowserService : Service() {
         // TODO 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
         // BrowserNMM.getBrowserController().installApp(jmmMetadata.id)
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.INSTALLED)
-        sendStatusToEmitEvent(this.jmmMetadata.id, ServiceWorkerEvent.End.event)
+        sendStatusToEmitEvent(this.jmmMetadata.id, DownloadControllerEvent.End.event)
         this.downLoadStatus = DownLoadStatus.INSTALLED
       } else {
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)
-        sendStatusToEmitEvent(this.jmmMetadata.id, ServiceWorkerEvent.End.event)
+        sendStatusToEmitEvent(this.jmmMetadata.id, DownloadControllerEvent.End.event)
         this.downLoadStatus = DownLoadStatus.FAIL
       }
       downloadMap.remove(jmmMetadata.id) // 下载完成后需要移除

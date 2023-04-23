@@ -12,6 +12,14 @@ onMounted(async () => {
   sw.addEventListener("updatefound", (event) => {
     console.log("Dweb Service Worker update found!", event);
   })
+  // app暂停触发事件（这个时候后台还会运行，前端界面被关闭）
+  sw.addEventListener("pause", (event) => {
+    console.log("app pause", event);
+  })
+  // app恢复触发事件
+  sw.addEventListener("resume", (event) => {
+    console.log("app resume", event)
+  })
 
   sw.addEventListener("fetch", async (event) => {
     console.log("Dweb Service Worker fetch!", event.clientId);

@@ -9,6 +9,13 @@ public class ReadableStreamIpc : Ipc
     {
         Remote = remote;
         Role = role;
+
+        Stream = new ReadableStream(
+            Role,
+            controller => _controller = controller,
+            args =>
+                Console.WriteLine($"ON-PULL/{args.Item2.Stream}", args.Item1),
+            Console.WriteLine);
     }
 
     public override MicroModuleInfo Remote { get; set; }
@@ -53,18 +60,7 @@ public class ReadableStreamIpc : Ipc
     /// <seealso cref="https://stackoverflow.com/questions/60812587/c-sharp-non-nullable-field-lateinit"/>
     private ReadableStream.ReadableStreamController _controller = null!;
 
-    public ReadableStream Stream
-    {
-        get
-        {
-            return new ReadableStream(
-                Role,
-                controller => _controller = controller,
-                args =>
-                    Console.WriteLine($"ON-PULL/{args.Item2.Stream}", args.Item1),
-                Console.WriteLine);
-        }
-    }
+    public ReadableStream Stream { get; init; }
 
     private Task EnqueueAsync(byte[] data) => _controller.EnqueueAsync(data);
 
@@ -80,7 +76,7 @@ public class ReadableStreamIpc : Ipc
         }
     }
 
-    protected event Signal<IpcMessage, ReadableStreamIpc>? _onMessage;
+    //protected event Signal<IpcMessage, ReadableStreamIpc>? _onMessage;
 
     /**
      * <summary>
@@ -116,9 +112,10 @@ public class ReadableStreamIpc : Ipc
                 }
 
                 Console.WriteLine($"size/{stream}", size);
+                var buffer = await stream.ReadBytesAsync(size);
 
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                var message = MessageToIpcMessage.JsonToIpcMessage(await stream.ReadBytesAsync(size), this);
+                var message = MessageToIpcMessage.JsonToIpcMessage(buffer, this);
                 switch (message)
                 {
                     case "close":
@@ -131,8 +128,9 @@ public class ReadableStreamIpc : Ipc
                         Console.WriteLine($"PONG/{stream}");
                         break;
                     case IpcMessage ipcMessage:
-                        Console.WriteLine($"ON-MESSAGE/{this}", ipcMessage);
-                        await (_onMessage?.Emit(ipcMessage, this)).ForAwait();
+                        Console.WriteLine($"ON-MESSAGE/{this} {ipcMessage}");
+                        //await (_onMessage?.Emit(ipcMessage, this)).ForAwait();
+                        await _OnMessageEmit(ipcMessage, this);
                         break;
                     default:
                         throw new Exception($"unknown message: {message}");

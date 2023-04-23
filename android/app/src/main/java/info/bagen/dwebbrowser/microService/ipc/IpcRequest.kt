@@ -35,7 +35,7 @@ class IpcRequest(
             url,
             method,
             headers,// 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
-            IpcBodySender.from(text, ipc),
+            IpcBodySender.fromText(text, ipc),
             ipc,
         );
 
@@ -54,7 +54,7 @@ class IpcRequest(
                 headers.init("Content-Type", "application/octet-stream");
                 headers.init("Content-Length", binary.size.toString());
             },
-            IpcBodySender.from(binary, ipc),
+            IpcBodySender.fromBinary(binary, ipc),
             ipc,
         )
 
@@ -76,7 +76,7 @@ class IpcRequest(
                     headers.init("Content-Length", size.toString());
                 }
             },
-            IpcBodySender.from(stream, ipc),
+            IpcBodySender.fromStream(stream, ipc),
             ipc,
         )
 
@@ -88,11 +88,11 @@ class IpcRequest(
             IpcMethod.from(request.method),
             IpcHeaders(request.headers),
             if (request.method == Method.GET || request.method == Method.HEAD) {
-                IpcBodySender.from("", ipc)
+                IpcBodySender.fromText("", ipc)
             } else when (request.body.length) {
-                0L -> IpcBodySender.from("", ipc)
-                null -> IpcBodySender.from(request.body.stream, ipc)
-                else -> IpcBodySender.from(request.body.payload.array(), ipc)
+                0L -> IpcBodySender.fromText("", ipc)
+                null -> IpcBodySender.fromStream(request.body.stream, ipc)
+                else -> IpcBodySender.fromBinary(request.body.payload.array(), ipc)
             },
             ipc,
         )

@@ -1,15 +1,16 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
+import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.SwipeableDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -34,37 +35,40 @@ import java.util.concurrent.atomic.AtomicInteger
 
 data class BrowserUIState @OptIn(
   ExperimentalFoundationApi::class,
-  ExperimentalMaterialApi::class
+  ExperimentalMaterial3Api::class
 ) constructor(
-  val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(),
+  val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(), // 多浏览器列表
+  val historyWebsiteMap: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf(), // 历史列表
+  val bookWebsiteList: MutableList<WebSiteInfo> = mutableStateListOf(), // 书签列表
+  val hotLinkList: MutableList<HotspotInfo> = mutableStateListOf(), // 热点列表， 目前已舍弃，后续可移除
   val currentBrowserBaseView: MutableState<BrowserBaseView>,
   val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
   val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
-  val hotLinkList: MutableList<HotspotInfo> = mutableStateListOf(),
-  val popupViewState: MutableState<PopupViewSate> = mutableStateOf(PopupViewSate.Options),
+  val popupViewState: MutableState<PopupViewState> = mutableStateOf(PopupViewState.Options),
   val myInstallApp: MutableList<JmmMetadata> = mutableStateListOf(),
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
-  val modalBottomSheetState: ModalBottomSheetState = ModalBottomSheetState(
-    initialValue = ModalBottomSheetValue.Hidden, animationSpec = SwipeableDefaults.AnimationSpec,
-    isSkipHalfExpanded = false, confirmValueChange = { true }), // 用于显示“选项”菜单
+  val modalBottomSheetState: SheetState = SheetState(skipPartiallyExpanded = false), // 用于显示“选项”菜单
+  val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
 )
 
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
   object WebViewGoBack : BrowserIntent()
-  class UpdatePopupViewState(val state: PopupViewSate) : BrowserIntent()
+  class UpdatePopupViewState(val state: PopupViewState) : BrowserIntent()
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
   class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
   class UpdateSearchEngineState(val show: Boolean) : BrowserIntent()
-  class UpdateOptionScaffoldState(val show: Boolean) : BrowserIntent()
   class AddNewWebView(val url: String) : BrowserIntent()
   class SearchWebView(val url: String) : BrowserIntent()
   class RemoveBaseView(val id: Int) : BrowserIntent()
   class OpenDwebBrowser(val mmid: Mmid) : BrowserIntent()
-  class SaveNewWebSiteInfo(val title: String?, val url: String?) : BrowserIntent()
+  class SaveHistoryWebSiteInfo(val title: String?, val url: String?) : BrowserIntent()
+  object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
+  object ShareWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
+  class UpdateInputText(val text: String) : BrowserIntent()
 }
 
 class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
@@ -75,11 +79,11 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
   }
 
   init {
-    val browserMainView = info.bagen.dwebbrowser.ui.entity.BrowserMainView()
+    val browserMainView = BrowserMainView()
     uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
     uiState.browserViewList.add(browserMainView)
     viewModelScope.launch(ioAsyncExceptionHandler) {
-      // loadHotInfo()
+      // loadHotInfo() // 加载热点数据
       async {// 挂在数据变化
         MutableStateFlow(JmmNMM.getAndUpdateJmmNmmApps()).collect {
           uiState.myInstallApp.clear()
@@ -89,7 +93,23 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         }
       }
       async {
-
+        WebsiteDB.queryHistoryWebsiteInfoList().collect {
+          uiState.historyWebsiteMap.clear()
+          Log.e("lin.huang", "获取历史记录 ${it.size}")
+          it.forEach { (key, value) ->
+            Log.e("lin.huang", "获取历史记录：$key, $value ==> ${WebsiteDB.compareWithLocalTime(key)}")
+            uiState.historyWebsiteMap[WebsiteDB.compareWithLocalTime(key)] = value
+          }
+        }
+      }
+      async {
+        WebsiteDB.queryBookWebsiteInfoList().collect {
+          Log.e("lin.huang", "获取书签记录数据 ${it.size}")
+          uiState.bookWebsiteList.clear()
+          it.forEach { websiteInfo ->
+            uiState.bookWebsiteList.add(websiteInfo)
+          }
+        }
       }
     }
   }
@@ -134,16 +154,6 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         is BrowserIntent.UpdateSearchEngineState -> {
           uiState.showSearchEngine.targetState = action.show
         }
-        is BrowserIntent.UpdateOptionScaffoldState -> {
-          Log.e("lin.huang", "UpdateOptionScaffoldState ${action.show}")
-          withContext(mainAsyncExceptionHandler) {
-            if (action.show) {
-              uiState.modalBottomSheetState.show()
-            } else {
-              uiState.modalBottomSheetState.hide()
-            }
-          }
-        }
         is BrowserIntent.AddNewWebView -> {
           // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
           uiState.browserViewList.lastOrNull()?.let {
@@ -180,10 +190,39 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id)
         }
-        is BrowserIntent.SaveNewWebSiteInfo -> {
+        is BrowserIntent.SaveHistoryWebSiteInfo -> {
           action.url?.let {
-            WebsiteDB.saveWebsiteInfo(WebSiteInfo(title = action.title ?: it, url = it))
+            WebsiteDB.saveHistoryWebsiteInfo(
+              WebSiteInfo(title = action.title ?: it, url = it),
+              uiState.historyWebsiteMap[WebsiteDB.compareWithLocalTime(WebsiteDB.currentLocalTime)]
+            )
           }
+        }
+        is BrowserIntent.SaveBookWebSiteInfo -> {
+          uiState.currentBrowserBaseView.value.let {
+            if (it is BrowserWebView) {
+              WebsiteDB.saveBookWebsiteInfo(
+                WebSiteInfo(title = it.state.pageTitle ?: "", url = it.state.lastLoadedUrl ?: ""),
+                uiState.bookWebsiteList
+              )
+            }
+          }
+        }
+        is BrowserIntent.ShareWebSiteInfo -> {
+          uiState.currentBrowserBaseView.value.let {
+            if (it is BrowserWebView) {
+              val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                putExtra(Intent.EXTRA_SUBJECT, "分享") // 分享主题
+                putExtra(Intent.EXTRA_TEXT, it.state.lastLoadedUrl ?: "") // 分享内容
+              }
+              App.appContext.startActivity(Intent.createChooser(shareIntent, "分享"))
+            }
+          }
+        }
+        is BrowserIntent.UpdateInputText -> {
+          uiState.inputText.value = action.text
         }
       }
     }

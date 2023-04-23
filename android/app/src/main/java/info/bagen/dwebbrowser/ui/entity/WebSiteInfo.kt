@@ -50,14 +50,15 @@ data class BrowserWebView(
   val coroutineScope: CoroutineScope
 ) : BrowserBaseView
 
-enum class PopupViewSate(
+enum class PopupViewState(
   private val height: Dp = 0.dp,
-  private val percentage: Float? = null
+  private val percentage: Float? = null,
+  val title: String,
 ) {
-  Options(height = 120.dp),
-  BookList(percentage = 0.9f),
-  HistoryList(percentage = 0.9f),
-  Share(percentage = 0.5f);
+  Options(height = 120.dp, title = "选项"),
+  BookList(percentage = 0.9f, title = "书签列表"),
+  HistoryList(percentage = 0.9f, title = "历史记录"),
+  Share(percentage = 0.5f, title = "分享");
 
   fun getLocalHeight(screenHeight: Dp? = null): Dp {
     return screenHeight?.let { screenHeight ->

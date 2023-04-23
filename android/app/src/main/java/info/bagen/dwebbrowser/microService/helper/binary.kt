@@ -86,9 +86,8 @@ inline fun InputStream.readByteArray(): ByteArray {
     return bytes
 }
 
-inline fun String.fromBase64(): ByteArray = base64Decoder.decode(this)
-
-inline fun String.fromUtf8(): ByteArray = this.toByteArray(Charsets.UTF_8)
+inline fun String.toBase64ByteArray(): ByteArray = base64Decoder.decode(this)
+inline fun String.toUtf8ByteArray(): ByteArray = this.toByteArray(Charsets.UTF_8)
 
 inline fun String.encodeURIComponent(): String = URLEncoder.encode(this, "UTF-8")
     .replace("\\+", "%20")
@@ -133,38 +132,3 @@ inline fun String.decodeURI(): String = URLDecoder.decode(this, "UTF-8")
     .replace(",", "%2C")
     .replace("#", "%23")
 
-
-inline fun Uri.toByteArray(contentResolver: ContentResolver): ByteArray? {
-    var byteArray: ByteArray? = null
-    try {
-        val inputStream = contentResolver.openInputStream(this)
-        if (inputStream != null) {
-            val outputStream = ByteArrayOutputStream()
-            val buffer = ByteArray(1024)
-            var len: Int
-            while (inputStream.read(buffer).also { len = it } != -1) {
-                outputStream.write(buffer, 0, len)
-            }
-            byteArray = outputStream.toByteArray()
-            inputStream.close()
-            outputStream.close()
-        }
-    } catch (e: IOException) {
-        e.printStackTrace()
-    }
-    return byteArray
-}
-
-inline fun Uri.toBitmap(contentResolver: ContentResolver): Bitmap? {
-    var bitmap: Bitmap? = null
-    try {
-        val inputStream = contentResolver.openInputStream(this)
-        if (inputStream != null) {
-            bitmap = BitmapFactory.decodeStream(inputStream)
-            inputStream.close()
-        }
-    } catch (e: IOException) {
-        e.printStackTrace()
-    }
-    return bitmap
-}

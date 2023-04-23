@@ -1,7 +1,7 @@
 import { BasePlugin } from "../base/BasePlugin.ts";
 
 export class ConfigPlugin extends BasePlugin {
-  tagName = "dweb-config";
+  readonly tagName = "dweb-config";
   constructor() {
     super("internal");
   }

@@ -192,7 +192,56 @@ sealed class IpcResMessageConverter : JsonConverter<IpcResMessage>
                     statusCode = reader.GetInt16();
                     break;
                 case "metaBody":
-                    metaBody = (SMetaBody)SMetaBody.FromJson(reader.GetString()!)!;
+                    SMetaBody.IPC_META_BODY_TYPE mtype = default;
+                    int senderUid = default;
+                    string data = default;
+                    string? stream_id = null;
+                    int? receiverUid = null;
+                    string metaId = default;
+
+                    while (reader.Read())
+                    {
+                        if (reader.TokenType == JsonTokenType.StartObject)
+                        {
+                            continue;
+                        }
+
+                        if (reader.TokenType == JsonTokenType.EndObject)
+                        {
+                            metaBody = new SMetaBody(mtype, senderUid, data ?? "", stream_id, receiverUid) { MetaId = metaId ?? "" };
+                            break;
+                        }
+
+                        if (reader.TokenType != JsonTokenType.PropertyName)
+                            throw new JsonException("Expected PropertyName token");
+
+                        var mpropName = reader.GetString();
+
+                        reader.Read();
+
+                        switch (mpropName)
+                        {
+                            case "type":
+                                mtype = (SMetaBody.IPC_META_BODY_TYPE)reader.GetInt64();
+                                break;
+                            case "senderUid":
+                                senderUid = reader.GetInt32();
+                                break;
+                            case "data":
+                                data = reader.GetString() ?? "";
+                                break;
+                            case "streamId":
+                                stream_id = reader.GetString() ?? null;
+                                break;
+                            case "receiverUid":
+                                receiverUid = reader.GetInt32();
+                                break;
+                            case "metaId":
+                                metaId = reader.GetString() ?? "";
+                                break;
+                        }
+                    }
+
                     break;
                 case "headers":
                     while (reader.Read())

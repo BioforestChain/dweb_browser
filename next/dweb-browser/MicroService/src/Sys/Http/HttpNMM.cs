@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using DwebBrowser.Helper;
 
 namespace DwebBrowser.MicroService.Sys.Http;
 
@@ -82,17 +83,9 @@ public class HttpNMM : NativeMicroModule
          * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
          * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
          */
-        var response = _gatewayMap.GetValueOrDefault(host)?.Let(gateway =>
-        {
-            return gateway.Listener.HookHttpRequestAsync(request);
-        });
+        var response = await (_gatewayMap.GetValueOrDefault(host)?.Listener.HookHttpRequestAsync(request)).ForAwait(default);
 
-        var notFound = new HttpResponseMessage(HttpStatusCode.NotFound);
-
-        return response is not null
-            ? (await response) is not null
-                ? (await response)! : notFound
-            : notFound;
+        return response ?? new HttpResponseMessage(HttpStatusCode.NotFound);
     }
 
     private string? _dwebHostRegex(string? str)
@@ -243,7 +236,8 @@ public class HttpNMM : NativeMicroModule
 
         foreach (var routeConfig in routes)
         {
-            streamIpc.OnClose += async (_) => gateway.Listener.AddRouter(routeConfig, streamIpc);
+            var offRouter = gateway.Listener.AddRouter(routeConfig, streamIpc);
+            streamIpc.OnClose += async (_) => offRouter();
         }
 
         return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>

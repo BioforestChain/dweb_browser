@@ -137,8 +137,12 @@ object PermissionUtil {
   fun getActualPermissions(permissions: ArrayList<String>): ArrayList<String> {
     val actualPermissions = arrayListOf<String>()
     permissions.forEach { permission ->
-      var temp = getActualPermissions(permission)
-      if (temp.size > 0) actualPermissions.addAll(temp)
+      val temp = getActualPermissions(permission)
+      if (temp.size > 0) {
+        actualPermissions.addAll(temp)
+      } else {
+        actualPermissions.add(permission)
+      }
     }
     return actualPermissions
   }

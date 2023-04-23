@@ -69,13 +69,13 @@ sealed class IpcStreamPullingConverter : JsonConverter<IpcStreamPulling>
             switch (propName)
             {
                 case "type":
-                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt32();
                     break;
                 case "stream_id":
                     stream_id = reader.GetString() ?? "";
                     break;
                 case "bandwidth":
-                    bandwidth = reader.GetInt16();
+                    bandwidth = reader.GetInt32();
                     break;
             }
         }

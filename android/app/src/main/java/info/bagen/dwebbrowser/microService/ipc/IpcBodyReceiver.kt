@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.microService.ipc
 
 import info.bagen.dwebbrowser.microService.helper.SIGNAL_CTOR
-import info.bagen.dwebbrowser.microService.helper.fromBase64
-import info.bagen.dwebbrowser.microService.helper.fromUtf8
+import info.bagen.dwebbrowser.microService.helper.toUtf8ByteArray
+import info.bagen.dwebbrowser.microService.helper.toBase64ByteArray
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 但只有第一次得到这个 metaBody 的 ipc 才是它真正意义上的 Receiver
  */
 class IpcBodyReceiver(
-  override val metaBody: MetaBody,
-  ipc: Ipc,
+    override val metaBody: MetaBody,
+    ipc: Ipc,
 ) : IpcBody() {
 
     class IPC {
@@ -33,12 +33,12 @@ class IpcBodyReceiver(
                 /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
                 IPC_DATA_ENCODING.UTF8 -> metaBody.data as String
                 IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-                IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).fromBase64()
+                IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
                 else -> throw Exception("invalid metaBody type: ${metaBody.type}")
             }
             it.data = data
             when (data) {
-                is String -> it.text = data;
+                is String -> it.base64 = data;
                 is ByteArray -> it.u8a = data
                 is InputStream -> it.stream = data
             }
@@ -78,9 +78,9 @@ class IpcBodyReceiver(
             val stream = ReadableStream(cid = "receiver-${stream_id}", onStart = { controller ->
                 /// 如果有初始帧，直接存起来
                 when (metaBody.type.encoding) {
-                    IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).fromUtf8()
+                    IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).toUtf8ByteArray()
                     IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-                    IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).fromBase64()
+                    IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
                     else -> null
                 }?.let { firstData -> controller.enqueue(firstData) }
 

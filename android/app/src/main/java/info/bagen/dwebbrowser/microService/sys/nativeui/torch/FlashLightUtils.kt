@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.plugin.camera
+package info.bagen.dwebbrowser.microService.sys.nativeui.torch
 
 import android.annotation.SuppressLint
 import android.content.Context

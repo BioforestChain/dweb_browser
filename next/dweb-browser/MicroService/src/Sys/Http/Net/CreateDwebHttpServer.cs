@@ -1,4 +1,5 @@
 ﻿
+using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.MicroService.Sys.Http.Net
@@ -31,15 +32,7 @@ namespace DwebBrowser.MicroService.Sys.Http.Net
                 };
             }
 
-            var po = new PromiseOut<ReadableStreamIpc>();
-
-            _ = Task.Run(async () =>
-            {
-                var streamIpc = await _nmm.ListenHttpDwebServer(StartResult, routes);
-                po.Resolve(streamIpc);
-            });
-
-            return await po.WaitPromiseAsync();
+            return await _nmm.ListenHttpDwebServer(StartResult, routes);
         }
 
         public Func<Task<bool>> Close { get; init; }
@@ -58,33 +51,23 @@ namespace DwebBrowser.MicroService.Core
                 .AppendQuery("subdomain", options.subdomain)))
             .Json<HttpNMM.ServerStartResult>();
 
-        //public async Task<ReadableStreamIpc> ListenHttpDwebServer(
-        //    HttpNMM.ServerStartResult startResult, Gateway.RouteConfig[] routes) =>
-        //    new ReadableStreamIpc(this, $"http-server/{startResult.urlInfo.Host}").Also(async it =>
-        //    it.BindIncomeStream(
-        //        await (await NativeFetchAsync(
-        //            new HttpRequestMessage(
-        //                HttpMethod.Post,
-        //                new Uri("file://http.sys.dweb/listen")
-        //                    .AppendQuery("host", startResult.urlInfo.Host)
-        //                    .AppendQuery("token", startResult.token)
-        //                    .AppendQuery("routes", JsonSerializer.Serialize(routes)))))
-        //        .StreamAsync()));
         public async Task<ReadableStreamIpc> ListenHttpDwebServer(
-            HttpNMM.ServerStartResult startResult, Gateway.RouteConfig[] routes) =>
-            new ReadableStreamIpc(this, $"http-server/{startResult.urlInfo.Host}").Also(async it =>
-            {
-                var res = await NativeFetchAsync(
-                    new HttpRequestMessage(
-                        HttpMethod.Post,
-                        new Uri("file://http.sys.dweb/listen")
-                            .AppendQuery("host", startResult.urlInfo.Host)
-                            .AppendQuery("token", startResult.token)
-                            .AppendQuery("routes", JsonSerializer.Serialize(routes))));
+            HttpNMM.ServerStartResult startResult, Gateway.RouteConfig[] routes)
+        {
+            var streamIpc = new ReadableStreamIpc(this, $"http-server/{startResult.urlInfo.Host}");
+            var res = await NativeFetchAsync(
+                new HttpRequestMessage(
+                    HttpMethod.Post,
+                    new Uri("file://http.sys.dweb/listen")
+                        .AppendQuery("host", startResult.urlInfo.Host)
+                        .AppendQuery("token", startResult.token)
+                        .AppendQuery("routes", JsonSerializer.Serialize(routes))
+                    ).Also((it) => it.Content = new StreamContent(streamIpc.Stream.Stream))
+                );
 
-                var stream = await res.StreamAsync();
-                it.BindIncomeStream(stream);
-            });
+            streamIpc.BindIncomeStream(res.Stream());
+            return streamIpc;
+        }
 
         public async Task<bool> CloseHttpDwebServer(DwebHttpServerOptions options) =>
             await (await NativeFetchAsync(new Uri("file://http.sys.dweb/close")

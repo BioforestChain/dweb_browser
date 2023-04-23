@@ -2,6 +2,7 @@
 
 namespace DwebBrowser.MicroService.Message;
 
+[JsonConverter(typeof(IpcMethodConverter))]
 public class IpcMethod
 {
     private readonly string _method;
@@ -42,6 +43,7 @@ public class IpcMethod
 
     public static IpcMethod Connect => s_connectMethod;
 
+    [JsonInclude]
     public string method => _method;
 
     public IpcMethod(string method)
@@ -52,4 +54,50 @@ public class IpcMethod
     public static IpcMethod From(HttpMethod method) => new IpcMethod(method.Method);
 
     public override string ToString() => _method;
+
+    /// <summary>
+    /// Serialize IpcMethod
+    /// </summary>
+    /// <returns>JSON string representation of the IpcMethod</returns>
+    public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { IncludeFields = true });
+
+    /// <summary>
+    /// Deserialize IpcMethod
+    /// </summary>
+    /// <param name="json">JSON string representation of IpcMethod</param>
+    /// <returns>An instance of a IpcMethod object.</returns>
+    public static IpcMethod? FromJson(string json) => JsonSerializer.Deserialize<IpcMethod>(json, new JsonSerializerOptions { IncludeFields = true });
 }
+
+#region IpcHeaders序列化反序列化
+sealed class IpcMethodConverter : JsonConverter<IpcMethod>
+{
+    public override bool CanConvert(Type typeToConvert) =>
+        typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
+
+    public override IpcMethod? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var method = reader.GetString();
+        return method switch
+        {
+            "GET" => IpcMethod.Get,
+            "PUT" => IpcMethod.Put,
+            "POST" => IpcMethod.Post,
+            "DELETE" => IpcMethod.Delete,
+            "HEAD" => IpcMethod.Head,
+            "OPTIONS" => IpcMethod.Options,
+            "TRACE" => IpcMethod.Trace,
+            "PATCH" => IpcMethod.Patch,
+            "CONNECT" => IpcMethod.Connect,
+            _ => throw new JsonException("Invalid Ipc Method Type")
+        };
+
+    }
+
+    public override void Write(Utf8JsonWriter writer, IpcMethod value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.method);
+    }
+}
+#endregion
+

@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.DialogInterface
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -52,6 +53,7 @@ class PermissionManager {
     denyNegBtnTxt: String = DEFAULT_DENY_DIALOG_NEG_BTN,
     requestCode: Int = MY_PERMISSIONS,
   ) {
+    Log.e("lin.huang", "permission -> $permissions")
     if (permissions.isEmpty()) return // 如果没有直接返回
     this.permissions = permissions
     this.showDenyDialog = showDenyDialog

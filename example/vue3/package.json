@@ -8,7 +8,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@bfex/plugin": "link:../build/plugin",
+    "@bfex/plugin": "link:../../plugins/build/plugin",
     "vite-plugin-vuetify": "^1.0.2",
     "vue": "^3.2.31",
     "vue-router": "^4.1.6",

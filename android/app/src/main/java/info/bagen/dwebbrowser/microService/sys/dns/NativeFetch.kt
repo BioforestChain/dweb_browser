@@ -76,7 +76,7 @@ class ChunkAssetsFileStream(
 //            else if (src.endsWith(".js")) {
 //                debugFetchFile(
 //                    "READ-CONTENT", "$id/$src: ${
-//                        b.slice(0 until readLen).toByteArray().toUtf8().replace(
+//                        b.slice(0 until readLen).toByteArray().toByteArray().replace(
 //                            Regex("\n", RegexOption.MULTILINE), " ↩ "
 //                        )
 //                    }"

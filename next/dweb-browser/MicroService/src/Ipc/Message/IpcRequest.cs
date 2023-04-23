@@ -1,4 +1,6 @@
-﻿namespace DwebBrowser.MicroService.Message;
+﻿using System.Net.Http;
+
+namespace DwebBrowser.MicroService.Message;
 
 public class IpcRequest : IpcMessage
 {
@@ -64,25 +66,79 @@ public class IpcRequest : IpcMessage
                 IpcBodySender.From(stream, ipc),
                 ipc);
 
-    public static IpcRequest FromRequest(int req_id, HttpRequestMessage request, Ipc ipc) =>
-        new IpcRequest(
+    //public static IpcRequest FromRequest(int req_id, HttpRequestMessage request, Ipc ipc) =>
+    //    new IpcRequest(
+    //        req_id,
+    //        request.RequestUri!.ToString(),
+    //        IpcMethod.From(request.Method),
+    //        new IpcHeaders(request.Headers),
+    //        (request.Method.Method is "GET" or "HEAD")
+    //            ? IpcBodySender.From("", ipc)
+    //            :
+    //        request.Content switch
+    //        {
+    //            null => IpcBodySender.From("", ipc),
+    //            _ => IpcBodySender.From(request.Content.ReadAsStream(), ipc)
+    //        },
+    //        ipc
+    //        );
+    public static async Task<IpcRequest> FromRequest(int req_id, HttpRequestMessage request, Ipc ipc)
+    {
+
+        //switch (self.Content.ToString())
+        //{
+        //    case "System.Net.Http.StringContent":
+        //        var result = JsonSerializer.Deserialize<T>(await self.TextAsync())!;
+        //        Console.WriteLine($"result: {result}");
+        //        return result;
+        //    case "System.IO.MemoryStream":
+        //    case "System.Net.Http.StreamContent":
+        //        return JsonSerializer.Deserialize<T>(await self.StreamAsync())!;
+        //}
+        var body = request.Content switch
+        {
+            StringContent stringContent => IpcBodySender.From(await stringContent.ReadAsStringAsync(), ipc),
+            ByteArrayContent byteArrayContent => IpcBodySender.From(await  byteArrayContent.ReadAsByteArrayAsync(), ipc),
+            StreamContent streamContent => IpcBodySender.From(await  streamContent.ReadAsStreamAsync(), ipc),
+            null => IpcBodySender.From("", ipc),
+            _ => await request.Content.ReadAsStreamAsync().Let(async streamTask =>
+            {
+                var stream = await streamTask;
+                try
+                {
+                    if (stream.Length == 0)
+                    {
+                        return IpcBodySender.From("", ipc);
+                    }
+                }
+                catch { // ignore error
+                }
+                return IpcBodySender.From(stream, ipc);
+            })
+            
+        };
+        Console.WriteLine(request.RequestUri?.ToString());
+        try
+        {
+            var ipcRequest = new IpcRequest(
             req_id,
-            request.RequestUri!.ToString(),
+            request.RequestUri?.ToString() ?? "",
             IpcMethod.From(request.Method),
             new IpcHeaders(request.Headers),
             (request.Method.Method is "GET" or "HEAD")
                 ? IpcBodySender.From("", ipc)
-                :
-            request.Content == null
-                ? IpcBodySender.From("", ipc)
-                : request.Content!.ReadAsStream().Let(it => it.Length switch
-                    {
-                        0L => IpcBodySender.From("", ipc),
-                        _ => IpcBodySender.From(it, ipc)
-                    }
-                ),
+                : body,
             ipc
             );
+            return ipcRequest;
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine($"e {e.StackTrace}");
+            Console.WriteLine($"e {e.Message}");
+            throw e;
+        }
+    }
 
 
     public HttpRequestMessage ToRequest() =>
@@ -113,7 +169,7 @@ public class IpcRequest : IpcMessage
                     {
                         it.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
                     }
-                    
+
                 }
             });
 
@@ -163,14 +219,14 @@ public class IpcReqMessage : IpcMessage
     /// Serialize IpcReqMessage
     /// </summary>
     /// <returns>JSON string representation of the IpcReqMessage</returns>
-    public override string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { IncludeFields = true });
 
     /// <summary>
     /// Deserialize IpcReqMessage
     /// </summary>
     /// <param name="json">JSON string representation of IpcReqMessage</param>
     /// <returns>An instance of a IpcReqMessage object.</returns>
-    public static IpcReqMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessage>(json);
+    public static IpcReqMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessage>(json, new JsonSerializerOptions { IncludeFields = true });
 }
 
 #region IpcReqMessage序列化反序列化
@@ -221,7 +277,57 @@ sealed class IpcReqMessageConverter : JsonConverter<IpcReqMessage>
                     method = new IpcMethod(reader.GetString() ?? "GET");
                     break;
                 case "metaBody":
-                    metaBody = (SMetaBody)SMetaBody.FromJson(reader.GetString()!)!;
+                    SMetaBody.IPC_META_BODY_TYPE mtype = default;
+                    int senderUid = default;
+                    string data = default;
+                    string? stream_id = null;
+                    int? receiverUid = null;
+                    string metaId = default;
+
+                    while (reader.Read())
+                    {
+                        if (reader.TokenType == JsonTokenType.StartObject)
+                        {
+                            continue;
+                        }
+
+                        if (reader.TokenType == JsonTokenType.EndObject)
+                        {
+                            metaBody = new SMetaBody(mtype, senderUid, data ?? "", stream_id, receiverUid) { MetaId = metaId ?? "" };
+                            break;
+                        }
+
+
+                        if (reader.TokenType != JsonTokenType.PropertyName)
+                            throw new JsonException("Expected PropertyName token");
+
+                        var mpropName = reader.GetString();
+
+                        reader.Read();
+
+                        switch (mpropName)
+                        {
+                            case "type":
+                                mtype = (SMetaBody.IPC_META_BODY_TYPE)reader.GetInt64();
+                                break;
+                            case "senderUid":
+                                senderUid = reader.GetInt32();
+                                break;
+                            case "data":
+                                data = reader.GetString() ?? "";
+                                break;
+                            case "streamId":
+                                stream_id = reader.GetString() ?? null;
+                                break;
+                            case "receiverUid":
+                                receiverUid = reader.GetInt32();
+                                break;
+                            case "metaId":
+                                metaId = reader.GetString() ?? "";
+                                break;
+                        }
+                    }
+
                     break;
                 case "headers":
                     while (reader.Read())

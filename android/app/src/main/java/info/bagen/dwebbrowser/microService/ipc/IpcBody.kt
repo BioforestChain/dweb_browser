@@ -1,8 +1,6 @@
 package info.bagen.dwebbrowser.microService.ipc
 
-import info.bagen.dwebbrowser.microService.helper.fromBase64
-import info.bagen.dwebbrowser.microService.helper.printdebugln
-import info.bagen.dwebbrowser.microService.helper.toUtf8
+import info.bagen.dwebbrowser.microService.helper.*
 import java.io.InputStream
 import java.util.*
 
@@ -40,7 +38,7 @@ abstract class IpcBody {
 
 
     protected inner class BodyHub {
-        var text: String? = null
+        var base64: String? = null
         var stream: InputStream? = null
         var u8a: ByteArray? = null
         var data: Any? = null
@@ -54,8 +52,8 @@ abstract class IpcBody {
     private val _u8a by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
         (bodyHub.u8a ?: bodyHub.stream?.let {
             it.readBytes()
-        } ?: bodyHub.text?.let {
-            it.fromBase64()
+        } ?: bodyHub.base64?.let {
+            it.toBase64ByteArray()
         } ?: throw Exception("invalid body type")).also {
             CACHE.raw_ipcBody_WMap[it] = this
         }
@@ -73,12 +71,18 @@ abstract class IpcBody {
 
     fun stream() = this._stream
 
-    private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-        (bodyHub.text ?: _u8a.let {
-            it.toUtf8()
+    private val _base64 by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+        (bodyHub.base64 ?: _u8a.let {
+            it.toBase64()
         }).also {
             CACHE.raw_ipcBody_WMap[it] = this
         }
+    }
+
+    fun base64() = this._base64
+
+    private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+        this._base64.toBase64ByteArray().toUtf8()
     }
 
     fun text() = this._text

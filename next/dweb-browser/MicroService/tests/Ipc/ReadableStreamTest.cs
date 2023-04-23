@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using DwebBrowser.MicroService.Core;
 
 namespace DwebBrowser.MicroServiceTests;
 
@@ -102,6 +103,98 @@ public class ReadableStreamTest
         Task.WaitAll(taskRead);
 
         //Assert.Equal();
+    }
+
+    record Event(ReadableStream.ReadableStreamController target, string data);
+    event Signal<Event>? OnEvent;
+
+    class M1 : NativeMicroModule
+    {
+        public M1() : base("m1")
+        { }
+        protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task _shutdownAsync()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    class M2 : NativeMicroModule
+    {
+        public M2() : base("m2")
+        { }
+        protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task _shutdownAsync()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    [Fact]
+    public async Task BindIncomeStream_ReadableStreamBase_ReturnSuccess()
+    {
+        var i = 0;
+        OnEvent += async (Event, _) =>
+        {
+            Debug.WriteLine($"Event {Event.data}");
+            if (Event.data == "pull")
+            {
+                await Event.target.EnqueueAsync(i.ToByteArray());
+            }
+        };
+
+        var m1 = new M1();
+        var m2 = new M2();
+        var req_ipc = new ReadableStreamIpc(m1, IPC_ROLE.CLIENT.ToString());
+        var res_ipc = new ReadableStreamIpc(m2, IPC_ROLE.SERVER.ToString());
+
+        res_ipc.BindIncomeStream(req_ipc.Stream.Stream);
+
+        res_ipc.OnRequest += async (request, ipc, _) =>
+        {
+            Debug.WriteLine($"req get request {request}");
+            await Task.Delay(200);
+            //Debug.WriteLine($"echo after 1s {request}");
+            await ipc.PostMessageAsync(IpcResponse.FromText(
+                request.ReqId,
+                200,
+                new IpcHeaders(),
+                $"ECHO: {request.Body.Text}",
+                ipc));
+        };
+
+        await Task.Delay(100);
+        req_ipc.BindIncomeStream(res_ipc.Stream.Stream);
+
+        foreach (var j in Enumerable.Range(1, 10))
+        {
+            Debug.WriteLine($"开始发送 ${j}");
+            var req = new HttpRequestMessage(HttpMethod.Get, "https://www.baidu.com/").Also(it => it.Content = new StringContent($"hi-{j}"));
+            Debug.WriteLine($"req {req}");
+            var res = await req_ipc.Request(req);
+            Debug.WriteLine($"res {res}");
+            Assert.Equal(await res.TextAsync(), $"ECHO: {await req.Content.ReadAsStringAsync()}");
+        }
+
+        await req_ipc.Close();
     }
 }
 

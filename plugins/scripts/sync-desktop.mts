@@ -5,6 +5,6 @@ const syncTask = new SyncTask(
     from: import.meta.resolve("../"),
     to: import.meta.resolve("../../desktop/app/"),
   },
-  [{ from: "demo/dist", to: "cot-demo" }]
+  [{ from: "../example/vue3/dist", to: "cot-demo" }]
 );
 syncTask.auto();

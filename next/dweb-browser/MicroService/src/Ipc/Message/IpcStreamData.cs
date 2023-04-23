@@ -82,10 +82,10 @@ sealed class IpcStreamDataConverter : JsonConverter<IpcStreamData>
             switch (propName)
             {
                 case "type":
-                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt32();
                     break;
                 case "encoding":
-                    encoding = (IPC_DATA_ENCODING)reader.GetInt16();
+                    encoding = (IPC_DATA_ENCODING)reader.GetInt32();
                     break;
                 case "stream_id":
                     stream_id = reader.GetString() ?? "";

@@ -10,5 +10,5 @@ do
 done
 
 
-cd ./demo/ && npm link @bfex/plugin
+cd ../example/vue3 && npm link @bfex/plugin
 

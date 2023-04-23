@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
-import info.bagen.dwebbrowser.datastore.WebsiteDB
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.view.drawToBitmapPostLaidOut
 import kotlinx.coroutines.delay
@@ -32,7 +31,7 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
       }
       if (it is LoadingState.Finished) {
         delay(500)
-        viewModel.handleIntent(BrowserIntent.SaveNewWebSiteInfo(
+        viewModel.handleIntent(BrowserIntent.SaveHistoryWebSiteInfo(
           browserWebView.state.pageTitle, browserWebView.state.lastLoadedUrl
         ))
         browserWebView.controller.capture()

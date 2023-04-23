@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -26,12 +27,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.*
 import info.bagen.dwebbrowser.microService.sys.plugin.permission.PermissionManager
+import info.bagen.dwebbrowser.ui.browser.ios.HomePage
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.splash.SplashPrivacyDialog
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
 import info.bagen.dwebbrowser.util.KEY_ENABLE_AGREEMENT
 import info.bagen.dwebbrowser.util.getBoolean
 import info.bagen.dwebbrowser.util.permission.PermissionManager.Companion.MY_PERMISSIONS
+import info.bagen.dwebbrowser.util.permission.PermissionUtil
 import info.bagen.dwebbrowser.util.saveBoolean
 
 class SplashActivity : AppCompatActivity() {
@@ -46,7 +49,8 @@ class SplashActivity : AppCompatActivity() {
       RustApplicationTheme {
         val webUrl = remember { mutableStateOf("") }
         val showLoading = remember { mutableStateOf(false) }
-        SplashMainView()
+        // SplashMainView()
+        HomePage()
         if (enable) {
           App.grant.resolve(true)
           return@RustApplicationTheme
@@ -54,8 +58,9 @@ class SplashActivity : AppCompatActivity() {
 
         SplashPrivacyDialog(
           openHome = {
-            App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-            App.grant.resolve(true)
+            checkAndRequestPermission()
+            /*App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
+            App.grant.resolve(true)*/
           },
           openWebView = { url -> webUrl.value = url },
           closeApp = {
@@ -104,7 +109,23 @@ class SplashActivity : AppCompatActivity() {
   ) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     if (requestCode == MY_PERMISSIONS) {
-      grantResults.forEach {
+      PermissionManager.onRequestPermissionsResult(requestCode, permissions, grantResults, this, object : info.bagen.dwebbrowser.util.permission.PermissionManager.PermissionCallback{
+        override fun onPermissionGranted(permissions: Array<out String>, grantResults: IntArray) {
+          App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
+          App.grant.resolve(true)
+        }
+
+        override fun onPermissionDismissed(permission: String) {
+        }
+
+        override fun onPositiveButtonClicked(dialog: DialogInterface, which: Int) {
+          PermissionUtil.openAppSettings()
+        }
+
+        override fun onNegativeButtonClicked(dialog: DialogInterface, which: Int) {
+        }
+      })
+      /*grantResults.forEach {
         if (it != PackageManager.PERMISSION_GRANTED) {
           PermissionManager.requestPermissions(
             this, arrayListOf(
@@ -117,7 +138,7 @@ class SplashActivity : AppCompatActivity() {
         }
       }
       App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-      App.grant.resolve(true)
+      App.grant.resolve(true)*/
     }
   }
 }

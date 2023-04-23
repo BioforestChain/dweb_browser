@@ -124,15 +124,6 @@ public abstract class Ipc
         OnDestory = null;
     }
 
-    /**
-     * 发送请求
-     */
-    public Task<HttpResponseMessage> Request(string url) =>
-        Request(new HttpRequestMessage(HttpMethod.Get, new Uri(url)));
-
-    public Task<HttpResponseMessage> Request(Uri url) =>
-        Request(new HttpRequestMessage(HttpMethod.Get, url));
-
     public Ipc()
     {
         _reqResMap = new Dictionary<int, PromiseOut<IpcResponse>>().Also(reqResMap =>
@@ -200,8 +191,16 @@ public abstract class Ipc
         return await result.WaitPromiseAsync();
     }
 
+
+    /**
+     * 发送请求
+     */
+    public Task<HttpResponseMessage> Request(string url) =>
+        Request(new HttpRequestMessage(HttpMethod.Get, new Uri(url)));
+    public Task<HttpResponseMessage> Request(Uri url) =>
+        Request(new HttpRequestMessage(HttpMethod.Get, url));
     public async Task<HttpResponseMessage> Request(HttpRequestMessage request) =>
-        (await Request(IpcRequest.FromRequest(AllocReqId(), request, this))).ToResponse();
+        (await Request(await IpcRequest.FromRequest(AllocReqId(), request, this))).ToResponse();
 
     public int AllocReqId() => Interlocked.Exchange(ref s_req_id_acc, Interlocked.Increment(ref s_req_id_acc));
 }

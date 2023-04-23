@@ -21,8 +21,7 @@ data class IpcStreamData(
         inline fun fromBase64(stream_id: String, data: ByteArray) =
             IpcStreamData(stream_id, data.toBase64(), IPC_DATA_ENCODING.BASE64)
 
-        inline fun fromUtf8(stream_id: String, data: ByteArray) =
-          Companion.fromUtf8(stream_id, data.toUtf8())
+        inline fun fromUtf8(stream_id: String, data: ByteArray) = fromUtf8(stream_id, data.toUtf8())
 
         inline fun fromUtf8(stream_id: String, data: String) =
             IpcStreamData(stream_id, data, IPC_DATA_ENCODING.UTF8)
@@ -47,7 +46,7 @@ data class IpcStreamData(
     }
 
     override fun serialize(
-      src: IpcStreamData, typeOfSrc: Type, context: JsonSerializationContext
+        src: IpcStreamData, typeOfSrc: Type, context: JsonSerializationContext
     ) = JsonObject().also { jsonObject ->
         with(src.jsonAble) {
             jsonObject.add("type", context.serialize(type))

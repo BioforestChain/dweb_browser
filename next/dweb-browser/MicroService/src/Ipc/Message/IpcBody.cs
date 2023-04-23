@@ -54,7 +54,7 @@ public abstract class IpcBody
         ?? BodyHub.Text?.FromBase64()
         ?? throw new Exception("invalid body type");
 
-        CACHE.Raw_ipcBody_WMap.Add(u8a, ipcBody);
+        CACHE.Raw_ipcBody_WMap.TryAdd(u8a, ipcBody);
         return u8a;
     }
 
@@ -65,7 +65,7 @@ public abstract class IpcBody
     {
         var BodyHub = ipcBody.BodyHub;
         var stream = BodyHub.Stream ?? new MemoryStream(ipcBody.U8a);
-        CACHE.Raw_ipcBody_WMap.Add(stream, ipcBody);
+        CACHE.Raw_ipcBody_WMap.TryAdd(stream, ipcBody);
         return stream;
     }
 
@@ -74,8 +74,50 @@ public abstract class IpcBody
     private static string InitText(IpcBody ipcBody)
     {
         var BodyHub = ipcBody.BodyHub;
-        var text = BodyHub.Text ?? ipcBody.U8a.ToUtf8();
-        CACHE.Raw_ipcBody_WMap.Add(text, ipcBody);
+        
+        //var text = BodyHub.Text ?? ipcBody.U8a.ToUtf8();
+        string text;
+
+        try
+        {
+            if (BodyHub.Text is not null)
+            {
+                text = BodyHub.Text;
+            }
+            else if (BodyHub.Stream is not null && BodyHub.Stream is ReadableStream.PipeStream stream)
+            {
+                //using var streamReader = new StreamReader(stream);
+                //streamReader.BaseStream.ReadTimeout = 1000;
+                //text = streamReader.ReadToEnd();
+                //Console.WriteLine(text);
+                //using var memoryStream = new MemoryStream();
+                //stream.CopyTo(memoryStream);
+                //var byteArray = memoryStream.ToByteArray();
+                //text = byteArray.ToUtf8();
+                //Console.WriteLine(text);
+
+                var buffer = new byte[2];
+                stream.Read(buffer, 0, 2);
+                text = buffer.ToUtf8();
+                Console.WriteLine(text);
+            }
+            else if (BodyHub.U8a is not null)
+            {
+                text = ipcBody.U8a.ToUtf8();
+            }
+            else
+            {
+                throw new Exception("invalid body type");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.StackTrace);
+            Console.WriteLine(e.Message);
+            throw e;
+        }
+
+        CACHE.Raw_ipcBody_WMap.TryAdd(text, ipcBody);
         return text;
     }
 

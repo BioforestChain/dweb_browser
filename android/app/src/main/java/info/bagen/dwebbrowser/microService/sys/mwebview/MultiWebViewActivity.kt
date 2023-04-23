@@ -24,8 +24,13 @@ import androidx.core.app.ActivityCompat
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.helper.PromiseOut
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM.Companion.controllerMap
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -130,6 +135,20 @@ open class MultiWebViewActivity : PermissionActivity() {
                 webview.filePathCallback = null
             }
         }
+
+    override fun onResume() {
+        super.onResume()
+        GlobalScope.launch(ioAsyncExceptionHandler) {
+            emitEvent(remoteMmid, ServiceWorkerEvent.Resume.event)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        GlobalScope.launch(ioAsyncExceptionHandler) {
+            emitEvent(remoteMmid, ServiceWorkerEvent.Pause.event, """new Event("pause")""")
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()
