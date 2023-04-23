@@ -27,11 +27,9 @@ public class JsMicroModule : MicroModule
                     .AppendQuery("process_id", pid)
                     .AppendQuery("mmid", fromMM.Mmid))).IntAsync();
 
-                var originIpc = new Native2JsIpc(portId, toMM).Also(async it =>
-                {
-                    // 同样要被生命周期管理销毁
-                    await toMM.BeConnectAsync(it, reason);
-                });
+                var originIpc = new Native2JsIpc(portId, toMM);
+                // 同样要被生命周期管理销毁
+                await toMM.BeConnectAsync(originIpc, reason);
 
                 return new ConnectResult(originIpc, null);
             }

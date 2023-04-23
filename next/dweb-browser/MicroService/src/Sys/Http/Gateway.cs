@@ -42,22 +42,20 @@ public class Gateway
          * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
          * </summary>
          */
-        public Task<HttpResponseMessage?> HookHttpRequestAsync(HttpRequestMessage request)
+        public async Task<HttpResponseMessage?> HookHttpRequestAsync(HttpRequestMessage request)
         {
-            return Task.Run(() =>
+
+            foreach (var router in _routerSet)
             {
-                foreach (var router in _routerSet)
+                var response = await router.Key.Handler(request).ForAwait(default);
+
+                if (response is not null)
                 {
-                    var response = router.Key.Handler(request);
-
-                    if (response is not null)
-                    {
-                        return response;
-                    }
+                    return response;
                 }
+            }
 
-                return null;
-            });
+            return null;
         }
 
         // 销毁

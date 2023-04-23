@@ -24,7 +24,7 @@ public class IpcBodyReceiver : IpcBody
                     CACHE.MetaId_receiverIpc_Map.Remove(MetaBody.MetaId);
                 };
 
-                MetaBody = MetaBody with { ReceiverUid = Ipc.Uid };
+                MetaBody.ReceiverUid = Ipc.Uid;
                 return Ipc;
             });
         }

@@ -57,7 +57,7 @@ sealed class IpcStreamAbortConverter : JsonConverter<IpcStreamAbort>
             switch (propName)
             {
                 case "type":
-                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+                    type = (IPC_MESSAGE_TYPE)reader.GetInt32();
                     break;
                 case "stream_id":
                     stream_id = reader.GetString() ?? "";

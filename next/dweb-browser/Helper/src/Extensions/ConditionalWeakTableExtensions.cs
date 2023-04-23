@@ -11,7 +11,7 @@ public static class ConditionalWeakTableExtensions
         if (!weakDictionary.TryGetValue(key, out var value))
         {
             value = putter();
-            weakDictionary.Add(key, value);
+            weakDictionary.TryAdd(key, value);
         }
         return value;
     }

@@ -13,7 +13,7 @@ public abstract class IpcMessage
     public virtual string ToJson() => JsonSerializer.Serialize(this);
 }
 
-[JsonConverter(typeof(IpcMessageTypeConverter))]
+//[JsonConverter(typeof(IpcMessageTypeConverter))]
 public record IpcMessageType(IPC_MESSAGE_TYPE Type);
 
 #region IpcMessageType序列化反序列化 - 用于IpcMessage反序列化判断IpcMessage子类类型
@@ -44,7 +44,7 @@ public class IpcMessageTypeConverter : JsonConverter<IpcMessageType>
             switch (propName)
             {
                 case "type":
-                    typeValue = reader.GetInt16();
+                    typeValue = reader.GetInt32();
                     break;
                 default:
                     continue;

@@ -14,7 +14,7 @@ public static class TaskExtensions
         }
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<T>? ForAwait<T>(this Task<T>? task, T defaultValue)
+    public static async Task<T> ForAwait<T>(this Task<T>? task, T defaultValue)
     {
         T? result = defaultValue;
         if (task is Task<T> t)

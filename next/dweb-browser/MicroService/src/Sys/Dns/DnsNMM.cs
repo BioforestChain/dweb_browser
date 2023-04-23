@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+
 namespace DwebBrowser.MicroService.Sys.Dns;
 
 public class DnsNMM : NativeMicroModule
@@ -9,7 +11,7 @@ public class DnsNMM : NativeMicroModule
     // 正在运行的应用
     private Dictionary<Mmid, MicroModule> _runningApps = new();
 
-    public DnsNMM():base("dns.sys.dweb")
+    public DnsNMM() : base("dns.sys.dweb")
     {
     }
 
@@ -196,9 +198,16 @@ public class DnsNMM : NativeMicroModule
     public MicroModule? Query(Mmid mmid) => _installApps.GetValueOrDefault(mmid);
 
     /** <summary>打开应用</summary> */
-    public Task<MicroModule> OpenAsync(Mmid mmid) =>
-        Task.Run(() => _runningApps.GetValueOrPut(mmid, () =>
-            Query(mmid)?.Also(async it => await BootstrapMicroModule(it)) ?? throw new Exception($"no found app {mmid}")));
+    public async Task<MicroModule> OpenAsync(Mmid mmid)
+    {
+        if (!_runningApps.TryGetValue(mmid, out var app))
+        {
+            app = Query(mmid);
+            await BootstrapMicroModule(app);
+            _runningApps[mmid] = app;
+        }
+        return app;
+    }
 
     /** <summary>关闭应用</summary> */
     public async Task<int> Close(Mmid mmid)

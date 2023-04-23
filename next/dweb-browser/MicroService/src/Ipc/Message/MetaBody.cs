@@ -2,7 +2,7 @@
 namespace DwebBrowser.MicroService.Message;
 
 [JsonConverter(typeof(MetaBodyConverter))]
-public struct SMetaBody
+public class SMetaBody
 {
     /**
      * <summary>
@@ -170,7 +170,7 @@ public struct SMetaBody
 }
 
 #region MetaBody序列化反序列化
-sealed class MetaBodyConverter : JsonConverter<SMetaBody>
+public class MetaBodyConverter : JsonConverter<SMetaBody>
 {
     public override bool CanConvert(Type typeToConvert) =>
         typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;

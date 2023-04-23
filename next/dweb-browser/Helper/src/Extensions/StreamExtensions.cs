@@ -28,7 +28,16 @@ public static class StreamExtensions
     public static async Task<byte[]> ReadBytesAsync(this Stream self, int size)
     {
         var buffer = new byte[size];
-        await self.ReadExactlyAsync(buffer);
-        return buffer;
+        //return new BinaryReader(self).ReadBytes(size);
+        try
+        {
+            await self.ReadExactlyAsync(buffer);
+            return buffer;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw e;
+        }
     }
 }

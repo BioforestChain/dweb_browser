@@ -43,7 +43,7 @@ public class JsProcessNMM : NativeMicroModule
         _onAfterShutdown += async (_) => { cb(); };
 
         /// 主页的网页服务
-        var mainServer = (await CreateHttpDwebServer(new DwebHttpServerOptions())).Also(async server =>
+        var mainServer = await (await CreateHttpDwebServer(new DwebHttpServerOptions())).AlsoAsync(async server =>
         {
             // 在模块关停的时候，要关闭端口监听
             _onAfterShutdown += async (_) => { await server.Close(); };
@@ -192,11 +192,9 @@ public class JsProcessNMM : NativeMicroModule
                  var apis = new JsProcessWebApi(dwebview).Also(api =>
                  {
                      _onAfterShutdown += async (_) => { api.Destroy(); };
-
-                     // TODO: 创建JsProcessWeb未完成
-                     //api.DWebView
+                     dwebview.OnReady += async (_) => afterReadyPo.Resolve(api);
                  });
-                 dwebview.OnReady += async (_) => afterReadyPo.Resolve(apis);
+
 
              });
             var apis = await afterReadyPo.WaitPromiseAsync();
@@ -225,7 +223,7 @@ public class JsProcessNMM : NativeMicroModule
         /**
          * 远端是代码服务，所以这里是 client 的身份
          */
-        var streamIpc = new ReadableStreamIpc(ipc.Remote, "code-proxy-server").Also(async it =>
+        var streamIpc = await new ReadableStreamIpc(ipc.Remote, "code-proxy-server").AlsoAsync(async it =>
         {
             it.BindIncomeStream(await requestMessage.Content.ReadAsStreamAsync());
         });
