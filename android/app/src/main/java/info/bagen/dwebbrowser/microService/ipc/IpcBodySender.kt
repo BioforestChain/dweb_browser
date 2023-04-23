@@ -241,7 +241,7 @@ class IpcBodySender(
         BodyHub().also {
             it.data = raw
             when (raw) {
-                is String -> it.text = raw;
+                is String -> it.base64 = raw;
                 is ByteArray -> it.u8a = raw
                 is InputStream -> it.stream = raw
             }

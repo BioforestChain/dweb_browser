@@ -48,7 +48,7 @@ class NativeIpcTest : AsyncBase() {
             delay(200)
             ipc.postMessage(
                 IpcResponse.fromText(
-                    req.req_id, 200, IpcHeaders(), "ECHO:" + req.body.text(), ipc
+                    req.req_id, 200, IpcHeaders(), "ECHO:" + req.body.base64(), ipc
                 )
             )
         }
@@ -173,7 +173,7 @@ class NativeIpcTest : AsyncBase() {
                                 request.req_id,
                                 200,
                                 IpcHeaders(),
-                                "ECHO:" + request.body.text(),
+                                "ECHO:" + request.body.base64(),
                                 ipc
                             )
                         )

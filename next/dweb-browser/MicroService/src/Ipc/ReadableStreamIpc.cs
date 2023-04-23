@@ -76,7 +76,7 @@ public class ReadableStreamIpc : Ipc
         }
     }
 
-    protected event Signal<IpcMessage, ReadableStreamIpc>? _onMessage;
+    //protected event Signal<IpcMessage, ReadableStreamIpc>? _onMessage;
 
     /**
      * <summary>
@@ -128,8 +128,9 @@ public class ReadableStreamIpc : Ipc
                         Console.WriteLine($"PONG/{stream}");
                         break;
                     case IpcMessage ipcMessage:
-                        Console.WriteLine($"ON-MESSAGE/{this}", ipcMessage);
-                        await (_onMessage?.Emit(ipcMessage, this)).ForAwait();
+                        Console.WriteLine($"ON-MESSAGE/{this} {ipcMessage}");
+                        //await (_onMessage?.Emit(ipcMessage, this)).ForAwait();
+                        await _OnMessageEmit(ipcMessage, this);
                         break;
                     default:
                         throw new Exception($"unknown message: {message}");

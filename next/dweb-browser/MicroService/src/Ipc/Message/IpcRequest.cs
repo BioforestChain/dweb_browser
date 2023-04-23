@@ -1,4 +1,6 @@
-﻿namespace DwebBrowser.MicroService.Message;
+﻿using System.Net.Http;
+
+namespace DwebBrowser.MicroService.Message;
 
 public class IpcRequest : IpcMessage
 {
@@ -80,7 +82,7 @@ public class IpcRequest : IpcMessage
     //        },
     //        ipc
     //        );
-    public static IpcRequest FromRequest(int req_id, HttpRequestMessage request, Ipc ipc)
+    public static async Task<IpcRequest> FromRequest(int req_id, HttpRequestMessage request, Ipc ipc)
     {
 
         //switch (self.Content.ToString())
@@ -93,12 +95,27 @@ public class IpcRequest : IpcMessage
         //    case "System.Net.Http.StreamContent":
         //        return JsonSerializer.Deserialize<T>(await self.StreamAsync())!;
         //}
-        var body = request.Content.ToString() switch
+        var body = request.Content switch
         {
-            "System.Net.Http.EmptyReadStream" => IpcBodySender.From("", ipc),
-            "System.Net.Http.StringContent" => IpcBodySender.From(request.Content.ReadAsStringAsync().Result, ipc),
-            "System.Net.Http.ByteArrayContent" => IpcBodySender.From(request.Content.ReadAsByteArrayAsync().Result, ipc),
-            _ => IpcBodySender.From(request.Content.ReadAsStream(), ipc)
+            StringContent stringContent => IpcBodySender.From(await stringContent.ReadAsStringAsync(), ipc),
+            ByteArrayContent byteArrayContent => IpcBodySender.From(await  byteArrayContent.ReadAsByteArrayAsync(), ipc),
+            StreamContent streamContent => IpcBodySender.From(await  streamContent.ReadAsStreamAsync(), ipc),
+            null => IpcBodySender.From("", ipc),
+            _ => await request.Content.ReadAsStreamAsync().Let(async streamTask =>
+            {
+                var stream = await streamTask;
+                try
+                {
+                    if (stream.Length == 0)
+                    {
+                        return IpcBodySender.From("", ipc);
+                    }
+                }
+                catch { // ignore error
+                }
+                return IpcBodySender.From(stream, ipc);
+            })
+            
         };
         Console.WriteLine(request.RequestUri?.ToString());
         try

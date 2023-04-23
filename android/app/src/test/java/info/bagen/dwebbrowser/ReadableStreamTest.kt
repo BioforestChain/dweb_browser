@@ -63,7 +63,7 @@ class ReadableStreamTest : AsyncBase() {
                     request.req_id,
                     200,
                     IpcHeaders(),
-                    "ECHO:" + request.body.text(),
+                    "ECHO:" + request.body.base64(),
                     ipc
                 )
             )

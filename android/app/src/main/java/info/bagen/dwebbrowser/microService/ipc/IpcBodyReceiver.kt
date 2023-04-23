@@ -38,7 +38,7 @@ class IpcBodyReceiver(
             }
             it.data = data
             when (data) {
-                is String -> it.text = data;
+                is String -> it.base64 = data;
                 is ByteArray -> it.u8a = data
                 is InputStream -> it.stream = data
             }

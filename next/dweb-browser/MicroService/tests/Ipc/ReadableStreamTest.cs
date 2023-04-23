@@ -172,7 +172,7 @@ public class ReadableStreamTest
         {
             Debug.WriteLine($"req get request {request}");
             await Task.Delay(200);
-            Debug.WriteLine($"echo after 1s {request}");
+            //Debug.WriteLine($"echo after 1s {request}");
             await ipc.PostMessageAsync(IpcResponse.FromText(
                 request.ReqId,
                 200,
