@@ -11,7 +11,14 @@ const val DWEB_SERVICE_WORKER = "__app_upgrade_watcher_kit__"
 
 enum class ServiceWorkerEvent(val event: String) {
     UpdateFound("updatefound"), // 更新或重启的时候触发
-    Fetch("fetch"), OnFetch("onFetch"), Start("start"), // 监听启动
+    Fetch("fetch"),
+    OnFetch("onFetch"),
+    Pause("pause"), // 暂停
+    Resume("resume"),
+}
+
+enum class DownloadControllerEvent(val event:String) {
+    Start("start"), // 监听启动
     Progress("progress"), // 进度每秒触发一次
     End("end"), // 结束
     Cancel("cancel"), // 取消
@@ -22,7 +29,7 @@ suspend fun emitEvent(mmid: Mmid, eventName: String, data: String = ""): Boolean
     val controller = MultiWebViewNMM.getCurrentWebViewController(mmid) ?: return false
     var payload = """new Event("$eventName")"""
     // progress,fetch,onFetch为自定义构造返回
-    if (eventName == ServiceWorkerEvent.Progress.event ||
+    if (eventName == DownloadControllerEvent.Progress.event ||
         eventName == ServiceWorkerEvent.Fetch.event || eventName == ServiceWorkerEvent.OnFetch.event) {
         payload = data
     }
