@@ -132,12 +132,12 @@ dependencies {
     implementation("androidx.activity:activity-ktx:$activity_version")
 
     /// Compose 相关
-    val composeBom = platform("androidx.compose:compose-bom:2023.01.00")
+    val composeBom = platform("androidx.compose:compose-bom:2023.03.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material:material")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material3:material3:1.1.0-beta02")
     implementation("androidx.window:window:1.0.0")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui-tooling-preview")
