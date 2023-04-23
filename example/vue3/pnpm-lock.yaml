@@ -1,7 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@bfex/plugin': link:../build/plugin
+  '@bfex/plugin': link:../../plugins/build/plugin
   '@vitejs/plugin-vue': ^2.2.4
   '@vue/compiler-sfc': ^3.2.31
   autoprefixer: ^10.4.2
@@ -17,7 +17,7 @@ specifiers:
   vuetify: ^3.1.8
 
 dependencies:
-  '@bfex/plugin': link:../build/plugin
+  '@bfex/plugin': link:../../plugins/build/plugin
   vite-plugin-vuetify: 1.0.2_7s3gvse5aoqymjz3vpq4nhte7i
   vue: 3.2.47
   vue-router: 4.1.6_vue@3.2.47

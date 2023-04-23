@@ -12,7 +12,6 @@ import info.bagen.dwebbrowser.microService.sys.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.sys.nativeui.torch.TorchNMM
 import info.bagen.dwebbrowser.microService.sys.plugin.barcode.ScanningNMM
 import info.bagen.dwebbrowser.microService.sys.plugin.biometrics.BiometricsNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.camera.CameraNMM
 import info.bagen.dwebbrowser.microService.sys.plugin.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.plugin.device.*
 import info.bagen.dwebbrowser.microService.sys.plugin.fileSystem.FileSystemNMM
@@ -76,8 +75,6 @@ suspend fun startDwebBrowser(): DnsNMM {
     /// 安装系统桌面
     val browserNMM = BrowserNMM().also { dnsNMM.install(it) }
 
-    /// 相机
-    val cameraNMM = CameraNMM().also { dnsNMM.install(it) }
     /// 扫码
     val scannerNMM = ScanningNMM().also { dnsNMM.install(it) }
     ///安装剪切板
@@ -88,8 +85,6 @@ suspend fun startDwebBrowser(): DnsNMM {
     val locationNMM = LocationNMM().also { dnsNMM.install(it) }
     /// 蓝牙
     val bluetoothNMM = BluetoothNMM().also { dnsNMM.install(it) }
-    /// 网络
-    val networkNMM = NetworkNMM().also { dnsNMM.install(it) }
     ///权限
     val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
     ///文件系统

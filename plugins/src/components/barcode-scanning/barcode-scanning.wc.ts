@@ -14,6 +14,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   private _formats = SupportedFormat.QR_CODE;
   private _direction: string = CameraDirection.BACK;
   private _activity = false;
+  private _isCloceLock = false;
 
   constructor() {
     super();
@@ -22,7 +23,9 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
   private createClose() {
     const closer = new CloseWatcher();
+    this._isCloceLock = true;
     closer.addEventListener("close", (event) => {
+      this._isCloceLock = false;
       console.log(
         "CloseWatcher stopScanning",
         event.isTrusted,
@@ -31,7 +34,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       if (this._activity) {
         this.stopScanning();
       }
-      this.createClose();
     });
   }
 
@@ -84,6 +86,9 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * @returns
    */
   async startScanning(rotation = 0, formats = SupportedFormat.QR_CODE) {
+    if (!this._isCloceLock) {
+      this.createClose();
+    }
     await this.createElement();
     await this._startVideo();
     return await this.taskPhoto(rotation, formats);
