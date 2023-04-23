@@ -3,30 +3,30 @@ import { BasePlugin } from "../base/BasePlugin.ts";
 import type { ImageOptions } from "./camera.type.ts";
 
 export class CameraPlugin extends BasePlugin {
-  tagName = "dweb-camera";
+  readonly tagName = "dweb-camera";
 
   constructor() {
-    super("camera.sys.dweb")
+    super("camera.sys.dweb");
   }
   /**
-  * 打开相册
-  */
+   * 打开相册
+   */
   @bindThis
   async getPhoto(options: ImageOptions) {
-    console.log('--')
+    console.log("--");
     return await this.fetchApi("/getPhoto", {
       search: {
         resultType: options.resultType,
         source: options.source,
-        quality: options.quality
-      }
+        quality: options.quality,
+      },
     })
-    // .then(
-    //   res => console.log('res: ', res),
-    //   err => console.log('err: ', err)
-    // )
-    .binary()
+      // .then(
+      //   res => console.log('res: ', res),
+      //   err => console.log('err: ', err)
+      // )
+      .binary();
   }
 }
 
-export const cameraPlugin = new CameraPlugin()
+export const cameraPlugin = new CameraPlugin();

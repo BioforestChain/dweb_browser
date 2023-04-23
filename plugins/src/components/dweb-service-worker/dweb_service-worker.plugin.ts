@@ -3,41 +3,40 @@ import { BasePlugin } from "../base/BasePlugin.ts";
 import { BFSMetaData } from "./dweb-service-worker.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
-  tagName = "dweb-update-controller";
+  readonly tagName = "dweb-update-controller";
 
   progressNum = 0;
 
   constructor() {
-    super("jmm.sys.dweb")
+    super("jmm.sys.dweb");
   }
 
-  async init() {
-  }
+  async init() {}
 
   /**下载 */
   @bindThis
   async download(metadataUrl: string): Promise<BFSMetaData> {
     return await this.fetchApi(`/install`, {
       search: {
-        metadataUrl
-      }
-    }).object()
+        metadataUrl,
+      },
+    }).object();
   }
 
   // 暂停
   @bindThis
   async pause(): Promise<boolean> {
-    return await this.fetchApi("/pause").boolean()
+    return await this.fetchApi("/pause").boolean();
   }
   // 重下
   @bindThis
   async resume(): Promise<boolean> {
-    return await this.fetchApi("/resume").boolean()
+    return await this.fetchApi("/resume").boolean();
   }
   // 取消
   @bindThis
   async cancel(): Promise<boolean> {
-    return await this.fetchApi("/cancel").boolean()
+    return await this.fetchApi("/cancel").boolean();
   }
   /**返回进度信息 */
   // @bindThis
@@ -56,35 +55,35 @@ class UpdateControllerPlugin extends BasePlugin {
   // }
   @bindThis
   async getMMid() {
-    return await BasePlugin.public_url
+    return await BasePlugin.public_url;
   }
 }
 
 export class DwebServiceWorkerPlugin extends BasePlugin {
-  tagName = "dweb-service-worker";
+  readonly tagName = "dweb-service-worker";
 
-  updateController = new UpdateControllerPlugin()
+  updateController = new UpdateControllerPlugin();
 
   constructor() {
-    super("dns.sys.dweb")
+    super("dns.sys.dweb");
   }
   /**拿到更新句柄 */
   @bindThis
   update(): UpdateControllerPlugin {
-    return this.updateController
+    return this.updateController;
   }
 
   /**关闭前后端 */
   @bindThis
   async close(): Promise<boolean> {
-    return await this.fetchApi("/close").boolean()
+    return await this.fetchApi("/close").boolean();
   }
 
   /**重启后前端 */
   @bindThis
   async restart(): Promise<boolean> {
-    return await this.fetchApi("/restart").boolean()
+    return await this.fetchApi("/restart").boolean();
   }
 }
 
-export const dwebServiceWorkerPlugin = new DwebServiceWorkerPlugin()
+export const dwebServiceWorkerPlugin = new DwebServiceWorkerPlugin();

@@ -1,9 +1,13 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type { ImpactOptions, NotificationOptions, VibrateOptions } from "./haptics.type.ts";
+import type {
+  ImpactOptions,
+  NotificationOptions,
+  VibrateOptions,
+} from "./haptics.type.ts";
 
 export class HapticsPlugin extends BasePlugin {
-  tagName = "dweb-haptics";
+  readonly tagName = "dweb-haptics";
   constructor() {
     super("haptics.sys.dweb");
   }
@@ -12,8 +16,8 @@ export class HapticsPlugin extends BasePlugin {
   async impactLight(options: ImpactOptions) {
     return await this.fetchApi("/impactLight", {
       search: {
-        style: options.style
-      }
+        style: options.style,
+      },
     });
   }
 
@@ -22,8 +26,8 @@ export class HapticsPlugin extends BasePlugin {
   async notification(options: NotificationOptions) {
     return await this.fetchApi("/notification", {
       search: {
-        style: options.type
-      }
+        style: options.type,
+      },
     });
   }
 
@@ -61,16 +65,16 @@ export class HapticsPlugin extends BasePlugin {
   }
   /**
    * 自定义效果
-   * @param VibrateOptions 
+   * @param VibrateOptions
    */
   @bindThis
   async vibrate(options: VibrateOptions) {
     const duration = options?.duration || 300;
     await this.fetchApi("/customize", {
       search: {
-        duration: duration
-      }
-    })
+        duration: duration,
+      },
+    });
   }
 }
 

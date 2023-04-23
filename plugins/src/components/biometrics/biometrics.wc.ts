@@ -3,13 +3,20 @@ import { biometricsPlugin } from "./biometrics.plugin.ts";
 
 export class HTMLDwebBiometricsElement extends HTMLElement {
 
+  plugin = biometricsPlugin
+
   @cacheGetter()
   get chuck() {
-    return biometricsPlugin.check
+    return this.plugin.check
   }
 
   @cacheGetter()
   get biometrics() {
-    return biometricsPlugin.biometrics
+    return this.plugin.biometrics
   }
 }
+
+customElements.define(
+  biometricsPlugin.tagName,
+  HTMLDwebBiometricsElement
+);

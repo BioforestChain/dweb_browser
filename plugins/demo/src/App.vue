@@ -8,7 +8,8 @@ const router = useRouter();
 // router.push("/biometrics")
 // router.push("/serviceworker")
 // router.push("/share");
-router.push("/barcodescanning");
+// router.push("/barcodescanning");
+router.push("/network");
 
 
 const drawer_controller = ref(false);
