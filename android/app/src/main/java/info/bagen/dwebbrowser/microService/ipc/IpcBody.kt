@@ -1,8 +1,6 @@
 package info.bagen.dwebbrowser.microService.ipc
 
-import info.bagen.dwebbrowser.microService.helper.fromBase64
-import info.bagen.dwebbrowser.microService.helper.printdebugln
-import info.bagen.dwebbrowser.microService.helper.toUtf8
+import info.bagen.dwebbrowser.microService.helper.*
 import java.io.InputStream
 import java.util.*
 
@@ -55,7 +53,7 @@ abstract class IpcBody {
         (bodyHub.u8a ?: bodyHub.stream?.let {
             it.readBytes()
         } ?: bodyHub.base64?.let {
-            it.fromBase64()
+            it.toBase64ByteArray()
         } ?: throw Exception("invalid body type")).also {
             CACHE.raw_ipcBody_WMap[it] = this
         }
@@ -75,12 +73,18 @@ abstract class IpcBody {
 
     private val _base64 by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
         (bodyHub.base64 ?: _u8a.let {
-            it.toUtf8()
+            it.toBase64()
         }).also {
             CACHE.raw_ipcBody_WMap[it] = this
         }
     }
 
     fun base64() = this._base64
+
+    private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+        this._base64.toBase64ByteArray().toUtf8()
+    }
+
+    fun text() = this._text
 
 }

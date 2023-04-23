@@ -25,8 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  */
 class IpcBodySender(
-  override val raw: Any,
-  ipc: Ipc,
+    override val raw: Any,
+    ipc: Ipc,
 ) : IpcBody() {
     val isStream by lazy { raw is InputStream }
     val isStreamClosed get() = if (isStream) _isStreamClosed else true
@@ -127,7 +127,7 @@ class IpcBodySender(
     private val usedIpcMap = mutableMapOf<Ipc, UsedIpcInfo>()
 
     inner class UsedIpcInfo(
-      val ipcBody: IpcBodySender, val ipc: Ipc, var bandwidth: Int = 0, var fuse: Int = 0
+        val ipcBody: IpcBodySender, val ipc: Ipc, var bandwidth: Int = 0, var fuse: Int = 0
     ) {
         suspend fun emitStreamPull(message: IpcStreamPulling) =
             ipcBody.emitStreamPull(this, message)
@@ -154,7 +154,7 @@ class IpcBodySender(
                 }
             }
         } else {
-            printerrln("useByIpc","should not happend");
+            printerrln("useByIpc", "should not happend");
             debugger()
             null
         }
@@ -253,12 +253,18 @@ class IpcBodySender(
         CACHE.raw_ipcBody_WMap[raw] = this
 
         /// 作为 "生产者"，第一持有这个 IpcBodySender
-      IPC.usableByIpc(ipc, this)
+        IPC.usableByIpc(ipc, this)
     }
 
     companion object {
 
-        fun from(raw: Any, ipc: Ipc) = CACHE.raw_ipcBody_WMap[raw] ?: IpcBodySender(raw, ipc)
+        private fun fromAny(raw: Any, ipc: Ipc) =
+            CACHE.raw_ipcBody_WMap[raw] ?: IpcBodySender(raw, ipc)
+
+        fun fromText(raw: String, ipc: Ipc) = fromBinary(raw.toByteArray(), ipc)
+        fun fromBase64(raw: String, ipc: Ipc) = fromAny(raw, ipc)
+        fun fromBinary(raw: ByteArray, ipc: Ipc) = fromAny(raw, ipc)
+        fun fromStream(raw: InputStream, ipc: Ipc) = fromAny(raw, ipc)
 
 
         private val streamIdWM by lazy { WeakHashMap<InputStream, String>() }
@@ -342,7 +348,7 @@ class IpcBodySender(
                             "sender/READ/$stream", "$availableLen >> $stream_id"
                         )
                         val message = IpcStreamData.fromBinary(
-                          stream_id, stream.readByteArray(availableLen)
+                            stream_id, stream.readByteArray(availableLen)
                         )
                         for (ipc in usedIpcMap.keys) {
                             ipc.postMessage(message)

@@ -3,6 +3,7 @@ package info.bagen.dwebbrowser.microService.ipc
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import info.bagen.dwebbrowser.microService.helper.toBase64
+import info.bagen.dwebbrowser.microService.helper.toUtf8ByteArray
 import info.bagen.dwebbrowser.microService.helper.toUtf8
 import java.lang.reflect.Type
 
@@ -21,7 +22,7 @@ class IpcEvent(
         inline fun fromBase64(name: String, data: ByteArray) =
             IpcEvent(name, data.toBase64(), IPC_DATA_ENCODING.BASE64)
 
-        inline fun fromUtf8(name: String, data: ByteArray) = Companion.fromUtf8(name, data.toUtf8())
+        inline fun fromUtf8(name: String, data: ByteArray) = fromUtf8(name, data.toUtf8())
 
         inline fun fromUtf8(name: String, data: String) =
             IpcEvent(name, data, IPC_DATA_ENCODING.UTF8)

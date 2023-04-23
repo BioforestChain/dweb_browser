@@ -2,10 +2,7 @@ package info.bagen.dwebbrowser.microService.ipc
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
-import info.bagen.dwebbrowser.microService.helper.Callback
-import info.bagen.dwebbrowser.microService.helper.fromBase64
-import info.bagen.dwebbrowser.microService.helper.fromUtf8
-import info.bagen.dwebbrowser.microService.helper.toUtf8
+import info.bagen.dwebbrowser.microService.helper.*
 import java.lang.reflect.Type
 
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
@@ -145,8 +142,8 @@ fun dataToBinary(
     data: Any /*String or ByteArray*/, encoding: IPC_DATA_ENCODING
 ) = when (encoding) {
     IPC_DATA_ENCODING.BINARY -> data as ByteArray
-    IPC_DATA_ENCODING.BASE64 -> (data as String).fromBase64()
-    IPC_DATA_ENCODING.UTF8 -> (data as String).fromUtf8()
+    IPC_DATA_ENCODING.BASE64 -> (data as String).toBase64ByteArray()
+    IPC_DATA_ENCODING.UTF8 -> (data as String).toUtf8ByteArray()
     else -> throw Exception("unknown encoding")
 }
 
@@ -155,7 +152,7 @@ fun dataToText(
     data: Any /*String or ByteArray*/, encoding: IPC_DATA_ENCODING
 ) = when (encoding) {
     IPC_DATA_ENCODING.BINARY -> (data as ByteArray).toUtf8()
-    IPC_DATA_ENCODING.BASE64 -> (data as String).fromBase64().toUtf8()
+    IPC_DATA_ENCODING.BASE64 -> (data as String).toBase64ByteArray().toUtf8()
     IPC_DATA_ENCODING.UTF8 -> data as String
     else -> throw Exception("unknown encoding")
 }

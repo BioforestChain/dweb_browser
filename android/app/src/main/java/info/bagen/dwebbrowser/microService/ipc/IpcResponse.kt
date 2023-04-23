@@ -41,7 +41,7 @@ class IpcResponse(
             req_id,
             statusCode,
             headers.also { headers.init("Content-Type", "text/plain") },
-            IpcBodySender.from(text, ipc),
+            IpcBodySender.fromText(text, ipc),
             ipc,
         )
 
@@ -54,7 +54,7 @@ class IpcResponse(
                 headers.init("Content-Type", "application/octet-stream");
                 headers.init("Content-Length", binary.size.toString());
             },
-            IpcBodySender.from(binary, ipc),
+            IpcBodySender.fromBinary(binary, ipc),
             ipc,
         );
 
@@ -71,7 +71,7 @@ class IpcResponse(
             headers.also {
                 headers.init("Content-Type", "application/octet-stream");
             },
-            IpcBodySender.from(stream, ipc),
+            IpcBodySender.fromStream(stream, ipc),
             ipc,
         )
 
@@ -82,9 +82,9 @@ class IpcResponse(
             response.status.code,
             IpcHeaders(response.headers),
             when (response.body.length) {
-                0L -> IpcBodySender.from("", ipc)
-                null -> IpcBodySender.from(response.body.stream, ipc)
-                else -> IpcBodySender.from(response.body.payload.array(), ipc)
+                0L -> IpcBodySender.fromText("", ipc)
+                null -> IpcBodySender.fromStream(response.body.stream, ipc)
+                else -> IpcBodySender.fromBinary(response.body.payload.array(), ipc)
             },
             ipc,
         )
