@@ -1,11 +1,13 @@
 package info.bagen.dwebbrowser.microService.sys.dns
 
+import android.content.res.Resources.NotFoundException
 import info.bagen.dwebbrowser.microService.core.*
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -21,7 +23,7 @@ inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
 
 class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     private val installApps = mutableMapOf<Mmid, MicroModule>() // 已安装的应用
-    private val runningApps = mutableMapOf<Mmid, MicroModule>() // 正在运行的应用
+    private val runningApps = mutableMapOf<Mmid, PromiseOut<MicroModule>>() // 正在运行的应用
 
     suspend fun bootstrap() {
         if (!this.running) {
@@ -37,7 +39,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
 
     /** 为两个mm建立 ipc 通讯 */
     private suspend fun connectTo(
-      fromMM: MicroModule, toMmid: Mmid, reason: Request
+        fromMM: MicroModule, toMmid: Mmid, reason: Request
     ) = mmConnectsMapLock.withLock {
 
         /** 一个互联实例表 */
@@ -64,7 +66,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     }.waitPromise()
 
     class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
-      DnsMicroModule {
+        DnsMicroModule {
         override fun install(mm: MicroModule) {
             // TODO 作用域保护
             dnsMM.install(mm)
@@ -74,6 +76,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
             // TODO 作用域保护
             dnsMM.uninstall(mm)
         }
+
         override fun query(mmid: Mmid): JsMicroModule? {
             val microModule = dnsMM.query(mmid)
             if (microModule is JsMicroModule) {
@@ -81,7 +84,8 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
             }
             return null
         }
-        override fun restart(mmid:Mmid) {
+
+        override fun restart(mmid: Mmid) {
             // 调用重启
             GlobalScope.launch(ioAsyncExceptionHandler) {
                 // 关闭后端连接
@@ -93,7 +97,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
         }
 
         override suspend fun connect(
-          mmid: Mmid, reason: Request?
+            mmid: Mmid, reason: Request?
         ): ConnectResult {
             // TODO 权限保护
             return dnsMM.connectTo(
@@ -114,7 +118,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         install(this)
-        runningApps[this.mmid] = this
+        runningApps[this.mmid] = PromiseOut.resolve(this)
 
         /**
          * 对全局的自定义路由提供适配器
@@ -152,7 +156,8 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                 debugDNS("close/$mmid", request.uri.path)
                 close(query_app_id(request))
                 true
-            },)
+            },
+        )
     }
 
     override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
@@ -188,18 +193,28 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     }
 
     /** 打开应用 */
-    suspend fun open(mmid: Mmid): MicroModule {
+    private fun _open(mmid: Mmid): PromiseOut<MicroModule> {
         return runningApps.getOrPut(mmid) {
-            query(mmid)?.also {
-                bootstrapMicroModule(it)
-            } ?: throw Exception("no found app: $mmid")
+            PromiseOut<MicroModule>().also { promiseOut ->
+                query(mmid)?.also { openingMm ->
+                    GlobalScope.launch(ioAsyncExceptionHandler) {
+                        bootstrapMicroModule(openingMm)
+                        promiseOut.resolve(openingMm)
+                    }
+                } ?: promiseOut.reject(NotFoundException("no found app: $mmid"))
+            }
         }
+    }
+
+    suspend fun open(mmid: Mmid): MicroModule {
+        return _open(mmid).waitPromise()
     }
 
     /** 关闭应用 */
     suspend fun close(mmid: Mmid): Int {
-        return runningApps.remove(mmid)?.let { microModule ->
+        return runningApps.remove(mmid)?.let { microModulePo ->
             runCatching {
+                val microModule = microModulePo.waitPromise();
                 mmConnectsMap[microModule]?.remove(mmid) // 将这个连接关闭
                 microModule.shutdown()
                 1
