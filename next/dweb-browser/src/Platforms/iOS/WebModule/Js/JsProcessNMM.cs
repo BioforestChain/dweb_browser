@@ -97,7 +97,7 @@ public class JsProcessNMM : NativeMicroModule
 
         var ipcProcessIdMap = new Dictionary<Ipc, Dictionary<string, PromiseOut<int>>>();
         var processIpcMap = new Dictionary<string, Ipc>();
-        var ipcProcessIdMapLock = new Mutex();
+        //var ipcProcessIdMapLock = new Mutex();
 
         /// 创建 web worker
         /// request 需要携带一个流，来为 web worker 提供代码服务
@@ -105,22 +105,23 @@ public class JsProcessNMM : NativeMicroModule
         {
             processIpcMap.Add(ipc.Remote.Mmid, ipc);
             PromiseOut<int> po = null!;
-            ipcProcessIdMapLock.WaitOne();
 
             var processId = request.QueryValidate<string>("process_id")!;
-            var processIdMap = ipcProcessIdMap.GetValueOrPut(ipc, () =>
+            lock (ipcProcessIdMap)
             {
-                ipc.OnClose += async (_) => { ipcProcessIdMap.Remove(ipc); };
-                return new Dictionary<string, PromiseOut<int>>();
-            });
+                var processIdMap = ipcProcessIdMap.GetValueOrPut(ipc, () =>
+                {
+                    ipc.OnClose += async (_) => { ipcProcessIdMap.Remove(ipc); };
+                    return new Dictionary<string, PromiseOut<int>>();
+                });
 
-            if (processIdMap.Keys.Contains(processId))
-            {
-                throw new Exception(String.Format("ipc:{0}/processId:{1} has already using", ipc.Remote.Mmid, processId));
+                if (processIdMap.Keys.Contains(processId))
+                {
+                    throw new Exception(String.Format("ipc:{0}/processId:{1} has already using", ipc.Remote.Mmid, processId));
+                }
+
+                po = new PromiseOut<int>().Also(it => processIdMap.Add(processId, it));
             }
-
-            po = new PromiseOut<int>().Also(it => processIdMap.Add(processId, it));
-            ipcProcessIdMapLock.ReleaseMutex();
 
             var result = await _createProcessAndRun(
                 ipc,
@@ -148,18 +149,11 @@ public class JsProcessNMM : NativeMicroModule
             var mmid = request.QueryValidate<string>("mmid");
 
             int process_id;
-            ipcProcessIdMapLock.WaitOne();
-
-            var po = ipcProcessIdMap.GetValueOrDefault(ipc)?.GetValueOrDefault(processId);
-
-            if (po is null)
+            if (!ipcProcessIdMap.TryGetValue(ipc, out var processIdMap) || !processIdMap.TryGetValue(processId, out var po))
             {
                 throw new Exception(String.Format("ipc:{0}/processId:{1} invalid", ipc.Remote.Mmid, processId));
             }
-
             process_id = await po.WaitPromiseAsync();
-
-            ipcProcessIdMapLock.ReleaseMutex();
 
             // 返回 port_id
             return _createIpc(ipc, apis, process_id, mmid);

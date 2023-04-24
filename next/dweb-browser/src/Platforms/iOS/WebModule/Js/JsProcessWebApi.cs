@@ -43,13 +43,13 @@ public class JsProcessWebApi
         var metadata_json_str = JsonSerializer.Serialize(metadata_json);
         var env_json_str = JsonSerializer.Serialize(env_json);
 
-        var processInfo_json = await this.DWebView.EvaluateJavaScriptAsync(@"""
+        var processInfo_json = await this.DWebView.EvaluateAsyncJavascriptCode($$"""
            new Promise((resolve,reject)=>{
-                addEventListener(""message"", async event => {
-                    if (event.data === ""js-process/create-process"") {
+                addEventListener("message", async event => {
+                    if (event.data === "js-process/create-process") {
                         const fetch_port = event.ports[0];
                         try{
-                            resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`))
+                            resolve(await createProcess(`{{env_script_url}}`,{{metadata_json_str}},{{env_json_str}},fetch_port,`{{host}}`))
                         }catch(err){
                             reject(err)
                         }

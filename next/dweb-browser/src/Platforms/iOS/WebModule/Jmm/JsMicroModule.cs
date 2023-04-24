@@ -76,7 +76,7 @@ public class JsMicroModule : MicroModule
         //        )).Content.ReadAsStreamAsync());
         streamIpc.BindIncomeStream(await (await NativeFetchAsync(
                 new HttpRequestMessage(
-                    HttpMethod.Get,
+                    HttpMethod.Post,
                     new Uri("file://js.sys.dweb/create-process")
                         .AppendQuery("entry", Metadata.Server.Entry)
                         .AppendQuery("process_id", pid))
