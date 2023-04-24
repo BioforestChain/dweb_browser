@@ -4,7 +4,11 @@ import { CameraDirection } from "../camera/camera.type.ts";
 import { CloseWatcher } from "../close-watcher/close-watcher.shim.ts";
 import { torchPlugin } from "../torch/torch.plugin.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
-import { SupportedFormat } from "./barcode-scanning.type.ts";
+import {
+  BarcodeScannerPermission,
+  ScanResult,
+  SupportedFormat,
+} from "./barcode-scanning.type.ts";
 
 export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   plugin = barcodeScannerPlugin;
@@ -44,7 +48,10 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    */
   @cacheGetter()
   get getView() {
-    return this._video?.parentElement;
+    if (this._video) {
+      return this._video.parentElement;
+    }
+    return null;
   }
 
   @cacheGetter()
@@ -85,13 +92,24 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 启动扫码
    * @returns
    */
-  async startScanning(rotation = 0, formats = SupportedFormat.QR_CODE) {
+  async startScanning(
+    rotation = 0,
+    formats = SupportedFormat.QR_CODE
+  ): Promise<ScanResult> {
     if (!this._isCloceLock) {
       this.createClose();
     }
     await this.createElement();
-    await this._startVideo();
-    return await this.taskPhoto(rotation, formats);
+    const permission = await this._startVideo();
+    let data: string[] = [];
+    if (permission === BarcodeScannerPermission.UserAgree) {
+      data = await this.taskPhoto(rotation, formats);
+    }
+    return {
+      hasContent: data.length !== 0,
+      content: data,
+      permission,
+    };
   }
   /**
    * 停止扫码
@@ -118,8 +136,14 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._activity = true;
     return new Promise((resolve, reject) => {
       const task = () => {
-        if (!this._canvas) return reject("service close！");
-        if (!this._activity) return reject("user close");
+        if (!this._canvas) {
+          console.error("service close！");
+          return resolve([]);
+        }
+        if (!this._activity) {
+          console.error("user close！");
+          return resolve([]);
+        }
         this._canvas.toBlob(
           async (imageBlob) => {
             if (imageBlob) {
@@ -157,19 +181,24 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       const constraints: MediaStreamConstraints = {
         video: { facingMode: this._direction },
       };
-      await navigator.mediaDevices
+      return await navigator.mediaDevices
         .getUserMedia(constraints)
         .then(async (stream) => {
           await this.gotMedia(stream);
+          return BarcodeScannerPermission.UserAgree;
         })
         .catch((e) => {
-          console.error("getUserMedia() failed: ", e);
-          throw new Error(
-            "You need to authorize the camera permission to use the scan code!"
+          console.error(
+            "You need to authorize the camera permission to use the scan code!",
+            e
           );
+          this.stopScanning();
+          return BarcodeScannerPermission.UserReject;
         });
     } else {
-      throw new Error("Your browser does not support scanning code!");
+      this.stopScanning();
+      console.error("Your browser does not support scanning code!");
+      return BarcodeScannerPermission.UserError;
     }
   }
 
@@ -220,14 +249,17 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     if (this._video) {
       this._video.pause();
 
-      // deno-lint-ignore no-explicit-any
-      const st: any = this._video.srcObject;
-      const tracks = st.getTracks();
+      const st = this._video.srcObject;
+      if (st) {
+        // deno-lint-ignore no-explicit-any
+        const tracks = (st as any).getTracks();
 
-      for (let i = 0; i < tracks.length; i++) {
-        const track = tracks[i];
-        track.stop();
+        for (let i = 0; i < tracks.length; i++) {
+          const track = tracks[i];
+          track.stop();
+        }
       }
+
       this._video.parentElement?.remove();
       this._video = null;
     }
