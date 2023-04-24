@@ -239,52 +239,51 @@ public class IpcBodySender : IpcBody
     /// <summary>
     /// 拉取数据
     /// </summary>
-    private Task EmitStreamPullAsync(UsedIpcInfo info, IpcStreamPulling message) => Task.Run(() =>
-        {
-            /// 更新带宽限制
-            info.Bandwidth = message.Bandwidth;
-            /// 只要有一个开始读取，那么就可以开始
-            _streamStatusSignal.Post(StreamStatusSignal.PULLING);
-        });
+    private async Task EmitStreamPullAsync(UsedIpcInfo info, IpcStreamPulling message)
+    {
+        /// 更新带宽限制
+        info.Bandwidth = message.Bandwidth;
+        /// 只要有一个开始读取，那么就可以开始
+        await _streamStatusSignal.SendAsync(StreamStatusSignal.PULLING);
+    }
 
     /// <summary>
     /// 暂停数据
     /// </summary>
-    private Task EmitStreamPausedAsync(UsedIpcInfo info, IpcStreamPaused message) => Task.Run(() =>
-        {
-            /// 更新保险限制
-            info.Bandwidth = -1;
-            info.Fuse = message.Fuse;
+    private async Task EmitStreamPausedAsync(UsedIpcInfo info, IpcStreamPaused message)
+    {    /// 更新保险限制
+        info.Bandwidth = -1;
+        info.Fuse = message.Fuse;
 
-            /// 如果所有的读取者都暂停了，那么就触发暂停
-            var paused = true;
-            foreach (UsedIpcInfo _info in _usedIpcMap.Values)
+        /// 如果所有的读取者都暂停了，那么就触发暂停
+        var paused = true;
+        foreach (UsedIpcInfo _info in _usedIpcMap.Values)
+        {
+            if (info.Bandwidth >= 0)
             {
-                if (info.Bandwidth >= 0)
-                {
-                    paused = false;
-                    break;
-                }
+                paused = false;
+                break;
             }
-            if (paused)
-            {
-                _streamStatusSignal.Post(StreamStatusSignal.PAUSED);
-            }
-        });
+        }
+        if (paused)
+        {
+            await _streamStatusSignal.SendAsync(StreamStatusSignal.PAUSED);
+        }
+    }
 
     /// <summary>
     /// 解绑使用
     /// </summary>
     private Task EmitStreamAbortedAsync(UsedIpcInfo info) => Task.Run(() =>
+    {
+        if (_usedIpcMap.Remove(info.Uipc))
         {
-            if (_usedIpcMap.Remove(info.Uipc))
+            if (_usedIpcMap.Count == 0)
             {
-                if (_usedIpcMap.Count == 0)
-                {
-                    _streamStatusSignal.Post(StreamStatusSignal.ABORTED);
-                }
+                _streamStatusSignal.Post(StreamStatusSignal.ABORTED);
             }
-        });
+        }
+    });
 
     public event Signal? OnStreamClose;
 
@@ -333,8 +332,13 @@ public class IpcBodySender : IpcBody
     }
 
 
-    public static IpcBody From(object raw, Ipc ipc) =>
+    private static IpcBody s_fromAny(object raw, Ipc ipc) =>
         CACHE.Raw_ipcBody_WMap.TryGetValue(raw, out IpcBody ipcBody) ? ipcBody : new IpcBodySender(raw, ipc);
+    public static IpcBody FromText(string raw, Ipc ipc) => FromBinary(raw.ToUtf8ByteArray(), ipc);
+    public static IpcBody FromBase64(string raw, Ipc ipc) => s_fromAny(raw, ipc);
+    public static IpcBody FromBinary(byte[] raw, Ipc ipc) => s_fromAny(raw, ipc);
+    public static IpcBody FromStream(Stream raw, Ipc ipc) => s_fromAny(raw, ipc);
+
     private static ConditionalWeakTable<Stream, string> s_streamIdWM = new();
 
     private static int s_stream_id_acc = 1;
@@ -367,9 +371,10 @@ public class IpcBodySender : IpcBody
              */
             var pullingPo = new PromiseOut<bool>();
 
-            await Task.Run(() =>
+            _ = Task.Run(async () =>
             {
-                switch (_streamStatusSignal.Receive())
+                var signal = await _streamStatusSignal.ReceiveAsync();
+                switch (signal)
                 {
                     case StreamStatusSignal.PULLING:
                         pullingPo.Resolve(true);
@@ -457,7 +462,7 @@ public class IpcBodySender : IpcBody
         {
             // 流对象，写入缓存
             CACHE.MetaId_ipcBodySender_Map.TryAdd(it.MetaId, this);
-            Task.Run(() => _streamStatusSignal.Receive() switch
+            Task.Run(async () => await _streamStatusSignal.ReceiveAsync() switch
             {
                 StreamStatusSignal.ABORTED => CACHE.MetaId_ipcBodySender_Map.Remove(it.MetaId),
                 _ => false

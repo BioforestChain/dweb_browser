@@ -96,34 +96,12 @@ public static class ResponseExtensions
         (await self.TextAsync()).ToBooleanStrictOrNull()
         ?? throw new Exception("response content can't converter to bool.");
 
-    //public static async Task<T> Json<T>(this HttpResponseMessage self) =>
-    //    JsonSerializer.Deserialize<T>(await self.StreamAsync())
-    //    ?? throw new Exception("response content can't converter to generic type");
-    public static async Task<T> Json<T>(this HttpResponseMessage self)
+    public static async Task<T> Json<T>(this HttpResponseMessage self) => self.Content switch
     {
-        try
-        {
-            switch (self.Content.ToString())
-            {
-                case "System.Net.Http.StringContent":
-                    var result = JsonSerializer.Deserialize<T>(await self.TextAsync())!;
-                    Console.WriteLine($"result: {result}");
-                    return result;
-                case "System.IO.MemoryStream":
-                case "System.Net.Http.StreamContent":
-                    return JsonSerializer.Deserialize<T>(await self.StreamAsync())!;
-            }
-
-            throw new Exception("response content can't converter to generic type");
-        }
-        catch(Exception e)
-        {
-            Console.WriteLine($"stacktrace: {e.StackTrace}");
-            Console.WriteLine($"exception json deserializer: {e.Message}");
-            throw e;
-        }
-        
-    }
-        
+        StringContent => JsonSerializer.Deserialize<T>(await self.TextAsync())!,
+        StreamContent => JsonSerializer.Deserialize<T>(await self.StreamAsync())!,
+        ByteArrayContent byteArrayContent => JsonSerializer.Deserialize<T>(await byteArrayContent.ReadAsByteArrayAsync())!,
+        _ => throw new Exception("response content can't converter to generic type")
+    };  
 }
 

@@ -24,7 +24,8 @@ public class IpcResponse : IpcMessage
     public static IpcResponse FromJson(int req_id, int statusCode, IpcHeaders headers, object jsonAble, Ipc ipc) =>
         FromText(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "application/json")), jsonAble.ToString(), ipc);
     public static IpcResponse FromText(int req_id, int statusCode, IpcHeaders headers, string text, Ipc ipc) =>
-        new IpcResponse(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "text/plain")), IpcBodySender.From(text, ipc), ipc);
+        new IpcResponse(req_id, statusCode, headers.Also(it =>
+            it.Init("Content-Type", "text/plain")), IpcBodySender.FromText(text, ipc), ipc);
 
     public static IpcResponse FromBinary(int req_id, int statusCode, IpcHeaders headers, byte[] binary, Ipc ipc) =>
         new IpcResponse(
@@ -35,7 +36,7 @@ public class IpcResponse : IpcMessage
                 it.Init("Content-Type", "application/octet-stream");
                 it.Init("Content-Length", binary.Length.ToString());
             }),
-            IpcBodySender.From(binary, ipc),
+            IpcBodySender.FromBinary(binary, ipc),
             ipc);
 
     public static IpcResponse FromStream(int req_id, int statusCode, IpcHeaders headers, Stream stream, Ipc ipc) =>
@@ -43,30 +44,36 @@ public class IpcResponse : IpcMessage
             req_id,
             statusCode,
             headers.Also(it => it.Init("Content-Type", "application/octet-stream")),
-            IpcBodySender.From(stream, ipc),
+            IpcBodySender.FromStream(stream, ipc),
             ipc);
 
-    public static IpcResponse FromResponse(int req_id, HttpResponseMessage response, Ipc ipc) =>
+    public static async Task<IpcResponse> FromResponse(int req_id, HttpResponseMessage response, Ipc ipc) =>
         new IpcResponse(
             req_id,
             (int)response.StatusCode,
             new IpcHeaders(response.Headers),
-            //response.Content.ReadAsStream().Let(it => it.Length switch
-            //{
-            //    0L => IpcBodySender.From("", ipc),
-            //    _ => IpcBodySender.From(it, ipc)
-            //}),
-            // TODO: 无法使用Length来判断是否为空，直接使用流，有待优化
-            //IpcBodySender.From(response.Content.ReadAsStream(), ipc),
-            response.Content.ReadAsStream().Let(it =>
+            response.Content switch
             {
-                if (it.CanRead)
+                StringContent stringContent => IpcBodySender.FromText(await stringContent.ReadAsStringAsync(), ipc),
+                ByteArrayContent byteArrayContent => IpcBodySender.FromBinary(await byteArrayContent.ReadAsByteArrayAsync(), ipc),
+                StreamContent streamContent => IpcBodySender.FromStream(await streamContent.ReadAsStreamAsync(), ipc),
+                null => IpcBodySender.FromText("", ipc),
+                _ => await response.Content.ReadAsStreamAsync().Let(async streamTask =>
                 {
-                    return IpcBodySender.From(it, ipc);
-                }
-
-                return IpcBodySender.From("", ipc);
-            }),
+                    var stream = await streamTask;
+                    try
+                    {
+                        if (stream.Length == 0)
+                        {
+                            return IpcBodySender.FromText("", ipc);
+                        }
+                    }
+                    catch
+                    { // ignore error
+                    }
+                    return IpcBodySender.FromStream(stream, ipc);
+                })
+            },
             ipc);
 
     public HttpResponseMessage ToResponse() =>

@@ -5,9 +5,9 @@ namespace DwebBrowser.Helper;
 
 public static class StringExtensions
 {
-    public static byte[] FromBase64(this string self) => Convert.FromBase64String(self);
+    public static byte[] ToBase64ByteArray(this string self) => Convert.FromBase64String(self);
 
-    public static byte[] FromUtf8(this string self) => Encoding.UTF8.GetBytes(self);
+    public static byte[] ToUtf8ByteArray(this string self) => Encoding.UTF8.GetBytes(self);
 
     public static int? ToIntOrNull(this string self) =>
         int.TryParse(self, out int value) ? value : null;

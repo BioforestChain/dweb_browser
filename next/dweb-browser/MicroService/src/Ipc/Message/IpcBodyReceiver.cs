@@ -59,7 +59,7 @@ public class IpcBodyReceiver : IpcBody
                             data = (byte[])MetaBody.Data;
                             break;
                         case IPC_DATA_ENCODING.BASE64:
-                            data = ((string)MetaBody.Data).FromBase64();
+                            data = ((string)MetaBody.Data).ToBase64ByteArray();
                             break;
                         default:
                             throw new Exception($"invalid metaBody type {MetaBody.Type}");
@@ -106,7 +106,7 @@ public class IpcBodyReceiver : IpcBody
          */
         var paused = 1;
         var stream = new ReadableStream($"receiver-{stream_id}",
-            onStart: controller =>
+            onStart: async controller =>
             {
                 /// 如果有初始帧，直接存起来
                 var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(metaBody.Type);
@@ -114,13 +114,13 @@ public class IpcBodyReceiver : IpcBody
                 switch (ipcMetaBodyType.Encoding)
                 {
                     case IPC_DATA_ENCODING.UTF8:
-                        controller.Enqueue(((string)metaBody.Data).FromUtf8());
+                        await controller.EnqueueAsync(((string)metaBody.Data).ToUtf8ByteArray());
                         break;
                     case IPC_DATA_ENCODING.BINARY:
-                        controller.Enqueue((byte[])metaBody.Data);
+                        await controller.EnqueueAsync((byte[])metaBody.Data);
                         break;
                     case IPC_DATA_ENCODING.BASE64:
-                        controller.Enqueue(((string)metaBody.Data).FromBase64());
+                        await controller.EnqueueAsync(((string)metaBody.Data).ToBase64ByteArray());
                         break;
                     default:
                         break;
@@ -139,7 +139,6 @@ public class IpcBodyReceiver : IpcBody
                         controller.Close();
                         ipc.OnStream -= self;
                     }
-
                 };
 
                 ipc.OnStream += cb;

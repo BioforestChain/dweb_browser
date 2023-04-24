@@ -21,7 +21,7 @@ public class IpcEvent : IpcMessage
     public static IpcEvent FromBinary(string name, byte[] data) => new IpcEvent(name, data, IPC_DATA_ENCODING.BINARY);
     public static IpcEvent FromBase64(string name, byte[] data) =>
         new IpcEvent(name, Convert.ToBase64String(data), IPC_DATA_ENCODING.BASE64);
-    public static IpcEvent FromUtf8(string name, byte[] data) => FromUtf8(name, Convert.ToString(data) ?? "");
+    public static IpcEvent FromUtf8(string name, byte[] data) => FromUtf8(name, data.ToUtf8());
     public static IpcEvent FromUtf8(string name, string data) => new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8);
 
     private Lazy<byte[]> _binary;

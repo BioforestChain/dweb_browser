@@ -27,7 +27,7 @@ public class IpcRequest : IpcMessage
     public Uri Uri { get; init; }
 
     public static IpcRequest FromText(int req_id, string url, IpcMethod method, IpcHeaders headers, string text, Ipc ipc) =>
-        new IpcRequest(req_id, url, method ?? IpcMethod.Get, headers ?? new IpcHeaders(), IpcBodySender.From(text, ipc), ipc);
+        new IpcRequest(req_id, url, method ?? IpcMethod.Get, headers ?? new IpcHeaders(), IpcBodySender.FromText(text, ipc), ipc);
 
     public static IpcRequest FromBinary(int req_id, string url, IpcMethod method, IpcHeaders headers, byte[] binary, Ipc ipc) =>
         new IpcRequest(
@@ -39,7 +39,7 @@ public class IpcRequest : IpcMessage
                 it.Init("Content-Type", "application/octet-stream");
                 it.Init("Content-Length", binary.Length.ToString());
             }),
-            IpcBodySender.From(binary, ipc),
+            IpcBodySender.FromBinary(binary, ipc),
             ipc);
 
     public static IpcRequest FromStream(
@@ -63,7 +63,7 @@ public class IpcRequest : IpcMessage
                         headers.Init("Content-Length", size.ToString()!);
                     }
                 }),
-                IpcBodySender.From(stream, ipc),
+                IpcBodySender.FromStream(stream, ipc),
                 ipc);
 
     //public static IpcRequest FromRequest(int req_id, HttpRequestMessage request, Ipc ipc) =>
@@ -95,44 +95,44 @@ public class IpcRequest : IpcMessage
         //    case "System.Net.Http.StreamContent":
         //        return JsonSerializer.Deserialize<T>(await self.StreamAsync())!;
         //}
-        var body = request.Content switch
-        {
-            StringContent stringContent => IpcBodySender.From(await stringContent.ReadAsStringAsync(), ipc),
-            ByteArrayContent byteArrayContent => IpcBodySender.From(await  byteArrayContent.ReadAsByteArrayAsync(), ipc),
-            StreamContent streamContent => IpcBodySender.From(await  streamContent.ReadAsStreamAsync(), ipc),
-            null => IpcBodySender.From("", ipc),
-            _ => await request.Content.ReadAsStreamAsync().Let(async streamTask =>
-            {
-                var stream = await streamTask;
-                try
+        var body = (request.Method.Method is "GET" or "HEAD")
+                ? IpcBodySender.FromText("", ipc)
+                : request.Content switch
                 {
-                    if (stream.Length == 0)
+                    StringContent stringContent => IpcBodySender.FromText(await stringContent.ReadAsStringAsync(), ipc),
+                    ByteArrayContent byteArrayContent => IpcBodySender.FromBinary(await byteArrayContent.ReadAsByteArrayAsync(), ipc),
+                    StreamContent streamContent => IpcBodySender.FromStream(await streamContent.ReadAsStreamAsync(), ipc),
+                    null => IpcBodySender.FromText("", ipc),
+                    _ => await request.Content.ReadAsStreamAsync().Let(async streamTask =>
                     {
-                        return IpcBodySender.From("", ipc);
-                    }
-                }
-                catch { // ignore error
-                }
-                return IpcBodySender.From(stream, ipc);
-            })
-            
-        };
+                        var stream = await streamTask;
+                        try
+                        {
+                            if (stream.Length == 0)
+                            {
+                                return IpcBodySender.FromText("", ipc);
+                            }
+                        }
+                        catch
+                        { // ignore error
+                        }
+                        return IpcBodySender.FromStream(stream, ipc);
+                    })
+
+                };
         Console.WriteLine(request.RequestUri?.ToString());
         try
         {
-            var ipcRequest = new IpcRequest(
-            req_id,
-            request.RequestUri?.ToString() ?? "",
-            IpcMethod.From(request.Method),
-            new IpcHeaders(request.Headers),
-            (request.Method.Method is "GET" or "HEAD")
-                ? IpcBodySender.From("", ipc)
-                : body,
-            ipc
+            var ipcRequest = new IpcRequest(req_id,
+                request.RequestUri?.ToString() ?? "",
+                IpcMethod.From(request.Method),
+                new IpcHeaders(request.Headers),
+                body,
+                ipc
             );
             return ipcRequest;
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             Console.WriteLine($"e {e.StackTrace}");
             Console.WriteLine($"e {e.Message}");

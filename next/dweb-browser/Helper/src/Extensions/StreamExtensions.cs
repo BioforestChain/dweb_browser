@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace DwebBrowser.Helper;
 
 public static class StreamExtensions
@@ -19,12 +21,15 @@ public static class StreamExtensions
         new BinaryReader(self);
 
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<int> ReadIntAsync(this Stream self)
     {
         var buffer = new byte[4];
         await self.ReadExactlyAsync(buffer);
         return buffer.ToInt();
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<byte[]> ReadBytesAsync(this Stream self, int size)
     {
         var buffer = new byte[size];

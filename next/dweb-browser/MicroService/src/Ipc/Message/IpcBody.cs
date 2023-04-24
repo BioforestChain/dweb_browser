@@ -51,7 +51,7 @@ public abstract class IpcBody
         var BodyHub = ipcBody.BodyHub;
         var u8a = BodyHub.U8a
         ?? BodyHub.Stream?.ToByteArray()
-        ?? BodyHub.Text?.FromBase64()
+        ?? BodyHub.Text?.ToBase64ByteArray()
         ?? throw new Exception("invalid body type");
 
         CACHE.Raw_ipcBody_WMap.TryAdd(u8a, ipcBody);

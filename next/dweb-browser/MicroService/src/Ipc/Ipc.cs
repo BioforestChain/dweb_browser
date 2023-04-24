@@ -58,8 +58,8 @@ public abstract class Ipc
         await _doPostMessageAsync(message);
     }
 
-    public Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
-        PostMessageAsync(IpcResponse.FromResponse(req_id, response, this));
+    public async Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
+        await PostMessageAsync(await IpcResponse.FromResponse(req_id, response, this));
 
     public event Signal<IpcMessage, Ipc>? OnMessage;
     protected Task _OnMessageEmit(IpcMessage msg, Ipc ipc) => (OnMessage?.Emit(msg, ipc)).ForAwait();

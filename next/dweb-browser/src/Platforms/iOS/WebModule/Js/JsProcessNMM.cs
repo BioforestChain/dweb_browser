@@ -81,7 +81,7 @@ public class JsProcessNMM : NativeMicroModule
                 {
                     var response = await NativeFetchAsync($"file:///bundle/js-process{request.Uri.AbsolutePath}");
                     await ipc.PostMessageAsync(
-                        IpcResponse.FromResponse(
+                        await IpcResponse.FromResponse(
                             request.ReqId,
                             response,
                             ipc));

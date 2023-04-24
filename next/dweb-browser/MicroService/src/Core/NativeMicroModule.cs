@@ -32,7 +32,7 @@ public abstract class NativeMicroModule : MicroModule
                 Console.WriteLine($"NMM/Handler {ipcRequest.Url}");
                 var request = ipcRequest.ToRequest();
                 var response = await HttpRouter.RoutesWithContext(request, clientIpc);
-                await clientIpc.PostMessageAsync(IpcResponse.FromResponse(ipcRequest.ReqId, response, clientIpc));
+                await clientIpc.PostMessageAsync(await IpcResponse.FromResponse(ipcRequest.ReqId, response, clientIpc));
             };
         };
     }

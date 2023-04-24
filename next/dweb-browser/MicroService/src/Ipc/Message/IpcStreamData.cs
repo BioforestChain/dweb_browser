@@ -21,10 +21,14 @@ public class IpcStreamData : IpcMessage, IpcStream
         _text = new Lazy<string>(() => EncodingConverter.DataToText(Data, Encoding), true);
     }
 
-    public static IpcStreamData FromBinary(string stream_id, byte[] data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY);
-    public static IpcStreamData FromBase64(string stream_id, byte[] data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BASE64);
-    public static IpcStreamData FromUtf8(string stream_id, byte[] data) => FromUtf8(stream_id, System.Text.UTF8Encoding.UTF8.GetString(data));
-    public static IpcStreamData FromUtf8(string stream_id, string data) => new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.UTF8);
+    public static IpcStreamData FromBinary(string stream_id, byte[] data) =>
+        new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY);
+    public static IpcStreamData FromBase64(string stream_id, byte[] data) =>
+        new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BASE64);
+    public static IpcStreamData FromUtf8(string stream_id, byte[] data) =>
+        FromUtf8(stream_id, data.ToUtf8());
+    public static IpcStreamData FromUtf8(string stream_id, string data) =>
+        new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.UTF8);
 
     private Lazy<byte[]> _binary;
     public byte[] Binary

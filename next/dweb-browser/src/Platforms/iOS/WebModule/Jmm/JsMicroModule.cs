@@ -66,7 +66,7 @@ public class JsMicroModule : MicroModule
                 ? new HttpResponseMessage(HttpStatusCode.Forbidden)
                 : await NativeFetchAsync(Metadata.Server.Root + request.Uri.AbsolutePath);
 
-            await ipc.PostMessageAsync(IpcResponse.FromResponse(request.ReqId, response, ipc));
+            await ipc.PostMessageAsync(await IpcResponse.FromResponse(request.ReqId, response, ipc));
         };
 
         //streamIpc.BindIncomeStream(await (await NativeFetchAsync(
@@ -102,7 +102,7 @@ public class JsMicroModule : MicroModule
             {
                 var request = ipcRequest.ToRequest();
                 var response = await NativeFetchAsync(request);
-                var ipcResponse = IpcResponse.FromResponse(ipcRequest.ReqId, response, ipc);
+                var ipcResponse = await IpcResponse.FromResponse(ipcRequest.ReqId, response, ipc);
                 await ipc.PostMessageAsync(ipcResponse);
             }
             catch (Exception ex)

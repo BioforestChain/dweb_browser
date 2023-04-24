@@ -30,7 +30,7 @@ public class CborEncodeDecodeTest
 
         var json = JsonSerializer.Serialize(ipcMessageTestData);
         Debug.WriteLine(json);
-        var cbor = CBORObject.FromJSONBytes(json.FromUtf8());
+        var cbor = CBORObject.FromJSONBytes(json.ToUtf8ByteArray());
         Assert.IsType<byte[]>(cbor.EncodeToBytes());
     }
 
@@ -46,7 +46,7 @@ public class CborEncodeDecodeTest
         };
 
         var json = JsonSerializer.Serialize(ipcMessageTestData);
-        var cbor = CBORObject.FromJSONBytes(json.FromUtf8());
+        var cbor = CBORObject.FromJSONBytes(json.ToUtf8ByteArray());
         var encoded = cbor.EncodeToBytes();
 
         Debug.WriteLine(CBORObject.DecodeFromBytes(encoded).ToJSONString());

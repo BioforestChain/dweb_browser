@@ -170,7 +170,7 @@ public class ReadableStreamTest
 
         res_ipc.OnRequest += async (request, ipc, _) =>
         {
-            Debug.WriteLine($"req get request {request}");
+            Debug.WriteLine($$"""req get request {{request}}""");
             await Task.Delay(200);
             //Debug.WriteLine($"echo after 1s {request}");
             await ipc.PostMessageAsync(IpcResponse.FromText(
@@ -187,7 +187,7 @@ public class ReadableStreamTest
         foreach (var j in Enumerable.Range(1, 10))
         {
             Debug.WriteLine($"开始发送 ${j}");
-            var req = new HttpRequestMessage(HttpMethod.Get, "https://www.baidu.com/").Also(it => it.Content = new StringContent($"hi-{j}"));
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://www.baidu.com/").Also(it => it.Content = new StringContent($"hi-{j}"));
             Debug.WriteLine($"req {req}");
             var res = await req_ipc.Request(req);
             Debug.WriteLine($"res {res}");

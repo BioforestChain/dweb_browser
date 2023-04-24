@@ -170,7 +170,7 @@ public class SMetaBody
 }
 
 #region MetaBody序列化反序列化
-public class MetaBodyConverter : JsonConverter<SMetaBody>
+sealed class MetaBodyConverter : JsonConverter<SMetaBody>
 {
     public override bool CanConvert(Type typeToConvert) =>
         typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
