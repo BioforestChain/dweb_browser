@@ -29,7 +29,7 @@ public abstract class NativeMicroModule : MicroModule
         {
             clientIpc.OnRequest += async (ipcRequest, _, _) =>
             {
-                Console.WriteLine($"NMM/Handler {ipcRequest.Url}");
+                Console.WriteLine(String.Format("NMM/Handler {0}", ipcRequest.Url));
                 var request = ipcRequest.ToRequest();
                 var response = await HttpRouter.RoutesWithContext(request, clientIpc);
                 await clientIpc.PostMessageAsync(await IpcResponse.FromResponse(ipcRequest.ReqId, response, clientIpc));

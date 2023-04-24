@@ -19,7 +19,7 @@ public class JsMicroModule : MicroModule
         {
             if (toMM is JsMicroModule jmm)
             {
-                var pid = jmm._processId ?? throw new Exception($"JMM: {toMM.Mmid} no ready");
+                var pid = jmm._processId ?? throw new Exception(String.Format("JMM: {0} no ready", toMM.Mmid));
                 /**
                  * 向js模块发起连接
                  */
@@ -56,7 +56,7 @@ public class JsMicroModule : MicroModule
     private record DnsConnectEvent(Mmid mmid);
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        Console.WriteLine($"bootstrap... {Mmid}/{Metadata}");
+        Console.WriteLine(String.Format("bootstrap... {0}/{1}", Mmid, Metadata));
         var pid = Token.RandomCryptoString(8);
         _processId = pid;
         var streamIpc = new ReadableStreamIpc(this, "code-server");
@@ -146,7 +146,7 @@ public class JsMicroModule : MicroModule
 
                     var originIpc = new Native2JsIpc(portId, this).Also(it =>
                     {
-                        BeConnectAsync(it, new HttpRequestMessage(HttpMethod.Get, $"file://{Mmid}/event/dns/connect"));
+                        BeConnectAsync(it, new HttpRequestMessage(HttpMethod.Get, String.Format("file://{0}/event/dns/connect", Mmid)));
                     });
 
                     /**

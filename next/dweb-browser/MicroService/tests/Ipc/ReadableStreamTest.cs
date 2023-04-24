@@ -33,10 +33,10 @@ public class ReadableStreamTest
 
             while (stream.CanRead)
             {
-                Debug.WriteLine($"task available:{stream.CanRead}");
+                Debug.WriteLine(String.Format("task available:{0}", stream.CanRead));
                 var data = await stream.ReadBytesAsync(3);
-                Debug.WriteLine($"read: {data.ToUtf8()}");
-                //Debug.WriteLine($"stream.Available(): {reader.BaseStream.Position}");
+                Debug.WriteLine(String.Format("read: {0}", data.ToUtf8()));
+                //Debug.WriteLine(String.Format("stream.Available(): {0}", reader.BaseStream.Position));
                 Interlocked.Increment(ref result);
 
             }
@@ -85,14 +85,14 @@ public class ReadableStreamTest
 
                     //if (stream.Read(buffer, 0, 30) > 0)
 
-                    Debug.WriteLine($"buffer: {buffer.ToUtf8()}");
-                    Debug.WriteLine($"length: {stream.Length} position: {stream.Position}");
+                    Debug.WriteLine(String.Format("buffer: {0}", buffer.ToUtf8()));
+                    Debug.WriteLine(String.Format("length: {0} position: {1}", stream.Length, stream.Position));
 
 
                     Assert.Equal(2, stream.Position);
-                    Debug.WriteLine($"byte: {stream.ReadByte()}");
+                    Debug.WriteLine(String.Format("byte: {0}", stream.ReadByte()));
                     Assert.Equal(0, stream.Position);
-                    Debug.WriteLine($"length: {stream.Length} position: {stream.Position}");
+                    Debug.WriteLine(String.Format("length: {0} position: {1}", stream.Length, stream.Position));
 
                     Debug.WriteLine("read task end");
                 }
@@ -154,7 +154,7 @@ public class ReadableStreamTest
         var i = 0;
         OnEvent += async (Event, _) =>
         {
-            Debug.WriteLine($"Event {Event.data}");
+            Debug.WriteLine(String.Format("Event {0}", Event.data));
             if (Event.data == "pull")
             {
                 await Event.target.EnqueueAsync(i.ToByteArray());
@@ -172,12 +172,12 @@ public class ReadableStreamTest
         {
             Debug.WriteLine($$"""req get request {{request}}""");
             await Task.Delay(200);
-            //Debug.WriteLine($"echo after 1s {request}");
+            //Debug.WriteLine(String.Format("echo after 1s {0}", request));
             await ipc.PostMessageAsync(IpcResponse.FromText(
                 request.ReqId,
                 200,
                 new IpcHeaders(),
-                $"ECHO: {request.Body.Text}",
+                String.Format("ECHO: {0}", request.Body.Text),
                 ipc));
         };
 
@@ -186,12 +186,12 @@ public class ReadableStreamTest
 
         foreach (var j in Enumerable.Range(1, 10))
         {
-            Debug.WriteLine($"开始发送 ${j}");
-            var req = new HttpRequestMessage(HttpMethod.Post, "https://www.baidu.com/").Also(it => it.Content = new StringContent($"hi-{j}"));
-            Debug.WriteLine($"req {req}");
+            Debug.WriteLine(String.Format("开始发送 ${0}", j));
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://www.baidu.com/").Also(it => it.Content = new StringContent(String.Format("hi-{0}", j)));
+            Debug.WriteLine(String.Format("req {0}", req));
             var res = await req_ipc.Request(req);
-            Debug.WriteLine($"res {res}");
-            Assert.Equal(await res.TextAsync(), $"ECHO: {await req.Content.ReadAsStringAsync()}");
+            Debug.WriteLine(String.Format("res {0}", res));
+            Assert.Equal(await res.TextAsync(), String.Format("ECHO: {0}", await req.Content.ReadAsStringAsync()));
         }
 
         await req_ipc.Close();

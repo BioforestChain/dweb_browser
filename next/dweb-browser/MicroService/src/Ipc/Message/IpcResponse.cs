@@ -91,7 +91,7 @@ public class IpcResponse : IpcMessage
                     it.Content = new StreamContent(body);
                     break;
                 default:
-                    throw new Exception($"invalid body to request: {Body.Raw}");
+                    throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
             }
 
             foreach (var entry in Headers.GetEnumerator())

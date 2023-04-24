@@ -73,13 +73,13 @@ public class JsProcessNMM : NativeMicroModule
                                 request.ReqId,
                                 404,
                                 IpcHeaders.With(_CORS_HEADERS),
-                                $"// no found {internalUri.AbsolutePath}",
+                                String.Format("// no found {0}", internalUri.AbsolutePath),
                                 ipc));
                     }
                 }
                 else
                 {
-                    var response = await NativeFetchAsync($"file:///bundle/js-process{request.Uri.AbsolutePath}");
+                    var response = await NativeFetchAsync(String.Format("file:///bundle/js-process{0}", request.Uri.AbsolutePath));
                     await ipc.PostMessageAsync(
                         await IpcResponse.FromResponse(
                             request.ReqId,
@@ -90,7 +90,7 @@ public class JsProcessNMM : NativeMicroModule
         });
 
         var bootstrap_url = mainServer.StartResult.urlInfo.BuildInternalUrl()
-            .Path($"{_INTERNAL_PATH}/bootstrap.js")
+            .Path(String.Format("{0}/bootstrap.js", _INTERNAL_PATH))
             .ToString();
 
         var apis = await _createJsProcessWeb(mainServer);
@@ -116,7 +116,7 @@ public class JsProcessNMM : NativeMicroModule
 
             if (processIdMap.Keys.Contains(processId))
             {
-                throw new Exception($"ipc:{ipc.Remote.Mmid}/processId:{processId} has already using");
+                throw new Exception(String.Format("ipc:{0}/processId:{1} has already using", ipc.Remote.Mmid, processId));
             }
 
             po = new PromiseOut<int>().Also(it => processIdMap.Add(processId, it));
@@ -154,7 +154,7 @@ public class JsProcessNMM : NativeMicroModule
 
             if (po is null)
             {
-                throw new Exception($"ipc:{ipc.Remote.Mmid}/processId:{processId} invalid");
+                throw new Exception(String.Format("ipc:{0}/processId:{1} invalid", ipc.Remote.Mmid, processId));
             }
 
             process_id = await po.WaitPromiseAsync();

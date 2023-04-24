@@ -16,7 +16,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
     {
         if (await _runningStateLock.WaitPromiseAsync())
         {
-            throw new Exception($"module {Mmid} already running");
+            throw new Exception(String.Format("module {0} already running", Mmid));
         }
 
         _runningStateLock = new PromiseOut<bool>();
@@ -49,7 +49,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
     {
         if (!await _runningStateLock.WaitPromiseAsync())
         {
-            throw new Exception($"module {Mmid} already shutdown");
+            throw new Exception(String.Format("module {0} already shutdown", Mmid));
         }
 
         _runningStateLock = new PromiseOut<bool>();

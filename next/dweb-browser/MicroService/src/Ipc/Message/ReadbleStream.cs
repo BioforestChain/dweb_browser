@@ -43,7 +43,7 @@ namespace DwebBrowser.MicroService.Message;
 
 //                //await WriteAsync(chunk, 0, chunk.Length);
 //                _data = _data.Combine(chunk);
-//                Console.WriteLine($"DATA-IN/{Uid} +{chunk.Length} ~> {_data.Length}");
+//                Console.WriteLine(String.Format("DATA-IN/{0} +{1} ~> {2}", Uid, chunk.Length, _data.Length));
 
 //                _dataLock.ReleaseMutex();
 
@@ -91,7 +91,7 @@ namespace DwebBrowser.MicroService.Message;
 
 //        public void Error(Exception e)
 //        {
-//            Console.WriteLine($"ReadableStreamController Error: {e.Message}");
+//            Console.WriteLine(String.Format("ReadableStreamController Error: {0}", e.Message));
 //            _bufferBlock.Complete();
 //        }
 //    }
@@ -112,7 +112,7 @@ namespace DwebBrowser.MicroService.Message;
 //    {
 //        get
 //        {
-//            return $"#{Interlocked.Exchange(ref s_id_acc, Interlocked.Increment(ref s_id_acc))}" + ((Cid is not null) ? Cid! : "");
+//            return String.Format("#{0}", Interlocked.Exchange(ref s_id_acc, Interlocked.Increment(ref s_id_acc))) + ((Cid is not null) ? Cid! : "");
 //        }
 //    }
 
@@ -133,21 +133,21 @@ namespace DwebBrowser.MicroService.Message;
 //            var wait = new PromiseOut<bool>();
 //            DataChangeEvent ob = count =>
 //            {
-//                Console.WriteLine($"count: {count} CanReadSize: {CanReadSize}");
-//                Console.WriteLine($"Length: {Length} Position: {Position}");
+//                Console.WriteLine(String.Format("count: {0} CanReadSize: {1}", count, CanReadSize));
+//                Console.WriteLine(String.Format("Length: {0} Position: {1}", Length, Position));
 //                if (count == -1)
 //                {
-//                    Console.WriteLine($"REQUEST-DATA/END/{Uid} {CanReadSize}/{size}");
+//                    Console.WriteLine(String.Format("REQUEST-DATA/END/{0} {1}/{2}", Uid, CanReadSize, size));
 //                    wait.Resolve(true);
 //                }
 //                else if (CanReadSize >= size)
 //                {
-//                    Console.WriteLine($"REQUEST-DATA/CHANGED/{Uid} {CanReadSize}/{size}");
+//                    Console.WriteLine(String.Format("REQUEST-DATA/CHANGED/{0} {1}/{2}", Uid, CanReadSize, size));
 //                    wait.Resolve(false);
 //                }
 //                else
 //                {
-//                    Console.WriteLine($"REQUEST-DATA/WAITING-&-PULL/{Uid} {CanReadSize}/{size}");
+//                    Console.WriteLine(String.Format("REQUEST-DATA/WAITING-&-PULL/{0} {1}/{2}", Uid, CanReadSize, size));
 
 //                    Task.Run(() =>
 //                    {
@@ -160,7 +160,7 @@ namespace DwebBrowser.MicroService.Message;
 
 //            await wait.WaitPromiseAsync();
 //            _dataChangeObserver -= ob;
-//            Console.WriteLine($"REQUEST-DATA/DONE/{Uid} {this.Length}");
+//            Console.WriteLine(String.Format("REQUEST-DATA/DONE/{0} {1}", Uid, this.Length));
 //        }).Wait();
 
 //        return _data;
@@ -256,7 +256,7 @@ namespace DwebBrowser.MicroService.Message;
 
 //            if (ptr >= 1 /*10240*/ || IsClosed)
 //            {
-//                Console.WriteLine($"GC/{Uid}");
+//                Console.WriteLine(String.Format("GC/{0}", Uid));
 //                _data = _data.Skip(ptr).ToArray();
 //                ptr = 0;
 //            }
@@ -272,7 +272,7 @@ namespace DwebBrowser.MicroService.Message;
 //            return;
 //        }
 
-//        Console.WriteLine($"CLOSE/{Uid}");
+//        Console.WriteLine(String.Format("CLOSE/{0}", Uid));
 //        _closePo.Resolve(true);
 //        _controller.Close();
 //        // 关闭的时候不会马上清空数据，还是能读出来最后的数据的

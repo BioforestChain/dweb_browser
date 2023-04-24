@@ -60,7 +60,7 @@ public static class HttpRouter
            methodRoutes.TryGetValue(request.RequestUri.AbsolutePath, out var handler))
         {
             var res = await handler(request, ipc);
-            Console.WriteLine($"res: {res}");
+            Console.WriteLine(String.Format("res: {0}", res));
             return res;
         }
         else

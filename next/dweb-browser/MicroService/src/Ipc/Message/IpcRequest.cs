@@ -89,7 +89,7 @@ public class IpcRequest : IpcMessage
         //{
         //    case "System.Net.Http.StringContent":
         //        var result = JsonSerializer.Deserialize<T>(await self.TextAsync())!;
-        //        Console.WriteLine($"result: {result}");
+        //        Console.WriteLine(String.Format("result: {0}", result));
         //        return result;
         //    case "System.IO.MemoryStream":
         //    case "System.Net.Http.StreamContent":
@@ -134,8 +134,8 @@ public class IpcRequest : IpcMessage
         }
         catch (Exception e)
         {
-            Console.WriteLine($"e {e.StackTrace}");
-            Console.WriteLine($"e {e.Message}");
+            Console.WriteLine(String.Format("e {0}", e.StackTrace));
+            Console.WriteLine(String.Format("e {0}", e.Message));
             throw e;
         }
     }
@@ -156,7 +156,7 @@ public class IpcRequest : IpcMessage
                         it.Content = new StreamContent(body);
                         break;
                     default:
-                        throw new Exception($"invalid body to request: {Body.Raw}");
+                        throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
                 }
 
                 foreach (var entry in Headers.GetEnumerator())
@@ -187,7 +187,7 @@ public class IpcRequest : IpcMessage
         }
     }
 
-    public override string ToString() => $"#IpcRequest/{Method.method}/{Url}";
+    public override string ToString() => String.Format("#IpcRequest/{0}/{1}", Method.method, Url);
 }
 
 [JsonConverter(typeof(IpcReqMessageConverter))]

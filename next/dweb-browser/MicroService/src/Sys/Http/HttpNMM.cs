@@ -128,13 +128,13 @@ public class HttpNMM : NativeMicroModule
     {
         var mmid = ipc.Remote.Mmid;
         var subdomainPrefix = options.subdomain == "" || options.subdomain.EndsWith(".")
-            ? options.subdomain : $"{options.subdomain}";
+            ? options.subdomain : String.Format("{0}", options.subdomain);
 
         var port = options.port <= 0 || options.port >= 6556
-            ? throw new Exception($"invalid dweb http port: {options.port}") : options.port;
+            ? throw new Exception(String.Format("invalid dweb http port: {0}", options.port)) : options.port;
 
-        var host = $"{subdomainPrefix}{mmid}:{port}";
-        var internal_origin = $"https://{host}";
+        var host = String.Format("{0}{1}:{2}", subdomainPrefix, mmid, port);
+        var internal_origin = String.Format("https://{0}", host);
         var public_origin = DwebServer.Origin;
 
         return new ServerUrlInfo(host, internal_origin, public_origin);
@@ -198,7 +198,7 @@ public class HttpNMM : NativeMicroModule
         var serverUrlInfo = _getServerUrlInfo(ipc, options);
         if (_gatewayMap.ContainsKey(serverUrlInfo.Host))
         {
-            throw new Exception($"already in listen: {serverUrlInfo.Internal_Origin}");
+            throw new Exception(String.Format("already in listen: {0}", serverUrlInfo.Internal_Origin));
         }
 
         var listener = new Gateway.PortListener(ipc, serverUrlInfo.Host);
@@ -228,10 +228,10 @@ public class HttpNMM : NativeMicroModule
         HttpRequestMessage request,
         List<Gateway.RouteConfig> routes)
     {
-        var gateway = _tokenMap.GetValueOrDefault(token) ?? throw new Exception($"no gateway with token: {token}");
-        Console.WriteLine($"LISTEN host: {gateway.UrlInfo.Host}, token: {token}");
+        var gateway = _tokenMap.GetValueOrDefault(token) ?? throw new Exception(String.Format("no gateway with token: {0}", token));
+        Console.WriteLine(String.Format("LISTEN host: {0}, token: {1}", gateway.UrlInfo.Host, token));
 
-        var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, $"http-gateway/{gateway.UrlInfo.Host}");
+        var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, String.Format("http-gateway/{0}", gateway.UrlInfo.Host));
         streamIpc.BindIncomeStream(request.Content.ReadAsStream());
 
         foreach (var routeConfig in routes)

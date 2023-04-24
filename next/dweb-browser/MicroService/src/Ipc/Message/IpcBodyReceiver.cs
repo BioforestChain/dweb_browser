@@ -43,7 +43,7 @@ public class IpcBodyReceiver : IpcBody
                 {
                     if (!CACHE.MetaId_receiverIpc_Map.TryGetValue(MetaBody.MetaId, out Ipc? ipc))
                     {
-                        throw new Exception($"no found ipc by metaId: {MetaBody.MetaId}");
+                        throw new Exception(String.Format("no found ipc by metaId: {0}", MetaBody.MetaId));
                     }
 
                     data = MetaToStream(MetaBody, ipc);
@@ -62,7 +62,7 @@ public class IpcBodyReceiver : IpcBody
                             data = ((string)MetaBody.Data).ToBase64ByteArray();
                             break;
                         default:
-                            throw new Exception($"invalid metaBody type {MetaBody.Type}");
+                            throw new Exception(String.Format("invalid metaBody type {0}", MetaBody.Type));
                     }
                 }
 
@@ -105,7 +105,7 @@ public class IpcBodyReceiver : IpcBody
          * 默认是暂停状态
          */
         var paused = 1;
-        var stream = new ReadableStream($"receiver-{stream_id}",
+        var stream = new ReadableStream(String.Format("receiver-{0}", stream_id),
             onStart: async controller =>
             {
                 /// 如果有初始帧，直接存起来
@@ -130,12 +130,12 @@ public class IpcBodyReceiver : IpcBody
                 {
                     if (ipcStream is IpcStreamData data && data.StreamId == stream_id)
                     {
-                        Console.WriteLine($"receiver/StreamData/{ipc}/{controller.Stream}", data);
+                        Console.WriteLine(String.Format("receiver/StreamData/{0}/{1}", ipc, controller.Stream), data);
                         await controller.EnqueueAsync(data.Binary);
                     }
                     else if (ipcStream is IpcStreamEnd end && end.StreamId == stream_id)
                     {
-                        Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", end);
+                        Console.WriteLine(String.Format("receiver/StreamEnd/{0}/{1}", ipc, controller.Stream), end);
                         controller.Close();
                         ipc.OnStream -= self;
                     }
@@ -146,7 +146,7 @@ public class IpcBodyReceiver : IpcBody
             onPull: async args =>
             {
                 var controller = args.Item2;
-                Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", stream_id);
+                Console.WriteLine(String.Format("receiver/StreamEnd/{0}/{1}", ipc, controller.Stream), stream_id);
                 if (Interlocked.CompareExchange(ref paused, 1, 0) == 1)
                 {
                     await ipc.PostMessageAsync(new IpcStreamPulling(stream_id));
@@ -158,7 +158,7 @@ public class IpcBodyReceiver : IpcBody
             }
             ).Stream;
 
-        Console.WriteLine($"receiver/{ipc}/{stream}");
+        Console.WriteLine(String.Format("receiver/{0}/{1}", ipc, stream));
 
         return stream;
     }

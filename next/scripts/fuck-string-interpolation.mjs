@@ -15,14 +15,15 @@ function* walkDir(dirs) {
         dirs.add(fullname);
         continue;
       }
-      yield {
+      const entry = {
         filename: fullname,
         dirname,
         name,
         readText: () => fs.readFileSync(fullname, "utf-8"),
         writeText: (text) => fs.writeFileSync(fullname, text),
-        replaceText: (cb) => this.writeText(cb(this.readText())),
+        replaceText: (cb) => entry.writeText(cb(entry.readText())),
       };
+      yield entry;
     }
   }
 }

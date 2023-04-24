@@ -66,7 +66,7 @@ public class JsProcessWebApi
         {
             Console.WriteLine(e.StackTrace);
         }
-        Console.WriteLine($"processInfo {processInfo_json}");
+        Console.WriteLine(String.Format("processInfo {0}", processInfo_json));
 
         try
         {
@@ -80,17 +80,17 @@ public class JsProcessWebApi
         }
         catch(Exception err)
         {
-            throw new Exception($"CreateProcess JsonDeserialize ProcessInfo error: {err.Message}");
+            throw new Exception(String.Format("CreateProcess JsonDeserialize ProcessInfo error: {0}", err.Message));
         }
     }
 
     public record RunProcessMainOptions(string MainUrl);
 
     public Task RunProcessMain(int process_id, RunProcessMainOptions options) =>
-        this.DWebView.EvaluateJavaScriptAsync($"runProcessMain({process_id}, {{main_url:`{options.MainUrl}`}})".Trim());
+        this.DWebView.EvaluateJavaScriptAsync(String.Format("runProcessMain({0}, {1}`}})", process_id, {main_url:`{options.MainUrl).Trim());
 
     public Task DestroyProcess(int process_id) =>
-        this.DWebView.EvaluateJavaScriptAsync($"destroy({process_id})".Trim());
+        this.DWebView.EvaluateJavaScriptAsync(String.Format("destroy({0})", process_id).Trim());
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {

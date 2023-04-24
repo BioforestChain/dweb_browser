@@ -46,7 +46,7 @@ public abstract class Ipc
 
     public abstract string Role { get; }
 
-    public override string ToString() => $"#i{Uid}";
+    public override string ToString() => String.Format("#i{0}", Uid);
 
     public async Task PostMessageAsync(IpcMessage message)
     {
@@ -134,7 +134,7 @@ public abstract class Ipc
 
                 if (res is null)
                 {
-                    throw new Exception($"no found response by req_id: {ipcResponse.ReqId}");
+                    throw new Exception(String.Format("no found response by req_id: {0}", ipcResponse.ReqId));
                 }
 
                 res.Resolve(ipcResponse);

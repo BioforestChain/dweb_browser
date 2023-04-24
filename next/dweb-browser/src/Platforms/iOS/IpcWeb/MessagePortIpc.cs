@@ -85,19 +85,19 @@ public class MessagePortIpc : Ipc
                             await Port.PostMessage("pong");
                             break;
                         case "pong":
-                            Console.WriteLine($"PONG/{ipc}");
+                            Console.WriteLine(String.Format("PONG/{0}", ipc));
                             break;
                         case IpcMessage ipcMessage:
-                            Console.WriteLine($"ON-MESSAGE/{ipc} {message}");
+                            Console.WriteLine(String.Format("ON-MESSAGE/{0} {1}", ipc, message));
                             await _OnMessageEmit(ipcMessage, ipc);
                             break;
                     }
                     break;
                 case NSNumber data:
-                    Console.WriteLine($"OnWebMessage is number: {data}");
+                    Console.WriteLine(String.Format("OnWebMessage is number: {0}", data));
                     break;
                 default:
-                    throw new Exception($"unknown message: {message}");
+                    throw new Exception(String.Format("unknown message: {0}", message));
             }
         };
 

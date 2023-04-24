@@ -63,19 +63,19 @@ public class NativeIpcTest
                     req.ReqId,
                     200,
                     new IpcHeaders(),
-                    $"ECHO: {req.Body.Text}",
+                    String.Format("ECHO: {0}", req.Body.Text),
                     ipc));
         };
 
         await Task.Delay(100);
         foreach (var j in Enumerable.Range(1, 10))
         {
-            Debug.WriteLine($"开始发送 ${j}");
-            var req = new HttpRequestMessage(HttpMethod.Get, "https://www.baidu.com/").Also(it => it.Content = new StringContent($"hi-{j}"));
-            Debug.WriteLine($"req {req}");
+            Debug.WriteLine(String.Format("开始发送 ${0}", j));
+            var req = new HttpRequestMessage(HttpMethod.Get, "https://www.baidu.com/").Also(it => it.Content = new StringContent(String.Format("hi-{0}", j)));
+            Debug.WriteLine(String.Format("req {0}", req));
             var res = await ipc2.Request(req);
-            Debug.WriteLine($"res {res}");
-            Assert.Equal(await res.TextAsync(), $"ECHO: {await req.Content.ReadAsStringAsync()}");
+            Debug.WriteLine(String.Format("res {0}", res));
+            Assert.Equal(await res.TextAsync(), String.Format("ECHO: {0}", await req.Content.ReadAsStringAsync()));
         }
 
         await ipc2.Close();

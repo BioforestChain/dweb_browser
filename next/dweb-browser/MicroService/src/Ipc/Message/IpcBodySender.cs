@@ -345,7 +345,7 @@ public class IpcBodySender : IpcBody
 
     private static string s_getStreamId(Stream stream) => s_streamIdWM.GetValueOrPut(stream, () =>
     {
-        return $"rs-{Interlocked.Exchange(ref s_stream_id_acc, Interlocked.Increment(ref s_stream_id_acc))}";
+        return String.Format("rs-{0}", Interlocked.Exchange(ref s_stream_id_acc, Interlocked.Increment(ref s_stream_id_acc)));
     });
 
 
@@ -355,14 +355,14 @@ public class IpcBodySender : IpcBody
         byte[] value => SMetaBody.FromBinary(ipc, value),
 
         Stream value => StreamAsMeta(value, ipc),
-        _ => throw new Exception($"invalid body type {body}"),
+        _ => throw new Exception(String.Format("invalid body type {0}", body)),
     };
 
     private SMetaBody StreamAsMeta(Stream stream, Ipc ipc)
     {
         var stream_id = s_getStreamId(stream);
 
-        Console.WriteLine($"sender/INIT/{stream}", stream_id);
+        Console.WriteLine(String.Format("sender/INIT/{0}", stream), stream_id);
 
         Task.Run(async () =>
         {
@@ -398,13 +398,13 @@ public class IpcBodySender : IpcBody
                 // 等待流开始被拉取
                 await pullingPo.WaitPromiseAsync();
 
-                Console.WriteLine($"sender/PULLING/{stream}", stream_id);
+                Console.WriteLine(String.Format("sender/PULLING/{0}", stream), stream_id);
 
 
                 switch (stream.Length)
                 {
                     case 0L:
-                        Console.WriteLine($"sender/END/{stream}", $"-1 >> {stream_id}");
+                        Console.WriteLine(String.Format("sender/END/{0}", stream), String.Format("-1 >> {0}", stream_id));
 
                         /// 不论是不是被 aborted，都发送结束信号
                         var ipcStreamEnd = new IpcStreamEnd(stream_id);
@@ -419,7 +419,7 @@ public class IpcBodySender : IpcBody
                     case long availableLen:
                         // 开光了，流已经开始被读取
                         _isStreamOpened = true;
-                        Console.WriteLine($"sender/READ/{stream}", $"{availableLen} >> {stream_id}");
+                        Console.WriteLine(String.Format("sender/READ/{0}", stream), String.Format("{0} >> {1}", availableLen, stream_id));
 
                         // TODO: 流读取是否大于Int32.MaxValue,待优化
                         int bytesRead = availableLen.ToInt();

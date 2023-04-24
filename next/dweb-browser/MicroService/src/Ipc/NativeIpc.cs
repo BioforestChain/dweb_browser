@@ -60,7 +60,7 @@ public class NativePort<I, O>
             await _closePo.WaitPromiseAsync();
             _channel_out.Complete();
             await (OnClose?.Emit()).ForAwait();
-            Console.WriteLine($"port-closed/{this}");
+            Console.WriteLine(String.Format("port-closed/{0}", this));
         });
     }
 
@@ -68,7 +68,7 @@ public class NativePort<I, O>
 
     private int _uid = Interlocked.Exchange(ref s_uid_acc, Interlocked.Increment(ref s_uid_acc));
 
-    public override string ToString() => $"#p{_uid}";
+    public override string ToString() => String.Format("#p{0}", _uid);
 
     private bool _started { get; set; } = false;
 
@@ -83,15 +83,15 @@ public class NativePort<I, O>
             _started = true;
         }
 
-        Console.WriteLine($"port-message-start/{this}");
+        Console.WriteLine(String.Format("port-message-start/{0}", this));
         await foreach (I message in _channel_in.ReceiveAllAsync())
         {
-            Console.WriteLine($"port-message-in/{this}");
+            Console.WriteLine(String.Format("port-message-in/{0}", this));
             await (OnMessage?.Emit(message)).ForAwait();
-            Console.WriteLine($"port-message-waiting/{this}");
+            Console.WriteLine(String.Format("port-message-waiting/{0}", this));
         }
 
-        Console.WriteLine($"port-message-end/{this}");
+        Console.WriteLine(String.Format("port-message-end/{0}", this));
     }
 
     public event Signal? OnClose;
@@ -101,7 +101,7 @@ public class NativePort<I, O>
         if (!_closePo.IsFinished)
         {
             _closePo.Resolve(true);
-            Console.WriteLine($"port-closing/{this}");
+            Console.WriteLine(String.Format("port-closing/{0}", this));
         }
     }
 
@@ -114,7 +114,7 @@ public class NativePort<I, O>
      */
     public Task PostMessageAsync(O msg)
     {
-        Console.WriteLine($"message-out/{this} >> {msg}");
+        Console.WriteLine(String.Format("message-out/{0} >> {1}", this, msg));
         return _channel_out.SendAsync(msg);
     }
 }

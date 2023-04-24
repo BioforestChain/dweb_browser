@@ -30,14 +30,14 @@ public class AppDelegate : UIApplicationDelegate {
 		Window.MakeKeyAndVisible ();
 
 		var res = LocaleFile.LocaleFileFetch(new JmmNMM(), new HttpRequestMessage(HttpMethod.Get, "file:///bundle/desktop.worker.js"));
-		Console.WriteLine($"结果：{res?.StatusCode}");
+		Console.WriteLine(String.Format("结果：{0}", res?.StatusCode));
 
 		Console.WriteLine(res.Content.ToString());
 
 		if (res is not null)
 		{
 			var stream = res.Content.ReadAsStream();
-			Console.WriteLine($"读取长度：{stream.Length}");
+			Console.WriteLine(String.Format("读取长度：{0}", stream.Length));
 			using (var reader = new StreamReader(stream))
 			{
 				Console.WriteLine(reader.ReadToEnd());

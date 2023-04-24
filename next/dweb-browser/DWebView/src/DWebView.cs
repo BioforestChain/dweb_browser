@@ -211,7 +211,7 @@ function nativeWindowPostMessage(data, ports_id) {
             string gatewayOrigin = HttpNMM.DwebServer.Origin;
             if (!origin.StartsWith(gatewayOrigin))
             {
-                baseNode.SetAttribute("href", $"{gatewayOrigin}{HttpNMM.X_DWEB_HREF}{origin}");
+                baseNode.SetAttribute("href", String.Format("{0}{1}{2}", gatewayOrigin, HttpNMM.X_DWEB_HREF, origin));
                 responseData = document.ToHtml();
             }
 

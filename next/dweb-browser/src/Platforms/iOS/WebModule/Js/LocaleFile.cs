@@ -62,7 +62,7 @@ public static class LocaleFile
 
                 var src = request.RequestUri.AbsolutePath.Substring(1);
 
-                Console.WriteLine($"OPEN {src}");
+                Console.WriteLine(String.Format("OPEN {0}", src));
                 string dirname = Path.GetDirectoryName(src) ?? "";
                 string filename = Path.GetFileName(src) ?? "";
 
@@ -76,10 +76,10 @@ public static class LocaleFile
                 var targetPath = Path.Combine(absoluteDir, filename);
                 if (!filenameList.Contains(targetPath))
                 {
-                    Console.WriteLine($"NO-FOUND {request.RequestUri.AbsolutePath}");
+                    Console.WriteLine(String.Format("NO-FOUND {0}", request.RequestUri.AbsolutePath));
                     response = new HttpResponseMessage(HttpStatusCode.NotFound).Also(it =>
                     {
-                        it.Content = new StringContent($"the file({request.RequestUri.AbsolutePath}) not found.");
+                        it.Content = new StringContent(String.Format("the file({0}) not found.", request.RequestUri.AbsolutePath));
                     });
                 }
                 else
@@ -120,7 +120,7 @@ public static class LocaleFile
                         var mimeType = GetMimeType(src);
                         if (mimeType is not null)
                         {
-                            Console.WriteLine($"mimeType: {mimeType}");
+                            Console.WriteLine(String.Format("mimeType: {0}", mimeType));
                             response.Content.Headers.Add("Content-Type", mimeType);
                         }
                         return response;
@@ -130,7 +130,7 @@ public static class LocaleFile
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Exception: {e.Message}");
+            Console.WriteLine(String.Format("Exception: {0}", e.Message));
             return new HttpResponseMessage(HttpStatusCode.InternalServerError);
         }
 

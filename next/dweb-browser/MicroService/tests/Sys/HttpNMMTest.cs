@@ -12,13 +12,13 @@ public class HttpNMMTest
 		var reg = new Regex(@"\sdweb-host/(\S+)");
 		//Debug.WriteLine("result: " + reg.Match(str).Value);
 		MatchCollection matches = reg.Matches(str);
-		Debug.WriteLine($"{matches.Count} matches found in: {str}");
+		Debug.WriteLine(String.Format("{0} matches found in: {1}", matches.Count, str));
 
         // Report on each match.
         foreach (Match match in matches)
         {
             GroupCollection groups = match.Groups;
-            Debug.WriteLine($"result1: {groups[1].Value}");
+            Debug.WriteLine(String.Format("result1: {0}", groups[1].Value));
 			Assert.Equal("dns.sys.dweb.localhost:22605", groups[1].Value);
         }
     }

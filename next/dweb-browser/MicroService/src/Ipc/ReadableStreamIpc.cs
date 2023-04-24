@@ -15,7 +15,7 @@ public class ReadableStreamIpc : Ipc
             Role,
             controller => _controller = controller,
             args =>
-                Console.WriteLine($"ON-PULL/{args.Item2.Stream}", args.Item1),
+                Console.WriteLine(String.Format("ON-PULL/{0}", args.Item2.Stream), args.Item1),
             Console.WriteLine);
     }
 
@@ -38,7 +38,7 @@ public class ReadableStreamIpc : Ipc
             },
         };
 
-        Console.WriteLine($"post/{Stream}", message.Length);
+        Console.WriteLine(String.Format("post/{0}", Stream), message.Length);
         return EnqueueAsync(message.Length.ToByteArray().Combine(message));
     }
 
@@ -98,7 +98,7 @@ public class ReadableStreamIpc : Ipc
                     continue;
                 }
 
-                var b = $"size/{stream} {size}";
+                var b = String.Format("size/{0} {1}", stream, size);
                 // Console.WriteLine(b);
                 var buffer = await stream.ReadBytesAsync(size);
 
@@ -113,7 +113,7 @@ public class ReadableStreamIpc : Ipc
                         await EnqueueAsync(_PONG_DATA);
                         break;
                     case "pong":
-                        Console.WriteLine($"PONG/{stream}");
+                        Console.WriteLine(String.Format("PONG/{0}", stream));
                         break;
                     case IpcMessage ipcMessage:
                         Console.WriteLine("ON-MESSAGE/{0} {1}", this, ipcMessage);
@@ -121,11 +121,11 @@ public class ReadableStreamIpc : Ipc
                         await _OnMessageEmit(ipcMessage, this);
                         break;
                     default:
-                        throw new Exception($"unknown message: {message}");
+                        throw new Exception(String.Format("unknown message: {0}", message));
                 }
             }
 
-            Console.WriteLine($"END/{stream}");
+            Console.WriteLine(String.Format("END/{0}", stream));
         });
 
         _incomeStream = stream;

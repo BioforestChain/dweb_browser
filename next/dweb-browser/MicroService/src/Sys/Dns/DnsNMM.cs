@@ -61,7 +61,7 @@ public class DnsNMM : NativeMicroModule
                     Task.Run(async () =>
                     {
                         var toMM = await OpenAsync(toMmid);
-                        Console.WriteLine($"DNS/connect {fromMM.Mmid} => {toMmid}");
+                        Console.WriteLine(String.Format("DNS/connect {0} => {1}", fromMM.Mmid, toMmid));
                         var connects = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
                         po.Resolve(connects);
                         connects.IpcForFromMM.OnClose += async (_) =>
@@ -103,7 +103,7 @@ public class DnsNMM : NativeMicroModule
         public Task<ConnectResult> ConnectAsync(string mmid, HttpRequestMessage? reason = null)
         {
             return _dnsMM._connectTo(
-                _fromMM, mmid, reason ?? new HttpRequestMessage(HttpMethod.Get, new Uri($"file://{mmid}")));
+                _fromMM, mmid, reason ?? new HttpRequestMessage(HttpMethod.Get, new Uri(String.Format("file://{0}", mmid))));
         }
 
         public Task BootstrapAsync(string mmid) => _dnsMM.OpenAsync(mmid);
@@ -148,7 +148,7 @@ public class DnsNMM : NativeMicroModule
         // 打开应用
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/open", async (request, _) =>
         {
-            Console.WriteLine($"open/{Mmid} {request.RequestUri?.AbsolutePath}");
+            Console.WriteLine(String.Format("open/{0} {1}", Mmid, request.RequestUri?.AbsolutePath));
             await OpenAsync(request.QueryValidate<Mmid>("app_id")!);
             return true;
         });
@@ -157,7 +157,7 @@ public class DnsNMM : NativeMicroModule
         // TODO 能否关闭一个应该应该由应用自己决定
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/close", async (request, _) =>
         {
-            Console.WriteLine($"close/{Mmid} {request.RequestUri?.AbsolutePath}");
+            Console.WriteLine(String.Format("close/{0} {1}", Mmid, request.RequestUri?.AbsolutePath));
             await OpenAsync(request.QueryValidate<string>("app_id")!);
             return true;
         });
