@@ -1,7 +1,9 @@
 ﻿
+using System.Reflection.PortableExecutable;
+using System.Text.Json.Serialization.Metadata;
+
 namespace DwebBrowser.MicroService.Message;
 
-[JsonConverter(typeof(MetaBodyConverter))]
 public class SMetaBody
 {
     /**
@@ -11,10 +13,25 @@ public class SMetaBody
      * 形态信息（流、内联）是对 "是否启用 streamId" 的描述（注意，流也可以内联第一帧的数据）
      * </summary>
      */
+    [JsonPropertyName("type")]
     public IPC_META_BODY_TYPE Type { get; set; }
+    [JsonPropertyName("senderUid")]
     public int SenderUid { get; set; }
-    public Object Data { get; set; }
+    [JsonPropertyName("data")]
+    public object _Data { get; set; }
+    public object Data
+    {
+        get => _Data switch
+        {
+            JsonElement element => _Data = element.GetString()!, // JSON 模式下，只可能输出字符串格式，不可能是 byte[]
+            /// TODO 未来支持 CBOR 的时候，这里可以直接读取出 byte[]
+            _ => _Data,
+        };
+        set => _Data = value;
+    }
+    [JsonPropertyName("streamId")]
     public string? StreamId { get; set; } = null;
+    [JsonPropertyName("receiverUid")]
     public int? ReceiverUid { get; set; } = null;
 
     /**
@@ -25,13 +42,19 @@ public class SMetaBody
      * 远端可以发送句柄回来，这样可以省去一些数据的回传延迟。
      * </summary>
      */
+    [JsonPropertyName("metaId")]
     public string MetaId = Token.RandomCryptoString(8);
 
+    //[Obsolete("使用带参数的构造函数", true)]
+    public SMetaBody()
+    {
+        /// 给JSON反序列化用的空参数构造函数
+    }
 
     public SMetaBody(
         IPC_META_BODY_TYPE type,
         int senderUid,
-        Object data,
+        object data,
         string? streamId = null,
         int? receiverUid = null)
     {
@@ -169,94 +192,24 @@ public class SMetaBody
     public static SMetaBody? FromJson(string json) => JsonSerializer.Deserialize<SMetaBody>(json);
 }
 
-#region MetaBody序列化反序列化
-sealed class MetaBodyConverter : JsonConverter<SMetaBody>
-{
-    public override bool CanConvert(Type typeToConvert) =>
-        typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
+//#region MetaBody序列化反序列化
+//sealed class MetaBodyConverter : JsonConverter<SMetaBody>
+//{
+//    public override SMetaBody Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+//    {
+//        var res = JsonSerializer.Deserialize<SMetaBody>(ref reader, new JsonSerializerOptions().Also(it =>
+//        it.Converters.Clear()));
 
-    public override SMetaBody Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.StartObject)
-            throw new JsonException("Expected StartObject token");
+//        return res;
+//    }
 
-        SMetaBody.IPC_META_BODY_TYPE type = default;
-        int senderUid = default;
-        string data = default;
-        string? stream_id = null;
-        int? receiverUid = null;
-        string metaId = default;
-
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-                return new SMetaBody(type, senderUid, data ?? "", stream_id, receiverUid) { MetaId = metaId ?? "" };
-
-            if (reader.TokenType != JsonTokenType.PropertyName)
-                throw new JsonException("Expected PropertyName token");
-
-            var propName = reader.GetString();
-
-            reader.Read();
-
-            switch (propName)
-            {
-                case "type":
-                    type = (SMetaBody.IPC_META_BODY_TYPE)reader.GetInt64();
-                    break;
-                case "senderUid":
-                    senderUid = reader.GetInt32();
-                    break;
-                case "data":
-                    data = reader.GetString() ?? "";
-                    break;
-                case "streamId":
-                    stream_id = reader.GetString() ?? null;
-                    break;
-                case "receiverUid":
-                    receiverUid = reader.GetInt32();
-                    break;
-                case "metaId":
-                    metaId = reader.GetString() ?? "";
-                    break;
-            }
-        }
-
-        throw new JsonException("Expected EndObject token");
-    }
-
-    public override void Write(
-        Utf8JsonWriter writer,
-        SMetaBody value,
-        JsonSerializerOptions options)
-    {
-        writer.WriteStartObject();
-
-        writer.WriteNumber("type", (int)value.Type);
-        writer.WriteNumber("senderUid", value.SenderUid);
-
-        if (value.ReceiverUid != null)
-        {
-            writer.WriteString("streamId", value.StreamId);
-        }
-        else
-        {
-            writer.WriteNull("streamId");
-        }
-
-        if (value.ReceiverUid != null)
-        {
-            writer.WriteNumber("receiverUid", (decimal)value.ReceiverUid!);
-        }
-        else
-        {
-            writer.WriteNull("receiverUid");
-        }
-
-        writer.WriteString("metaId", value.MetaId);
-        writer.WriteString("data", (string)value.Data);
-
-        writer.WriteEndObject();
-    }
-}
-#endregion
+//    public override void Write(
+//        Utf8JsonWriter writer,
+//        SMetaBody value,
+//    JsonSerializerOptions options)
+//    {
+//        JsonSerializer.Serialize<SMetaBody>(writer, value, new JsonSerializerOptions().Also(it =>
+//         it.Converters.Clear()));
+//    }
+//}
+//#endregion

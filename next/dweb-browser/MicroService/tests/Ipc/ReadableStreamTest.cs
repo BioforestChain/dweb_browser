@@ -187,7 +187,7 @@ public class ReadableStreamTest
         foreach (var j in Enumerable.Range(1, 10))
         {
             Debug.WriteLine(String.Format("开始发送 ${0}", j));
-            var req = new HttpRequestMessage(HttpMethod.Post, "https://www.baidu.com/").Also(it => it.Content = new StringContent(String.Format("hi-{0}", j)));
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://www.baidu.com/").Also(it => it.Content = new ByteArrayContent(String.Format("hi-{0}", j).ToUtf8ByteArray()));
             Debug.WriteLine(String.Format("req {0}", req));
             var res = await req_ipc.Request(req);
             Debug.WriteLine(String.Format("res {0}", res));

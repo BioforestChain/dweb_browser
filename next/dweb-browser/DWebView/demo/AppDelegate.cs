@@ -48,7 +48,7 @@ public class AppDelegate : UIApplicationDelegate
         // create a UIViewController with a single UILabel
         var vc = new UIViewController();
         var localeNmm = new TestNMM();
-        Func<System.Net.Http.HttpRequestMessage, System.Net.Http.HttpResponseMessage> httpHanlder = (request) =>
+        Func<HttpRequestMessage, Task<HttpResponseMessage>> httpHanlder = async (request) =>
         {
             if (request.RequestUri?.OriginalString is "localhost:20222")
             {
@@ -94,7 +94,7 @@ public class AppDelegate : UIApplicationDelegate
         {
             if (request.RequestUri?.Host is "test.sys.dweb")
             {
-                return httpHanlder(request);
+                return await httpHanlder(request);
             }
             return null;
         });

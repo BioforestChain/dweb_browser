@@ -53,6 +53,7 @@ public class IpcResMessageSerializeTest
     [Fact]
     public void ToJson_StreamIdAndReceiverUidIsNull_ReturnSuccess()
     {
+        Debug.WriteLine(_ipcResMessageNull.ToJson());
         Assert.IsType<string>(_ipcResMessageNull.ToJson());
     }
 

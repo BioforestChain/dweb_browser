@@ -78,7 +78,7 @@ public class JsProcessWebApi
 
             throw new Exception("processInfo_json 类型错误，无法进行序列化");
         }
-        catch(Exception err)
+        catch (Exception err)
         {
             throw new Exception(String.Format("CreateProcess JsonDeserialize ProcessInfo error: {0}", err.Message));
         }
@@ -87,7 +87,7 @@ public class JsProcessWebApi
     public record RunProcessMainOptions(string MainUrl);
 
     public Task RunProcessMain(int process_id, RunProcessMainOptions options) =>
-        this.DWebView.EvaluateJavaScriptAsync(String.Format("runProcessMain({0}, {1}`}})", process_id, {main_url:`{options.MainUrl).Trim());
+        this.DWebView.EvaluateJavaScriptAsync(String.Format("runProcessMain({0}, {main_url:`{1}`})", process_id, options.MainUrl));
 
     public Task DestroyProcess(int process_id) =>
         this.DWebView.EvaluateJavaScriptAsync(String.Format("destroy({0})", process_id).Trim());

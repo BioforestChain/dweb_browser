@@ -5,13 +5,12 @@ namespace DwebBrowser.MicroService.Message;
 public class IpcResponse : IpcMessage
 {
     public int ReqId { get; init; }
-    public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.RESPONSE;
     public int StatusCode { get; init; }
     public IpcHeaders Headers { get; set; }
     public IpcBody Body { get; set; }
     public Ipc Ipc { get; init; }
 
-    public IpcResponse(int req_id, int statusCode, IpcHeaders headers, IpcBody body, Ipc ipc)
+    public IpcResponse(int req_id, int statusCode, IpcHeaders headers, IpcBody body, Ipc ipc) : base(IPC_MESSAGE_TYPE.RESPONSE)
     {
         ReqId = req_id;
         StatusCode = statusCode;
@@ -58,21 +57,25 @@ public class IpcResponse : IpcMessage
                 ByteArrayContent byteArrayContent => IpcBodySender.FromBinary(await byteArrayContent.ReadAsByteArrayAsync(), ipc),
                 StreamContent streamContent => IpcBodySender.FromStream(await streamContent.ReadAsStreamAsync(), ipc),
                 null => IpcBodySender.FromText("", ipc),
-                _ => await response.Content.ReadAsStreamAsync().Let(async streamTask =>
+                _ => response.Content.ToString() switch
                 {
-                    var stream = await streamTask;
-                    try
+                    "System.Net.Http.EmptyContent" => IpcBodySender.FromText("", ipc),
+                    _ => await response.Content.ReadAsStreamAsync().Let(async streamTask =>
                     {
-                        if (stream.Length == 0)
+                        var stream = await streamTask;
+                        try
                         {
-                            return IpcBodySender.FromText("", ipc);
+                            if (stream.Length == 0)
+                            {
+                                return IpcBodySender.FromText("", ipc);
+                            }
                         }
-                    }
-                    catch
-                    { // ignore error
-                    }
-                    return IpcBodySender.FromStream(stream, ipc);
-                })
+                        catch
+                        { // ignore error
+                        }
+                        return IpcBodySender.FromStream(stream, ipc);
+                    })
+                }
             },
             ipc);
 
@@ -122,17 +125,24 @@ public class IpcResponse : IpcMessage
 }
 
 
-[JsonConverter(typeof(IpcResMessageConverter))]
+//[JsonConverter(typeof(IpcResMessageConverter))]
 public class IpcResMessage : IpcMessage
 {
-    public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.RESPONSE;
-
+    [JsonPropertyName("req_id")]
     public int ReqId { get; set; }
+    [JsonPropertyName("statusCode")]
     public int StatusCode { get; set; }
+    [JsonPropertyName("headers")]
     public Dictionary<string, string> Headers { get; set; }
+    [JsonPropertyName("metaBody")]
     public SMetaBody MetaBody { get; set; }
 
-    public IpcResMessage(int req_id, int statusCode, Dictionary<string, string> headers, SMetaBody metaBody)
+    [Obsolete("使用带参数的构造函数", true)]
+    public IpcResMessage() : base(IPC_MESSAGE_TYPE.RESPONSE)
+    {
+        /// 给JSON反序列化用的空参数构造函数
+    }
+    public IpcResMessage(int req_id, int statusCode, Dictionary<string, string> headers, SMetaBody metaBody) : base(IPC_MESSAGE_TYPE.RESPONSE)
     {
         ReqId = req_id;
         StatusCode = statusCode;
@@ -152,159 +162,159 @@ public class IpcResMessage : IpcMessage
     /// </summary>
     /// <param name="json">JSON string representation of IpcReqMessage</param>
     /// <returns>An instance of a IpcReqMessage object.</returns>
-    public static IpcResMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcResMessage>(json);
+    public static new IpcResMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcResMessage>(json);
 }
 
-#region IpcResMessage序列化反序列化
-sealed class IpcResMessageConverter : JsonConverter<IpcResMessage>
-{
-    public override bool CanConvert(Type typeToConvert) =>
-        typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
+//#region IpcResMessage序列化反序列化
+//sealed class IpcResMessageConverter : JsonConverter<IpcResMessage>
+//{
+//    public override bool CanConvert(Type typeToConvert) =>
+//        typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
 
 
-    public override IpcResMessage? Read(
-        ref Utf8JsonReader reader,
-        Type typeToConvert,
-        JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.StartObject)
-            throw new JsonException("Expected StartObject token");
+//    public override IpcResMessage? Read(
+//        ref Utf8JsonReader reader,
+//        Type typeToConvert,
+//        JsonSerializerOptions options)
+//    {
+//        if (reader.TokenType != JsonTokenType.StartObject)
+//            throw new JsonException("Expected StartObject token");
 
-        int req_id = default;
-        IPC_MESSAGE_TYPE type = default;
-        int statusCode = default;
-        SMetaBody metaBody = default;
-        var headers = new Dictionary<string, string>();
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-                return new IpcResMessage(req_id, statusCode, headers, metaBody);
+//        int req_id = default;
+//        IPC_MESSAGE_TYPE type = default;
+//        int statusCode = default;
+//        SMetaBody metaBody = default;
+//        var headers = new Dictionary<string, string>();
+//        while (reader.Read())
+//        {
+//            if (reader.TokenType == JsonTokenType.EndObject)
+//                return new IpcResMessage(req_id, statusCode, headers, metaBody);
 
-            if (reader.TokenType != JsonTokenType.PropertyName)
-                throw new JsonException("Expected PropertyName token");
+//            if (reader.TokenType != JsonTokenType.PropertyName)
+//                throw new JsonException("Expected PropertyName token");
 
-            var propName = reader.GetString();
+//            var propName = reader.GetString();
 
-            reader.Read();
+//            reader.Read();
 
-            switch (propName)
-            {
-                case "req_id":
-                    req_id = reader.GetInt32();
-                    break;
-                case "type":
-                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
-                    break;
-                case "statusCode":
-                    statusCode = reader.GetInt16();
-                    break;
-                case "metaBody":
-                    SMetaBody.IPC_META_BODY_TYPE mtype = default;
-                    int senderUid = default;
-                    string data = default;
-                    string? stream_id = null;
-                    int? receiverUid = null;
-                    string metaId = default;
+//            switch (propName)
+//            {
+//                case "req_id":
+//                    req_id = reader.GetInt32();
+//                    break;
+//                case "type":
+//                    type = (IPC_MESSAGE_TYPE)reader.GetInt16();
+//                    break;
+//                case "statusCode":
+//                    statusCode = reader.GetInt16();
+//                    break;
+//                case "metaBody":
+//                    SMetaBody.IPC_META_BODY_TYPE mtype = default;
+//                    int senderUid = default;
+//                    string data = default;
+//                    string? stream_id = null;
+//                    int? receiverUid = null;
+//                    string metaId = default;
 
-                    while (reader.Read())
-                    {
-                        if (reader.TokenType == JsonTokenType.StartObject)
-                        {
-                            continue;
-                        }
+//                    while (reader.Read())
+//                    {
+//                        if (reader.TokenType == JsonTokenType.StartObject)
+//                        {
+//                            continue;
+//                        }
 
-                        if (reader.TokenType == JsonTokenType.EndObject)
-                        {
-                            metaBody = new SMetaBody(mtype, senderUid, data ?? "", stream_id, receiverUid) { MetaId = metaId ?? "" };
-                            break;
-                        }
+//                        if (reader.TokenType == JsonTokenType.EndObject)
+//                        {
+//                            metaBody = new SMetaBody(mtype, senderUid, data ?? "", stream_id, receiverUid) { MetaId = metaId ?? "" };
+//                            break;
+//                        }
 
-                        if (reader.TokenType != JsonTokenType.PropertyName)
-                            throw new JsonException("Expected PropertyName token");
+//                        if (reader.TokenType != JsonTokenType.PropertyName)
+//                            throw new JsonException("Expected PropertyName token");
 
-                        var mpropName = reader.GetString();
+//                        var mpropName = reader.GetString();
 
-                        reader.Read();
+//                        reader.Read();
 
-                        switch (mpropName)
-                        {
-                            case "type":
-                                mtype = (SMetaBody.IPC_META_BODY_TYPE)reader.GetInt64();
-                                break;
-                            case "senderUid":
-                                senderUid = reader.GetInt32();
-                                break;
-                            case "data":
-                                data = reader.GetString() ?? "";
-                                break;
-                            case "streamId":
-                                stream_id = reader.GetString() ?? null;
-                                break;
-                            case "receiverUid":
-                                receiverUid = reader.GetInt32();
-                                break;
-                            case "metaId":
-                                metaId = reader.GetString() ?? "";
-                                break;
-                        }
-                    }
+//                        switch (mpropName)
+//                        {
+//                            case "type":
+//                                mtype = (SMetaBody.IPC_META_BODY_TYPE)reader.GetInt64();
+//                                break;
+//                            case "senderUid":
+//                                senderUid = reader.GetInt32();
+//                                break;
+//                            case "data":
+//                                data = reader.GetString() ?? "";
+//                                break;
+//                            case "streamId":
+//                                stream_id = reader.GetString() ?? null;
+//                                break;
+//                            case "receiverUid":
+//                                receiverUid = reader.GetInt32();
+//                                break;
+//                            case "metaId":
+//                                metaId = reader.GetString() ?? "";
+//                                break;
+//                        }
+//                    }
 
-                    break;
-                case "headers":
-                    while (reader.Read())
-                    {
-                        if (reader.TokenType == JsonTokenType.StartObject)
-                        {
-                            continue;
-                        }
+//                    break;
+//                case "headers":
+//                    while (reader.Read())
+//                    {
+//                        if (reader.TokenType == JsonTokenType.StartObject)
+//                        {
+//                            continue;
+//                        }
 
-                        if (reader.TokenType == JsonTokenType.EndObject)
-                        {
-                            break;
-                        }
+//                        if (reader.TokenType == JsonTokenType.EndObject)
+//                        {
+//                            break;
+//                        }
 
-                        var memberName = reader.GetString();
+//                        var memberName = reader.GetString();
 
-                        reader.Read();
+//                        reader.Read();
 
-                        if (memberName != null)
-                        {
-                            headers.Add(memberName, reader.GetString() ?? "");
-                        }
-                    }
+//                        if (memberName != null)
+//                        {
+//                            headers.Add(memberName, reader.GetString() ?? "");
+//                        }
+//                    }
 
 
-                    break;
-            }
-        }
+//                    break;
+//            }
+//        }
 
-        throw new JsonException("Expected EndObject token");
-    }
+//        throw new JsonException("Expected EndObject token");
+//    }
 
-    public override void Write(
-        Utf8JsonWriter writer,
-        IpcResMessage value,
-        JsonSerializerOptions options)
-    {
-        writer.WriteStartObject();
+//    public override void Write(
+//        Utf8JsonWriter writer,
+//        IpcResMessage value,
+//        JsonSerializerOptions options)
+//    {
+//        writer.WriteStartObject();
 
-        writer.WriteNumber("req_id", value.ReqId);
-        writer.WriteNumber("type", (int)value.Type);
-        writer.WriteNumber("statusCode", value.StatusCode);
-        writer.WriteString("metaBody", value.MetaBody.ToJson());
+//        writer.WriteNumber("req_id", value.ReqId);
+//        writer.WriteNumber("type", (int)value.Type);
+//        writer.WriteNumber("statusCode", value.StatusCode);
+//        writer.WriteString("metaBody", value.MetaBody.ToJson());
 
-        // dictionary
-        writer.WritePropertyName("headers");
-        writer.WriteStartObject();
+//        // dictionary
+//        writer.WritePropertyName("headers");
+//        writer.WriteStartObject();
 
-        foreach ((string key, string keyValue) in value.Headers)
-        {
-            writer.WriteString(key, keyValue);
-        }
+//        foreach ((string key, string keyValue) in value.Headers)
+//        {
+//            writer.WriteString(key, keyValue);
+//        }
 
-        writer.WriteEndObject();
+//        writer.WriteEndObject();
 
-        writer.WriteEndObject();
-    }
-}
-#endregion
+//        writer.WriteEndObject();
+//    }
+//}
+//#endregion

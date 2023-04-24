@@ -1,17 +1,22 @@
 ﻿namespace DwebBrowser.MicroService.Message;
 
-[JsonConverter(typeof(IpcStreamDataConverter))]
 public class IpcStreamData : IpcMessage, IpcStream
 {
-    public override IPC_MESSAGE_TYPE Type { get; set; } = IPC_MESSAGE_TYPE.STREAM_DATA;
-
+    [JsonPropertyName("stream_id")]
     public string StreamId { get; set; }
 
+    [JsonPropertyName("data")]
     public object Data { get; set; }
 
+    [JsonPropertyName("encoding")]
     public IPC_DATA_ENCODING Encoding { get; set; }
 
-    public IpcStreamData(string stream_id, object data, IPC_DATA_ENCODING encoding)
+    [Obsolete("使用带参数的构造函数", true)]
+    public IpcStreamData() : base(IPC_MESSAGE_TYPE.STREAM_DATA)
+    {
+        /// 给JSON反序列化用的空参数构造函数
+    }
+    public IpcStreamData(string stream_id, object data, IPC_DATA_ENCODING encoding) : base(IPC_MESSAGE_TYPE.STREAM_DATA)
     {
         StreamId = stream_id;
         Data = data;
@@ -55,64 +60,3 @@ public class IpcStreamData : IpcMessage, IpcStream
     public static IpcStreamData? FromJson(string json) => JsonSerializer.Deserialize<IpcStreamData>(json);
 }
 
-#region IpcStreamData序列化反序列化
-sealed class IpcStreamDataConverter : JsonConverter<IpcStreamData>
-{
-    public override bool CanConvert(Type typeToConvert) =>
-        typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
-
-
-    public override IpcStreamData? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.StartObject)
-            throw new Exception("Expected StartObject token");
-
-        IPC_MESSAGE_TYPE type = default;
-        IPC_DATA_ENCODING encoding = default;
-        string stream_id = default;
-        string data = default;
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-                return new IpcStreamData(stream_id ?? "", data ?? "", encoding);
-
-            if (reader.TokenType != JsonTokenType.PropertyName)
-                throw new Exception("Expected PropertyName token");
-
-            var propName = reader.GetString();
-
-            reader.Read();
-
-            switch (propName)
-            {
-                case "type":
-                    type = (IPC_MESSAGE_TYPE)reader.GetInt32();
-                    break;
-                case "encoding":
-                    encoding = (IPC_DATA_ENCODING)reader.GetInt32();
-                    break;
-                case "stream_id":
-                    stream_id = reader.GetString() ?? "";
-                    break;
-                case "data":
-                    data = reader.GetString() ?? "";
-                    break;
-            }
-        }
-
-        throw new JsonException("Expected EndObject token");
-    }
-
-    public override void Write(Utf8JsonWriter writer, IpcStreamData value, JsonSerializerOptions options)
-    {
-        writer.WriteStartObject();
-
-        writer.WriteNumber("type", (int)value.Type);
-        writer.WriteNumber("encoding", (int)value.Encoding);
-        writer.WriteString("stream_id", value.StreamId);
-        writer.WriteString("data", (string)value.Data);
-
-        writer.WriteEndObject();
-    }
-}
-#endregion

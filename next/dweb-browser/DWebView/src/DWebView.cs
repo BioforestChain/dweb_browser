@@ -2,7 +2,6 @@
 using System;
 using WebKit;
 using UIKit;
-using static CoreFoundation.DispatchSource;
 using DwebBrowser.MicroService;
 using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Sys.Dns;
@@ -10,7 +9,6 @@ using DwebBrowser.MicroService.Core;
 using System.Xml;
 using AngleSharp;
 using AngleSharp.Html.Parser;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.DWebView;
@@ -66,53 +64,52 @@ public partial class DWebView : WKWebView
     ///  这段代码使用 MessageChannelShim.ts 文件来生成，到 https://www.typescriptlang.org/play 粘贴这个文件的代码即可
     /// </summary>
     static readonly string webMessagePortPrepareCode = $$"""
-const ALL_PORT = new Map();
-let portIdAcc = 1;
-const PORTS_ID = new WeakMap();
-const getPortId = (port) => {
-    let port_id = PORTS_ID.get(port);
-    if (port_id === undefined) {
-        const current_port_id = portIdAcc++;
-        port_id = current_port_id;
-        ALL_PORT.set(port_id, port);
-        port.addEventListener('message', (event) => {
-            webkit.messageHandlers.webMessagePort.postMessage({
-                type: 'message',
-                id: current_port_id,
-                data: event.data,
-                ports: event.ports.map(getPortId),
+    const ALL_PORT = new Map();
+    let portIdAcc = 1;
+    const PORTS_ID = new WeakMap();
+    const getPortId = (port) => {
+        let port_id = PORTS_ID.get(port);
+        if (port_id === undefined) {
+            const current_port_id = portIdAcc++;
+            port_id = current_port_id;
+            ALL_PORT.set(port_id, port);
+            port.addEventListener('message', (event) => {
+                webkit.messageHandlers.webMessagePort.postMessage({
+                    type: 'message',
+                    id: current_port_id,
+                    data: event.data,
+                    ports: event.ports.map(getPortId),
+                });
             });
-        });
+        }
+        return port_id;
+    };
+    function nativeCreateMessageChannel() {
+        const channel = new MessageChannel();
+        const port1_id = getPortId(channel.port1);
+        const port2_id = getPortId(channel.port2);
+        return [port1_id, port2_id];
     }
-    return port_id;
-};
-function nativeCreateMessageChannel() {
-    const channel = new MessageChannel();
-    const port1_id = getPortId(channel.port1);
-    const port2_id = getPortId(channel.port2);
-    return [port1_id, port2_id];
-}
-function forceGetPort(port_id) {
-    const port = ALL_PORT.get(port_id);
-    if (port === undefined) {
-        throw new Error(`no found messagePort by ref: ${port_id}`);
+    function forceGetPort(port_id) {
+        const port = ALL_PORT.get(port_id);
+        if (port === undefined) {
+            throw new Error(`no found messagePort by ref: ${port_id}`);
+        }
+        return port;
     }
-    return port;
-}
-function nativePortPostMessage(port_id, data, ports_id) {
-    const origin_port = forceGetPort(port_id);
-    const transfer_ports = ports_id.map(forceGetPort);
-    origin_port.postMessage(data, transfer_ports);
-}
-function nativeStart(port_id) {
-    const origin_port = forceGetPort(port_id);
-    origin_port.start();
-}
-function nativeWindowPostMessage(data, ports_id) {
-    const ports = ports_id.map(forceGetPort);
-    dispatchEvent(new MessageEvent('message', { data, ports }));
-}
-
+    function nativePortPostMessage(port_id, data, ports_id) {
+        const origin_port = forceGetPort(port_id);
+        const transfer_ports = ports_id.map(forceGetPort);
+        origin_port.postMessage(data, transfer_ports);
+    }
+    function nativeStart(port_id) {
+        const origin_port = forceGetPort(port_id);
+        origin_port.start();
+    }
+    function nativeWindowPostMessage(data, ports_id) {
+        const ports = ports_id.map(forceGetPort);
+        dispatchEvent(new MessageEvent('message', { data, ports }));
+    }
     """;
     internal static readonly WKContentWorld webMessagePortContentWorld = WKContentWorld.Create("web-message-port");
     internal static Dictionary<int, WebMessagePort> allPorts = new Dictionary<int, WebMessagePort>();
@@ -242,8 +239,8 @@ function nativeWindowPostMessage(data, ports_id) {
 
         public override void DidFinishNavigation(WKWebView webView, WKNavigation navigation)
         {
-            base.DidFinishNavigation(webView, navigation);
-            _ = _onReady.Emit();
+            //base.DidFinishNavigation(webView, navigation);
+            _ = _onReady(_onReady);
         }
     }
 

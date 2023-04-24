@@ -85,14 +85,14 @@ public class Gateway
                 case MatchMode.PREFIX:
                     IsMatch = (request) =>
                     {
-                        return request.Method.Method == Config.method.method && request.RequestUri is not null
+                        return request.Method.Method == Config.method.Method && request.RequestUri is not null
                             && request.RequestUri.AbsolutePath.StartsWith(Config.pathname);
                     };
                     break;
                 case MatchMode.FULL:
                     IsMatch = (request) =>
                     {
-                        return request.Method.Method == Config.method.method && request.RequestUri is not null
+                        return request.Method.Method == Config.method.Method && request.RequestUri is not null
                             && request.RequestUri.AbsolutePath == Config.pathname;
                     };
                     break;
