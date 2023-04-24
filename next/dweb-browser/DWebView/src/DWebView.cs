@@ -10,6 +10,12 @@ using System.Xml;
 using AngleSharp;
 using AngleSharp.Html.Parser;
 using DwebBrowser.MicroService.Sys.Http;
+using ObjCRuntime;
+using AngleSharp.Dom;
+using AngleSharp.Io;
+using HttpMethod = System.Net.Http.HttpMethod;
+using SystemConfiguration;
+using System.Runtime.Versioning;
 
 namespace DwebBrowser.DWebView;
 
@@ -18,8 +24,58 @@ public partial class DWebView : WKWebView
     MicroModule localeMM;
     MicroModule remoteMM;
     Options options;
+    public class FileSchemeHandler : NSObject, IWKUrlSchemeHandler
+    {
+        MicroModule microModule;
+        public FileSchemeHandler(MicroModule microModule)
+        {
+            this.microModule = microModule;
+        }
+        [Export("webView:startURLSchemeTask:")]
+        [SupportedOSPlatform("ios11.0")]
+        public async void StartUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
+        {
+            if (urlSchemeTask.Request.HttpMethod is "GET")
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, urlSchemeTask.Request.Url.AbsoluteString);
+                var response = await microModule.NativeFetchAsync(request);
+                //using var response = new NSHttpUrlResponse(urlSchemeTask.Request.Url, statusCode, "HTTP/1.1", dic);
+                var nsStatusCode = new IntPtr((int)response.StatusCode);
+                var nsHeaders = new NSMutableDictionary<NSString, NSString>();
+                foreach (var (key, values) in response.Headers)
+                {
+                    var value = values.FirstOrDefault();
+                    if (value is not null)
+                    {
+                        nsHeaders.Add(new NSString(key), new NSString(value));
+                    }
+                }
 
-    public DWebView(CGRect frame, MicroModule localeMM, MicroModule remoteMM, Options options, WKWebViewConfiguration configuration) : base(frame, configuration)
+                using var nsResponse = new NSHttpUrlResponse(urlSchemeTask.Request.Url, nsStatusCode, "HTTP/1.1", nsHeaders);
+                urlSchemeTask.DidReceiveResponse(nsResponse);
+                urlSchemeTask.DidReceiveData(NSData.FromStream(await response.StreamAsync())!);
+            }
+            else
+            {
+            }
+            urlSchemeTask.DidFinish();
+        }
+
+        [Export("webView:stopURLSchemeTask:")]
+        public void StopUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
+        {
+        }
+    }
+
+    public DWebView(CGRect frame, MicroModule localeMM, MicroModule remoteMM, Options options, WKWebViewConfiguration configuration) : base(frame, configuration.Also(configuration =>
+    {
+        //configuration.Preferences.SetValueForKey(NSObject.FromObject(true), new NSString("developerExtrasEnabled"));
+
+        //configuration.SetUrlSchemeHandler(new FileSchemeHandler(remoteMM), urlScheme: "https");
+        //configuration.SetUrlSchemeHandler(new FileSchemeHandler(remoteMM), urlScheme: "http");
+        //configuration.SetUrlSchemeHandler(new FileSchemeHandler(remoteMM), urlScheme: "file");
+        configuration.SetUrlSchemeHandler(new FileSchemeHandler(remoteMM), urlScheme: "app");
+    }))
     {
         this.localeMM = localeMM;
         this.remoteMM = remoteMM;
@@ -140,7 +196,7 @@ public partial class DWebView : WKWebView
         }
     }
 
-    public async Task<WebMessageChannel> CreateWebMessageChannelC()
+    public async Task<WebMessageChannel> CreateWebMessageChannel()
     {
         /// 页面可能会被刷新，所以需要重新判断：函数可不可用
         var webMessagePortInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof nativeCreateMessageChannel==='function'", null, webMessagePortContentWorld);
@@ -191,10 +247,10 @@ public partial class DWebView : WKWebView
         /// 如果是 dweb 域名，这是需要进行模拟加载的
         if (url.Host.EndsWith(".dweb") && url.Scheme is "http" or "https")
         {
-            var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
-            var response = await remoteMM.NativeFetchAsync(request);
+            using var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
+            using var response = await remoteMM.NativeFetchAsync(request);
 
-            var nsUrlResponse = new NSUrlResponse(nsUrlRequest.Url, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream", new IntPtr(response.Content.Headers.ContentLength ?? 0), response.Content.Headers.ContentType?.CharSet);
+            using var nsUrlResponse = new NSUrlResponse(nsUrlRequest.Url, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream", new IntPtr(response.Content.Headers.ContentLength ?? 0), response.Content.Headers.ContentType?.CharSet);
             string responseData = await response.Content.ReadAsStringAsync() ?? "";
 
             var document = htmlParser.ParseDocument(responseData);
@@ -205,10 +261,10 @@ public partial class DWebView : WKWebView
                 document.Head!.InsertBefore(baseNode, document.Head.FirstChild);
             }
             string origin = baseNode.GetAttribute("href")?.Let((href) => new Uri(url, href).ToString()) ?? uri;
-            string gatewayOrigin = HttpNMM.DwebServer.Origin;
+            string gatewayOrigin = "https://http.sys.dweb";
             if (!origin.StartsWith(gatewayOrigin))
             {
-                baseNode.SetAttribute("href", String.Format("{0}{1}{2}", gatewayOrigin, HttpNMM.X_DWEB_HREF, origin));
+                baseNode.SetAttribute("href", gatewayOrigin + HttpNMM.X_DWEB_HREF + origin);
                 responseData = document.ToHtml();
             }
 
@@ -259,7 +315,7 @@ public partial class DWebView : WKWebView
     };
     void 0;
     """;
-    internal static readonly WKContentWorld asyncCodeContentWorld = WKContentWorld.Create("async-code");
+    //internal static readonly WKContentWorld asyncCodeContentWorld = WKContentWorld.DefaultClient; // WKContentWorld.Create("async-code");
     readonly AsyncCodeMessageHanlder asyncCodeMessageHanlder = new();
 
     internal class AsyncCodeMessageHanlder : WKScriptMessageHandler
@@ -289,11 +345,11 @@ public partial class DWebView : WKWebView
     public async Task<NSObject> EvaluateAsyncJavascriptCode(string script, Func<Task>? afterEval = default)
     {
         /// 页面可能会被刷新，所以需要重新判断：函数可不可用
-        var asyncCodeInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof " + JS_ASYNC_KIT + "==='function'", null, asyncCodeContentWorld);
+        var asyncCodeInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof " + JS_ASYNC_KIT + "==='function'");
         if (!asyncCodeInited)
         {
-            await base.EvaluateJavaScriptAsync(new NSString(asyncCodePrepareCode), null, asyncCodeContentWorld);
-            base.Configuration.UserContentController.AddScriptMessageHandler(asyncCodeMessageHanlder, asyncCodeContentWorld, "asyncCode");
+            await base.EvaluateJavaScriptAsync(new NSString(asyncCodePrepareCode));
+            base.Configuration.UserContentController.AddScriptMessageHandler(asyncCodeMessageHanlder, "asyncCode");
         }
         var id = Interlocked.Increment(ref idAcc);
         var asyncTask = new PromiseOut<NSObject>();
@@ -303,7 +359,7 @@ public partial class DWebView : WKWebView
                 .then(res=>{{JS_ASYNC_KIT}}.resolve({{id}},res))
                 .catch(err=>{{JS_ASYNC_KIT}}.reject({{id}},err));
             """;
-        await base.EvaluateJavaScriptAsync(wrapCode, null, asyncCodeContentWorld);
+        await base.EvaluateJavaScriptAsync(wrapCode);
 
         if (afterEval is not null)
         {

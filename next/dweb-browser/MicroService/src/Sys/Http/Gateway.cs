@@ -68,7 +68,18 @@ public class Gateway
         }
     }
 
-    public record RouteConfig(string pathname, IpcMethod method, MatchMode matchMode = MatchMode.PREFIX);
+    public record RouteConfig(string pathname, IpcMethod method, MatchMode matchMode = MatchMode.PREFIX)
+    {
+
+        public bool IsMatch(HttpRequestMessage request) => matchMode switch
+        {
+            MatchMode.PREFIX => request.Method.Method == method.Method && request.RequestUri is not null
+                       && request.RequestUri.AbsolutePath.StartsWith(pathname),
+            MatchMode.FULL => request.Method.Method == method.Method && request.RequestUri is not null
+                       && request.RequestUri.AbsolutePath == pathname,
+            _ => false
+        };
+    }
 
     public class StreamIpcRouter
     {

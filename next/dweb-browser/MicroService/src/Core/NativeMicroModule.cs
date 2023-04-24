@@ -1,6 +1,4 @@
-﻿using DwebBrowser.MicroService.Sys.Http.Net;
-
-namespace DwebBrowser.MicroService.Core;
+﻿namespace DwebBrowser.MicroService.Core;
 
 public abstract class NativeMicroModule : MicroModule
 {

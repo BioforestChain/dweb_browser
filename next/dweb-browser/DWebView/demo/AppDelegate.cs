@@ -108,7 +108,7 @@ public class AppDelegate : UIApplicationDelegate
         btn.Frame = new CGRect(100, 100, 100, 30);
         btn.AddTarget(new EventHandler(async (sender, e) =>
         {
-            var channel = await dwebview.CreateWebMessageChannelC();
+            var channel = await dwebview.CreateWebMessageChannel();
 
             channel.Port2.OnMessage += async (messageEvent, _) =>
             {

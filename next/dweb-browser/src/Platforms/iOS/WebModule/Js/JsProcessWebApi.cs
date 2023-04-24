@@ -37,7 +37,7 @@ public class JsProcessWebApi
         Ipc.MicroModuleInfo remoteModule,
         string host)
     {
-        var channel = await this.DWebView.CreateWebMessageChannelC();
+        var channel = await this.DWebView.CreateWebMessageChannel();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
 
@@ -84,7 +84,7 @@ public class JsProcessWebApi
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {
-        var channel = await this.DWebView.CreateWebMessageChannelC();
+        var channel = await this.DWebView.CreateWebMessageChannel();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
         await this.DWebView.EvaluateAsyncJavascriptCode($$"""

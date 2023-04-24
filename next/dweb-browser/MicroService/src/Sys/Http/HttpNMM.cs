@@ -128,7 +128,7 @@ public class HttpNMM : NativeMicroModule
     {
         var mmid = ipc.Remote.Mmid;
         var subdomainPrefix = options.subdomain == "" || options.subdomain.EndsWith(".")
-            ? options.subdomain : String.Format("{0}", options.subdomain);
+            ? options.subdomain : options.subdomain + ".";
 
         var port = options.port <= 0 || options.port >= 6556
             ? throw new Exception(String.Format("invalid dweb http port: {0}", options.port)) : options.port;
@@ -185,6 +185,11 @@ public class HttpNMM : NativeMicroModule
                 request.QueryValidate<int>("port", false),
                 request.QueryValidate<string>("subdomain", false) ?? "");
             return _close(ipc, dwebServerOptions);
+        });
+        /// HTTP-GET 请求，但是不是通过网关，直接走IPC
+        HttpRouter.AddRoute(new Gateway.RouteConfig(X_DWEB_HREF, IpcMethod.Get, MatchMode.PREFIX), async (request, ipc) =>
+        {
+            return await _httpHandler(request);
         });
     }
 
