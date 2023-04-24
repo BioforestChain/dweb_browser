@@ -298,11 +298,12 @@ public partial class DWebView : WKWebView
         var id = Interlocked.Increment(ref idAcc);
         var asyncTask = new PromiseOut<NSObject>();
         asyncTaskMap.Add(id, asyncTask);
-        var ports_id = (NSArray)await base.EvaluateJavaScriptAsync($$"""
+        var wrapCode = $$"""
             void (async()=>{return ({{script}})})()
                 .then(res=>{{JS_ASYNC_KIT}}.resolve({{id}},res))
                 .catch(err=>{{JS_ASYNC_KIT}}.reject({{id}},err));
-            """, null, asyncCodeContentWorld);
+            """;
+        await base.EvaluateJavaScriptAsync(wrapCode, null, asyncCodeContentWorld);
 
         if (afterEval is not null)
         {

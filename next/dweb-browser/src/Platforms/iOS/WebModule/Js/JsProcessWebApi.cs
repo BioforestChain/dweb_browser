@@ -40,8 +40,6 @@ public class JsProcessWebApi
         var channel = await this.DWebView.CreateWebMessageChannelC();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
-        var metadata_json_str = JsonSerializer.Serialize(metadata_json);
-        var env_json_str = JsonSerializer.Serialize(env_json);
 
         var processInfo_json = await this.DWebView.EvaluateAsyncJavascriptCode($$"""
            new Promise((resolve,reject)=>{
@@ -49,23 +47,15 @@ public class JsProcessWebApi
                     if (event.data === "js-process/create-process") {
                         const fetch_port = event.ports[0];
                         try{
-                            resolve(await createProcess(`{{env_script_url}}`,{{metadata_json_str}},{{env_json_str}},fetch_port,`{{host}}`))
+                            resolve(await createProcess(`{{env_script_url}}`,JSON.stringify({{metadata_json}}),JSON.stringify({{env_json}}),fetch_port,`{{host}}`))
                         }catch(err){
                             reject(err)
                         }
                     }
                 }, { once: true })
             })
-        """.Trim());
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-process", new WebMessagePort[] { port1 }));
 
-        try
-        {
-            await this.DWebView.PostMessage("js-process/create-process", new WebMessagePort[] { port1 });
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.StackTrace);
-        }
         Console.WriteLine(String.Format("processInfo {0}", processInfo_json));
 
         try
@@ -97,7 +87,7 @@ public class JsProcessWebApi
         var channel = await this.DWebView.CreateWebMessageChannelC();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
-        await this.DWebView.EvaluateJavaScriptAsync($$"""
+        await this.DWebView.EvaluateAsyncJavascriptCode($$"""
         new Promise((resolve,reject)=>{
             addEventListener("message", async event => {
                 if (event.data === "js-process/create-ipc") {
@@ -110,9 +100,7 @@ public class JsProcessWebApi
                 }
             }, { once: true })
         })
-        """.Trim());
-
-        await this.DWebView.PostMessage("js-process/create-pic", new WebMessagePort[] { port1 });
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-pic", new WebMessagePort[] { port1 }));
 
         return IpcWebMessageCache.SaveNative2JsIpcPort(port2);
     }
