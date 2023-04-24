@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,18 +8,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
@@ -29,16 +27,17 @@ import info.bagen.dwebbrowser.ui.entity.WebSiteInfo
 @Composable
 fun BrowserSearchPreview(viewModel: BrowserViewModel) {
   val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
   if (viewModel.uiState.showSearchEngine.targetState) {
     Box(modifier = Modifier
       .fillMaxSize()
       .padding(bottom = dimenBottomHeight)
-      .background(Color.LightGray)
+      .background(MaterialTheme.colorScheme.outlineVariant)
       .clickable(enabled = false) {}) {
       Box(
         modifier = Modifier
           .fillMaxWidth()
-          .height(screenHeight / 2 - 20.dp)
+          .height(screenHeight / 2 - 30.dp)
           .align(Alignment.BottomCenter)
       ) {
         LazyColumn(
@@ -47,7 +46,6 @@ fun BrowserSearchPreview(viewModel: BrowserViewModel) {
             .padding(horizontal = 20.dp)
         ) {
           val text = viewModel.uiState.inputText.value
-          Log.e("lin.huang", "xxxxxxxxxxxxxxxxxxx text=$text")
           // 1. 标签页中查找关键字， 2. 搜索引擎， 3. 历史记录， 4.页内查找
           item { // 标签页中查找
             SearchItemForTab(viewModel, text)
@@ -90,7 +88,9 @@ private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
 private fun SearchItemEngines(viewModel: BrowserViewModel, text: String) {
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
-      text = "搜索引擎", color = Color.Gray, modifier = Modifier.padding(vertical = 10.dp)
+      text = "搜索引擎",
+      color = MaterialTheme.colorScheme.outline,
+      modifier = Modifier.padding(vertical = 10.dp)
     )
     val list = arrayListOf<WebSiteInfo>().apply {
       add(WebSiteInfo("百度", "https://www.baidu.com/s?wd=$text", null))
@@ -99,10 +99,21 @@ private fun SearchItemEngines(viewModel: BrowserViewModel, text: String) {
       add(WebSiteInfo("搜狗", "https://www.sogou.com/web?query=$text", null))
       add(WebSiteInfo("360", "https://www.so.com/s?q=$text", null))
     }
-    Spacer(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.LightGray))
+    Spacer(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(1.dp)
+        .background(MaterialTheme.colorScheme.outlineVariant)
+    )
     list.forEachIndexed { index, webSiteInfo ->
       if (index > 0) {
-        Spacer(modifier = Modifier.fillMaxWidth().height(1.dp).padding(start = 40.dp).background(Color.LightGray))
+        Spacer(
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .padding(start = 40.dp)
+            .background(MaterialTheme.colorScheme.outlineVariant)
+        )
       }
       SearchWebsiteCardView(viewModel, webSiteInfo, index == 0, index == list.size - 1) {
         when (viewModel.uiState.currentBrowserBaseView.value) {
@@ -111,7 +122,12 @@ private fun SearchItemEngines(viewModel: BrowserViewModel, text: String) {
         }
       }
     }
-    Spacer(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.LightGray))
+    Spacer(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(1.dp)
+        .background(MaterialTheme.colorScheme.outlineVariant)
+    )
   }
 }
 
@@ -150,7 +166,7 @@ fun SearchWebsiteCardView(
           bottomEnd = if (isLast) 8.dp else 0.dp
         )
       )
-      .background(Color.White)
+      .background(MaterialTheme.colorScheme.background)
       .clickable {
         localFocusManager.clearFocus() // 点击后，直接取消聚焦，隐藏键盘
         viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
@@ -172,14 +188,14 @@ fun SearchWebsiteCardView(
       Column(modifier = Modifier.fillMaxWidth()) {
         Text(
           text = webSiteInfo.title,
-          color = Color.Black,
+          color = MaterialTheme.colorScheme.surface,
           fontWeight = FontWeight.Bold,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis
         )
         Text(
           text = webSiteInfo.url,
-          color = Color.LightGray,
+          color = MaterialTheme.colorScheme.outlineVariant,
           fontSize = 12.sp,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis

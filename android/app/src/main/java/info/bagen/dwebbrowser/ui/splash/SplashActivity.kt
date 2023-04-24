@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
 
 class SplashActivity : AppCompatActivity() {
@@ -21,12 +20,6 @@ class SplashActivity : AppCompatActivity() {
         list.add(cs.toString())
       }
     }
-    setContent {
-      RustApplicationTheme {
-        SplashView(
-          paths = list, activeColor = Color.White, inactiveColor = Color.White.copy(0.5f)
-        )
-      }
-    }
+    setContent { RustApplicationTheme { SplashView(paths = list) } }
   }
 }

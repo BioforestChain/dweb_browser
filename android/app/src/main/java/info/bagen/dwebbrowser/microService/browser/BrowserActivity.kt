@@ -11,7 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
@@ -59,11 +59,7 @@ class BrowserActivity : AppCompatActivity() {
       WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
         !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
       RustApplicationTheme {
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colors.primary)
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
           if (ActualBranch) {
             BrowserView(viewModel = browserController.browserViewModel)
           } else {

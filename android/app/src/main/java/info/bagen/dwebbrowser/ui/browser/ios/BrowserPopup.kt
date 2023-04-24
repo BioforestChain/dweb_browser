@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Alignment.Companion.TopStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -42,101 +41,71 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
-import info.bagen.dwebbrowser.ui.entity.BrowserMainView
-import info.bagen.dwebbrowser.ui.entity.BrowserWebView
-import info.bagen.dwebbrowser.ui.entity.PopupViewState
+import info.bagen.dwebbrowser.ui.entity.*
 import info.bagen.dwebbrowser.ui.theme.Blue
 import info.bagen.dwebbrowser.ui.theme.DimenBottomBarHeight
 import info.bagen.dwebbrowser.util.BitmapUtil
 import kotlinx.coroutines.launch
 
 private val screenHeight: Dp
-    @Composable get() {
-        return LocalConfiguration.current.screenHeightDp.dp
-    }
+  @Composable get() {
+    return LocalConfiguration.current.screenHeightDp.dp
+  }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
-    // var openBottomSheet by remember { mutableStateOf(true) }
+  if (viewModel.uiState.openBottomSheet.value) {
+    ModalBottomSheet(
+      onDismissRequest = {
+        viewModel.uiState.openBottomSheet.value = false
+      },
+      sheetState = viewModel.uiState.modalBottomSheetState,
+    ) {
 
-        ModalBottomSheet(
-            onDismissRequest = {
-                //viewModel.uiState.modalBottomSheetState.isVisible
-            },
-            sheetState = viewModel.uiState.modalBottomSheetState,
-//        shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp),
-        ) {
-
-            class TabItem(
-                @StringRes val title_res: Int,
-                @DrawableRes val icon_res: Int,
-                val entry: PopupViewState
-            ) {
-                val title @Composable get() = stringResource(id = title_res)
-                val icon @Composable get() = ImageVector.vectorResource(id = icon_res)
-
-            };
-            val tabs = listOf<TabItem>(
-                TabItem(
-                    R.string.browser_nav_option,
-                    R.drawable.ic_main_option,
-                    PopupViewState.Options
-                ),
-                TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
-                TabItem(
-                    R.string.browser_nav_history,
-                    R.drawable.ic_main_history,
-                    PopupViewState.HistoryList
-                ),
-            );
-            var selectedTabIndex by remember {
-                mutableStateOf(0)
-            }
-            var popupViewState by viewModel.uiState.popupViewState;
-            LaunchedEffect(selectedTabIndex) {
-                snapshotFlow { selectedTabIndex }.collect {
-                  popupViewState = tabs[it].entry
-                }
-            }
-
-            Column {
-                TabRow(selectedTabIndex = selectedTabIndex) {
-                    tabs.forEachIndexed { index, tabItem ->
-                        Tab(
-                            selected = selectedTabIndex == index,
-                            onClick = { selectedTabIndex = index; },
-                            icon = {
-                                Icon(
-                                    imageVector = tabItem.icon,
-                                    contentDescription = tabItem.title,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            },
-//                            text = {
-//                                Text(text = title)
-//                            }
-                        )
-                    }
-                }
-                PopContentView(viewModel) // 显示具体内容部分，其中又可以分为三个部分类型，操作页，书签列表，历史列表
-            }
-
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(screenHeight - 20.dp)
-//                    .padding(horizontal = 10.dp)
-//            ) {
-//                PopTitleView(viewModel)// 显示标题部分
-            Column {
-                Text(text = tabs[selectedTabIndex].title)
-                PopNavigatorView(viewModel)
-            }// 显示导航
-//                PopContentView(viewModel) // 显示具体内容部分，其中又可以分为三个部分类型，操作页，书签列表，历史列表
-//            }
+      val tabs = listOf(
+        TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
+        TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
+        TabItem(
+          R.string.browser_nav_history,
+          R.drawable.ic_main_history,
+          PopupViewState.HistoryList
+        ),
+      )
+      var selectedTabIndex by remember {
+        mutableStateOf(0)
+      }
+      var popupViewState by viewModel.uiState.popupViewState;
+      LaunchedEffect(selectedTabIndex) {
+        snapshotFlow { selectedTabIndex }.collect {
+          popupViewState = tabs[it].entry
         }
+      }
+
+      Column {
+        TabRow(selectedTabIndex = selectedTabIndex) {
+          tabs.forEachIndexed { index, tabItem ->
+            Tab(
+              selected = selectedTabIndex == index,
+              onClick = { selectedTabIndex = index },
+              icon = {
+                Icon(
+                  imageVector = tabItem.icon,
+                  contentDescription = tabItem.title,
+                  modifier = Modifier.size(24.dp)
+                )
+              },
+            )
+          }
+        }
+        PopContentView(viewModel)
+      }
+      Column {
+        Text(text = tabs[selectedTabIndex].title)
+        PopNavigatorView(viewModel)
+      }
+    }
+  }
 }
 
 
@@ -145,58 +114,58 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
  */
 @Composable
 private fun PopNavigatorView(viewModel: BrowserViewModel) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(30.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color.LightGray)
-            .padding(horizontal = 2.dp), verticalAlignment = CenterVertically
-    ) {
-        PopNavigatorItem(
-            viewModel, R.drawable.ic_main_option, R.string.browser_nav_option, PopupViewState.Options
-        )
-        PopNavigatorDiv(viewModel, PopupViewState.Options, PopupViewState.BookList) // 竖线
-        PopNavigatorItem(
-            viewModel, R.drawable.ic_main_book, R.string.browser_nav_book, PopupViewState.BookList
-        )
-        PopNavigatorDiv(viewModel, PopupViewState.BookList, PopupViewState.HistoryList) // 竖线
-        PopNavigatorItem(
-            viewModel,
-            R.drawable.ic_main_history,
-            R.string.browser_nav_history,
-            PopupViewState.HistoryList
-        )
-    }
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(30.dp)
+      .clip(RoundedCornerShape(4.dp))
+      .background(MaterialTheme.colorScheme.outlineVariant)
+      .padding(horizontal = 2.dp), verticalAlignment = CenterVertically
+  ) {
+    PopNavigatorItem(
+      viewModel, R.drawable.ic_main_option, R.string.browser_nav_option, PopupViewState.Options
+    )
+    PopNavigatorDiv(viewModel, PopupViewState.Options, PopupViewState.BookList) // 竖线
+    PopNavigatorItem(
+      viewModel, R.drawable.ic_main_book, R.string.browser_nav_book, PopupViewState.BookList
+    )
+    PopNavigatorDiv(viewModel, PopupViewState.BookList, PopupViewState.HistoryList) // 竖线
+    PopNavigatorItem(
+      viewModel,
+      R.drawable.ic_main_history,
+      R.string.browser_nav_history,
+      PopupViewState.HistoryList
+    )
+  }
 }
 
 // 显示导航--导航项
 @Composable
 private fun RowScope.PopNavigatorItem(
-    viewModel: BrowserViewModel,
-    @DrawableRes drawId: Int,
-    @StringRes stringId: Int,
-    state: PopupViewState
+  viewModel: BrowserViewModel,
+  @DrawableRes drawId: Int,
+  @StringRes stringId: Int,
+  state: PopupViewState
 ) {
-    val type = viewModel.uiState.popupViewState.value
-    Box(
-        modifier = Modifier
-            .weight(1f)
-            .height(26.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(
-                if (type == state) Color.White else Color.LightGray
-            )
-            .clickable(indication = null,
-                onClick = { viewModel.handleIntent(BrowserIntent.UpdatePopupViewState(state)) },
-                interactionSource = remember { MutableInteractionSource() })
-    ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(id = drawId),
-            contentDescription = stringResource(id = stringId),
-            modifier = Modifier.align(Center)
-        )
-    }
+  val type = viewModel.uiState.popupViewState.value
+  Box(
+    modifier = Modifier
+      .weight(1f)
+      .height(26.dp)
+      .clip(RoundedCornerShape(4.dp))
+      .background(
+        if (type == state) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.outlineVariant
+      )
+      .clickable(indication = null,
+        onClick = { viewModel.handleIntent(BrowserIntent.UpdatePopupViewState(state)) },
+        interactionSource = remember { MutableInteractionSource() })
+  ) {
+    Icon(
+      imageVector = ImageVector.vectorResource(id = drawId),
+      contentDescription = stringResource(id = stringId),
+      modifier = Modifier.align(Center)
+    )
+  }
 }
 
 /**
@@ -206,21 +175,21 @@ private fun RowScope.PopNavigatorItem(
  */
 @Composable
 private fun PopNavigatorDiv(
-    viewModel: BrowserViewModel, left: PopupViewState, right: PopupViewState
+  viewModel: BrowserViewModel, left: PopupViewState, right: PopupViewState
 ) {
-    val state = viewModel.uiState.popupViewState.value
-    Spacer(
-        modifier = Modifier
-            .width(1.dp)
-            .height(20.dp)
-            .background(
-                if (state == left || state == right) {
-                    Color.LightGray
-                } else {
-                    Color.Gray
-                }
-            )
-    )
+  val state = viewModel.uiState.popupViewState.value
+  Spacer(
+    modifier = Modifier
+      .width(1.dp)
+      .height(20.dp)
+      .background(
+        if (state == left || state == right) {
+          MaterialTheme.colorScheme.outlineVariant
+        } else {
+          MaterialTheme.colorScheme.outline
+        }
+      )
+  )
 }
 
 // 显示具体内容部分，其中又可以分为三个部分类型，操作页，书签列表，历史列表
@@ -247,7 +216,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         modifier = Modifier
           .fillMaxWidth()
           .height(1.dp)
-          .background(Color.LightGray)
+          .background(MaterialTheme.colorScheme.outlineVariant)
       )
     }
     // 分享和添加书签
@@ -285,7 +254,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           .fillMaxWidth()
           .height(1.dp)
           .padding(start = 10.dp)
-          .background(Color.LightGray)
+          .background(MaterialTheme.colorScheme.outlineVariant)
       )
     }
     item {
@@ -322,7 +291,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         modifier = Modifier
           .fillMaxWidth()
           .height(1.dp)
-          .background(Color.LightGray)
+          .background(MaterialTheme.colorScheme.outlineVariant)
       )
     }
   }
@@ -341,10 +310,14 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
     return
   }
   LazyColumn {
-    item { Spacer(modifier = Modifier
-      .fillMaxWidth()
-      .height(1.dp)
-      .background(Color.LightGray)) }
+    item {
+      Spacer(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(1.dp)
+          .background(MaterialTheme.colorScheme.outlineVariant)
+      )
+    }
     items(viewModel.uiState.bookWebsiteList.size) {
       val webSiteInfo = viewModel.uiState.bookWebsiteList[it]
       if (it > 0) {
@@ -353,7 +326,7 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
             .fillMaxWidth()
             .height(1.dp)
             .padding(start = 10.dp)
-            .background(Color.LightGray)
+            .background(MaterialTheme.colorScheme.outlineVariant)
         )
       }
       Column {
@@ -375,14 +348,23 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
               .padding(10.dp)
               .size(30.dp)
           )
-          Text(text = webSiteInfo.title, color = Color.Black, fontSize = 16.sp, maxLines = 1)
+          Text(
+            text = webSiteInfo.title,
+            color = MaterialTheme.colorScheme.surface,
+            fontSize = 16.sp,
+            maxLines = 1
+          )
         }
       }
     }
-    item { Spacer(modifier = Modifier
-      .fillMaxWidth()
-      .height(1.dp)
-      .background(Color.LightGray)) }
+    item {
+      Spacer(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(1.dp)
+          .background(MaterialTheme.colorScheme.outlineVariant)
+      )
+    }
   }
 }
 
@@ -406,26 +388,28 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
           modifier = Modifier
             .fillMaxWidth()
             .height(20.dp)
-            .background(Color.LightGray)
+            .background(MaterialTheme.colorScheme.outlineVariant)
             .padding(horizontal = 10.dp)
         )
       }
       item { Spacer(modifier = Modifier.height(10.dp)) }
       items(value) {
-        Column(modifier = Modifier.padding(horizontal = 10.dp).clickable {
-          scope.launch {
-            viewModel.uiState.modalBottomSheetState.hide()
-          }
-          viewModel.handleIntent(BrowserIntent.AddNewWebView(it.url))
-        }) {
-          Text(text = it.title, color = Color.Black, fontSize = 16.sp, maxLines = 1)
-          Text(text = it.url, color = Color.Gray, fontSize = 12.sp, maxLines = 1)
+        Column(modifier = Modifier
+          .padding(horizontal = 10.dp)
+          .clickable {
+            scope.launch {
+              viewModel.uiState.modalBottomSheetState.hide()
+            }
+            viewModel.handleIntent(BrowserIntent.AddNewWebView(it.url))
+          }) {
+          Text(text = it.title, color = MaterialTheme.colorScheme.background, fontSize = 16.sp, maxLines = 1)
+          Text(text = it.url, color = MaterialTheme.colorScheme.outline, fontSize = 12.sp, maxLines = 1)
           Spacer(
             modifier = Modifier
               .fillMaxWidth()
               .padding(vertical = 2.dp)
               .height(1.dp)
-              .background(Color.LightGray)
+              .background(MaterialTheme.colorScheme.outlineVariant)
           )
         }
       }
@@ -444,7 +428,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
     Column(
       modifier = Modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.primary)
+        .background(MaterialTheme.colorScheme.background)
         .clickable(indication = null,
           onClick = { },
           interactionSource = remember { MutableInteractionSource() })
@@ -481,7 +465,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         modifier = Modifier
           .fillMaxWidth()
           .height(DimenBottomBarHeight)
-          .background(MaterialTheme.colorScheme.primary)
+          .background(MaterialTheme.colorScheme.surfaceVariant)
       ) {
         /*Icon(
           imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_add),
@@ -512,86 +496,84 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
 
 @Composable
 private fun MultiItemView(
-    viewModel: BrowserViewModel,
-    browserBaseView: BrowserBaseView,
-    onlyOne: Boolean = false,
-    index: Int = 0
+  viewModel: BrowserViewModel,
+  browserBaseView: BrowserBaseView,
+  onlyOne: Boolean = false,
+  index: Int = 0
 ) {
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val sizeTriple = if (onlyOne) {
-        val with = screenWidth - 120.dp
-        Triple(with, with * 9 / 6 - 60.dp, with * 9 / 6)
-    } else {
-        val with = (screenWidth - 60.dp) / 2
-        Triple(with, with * 9 / 6 - 40.dp, with * 9 / 6)
-    }
-    Box(modifier = Modifier.size(width = sizeTriple.first, height = sizeTriple.third)) {
-        Column(horizontalAlignment = CenterHorizontally, modifier = Modifier.clickable {
-            viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, index))
-        }) {
-            Image(
-                bitmap = browserBaseView.bitmap
-                    ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(width = sizeTriple.first, height = sizeTriple.second)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
-                    .align(CenterHorizontally),
-                contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
-                alignment = TopStart
-            )
-            val contentPair = when (browserBaseView) {
-                is BrowserMainView -> {
-                    Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
-                }
-                is BrowserWebView -> {
-                    Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
-                }
-                else -> {
-                    Pair(null, null)
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .width(sizeTriple.first)
-                    .align(CenterHorizontally)
-                    .padding(top = 4.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = CenterVertically
-            ) {
-                contentPair.second?.asImageBitmap()?.let { imageBitmap ->
-                    Icon(
-                        bitmap = imageBitmap,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-                Text(
-                    text = contentPair.first ?: "无标题",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = 12.sp
-                )
-            }
+  val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+  val sizeTriple = if (onlyOne) {
+    val with = screenWidth - 120.dp
+    Triple(with, with * 9 / 6 - 60.dp, with * 9 / 6)
+  } else {
+    val with = (screenWidth - 60.dp) / 2
+    Triple(with, with * 9 / 6 - 40.dp, with * 9 / 6)
+  }
+  Box(modifier = Modifier.size(width = sizeTriple.first, height = sizeTriple.third)) {
+    Column(horizontalAlignment = CenterHorizontally, modifier = Modifier.clickable {
+      viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, index))
+    }) {
+      Image(
+        bitmap = browserBaseView.bitmap
+          ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
+        contentDescription = null,
+        modifier = Modifier
+          .size(width = sizeTriple.first, height = sizeTriple.second)
+          .clip(RoundedCornerShape(16.dp))
+          .align(CenterHorizontally),
+        contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
+        alignment = TopStart
+      )
+      val contentPair = when (browserBaseView) {
+        is BrowserMainView -> {
+          Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
         }
+        is BrowserWebView -> {
+          Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
+        }
+        else -> {
+          Pair(null, null)
+        }
+      }
+      Row(
+        modifier = Modifier
+          .width(sizeTriple.first)
+          .align(CenterHorizontally)
+          .padding(top = 4.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = CenterVertically
+      ) {
+        contentPair.second?.asImageBitmap()?.let { imageBitmap ->
+          Icon(
+            bitmap = imageBitmap,
+            contentDescription = null,
+            modifier = Modifier.size(12.dp)
+          )
+        }
+        Text(
+          text = contentPair.first ?: "无标题",
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          fontSize = 12.sp
+        )
+      }
+    }
 
-        if (!(onlyOne || browserBaseView is BrowserMainView)) {
-            Box(modifier = Modifier
-                .padding(4.dp)
-                .clip(CircleShape)
-                .background(Color.White)
-                .align(Alignment.TopEnd)
-                .clickable {
-                    viewModel.handleIntent(BrowserIntent.RemoveBaseView(index))
-                }) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = Color.Gray
-                )
-            }
-        }
+    if (!(onlyOne || browserBaseView is BrowserMainView)) {
+      Box(modifier = Modifier
+        .padding(4.dp)
+        .clip(CircleShape)
+        .align(Alignment.TopEnd)
+        .clickable {
+          viewModel.handleIntent(BrowserIntent.RemoveBaseView(index))
+        }) {
+        Icon(
+          imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
+          contentDescription = null,
+          modifier = Modifier.size(18.dp),
+          tint = MaterialTheme.colorScheme.outline
+        )
+      }
     }
+  }
 }

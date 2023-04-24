@@ -12,7 +12,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -45,12 +44,7 @@ import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SplashView(
-  paths: ArrayList<String>,
-  activeColor: Color = LocalContentColor.current.copy(alpha = LocalContentAlpha.current),
-  inactiveColor: Color = activeColor.copy(ContentAlpha.disabled),
-  indicatorWidth: Dp = 8.dp
-) {
+fun SplashView(paths: ArrayList<String>) {
   val pagerState = rememberPagerState()
 
   Box(
@@ -80,16 +74,6 @@ fun SplashView(
         }
       }
     }
-
-    /*HorizontalPagerIndicator(
-      pagerState = pagerState,
-      modifier = Modifier
-        .align(Alignment.BottomCenter)
-        .padding(0.dp, 0.dp, 0.dp, 50.dp),
-      activeColor = activeColor,
-      inactiveColor = inactiveColor,
-      indicatorWidth = indicatorWidth
-    )*/
   }
 }
 

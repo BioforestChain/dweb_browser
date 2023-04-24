@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.content.Intent
-import android.util.Log
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
@@ -50,6 +49,7 @@ data class BrowserUIState @OptIn(
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val modalBottomSheetState: SheetState = SheetState(skipPartiallyExpanded = false), // 用于显示“选项”菜单
+  val openBottomSheet: MutableState<Boolean> = mutableStateOf(false), // 用于显示“选项”菜单
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
 )
 
@@ -95,16 +95,13 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
       async {
         WebsiteDB.queryHistoryWebsiteInfoList().collect {
           uiState.historyWebsiteMap.clear()
-          Log.e("lin.huang", "获取历史记录 ${it.size}")
           it.forEach { (key, value) ->
-            Log.e("lin.huang", "获取历史记录：$key, $value ==> ${WebsiteDB.compareWithLocalTime(key)}")
             uiState.historyWebsiteMap[WebsiteDB.compareWithLocalTime(key)] = value
           }
         }
       }
       async {
         WebsiteDB.queryBookWebsiteInfoList().collect {
-          Log.e("lin.huang", "获取书签记录数据 ${it.size}")
           uiState.bookWebsiteList.clear()
           it.forEach { websiteInfo ->
             uiState.bookWebsiteList.add(websiteInfo)
