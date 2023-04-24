@@ -39,7 +39,7 @@ object JmmMetadataDB {
     }
   }
 
-  fun queryJmmMetadataList(): Flow<MutableMap<Mmid, JmmMetadata>> {
+  suspend fun queryJmmMetadataList(): Flow<MutableMap<Mmid, JmmMetadata>> {
     return App.appContext.dataStore.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
       if (e is IOException) {
         e.printStackTrace()
@@ -63,7 +63,7 @@ object JmmMetadataDB {
     }
   }
 
-  fun saveAllJmmMetadata(list: MutableMap<Mmid, JmmMetadata>) = runBlocking(Dispatchers.IO) {
+  suspend fun saveAllJmmMetadata(list: MutableMap<Mmid, JmmMetadata>) = runBlocking(Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     App.appContext.dataStore.edit { pref ->
       list.forEach { (key, value) ->

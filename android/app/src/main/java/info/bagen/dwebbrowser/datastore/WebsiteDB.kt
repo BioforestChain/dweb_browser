@@ -32,7 +32,7 @@ object WebsiteDB {
   /**
    * 历史记录部分
    */
-  fun queryHistoryWebsiteInfoList(): Flow<MutableMap<String, MutableList<WebSiteInfo>>> {
+  suspend fun queryHistoryWebsiteInfoList(): Flow<MutableMap<String, MutableList<WebSiteInfo>>> {
     return App.appContext.dataStoreHistory.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
       if (e is IOException) {
         e.printStackTrace()
@@ -63,7 +63,7 @@ object WebsiteDB {
   /**
    * 书签列表部分
    */
-  fun queryBookWebsiteInfoList(): Flow<MutableList<WebSiteInfo>> {
+  suspend fun queryBookWebsiteInfoList(): Flow<MutableList<WebSiteInfo>> {
     return App.appContext.dataStoreBook.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
       if (e is IOException) {
         e.printStackTrace()

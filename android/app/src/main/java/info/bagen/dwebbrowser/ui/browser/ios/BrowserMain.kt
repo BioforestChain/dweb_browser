@@ -131,7 +131,7 @@ private fun HotWebSiteView(viewModel: BrowserViewModel) {
     ) {
       items(initHotWebsite) {
         IconView(model = it.iconUrl, text = it.name) {
-          viewModel.handleIntent(BrowserIntent.AddNewWebView(it.webUrl))
+          viewModel.handleIntent(BrowserIntent.SearchWebView(it.webUrl))
         }
       }
     }
@@ -180,7 +180,7 @@ private fun HotSearchView(viewModel: BrowserViewModel) {
       empty = { ListLoadingView() }
     ) {
       Text(text = it.showHotText(), maxLines = 1, modifier = Modifier.clickable {
-        viewModel.handleIntent(BrowserIntent.AddNewWebView(it.webUrl))
+        viewModel.handleIntent(BrowserIntent.SearchWebView(it.webUrl))
       })
       Spacer(modifier = Modifier.height(16.dp))
     }

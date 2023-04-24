@@ -43,7 +43,6 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
-import info.bagen.dwebbrowser.ui.theme.Blue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -170,12 +169,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
     pageCount = viewModel.uiState.browserViewList.size,
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
   ) { currentPage ->
-    when (val item = viewModel.uiState.browserViewList[currentPage]) {
-      is BrowserWebView -> BrowserViewSearchWeb(viewModel, item)
-      is BrowserMainView -> BrowserViewSearchMain(
-        viewModel, item, viewModel.uiState.pagerStateNavigator
-      )
-    }
+    SearchBox(viewModel, viewModel.uiState.browserViewList[currentPage])
   }
 }
 
@@ -183,8 +177,12 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
 @Composable
 private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
-  Row(modifier = Modifier.fillMaxWidth().height(dimenSearchHeight)) {
-    val navigator = when(val item = viewModel.uiState.currentBrowserBaseView.value) {
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(dimenSearchHeight)
+  ) {
+    val navigator = when (val item = viewModel.uiState.currentBrowserBaseView.value) {
       is BrowserWebView -> item.navigator
       else -> null
     }
@@ -202,7 +200,11 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       resId = navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
       resName = navigator?.let { R.string.browser_nav_add } ?: R.string.browser_nav_scan,
       show = true
-    ) {  }
+    ) {
+      navigator?.let {
+        viewModel.handleIntent(BrowserIntent.AddNewMainView)
+      }
+    }
     NavigatorButton(
       resId = R.drawable.ic_main_multi, resName = R.string.browser_nav_multi, show = true
     ) {
@@ -274,8 +276,6 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
 private fun SearchBox(
   viewModel: BrowserViewModel,
   baseView: BrowserBaseView,
-  showCamera: Boolean = false,
-  search: (String) -> Unit
 ) {
   Box(
     modifier = Modifier
@@ -298,7 +298,7 @@ private fun SearchBox(
       }
       else -> mutableStateOf("")
     }
-    SearchTextField(viewModel, inputText, showCamera, baseView.focus, search)
+    SearchTextField(viewModel, inputText, baseView.focus)
     // SearchText(inputText, showCamera, baseView.focus, focusRequester)
   }
 }
@@ -330,11 +330,8 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
 private fun SearchTextField(
   viewModel: BrowserViewModel,
   inputText: MutableState<String>,
-  showCamera: Boolean = false,
   focus: MutableState<Boolean>,
-  search: (String) -> Unit
 ) {
-  val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
   val currentText = remember { mutableStateOf(if (focus.value) inputText.value else "") }
 
@@ -365,23 +362,7 @@ private fun SearchTextField(
       /*color = MaterialTheme.colorScheme.onPrimary, */fontSize = dimenTextFieldFontSize
     ),
     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done/*ImeAction.Search*/),
-    keyboardActions = KeyboardActions(
-      onDone = {
-        keyboardController?.hide()
-      },
-      onSearch = {
-        if (currentText.value.isEmpty()) return@KeyboardActions
-        if (currentText.value != inputText.value) {
-          val requestUrl = Uri.parse(currentText.value)?.let { uri ->
-            if ((uri.scheme == "http" || uri.scheme == "https") && uri.host?.isNotEmpty() == true) {
-              currentText.value
-            } else null
-          } ?: "https://cn.bing.com/search?q=${currentText.value}"
-          search(requestUrl)
-        }
-        focusManager.clearFocus() // 取消聚焦，就会间接的隐藏键盘
-      }
-    )
+    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
   ) { innerTextField ->
     Box {
       Surface(modifier = Modifier.align(Alignment.Center)) {
@@ -403,7 +384,7 @@ private fun SearchTextField(
             if ((focus.value && currentText.value.isEmpty()) || (!focus.value && inputText.value.isEmpty())) {
               Text(
                 text = stringResource(id = R.string.browser_search_hint),
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                //color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.align(Alignment.CenterStart),
                 fontSize = dimenTextFieldFontSize
               )
@@ -411,7 +392,7 @@ private fun SearchTextField(
               parseInputText(inputText.value)?.let { text ->
                 Text(
                   text = text,
-                  color = MaterialTheme.colorScheme.surfaceVariant,
+                  //color = MaterialTheme.colorScheme.surfaceVariant,
                   modifier = Modifier.align(Alignment.Center),
                   fontSize = dimenTextFieldFontSize
                 )
@@ -424,18 +405,14 @@ private fun SearchTextField(
             Icon(imageVector = Icons.Outlined.Close,
               contentDescription = null,
               tint = MaterialTheme.colorScheme.onSurface,
-              modifier = Modifier.size(25.dp).clickable {
-                currentText.value = ""
-                viewModel.handleIntent(BrowserIntent.UpdateInputText(""))
-                viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
-              })
-          }/* else if (showCamera) {
-            Icon(
-              imageVector = ImageVector.vectorResource(id = R.drawable.ic_photo_camera_24),
-              contentDescription = null,
-              tint = MaterialTheme.colors.onSecondary,
-            )
-          }*/
+              modifier = Modifier
+                .size(25.dp)
+                .clickable {
+                  currentText.value = ""
+                  viewModel.handleIntent(BrowserIntent.UpdateInputText(""))
+                  viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
+                })
+          }
         }
       }
     }
@@ -447,28 +424,30 @@ private fun SearchTextField(
  */
 private fun parseInputText(text: String, host: Boolean = true): String? {
   val uri = Uri.parse(text)
-  return if (uri.host == "cn.bing.com" && uri.path == "/search" && uri.getQueryParameter("q") != null) {
-    uri.getQueryParameter("q")
-  } else {
-    if (host) uri.host else text
-  }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun BrowserViewSearchMain(
-  viewModel: BrowserViewModel, browserMainView: BrowserMainView, pagerState: PagerState
-) {
-  SearchBox(viewModel, browserMainView, showCamera = true) { url ->
-    viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false)) // 隐藏搜索内容
-    viewModel.handleIntent(BrowserIntent.AddNewWebView(url))
-  }
-}
-
-@Composable
-private fun BrowserViewSearchWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
-  SearchBox(viewModel, browserWebView, showCamera = false) { url ->
-    viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false)) // 隐藏搜索内容
-    viewModel.handleIntent(BrowserIntent.SearchWebView(url))
+  return when {
+    uri.host == "cn.bing.com" && uri.path == "/search" && uri.getQueryParameter("q") != null -> {
+      uri.getQueryParameter("q")
+    }
+    uri.host == "m.baidu.com" && uri.path == "/s" && uri.getQueryParameter("word") != null -> {
+      uri.getQueryParameter("word")
+    }
+    uri.host == "www.baidu.com" && uri.path == "/s" && uri.getQueryParameter("wd") != null -> {
+      uri.getQueryParameter("wd")
+    }
+    uri.host == "www.google.com" && uri.path == "/search" && uri.getQueryParameter("q") != null -> {
+      uri.getQueryParameter("q")
+    }
+    uri.host == "wap.sogou.com" && uri.path == "/web/searchList.jsp" && uri.getQueryParameter("keyword") != null -> {
+      uri.getQueryParameter("keyword")
+    }
+    uri.host == "www.sogou.com" && uri.path == "/web" && uri.getQueryParameter("query") != null -> {
+      uri.getQueryParameter("query")
+    }
+    (uri.host == "m.so.com" || uri.host == "www.so.com") && uri.path == "/s" && uri.getQueryParameter(
+      "q"
+    ) != null -> {
+      uri.getQueryParameter("q")
+    }
+    else -> if (host) uri.host else text
   }
 }

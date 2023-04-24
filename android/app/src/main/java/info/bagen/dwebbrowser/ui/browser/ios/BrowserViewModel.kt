@@ -51,17 +51,18 @@ data class BrowserUIState @OptIn(
   val modalBottomSheetState: SheetState = SheetState(skipPartiallyExpanded = false), // 用于显示“选项”菜单
   val openBottomSheet: MutableState<Boolean> = mutableStateOf(false), // 用于显示“选项”菜单
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
+  val keyboardOpened: MutableState<Boolean> = mutableStateOf(false), // 用于判断键盘的状态
 )
 
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
   object WebViewGoBack : BrowserIntent()
+  object AddNewMainView : BrowserIntent()
   class UpdatePopupViewState(val state: PopupViewState) : BrowserIntent()
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
   class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
   class UpdateSearchEngineState(val show: Boolean) : BrowserIntent()
-  class AddNewWebView(val url: String) : BrowserIntent()
   class SearchWebView(val url: String) : BrowserIntent()
   class RemoveBaseView(val id: Int) : BrowserIntent()
   class OpenDwebBrowser(val mmid: Mmid) : BrowserIntent()
@@ -69,6 +70,14 @@ sealed class BrowserIntent {
   object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   object ShareWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   class UpdateInputText(val text: String) : BrowserIntent()
+  class KeyboardStateChanged(val pair: Pair<Boolean, Int>) : BrowserIntent() // 键盘显示与否
+  class DeleteWebSiteList(
+    val type: ListType, val website: WebSiteInfo?, val clsAll: Boolean = false
+  ) : BrowserIntent()
+}
+
+enum class ListType {
+  History, Book
 }
 
 class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
@@ -151,38 +160,58 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         is BrowserIntent.UpdateSearchEngineState -> {
           uiState.showSearchEngine.targetState = action.show
         }
-        is BrowserIntent.AddNewWebView -> {
-          // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
-          uiState.browserViewList.lastOrNull()?.let {
-            it.show.value = false
+        is BrowserIntent.AddNewMainView -> {
+          val itemView = BrowserMainView()
+          uiState.browserViewList.add(itemView)
+          uiState.currentBrowserBaseView.value = itemView
+          viewModelScope.launch(mainAsyncExceptionHandler) {
+            delay(100)
+            uiState.multiViewShow.targetState = false
+            uiState.pagerStateNavigator.scrollToPage(uiState.browserViewList.size - 1)
+            uiState.pagerStateContent.scrollToPage(uiState.browserViewList.size - 1)
           }
-          // 创建 webview 并且打开
-          withContext(mainAsyncExceptionHandler) {
-            val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
-            val state = WebViewState(WebContent.Url(action.url))
-            val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-            val navigator = WebViewNavigator(coroutineScope)
-            BrowserWebView(
-              webViewId = webviewId,
-              webView = createDwebView(action.url),
-              state = state,
-              coroutineScope = coroutineScope,
-              navigator = navigator
-            ).also { item ->
-              uiState.browserViewList.add(uiState.browserViewList.size - 1, item)
-              uiState.currentBrowserBaseView.value = item
+        }
+        is BrowserIntent.SearchWebView -> {
+          when (val itemView = uiState.currentBrowserBaseView.value) {
+            is BrowserWebView -> {
+              itemView.state.content = WebContent.Url(action.url)
+            }
+            else -> {
+              // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
+              uiState.browserViewList.lastOrNull()?.let {
+                it.show.value = false
+              }
+              // 创建 webview 并且打开
+              withContext(mainAsyncExceptionHandler) {
+                val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
+                val state = WebViewState(WebContent.Url(action.url))
+                val coroutineScope = CoroutineScope(CoroutineName(webviewId))
+                val navigator = WebViewNavigator(coroutineScope)
+                BrowserWebView(
+                  webViewId = webviewId,
+                  webView = createDwebView(action.url),
+                  state = state,
+                  coroutineScope = coroutineScope,
+                  navigator = navigator
+                ).also { item ->
+                  for (index in 0 until uiState.browserViewList.size) {
+                    val itemView = uiState.browserViewList[index]
+                    if (itemView === uiState.currentBrowserBaseView.value) {
+                      uiState.browserViewList.removeAt(index)
+                      uiState.browserViewList.add(index, item)
+                      uiState.currentBrowserBaseView.value = item
+                      break
+                    }
+                  }
+                  // uiState.browserViewList.add(uiState.browserViewList.size - 1, item)
+                  // uiState.currentBrowserBaseView.value = item
+                }
+              }
             }
           }
         }
         is BrowserIntent.OpenDwebBrowser -> {
           BrowserNMM.browserController.openApp(action.mmid)
-        }
-        is BrowserIntent.SearchWebView -> {
-          uiState.currentBrowserBaseView.value.let { browserBaseView ->
-            if (browserBaseView is BrowserWebView) {
-              browserBaseView.state.content = WebContent.Url(action.url)
-            }
-          }
         }
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id)
@@ -221,13 +250,36 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         is BrowserIntent.UpdateInputText -> {
           uiState.inputText.value = action.text
         }
+        is BrowserIntent.KeyboardStateChanged -> {
+          uiState.keyboardOpened.value = action.pair.first
+        }
+        is BrowserIntent.DeleteWebSiteList -> {
+          when(action.type) {
+            ListType.Book -> {
+              if (action.clsAll) {
+                uiState.bookWebsiteList.clear()
+              } else {
+                action.website?.let { item -> uiState.bookWebsiteList.remove(item) }
+              }
+            }
+            ListType.History -> {
+              if (action.clsAll) {
+                uiState.historyWebsiteMap.clear()
+              } else {
+                uiState.historyWebsiteMap.forEach { (key, values) ->
+                  action.website?.let { item -> values.remove(item) }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 
   private suspend fun createDwebView(url: String): DWebView =
     withContext(mainAsyncExceptionHandler) {
-      val dWebView = DWebView(
+      DWebView(
         App.appContext,
         browserController.browserNMM,
         browserController.browserNMM,
@@ -237,10 +289,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
         ),
         null
-      ).also {
-//        it.isDrawingCacheEnabled = true
-      }
-      dWebView
+      )
     }
 
   private suspend fun loadHotInfo() {
