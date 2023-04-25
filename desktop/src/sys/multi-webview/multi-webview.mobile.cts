@@ -57,7 +57,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { url: "string" },
       output: "number",
       handler: async (args, client_ipc, request) => {
-        console.log('[multi-webview.mobile.cts 接受到了 open 请求]')
+        console.log('[multi-webview.mobile.cts 接受到了 open 请求]--------------------------------------', client_ipc.uid)
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         const webview_id = await wapis.apis.openWebview(args.url);
         console.log('multi-webview.mobile.cts /open args.url:', args.url)
@@ -73,10 +73,47 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { webview_id: "number" },
       output: "boolean",
       handler: async (args, client_ipc) => {
+
+        console.log('------ multi-webview.mobile.cts 执行了关闭');
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         return wapis.apis.closeWebview(args.webview_id);
       },
     });
+
+    // 销毁指定的 webview
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/destroy_webview_by_host",
+      matchMode: "full",
+      input: { host: "string" },
+      output: "boolean",
+      handler: async (args, client_ipc) => {
+        Array.from(this._uid_wapis_map.values()).forEach(wapis => {
+          wapis.apis.destroyWebviewByHost(args.host)
+        })
+
+        // console.log('------ multi-webview.mobile.cts 执行了销毁', wapisArr);
+        // console.log('this._uid_wapis_map: ', this._uid_wapis_map)
+        // console.log('ipc.uid: ', (client_ipc as any).uid)
+        // const wapis = await this.forceGetWapis(client_ipc, root_url);
+        // return wapis.apis.destroyWebviewByHost(args.host);\
+
+        return true;
+      },
+    });
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/restart_webview_by_host",
+      matchMode: "full",
+      input: { host: "string" },
+      output: "boolean",
+      handler: async (args, client_ipc) => {
+        Array.from(this._uid_wapis_map.values()).forEach(wapis => {
+          wapis.apis.restartWebviewByHost(args.host)
+        })
+        return true;
+      },
+    })
+
   }
   
   _shutdown() {
@@ -87,6 +124,9 @@ export class MultiWebviewNMM extends NativeMicroModule {
   }
 
   // 是不是可以获取 multi-webviw.html 中的全部api
+  // this._uid_wapis_map 是更具 ipc.uid 作为键明保存的，
+  // 但是在一个 BrowserWindow 的内部会有多个 ipc 
+  // 这样会导致问题出现 会多次触发 openNativeWindow
   private forceGetWapis(ipc: Ipc, root_url: string) {
     return locks.request("multi-webview-get-window-" + ipc.uid, async () => {
       let wapi = this._uid_wapis_map.get(ipc.uid);

@@ -315,11 +315,62 @@ export class ViewTree extends LitElement {
   }
 
   private async destroyWebview(webview: Webview) {
+    console.log('webveiw: ', webview)
+    console.log('this.webviews: ', this.webviews)
     await mainApis.destroy(webview.webContentId);
   }
 
+  async destroyWebviewByHost(host: string){
+    this.webviews.forEach(webview => {
+      const _url = new URL(webview.src);
+      const _host = `api${_url.host.slice(3)}`
+      console.log(_host)
+      console.log(host)
+      if(_host === host){
+        this.destroyWebview(webview)
+      }
+    })
+    return true;
+  }
+
+  async restartWebviewByHost(host: string){
+    this.webviews.forEach(webview => {
+      const _url = new URL(webview.src);
+      const _host = `api${_url.host.slice(3)}`
+      console.log(_host)
+      console.log(host)
+      if(_host === host){
+        this.render()
+      }
+    })
+    console.log(this.webviews)
+    return true;
+  }
+
+
+
+
+
+  // override connectedCallback = () => {
+  //   super.connectedCallback()
+  //   console.log('connectedCallback------')
+  // }
+
+  // override connectedCallback(){
+  //   super.connectedCallback();
+  //   fetch("./mwebview.sys.dweb/wati_operation")
+  //   .then(
+  //     async (res) => {
+  //       console.log("接收到了数据")
+  //     },
+  //     err => {throw err}
+  //   )
+  //   console.log('--------')
+  // }
+
   // Render the UI as a function of component state
   override render() {
+     console.log('render: ')
     return html`
       <div class="layer stack app-container">
         ${repeat(
@@ -419,6 +470,8 @@ document.body.appendChild(viewTree);
 export const APIS = {
   openWebview: viewTree.openWebview.bind(viewTree),
   closeWebview: viewTree.closeWebview.bind(viewTree),
+  destroyWebviewByHost: viewTree.destroyWebviewByHost.bind(viewTree),
+  restartWebviewByHost: viewTree.restartWebviewByHost.bind(viewTree)
 };
 
 exportApis(APIS);

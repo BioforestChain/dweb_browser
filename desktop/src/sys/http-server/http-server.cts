@@ -63,6 +63,10 @@ export interface $StateSendActionItem extends $BaseAction, $BaseRoute{
   to: string; // 发送给那个陈旭匹配的 插件
 }
 
+export interface $Listener {
+  (req: IncomingMessage, res: OutgoingMessage): void;
+}
+
 /**
  * 类似 https.createServer
  * 差别在于服务只在本地运作
@@ -85,10 +89,18 @@ export class HttpServerNMM extends NativeMicroModule {
         port: number;
     };
   } | undefined
-  private _filterActions: Map<$FilterActionItem, Ipc> = new Map()
-  private _filterActionsArray: $FilterActionItem[] = []
-  private _filterActionResponse: Map<Ipc, Map<string,OutgoingMessage>> = new Map()
+ 
   private _routes: Map<Ipc, Map<string, $Route>> = new Map()
+
+  private _allRoutes: Map<string, $Listener> = new Map()
+
+  addRoute(path: string, listener: $Listener){
+    this._allRoutes.set(path, listener)
+  }
+
+  delRoute(path: string, listener: $Listener){
+    this._allRoutes.delete(path)
+  }
 
   protected async _bootstrap() {
     log.green(`${this.mmid} _bootstrap`)
@@ -117,6 +129,17 @@ export class HttpServerNMM extends NativeMicroModule {
       res.setHeader("Access-Control-Allow-Methods","*");  
       /// 获取 host
       const host = this.getHostByReq(req)
+       
+
+      // 通过 _allRoutes 分发路由
+      {
+        const pathname = url.parse(req.url as string,).pathname;
+        if(pathname === null) throw new Error(`http-server pathname === null`)
+        const listener = this._allRoutes.get(pathname)
+        if(listener){
+          return listener(req, res)
+        }
+      }
 
       // 是否有匹配的路由 拦截路由 分发请求
       {
@@ -431,11 +454,11 @@ export class HttpServerNMM extends NativeMicroModule {
 
     }while(loop)
 
-    if(has){
-      log.green(`[http-server.cts 分发请求] http://${req.headers.host}${pathname}  METHOD===${req.method}`)
-    }else{
-      log.red(`[http-server.cts 没有分发的请求] http://${req.headers.host}${pathname}  METHOD===${req.method}`)
-    }
+    // if(has){
+    //   log.green(`[http-server.cts 分发请求] http://${req.headers.host}${pathname}  METHOD===${req.method}`)
+    // }else{
+    //   log.red(`[http-server.cts 没有分发的请求] http://${req.headers.host}${pathname}  METHOD===${req.method}`)
+    // }
 
     return has;
   }

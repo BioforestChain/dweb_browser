@@ -1,3 +1,4 @@
+import type { IncomingMessage, OutgoingMessage } from "http";
 import type {
   $BootstrapContext,
   $DnsMicroModule,
@@ -14,16 +15,20 @@ import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.
 import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $MMID } from "../../helper/types.cjs";
+import type { HttpServerNMM } from "../http-server/http-server.cjs";
 import { nativeFetchAdaptersManager } from "./nativeFetch.cjs";
 
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
+
   install(mm: MicroModule): void {
     this.dnsNN.install(mm);
   }
+
   uninstall(mm: MicroModule): void {
     this.dnsNN.uninstall(mm);
   }
+  
   connect(mmid: $MMID, reason?: Request) {
     return this.dnsNN[connectTo_symbol](
       this.dnsNN,
@@ -31,6 +36,11 @@ class MyDnsMicroModule implements $DnsMicroModule {
       reason ?? new Request(`file://${mmid}`)
     );
   }
+
+  query(mmid: $MMID){
+    return this.dnsNN.query(mmid)
+  }
+
   // 私有的一对一的连接
   async privateConnect(toMmid: $MMID, reason?: Request){
     return new Promise(async (resolve) => {
@@ -108,6 +118,14 @@ export class DnsNMM extends NativeMicroModule {
       handler: async (args, client_ipc, request) => {
         /// TODO 询问用户是否授权该行为
         const app = await this.open(args.app_id);
+        
+        if(args.app_id === "http.sys.dweb"){
+          // 向 http.sys.dweb 添加路由
+          this._addRoutes()
+          console.log('----------- open app http.sys.dweb')
+        }
+
+
         return IpcResponse.fromJson(
           request.req_id,
           200,
@@ -163,6 +181,37 @@ export class DnsNMM extends NativeMicroModule {
     return this.open(`boot.sys.dweb`);
     //#endregion
   }
+
+  private _addRoutes = async () => {
+    const httpNMM = (await this.query('http.sys.dweb')) as HttpServerNMM;
+    if(httpNMM === undefined) throw new Error(`httpNmm === undefined`);
+    httpNMM.addRoute('/dns.sys.dweb/close', this._close);
+    httpNMM.addRoute("/dns.sys.dweb/restart", this._restart);
+  }
+
+  private _close = async(req: IncomingMessage, response: OutgoingMessage ) => {
+    console.log('req.headers', req.headers.host)
+    const mmid = req.headers.host?.split("-")[0].slice(4) as $MMID;
+    if(mmid === undefined) throw new Error(`${mmid} === undefined`)
+    console.log('mmid: ', mmid)
+    this.close(mmid)
+    // 还需要关闭 UI
+    await this.nativeFetch(
+      `file://mwebview.sys.dweb/destroy_webview_by_host?host=${encodeURIComponent(req.headers.host as string)}`
+    )
+    response.end(true)
+  }
+
+  private _restart = async(req: IncomingMessage, response: OutgoingMessage ) => {
+    // 重新载入一个应用
+    // 首先销毁
+    const mmid = req.headers.host?.split("-")[0].slice(4) as $MMID;
+    if(mmid === undefined) throw new Error(`${mmid} === undefined`)
+    await this.nativeFetch(
+      `file://mwebview.sys.dweb/restart_webview_by_host?host=${encodeURIComponent(req.headers.host as string)}`
+    )
+    response.end()
+  }
   async _shutdown() {
     for (const mmid of this.running_apps.keys()) {
       await this.close(mmid);
@@ -180,6 +229,7 @@ export class DnsNMM extends NativeMicroModule {
   async query(mmid: $MMID) {
     return this.apps.get(mmid);
   }
+
   private running_apps = new Map<$MMID, MicroModule>();
   /** 打开应用 */
   async open(mmid: $MMID) {

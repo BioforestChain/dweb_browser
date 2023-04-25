@@ -20,6 +20,8 @@ const main = async () => {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href
+    
+    console.log('--------------------------------------****')
     console.log("cot#open interUrl=>", interUrl)
     const view_id = await nativeOpen(interUrl)
   }

@@ -65,6 +65,7 @@ dns.install(jmmtestconnectJMM2)
 
 dns.install(new BootNMM([
   "http.sys.dweb",
+  "jmm.sys.dweb",
   "mwebview.sys.dweb",
   "js.sys.dweb",
   "status-bar.nativeui.sys.dweb",

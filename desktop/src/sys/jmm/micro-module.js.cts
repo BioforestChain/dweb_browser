@@ -203,6 +203,7 @@ export class JsMicroModule extends MicroModule {
   }
 
   _shutdown() {
+    console.log('关闭了进程 micro-module.js.cts')
     for (const outer_ipc of this._connecting_ipcs) {
       outer_ipc.close();
     }
