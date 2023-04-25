@@ -92,7 +92,7 @@ public static class NetServer
                 var response = context.Response;
 
                 var result = await handler(request.ToHttpRequestMessage());
-                result.ToHttpListenerResponse(response).Close();
+                (await result.ToHttpListenerResponse(response)).Close();
             }
         });
 

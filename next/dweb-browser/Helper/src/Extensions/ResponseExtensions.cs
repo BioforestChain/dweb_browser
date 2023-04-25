@@ -43,7 +43,7 @@ public static class ResponseExtensions
         return responseMessage;
     }
 
-    public static HttpListenerResponse ToHttpListenerResponse(this HttpResponseMessage self, HttpListenerResponse res)
+    public static async Task<HttpListenerResponse> ToHttpListenerResponse(this HttpResponseMessage self, HttpListenerResponse res)
     {
         res.StatusCode = (int)self.StatusCode;
 
@@ -58,11 +58,10 @@ public static class ResponseExtensions
         }
 
         res.ContentType = self.Content.Headers.ContentType?.MediaType;
+        res.ContentLength64 = self.Content.Headers.ContentLength > 0 ? (long)self.Content.Headers.ContentLength : 0;
 
-        using (var stream = self.Content.ReadAsStreamAsync().Result)
-        {
-            stream.CopyTo(res.OutputStream);
-        }
+        var stream = await self.Content.ReadAsStreamAsync();
+        stream.CopyTo(res.OutputStream);
 
         return res;
     }

@@ -26,7 +26,7 @@ public static class HttpRouter
             switch (result)
             {
                 case HttpResponseMessage res:
-                    res.ToHttpListenerResponse(response).Close();
+                    (await res.ToHttpListenerResponse(response)).Close();
                     break;
                 case byte[] byteResult:
                     response.StatusCode = (int)HttpStatusCode.OK;

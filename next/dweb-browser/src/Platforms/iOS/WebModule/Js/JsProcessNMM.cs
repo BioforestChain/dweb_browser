@@ -85,9 +85,13 @@ public class JsProcessNMM : NativeMicroModule
                     /// 加入跨域支持
                     foreach (var (key, value) in _CORS_HEADERS)
                     {
-                        if (!response.Headers.Contains(key))
+                        if (key.ToLower() is "content-type")
                         {
-                            response.Headers.TryAddWithoutValidation(key, value);
+                            continue;
+                        }
+                        else if (!response.Headers.Contains(key))
+                        {
+                            response.Headers.Add(key, value);
                         }
                     }
                     await ipc.PostMessageAsync(
@@ -252,7 +256,7 @@ public class JsProcessNMM : NativeMicroModule
                     var response = it;
                     foreach (var entry in _CORS_HEADERS)
                     {
-                        response.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
+                        response.Headers.Add(entry.Key, entry.Value);
                     }
 
                     return response;

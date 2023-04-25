@@ -4,6 +4,7 @@ using System.Net;
 using System.Web;
 using Foundation;
 using MobileCoreServices;
+using System.Net.Http.Headers;
 
 #nullable enable
 
@@ -105,7 +106,8 @@ public static class LocaleFile
                             var mimeType = GetMimeType(src);
                             if (mimeType is not null)
                             {
-                                response.Content.Headers.Add("Content-Type", mimeType);
+                                Console.WriteLine(String.Format("mimeType: {0}", mimeType));
+                                response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
                             }
 
                         }
@@ -121,7 +123,7 @@ public static class LocaleFile
                         if (mimeType is not null)
                         {
                             Console.WriteLine(String.Format("mimeType: {0}", mimeType));
-                            response.Content.Headers.Add("Content-Type", mimeType);
+                            response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
                         }
                         return response;
                     }
