@@ -188,29 +188,23 @@ public class JsProcessNMM : NativeMicroModule
         /// WebView 实例
         var urlInfo = mainServer.StartResult.urlInfo;
 
-        var options = new DWebView.DWebView.Options(urlInfo.BuildPublicDwebHref(urlInfo.BuildInternalUrl().Path("/index.html")));
-        try
-        {
-            _ = MainQueue.Run(() =>
-             {
 
-                 var dwebview = new DWebView.DWebView(null, this, this, options, null);
-
-                 var apis = new JsProcessWebApi(dwebview).Also(apis =>
-                 {
-                     _onAfterShutdown += async (_) => { apis.Destroy(); };
-                 });
-                 dwebview.OnReady += async (_) =>
-                    afterReadyPo.Resolve(apis);
-             });
-            var apis = await afterReadyPo.WaitPromiseAsync();
-            return apis;
-        }
-        catch (Exception e)
+        await MainQueue.Run(() =>
         {
-            Debug.WriteLine(e);
-            throw e;
-        }
+
+            var dwebview = new DWebView.DWebView(localeMM: this);
+
+            var apis = new JsProcessWebApi(dwebview).Also(apis =>
+            {
+                _onAfterShutdown += async (_) => { apis.Destroy(); };
+            });
+            dwebview.OnReady += async (_) =>
+               afterReadyPo.Resolve(apis);
+            var mainUrl = urlInfo.BuildPublicDwebHref(urlInfo.BuildInternalUrl().Path("/index.html"));
+            dwebview.LoadURL(mainUrl);
+        });
+        var apis = await afterReadyPo.WaitPromiseAsync();
+        return apis;
 
     }
 

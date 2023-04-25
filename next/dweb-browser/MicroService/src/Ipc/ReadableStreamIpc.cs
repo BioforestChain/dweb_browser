@@ -39,13 +39,7 @@ public class ReadableStreamIpc : Ipc
         };
 
         //Console.WriteLine(String.Format("post/{0}", Stream), message.Length);
-        //return EnqueueAsync(message.Length.ToByteArray().Combine(message));
-        //return EnqueueAsync(message.Length.ToByteArray());
-        var header = message.Length.ToByteArray();
-        var result = new byte[header.Length + message.Length];
-        Array.Copy(header, 0, result, 0, header.Length);
-        Array.Copy(message, 0, result, header.Length, message.Length);
-        return EnqueueAsync(result);
+        return EnqueueAsync(message.Length.ToByteArray().Combine(message));
     }
 
     public override string ToString() => base.ToString() + "@ReadableStreamIpc";

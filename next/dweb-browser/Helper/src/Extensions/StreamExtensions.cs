@@ -48,23 +48,16 @@ public static class StreamExtensions
     }
     public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, int usize = 4096)
     {
-        var ex_buf = new byte[1];
         var bytes = new byte[usize]!;
-        var count = usize - 1;
         while (true)
         {
-            try
-            {
-                await stream.ReadExactlyAsync(ex_buf, 0, 1);
-            }
-            catch (EndOfStreamException)
+            var read = await stream.ReadAtLeastAsync(bytes, 1, false);
+            if (read == 0)
             {
                 /// 流完成流
                 yield break;
             }
-            bytes[0] = ex_buf[0];
-            var read = await stream.ReadAsync(bytes, 1, count);
-            yield return bytes.AsSpan(0, read + 1).ToArray();
+            yield return bytes.AsSpan(0, read).ToArray();
         }
     }
 }

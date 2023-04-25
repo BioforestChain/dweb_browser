@@ -102,6 +102,10 @@ public partial class DWebView : WKWebView
     {
     }
 
+    public DWebView(MicroModule localeMM, MicroModule? remoteMM = default, Options? options = default, CGRect? frame = default, WKWebViewConfiguration? configuration = default) : this(frame ?? CGRect.Empty, localeMM, remoteMM ?? localeMM, options ?? Options.Empty, configuration ?? CreateDWebViewConfiguration())
+    {
+    }
+
     public class Options
     {   /**
          * 要加载的页面
@@ -247,11 +251,11 @@ public partial class DWebView : WKWebView
             });
         await base.CallAsyncJavaScriptAsync("nativeWindowPostMessage(data,ports)", arguments, null, webMessagePortContentWorld);
     }
-    Task LoadURL(string url) => LoadURL(new Uri(url));
+    public Task LoadURL(string url) => LoadURL(new Uri(url));
 
     HtmlParser htmlParser = new HtmlParser();
 
-    async Task LoadURL(Uri url, HttpMethod? method = default)
+    public async Task LoadURL(Uri url, HttpMethod? method = default)
     {
         string uri = url.ToString() ?? throw new ArgumentException();
         var nsUrlRequest = new NSUrlRequest(new NSUrl(uri));
@@ -290,13 +294,13 @@ public partial class DWebView : WKWebView
             nsNavigation = LoadRequest(nsUrlRequest);
         }
 
-        if (!OnReady.IsEmpty())
+        if (OnReady is not null && !OnReady.IsEmpty())
         {
             this.NavigationDelegate = new OnReadyDelegate(OnReady);
         }
     }
 
-    public event Signal OnReady;
+    public event Signal? OnReady;
 
     class OnReadyDelegate : WKNavigationDelegate
     {
@@ -305,11 +309,15 @@ public partial class DWebView : WKWebView
         {
             this._onReady = onReady;
         }
+        public override void DidStartProvisionalNavigation(WKWebView webView, WKNavigation navigation)
+        {
+            Console.WriteLine("Started provisional navigation");
+        }
 
         public override void DidFinishNavigation(WKWebView webView, WKNavigation navigation)
         {
             //base.DidFinishNavigation(webView, navigation);
-            _ = _onReady(_onReady);
+            _ = _onReady.Emit();
         }
     }
 
