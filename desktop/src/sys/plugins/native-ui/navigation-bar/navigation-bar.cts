@@ -2,7 +2,6 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.cjs";
 import { WWWServer } from "./www-server.cjs"
 import type { Remote } from "comlink";
-import type { Ipc } from "../../../../core/ipc/ipc.cjs";
 import type { $NativeWindow } from "../../../../helper/openNativeWindow.cjs";
 import { log } from "../../../../helper/devtools.cjs"
 import { PluginsRequest } from "../../plugins-request.cjs"

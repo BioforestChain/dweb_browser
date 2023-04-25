@@ -3,11 +3,9 @@ import type { Ipc } from "../../../../core/ipc/ipc.cjs";
 import type { TorchNMM } from "./torch.cjs"
 import { IpcEvent } from "../../../../core/ipc/IpcEvent.cjs";
 import { routes } from "./route.cjs"
-import { log } from "../../../../helper/devtools.cjs"
-import querystring from "node:querystring"
 import url from "node:url"
 
-import { $BaseRoute, BaseAddRoutesToHttp, $RequestDistributeIpcEventData } from "../../base/base-add-routes-to-http.cjs";
+import { $BaseRoute, BaseAddRoutesToHttp } from "../../base/base-add-routes-to-http.cjs";
 
 // 处理 同 http.sys.dweb 之间的连接
 export class AddRoutesToHttp extends BaseAddRoutesToHttp<TorchNMM>{
@@ -25,10 +23,8 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<TorchNMM>{
   _httpIpcOnEventRequestDistribute = async (ipcEvent: IpcEvent, httpIpc: Ipc) => {
     const _d = this.creageRequestDistributeIpcEventData(ipcEvent.data)
     const pathname = url.parse(_d.url).pathname;
-    console.log(_d)
     switch(pathname){
       case "/torch.nativeui.sys.dweb/torchState":
-        console.log('获取手电同状态')
         this.httpIpc.postMessage(
           IpcEvent.fromText(
             "http.sys.dweb",
@@ -49,7 +45,6 @@ export class AddRoutesToHttp extends BaseAddRoutesToHttp<TorchNMM>{
         )
         break;
       case "/torch.nativeui.sys.dweb/toggleTorch":
-        console.log("切换打开手电筒")
         this.b = !this.b;
         this.httpIpc.postMessage(
           IpcEvent.fromText(

@@ -9,14 +9,6 @@ export class BootNMM extends NativeMicroModule {
   // private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]); // 被优化
   private registeredMmids = new Set<$MMID>(
     this.initMmids
-    // [
-    // "file.sys.dweb",
-    // "jmm.sys.dweb",
-    // "www.sys.dweb",
-    // "api.sys.dweb",
-    // "plugins.sys.dweb",
-    // "browser.sys.dweb",
-    // ]
   );
   async _bootstrap() {
     this.registerCommonIpcOnMessageHandler({

@@ -362,17 +362,13 @@ export class HttpServerNMM extends NativeMicroModule {
 
   // 分发请求
   distributeRequest = async (req: IncomingMessage, res: OutgoingMessage) => {
-    // console.log(req.url)
-    // console.log(req.headers)
     let has = false;
     let pathname = url.parse(req.url as string,).pathname;
     if(pathname === null) return;
     if(pathname.endsWith("observe")){
       pathname = `/${querystring.parse(req.url as string).mmid}${pathname}`
     }
-    log.log(`[http-server.cts 分发请求] http://${req.headers.host}${pathname}  METHOD===${req.method}`)
     
-
     const full = createRouteKeyByArgs(
       pathname as string,
       "full",
@@ -434,6 +430,13 @@ export class HttpServerNMM extends NativeMicroModule {
       }
 
     }while(loop)
+
+    if(has){
+      log.green(`[http-server.cts 分发请求] http://${req.headers.host}${pathname}  METHOD===${req.method}`)
+    }else{
+      log.red(`[http-server.cts 没有分发的请求] http://${req.headers.host}${pathname}  METHOD===${req.method}`)
+    }
+
     return has;
   }
 
@@ -456,7 +459,7 @@ export class HttpServerNMM extends NativeMicroModule {
         const res = value.res?.get(data.to)
         if(!res) continue;
         let _data: any;
-        console.log('data', data, data.headers?.bodyType)
+        // console.log('data', data, data.headers?.bodyType)
         if(data.headers?.bodyType.includes('json')){
           _data = Buffer.from(data.body as unknown as Buffer)
         }else if(data.headers?.bodyType === "Uint8Array"){
@@ -474,9 +477,9 @@ export class HttpServerNMM extends NativeMicroModule {
           console.log(data)
           throw new Error(`http-server ipcEventOnStateSend 非法的 bodyType ${data.headers?.bodyType}`)
         }
-        console.log("--_data: ", _data)
+        // console.log("--_data: ", _data)
         res.write(_data)
-        console.log('data.done: ', data.done)
+        // console.log('data.done: ', data.done)
         if(!data.done)continue;
         res.end()
         value.res?.delete(data.to)
