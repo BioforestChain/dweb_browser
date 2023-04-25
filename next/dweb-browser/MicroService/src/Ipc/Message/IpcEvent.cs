@@ -1,4 +1,6 @@
-﻿namespace DwebBrowser.MicroService.Message;
+﻿using System.IO;
+
+namespace DwebBrowser.MicroService.Message;
 
 public class IpcEvent : IpcMessage
 {
@@ -40,12 +42,19 @@ public class IpcEvent : IpcMessage
     {
         get { return _text.Value; }
     }
-
+    public IpcEvent JsonAble() => Encoding switch
+    {
+        IPC_DATA_ENCODING.BINARY => FromBase64(
+            Name,
+            (Data as byte[])!
+        ),
+        _ => this
+    };
     /// <summary>
     /// Serialize IpcEvent
     /// </summary>
     /// <returns>JSON string representation of the IpcEvent</returns>
-    public override string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(JsonAble());
 
     /// <summary>
     /// Deserialize IpcEvent

@@ -59,7 +59,7 @@ public class HttpNMM : NativeMicroModule
                     header_x_dweb_host = entry.Value.FirstOrDefault();
                     break;
                 case "User-Agent":
-                    header_user_agent_host = _dwebHostRegex(entry.Value.FirstOrDefault());
+                    header_user_agent_host = _dwebHostRegex(string.Join(" ", entry.Value));
                     break;
             }
         }
@@ -253,7 +253,7 @@ public class HttpNMM : NativeMicroModule
         }
 
         return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-                it.Content = new StreamContent(streamIpc.Stream.Stream));
+                it.Content = new StreamContent(streamIpc.ReadableStream.Stream));
     }
 
     private async Task<bool> _close(Ipc ipc, DwebHttpServerOptions options)

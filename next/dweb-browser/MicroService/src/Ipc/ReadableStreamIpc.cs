@@ -11,7 +11,7 @@ public class ReadableStreamIpc : Ipc
         Remote = remote;
         Role = role;
 
-        Stream = new ReadableStream(
+        ReadableStream = new ReadableStream(
             Role,
             controller => _controller = controller,
             args =>
@@ -47,7 +47,7 @@ public class ReadableStreamIpc : Ipc
     /// <seealso cref="https://stackoverflow.com/questions/60812587/c-sharp-non-nullable-field-lateinit"/>
     private ReadableStream.ReadableStreamController _controller = null!;
 
-    public ReadableStream Stream { get; init; }
+    public ReadableStream ReadableStream { get; init; }
 
     private Task EnqueueAsync(byte[] data) => _controller.EnqueueAsync(data);
 

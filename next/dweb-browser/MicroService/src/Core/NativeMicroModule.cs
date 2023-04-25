@@ -1,4 +1,6 @@
-﻿namespace DwebBrowser.MicroService.Core;
+﻿using DwebBrowser.Helper;
+
+namespace DwebBrowser.MicroService.Core;
 
 public abstract class NativeMicroModule : MicroModule
 {
@@ -88,16 +90,17 @@ public abstract class NativeMicroModule : MicroModule
         static HttpResponseMessage AsJson(object result) =>
             new HttpResponseMessage(HttpStatusCode.OK).Also(res =>
             {
-                // 设置Json序列化选项
-                var options = new JsonSerializerOptions
+                Console.WriteLine("AsJson:" + result);
+                var jsonString = result switch
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true
+                    IToJsonAble toJsonAble => toJsonAble.ToJson(),
+                    _ => JsonSerializer.Serialize(result)
                 };
-                res.Content = new StringContent(JsonSerializer.Serialize(result, options));
+                res.Content = new StringContent(jsonString);
                 res.Content.Headers.ContentType = new("application/json");
             });
     }
+
 
     //public async Task<HttpResponseMessage> DefineHandler(HttpRequestMessage request, Ipc? ipc = null)
     //{
@@ -122,4 +125,9 @@ public abstract class NativeMicroModule : MicroModule
     //            return new HttpResponseMessage(HttpStatusCode.OK);
     //    }
     //}
+}
+
+public interface IToJsonAble
+{
+    public string ToJson();
 }

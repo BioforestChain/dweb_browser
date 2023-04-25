@@ -1,7 +1,6 @@
-﻿
-namespace DwebBrowser.MicroService.Message;
+﻿namespace DwebBrowser.MicroService.Message;
 
-public class IpcMessage
+public class IpcMessage: IToJsonAble
 {
     [JsonPropertyName("type"), JsonInclude, JsonPropertyOrder(-1)]
     public IPC_MESSAGE_TYPE Type { get; set; }

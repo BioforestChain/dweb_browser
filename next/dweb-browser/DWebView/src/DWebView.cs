@@ -93,6 +93,8 @@ public partial class DWebView : WKWebView
         this.localeMM = localeMM;
         this.remoteMM = remoteMM;
         this.options = options;
+        this.SetValueForKeyPath(NSNumber.FromBoolean(true), new NSString("inspectable"));
+
         if (options.url.Length > 0)
         {
             LoadURL(options.url);
@@ -331,7 +333,7 @@ public partial class DWebView : WKWebView
             webkit.messageHandlers.asyncCode.postMessage([1,id,res])
         },
         reject(id,err){
-            webkit.messageHandlers.asyncCode.postMessage([0,id,err])
+            webkit.messageHandlers.asyncCode.postMessage([0,id,"QQQQ:"+(err instanceof Error?(err.stack||err.message):String(err))])
         }
     };
     void 0;
@@ -366,7 +368,7 @@ public partial class DWebView : WKWebView
     public async Task<NSObject> EvaluateAsyncJavascriptCode(string script, Func<Task>? afterEval = default)
     {
         /// 页面可能会被刷新，所以需要重新判断：函数可不可用
-        var asyncCodeInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof " + JS_ASYNC_KIT + "==='function'");
+        var asyncCodeInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof " + JS_ASYNC_KIT + "==='object'");
         if (!asyncCodeInited)
         {
             await base.EvaluateJavaScriptAsync(new NSString(asyncCodePrepareCode));

@@ -79,7 +79,7 @@ public class JsMicroModule : MicroModule
                             new Uri("file://js.sys.dweb/create-process")
                                 .AppendQuery("entry", Metadata.Server.Entry)
                                 .AppendQuery("process_id", pid));
-        createIpcReq.Content = new StreamContent(streamIpc.Stream.Stream);
+        createIpcReq.Content = new StreamContent(streamIpc.ReadableStream.Stream);
         var createIpcRes = await NativeFetchAsync(createIpcReq);
         streamIpc.BindIncomeStream(await createIpcRes.StreamAsync());
 

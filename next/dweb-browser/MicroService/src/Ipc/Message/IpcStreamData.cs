@@ -45,12 +45,19 @@ public class IpcStreamData : IpcMessage, IpcStream
     {
         get { return _text.Value; }
     }
-
+    public IpcStreamData JsonAble() => Encoding switch
+    {
+        IPC_DATA_ENCODING.BINARY => FromBase64(
+            StreamId,
+            (Data as byte[])!
+        ),
+        _ => this
+    };
     /// <summary>
     /// Serialize IpcStreamData
     /// </summary>
     /// <returns>JSON string representation of the IpcStreamData</returns>
-    public override string ToJson() => JsonSerializer.Serialize(this);
+    public override string ToJson() => JsonSerializer.Serialize(JsonAble());
 
     /// <summary>
     /// Deserialize IpcStreamData

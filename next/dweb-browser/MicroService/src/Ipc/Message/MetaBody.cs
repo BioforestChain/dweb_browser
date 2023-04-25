@@ -1,10 +1,14 @@
 ﻿
+using System.Buffers.Text;
+using System.Collections;
+using System.IO;
 using System.Reflection.PortableExecutable;
 using System.Text.Json.Serialization.Metadata;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DwebBrowser.MicroService.Message;
 
-public class SMetaBody
+public class SMetaBody: IToJsonAble
 {
     /**
      * <summary>
@@ -178,11 +182,22 @@ public class SMetaBody
             : FromBase64(senderIpc.Uid, Convert.ToBase64String(data), streamId, receiverUid);
 
 
+    public SMetaBody JsonAble() => new IpcMetaBodyType(Type).Encoding switch
+    {
+        IPC_DATA_ENCODING.BINARY => FromBase64(
+            SenderUid,
+            (Data as byte[])!.ToBase64(),
+            StreamId,
+            ReceiverUid
+        ),
+        _ => this
+    };
+
     /// <summary>
     /// Serialize MetaBody
     /// </summary>
     /// <returns>JSON string representation of the MetaBody</returns>
-    public string ToJson() => JsonSerializer.Serialize(this);
+    public string ToJson() => JsonSerializer.Serialize(JsonAble());
 
     /// <summary>
     /// Deserialize MetaBody

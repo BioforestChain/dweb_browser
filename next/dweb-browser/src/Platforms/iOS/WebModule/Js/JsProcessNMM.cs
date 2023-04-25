@@ -25,13 +25,14 @@ public class JsProcessNMM : NativeMicroModule
 
     private Dictionary<string, string> _CORS_HEADERS = new()
     {
-        { "Content-Type", "application/javascript" },
+        { "Content-Type", "text/javascript" },
         { "Access-Control-Allow-Origin", "*" },
         { "Access-Control-Allow-Headers", "*" }, // 要支持 X-Dweb-Host
         { "Access-Control-Allow-Methods", "*" }
     };
 
-    private string _INTERNAL_PATH = "/<internal>".EncodeURI();
+    private static string s_INTERNAL_PATH_RAW = "/<internal>";
+    private static string s_INTERNAL_PATH = s_INTERNAL_PATH_RAW.EncodeURI();
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
@@ -52,9 +53,9 @@ public class JsProcessNMM : NativeMicroModule
             serverIpc.OnRequest += async (request, ipc, _) =>
             {
                 // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
-                if (request.Uri.AbsolutePath.StartsWith(_INTERNAL_PATH))
+                if (request.Uri.AbsolutePath.StartsWith(s_INTERNAL_PATH))
                 {
-                    var internalUri = request.Uri.Path(request.Uri.AbsolutePath.Substring(_INTERNAL_PATH.Length));
+                    var internalUri = request.Uri.Path(request.Uri.AbsolutePath.Substring(s_INTERNAL_PATH.Length));
 
                     if (internalUri.AbsolutePath == "/bootstrap.js")
                     {
@@ -85,7 +86,7 @@ public class JsProcessNMM : NativeMicroModule
                     /// 加入跨域支持
                     foreach (var (key, value) in _CORS_HEADERS)
                     {
-                        if (key.ToLower() is "content-type")
+                        if (key is "Content-Type")
                         {
                             continue;
                         }
@@ -102,9 +103,9 @@ public class JsProcessNMM : NativeMicroModule
             };
         });
 
-        var bootstrap_url = mainServer.StartResult.urlInfo.BuildInternalUrl()
-            .Path(String.Format("{0}/bootstrap.js", _INTERNAL_PATH))
-            .ToString();
+        var bootstrap_url = mainServer.StartResult.urlInfo.BuildPublicDwebHref(
+            mainServer.StartResult.urlInfo.BuildInternalUrl().Path(String.Format("{0}/bootstrap.js", s_INTERNAL_PATH))
+        );
 
         var apis = await _createJsProcessWeb(mainServer);
 
@@ -147,7 +148,7 @@ public class JsProcessNMM : NativeMicroModule
             po.Resolve(result.processHandler.Info.ProcessId);
 
             // 返回流，因为构建了一个双工通讯用于代码提供服务
-            return result.streamIpc.Stream;
+            return result.streamIpc.ReadableStream.Stream;
         });
 
         /// 创建 web 通讯管道
@@ -169,7 +170,7 @@ public class JsProcessNMM : NativeMicroModule
             process_id = await po.WaitPromiseAsync();
 
             // 返回 port_id
-            return _createIpc(ipc, apis, process_id, mmid);
+            return await _createIpc(ipc, apis, process_id, mmid);
         });
 
         /// 关闭 process
@@ -246,9 +247,13 @@ public class JsProcessNMM : NativeMicroModule
                 {
                     /// 加入跨域配置
                     var response = it;
-                    foreach (var entry in _CORS_HEADERS)
+                    foreach (var (key,value) in _CORS_HEADERS)
                     {
-                        response.Headers.Add(entry.Key, entry.Value);
+                        if (key is "Content-Type")
+                        {
+                            continue;
+                        }
+                        response.Headers.Add(key, value);
                     }
 
                     return response;
@@ -299,7 +304,10 @@ public class JsProcessNMM : NativeMicroModule
         await apis.RunProcessMain(
             processHandler.Info.ProcessId,
             new JsProcessWebApi.RunProcessMainOptions(
-                httpDwebServer.StartResult.urlInfo.BuildInternalUrl().Path(entry ?? "/index.js").ToString()));
+                httpDwebServer.StartResult.urlInfo.BuildPublicDwebHref(
+                    httpDwebServer.StartResult.urlInfo.BuildInternalUrl().Path(entry ?? "/index.js"))
+                )
+            );
 
         /// 绑定销毁
         /**

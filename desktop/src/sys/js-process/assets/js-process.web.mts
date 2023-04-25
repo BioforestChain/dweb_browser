@@ -31,7 +31,7 @@ const createProcess = async (
       ],
       {
         // esm 代码必须有正确的 mime
-        type: "application/javascript",
+        type: "text/javascript",
       }
     )
   );

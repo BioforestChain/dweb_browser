@@ -16,9 +16,6 @@ public static class StreamExtensions
         return bytes;
     }
 
-    public static string ToBase64(this byte[] self) =>
-        Convert.ToBase64String(self);
-
     public static BinaryReader GetBinaryReader(this Stream self) =>
         new BinaryReader(self);
 

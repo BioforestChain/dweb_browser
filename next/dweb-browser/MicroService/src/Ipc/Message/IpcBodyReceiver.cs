@@ -36,7 +36,7 @@ public class IpcBodyReceiver : IpcBody
         {
             return new Lazy<BodyHubType>(new Func<BodyHubType>(() => new BodyHubType().Also(it =>
             {
-                object data = default;
+                object data;
                 var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
 
                 if (ipcMetaBodyType.IsStream)

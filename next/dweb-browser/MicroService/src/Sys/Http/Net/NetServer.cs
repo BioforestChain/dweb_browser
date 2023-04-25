@@ -87,12 +87,24 @@ public static class NetServer
             while (true)
             {
                 var context = await listener.GetContextAsync();
+                _ = Task.Run(async () =>
+                {
+                    var request = context.Request;
+                    var response = context.Response;
+                    try
+                    {
 
-                var request = context.Request;
-                var response = context.Response;
+                        var result = await handler(request.ToHttpRequestMessage());
+                        (await result.ToHttpListenerResponse(response)).Close();
+                    }
+                    catch (Exception e)
+                    {
+                        response.OutputStream.Write(e.Message.ToUtf8ByteArray());
+                        response.StatusCode = 502;
+                        response.Close();
+                    }
+                });
 
-                var result = await handler(request.ToHttpRequestMessage());
-                (await result.ToHttpListenerResponse(response)).Close();
             }
         });
 

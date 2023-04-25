@@ -62,7 +62,7 @@ namespace DwebBrowser.MicroService.Core
                         .AppendQuery("host", startResult.urlInfo.Host)
                         .AppendQuery("token", startResult.token)
                         .AppendQuery("routes", JsonSerializer.Serialize(routes))
-                    ).Also((it) => it.Content = new StreamContent(streamIpc.Stream.Stream))
+                    ).Also((it) => it.Content = new StreamContent(streamIpc.ReadableStream.Stream))
                 );
 
             streamIpc.BindIncomeStream(res.Stream());

@@ -114,7 +114,7 @@ const _ipcResponseFromImportLinker = async (
   }
 };
 const CORS_HEADERS = [
-  ["Content-Type", "application/javascript"],
+  ["Content-Type", "text/javascript"],
   ["Access-Control-Allow-Origin", "*"],
   ["Access-Control-Allow-Headers", "*"], // 要支持 X-Dweb-Host
   ["Access-Control-Allow-Methods", "*"],
@@ -296,7 +296,7 @@ export class JsProcessNMM extends NativeMicroModule {
               url.pathname = url.pathname.substring(this.INTERNAL_PATH.length);
               if (url.pathname === "/bootstrap.js") {
                 return {
-                  mime: "application/javascript",
+                  mime: "text/javascript",
                   data: await this.JS_PROCESS_WORKER_CODE(),
                 };
               }
@@ -307,7 +307,7 @@ export class JsProcessNMM extends NativeMicroModule {
 
             return {
               /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
-              mime: "application/javascript",
+              mime: "text/javascript",
               data: await response.body.text(),
             };
           },

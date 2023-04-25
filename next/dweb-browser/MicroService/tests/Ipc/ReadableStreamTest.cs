@@ -166,7 +166,7 @@ public class ReadableStreamTest
         var req_ipc = new ReadableStreamIpc(m1, IPC_ROLE.CLIENT.ToString());
         var res_ipc = new ReadableStreamIpc(m2, IPC_ROLE.SERVER.ToString());
 
-        res_ipc.BindIncomeStream(req_ipc.Stream.Stream);
+        res_ipc.BindIncomeStream(req_ipc.ReadableStream.Stream);
 
         res_ipc.OnRequest += async (request, ipc, _) =>
         {
@@ -182,7 +182,7 @@ public class ReadableStreamTest
         };
 
         await Task.Delay(100);
-        req_ipc.BindIncomeStream(res_ipc.Stream.Stream);
+        req_ipc.BindIncomeStream(res_ipc.ReadableStream.Stream);
 
         foreach (var j in Enumerable.Range(1, 10))
         {

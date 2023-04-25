@@ -5,6 +5,7 @@ using DwebBrowser.IpcWeb;
 using DwebBrowser.MicroService;
 using DwebBrowser.MicroService.Message;
 using Foundation;
+using static DwebBrowser.WebModule.Js.JsProcessWebApi;
 
 namespace DwebBrowser.WebModule.Js;
 
@@ -41,7 +42,7 @@ public class JsProcessWebApi
         var port1 = channel.Port1;
         var port2 = channel.Port2;
 
-        var processInfo_json = await this.DWebView.EvaluateAsyncJavascriptCode($$"""
+        var nsProcessInfo = await this.DWebView.EvaluateAsyncJavascriptCode($$"""
            new Promise((resolve,reject)=>{
                 addEventListener("message", async event => {
                     if (event.data === "js-process/create-process") {
@@ -56,31 +57,20 @@ public class JsProcessWebApi
             })
         """.Trim(), () => this.DWebView.PostMessage("js-process/create-process", new WebMessagePort[] { port1 }));
 
-        Console.WriteLine(String.Format("processInfo {0}", processInfo_json));
+        Console.WriteLine(String.Format("processInfo {0}", nsProcessInfo));
 
-        try
-        {
-            if (processInfo_json is NSData data)
-            {
-                var info = JsonSerializer.Deserialize<ProcessInfo>(data.AsStream());
-                return new ProcessHandler(info, new MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT));
-            }
-
-            throw new Exception("processInfo_json 类型错误，无法进行序列化");
-        }
-        catch (Exception err)
-        {
-            throw new Exception(String.Format("CreateProcess JsonDeserialize ProcessInfo error: {0}", err.Message));
-        }
+        var processId = (int)(NSNumber)nsProcessInfo.ValueForKey(new NSString("process_id"));
+        var processInfo = new ProcessInfo(processId);
+        return new ProcessHandler(processInfo, new MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT));
     }
 
     public record RunProcessMainOptions(string MainUrl);
 
     public Task RunProcessMain(int process_id, RunProcessMainOptions options) =>
-        this.DWebView.EvaluateJavaScriptAsync(String.Format("runProcessMain({0}, {main_url:`{1}`})", process_id, options.MainUrl));
+        this.DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})");
 
     public Task DestroyProcess(int process_id) =>
-        this.DWebView.EvaluateJavaScriptAsync(String.Format("destroy({0})", process_id).Trim());
+        this.DWebView.EvaluateJavaScriptAsync(String.Format("void destroy({0})", process_id).Trim());
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {
