@@ -82,7 +82,6 @@ class DWebView(
 ) : WebView(context) {
 
     var filePathCallback: ValueCallback<Array<android.net.Uri>>? = null
-    var requestPermissionCallback: ValueCallback<Boolean>? = null
 
     data class Options(
         /**

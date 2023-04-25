@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.*
@@ -17,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -25,7 +23,6 @@ import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.helper.PromiseOut
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM.Companion.controllerMap
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
@@ -193,9 +190,7 @@ open class MultiWebViewActivity : PermissionActivity() {
                         }
 
                         Box(
-                            modifier = Modifier
-                                .background(Color.Blue)
-                                .fillMaxSize()
+                            modifier = Modifier.fillMaxSize()
                         ) {
                             val modifierPadding by nativeUiController.safeArea.outerAreaInsetsState
                             WebView(

@@ -15,7 +15,7 @@ export class StateObserver<RAW, STATE> {
       decode: $Transform<RAW, STATE>;
       encode: $Transform<STATE, RAW>;
     }
-  ) { }
+  ) {}
   startObserve() {
     return this.plugin.fetchApi(`/startObserve`);
   }
@@ -59,7 +59,7 @@ export class StateObserver<RAW, STATE> {
    * @returns
    */
   @bindThis
-  async getState(force_update = false) {
+  async getState(force_update = true) {
     if (force_update || this.currentState === undefined) {
       return await this._updateCurrentState();
     }

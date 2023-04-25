@@ -110,7 +110,7 @@ export async function onApiRequest(
 /**监听属性的变化 */
 const observeFactory = (url: URL) => {
   const mmid = url.searchParams.get("mmid");
-  console.log("cotDemo#url.mmid=>", mmid)
+  console.log("cotDemo#observeFactory url.mmid=>", mmid)
   if (mmid === null) {
     throw new Error("observe require mmid");
   }
@@ -120,8 +120,7 @@ const observeFactory = (url: URL) => {
     result.ipc.resolve(jsProcess.connect(mmid));
     result.ipc.promise.then((ipc) => {
       ipc.onEvent((event) => {
-        console.log("on-event", event);
-        console.log("cotDemo#event.name=>{%s} remote.mmid=>{%s}", event.name, ipc.remote.mmid)
+        console.log("cotDemo#observeFactory event.name=>{%s} remote.mmid=>{%s}", event.name, ipc.remote.mmid)
         if (event.name !== OBSERVE.State && event.name !== OBSERVE.UpdateProgress) {
           return;
         }

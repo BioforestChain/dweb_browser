@@ -7,7 +7,6 @@ import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
