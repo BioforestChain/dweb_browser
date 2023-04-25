@@ -130,11 +130,9 @@ export class HttpServerNMM extends NativeMicroModule {
       /// 获取 host
       const host = this.getHostByReq(req)
        
-      console.log('接受到了请求', req.url);
 
       // 通过 _allRoutes 分发路由
       {
-        
         const pathname = url.parse(req.url as string,).pathname;
         if(pathname === null) throw new Error(`http-server pathname === null`)
         const listener = this._allRoutes.get(pathname)
