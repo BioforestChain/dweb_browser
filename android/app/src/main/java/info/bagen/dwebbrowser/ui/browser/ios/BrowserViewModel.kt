@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.runtime.MutableState
@@ -33,8 +32,7 @@ import org.jsoup.Jsoup
 import java.util.concurrent.atomic.AtomicInteger
 
 data class BrowserUIState @OptIn(
-  ExperimentalFoundationApi::class,
-  ExperimentalMaterial3Api::class
+  ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
 ) constructor(
   val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(), // 多浏览器列表
   val historyWebsiteMap: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf(), // 历史列表
@@ -91,36 +89,39 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
     val browserMainView = BrowserMainView()
     uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
     uiState.browserViewList.add(browserMainView)
-    viewModelScope.launch(ioAsyncExceptionHandler) {
+    /*viewModelScope.launch(ioAsyncExceptionHandler) {
       // loadHotInfo() // 加载热点数据
-      async {// 挂在数据变化
-        MutableStateFlow(JmmNMM.getAndUpdateJmmNmmApps()).collect {
-          uiState.myInstallApp.clear()
-          it.forEach { (_, value) ->
-            uiState.myInstallApp.add(value.metadata)
-          }
+      // 挂在数据变化
+      MutableStateFlow(JmmNMM.getAndUpdateJmmNmmApps()).collect {
+        uiState.myInstallApp.clear()
+        it.forEach { (_, value) ->
+          uiState.myInstallApp.add(value.metadata)
         }
       }
-      async {
-        WebsiteDB.queryHistoryWebsiteInfoList().collect {
-          uiState.historyWebsiteMap.clear()
-          it.forEach { (key, value) ->
-            uiState.historyWebsiteMap[WebsiteDB.compareWithLocalTime(key)] = value
-          }
+    }*/
+    viewModelScope.launch(ioAsyncExceptionHandler) {
+      WebsiteDB.queryHistoryWebsiteInfoMap().collect {
+        uiState.historyWebsiteMap.clear()
+        var index = 0
+        it.toSortedMap{ o1, o2 ->
+          if (o1 < o2) 1 else -1
+        }.forEach { (key, value) ->
+          value.forEach { webSiteInfo -> webSiteInfo.index = index++ }
+          uiState.historyWebsiteMap[key] = value
         }
       }
-      async {
-        WebsiteDB.queryBookWebsiteInfoList().collect {
-          uiState.bookWebsiteList.clear()
-          it.forEach { websiteInfo ->
-            uiState.bookWebsiteList.add(websiteInfo)
-          }
+    }
+    viewModelScope.launch(ioAsyncExceptionHandler) {
+      WebsiteDB.queryBookWebsiteInfoList().collect { list ->
+        uiState.bookWebsiteList.clear()
+        list.forEach {
+          uiState.bookWebsiteList.add(it)
         }
       }
     }
   }
 
-  @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+  @OptIn(ExperimentalFoundationApi::class)
   fun handleIntent(action: BrowserIntent) {
     viewModelScope.launch(ioAsyncExceptionHandler) {
       when (action) {
@@ -218,18 +219,14 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         }
         is BrowserIntent.SaveHistoryWebSiteInfo -> {
           action.url?.let {
-            WebsiteDB.saveHistoryWebsiteInfo(
-              WebSiteInfo(title = action.title ?: it, url = it),
-              uiState.historyWebsiteMap[WebsiteDB.compareWithLocalTime(WebsiteDB.currentLocalTime)]
-            )
+            WebsiteDB.saveHistoryWebsiteInfo(WebSiteInfo(title = action.title ?: it, url = it))
           }
         }
         is BrowserIntent.SaveBookWebSiteInfo -> {
           uiState.currentBrowserBaseView.value.let {
             if (it is BrowserWebView) {
               WebsiteDB.saveBookWebsiteInfo(
-                WebSiteInfo(title = it.state.pageTitle ?: "", url = it.state.lastLoadedUrl ?: ""),
-                uiState.bookWebsiteList
+                WebSiteInfo(title = it.state.pageTitle ?: "", url = it.state.lastLoadedUrl ?: "")
               )
             }
           }
@@ -257,18 +254,16 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           when(action.type) {
             ListType.Book -> {
               if (action.clsAll) {
-                uiState.bookWebsiteList.clear()
+                WebsiteDB.clearBookWebsiteInfo()
               } else {
-                action.website?.let { item -> uiState.bookWebsiteList.remove(item) }
+                action.website?.let { item -> WebsiteDB.deleteBookWebsiteInfo(item) }
               }
             }
             ListType.History -> {
               if (action.clsAll) {
-                uiState.historyWebsiteMap.clear()
+                WebsiteDB.clearHistoryWebsiteInfo()
               } else {
-                uiState.historyWebsiteMap.forEach { (key, values) ->
-                  action.website?.let { item -> values.remove(item) }
-                }
+                action.website?.let { WebsiteDB.deleteHistoryWebsiteInfo(it) }
               }
             }
           }

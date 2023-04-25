@@ -197,9 +197,9 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       show = navigator?.canGoForward ?: false
     ) { navigator?.navigateForward() }
     NavigatorButton(
-      resId = navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
+      resId = R.drawable.ic_main_add, // navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
       resName = navigator?.let { R.string.browser_nav_add } ?: R.string.browser_nav_scan,
-      show = true
+      show = navigator?.let { true } ?: false
     ) {
       navigator?.let {
         viewModel.handleIntent(BrowserIntent.AddNewMainView)

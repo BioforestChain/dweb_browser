@@ -26,6 +26,7 @@ class App : Application() {
       GlobalScope.launch(ioAsyncExceptionHandler) {
         if (!grant.waitPromise()) {
           /// TODO 用户拒绝协议应该做的事情
+          return@launch
         }
 
         val intent = Intent(appContext, cls)

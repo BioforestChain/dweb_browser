@@ -127,8 +127,8 @@ private fun SearchItemEngines(viewModel: BrowserViewModel, text: String) {
     )
     val list = arrayListOf<WebSiteInfo>().apply {
       add(WebSiteInfo("百度", "https://m.baidu.com/s?word=$text", null)) // 百度：https://www.baidu.com/s?wd=你好
-      add(WebSiteInfo("谷歌", "https://www.google.com/search?q=$text", null)) // https://www.google.com/search?q=你好
-      add(WebSiteInfo("必应", "https://cn.bing.com/search?q=$text", null)) // https://cn.bing.com/search?q=hello
+      // add(WebSiteInfo("谷歌", "https://www.google.com/search?q=$text", null)) // https://www.google.com/search?q=你好
+      // add(WebSiteInfo("必应", "https://cn.bing.com/search?q=$text", null)) // https://cn.bing.com/search?q=hello
       add(WebSiteInfo("搜狗", "https://wap.sogou.com/web/searchList.jsp?keyword=$text", null)) // https://www.sogou.com/web?query=你好
       add(WebSiteInfo("360", "https://m.so.com/s?q=$text", null)) // https://www.so.com/s?q=你好
     }

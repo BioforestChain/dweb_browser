@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -25,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -41,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.datastore.WebsiteDB
 import info.bagen.dwebbrowser.ui.entity.*
 import info.bagen.dwebbrowser.ui.theme.DimenBottomBarHeight
 import info.bagen.dwebbrowser.util.BitmapUtil
@@ -107,11 +110,7 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
 // 显示具体内容部分，其中又可以分为三个部分类型，操作页，书签列表，历史列表
 @Composable
 private fun PopContentView(viewModel: BrowserViewModel) {
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(top = 10.dp)
-  ) {
+  Box(modifier = Modifier.fillMaxSize()) {
     when (viewModel.uiState.popupViewState.value) {
       PopupViewState.BookList -> PopContentBookListItem(viewModel)
       PopupViewState.HistoryList -> PopContentHistoryListItem(viewModel)
@@ -123,27 +122,21 @@ private fun PopContentView(viewModel: BrowserViewModel) {
 @Composable
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   LazyColumn {
-    item {
-      Spacer(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(1.dp)
-          .background(MaterialTheme.colorScheme.outlineVariant)
-      )
-    }
+    item { Spacer(modifier = Modifier.fillMaxWidth().height(10.dp)) }
     // 分享和添加书签
     item {
       Box(
         modifier = Modifier
           .fillMaxWidth()
           .height(50.dp)
+          .padding(horizontal = 10.dp)
+          .clip(RoundedCornerShape(8.dp))
+          .background(MaterialTheme.colorScheme.background)
           .clickable {
             viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo)
           }
       ) {
-        Row(
-          modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically
-        ) {
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
           Text(
             text = "添加书签", modifier = Modifier
               .weight(1f)
@@ -160,29 +153,20 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
 
       }
     }
-    item {
-      Spacer(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(1.dp)
-          .padding(start = 10.dp)
-          .background(MaterialTheme.colorScheme.outlineVariant)
-      )
-    }
+    item { Spacer(modifier = Modifier.fillMaxWidth().height(10.dp)) }
     item {
       Box(
         modifier = Modifier
           .fillMaxWidth()
           .height(50.dp)
+          .padding(horizontal = 10.dp)
+          .clip(RoundedCornerShape(8.dp))
+          .background(MaterialTheme.colorScheme.background)
           .clickable {
             viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
           }
       ) {
-        Row(
-          modifier = Modifier
-            .fillMaxSize()
-            .align(Center), verticalAlignment = CenterVertically
-        ) {
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
           Text(
             text = "分享", modifier = Modifier
               .weight(1f)
@@ -197,14 +181,6 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           )
         }
       }
-    }
-    item {
-      Spacer(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(1.dp)
-          .background(MaterialTheme.colorScheme.outlineVariant)
-      )
     }
   }
 }
@@ -227,14 +203,6 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
   }
   val lazyListState = rememberLazyListState()
   LazyColumn(state = lazyListState) {
-    item {
-      Spacer(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(1.dp)
-          .background(MaterialTheme.colorScheme.outlineVariant)
-      )
-    }
     items(viewModel.uiState.bookWebsiteList.size) { index ->
       val webSiteInfo = viewModel.uiState.bookWebsiteList[index]
       if (index > 0) {
@@ -276,7 +244,16 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
         Text(
           text = webSiteInfo.title,
           fontSize = 16.sp,
-          maxLines = 1
+          maxLines = 1,
+          modifier = Modifier.weight(1f)
+        )
+        Icon(
+          imageVector = ImageVector.vectorResource(R.drawable.ic_more),
+          contentDescription = "More",
+          modifier = Modifier
+            .padding(10.dp)
+            .size(30.dp)
+            .graphicsLayer(rotationX = 90f)
         )
       }
     }
@@ -311,10 +288,12 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
     }
     val lazyListState = rememberLazyListState()
     LazyColumn(state = lazyListState) {
-      viewModel.uiState.historyWebsiteMap.forEach { (key, value) ->
+      viewModel.uiState.historyWebsiteMap.toSortedMap { o1, o2 ->
+        if (o1 < o2) 1 else -1
+      }.forEach { (key, value) ->
         stickyHeader {
           Text(
-            text = key,
+            text = WebsiteDB.compareWithLocalTime(key),
             modifier = Modifier
               .fillMaxWidth()
               .height(30.dp)
@@ -322,7 +301,6 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
               .padding(horizontal = 10.dp, vertical = 6.dp)
           )
         }
-        item { Spacer(modifier = Modifier.height(10.dp)) }
         items(value.size) { index ->
           val webSiteInfo = value[index]
           Column(modifier = Modifier
@@ -339,7 +317,7 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
               },
               onLongClick = {
                 popState.value = popState.value.copy(
-                  first = true, second = index, third = webSiteInfo
+                  first = true, second = webSiteInfo.index, third = webSiteInfo
                 )
               }
             )) {
@@ -387,7 +365,14 @@ private fun PopupListManageView(
       offset = IntOffset(
         (localDensity.run { screenWidth.toPx() } / 2).toInt(),
         (localDensity.run {
-          (height * (state.value.second - lazyListState.firstVisibleItemIndex)).toPx()
+          when(type) {
+            ListType.Book -> {
+              (height * (state.value.second - lazyListState.firstVisibleItemIndex)).toPx()
+            }
+            ListType.History -> {
+              ((height * (state.value.second - lazyListState.firstVisibleItemIndex)) + 30.dp).toPx()
+            }
+          }
         }).toInt()
       ),
       properties = PopupProperties(),
