@@ -16,7 +16,6 @@
     </style>
 </head>
 <body>
-    <input type="file" class="input"/>
     <script type="text/javascript">
         console.log('barcode-scanning ui 载入完成')
         window.addEventListener('message', windowOnMessage)
@@ -79,8 +78,6 @@
             elInput.setAttribute('type', "file");
             elInput.addEventListener('change', change)
             function change(){
-                console.log('file: ', elInput.files[0]);
-
                 elInput.remove();
                 fetchReturn(elInput.files[0], o.id, o.from, elInput.files[0].type)
                 elInput.removeEventListener('change', change)

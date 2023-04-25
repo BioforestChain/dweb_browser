@@ -40,12 +40,13 @@ import { NavigationBarNMM } from "./sys/plugins/native-ui/navigation-bar/navigat
 import { SafeAreaNMM } from "./sys/plugins/native-ui/safe-area/safe-area.cjs"
 import { VirtualKeyboardNMM } from "./sys/plugins/native-ui/virtual-keyboard/virtual-keyboard.cjs"
 import { ToastNMM } from "./sys/plugins/native-ui/toast/toast.cjs";
-
+import { TorchNMM } from "./sys/plugins/native-ui/torch/torch.cjs";
 dns.install(new StatusbarNativeUiNMM());
 dns.install(new NavigationBarNMM());
 dns.install(new SafeAreaNMM())
 dns.install(new VirtualKeyboardNMM())
 dns.install(new ToastNMM())
+dns.install(new TorchNMM())
 
 import { BarcodeScanningNativeUiNMM } from "./sys/plugins/sys/barcode-scanning/barcode-scanning.cjs";
 dns.install(new BarcodeScanningNativeUiNMM())
@@ -72,7 +73,8 @@ dns.install(new BootNMM([
   "virtual-keyboard.nativeui.sys.dweb",
   "barcode-scanning.sys.dweb",
   "toast.nativeui.sys.dweb",
-  "browser.sys.dweb"
+  "browser.sys.dweb",
+  "torch.nativeui.sys.dweb"
   // cotDemoJMM.mmid
 
   // 下面是专门用来测是 connect

@@ -467,6 +467,8 @@ export class HttpServerNMM extends NativeMicroModule {
           _data = data.body
         }else if(data.headers?.bodyType.includes('image/png')){
           _data = Buffer.from(data.body as unknown as Buffer)
+        }else if(data.headers?.bodyType.includes("boolean")){
+          _data = `${data.body}`
         }else{
           log.red(`[http-server ipcEventOnStateSend 非法的 bodyType]`)
           console.log(data)
