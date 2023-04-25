@@ -62,6 +62,7 @@ public class JsProcessNMM : NativeMicroModule
                             IpcResponse.FromText(
                                 request.ReqId,
                                 200,
+                                /// 加入跨域支持
                                 IpcHeaders.With(_CORS_HEADERS),
                                 _JS_PROCESS_WORKER_CODE,
                                 ipc));
@@ -72,6 +73,7 @@ public class JsProcessNMM : NativeMicroModule
                             IpcResponse.FromText(
                                 request.ReqId,
                                 404,
+                                /// 加入跨域支持
                                 IpcHeaders.With(_CORS_HEADERS),
                                 String.Format("// no found {0}", internalUri.AbsolutePath),
                                 ipc));
@@ -80,6 +82,14 @@ public class JsProcessNMM : NativeMicroModule
                 else
                 {
                     var response = await NativeFetchAsync(String.Format("file:///bundle/js-process{0}", request.Uri.AbsolutePath));
+                    /// 加入跨域支持
+                    foreach (var (key, value) in _CORS_HEADERS)
+                    {
+                        if (!response.Headers.Contains(key))
+                        {
+                            response.Headers.TryAddWithoutValidation(key, value);
+                        }
+                    }
                     await ipc.PostMessageAsync(
                         await IpcResponse.FromResponse(
                             request.ReqId,
@@ -175,7 +185,7 @@ public class JsProcessNMM : NativeMicroModule
         /// WebView 实例
         var urlInfo = mainServer.StartResult.urlInfo;
 
-        var options = new DWebView.DWebView.Options(urlInfo.BuildInternalUrl().Path("/index.html").ToString());
+        var options = new DWebView.DWebView.Options(urlInfo.BuildPublicDwebHref(urlInfo.BuildInternalUrl().Path("/index.html")));
         try
         {
             _ = MainQueue.Run(() =>
@@ -242,14 +252,7 @@ public class JsProcessNMM : NativeMicroModule
                     var response = it;
                     foreach (var entry in _CORS_HEADERS)
                     {
-                        if (entry.Key.StartsWith("Content", true, null))
-                        {
-                            response.Content.Headers.Add(entry.Key, entry.Value);
-                        }
-                        else
-                        {
-                            response.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
-                        }
+                        response.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
                     }
 
                     return response;
@@ -339,25 +342,24 @@ public class JsProcessNMM : NativeMicroModule
 
 public static class MainQueue
 {
-    static int mainThreadId = int.MinValue;
+    static IDispatcher? mainDispatcher = default;
 
     public static void Init()
     {
-        Init(Environment.CurrentManagedThreadId);
+        Init(Dispatcher.GetForCurrentThread());
     }
 
-    public static void Init(int mainThreadId)
+    public static void Init(IDispatcher dispatcher)
     {
-        if (MainQueue.mainThreadId != int.MinValue) throw new NotSupportedException("you may call Init() only once");
-        MainQueue.mainThreadId = mainThreadId;
+        mainDispatcher = dispatcher;
     }
 
     public static bool IsOnMain
     {
         get
         {
-            if (mainThreadId == int.MinValue) throw new NotSupportedException("you have to call Init() first");
-            return Environment.CurrentManagedThreadId == mainThreadId;
+            if (mainDispatcher is null) throw new NotSupportedException("you have to call Init() first");
+            return mainDispatcher == Dispatcher.GetForCurrentThread();
         }
     }
 
@@ -369,26 +371,8 @@ public static class MainQueue
         }
         else
         {
-            Device.BeginInvokeOnMainThread(action);
+            mainDispatcher.Dispatch(action);
         }
-    }
-
-    public static Task Queue(Action action)
-    {
-        var tcs = new TaskCompletionSource<object>();
-        Device.BeginInvokeOnMainThread(() =>
-        {
-            try
-            {
-                action?.Invoke();
-                tcs.SetResult(null);
-            }
-            catch (Exception ex)
-            {
-                tcs.SetException(ex);
-            }
-        });
-        return tcs.Task;
     }
 
     public static Task Run(Action action)

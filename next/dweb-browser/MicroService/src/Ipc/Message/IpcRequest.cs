@@ -125,7 +125,7 @@ public class IpcRequest : IpcMessage
             var ipcRequest = new IpcRequest(req_id,
                 request.RequestUri?.ToString() ?? "",
                 IpcMethod.From(request.Method),
-                new IpcHeaders(request.Headers),
+                new IpcHeaders(request.Headers, request.Content?.Headers),
                 body,
                 ipc
             );
@@ -158,17 +158,16 @@ public class IpcRequest : IpcMessage
                         throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
                 }
 
-                foreach (var entry in Headers.GetEnumerator())
+                foreach (var (key, value) in Headers.GetEnumerator())
                 {
-                    if (entry.Key.StartsWith("Content", true, null))
+                    if (key.StartsWith("Content-", true, null))
                     {
-                        it.Content.Headers.Add(entry.Key, entry.Value);
+                        it.Content.Headers.Add(key, value);
                     }
                     else
                     {
-                        it.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
+                        it.Headers.TryAddWithoutValidation(key, value);
                     }
-
                 }
             });
 

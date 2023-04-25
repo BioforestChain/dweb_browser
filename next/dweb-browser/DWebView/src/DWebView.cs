@@ -16,6 +16,7 @@ using AngleSharp.Io;
 using HttpMethod = System.Net.Http.HttpMethod;
 using SystemConfiguration;
 using System.Runtime.Versioning;
+using static CoreFoundation.DispatchSource;
 
 namespace DwebBrowser.DWebView;
 
@@ -24,10 +25,10 @@ public partial class DWebView : WKWebView
     MicroModule localeMM;
     MicroModule remoteMM;
     Options options;
-    public class FileSchemeHandler : NSObject, IWKUrlSchemeHandler
+    public class DwebSchemeHandler : NSObject, IWKUrlSchemeHandler
     {
         MicroModule microModule;
-        public FileSchemeHandler(MicroModule microModule)
+        public DwebSchemeHandler(MicroModule microModule)
         {
             this.microModule = microModule;
         }
@@ -35,9 +36,10 @@ public partial class DWebView : WKWebView
         [SupportedOSPlatform("ios11.0")]
         public async void StartUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
         {
-            if (urlSchemeTask.Request.HttpMethod is "GET")
+            if (urlSchemeTask.Request.HttpMethod is "GET" && urlSchemeTask.Request.Url.Path?.StartsWith(HttpNMM.X_DWEB_HREF) is true)
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, urlSchemeTask.Request.Url.AbsoluteString);
+                var request = new HttpRequestMessage(HttpMethod.Get, urlSchemeTask.Request.Url.Path.Substring(HttpNMM.X_DWEB_HREF.Length));
+                //var request = new HttpRequestMessage(HttpMethod.Get, "file://http.sys.dweb" + urlSchemeTask.Request.Url.Path);
                 var response = await microModule.NativeFetchAsync(request);
                 //using var response = new NSHttpUrlResponse(urlSchemeTask.Request.Url, statusCode, "HTTP/1.1", dic);
                 var nsStatusCode = new IntPtr((int)response.StatusCode);
@@ -53,12 +55,23 @@ public partial class DWebView : WKWebView
 
                 using var nsResponse = new NSHttpUrlResponse(urlSchemeTask.Request.Url, nsStatusCode, "HTTP/1.1", nsHeaders);
                 urlSchemeTask.DidReceiveResponse(nsResponse);
-                urlSchemeTask.DidReceiveData(NSData.FromStream(await response.StreamAsync())!);
+
+
+                // 将响应体发送到urlSchemeTask
+                using (var stream = await response.StreamAsync())
+                {
+                    await foreach (var bytes in stream.ReadBytesStream())
+                    {
+                        Console.WriteLine(bytes.ToUtf8());
+                        urlSchemeTask.DidReceiveData(NSData.FromArray(bytes));
+                    }
+                }
+                urlSchemeTask.DidFinish();
             }
             else
             {
+                urlSchemeTask.DidFinish();
             }
-            urlSchemeTask.DidFinish();
         }
 
         [Export("webView:stopURLSchemeTask:")]
@@ -74,7 +87,7 @@ public partial class DWebView : WKWebView
         //configuration.SetUrlSchemeHandler(new FileSchemeHandler(remoteMM), urlScheme: "https");
         //configuration.SetUrlSchemeHandler(new FileSchemeHandler(remoteMM), urlScheme: "http");
         //configuration.SetUrlSchemeHandler(new FileSchemeHandler(remoteMM), urlScheme: "file");
-        configuration.SetUrlSchemeHandler(new FileSchemeHandler(remoteMM), urlScheme: "app");
+        configuration.SetUrlSchemeHandler(new DwebSchemeHandler(remoteMM), urlScheme: "dweb");
     }))
     {
         this.localeMM = localeMM;
@@ -261,7 +274,7 @@ public partial class DWebView : WKWebView
                 document.Head!.InsertBefore(baseNode, document.Head.FirstChild);
             }
             string origin = baseNode.GetAttribute("href")?.Let((href) => new Uri(url, href).ToString()) ?? uri;
-            string gatewayOrigin = "https://http.sys.dweb";
+            string gatewayOrigin = HttpNMM.DwebServer.Origin; // "dweb:";
             if (!origin.StartsWith(gatewayOrigin))
             {
                 baseNode.SetAttribute("href", gatewayOrigin + HttpNMM.X_DWEB_HREF + origin);

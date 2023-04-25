@@ -95,7 +95,7 @@ public abstract class NativeMicroModule : MicroModule
                     WriteIndented = true
                 };
                 res.Content = new StringContent(JsonSerializer.Serialize(result, options));
-                res.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+                res.Content.Headers.ContentType = new("application/json");
             });
     }
 

@@ -23,6 +23,15 @@ public static class ResponseExtensions
         if (self.OutputStream != null)
         {
             responseMessage.Content = new StreamContent(self.OutputStream);
+            if (self.ContentType is not null)
+            {
+                responseMessage.Content.Headers.ContentType = new(self.ContentType);
+            }
+            if (self.ContentEncoding is not null)
+            {
+                responseMessage.Content.Headers.ContentEncoding.Clear();
+                responseMessage.Content.Headers.ContentEncoding.Add(self.ContentEncoding.WebName);
+            }
         }
 
         // Optionally, you can set other properties of the HttpResponseMessage
@@ -102,6 +111,6 @@ public static class ResponseExtensions
         StreamContent => JsonSerializer.Deserialize<T>(await self.StreamAsync())!,
         ByteArrayContent byteArrayContent => JsonSerializer.Deserialize<T>(await byteArrayContent.ReadAsByteArrayAsync())!,
         _ => throw new Exception("response content can't converter to generic type")
-    };  
+    };
 }
 

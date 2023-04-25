@@ -50,7 +50,7 @@ public class IpcResponse : IpcMessage
         new IpcResponse(
             req_id,
             (int)response.StatusCode,
-            new IpcHeaders(response.Headers),
+            new IpcHeaders(response.Headers, response.Content.Headers),
             response.Content switch
             {
                 StringContent stringContent => IpcBodySender.FromText(await stringContent.ReadAsStringAsync(), ipc),

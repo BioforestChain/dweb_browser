@@ -16,6 +16,17 @@ public class IpcHeaders
     {
         _headersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
     }
+    public IpcHeaders(HttpHeaders headers, HttpContentHeaders? contentHeaders)
+    {
+        _headersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
+        if (contentHeaders is not null)
+        {
+            foreach (var (key, value) in contentHeaders)
+            {
+                _headersMap.TryAdd(key, string.Join(",", value));
+            }
+        }
+    }
 
     public static IpcHeaders With(Dictionary<string, string> headers) => new IpcHeaders() { _headersMap = headers };
 

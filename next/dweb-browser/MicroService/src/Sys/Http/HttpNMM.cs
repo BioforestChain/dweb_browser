@@ -39,6 +39,7 @@ public class HttpNMM : NativeMicroModule
         if (request.RequestUri?.AbsolutePath.StartsWith(X_DWEB_HREF) is true)
         {
             request.RequestUri = new Uri(request.RequestUri.AbsolutePath.Substring(X_DWEB_HREF.Length));
+            request.Headers.TryAddWithoutValidation("X-Dweb-Host", request.RequestUri.Host);
         }
 
 
@@ -122,6 +123,12 @@ public class HttpNMM : NativeMicroModule
 
         public Uri BuildPublicUrl() => new Uri(Public_Origin).AppendQuery("X-Dweb-Host", Host);
         public Uri BuildInternalUrl() => new(Internal_Origin);
+        /// <summary>
+        /// 基于BuildInternalUrl拼接出来的链接，不基于Query，所以适用性更好，可以用于base-uri
+        /// </summary>
+        /// <param name="internalHref"></param>
+        /// <returns></returns>
+        public string BuildPublicDwebHref(Uri internalHref) => Public_Origin + X_DWEB_HREF + internalHref.AbsoluteUri;
     }
 
     private ServerUrlInfo _getServerUrlInfo(Ipc ipc, DwebHttpServerOptions options)
