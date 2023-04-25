@@ -63,7 +63,7 @@ public class IpcMethod
         "TRACE" => s_traceMethod,
         "PATCH" => s_patchMethod,
         "CONNECT" => s_connectMethod,
-        _ => throw new ArgumentException($"Unknown type {method}")
+        _ => throw new ArgumentException(String.Format("Unknown type {0}", method))
     };
 
     public override string ToString() => _method;

@@ -104,12 +104,18 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
      * 尝试连接到指定对象
      * </summary>
      */
-    public Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null) =>
-        _bootstrapContext!.Dns.Let(it =>
-        {
-            it.BootstrapAsync(mmid);
-            return it.ConnectAsync(mmid);
-        });
+    //public Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null) =>
+    //    _bootstrapContext!.Dns.Let(it =>
+    //    {
+    //        it.BootstrapAsync(mmid);
+    //        return it.ConnectAsync(mmid);
+    //    });
+    public async Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null)
+    {
+        await _bootstrapContext!.Dns.BootstrapAsync(mmid);
+        return await _bootstrapContext!.Dns.ConnectAsync(mmid);
+    }
+        
 
     /**
      * <summary>

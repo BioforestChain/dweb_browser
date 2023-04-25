@@ -38,7 +38,7 @@ public class JsMicroModule : MicroModule
         });
     }
 
-    public JsMicroModule(JmmMetadata metadata): base(metadata.Id)
+    public JsMicroModule(JmmMetadata metadata) : base(metadata.Id)
     {
         Metadata = metadata;
     }
@@ -74,15 +74,14 @@ public class JsMicroModule : MicroModule
         //            HttpMethod.Get, new Uri("file://js.sys.dweb/create-process")).Also(
         //            it => { it.Content = new StreamContent(streamIpc.Stream.Stream); })
         //        )).Content.ReadAsStreamAsync());
-        streamIpc.BindIncomeStream(await (await NativeFetchAsync(
-                new HttpRequestMessage(
-                    HttpMethod.Post,
-                    new Uri("file://js.sys.dweb/create-process")
-                        .AppendQuery("entry", Metadata.Server.Entry)
-                        .AppendQuery("process_id", pid))
-                .Also(
-                    it => { it.Content = new StreamContent(streamIpc.Stream.Stream); })
-                )).StreamAsync());
+        var createIpcReq = new HttpRequestMessage(
+                            HttpMethod.Post,
+                            new Uri("file://js.sys.dweb/create-process")
+                                .AppendQuery("entry", Metadata.Server.Entry)
+                                .AppendQuery("process_id", pid));
+        createIpcReq.Content = new StreamContent(streamIpc.Stream.Stream);
+        var createIpcRes = await NativeFetchAsync(createIpcReq);
+        streamIpc.BindIncomeStream(await createIpcRes.StreamAsync());
 
         // 监听关闭事件
         _onCloseJsProcess += (_) => streamIpc.Close();

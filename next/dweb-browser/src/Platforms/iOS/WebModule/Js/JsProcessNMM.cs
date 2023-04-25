@@ -91,14 +91,13 @@ public class JsProcessNMM : NativeMicroModule
                         }
                         else if (!response.Headers.Contains(key))
                         {
-                            response.Headers.Add(key, value);
+                            response.Headers.TryAddWithoutValidation(key, value);
                         }
                     }
-                    await ipc.PostMessageAsync(
-                        await IpcResponse.FromResponse(
-                            request.ReqId,
-                            response,
-                            ipc));
+
+                    var res = await IpcResponse.FromResponse(request.ReqId, response, ipc);
+
+                    await ipc.PostMessageAsync(res);
                 }
             };
         });
@@ -197,13 +196,12 @@ public class JsProcessNMM : NativeMicroModule
 
                  var dwebview = new DWebView.DWebView(null, this, this, options, null);
 
-                 var apis = new JsProcessWebApi(dwebview).Also(api =>
+                 var apis = new JsProcessWebApi(dwebview).Also(apis =>
                  {
-                     _onAfterShutdown += async (_) => { api.Destroy(); };
-                     dwebview.OnReady += async (_) => afterReadyPo.Resolve(api);
+                     _onAfterShutdown += async (_) => { apis.Destroy(); };
                  });
-
-
+                 dwebview.OnReady += async (_) =>
+                    afterReadyPo.Resolve(apis);
              });
             var apis = await afterReadyPo.WaitPromiseAsync();
             return apis;

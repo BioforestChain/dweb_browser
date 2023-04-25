@@ -1,8 +1,8 @@
 ﻿namespace DwebBrowser.HelperTests;
 
-public class PromiseOutTest 
+public class PromiseOutTest
 {
-    public PromiseOutTest(ITestOutputHelper output) 
+    public PromiseOutTest(ITestOutputHelper output)
     { }
 
     [Fact]
@@ -11,7 +11,7 @@ public class PromiseOutTest
     {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        
+
 
         Debug.WriteLine(String.Format("{0} start", stopwatch.Elapsed));
         var startTime = DateTime.Now;
@@ -25,6 +25,33 @@ public class PromiseOutTest
         var endTime = DateTime.Now;
         Debug.WriteLine(String.Format("{0} end: {1}", stopwatch.Elapsed, endTime));
         Assert.Equal(1, (endTime - startTime).Seconds);
+    }
+    [Fact]
+    public async void MutilWait()
+    {
+        var po = new PromiseOut<object?>();
+        var acc = 0;
+        _ = Task.Run(async () =>
+        {
+            await po.WaitPromiseAsync();
+            acc += 1;
+            Debug.WriteLine(1);
+        });
+        _ = Task.Run(async () =>
+        {
+            await po.WaitPromiseAsync();
+            acc += 2;
+            Debug.WriteLine(2);
+        });
+        await Task.Delay(1000);
+
+
+        Debug.WriteLine(0);
+        Assert.Equal(0, acc);
+
+        po.Resolve(null);
+
+        Debug.WriteLine(3);
     }
 
     internal static void SleepResolve(int s, PromiseOut<bool> po)

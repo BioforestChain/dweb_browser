@@ -38,8 +38,14 @@ public class ReadableStreamIpc : Ipc
             },
         };
 
-        Console.WriteLine(String.Format("post/{0}", Stream), message.Length);
-        return EnqueueAsync(message.Length.ToByteArray().Combine(message));
+        //Console.WriteLine(String.Format("post/{0}", Stream), message.Length);
+        //return EnqueueAsync(message.Length.ToByteArray().Combine(message));
+        //return EnqueueAsync(message.Length.ToByteArray());
+        var header = message.Length.ToByteArray();
+        var result = new byte[header.Length + message.Length];
+        Array.Copy(header, 0, result, 0, header.Length);
+        Array.Copy(message, 0, result, header.Length, message.Length);
+        return EnqueueAsync(result);
     }
 
     public override string ToString() => base.ToString() + "@ReadableStreamIpc";
@@ -98,8 +104,7 @@ public class ReadableStreamIpc : Ipc
                     continue;
                 }
 
-                var b = String.Format("size/{0} {1}", stream, size);
-                // Console.WriteLine(b);
+                Console.WriteLine(String.Format("size/{0} {1}", stream, size));
                 var buffer = await stream.ReadBytesAsync(size);
 
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
@@ -116,7 +121,7 @@ public class ReadableStreamIpc : Ipc
                         Console.WriteLine(String.Format("PONG/{0}", stream));
                         break;
                     case IpcMessage ipcMessage:
-                        Console.WriteLine("ON-MESSAGE/{0} {1}", this, ipcMessage);
+                        //Console.WriteLine("ON-MESSAGE/{0} {1}", this, ipcMessage);
                         //await (_onMessage?.Emit(ipcMessage, this)).ForAwait();
                         await _OnMessageEmit(ipcMessage, this);
                         break;

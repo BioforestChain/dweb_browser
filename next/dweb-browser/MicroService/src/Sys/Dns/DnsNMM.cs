@@ -60,6 +60,7 @@ public class DnsNMM : NativeMicroModule
                 {
                     Task.Run(async () =>
                     {
+                        Console.WriteLine(String.Format("DNS/opening {0} => {1}", fromMM.Mmid, toMmid));
                         var toMM = await Open(toMmid);
                         Console.WriteLine(String.Format("DNS/connect {0} => {1}", fromMM.Mmid, toMmid));
                         var connects = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
@@ -124,16 +125,13 @@ public class DnsNMM : NativeMicroModule
                 && request.RequestUri.Host.EndsWith(".dweb"))
             {
                 var mmid = request.RequestUri.Host;
-                Console.WriteLine($@"DNS/fetchAdapter
-                        FromMM={fromMM.Mmid} >> requestMmid={mmid}: >> path={request.RequestUri.AbsolutePath}
-                        >> {request.RequestUri}
-                ");
 
                 var microModule = _installApps.GetValueOrDefault(mmid);
 
                 if (microModule is not null)
                 {
                     var connectResult = await _connectTo(fromMM, mmid, request);
+                    Console.WriteLine(String.Format("DNS/request/{0} => {1} [{2}] {3}", fromMM.Mmid, mmid, request.Method.Method, request.RequestUri.AbsolutePath));
                     return await connectResult.IpcForFromMM.Request(request);
                 }
 
@@ -225,7 +223,7 @@ public class DnsNMM : NativeMicroModule
     /** <summary>关闭应用</summary> */
     public async Task<int> Close(Mmid mmid)
     {
-        if (_runningApps.Remove(mmid,out var microModulePo))
+        if (_runningApps.Remove(mmid, out var microModulePo))
         {
             var microModule = await microModulePo.WaitPromiseAsync();
             var _bool = _mmConnectsMap.GetValueOrDefault(microModule)?.Remove(mmid);
