@@ -2,13 +2,26 @@
 using System.Buffers.Text;
 using System.Collections;
 using System.IO;
-using System.Reflection.PortableExecutable;
-using System.Text.Json.Serialization.Metadata;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Runtime.CompilerServices;
 
 namespace DwebBrowser.MicroService.Message;
 
-public class MetaBody: IToJsonAble
+public class MetaBodyConverter : JsonConverter<MetaBody>
+{
+    public override MetaBody? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        Console.WriteLine("MetaBodyConverter.Read");
+        return null;
+    }
+
+    public override void Write(Utf8JsonWriter writer, MetaBody value, JsonSerializerOptions options)
+    {
+        Console.WriteLine("MetaBodyConverter.Write");
+    }
+}
+
+//[JsonConverter(typeof(MetaBodyConverter))]
+public class MetaBody : IToJsonAble
 {
     /**
      * <summary>
@@ -97,23 +110,24 @@ public class MetaBody: IToJsonAble
         INLINE_BINARY = INLINE | IPC_DATA_ENCODING.BINARY,
     }
 
+    LazyBox<IPC_DATA_ENCODING> _Type_Encoding = new();
     public IPC_DATA_ENCODING Type_Encoding
     {
-        get
-        {
-            var encoding = (int)Type & 0b11111110;
-            return (IPC_DATA_ENCODING)encoding;
-        }
+        get => _Type_Encoding.GetOrPut(() =>
+            (IPC_DATA_ENCODING)(((int)Type) & 0b11111110)
+        );
     }
 
+    LazyBox<bool> _Type_IsInline = new();
     public bool Type_IsInline
     {
-        get => ((int)Type & 1) == 1;
+        get => _Type_IsInline.GetOrPut(() => ((int)Type & 1) == 1);
     }
 
+    LazyBox<bool> _Type_IsStream = new();
     public bool Type_IsStream
     {
-        get => ((int)Type & 1) == 0;
+        get => _Type_IsStream.GetOrPut(() => ((int)Type & 1) == 0);
     }
 
     public static MetaBody FromText(

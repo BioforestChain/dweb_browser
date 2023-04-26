@@ -55,7 +55,7 @@ public class JsProcessWebApi
                     }
                 }, { once: true })
             })
-        """.Trim(), () => this.DWebView.PostMessage("js-process/create-process", new WebMessagePort[] { port1 }));
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-process", new[] { port1 }));
 
         Console.WriteLine(String.Format("processInfo {0}", nsProcessInfo));
 
@@ -90,7 +90,7 @@ public class JsProcessWebApi
                 }
             }, { once: true })
         })
-        """.Trim(), () => this.DWebView.PostMessage("js-process/create-pic", new WebMessagePort[] { port1 }));
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-pic", new[] { port1 }));
 
         return IpcWebMessageCache.SaveNative2JsIpcPort(port2);
     }

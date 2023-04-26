@@ -61,7 +61,7 @@ public class MessagePortIpc : Ipc
     private IPC_ROLE _role_type { get; init; }
     public override MicroModuleInfo Remote { get; set; }
 
-    public override string Role { get => Enum.GetName(_role_type)!; }
+    public override string Role { get => System.Enum.GetName(_role_type)!; }
 
     public MessagePortIpc(MessagePort port, Ipc.MicroModuleInfo remote, IPC_ROLE role_type)
     {
@@ -120,11 +120,8 @@ public class MessagePortIpc : Ipc
             case IpcResponse ipcResponse:
                 message = ipcResponse.LazyIpcResMessage.ToJson();
                 break;
-            case IpcStreamData ipcStreamData:
-                message = ipcStreamData.ToJson();
-                break;
             default:
-                message = JsonSerializer.Serialize(data);
+                message = data.ToJson();
                 break;
         }
 
