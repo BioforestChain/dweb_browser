@@ -66,7 +66,6 @@
 		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Platforms\iOS\IpcWeb\" />
 	  <Folder Include="Platforms\iOS\WebModule\Js\" />
 	  <Folder Include="Resources\Assets\" />
 	  <Folder Include="Platforms\iOS\WebModule\User\" />
