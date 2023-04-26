@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.ui.view
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,7 +61,7 @@ private fun CustomAlertDialog(
         onClick = {
           onConfirm?.let { onConfirm() } // 回调通知点击了确认按钮
         },
-        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onPrimary)
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
       ) {
         Text(text = dialogInfo.confirmText)
       }
@@ -69,7 +69,7 @@ private fun CustomAlertDialog(
     dismissButton = {
       TextButton(
         onClick = { onCancel?.let { onCancel() } },
-        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colors.onPrimary)
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
       ) {
         Text(text = dialogInfo.cancelText)
       }

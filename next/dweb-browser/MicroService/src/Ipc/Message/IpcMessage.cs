@@ -1,69 +1,34 @@
-﻿
-namespace DwebBrowser.MicroService.Message;
+﻿namespace DwebBrowser.MicroService.Message;
 
-public abstract class IpcMessage
+public class IpcMessage: IToJsonAble
 {
-    [JsonPropertyName("type")]
-    public abstract IPC_MESSAGE_TYPE Type { get; set; }
+    [JsonPropertyName("type"), JsonInclude, JsonPropertyOrder(-1)]
+    public IPC_MESSAGE_TYPE Type { get; set; }
+    [Obsolete("使用带参数的构造函数", true)]
+    public IpcMessage()
+    {
+        /// 给JSON反序列化用的空参数构造函数
+    }
+    public IpcMessage(IPC_MESSAGE_TYPE Type)
+    {
+        this.Type = Type;
+    }
 
     /// <summary>
     /// Serialize IpcMessage
     /// </summary>
     /// <returns>JSON string representation of the IpcMessage</returns>
-    public virtual string ToJson() => JsonSerializer.Serialize(this);
+    public virtual string ToJson() => JsonSerializer.Serialize(this,
+        new JsonSerializerOptions { IncludeFields = true, PropertyNameCaseInsensitive = true });
+
+    /// <summary>
+    /// Deserialize IpcMessage
+    /// </summary>
+    /// <param name="json">JSON string representation of IpcMessage</param>
+    /// <returns>An instance of a IpcMessage object.</returns>
+    public static IpcMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcMessage>(json,
+        new JsonSerializerOptions { IncludeFields = true, PropertyNameCaseInsensitive = true });
 }
-
-//[JsonConverter(typeof(IpcMessageTypeConverter))]
-public record IpcMessageType(IPC_MESSAGE_TYPE Type);
-
-#region IpcMessageType序列化反序列化 - 用于IpcMessage反序列化判断IpcMessage子类类型
-public class IpcMessageTypeConverter : JsonConverter<IpcMessageType>
-{
-    public override bool CanConvert(Type typeToConvert) => true;
-
-
-    public override IpcMessageType? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.StartObject)
-            throw new Exception("Expected StartObject token");
-
-        var typeValue = 0;
-
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-                return new IpcMessageType((IPC_MESSAGE_TYPE)typeValue);
-
-            if (reader.TokenType != JsonTokenType.PropertyName)
-                throw new Exception("Expected PropertyName token");
-
-            var propName = reader.GetString();
-
-            reader.Read();
-
-            switch (propName)
-            {
-                case "type":
-                    typeValue = reader.GetInt32();
-                    break;
-                default:
-                    continue;
-            }
-        }
-
-        throw new JsonException("Expected type PropertyName token");
-    }
-
-    public override void Write(Utf8JsonWriter writer, IpcMessageType value, JsonSerializerOptions options)
-    {
-        writer.WriteStartObject();
-
-        writer.WriteNumber("type", (int)value.Type);
-
-        writer.WriteEndObject();
-    }
-}
-#endregion
 
 public interface IpcStream
 {

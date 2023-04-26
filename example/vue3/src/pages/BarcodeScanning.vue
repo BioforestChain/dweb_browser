@@ -10,11 +10,11 @@ const title = "Scanner";
 const $logPanel = ref<typeof LogPanel>();
 const $barcodeScannerPlugin = ref<HTMLDwebBarcodeScanningElement>();
 
-let console: Console;
+// let console: Console;
 let scanner = barcodeScannerPlugin;
 let barcodeScanner: HTMLDwebBarcodeScanningElement;
 onMounted(() => {
-  console = toConsole($logPanel);
+  // console = toConsole($logPanel);
   barcodeScanner = $barcodeScannerPlugin.value!;
 });
 

@@ -9,13 +9,12 @@ namespace DwebBrowser.MicroService.Message;
 public class IpcBodyReceiver : IpcBody
 {
     public Ipc Ipc { get; set; }
-    public IpcBodyReceiver(SMetaBody metaBody, Ipc ipc)
+    public IpcBodyReceiver(MetaBody metaBody, Ipc ipc)
     {
         MetaBody = metaBody;
         Ipc = ipc;
 
-        var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
-        if (ipcMetaBodyType.IsStream)
+        if (MetaBody.Type_IsStream)
         {
             CACHE.MetaId_receiverIpc_Map.GetValueOrPut(MetaBody.MetaId, () =>
             {
@@ -36,21 +35,20 @@ public class IpcBodyReceiver : IpcBody
         {
             return new Lazy<BodyHubType>(new Func<BodyHubType>(() => new BodyHubType().Also(it =>
             {
-                object data = default;
-                var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
+                object data;
 
-                if (ipcMetaBodyType.IsStream)
+                if (MetaBody.Type_IsStream)
                 {
                     if (!CACHE.MetaId_receiverIpc_Map.TryGetValue(MetaBody.MetaId, out Ipc? ipc))
                     {
-                        throw new Exception($"no found ipc by metaId: {MetaBody.MetaId}");
+                        throw new Exception(String.Format("no found ipc by metaId: {0}", MetaBody.MetaId));
                     }
 
                     data = MetaToStream(MetaBody, ipc);
                 }
                 else
                 {
-                    switch (ipcMetaBodyType.Encoding)
+                    switch (MetaBody.Type_Encoding)
                     {
                         case IPC_DATA_ENCODING.UTF8:
                             data = (string)MetaBody.Data;
@@ -59,10 +57,10 @@ public class IpcBodyReceiver : IpcBody
                             data = (byte[])MetaBody.Data;
                             break;
                         case IPC_DATA_ENCODING.BASE64:
-                            data = ((string)MetaBody.Data).FromBase64();
+                            data = ((string)MetaBody.Data).ToBase64ByteArray();
                             break;
                         default:
-                            throw new Exception($"invalid metaBody type {MetaBody.Type}");
+                            throw new Exception(String.Format("invalid metaBody type {0}", MetaBody.Type));
                     }
                 }
 
@@ -84,20 +82,20 @@ public class IpcBodyReceiver : IpcBody
         }
     }
 
-    public override SMetaBody MetaBody { get; set; }
+    public override MetaBody MetaBody { get; set; }
 
     public override object? Raw
     {
         get { return BodyHub.Data; }
     }
 
-    public static IpcBody From(SMetaBody metaBody, Ipc ipc) =>
+    public static IpcBody From(MetaBody metaBody, Ipc ipc) =>
         CACHE.MetaId_ipcBodySender_Map.TryGetValue(metaBody.MetaId, out IpcBody? ipcBody) ? ipcBody : new IpcBodyReceiver(metaBody, ipc);
 
     /**
      * <returns> {String | ByteArray | InputStream} </returns>
      */
-    public static Stream MetaToStream(SMetaBody metaBody, Ipc ipc)
+    public static Stream MetaToStream(MetaBody metaBody, Ipc ipc)
     {
         /// metaToStream
         var stream_id = metaBody.StreamId!;
@@ -105,22 +103,20 @@ public class IpcBodyReceiver : IpcBody
          * 默认是暂停状态
          */
         var paused = 1;
-        var stream = new ReadableStream($"receiver-{stream_id}",
-            onStart: controller =>
+        var stream = new ReadableStream(String.Format("receiver-{0}", stream_id),
+            onStart: async controller =>
             {
                 /// 如果有初始帧，直接存起来
-                var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(metaBody.Type);
-
-                switch (ipcMetaBodyType.Encoding)
+                switch (metaBody.Type_Encoding)
                 {
                     case IPC_DATA_ENCODING.UTF8:
-                        controller.Enqueue(((string)metaBody.Data).FromUtf8());
+                        await controller.EnqueueAsync(((string)metaBody.Data).ToUtf8ByteArray());
                         break;
                     case IPC_DATA_ENCODING.BINARY:
-                        controller.Enqueue((byte[])metaBody.Data);
+                        await controller.EnqueueAsync((byte[])metaBody.Data);
                         break;
                     case IPC_DATA_ENCODING.BASE64:
-                        controller.Enqueue(((string)metaBody.Data).FromBase64());
+                        await controller.EnqueueAsync(((string)metaBody.Data).ToBase64ByteArray());
                         break;
                     default:
                         break;
@@ -130,16 +126,15 @@ public class IpcBodyReceiver : IpcBody
                 {
                     if (ipcStream is IpcStreamData data && data.StreamId == stream_id)
                     {
-                        Console.WriteLine($"receiver/StreamData/{ipc}/{controller.Stream}", data);
+                        Console.WriteLine(String.Format("receiver/StreamData/{0}/{1}", ipc, controller.Stream), data);
                         await controller.EnqueueAsync(data.Binary);
                     }
                     else if (ipcStream is IpcStreamEnd end && end.StreamId == stream_id)
                     {
-                        Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", end);
+                        Console.WriteLine(String.Format("receiver/StreamEnd/{0}/{1}", ipc, controller.Stream), end);
                         controller.Close();
                         ipc.OnStream -= self;
                     }
-
                 };
 
                 ipc.OnStream += cb;
@@ -147,7 +142,7 @@ public class IpcBodyReceiver : IpcBody
             onPull: async args =>
             {
                 var controller = args.Item2;
-                Console.WriteLine($"receiver/StreamEnd/{ipc}/{controller.Stream}", stream_id);
+                Console.WriteLine(String.Format("receiver/StreamEnd/{0}/{1}", ipc, controller.Stream), stream_id);
                 if (Interlocked.CompareExchange(ref paused, 1, 0) == 1)
                 {
                     await ipc.PostMessageAsync(new IpcStreamPulling(stream_id));
@@ -159,7 +154,7 @@ public class IpcBodyReceiver : IpcBody
             }
             ).Stream;
 
-        Console.WriteLine($"receiver/{ipc}/{stream}");
+        Console.WriteLine(String.Format("receiver/{0}/{1}", ipc, stream));
 
         return stream;
     }

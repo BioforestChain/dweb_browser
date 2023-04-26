@@ -43,15 +43,28 @@ public class IpcMethod
 
     public static IpcMethod Connect => s_connectMethod;
 
-    [JsonInclude]
-    public string method => _method;
+    [JsonPropertyName("method")]
+    public string Method => _method;
 
-    public IpcMethod(string method)
+    private IpcMethod(string method)
     {
         _method = method;
     }
 
-    public static IpcMethod From(HttpMethod method) => new IpcMethod(method.Method);
+    public static IpcMethod From(HttpMethod method) => From(method.Method);
+    public static IpcMethod From(string method) => method switch
+    {
+        "GET" => s_getMethod,
+        "PUT" => s_putMethod,
+        "POST" => s_postMethod,
+        "DELETE" => s_deleteMethod,
+        "HEAD" => s_headMethod,
+        "OPTIONS" => s_optionsMethod,
+        "TRACE" => s_traceMethod,
+        "PATCH" => s_patchMethod,
+        "CONNECT" => s_connectMethod,
+        _ => throw new ArgumentException(String.Format("Unknown type {0}", method))
+    };
 
     public override string ToString() => _method;
 
@@ -70,7 +83,7 @@ public class IpcMethod
 }
 
 #region IpcHeaders序列化反序列化
-sealed class IpcMethodConverter : JsonConverter<IpcMethod>
+public class IpcMethodConverter : JsonConverter<IpcMethod>
 {
     public override bool CanConvert(Type typeToConvert) =>
         typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
@@ -96,7 +109,7 @@ sealed class IpcMethodConverter : JsonConverter<IpcMethod>
 
     public override void Write(Utf8JsonWriter writer, IpcMethod value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(value.method);
+        writer.WriteStringValue(value.Method);
     }
 }
 #endregion

@@ -37,7 +37,7 @@ class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
     }
 
     private val CORS_HEADERS = mapOf(
-        Pair("Content-Type", "application/javascript"),
+        Pair("Content-Type", "text/javascript"),
         Pair("Access-Control-Allow-Origin", "*"),
         Pair("Access-Control-Allow-Headers", "*"),// 要支持 X-Dweb-Host
         Pair("Access-Control-Allow-Methods", "*"),

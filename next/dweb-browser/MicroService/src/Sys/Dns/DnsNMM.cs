@@ -9,7 +9,7 @@ public class DnsNMM : NativeMicroModule
     private Dictionary<Mmid, MicroModule> _installApps = new();
 
     // 正在运行的应用
-    private Dictionary<Mmid, MicroModule> _runningApps = new();
+    private Dictionary<Mmid, PromiseOut<MicroModule>> _runningApps = new();
 
     public DnsNMM() : base("dns.sys.dweb")
     {
@@ -60,8 +60,9 @@ public class DnsNMM : NativeMicroModule
                 {
                     Task.Run(async () =>
                     {
-                        var toMM = await OpenAsync(toMmid);
-                        Console.WriteLine($"DNS/connect {fromMM.Mmid} => {toMmid}");
+                        Console.WriteLine(String.Format("DNS/opening {0} => {1}", fromMM.Mmid, toMmid));
+                        var toMM = await Open(toMmid);
+                        Console.WriteLine(String.Format("DNS/connect {0} => {1}", fromMM.Mmid, toMmid));
                         var connects = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
                         po.Resolve(connects);
                         connects.IpcForFromMM.OnClose += async (_) =>
@@ -103,16 +104,16 @@ public class DnsNMM : NativeMicroModule
         public Task<ConnectResult> ConnectAsync(string mmid, HttpRequestMessage? reason = null)
         {
             return _dnsMM._connectTo(
-                _fromMM, mmid, reason ?? new HttpRequestMessage(HttpMethod.Get, new Uri($"file://{mmid}")));
+                _fromMM, mmid, reason ?? new HttpRequestMessage(HttpMethod.Get, new Uri(String.Format("file://{0}", mmid))));
         }
 
-        public Task BootstrapAsync(string mmid) => _dnsMM.OpenAsync(mmid);
+        public Task BootstrapAsync(string mmid) => _dnsMM.Open(mmid);
     }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         Install(this);
-        _runningApps.Add(Mmid, this);
+        _runningApps.Add(Mmid, PromiseOut<MicroModule>.StaticResolve(this));
 
         /**
          * 对全局的自定义路由提供适配器
@@ -124,16 +125,13 @@ public class DnsNMM : NativeMicroModule
                 && request.RequestUri.Host.EndsWith(".dweb"))
             {
                 var mmid = request.RequestUri.Host;
-                Console.WriteLine($@"DNS/fetchAdapter
-                        FromMM={fromMM.Mmid} >> requestMmid={mmid}: >> path={request.RequestUri.AbsolutePath}
-                        >> {request.RequestUri}
-                ");
 
                 var microModule = _installApps.GetValueOrDefault(mmid);
 
                 if (microModule is not null)
                 {
                     var connectResult = await _connectTo(fromMM, mmid, request);
+                    Console.WriteLine(String.Format("DNS/request/{0} => {1} [{2}] {3}", fromMM.Mmid, mmid, request.Method.Method, request.RequestUri.AbsolutePath));
                     return await connectResult.IpcForFromMM.Request(request);
                 }
 
@@ -148,8 +146,8 @@ public class DnsNMM : NativeMicroModule
         // 打开应用
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/open", async (request, _) =>
         {
-            Console.WriteLine($"open/{Mmid} {request.RequestUri?.AbsolutePath}");
-            await OpenAsync(request.QueryValidate<Mmid>("app_id")!);
+            Console.WriteLine(String.Format("open/{0} {1}", Mmid, request.RequestUri?.AbsolutePath));
+            await Open(request.QueryValidate<Mmid>("app_id")!);
             return true;
         });
 
@@ -157,8 +155,8 @@ public class DnsNMM : NativeMicroModule
         // TODO 能否关闭一个应该应该由应用自己决定
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/close", async (request, _) =>
         {
-            Console.WriteLine($"close/{Mmid} {request.RequestUri?.AbsolutePath}");
-            await OpenAsync(request.QueryValidate<string>("app_id")!);
+            Console.WriteLine(String.Format("close/{0} {1}", Mmid, request.RequestUri?.AbsolutePath));
+            await Open(request.QueryValidate<string>("app_id")!);
             return true;
         });
     }
@@ -173,7 +171,7 @@ public class DnsNMM : NativeMicroModule
         }
 
         /// 启动 boot 模块
-        await OpenAsync("boot.sys.dweb");
+        await Open("boot.sys.dweb");
         var connectResult = await ConnectAsync("boot.sys.dweb");
         await connectResult.IpcForFromMM.PostMessageAsync(Event);
     }
@@ -198,24 +196,36 @@ public class DnsNMM : NativeMicroModule
     public MicroModule? Query(Mmid mmid) => _installApps.GetValueOrDefault(mmid);
 
     /** <summary>打开应用</summary> */
-    public async Task<MicroModule> OpenAsync(Mmid mmid)
+    private PromiseOut<MicroModule> _Open(Mmid mmid)
     {
-        if (!_runningApps.TryGetValue(mmid, out var app))
+        if (!_runningApps.TryGetValue(mmid, out var po))
         {
-            app = Query(mmid);
-            await BootstrapMicroModule(app);
-            _runningApps[mmid] = app;
+            _runningApps[mmid] = po = new();
+            Task.Run(async () =>
+            {
+                var app = Query(mmid);
+                if (app is not null)
+                {
+                    await BootstrapMicroModule(app);
+                    po.Resolve(app);
+                }
+                else
+                {
+                    po.Reject(String.Format("no found app: {0}", mmid));
+                }
+            });
         }
-        return app;
+        return po;
     }
+    /** <summary>打开应用</summary> */
+    public Task<MicroModule> Open(Mmid mmid) => _Open(mmid).WaitPromiseAsync();
 
     /** <summary>关闭应用</summary> */
     public async Task<int> Close(Mmid mmid)
     {
-        var microModule = _runningApps.GetValueOrDefault(mmid);
-
-        if (microModule is not null)
+        if (_runningApps.Remove(mmid, out var microModulePo))
         {
+            var microModule = await microModulePo.WaitPromiseAsync();
             var _bool = _mmConnectsMap.GetValueOrDefault(microModule)?.Remove(mmid);
             await microModule.ShutdownAsync();
 

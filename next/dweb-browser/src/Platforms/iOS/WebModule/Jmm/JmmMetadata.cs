@@ -168,8 +168,7 @@ public class JmmMetadata
         }
     }
 
-    public string ToJson() => JsonSerializer.Serialize<JmmMetadata>(
-        this, new JsonSerializerOptions { WriteIndented = true });
+    public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
     public static JmmMetadata? FromJson(string json) =>
         JsonSerializer.Deserialize<JmmMetadata>(json);
 }

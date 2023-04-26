@@ -12,7 +12,7 @@ public class MemoryStreamTest
     public void CanRead_MemoryStreamInit_ReturnsTrue()
     {
         var stream = new MemoryStream();
-        //Debug.WriteLine($"CanRead: {stream.CanRead}");
+        //Debug.WriteLine(String.Format("CanRead: {0}", stream.CanRead));
 
         Assert.True(stream.CanRead);
     }

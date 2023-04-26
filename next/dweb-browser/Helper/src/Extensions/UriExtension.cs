@@ -1,4 +1,6 @@
 ﻿using System.Web;
+using System;
+
 namespace DwebBrowser.Helper;
 
 public static class UriExtension
@@ -45,7 +47,7 @@ public static class UriExtension
         new(self.AbsoluteUri.Replace(self.Authority, authority));
 
     public static Uri Path(this Uri self, string path) =>
-        new($"{self.AbsoluteUri.Substring(0, self.AbsoluteUri.Length - self.AbsolutePath.Length)}{path.Replace("%2f", "/")}");
+        new(string.Concat(self.AbsoluteUri.AsSpan(0, self.AbsoluteUri.Length - self.AbsolutePath.Length), path.Replace("%2f", "/")));
 
 }
 

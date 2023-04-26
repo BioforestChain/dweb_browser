@@ -1,9 +1,15 @@
 package info.bagen.dwebbrowser.ui.entity
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -22,6 +28,15 @@ data class WebSiteInfo(
   val title: String,
   val url: String,
   val icon: ImageBitmap? = null,
+  var timeMillis: String = "",
+  var index: Int = 0 // 用于标识位置，方便定位弹出框位置
+) {
+  //val expand: MutableState<Boolean> = mutableStateOf(false)
+}
+
+data class BookWebSiteInfo(
+  val webSiteInfo: WebSiteInfo,
+  val expand: MutableState<Boolean> = mutableStateOf(false)
 )
 
 interface BrowserBaseView {
@@ -67,6 +82,16 @@ enum class PopupViewState(
       }
     } ?: height
   }
+}
+
+class TabItem(
+  @StringRes val title_res: Int,
+  @DrawableRes val icon_res: Int,
+  val entry: PopupViewState
+) {
+  val title @Composable get() = stringResource(id = title_res)
+  val icon @Composable get() = ImageVector.vectorResource(id = icon_res)
+
 }
 
 data class HotspotInfo(

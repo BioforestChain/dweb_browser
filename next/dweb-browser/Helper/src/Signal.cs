@@ -16,7 +16,7 @@ public static class SignalExtendsions
     {
         try
         {
-            var list = (Signal[])self.GetInvocationList();
+            var list = self.GetInvocationList();
             if (list == null)
             {
                 return;
@@ -29,7 +29,7 @@ public static class SignalExtendsions
 
             for (int i = 0; i < list.Length; i++)
             {
-                var cb = list[i];
+                var cb = (Signal)list[i];
                 await cb(cb).ForAwait();
                 return;
             }

@@ -54,7 +54,7 @@ namespace DwebBrowser.MicroService.Core
         public async Task<ReadableStreamIpc> ListenHttpDwebServer(
             HttpNMM.ServerStartResult startResult, Gateway.RouteConfig[] routes)
         {
-            var streamIpc = new ReadableStreamIpc(this, $"http-server/{startResult.urlInfo.Host}");
+            var streamIpc = new ReadableStreamIpc(this,String.Format("http-server/{0}", startResult.urlInfo.Host));
             var res = await NativeFetchAsync(
                 new HttpRequestMessage(
                     HttpMethod.Post,
@@ -62,7 +62,7 @@ namespace DwebBrowser.MicroService.Core
                         .AppendQuery("host", startResult.urlInfo.Host)
                         .AppendQuery("token", startResult.token)
                         .AppendQuery("routes", JsonSerializer.Serialize(routes))
-                    ).Also((it) => it.Content = new StreamContent(streamIpc.Stream.Stream))
+                    ).Also((it) => it.Content = new StreamContent(streamIpc.ReadableStream.Stream))
                 );
 
             streamIpc.BindIncomeStream(res.Stream());

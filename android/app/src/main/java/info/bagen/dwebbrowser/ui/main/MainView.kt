@@ -9,7 +9,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
@@ -53,7 +55,7 @@ fun MainView(
       startDestination = RouteScreen.Home.route,
       modifier = Modifier
         .padding(innerPadding)
-        .background(MaterialTheme.colors.primary)
+        .background(MaterialTheme.colorScheme.primary)
     ) {
       composable(RouteScreen.Home.route) {
         MainHomeView(appViewModel, onSearchAction, onOpenApp)
@@ -76,7 +78,7 @@ fun MainView(
 
 @Composable
 fun MainBottomNav(navController: NavHostController, mainViewModel: MainViewModel) {
-  BottomNavigation(backgroundColor = MaterialTheme.colors.primaryVariant, elevation = 6.dp) {
+  BottomNavigation(backgroundColor = MaterialTheme.colorScheme.primaryContainer, elevation = 6.dp) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     mainViewModel.navList.forEach { screen ->
@@ -86,13 +88,13 @@ fun MainBottomNav(navController: NavHostController, mainViewModel: MainViewModel
           Icon(
             imageVector = screen.image,
             contentDescription = null,
-            tint = if (selected) Color(0xFF1992FF) else MaterialTheme.colors.onSecondary
+            tint = if (selected) Color(0xFF1992FF) else MaterialTheme.colorScheme.onSecondary
           )
         },
         label = {
           Text(
             text = stringResource(screen.resourceId),
-            color = if (selected) Color(0xFF1992FF) else MaterialTheme.colors.onSecondary
+            color = if (selected) Color(0xFF1992FF) else MaterialTheme.colorScheme.onSecondary
           )
         },
         selected = selected,
@@ -197,7 +199,7 @@ fun MainSearchView(onSearchAction: ((SearchAction, String) -> Unit)? = null) {
       .fillMaxWidth()
       .padding(36.dp, 36.dp, 36.dp, 24.dp),
     singleLine = true,
-    textStyle = TextStyle.Default.copy(color = MaterialTheme.colors.onPrimary),
+    textStyle = TextStyle.Default.copy(color = MaterialTheme.colorScheme.onPrimary),
     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
     keyboardActions = KeyboardActions(onSearch = {
       if (inputText.isEmpty()) return@KeyboardActions
@@ -215,9 +217,9 @@ fun MainSearchView(onSearchAction: ((SearchAction, String) -> Unit)? = null) {
   ) { innerTextField ->
     Box {
       Surface(
-        border = BorderStroke(2.dp, MaterialTheme.colors.onPrimary),
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.onPrimary),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colors.primary
+        color = MaterialTheme.colorScheme.primary
       ) {
         Row(
           modifier = Modifier.padding(16.dp),
@@ -226,7 +228,7 @@ fun MainSearchView(onSearchAction: ((SearchAction, String) -> Unit)? = null) {
           Icon(
             imageVector = Icons.Outlined.Search,
             contentDescription = null,
-            tint = MaterialTheme.colors.onPrimary
+            tint = MaterialTheme.colorScheme.onPrimary
           )
 
           Box(
@@ -236,7 +238,7 @@ fun MainSearchView(onSearchAction: ((SearchAction, String) -> Unit)? = null) {
           ) {
             if (inputText.isEmpty()) Text(
               text = "请输入必应搜索关键字",
-              color = MaterialTheme.colors.onSecondary
+              color = MaterialTheme.colorScheme.onSecondary
             )
             innerTextField()
           }
@@ -245,14 +247,14 @@ fun MainSearchView(onSearchAction: ((SearchAction, String) -> Unit)? = null) {
             Icon(
               imageVector = Icons.Outlined.Close,
               contentDescription = null,
-              tint = MaterialTheme.colors.onPrimary,
+              tint = MaterialTheme.colorScheme.onPrimary,
               modifier = Modifier.clickable { inputText = "" }
             )
           } else {
             Icon(
               imageVector = ImageVector.vectorResource(id = R.drawable.ic_photo_camera_24),
               contentDescription = null,
-              tint = MaterialTheme.colors.onPrimary,
+              tint = MaterialTheme.colorScheme.onPrimary,
               modifier = Modifier.clickable {
                 // Toast.makeText(AppContextUtil.sInstance, "打开扫码界面", Toast.LENGTH_SHORT).show()
                 onSearchAction?.let { it(SearchAction.OpenCamera, "") }

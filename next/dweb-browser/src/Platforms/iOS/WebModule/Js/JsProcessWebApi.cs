@@ -5,6 +5,7 @@ using DwebBrowser.IpcWeb;
 using DwebBrowser.MicroService;
 using DwebBrowser.MicroService.Message;
 using Foundation;
+using static DwebBrowser.WebModule.Js.JsProcessWebApi;
 
 namespace DwebBrowser.WebModule.Js;
 
@@ -37,67 +38,46 @@ public class JsProcessWebApi
         Ipc.MicroModuleInfo remoteModule,
         string host)
     {
-        var channel = await this.DWebView.CreateWebMessageChannelC();
+        var channel = await this.DWebView.CreateWebMessageChannel();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
-        var metadata_json_str = JsonSerializer.Serialize(metadata_json);
-        var env_json_str = JsonSerializer.Serialize(env_json);
 
-        var processInfo_json = await this.DWebView.EvaluateJavaScriptAsync(@"""
+        var nsProcessInfo = await this.DWebView.EvaluateAsyncJavascriptCode($$"""
            new Promise((resolve,reject)=>{
-                addEventListener(""message"", async event => {
-                    if (event.data === ""js-process/create-process"") {
+                addEventListener("message", async event => {
+                    if (event.data === "js-process/create-process") {
                         const fetch_port = event.ports[0];
                         try{
-                            resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`))
+                            resolve(await createProcess(`{{env_script_url}}`,JSON.stringify({{metadata_json}}),JSON.stringify({{env_json}}),fetch_port,`{{host}}`))
                         }catch(err){
                             reject(err)
                         }
                     }
                 }, { once: true })
             })
-        """.Trim());
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-process", new[] { port1 }));
 
-        try
-        {
-            await this.DWebView.PostMessage("js-process/create-process", new WebMessagePort[] { port1 });
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.StackTrace);
-        }
-        Console.WriteLine($"processInfo {processInfo_json}");
+        Console.WriteLine(String.Format("processInfo {0}", nsProcessInfo));
 
-        try
-        {
-            if (processInfo_json is NSData data)
-            {
-                var info = JsonSerializer.Deserialize<ProcessInfo>(data.AsStream());
-                return new ProcessHandler(info, new MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT));
-            }
-
-            throw new Exception("processInfo_json 类型错误，无法进行序列化");
-        }
-        catch(Exception err)
-        {
-            throw new Exception($"CreateProcess JsonDeserialize ProcessInfo error: {err.Message}");
-        }
+        var processId = (int)(NSNumber)nsProcessInfo.ValueForKey(new NSString("process_id"));
+        var processInfo = new ProcessInfo(processId);
+        return new ProcessHandler(processInfo, new MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT));
     }
 
     public record RunProcessMainOptions(string MainUrl);
 
     public Task RunProcessMain(int process_id, RunProcessMainOptions options) =>
-        this.DWebView.EvaluateJavaScriptAsync($"runProcessMain({process_id}, {{main_url:`{options.MainUrl}`}})".Trim());
+        this.DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})");
 
     public Task DestroyProcess(int process_id) =>
-        this.DWebView.EvaluateJavaScriptAsync($"destroy({process_id})".Trim());
+        this.DWebView.EvaluateJavaScriptAsync(String.Format("void destroy({0})", process_id).Trim());
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {
-        var channel = await this.DWebView.CreateWebMessageChannelC();
+        var channel = await this.DWebView.CreateWebMessageChannel();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
-        await this.DWebView.EvaluateJavaScriptAsync($$"""
+        await this.DWebView.EvaluateAsyncJavascriptCode($$"""
         new Promise((resolve,reject)=>{
             addEventListener("message", async event => {
                 if (event.data === "js-process/create-ipc") {
@@ -110,9 +90,7 @@ public class JsProcessWebApi
                 }
             }, { once: true })
         })
-        """.Trim());
-
-        await this.DWebView.PostMessage("js-process/create-pic", new WebMessagePort[] { port1 });
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-pic", new[] { port1 }));
 
         return IpcWebMessageCache.SaveNative2JsIpcPort(port2);
     }

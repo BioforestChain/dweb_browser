@@ -7,6 +7,8 @@ using System.Text.Json;
 using WebKit;
 using System.Diagnostics;
 
+#nullable enable
+
 namespace DwebBrowser.WebModule.Js;
 
 public class JsProcessNMM : NativeMicroModule
@@ -25,13 +27,14 @@ public class JsProcessNMM : NativeMicroModule
 
     private Dictionary<string, string> _CORS_HEADERS = new()
     {
-        { "Content-Type", "application/javascript" },
+        { "Content-Type", "text/javascript" },
         { "Access-Control-Allow-Origin", "*" },
         { "Access-Control-Allow-Headers", "*" }, // 要支持 X-Dweb-Host
         { "Access-Control-Allow-Methods", "*" }
     };
 
-    private string _INTERNAL_PATH = "/<internal>".EncodeURI();
+    private static string s_INTERNAL_PATH_RAW = "/<internal>";
+    private static string s_INTERNAL_PATH = s_INTERNAL_PATH_RAW.EncodeURI();
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
@@ -52,9 +55,9 @@ public class JsProcessNMM : NativeMicroModule
             serverIpc.OnRequest += async (request, ipc, _) =>
             {
                 // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
-                if (request.Uri.AbsolutePath.StartsWith(_INTERNAL_PATH))
+                if (request.Uri.AbsolutePath.StartsWith(s_INTERNAL_PATH))
                 {
-                    var internalUri = request.Uri.Path(request.Uri.AbsolutePath.Substring(_INTERNAL_PATH.Length));
+                    var internalUri = request.Uri.Path(request.Uri.AbsolutePath.Substring(s_INTERNAL_PATH.Length));
 
                     if (internalUri.AbsolutePath == "/bootstrap.js")
                     {
@@ -62,6 +65,7 @@ public class JsProcessNMM : NativeMicroModule
                             IpcResponse.FromText(
                                 request.ReqId,
                                 200,
+                                /// 加入跨域支持
                                 IpcHeaders.With(_CORS_HEADERS),
                                 _JS_PROCESS_WORKER_CODE,
                                 ipc));
@@ -72,32 +76,44 @@ public class JsProcessNMM : NativeMicroModule
                             IpcResponse.FromText(
                                 request.ReqId,
                                 404,
+                                /// 加入跨域支持
                                 IpcHeaders.With(_CORS_HEADERS),
-                                $"// no found {internalUri.AbsolutePath}",
+                                String.Format("// no found {0}", internalUri.AbsolutePath),
                                 ipc));
                     }
                 }
                 else
                 {
-                    var response = await NativeFetchAsync($"file:///bundle/js-process{request.Uri.AbsolutePath}");
-                    await ipc.PostMessageAsync(
-                        IpcResponse.FromResponse(
-                            request.ReqId,
-                            response,
-                            ipc));
+                    var response = await NativeFetchAsync(String.Format("file:///bundle/js-process{0}", request.Uri.AbsolutePath));
+                    /// 加入跨域支持
+                    foreach (var (key, value) in _CORS_HEADERS)
+                    {
+                        if (key is "Content-Type")
+                        {
+                            continue;
+                        }
+                        else if (!response.Headers.Contains(key))
+                        {
+                            response.Headers.TryAddWithoutValidation(key, value);
+                        }
+                    }
+
+                    var res = await IpcResponse.FromResponse(request.ReqId, response, ipc);
+
+                    await ipc.PostMessageAsync(res);
                 }
             };
         });
 
-        var bootstrap_url = mainServer.StartResult.urlInfo.BuildInternalUrl()
-            .Path($"{_INTERNAL_PATH}/bootstrap.js")
-            .ToString();
+        var bootstrap_url = mainServer.StartResult.urlInfo.BuildPublicDwebHref(
+            mainServer.StartResult.urlInfo.BuildInternalUrl().Path(String.Format("{0}/bootstrap.js", s_INTERNAL_PATH))
+        );
 
         var apis = await _createJsProcessWeb(mainServer);
 
         var ipcProcessIdMap = new Dictionary<Ipc, Dictionary<string, PromiseOut<int>>>();
         var processIpcMap = new Dictionary<string, Ipc>();
-        var ipcProcessIdMapLock = new Mutex();
+        //var ipcProcessIdMapLock = new Mutex();
 
         /// 创建 web worker
         /// request 需要携带一个流，来为 web worker 提供代码服务
@@ -105,22 +121,23 @@ public class JsProcessNMM : NativeMicroModule
         {
             processIpcMap.Add(ipc.Remote.Mmid, ipc);
             PromiseOut<int> po = null!;
-            ipcProcessIdMapLock.WaitOne();
 
             var processId = request.QueryValidate<string>("process_id")!;
-            var processIdMap = ipcProcessIdMap.GetValueOrPut(ipc, () =>
+            lock (ipcProcessIdMap)
             {
-                ipc.OnClose += async (_) => { ipcProcessIdMap.Remove(ipc); };
-                return new Dictionary<string, PromiseOut<int>>();
-            });
+                var processIdMap = ipcProcessIdMap.GetValueOrPut(ipc, () =>
+                {
+                    ipc.OnClose += async (_) => { ipcProcessIdMap.Remove(ipc); };
+                    return new Dictionary<string, PromiseOut<int>>();
+                });
 
-            if (processIdMap.Keys.Contains(processId))
-            {
-                throw new Exception($"ipc:{ipc.Remote.Mmid}/processId:{processId} has already using");
+                if (processIdMap.Keys.Contains(processId))
+                {
+                    throw new Exception(String.Format("ipc:{0}/processId:{1} has already using", ipc.Remote.Mmid, processId));
+                }
+
+                po = new PromiseOut<int>().Also(it => processIdMap.Add(processId, it));
             }
-
-            po = new PromiseOut<int>().Also(it => processIdMap.Add(processId, it));
-            ipcProcessIdMapLock.ReleaseMutex();
 
             var result = await _createProcessAndRun(
                 ipc,
@@ -133,7 +150,7 @@ public class JsProcessNMM : NativeMicroModule
             po.Resolve(result.processHandler.Info.ProcessId);
 
             // 返回流，因为构建了一个双工通讯用于代码提供服务
-            return result.streamIpc.Stream;
+            return result.streamIpc.ReadableStream.Stream;
         });
 
         /// 创建 web 通讯管道
@@ -148,21 +165,14 @@ public class JsProcessNMM : NativeMicroModule
             var mmid = request.QueryValidate<string>("mmid");
 
             int process_id;
-            ipcProcessIdMapLock.WaitOne();
-
-            var po = ipcProcessIdMap.GetValueOrDefault(ipc)?.GetValueOrDefault(processId);
-
-            if (po is null)
+            if (!ipcProcessIdMap.TryGetValue(ipc, out var processIdMap) || !processIdMap.TryGetValue(processId, out var po))
             {
-                throw new Exception($"ipc:{ipc.Remote.Mmid}/processId:{processId} invalid");
+                throw new Exception(String.Format("ipc:{0}/processId:{1} invalid", ipc.Remote.Mmid, processId));
             }
-
             process_id = await po.WaitPromiseAsync();
 
-            ipcProcessIdMapLock.ReleaseMutex();
-
             // 返回 port_id
-            return _createIpc(ipc, apis, process_id, mmid);
+            return await _createIpc(ipc, apis, process_id, mmid);
         });
 
         /// 关闭 process
@@ -181,30 +191,23 @@ public class JsProcessNMM : NativeMicroModule
         /// WebView 实例
         var urlInfo = mainServer.StartResult.urlInfo;
 
-        var options = new DWebView.DWebView.Options(urlInfo.BuildInternalUrl().Path("/index.html").ToString());
-        try
+
+        await MainQueue.Run(() =>
         {
-            _ = MainQueue.Run(() =>
-             {
 
-                 var dwebview = new DWebView.DWebView(null, this, this, options, null);
+            var dwebview = new DWebView.DWebView(localeMM: this);
 
-                 var apis = new JsProcessWebApi(dwebview).Also(api =>
-                 {
-                     _onAfterShutdown += async (_) => { api.Destroy(); };
-                     dwebview.OnReady += async (_) => afterReadyPo.Resolve(api);
-                 });
-
-
-             });
-            var apis = await afterReadyPo.WaitPromiseAsync();
-            return apis;
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine(e);
-            throw e;
-        }
+            var apis = new JsProcessWebApi(dwebview).Also(apis =>
+            {
+                _onAfterShutdown += async (_) => { apis.Destroy(); };
+            });
+            dwebview.OnReady += async (_) =>
+               afterReadyPo.Resolve(apis);
+            var mainUrl = urlInfo.BuildPublicDwebHref(urlInfo.BuildInternalUrl().Path("/index.html"));
+            dwebview.LoadURL(mainUrl);
+        });
+        var apis = await afterReadyPo.WaitPromiseAsync();
+        return apis;
 
     }
 
@@ -246,16 +249,13 @@ public class JsProcessNMM : NativeMicroModule
                 {
                     /// 加入跨域配置
                     var response = it;
-                    foreach (var entry in _CORS_HEADERS)
+                    foreach (var (key,value) in _CORS_HEADERS)
                     {
-                        if (entry.Key.StartsWith("Content", true, null))
+                        if (key is "Content-Type")
                         {
-                            response.Content.Headers.Add(entry.Key, entry.Value);
+                            continue;
                         }
-                        else
-                        {
-                            response.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
-                        }
+                        response.Headers.Add(key, value);
                     }
 
                     return response;
@@ -306,7 +306,10 @@ public class JsProcessNMM : NativeMicroModule
         await apis.RunProcessMain(
             processHandler.Info.ProcessId,
             new JsProcessWebApi.RunProcessMainOptions(
-                httpDwebServer.StartResult.urlInfo.BuildInternalUrl().Path(entry ?? "/index.js").ToString()));
+                httpDwebServer.StartResult.urlInfo.BuildPublicDwebHref(
+                    httpDwebServer.StartResult.urlInfo.BuildInternalUrl().Path(entry ?? "/index.js"))
+                )
+            );
 
         /// 绑定销毁
         /**
@@ -329,41 +332,29 @@ public class JsProcessNMM : NativeMicroModule
 
     private Task<int> _createIpc(Ipc ipc, JsProcessWebApi apis, int process_id, Mmid mmid) =>
         apis.CreateIpc(process_id, mmid);
-
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    {
-
-
-    }
-
-    protected override async Task _shutdownAsync()
-    {
-
-    }
 }
 
 
 public static class MainQueue
 {
-    static int mainThreadId = int.MinValue;
+    static IDispatcher? mainDispatcher = default;
 
     public static void Init()
     {
-        Init(Environment.CurrentManagedThreadId);
+        Init(Dispatcher.GetForCurrentThread());
     }
 
-    public static void Init(int mainThreadId)
+    public static void Init(IDispatcher dispatcher)
     {
-        if (MainQueue.mainThreadId != int.MinValue) throw new NotSupportedException("you may call Init() only once");
-        MainQueue.mainThreadId = mainThreadId;
+        mainDispatcher = dispatcher;
     }
 
     public static bool IsOnMain
     {
         get
         {
-            if (mainThreadId == int.MinValue) throw new NotSupportedException("you have to call Init() first");
-            return Environment.CurrentManagedThreadId == mainThreadId;
+            if (mainDispatcher is null) throw new NotSupportedException("you have to call Init() first");
+            return mainDispatcher == Dispatcher.GetForCurrentThread();
         }
     }
 
@@ -375,26 +366,8 @@ public static class MainQueue
         }
         else
         {
-            Device.BeginInvokeOnMainThread(action);
+            mainDispatcher.Dispatch(action);
         }
-    }
-
-    public static Task Queue(Action action)
-    {
-        var tcs = new TaskCompletionSource<object>();
-        Device.BeginInvokeOnMainThread(() =>
-        {
-            try
-            {
-                action?.Invoke();
-                tcs.SetResult(null);
-            }
-            catch (Exception ex)
-            {
-                tcs.SetException(ex);
-            }
-        });
-        return tcs.Task;
     }
 
     public static Task Run(Action action)

@@ -3,7 +3,6 @@ package info.bagen.dwebbrowser
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.DialogInterface
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -15,7 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +35,10 @@ import info.bagen.dwebbrowser.util.getBoolean
 import info.bagen.dwebbrowser.util.permission.PermissionManager.Companion.MY_PERMISSIONS
 import info.bagen.dwebbrowser.util.permission.PermissionUtil
 import info.bagen.dwebbrowser.util.saveBoolean
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 class SplashActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,14 +61,18 @@ class SplashActivity : AppCompatActivity() {
 
         SplashPrivacyDialog(
           openHome = {
-            checkAndRequestPermission()
-            /*App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-            App.grant.resolve(true)*/
+            // checkAndRequestPermission() // 上架要求不能在这边请求权限，必须等需要用到权限时再请求
+            App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
+            App.grant.resolve(true)
           },
           openWebView = { url -> webUrl.value = url },
           closeApp = {
             App.grant.resolve(false)
             finish()
+            GlobalScope.launch {  // 如果不统一协议就把整个应用停了
+              delay(100)
+              exitProcess(0)
+            }
           }
         )
         PrivacyView(url = webUrl, showLoading)

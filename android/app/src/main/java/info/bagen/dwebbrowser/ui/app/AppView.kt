@@ -10,10 +10,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
@@ -72,7 +72,7 @@ private fun BoxScope.AppName(appViewState: AppViewState) {
   Text(
     text = name,
     maxLines = 2,
-    color = MaterialTheme.colors.onSurface,
+    color = MaterialTheme.colorScheme.onSurface,
     fontSize = 12.sp,
     fontWeight = FontWeight.Medium,
     textAlign = TextAlign.Center,

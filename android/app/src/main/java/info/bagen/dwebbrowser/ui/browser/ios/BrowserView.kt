@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -18,11 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -30,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -45,7 +44,6 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
-import info.bagen.dwebbrowser.ui.theme.Blue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -140,6 +138,7 @@ private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
     Column(modifier = Modifier
       .fillMaxWidth()
       .height(dimenMinBottomHeight)
+      .background(MaterialTheme.colorScheme.surfaceVariant)
       .align(Alignment.BottomCenter)
       .clickable { viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true)) }) {
       MiniTitle(viewModel)
@@ -148,7 +147,8 @@ private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
     AnimatedVisibility(
       visibleState = viewModel.uiState.showBottomBar,
       enter = bottomEnterAnimator,
-      exit = bottomExitAnimator
+      exit = bottomExitAnimator,
+      modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
       Column(modifier = Modifier.fillMaxWidth()) {
         BrowserViewSearch(viewModel)
@@ -169,14 +169,8 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
     state = viewModel.uiState.pagerStateNavigator,
     pageCount = viewModel.uiState.browserViewList.size,
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
-    modifier = Modifier.background(MaterialTheme.colors.primaryVariant)
   ) { currentPage ->
-    when (val item = viewModel.uiState.browserViewList[currentPage]) {
-      is BrowserWebView -> BrowserViewSearchWeb(viewModel, item)
-      is BrowserMainView -> BrowserViewSearchMain(
-        viewModel, item, viewModel.uiState.pagerStateNavigator
-      )
-    }
+    SearchBox(viewModel, viewModel.uiState.browserViewList[currentPage])
   }
 }
 
@@ -188,9 +182,8 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
     modifier = Modifier
       .fillMaxWidth()
       .height(dimenSearchHeight)
-      .background(MaterialTheme.colors.primaryVariant)
   ) {
-    val navigator = when(val item = viewModel.uiState.currentBrowserBaseView.value) {
+    val navigator = when (val item = viewModel.uiState.currentBrowserBaseView.value) {
       is BrowserWebView -> item.navigator
       else -> null
     }
@@ -205,10 +198,14 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       show = navigator?.canGoForward ?: false
     ) { navigator?.navigateForward() }
     NavigatorButton(
-      resId = navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
+      resId = R.drawable.ic_main_add, // navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
       resName = navigator?.let { R.string.browser_nav_add } ?: R.string.browser_nav_scan,
-      show = true
-    ) {  }
+      show = navigator?.let { true } ?: false
+    ) {
+      navigator?.let {
+        viewModel.handleIntent(BrowserIntent.AddNewMainView)
+      }
+    }
     NavigatorButton(
       resId = R.drawable.ic_main_multi, resName = R.string.browser_nav_multi, show = true
     ) {
@@ -217,7 +214,11 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
     NavigatorButton(
       resId = R.drawable.ic_main_option, resName = R.string.browser_nav_option, show = true
     ) {
-      scope.launch { viewModel.uiState.modalBottomSheetState.partialExpand() }
+      scope.launch {
+        viewModel.uiState.openBottomSheet.value = true
+        delay(8)
+        viewModel.uiState.modalBottomSheetState.partialExpand()
+      }
     }
   }
 }
@@ -235,7 +236,7 @@ private fun RowScope.NavigatorButton(
         modifier = Modifier.size(28.dp),
         imageVector = ImageVector.vectorResource(id = resId),//ImageBitmap.imageResource(id = resId),
         contentDescription = stringResource(id = resName),
-        tint = if (show) Blue else Color.LightGray
+        tint = if (show) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
       )
     }
   }
@@ -276,8 +277,6 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
 private fun SearchBox(
   viewModel: BrowserViewModel,
   baseView: BrowserBaseView,
-  showCamera: Boolean = false,
-  search: (String) -> Unit
 ) {
   Box(
     modifier = Modifier
@@ -291,7 +290,7 @@ private fun SearchBox(
       )
       .height(dimenSearchHeight)
       .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
-      .background(Color.White)
+      .background(MaterialTheme.colorScheme.background)
   ) {
     val inputText = when (baseView) {
       is BrowserWebView -> {
@@ -300,7 +299,7 @@ private fun SearchBox(
       }
       else -> mutableStateOf("")
     }
-    SearchTextField(viewModel, inputText, showCamera, baseView.focus, search)
+    SearchTextField(viewModel, inputText, baseView.focus)
     // SearchText(inputText, showCamera, baseView.focus, focusRequester)
   }
 }
@@ -319,7 +318,7 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
             .fillMaxWidth()
             .height(2.dp)
             .align(Alignment.BottomCenter),
-          color = Color.Blue
+          color = MaterialTheme.colorScheme.primary
         )
       }
       else -> {}
@@ -332,12 +331,10 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
 private fun SearchTextField(
   viewModel: BrowserViewModel,
   inputText: MutableState<String>,
-  showCamera: Boolean = false,
   focus: MutableState<Boolean>,
-  search: (String) -> Unit
 ) {
-  val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
+  val focusManager = LocalFocusManager.current
   val currentText = remember { mutableStateOf(if (focus.value) inputText.value else "") }
 
   BasicTextField(
@@ -364,24 +361,21 @@ private fun SearchTextField(
       },
     singleLine = true,
     textStyle = TextStyle.Default.copy(
-      color = MaterialTheme.colors.onPrimary, fontSize = dimenTextFieldFontSize
+      /*color = MaterialTheme.colorScheme.onPrimary, */fontSize = dimenTextFieldFontSize
     ),
-    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done/*ImeAction.Search*/),
+    keyboardOptions = KeyboardOptions(
+      imeAction = if (currentText.value.isUrlOrHost()) {
+        ImeAction.Search
+      } else {
+        ImeAction.Done
+      }
+    ),
     keyboardActions = KeyboardActions(
-      onDone = {
-        keyboardController?.hide()
-      },
+      onDone = { keyboardController?.hide() },
       onSearch = {
         if (currentText.value.isEmpty()) return@KeyboardActions
-        if (currentText.value != inputText.value) {
-          val requestUrl = Uri.parse(currentText.value)?.let { uri ->
-            if ((uri.scheme == "http" || uri.scheme == "https") && uri.host?.isNotEmpty() == true) {
-              currentText.value
-            } else null
-          } ?: "https://cn.bing.com/search?q=${currentText.value}"
-          search(requestUrl)
-        }
-        focusManager.clearFocus() // 取消聚焦，就会间接的隐藏键盘
+        viewModel.handleIntent(BrowserIntent.SearchWebView(currentText.value.toRequestUrl()))
+        focusManager.clearFocus()
       }
     )
   ) { innerTextField ->
@@ -394,7 +388,7 @@ private fun SearchTextField(
             Icon(
               imageVector = Icons.Outlined.Search,
               contentDescription = null,
-              tint = MaterialTheme.colors.onSecondary
+              tint = MaterialTheme.colorScheme.onSurface
             )
           }
           Box(
@@ -405,7 +399,7 @@ private fun SearchTextField(
             if ((focus.value && currentText.value.isEmpty()) || (!focus.value && inputText.value.isEmpty())) {
               Text(
                 text = stringResource(id = R.string.browser_search_hint),
-                color = MaterialTheme.colors.onSecondary,
+                //color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.align(Alignment.CenterStart),
                 fontSize = dimenTextFieldFontSize
               )
@@ -413,7 +407,7 @@ private fun SearchTextField(
               parseInputText(inputText.value)?.let { text ->
                 Text(
                   text = text,
-                  color = MaterialTheme.colors.onSecondary,
+                  //color = MaterialTheme.colorScheme.surfaceVariant,
                   modifier = Modifier.align(Alignment.Center),
                   fontSize = dimenTextFieldFontSize
                 )
@@ -425,22 +419,36 @@ private fun SearchTextField(
           if (currentText.value.isNotEmpty()) {
             Icon(imageVector = Icons.Outlined.Close,
               contentDescription = null,
-              tint = MaterialTheme.colors.onSecondary,
-              modifier = Modifier.size(25.dp).clickable {
-                currentText.value = ""
-                viewModel.handleIntent(BrowserIntent.UpdateInputText(""))
-                viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
-              })
-          }/* else if (showCamera) {
-            Icon(
-              imageVector = ImageVector.vectorResource(id = R.drawable.ic_photo_camera_24),
-              contentDescription = null,
-              tint = MaterialTheme.colors.onSecondary,
-            )
-          }*/
+              tint = MaterialTheme.colorScheme.onSurface,
+              modifier = Modifier
+                .size(25.dp)
+                .clickable {
+                  currentText.value = ""
+                  viewModel.handleIntent(BrowserIntent.UpdateInputText(""))
+                  viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
+                })
+          }
         }
       }
     }
+  }
+}
+
+private fun String.isUrlOrHost(): Boolean {
+  // 只判断 host(长度1~63,结尾是.然后带2~6个字符如[.com]，没有端口判断)：val regex = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}\$".toRegex()
+  // 以 http 或者 https 或者 ftp 打头，可以没有
+  // 字符串中只能包含数字和字母，同时可以存在-
+  // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
+  val regex =
+    "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
+  return regex.matches(this)
+}
+
+private fun String.toRequestUrl(): String {
+  return if (this.startsWith("http://") || this.startsWith("https://") || this.startsWith("ftp://")) {
+    this
+  } else {
+    "https://$this"
   }
 }
 
@@ -449,36 +457,38 @@ private fun SearchTextField(
  */
 private fun parseInputText(text: String, host: Boolean = true): String? {
   val uri = Uri.parse(text)
-  return if (uri.host == "cn.bing.com" && uri.path == "/search" && uri.getQueryParameter("q") != null) {
-    uri.getQueryParameter("q")
-  } else {
-    if (host) uri.host else text
-  }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun BrowserViewSearchMain(
-  viewModel: BrowserViewModel, browserMainView: BrowserMainView, pagerState: PagerState
-) {
-  SearchBox(viewModel, browserMainView, showCamera = true) { url ->
-    viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false)) // 隐藏搜索内容
-    viewModel.handleIntent(BrowserIntent.AddNewWebView(url))
-  }
-  // TODO 这边考虑加一层遮罩，颜色随着滑动而显示
-  if (!browserMainView.show.value) {
-//    Box(
-//      modifier = Modifier
-//        .fillMaxSize()
-//        .background(Color.White.copy(pagerState.currentPageOffsetFraction))
-//    )
-  }
-}
-
-@Composable
-private fun BrowserViewSearchWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
-  SearchBox(viewModel, browserWebView, showCamera = false) { url ->
-    viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false)) // 隐藏搜索内容
-    viewModel.handleIntent(BrowserIntent.SearchWebView(url))
+  return when {
+    uri.host == "cn.bing.com" && uri.path == "/search" && uri.getQueryParameter("q") != null -> {
+      uri.getQueryParameter("q")
+    }
+    uri.host == "m.baidu.com" && uri.path == "/s" && uri.getQueryParameter("word") != null -> {
+      uri.getQueryParameter("word")
+    }
+    uri.host == "www.baidu.com" && uri.path == "/s" && uri.getQueryParameter("wd") != null -> {
+      uri.getQueryParameter("wd")
+    }
+    uri.host == "www.google.com" && uri.path == "/search" && uri.getQueryParameter("q") != null -> {
+      uri.getQueryParameter("q")
+    }
+    uri.host == "wap.sogou.com" && uri.path == "/web/searchList.jsp" && uri.getQueryParameter("keyword") != null -> {
+      uri.getQueryParameter("keyword")
+    }
+    uri.host == "www.sogou.com" && uri.path == "/web" && uri.getQueryParameter("query") != null -> {
+      uri.getQueryParameter("query")
+    }
+    (uri.host == "m.so.com" || uri.host == "www.so.com") && uri.path == "/s" && uri.getQueryParameter(
+      "q"
+    ) != null -> {
+      uri.getQueryParameter("q")
+    }
+    else -> {
+      if (uri.host?.isNotEmpty() == true) {
+        uri.host
+      } else if (uri.getQueryParameter("text")?.isNotEmpty() == true) {
+        uri.getQueryParameter("text")
+      } else {
+        text
+      }
+    }
   }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +51,7 @@ internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: Brows
 
   Captureable(
     controller = browserMainView.controller,
-    onCaptured = { imageBitmap, throwable ->
+    onCaptured = { imageBitmap, _ ->
       imageBitmap?.let { bitmap ->
         viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
       }
@@ -130,7 +131,7 @@ private fun HotWebSiteView(viewModel: BrowserViewModel) {
     ) {
       items(initHotWebsite) {
         IconView(model = it.iconUrl, text = it.name) {
-          viewModel.handleIntent(BrowserIntent.AddNewWebView(it.webUrl))
+          viewModel.handleIntent(BrowserIntent.SearchWebView(it.webUrl))
         }
       }
     }
@@ -179,14 +180,14 @@ private fun HotSearchView(viewModel: BrowserViewModel) {
       empty = { ListLoadingView() }
     ) {
       Text(text = it.showHotText(), maxLines = 1, modifier = Modifier.clickable {
-        viewModel.handleIntent(BrowserIntent.AddNewWebView(it.webUrl))
+        viewModel.handleIntent(BrowserIntent.SearchWebView(it.webUrl))
       })
       Spacer(modifier = Modifier.height(16.dp))
     }
   }
 }
 
-public inline fun <T> Iterable<T>.forEachOrEmpty(empty: () -> Unit, action: (T) -> Unit): Unit {
+inline fun <T> Iterable<T>.forEachOrEmpty(empty: () -> Unit, action: (T) -> Unit): Unit {
   if (this.count() > 0) {
     for (element in this) action(element)
   } else {
@@ -206,61 +207,61 @@ private fun ListLoadingView() {
     Box(
       modifier = Modifier
         .size(320.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(100.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(230.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(120.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(200.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(260.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(320.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(100.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(230.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
     Box(
       modifier = Modifier
         .size(120.dp, 16.dp)
-        .background(Color.LightGray)
+        .background(MaterialTheme.colorScheme.outlineVariant)
     )
     Spacer(modifier = Modifier.height(16.dp))
   }

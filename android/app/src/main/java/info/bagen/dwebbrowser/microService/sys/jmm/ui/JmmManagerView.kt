@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,7 +92,7 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
           .align(Alignment.CenterHorizontally)
           .width(300.dp),
         colors = ButtonDefaults.buttonColors(
-          backgroundColor = Color.Gray, contentColor = Color.Black
+          containerColor = Color.Gray, contentColor = Color.Black
         ),
         shape = RoundedCornerShape(32.dp)
       ) {
@@ -104,7 +104,7 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
           .align(Alignment.CenterHorizontally)
           .width(300.dp),
         colors = ButtonDefaults.buttonColors(
-          backgroundColor = Color.Blue, contentColor = Color.White
+          containerColor = Color.Blue, contentColor = Color.White
         ),
         shape = RoundedCornerShape(32.dp)
       ) {
@@ -164,8 +164,8 @@ private fun BoxScope.DownLoadButton(jmmViewModel: JmmManagerViewModel) {
         LinearProgressIndicator(
           progress = 1.0f * downLoadInfo.dSize / downLoadInfo.size,
           modifier = Modifier.fillMaxSize(),
-          backgroundColor = Color.Gray,
-          color = Color.Blue
+          color = Color.Blue,
+          //backgroundColor = Color.Gray,
         )
       }
       Text(
@@ -259,7 +259,7 @@ private fun HeadContent(jmmMetadata: JmmMetadata) {
   }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CaptureListView(jmmMetadata: JmmMetadata) {
   jmmMetadata.images?.let { images ->
@@ -314,7 +314,6 @@ fun InstallItemDeleteView() {
       colors = SwitchDefaults.colors(
         checkedThumbColor = Color.White, // 圆圈的颜色
         checkedTrackColor = Color.Blue, // 打开的进度的颜色
-        checkedTrackAlpha = 1.0f,
         uncheckedThumbColor = Color.White, // 圆圈的颜色
         uncheckedTrackColor = Color.Gray, // 关闭的进度的颜色
       ),

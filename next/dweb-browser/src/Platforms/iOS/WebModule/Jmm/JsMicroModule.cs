@@ -19,7 +19,7 @@ public class JsMicroModule : MicroModule
         {
             if (toMM is JsMicroModule jmm)
             {
-                var pid = jmm._processId ?? throw new Exception($"JMM: {toMM.Mmid} no ready");
+                var pid = jmm._processId ?? throw new Exception(String.Format("JMM: {0} no ready", toMM.Mmid));
                 /**
                  * 向js模块发起连接
                  */
@@ -38,7 +38,7 @@ public class JsMicroModule : MicroModule
         });
     }
 
-    public JsMicroModule(JmmMetadata metadata): base(metadata.Id)
+    public JsMicroModule(JmmMetadata metadata) : base(metadata.Id)
     {
         Metadata = metadata;
     }
@@ -56,7 +56,7 @@ public class JsMicroModule : MicroModule
     private record DnsConnectEvent(Mmid mmid);
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        Console.WriteLine($"bootstrap... {Mmid}/{Metadata}");
+        Console.WriteLine(String.Format("bootstrap... {0}/{1}", Mmid, Metadata));
         var pid = Token.RandomCryptoString(8);
         _processId = pid;
         var streamIpc = new ReadableStreamIpc(this, "code-server");
@@ -66,23 +66,17 @@ public class JsMicroModule : MicroModule
                 ? new HttpResponseMessage(HttpStatusCode.Forbidden)
                 : await NativeFetchAsync(Metadata.Server.Root + request.Uri.AbsolutePath);
 
-            await ipc.PostMessageAsync(IpcResponse.FromResponse(request.ReqId, response, ipc));
+            await ipc.PostMessageAsync(await IpcResponse.FromResponse(request.ReqId, response, ipc));
         };
 
-        //streamIpc.BindIncomeStream(await (await NativeFetchAsync(
-        //        new HttpRequestMessage(
-        //            HttpMethod.Get, new Uri("file://js.sys.dweb/create-process")).Also(
-        //            it => { it.Content = new StreamContent(streamIpc.Stream.Stream); })
-        //        )).Content.ReadAsStreamAsync());
-        streamIpc.BindIncomeStream(await (await NativeFetchAsync(
-                new HttpRequestMessage(
-                    HttpMethod.Get,
-                    new Uri("file://js.sys.dweb/create-process")
-                        .AppendQuery("entry", Metadata.Server.Entry)
-                        .AppendQuery("process_id", pid))
-                .Also(
-                    it => { it.Content = new StreamContent(streamIpc.Stream.Stream); })
-                )).StreamAsync());
+        var createIpcReq = new HttpRequestMessage(
+                            HttpMethod.Post,
+                            new Uri("file://js.sys.dweb/create-process")
+                                .AppendQuery("entry", Metadata.Server.Entry)
+                                .AppendQuery("process_id", pid));
+        createIpcReq.Content = new StreamContent(streamIpc.ReadableStream.Stream);
+        var createIpcRes = await NativeFetchAsync(createIpcReq);
+        streamIpc.BindIncomeStream(await createIpcRes.StreamAsync());
 
         // 监听关闭事件
         _onCloseJsProcess += (_) => streamIpc.Close();
@@ -102,7 +96,7 @@ public class JsMicroModule : MicroModule
             {
                 var request = ipcRequest.ToRequest();
                 var response = await NativeFetchAsync(request);
-                var ipcResponse = IpcResponse.FromResponse(ipcRequest.ReqId, response, ipc);
+                var ipcResponse = await IpcResponse.FromResponse(ipcRequest.ReqId, response, ipc);
                 await ipc.PostMessageAsync(ipcResponse);
             }
             catch (Exception ex)
@@ -146,7 +140,7 @@ public class JsMicroModule : MicroModule
 
                     var originIpc = new Native2JsIpc(portId, this).Also(it =>
                     {
-                        BeConnectAsync(it, new HttpRequestMessage(HttpMethod.Get, $"file://{Mmid}/event/dns/connect"));
+                        BeConnectAsync(it, new HttpRequestMessage(HttpMethod.Get, String.Format("file://{0}/event/dns/connect", Mmid)));
                     });
 
                     /**
@@ -163,11 +157,6 @@ public class JsMicroModule : MicroModule
                 });
             }
         };
-    }
-
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    {
-
     }
 
     private event Signal? _onCloseJsProcess;

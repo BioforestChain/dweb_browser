@@ -16,8 +16,8 @@ public static class EncodingConverter
         encoding switch
         {
             IPC_DATA_ENCODING.BINARY => (byte[])data,
-            IPC_DATA_ENCODING.BASE64 => ((string)data).FromBase64(),
-            IPC_DATA_ENCODING.UTF8 => ((string)data).FromUtf8(),
+            IPC_DATA_ENCODING.BASE64 => ((string)data).ToBase64ByteArray(),
+            IPC_DATA_ENCODING.UTF8 => ((string)data).ToUtf8ByteArray(),
             _ => throw new Exception("unknown encoding"),
         };
 
@@ -35,7 +35,7 @@ public static class EncodingConverter
         encoding switch
         {
             IPC_DATA_ENCODING.BINARY => ((byte[])data).ToUtf8(),
-            IPC_DATA_ENCODING.BASE64 => ((string)data).FromBase64().ToUtf8(),
+            IPC_DATA_ENCODING.BASE64 => ((string)data).ToBase64ByteArray().ToUtf8(),
             IPC_DATA_ENCODING.UTF8 => (string)data,
             _ => throw new Exception("unknown encoding"),
         };

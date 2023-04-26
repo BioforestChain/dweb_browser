@@ -1,9 +1,11 @@
-﻿using DwebBrowser.MicroService.Sys.Http.Net;
+﻿using DwebBrowser.Helper;
 
 namespace DwebBrowser.MicroService.Core;
 
 public abstract class NativeMicroModule : MicroModule
 {
+    protected HttpRouter HttpRouter = new();
+
     static NativeMicroModule()
     {
         NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
@@ -29,10 +31,10 @@ public abstract class NativeMicroModule : MicroModule
         {
             clientIpc.OnRequest += async (ipcRequest, _, _) =>
             {
-                Console.WriteLine($"NMM/Handler {ipcRequest.Url}");
+                Console.WriteLine(String.Format("NMM/Handler {0}", ipcRequest.Url));
                 var request = ipcRequest.ToRequest();
                 var response = await HttpRouter.RoutesWithContext(request, clientIpc);
-                await clientIpc.PostMessageAsync(IpcResponse.FromResponse(ipcRequest.ReqId, response, clientIpc));
+                await clientIpc.PostMessageAsync(await IpcResponse.FromResponse(ipcRequest.ReqId, response, clientIpc));
             };
         };
     }
@@ -90,38 +92,30 @@ public abstract class NativeMicroModule : MicroModule
         static HttpResponseMessage AsJson(object result) =>
             new HttpResponseMessage(HttpStatusCode.OK).Also(res =>
             {
-                // 设置Json序列化选项
-                var options = new JsonSerializerOptions
+                Console.WriteLine("AsJson:" + result);
+                var jsonString = result switch
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true
+                    IToJsonAble toJsonAble => toJsonAble.ToJson(),
+                    _ => JsonSerializer.Serialize(result)
                 };
-                res.Content = new StringContent(JsonSerializer.Serialize(result, options));
-                res.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+                res.Content = new StringContent(jsonString);
+                res.Content.Headers.ContentType = new("application/json");
             });
     }
 
-    //public async Task<HttpResponseMessage> DefineHandler(HttpRequestMessage request, Ipc? ipc = null)
-    //{
-    //    switch (await (HttpRouter.RouterHandler(request, ipc)))
-    //    {
-    //        case null:
-    //            return new HttpResponseMessage(HttpStatusCode.OK);
-    //        case HttpResponseMessage response:
-    //            return response;
-    //        case byte[] result:
-    //            return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-    //            {
-    //                it.Content = new StreamContent(new MemoryStream().Let(s =>
-    //                {
-    //                    s.Write(result, 0, result.Length);
-    //                    return s;
-    //                }));
-    //            });
-    //        case Stream stream:
-    //            return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StreamContent(stream));
-    //        default:
-    //            return new HttpResponseMessage(HttpStatusCode.OK);
-    //    }
-    //}
+
+    /// <summary>
+    /// 在关闭后，路由会被完全清空，释放
+    /// </summary>
+    /// <returns></returns>
+    protected new Task _afterShutdownAsync()
+    {
+        HttpRouter.ClearRoutes();
+        return base._afterShutdownAsync();
+    }
+}
+
+public interface IToJsonAble
+{
+    public string ToJson();
 }

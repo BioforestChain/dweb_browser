@@ -2413,7 +2413,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
 }
 var observeFactory = (url) => {
   const mmid = url.searchParams.get("mmid");
-  console.log("cotDemo#url.mmid=>", mmid);
+  console.log("cotDemo#observeFactory url.mmid=>", mmid);
   if (mmid === null) {
     throw new Error("observe require mmid");
   }
@@ -2423,8 +2423,7 @@ var observeFactory = (url) => {
     result.ipc.resolve(jsProcess.connect(mmid2));
     result.ipc.promise.then((ipc2) => {
       ipc2.onEvent((event) => {
-        console.log("on-event", event);
-        console.log("cotDemo#event.name=>{%s} remote.mmid=>{%s}", event.name, ipc2.remote.mmid);
+        console.log("cotDemo#observeFactory event.name=>{%s} remote.mmid=>{%s}", event.name, ipc2.remote.mmid);
         if (event.name !== "observe" /* State */ && event.name !== "observeUpdateProgress" /* UpdateProgress */) {
           return;
         }

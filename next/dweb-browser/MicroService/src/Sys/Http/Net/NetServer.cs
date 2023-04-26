@@ -64,35 +64,36 @@ public static class NetServer
     /// <returns></returns>
     public static IServerInfo<HttpListener> HttpCreateServer(ListenOptions listenOptions, HttpHandler handler)
     {
-        var host = $"{listenOptions.Hostname}:{listenOptions.Port}";
-        var origin = $"http://{host}/";
+        var host = String.Format("{0}:{1}", listenOptions.Hostname, listenOptions.Port);
+        var origin = String.Format("http://{0}/", host);
 
         var listener = new HttpListener();
         listener.Prefixes.Add(origin);
         listener.Start();
-
-        //listener.BeginGetContext((ar) =>
-        //{
-        //    var listener = (HttpListener?)ar.AsyncState;
-
-        //    if (listener is not null)
-        //    {
-        //        var context = listener.EndGetContext(ar);
-        //        handler(context.Request.ToHttpRequestMessage());
-        //    }
-        //}, listener);
 
         Task.Run(async () =>
         {
             while (true)
             {
                 var context = await listener.GetContextAsync();
+                _ = Task.Run(async () =>
+                {
+                    var request = context.Request;
+                    var response = context.Response;
+                    try
+                    {
 
-                var request = context.Request;
-                var response = context.Response;
+                        var result = await handler(request.ToHttpRequestMessage());
+                        (await result.ToHttpListenerResponse(response)).Close();
+                    }
+                    catch (Exception e)
+                    {
+                        response.OutputStream.Write(e.Message.ToUtf8ByteArray());
+                        response.StatusCode = 502;
+                        response.Close();
+                    }
+                });
 
-                var result = await handler(request.ToHttpRequestMessage());
-                result.ToHttpListenerResponse(response).Close();
             }
         });
 

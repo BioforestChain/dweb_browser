@@ -16,7 +16,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
     {
         if (await _runningStateLock.WaitPromiseAsync())
         {
-            throw new Exception($"module {Mmid} already running");
+            throw new Exception(String.Format("module {0} already running", Mmid));
         }
 
         _runningStateLock = new PromiseOut<bool>();
@@ -49,7 +49,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
     {
         if (!await _runningStateLock.WaitPromiseAsync())
         {
-            throw new Exception($"module {Mmid} already shutdown");
+            throw new Exception(String.Format("module {0} already shutdown", Mmid));
         }
 
         _runningStateLock = new PromiseOut<bool>();
@@ -59,7 +59,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
         _ipcSet.Clear();
     }
 
-    protected abstract Task _shutdownAsync();
+    protected virtual async Task _shutdownAsync() { }
 
     protected async Task _afterShutdownAsync()
     {
@@ -104,12 +104,18 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
      * 尝试连接到指定对象
      * </summary>
      */
-    public Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null) =>
-        _bootstrapContext!.Dns.Let(it =>
-        {
-            it.BootstrapAsync(mmid);
-            return it.ConnectAsync(mmid);
-        });
+    //public Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null) =>
+    //    _bootstrapContext!.Dns.Let(it =>
+    //    {
+    //        it.BootstrapAsync(mmid);
+    //        return it.ConnectAsync(mmid);
+    //    });
+    public async Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null)
+    {
+        await _bootstrapContext!.Dns.BootstrapAsync(mmid);
+        return await _bootstrapContext!.Dns.ConnectAsync(mmid);
+    }
+        
 
     /**
      * <summary>
@@ -131,7 +137,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
         return (OnConnect?.Emit(ipc, reason)).ForAwait();
     }
 
-    protected abstract Task _onActivityAsync(IpcEvent Event, Ipc ipc);
+    protected virtual async Task _onActivityAsync(IpcEvent Event, Ipc ipc) { }
 
 
 }

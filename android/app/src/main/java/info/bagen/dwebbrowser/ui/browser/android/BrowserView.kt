@@ -5,7 +5,10 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.*
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,13 +39,15 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
 @Composable
 private fun BrowserView(viewModel: BrowserViewModel) {
   val scaffoldState = rememberBottomSheetScaffoldState()
-  
-  BottomSheetScaffold(sheetContent = {
-    Box(modifier = Modifier.fillMaxSize()) {
-      Text(text = "我是控制项", modifier = Modifier.align(Alignment.Center))
-    }
-  },
-  scaffoldState = scaffoldState) {
+
+  BottomSheetScaffold(
+    sheetContent = {
+      Box(modifier = Modifier.fillMaxSize()) {
+        Text(text = "我是控制项", modifier = Modifier.align(Alignment.Center))
+      }
+    },
+    scaffoldState = scaffoldState
+  ) {
     Box(modifier = Modifier.fillMaxSize()) {
       Text(text = "我是内容", modifier = Modifier.align(Alignment.Center))
     }

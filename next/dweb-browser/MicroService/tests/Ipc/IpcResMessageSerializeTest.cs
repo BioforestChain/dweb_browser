@@ -9,8 +9,8 @@ public class IpcResMessageSerializeTest
             1,
             200,
             new Dictionary<string, string>() { { "Content-Type", "text/plain" } },
-            new SMetaBody(
-                SMetaBody.IPC_META_BODY_TYPE.STREAM_ID,
+            new MetaBody(
+                MetaBody.IPC_META_BODY_TYPE.STREAM_ID,
                 0,
                 "data"
                 ));
@@ -19,8 +19,8 @@ public class IpcResMessageSerializeTest
             1,
             404,
             new Dictionary<string, string>() { { "Content-Type", "text/plain" } },
-            new SMetaBody(
-                SMetaBody.IPC_META_BODY_TYPE.STREAM_ID,
+            new MetaBody(
+                MetaBody.IPC_META_BODY_TYPE.STREAM_ID,
                 0,
                 "data",
                 "streamId",
@@ -53,6 +53,7 @@ public class IpcResMessageSerializeTest
     [Fact]
     public void ToJson_StreamIdAndReceiverUidIsNull_ReturnSuccess()
     {
+        Debug.WriteLine(_ipcResMessageNull.ToJson());
         Assert.IsType<string>(_ipcResMessageNull.ToJson());
     }
 
@@ -82,15 +83,15 @@ public class IpcResMessageSerializeTest
             ");
 
         Debug.WriteLine(ipcResMessage);
-        Debug.WriteLine($"type: {ipcResMessage.Type.ToString()}");
-        Debug.WriteLine($"req_id: {ipcResMessage.ReqId}");
-        Debug.WriteLine($"method: {ipcResMessage.StatusCode}");
-        Debug.WriteLine($"headers: {ipcResMessage.Headers}");
+        Debug.WriteLine(String.Format("type: {0}", ipcResMessage.Type.ToString()));
+        Debug.WriteLine(String.Format("req_id: {0}", ipcResMessage.ReqId));
+        Debug.WriteLine(String.Format("method: {0}", ipcResMessage.StatusCode));
+        Debug.WriteLine(String.Format("headers: {0}", ipcResMessage.Headers));
         foreach (var entry in ipcResMessage.Headers)
         {
-            Debug.WriteLine($"{entry.Key} : {entry.Value}");
+            Debug.WriteLine(String.Format("{0} : {1}", entry.Key, entry.Value));
         }
-        Debug.WriteLine($"metaBody: {ipcResMessage.MetaBody}");
+        Debug.WriteLine(String.Format("metaBody: {0}", ipcResMessage.MetaBody));
 
         Assert.IsType<IpcResMessage>(ipcResMessage);
     }

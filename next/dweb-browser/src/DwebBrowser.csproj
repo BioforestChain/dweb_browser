@@ -1,10 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0-android;net7.0-ios;net7.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net7.0-windows10.0.19041.0</TargetFrameworks>
-		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-		<!-- <TargetFrameworks>$(TargetFrameworks);net7.0-tizen</TargetFrameworks> -->
+		<TargetFrameworks>net7.0-ios</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>DwebBrowser</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -60,25 +57,6 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
-	  <None Remove="Shared\Jmm\" />
-	  <None Remove="Platforms\iOS\IpcWeb\" />
-	  <None Remove="Platforms\iOS\WebModule\Js\" />
-	  <None Remove="Resources\Assets\" />
-	  <None Remove="Platforms\iOS\WebModule\User\" />
-	  <None Remove="Resources\Assets\bundle\" />
-	  <None Remove="Resources\Assets\bundle\jmm\index.html" />
-	  <None Remove="Resources\Assets\bundle\jmm\" />
-	  <None Remove="Resources\Assets\bundle\js-process\index.html" />
-	  <None Remove="Resources\Assets\bundle\js-process\openNativeWindow.preload-0848682a.js" />
-	  <None Remove="Resources\Assets\bundle\js-process\" />
-	  <None Remove="Resources\Assets\bundle\multi-webview\index.html" />
-	  <None Remove="Resources\Assets\bundle\multi-webview\" />
-	  <None Remove="Resources\Assets\bundle\browser.worker.js" />
-	  <None Remove="Resources\Assets\bundle\cot.worker.js" />
-	  <None Remove="Resources\Assets\bundle\cotDemo.worker.js" />
-	  <None Remove="Resources\Assets\bundle\desktop.worker.js" />
-	  <None Remove="Resources\Assets\bundle\js-process.worker.js" />
-	  <None Remove="Resources\Assets\bundle\toy.worker.js" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -88,25 +66,12 @@
 		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Platforms\iOS\IpcWeb\" />
 	  <Folder Include="Platforms\iOS\WebModule\Js\" />
 	  <Folder Include="Resources\Assets\" />
 	  <Folder Include="Platforms\iOS\WebModule\User\" />
 	  <Folder Include="Resources\Assets\bundle\" />
-	  <Folder Include="Resources\Assets\bundle\jmm\" />
-	  <Folder Include="Resources\Assets\bundle\js-process\" />
-	  <Folder Include="Resources\Assets\bundle\multi-webview\" />
 	</ItemGroup>
 	<ItemGroup>
-	  <BundleResource Include="Resources\Assets\bundle\jmm\index.html" />
-	  <BundleResource Include="Resources\Assets\bundle\js-process\index.html" />
-	  <BundleResource Include="Resources\Assets\bundle\js-process\openNativeWindow.preload-0848682a.js" />
-	  <BundleResource Include="Resources\Assets\bundle\multi-webview\index.html" />
-	  <BundleResource Include="Resources\Assets\bundle\browser.worker.js" />
-	  <BundleResource Include="Resources\Assets\bundle\cot.worker.js" />
-	  <BundleResource Include="Resources\Assets\bundle\cotDemo.worker.js" />
-	  <BundleResource Include="Resources\Assets\bundle\desktop.worker.js" />
-	  <BundleResource Include="Resources\Assets\bundle\js-process.worker.js" />
-	  <BundleResource Include="Resources\Assets\bundle\toy.worker.js" />
+	  <BundleResource Include="Resources\Assets\bundle\**\*.*" />
 	</ItemGroup>
 </Project>

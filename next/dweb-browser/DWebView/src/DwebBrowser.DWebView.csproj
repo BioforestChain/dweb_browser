@@ -18,4 +18,21 @@
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.0.1" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="IpcWeb\IpcWebMessageCache.cs">
+      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+    </Compile>
+    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="IpcWeb\MessagePortIpc.cs">
+      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+    </Compile>
+    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="IpcWeb\Native2JsIpc.cs">
+      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="IpcWeb\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="IpcWeb\" />
+  </ItemGroup>
 </Project>

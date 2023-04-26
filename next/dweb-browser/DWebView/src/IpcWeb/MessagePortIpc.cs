@@ -61,7 +61,7 @@ public class MessagePortIpc : Ipc
     private IPC_ROLE _role_type { get; init; }
     public override MicroModuleInfo Remote { get; set; }
 
-    public override string Role { get => Enum.GetName(_role_type)!; }
+    public override string Role { get => System.Enum.GetName(_role_type)!; }
 
     public MessagePortIpc(MessagePort port, Ipc.MicroModuleInfo remote, IPC_ROLE role_type)
     {
@@ -85,19 +85,19 @@ public class MessagePortIpc : Ipc
                             await Port.PostMessage("pong");
                             break;
                         case "pong":
-                            Console.WriteLine($"PONG/{ipc}");
+                            Console.WriteLine(String.Format("PONG/{0}", ipc));
                             break;
                         case IpcMessage ipcMessage:
-                            Console.WriteLine($"ON-MESSAGE/{ipc} {message}");
+                            Console.WriteLine(String.Format("ON-MESSAGE/{0} {1}", ipc, message));
                             await _OnMessageEmit(ipcMessage, ipc);
                             break;
                     }
                     break;
                 case NSNumber data:
-                    Console.WriteLine($"OnWebMessage is number: {data}");
+                    Console.WriteLine(String.Format("OnWebMessage is number: {0}", data));
                     break;
                 default:
-                    throw new Exception($"unknown message: {message}");
+                    throw new Exception(String.Format("unknown message: {0}", message));
             }
         };
 
@@ -120,11 +120,8 @@ public class MessagePortIpc : Ipc
             case IpcResponse ipcResponse:
                 message = ipcResponse.LazyIpcResMessage.ToJson();
                 break;
-            case IpcStreamData ipcStreamData:
-                message = ipcStreamData.ToJson();
-                break;
             default:
-                message = JsonSerializer.Serialize(data);
+                message = data.ToJson();
                 break;
         }
 

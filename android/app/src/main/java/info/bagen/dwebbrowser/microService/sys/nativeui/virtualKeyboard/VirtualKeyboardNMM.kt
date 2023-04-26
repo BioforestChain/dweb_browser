@@ -6,6 +6,7 @@ import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.sys.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.sys.nativeui.helper.fromMultiWebView
 import info.bagen.dwebbrowser.microService.sys.nativeui.helper.QueryHelper
+import info.bagen.dwebbrowser.microService.sys.nativeui.helper.debugNativeUi
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -14,14 +15,14 @@ class VirtualKeyboardNMM : NativeMicroModule("virtual-keyboard.nativeui.sys.dweb
 
     private fun getController(mmid: Mmid) =
         NativeUiController.fromMultiWebView(mmid).virtualKeyboard
-
-
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         QueryHelper.init()
         apiRouting = routes(
             /** 获取状态 */
             "/getState" bind Method.GET to defineHandler { _, ipc ->
-                return@defineHandler getController(ipc.remote.mmid)
+                val controller = getController(ipc.remote.mmid);
+                debugNativeUi("virtual-keyboard getState",controller.overlayState.value)
+                return@defineHandler controller
             },
             /** 获取状态 */
             "/setState" bind Method.GET to defineHandler { request, ipc ->
@@ -44,6 +45,10 @@ class VirtualKeyboardNMM : NativeMicroModule("virtual-keyboard.nativeui.sys.dweb
             },
         )
     }
+//    override suspend fun observerState(event: IpcEvent, ipc: Ipc) {
+//        super.observerState(event, ipc)
+//        debugNativeUi("virtual-keyboard observerState","name:${event.name} mmid:${ipc.remote.mmid}")
+//    }
 
     override suspend fun _shutdown() {
     }

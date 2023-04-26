@@ -114,15 +114,5 @@ public class JmmNMM : NativeMicroModule
     public record InstallingAppInfo(float Progress, JmmMetadata JmmMetadata);
 
     private Dictionary<Mmid, InstallingAppInfo> _installingApps = new();
-
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    {
-
-    }
-
-    protected override async Task _shutdownAsync()
-    {
-
-    }
 }
 

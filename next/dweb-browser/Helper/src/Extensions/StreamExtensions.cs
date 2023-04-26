@@ -1,3 +1,7 @@
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Xml.Linq;
+
 namespace DwebBrowser.Helper;
 
 public static class StreamExtensions
@@ -12,19 +16,18 @@ public static class StreamExtensions
         return bytes;
     }
 
-    public static string ToBase64(this byte[] self) =>
-        Convert.ToBase64String(self);
-
     public static BinaryReader GetBinaryReader(this Stream self) =>
         new BinaryReader(self);
 
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<int> ReadIntAsync(this Stream self)
     {
         var buffer = new byte[4];
         await self.ReadExactlyAsync(buffer);
         return buffer.ToInt();
     }
+
     public static async Task<byte[]> ReadBytesAsync(this Stream self, int size)
     {
         var buffer = new byte[size];
@@ -38,6 +41,20 @@ public static class StreamExtensions
         {
             Console.WriteLine(e);
             throw e;
+        }
+    }
+    public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, int usize = 4096)
+    {
+        var bytes = new byte[usize]!;
+        while (true)
+        {
+            var read = await stream.ReadAtLeastAsync(bytes, 1, false);
+            if (read == 0)
+            {
+                /// 流完成流
+                yield break;
+            }
+            yield return bytes.AsSpan(0, read).ToArray();
         }
     }
 }

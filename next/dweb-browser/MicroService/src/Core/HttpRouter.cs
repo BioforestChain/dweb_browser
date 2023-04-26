@@ -1,21 +1,24 @@
 ﻿
-namespace DwebBrowser.MicroService.Sys.Http.Net;
+using static DwebBrowser.MicroService.Sys.Http.Gateway;
 
-public static class HttpRouter
+namespace DwebBrowser.MicroService.Core;
+
+public class HttpRouter
 {
-    private static readonly Dictionary<string, Dictionary<string, RouterHandlerType>> _routes = new();
+    private readonly Dictionary<RouteConfig, RouterHandlerType> _routes = new();
 
-    public static void AddRoute(string method, string path, RouterHandlerType handler)
+    public void AddRoute(string method, string path, RouterHandlerType handler) => AddRoute(new RouteConfig(path, IpcMethod.From(method), Sys.Http.MatchMode.FULL), handler);
+
+    public void AddRoute(RouteConfig config, RouterHandlerType handler)
     {
-        if (!_routes.ContainsKey(method))
-        {
-            _routes[method] = new Dictionary<string, RouterHandlerType>();
-        }
-
-        _routes[method][path] = handler;
+        _routes[config] = handler;
+    }
+    public void ClearRoutes()
+    {
+        _routes.Clear();
     }
 
-    public static async Task RouterHandler(HttpListenerContext context, Ipc? ipc = null)
+    public async Task RouterHandler(HttpListenerContext context, Ipc? ipc = null)
     {
         var request = context.Request;
         var response = context.Response;
@@ -27,7 +30,7 @@ public static class HttpRouter
             switch (result)
             {
                 case HttpResponseMessage res:
-                    res.ToHttpListenerResponse(response).Close();
+                    (await res.ToHttpListenerResponse(response)).Close();
                     break;
                 case byte[] byteResult:
                     response.StatusCode = (int)HttpStatusCode.OK;
@@ -54,22 +57,21 @@ public static class HttpRouter
         }
     }
 
-    public static async Task<object?> RouterHandler(HttpRequestMessage request, Ipc? ipc)
+    public async Task<object?> RouterHandler(HttpRequestMessage request, Ipc? ipc)
     {
-        if (_routes.TryGetValue(request.Method.Method, out var methodRoutes) && request.RequestUri is not null &&
-           methodRoutes.TryGetValue(request.RequestUri.AbsolutePath, out var handler))
+        foreach (var (route, handler) in _routes)
         {
-            var res = await handler(request, ipc);
-            Console.WriteLine($"res: {res}");
-            return res;
+            if (route.IsMatch(request))
+            {
+                var res = await handler(request, ipc);
+                Console.WriteLine(String.Format("res: {0}", res));
+                return res;
+            }
         }
-        else
-        {
-            return null;
-        }
+        return null;
     }
 
-    public static async Task<HttpResponseMessage> RoutesWithContext(HttpRequestMessage request, Ipc ipc)
+    public async Task<HttpResponseMessage> RoutesWithContext(HttpRequestMessage request, Ipc ipc)
     {
         object? res;
         return (res = await RouterHandler(request, ipc)) switch

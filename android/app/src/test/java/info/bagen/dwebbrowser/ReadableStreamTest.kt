@@ -74,7 +74,7 @@ class ReadableStreamTest : AsyncBase() {
         req_ipc.bindIncomeStream(res_ipc.stream, "to-res")
         for (i in 1..10) {
             println("开始发送 $i")
-            val req = Request(Method.GET, "").body("hi-$i")
+            val req = Request(Method.POST, "").body("hi-$i")
             val res = req_ipc.request(req)
             assertEquals(res.text(), "ECHO:" + req.bodyString())
         }

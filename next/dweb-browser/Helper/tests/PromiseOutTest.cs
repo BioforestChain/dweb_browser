@@ -1,8 +1,8 @@
 ﻿namespace DwebBrowser.HelperTests;
 
-public class PromiseOutTest 
+public class PromiseOutTest
 {
-    public PromiseOutTest(ITestOutputHelper output) 
+    public PromiseOutTest(ITestOutputHelper output)
     { }
 
     [Fact]
@@ -11,28 +11,55 @@ public class PromiseOutTest
     {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        
 
-        Debug.WriteLine($"{stopwatch.Elapsed} start");
+
+        Debug.WriteLine(String.Format("{0} start", stopwatch.Elapsed));
         var startTime = DateTime.Now;
-        Debug.WriteLine($"{stopwatch.Elapsed} start: {startTime}");
+        Debug.WriteLine(String.Format("{0} start: {1}", stopwatch.Elapsed, startTime));
         var po = new PromiseOut<bool>();
-        Debug.WriteLine($"{stopwatch.Elapsed} Task start: {DateTime.Now}");
+        Debug.WriteLine(String.Format("{0} Task start: {1}", stopwatch.Elapsed, DateTime.Now));
         _ = Task.Run(() => SleepResolve(1000, po));
-        Debug.WriteLine($"{stopwatch.Elapsed} Task end: {DateTime.Now}");
+        Debug.WriteLine(String.Format("{0} Task end: {1}", stopwatch.Elapsed, DateTime.Now));
         var b = await po.WaitPromiseAsync();
-        Debug.WriteLine($"{stopwatch.Elapsed} resolve value: {b.ToString()}");
+        Debug.WriteLine(String.Format("{0} resolve value: {1}", stopwatch.Elapsed, b.ToString()));
         var endTime = DateTime.Now;
-        Debug.WriteLine($"{stopwatch.Elapsed} end: {endTime}");
+        Debug.WriteLine(String.Format("{0} end: {1}", stopwatch.Elapsed, endTime));
         Assert.Equal(1, (endTime - startTime).Seconds);
+    }
+    [Fact]
+    public async void MutilWait()
+    {
+        var po = new PromiseOut<object?>();
+        var acc = 0;
+        _ = Task.Run(async () =>
+        {
+            await po.WaitPromiseAsync();
+            acc += 1;
+            Debug.WriteLine(1);
+        });
+        _ = Task.Run(async () =>
+        {
+            await po.WaitPromiseAsync();
+            acc += 2;
+            Debug.WriteLine(2);
+        });
+        await Task.Delay(1000);
+
+
+        Debug.WriteLine(0);
+        Assert.Equal(0, acc);
+
+        po.Resolve(null);
+
+        Debug.WriteLine(3);
     }
 
     internal static void SleepResolve(int s, PromiseOut<bool> po)
     {
-        Debug.WriteLine($"sleepAsync start: {DateTime.Now}");
+        Debug.WriteLine(String.Format("sleepAsync start: {0}", DateTime.Now));
         Thread.Sleep(s);
         po.Resolve(true);
-        Debug.WriteLine($"sleepAsync end: {DateTime.Now}");
+        Debug.WriteLine(String.Format("sleepAsync end: {0}", DateTime.Now));
     }
 
     [Fact]
@@ -80,9 +107,9 @@ public class PromiseOutTest
 
     internal static async void SleepWait(PromiseOut<bool> po, int sort)
     {
-        Debug.WriteLine($"start wait {sort}");
+        Debug.WriteLine(String.Format("start wait {0}", sort));
         await po.WaitPromiseAsync();
-        Debug.WriteLine($"resolve {sort}");
+        Debug.WriteLine(String.Format("resolve {0}", sort));
     }
 
     [Fact]
@@ -111,7 +138,7 @@ public class PromiseOutTest
         while (Interlocked.Read(ref result2) < times)
         {
             await Task.Delay(200);
-            Debug.WriteLine($"times result1: {Interlocked.Read(ref result1)} result2: {Interlocked.Read(ref result2)}");
+            Debug.WriteLine(String.Format("times result1: {0} result2: {1}", Interlocked.Read(ref result1), Interlocked.Read(ref result2)));
         }
 
         Assert.Equal(Interlocked.Read(ref result1), Interlocked.Read(ref result2));

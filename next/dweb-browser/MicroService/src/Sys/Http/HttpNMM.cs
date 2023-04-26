@@ -39,6 +39,7 @@ public class HttpNMM : NativeMicroModule
         if (request.RequestUri?.AbsolutePath.StartsWith(X_DWEB_HREF) is true)
         {
             request.RequestUri = new Uri(request.RequestUri.AbsolutePath.Substring(X_DWEB_HREF.Length));
+            request.Headers.TryAddWithoutValidation("X-Dweb-Host", request.RequestUri.Host);
         }
 
 
@@ -58,7 +59,7 @@ public class HttpNMM : NativeMicroModule
                     header_x_dweb_host = entry.Value.FirstOrDefault();
                     break;
                 case "User-Agent":
-                    header_user_agent_host = _dwebHostRegex(entry.Value.FirstOrDefault());
+                    header_user_agent_host = _dwebHostRegex(string.Join(" ", entry.Value));
                     break;
             }
         }
@@ -122,19 +123,25 @@ public class HttpNMM : NativeMicroModule
 
         public Uri BuildPublicUrl() => new Uri(Public_Origin).AppendQuery("X-Dweb-Host", Host);
         public Uri BuildInternalUrl() => new(Internal_Origin);
+        /// <summary>
+        /// 基于BuildInternalUrl拼接出来的链接，不基于Query，所以适用性更好，可以用于base-uri
+        /// </summary>
+        /// <param name="internalHref"></param>
+        /// <returns></returns>
+        public string BuildPublicDwebHref(Uri internalHref) => Public_Origin + X_DWEB_HREF + internalHref.AbsoluteUri;
     }
 
     private ServerUrlInfo _getServerUrlInfo(Ipc ipc, DwebHttpServerOptions options)
     {
         var mmid = ipc.Remote.Mmid;
         var subdomainPrefix = options.subdomain == "" || options.subdomain.EndsWith(".")
-            ? options.subdomain : $"{options.subdomain}";
+            ? options.subdomain : options.subdomain + ".";
 
         var port = options.port <= 0 || options.port >= 6556
-            ? throw new Exception($"invalid dweb http port: {options.port}") : options.port;
+            ? throw new Exception(String.Format("invalid dweb http port: {0}", options.port)) : options.port;
 
-        var host = $"{subdomainPrefix}{mmid}:{port}";
-        var internal_origin = $"https://{host}";
+        var host = String.Format("{0}{1}:{2}", subdomainPrefix, mmid, port);
+        var internal_origin = String.Format("https://{0}", host);
         var public_origin = DwebServer.Origin;
 
         return new ServerUrlInfo(host, internal_origin, public_origin);
@@ -186,6 +193,11 @@ public class HttpNMM : NativeMicroModule
                 request.QueryValidate<string>("subdomain", false) ?? "");
             return _close(ipc, dwebServerOptions);
         });
+        /// HTTP-GET 请求，但是不是通过网关，直接走IPC
+        HttpRouter.AddRoute(new Gateway.RouteConfig(X_DWEB_HREF, IpcMethod.Get, MatchMode.PREFIX), async (request, ipc) =>
+        {
+            return await _httpHandler(request);
+        });
     }
 
     protected override Task _shutdownAsync() => Task.Run(() => DwebServer.CloseServer());
@@ -198,7 +210,7 @@ public class HttpNMM : NativeMicroModule
         var serverUrlInfo = _getServerUrlInfo(ipc, options);
         if (_gatewayMap.ContainsKey(serverUrlInfo.Host))
         {
-            throw new Exception($"already in listen: {serverUrlInfo.Internal_Origin}");
+            throw new Exception(String.Format("already in listen: {0}", serverUrlInfo.Internal_Origin));
         }
 
         var listener = new Gateway.PortListener(ipc, serverUrlInfo.Host);
@@ -228,10 +240,10 @@ public class HttpNMM : NativeMicroModule
         HttpRequestMessage request,
         List<Gateway.RouteConfig> routes)
     {
-        var gateway = _tokenMap.GetValueOrDefault(token) ?? throw new Exception($"no gateway with token: {token}");
-        Console.WriteLine($"LISTEN host: {gateway.UrlInfo.Host}, token: {token}");
+        var gateway = _tokenMap.GetValueOrDefault(token) ?? throw new Exception(String.Format("no gateway with token: {0}", token));
+        Console.WriteLine(String.Format("LISTEN host: {0}, token: {1}", gateway.UrlInfo.Host, token));
 
-        var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, $"http-gateway/{gateway.UrlInfo.Host}");
+        var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, String.Format("http-gateway/{0}", gateway.UrlInfo.Host));
         streamIpc.BindIncomeStream(request.Content.ReadAsStream());
 
         foreach (var routeConfig in routes)
@@ -241,7 +253,7 @@ public class HttpNMM : NativeMicroModule
         }
 
         return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-                it.Content = new StreamContent(streamIpc.Stream.Stream));
+                it.Content = new StreamContent(streamIpc.ReadableStream.Stream));
     }
 
     private async Task<bool> _close(Ipc ipc, DwebHttpServerOptions options)
