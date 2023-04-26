@@ -206,25 +206,3 @@ public class SMetaBody: IToJsonAble
     /// <returns>An instance of a MetaBody object.</returns>
     public static SMetaBody? FromJson(string json) => JsonSerializer.Deserialize<SMetaBody>(json);
 }
-
-//#region MetaBody序列化反序列化
-//sealed class MetaBodyConverter : JsonConverter<SMetaBody>
-//{
-//    public override SMetaBody Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-//    {
-//        var res = JsonSerializer.Deserialize<SMetaBody>(ref reader, new JsonSerializerOptions().Also(it =>
-//        it.Converters.Clear()));
-
-//        return res;
-//    }
-
-//    public override void Write(
-//        Utf8JsonWriter writer,
-//        SMetaBody value,
-//    JsonSerializerOptions options)
-//    {
-//        JsonSerializer.Serialize<SMetaBody>(writer, value, new JsonSerializerOptions().Also(it =>
-//         it.Converters.Clear()));
-//    }
-//}
-//#endregion

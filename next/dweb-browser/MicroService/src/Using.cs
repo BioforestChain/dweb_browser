@@ -17,10 +17,6 @@ global using HttpHandler = System.Func<
     System.Net.Http.HttpRequestMessage,
     System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage>>;
 
-//global using HttpHandler = System.Func<
-//    System.Net.Http.HttpRequestMessage,
-//    System.Net.Http.HttpResponseMessage>;
-
 global using RouterHandlerType = System.Func<
     System.Net.Http.HttpRequestMessage,
     DwebBrowser.MicroService.Ipc?,

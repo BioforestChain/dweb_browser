@@ -71,17 +71,6 @@ public static class NetServer
         listener.Prefixes.Add(origin);
         listener.Start();
 
-        //listener.BeginGetContext((ar) =>
-        //{
-        //    var listener = (HttpListener?)ar.AsyncState;
-
-        //    if (listener is not null)
-        //    {
-        //        var context = listener.EndGetContext(ar);
-        //        handler(context.Request.ToHttpRequestMessage());
-        //    }
-        //}, listener);
-
         Task.Run(async () =>
         {
             while (true)

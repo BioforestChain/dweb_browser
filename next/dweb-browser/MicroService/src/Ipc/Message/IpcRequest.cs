@@ -65,35 +65,8 @@ public class IpcRequest : IpcMessage
                 IpcBodySender.FromStream(stream, ipc),
                 ipc);
 
-    //public static IpcRequest FromRequest(int req_id, HttpRequestMessage request, Ipc ipc) =>
-    //    new IpcRequest(
-    //        req_id,
-    //        request.RequestUri!.ToString(),
-    //        IpcMethod.From(request.Method),
-    //        new IpcHeaders(request.Headers),
-    //        (request.Method.Method is "GET" or "HEAD")
-    //            ? IpcBodySender.From("", ipc)
-    //            :
-    //        request.Content switch
-    //        {
-    //            null => IpcBodySender.From("", ipc),
-    //            _ => IpcBodySender.From(request.Content.ReadAsStream(), ipc)
-    //        },
-    //        ipc
-    //        );
     public static async Task<IpcRequest> FromRequest(int req_id, HttpRequestMessage request, Ipc ipc)
     {
-
-        //switch (self.Content.ToString())
-        //{
-        //    case "System.Net.Http.StringContent":
-        //        var result = JsonSerializer.Deserialize<T>(await self.TextAsync())!;
-        //        Console.WriteLine(String.Format("result: {0}", result));
-        //        return result;
-        //    case "System.IO.MemoryStream":
-        //    case "System.Net.Http.StreamContent":
-        //        return JsonSerializer.Deserialize<T>(await self.StreamAsync())!;
-        //}
         var body = (request.Method.Method is "GET" or "HEAD")
                 ? IpcBodySender.FromText("", ipc)
                 : request.Content switch
@@ -119,24 +92,15 @@ public class IpcRequest : IpcMessage
                     })
 
                 };
-        Console.WriteLine(request.RequestUri?.ToString());
-        try
-        {
-            var ipcRequest = new IpcRequest(req_id,
+
+        var ipcRequest = new IpcRequest(req_id,
                 request.RequestUri?.ToString() ?? "",
                 IpcMethod.From(request.Method),
                 new IpcHeaders(request.Headers, request.Content?.Headers),
                 body,
                 ipc
             );
-            return ipcRequest;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(String.Format("e {0}", e.StackTrace));
-            Console.WriteLine(String.Format("e {0}", e.Message));
-            throw e;
-        }
+        return ipcRequest;
     }
 
 
@@ -188,15 +152,8 @@ public class IpcRequest : IpcMessage
     public override string ToString() => String.Format("#IpcRequest/{0}/{1}", Method.Method, Url);
 }
 
-//[JsonConverter(typeof(IpcReqMessageConverter))]
 public class IpcReqMessage : IpcMessage
 {
-    static void xxx()
-    {
-        //var x = new IpcReqMessage() {
-        //ReqId = 123};
-    }
-
     [Obsolete("使用带参数的构造函数", true)]
     public IpcReqMessage() : base(IPC_MESSAGE_TYPE.REQUEST)
     {
@@ -209,7 +166,7 @@ public class IpcReqMessage : IpcMessage
     public IpcMethod Method { get; set; }
     [JsonPropertyName("url")]
     public string Url { get; set; }
-    [JsonPropertyName("headers"), JsonConverter(typeof(DictionaryConverter))]
+    [JsonPropertyName("headers")]
     public Dictionary<string, string> Headers { get; set; }
     [JsonPropertyName("metaBody")]
     public SMetaBody MetaBody { get; set; }

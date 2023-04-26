@@ -30,52 +30,6 @@ public class IpcReqMessageSerializeTest
                 1)
         );
 
-    public class IpcReqMessageTest : IpcMessage
-    {
-
-        [JsonPropertyName("req_id"), JsonInclude]
-        public int ReqId { get; set; }
-        //[JsonPropertyName("method")]
-        //public IpcMethod Method { get; set; }
-        //[JsonPropertyName("url")]
-        //public string Url { get; set; }
-        //[JsonPropertyName("headers"), JsonConverter(typeof(DictionaryConverter))]
-        //public Dictionary<string, string> Headers { get; set; }
-        //[JsonPropertyName("metaBody")]
-        //public SMetaBody MetaBody { get; set; }
-
-        [Obsolete("使用带参数的构造函数", true)]
-        public IpcReqMessageTest() : base(IPC_MESSAGE_TYPE.REQUEST) { }
-
-        public IpcReqMessageTest(
-            int req_id
-            //,IpcMethod method
-            //,string url
-            //,Dictionary<String, String> headers
-            //,SMetaBody metaBody
-            ) : base(IPC_MESSAGE_TYPE.REQUEST)
-        {
-            ReqId = req_id;
-            //Method = method;
-            //Url = url;
-            //Headers = headers;
-            //MetaBody = metaBody;
-        }
-
-        /// <summary>
-        /// Serialize IpcReqMessageTest
-        /// </summary>
-        /// <returns>JSON string representation of the IpcReqMessageTest</returns>
-        public override string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { IncludeFields = true, PropertyNameCaseInsensitive = false });
-
-        /// <summary>
-        /// Deserialize IpcReqMessageTest
-        /// </summary>
-        /// <param name="json">JSON string representation of IpcReqMessageTest</param>
-        /// <returns>An instance of a IpcReqMessageTest object.</returns>
-        public static new IpcReqMessageTest? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessageTest>(json, new JsonSerializerOptions { IncludeFields = true, PropertyNameCaseInsensitive = false });
-    }
-
     [Fact]
     public void ToJson_IpcReqMessage_ReturnSuccess()
     {
@@ -106,24 +60,9 @@ public class IpcReqMessageSerializeTest
         Assert.IsType<string>(_ipcReqMessageNull.ToJson());
     }
 
-    static IpcReqMessageTest _ipcReqMessageTest = new IpcReqMessageTest(
-        1
-        );
-    [Fact]
-    public void FromJson_IpcReqMessageTest_ReturnSuccess()
-    {
-        Debug.WriteLine(_ipcReqMessageTest.ToJson());
-        var ipcReqMessageTest = IpcReqMessageTest.FromJson(_ipcReqMessageTest.ToJson());
-        Debug.WriteLine(ipcReqMessageTest);
-    }
-
     [Fact]
     public void FromJson_IpcReqMessage_ReturnSuccess()
     {
-        //var ipcReqMessage = IpcReqMessageTest.FromJson(@"{ ""type"":0,""req_id"":1,""method"":""GET"",""url"":""https://www.baidu.com/""}");
-        //Debug.WriteLine(_ipcReqMessageTest.ToJson());
-        //var ipcReqMessage = IpcReqMessageTest.FromJson(_ipcReqMessageTest.ToJson());
-        //var ipcReqMessage = JsonSerializer.Deserialize<IpcReqMessageTest>(_ipcReqMessageTest.ToJson());
         Debug.WriteLine(_ipcReqMessage.ToJson());
         var ipcReqMessage = IpcReqMessage.FromJson(_ipcReqMessage.ToJson());
         //var ipcReqMessage = IpcReqMessage.FromJson(@"{

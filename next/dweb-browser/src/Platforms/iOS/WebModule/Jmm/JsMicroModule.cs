@@ -69,11 +69,6 @@ public class JsMicroModule : MicroModule
             await ipc.PostMessageAsync(await IpcResponse.FromResponse(request.ReqId, response, ipc));
         };
 
-        //streamIpc.BindIncomeStream(await (await NativeFetchAsync(
-        //        new HttpRequestMessage(
-        //            HttpMethod.Get, new Uri("file://js.sys.dweb/create-process")).Also(
-        //            it => { it.Content = new StreamContent(streamIpc.Stream.Stream); })
-        //        )).Content.ReadAsStreamAsync());
         var createIpcReq = new HttpRequestMessage(
                             HttpMethod.Post,
                             new Uri("file://js.sys.dweb/create-process")

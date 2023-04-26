@@ -126,7 +126,6 @@ public class IpcResponse : IpcMessage
 }
 
 
-//[JsonConverter(typeof(IpcResMessageConverter))]
 public class IpcResMessage : IpcMessage
 {
     [JsonPropertyName("req_id")]

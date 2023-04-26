@@ -38,7 +38,7 @@ public class ReadableStreamIpc : Ipc
             },
         };
 
-        //Console.WriteLine(String.Format("post/{0}", Stream), message.Length);
+        Console.WriteLine(String.Format("post/{0}", ReadableStream), message.Length);
         return EnqueueAsync(message.Length.ToByteArray().Combine(message));
     }
 
