@@ -8,9 +8,11 @@
 import SwiftUI
 
 
+
 struct ToolbarView: View {
     @State var height: CGFloat = 50
     @State var showHistoryView: Bool = false
+    @EnvironmentObject var expandState: TabPagesExpandState
 
     var body: some View {
         HStack(spacing: 5){
@@ -55,6 +57,8 @@ struct ToolbarView: View {
                 Spacer()
                 
                 ToolbarItem(imageName: "doc.on.doc") {
+                    expandState.state = !expandState.state
+                    
                     print("arrow.up was clicked")
                 }
                 

@@ -20,7 +20,7 @@ struct WrapTestView:View{
     var body: some View{
         VStack{
             Spacer()
-            AddressBarHStack(adressBarHstackOffset: $testOffset)
+            AddressBarHStack(adressBarHstackOffset: .constant(0))
             Text("dragOffset:\(testOffset)")
                 .background(.green)
         }.background(.red)
@@ -32,10 +32,11 @@ struct AddressBarHStack: View {
     @State private var offset: CGFloat = 0
     
     @State private var dragOffset: CGFloat = 0
-    @Binding var adressBarHstackOffset: CGFloat
+        @Binding var adressBarHstackOffset: CGFloat
     
     var body: some View {
         GeometryReader { innerGeometry in
+            
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
                     AddressBar(adressBarHstackOffset: $adressBarHstackOffset, inputText: "")
@@ -45,16 +46,9 @@ struct AddressBarHStack: View {
                     AddressBar(adressBarHstackOffset: $adressBarHstackOffset, inputText: "")
                         .frame(width: screen_width)
                 }
-                .onChange(of: innerGeometry.frame(in: .global).minX) { offsetX in
-                    // Do something with the offsetY value
-                    print("Offset X: \(offsetX)")
-                    adressBarHstackOffset = offsetX
-                }
             }
-            .onChange(of: innerGeometry.frame(in: .global).minX) { offsetX in
-                // Do something with the offsetY value
-                print("Offset X: \(offsetX)")
-                adressBarHstackOffset = offsetX
+            .onAppear{
+                UIScrollView.appearance().isPagingEnabled = true
             }
             .background(.orange)
         }
@@ -62,9 +56,10 @@ struct AddressBarHStack: View {
 }
 
 struct AddressBar: View {
-    @Binding var adressBarHstackOffset: CGFloat
+        @Binding var adressBarHstackOffset: CGFloat
     @State var inputText: String = ""
     @FocusState var isAdressBarFocused: Bool
+//    @EnvironmentObject var addressBarOffset: AddressBarHStackOffset
     
     var body: some View {
         GeometryReader{ geometry in
@@ -94,26 +89,13 @@ struct AddressBar: View {
                     .onChange(of: geometry.frame(in: .named("Root")).minX) { offsetX in
                         // Do something with the offsetY value
                         print("Offset X: \(offsetX)")
-                        adressBarHstackOffset = offsetX
+                                                adressBarHstackOffset = offsetX
+//                        addressBarOffset.offset = offsetX
                         
                     }
                 
             }.frame(height: 60)
         }
     }
-}
-
-
-extension View {
-    func placeholder<Content: View>(
-        when shouldShow: Bool,
-        alignment: Alignment = .leading,
-        @ViewBuilder placeholder: () -> Content) -> some View {
-            
-            ZStack(alignment: alignment) {
-                placeholder().opacity(shouldShow ? 1 : 0)
-                self
-            }
-        }
 }
 

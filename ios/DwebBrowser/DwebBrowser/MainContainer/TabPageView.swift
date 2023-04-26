@@ -8,30 +8,27 @@
 import SwiftUI
 import WebKit
 
+//层级关系  最前<-- 快照(缩放动画）|| collecitionview  ||  tabPage ( homepage & webview)
+
 struct TabPageView: View {
-    @State var isWebVisible = true
+    @State var showWebview = false
     var body: some View {
         ZStack{
-            if isWebVisible{
-                WebPage(url: URL(string: "https://www.apple.com")!)
-            }else{
+            if showWebview{
+                WebPage()
+            }
+            else{
                 HomePage()
+                    .background(.pink)
             }
         }
-        .background(.yellow)
-    }
-}
-
-struct TabPageView_Previews: PreviewProvider {
-    static var previews: some View {
-        TabPageHStack(adressBarHstackOffset: .constant(0))
     }
 }
 
 struct HomePage: View{
     var body: some View{
-        GeometryReader { geometry in // 获取父视图的大小和位置
-            Color.clear
+        Color.clear
+        ScrollView(.vertical){
             VStack{
                 Text("HomepageHeader")
                 Spacer()
@@ -39,12 +36,12 @@ struct HomePage: View{
                 Spacer()
                 Text("HomepageFooter")
             }
-        }
+        }.background(.yellow)
     }
 }
 
 struct WebPage: View{
-    @State var url: URL
+    @State var url: URL = URL(string: "https://www.apple.com")!
     
     var body: some View{
         WebView(url: $url)
@@ -53,23 +50,37 @@ struct WebPage: View{
 
 struct TabPageHStack: View{
     @Binding var adressBarHstackOffset:CGFloat
+    @EnvironmentObject var expState: TabPagesExpandState
+    //    @EnvironmentObject var addressBarOffset: AddressBarHStackOffset
+    
     var body: some View{
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 0) {
-                TabPageView()
-                    .frame(width: screen_width)
-//                    .disabled(false)
-                TabPageView()
-                    .frame(width: screen_width)
-                TabPageView()
-                    .frame(width: screen_width)
-            }
+        if !expState.state{
+            TabsCollectionView().background(.secondary)
             
-            .offset(x:adressBarHstackOffset)
-            .onAppear {
-                UIScrollView.appearance().isPagingEnabled = true
+        }else{
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    TabPageView()
+                        .frame(width: screen_width)
+                    TabPageView()
+                        .frame(width: screen_width)
+                    TabPageView()
+                        .frame(width: screen_width)
+                }
+                .offset(x:adressBarHstackOffset)
+                
+                //                    .offset(x:addressBarOffset.offset)
+                .onAppear {
+                    //                        UIScrollView.appearance().isPagingEnabled = true
+                }
             }
         }
+    }
+}
+
+struct TabPageView_Previews: PreviewProvider {
+    static var previews: some View {
+        Text("problem")
     }
 }
 
