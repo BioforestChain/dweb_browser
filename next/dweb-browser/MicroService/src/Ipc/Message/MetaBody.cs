@@ -6,21 +6,6 @@ using System.Runtime.CompilerServices;
 
 namespace DwebBrowser.MicroService.Message;
 
-public class MetaBodyConverter : JsonConverter<MetaBody>
-{
-    public override MetaBody? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        Console.WriteLine("MetaBodyConverter.Read");
-        return null;
-    }
-
-    public override void Write(Utf8JsonWriter writer, MetaBody value, JsonSerializerOptions options)
-    {
-        Console.WriteLine("MetaBodyConverter.Write");
-    }
-}
-
-//[JsonConverter(typeof(MetaBodyConverter))]
 public class MetaBody : IToJsonAble
 {
     /**

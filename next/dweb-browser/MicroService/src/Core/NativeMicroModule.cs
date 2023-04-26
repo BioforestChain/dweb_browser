@@ -4,6 +4,8 @@ namespace DwebBrowser.MicroService.Core;
 
 public abstract class NativeMicroModule : MicroModule
 {
+    protected HttpRouter HttpRouter = new();
+
     static NativeMicroModule()
     {
         NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
@@ -102,29 +104,15 @@ public abstract class NativeMicroModule : MicroModule
     }
 
 
-    //public async Task<HttpResponseMessage> DefineHandler(HttpRequestMessage request, Ipc? ipc = null)
-    //{
-    //    switch (await (HttpRouter.RouterHandler(request, ipc)))
-    //    {
-    //        case null:
-    //            return new HttpResponseMessage(HttpStatusCode.OK);
-    //        case HttpResponseMessage response:
-    //            return response;
-    //        case byte[] result:
-    //            return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-    //            {
-    //                it.Content = new StreamContent(new MemoryStream().Let(s =>
-    //                {
-    //                    s.Write(result, 0, result.Length);
-    //                    return s;
-    //                }));
-    //            });
-    //        case Stream stream:
-    //            return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StreamContent(stream));
-    //        default:
-    //            return new HttpResponseMessage(HttpStatusCode.OK);
-    //    }
-    //}
+    /// <summary>
+    /// 在关闭后，路由会被完全清空，释放
+    /// </summary>
+    /// <returns></returns>
+    protected new Task _afterShutdownAsync()
+    {
+        HttpRouter.ClearRoutes();
+        return base._afterShutdownAsync();
+    }
 }
 
 public interface IToJsonAble

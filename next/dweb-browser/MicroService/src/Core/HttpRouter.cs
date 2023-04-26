@@ -3,18 +3,22 @@ using static DwebBrowser.MicroService.Sys.Http.Gateway;
 
 namespace DwebBrowser.MicroService.Core;
 
-public static class HttpRouter
+public class HttpRouter
 {
-    private static readonly Dictionary<RouteConfig, RouterHandlerType> _routes = new();
+    private readonly Dictionary<RouteConfig, RouterHandlerType> _routes = new();
 
-    public static void AddRoute(string method, string path, RouterHandlerType handler) => AddRoute(new RouteConfig(path, IpcMethod.From(method), Sys.Http.MatchMode.FULL), handler);
+    public void AddRoute(string method, string path, RouterHandlerType handler) => AddRoute(new RouteConfig(path, IpcMethod.From(method), Sys.Http.MatchMode.FULL), handler);
 
-    public static void AddRoute(RouteConfig config, RouterHandlerType handler)
+    public void AddRoute(RouteConfig config, RouterHandlerType handler)
     {
         _routes[config] = handler;
     }
+    public void ClearRoutes()
+    {
+        _routes.Clear();
+    }
 
-    public static async Task RouterHandler(HttpListenerContext context, Ipc? ipc = null)
+    public async Task RouterHandler(HttpListenerContext context, Ipc? ipc = null)
     {
         var request = context.Request;
         var response = context.Response;
@@ -53,11 +57,12 @@ public static class HttpRouter
         }
     }
 
-    public static async Task<object?> RouterHandler(HttpRequestMessage request, Ipc? ipc)
+    public async Task<object?> RouterHandler(HttpRequestMessage request, Ipc? ipc)
     {
-        foreach(var (route, handler) in _routes)
+        foreach (var (route, handler) in _routes)
         {
-            if (route.IsMatch(request)) {
+            if (route.IsMatch(request))
+            {
                 var res = await handler(request, ipc);
                 Console.WriteLine(String.Format("res: {0}", res));
                 return res;
@@ -66,7 +71,7 @@ public static class HttpRouter
         return null;
     }
 
-    public static async Task<HttpResponseMessage> RoutesWithContext(HttpRequestMessage request, Ipc ipc)
+    public async Task<HttpResponseMessage> RoutesWithContext(HttpRequestMessage request, Ipc ipc)
     {
         object? res;
         return (res = await RouterHandler(request, ipc)) switch
