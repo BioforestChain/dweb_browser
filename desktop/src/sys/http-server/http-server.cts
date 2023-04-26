@@ -133,12 +133,16 @@ export class HttpServerNMM extends NativeMicroModule {
 
       // 通过 _allRoutes 分发路由
       {
+        
         const pathname = url.parse(req.url as string,).pathname;
         if(pathname === null) throw new Error(`http-server pathname === null`)
         const listener = this._allRoutes.get(pathname)
         if(listener){
           return listener(req, res)
         }
+        // else{
+        //   console.log('-------------------', req.url, req.headers)
+        // }
       }
 
       // 是否有匹配的路由 拦截路由 分发请求

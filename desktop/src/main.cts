@@ -49,7 +49,9 @@ dns.install(new ToastNMM())
 dns.install(new TorchNMM())
 
 import { BarcodeScanningNativeUiNMM } from "./sys/plugins/sys/barcode-scanning/barcode-scanning.cjs";
+import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.cjs"
 dns.install(new BarcodeScanningNativeUiNMM())
+dns.install(new HapticsNMM())
 
 // 安装 jmmMetadata.sys.dweb
 import { JMMMetadata } from "./sys/jmm-metadata/jmm-metadata.cjs";
@@ -74,8 +76,9 @@ dns.install(new BootNMM([
   "virtual-keyboard.nativeui.sys.dweb",
   "barcode-scanning.sys.dweb",
   "toast.nativeui.sys.dweb",
+  "torch.nativeui.sys.dweb",
+  "haptics.sys.dweb",
   "browser.sys.dweb",
-  "torch.nativeui.sys.dweb"
   // cotDemoJMM.mmid
 
   // 下面是专门用来测是 connect

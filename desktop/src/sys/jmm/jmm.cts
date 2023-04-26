@@ -84,7 +84,7 @@ export class JmmNMM extends NativeMicroModule {
   }
 
   private _install = async(req: IncomingMessage, response: OutgoingMessage ) => {
-    const searchParams = new URL(req.url as string, `http://${this.mmid}/`).searchParams
+    const searchParams = new URL(req.url as string, `${req.headers.origin}`).searchParams
     const metadataUrl = searchParams.get("metadataUrl")
     if(metadataUrl === null) return;
     fetch(metadataUrl)
