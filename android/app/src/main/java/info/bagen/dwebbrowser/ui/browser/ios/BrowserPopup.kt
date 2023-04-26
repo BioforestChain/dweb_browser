@@ -39,10 +39,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import info.bagen.dwebbrowser.R
@@ -74,9 +71,7 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
             TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
             TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
             TabItem(
-              R.string.browser_nav_history,
-              R.drawable.ic_main_history,
-              PopupViewState.HistoryList
+              R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList
             ),
           )
         }
@@ -84,9 +79,7 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
           listOf(
             TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
             TabItem(
-              R.string.browser_nav_history,
-              R.drawable.ic_main_history,
-              PopupViewState.HistoryList
+              R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList
             ),
           )
         }
@@ -138,32 +131,33 @@ private fun PopContentView(viewModel: BrowserViewModel) {
 
 @Composable
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
-  val launcher = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.RequestPermission(),
-    onResult = { isGranted ->
-      //判断权限申请结果，并根据结果侠士不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composalbe 需要通过修改 state 等方式间接显示 Composable
-      if (isGranted) {
-        viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
-      }
-    }
-  )
+  val launcher =
+    rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
+      onResult = { isGranted ->
+        //判断权限申请结果，并根据结果侠士不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composalbe 需要通过修改 state 等方式间接显示 Composable
+        if (isGranted) {
+          viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+        }
+      })
   LazyColumn {
-    item { Spacer(modifier = Modifier
-      .fillMaxWidth()
-      .height(10.dp)) }
-    // 分享和添加书签
     item {
-      Box(
+      Spacer(
         modifier = Modifier
           .fillMaxWidth()
-          .height(50.dp)
-          .padding(horizontal = 10.dp)
-          .clip(RoundedCornerShape(8.dp))
-          .background(MaterialTheme.colorScheme.background)
-          .clickable {
-            viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo)
-          }
-      ) {
+          .height(10.dp)
+      )
+    }
+    // 分享和添加书签
+    item {
+      Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(50.dp)
+        .padding(horizontal = 10.dp)
+        .clip(RoundedCornerShape(8.dp))
+        .background(MaterialTheme.colorScheme.background)
+        .clickable {
+          viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo)
+        }) {
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
           Text(
             text = "添加书签", modifier = Modifier
@@ -181,22 +175,24 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
 
       }
     }
-    item { Spacer(modifier = Modifier
-      .fillMaxWidth()
-      .height(10.dp)) }
     item {
-      Box(
+      Spacer(
         modifier = Modifier
           .fillMaxWidth()
-          .height(50.dp)
-          .padding(horizontal = 10.dp)
-          .clip(RoundedCornerShape(8.dp))
-          .background(MaterialTheme.colorScheme.background)
-          .clickable {
-            launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) // 请求权限
-            //viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
-          }
-      ) {
+          .height(10.dp)
+      )
+    }
+    item {
+      Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(50.dp)
+        .padding(horizontal = 10.dp)
+        .clip(RoundedCornerShape(8.dp))
+        .background(MaterialTheme.colorScheme.background)
+        .clickable {
+          launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) // 请求权限
+          //viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+        }) {
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
           Text(
             text = "分享", modifier = Modifier
@@ -216,10 +212,8 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
-  val scope = rememberCoroutineScope()
   if (viewModel.uiState.bookWebsiteList.isEmpty()) {
     Text(
       text = "未发现书签列表", modifier = Modifier
@@ -228,79 +222,45 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
     )
     return
   }
-  val height = 50.dp
-  val popState: MutableState<Triple<Boolean, Int, WebSiteInfo?>> = remember {
-    mutableStateOf(Triple(false, 0, null))
-  }
-  val lazyListState = rememberLazyListState()
-  LazyColumn(state = lazyListState) {
+  LazyColumn {
     items(viewModel.uiState.bookWebsiteList.size) { index ->
       val webSiteInfo = viewModel.uiState.bookWebsiteList[index]
-      if (index > 0) {
-        Spacer(
+      ListItemMenuView(
+        viewModel = viewModel,
+        webSiteInfo = webSiteInfo,
+        type = ListType.Book,
+        popItemNames = listOf(DropdownItem.DeleteCurrent, DropdownItem.DeleteAll)
+      ) {
+        Row(
           modifier = Modifier
             .fillMaxWidth()
-            .height(1.dp)
-            .padding(start = 10.dp)
-            .background(MaterialTheme.colorScheme.outlineVariant)
-        )
+            .height(50.dp), verticalAlignment = CenterVertically
+        ) {
+          Icon(
+            imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_book),
+            contentDescription = "Book",
+            modifier = Modifier
+              .padding(10.dp)
+              .size(30.dp)
+          )
+          Text(
+            text = webSiteInfo.title, fontSize = 16.sp, maxLines = 1, modifier = Modifier.weight(1f)
+          )
+          Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.ic_more),
+            contentDescription = "More",
+            modifier = Modifier
+              .padding(10.dp)
+              .size(30.dp)
+              .graphicsLayer(rotationX = 90f)
+          )
+        }
       }
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .combinedClickable(
-            onClick = {
-              scope.launch {
-                viewModel.uiState.modalBottomSheetState.hide()
-                delay(100)
-                viewModel.uiState.openBottomSheet.value = false
-              }
-              viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
-            },
-            onLongClick = { // 弹出一个删除当前，或者删除所有
-              popState.value = popState.value.copy(
-                first = true, second = index, third = webSiteInfo
-              )
-            }
-          ),
-        verticalAlignment = CenterVertically
-      ) {
-        Icon(
-          imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_book),
-          contentDescription = "Book",
-          modifier = Modifier
-            .padding(10.dp)
-            .size(30.dp)
-        )
-        Text(
-          text = webSiteInfo.title,
-          fontSize = 16.sp,
-          maxLines = 1,
-          modifier = Modifier.weight(1f)
-        )
-        Icon(
-          imageVector = ImageVector.vectorResource(R.drawable.ic_more),
-          contentDescription = "More",
-          modifier = Modifier
-            .padding(10.dp)
-            .size(30.dp)
-            .graphicsLayer(rotationX = 90f)
-        )
-      }
-    }
-    item {
-      Spacer(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(1.dp)
-          .background(MaterialTheme.colorScheme.outlineVariant)
-      )
     }
   }
-  PopupListManageView(viewModel, popState, lazyListState, height, ListType.Book)
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
   if (viewModel.uiState.historyWebsiteMap.isEmpty()) {
@@ -312,13 +272,7 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
     return
   }
   Box {
-    val scope = rememberCoroutineScope()
-    val height = 50.dp
-    val popState: MutableState<Triple<Boolean, Int, WebSiteInfo?>> = remember {
-      mutableStateOf(Triple(false, 0, null))
-    }
-    val lazyListState = rememberLazyListState()
-    LazyColumn(state = lazyListState) {
+    LazyColumn {
       viewModel.uiState.historyWebsiteMap.toSortedMap { o1, o2 ->
         if (o1 < o2) 1 else -1
       }.forEach { (key, value) ->
@@ -334,107 +288,90 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
         }
         items(value.size) { index ->
           val webSiteInfo = value[index]
-          Column(modifier = Modifier
-            .padding(horizontal = 10.dp)
-            .height(height)
-            .combinedClickable(
-              onClick = {
-                scope.launch {
-                  viewModel.uiState.modalBottomSheetState.hide()
-                  delay(100)
-                  viewModel.uiState.openBottomSheet.value = false
-                }
-                viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
-              },
-              onLongClick = {
-                popState.value = popState.value.copy(
-                  first = true, second = webSiteInfo.index, third = webSiteInfo
-                )
-              }
-            )) {
-            Text(
-              text = webSiteInfo.title,
-              fontSize = 16.sp,
-              maxLines = 1,
-              modifier = Modifier.height(25.dp)
-            )
-            Text(
-              text = webSiteInfo.url,
-              color = MaterialTheme.colorScheme.outlineVariant,
-              fontSize = 12.sp,
-              maxLines = 1,
-              modifier = Modifier.height(20.dp)
-            )
-            Spacer(
+          ListItemMenuView(
+            viewModel,
+            webSiteInfo,
+            ListType.History,
+            popItemNames = listOf(DropdownItem.DeleteCurrent, DropdownItem.DeleteAll)
+          ) {
+            Column(
               modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)
-                .height(1.dp)
-                .background(MaterialTheme.colorScheme.outline)
-            )
+                .padding(horizontal = 10.dp)
+                .height(50.dp)
+            ) {
+              Text(
+                text = webSiteInfo.title,
+                fontSize = 16.sp,
+                maxLines = 1,
+                modifier = Modifier.height(25.dp)
+              )
+              Text(
+                text = webSiteInfo.url,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                fontSize = 12.sp,
+                maxLines = 1,
+                modifier = Modifier.height(20.dp)
+              )
+              Divider()
+            }
           }
         }
       }
     }
-    PopupListManageView(viewModel, popState, lazyListState, height, ListType.History)
   }
 }
 
+internal enum class DropdownItem(val text: String) {
+  DeleteCurrent("删除当前项"), DeleteAll("删除所有项"), ;
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-private fun PopupListManageView(
+private fun ListItemMenuView(
   viewModel: BrowserViewModel,
-  state: MutableState<Triple<Boolean, Int, WebSiteInfo?>>,
-  lazyListState: LazyListState,
-  height: Dp,
-  type: ListType
+  webSiteInfo: WebSiteInfo,
+  type: ListType,
+  popItemNames: List<DropdownItem>,
+  popItemContent: (@Composable (String) -> Unit)? = null,
+  itemContent: @Composable () -> Unit
 ) {
-  if (state.value.first) {
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val localDensity = LocalDensity.current
-    Popup(
-      onDismissRequest = { state.value = state.value.copy(first = false) },
-      offset = IntOffset(
-        (localDensity.run { screenWidth.toPx() } / 2).toInt(),
-        (localDensity.run {
-          when (type) {
-            ListType.Book -> {
-              (height * (state.value.second - lazyListState.firstVisibleItemIndex)).toPx()
+  var expanded by remember { mutableStateOf(false) }
+  val scope = rememberCoroutineScope()
+
+  Card {
+    Box(modifier = Modifier
+      .fillMaxWidth()
+      .combinedClickable(onClick = {
+        scope.launch {
+          viewModel.uiState.modalBottomSheetState.hide()
+          delay(100)
+          viewModel.uiState.openBottomSheet.value = false
+        }
+        viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
+      }, onLongClick = {
+        expanded = true
+      })) {
+      itemContent()
+    }
+    DropdownMenu(
+      expanded = expanded, onDismissRequest = { expanded = false }, offset = DpOffset(25.dp, 25.dp)
+    ) {
+      popItemNames.forEach { item ->
+        DropdownMenuItem(text = {
+          popItemContent?.let {
+            it(item.text)
+          } ?: Text(text = item.text)
+        }, onClick = {
+          when (item) {
+            DropdownItem.DeleteCurrent -> {
+              viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(type, null, true))
             }
-            ListType.History -> {
-              ((height * (state.value.second - lazyListState.firstVisibleItemIndex)) + 30.dp).toPx()
+            DropdownItem.DeleteAll -> {
+              viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(type, null, true))
             }
           }
-        }).toInt()
-      ),
-      properties = PopupProperties(),
-    ) {
-      Column(
-        modifier = Modifier
-          .clip(RoundedCornerShape(8.dp))
-          .shadow(6.dp)
-          .background(MaterialTheme.colorScheme.background)
-      ) {
-        state.value.third?.let {
-          Text(text = "删除当前记录", modifier = Modifier
-            .padding(5.dp)
-            .clickable {
-              state.value.third?.let { item ->
-                viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(type, item, false))
-              }
-              state.value = state.value.copy(first = false)
-            })
-          Spacer(
-            modifier = Modifier
-              .height(1.dp)
-              .background(MaterialTheme.colorScheme.outlineVariant)
-          )
-        }
-        Text(text = "删除所有记录", modifier = Modifier
-          .padding(5.dp)
-          .clickable {
-            viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(type, null, true))
-            state.value = state.value.copy(first = false)
-          })
+          expanded = false
+        })
       }
     }
   }
@@ -488,8 +425,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         modifier = Modifier
           .fillMaxWidth()
           .height(DimenBottomBarHeight)
-          .background(MaterialTheme.colorScheme.background),
-        verticalAlignment = CenterVertically
+          .background(MaterialTheme.colorScheme.background), verticalAlignment = CenterVertically
       ) {
         Icon(
           imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_add),
@@ -545,8 +481,7 @@ private fun MultiItemView(
           MaterialTheme.colorScheme.outline
         }
       Image(
-        bitmap = browserBaseView.bitmap
-          ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
+        bitmap = browserBaseView.bitmap ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
         contentDescription = null,
         modifier = Modifier
           .size(width = sizeTriple.first, height = sizeTriple.second)
@@ -582,9 +517,7 @@ private fun MultiItemView(
       ) {
         contentPair.second?.asImageBitmap()?.let { imageBitmap ->
           Icon(
-            bitmap = imageBitmap,
-            contentDescription = null,
-            modifier = Modifier.size(12.dp)
+            bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp)
           )
         }
         Text(
