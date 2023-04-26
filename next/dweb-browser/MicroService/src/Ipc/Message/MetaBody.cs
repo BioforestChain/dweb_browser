@@ -8,7 +8,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DwebBrowser.MicroService.Message;
 
-public class SMetaBody: IToJsonAble
+public class MetaBody: IToJsonAble
 {
     /**
      * <summary>
@@ -50,12 +50,12 @@ public class SMetaBody: IToJsonAble
     public string MetaId = Token.RandomCryptoString(8);
 
     //[Obsolete("使用带参数的构造函数", true)]
-    public SMetaBody()
+    public MetaBody()
     {
         /// 给JSON反序列化用的空参数构造函数
     }
 
-    public SMetaBody(
+    public MetaBody(
         IPC_META_BODY_TYPE type,
         int senderUid,
         object data,
@@ -97,48 +97,31 @@ public class SMetaBody: IToJsonAble
         INLINE_BINARY = INLINE | IPC_DATA_ENCODING.BINARY,
     }
 
-    public class IpcMetaBodyType
+    public IPC_DATA_ENCODING Type_Encoding
     {
-        public IPC_META_BODY_TYPE Type;
-        private Lazy<IPC_DATA_ENCODING> _encoding;
-        public IPC_DATA_ENCODING Encoding
+        get
         {
-            get { return _encoding.Value; }
-        }
-
-        private Lazy<bool> _isInline;
-        public bool IsInline
-        {
-            get { return _isInline.Value; }
-        }
-
-        private Lazy<bool> _isStream;
-        public bool IsStream
-        {
-            get { return _isStream.Value; }
-        }
-
-        public IpcMetaBodyType(IPC_META_BODY_TYPE type)
-        {
-            Type = type;
-
-            _encoding = new Lazy<IPC_DATA_ENCODING>(() =>
-            {
-                var encoding = (int)Type & 0b11111110;
-                return (IPC_DATA_ENCODING)encoding;
-            }, true);
-
-            _isInline = new Lazy<bool>(() => ((int)Type & 1) == 1, true);
-            _isStream = new Lazy<bool>(() => ((int)Type & 1) == 0, true);
+            var encoding = (int)Type & 0b11111110;
+            return (IPC_DATA_ENCODING)encoding;
         }
     }
 
-    public static SMetaBody FromText(
+    public bool Type_IsInline
+    {
+        get => ((int)Type & 1) == 1;
+    }
+
+    public bool Type_IsStream
+    {
+        get => ((int)Type & 1) == 0;
+    }
+
+    public static MetaBody FromText(
         int senderUid,
         string data,
         string? streamId = null,
         int? receiverUid = null
-        ) => new SMetaBody(
+        ) => new MetaBody(
             type: streamId == null ? IPC_META_BODY_TYPE.INLINE_TEXT : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
             senderUid: senderUid,
             data: data,
@@ -146,12 +129,12 @@ public class SMetaBody: IToJsonAble
             receiverUid: receiverUid
         );
 
-    public static SMetaBody FromBase64(
+    public static MetaBody FromBase64(
         int senderUid,
         string data,
         string? streamId = null,
         int? receiverUid = null
-        ) => new SMetaBody(
+        ) => new MetaBody(
             type: streamId == null ? IPC_META_BODY_TYPE.INLINE_BASE64 : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
             senderUid: senderUid,
             data: data,
@@ -159,12 +142,12 @@ public class SMetaBody: IToJsonAble
             receiverUid: receiverUid
         );
 
-    public static SMetaBody FromBinary(
+    public static MetaBody FromBinary(
         int senderUid,
         byte[] data,
         string? streamId = null,
         int? receiverUid = null
-        ) => new SMetaBody(
+        ) => new MetaBody(
             type: streamId == null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
             senderUid: senderUid,
             data: data,
@@ -172,7 +155,7 @@ public class SMetaBody: IToJsonAble
             receiverUid: receiverUid
         );
 
-    public static SMetaBody FromBinary(
+    public static MetaBody FromBinary(
         Ipc senderIpc,
         byte[] data,
         string? streamId = null,
@@ -182,7 +165,7 @@ public class SMetaBody: IToJsonAble
             : FromBase64(senderIpc.Uid, Convert.ToBase64String(data), streamId, receiverUid);
 
 
-    public SMetaBody JsonAble() => new IpcMetaBodyType(Type).Encoding switch
+    public MetaBody JsonAble() => Type_Encoding switch
     {
         IPC_DATA_ENCODING.BINARY => FromBase64(
             SenderUid,
@@ -204,5 +187,5 @@ public class SMetaBody: IToJsonAble
     /// </summary>
     /// <param name="json">JSON string representation of MetaBody</param>
     /// <returns>An instance of a MetaBody object.</returns>
-    public static SMetaBody? FromJson(string json) => JsonSerializer.Deserialize<SMetaBody>(json);
+    public static MetaBody? FromJson(string json) => JsonSerializer.Deserialize<MetaBody>(json);
 }

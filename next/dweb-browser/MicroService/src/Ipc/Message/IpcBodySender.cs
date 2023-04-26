@@ -318,7 +318,7 @@ public class IpcBodySender : IpcBody
             })), true).Value;
         }
     }
-    public override SMetaBody MetaBody { get; set; }
+    public override MetaBody MetaBody { get; set; }
 
     public IpcBodySender(object raw, Ipc ipc)
     {
@@ -349,16 +349,16 @@ public class IpcBodySender : IpcBody
     });
 
 
-    private SMetaBody BodyAsMeta(object body, Ipc ipc) => body switch
+    private MetaBody BodyAsMeta(object body, Ipc ipc) => body switch
     {
-        string value => SMetaBody.FromText(ipc.Uid, value),
-        byte[] value => SMetaBody.FromBinary(ipc, value),
+        string value => MetaBody.FromText(ipc.Uid, value),
+        byte[] value => MetaBody.FromBinary(ipc, value),
 
         Stream value => StreamAsMeta(value, ipc),
         _ => throw new Exception(String.Format("invalid body type {0}", body)),
     };
 
-    private SMetaBody StreamAsMeta(Stream stream, Ipc ipc)
+    private MetaBody StreamAsMeta(Stream stream, Ipc ipc)
     {
         var stream_id = s_getStreamId(stream);
 
@@ -440,22 +440,22 @@ public class IpcBodySender : IpcBody
         });
 
         // 写入第一帧数据
-        var streamType = SMetaBody.IPC_META_BODY_TYPE.STREAM_ID;
-        SMetaBody metaBody = default;
+        var streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_ID;
+        MetaBody metaBody = default;
 
         if (stream is IPreReadableInputStream prestream && prestream.PreReadableSize > 0)
         {
-            streamType = SMetaBody.IPC_META_BODY_TYPE.STREAM_WITH_BINARY;
+            streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_WITH_BINARY;
             var streamFirstData = new byte[prestream.PreReadableSize];
             stream.Read(streamFirstData, 0, prestream.PreReadableSize);
             stream.Flush();
 
-            metaBody = new SMetaBody(streamType, ipc.Uid, streamFirstData, stream_id);
+            metaBody = new MetaBody(streamType, ipc.Uid, streamFirstData, stream_id);
         }
 
-        if (streamType == SMetaBody.IPC_META_BODY_TYPE.STREAM_ID)
+        if (streamType == MetaBody.IPC_META_BODY_TYPE.STREAM_ID)
         {
-            metaBody = new SMetaBody(streamType, ipc.Uid, "", stream_id);
+            metaBody = new MetaBody(streamType, ipc.Uid, "", stream_id);
         }
 
         return metaBody!.Also(it =>

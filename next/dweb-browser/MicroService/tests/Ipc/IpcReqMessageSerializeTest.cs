@@ -11,8 +11,8 @@ public class IpcReqMessageSerializeTest
             IpcMethod.Get,
             "https://www.baidu.com/",
             new Dictionary<string, string>() { { "Content-Type", "text/plain" } },
-            new SMetaBody(
-                SMetaBody.IPC_META_BODY_TYPE.STREAM_ID,
+            new MetaBody(
+                MetaBody.IPC_META_BODY_TYPE.STREAM_ID,
                 0,
                 "data"
                 ));
@@ -22,8 +22,8 @@ public class IpcReqMessageSerializeTest
             IpcMethod.Get,
             "https://www.baidu.com/",
             new Dictionary<string, string>() { { "Content-Type", "text/plain" } },
-            new SMetaBody(
-                SMetaBody.IPC_META_BODY_TYPE.STREAM_ID,
+            new MetaBody(
+                MetaBody.IPC_META_BODY_TYPE.STREAM_ID,
                 0,
                 "data",
                 "streamId",

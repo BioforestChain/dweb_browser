@@ -9,8 +9,8 @@ public class IpcResMessageSerializeTest
             1,
             200,
             new Dictionary<string, string>() { { "Content-Type", "text/plain" } },
-            new SMetaBody(
-                SMetaBody.IPC_META_BODY_TYPE.STREAM_ID,
+            new MetaBody(
+                MetaBody.IPC_META_BODY_TYPE.STREAM_ID,
                 0,
                 "data"
                 ));
@@ -19,8 +19,8 @@ public class IpcResMessageSerializeTest
             1,
             404,
             new Dictionary<string, string>() { { "Content-Type", "text/plain" } },
-            new SMetaBody(
-                SMetaBody.IPC_META_BODY_TYPE.STREAM_ID,
+            new MetaBody(
+                MetaBody.IPC_META_BODY_TYPE.STREAM_ID,
                 0,
                 "data",
                 "streamId",

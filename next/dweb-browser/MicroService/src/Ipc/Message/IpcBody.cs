@@ -42,7 +42,7 @@ public abstract class IpcBody
 
     protected abstract BodyHubType BodyHub { get; }
 
-    public abstract SMetaBody MetaBody { get; set; }
+    public abstract MetaBody MetaBody { get; set; }
     public abstract object? Raw { get; }
 
     private Lazy<byte[]> _u8a;

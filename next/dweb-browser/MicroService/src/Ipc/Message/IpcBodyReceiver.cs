@@ -9,13 +9,12 @@ namespace DwebBrowser.MicroService.Message;
 public class IpcBodyReceiver : IpcBody
 {
     public Ipc Ipc { get; set; }
-    public IpcBodyReceiver(SMetaBody metaBody, Ipc ipc)
+    public IpcBodyReceiver(MetaBody metaBody, Ipc ipc)
     {
         MetaBody = metaBody;
         Ipc = ipc;
 
-        var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
-        if (ipcMetaBodyType.IsStream)
+        if (MetaBody.Type_IsStream)
         {
             CACHE.MetaId_receiverIpc_Map.GetValueOrPut(MetaBody.MetaId, () =>
             {
@@ -37,9 +36,8 @@ public class IpcBodyReceiver : IpcBody
             return new Lazy<BodyHubType>(new Func<BodyHubType>(() => new BodyHubType().Also(it =>
             {
                 object data;
-                var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(MetaBody.Type);
 
-                if (ipcMetaBodyType.IsStream)
+                if (MetaBody.Type_IsStream)
                 {
                     if (!CACHE.MetaId_receiverIpc_Map.TryGetValue(MetaBody.MetaId, out Ipc? ipc))
                     {
@@ -50,7 +48,7 @@ public class IpcBodyReceiver : IpcBody
                 }
                 else
                 {
-                    switch (ipcMetaBodyType.Encoding)
+                    switch (MetaBody.Type_Encoding)
                     {
                         case IPC_DATA_ENCODING.UTF8:
                             data = (string)MetaBody.Data;
@@ -84,20 +82,20 @@ public class IpcBodyReceiver : IpcBody
         }
     }
 
-    public override SMetaBody MetaBody { get; set; }
+    public override MetaBody MetaBody { get; set; }
 
     public override object? Raw
     {
         get { return BodyHub.Data; }
     }
 
-    public static IpcBody From(SMetaBody metaBody, Ipc ipc) =>
+    public static IpcBody From(MetaBody metaBody, Ipc ipc) =>
         CACHE.MetaId_ipcBodySender_Map.TryGetValue(metaBody.MetaId, out IpcBody? ipcBody) ? ipcBody : new IpcBodyReceiver(metaBody, ipc);
 
     /**
      * <returns> {String | ByteArray | InputStream} </returns>
      */
-    public static Stream MetaToStream(SMetaBody metaBody, Ipc ipc)
+    public static Stream MetaToStream(MetaBody metaBody, Ipc ipc)
     {
         /// metaToStream
         var stream_id = metaBody.StreamId!;
@@ -109,9 +107,7 @@ public class IpcBodyReceiver : IpcBody
             onStart: async controller =>
             {
                 /// 如果有初始帧，直接存起来
-                var ipcMetaBodyType = new SMetaBody.IpcMetaBodyType(metaBody.Type);
-
-                switch (ipcMetaBodyType.Encoding)
+                switch (metaBody.Type_Encoding)
                 {
                     case IPC_DATA_ENCODING.UTF8:
                         await controller.EnqueueAsync(((string)metaBody.Data).ToUtf8ByteArray());

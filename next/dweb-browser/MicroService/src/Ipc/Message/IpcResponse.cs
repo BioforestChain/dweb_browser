@@ -135,14 +135,14 @@ public class IpcResMessage : IpcMessage
     [JsonPropertyName("headers")]
     public Dictionary<string, string> Headers { get; set; }
     [JsonPropertyName("metaBody")]
-    public SMetaBody MetaBody { get; set; }
+    public MetaBody MetaBody { get; set; }
 
     [Obsolete("使用带参数的构造函数", true)]
     public IpcResMessage() : base(IPC_MESSAGE_TYPE.RESPONSE)
     {
         /// 给JSON反序列化用的空参数构造函数
     }
-    public IpcResMessage(int req_id, int statusCode, Dictionary<string, string> headers, SMetaBody metaBody) : base(IPC_MESSAGE_TYPE.RESPONSE)
+    public IpcResMessage(int req_id, int statusCode, Dictionary<string, string> headers, MetaBody metaBody) : base(IPC_MESSAGE_TYPE.RESPONSE)
     {
         ReqId = req_id;
         StatusCode = statusCode;

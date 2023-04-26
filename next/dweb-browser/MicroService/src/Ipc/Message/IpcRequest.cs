@@ -169,14 +169,14 @@ public class IpcReqMessage : IpcMessage
     [JsonPropertyName("headers")]
     public Dictionary<string, string> Headers { get; set; }
     [JsonPropertyName("metaBody")]
-    public SMetaBody MetaBody { get; set; }
+    public MetaBody MetaBody { get; set; }
 
     public IpcReqMessage(
         int req_id,
         IpcMethod method,
         string url,
         Dictionary<String, String> headers,
-        SMetaBody metaBody) : base(IPC_MESSAGE_TYPE.REQUEST)
+        MetaBody metaBody) : base(IPC_MESSAGE_TYPE.REQUEST)
     {
         ReqId = req_id;
         Method = method;
