@@ -7,9 +7,10 @@ namespace DwebBrowser;
 
 public static class MauiProgram
 {
+    static Debugger Console = new Debugger("MauiProgram");
     public static MauiApp CreateMauiApp()
     {
-        Console.WriteLine("Maui Start");
+        Console.Log("CreateMauiApp", "Start");
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()

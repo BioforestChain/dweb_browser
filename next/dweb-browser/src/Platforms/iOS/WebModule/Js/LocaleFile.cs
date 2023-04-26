@@ -12,6 +12,7 @@ namespace DwebBrowser.WebModule.Js;
 
 public static class LocaleFile
 {
+    static Debugger Console = new Debugger("LocaleFile");
     /// <summary>
     /// 应用根目录
     /// </summary>
@@ -63,7 +64,7 @@ public static class LocaleFile
 
                 var src = request.RequestUri.AbsolutePath.Substring(1);
 
-                Console.WriteLine(String.Format("OPEN {0}", src));
+                Console.Log("LocaleFileFetch", "OPEN {0}", src);
                 string dirname = Path.GetDirectoryName(src) ?? "";
                 string filename = Path.GetFileName(src) ?? "";
 
@@ -77,7 +78,7 @@ public static class LocaleFile
                 var targetPath = Path.Combine(absoluteDir, filename);
                 if (!filenameList.Contains(targetPath))
                 {
-                    Console.WriteLine(String.Format("NO-FOUND {0}", request.RequestUri.AbsolutePath));
+                    Console.Log("LocaleFileFetch", "NO-FOUND {0}", request.RequestUri.AbsolutePath);
                     response = new HttpResponseMessage(HttpStatusCode.NotFound).Also(it =>
                     {
                         it.Content = new StringContent(String.Format("the file({0}) not found.", request.RequestUri.AbsolutePath));
@@ -92,7 +93,7 @@ public static class LocaleFile
                     // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍，如果分片次数少于2次，那么就直接发送，没必要分片
                     if (mode is not "stream")
                     {
-                        Console.WriteLine("auto mode");
+                        Console.Log("LocaleFileFetch", "auto mode");
                         /**
                          * 打开一个读取流
                          */
@@ -106,7 +107,7 @@ public static class LocaleFile
                             var mimeType = GetMimeType(src);
                             if (mimeType is not null)
                             {
-                                Console.WriteLine(String.Format("mimeType: {0}", mimeType));
+                                Console.Log("LocaleFileFetch", "mimeType: {0}", mimeType);
                                 response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
                             }
 
@@ -116,13 +117,13 @@ public static class LocaleFile
                     }
                     else
                     {
-                        Console.WriteLine("stream mode");
+                        Console.Log("LocaleFileFetch", "stream mode");
                         var fs = File.OpenRead(src);
                         response.Content = new StreamContent(fs);
                         var mimeType = GetMimeType(src);
                         if (mimeType is not null)
                         {
-                            Console.WriteLine(String.Format("mimeType: {0}", mimeType));
+                            Console.Log("LocaleFileFetch", "mimeType: {0}", mimeType);
                             response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
                         }
                         return response;
@@ -132,7 +133,7 @@ public static class LocaleFile
         }
         catch (Exception e)
         {
-            Console.WriteLine(String.Format("Exception: {0}", e.Message));
+            Console.Log("LocaleFileFetch", "Exception: {0}", e.Message);
             return new HttpResponseMessage(HttpStatusCode.InternalServerError);
         }
 

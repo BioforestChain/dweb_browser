@@ -57,6 +57,7 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
+	  <None Remove="Platforms\iOS\WebModule\Mwebview\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -70,6 +71,7 @@
 	  <Folder Include="Resources\Assets\" />
 	  <Folder Include="Platforms\iOS\WebModule\User\" />
 	  <Folder Include="Resources\Assets\bundle\" />
+	  <Folder Include="Platforms\iOS\WebModule\Mwebview\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\bundle\**\*.*" />

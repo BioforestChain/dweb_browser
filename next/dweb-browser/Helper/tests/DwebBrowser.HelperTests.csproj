@@ -25,4 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\src\DwebBrowser.Helper.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" />
+  </ItemGroup>
 </Project>

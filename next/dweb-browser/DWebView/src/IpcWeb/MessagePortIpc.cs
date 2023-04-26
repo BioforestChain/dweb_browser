@@ -13,6 +13,8 @@ namespace DwebBrowser.IpcWeb;
 
 public class MessagePort
 {
+    static Debugger Console = new Debugger("MessagePort");
+
     private static ConditionalWeakTable<WebMessagePort, MessagePort> s_wm = new();
     public static MessagePort From(WebMessagePort port) => s_wm.GetValue(port, (port) => new MessagePort(port));
 
@@ -57,6 +59,8 @@ public class MessagePort
 
 public class MessagePortIpc : Ipc
 {
+    static Debugger Console = new Debugger("MessagePortIpc");
+
     public MessagePort Port { get; init; }
     private IPC_ROLE _role_type { get; init; }
     public override MicroModuleInfo Remote { get; set; }
@@ -85,16 +89,16 @@ public class MessagePortIpc : Ipc
                             await Port.PostMessage("pong");
                             break;
                         case "pong":
-                            Console.WriteLine(String.Format("PONG/{0}", ipc));
+                            Console.Log("OnWebMessage", "PONG/{0}", ipc);
                             break;
                         case IpcMessage ipcMessage:
-                            Console.WriteLine(String.Format("ON-MESSAGE/{0} {1}", ipc, message));
+                            Console.Log("OnWebMessage", "ON-MESSAGE/{0} {1}", ipc, message);
                             await _OnMessageEmit(ipcMessage, ipc);
                             break;
                     }
                     break;
                 case NSNumber data:
-                    Console.WriteLine(String.Format("OnWebMessage is number: {0}", data));
+                    Console.Log("OnWebMessage", "OnWebMessage is number: {0}", data);
                     break;
                 default:
                     throw new Exception(String.Format("unknown message: {0}", message));

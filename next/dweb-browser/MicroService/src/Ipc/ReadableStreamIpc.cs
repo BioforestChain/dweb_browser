@@ -1,10 +1,9 @@
 ﻿using PeterO.Cbor;
-using System.Diagnostics;
 namespace DwebBrowser.MicroService;
 
 public class ReadableStreamIpc : Ipc
 {
-
+    static Debugger Console = new Debugger("ReadableStreamIpc");
 
     public ReadableStreamIpc(MicroModuleInfo remote, string role)
     {
@@ -13,10 +12,10 @@ public class ReadableStreamIpc : Ipc
 
         ReadableStream = new ReadableStream(
             Role,
-            controller => _controller = controller,
-            args =>
-                Console.WriteLine(String.Format("ON-PULL/{0}", args.Item2.Stream), args.Item1),
-            Console.WriteLine);
+            onStart: controller => _controller = controller,
+            onPull: args => Console.Log("OnPull", String.Format("ON-PULL/{0}", args.Item2.Stream), args.Item1),
+            onClose: () => Console.Log("OnClose", "")
+           );
     }
 
     public override MicroModuleInfo Remote { get; set; }
@@ -38,7 +37,7 @@ public class ReadableStreamIpc : Ipc
             },
         };
 
-        Console.WriteLine(String.Format("post/{0}", ReadableStream), message.Length);
+        Console.Log("PostMessage", "post/{0} {1}", ReadableStream, message.Length);
         return EnqueueAsync(message.Length.ToByteArray().Combine(message));
     }
 
@@ -98,7 +97,7 @@ public class ReadableStreamIpc : Ipc
                     continue;
                 }
 
-                Console.WriteLine(String.Format("size/{0} {1}", stream, size));
+                Console.Log("BindIncomeStream", "size/{0} {1}", stream, size);
                 var buffer = await stream.ReadBytesAsync(size);
 
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
@@ -112,11 +111,9 @@ public class ReadableStreamIpc : Ipc
                         await EnqueueAsync(_PONG_DATA);
                         break;
                     case "pong":
-                        Console.WriteLine(String.Format("PONG/{0}", stream));
+                        Console.Log("BindIncomeStream", "PONG/{0}", stream);
                         break;
                     case IpcMessage ipcMessage:
-                        //Console.WriteLine("ON-MESSAGE/{0} {1}", this, ipcMessage);
-                        //await (_onMessage?.Emit(ipcMessage, this)).ForAwait();
                         await _OnMessageEmit(ipcMessage, this);
                         break;
                     default:
@@ -124,7 +121,7 @@ public class ReadableStreamIpc : Ipc
                 }
             }
 
-            Console.WriteLine(String.Format("END/{0}", stream));
+            Console.Log("BindIncomeStream", "END/{0}", stream);
         });
 
         _incomeStream = stream;

@@ -3,6 +3,7 @@ namespace DwebBrowser.MicroService.Sys.Boot;
 
 public class BootNMM : NativeMicroModule
 {
+    static Debugger Console = new Debugger("BootNMM");
     /**
      * 开机启动项注册表
      * TODO 这里需要从数据库中读取
@@ -35,7 +36,7 @@ public class BootNMM : NativeMicroModule
     {
         foreach (var mmid in _registeredMmids)
         {
-            Console.WriteLine(String.Format("launch {0}", mmid));
+            Console.Log("OnActivity", "launch {0}", mmid);
             await BootstrapContext.Dns.BootstrapAsync(mmid);
             var connectResult = await BootstrapContext.Dns.ConnectAsync(mmid);
             await connectResult.IpcForFromMM.PostMessageAsync(Event);

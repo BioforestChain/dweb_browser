@@ -25,6 +25,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DwebBrowser.DWebViewDemo", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DwebBrowserIOSUnitTest", "DwebBrowserIOSUnitTest\DwebBrowserIOSUnitTest.csproj", "{9F0C6B81-3FE5-424D-A8A6-8E8E90632A66}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{D6B05470-CE8A-4882-B588-27D803CE9E27}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -20,6 +20,7 @@ namespace DwebBrowser.MicroService.Message;
 
 public class IpcBodySender : IpcBody
 {
+    static Debugger Console = new Debugger("IpcBodySender");
     public override object? Raw { get; }
     public Ipc SenderIpc { get; set; }
 
@@ -228,7 +229,7 @@ public class IpcBodySender : IpcBody
                 }
                 else
                 {
-                    Console.WriteLine("useByIpc should not happend");
+                    Console.Warn("useByIpc", "should not happend");
                 }
             }
         }
@@ -362,7 +363,7 @@ public class IpcBodySender : IpcBody
     {
         var stream_id = s_getStreamId(stream);
 
-        Console.WriteLine(String.Format("sender/INIT/{0}", stream), stream_id);
+        Console.Log("StreamAsMeta", "sender/INIT/{0} {1}", stream, stream_id);
 
         Task.Run(async () =>
         {
@@ -398,13 +399,13 @@ public class IpcBodySender : IpcBody
                 // 等待流开始被拉取
                 await pullingPo.WaitPromiseAsync();
 
-                Console.WriteLine(String.Format("sender/PULLING/{0}", stream), stream_id);
+                Console.Log("StreamAsMeta", "sender/PULLING/{0} {1}", stream, stream_id);
 
 
                 switch (stream.Length)
                 {
                     case 0L:
-                        Console.WriteLine(String.Format("sender/END/{0}", stream), String.Format("-1 >> {0}", stream_id));
+                        Console.Log("StreamAsMeta", "sender/END/{0} -1 >> {1}", stream, stream_id);
 
                         /// 不论是不是被 aborted，都发送结束信号
                         var ipcStreamEnd = new IpcStreamEnd(stream_id);
@@ -419,7 +420,7 @@ public class IpcBodySender : IpcBody
                     case long availableLen:
                         // 开光了，流已经开始被读取
                         _isStreamOpened = true;
-                        Console.WriteLine(String.Format("sender/READ/{0}", stream), String.Format("{0} >> {1}", availableLen, stream_id));
+                        Console.Log("StreamAsMeta", "sender/READ/{0} {1} >> {2}", stream, availableLen, stream_id);
 
                         // TODO: 流读取是否大于Int32.MaxValue,待优化
                         int bytesRead = availableLen.ToInt();

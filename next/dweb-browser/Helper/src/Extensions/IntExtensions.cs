@@ -17,8 +17,7 @@ public static class IntExtensions
 		}
 		catch(Exception e)
 		{
-			Console.WriteLine(e.Message);
-			throw e;
+			throw;
 		}
 	}
 }

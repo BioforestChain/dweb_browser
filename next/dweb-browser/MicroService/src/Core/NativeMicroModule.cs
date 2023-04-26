@@ -4,6 +4,7 @@ namespace DwebBrowser.MicroService.Core;
 
 public abstract class NativeMicroModule : MicroModule
 {
+    static Debugger Console = new Debugger("NMM");
     protected HttpRouter HttpRouter = new();
 
     static NativeMicroModule()
@@ -31,7 +32,7 @@ public abstract class NativeMicroModule : MicroModule
         {
             clientIpc.OnRequest += async (ipcRequest, _, _) =>
             {
-                Console.WriteLine(String.Format("NMM/Handler {0}", ipcRequest.Url));
+                Console.Log("OnRequest", "Handler {0}", ipcRequest.Url);
                 var request = ipcRequest.ToRequest();
                 var response = await HttpRouter.RoutesWithContext(request, clientIpc);
                 await clientIpc.PostMessageAsync(await IpcResponse.FromResponse(ipcRequest.ReqId, response, clientIpc));
@@ -92,7 +93,7 @@ public abstract class NativeMicroModule : MicroModule
         static HttpResponseMessage AsJson(object result) =>
             new HttpResponseMessage(HttpStatusCode.OK).Also(res =>
             {
-                Console.WriteLine("AsJson:" + result);
+                Console.Log("AsJson", "{0}", result);
                 var jsonString = result switch
                 {
                     IToJsonAble toJsonAble => toJsonAble.ToJson(),

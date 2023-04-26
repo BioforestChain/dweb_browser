@@ -8,7 +8,7 @@ var channel = await dwebview.CreateWebMessageChannel();
 /// 事件监听，Signal<WebMessage>
 channel.Port2.OnMessage += async (messageEvent, _) =>
 {
-    Console.WriteLine("port2 on message: {0}", messageEvent.Data.ToString());
+    Debug.WriteLine("port2 on message: {0}", messageEvent.Data.ToString());
 };
 /// 执行 start，才能使得数据开始接收
 await channel.Port2.Start();
@@ -18,7 +18,7 @@ _ = Task.Run(async () =>
     var i = 0;
     while (i++ < 3)
     {
-        Console.WriteLine("postMessage {0}", i);
+        Debug.WriteLine("postMessage {0}", i);
         /// 发送消息，可以简写成 WebMessage.From("你好" + i)
         await channel.Port1.PostMessage(new WebMessage(new NSString("你好" + i)));
         await Task.Delay(500);
