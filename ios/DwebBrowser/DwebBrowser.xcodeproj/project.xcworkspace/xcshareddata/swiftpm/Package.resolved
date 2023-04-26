@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "qgrid",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Q-Mobile/QGrid",
+      "state" : {
+        "branch" : "master",
+        "revision" : "8565654a123a0fa5e7969443cc2b13512c6cea33"
+      }
+    }
+  ],
+  "version" : 2
+}
