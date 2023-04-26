@@ -93,7 +93,12 @@ public partial class DWebView : WKWebView
         this.localeMM = localeMM;
         this.remoteMM = remoteMM;
         this.options = options;
-        this.SetValueForKeyPath(NSNumber.FromBoolean(true), new NSString("inspectable"));
+
+        /// 判断当前设备版本是否大于等于iOS16.4版本，大于等于的话，开启Safari调试需要开启 inspectable
+        if (UIDevice.CurrentDevice.CheckSystemVersion(16, 4))
+        {
+            this.SetValueForKeyPath(NSNumber.FromBoolean(true), new NSString("inspectable"));
+        }
 
         if (options.url.Length > 0)
         {
