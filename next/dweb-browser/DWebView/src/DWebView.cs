@@ -22,6 +22,8 @@ namespace DwebBrowser.DWebView;
 
 public partial class DWebView : WKWebView
 {
+    static Debugger Console = new Debugger("DWebView");
+
     MicroModule localeMM;
     MicroModule remoteMM;
     Options options;
@@ -62,7 +64,6 @@ public partial class DWebView : WKWebView
                 {
                     await foreach (var bytes in stream.ReadBytesStream())
                     {
-                        Console.WriteLine(bytes.ToUtf8());
                         urlSchemeTask.DidReceiveData(NSData.FromArray(bytes));
                     }
                 }
@@ -318,7 +319,7 @@ public partial class DWebView : WKWebView
         }
         public override void DidStartProvisionalNavigation(WKWebView webView, WKNavigation navigation)
         {
-            Console.WriteLine("Started provisional navigation");
+            Console.Log("WKNavigationDelegate", "Started provisional navigation");
         }
 
         public override void DidFinishNavigation(WKWebView webView, WKNavigation navigation)

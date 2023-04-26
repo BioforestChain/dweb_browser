@@ -5,6 +5,7 @@ namespace DwebBrowser.MicroService.Core;
 
 public class HttpRouter
 {
+    static Debugger Console = new Debugger("HttpRouter");
     private readonly Dictionary<RouteConfig, RouterHandlerType> _routes = new();
 
     public void AddRoute(string method, string path, RouterHandlerType handler) => AddRoute(new RouteConfig(path, IpcMethod.From(method), Sys.Http.MatchMode.FULL), handler);
@@ -52,7 +53,7 @@ public class HttpRouter
         }
         else
         {
-            response.StatusCode = (int)HttpStatusCode.NotFound;
+            response!.StatusCode = (int)HttpStatusCode.NotFound;
             response.Close();
         }
     }
@@ -64,7 +65,7 @@ public class HttpRouter
             if (route.IsMatch(request))
             {
                 var res = await handler(request, ipc);
-                Console.WriteLine(String.Format("res: {0}", res));
+                Console.Log("RouterHandler", "res: {0}", res);
                 return res;
             }
         }

@@ -5,6 +5,7 @@ namespace DwebBrowser.MicroService.Sys.Http;
 
 public class HttpNMM : NativeMicroModule
 {
+    static Debugger Console = new Debugger("HttpNMM");
     public static Http1Server DwebServer = new Http1Server();
     public static readonly string X_DWEB_HREF = "/X-Dweb-Href/";
     /// 注册的域名与对应的 token
@@ -241,10 +242,10 @@ public class HttpNMM : NativeMicroModule
         List<Gateway.RouteConfig> routes)
     {
         var gateway = _tokenMap.GetValueOrDefault(token) ?? throw new Exception(String.Format("no gateway with token: {0}", token));
-        Console.WriteLine(String.Format("LISTEN host: {0}, token: {1}", gateway.UrlInfo.Host, token));
+        Console.Log("Listen", "host: {0}, token: {1}", gateway.UrlInfo.Host, token);
 
         var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, String.Format("http-gateway/{0}", gateway.UrlInfo.Host));
-        streamIpc.BindIncomeStream(request.Content.ReadAsStream());
+        streamIpc.BindIncomeStream(request.Content!.ReadAsStream());
 
         foreach (var routeConfig in routes)
         {

@@ -42,6 +42,7 @@ public class NativeIpc : Ipc
 
 public class NativePort<I, O>
 {
+    static Debugger Console = new Debugger("NativePort");
     private BufferBlock<I> _channel_in { get; set; }
     private BufferBlock<O> _channel_out { get; set; }
     private PromiseOut<bool> _closePo = new PromiseOut<bool>();
@@ -60,7 +61,7 @@ public class NativePort<I, O>
             await _closePo.WaitPromiseAsync();
             _channel_out.Complete();
             await (OnClose?.Emit()).ForAwait();
-            Console.WriteLine(String.Format("port-closed/{0}", this));
+            Console.Log("OnClose", "port-closed/{0}", this);
         });
     }
 
@@ -83,15 +84,15 @@ public class NativePort<I, O>
             _started = true;
         }
 
-        Console.WriteLine(String.Format("port-message-start/{0}", this));
+        Console.Log("Start", "port-message-start/{0}", this);
         await foreach (I message in _channel_in.ReceiveAllAsync())
         {
-            Console.WriteLine(String.Format("port-message-in/{0}", this));
+            Console.Log("Start", "port-message-in/{0}", this);
             await (OnMessage?.Emit(message)).ForAwait();
-            Console.WriteLine(String.Format("port-message-waiting/{0}", this));
+            Console.Log("Start", "port-message-waiting/{0}", this);
         }
 
-        Console.WriteLine(String.Format("port-message-end/{0}", this));
+        Console.Log("Start", "port-message-end/{0}", this);
     }
 
     public event Signal? OnClose;
@@ -101,7 +102,7 @@ public class NativePort<I, O>
         if (!_closePo.IsFinished)
         {
             _closePo.Resolve(true);
-            Console.WriteLine(String.Format("port-closing/{0}", this));
+            Console.Log("Close", "port-closing/{0}", this);
         }
     }
 
@@ -114,7 +115,7 @@ public class NativePort<I, O>
      */
     public Task PostMessageAsync(O msg)
     {
-        Console.WriteLine(String.Format("message-out/{0} >> {1}", this, msg));
+        Console.Log("PostMessage", "message-out/{0} >> {1}", this, msg);
         return _channel_out.SendAsync(msg);
     }
 }

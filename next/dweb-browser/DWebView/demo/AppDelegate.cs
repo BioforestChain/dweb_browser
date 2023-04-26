@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using DwebBrowser.DWebView;
 using DwebBrowser.MicroService;
@@ -112,14 +113,14 @@ public class AppDelegate : UIApplicationDelegate
 
             channel.Port2.OnMessage += async (messageEvent, _) =>
             {
-                Console.WriteLine("port2 on message: {0}", messageEvent.Data.ToString());
+                Debug.WriteLine("port2 on message: {0}", messageEvent.Data.ToString());
             };
             _ = Task.Run(async () =>
             {
                 var i = 0;
                 while (i++ < 5)
                 {
-                    Console.WriteLine("postMessage {0}", i);
+                    Debug.WriteLine("postMessage {0}", i);
                     await channel.Port1.PostMessage(new WebMessage(new NSString("你好" + i)));
                     await Task.Delay(100);
                     if (i >= 3)

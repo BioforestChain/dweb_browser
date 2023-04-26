@@ -5,6 +5,7 @@ namespace DwebBrowser.MicroService.Sys.Dns;
 
 public class DnsNMM : NativeMicroModule
 {
+    static Debugger Console = new Debugger("DnsNMM");
     // 已安装的应用
     private Dictionary<Mmid, MicroModule> _installApps = new();
 
@@ -60,9 +61,9 @@ public class DnsNMM : NativeMicroModule
                 {
                     Task.Run(async () =>
                     {
-                        Console.WriteLine(String.Format("DNS/opening {0} => {1}", fromMM.Mmid, toMmid));
+                        Console.Log("ConnectTo", "DNS/opening {0} => {1}", fromMM.Mmid, toMmid);
                         var toMM = await Open(toMmid);
-                        Console.WriteLine(String.Format("DNS/connect {0} => {1}", fromMM.Mmid, toMmid));
+                        Console.Log("ConnectTo", "DNS/connect {0} => {1}", fromMM.Mmid, toMmid);
                         var connects = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
                         po.Resolve(connects);
                         connects.IpcForFromMM.OnClose += async (_) =>
@@ -131,7 +132,7 @@ public class DnsNMM : NativeMicroModule
                 if (microModule is not null)
                 {
                     var connectResult = await _connectTo(fromMM, mmid, request);
-                    Console.WriteLine(String.Format("DNS/request/{0} => {1} [{2}] {3}", fromMM.Mmid, mmid, request.Method.Method, request.RequestUri.AbsolutePath));
+                    Console.Log("NativeFetch", "DNS/request/{0} => {1} [{2}] {3}", fromMM.Mmid, mmid, request.Method.Method, request.RequestUri.AbsolutePath);
                     return await connectResult.IpcForFromMM.Request(request);
                 }
 
@@ -146,7 +147,7 @@ public class DnsNMM : NativeMicroModule
         // 打开应用
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/open", async (request, _) =>
         {
-            Console.WriteLine(String.Format("open/{0} {1}", Mmid, request.RequestUri?.AbsolutePath));
+            Console.Log("Open", "{0} {1}", Mmid, request.RequestUri?.AbsolutePath);
             await Open(request.QueryValidate<Mmid>("app_id")!);
             return true;
         });
@@ -155,7 +156,7 @@ public class DnsNMM : NativeMicroModule
         // TODO 能否关闭一个应该应该由应用自己决定
         HttpRouter.AddRoute(HttpMethod.Get.Method, "/close", async (request, _) =>
         {
-            Console.WriteLine(String.Format("close/{0} {1}", Mmid, request.RequestUri?.AbsolutePath));
+            Console.Log("Close", "{0} {1}", Mmid, request.RequestUri?.AbsolutePath);
             await Open(request.QueryValidate<string>("app_id")!);
             return true;
         });

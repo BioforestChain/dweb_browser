@@ -13,6 +13,7 @@ namespace DwebBrowser.WebModule.Jmm;
 
 public class JsMicroModule : MicroModule
 {
+    static Debugger Console = new Debugger("JsMicroModule");
     static JsMicroModule()
     {
         NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
@@ -56,7 +57,7 @@ public class JsMicroModule : MicroModule
     private record DnsConnectEvent(Mmid mmid);
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        Console.WriteLine(String.Format("bootstrap... {0}/{1}", Mmid, Metadata));
+        Console.Log("Bootstrap", "{0}/{1}", Mmid, Metadata);
         var pid = Token.RandomCryptoString(8);
         _processId = pid;
         var streamIpc = new ReadableStreamIpc(this, "code-server");

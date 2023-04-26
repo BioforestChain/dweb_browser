@@ -11,6 +11,7 @@ namespace DwebBrowser.WebModule.Js;
 
 public class JsProcessWebApi
 {
+    static Debugger Console = new Debugger("JsProcessWebApi");
     public DWebView.DWebView DWebView { get; init; }
 
     public JsProcessWebApi(DWebView.DWebView dWebView)
@@ -57,7 +58,7 @@ public class JsProcessWebApi
             })
         """.Trim(), () => this.DWebView.PostMessage("js-process/create-process", new[] { port1 }));
 
-        Console.WriteLine(String.Format("processInfo {0}", nsProcessInfo));
+        Console.Log("CreateProcess", "processInfo {0}", nsProcessInfo);
 
         var processId = (int)(NSNumber)nsProcessInfo.ValueForKey(new NSString("process_id"));
         var processInfo = new ProcessInfo(processId);

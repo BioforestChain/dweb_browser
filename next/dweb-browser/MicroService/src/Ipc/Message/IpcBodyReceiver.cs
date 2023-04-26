@@ -8,6 +8,7 @@ namespace DwebBrowser.MicroService.Message;
  */
 public class IpcBodyReceiver : IpcBody
 {
+    static Debugger Console = new Debugger("IpcBodyReceiver");
     public Ipc Ipc { get; set; }
     public IpcBodyReceiver(MetaBody metaBody, Ipc ipc)
     {
@@ -126,12 +127,12 @@ public class IpcBodyReceiver : IpcBody
                 {
                     if (ipcStream is IpcStreamData data && data.StreamId == stream_id)
                     {
-                        Console.WriteLine(String.Format("receiver/StreamData/{0}/{1}", ipc, controller.Stream), data);
+                        Console.Log("OnStream", "receiver/StreamData/{0}/{1} {2}", ipc, controller.Stream, data);
                         await controller.EnqueueAsync(data.Binary);
                     }
                     else if (ipcStream is IpcStreamEnd end && end.StreamId == stream_id)
                     {
-                        Console.WriteLine(String.Format("receiver/StreamEnd/{0}/{1}", ipc, controller.Stream), end);
+                        Console.Log("OnStream", "receiver/StreamEnd/{0}/{1} {2}", ipc, controller.Stream, end);
                         controller.Close();
                         ipc.OnStream -= self;
                     }
@@ -142,7 +143,7 @@ public class IpcBodyReceiver : IpcBody
             onPull: async args =>
             {
                 var controller = args.Item2;
-                Console.WriteLine(String.Format("receiver/StreamEnd/{0}/{1}", ipc, controller.Stream), stream_id);
+                Console.Log("OnPull", "receiver/StreamEnd/{0}/{1} {2}", ipc, controller.Stream, stream_id);
                 if (Interlocked.CompareExchange(ref paused, 1, 0) == 1)
                 {
                     await ipc.PostMessageAsync(new IpcStreamPulling(stream_id));
@@ -154,7 +155,7 @@ public class IpcBodyReceiver : IpcBody
             }
             ).Stream;
 
-        Console.WriteLine(String.Format("receiver/{0}/{1}", ipc, stream));
+        Console.Log("MetaToStream", "receiver/{0}/{1} {0}", ipc, stream);
 
         return stream;
     }

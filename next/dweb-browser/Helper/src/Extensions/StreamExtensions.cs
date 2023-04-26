@@ -39,8 +39,7 @@ public static class StreamExtensions
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw e;
+            throw;
         }
     }
     public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, int usize = 4096)

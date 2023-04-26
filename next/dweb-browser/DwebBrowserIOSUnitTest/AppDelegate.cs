@@ -1,5 +1,6 @@
 ﻿using DwebBrowser.WebModule.Jmm;
 using DwebBrowser.WebModule.Js;
+using System.Diagnostics;
 using System.Net.Http;
 
 namespace DwebBrowserIOSUnitTest;
@@ -30,18 +31,18 @@ public class AppDelegate : UIApplicationDelegate {
 		Window.MakeKeyAndVisible ();
 
 		var res = LocaleFile.LocaleFileFetch(new JmmNMM(), new HttpRequestMessage(HttpMethod.Get, "file:///bundle/desktop.worker.js"));
-		Console.WriteLine(String.Format("结果：{0}", res?.StatusCode));
+		Debug.WriteLine(String.Format("结果：{0}", res?.StatusCode));
 
-		Console.WriteLine(res.Content.ToString());
+        Debug.WriteLine(res.Content.ToString());
 
 		if (res is not null)
 		{
 			var stream = res.Content.ReadAsStream();
-			Console.WriteLine(String.Format("读取长度：{0}", stream.Length));
+            Debug.WriteLine(String.Format("读取长度：{0}", stream.Length));
 			using (var reader = new StreamReader(stream))
 			{
-				Console.WriteLine(reader.ReadToEnd());
-				Console.WriteLine("结束");
+                Debug.WriteLine(reader.ReadToEnd());
+                Debug.WriteLine("结束");
 			}
 		}
 
