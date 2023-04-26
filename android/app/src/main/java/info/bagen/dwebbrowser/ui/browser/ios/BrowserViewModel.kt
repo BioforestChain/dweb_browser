@@ -1,17 +1,19 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.content.Intent
+import android.os.Build
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
@@ -23,11 +25,9 @@ import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.entity.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.jsoup.Jsoup
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -103,7 +103,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
       WebsiteDB.queryHistoryWebsiteInfoMap().collect {
         uiState.historyWebsiteMap.clear()
         var index = 0
-        it.toSortedMap{ o1, o2 ->
+        it.toSortedMap { o1, o2 ->
           if (o1 < o2) 1 else -1
         }.forEach { (key, value) ->
           value.forEach { webSiteInfo -> webSiteInfo.index = index++ }
@@ -173,6 +173,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           }
         }
         is BrowserIntent.SearchWebView -> {
+          uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
           when (val itemView = uiState.currentBrowserBaseView.value) {
             is BrowserWebView -> {
               itemView.state.content = WebContent.Url(action.url)
@@ -236,11 +237,11 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
             if (it is BrowserWebView) {
               val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                putExtra(Intent.EXTRA_SUBJECT, "分享") // 分享主题
                 putExtra(Intent.EXTRA_TEXT, it.state.lastLoadedUrl ?: "") // 分享内容
+                // putExtra(Intent.EXTRA_SUBJECT, "分享标题")
+                putExtra(Intent.EXTRA_TITLE, it.state.pageTitle) // 分享标题
               }
-              App.appContext.startActivity(Intent.createChooser(shareIntent, "分享"))
+              browserController.activity?.startActivity(Intent.createChooser(shareIntent, "分享到"))
             }
           }
         }
@@ -251,7 +252,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           uiState.keyboardOpened.value = action.pair.first
         }
         is BrowserIntent.DeleteWebSiteList -> {
-          when(action.type) {
+          when (action.type) {
             ListType.Book -> {
               if (action.clsAll) {
                 WebsiteDB.clearBookWebsiteInfo()
@@ -284,7 +285,9 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
         ),
         null
-      )
+      ).also {
+        it.webViewClient = DwebBrowserWebViewClient()
+      }
     }
 
   private suspend fun loadHotInfo() {
@@ -299,6 +302,40 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
       val title = element.getElementsByClass("c-single-text-ellipsis").text()
       val path = element.select("a").first()?.attr("href")
       uiState.hotLinkList.add(HotspotInfo(count++, title, webUrl = path ?: ""))
+    }
+  }
+}
+
+internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
+  override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      request?.url?.let { uri ->
+        val url = uri.toString()
+        if (url.startsWith("http") || url.startsWith("file") || url.startsWith("ftp")) {
+          return super.shouldOverrideUrlLoading(view, request)
+        }
+        // 暂时不跳转
+        /*try {
+          App.appContext.startActivity(Intent(Intent.ACTION_VIEW, request.url).also {
+            it.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+          })
+        } catch (_: Exception) {
+        }*/
+      }
+      return true
+    }
+    return super.shouldOverrideUrlLoading(view, request)
+  }
+
+  override fun onReceivedError(
+    view: WebView?,
+    request: WebResourceRequest?,
+    error: WebResourceError?
+  ) {
+    // super.onReceivedError(view, request, error)
+    if (error?.errorCode == -2) { // net::ERR_NAME_NOT_RESOLVED
+      val param = request?.url?.let { uri -> "?text=${uri.host}${uri.path}" } ?: ""
+      view?.loadUrl("file:///android_asset/error.html$param")
     }
   }
 }

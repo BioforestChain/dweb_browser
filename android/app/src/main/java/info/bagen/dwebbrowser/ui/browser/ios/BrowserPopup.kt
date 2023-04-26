@@ -1,6 +1,9 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
+import android.Manifest
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -65,16 +68,30 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
       },
       sheetState = viewModel.uiState.modalBottomSheetState,
     ) {
+      val tabs = when (viewModel.uiState.currentBrowserBaseView.value) {
+        is BrowserWebView -> {
+          listOf(
+            TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
+            TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
+            TabItem(
+              R.string.browser_nav_history,
+              R.drawable.ic_main_history,
+              PopupViewState.HistoryList
+            ),
+          )
+        }
+        else -> {
+          listOf(
+            TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
+            TabItem(
+              R.string.browser_nav_history,
+              R.drawable.ic_main_history,
+              PopupViewState.HistoryList
+            ),
+          )
+        }
+      }
 
-      val tabs = listOf(
-        TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
-        TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
-        TabItem(
-          R.string.browser_nav_history,
-          R.drawable.ic_main_history,
-          PopupViewState.HistoryList
-        ),
-      )
       var selectedTabIndex by remember {
         mutableStateOf(0)
       }
@@ -121,8 +138,19 @@ private fun PopContentView(viewModel: BrowserViewModel) {
 
 @Composable
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
+  val launcher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.RequestPermission(),
+    onResult = { isGranted ->
+      //判断权限申请结果，并根据结果侠士不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composalbe 需要通过修改 state 等方式间接显示 Composable
+      if (isGranted) {
+        viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+      }
+    }
+  )
   LazyColumn {
-    item { Spacer(modifier = Modifier.fillMaxWidth().height(10.dp)) }
+    item { Spacer(modifier = Modifier
+      .fillMaxWidth()
+      .height(10.dp)) }
     // 分享和添加书签
     item {
       Box(
@@ -153,7 +181,9 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
 
       }
     }
-    item { Spacer(modifier = Modifier.fillMaxWidth().height(10.dp)) }
+    item { Spacer(modifier = Modifier
+      .fillMaxWidth()
+      .height(10.dp)) }
     item {
       Box(
         modifier = Modifier
@@ -163,7 +193,8 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           .clip(RoundedCornerShape(8.dp))
           .background(MaterialTheme.colorScheme.background)
           .clickable {
-            viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+            launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) // 请求权限
+            //viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
           }
       ) {
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
@@ -365,7 +396,7 @@ private fun PopupListManageView(
       offset = IntOffset(
         (localDensity.run { screenWidth.toPx() } / 2).toInt(),
         (localDensity.run {
-          when(type) {
+          when (type) {
             ListType.Book -> {
               (height * (state.value.second - lazyListState.firstVisibleItemIndex)).toPx()
             }

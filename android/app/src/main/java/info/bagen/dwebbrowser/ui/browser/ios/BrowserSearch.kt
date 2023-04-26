@@ -199,7 +199,6 @@ fun SearchWebsiteCardView(
       .background(MaterialTheme.colorScheme.background)
       .clickable {
         localFocusManager.clearFocus() // 点击后，直接取消聚焦，隐藏键盘
-        viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
         onClick()
       }
   ) {

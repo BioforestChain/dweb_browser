@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -333,6 +334,7 @@ private fun SearchTextField(
   focus: MutableState<Boolean>,
 ) {
   val keyboardController = LocalSoftwareKeyboardController.current
+  val focusManager = LocalFocusManager.current
   val currentText = remember { mutableStateOf(if (focus.value) inputText.value else "") }
 
   BasicTextField(
@@ -361,8 +363,21 @@ private fun SearchTextField(
     textStyle = TextStyle.Default.copy(
       /*color = MaterialTheme.colorScheme.onPrimary, */fontSize = dimenTextFieldFontSize
     ),
-    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done/*ImeAction.Search*/),
-    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+    keyboardOptions = KeyboardOptions(
+      imeAction = if (currentText.value.isUrlOrHost()) {
+        ImeAction.Search
+      } else {
+        ImeAction.Done
+      }
+    ),
+    keyboardActions = KeyboardActions(
+      onDone = { keyboardController?.hide() },
+      onSearch = {
+        if (currentText.value.isEmpty()) return@KeyboardActions
+        viewModel.handleIntent(BrowserIntent.SearchWebView(currentText.value.toRequestUrl()))
+        focusManager.clearFocus()
+      }
+    )
   ) { innerTextField ->
     Box {
       Surface(modifier = Modifier.align(Alignment.Center)) {
@@ -419,6 +434,24 @@ private fun SearchTextField(
   }
 }
 
+private fun String.isUrlOrHost(): Boolean {
+  // 只判断 host(长度1~63,结尾是.然后带2~6个字符如[.com]，没有端口判断)：val regex = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}\$".toRegex()
+  // 以 http 或者 https 或者 ftp 打头，可以没有
+  // 字符串中只能包含数字和字母，同时可以存在-
+  // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
+  val regex =
+    "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
+  return regex.matches(this)
+}
+
+private fun String.toRequestUrl(): String {
+  return if (this.startsWith("http://") || this.startsWith("https://") || this.startsWith("ftp://")) {
+    this
+  } else {
+    "https://$this"
+  }
+}
+
 /**
  * 根据内容来判断
  */
@@ -448,6 +481,14 @@ private fun parseInputText(text: String, host: Boolean = true): String? {
     ) != null -> {
       uri.getQueryParameter("q")
     }
-    else -> if (host) uri.host else text
+    else -> {
+      if (uri.host?.isNotEmpty() == true) {
+        uri.host
+      } else if (uri.getQueryParameter("text")?.isNotEmpty() == true) {
+        uri.getQueryParameter("text")
+      } else {
+        text
+      }
+    }
   }
 }

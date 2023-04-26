@@ -31,9 +31,11 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
       }
       if (it is LoadingState.Finished) {
         delay(500)
-        viewModel.handleIntent(BrowserIntent.SaveHistoryWebSiteInfo(
-          browserWebView.state.pageTitle, browserWebView.state.lastLoadedUrl
-        ))
+        viewModel.handleIntent(
+          BrowserIntent.SaveHistoryWebSiteInfo(
+            browserWebView.state.pageTitle, browserWebView.state.lastLoadedUrl
+          )
+        )
         browserWebView.controller.capture()
       }
     }
@@ -62,7 +64,8 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
           }
           false
         }
-        setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+        // 滚动隐藏先屏蔽
+        /*setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
           webViewY = scrollY // 用于截图的时候进行定位截图
           if (scrollY == 0 || oldScrollY == 0) return@setOnScrollChangeListener
           localFocusManager.clearFocus() // TODO 清除焦点
@@ -71,7 +74,7 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
           } else if (oldScrollY > scrollY + 5) {
             viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true))  // TODO 下滑，需要显示底部栏
           }
-        }
+        }*/
       }
       browserWebView.webView
     })
