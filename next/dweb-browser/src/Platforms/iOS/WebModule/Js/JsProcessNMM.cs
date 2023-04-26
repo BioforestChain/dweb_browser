@@ -7,6 +7,8 @@ using System.Text.Json;
 using WebKit;
 using System.Diagnostics;
 
+#nullable enable
+
 namespace DwebBrowser.WebModule.Js;
 
 public class JsProcessNMM : NativeMicroModule
@@ -330,17 +332,6 @@ public class JsProcessNMM : NativeMicroModule
 
     private Task<int> _createIpc(Ipc ipc, JsProcessWebApi apis, int process_id, Mmid mmid) =>
         apis.CreateIpc(process_id, mmid);
-
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    {
-
-
-    }
-
-    protected override async Task _shutdownAsync()
-    {
-
-    }
 }
 
 

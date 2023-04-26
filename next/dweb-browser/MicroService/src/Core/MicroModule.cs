@@ -59,7 +59,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
         _ipcSet.Clear();
     }
 
-    protected abstract Task _shutdownAsync();
+    protected virtual async Task _shutdownAsync() { }
 
     protected async Task _afterShutdownAsync()
     {
@@ -137,7 +137,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
         return (OnConnect?.Emit(ipc, reason)).ForAwait();
     }
 
-    protected abstract Task _onActivityAsync(IpcEvent Event, Ipc ipc);
+    protected virtual async Task _onActivityAsync(IpcEvent Event, Ipc ipc) { }
 
 
 }

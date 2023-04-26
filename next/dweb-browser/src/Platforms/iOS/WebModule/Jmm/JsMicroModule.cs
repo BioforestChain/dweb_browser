@@ -159,11 +159,6 @@ public class JsMicroModule : MicroModule
         };
     }
 
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    {
-
-    }
-
     private event Signal? _onCloseJsProcess;
 
     protected override async Task _shutdownAsync()
