@@ -97,7 +97,7 @@ open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
             val request = ipcRequest.toRequest()
             kotlin.runCatching {
                 // 转发请求
-                val response = nativeFetch(request);
+                val response = nativeFetch(request)
                 val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
                 ipc.postMessage(ipcResponse)
             }.onFailure {

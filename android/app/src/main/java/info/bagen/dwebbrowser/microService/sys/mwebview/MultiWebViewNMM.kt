@@ -7,12 +7,7 @@ import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.printdebugln
-import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
-import info.bagen.dwebbrowser.microService.webview.debugDWebView
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -20,7 +15,6 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.util.*
 
 inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("mwebview", tag, msg, err)
@@ -37,12 +31,12 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
             ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
         )
         val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
+
         /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的*/
         fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
             return controllerMap[mmid]
         }
     }
-    private val uuid = UUID.randomUUID()
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// nativeui 与 mwebview 是伴生关系
@@ -88,40 +82,33 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
         )
     }
 
-    init {
-        onConnect { (ipc) ->
-            ipc.onEvent { (event,ipc) ->
-                debugMultiWebView("multiWebView onEvent=>",event.name)
-//                if (!isFileLink(request.uri.toString())) {
-//                    debugDWebView("emitEvent fetch ${ipc.remote.mmid}",request.uri)
-//                    val method = request.method
-//                    val headers = request.headers
-//                    val body = request.body
-//                    GlobalScope.launch(ioAsyncExceptionHandler) {
-//                        emitEvent(ipc.remote.mmid,"fetch","""
+//    init {
+//        onConnect { (ipc) ->
+//            ipc.onRequest { (ipcRequest,ipc) ->
+//                debugMultiWebView("multiWebView onEvent=>", "mmid: ${ipc.remote.mmid} ${ipcRequest.url}")
+//                runBlockingCatching(ioAsyncExceptionHandler) {
+//                    emitEvent(
+//                        ipc.remote.mmid, "fetch", """
 //                        new FetchEvent('fetch', {
-//                          request: new Request("${request.uri}",{
-//                            method: "$method",
-//                            headers: "$headers",
-//                            body: "$body"
-//                          }),
-//                          clientId: "${uuid.toString().replace("-", "").substring(0, 10)}",
+//                          request: "${ipcRequest.toRequest()}",
+//                          clientId: "${ipcRequest.req_id}",
 //                          bubbles: true,
 //                          cancelable: false
 //                        })
-//                    """.trimIndent())
-//                    }
+//                    """.trimIndent()
+//                    )
 //                }
-            }
-        }
-    }
+//                ipc.postMessage(IpcResponse.fromResponse(ipcRequest.req_id, Response(Status.FORBIDDEN), ipc))
+//            }
+//        }
+//    }
 
     override suspend fun _shutdown() {
         apiRouting = null
     }
 
 
-    override fun openActivity(remoteMmid: Mmid){
+    override fun openActivity(remoteMmid: Mmid) {
         val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
         val activityClass = activityClassList.find { it.mmid == remoteMmid } ?:
         // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
@@ -142,8 +129,8 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
 
 
     private suspend fun openDwebView(
-      remoteMm: MicroModule,
-      url: String,
+        remoteMm: MicroModule,
+        url: String,
     ): MultiWebViewController.ViewItem {
         val remoteMmid = remoteMm.mmid
         debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")

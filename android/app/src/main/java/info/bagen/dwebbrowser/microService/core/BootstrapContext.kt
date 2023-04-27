@@ -23,7 +23,7 @@ interface DnsMicroModule {
     /**
      * 动态js应用查询
      */
-    fun query(mmid: Mmid): JsMicroModule?
+    fun query(mmid: Mmid): MicroModule?
 
     /**
      * 重启应用

@@ -232,30 +232,6 @@ var nativeActivate = async (webview_id) => {
   ).text();
 };
 
-// src/helper/cacheGetter.cts
-var cacheGetter = () => {
-  return (target, prop, desp) => {
-    const source_fun = desp.get;
-    if (source_fun === void 0) {
-      throw new Error(`${target}.${prop} should has getter`);
-    }
-    desp.get = function() {
-      const result = source_fun.call(this);
-      if (desp.set) {
-        desp.get = () => result;
-      } else {
-        delete desp.set;
-        delete desp.get;
-        desp.value = result;
-        desp.writable = false;
-      }
-      Object.defineProperty(this, prop, desp);
-      return result;
-    };
-    return desp;
-  };
-};
-
 // src/helper/binaryHelper.cts
 var binaryToU8a = (binary) => {
   if (binary instanceof ArrayBuffer) {
@@ -339,6 +315,30 @@ var $dataToText = (data, encoding) => {
     }
   }
   throw new Error(`unknown encoding: ${encoding}`);
+};
+
+// src/helper/cacheGetter.cts
+var cacheGetter = () => {
+  return (target, prop, desp) => {
+    const source_fun = desp.get;
+    if (source_fun === void 0) {
+      throw new Error(`${target}.${prop} should has getter`);
+    }
+    desp.get = function() {
+      const result = source_fun.call(this);
+      if (desp.set) {
+        desp.get = () => result;
+      } else {
+        delete desp.set;
+        delete desp.get;
+        desp.value = result;
+        desp.writable = false;
+      }
+      Object.defineProperty(this, prop, desp);
+      return result;
+    };
+    return desp;
+  };
 };
 
 // src/core/ipc/IpcEvent.cts
@@ -639,29 +639,9 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
-      const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
-      if (pathname === "/public-url") {
-        ipcResponse = IpcResponse.fromText(
-          request.req_id,
-          200,
-          void 0,
-          serverurlInfo.buildPublicUrl(() => {
-          }).href,
-          httpServerIpc
-        );
-      }
-      if (pathname === "/observe") {
-        const streamPo = observeFactory(url);
-        ipcResponse = IpcResponse.fromStream(
-          request.req_id,
-          200,
-          void 0,
-          streamPo.stream,
-          httpServerIpc
-        );
-      }
+      ipcResponse = internalFactory(url, request.req_id, httpServerIpc, serverurlInfo);
     } else {
-      fetchSignal.emit(request, url);
+      fetchSignal.emit(request);
       const path = `file:/${url.pathname}${url.search}`;
       const response = await jsProcess.nativeFetch(path, {
         body: request.body.raw,
@@ -672,7 +652,6 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         request.req_id,
         response,
         httpServerIpc
-        // true
       );
     }
     if (!ipcResponse) {
@@ -696,21 +675,54 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
     }
   }
 }
-var serviceWorkerFetch = () => {
-  const result = { ipc: new PromiseOut2() };
-  result.ipc.resolve(jsProcess.connect("mwebview.sys.dweb"));
-  result.ipc.promise.then((ipc2) => {
-    fetchSignal.listen((request, url) => {
-      ipc2.postMessage(IpcEvent.fromText("fetch", ""));
-    });
-  });
-};
-serviceWorkerFetch();
-var observeFactory = (url) => {
-  const mmid = url.searchParams.get("mmid");
-  if (mmid === null) {
-    throw new Error("observe require mmid");
+var internalFactory = (url, req_id, httpServerIpc, serverurlInfo) => {
+  const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
+  if (pathname === "/public-url") {
+    return IpcResponse.fromText(
+      req_id,
+      200,
+      void 0,
+      serverurlInfo.buildPublicUrl(() => {
+      }).href,
+      httpServerIpc
+    );
   }
+  if (pathname === "/observe") {
+    const mmid = url.searchParams.get("mmid");
+    if (mmid === null) {
+      throw new Error("observe require mmid");
+    }
+    const streamPo = observeFactory(mmid);
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      void 0,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
+  if (pathname === "/fetch") {
+    const streamPo = serviceWorkerFetch();
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      void 0,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
+};
+var serviceWorkerFetch = () => {
+  const streamPo = new ReadableStreamOut();
+  const ob = { controller: streamPo.controller };
+  fetchSignal.listen((ipcRequest) => {
+    const jsonlineEnd = simpleEncoder("\n", "utf8");
+    const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8");
+    ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
+  });
+  return streamPo;
+};
+var observeFactory = (mmid) => {
   const streamPo = new ReadableStreamOut();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid2) => {
     const result = { ipc: new PromiseOut2(), obs: /* @__PURE__ */ new Set() };
@@ -755,7 +767,7 @@ var main = async () => {
       nativeActivate(key);
     });
   };
-  const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2, IpcEvent: IpcEvent2 } = ipc;
+  const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2, IpcEvent: IpcEvent3 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443
@@ -802,7 +814,7 @@ var main = async () => {
       if (event.name === "activity") {
         hasActivity = true;
         const view_id = await tryOpenView();
-        browserIpc.postMessage(IpcEvent2.fromText("ready", view_id ?? "activity"));
+        browserIpc.postMessage(IpcEvent3.fromText("ready", view_id ?? "activity"));
         return;
       }
     });

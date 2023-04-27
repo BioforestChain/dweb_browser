@@ -29,8 +29,7 @@ suspend fun emitEvent(mmid: Mmid, eventName: String, data: String = ""): Boolean
     val controller = MultiWebViewNMM.getCurrentWebViewController(mmid) ?: return false
     var payload = """new Event("$eventName")"""
     // progress,fetch,onFetch为自定义构造返回
-    if (eventName == DownloadControllerEvent.Progress.event ||
-        eventName == ServiceWorkerEvent.Fetch.event || eventName == ServiceWorkerEvent.OnFetch.event) {
+    if (eventName == DownloadControllerEvent.Progress.event) {
         payload = data
     }
 

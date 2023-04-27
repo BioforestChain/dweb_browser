@@ -1,3 +1,4 @@
+import { IPC_METHOD } from "../../core/ipc/const.cjs";
 import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
 import { u8aConcat } from "../../helper/binaryHelper.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
@@ -23,7 +24,7 @@ const ipcObserversMap = new Map<
 >();
 
 const INTERNAL_PREFIX = "/internal";
-type $OnIpcRequestUrl = (request: $IpcRequest, url: URL) => void
+type $OnIpcRequestUrl = (request: $IpcRequest) => void
 const fetchSignal = createSignal<$OnIpcRequestUrl>()
 
 
@@ -40,30 +41,10 @@ export async function onApiRequest(
     const url = new URL(request.url, serverurlInfo.internal_origin);
     // 是否是内部请求
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
-      const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
-      // 转发public url
-      if (pathname === "/public-url") {
-        ipcResponse = IpcResponse.fromText(
-          request.req_id,
-          200,
-          undefined,
-          serverurlInfo.buildPublicUrl(() => { }).href,
-          httpServerIpc
-        );
-      }
-      // 监听属性 
-      if (pathname === "/observe") {
-        const streamPo = observeFactory(url)
-        ipcResponse = IpcResponse.fromStream(
-          request.req_id,
-          200,
-          undefined,
-          streamPo.stream,
-          httpServerIpc
-        );
-      }
+      ipcResponse = internalFactory(url, request.req_id, httpServerIpc, serverurlInfo)
     } else {
-      fetchSignal.emit(request, url)
+      // 触发fetch
+      fetchSignal.emit(request)
 
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
@@ -77,7 +58,6 @@ export async function onApiRequest(
         request.req_id,
         response,
         httpServerIpc
-        // true
       );
 
     }
@@ -105,25 +85,63 @@ export async function onApiRequest(
   }
 }
 
-const serviceWorkerFetch = () => {
-  const result = { ipc: new PromiseOut<$Ipc>() };
-  result.ipc.resolve(jsProcess.connect("mwebview.sys.dweb"))
-  result.ipc.promise.then((ipc) => {
-    fetchSignal.listen((request, url) => {
-      ipc.postMessage(IpcEvent.fromText("fetch", ""))
-    })
-  })
+/**处理内部的绑定流事件 */
+const internalFactory = (url: URL, req_id: number, httpServerIpc: $Ipc, serverurlInfo: ServerUrlInfo) => {
+  const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
+  // 转发public url
+  if (pathname === "/public-url") {
+    return IpcResponse.fromText(
+      req_id,
+      200,
+      undefined,
+      serverurlInfo.buildPublicUrl(() => { }).href,
+      httpServerIpc
+    );
+  }
+  // 监听属性 
+  if (pathname === "/observe") {
+    const mmid = url.searchParams.get("mmid");
+    if (mmid === null) {
+      throw new Error("observe require mmid");
+    }
+    const streamPo = observeFactory(mmid)
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      undefined,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
+  // 监听fetch
+  if (pathname === "/fetch") {
+    // serviceWorker fetch
+    const streamPo = serviceWorkerFetch()
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      undefined,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
 }
-// serviceWorker fetch
-serviceWorkerFetch()
+
+/**这里会处理api的消息返回到前端serviceWorker 构建onFetchEvent 并触发fetch事件 */
+const serviceWorkerFetch = () => {
+  const streamPo = new ReadableStreamOut<Uint8Array>();
+  const ob = { controller: streamPo.controller };
+  fetchSignal.listen((ipcRequest) => {
+    const jsonlineEnd = simpleEncoder("\n", "utf8");
+    const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8")
+    ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
+  })
+  return streamPo
+}
 
 
 /**监听属性的变化 */
-const observeFactory = (url: URL) => {
-  const mmid = url.searchParams.get("mmid");
-  if (mmid === null) {
-    throw new Error("observe require mmid");
-  }
+const observeFactory = (mmid: string) => {
   const streamPo = new ReadableStreamOut<Uint8Array>();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
     const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };

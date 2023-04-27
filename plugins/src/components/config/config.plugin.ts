@@ -28,10 +28,10 @@ export class ConfigPlugin extends BasePlugin {
     return this.fetchApi("/public-url").text();
   }
   getPublicUrl() {
-    return (BasePlugin.public_url = this._getPublicUrl());
+    return BasePlugin.public_url.resolve(this._getPublicUrl());
   }
   get public_url() {
-    return BasePlugin.public_url;
+    return BasePlugin.public_url.promise;
   }
 }
 export const configPlugin = new ConfigPlugin();

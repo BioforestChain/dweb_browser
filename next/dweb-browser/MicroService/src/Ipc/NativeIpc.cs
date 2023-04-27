@@ -45,9 +45,9 @@ public class NativePort<I, O>
     static Debugger Console = new Debugger("NativePort");
     private BufferBlock<I> _channel_in { get; set; }
     private BufferBlock<O> _channel_out { get; set; }
-    private PromiseOut<bool> _closePo = new PromiseOut<bool>();
+    private PromiseOut<Unit> _closePo = new PromiseOut<Unit>();
 
-    public NativePort(BufferBlock<I> channel_in, BufferBlock<O> channel_out, PromiseOut<bool> closePo)
+    public NativePort(BufferBlock<I> channel_in, BufferBlock<O> channel_out, PromiseOut<Unit> closePo)
     {
         _channel_in = channel_in;
         _channel_out = channel_out;
@@ -101,7 +101,7 @@ public class NativePort<I, O>
     {
         if (!_closePo.IsFinished)
         {
-            _closePo.Resolve(true);
+            _closePo.Resolve(unit);
             Console.Log("Close", "port-closing/{0}", this);
         }
     }
@@ -125,7 +125,7 @@ public class NativeMessageChannel<T1, T2>
     /**
      * 默认锁住，当它解锁的时候，意味着通道关闭
      */
-    private PromiseOut<bool> _closePo = new PromiseOut<bool>();
+    private PromiseOut<Unit> _closePo = new PromiseOut<Unit>();
     private BufferBlock<T1> _channel1 = new BufferBlock<T1>();
     private BufferBlock<T2> _channel2 = new BufferBlock<T2>();
     public NativePort<T1, T2> Port1;

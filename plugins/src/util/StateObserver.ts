@@ -24,7 +24,7 @@ export class StateObserver<RAW, STATE> {
     const jsonlines = await this.plugin
       .buildInternalApiRequest("/observe", {
         search: { mmid: this.plugin.mmid },
-        base: await BasePlugin.public_url,
+        base: await BasePlugin.public_url.promise,
       })
       .fetch()
       .jsonlines(this.coder.decode);

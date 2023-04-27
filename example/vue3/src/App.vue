@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from 'vue';
 import { useRouter } from "vue-router";
 import { dwebServiceWorker } from "@bfex/plugin"
 import { routes } from "./routes";
@@ -18,6 +18,18 @@ dwebServiceWorker.addEventListener("pause", (event) => {
 
 dwebServiceWorker.addEventListener("resume", (event) => {
   console.log("app 恢复🍉", event)
+})
+
+
+dwebServiceWorker.addEventListener("fetch", async (event) => {
+  console.log("Dweb Service Worker fetch!", event.clientId);
+  const response = await fetch(event.request)
+  console.log("Dweb Service Worker fetch response=>", response)
+  return event.respondWith(response)
+})
+
+dwebServiceWorker.addEventListener("onFetch", (event) => {
+  console.log("Dweb Service Worker onFetch!", event);
 })
 
 

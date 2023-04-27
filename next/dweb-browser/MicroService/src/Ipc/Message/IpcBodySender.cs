@@ -370,7 +370,7 @@ public class IpcBodySender : IpcBody
             /**
              * 只有等到 Pulling 指令的时候才能读取并发送
              */
-            var pullingPo = new PromiseOut<bool>();
+            var pullingPo = new PromiseOut<Unit>();
 
             _ = Task.Run(async () =>
             {
@@ -378,12 +378,12 @@ public class IpcBodySender : IpcBody
                 switch (signal)
                 {
                     case StreamStatusSignal.PULLING:
-                        pullingPo.Resolve(true);
+                        pullingPo.Resolve(unit);
                         break;
                     case StreamStatusSignal.PAUSED:
                         if (pullingPo.IsFinished)
                         {
-                            pullingPo = new PromiseOut<bool>();
+                            pullingPo = new PromiseOut<Unit>();
                         }
                         break;
                     case StreamStatusSignal.ABORTED:

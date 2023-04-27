@@ -21,18 +21,6 @@ onMounted(async () => {
     console.log("app resume", event)
   })
 
-  sw.addEventListener("fetch", async (event) => {
-    console.log("Dweb Service Worker fetch!", event.clientId);
-    const response = await fetch(event.request)
-    console.log("Dweb Service Worker fetch response=>", response)
-    return event.respondWith(response)
-  })
-
-  sw.addEventListener("onFetch", (event) => {
-    console.log("Dweb Service Worker onFetch!", event);
-  })
-
-
   const updateContoller = sw.update
 
   updateContoller.addEventListener("start", (event) => {
