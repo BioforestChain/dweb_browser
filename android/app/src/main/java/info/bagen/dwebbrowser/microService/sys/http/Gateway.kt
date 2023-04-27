@@ -80,11 +80,7 @@ class Gateway(
         } else if (request.method == Method.OPTIONS) {
             // 处理options请求
             Response(Status.OK).headers(
-                listOf(
-                    Pair("Access-Control-Allow-Methods", "*"),
-                    Pair("Access-Control-Allow-Origin", "*"),
-                    Pair("Access-Control-Allow-Headers", "*")
-                )
+                CORS_HEADERS
             )
         } else null
     }
@@ -92,3 +88,8 @@ class Gateway(
 
 }
 
+val CORS_HEADERS = listOf(
+    Pair("Access-Control-Allow-Origin", "*"),
+    Pair("Access-Control-Allow-Headers", "*"),
+    Pair("Access-Control-Allow-Methods", "*"),
+)

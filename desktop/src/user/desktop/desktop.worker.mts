@@ -1,5 +1,6 @@
 /// <reference path="../../sys/js-process/js-process.worker.d.ts"/>
 
+import { nativeOpen } from "../tool/tool.native.mjs";
 import { CODE as CODE_desktop_web_mjs } from "./assets/desktop.web.mjs.cjs";
 import { CODE as CODE_index_html } from "./assets/index.html.cjs";
 console.log("ookkkkk, i'm in worker");
@@ -77,11 +78,7 @@ export const main = async () => {
   }
   {
     console.log("打开浏览器页面", main_url);
-    const view_id = await jsProcess
-      .nativeFetch(
-        `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
-      )
-      .text();
+    const view_id = await nativeOpen(main_url)
   }
 };
 main().catch(console.error);

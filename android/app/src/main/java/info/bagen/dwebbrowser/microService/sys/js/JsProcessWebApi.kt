@@ -11,6 +11,7 @@ import info.bagen.dwebbrowser.microService.ipc.ipcWeb.saveNative2JsIpcPort
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicInteger
 
 class JsProcessWebApi(val dWebView: DWebView) {
     suspend fun isReady() =
@@ -18,6 +19,11 @@ class JsProcessWebApi(val dWebView: DWebView) {
 
     data class ProcessInfo(val process_id: Int) {}
     inner class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
+
+    /**
+     * 执行js"多步骤"代码时的并发编号
+     */
+    private var hidAcc = AtomicInteger(1);
 
     suspend fun createProcess(
       env_script_url: String,
@@ -32,10 +38,12 @@ class JsProcessWebApi(val dWebView: DWebView) {
         val metadata_json_str = gson.toJson(metadata_json)
         val env_json_str = gson.toJson(env_json)
 
+        val hid = hidAcc.addAndGet(1);
         val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
             new Promise((resolve,reject)=>{
-                addEventListener("message", async event => {
-                    if (event.data === "js-process/create-process") {
+                addEventListener("message", async function doCreateProcess(event) {
+                    if (event.data === "js-process/create-process/$hid") {
+                        removeEventListener("message", doCreateProcess);
                         const fetch_port = event.ports[0];
                         try{
                             resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`))
@@ -43,13 +51,12 @@ class JsProcessWebApi(val dWebView: DWebView) {
                             reject(err)
                         }
                     }
-                }, { once: true })
+                })
             })
             """.trimIndent(), afterEval = {
             try {
-
                 dWebView.postWebMessage(
-                    WebMessage("js-process/create-process", arrayOf(port1)), Uri.EMPTY
+                    WebMessage("js-process/create-process/$hid", arrayOf(port1)), Uri.EMPTY
                 );
             } catch (e: Exception) {
                 println("QQQQ");
@@ -82,10 +89,12 @@ class JsProcessWebApi(val dWebView: DWebView) {
         val channel = dWebView.createWebMessageChannel()
         val port1 = channel[0]
         val port2 = channel[1]
+        val hid = hidAcc.getAndAdd(1);
         dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
-            addEventListener("message", async event => {
-                if (event.data === "js-process/create-ipc") {
+            addEventListener("message", async function doCreateIpc(event) {
+                if (event.data === "js-process/create-ipc/$hid") {
+                    removeEventListener("message", doCreateIpc);
                     const ipc_port = event.ports[0];
                     try{
                         resolve(await createIpc($process_id, `$mmid`, ipc_port))
@@ -93,11 +102,11 @@ class JsProcessWebApi(val dWebView: DWebView) {
                         reject(err)
                     }
                 }
-            }, { once: true })
+            })
         })
         """.trimIndent(), afterEval = {
             dWebView.postWebMessage(
-                WebMessage("js-process/create-ipc", arrayOf(port1)), Uri.EMPTY
+                WebMessage("js-process/create-ipc/$hid", arrayOf(port1)), Uri.EMPTY
             );
         })
         saveNative2JsIpcPort(port2)

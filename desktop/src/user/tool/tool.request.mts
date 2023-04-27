@@ -1,4 +1,6 @@
+import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
 import { u8aConcat } from "../../helper/binaryHelper.cjs";
+import { createSignal } from "../../helper/createSignal.cjs";
 import { simpleEncoder } from "../../helper/encoding.cjs";
 import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
@@ -21,6 +23,10 @@ const ipcObserversMap = new Map<
 >();
 
 const INTERNAL_PREFIX = "/internal";
+type $OnIpcRequestUrl = (request: $IpcRequest, url: URL) => void
+const fetchSignal = createSignal<$OnIpcRequestUrl>()
+
+
 /**
  * request 事件处理器
  */
@@ -32,9 +38,9 @@ export async function onApiRequest(
   let ipcResponse: undefined | $IpcResponse;
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
+    // 是否是内部请求
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
-      console.log("/public-url=>", pathname)
       // 转发public url
       if (pathname === "/public-url") {
         ipcResponse = IpcResponse.fromText(
@@ -57,31 +63,23 @@ export async function onApiRequest(
         );
       }
     } else {
+      fetchSignal.emit(request, url)
+
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
-      console.log("onRequestPath: ", path, request.method, request.body);
-      if (request.method === "POST") {
-        const response = await jsProcess.nativeFetch(path, {
-          body: request.body.raw,
-          headers: request.headers,
-          method: request.method,
-        });
+      const response = await jsProcess.nativeFetch(path, {
+        body: request.body.raw,
+        headers: request.headers,
+        method: request.method,
+      });
 
-        ipcResponse = await IpcResponse.fromResponse(
-          request.req_id,
-          response,
-          httpServerIpc
-          // true
-        );
-      } else {
-        const response = await jsProcess.nativeFetch(path);
-        ipcResponse = await IpcResponse.fromResponse(
-          request.req_id,
-          response,
-          httpServerIpc
-          // true
-        );
-      }
+      ipcResponse = await IpcResponse.fromResponse(
+        request.req_id,
+        response,
+        httpServerIpc
+        // true
+      );
+
     }
     if (!ipcResponse) {
       throw new Error(`unknown gateway: ${url.search}`);
@@ -107,10 +105,22 @@ export async function onApiRequest(
   }
 }
 
+const serviceWorkerFetch = () => {
+  const result = { ipc: new PromiseOut<$Ipc>() };
+  result.ipc.resolve(jsProcess.connect("mwebview.sys.dweb"))
+  result.ipc.promise.then((ipc) => {
+    fetchSignal.listen((request, url) => {
+      ipc.postMessage(IpcEvent.fromText("fetch", ""))
+    })
+  })
+}
+// serviceWorker fetch
+serviceWorkerFetch()
+
+
 /**监听属性的变化 */
 const observeFactory = (url: URL) => {
   const mmid = url.searchParams.get("mmid");
-  console.log("cotDemo#observeFactory url.mmid=>", mmid)
   if (mmid === null) {
     throw new Error("observe require mmid");
   }
@@ -120,7 +130,6 @@ const observeFactory = (url: URL) => {
     result.ipc.resolve(jsProcess.connect(mmid));
     result.ipc.promise.then((ipc) => {
       ipc.onEvent((event) => {
-        console.log("cotDemo#observeFactory event.name=>{%s} remote.mmid=>{%s}", event.name, ipc.remote.mmid)
         if (event.name !== OBSERVE.State && event.name !== OBSERVE.UpdateProgress) {
           return;
         }

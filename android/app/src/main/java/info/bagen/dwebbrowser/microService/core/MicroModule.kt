@@ -119,11 +119,8 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
             if (event.name == "activity") {
                 onActivity(event, ipc)
             }
-            if (event.name == "observe") {
-                _observerState.emit(IpcEventMessageArgs(event,ipc))
-            }
-        }
 
+        }
         _connectSignal.emit(Pair(ipc, reason))
     }
 
@@ -131,13 +128,6 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
 
     /** 激活NMM入口*/
     protected open suspend fun onActivity(event: IpcEvent, ipc: Ipc) {}
-    /** nativeUI的状态观察者*/
-    private val _observerState = Signal<IpcEventMessageArgs>()
-    protected fun onState(cb: Callback<IpcEventMessageArgs>) = _observerState.listen(cb);
-
-//    protected open suspend fun observerState(event: IpcEvent, ipc: Ipc){
-//        println("observerState ${event.name} ${ipc.remote.mmid}" )
-//    }
 
 //    protected var apiRouting: RoutingHttpHandler? = null
 //    protected val requestContexts = RequestContexts()

@@ -18,7 +18,7 @@ class DWebViewClient : WebViewClient() {
         extends.remove(client)
 
     private fun inners(methodName: String) = extends.hasMethod(methodName)
-        .also { debugDWebView("WebViewClient", "calling method: $methodName") }
+//        .also { debugDWebView("WebViewClient", "calling method: $methodName") }
 
 
     class ReadyHelper : WebViewClient() {

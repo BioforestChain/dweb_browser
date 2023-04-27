@@ -31,37 +31,66 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
         onActivity()
     }
 
+
+    data class MM(val fromMmid: Mmid, val toMmid: Mmid) {
+        companion object {
+            val values = mutableMapOf<Mmid, MutableMap<Mmid, MM>>()
+            fun from(fromMmid: Mmid, toMmid: Mmid) = values.getOrPut(fromMmid) { mutableMapOf() }
+                .getOrPut(toMmid) { MM(fromMmid, toMmid) }
+        }
+    }
+
     /** 对等连接列表 */
     private val mmConnectsMap =
-        mutableMapOf<MicroModule, MutableMap<Mmid, PromiseOut<ConnectResult>>>()
+        mutableMapOf<MM, PromiseOut<ConnectResult>>()
     private val mmConnectsMapLock = Mutex()
 
     /** 为两个mm建立 ipc 通讯 */
     private suspend fun connectTo(
         fromMM: MicroModule, toMmid: Mmid, reason: Request
     ) = mmConnectsMapLock.withLock {
-
-        /** 一个互联实例表 */
-        val connectsMap = mmConnectsMap.getOrPut(fromMM) { mutableMapOf() }
-
+        val mmKey = MM.from(fromMM.mmid, toMmid)
         /**
          * 一个互联实例
          */
-        connectsMap.getOrPut(toMmid) {
+        mmConnectsMap.getOrPut(mmKey) {
             PromiseOut<ConnectResult>().also { po ->
                 GlobalScope.launch(ioAsyncExceptionHandler) {
                     val toMM = open(toMmid);
                     debugFetch("DNS/connect", "${fromMM.mmid} => $toMmid")
-                    val connects = connectMicroModules(fromMM, toMM, reason)
-                    po.resolve(connects)
-                    connects.ipcForFromMM.onClose {
+                    val connectResult = connectMicroModules(fromMM, toMM, reason)
+                    connectResult.ipcForFromMM.onClose {
                         mmConnectsMapLock.withLock {
-                            connectsMap.remove(toMmid);
+                            mmConnectsMap.remove(mmKey);
                         }
                     }
+                    po.resolve(connectResult)
+
+                    /// 如果可以，反向存储
+                    if (connectResult.ipcForToMM != null) {
+                        val mmKey2 = MM.from(toMmid, fromMM.mmid)
+                        mmConnectsMapLock.withLock {
+                            mmConnectsMap.getOrPut(mmKey2) {
+                                PromiseOut<ConnectResult>().also { po2 ->
+                                    val connectResult2 = ConnectResult(
+                                        connectResult.ipcForToMM,
+                                        connectResult.ipcForFromMM
+                                    );
+                                    connectResult2.ipcForFromMM.onClose {
+                                        mmConnectsMapLock.withLock {
+                                            mmConnectsMap.remove(mmKey2);
+                                        }
+                                    }
+                                    po2.resolve(connectResult2)
+                                }
+                            }
+                        }
+                    }
+
                 }
             }
         }
+
     }.waitPromise()
 
     class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
@@ -214,7 +243,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
         return runningApps.remove(mmid)?.let { microModulePo ->
             runCatching {
                 val microModule = microModulePo.waitPromise();
-                mmConnectsMap[microModule]?.remove(mmid) // 将这个连接关闭
+                mmConnectsMap.remove(MM.from(microModule.mmid, mmid)) // 将这个连接关闭 TIP 这里的ipc应该可以自动关闭
                 microModule.shutdown()
                 1
             }.getOrDefault(0)

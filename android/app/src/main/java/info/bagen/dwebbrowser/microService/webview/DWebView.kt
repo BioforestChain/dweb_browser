@@ -10,8 +10,10 @@ import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserC
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import info.bagen.dwebbrowser.microService.sys.http.CORS_HEADERS
 import info.bagen.dwebbrowser.microService.sys.http.getFullAuthority
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewActivity
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.microService.sys.plugin.permission.debugPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -23,6 +25,7 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
 import org.http4k.lens.Header
+import java.util.*
 
 
 inline fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -195,57 +198,55 @@ class DWebView(
             super.setWebViewClient(it)
         }
     }
-
     private val internalWebViewClient = object : WebViewClient() {
         override fun shouldInterceptRequest(
             view: WebView, request: WebResourceRequest
         ): WebResourceResponse? {
             if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
-                /// http://*.dweb 由 MicroModule 来处理请求
-                debugDWebView("shouldInterceptRequest/REQUEST", lazy {
-                    "${request.url} [${
-                        request.requestHeaders.toList().joinToString { "${it.first}=${it.second} " }
-                    }]"
-                })
-                val response = runBlockingCatching(ioAsyncExceptionHandler) {
-                    remoteMM.nativeFetch(
-                        Request(
-                            Method.GET, request.url.toString()
-                        ).headers(request.requestHeaders.toList())
-                            .header("X-Dweb-Proxy-Id", localeMM.mmid)
-                    )
-                }.getOrThrow()
-                debugDWebView("shouldInterceptRequest/RESPONSE", lazy {
-                    "${request.url} [${response.headers.joinToString { "${it.first}=${it.second} " }}]"
-                })
-                val contentType = Header.CONTENT_TYPE(response)
-                return WebResourceResponse(
-                    contentType?.value,
-                    contentType?.directives?.find { it.first == "charset" }?.second,
-                    response.status.code,
-                    response.status.description,
-                    response.headers.toMap(),
-                    response.body.stream,
-                )
+                return dwebFactory(request)
             } else if (request.url.path?.endsWith("bfs-metadata.json") == true) {
                 browserController.checkJmmMetadataJson(request.url.toString())
-                val CORS_HEADERS = mapOf(
-                    Pair("Content-Type", "application/json"),
-                    Pair("Access-Control-Allow-Origin", "*"),
-                    Pair("Access-Control-Allow-Headers", "*"),
-                    Pair("Access-Control-Allow-Methods", "*"),
-                )
                 return WebResourceResponse(
                     "application/json",
                     "",
                     200,
                     "OK",
-                    CORS_HEADERS,
+                    CORS_HEADERS.toMap(),
                     "OK".byteInputStream()
                 )
             }
             return super.shouldInterceptRequest(view, request)
         }
+    }
+
+    /** 处理Dweb域名的转发 */
+    fun dwebFactory(request: WebResourceRequest): WebResourceResponse {
+        /// http://*.dweb 由 MicroModule 来处理请求
+        debugDWebView("shouldInterceptRequest/REQUEST", lazy {
+            "${request.url} [${
+                request.requestHeaders.toList().joinToString { "${it.first}=${it.second} " }
+            }]"
+        })
+        val response = runBlockingCatching(ioAsyncExceptionHandler) {
+            remoteMM.nativeFetch(
+                Request(
+                    Method.GET, request.url.toString()
+                ).headers(request.requestHeaders.toList())
+                    .header("X-Dweb-Proxy-Id", localeMM.mmid)
+            )
+        }.getOrThrow()
+        debugDWebView("shouldInterceptRequest/RESPONSE", lazy {
+            "${request.url} [${response.headers.joinToString { "${it.first}=${it.second} " }}]"
+        })
+        val contentType = Header.CONTENT_TYPE(response)
+        return WebResourceResponse(
+            contentType?.value,
+            contentType?.directives?.find { it.first == "charset" }?.second,
+            response.status.code,
+            response.status.description,
+            response.headers.toMap(),
+            response.body.stream,
+        )
     }
 
     override fun setWebViewClient(client: WebViewClient) {
@@ -259,7 +260,6 @@ class DWebView(
         }
     }
     private val internalWebChromeClient = object : WebChromeClient() {
-
 
         override fun onShowFileChooser(
             webView: WebView,

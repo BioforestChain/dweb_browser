@@ -5,7 +5,6 @@ import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import { nativeOpen, nativeActivate, cros, closeDwebView } from "../tool/tool.native.mjs";
 import { $Ipc, onApiRequest } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
-import { cotDemoJMM } from "./cotDemo.main.cjs";
 
 const main = async () => {
   const { IpcEvent } = ipc;
@@ -20,7 +19,6 @@ const main = async () => {
 
   /**尝试打开view */
   const tryOpenView = async () => {
-    console.log("cotDemo.worker tryOpenView=>", webViewMap.size);
     if (webViewMap.size === 0) {
       // open
       const url = await mainUrl.promise;
@@ -52,14 +50,21 @@ const main = async () => {
     subdomain: "api",
     port: 443,
   });
+  /**给前端的api服务 */
+  const externalServer = await http.createHttpDwebServer(jsProcess, {
+    subdomain: "external",
+    port: 443,
+  });
 
-
+  // 自己api处理 Fetch
   const apiReadableStreamIpc = await apiServer.listen();
+  // 文件服务处理
   const wwwReadableStreamIpc = await wwwServer.listen();
+  // 别人调用处理 onFetch
+  const externalReadableStreamIpc = await externalServer.listen();
 
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
     const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
-    console.log("demo#apiReadableStreamIpc pathname=>", url.pathname)
     // serviceWorker
     if (url.pathname.startsWith("/dns.sys.dweb")) {
       const result = await serviceWorkerFactory(url, ipc)
@@ -75,45 +80,16 @@ const main = async () => {
       return ipc.postMessage(ipcResponse);
     }
     onApiRequest(apiServer.startResult.urlInfo, request, ipc);
-  });
-
-  // 转发serviceWorker 请求
-  const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
-    const pathname = url.pathname;
-    // 关闭前端
-    if (pathname.endsWith("close")) {
-      return closeFront()
-    }
-    // 重启app，伴随着前后端重启
-    if (pathname.endsWith("restart")) {
-      return restartApp([apiServer, wwwServer], [apiReadableStreamIpc, wwwReadableStreamIpc])
-    }
-    // 卸载app
-
-
-
-    // TODO 手动关闭 connect
-    // browserIpc.close()
-    // closeSignal.emit()
-    // cotDemoJMM.shutdown()
-
-    // return await response.text()
-    return "no action for serviceWorker Factory !!!"
-  }
-
+  })
 
   wwwReadableStreamIpc.onRequest(async (request, ipc) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
     }
-
-    // console.time(`open file ${pathname}`);
-
     const remoteIpcResponse = await jsProcess.nativeRequest(
       `file:///cot-demo${pathname}?mode=stream`
     );
-    // console.timeEnd(`open file ${pathname}`);
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
      * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
@@ -131,24 +107,41 @@ const main = async () => {
     );
   });
 
+  // 转发serviceWorker 请求
+  const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
+    const pathname = url.pathname;
+    // 关闭前端
+    if (pathname.endsWith("close")) {
+      return closeFront()
+    }
+    // 重启app，伴随着前后端重启
+    if (pathname.endsWith("restart")) {
+      return restartApp([apiServer, wwwServer], [apiReadableStreamIpc, wwwReadableStreamIpc])
+    }
+    // TODO 手动关闭 connect
+    // browserIpc.close()
+    // closeSignal.emit()
+    // cotDemoJMM.shutdown()
+
+    // return await response.text()
+    return "no action for serviceWorker Factory !!!"
+  }
+
   let hasActivity = false;
 
   // 连接到browser
   const connectBrowser = async () => {
     Object.assign(globalThis, { browserIpc });
     browserIpc.onEvent(async (event) => {
-      // console.log("cotDemo.worker event browser.sys.dweb", event.name, event.text);
       // browser点击图标，需要开启的逻辑
       if (event.name === "activity") {
         hasActivity = true;
         const view_id = await tryOpenView()
-        // console.log("cotDemo.worker activity =>", view_id);
         browserIpc.postMessage(IpcEvent.fromText("ready", view_id ?? "activity"));
         return
       }
     });
     closeSignal.listen(() => {
-      console.log("close connent for ", browserIpc.remote.mmid)
       browserIpc.postMessage(IpcEvent.fromText("close", ""))
       browserIpc.close()
     })
@@ -159,18 +152,15 @@ const main = async () => {
   const connectGlobal = () => {
     jsProcess.onConnect((ipc) => {
       ipc.onEvent(async (event) => {
-        // console.log("cotDemo.worker event global => ", event.name, event.data);
         if (event.name === EVENT.State && typeof event.data === "string") {
           const newState = JSON.parse(event.data)
           const diff = detailedDiff(oldWebviewState, newState)
           oldWebviewState = newState
-          console.log("cotDemo.worker mwebview diff=>", diff, newState);
           diffFactory(diff)
         }
       });
       // 每个人来连接都会注册监听，关闭时统一close
       closeSignal.listen(() => {
-        console.log("close connent for ", ipc.remote.mmid)
         ipc.postMessage(IpcEvent.fromText("close", ""))
         ipc.close()
       })
@@ -181,18 +171,15 @@ const main = async () => {
   const diffFactory = async (diff: DetailedDiff) => {
     //  是否有新增
     for (const id in diff.added) {
-      // console.log("cotDemo.worker added=>", id)
       webViewMap.set(id, JSON.parse(diff.added[id as keyof typeof diff.added]));
     }
     // 是否有删除
     for (const id in diff.deleted) {
-      // console.log("cotDemo.worker deleted=>", id)
       webViewMap.delete(id)
       await closeDwebView(id)
     }
     // 是否有更新
     for (const id in diff.updated) {
-      // console.log("cotDemo.worker updated=>", id)
       webViewMap.set(id, JSON.parse(diff.updated[id as keyof typeof diff.updated]));
       await nativeActivate(id)
     }
@@ -202,7 +189,6 @@ const main = async () => {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
-    console.log("cotDemo#interUrl=>", interUrl)
     mainUrl.resolve(interUrl);
     // 如果没有被 browser 激活，那么也尝试自启动
     if (hasActivity === false) {

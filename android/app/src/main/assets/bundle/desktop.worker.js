@@ -2,6 +2,13 @@ var __freeze = Object.freeze;
 var __defProp = Object.defineProperty;
 var __template = (cooked, raw) => __freeze(__defProp(cooked, "raw", { value: __freeze(raw || cooked.slice()) }));
 
+// src/user/tool/tool.native.mts
+var nativeOpen = async (url) => {
+  return await jsProcess.nativeFetch(
+    `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
+  ).text();
+};
+
 // src/user/desktop/assets/desktop.web.mjs.cts
 var script = () => {
   const logEle = document.querySelector(
@@ -113,9 +120,7 @@ var main = async () => {
   }
   {
     console.log("\u6253\u5F00\u6D4F\u89C8\u5668\u9875\u9762", main_url);
-    const view_id = await jsProcess.nativeFetch(
-      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(main_url)}`
-    ).text();
+    const view_id = await nativeOpen(main_url);
   }
 };
 main().catch(console.error);

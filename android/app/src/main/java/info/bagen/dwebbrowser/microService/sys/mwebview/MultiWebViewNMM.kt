@@ -7,7 +7,12 @@ import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.Mmid
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.printdebugln
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
+import info.bagen.dwebbrowser.microService.webview.debugDWebView
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -15,6 +20,7 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.util.*
 
 inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("mwebview", tag, msg, err)
@@ -36,6 +42,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
             return controllerMap[mmid]
         }
     }
+    private val uuid = UUID.randomUUID()
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// nativeui 与 mwebview 是伴生关系
@@ -79,6 +86,34 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
                 return@defineHandler Response(Status.OK).body(webViewId)
             },
         )
+    }
+
+    init {
+        onConnect { (ipc) ->
+            ipc.onEvent { (event,ipc) ->
+                debugMultiWebView("multiWebView onEvent=>",event.name)
+//                if (!isFileLink(request.uri.toString())) {
+//                    debugDWebView("emitEvent fetch ${ipc.remote.mmid}",request.uri)
+//                    val method = request.method
+//                    val headers = request.headers
+//                    val body = request.body
+//                    GlobalScope.launch(ioAsyncExceptionHandler) {
+//                        emitEvent(ipc.remote.mmid,"fetch","""
+//                        new FetchEvent('fetch', {
+//                          request: new Request("${request.uri}",{
+//                            method: "$method",
+//                            headers: "$headers",
+//                            body: "$body"
+//                          }),
+//                          clientId: "${uuid.toString().replace("-", "").substring(0, 10)}",
+//                          bubbles: true,
+//                          cancelable: false
+//                        })
+//                    """.trimIndent())
+//                    }
+//                }
+            }
+        }
     }
 
     override suspend fun _shutdown() {
@@ -128,5 +163,12 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
     private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
         return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
     }
+
+
+    private fun isFileLink(link: String): Boolean {
+        val pattern = Regex(".+\\.(js|css|png|jpg|jpeg|gif|ico|svg|webp)$")
+        return pattern.matches(link)
+    }
+
 
 }

@@ -4246,7 +4246,6 @@ var JsProcessMicroModule = class {
     this._ipcConnectsMap = /* @__PURE__ */ new Map();
     this._connectSignal = createSignal(false);
     const _beConnect = async (event) => {
-      console.log(`js-process.worker.mts _beConnect `, event.data);
       const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
@@ -4311,21 +4310,16 @@ var JsProcessMicroModule = class {
       this.fetchIpc.postMessage(
         IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
       );
-      this.fetchIpc.onMessage((message, messagePortIpc) => {
-        ipc_po.resolve(messagePortIpc);
-      });
       return ipc_po;
     }).promise;
   }
   beConnect(ipc) {
-    console.log("---js-process.worker.mts beConnect");
     ipc.onClose(() => {
       this._ipcConnectsMap.delete(ipc.remote.mmid);
     });
     this._connectSignal.emit(ipc);
   }
   onConnect(cb) {
-    console.log("js-process.worker.mts onConnect cb");
     return this._connectSignal.listen(cb);
   }
 };

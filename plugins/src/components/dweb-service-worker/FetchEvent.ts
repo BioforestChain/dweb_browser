@@ -3,7 +3,7 @@ interface FetchEventInit {
   clientId?: string;
 }
 
-type FetchEventType = 'fetch' | 'activate' | 'install' | 'message';
+type FetchEventType = 'fetch'| 'onfetch' | 'activate' | 'install' | 'message';
 
 export class FetchEvent extends Event {
   readonly type: FetchEventType;
@@ -49,42 +49,9 @@ export class FetchEvent extends Event {
   }
 }
 
-interface OnFetchEventInit {
-  response: Response | Promise<Response>;
-  serverId: string | null;
-}
-
-export class OnFetchEvent extends Event {
-  response: Response | Promise<Response>;
-  serverId: string | null;
-  // deno-lint-ignore no-explicit-any
-  waitUntilPromise: Promise<any> | any;
-  constructor(readonly type = "onfetch", init: OnFetchEventInit) {
-    super(type)
-    this.response = init.response;
-    this.serverId = init.serverId;
-    this.waitUntilPromise = null;
-  }
-  respondWith(response: Response | Promise<Response>) {
-    if (!(response instanceof Response)) {
-      response = Promise.resolve(response).then(res => {
-        if (!(res instanceof Response)) {
-          throw new TypeError('The value returned from respondWith() must be a Response or a Promise that resolves to a Response.');
-        }
-        return res;
-      });
-    }
-    this.waitUntilPromise = response;
-  }
-}
 
 
 // deno-lint-ignore no-explicit-any
 if (typeof (globalThis as any)["FetchEvent"] === "undefined") {
   Object.assign(globalThis, { FetchEvent });
-}
-
-// deno-lint-ignore no-explicit-any
-if (typeof (globalThis as any)["OnFetchEvent"] === "undefined") {
-  Object.assign(globalThis, { OnFetchEvent });
 }

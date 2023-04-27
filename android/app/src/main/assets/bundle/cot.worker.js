@@ -232,7 +232,40 @@ var nativeActivate = async (webview_id) => {
   ).text();
 };
 
+// src/helper/cacheGetter.cts
+var cacheGetter = () => {
+  return (target, prop, desp) => {
+    const source_fun = desp.get;
+    if (source_fun === void 0) {
+      throw new Error(`${target}.${prop} should has getter`);
+    }
+    desp.get = function() {
+      const result = source_fun.call(this);
+      if (desp.set) {
+        desp.get = () => result;
+      } else {
+        delete desp.set;
+        delete desp.get;
+        desp.value = result;
+        desp.writable = false;
+      }
+      Object.defineProperty(this, prop, desp);
+      return result;
+    };
+    return desp;
+  };
+};
+
 // src/helper/binaryHelper.cts
+var binaryToU8a = (binary) => {
+  if (binary instanceof ArrayBuffer) {
+    return new Uint8Array(binary);
+  }
+  if (binary instanceof Uint8Array) {
+    return binary;
+  }
+  return new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength);
+};
 var u8aConcat = (binaryList) => {
   let totalLength = 0;
   for (const binary of binaryList) {
@@ -261,6 +294,159 @@ var simpleEncoder = (data, encoding) => {
   return textEncoder.encode(data);
 };
 var textDecoder = new TextDecoder();
+var simpleDecoder = (data, encoding) => {
+  if (encoding === "base64") {
+    let binary = "";
+    const bytes = binaryToU8a(data);
+    for (const byte of bytes) {
+      binary += String.fromCharCode(byte);
+    }
+    return btoa(binary);
+  }
+  return textDecoder.decode(data);
+};
+
+// src/core/ipc/const.cts
+var IpcMessage = class {
+  constructor(type) {
+    this.type = type;
+  }
+};
+var $dataToBinary = (data, encoding) => {
+  switch (encoding) {
+    case 8 /* BINARY */: {
+      return data;
+    }
+    case 4 /* BASE64 */: {
+      return simpleEncoder(data, "base64");
+    }
+    case 2 /* UTF8 */: {
+      return simpleEncoder(data, "utf8");
+    }
+  }
+  throw new Error(`unknown encoding: ${encoding}`);
+};
+var $dataToText = (data, encoding) => {
+  switch (encoding) {
+    case 8 /* BINARY */: {
+      return simpleDecoder(data, "utf8");
+    }
+    case 4 /* BASE64 */: {
+      return simpleDecoder(simpleEncoder(data, "base64"), "utf8");
+    }
+    case 2 /* UTF8 */: {
+      return data;
+    }
+  }
+  throw new Error(`unknown encoding: ${encoding}`);
+};
+
+// src/core/ipc/IpcEvent.cts
+var _IpcEvent = class extends IpcMessage {
+  constructor(name, data, encoding) {
+    super(7 /* EVENT */);
+    this.name = name;
+    this.data = data;
+    this.encoding = encoding;
+  }
+  static fromBase64(name, data) {
+    return new _IpcEvent(
+      name,
+      simpleDecoder(data, "base64"),
+      4 /* BASE64 */
+    );
+  }
+  static fromBinary(name, data) {
+    return new _IpcEvent(name, data, 8 /* BINARY */);
+  }
+  static fromUtf8(name, data) {
+    return new _IpcEvent(
+      name,
+      simpleDecoder(data, "utf8"),
+      2 /* UTF8 */
+    );
+  }
+  static fromText(name, data) {
+    return new _IpcEvent(name, data, 2 /* UTF8 */);
+  }
+  get binary() {
+    return $dataToBinary(this.data, this.encoding);
+  }
+  get text() {
+    return $dataToText(this.data, this.encoding);
+  }
+  get jsonAble() {
+    if (this.encoding === 8 /* BINARY */) {
+      return _IpcEvent.fromBase64(this.name, this.data);
+    }
+    return this;
+  }
+  toJSON() {
+    return { ...this.jsonAble };
+  }
+};
+var IpcEvent = _IpcEvent;
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "binary", 1);
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "text", 1);
+__decorateClass([
+  cacheGetter()
+], IpcEvent.prototype, "jsonAble", 1);
+
+// src/helper/createSignal.cts
+var createSignal = (autoStart) => {
+  return new Signal(autoStart);
+};
+var Signal = class {
+  constructor(autoStart = true) {
+    this._cbs = /* @__PURE__ */ new Set();
+    this._started = false;
+    this.start = () => {
+      if (this._started) {
+        return;
+      }
+      this._started = true;
+      if (this._cachedEmits.length) {
+        for (const args of this._cachedEmits) {
+          this._emit(args);
+        }
+        this._cachedEmits.length = 0;
+      }
+    };
+    this.listen = (cb) => {
+      this._cbs.add(cb);
+      this.start();
+      return () => this._cbs.delete(cb);
+    };
+    this.emit = (...args) => {
+      if (this._started) {
+        this._emit(args);
+      } else {
+        this._cachedEmits.push(args);
+      }
+    };
+    this._emit = (args) => {
+      for (const cb of this._cbs) {
+        cb.apply(null, args);
+      }
+    };
+    this.clear = () => {
+      this._cbs.clear();
+    };
+    if (autoStart) {
+      this.start();
+    }
+  }
+  get _cachedEmits() {
+    return [];
+  }
+};
+__decorateClass([
+  cacheGetter()
+], Signal.prototype, "_cachedEmits", 1);
 
 // src/helper/mapHelper.cts
 var mapHelper = new class {
@@ -416,82 +602,6 @@ var PromiseOut2 = class {
   }
 };
 
-// src/helper/cacheGetter.cts
-var cacheGetter = () => {
-  return (target, prop, desp) => {
-    const source_fun = desp.get;
-    if (source_fun === void 0) {
-      throw new Error(`${target}.${prop} should has getter`);
-    }
-    desp.get = function() {
-      const result = source_fun.call(this);
-      if (desp.set) {
-        desp.get = () => result;
-      } else {
-        delete desp.set;
-        delete desp.get;
-        desp.value = result;
-        desp.writable = false;
-      }
-      Object.defineProperty(this, prop, desp);
-      return result;
-    };
-    return desp;
-  };
-};
-
-// src/helper/createSignal.cts
-var createSignal = (autoStart) => {
-  return new Signal(autoStart);
-};
-var Signal = class {
-  constructor(autoStart = true) {
-    this._cbs = /* @__PURE__ */ new Set();
-    this._started = false;
-    this.start = () => {
-      if (this._started) {
-        return;
-      }
-      this._started = true;
-      if (this._cachedEmits.length) {
-        for (const args of this._cachedEmits) {
-          this._emit(args);
-        }
-        this._cachedEmits.length = 0;
-      }
-    };
-    this.listen = (cb) => {
-      this._cbs.add(cb);
-      this.start();
-      return () => this._cbs.delete(cb);
-    };
-    this.emit = (...args) => {
-      if (this._started) {
-        this._emit(args);
-      } else {
-        this._cachedEmits.push(args);
-      }
-    };
-    this._emit = (args) => {
-      for (const cb of this._cbs) {
-        cb.apply(null, args);
-      }
-    };
-    this.clear = () => {
-      this._cbs.clear();
-    };
-    if (autoStart) {
-      this.start();
-    }
-  }
-  get _cachedEmits() {
-    return [];
-  }
-};
-__decorateClass([
-  cacheGetter()
-], Signal.prototype, "_cachedEmits", 1);
-
 // src/helper/readableStreamHelper.cts
 var ReadableStreamOut = class {
   constructor(strategy) {
@@ -523,13 +633,13 @@ var ReadableStreamOut = class {
 var { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
+var fetchSignal = createSignal();
 async function onApiRequest(serverurlInfo, request, httpServerIpc) {
   let ipcResponse;
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
-      console.log("/public-url=>", pathname);
       if (pathname === "/public-url") {
         ipcResponse = IpcResponse.fromText(
           request.req_id,
@@ -551,29 +661,19 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         );
       }
     } else {
+      fetchSignal.emit(request, url);
       const path = `file:/${url.pathname}${url.search}`;
-      console.log("onRequestPath: ", path, request.method, request.body);
-      if (request.method === "POST") {
-        const response = await jsProcess.nativeFetch(path, {
-          body: request.body.raw,
-          headers: request.headers,
-          method: request.method
-        });
-        ipcResponse = await IpcResponse.fromResponse(
-          request.req_id,
-          response,
-          httpServerIpc
-          // true
-        );
-      } else {
-        const response = await jsProcess.nativeFetch(path);
-        ipcResponse = await IpcResponse.fromResponse(
-          request.req_id,
-          response,
-          httpServerIpc
-          // true
-        );
-      }
+      const response = await jsProcess.nativeFetch(path, {
+        body: request.body.raw,
+        headers: request.headers,
+        method: request.method
+      });
+      ipcResponse = await IpcResponse.fromResponse(
+        request.req_id,
+        response,
+        httpServerIpc
+        // true
+      );
     }
     if (!ipcResponse) {
       throw new Error(`unknown gateway: ${url.search}`);
@@ -596,9 +696,18 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
     }
   }
 }
+var serviceWorkerFetch = () => {
+  const result = { ipc: new PromiseOut2() };
+  result.ipc.resolve(jsProcess.connect("mwebview.sys.dweb"));
+  result.ipc.promise.then((ipc2) => {
+    fetchSignal.listen((request, url) => {
+      ipc2.postMessage(IpcEvent.fromText("fetch", ""));
+    });
+  });
+};
+serviceWorkerFetch();
 var observeFactory = (url) => {
   const mmid = url.searchParams.get("mmid");
-  console.log("cotDemo#observeFactory url.mmid=>", mmid);
   if (mmid === null) {
     throw new Error("observe require mmid");
   }
@@ -608,7 +717,6 @@ var observeFactory = (url) => {
     result.ipc.resolve(jsProcess.connect(mmid2));
     result.ipc.promise.then((ipc2) => {
       ipc2.onEvent((event) => {
-        console.log("cotDemo#observeFactory event.name=>{%s} remote.mmid=>{%s}", event.name, ipc2.remote.mmid);
         if (event.name !== "observe" /* State */ && event.name !== "observeUpdateProgress" /* UpdateProgress */) {
           return;
         }
@@ -647,7 +755,7 @@ var main = async () => {
       nativeActivate(key);
     });
   };
-  const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2, IpcEvent } = ipc;
+  const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2, IpcEvent: IpcEvent2 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443
@@ -694,7 +802,7 @@ var main = async () => {
       if (event.name === "activity") {
         hasActivity = true;
         const view_id = await tryOpenView();
-        browserIpc.postMessage(IpcEvent.fromText("ready", view_id ?? "activity"));
+        browserIpc.postMessage(IpcEvent2.fromText("ready", view_id ?? "activity"));
         return;
       }
     });

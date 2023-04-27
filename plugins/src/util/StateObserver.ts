@@ -59,7 +59,7 @@ export class StateObserver<RAW, STATE> {
    * @returns
    */
   @bindThis
-  async getState(force_update = true) {
+  async getState(force_update = false) {
     if (force_update || this.currentState === undefined) {
       return await this._updateCurrentState();
     }
