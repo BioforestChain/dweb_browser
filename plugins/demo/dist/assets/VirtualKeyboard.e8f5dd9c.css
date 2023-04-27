@@ -1,0 +1,1 @@
+:root{border-top:max(var(--keyboard-inset-top, 0px),1px);border-left:max(var(--keyboard-inset-left, 0px),1px);border-right:max(var(--keyboard-inset-right, 0px),1px);border-bottom:max(var(--keyboard-inset-bottom, 0px),1px);border-style:solid;border-color:green}
