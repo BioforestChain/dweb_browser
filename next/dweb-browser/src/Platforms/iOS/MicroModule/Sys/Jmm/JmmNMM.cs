@@ -7,7 +7,7 @@ using DwebBrowser.Helper;
 
 #nullable enable
 
-namespace DwebBrowser.WebModule.Jmm;
+namespace DwebBrowser.MicroService.Sys.Jmm;
 
 public class JmmNMM : NativeMicroModule
 {
@@ -61,7 +61,7 @@ public class JmmNMM : NativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/install", async (request, _) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/install", async (request, _) =>
         {
             var metadataUrl = request.QueryValidate<string>("metadataUrl")!;
             var jmmMetadata = await (await NativeFetchAsync(metadataUrl)).Json<JmmMetadata>()!;
@@ -70,7 +70,7 @@ public class JmmNMM : NativeMicroModule
             return jmmMetadata;
         });
 
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/uninstall", async (request, _) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/uninstall", async (request, _) =>
         {
             var mmid = request.QueryValidate<string>("mmid")!;
             var jmm = s_apps.GetValueOrDefault(mmid) ?? throw new Exception("");
@@ -79,25 +79,25 @@ public class JmmNMM : NativeMicroModule
             return true;
         });
 
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/query", async (request, _) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/query", async (request, _) =>
         {
             return new AppQueryResult(
                 s_apps.Values.Select(x => x.Metadata).ToList(), _installingApps.Values.ToList());
         });
 
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/pause", async (_, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/pause", async (_, ipc) =>
         {
             // TODO: 未实现JmmNMM暂停路由
             throw new NotImplementedException();
         });
 
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/resume", async (_, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/resume", async (_, ipc) =>
         {
             // TODO: 未实现JmmNMM恢复路由
             throw new NotImplementedException();
         });
 
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/cancel", async (_, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/cancel", async (_, ipc) =>
         {
             // TODO: 未实现JmmNMM取消路由
             throw new NotImplementedException();

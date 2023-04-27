@@ -22,11 +22,11 @@ public class BootNMM : NativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/register", async (_, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/register", async (_, ipc) =>
         {
             return _register(ipc!.Remote.Mmid);
         });
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/unregister", async (_, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/unregister", async (_, ipc) =>
         {
             return _unregister(ipc!.Remote.Mmid);
         });

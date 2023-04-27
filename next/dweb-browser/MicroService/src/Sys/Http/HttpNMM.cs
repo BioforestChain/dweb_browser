@@ -172,7 +172,7 @@ public class HttpNMM : NativeMicroModule
         });
         _onAfterShutdown += async (_) => { cb(); };
 
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/start", async (request, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/start", async (request, ipc) =>
         {
             var dwebServerOptions = new DwebHttpServerOptions(
                 request.QueryValidate<int>("port", false),
@@ -180,14 +180,14 @@ public class HttpNMM : NativeMicroModule
             return _start(ipc!, dwebServerOptions);
         });
 
-        HttpRouter.AddRoute(HttpMethod.Post.Method, "/listen", async (request, _) =>
+        HttpRouter.AddRoute(IpcMethod.Post, "/listen", async (request, _) =>
         {
             var token = request.QueryValidate<string>("token")!;
             var routes = JsonSerializer.Deserialize<List<Gateway.RouteConfig>>(request.QueryValidate<string>("routes")!)!;
             return _listen(token, request, routes);
         });
 
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/close", async (request, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/close", async (request, ipc) =>
         {
             var dwebServerOptions = new DwebHttpServerOptions(
                 request.QueryValidate<int>("port", false),

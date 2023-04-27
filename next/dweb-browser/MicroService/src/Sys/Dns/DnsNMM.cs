@@ -191,7 +191,7 @@ public class DnsNMM : NativeMicroModule
         _onAfterShutdown += async (_) => { cb(); };
 
         // 打开应用
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/open", async (request, _) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/open", async (request, _) =>
         {
             Console.Log("Open", "{0} {1}", Mmid, request.RequestUri?.AbsolutePath);
             await Open(request.QueryValidate<Mmid>("app_id")!);
@@ -200,7 +200,7 @@ public class DnsNMM : NativeMicroModule
 
         // 关闭应用
         // TODO 能否关闭一个应该应该由应用自己决定
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/close", async (request, _) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/close", async (request, _) =>
         {
             Console.Log("Close", "{0} {1}", Mmid, request.RequestUri?.AbsolutePath);
             await Open(request.QueryValidate<string>("app_id")!);

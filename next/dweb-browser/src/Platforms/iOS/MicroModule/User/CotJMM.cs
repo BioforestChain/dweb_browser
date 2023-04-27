@@ -1,6 +1,6 @@
-﻿using DwebBrowser.WebModule.Jmm;
+﻿using DwebBrowser.MicroService.Sys.Jmm;
 
-namespace DwebBrowser.WebModule.User;
+namespace DwebBrowser.MicroService.Sys.User;
 
 public class CotJMM : JsMicroModule
 {

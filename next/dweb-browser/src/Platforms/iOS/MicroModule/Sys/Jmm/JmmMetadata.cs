@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 #nullable enable
 
-namespace DwebBrowser.WebModule.Jmm;
+namespace DwebBrowser.MicroService.Sys.Jmm;
 
 public class JmmMetadata
 {

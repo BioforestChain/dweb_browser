@@ -5,9 +5,8 @@ using DwebBrowser.IpcWeb;
 using DwebBrowser.MicroService;
 using DwebBrowser.MicroService.Message;
 using Foundation;
-using static DwebBrowser.WebModule.Js.JsProcessWebApi;
 
-namespace DwebBrowser.WebModule.Js;
+namespace DwebBrowser.MicroService.Sys.Js;
 
 public class JsProcessWebApi
 {

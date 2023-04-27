@@ -8,7 +8,7 @@ using System.Net.Http.Headers;
 
 #nullable enable
 
-namespace DwebBrowser.WebModule.Js;
+namespace DwebBrowser.MicroService.Sys.Js;
 
 public static class LocaleFile
 {

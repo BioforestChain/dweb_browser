@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 // https://learn.microsoft.com/zh-cn/dotnet/csharp/nullable-references
 #nullable enable
 
-namespace DwebBrowser.WebModule.Jmm;
+namespace DwebBrowser.MicroService.Sys.Jmm;
 
 public class JsMicroModule : MicroModule
 {

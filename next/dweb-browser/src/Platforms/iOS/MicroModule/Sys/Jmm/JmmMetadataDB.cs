@@ -1,7 +1,7 @@
 ﻿
 using Foundation;
 
-namespace DwebBrowser.WebModule.Jmm;
+namespace DwebBrowser.MicroService.Sys.Jmm;
 
 // TODO: 简单的存储JmmMetadata，待优化
 public static class JmmMetadataDB

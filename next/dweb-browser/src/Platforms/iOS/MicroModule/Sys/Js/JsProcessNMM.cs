@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 #nullable enable
 
-namespace DwebBrowser.WebModule.Js;
+namespace DwebBrowser.MicroService.Sys.Js;
 
 public class JsProcessNMM : NativeMicroModule
 {
@@ -117,7 +117,7 @@ public class JsProcessNMM : NativeMicroModule
 
         /// 创建 web worker
         /// request 需要携带一个流，来为 web worker 提供代码服务
-        HttpRouter.AddRoute(HttpMethod.Post.Method, "/create-process", async (request, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Post, "/create-process", async (request, ipc) =>
         {
             processIpcMap.Add(ipc.Remote.Mmid, ipc);
             PromiseOut<int> po = null!;
@@ -154,7 +154,7 @@ public class JsProcessNMM : NativeMicroModule
         });
 
         /// 创建 web 通讯管道
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/create-ipc", async (request, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/create-ipc", async (request, ipc) =>
         {
             var processId = request.QueryValidate<string>("process_id")!;
 
@@ -176,7 +176,7 @@ public class JsProcessNMM : NativeMicroModule
         });
 
         /// 关闭 process
-        HttpRouter.AddRoute(HttpMethod.Get.Method, "/close-process", async (request, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/close-process", async (request, ipc) =>
         {
             await CloseHttpDwebServer(new DwebHttpServerOptions(80, ipc.Remote.Mmid));
             var processIpc = processIpcMap.GetValueOrDefault(ipc.Remote.Mmid);

@@ -8,7 +8,8 @@ public class HttpRouter
     static Debugger Console = new Debugger("HttpRouter");
     private readonly Dictionary<RouteConfig, RouterHandlerType> _routes = new();
 
-    public void AddRoute(string method, string path, RouterHandlerType handler) => AddRoute(new RouteConfig(path, IpcMethod.From(method), Sys.Http.MatchMode.FULL), handler);
+    public void AddRoute(IpcMethod method, string path, RouterHandlerType handler) =>
+        AddRoute(new RouteConfig(path, method, Sys.Http.MatchMode.FULL), handler);
 
     public void AddRoute(RouteConfig config, RouterHandlerType handler)
     {

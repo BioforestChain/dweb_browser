@@ -1,5 +1,5 @@
-﻿using DwebBrowser.WebModule.Jmm;
-using DwebBrowser.WebModule.Js;
+﻿using DwebBrowser.MicroService.Jmm;
+using DwebBrowser.MicroService.Js;
 using System.Diagnostics;
 using System.Net.Http;
 

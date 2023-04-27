@@ -58,6 +58,11 @@
 	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
 	  <None Remove="Platforms\iOS\WebModule\Mwebview\" />
+	  <None Remove="Platforms\iOS\WebModule\Core\" />
+	  <None Remove="Platforms\iOS\UI\" />
+	  <None Remove="Platforms\iOS\Base\" />
+	  <None Remove="Platforms\iOS\UI\Theme\" />
+	  <None Remove="Platforms\iOS\MicroModule\Sys\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -67,11 +72,16 @@
 		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Platforms\iOS\WebModule\Js\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Js\" />
 	  <Folder Include="Resources\Assets\" />
-	  <Folder Include="Platforms\iOS\WebModule\User\" />
+	  <Folder Include="Platforms\iOS\MicroModule\User\" />
 	  <Folder Include="Resources\Assets\bundle\" />
-	  <Folder Include="Platforms\iOS\WebModule\Mwebview\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Mwebview\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Core\" />
+	  <Folder Include="Platforms\iOS\UI\" />
+	  <Folder Include="Platforms\iOS\Base\" />
+	  <Folder Include="Platforms\iOS\UI\Theme\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Sys\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\bundle\**\*.*" />
