@@ -177,13 +177,13 @@ public class HttpNMM : NativeMicroModule
             var dwebServerOptions = new DwebHttpServerOptions(
                 request.QueryValidate<int>("port", false),
                 request.QueryValidate<string>("subdomain", false) ?? "");
-            return _start(ipc, dwebServerOptions);
+            return _start(ipc!, dwebServerOptions);
         });
 
         HttpRouter.AddRoute(HttpMethod.Post.Method, "/listen", async (request, _) =>
         {
             var token = request.QueryValidate<string>("token")!;
-            var routes = JsonSerializer.Deserialize<List<Gateway.RouteConfig>>(request.QueryValidate<string>("routes")!);
+            var routes = JsonSerializer.Deserialize<List<Gateway.RouteConfig>>(request.QueryValidate<string>("routes")!)!;
             return _listen(token, request, routes);
         });
 
@@ -192,19 +192,16 @@ public class HttpNMM : NativeMicroModule
             var dwebServerOptions = new DwebHttpServerOptions(
                 request.QueryValidate<int>("port", false),
                 request.QueryValidate<string>("subdomain", false) ?? "");
-            return _close(ipc, dwebServerOptions);
+            return await _close(ipc!, dwebServerOptions);
         });
         /// HTTP-GET 请求，但是不是通过网关，直接走IPC
-        HttpRouter.AddRoute(new Gateway.RouteConfig(X_DWEB_HREF, IpcMethod.Get, MatchMode.PREFIX), async (request, ipc) =>
+        HttpRouter.AddRoute(new Gateway.RouteConfig(X_DWEB_HREF, IpcMethod.Get, MatchMode.PREFIX), async (request, _) =>
         {
             return await _httpHandler(request);
         });
     }
 
-    protected override Task _shutdownAsync() => Task.Run(() => DwebServer.CloseServer());
-
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    { }
+    protected override async Task _shutdownAsync() => DwebServer.CloseServer();
 
     private ServerStartResult _start(Ipc ipc, DwebHttpServerOptions options)
     {
@@ -217,7 +214,9 @@ public class HttpNMM : NativeMicroModule
         var listener = new Gateway.PortListener(ipc, serverUrlInfo.Host);
 
         /// ipc 在关闭的时候，自动释放所有的绑定
-        listener.OnDestory += async (_) => { ipc.OnClose += async (_) => _close(ipc, options); };
+        Signal cb = (_) => _close(ipc, options);
+        ipc.OnClose += cb;
+        listener.OnDestory += async (_) => ipc.OnClose -= cb;
 
         var token = Token.RandomCryptoString(8);
 
@@ -225,10 +224,7 @@ public class HttpNMM : NativeMicroModule
         _gatewayMap.Add(serverUrlInfo.Host, gateway);
         _tokenMap.Add(token, gateway);
 
-        var serverStartResult = new ServerStartResult(token, serverUrlInfo);
-
-        //return new ServerStartResult(token, serverUrlInfo);
-        return serverStartResult;
+        return new ServerStartResult(token, serverUrlInfo);
     }
 
     /**

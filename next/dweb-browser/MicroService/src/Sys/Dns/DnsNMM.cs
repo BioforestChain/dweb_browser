@@ -39,8 +39,15 @@ public class DnsNMM : NativeMicroModule
         }
     }
 
+    record MM(Mmid fromMmid, Mmid toMmid)
+    {
+        public static Dictionary<Mmid, Dictionary<Mmid, MM>> Values = new();
+        public static MM From(Mmid fromMmid, Mmid toMmid) =>
+            Values.GetValueOrPut(fromMmid, () => new()).GetValueOrPut(toMmid, () => new MM(fromMmid, toMmid));
+    }
+
     /** <summary>对等连接列表</summary> */
-    private Dictionary<MicroModule, Dictionary<Mmid, PromiseOut<ConnectResult>>> _mmConnectsMap = new();
+    private Dictionary<MM, PromiseOut<ConnectResult>> _mmConnectsMap = new();
 
     /** <summary>为两个mm建立 ipc 通讯</summary> */
     private Task<ConnectResult> _connectTo(MicroModule fromMM, Mmid toMmid, HttpRequestMessage reason)
@@ -48,14 +55,12 @@ public class DnsNMM : NativeMicroModule
         PromiseOut<ConnectResult> wait;
         lock (_mmConnectsMap)
         {
-            /** 一个互联实例表 */
-            var connectsMap = _mmConnectsMap.GetValueOrPut(fromMM, () =>
-                new Dictionary<string, PromiseOut<ConnectResult>>());
+            var mmKey = MM.From(fromMM.Mmid, toMmid);
 
             /**
              * 一个互联实例
              */
-            wait = connectsMap.GetValueOrPut(toMmid, () =>
+            wait = _mmConnectsMap.GetValueOrPut(mmKey, () =>
             {
                 return new PromiseOut<ConnectResult>().Also(po =>
                 {
@@ -64,15 +69,41 @@ public class DnsNMM : NativeMicroModule
                         Console.Log("ConnectTo", "DNS/opening {0} => {1}", fromMM.Mmid, toMmid);
                         var toMM = await Open(toMmid);
                         Console.Log("ConnectTo", "DNS/connect {0} => {1}", fromMM.Mmid, toMmid);
-                        var connects = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
-                        po.Resolve(connects);
-                        connects.IpcForFromMM.OnClose += async (_) =>
+                        var connectResult = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
+                        connectResult.IpcForFromMM.OnClose += async (_) =>
                         {
                             lock (_mmConnectsMap)
                             {
-                                connectsMap.Remove(toMmid);
+                                _mmConnectsMap.Remove(mmKey);
                             }
                         };
+                        po.Resolve(connectResult);
+
+                        /// 如果可以，反向存储
+                        if (connectResult.IpcForToMM is not null)
+                        {
+                            var mmkey2 = MM.From(toMmid, fromMM.Mmid);
+                            lock (_mmConnectsMap)
+                            {
+                                _mmConnectsMap.GetValueOrPut(mmkey2, () =>
+                                {
+                                    return new PromiseOut<ConnectResult>().Also(po2 =>
+                                    {
+                                        var connectResult2 = new ConnectResult(
+                                        connectResult.IpcForToMM, connectResult.IpcForFromMM);
+
+                                        connectResult2.IpcForFromMM.OnClose += async (_) =>
+                                        {
+                                            lock (_mmConnectsMap)
+                                            {
+                                                _mmConnectsMap.Remove(mmkey2);
+                                            }
+                                        };
+                                        po2.Resolve(connectResult2);
+                                    });
+                                });
+                            }
+                        }
                     }).Background();
                 });
             });
@@ -100,6 +131,21 @@ public class DnsNMM : NativeMicroModule
         public void UnInstall(MicroModule mm)
         {
             _dnsMM.UnInstall(mm);
+        }
+
+        public MicroModule? Query(Mmid mmid) =>
+            _dnsMM.Query(mmid) is MicroModule mm ? mm : null;
+
+        public void Restart(Mmid mmid)
+        {
+            Task.Run(async () =>
+            {
+                // 关闭后端连接
+                await _dnsMM.Close(mmid);
+                // TODO 防止启动过快出现闪屏
+                await Task.Delay(200);
+                await _dnsMM.Open(mmid);
+            });
         }
 
         public Task<ConnectResult> ConnectAsync(string mmid, HttpRequestMessage? reason = null)
@@ -227,10 +273,10 @@ public class DnsNMM : NativeMicroModule
         if (_runningApps.Remove(mmid, out var microModulePo))
         {
             var microModule = await microModulePo.WaitPromiseAsync();
-            var _bool = _mmConnectsMap.GetValueOrDefault(microModule)?.Remove(mmid);
+            var _bool = _mmConnectsMap.Remove(MM.From(microModule.Mmid, mmid));
             await microModule.ShutdownAsync();
 
-            return _bool.GetValueOrDefault() ? 1 : 0;
+            return _bool ? 1 : 0;
         }
 
         return -1;

@@ -24,6 +24,22 @@ public interface IDnsMicroModule
 
     /**
      * <summary>
+     * 动态js应用查询
+     * 无法使用JsMicroModule作为返回值，因为会造成循环引用，
+     * 所以使用时要判断是否为JsMicroModule
+     * </summary>
+     */
+    public MicroModule? Query(Mmid mmid);
+
+    /**
+     * <summary>
+     * 重启应用
+     * </summary>
+     */
+    public void Restart(Mmid mmid);
+
+    /**
+     * <summary>
      * 与其它应用建立连接
      * </summary>
      */

@@ -32,6 +32,11 @@ public class JsProcessWebApi
 
     public record ProcessHandler(ProcessInfo Info, MessagePortIpc Ipc);
 
+    /**
+     * 执行js"多步骤"代码时的并发编号
+     */
+    private int _hidAcc = 1;
+
     public async Task<ProcessHandler> CreateProcess(
         string env_script_url,
         string metadata_json,
@@ -43,10 +48,12 @@ public class JsProcessWebApi
         var port1 = channel.Port1;
         var port2 = channel.Port2;
 
+        var hid = Interlocked.Exchange(ref _hidAcc, Interlocked.Increment(ref _hidAcc));
         var nsProcessInfo = await this.DWebView.EvaluateAsyncJavascriptCode($$"""
            new Promise((resolve,reject)=>{
-                addEventListener("message", async event => {
-                    if (event.data === "js-process/create-process") {
+                addEventListener("message", async function doCreateProcess(event) {
+                    if (event.data === "js-process/create-process/{{hid}}") {
+                        removeEventListener("message", doCreateProcess);
                         const fetch_port = event.ports[0];
                         try{
                             resolve(await createProcess(`{{env_script_url}}`,JSON.stringify({{metadata_json}}),JSON.stringify({{env_json}}),fetch_port,`{{host}}`))
@@ -54,9 +61,9 @@ public class JsProcessWebApi
                             reject(err)
                         }
                     }
-                }, { once: true })
+                })
             })
-        """.Trim(), () => this.DWebView.PostMessage("js-process/create-process", new[] { port1 }));
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-process/" + hid, new[] { port1 }));
 
         Console.Log("CreateProcess", "processInfo {0}", nsProcessInfo);
 
@@ -78,20 +85,23 @@ public class JsProcessWebApi
         var channel = await this.DWebView.CreateWebMessageChannel();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
+
+        var hid = Interlocked.Exchange(ref _hidAcc, Interlocked.Increment(ref _hidAcc));
         await this.DWebView.EvaluateAsyncJavascriptCode($$"""
         new Promise((resolve,reject)=>{
-            addEventListener("message", async event => {
-                if (event.data === "js-process/create-ipc") {
+            addEventListener("message", async function doCreateIpc(event) {
+                if (event.data === "js-process/create-ipc/{{hid}}") {
+                    removeEventListener("message", doCreateIpc);
                     const ipc_port = event.ports[0];
                     try{
-                        resolve(await createIpc($process_id, `$mmid`, ipc_port))
+                        resolve(await createIpc({{process_id}}, `{{mmid}}`, ipc_port))
                     }catch(err){
                         reject(err)
                     }
                 }
-            }, { once: true })
+            })
         })
-        """.Trim(), () => this.DWebView.PostMessage("js-process/create-pic", new[] { port1 }));
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-pic/" + hid, new[] { port1 }));
 
         return IpcWebMessageCache.SaveNative2JsIpcPort(port2);
     }
