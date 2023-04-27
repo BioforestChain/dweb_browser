@@ -61,7 +61,7 @@ object WebsiteDB {
   fun saveHistoryWebsiteInfo(webSiteInfo: WebSiteInfo) = runBlocking(ioAsyncExceptionHandler) {
     // edit 函数需要在挂起环境中执行
     App.appContext.dataStoreHistory.edit { pref ->
-      val timeMillis = getTimeMillis().toString()
+      val timeMillis = webSiteInfo.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
       webSiteInfo.timeMillis = timeMillis
       pref[stringPreferencesKey(timeMillis)] = gson.toJson(webSiteInfo)
     }
@@ -103,7 +103,7 @@ object WebsiteDB {
   fun saveBookWebsiteInfo(webSiteInfo: WebSiteInfo) = runBlocking(ioAsyncExceptionHandler) {
     // edit 函数需要在挂起环境中执行
     App.appContext.dataStoreBook.edit { pref ->
-      val timeMillis = getTimeMillis().toString()
+      val timeMillis = webSiteInfo.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
       webSiteInfo.timeMillis = timeMillis
       pref[stringPreferencesKey(timeMillis)] = gson.toJson(webSiteInfo)
     }

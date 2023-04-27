@@ -25,8 +25,8 @@ import info.bagen.dwebbrowser.ui.view.CaptureController
 import kotlinx.coroutines.CoroutineScope
 
 data class WebSiteInfo(
-  val title: String,
-  val url: String,
+  var title: String,
+  var url: String,
   val icon: ImageBitmap? = null,
   var timeMillis: String = "",
   var index: Int = 0 // 用于标识位置，方便定位弹出框位置

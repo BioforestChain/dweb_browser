@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.Manifest
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -9,13 +8,15 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,26 +27,24 @@ import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Alignment.Companion.TopStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.datastore.WebsiteDB
 import info.bagen.dwebbrowser.ui.entity.*
 import info.bagen.dwebbrowser.ui.theme.DimenBottomBarHeight
+import info.bagen.dwebbrowser.ui.view.ListItemDeleteView
 import info.bagen.dwebbrowser.util.BitmapUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -212,6 +211,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
   if (viewModel.uiState.bookWebsiteList.isEmpty()) {
@@ -222,14 +222,33 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
     )
     return
   }
+  val scope = rememberCoroutineScope()
   LazyColumn {
     items(viewModel.uiState.bookWebsiteList.size) { index ->
       val webSiteInfo = viewModel.uiState.bookWebsiteList[index]
-      ListItemMenuView(
-        viewModel = viewModel,
-        webSiteInfo = webSiteInfo,
-        type = ListType.Book,
-        popItemNames = listOf(DropdownItem.DeleteCurrent, DropdownItem.DeleteAll)
+      ListItemDeleteView(
+        onClick = {
+          scope.launch {
+            viewModel.uiState.modalBottomSheetState.hide()
+            delay(100)
+            viewModel.uiState.openBottomSheet.value = false
+          }
+          viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
+        },
+        onDelete = {
+          viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(ListType.Book, webSiteInfo, false))
+        },
+        enableExpand = true,
+        expandContent = {
+          ExpandTextFiled("书签名称", webSiteInfo.title) {
+            webSiteInfo.title = it
+            WebsiteDB.saveBookWebsiteInfo(webSiteInfo)
+          }
+          ExpandTextFiled("网址详情", webSiteInfo.url) {
+            webSiteInfo.url = it
+            WebsiteDB.saveBookWebsiteInfo(webSiteInfo)
+          }
+        }
       ) {
         Row(
           modifier = Modifier
@@ -260,7 +279,35 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ExpandTextFiled(
+  label: String,
+  title: String,
+  modifier: Modifier = Modifier.fillMaxWidth(),
+  onValueChanged: (String) -> Unit
+) {
+  var text by remember { mutableStateOf(title) }
+  OutlinedTextField(
+    value = text,
+    onValueChange = { text = it },
+    modifier = modifier
+      .background(MaterialTheme.colorScheme.surface)
+      .padding(10.dp),
+    label = { Text(text = label) },
+    singleLine = true,
+    maxLines = 1,
+    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+    keyboardActions = KeyboardActions(onDone = {
+      if (text.isEmpty()) return@KeyboardActions
+      onValueChanged(text)
+    }),
+    trailingIcon = {
+      Icon(Icons.Default.Done, contentDescription = "Done")
+    }
+  )
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
   if (viewModel.uiState.historyWebsiteMap.isEmpty()) {
@@ -271,6 +318,7 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
     )
     return
   }
+  val scope = rememberCoroutineScope()
   Box {
     LazyColumn {
       viewModel.uiState.historyWebsiteMap.toSortedMap { o1, o2 ->
@@ -288,31 +336,44 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
         }
         items(value.size) { index ->
           val webSiteInfo = value[index]
-          ListItemMenuView(
-            viewModel,
-            webSiteInfo,
-            ListType.History,
-            popItemNames = listOf(DropdownItem.DeleteCurrent, DropdownItem.DeleteAll)
+          ListItemDeleteView(
+            onClick = {
+              scope.launch {
+                viewModel.uiState.modalBottomSheetState.hide()
+                delay(100)
+                viewModel.uiState.openBottomSheet.value = false
+              }
+              viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
+            },
+            onDelete = {
+              viewModel.handleIntent(
+                BrowserIntent.DeleteWebSiteList(
+                  ListType.History,
+                  webSiteInfo,
+                  false
+                )
+              )
+            }
           ) {
             Column(
               modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .height(50.dp)
+                .fillMaxWidth()
+                .align(Alignment.CenterStart)
             ) {
               Text(
                 text = webSiteInfo.title,
                 fontSize = 16.sp,
                 maxLines = 1,
-                modifier = Modifier.height(25.dp)
+                modifier = Modifier.height(25.dp),
+                color = MaterialTheme.colorScheme.onSurface
               )
               Text(
                 text = webSiteInfo.url,
-                color = MaterialTheme.colorScheme.outlineVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 maxLines = 1,
                 modifier = Modifier.height(20.dp)
               )
-              Divider()
             }
           }
         }
@@ -321,63 +382,6 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
   }
 }
 
-internal enum class DropdownItem(val text: String) {
-  DeleteCurrent("删除当前项"), DeleteAll("删除所有项"), ;
-}
-
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
-@Composable
-private fun ListItemMenuView(
-  viewModel: BrowserViewModel,
-  webSiteInfo: WebSiteInfo,
-  type: ListType,
-  popItemNames: List<DropdownItem>,
-  popItemContent: (@Composable (String) -> Unit)? = null,
-  itemContent: @Composable () -> Unit
-) {
-  var expanded by remember { mutableStateOf(false) }
-  val scope = rememberCoroutineScope()
-
-  Card {
-    Box(modifier = Modifier
-      .fillMaxWidth()
-      .combinedClickable(onClick = {
-        scope.launch {
-          viewModel.uiState.modalBottomSheetState.hide()
-          delay(100)
-          viewModel.uiState.openBottomSheet.value = false
-        }
-        viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
-      }, onLongClick = {
-        expanded = true
-      })) {
-      itemContent()
-    }
-    DropdownMenu(
-      expanded = expanded, onDismissRequest = { expanded = false }, offset = DpOffset(25.dp, 25.dp)
-    ) {
-      popItemNames.forEach { item ->
-        DropdownMenuItem(text = {
-          popItemContent?.let {
-            it(item.text)
-          } ?: Text(text = item.text)
-        }, onClick = {
-          when (item) {
-            DropdownItem.DeleteCurrent -> {
-              viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(type, null, true))
-            }
-            DropdownItem.DeleteAll -> {
-              viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(type, null, true))
-            }
-          }
-          expanded = false
-        })
-      }
-    }
-  }
-}
-
-/////////////////////////////////////////////////
 /**
  * 显示多视图窗口
  */
