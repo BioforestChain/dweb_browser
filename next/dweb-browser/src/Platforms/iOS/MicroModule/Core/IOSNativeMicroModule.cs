@@ -12,7 +12,7 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
 {
     public IOSNativeMicroModule(Mmid mmid) : base(mmid)
     {
-        OnActivity += async (mmid, controller, _) =>
+        _OnActivity += async (mmid, controller, _) =>
         {
             s_activityMap.Add(mmid, controller);
             controller.OnDestroyController += async (_) => { s_activityMap.Remove(mmid); };
@@ -25,6 +25,7 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
 
     public abstract void OpenActivity(Mmid remoteMmid);
 
-    protected event Signal<Mmid, BaseViewController> OnActivity;
+    protected event Signal<Mmid, BaseViewController> _OnActivity;
+    protected Task _OnActivityEmit(Mmid mmid, BaseViewController controller) => (_OnActivity?.Emit(mmid, controller)).ForAwait();
 }
 

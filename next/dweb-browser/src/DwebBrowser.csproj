@@ -63,6 +63,10 @@
 	  <None Remove="Platforms\iOS\Base\" />
 	  <None Remove="Platforms\iOS\UI\Theme\" />
 	  <None Remove="Platforms\iOS\MicroModule\Sys\" />
+	  <None Remove="Platforms\iOS\MicroModule\Sys\Jmm\" />
+	  <None Remove="Platforms\iOS\MicroModule\Sys\Js\" />
+	  <None Remove="Platforms\iOS\MicroModule\Sys\Mwebview\" />
+	  <None Remove="Platforms\iOS\MicroModule\NativeUI\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -72,16 +76,18 @@
 		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Platforms\iOS\MicroModule\Js\" />
 	  <Folder Include="Resources\Assets\" />
 	  <Folder Include="Platforms\iOS\MicroModule\User\" />
 	  <Folder Include="Resources\Assets\bundle\" />
-	  <Folder Include="Platforms\iOS\MicroModule\Mwebview\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Core\" />
 	  <Folder Include="Platforms\iOS\UI\" />
 	  <Folder Include="Platforms\iOS\Base\" />
 	  <Folder Include="Platforms\iOS\UI\Theme\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Sys\Jmm\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Sys\Js\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Sys\Mwebview\" />
+	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\bundle\**\*.*" />
