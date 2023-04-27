@@ -1,5 +1,3 @@
-import { IPC_METHOD } from "../../core/ipc/const.cjs";
-import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
 import { u8aConcat } from "../../helper/binaryHelper.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
 import { simpleEncoder } from "../../helper/encoding.cjs";
@@ -26,7 +24,9 @@ const ipcObserversMap = new Map<
 const INTERNAL_PREFIX = "/internal";
 type $OnIpcRequestUrl = (request: $IpcRequest) => void
 const fetchSignal = createSignal<$OnIpcRequestUrl>()
-
+// serviceWorker 的fetch锁，如果打开了我们就不帮忙处理请求，让前端自己处理
+let fetchLock = false;
+const fetchSet = new Set<string>();
 
 /**
  * request 事件处理器
@@ -43,8 +43,16 @@ export async function onApiRequest(
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       ipcResponse = internalFactory(url, request.req_id, httpServerIpc, serverurlInfo)
     } else {
-      // 触发fetch
-      fetchSignal.emit(request)
+      // 如果用户要自己处理
+      if (fetchLock) {
+        // 并且已经转发过来了，那么就不要再抛给用户了
+        if (!fetchSet.has(url.pathname)) {
+          fetchSet.add(url.pathname)
+          // 触发fetch
+          return fetchSignal.emit(request)
+        }
+        fetchSet.delete(url.pathname)
+      }
 
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
@@ -115,6 +123,7 @@ const internalFactory = (url: URL, req_id: number, httpServerIpc: $Ipc, serverur
   }
   // 监听fetch
   if (pathname === "/fetch") {
+    fetchLock = true
     // serviceWorker fetch
     const streamPo = serviceWorkerFetch()
     return IpcResponse.fromStream(

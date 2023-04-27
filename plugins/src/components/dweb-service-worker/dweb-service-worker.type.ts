@@ -1,4 +1,5 @@
 import { FetchEvent } from "./FetchEvent.ts";
+
 export interface DwebWorkerEventMap {
   updatefound: Event; // 更新或重启的时候触发
   pause: Event; // 监听应用暂停
@@ -77,4 +78,41 @@ interface OpenWebView {
 }
 interface SplashScreen {
   entry: string;
+}
+
+export class IpcRequest {
+  constructor(
+    readonly req_id: string,
+    readonly url: string,
+    readonly method: IPC_METHOD,
+    readonly headers: Headers,
+    readonly body: IpcBody,
+    readonly metaBody: {
+      data: string;
+      metaId: string;
+      senderUid: number;
+      type: number;
+    }
+  ) {}
+}
+
+export abstract class IpcBody {
+  constructor(readonly _bodyHub: BodyHub) {}
+}
+
+export class BodyHub {
+  constructor(readonly data: $BodyData) {}
+}
+export type $BodyData = Uint8Array | ReadableStream<Uint8Array> | string;
+
+export const enum IPC_METHOD {
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+  OPTIONS = "OPTIONS",
+  TRACE = "TRACE",
+  PATCH = "PATCH",
+  PURGE = "PURGE",
+  HEAD = "HEAD",
 }

@@ -22,7 +22,7 @@ dwebServiceWorker.addEventListener("resume", (event) => {
 
 
 dwebServiceWorker.addEventListener("fetch", async (event) => {
-  console.log("Dweb Service Worker fetch!", event.clientId);
+  console.log("Dweb Service Worker fetch!", event);
   const response = await fetch(event.request)
   console.log("Dweb Service Worker fetch response=>", response)
   return event.respondWith(response)

@@ -1,7 +1,10 @@
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import {
+  $BodyData,
   DwebWorkerEventMap,
+  IpcRequest,
+  IPC_METHOD,
   UpdateControllerMap,
 } from "./dweb-service-worker.type.ts";
 import {
@@ -11,6 +14,7 @@ import {
 } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { streamRead } from "../../helper/readableStreamHelper.ts";
+import { FetchEvent } from "./FetchEvent.ts";
 
 declare namespace globalThis {
   const __app_upgrade_watcher_kit__: {
@@ -56,7 +60,27 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     return this.plugin.restart;
   }
 
-  async registerFetch(options?: { signal?: AbortSignal }) {
+  private toRequest(ipcRequest: IpcRequest) {
+    const method = ipcRequest.method;
+    let body: undefined | $BodyData;
+    if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
+      body = ipcRequest.body._bodyHub.data;
+    }
+    return new Request(ipcRequest.url, {
+      method,
+      headers: ipcRequest.headers,
+      body,
+    });
+  }
+
+  private decode = (ipcRequest: IpcRequest) => {
+    return new FetchEvent("fetch", {
+      request: this.toRequest(ipcRequest),
+      clientId: ipcRequest.req_id,
+    });
+  };
+
+  async *registerFetch(options?: { signal?: AbortSignal }) {
     const pub = await BasePlugin.public_url.promise;
     const jsonlines = await this.plugin
       .buildInternalApiRequest("/fetch", {
@@ -64,11 +88,10 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
         base: pub,
       })
       .fetch()
-      .jsonlines();
+      .jsonlines(this.decode);
     for await (const onfetchString of streamRead(jsonlines, options)) {
-      console.log("🚧dwebServiceWorker🍓=>", onfetchString);
       this.notifyListeners("fetch", onfetchString);
-      return onfetchString;
+      yield onfetchString;
     }
   }
 
@@ -85,7 +108,11 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   ): EventTarget {
     // 用户需要的时候再去注册
     if (eventName === "fetch") {
-      this.registerFetch();
+      (async () => {
+        for await (const _info of this.registerFetch()) {
+          // console.log("registerFetch", _info);
+        }
+      })();
     }
     return super.addEventListener(eventName, listenerFunc, options);
   }

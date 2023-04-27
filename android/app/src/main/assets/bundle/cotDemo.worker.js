@@ -204,15 +204,6 @@ var closeFront = () => {
 };
 
 // src/helper/binaryHelper.cts
-var binaryToU8a = (binary) => {
-  if (binary instanceof ArrayBuffer) {
-    return new Uint8Array(binary);
-  }
-  if (binary instanceof Uint8Array) {
-    return binary;
-  }
-  return new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength);
-};
 var u8aConcat = (binaryList) => {
   let totalLength = 0;
   for (const binary of binaryList) {
@@ -225,67 +216,6 @@ var u8aConcat = (binaryList) => {
     offset += binary.byteLength;
   }
   return result;
-};
-
-// src/helper/encoding.cts
-var textEncoder = new TextEncoder();
-var simpleEncoder = (data, encoding) => {
-  if (encoding === "base64") {
-    const byteCharacters = atob(data);
-    const binary = new Uint8Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      binary[i] = byteCharacters.charCodeAt(i);
-    }
-    return binary;
-  }
-  return textEncoder.encode(data);
-};
-var textDecoder = new TextDecoder();
-var simpleDecoder = (data, encoding) => {
-  if (encoding === "base64") {
-    let binary = "";
-    const bytes = binaryToU8a(data);
-    for (const byte of bytes) {
-      binary += String.fromCharCode(byte);
-    }
-    return btoa(binary);
-  }
-  return textDecoder.decode(data);
-};
-
-// src/core/ipc/const.cts
-var IpcMessage = class {
-  constructor(type) {
-    this.type = type;
-  }
-};
-var $dataToBinary = (data, encoding) => {
-  switch (encoding) {
-    case 8 /* BINARY */: {
-      return data;
-    }
-    case 4 /* BASE64 */: {
-      return simpleEncoder(data, "base64");
-    }
-    case 2 /* UTF8 */: {
-      return simpleEncoder(data, "utf8");
-    }
-  }
-  throw new Error(`unknown encoding: ${encoding}`);
-};
-var $dataToText = (data, encoding) => {
-  switch (encoding) {
-    case 8 /* BINARY */: {
-      return simpleDecoder(data, "utf8");
-    }
-    case 4 /* BASE64 */: {
-      return simpleDecoder(simpleEncoder(data, "base64"), "utf8");
-    }
-    case 2 /* UTF8 */: {
-      return data;
-    }
-  }
-  throw new Error(`unknown encoding: ${encoding}`);
 };
 
 // src/helper/cacheGetter.cts
@@ -311,61 +241,6 @@ var cacheGetter = () => {
     return desp;
   };
 };
-
-// src/core/ipc/IpcEvent.cts
-var _IpcEvent = class extends IpcMessage {
-  constructor(name, data, encoding) {
-    super(7 /* EVENT */);
-    this.name = name;
-    this.data = data;
-    this.encoding = encoding;
-  }
-  static fromBase64(name, data) {
-    return new _IpcEvent(
-      name,
-      simpleDecoder(data, "base64"),
-      4 /* BASE64 */
-    );
-  }
-  static fromBinary(name, data) {
-    return new _IpcEvent(name, data, 8 /* BINARY */);
-  }
-  static fromUtf8(name, data) {
-    return new _IpcEvent(
-      name,
-      simpleDecoder(data, "utf8"),
-      2 /* UTF8 */
-    );
-  }
-  static fromText(name, data) {
-    return new _IpcEvent(name, data, 2 /* UTF8 */);
-  }
-  get binary() {
-    return $dataToBinary(this.data, this.encoding);
-  }
-  get text() {
-    return $dataToText(this.data, this.encoding);
-  }
-  get jsonAble() {
-    if (this.encoding === 8 /* BINARY */) {
-      return _IpcEvent.fromBase64(this.name, this.data);
-    }
-    return this;
-  }
-  toJSON() {
-    return { ...this.jsonAble };
-  }
-};
-var IpcEvent = _IpcEvent;
-__decorateClass([
-  cacheGetter()
-], IpcEvent.prototype, "binary", 1);
-__decorateClass([
-  cacheGetter()
-], IpcEvent.prototype, "text", 1);
-__decorateClass([
-  cacheGetter()
-], IpcEvent.prototype, "jsonAble", 1);
 
 // src/helper/createSignal.cts
 var createSignal2 = (autoStart) => {
@@ -418,6 +293,21 @@ var Signal2 = class {
 __decorateClass([
   cacheGetter()
 ], Signal2.prototype, "_cachedEmits", 1);
+
+// src/helper/encoding.cts
+var textEncoder = new TextEncoder();
+var simpleEncoder = (data, encoding) => {
+  if (encoding === "base64") {
+    const byteCharacters = atob(data);
+    const binary = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      binary[i] = byteCharacters.charCodeAt(i);
+    }
+    return binary;
+  }
+  return textEncoder.encode(data);
+};
+var textDecoder = new TextDecoder();
 
 // src/helper/mapHelper.cts
 var mapHelper = new class {
@@ -605,6 +495,8 @@ var { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
 var fetchSignal = createSignal2();
+var fetchLock = false;
+var fetchSet = /* @__PURE__ */ new Set();
 async function onApiRequest(serverurlInfo, request, httpServerIpc) {
   let ipcResponse;
   try {
@@ -612,7 +504,13 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       ipcResponse = internalFactory(url, request.req_id, httpServerIpc, serverurlInfo);
     } else {
-      fetchSignal.emit(request);
+      if (fetchLock) {
+        if (!fetchSet.has(url.pathname)) {
+          fetchSet.add(url.pathname);
+          return fetchSignal.emit(request);
+        }
+        fetchSet.delete(url.pathname);
+      }
       const path = `file:/${url.pathname}${url.search}`;
       const response = await jsProcess.nativeFetch(path, {
         body: request.body.raw,
@@ -673,6 +571,7 @@ var internalFactory = (url, req_id, httpServerIpc, serverurlInfo) => {
     );
   }
   if (pathname === "/fetch") {
+    fetchLock = true;
     const streamPo = serviceWorkerFetch();
     return IpcResponse.fromStream(
       req_id,
@@ -800,7 +699,7 @@ var detailed_default = detailedDiff;
 
 // src/user/cot-demo/cotDemo.worker.mts
 var main = async () => {
-  const { IpcEvent: IpcEvent3 } = ipc;
+  const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut();
   let oldWebviewState = [];
   const browserIpc = await jsProcess.connect("browser.sys.dweb");
@@ -886,12 +785,12 @@ var main = async () => {
       if (event.name === "activity") {
         hasActivity = true;
         const view_id = await tryOpenView();
-        browserIpc.postMessage(IpcEvent3.fromText("ready", view_id ?? "activity"));
+        browserIpc.postMessage(IpcEvent.fromText("ready", view_id ?? "activity"));
         return;
       }
     });
     closeSignal.listen(() => {
-      browserIpc.postMessage(IpcEvent3.fromText("close", ""));
+      browserIpc.postMessage(IpcEvent.fromText("close", ""));
       browserIpc.close();
     });
   };
@@ -907,7 +806,7 @@ var main = async () => {
         }
       });
       closeSignal.listen(() => {
-        ipc2.postMessage(IpcEvent3.fromText("close", ""));
+        ipc2.postMessage(IpcEvent.fromText("close", ""));
         ipc2.close();
       });
     });

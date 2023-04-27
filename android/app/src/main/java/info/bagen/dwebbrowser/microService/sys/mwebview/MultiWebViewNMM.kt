@@ -82,27 +82,6 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
         )
     }
 
-//    init {
-//        onConnect { (ipc) ->
-//            ipc.onRequest { (ipcRequest,ipc) ->
-//                debugMultiWebView("multiWebView onEvent=>", "mmid: ${ipc.remote.mmid} ${ipcRequest.url}")
-//                runBlockingCatching(ioAsyncExceptionHandler) {
-//                    emitEvent(
-//                        ipc.remote.mmid, "fetch", """
-//                        new FetchEvent('fetch', {
-//                          request: "${ipcRequest.toRequest()}",
-//                          clientId: "${ipcRequest.req_id}",
-//                          bubbles: true,
-//                          cancelable: false
-//                        })
-//                    """.trimIndent()
-//                    )
-//                }
-//                ipc.postMessage(IpcResponse.fromResponse(ipcRequest.req_id, Response(Status.FORBIDDEN), ipc))
-//            }
-//        }
-//    }
-
     override suspend fun _shutdown() {
         apiRouting = null
     }
