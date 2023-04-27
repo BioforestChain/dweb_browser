@@ -144,7 +144,8 @@
                 body: data,
                 headers: {
                     "Content-Type": "application/json; charset=UTF-8",
-                    "id": id
+                    "id": id,
+                    "from": from
                 }
                 
             }
@@ -187,7 +188,7 @@
         window.safeArea.contentWindow.overlayChange({type: 'navigation-bar', value: state.overlay})
     }
 
-    function setOverlayByVirtualKeyboard(overlay){
+    function setOverlayBySysModule(overlay){
         if(state.overlay === overlay) return;
         state.overlay = overlay
         window.navigationBar.style.position = state.overlay ? "absolute" : "relative";

@@ -130,6 +130,7 @@ export class HttpServerNMM extends NativeMicroModule {
       /// 获取 host
       const host = this.getHostByReq(req)
        
+      console.log('接受到了请求', req.url);
 
       // 通过 _allRoutes 分发路由
       {
@@ -140,9 +141,6 @@ export class HttpServerNMM extends NativeMicroModule {
         if(listener){
           return listener(req, res)
         }
-        // else{
-        //   console.log('-------------------', req.url, req.headers)
-        // }
       }
 
       // 是否有匹配的路由 拦截路由 分发请求

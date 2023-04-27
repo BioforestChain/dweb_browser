@@ -4,6 +4,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>toast</title>
+    <script type="text/javascript" src="../scripts/defined_app_url.js"></script>
     <style type="text/css">
         body{
             position: relative;
@@ -42,12 +43,17 @@
     </style>
 </head>
 <body>
-    <!-- <div class="message">这里是超长的消息，这里是超长的消息，这里是超长的消息</div> -->
     <script type="text/javascript">
         let count = 0;
-        const iframe = window.top.document.querySelector("view-tree").shadowRoot.querySelector("multi-webview-content").shadowRoot.querySelector('#toast');
-        const appUrl = iframe.dataset.appUrl
-        if(!iframe) console.error('toast 发生错误, 没有找到挂在的 iframe')
+        let iframe; 
+
+        window.addEventListener('message', windowOnMessage)
+        function windowOnMessage (){
+            iframe = window.parentElement.querySelector('#toast')
+            if(!iframe) console.error('toast 发生错误, 没有找到挂在的 iframe')
+            awaitOperation()
+            window.removeEventListener('message', windowOnMessage)
+        }
 
         function show({message, duration, position}){
             iframeShow(position)
@@ -91,7 +97,7 @@
             监听操作的方法
         */
         async function awaitOperation(){
-            fetch("http://toast.nativeui.sys.dweb-80.localhost:22605/toast-ui/wait_for_operation?app_url="+appUrl)
+            fetch("http://toast.nativeui.sys.dweb-80.localhost:22605/toast-ui/wait_for_operation?app_url="+window.appUrl)
             .then(async (res) => {
                 const reader = res.body.getReader()
                 let loop = true;
@@ -126,17 +132,14 @@
                     body: value,
                     headers: {
                         "Content-Type": "application/json; charset=UTF-8",
-                        "id": id
+                        "id": id,
+                        "from": from
                     }
                 }
             )
             .catch(err => console.error("fetchReturn 出错", err))
         }
-
-        awaitOperation()
-
-    
-
+        console.log('toast.html')
     </script>
 </body>
 </html>

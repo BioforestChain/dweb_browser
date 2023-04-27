@@ -64,6 +64,7 @@
                         // "Content-Type": "application/json; charset=UTF-8",
                         "Content-Type": contentType,
                         "id": id,
+                        "from": from
                     }
                 }
             )
@@ -77,6 +78,10 @@
             const elInput = document.createElement('input')
             elInput.setAttribute('type', "file");
             elInput.addEventListener('change', change)
+            elInput.style.width = "0px"
+            elInput.style.height = "0px";
+            elInput.style.overflow = "hiden";
+            elInput.style.position = "fixed";
             function change(){
                 elInput.remove();
                 fetchReturn(elInput.files[0], o.id, o.from, elInput.files[0].type)

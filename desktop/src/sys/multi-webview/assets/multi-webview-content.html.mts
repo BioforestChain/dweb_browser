@@ -221,7 +221,10 @@ export class MultiWebViewContent extends LitElement{
                     data-app-url=${this.src}
                 ></iframe>
                 <!-- 内容容器 -->
-                <div class="webview-container">
+                <div 
+                    class="webview-container"
+                    data-app-url=${this.src}
+                >
                     <webview
                         id="view-${this.customWebviewId}"
                         class="webview"
@@ -236,7 +239,10 @@ export class MultiWebViewContent extends LitElement{
                         class="toast"
                         style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; position: absolute; left: 0px; bottom: 0px"
                         src="http://toast.nativeui.sys.dweb-80.localhost:22605"
-                        @load=${() => console.log('toast 载入完成')}
+                        @load=${(e: Event) => {
+                            console.log('toast 载入完成')
+                            this.onPluginNativeUiLoadBase(e)
+                        }}
                         data-app-url=${this.src}
                     ></iframe>
                 </div>

@@ -1,33 +1,16 @@
- 
-// state = {
-//     overlay: boolean
-//     内部区域
-//     cutoutInsets: {
-//         left: number;
-//         top: number;
-//         right: number;
-//         bottom: number;
-//     }
-//     外部区域
-//     outerInsets: {
-//         left: number;
-//         top: number;
-//         right: number;
-//         bottom: number;
-//     }
-// }
+// 模拟状态栏模块-用来提供状态UI的模块
+import { NativeMicroModule } from "../../../../core/micro-module.native.cjs";
+import { WWWServer } from "./www-server.cjs"
+import { log } from "../../../../helper/devtools.cjs"
+import { converRGBAToHexa } from "../../helper.cjs";
+import querystring from "node:querystring"
 import type { IncomingMessage, OutgoingMessage } from "http";
 import type { Ipc } from "../../../../core/ipc/ipc.cjs";
-import { NativeMicroModule } from "../../../../core/micro-module.native.cjs";
-import { log } from "../../../../helper/devtools.cjs"
-import querystring from "node:querystring"
 import type { HttpServerNMM } from "../../../http-server/http-server.cjs";
-import { converRGBAToHexa } from "../../helper.cjs";
 import type { $ReqRes, $Observe } from "../status-bar/status-bar.main.cjs";
-import { WWWServer } from "./www-server.cjs"
 
-export class SafeAreaNMM extends NativeMicroModule {
-  mmid = "safe-area.nativeui.sys.dweb" as const;
+export class NavigationBarNMM extends NativeMicroModule {
+  mmid = "navigation-bar.nativeui.sys.dweb" as const;
   httpIpc: Ipc | undefined
   httpNMM: HttpServerNMM | undefined;
   observe: Map<string, OutgoingMessage> = new Map();
@@ -36,29 +19,28 @@ export class SafeAreaNMM extends NativeMicroModule {
   observeMap: Map<string, $Observe> = new Map() 
   encoder = new TextEncoder();
   allocId = 0;
- 
+
   _bootstrap = async (context: any) => {
     log.green(`[${this.mmid} _bootstrap]`)
 
     this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
     if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
-    
+     
     {
       this.httpNMM.addRoute(`/${this.mmid}/startObserve`, this._startObserve)
       this.httpNMM.addRoute(`/${this.mmid}/stopObserve`, this._stopObserve);
       this.httpNMM.addRoute(`/${this.mmid}/getState`, this._getState);
       this.httpNMM.addRoute(`/${this.mmid}/setState`, this._setState);
       this.httpNMM.addRoute(`/internal/observe`, this._observe);
-      this.httpNMM.addRoute(`/safe-area-ui/wait_for_operation`, this._waitForOperation)
-      this.httpNMM.addRoute(`/safe-area-ui/operation_return`, this._operationReturn)
+      this.httpNMM.addRoute(`/navigation-bar-ui/wait_for_operation`, this._waitForOperation)
+      this.httpNMM.addRoute(`/navigation-bar-ui/operation_return`, this._operationReturn)
     }
-
+    
     {
       new WWWServer(this)
     }
-   
-  }
 
+  }
 
   private _startObserve = async (req: IncomingMessage, res: OutgoingMessage) => {
     const origin = req.headers.origin;
@@ -117,6 +99,34 @@ export class SafeAreaNMM extends NativeMicroModule {
     const id = this.allocId++;
     // 把请求保存做起来
     this.reqResMap.set(id, {req, res})
+    if(searchParams.color !== undefined && typeof searchParams.color === "string"){
+      const color = JSON.parse(searchParams.color)
+      waitForRes.write(
+        this.encoder.encode(
+          `${JSON.stringify({
+            operationName: "set_background_color",
+            value: converRGBAToHexa(color.red, color.green, color.blue, color.alpha),
+            from: origin,
+            id: id
+          })}\n`
+        )
+      )
+      return;
+    }
+
+    if(searchParams.style !== undefined && typeof searchParams.style === "string"){
+      waitForRes.write(
+        this.encoder.encode(
+          `${JSON.stringify({
+            operationName: "set_style",
+            value: searchParams.style,
+            from: origin,
+            id: id
+          })}\n`
+        )
+      )
+      return;
+    }
 
     if(searchParams.overlay !== undefined && typeof searchParams.overlay === "string"){
       waitForRes.write(
@@ -131,6 +141,21 @@ export class SafeAreaNMM extends NativeMicroModule {
       )
       return;
     }
+
+    if(searchParams.visible !== undefined && typeof searchParams.visible === "string"){
+      waitForRes.write(
+        this.encoder.encode(
+          `${JSON.stringify({
+            operationName: "set_visible",
+            value: searchParams.visible === "true" ? true : false,
+            from: origin,
+            id: id
+          })}\n`
+        )
+      )
+      return;
+    }
+
     throw new Error(`非法的请求 ${req.url}`)
   }
   
@@ -188,11 +213,15 @@ export class SafeAreaNMM extends NativeMicroModule {
       const observe = this.observeMap.get(origin);
       if(id !== "observe" && observe === undefined) throw new Error(`observe === undefined`);
       // 需要加入一个 \n 符号
-      observe?.res?.write(Buffer.concat([chunks, this.encoder.encode("\n")]));
+      observe?.res?.write(Buffer.concat([chunks, this.encoder.encode("\n")]))
     })
+   
   }
-  
+
   _shutdown = async () => {
 
   }
+
 }
+
+

@@ -1,33 +1,17 @@
- 
-// state = {
-//     overlay: boolean
-//     内部区域
-//     cutoutInsets: {
-//         left: number;
-//         top: number;
-//         right: number;
-//         bottom: number;
-//     }
-//     外部区域
-//     outerInsets: {
-//         left: number;
-//         top: number;
-//         right: number;
-//         bottom: number;
-//     }
-// }
-import type { IncomingMessage, OutgoingMessage } from "http";
-import type { Ipc } from "../../../../core/ipc/ipc.cjs";
 import { NativeMicroModule } from "../../../../core/micro-module.native.cjs";
 import { log } from "../../../../helper/devtools.cjs"
-import querystring from "node:querystring"
-import type { HttpServerNMM } from "../../../http-server/http-server.cjs";
-import { converRGBAToHexa } from "../../helper.cjs";
-import type { $ReqRes, $Observe } from "../status-bar/status-bar.main.cjs";
 import { WWWServer } from "./www-server.cjs"
+import { converRGBAToHexa } from "../../helper.cjs";
+import querystring from "node:querystring";
+import type { $ReqRes, $Observe } from "../status-bar/status-bar.main.cjs";
+import type { Ipc } from "../../../../core/ipc/ipc.cjs";
+import type { IncomingMessage,OutgoingMessage } from "node:http";
+import type { HttpServerNMM } from "../../../http-server/http-server.cjs";
 
-export class SafeAreaNMM extends NativeMicroModule {
-  mmid = "safe-area.nativeui.sys.dweb" as const;
+// @ts-ignore
+type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
+export class VirtualKeyboardNMM extends NativeMicroModule {
+  mmid = "virtual-keyboard.nativeui.sys.dweb" as const;
   httpIpc: Ipc | undefined
   httpNMM: HttpServerNMM | undefined;
   observe: Map<string, OutgoingMessage> = new Map();
@@ -36,7 +20,7 @@ export class SafeAreaNMM extends NativeMicroModule {
   observeMap: Map<string, $Observe> = new Map() 
   encoder = new TextEncoder();
   allocId = 0;
- 
+
   _bootstrap = async (context: any) => {
     log.green(`[${this.mmid} _bootstrap]`)
 
@@ -49,16 +33,15 @@ export class SafeAreaNMM extends NativeMicroModule {
       this.httpNMM.addRoute(`/${this.mmid}/getState`, this._getState);
       this.httpNMM.addRoute(`/${this.mmid}/setState`, this._setState);
       this.httpNMM.addRoute(`/internal/observe`, this._observe);
-      this.httpNMM.addRoute(`/safe-area-ui/wait_for_operation`, this._waitForOperation)
-      this.httpNMM.addRoute(`/safe-area-ui/operation_return`, this._operationReturn)
+      this.httpNMM.addRoute(`/virtual-keyboard-ui/wait_for_operation`, this._waitForOperation)
+      this.httpNMM.addRoute(`/virtual-keyboard-ui/operation_return`, this._operationReturn)
     }
-
+    
     {
       new WWWServer(this)
     }
-   
+    
   }
-
 
   private _startObserve = async (req: IncomingMessage, res: OutgoingMessage) => {
     const origin = req.headers.origin;
@@ -131,6 +114,7 @@ export class SafeAreaNMM extends NativeMicroModule {
       )
       return;
     }
+
     throw new Error(`非法的请求 ${req.url}`)
   }
   
@@ -188,10 +172,11 @@ export class SafeAreaNMM extends NativeMicroModule {
       const observe = this.observeMap.get(origin);
       if(id !== "observe" && observe === undefined) throw new Error(`observe === undefined`);
       // 需要加入一个 \n 符号
-      observe?.res?.write(Buffer.concat([chunks, this.encoder.encode("\n")]));
+      observe?.res?.write(Buffer.concat([chunks, this.encoder.encode("\n")]))
     })
+   
   }
-  
+
   _shutdown = async () => {
 
   }

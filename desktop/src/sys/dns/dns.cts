@@ -12,6 +12,7 @@ import {
   connectMicroModules,
 } from "../../core/nativeConnect.cjs";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.cjs";
+import { log } from "../../helper/devtools.cjs";
 import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import type { $MMID } from "../../helper/types.cjs";
@@ -106,7 +107,7 @@ export class DnsNMM extends NativeMicroModule {
   }
 
   override _bootstrap() {
-    console.log('[dns.cts _bootstrap]')
+    log.green(`${this.mmid} _bootstrap`)
     this.install(this);
     this.running_apps.set(this.mmid, this);
 
@@ -122,7 +123,6 @@ export class DnsNMM extends NativeMicroModule {
         if(args.app_id === "http.sys.dweb"){
           // 向 http.sys.dweb 添加路由
           this._addRoutes()
-          console.log('----------- open app http.sys.dweb')
         }
 
 

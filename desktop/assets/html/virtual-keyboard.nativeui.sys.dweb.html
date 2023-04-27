@@ -196,7 +196,7 @@
             window.safeArea.contentWindow.overlayChange({type: 'virtual-keyboard', value: state.overlay})
         }
 
-        function setOverlayByVirtualKeyboard(value){
+        function setOverlayBySysModule(value){
             if(state.overlay === value) return;
             state.overlay = value
             window.virtualKeyboard.style.position = state.overlay ? "absolute" : "relative"
@@ -263,7 +263,8 @@
                     body: value,
                     headers: {
                         "Content-Type": "application/json; charset=UTF-8",
-                        "id": id
+                        "id": id,
+                        "from": from
                     }
                 }
             )

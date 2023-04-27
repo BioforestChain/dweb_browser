@@ -89,9 +89,9 @@
 
         function setOverlay(value){
             state.overlay = value
-            window.statusBar.contentWindow.setOverlayByVirtualKeyboard(value)
-            window.navigationBar.contentWindow.setOverlayByVirtualKeyboard(value)
-            window.virtualKeyboard.contentWindow.setOverlayByVirtualKeyboard(value)
+            window.statusBar.contentWindow.setOverlayBySysModule(value)
+            window.navigationBar.contentWindow.setOverlayBySysModule(value)
+            window.virtualKeyboard.contentWindow.setOverlayBySysModule(value)
         }
 
         /*
@@ -136,7 +136,8 @@
                     body: value,
                     headers: {
                         "Content-Type": "application/json; charset=UTF-8",
-                        "id": id
+                        "id": id,
+                        "from": from
                     }
                 }
             )

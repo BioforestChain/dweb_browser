@@ -143,8 +143,6 @@ export class HapticsNMM extends NativeMicroModule{
     const url = new URL(req.url as string, req.headers.referer)
     const appUrl = url.searchParams.get('app_url')
     if(appUrl === null) throw new Error(`${this.mmid} _waitForOperation appUrl === null`)
-    console.log('wait for operation', appUrl)
-    console.log('req.headers.origin: ', req.headers)
     this.waitForOperationResMap.set(appUrl, res)
   }
 

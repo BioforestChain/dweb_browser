@@ -239,7 +239,7 @@
             // 同时背景需要透明化 但是不能够修改 sate 的值
         }
 
-        function setOverlayByVirtualKeyboard(value){
+        function setOverlayBySysModule(value){
             if(state.overlay === value) return;
             state.overlay = value
             window.statusBar.style.position = state.overlay ? "absolute" : "relative";
@@ -314,7 +314,8 @@
                     body: value,
                     headers: {
                         "Content-Type": "application/json; charset=UTF-8",
-                        "id": id
+                        "id": id,
+                        "from": from
                     }
                      
                 }
