@@ -476,13 +476,11 @@ private fun parseInputText(text: String, host: Boolean = true): String? {
     uri.host == "www.sogou.com" && uri.path == "/web" && uri.getQueryParameter("query") != null -> {
       uri.getQueryParameter("query")
     }
-    (uri.host == "m.so.com" || uri.host == "www.so.com") && uri.path == "/s" && uri.getQueryParameter(
-      "q"
-    ) != null -> {
+    (uri.host == "m.so.com" || uri.host == "www.so.com") && uri.path == "/s" && uri.getQueryParameter("q") != null -> {
       uri.getQueryParameter("q")
     }
     else -> {
-      if (uri.host?.isNotEmpty() == true) {
+      if (host && uri.host?.isNotEmpty() == true) {
         uri.host
       } else if (uri.getQueryParameter("text")?.isNotEmpty() == true) {
         uri.getQueryParameter("text")
