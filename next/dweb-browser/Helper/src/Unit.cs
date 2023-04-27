@@ -1,5 +1,5 @@
-﻿using System;
-using System.Diagnostics.Contracts;
+﻿using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 
 namespace DwebBrowser.Helper;
 
@@ -88,4 +88,20 @@ public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>
     [Pure]
     public static implicit operator Unit(ValueTuple _) =>
         default;
+}
+
+public static class Prelude
+{
+    /// <summary>
+    /// Unit constructor
+    /// </summary>
+    public static Unit unit => Unit.Default;
+
+    /// <summary>
+    /// Takes any value, ignores it, returns a unit
+    /// </summary>
+    /// <param name="anything">Value to ignore</param>
+    /// <returns>Unit</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit ignore<A>(A anything) => unit;
 }

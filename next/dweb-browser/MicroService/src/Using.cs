@@ -7,6 +7,7 @@ global using DwebBrowser.MicroService.Message;
 global using DwebBrowser.MicroService.Core;
 global using DwebBrowser.MicroService.Sys.Http.Net;
 global using DwebBrowser.Helper;
+global using static DwebBrowser.Helper.Prelude;
 
 global using Mmid = System.String;
 
