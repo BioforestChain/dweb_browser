@@ -6,14 +6,13 @@ export class HTMLStateObserverElement<RAW, STATE> extends HTMLElement {
     super();
     (async () => {
       for await (const _info of state.jsonlines()) {
-        console.log("stateChange", _info);
+        // console.log("stateChange", _info);
       }
     })();
   }
   #onStateChange?: $OffListener;
   async connectedCallback() {
     this.#onStateChange = this.state.onChange((info) => {
-      console.log("stateChange dispatchEvent", info);
       this.dispatchEvent(new CustomEvent("statechange", { detail: info }));
     });
     await this.state.startObserve(); // 开始监听

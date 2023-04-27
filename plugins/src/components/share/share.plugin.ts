@@ -34,13 +34,12 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
    */
   @bindThis
   async share(options: ShareOptions): Promise<string> {
-
-    const data = new FormData()
+    const data = new FormData();
     if (options.files && options.files.length !== 0) {
       for (const key in options.files) {
-        const file = options.files[key]
-        console.log("fileName=>", file.name)
-        data.append("files", file)
+        const file = options.files[key];
+        console.log("fileName=>", file.name);
+        data.append("files", file);
       }
     }
 
@@ -52,10 +51,11 @@ export class SharePlugin extends BasePlugin implements ISharePlugin {
       },
       method: "POST",
       body: data,
-      base: await BasePlugin.public_url,
-    }).fetch().text()
+      base: await BasePlugin.public_url.promise,
+    })
+      .fetch()
+      .text();
   }
-
 }
 
 export const sharePlugin = new SharePlugin();

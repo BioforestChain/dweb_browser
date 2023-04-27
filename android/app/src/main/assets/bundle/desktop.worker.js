@@ -96,7 +96,7 @@ var main = async () => {
           request.req_id,
           200,
           new IpcHeaders({
-            "Content-Type": "application/javascript"
+            "Content-Type": "text/javascript"
           }),
           await CODE(request),
           httpServerIpc

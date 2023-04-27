@@ -55,7 +55,7 @@ class UpdateControllerPlugin extends BasePlugin {
   // }
   @bindThis
   async getMMid() {
-    return await BasePlugin.public_url;
+    return await BasePlugin.public_url.promise;
   }
 }
 

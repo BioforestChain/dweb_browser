@@ -105,12 +105,8 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
             dnsMM.uninstall(mm)
         }
 
-        override fun query(mmid: Mmid): JsMicroModule? {
-            val microModule = dnsMM.query(mmid)
-            if (microModule is JsMicroModule) {
-                return microModule
-            }
-            return null
+        override fun query(mmid: Mmid): MicroModule? {
+            return dnsMM.query(mmid)
         }
 
         override fun restart(mmid: Mmid) {

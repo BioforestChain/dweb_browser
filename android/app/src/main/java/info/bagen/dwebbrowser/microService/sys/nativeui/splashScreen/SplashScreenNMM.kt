@@ -6,6 +6,7 @@ import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.commonAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.printdebugln
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewController
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM
 import kotlinx.coroutines.Dispatchers
@@ -51,15 +52,19 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
             "/show" bind Method.GET to defineHandler { request, ipc ->
                 val options = query_SplashScreenSettings(request)
                 val currentController = currentController(ipc.remote.mmid)
-                val metadata = bootstrapContext.dns.query(ipc.remote.mmid)?.metadata
-                debugSplashScreen(
-                    "show",
-                    "remoteId:${ipc.remote.mmid} show===>${options} ${metadata?.splashScreen}"
-                )
-                if (currentController != null && metadata !== null) {
-                    show(currentController, metadata, options)
-                    return@defineHandler Response(Status.OK)
+                val microModule = bootstrapContext.dns.query(ipc.remote.mmid)
+                if (microModule is JsMicroModule) {
+                    val metadata = microModule.metadata
+                    debugSplashScreen(
+                        "show",
+                        "remoteId:${ipc.remote.mmid} show===>${options} ${metadata?.splashScreen}"
+                    )
+                    if (currentController != null) {
+                        show(currentController, metadata, options)
+                        return@defineHandler Response(Status.OK)
+                    }
                 }
+
                 Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
             },
             /** 隐藏*/

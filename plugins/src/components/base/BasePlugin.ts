@@ -3,14 +3,15 @@
 import { $makeExtends } from "../../helper/$makeExtends.ts";
 import { fetchExtends } from "../../helper/$makeFetchExtends.ts";
 import { createSignal } from "../../helper/createSignal.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 
 export abstract class BasePlugin {
   abstract tagName: string;
 
-  constructor(readonly mmid: string) { }
+  constructor(readonly mmid: string) {}
 
   static internal_url: string = globalThis.location?.href ?? "http://localhost";
-  static public_url: Promise<string> | string = "";
+  static public_url = new PromiseOut<string>();
 
   protected buildRequest(url: URL, init?: $BuildRequestInit) {
     const search = init?.search;
@@ -67,9 +68,9 @@ export abstract class BasePlugin {
 }
 interface $BuildRequestInit extends RequestInit {
   search?:
-  | ConstructorParameters<typeof URLSearchParams>[0]
-  // deno-lint-ignore no-explicit-any
-  | Record<string, any>;
+    | ConstructorParameters<typeof URLSearchParams>[0]
+    // deno-lint-ignore no-explicit-any
+    | Record<string, any>;
   base?: string;
 }
 interface $BuildRequestWithBaseInit extends $BuildRequestInit {

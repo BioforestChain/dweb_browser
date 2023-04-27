@@ -160,14 +160,12 @@ export class JsProcessMicroModule implements $MicroModule {
 
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();
   connect(mmid: $MMID) {
-
     return mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
       const ipc_po = new PromiseOut<Ipc>();
       // 发送指令
       this.fetchIpc.postMessage(
         IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
       );
-
       return ipc_po;
     }).promise;
   }

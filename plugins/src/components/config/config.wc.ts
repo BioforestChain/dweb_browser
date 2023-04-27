@@ -12,7 +12,7 @@ export class HTMLDwebConfigElement extends HTMLElement {
   static get observedAttributes() {
     return ["api-url"];
   }
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
     if (name === "api-url") {
       configPlugin.setInternalUrl(newValue);
     }
