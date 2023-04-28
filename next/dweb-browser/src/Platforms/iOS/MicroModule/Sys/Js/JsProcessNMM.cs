@@ -191,10 +191,8 @@ public class JsProcessNMM : NativeMicroModule
         /// WebView 实例
         var urlInfo = mainServer.StartResult.urlInfo;
 
-
-        await MainQueue.Run(() =>
+        await MainThread.InvokeOnMainThreadAsync(() =>
         {
-
             var dwebview = new DWebView.DWebView(localeMM: this);
 
             var apis = new JsProcessWebApi(dwebview).Also(apis =>
@@ -332,59 +330,4 @@ public class JsProcessNMM : NativeMicroModule
 
     private Task<int> _createIpc(Ipc ipc, JsProcessWebApi apis, int process_id, Mmid mmid) =>
         apis.CreateIpc(process_id, mmid);
-}
-
-
-public static class MainQueue
-{
-    static IDispatcher? mainDispatcher = default;
-
-    public static void Init()
-    {
-        Init(Dispatcher.GetForCurrentThread());
-    }
-
-    public static void Init(IDispatcher dispatcher)
-    {
-        mainDispatcher = dispatcher;
-    }
-
-    public static bool IsOnMain
-    {
-        get
-        {
-            if (mainDispatcher is null) throw new NotSupportedException("you have to call Init() first");
-            return mainDispatcher == Dispatcher.GetForCurrentThread();
-        }
-    }
-
-    static void EnsureInvokeOnMainThread(Action action)
-    {
-        if (IsOnMain)
-        {
-            action();
-        }
-        else
-        {
-            mainDispatcher.Dispatch(action);
-        }
-    }
-
-    public static Task Run(Action action)
-    {
-        var tcs = new TaskCompletionSource<object>();
-        EnsureInvokeOnMainThread(() =>
-        {
-            try
-            {
-                action?.Invoke();
-                tcs.SetResult(null);
-            }
-            catch (Exception ex)
-            {
-                tcs.SetException(ex);
-            }
-        });
-        return tcs.Task;
-    }
 }
