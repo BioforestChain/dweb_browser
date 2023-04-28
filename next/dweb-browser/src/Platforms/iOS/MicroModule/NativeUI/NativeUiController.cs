@@ -11,7 +11,7 @@ public class NativeUiController
         throw new NotImplementedException();
     }
 
-    public readonly StatusBarController StatusBarController = new();
+    public readonly StatusBarController StatusBar = new();
 
     public NativeUiController(UIViewController activity)
     {
