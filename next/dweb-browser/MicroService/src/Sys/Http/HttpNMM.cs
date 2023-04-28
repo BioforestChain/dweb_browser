@@ -1,13 +1,23 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using DwebBrowser.Helper;
 
 namespace DwebBrowser.MicroService.Sys.Http;
 
+public static class UrlExtensions
+{
+    public static string ToPublicDwebHref(this Uri internalHref) => HttpNMM.DwebServer.Origin + HttpNMM.X_DWEB_HREF + internalHref.AbsoluteUri;
+}
 public class HttpNMM : NativeMicroModule
 {
     static Debugger Console = new Debugger("HttpNMM");
     public static Http1Server DwebServer = new Http1Server();
     public static readonly string X_DWEB_HREF = "/X-Dweb-Href/";
+    /// <summary>
+    /// 基于BuildInternalUrl拼接出来的链接，不基于Query，所以适用性更好，可以用于base-uri
+    /// </summary>
+    /// <param name="internalHref"></param>
+    /// <returns></returns>
     /// 注册的域名与对应的 token
     private Dictionary</* token */string, Gateway> _tokenMap = new();
     private Dictionary</* host */string, Gateway> _gatewayMap = new();
@@ -124,12 +134,6 @@ public class HttpNMM : NativeMicroModule
 
         public Uri BuildPublicUrl() => new Uri(Public_Origin).AppendQuery("X-Dweb-Host", Host);
         public Uri BuildInternalUrl() => new(Internal_Origin);
-        /// <summary>
-        /// 基于BuildInternalUrl拼接出来的链接，不基于Query，所以适用性更好，可以用于base-uri
-        /// </summary>
-        /// <param name="internalHref"></param>
-        /// <returns></returns>
-        public string BuildPublicDwebHref(Uri internalHref) => Public_Origin + X_DWEB_HREF + internalHref.AbsoluteUri;
     }
 
     private ServerUrlInfo _getServerUrlInfo(Ipc ipc, DwebHttpServerOptions options)
@@ -138,7 +142,7 @@ public class HttpNMM : NativeMicroModule
         var subdomainPrefix = options.subdomain == "" || options.subdomain.EndsWith(".")
             ? options.subdomain : options.subdomain + ".";
 
-        var port = options.port <= 0 || options.port >= 6556
+        var port = options.port <= 0 || options.port >= 65536
             ? throw new Exception(String.Format("invalid dweb http port: {0}", options.port)) : options.port;
 
         var host = String.Format("{0}{1}:{2}", subdomainPrefix, mmid, port);
@@ -183,8 +187,10 @@ public class HttpNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Post, "/listen", async (request, _) =>
         {
             var token = request.QueryValidate<string>("token")!;
-            var routes = JsonSerializer.Deserialize<List<Gateway.RouteConfig>>(request.QueryValidate<string>("routes")!)!;
-            return _listen(token, request, routes);
+            var routes = request.QueryValidate<string>("routes")!;
+            var routesType = typeof(List<Gateway.RouteConfig>)!;
+            var gatewayRoutes = (List<Gateway.RouteConfig>)JsonSerializer.Deserialize(routes, routesType)!;
+            return _listen(token, request, gatewayRoutes);
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/close", async (request, ipc) =>
@@ -195,7 +201,7 @@ public class HttpNMM : NativeMicroModule
             return await _close(ipc!, dwebServerOptions);
         });
         /// HTTP-GET 请求，但是不是通过网关，直接走IPC
-        HttpRouter.AddRoute(new Gateway.RouteConfig(X_DWEB_HREF, IpcMethod.Get, MatchMode.PREFIX), async (request, _) =>
+        HttpRouter.AddRoute(new Gateway.RouteConfig(X_DWEB_HREF, IpcMethod.Get, MATCH_MODE.PREFIX), async (request, _) =>
         {
             return await _httpHandler(request);
         });

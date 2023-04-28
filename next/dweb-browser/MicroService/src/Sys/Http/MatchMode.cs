@@ -1,8 +1,11 @@
 ﻿
+using System.Reflection.PortableExecutable;
+
 namespace DwebBrowser.MicroService.Sys.Http;
 
-public enum MatchMode : int
+
+public static class MATCH_MODE
 {
-    FULL,
-    PREFIX
+    public const string FULL = "full";
+    public const string PREFIX = "prefix";
 }

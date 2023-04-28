@@ -9,7 +9,7 @@ public class HttpRouter
     private readonly Dictionary<RouteConfig, RouterHandlerType> _routes = new();
 
     public void AddRoute(IpcMethod method, string path, RouterHandlerType handler) =>
-        AddRoute(new RouteConfig(path, method, Sys.Http.MatchMode.FULL), handler);
+        AddRoute(new RouteConfig(path, method, Sys.Http.MATCH_MODE.FULL), handler);
 
     public void AddRoute(RouteConfig config, RouterHandlerType handler)
     {

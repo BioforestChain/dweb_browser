@@ -21,7 +21,7 @@ public class MultiWebViewController : BaseViewController
         RemoteMM = remoteMM;
     }
 
-    private static int s_webviewId_acc = 1;
+    private static int s_webviewId_acc = 0;
 
     private List<ViewItem> _webViewList = new();
 
@@ -47,7 +47,7 @@ public class MultiWebViewController : BaseViewController
 
     public ViewItem AppendWebViewAsItem(DWebView.DWebView dwebview)
     {
-        var webviewId = "#w" + Interlocked.Exchange(ref s_webviewId_acc, Interlocked.Increment(ref s_webviewId_acc));
+        var webviewId = "#w" + Interlocked.Increment(ref s_webviewId_acc);
         
         return new ViewItem(webviewId, dwebview).Also(it =>
         {

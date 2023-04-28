@@ -342,11 +342,11 @@ public class IpcBodySender : IpcBody
 
     private static ConditionalWeakTable<Stream, string> s_streamIdWM = new();
 
-    private static int s_stream_id_acc = 1;
+    private static int s_stream_id_acc = 0;
 
     private static string s_getStreamId(Stream stream) => s_streamIdWM.GetValueOrPut(stream, () =>
     {
-        return String.Format("rs-{0}", Interlocked.Exchange(ref s_stream_id_acc, Interlocked.Increment(ref s_stream_id_acc)));
+        return String.Format("rs-{0}", Interlocked.Increment(ref s_stream_id_acc));
     });
 
 

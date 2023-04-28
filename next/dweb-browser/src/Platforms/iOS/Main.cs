@@ -14,7 +14,7 @@ namespace DwebBrowser.Platforms.iOS;
 
 static class MicroModuleExtendions
 {
-    public static T InstallBy<T>(this T self, DnsNMM dns) where T : MicroModule
+    public static T InstallBy<T>(this T self, DnsNMM dns) where T : DwebBrowser.MicroService.Core.MicroModule
     {
         dns.Install(self);
         return self;

@@ -68,14 +68,13 @@ public class Gateway
         }
     }
 
-    public record RouteConfig(string pathname, IpcMethod method, MatchMode matchMode = MatchMode.PREFIX)
+    public record RouteConfig(string pathname, IpcMethod method, MatchMode? matchMode = MATCH_MODE.PREFIX)
     {
-
         public bool IsMatch(HttpRequestMessage request) => matchMode switch
         {
-            MatchMode.PREFIX => request.Method.Method == method.Method && request.RequestUri is not null
+            MATCH_MODE.PREFIX => request.Method.Method == method.Method && request.RequestUri is not null
                        && request.RequestUri.AbsolutePath.StartsWith(pathname),
-            MatchMode.FULL => request.Method.Method == method.Method && request.RequestUri is not null
+            MATCH_MODE.FULL => request.Method.Method == method.Method && request.RequestUri is not null
                        && request.RequestUri.AbsolutePath == pathname,
             _ => false
         };
@@ -93,14 +92,14 @@ public class Gateway
 
             switch (Config.matchMode)
             {
-                case MatchMode.PREFIX:
+                case MATCH_MODE.PREFIX:
                     IsMatch = (request) =>
                     {
                         return request.Method.Method == Config.method.Method && request.RequestUri is not null
                             && request.RequestUri.AbsolutePath.StartsWith(Config.pathname);
                     };
                     break;
-                case MatchMode.FULL:
+                case MATCH_MODE.FULL:
                     IsMatch = (request) =>
                     {
                         return request.Method.Method == Config.method.Method && request.RequestUri is not null

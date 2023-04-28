@@ -41,7 +41,7 @@ public class MessagePort
     public event Signal<WebMessage>? OnWebMessage;
 
     public Task Start() => _port.Start();
-    public Task PostMessage(string data) => _port.PostMessage(WebMessage.From(data, new WebMessagePort[] { _port }));
+    public Task PostMessage(string data) => _port.PostMessage(WebMessage.From(data));
 
     private bool _isClosed = false;
 
@@ -117,7 +117,7 @@ public class MessagePortIpc : Ipc
 
     public MessagePortIpc(WebMessagePort port, Ipc.MicroModuleInfo remote, IPC_ROLE rote_type)
         : this(MessagePort.From(port), remote, rote_type) { }
-    
+
 
     public override Task _doPostMessageAsync(IpcMessage data)
     {

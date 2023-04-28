@@ -243,11 +243,11 @@ public partial class DWebView : WKWebView
         return channel;
     }
 
-    public Task PostMessage(string message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
-    public Task PostMessage(int message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
-    public Task PostMessage(float message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
-    public Task PostMessage(double message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
-    public Task PostMessage(bool message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(string message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(int message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(float message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(double message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(bool message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
     public async Task PostMessage(WebMessage message)
     {
         var arguments = new NSDictionary<NSString, NSObject>(new NSString[] {
@@ -265,42 +265,42 @@ public partial class DWebView : WKWebView
 
     public async Task LoadURL(Uri url, HttpMethod? method = default)
     {
+
+        /// 如果是 dweb 域名，这是需要加入网关的链接前缀才能被正常加载
+        if (url.Host.EndsWith(".dweb") && url.Scheme is "http" or "https")
+        {
+            url = new Uri(url.ToPublicDwebHref());
+            //using var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
+            //using var response = await remoteMM.NativeFetchAsync(request);
+
+            //using var nsUrlResponse = new NSUrlResponse(nsUrlRequest.Url, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream", new IntPtr(response.Content.Headers.ContentLength ?? 0), response.Content.Headers.ContentType?.CharSet);
+            //string responseData = await response.Content.ReadAsStringAsync() ?? "";
+
+            //var document = htmlParser.ParseDocument(responseData);
+            //var baseNode = document.Head?.QuerySelector("base");
+            //if (baseNode is null)
+            //{
+            //    baseNode = document.CreateElement("base");
+            //    document.Head!.InsertBefore(baseNode, document.Head.FirstChild);
+            //}
+            //string origin = baseNode.GetAttribute("href")?.Let((href) => new Uri(url, href).ToString()) ?? uri;
+            //string gatewayOrigin = HttpNMM.DwebServer.Origin; // "dweb:";
+            //if (!origin.StartsWith(gatewayOrigin))
+            //{
+            //    baseNode.SetAttribute("href", gatewayOrigin + HttpNMM.X_DWEB_HREF + origin);
+            //    responseData = document.ToHtml();
+            //}
+
+            ///// 模拟加载
+            //var nsData = NSData.FromString(responseData);
+            //nsNavigation = LoadSimulatedRequest(nsUrlRequest, nsUrlResponse, nsData);
+        }
+
         string uri = url.ToString() ?? throw new ArgumentException();
         var nsUrlRequest = new NSUrlRequest(new NSUrl(uri));
         WKNavigation? nsNavigation;
+        nsNavigation = LoadRequest(nsUrlRequest);
 
-        /// 如果是 dweb 域名，这是需要进行模拟加载的
-        if (url.Host.EndsWith(".dweb") && url.Scheme is "http" or "https")
-        {
-            using var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
-            using var response = await remoteMM.NativeFetchAsync(request);
-
-            using var nsUrlResponse = new NSUrlResponse(nsUrlRequest.Url, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream", new IntPtr(response.Content.Headers.ContentLength ?? 0), response.Content.Headers.ContentType?.CharSet);
-            string responseData = await response.Content.ReadAsStringAsync() ?? "";
-
-            var document = htmlParser.ParseDocument(responseData);
-            var baseNode = document.Head?.QuerySelector("base");
-            if (baseNode is null)
-            {
-                baseNode = document.CreateElement("base");
-                document.Head!.InsertBefore(baseNode, document.Head.FirstChild);
-            }
-            string origin = baseNode.GetAttribute("href")?.Let((href) => new Uri(url, href).ToString()) ?? uri;
-            string gatewayOrigin = HttpNMM.DwebServer.Origin; // "dweb:";
-            if (!origin.StartsWith(gatewayOrigin))
-            {
-                baseNode.SetAttribute("href", gatewayOrigin + HttpNMM.X_DWEB_HREF + origin);
-                responseData = document.ToHtml();
-            }
-
-            /// 模拟加载
-            var nsData = NSData.FromString(responseData);
-            nsNavigation = LoadSimulatedRequest(nsUrlRequest, nsUrlResponse, nsData);
-        }
-        else
-        {
-            nsNavigation = LoadRequest(nsUrlRequest);
-        }
 
         if (OnReady is not null && !OnReady.IsEmpty())
         {

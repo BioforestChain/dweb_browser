@@ -3,10 +3,10 @@
 namespace DwebBrowser.MicroService;
 public abstract class Ipc
 {
-    private static int s_uid_acc = 1;
+    private static int s_uid_acc = 0;
     private static int s_req_id_acc = 0;
 
-    public int Uid { get; set; } = Interlocked.Exchange(ref s_uid_acc, Interlocked.Increment(ref s_uid_acc));
+    public int Uid { get; set; } = Interlocked.Increment(ref s_uid_acc);
 
     /**
      * <summary>
@@ -149,15 +149,15 @@ public abstract class Ipc
         {
             if (ipcMessage is IpcRequest ipcRequest)
             {
-                await (OnRequest?.Emit(ipcRequest, ipc)).ForAwait();
+                OnRequest?.Emit(ipcRequest, ipc); // 不 Await
             }
             else if (ipcMessage is IpcResponse ipcResponse)
             {
-                await (OnResponse?.Emit(ipcResponse, ipc)).ForAwait();
+                OnResponse?.Emit(ipcResponse, ipc); // 不 Await
             }
             else if (ipcMessage is IpcEvent ipcEvent)
             {
-                await (OnEvent?.Emit(ipcEvent, ipc)).ForAwait();
+                OnEvent?.Emit(ipcEvent, ipc); // 不 Await
             }
             else if (ipcMessage is IpcStream ipcStream)
             {
@@ -174,7 +174,8 @@ public abstract class Ipc
             }
         }).Background();
 
-        OnClose += (_) => {
+        OnClose += (_) =>
+        {
             streamChannel.Complete();
             return null;
         };
@@ -202,6 +203,6 @@ public abstract class Ipc
     public async Task<HttpResponseMessage> Request(HttpRequestMessage request) =>
         (await Request(await IpcRequest.FromRequest(AllocReqId(), request, this))).ToResponse();
 
-    public int AllocReqId() => Interlocked.Exchange(ref s_req_id_acc, Interlocked.Increment(ref s_req_id_acc));
+    public int AllocReqId() => Interlocked.Increment(ref s_req_id_acc);
 }
 

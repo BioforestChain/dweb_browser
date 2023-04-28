@@ -5,6 +5,7 @@ using DwebBrowser.MicroService.Sys.Http.Net;
 using DwebBrowser.Helper;
 using System.Text.Json;
 using WebKit;
+using DwebBrowser.MicroService.Sys.Http;
 
 
 #nullable enable
@@ -105,9 +106,7 @@ public class JsProcessNMM : NativeMicroModule
             };
         });
 
-        var bootstrap_url = mainServer.StartResult.urlInfo.BuildPublicDwebHref(
-            mainServer.StartResult.urlInfo.BuildInternalUrl().Path(String.Format("{0}/bootstrap.js", s_INTERNAL_PATH))
-        );
+        var bootstrap_url = mainServer.StartResult.urlInfo.BuildInternalUrl().Path(String.Format("{0}/bootstrap.js", s_INTERNAL_PATH)).ToPublicDwebHref();
 
         var apis = await _createJsProcessWeb(mainServer);
 
@@ -201,7 +200,7 @@ public class JsProcessNMM : NativeMicroModule
             });
             dwebview.OnReady += async (_) =>
                afterReadyPo.Resolve(apis);
-            var mainUrl = urlInfo.BuildPublicDwebHref(urlInfo.BuildInternalUrl().Path("/index.html"));
+            var mainUrl = urlInfo.BuildInternalUrl().Path("/index.html");
             dwebview.LoadURL(mainUrl);
         });
         var apis = await afterReadyPo.WaitPromiseAsync();
@@ -247,7 +246,7 @@ public class JsProcessNMM : NativeMicroModule
                 {
                     /// 加入跨域配置
                     var response = it;
-                    foreach (var (key,value) in _CORS_HEADERS)
+                    foreach (var (key, value) in _CORS_HEADERS)
                     {
                         if (key is "Content-Type")
                         {
@@ -304,10 +303,9 @@ public class JsProcessNMM : NativeMicroModule
         await apis.RunProcessMain(
             processHandler.Info.ProcessId,
             new JsProcessWebApi.RunProcessMainOptions(
-                httpDwebServer.StartResult.urlInfo.BuildPublicDwebHref(
-                    httpDwebServer.StartResult.urlInfo.BuildInternalUrl().Path(entry ?? "/index.js"))
-                )
-            );
+                httpDwebServer.StartResult.urlInfo.BuildInternalUrl().Path(entry ?? "/index.js").ToPublicDwebHref()
+            )
+         );
 
         /// 绑定销毁
         /**

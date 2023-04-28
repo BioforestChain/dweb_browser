@@ -65,9 +65,9 @@ public class NativePort<I, O>
         });
     }
 
-    private static int s_uid_acc = 1;
+    private static int s_uid_acc = 0;
 
-    private int _uid = Interlocked.Exchange(ref s_uid_acc, Interlocked.Increment(ref s_uid_acc));
+    private int _uid = Interlocked.Increment(ref s_uid_acc);
 
     public override string ToString() => String.Format("#p{0}", _uid);
 
@@ -87,7 +87,7 @@ public class NativePort<I, O>
         Console.Log("Start", "port-message-start/{0}", this);
         await foreach (I message in _channel_in.ReceiveAllAsync())
         {
-            Console.Log("Start", "port-message-in/{0}", this);
+            Console.Log("Start", "port-message-in/{0} {1}", this, message);
             await (OnMessage?.Emit(message)).ForAwait();
             Console.Log("Start", "port-message-waiting/{0}", this);
         }
@@ -113,10 +113,10 @@ public class NativePort<I, O>
      * 发送消息，这个默认会阻塞
      * </summary>
      */
-    public Task PostMessageAsync(O msg)
+    public async Task PostMessageAsync(O msg)
     {
         Console.Log("PostMessage", "message-out/{0} >> {1}", this, msg);
-        return _channel_out.SendAsync(msg);
+        var success = await _channel_out.SendAsync(msg);
     }
 }
 
@@ -126,8 +126,8 @@ public class NativeMessageChannel<T1, T2>
      * 默认锁住，当它解锁的时候，意味着通道关闭
      */
     private PromiseOut<Unit> _closePo = new PromiseOut<Unit>();
-    private BufferBlock<T1> _channel1 = new BufferBlock<T1>();
-    private BufferBlock<T2> _channel2 = new BufferBlock<T2>();
+    private BufferBlock<T1> _channel1 = new BufferBlock<T1>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
+    private BufferBlock<T2> _channel2 = new BufferBlock<T2>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
     public NativePort<T1, T2> Port1;
     public NativePort<T2, T1> Port2;
 

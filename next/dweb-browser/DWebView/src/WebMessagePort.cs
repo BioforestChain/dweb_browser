@@ -17,11 +17,11 @@ public class WebMessagePort
     }
 
 
-    public Task PostMessage(string message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
-    public Task PostMessage(int message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
-    public Task PostMessage(float message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
-    public Task PostMessage(double message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
-    public Task PostMessage(bool message, WebMessagePort[]? ports) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(string message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(int message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(float message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(double message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
+    public Task PostMessage(bool message, WebMessagePort[]? ports = default) => PostMessage(WebMessage.From(message, ports));
     public async Task PostMessage(WebMessage message)
     {
         var arguments = new NSDictionary<NSString, NSObject>(new NSString[] {

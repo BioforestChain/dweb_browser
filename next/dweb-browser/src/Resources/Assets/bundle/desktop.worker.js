@@ -69,7 +69,7 @@ console.log("ookkkkk, i'm in worker");
 var main = async () => {
   const { IpcHeaders, IpcResponse } = ipc;
   const { createHttpDwebServer } = http;
-  const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+  const httpDwebServer = await createHttpDwebServer(jsProcess, {subdomain: "", port: 8080});
   console.log("will do listen!!", httpDwebServer.startResult.urlInfo.host);
   (await httpDwebServer.listen()).onRequest(async (request, httpServerIpc) => {
     console.log("worker on request", request.parsed_url);

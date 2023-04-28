@@ -34,7 +34,7 @@ public class JsProcessWebApi
     /**
      * 执行js"多步骤"代码时的并发编号
      */
-    private int _hidAcc = 1;
+    private int _hidAcc = 0;
 
     public async Task<ProcessHandler> CreateProcess(
         string env_script_url,
@@ -47,7 +47,7 @@ public class JsProcessWebApi
         var port1 = channel.Port1;
         var port2 = channel.Port2;
 
-        var hid = Interlocked.Exchange(ref _hidAcc, Interlocked.Increment(ref _hidAcc));
+        var hid = Interlocked.Increment(ref _hidAcc);
         var nsProcessInfo = await this.DWebView.EvaluateAsyncJavascriptCode($$"""
            new Promise((resolve,reject)=>{
                 addEventListener("message", async function doCreateProcess(event) {
@@ -85,7 +85,7 @@ public class JsProcessWebApi
         var port1 = channel.Port1;
         var port2 = channel.Port2;
 
-        var hid = Interlocked.Exchange(ref _hidAcc, Interlocked.Increment(ref _hidAcc));
+        var hid = Interlocked.Increment(ref _hidAcc);
         await this.DWebView.EvaluateAsyncJavascriptCode($$"""
         new Promise((resolve,reject)=>{
             addEventListener("message", async function doCreateIpc(event) {
