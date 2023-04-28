@@ -40,6 +40,7 @@ public class MessagePort
 
     public event Signal<WebMessage>? OnWebMessage;
 
+    public Task Start() => _port.Start();
     public Task PostMessage(string data) => _port.PostMessage(WebMessage.From(data, new WebMessagePort[] { _port }));
 
     private bool _isClosed = false;
@@ -80,7 +81,8 @@ public class MessagePortIpc : Ipc
             switch (message.Data)
             {
                 case NSString data:
-                    switch (MessageToIpcMessage.JsonToIpcMessage((string)data, ipc))
+                    var imsg = MessageToIpcMessage.JsonToIpcMessage((string)data, ipc);
+                    switch (imsg)
                     {
                         case "close":
                             await Close();
@@ -95,6 +97,9 @@ public class MessagePortIpc : Ipc
                             Console.Log("OnWebMessage", "ON-MESSAGE/{0} {1}", ipc, message);
                             await _OnMessageEmit(ipcMessage, ipc);
                             break;
+                        default:
+                            Console.Log("OnWebMessage", "Default {0}", imsg);
+                            break;
                     }
                     break;
                 case NSNumber data:
@@ -107,6 +112,7 @@ public class MessagePortIpc : Ipc
 
         Port.OnWebMessage += callback;
         OnDestory += async (_) => { Port.OnWebMessage -= callback; };
+        _ = Port.Start();
     }
 
     public MessagePortIpc(WebMessagePort port, Ipc.MicroModuleInfo remote, IPC_ROLE rote_type)

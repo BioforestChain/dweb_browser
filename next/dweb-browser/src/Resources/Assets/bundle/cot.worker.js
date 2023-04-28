@@ -247,6 +247,82 @@ var u8aConcat = (binaryList) => {
   return result;
 };
 
+// src/helper/cacheGetter.cts
+var cacheGetter = () => {
+  return (target, prop, desp) => {
+    const source_fun = desp.get;
+    if (source_fun === void 0) {
+      throw new Error(`${target}.${prop} should has getter`);
+    }
+    desp.get = function() {
+      const result = source_fun.call(this);
+      if (desp.set) {
+        desp.get = () => result;
+      } else {
+        delete desp.set;
+        delete desp.get;
+        desp.value = result;
+        desp.writable = false;
+      }
+      Object.defineProperty(this, prop, desp);
+      return result;
+    };
+    return desp;
+  };
+};
+
+// src/helper/createSignal.cts
+var createSignal = (autoStart) => {
+  return new Signal(autoStart);
+};
+var Signal = class {
+  constructor(autoStart = true) {
+    this._cbs = /* @__PURE__ */ new Set();
+    this._started = false;
+    this.start = () => {
+      if (this._started) {
+        return;
+      }
+      this._started = true;
+      if (this._cachedEmits.length) {
+        for (const args of this._cachedEmits) {
+          this._emit(args);
+        }
+        this._cachedEmits.length = 0;
+      }
+    };
+    this.listen = (cb) => {
+      this._cbs.add(cb);
+      this.start();
+      return () => this._cbs.delete(cb);
+    };
+    this.emit = (...args) => {
+      if (this._started) {
+        this._emit(args);
+      } else {
+        this._cachedEmits.push(args);
+      }
+    };
+    this._emit = (args) => {
+      for (const cb of this._cbs) {
+        cb.apply(null, args);
+      }
+    };
+    this.clear = () => {
+      this._cbs.clear();
+    };
+    if (autoStart) {
+      this.start();
+    }
+  }
+  get _cachedEmits() {
+    return [];
+  }
+};
+__decorateClass([
+  cacheGetter()
+], Signal.prototype, "_cachedEmits", 1);
+
 // src/helper/encoding.cts
 var textEncoder = new TextEncoder();
 var simpleEncoder = (data, encoding) => {
@@ -416,82 +492,6 @@ var PromiseOut2 = class {
   }
 };
 
-// src/helper/cacheGetter.cts
-var cacheGetter = () => {
-  return (target, prop, desp) => {
-    const source_fun = desp.get;
-    if (source_fun === void 0) {
-      throw new Error(`${target}.${prop} should has getter`);
-    }
-    desp.get = function() {
-      const result = source_fun.call(this);
-      if (desp.set) {
-        desp.get = () => result;
-      } else {
-        delete desp.set;
-        delete desp.get;
-        desp.value = result;
-        desp.writable = false;
-      }
-      Object.defineProperty(this, prop, desp);
-      return result;
-    };
-    return desp;
-  };
-};
-
-// src/helper/createSignal.cts
-var createSignal = (autoStart) => {
-  return new Signal(autoStart);
-};
-var Signal = class {
-  constructor(autoStart = true) {
-    this._cbs = /* @__PURE__ */ new Set();
-    this._started = false;
-    this.start = () => {
-      if (this._started) {
-        return;
-      }
-      this._started = true;
-      if (this._cachedEmits.length) {
-        for (const args of this._cachedEmits) {
-          this._emit(args);
-        }
-        this._cachedEmits.length = 0;
-      }
-    };
-    this.listen = (cb) => {
-      this._cbs.add(cb);
-      this.start();
-      return () => this._cbs.delete(cb);
-    };
-    this.emit = (...args) => {
-      if (this._started) {
-        this._emit(args);
-      } else {
-        this._cachedEmits.push(args);
-      }
-    };
-    this._emit = (args) => {
-      for (const cb of this._cbs) {
-        cb.apply(null, args);
-      }
-    };
-    this.clear = () => {
-      this._cbs.clear();
-    };
-    if (autoStart) {
-      this.start();
-    }
-  }
-  get _cachedEmits() {
-    return [];
-  }
-};
-__decorateClass([
-  cacheGetter()
-], Signal.prototype, "_cachedEmits", 1);
-
 // src/helper/readableStreamHelper.cts
 var ReadableStreamOut = class {
   constructor(strategy) {
@@ -523,59 +523,38 @@ var ReadableStreamOut = class {
 var { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
+var fetchSignal = createSignal();
+var onFetchSignal = createSignal();
+var fetchLock = false;
+var fetchSet = /* @__PURE__ */ new Set();
 async function onApiRequest(serverurlInfo, request, httpServerIpc) {
   let ipcResponse;
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
-      const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
-      if (pathname === "/public-url") {
-        ipcResponse = IpcResponse.fromText(
-          request.req_id,
-          200,
-          void 0,
-          serverurlInfo.buildPublicUrl(() => {
-          }).href,
-          httpServerIpc
-        );
-        return;
-      }
-      if (pathname === "/observe") {
-        const streamPo = observeFactory(url);
-        ipcResponse = IpcResponse.fromStream(
-          request.req_id,
-          200,
-          void 0,
-          streamPo.stream,
-          httpServerIpc
-        );
-        return;
-      }
-      throw new Error(`unknown gateway: ${url.search}`);
+      ipcResponse = internalFactory(url, request.req_id, httpServerIpc, serverurlInfo);
     } else {
-      const path = `file:/${url.pathname}${url.search}`;
-      console.log("onRequestPath: ", path, request.method, request.body);
-      if (request.method === "POST") {
-        const response = await jsProcess.nativeFetch(path, {
-          body: request.body.raw,
-          headers: request.headers,
-          method: request.method
-        });
-        ipcResponse = await IpcResponse.fromResponse(
-          request.req_id,
-          response,
-          httpServerIpc
-          // true
-        );
-      } else {
-        const response = await jsProcess.nativeFetch(path);
-        ipcResponse = await IpcResponse.fromResponse(
-          request.req_id,
-          response,
-          httpServerIpc
-          // true
-        );
+      if (fetchLock) {
+        if (!fetchSet.has(url.pathname)) {
+          fetchSet.add(url.pathname);
+          return fetchSignal.emit(request);
+        }
+        fetchSet.delete(url.pathname);
       }
+      const path = `file:/${url.pathname}${url.search}`;
+      const response = await jsProcess.nativeFetch(path, {
+        body: request.body.raw,
+        headers: request.headers,
+        method: request.method
+      });
+      ipcResponse = await IpcResponse.fromResponse(
+        request.req_id,
+        response,
+        httpServerIpc
+      );
+    }
+    if (!ipcResponse) {
+      throw new Error(`unknown gateway: ${url.search}`);
     }
     cros(ipcResponse.headers);
     httpServerIpc.postMessage(ipcResponse);
@@ -595,20 +574,81 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
     }
   }
 }
-var observeFactory = (url) => {
-  const mmid = url.searchParams.get("mmid");
-  console.log("cotDemo#url.mmid=>", mmid);
-  if (mmid === null) {
-    throw new Error("observe require mmid");
+var internalFactory = (url, req_id, httpServerIpc, serverurlInfo) => {
+  const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
+  if (pathname === "/public-url") {
+    return IpcResponse.fromText(
+      req_id,
+      200,
+      void 0,
+      serverurlInfo.buildPublicUrl(() => {
+      }).href,
+      httpServerIpc
+    );
   }
+  if (pathname === "/observe") {
+    const mmid = url.searchParams.get("mmid");
+    if (mmid === null) {
+      throw new Error("observe require mmid");
+    }
+    const streamPo = observeFactory(mmid);
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      void 0,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
+  if (pathname === "/fetch") {
+    fetchLock = true;
+    const streamPo = serviceWorkerFetch();
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      void 0,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
+  if (pathname === "/onFetch") {
+    const streamPo = serviceWorkerOnFetch();
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      void 0,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
+};
+var serviceWorkerFetch = () => {
+  const streamPo = new ReadableStreamOut();
+  const ob = { controller: streamPo.controller };
+  fetchSignal.listen((ipcRequest) => {
+    const jsonlineEnd = simpleEncoder("\n", "utf8");
+    const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8");
+    ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
+  });
+  return streamPo;
+};
+var serviceWorkerOnFetch = () => {
+  const streamPo = new ReadableStreamOut();
+  const ob = { controller: streamPo.controller };
+  onFetchSignal.listen((ipcRequest) => {
+    const jsonlineEnd = simpleEncoder("\n", "utf8");
+    const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8");
+    ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
+  });
+  return streamPo;
+};
+var observeFactory = (mmid) => {
   const streamPo = new ReadableStreamOut();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid2) => {
     const result = { ipc: new PromiseOut2(), obs: /* @__PURE__ */ new Set() };
     result.ipc.resolve(jsProcess.connect(mmid2));
     result.ipc.promise.then((ipc2) => {
       ipc2.onEvent((event) => {
-        console.log("on-event", event);
-        console.log("cotDemo#event.name=>{%s} remote.mmid=>{%s}", event.name, ipc2.remote.mmid);
         if (event.name !== "observe" /* State */ && event.name !== "observeUpdateProgress" /* UpdateProgress */) {
           return;
         }

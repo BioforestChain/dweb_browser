@@ -8,6 +8,7 @@ using DwebBrowser.MicroService.Sys.Js;
 using DwebBrowser.MicroService.Sys.Http;
 using DwebBrowser.MicroService.Sys.User;
 using DwebBrowser.MicroService.Sys.Boot;
+using DwebBrowser.MicroService.Sys.Mwebview;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -27,6 +28,7 @@ public class MicroService
         /// 安装系统应用
         var jsProcessNMM = new JsProcessNMM().InstallBy(dnsNMM);
         var httpNMM = new HttpNMM().InstallBy(dnsNMM);
+        var mwebiewNMM = new MultiWebViewNMM().InstallBy(dnsNMM);
 
         /// 安装用户应用
         var desktopJMM = new DesktopJMM().InstallBy(dnsNMM);

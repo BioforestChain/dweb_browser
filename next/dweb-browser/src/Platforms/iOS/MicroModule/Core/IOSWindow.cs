@@ -1,6 +1,8 @@
 ﻿
 using UIKit;
 
+#nullable enable
+
 namespace DwebBrowser.MicroService.Core;
 
 public static class IOSWindow
@@ -22,5 +24,7 @@ public static class IOSWindow
 
         return window;
     }
+
+    public static UIViewController? RootViewController = GetWindow().RootViewController;
 }
 

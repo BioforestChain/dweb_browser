@@ -198,7 +198,7 @@ const createProcess = async (env_script_url, metadata_json, env_json, fetch_port
       ],
       {
         // esm 代码必须有正确的 mime
-        type: "text/javascript"
+        type: "application/javascript"
       }
     )
   );

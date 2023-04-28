@@ -91,6 +91,13 @@ async function apiServerOnRequestInternalPublicUrl(ipcRequest, ipc2, www_server_
 }
 var { IpcHeaders: IpcHeaders2 } = ipc;
 
+// src/user/tool/tool.native.mts
+var nativeOpen = async (url) => {
+  return await jsProcess.nativeFetch(
+    `file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`
+  ).text();
+};
+
 // src/user/browser/browser.worker.mts
 var main = async () => {
   log.green("[browser.worker.mts bootstrap]");
@@ -104,10 +111,9 @@ var main = async () => {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
+    console.log("--------------------------------------****");
     console.log("cot#open interUrl=>", interUrl);
-    const view_id = await jsProcess.nativeFetch(
-      `file://mwebview.sys.dweb/open?url=${encodeURIComponent(interUrl)}`
-    ).text();
+    const view_id = await nativeOpen(interUrl);
   }
   {
     jsProcess.onConnect((ipc2) => {
