@@ -12,19 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import info.bagen.dwebbrowser.ui.browser.ios.*
-
-private val dimenTextFieldFontSize = 16.sp
-private val dimenSearchHorizontalAlign = 5.dp
-private val dimenSearchVerticalAlign = 10.dp
-private val dimenSearchRoundedCornerShape = 8.dp
-private val dimenShadowElevation = 4.dp
-private val dimenHorizontalPagerHorizontal = 20.dp
-private val dimenBottomHeight = 100.dp
-private val dimenSearchHeight = 40.dp
-private val dimenMinBottomHeight = 20.dp
 
 private val bottomEnterAnimator = slideInVertically(animationSpec = tween(300),//动画时长1s
   initialOffsetY = {

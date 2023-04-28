@@ -92,7 +92,6 @@
             </intent-filter>
         </activity>
         <service android:name="info.bagen.dwebbrowser.service.DwebBrowserService" />
-        <receiver android:name="info.bagen.dwebbrowser.broadcast.BFSBroadcastReceiver" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

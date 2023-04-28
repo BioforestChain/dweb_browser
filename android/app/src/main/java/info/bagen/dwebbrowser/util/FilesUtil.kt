@@ -5,6 +5,7 @@ import android.os.Build
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.now
 import info.bagen.dwebbrowser.ui.entity.*
 import info.bagen.dwebbrowser.util.FilesUtil.getFileType
@@ -478,6 +479,12 @@ object FilesUtil {
       }
       return null
     }
+  }
+
+  fun uninstallApp(mmid: Mmid) {
+    val path =
+      getAndroidRootDirectory() + File.separator + APP_DIR_TYPE.SystemApp.rootName + File.separator + mmid
+    deleteQuietly(path)
   }
 }
 

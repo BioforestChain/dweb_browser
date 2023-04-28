@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.jmm
 
+import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
@@ -9,8 +10,10 @@ import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
+import info.bagen.dwebbrowser.microService.user.CotDemoJMM
 import info.bagen.dwebbrowser.service.DownLoadController
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
+import info.bagen.dwebbrowser.util.FilesUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -27,7 +30,7 @@ import org.http4k.routing.routes
 @OptIn(DelicateCoroutinesApi::class)
 class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
-        private val apps = mutableMapOf<Mmid, JsMicroModule>()
+        private val apps = mutableStateMapOf<Mmid, JsMicroModule>()
         fun getAndUpdateJmmNmmApps() = apps
     }
 
@@ -75,8 +78,9 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
             },
             "/uninstall" bind Method.GET to defineHandler { request, ipc ->
                 val mmid = queryMmid(request)
-                val jmm = apps[mmid] ?: throw Exception("")
-                openJmmMatadataUninstallPage(jmm.metadata)
+                apps[mmid]?.let { jsMicroModule ->
+                    openJmmMetadataUninstallPage(jsMicroModule)
+                } ?: return@defineHandler false
                 return@defineHandler true
             },
             "/query" bind Method.GET to defineHandler { request, ipc ->
@@ -114,15 +118,16 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     data class InstallingAppInfo(var progress: Float, val jmmMetadata: JmmMetadata)
 
     private val installingApps = mutableMapOf<Mmid, InstallingAppInfo>()
-    private  fun openJmmMetadataInstallPage(
-        jmmMetadata: JmmMetadata
-    ) {
+    private  fun openJmmMetadataInstallPage(jmmMetadata: JmmMetadata) {
         // 打开安装的界面
         JmmManagerActivity.startActivity(jmmMetadata)
     }
 
-    private fun openJmmMatadataUninstallPage(jmmMetadata: JmmMetadata) {
-        TODO("Not yet implemented")
+    private fun openJmmMetadataUninstallPage(jsMicroModule: JsMicroModule) {
+        // 先从列表移除，然后删除文件
+        apps.remove(jsMicroModule.metadata.id)
+        bootstrapContext.dns.uninstall(jsMicroModule)
+        FilesUtil.uninstallApp(jsMicroModule.metadata.id)
     }
 
     override suspend fun _shutdown() {

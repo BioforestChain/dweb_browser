@@ -25,10 +25,11 @@ import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
+import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.entity.*
 import kotlinx.coroutines.*
-import org.jsoup.Jsoup
 import java.util.concurrent.atomic.AtomicInteger
 
 data class BrowserUIState @OptIn(
@@ -37,12 +38,11 @@ data class BrowserUIState @OptIn(
   val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(), // 多浏览器列表
   val historyWebsiteMap: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf(), // 历史列表
   val bookWebsiteList: MutableList<WebSiteInfo> = mutableStateListOf(), // 书签列表
-  val hotLinkList: MutableList<HotspotInfo> = mutableStateListOf(), // 热点列表， 目前已舍弃，后续可移除
   val currentBrowserBaseView: MutableState<BrowserBaseView>,
   val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
   val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
   val popupViewState: MutableState<PopupViewState> = mutableStateOf(PopupViewState.Options),
-  val myInstallApp: MutableList<JmmMetadata> = mutableStateListOf(),
+  val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
@@ -72,6 +72,7 @@ sealed class BrowserIntent {
   class DeleteWebSiteList(
     val type: ListType, val website: WebSiteInfo?, val clsAll: Boolean = false
   ) : BrowserIntent()
+  class UninstallJmmMetadata(val jmmMetadata: JmmMetadata) : BrowserIntent()
 }
 
 enum class ListType {
@@ -89,16 +90,6 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
     val browserMainView = BrowserMainView()
     uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
     uiState.browserViewList.add(browserMainView)
-    /*viewModelScope.launch(ioAsyncExceptionHandler) {
-      // loadHotInfo() // 加载热点数据
-      // 挂在数据变化
-      MutableStateFlow(JmmNMM.getAndUpdateJmmNmmApps()).collect {
-        uiState.myInstallApp.clear()
-        it.forEach { (_, value) ->
-          uiState.myInstallApp.add(value.metadata)
-        }
-      }
-    }*/
     viewModelScope.launch(ioAsyncExceptionHandler) {
       WebsiteDB.queryHistoryWebsiteInfoMap().collect {
         uiState.historyWebsiteMap.clear()
@@ -269,6 +260,9 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
             }
           }
         }
+        is BrowserIntent.UninstallJmmMetadata -> {
+          browserController.uninstallJMM(action.jmmMetadata)
+        }
       }
     }
   }
@@ -289,21 +283,6 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         it.webViewClient = DwebBrowserWebViewClient()
       }
     }
-
-  private suspend fun loadHotInfo() {
-    // val hotLink = "https://www.sinovision.net/portal.php?mod=center"
-    val hotLink = "https://top.baidu.com/board?tab=realtime"
-    // 加载全网热搜
-    var doc = Jsoup.connect(hotLink).ignoreHttpErrors(true).get()
-    var elementContent = doc.getElementsByClass("content_1YWBm")
-    var count = 1
-    elementContent.forEach { element ->
-      if (count > 10) return@forEach
-      val title = element.getElementsByClass("c-single-text-ellipsis").text()
-      val path = element.select("a").first()?.attr("href")
-      uiState.hotLinkList.add(HotspotInfo(count++, title, webUrl = path ?: ""))
-    }
-  }
 }
 
 internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {

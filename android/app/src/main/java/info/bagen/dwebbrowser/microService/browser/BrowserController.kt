@@ -79,6 +79,10 @@ class BrowserController(val browserNMM: BrowserNMM) {
             .query("mmid", jmmMetadata.id).query("metadataUrl", url)
     )
 
+    suspend fun uninstallJMM(jmmMetadata: JmmMetadata) = browserNMM.nativeFetch(
+        Uri.of("file://jmm.sys.dweb/uninstall").query("mmid", jmmMetadata.id)
+    )
+
     fun checkJmmMetadataJson(url: String): Boolean {
         android.net.Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
             if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata

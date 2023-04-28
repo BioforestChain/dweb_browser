@@ -3,7 +3,6 @@ package info.bagen.dwebbrowser.service
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
@@ -15,10 +14,7 @@ import info.bagen.dwebbrowser.util.FilesUtil
 import info.bagen.dwebbrowser.util.ZipUtil
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
-import info.bagen.dwebbrowser.broadcast.BFSBroadcastAction
-import info.bagen.dwebbrowser.broadcast.BFSBroadcastReceiver
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
-import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
@@ -28,11 +24,6 @@ import info.bagen.dwebbrowser.microService.sys.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.*
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.DownloadControllerEvent
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
-import info.bagen.dwebbrowser.ui.app.AppViewIntent
-import info.bagen.dwebbrowser.ui.app.AppViewModel
-import info.bagen.dwebbrowser.ui.app.AppViewState
-import info.bagen.dwebbrowser.ui.app.NewAppUnzipType
-import info.bagen.dwebbrowser.ui.entity.AppInfo
 import info.bagen.dwebbrowser.util.NotificationUtil
 import kotlinx.coroutines.*
 import java.io.File
@@ -48,20 +39,8 @@ enum class DownLoadController{ PAUSE, RESUME, CANCEL }
 class DwebBrowserService : Service() {
   private val downloadMap = mutableMapOf<Mmid, DownLoadInfo>() // 用于监听下载列表
 
-  private var bfsBroadcastReceiver: BFSBroadcastReceiver? = null
-
   override fun onBind(intent: Intent?): IBinder {
     return DwebBrowserBinder()
-  }
-
-  override fun onCreate() {
-    super.onCreate()
-    registerBFSBroadcastReceiver()
-  }
-
-  override fun onDestroy() {
-    unRegisterBFSBroadcastReceiver()
-    super.onDestroy()
   }
 
   //服务中的Binder对象，实现自定义接口IMyBinder，决定暴露那些方法给绑定该服务的Activity
@@ -80,17 +59,6 @@ class DwebBrowserService : Service() {
     }
   }
 
-  private fun registerBFSBroadcastReceiver() {
-    val intentFilter = IntentFilter()
-    intentFilter.addAction(BFSBroadcastAction.BFSInstallApp.action)
-    bfsBroadcastReceiver = BFSBroadcastReceiver()
-    registerReceiver(bfsBroadcastReceiver, intentFilter)
-  }
-
-  private fun unRegisterBFSBroadcastReceiver() {
-    bfsBroadcastReceiver?.let { unregisterReceiver(it) }
-  }
-
   @OptIn(DelicateCoroutinesApi::class)
   fun downloadAndSaveZip(downLoadInfo: DownLoadInfo): Boolean {
     // 1. 根据path进行下载，并且创建notification
@@ -104,9 +72,6 @@ class DwebBrowserService : Service() {
     NotificationUtil.INSTANCE.createNotificationForProgress(
       downLoadInfo.jmmMetadata.id, downLoadInfo.notificationId, downLoadInfo.jmmMetadata.title
     ) // 显示通知
-    browserController.activity?.getAppViewModel()?.handleIntent(
-      AppViewIntent.ServiceDownLoadNotify(downLoadInfo.jmmMetadata.id, downLoadInfo.path)
-    )
     DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     GlobalScope.launch(Dispatchers.IO) {
       sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
@@ -122,7 +87,7 @@ class DwebBrowserService : Service() {
             DownLoadStatus.CANCEL -> {
               DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
               sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Cancel.event) // 通知前台，取消下载
-              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // TODO 如果取消的话，那么就置为空
+              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
               true
             }
             else -> false
@@ -152,7 +117,7 @@ class DwebBrowserService : Service() {
             DownLoadStatus.CANCEL -> {
               DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, downLoadInfo.downLoadStatus)
               sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Cancel.event) // 通知前台，取消下载
-              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // TODO 如果取消的话，那么就置为空
+              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
               true
             }
             else -> false
@@ -199,7 +164,7 @@ class DwebBrowserService : Service() {
         ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath(), mmid = jmmMetadata.id)
       if (unzip) {
         JmmMetadataDB.saveJmmMetadata(jmmMetadata.id, jmmMetadata)
-        // TODO 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
+        // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
         // BrowserNMM.getBrowserController().installApp(jmmMetadata.id)
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.INSTALLED)
         sendStatusToEmitEvent(this.jmmMetadata.id, DownloadControllerEvent.End.event)
@@ -251,39 +216,6 @@ class DwebBrowserService : Service() {
     }
   }
 
-  private fun compareDownloadApp(
-    appViewModel: AppViewModel, appViewState: AppViewState, appInfo: AppInfo?, zipFile: String
-  ): NewAppUnzipType {
-    var ret = NewAppUnzipType.INSTALL
-    if (appViewState.bfsDownloadPath != null && appInfo != null) {
-      run OutSide@{
-        appViewModel.uiState.appViewStateList.forEach { tempAppViewState ->
-          if (tempAppViewState.appInfo?.bfsAppId == appInfo.bfsAppId) {
-            if (compareAppVersionHigh(tempAppViewState.appInfo!!.version, appInfo.version)) {
-              ret = NewAppUnzipType.OVERRIDE
-              appViewModel.handleIntent(
-                AppViewIntent.OverrideDownloadApp(appViewState, appInfo, zipFile)
-              )
-            } else {
-              ret = NewAppUnzipType.LOW_VERSION
-              appViewModel.handleIntent(AppViewIntent.RemoveDownloadApp(appViewState))
-            }
-            return@OutSide
-          }
-        }
-      }
-      if (ret == NewAppUnzipType.INSTALL) {
-        appViewModel.handleIntent(
-          AppViewIntent.UpdateDownloadApp(
-            appViewState,
-            appInfo,
-            zipFile
-          )
-        )
-      }
-    }
-    return ret
-  }
   private fun sendStatusToEmitEvent(mmid: Mmid, eventName: String, data: String = "") {
     debugJMM("sendStatusToEmitEvent=>","mmid=>$mmid eventName=>$eventName data=>$data")
     runBlockingCatching(ioAsyncExceptionHandler) {

@@ -11,7 +11,6 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.BrowserActivity
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.ui.main.MainActivity
 
 class NotificationUtil {
   private val mNormalChannelId = "渠道id" // 唯一性
@@ -95,7 +94,7 @@ class NotificationUtil {
    * 重要通知
    */
   fun createNotificationForHigh() {
-    val intent = Intent(App.appContext, MainActivity::class.java)
+    val intent = Intent(App.appContext, BrowserActivity::class.java)
     val pendingIntent =
       PendingIntent.getActivity(App.appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
-import info.bagen.dwebbrowser.ActualBranch
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
@@ -27,7 +26,6 @@ import info.bagen.dwebbrowser.microService.sys.plugin.device.BluetoothNMM.Compan
 import info.bagen.dwebbrowser.microService.sys.plugin.device.BluetoothNMM.Companion.BLUETOOTH_REQUEST
 import info.bagen.dwebbrowser.microService.sys.plugin.device.BluetoothNMM.Companion.bluetoothOp
 import info.bagen.dwebbrowser.microService.sys.plugin.device.BluetoothNMM.Companion.bluetooth_found
-import info.bagen.dwebbrowser.ui.app.AppViewModel
 import info.bagen.dwebbrowser.ui.browser.ios.BrowserIntent
 import info.bagen.dwebbrowser.ui.browser.ios.BrowserView
 import info.bagen.dwebbrowser.ui.camera.QRCodeIntent
@@ -35,31 +33,17 @@ import info.bagen.dwebbrowser.ui.camera.QRCodeScanning
 import info.bagen.dwebbrowser.ui.camera.QRCodeScanningView
 import info.bagen.dwebbrowser.ui.camera.QRCodeViewModel
 import info.bagen.dwebbrowser.ui.loading.LoadingView
-import info.bagen.dwebbrowser.ui.main.Home
-import info.bagen.dwebbrowser.ui.main.MainViewModel
-import info.bagen.dwebbrowser.ui.main.SearchAction
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
-import info.bagen.dwebbrowser.util.permission.EPermission
 import info.bagen.dwebbrowser.util.permission.PermissionManager
 import info.bagen.dwebbrowser.util.permission.PermissionUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
-
 
 class BrowserActivity : AppCompatActivity() {
   var blueToothReceiver: BlueToothReceiver? = null
   fun getContext() = this
   val qrCodeViewModel: QRCodeViewModel = QRCodeViewModel()
-  private val dWebBrowserModel: DWebBrowserModel = DWebBrowserModel()
-  private val appViewModel: AppViewModel = AppViewModel()
-  private val mainViewModel: MainViewModel = MainViewModel()
-
-  @JvmName("getAppViewModel1")
-  fun getAppViewModel(): AppViewModel {
-    return appViewModel
-  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -69,39 +53,7 @@ class BrowserActivity : AppCompatActivity() {
         !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
       RustApplicationTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-          if (ActualBranch) {
-            BrowserView(viewModel = browserController.browserViewModel)
-          } else {
-            Home(mainViewModel, appViewModel, onSearchAction = { action, data ->
-              when (action) {
-                SearchAction.Search -> {
-                  if (!BrowserNMM.browserController.checkJmmMetadataJson(data)) {
-                    dWebBrowserModel.handleIntent(
-                      DWebBrowserIntent.OpenDWebBrowser(data)
-                    )
-                  }
-                }
-                SearchAction.OpenCamera -> {
-                  if (PermissionUtil.isPermissionsGranted(EPermission.PERMISSION_CAMERA.type)) {
-                    //openScannerActivity()
-                    qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
-                  } else {
-                    info.bagen.dwebbrowser.microService.sys.plugin.permission.PermissionManager.requestPermissions(
-                      this@BrowserActivity, EPermission.PERMISSION_CAMERA.type
-                    )
-                  }
-                }
-              }
-            }, onOpenDWebview = { appId, dAppInfo ->
-              /// TODO 这里是点击桌面app触发的事件
-              dWebBrowserModel.handleIntent(DWebBrowserIntent.OpenDWebBrowser(appId))
-              //coroutineScope.launch {
-              //    BrowserNMM.browserController.showLoading.value = true
-              //    BrowserNMM.browserController.openApp(appId)
-              //}
-            })
-            MultiDWebBrowserView(dWebBrowserModel = dWebBrowserModel)
-          }
+          BrowserView(viewModel = browserController.browserViewModel)
           QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
           LoadingView(BrowserNMM.browserController.showLoading)
         }
@@ -174,23 +126,10 @@ class BrowserActivity : AppCompatActivity() {
     }
   }
 
-/*    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK && event?.repeatCount == 0) {
-            if (BrowserNMM.browserController.hasDwebView) {
-                if (event.action == KeyEvent.ACTION_DOWN) BrowserNMM.browserController.removeLastView()
-                return true
-            } else if (!BrowserNMM.browserController.showLoading.value) {
-                moveTaskToBack(true)
-                return true
-            }
-        }
-        return super.onKeyDown(keyCode, event)
-    }*/
-
   override fun onStop() {
     super.onStop()
-    if (BrowserNMM.browserController.showLoading.value) { // 如果已经跳转了，这边直接改为隐藏
-      BrowserNMM.browserController.showLoading.value = false
+    if (browserController.showLoading.value) { // 如果已经跳转了，这边直接改为隐藏
+      browserController.showLoading.value = false
     }
   }
 
@@ -198,11 +137,6 @@ class BrowserActivity : AppCompatActivity() {
     // 退出APP关闭服务
     super.onDestroy()
     browserController.activity = null
-    if (ActualBranch) {
-      dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveDWebBrowser)
-    } else {
-      dWebBrowserModel.handleIntent(DWebBrowserIntent.RemoveALL)
-    }
     blueToothReceiver?.let { unregisterReceiver(it) }
     blueToothReceiver = null
   }
