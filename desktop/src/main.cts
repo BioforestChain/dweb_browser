@@ -37,7 +37,7 @@ dns.install(new JmmNMM());
 // 安装 status-bar.sys.dweb
 import { StatusbarNativeUiNMM } from "./sys/plugins/native-ui/status-bar/status-bar.main.cjs";
 import { NavigationBarNMM } from "./sys/plugins/native-ui/navigation-bar/navigation-bar.main.cjs";
-import { SafeAreaNMM } from "./sys/plugins/native-ui/safe-area/safe-area.cjs"
+import { SafeAreaNMM } from "./sys/plugins/native-ui/safe-area/safe-area.main.cjs"
 import { VirtualKeyboardNMM } from "./sys/plugins/native-ui/virtual-keyboard/virtual-keyboard.main.cjs"
 import { ToastNMM } from "./sys/plugins/native-ui/toast/toast.main.cjs";
 import { TorchNMM } from "./sys/plugins/native-ui/torch/torch.main.cjs";
@@ -49,7 +49,7 @@ dns.install(new ToastNMM())
 dns.install(new TorchNMM())
 
 import { BarcodeScanningNativeUiNMM } from "./sys/plugins/sys/barcode-scanning/barcode-scanning.main.cjs";
-import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.cjs"
+import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.cjs"
 dns.install(new BarcodeScanningNativeUiNMM())
 dns.install(new HapticsNMM())
 

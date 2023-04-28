@@ -2,7 +2,7 @@ import { log } from "../../../../helper/devtools.cjs";
 import { BaseWWWServer } from "../../base/base_www_server.cjs"
 import type { $IpcMessage  } from "../../../../core/ipc/const.cjs";
 import type { Ipc } from "../../../../core/ipc/ipc.cjs"
-import type { BarcodeScanningNativeUiNMM } from "./barcode-scanning.cjs"
+import type { BarcodeScanningNativeUiNMM } from "./barcode-scanning.main.cjs"
 
 export class WWWServer extends BaseWWWServer<BarcodeScanningNativeUiNMM>{
     constructor(

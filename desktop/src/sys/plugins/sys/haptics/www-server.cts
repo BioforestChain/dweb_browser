@@ -2,7 +2,7 @@ import { log } from "../../../../helper/devtools.cjs";
 import { BaseWWWServer } from "../../base/base_www_server.cjs"
 import type { $IpcMessage  } from "../../../../core/ipc/const.cjs";
 import type { Ipc } from "../../../../core/ipc/ipc.cjs"
-import type { HapticsNMM } from "./haptics.cjs"
+import type { HapticsNMM } from "./haptics.main.cjs"
 
 export class WWWServer extends BaseWWWServer<HapticsNMM>{
     constructor(

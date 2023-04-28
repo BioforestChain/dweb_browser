@@ -1,5 +1,3 @@
-import type { $AgbaColor } from "./types.cjs";
-// 
 /**
  * 把 RGB 颜色转为 16进制颜色
  * @param r 
@@ -32,4 +30,11 @@ export function hexaToRGBA(str: string): $AgbaColor{
         alpha: parseInt(str.slice(7), 16)
     }
 }
+
+export type $AgbaColor = {
+    red: number;
+    green: number;
+    blue: number;
+    alpha: number;
+};
 

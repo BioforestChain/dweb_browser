@@ -20,8 +20,3 @@
     }
 
 ```
-
-# android 报错的问题
-- 在 plugin 目录下
-- 分别运行 deno task dev  和 deno task dev:src
-- 然后再运行 android studio 

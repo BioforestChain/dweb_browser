@@ -8,6 +8,9 @@ import type { IpcRequest } from "../../../core/ipc/IpcRequest.cjs";
 import type { Ipc } from "../../../core/ipc/ipc.cjs"
 import type { NativeMicroModule } from "../../../core/micro-module.native.cjs";
 
+/**
+ * 提供静态资源服务
+ */
 export abstract class BaseWWWServer<T extends NativeMicroModule>{
   server: HttpDwebServer | undefined;
   constructor(

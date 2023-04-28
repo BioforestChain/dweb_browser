@@ -2,7 +2,7 @@ import { log } from "../../../../helper/devtools.cjs";
 import { BaseWWWServer } from "../../base/base_www_server.cjs"
 import type { $IpcMessage  } from "../../../../core/ipc/const.cjs";
 import type { Ipc } from "../../../../core/ipc/ipc.cjs"
-import type { VirtualKeyboardNMM } from "./virtual-keyboard.cjs"
+import type { VirtualKeyboardNMM } from "./virtual-keyboard.main.cjs"
  
 
 export class WWWServer extends BaseWWWServer<VirtualKeyboardNMM>{
