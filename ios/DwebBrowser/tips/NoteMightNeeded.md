@@ -90,3 +90,54 @@ SwiftUI中还有其他一些生命周期修饰符，可以在视图的生命周�
 
 # 滚动时会和statusbar重合的bug
                     Color.clear.frame(height: 0.1)  //如果没有这个 向上滚动的时候会和状态栏重合
+
+
+# @State 的更新机制 
+struct ReloadView: View {
+    @State var reloadCount = 0
+    var body: some View {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+            reloadCount += 1
+    })
+    return Text(" reload count \(reloadCount)")
+    }
+}
+以上代码会循环执行，每次reloadCount改变，会刷新some View， 又回执行block更新reloadCount，如此循环
+
+# @ObjectBinding
+class MyModel: BindableObject {
+    var didChange = PassthroughSubject<Void, Never>()
+
+    var count = 0 {
+        didSet {
+            didChange.send()
+        }
+    }
+
+    func increment() {
+        count += 1
+    }
+}
+
+struct MyView: View {
+    @ObjectBinding var model: MyModel
+
+    var body: some View {
+        VStack {
+            Text("Count: \(model.count)")
+            Button(action: {
+                self.model.increment()
+            }) {
+                Text("Increment")
+            }
+        }
+    }
+}
+
+struct ContentView: View {
+    @State var model = MyModel()
+
+    var body: some View {
+        MyView(model: model)
+    }
+}

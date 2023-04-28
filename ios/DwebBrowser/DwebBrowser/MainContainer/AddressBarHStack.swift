@@ -20,7 +20,7 @@ struct WrapTestView:View{
     var body: some View{
         VStack{
             Spacer()
-            AddressBarHStack(adressBarHstackOffset: .constant(0))
+            AddressBarHStack()
             Text("dragOffset:\(testOffset)")
                 .background(.green)
         }.background(.red)
@@ -28,22 +28,19 @@ struct WrapTestView:View{
 }
 
 struct AddressBarHStack: View {
-    @State private var currentPage: Int = 0
-    @State private var offset: CGFloat = 0
-    
-    @State private var dragOffset: CGFloat = 0
-        @Binding var adressBarHstackOffset: CGFloat
-    
+    @EnvironmentObject var states: ToolbarState
+    @EnvironmentObject var mainVstate: MainViewState
+
     var body: some View {
         GeometryReader { innerGeometry in
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
-                    AddressBar(adressBarHstackOffset: $adressBarHstackOffset, inputText: "")
+                    AddressBar(inputText: "")
                         .frame(width: screen_width)
-                    AddressBar(adressBarHstackOffset: $adressBarHstackOffset, inputText: "")
+                    AddressBar(inputText: "")
                         .frame(width: screen_width)
-                    AddressBar(adressBarHstackOffset: $adressBarHstackOffset, inputText: "")
+                    AddressBar(inputText: "")
                         .frame(width: screen_width)
                 }
             }
@@ -52,15 +49,18 @@ struct AddressBarHStack: View {
             }
             .background(.orange)
         }
+        .frame(height: states.showMenu ? 0 : addressBarHeight)
+
+        .animation(.easeInOut(duration: 0.3), value: states.showMenu)
+
     }
 }
 
 struct AddressBar: View {
-        @Binding var adressBarHstackOffset: CGFloat
     @State var inputText: String = ""
     @FocusState var isAdressBarFocused: Bool
-//    @EnvironmentObject var addressBarOffset: AddressBarHStackOffset
-    
+    @EnvironmentObject var offsetState: MainViewState
+
     var body: some View {
         GeometryReader{ geometry in
             
@@ -89,12 +89,10 @@ struct AddressBar: View {
                     .onChange(of: geometry.frame(in: .named("Root")).minX) { offsetX in
                         // Do something with the offsetY value
                         print("Offset X: \(offsetX)")
-                                                adressBarHstackOffset = offsetX
-//                        addressBarOffset.offset = offsetX
-                        
-                    }
+                        offsetState.adressBarHstackOffset = offsetX
+                      }
                 
-            }.frame(height: 60)
+            }.frame(height: addressBarHeight)
         }
     }
 }

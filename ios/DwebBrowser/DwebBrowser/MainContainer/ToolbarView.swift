@@ -7,12 +7,19 @@
 
 import SwiftUI
 
-
+class ToolbarState: ObservableObject {
+    @Published var button1Clicked = false
+    @Published var button2Clicked = false
+    @Published var button3Clicked = false
+    @Published var button4Clicked = false
+    @Published var button5Clicked = false
+    @Published var showMenu = true
+    
+}
 
 struct ToolbarView: View {
-    @State var height: CGFloat = 50
-    @State var showHistoryView: Bool = false
-    @EnvironmentObject var expandState: TabPagesExpandState
+    
+    @EnvironmentObject var states: ToolbarState
 
     var body: some View {
         HStack(spacing: 5){
@@ -21,18 +28,22 @@ struct ToolbarView: View {
                 Spacer()
                 
                 ToolbarItem(imageName: "chevron.backward") {
+                    states.button1Clicked = true
                     print("arrow.up was clicked")
                 }
                 
                 Spacer()
                 
                 ToolbarItem(imageName: "chevron.forward") {
+                    states.button2Clicked.toggle()
                     print("arrow.up was clicked")
                 }
                 
                 Spacer()
                 
                 ToolbarItem(imageName: "square.and.arrow.up") {
+                    states.button3Clicked.toggle()
+
                     print("arrow.up was clicked")
                 }
             }
@@ -40,6 +51,8 @@ struct ToolbarView: View {
                 Spacer()
                 
                 ToolbarItem(imageName: "pencil") {
+                    states.button4Clicked.toggle()
+
                     print("arrow.up was clicked")
                 }
                 
@@ -47,9 +60,9 @@ struct ToolbarView: View {
                 
                 ToolbarItem(imageName: "book") {
                     print("arrow.up was clicked")
-                    showHistoryView = true
-                }.sheet(isPresented: $showHistoryView) {
-                    showHistoryView = false
+                    states.button5Clicked = true
+                }.sheet(isPresented: $states.button5Clicked) {
+                    states.button5Clicked = false
                 } content: {
                     HistoryView()
                 }
@@ -57,16 +70,15 @@ struct ToolbarView: View {
                 Spacer()
                 
                 ToolbarItem(imageName: "doc.on.doc") {
-                    expandState.state = !expandState.state
-                    
+                    states.showMenu.toggle()
                     print("arrow.up was clicked")
                 }
                 
                 Spacer()
             }
         }
-        .frame(width: screen_width,height: height)
-        .background(Color.white)
+        .frame(height: toolBarHeight)
+//        .background(Color.white)
     }
 }
 

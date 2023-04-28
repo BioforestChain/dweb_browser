@@ -47,32 +47,42 @@ struct TabsCollectionView: View {
 
 struct GridCell: View {
     var person: Person
-    
+    @State var runCount = 0
     var body: some View {
-        
-        VStack() {
-            Image(person.imageName)
-                .resizable()
-                .scaledToFit()
+//        GeometryReader{ geometry in
+            VStack() {
+                Image(person.imageName)
+                    .resizable()
+                    .scaledToFit()
+                
+                    .shadow(color: .primary, radius: 5)
+                    .padding([.horizontal, .top], 7)
+                    .onTapGesture {
+//                        print("VStack was tapped!")
+                    }
+                Text(person.lastName).lineLimit(1)
+            }
+            .padding(.bottom, 60)
+            .background(.cyan)
             
-                .shadow(color: .primary, radius: 5)
-                .padding([.horizontal, .top], 7)
-                .onTapGesture {
-                    print("VStack was tapped!")
-                }
-            Text(person.lastName).lineLimit(1)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.blue, lineWidth: 3)
+            )
+            .cornerRadius(10)
+            .onTapGesture {
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+                    runCount += 1
+                })
+                print("cell tapped")
+                let uiImage = self.snapshot()
+                print(uiImage.size)
+//                print(geometry.frame(in: .global))
+            }
         }
-        .padding(.bottom, 60)
-        .background(.cyan)
         
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.blue, lineWidth: 3)
-        )
-        .cornerRadius(10)
-        
-        
-    }
+//    }
 }
 
 struct TabsCollectionView_Previews: PreviewProvider {
