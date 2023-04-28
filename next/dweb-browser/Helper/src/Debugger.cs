@@ -21,31 +21,31 @@ public class Debugger
     public Debugger(string scope)
     {
         //Math.Ceiling((float)scope.Length / 4) * 4;
-        this.scopePrefix = scope.TabEnd(8) + "｜";
+        this.scopePrefix = scope.TabEnd(8) + "⇉ ";
     }
     public void Write(Func<string> style, string tag, string msg)
     {
-        Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "/ " + msg);
+        Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "┊ " + msg);
     }
     public void Write(Func<string> style, string tag, string format, object? arg0)
     {
-        Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "/ " + String.Format(format, arg0));
+        Write(style, tag, String.Format(format, arg0));
     }
     public void Write(Func<string> style, string tag, string format, object? arg0, object? arg1)
     {
-        Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "/ " + String.Format(format, arg0, arg1));
+        Write(style, tag, String.Format(format, arg0, arg1));
     }
     public void Write(Func<string> style, string tag, string format, object? arg0, object? arg1, object? arg2)
     {
-        Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "/ " + String.Format(format, arg0, arg1, arg2));
+        Write(style, tag, String.Format(format, arg0, arg1, arg2));
     }
     public void Write(Func<string> style, string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3)
     {
-        Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "/ " + String.Format(format, arg0, arg1, arg2, arg3));
+        Write(style, tag, String.Format(format, arg0, arg1, arg2, arg3));
     }
     public void Write(Func<string> style, string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3, object? arg4)
     {
-        Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "/ " + String.Format(format, arg0, arg1, arg2, arg4));
+        Write(style, tag, String.Format(format, arg0, arg1, arg2, arg4));
     }
 
     static string LogStyle() => DateTime.Now.ToLongTimeString() + " 💙 ";

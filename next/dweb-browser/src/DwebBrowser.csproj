@@ -57,16 +57,8 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
-	  <None Remove="Platforms\iOS\WebModule\Mwebview\" />
-	  <None Remove="Platforms\iOS\WebModule\Core\" />
-	  <None Remove="Platforms\iOS\UI\" />
-	  <None Remove="Platforms\iOS\Base\" />
-	  <None Remove="Platforms\iOS\UI\Theme\" />
-	  <None Remove="Platforms\iOS\MicroModule\Sys\" />
-	  <None Remove="Platforms\iOS\MicroModule\Sys\Jmm\" />
-	  <None Remove="Platforms\iOS\MicroModule\Sys\Js\" />
-	  <None Remove="Platforms\iOS\MicroModule\Sys\Mwebview\" />
-	  <None Remove="Platforms\iOS\MicroModule\NativeUI\" />
+	  <None Remove="Platforms\iOS\MicroModule\NativeUI\StatusBar\" />
+	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Base\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -88,6 +80,8 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Js\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Mwebview\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\" />
+	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\StatusBar\" />
+	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Base\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\bundle\**\*.*" />
