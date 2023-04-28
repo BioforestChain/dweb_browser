@@ -24,6 +24,7 @@ const ipcObserversMap = new Map<
 const INTERNAL_PREFIX = "/internal";
 type $OnIpcRequestUrl = (request: $IpcRequest) => void
 const fetchSignal = createSignal<$OnIpcRequestUrl>()
+export const onFetchSignal = createSignal<$OnIpcRequestUrl>()
 // serviceWorker 的fetch锁，如果打开了我们就不帮忙处理请求，让前端自己处理
 let fetchLock = false;
 const fetchSet = new Set<string>();
@@ -134,6 +135,19 @@ const internalFactory = (url: URL, req_id: number, httpServerIpc: $Ipc, serverur
       httpServerIpc
     );
   }
+
+  // 监听Onfetch
+  if (pathname === "/onFetch") {
+    // serviceWorker fetch
+    const streamPo = serviceWorkerOnFetch()
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      undefined,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
 }
 
 /**这里会处理api的消息返回到前端serviceWorker 构建onFetchEvent 并触发fetch事件 */
@@ -147,6 +161,19 @@ const serviceWorkerFetch = () => {
   })
   return streamPo
 }
+
+/**这里会处理别人发给这个app的消息 */
+const serviceWorkerOnFetch = () => {
+  const streamPo = new ReadableStreamOut<Uint8Array>();
+  const ob = { controller: streamPo.controller };
+  onFetchSignal.listen((ipcRequest) => {
+    const jsonlineEnd = simpleEncoder("\n", "utf8");
+    const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8")
+    ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
+  })
+  return streamPo
+}
+
 
 
 /**监听属性的变化 */

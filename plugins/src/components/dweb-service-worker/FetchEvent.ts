@@ -3,7 +3,10 @@ interface FetchEventInit {
   clientId?: string;
 }
 
-type $FetchEventType = "fetch" | "onfetch" | "activate" | "install" | "message";
+export type $FetchEventType = "fetch" | "onFetch";
+// | "activate"
+// | "install"
+// | "message";
 
 export class FetchEvent extends Event {
   readonly type: $FetchEventType;

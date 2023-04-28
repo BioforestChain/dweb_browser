@@ -495,6 +495,7 @@ var { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
 var fetchSignal = createSignal2();
+var onFetchSignal = createSignal2();
 var fetchLock = false;
 var fetchSet = /* @__PURE__ */ new Set();
 async function onApiRequest(serverurlInfo, request, httpServerIpc) {
@@ -581,11 +582,31 @@ var internalFactory = (url, req_id, httpServerIpc, serverurlInfo) => {
       httpServerIpc
     );
   }
+  if (pathname === "/onFetch") {
+    const streamPo = serviceWorkerOnFetch();
+    return IpcResponse.fromStream(
+      req_id,
+      200,
+      void 0,
+      streamPo.stream,
+      httpServerIpc
+    );
+  }
 };
 var serviceWorkerFetch = () => {
   const streamPo = new ReadableStreamOut();
   const ob = { controller: streamPo.controller };
   fetchSignal.listen((ipcRequest) => {
+    const jsonlineEnd = simpleEncoder("\n", "utf8");
+    const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8");
+    ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
+  });
+  return streamPo;
+};
+var serviceWorkerOnFetch = () => {
+  const streamPo = new ReadableStreamOut();
+  const ob = { controller: streamPo.controller };
+  onFetchSignal.listen((ipcRequest) => {
     const jsonlineEnd = simpleEncoder("\n", "utf8");
     const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8");
     ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
@@ -767,6 +788,9 @@ var main = async () => {
         ipc2
       )
     );
+  });
+  externalReadableStreamIpc.onRequest(async (request, ipc2) => {
+    onFetchSignal.emit(request);
   });
   const serviceWorkerFactory = async (url, ipc2) => {
     const pathname = url.pathname;

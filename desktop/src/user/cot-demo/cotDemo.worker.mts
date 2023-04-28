@@ -3,7 +3,7 @@ import { createSignal } from "../../helper/createSignal.mjs";
 import { webViewMap, closeFront, restartApp } from "../tool/app.handle.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import { nativeOpen, nativeActivate, cros, closeDwebView } from "../tool/tool.native.mjs";
-import { $Ipc, onApiRequest } from "../tool/tool.request.mjs";
+import { $Ipc, onApiRequest, onFetchSignal } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff"
 
 const main = async () => {
@@ -106,6 +106,10 @@ const main = async () => {
       )
     );
   });
+  // 外部发来的请求
+  externalReadableStreamIpc.onRequest(async (request, ipc) => {
+    onFetchSignal.emit(request)
+  })
 
   // 转发serviceWorker 请求
   const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {

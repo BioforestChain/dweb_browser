@@ -14,7 +14,7 @@ import {
 } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { streamRead } from "../../helper/readableStreamHelper.ts";
-import { FetchEvent } from "./FetchEvent.ts";
+import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
 
 declare namespace globalThis {
   const __app_upgrade_watcher_kit__: {
@@ -73,24 +73,36 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     });
   }
 
-  private decode = (ipcRequest: IpcRequest) => {
+  private decodeFetch = (ipcRequest: IpcRequest) => {
     return new FetchEvent("fetch", {
       request: this.toRequest(ipcRequest),
       clientId: ipcRequest.req_id,
     });
   };
 
-  async *registerFetch(options?: { signal?: AbortSignal }) {
+  private decodeOnFetch = (ipcRequest: IpcRequest) => {
+    return new FetchEvent("onFetch", {
+      request: this.toRequest(ipcRequest),
+      clientId: ipcRequest.req_id,
+    });
+  };
+
+  private async *registerEvent(
+    eventName: $FetchEventType,
+    options?: { signal?: AbortSignal }
+  ) {
     const pub = await BasePlugin.public_url.promise;
+    const decodeEvent =
+      eventName === "fetch" ? this.decodeFetch : this.decodeOnFetch;
     const jsonlines = await this.plugin
-      .buildInternalApiRequest("/fetch", {
+      .buildInternalApiRequest(`/${eventName}`, {
         search: { mmid: this.plugin.mmid },
         base: pub,
       })
       .fetch()
-      .jsonlines(this.decode);
+      .jsonlines(decodeEvent);
     for await (const onfetchString of streamRead(jsonlines, options)) {
-      this.notifyListeners("fetch", onfetchString);
+      this.notifyListeners(eventName, onfetchString);
       yield onfetchString;
     }
   }
@@ -107,9 +119,9 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     options?: boolean | AddEventListenerOptions
   ): EventTarget {
     // 用户需要的时候再去注册
-    if (eventName === "fetch") {
+    if (eventName === "fetch" || eventName === "onFetch") {
       (async () => {
-        for await (const _info of this.registerFetch()) {
+        for await (const _info of this.registerEvent(eventName)) {
           // console.log("registerFetch", _info);
         }
       })();
