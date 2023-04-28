@@ -27,7 +27,7 @@ class ExampleStartupBenchmark {
 
     @Test
     fun startup() = benchmarkRule.measureRepeated(
-        packageName = "info.bagen.rust.plaoc",
+        packageName = "info.bagen.dwebbrowser",
         metrics = listOf(StartupTimingMetric()),
         iterations = 5,
         startupMode = StartupMode.COLD
@@ -49,7 +49,7 @@ class BaselineProfileGenerator {
 
     @Test
     fun startup() =
-        baselineProfileRule.collectBaselineProfile(packageName = "info.bagen.rust.plaoc") {
+        baselineProfileRule.collectBaselineProfile(packageName = "info.bagen.dwebbrowser") {
             pressHome()
             // This block defines the app's critical user journey. Here we are interested in
             // optimizing for app startup. But you can also navigate and scroll
@@ -93,7 +93,7 @@ class BaselineProfileBenchmark {
 
     private fun startup(compilationMode: CompilationMode) {
         benchmarkRule.measureRepeated(
-            packageName = "info.bagen.rust.plaoc",
+            packageName = "info.bagen.dwebbrowser",
             metrics = listOf(StartupTimingMetric()),
             iterations = 10,
             startupMode = StartupMode.COLD,
