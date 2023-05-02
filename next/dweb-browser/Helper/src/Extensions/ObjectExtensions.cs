@@ -12,6 +12,12 @@ public static class ObjectExtensions
         return block(self);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Unit Util<T>(this T? self)
+    {
+        return Unit.Default;
+    }
+
     // Kotlin: fun <T> T.also(block: (T) -> Unit): T
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Also<T>(this T self, Action<T> block)

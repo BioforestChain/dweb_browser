@@ -1,12 +1,13 @@
 ﻿using UIKit;
 using DwebBrowser.MicroService.Sys.Js;
 using DwebBrowser.Base;
+using System.Collections.Generic;
 
 #nullable enable
 
 namespace DwebBrowser.MicroService.Sys.Mwebview;
 
-public class MultiWebViewController : BaseViewController
+public partial class MultiWebViewController : BaseViewController
 {
     static Debugger Console = new Debugger("MultiWebViewController");
 
@@ -21,9 +22,11 @@ public class MultiWebViewController : BaseViewController
         RemoteMM = remoteMM;
     }
 
+
     private static int s_webviewId_acc = 0;
 
-    private List<ViewItem> _webViewList = new();
+    //private List<ViewItem> _webViewList = new();
+    public State<List<ViewItem>> WebViewList = new(new List<ViewItem>());
 
     private Dictionary<Mmid, Ipc> _mIpcMap = new();
 
@@ -31,7 +34,7 @@ public class MultiWebViewController : BaseViewController
 
     public async Task<ViewItem> OpenWebViewAsync(string url)
     {
-        var dwebview = CreateDwebView(url);
+        var dwebview = await CreateDwebView(url);
         await dwebview.LoadURL(dwebview.Url?.AbsoluteString ?? "");
         var viewItem = AppendWebViewAsItem(dwebview);
         Console.Log("openWebView", viewItem.webviewId);
@@ -40,18 +43,18 @@ public class MultiWebViewController : BaseViewController
         return viewItem;
     }
 
-    public DWebView.DWebView CreateDwebView(string url)
+    public Task<DWebView.DWebView> CreateDwebView(string url)
     {
-        return new(null, LocaleMM, RemoteMM, new(url), null);
+        return MainThread.InvokeOnMainThreadAsync(() => new DWebView.DWebView(null, LocaleMM, RemoteMM, new(url), null));
     }
 
     public ViewItem AppendWebViewAsItem(DWebView.DWebView dwebview)
     {
         var webviewId = "#w" + Interlocked.Increment(ref s_webviewId_acc);
-        
+
         return new ViewItem(webviewId, dwebview).Also(it =>
         {
-            _webViewList.Add(it);
+            WebViewList.Update(list => list?.Add(it));
             // TODO: DWebView 还未实现 onCloseWindow
             //CloseWebViewAsync();
 
@@ -64,14 +67,13 @@ public class MultiWebViewController : BaseViewController
 
     public async Task<bool> CloseWebViewAsync(string webviewId)
     {
-        var viewItem = _webViewList.Find(viewItem => viewItem.webviewId == webviewId);
+        var viewItem = WebViewList.Get().Find(viewItem => viewItem.webviewId == webviewId);
 
         if (viewItem is not null)
         {
             Console.Log("CloseWebView", viewItem.webviewId);
-            var _bool = _webViewList.Remove(viewItem);
 
-            if (_bool)
+            if (WebViewList.Update((list) => list!.Remove(viewItem)))
             {
                 await _updateStateHookAsync("closeWebView");
             }
@@ -84,17 +86,17 @@ public class MultiWebViewController : BaseViewController
 
         return false;
     }
-        
+
 
     /// <summary>
     /// 移除webview所有列表
     /// </summary>
-    public void DestroyWebView() => _webViewList.Clear();
+    public void DestroyWebView() => WebViewList.Update(list => list!.Clear());
 
     // TODO _updateStateHook未完成
     private async Task _updateStateHookAsync(string handler)
     {
-        Console.Log("_updateStateHook " + handler, "localeMM: {0} mmid: {1} {2}", LocaleMM.Mmid, Mmid, _webViewList.Count);
+        Console.Log("_updateStateHook " + handler, "localeMM: {0} mmid: {1} {2}", LocaleMM.Mmid, Mmid, WebViewList.Get().Count);
         var ipc = await _mIpcMap.GetValueOrPutAsync(Mmid, async () =>
         {
             var connectResult = await LocaleMM.ConnectAsync(Mmid);
@@ -111,5 +113,6 @@ public class MultiWebViewController : BaseViewController
 
     private event Signal<string>? _OnWebViewClose;
     private event Signal<string>? _OnWebViewOpen;
+
 }
 

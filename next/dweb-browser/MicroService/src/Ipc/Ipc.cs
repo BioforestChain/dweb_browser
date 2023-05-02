@@ -1,8 +1,10 @@
 ﻿using System.Threading.Tasks.Dataflow;
+using DwebBrowser.Helper;
 
 namespace DwebBrowser.MicroService;
 public abstract class Ipc
 {
+    static Debugger Console = new Debugger("Ipc");
     private static int s_uid_acc = 0;
     private static int s_req_id_acc = 0;
 
@@ -126,19 +128,6 @@ public abstract class Ipc
 
     public Ipc()
     {
-        _reqResMap = new Dictionary<int, PromiseOut<IpcResponse>>().Also(reqResMap =>
-        {
-            OnResponse += async (ipcResponse, ipc, self) =>
-            {
-                if (!reqResMap.Remove(ipcResponse.ReqId, out var res))
-                {
-                    throw new Exception(String.Format("no found response by req_id: {0}", ipcResponse.ReqId));
-                }
-
-                res.Resolve(ipcResponse);
-            };
-        });
-
         /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
         /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
         var streamChannel = new BufferBlock<(IpcStream, Ipc)>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
@@ -180,12 +169,25 @@ public abstract class Ipc
 
     }
 
-    private Dictionary<int, PromiseOut<IpcResponse>> _reqResMap;
+    private LazyBox<Dictionary<int, PromiseOut<IpcResponse>>> _reqResMap = new();
 
     public async Task<IpcResponse> Request(IpcRequest ipcRequest)
     {
         var result = new PromiseOut<IpcResponse>();
-        _reqResMap.Add(ipcRequest.ReqId, result);
+        _reqResMap.GetOrPut(() =>
+        {
+            var reqResMap = new Dictionary<int, PromiseOut<IpcResponse>>();
+            OnResponse += async (ipcResponse, ipc, self) =>
+            {
+                if (!reqResMap.Remove(ipcResponse.ReqId, out var res))
+                {
+                    throw new Exception(String.Format("no found response by req_id: {0}", ipcResponse.ReqId));
+                }
+
+                res.Resolve(ipcResponse);
+            };
+            return reqResMap;
+        }).Add(ipcRequest.ReqId, result);
         await PostMessageAsync(ipcRequest);
         return await result.WaitPromiseAsync();
     }
@@ -201,6 +203,11 @@ public abstract class Ipc
     public async Task<HttpResponseMessage> Request(HttpRequestMessage request) =>
         (await Request(await IpcRequest.FromRequest(AllocReqId(), request, this))).ToResponse();
 
-    public int AllocReqId() => Interlocked.Increment(ref s_req_id_acc);
+    public int AllocReqId()
+    {
+        var reqId = Interlocked.Increment(ref s_req_id_acc);
+        Console.Log("AllocReqId", "{0}", reqId);
+        return reqId;
+    }
 }
 

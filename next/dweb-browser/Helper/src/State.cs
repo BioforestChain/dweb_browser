@@ -2,21 +2,23 @@
 namespace DwebBrowser.Helper;
 
 
+static class StateShared
+{
+    internal static List<dynamic> ObsStack = new();
+}
 public class State<T>
 {
-    [ThreadStatic]
-    static List<dynamic> ObsStack = new();
 
     /// <summary>
     /// 我的依赖：当依赖更新，我需要重新执行更新
     /// </summary>
     HashSet<dynamic> _Deps = new();
-    public HashSet<dynamic> Deps { get => _Deps; }
+    public IReadOnlySet<dynamic> Deps { get => _Deps; }
     /// <summary>
     /// 我的引用：当我更新，我需要去通知它们执行更新
     /// </summary>
     HashSet<dynamic> _Refs = new();
-    public HashSet<dynamic> Refs { get => _Refs; }
+    public IReadOnlySet<dynamic> Refs { get => _Refs; }
 
     public bool AddDep(dynamic dep)
     {
@@ -94,17 +96,25 @@ public class State<T>
 
     public T Get()
     {
-        var caller = ObsStack.LastOrDefault();
-        if (caller != null)
+        lock (StateShared.ObsStack)
         {
-            /// 将调用者存储到自己的依赖中
-            caller.AddDep(this);
+            var caller = StateShared.ObsStack.LastOrDefault();
+            if (caller != null)
+            {
+                /// 将调用者存储到自己的依赖中
+                caller.AddDep(this);
+            }
         }
+
 
         if (!hasCache)
         {
             /// 自己也将作为调用者
-            ObsStack.Add(this);
+            /// 
+            lock (StateShared.ObsStack)
+            {
+                StateShared.ObsStack.Add(this);
+            }
             /// 调用之前，清空自己的依赖，重新收集依赖
             ClearDeps();
             try
@@ -118,35 +128,18 @@ public class State<T>
             finally
             {
                 /// 移除自己作为调用者的身份
-                ObsStack.Remove(this);
+                lock (StateShared.ObsStack)
+                {
+                    StateShared.ObsStack.Remove(this);
+                }
             }
         }
         return cache;
     }
 
-    T UpdateCache()
+    public bool Set(T value, bool force = false)
     {
-        /// 自己也将作为调用者
-        ObsStack.Add(this);
-        /// 调用之前，清空自己的依赖，重新收集依赖
-        _Deps.Clear();
-        try
-        {
-            var oldValue = cache;
-            cache = getter();
-            hasCache = true;
-            _ = OnChange.Emit(cache, oldValue);
-            return cache;
-        }
-        finally
-        {
-            /// 移除自己作为调用者的身份
-            ObsStack.Remove(this);
-        }
-    }
-    public void Set(T value)
-    {
-        if (setter(value))
+        if (setter(value) || force)
         {
             hasCache = false;
             /// 向自己的调用者发去通知
@@ -155,6 +148,90 @@ public class State<T>
                 @ref.hasCache = false;
                 @ref.Get();
             }
+            return true;
+        }
+        return false;
+    }
+    public bool Update(Func<T?, T> updater, bool force = true)
+    {
+        return Set(updater(cache), force);
+    }
+    public bool Update(Func<T?, bool> updater)
+    {
+        return Set(cache, updater(cache));
+    }
+    public bool Update(Action<T?> updater, bool force = true)
+    {
+        updater(cache);
+        return Set(cache, force);
+    }
+    public async IAsyncEnumerable<T> ToStream()
+    {
+        PromiseOut<T>? waitter = null;
+        Mutex locker = new();
+
+        Queue<T> cacheList = new();
+        Signal<T, T?> onChange = async (value, old, _) =>
+        {
+
+            locker.WaitOne();
+
+            try
+            {
+                if (waitter != null)
+                {
+
+                    waitter.Resolve(value);
+                    waitter = null;
+                    return;
+                }
+
+                cacheList.Append(value);
+            }
+            finally
+            {
+                locker.ReleaseMutex();
+            }
+        };
+        try
+        {
+            OnChange += onChange;
+
+            yield return Get();
+            while (true)
+            {
+
+                while (true)
+                {
+                    bool success;
+                    T? item;
+                    locker.WaitOne();
+                    try
+                    {
+                        success = cacheList.TryDequeue(out item);
+                    }
+                    finally
+                    {
+                        locker.ReleaseMutex();
+                    }
+                    if (!success)
+                    {
+                        break;
+                    }
+                    yield return item!;
+                }
+
+                locker.WaitOne();
+                PromiseOut<T> w;
+                waitter = w = new();
+                locker.ReleaseMutex();
+                yield return await w.WaitPromiseAsync();
+            }
+        }
+        finally
+        {
+            OnChange -= onChange;
+            locker.Dispose();
         }
     }
 }

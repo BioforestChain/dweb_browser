@@ -12,7 +12,7 @@ namespace DwebBrowser.Platforms.iOS;
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate
 {
-	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+    protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
     static Debugger Console = new Debugger("AppDelegate");
 
@@ -51,6 +51,9 @@ public class AppDelegate : MauiUIApplicationDelegate
         var nav = new UINavigationController(vc);
 
         Window.RootViewController = nav;
+        // 保存到全局
+        IOSNativeMicroModule.Window.Resolve(Window);
+        IOSNativeMicroModule.RootViewController.Resolve(nav);
 
         // make the window visible
         Window.MakeKeyAndVisible();

@@ -22,7 +22,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         /// nativeui 与 mwebview 是伴生关系
-        await bootstrapContext.Dns.BootstrapAsync("nativeui.sys.dweb");
+        //await bootstrapContext.Dns.BootstrapAsync("nativeui.sys.dweb");
 
         // 打开一个webview作为窗口
         HttpRouter.AddRoute(IpcMethod.Get, "/open", async (request, ipc) =>
@@ -56,18 +56,24 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         });
     }
 
-    public override void OpenActivity(string remoteMmid)
+    public async override void OpenActivity(string remoteMmid)
     {
-        var vc = IOSWindow.RootViewController;
-        var controller = s_controllerMap.GetValueOrDefault(remoteMmid);
-        vc?.NavigationController?.PushViewController(controller!, true);
+        if (s_controllerMap.TryGetValue(remoteMmid, out var controller))
+        {
+            var vc = await RootViewController.WaitPromiseAsync();
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                vc.PushViewController(controller, true);
+            });
+        }
     }
 
     private async Task<MultiWebViewController.ViewItem> _openDwebViewAsync(MicroModule remoteMM, string url)
     {
         var remoteMmid = remoteMM.Mmid;
         Console.Log("OPEN-WEBVIEW", "remote-mmid: {0} / url: {1}", remoteMmid, url);
-        var controller = s_controllerMap.GetValueOrPut(remoteMmid, () => new MultiWebViewController(remoteMmid, this, remoteMM));
+
+        var controller = await MainThread.InvokeOnMainThreadAsync(() => s_controllerMap.GetValueOrPut(remoteMmid, () => new MultiWebViewController(remoteMmid, this, remoteMM)));
 
         OpenActivity(remoteMmid);
         await _OnActivityEmit(remoteMmid, controller);
@@ -85,6 +91,6 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         }
 
         return false;
-    } 
+    }
 }
 
