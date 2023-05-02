@@ -130,9 +130,7 @@ public abstract class Ipc
         {
             OnResponse += async (ipcResponse, ipc, self) =>
             {
-                var res = reqResMap.GetValueOrDefault(ipcResponse.ReqId);
-
-                if (res is null)
+                if (!reqResMap.Remove(ipcResponse.ReqId, out var res))
                 {
                     throw new Exception(String.Format("no found response by req_id: {0}", ipcResponse.ReqId));
                 }

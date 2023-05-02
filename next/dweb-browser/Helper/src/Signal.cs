@@ -13,18 +13,18 @@ public static class SignalExtendsions
     {
         return self.GetInvocationList().Length is 0;
     }
-    public static async Task Emit(this Signal self)
+    public static async Task Emit(this Signal? self)
     {
         try
         {
-            var list = self.GetInvocationList();
+            var list = self?.GetInvocationList();
             if (list == null)
             {
                 return;
             }
             if (list.Length == 1)
             {
-                await self(self).ForAwait();
+                await self!(self).ForAwait();
                 return;
             }
 
@@ -39,19 +39,19 @@ public static class SignalExtendsions
             Console.Error("Emit", "{0}", e);
         }
     }
-    public static async Task Emit<T1>(this Signal<T1> self, T1 arg1)
+    public static async Task Emit<T1>(this Signal<T1>? self, T1 arg1)
     {
 
         try
         {
-            var list = self.GetInvocationList();
+            var list = self?.GetInvocationList();
             if (list == null)
             {
                 return;
             }
             if (list.Length == 1)
             {
-                await self(arg1, self).ForAwait();
+                await self!(arg1, self).ForAwait();
                 return;
             }
 
@@ -66,19 +66,19 @@ public static class SignalExtendsions
             Console.Error("Emit", "{0}", e);
         }
     }
-    public static async Task Emit<T1, T2>(this Signal<T1, T2> self, T1 arg1, T2 arg2)
+    public static async Task Emit<T1, T2>(this Signal<T1, T2>? self, T1 arg1, T2 arg2)
     {
 
         try
         {
-            var list = self.GetInvocationList();
+            var list = self?.GetInvocationList();
             if (list == null)
             {
                 return;
             }
             if (list.Length == 1)
             {
-                await self(arg1, arg2, self).ForAwait();
+                await self!(arg1, arg2, self).ForAwait();
                 return;
             }
 
