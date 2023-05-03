@@ -4,6 +4,12 @@ namespace DwebBrowser.MicroService.Message;
 
 public class ReadableStream
 {
+    static int sidAcc = 0;
+    string sid = "ReadableStream" + Interlocked.Increment(ref sidAcc);
+    public override string ToString()
+    {
+        return sid;
+    }
     private AnonymousPipeServerStream pipeServer;
     private AnonymousPipeClientStream pipeClient;
     private PipeStream myStream;
@@ -46,6 +52,13 @@ public class ReadableStream
 
     public class PipeStream : Stream
     {
+        static int sidAcc = 0;
+        string sid = "R::Stream" + Interlocked.Increment(ref sidAcc);
+        public override string ToString()
+        {
+            return sid;
+        }
+
         private AnonymousPipeClientStream pipeStream;
         private Action onStartRead;
         public PipeStream(AnonymousPipeClientStream pipeStream, Action onStartRead)
@@ -53,7 +66,6 @@ public class ReadableStream
             this.pipeStream = pipeStream;
             this.onStartRead = onStartRead;
         }
-
         public override bool CanRead => pipeStream.CanRead && !isEndRead;
 
         public override bool CanSeek => pipeStream.CanSeek;

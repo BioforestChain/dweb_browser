@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace DwebBrowser.Helper;
 
@@ -27,25 +29,24 @@ public class Debugger
     {
         Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "┊ " + msg);
     }
-    public void Write(Func<string> style, string tag, string format, object? arg0)
+    public void Write(Func<string> style, string tag, string format, params object?[] args)
     {
-        Write(style, tag, String.Format(format, arg0));
-    }
-    public void Write(Func<string> style, string tag, string format, object? arg0, object? arg1)
-    {
-        Write(style, tag, String.Format(format, arg0, arg1));
-    }
-    public void Write(Func<string> style, string tag, string format, object? arg0, object? arg1, object? arg2)
-    {
-        Write(style, tag, String.Format(format, arg0, arg1, arg2));
-    }
-    public void Write(Func<string> style, string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3)
-    {
-        Write(style, tag, String.Format(format, arg0, arg1, arg2, arg3));
-    }
-    public void Write(Func<string> style, string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3, object? arg4)
-    {
-        Write(style, tag, String.Format(format, arg0, arg1, arg2, arg4));
+        var myFormat = Regex.Replace(format, @"{(\d):H}", (match) =>
+        {
+            var index = match.Groups[1].Value;
+            var index_int = index.ToIntOrNull();
+            var hashCode = "";
+            if (index_int != null)
+            {
+                var arg = args.GetValue((int)index_int);
+                if (arg != null)
+                {
+                    hashCode = "@" + arg.GetHashCode().ToString();
+                }
+            }
+            return "{" + index + "}" + hashCode;
+        });
+        Write(style, tag, String.Format(myFormat, args));
     }
 
     static string LogStyle() => DateTime.Now.ToLongTimeString() + " 💙 ";
@@ -53,51 +54,18 @@ public class Debugger
     {
         Write(LogStyle, tag, msg);
     }
-    public void Log(string tag, string format, object? arg0)
+    public void Log(string tag, string format, params object?[] args)
     {
-        Write(LogStyle, tag, format, arg0);
+        Write(LogStyle, tag, format, args);
     }
-    public void Log(string tag, string format, object? arg0, object? arg1)
-    {
-        Write(LogStyle, tag, format, arg0, arg1);
-    }
-    public void Log(string tag, string format, object? arg0, object? arg1, object? arg2)
-    {
-        Write(LogStyle, tag, format, arg0, arg1, arg2);
-    }
-    public void Log(string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3)
-    {
-        Write(LogStyle, tag, format, arg0, arg1, arg2, arg3);
-    }
-    public void Log(string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3, object? arg4)
-    {
-        Write(LogStyle, tag, format, arg0, arg1, arg2, arg4);
-    }
-
     static string WarnStyle() => DateTime.Now.ToLongTimeString() + " 🧡 ";
     public void Warn(string tag, string msg)
     {
         Write(WarnStyle, tag, msg);
     }
-    public void Warn(string tag, string format, object? arg0)
+    public void Warn(string tag, string format, params object?[] args)
     {
-        Write(WarnStyle, tag, format, arg0);
-    }
-    public void Warn(string tag, string format, object? arg0, object? arg1)
-    {
-        Write(WarnStyle, tag, format, arg0, arg1);
-    }
-    public void Warn(string tag, string format, object? arg0, object? arg1, object? arg2)
-    {
-        Write(WarnStyle, tag, format, arg0, arg1, arg2);
-    }
-    public void Warn(string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3)
-    {
-        Write(WarnStyle, tag, format, arg0, arg1, arg2, arg3);
-    }
-    public void Warn(string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3, object? arg4)
-    {
-        Write(WarnStyle, tag, format, arg0, arg1, arg2, arg4);
+        Write(WarnStyle, tag, format, args);
     }
 
     static string ErrorStyle() => DateTime.Now.ToLongTimeString() + " 💔 ";
@@ -105,25 +73,9 @@ public class Debugger
     {
         Write(ErrorStyle, tag, msg);
     }
-    public void Error(string tag, string format, object? arg0)
+    public void Error(string tag, string format, params object?[] args)
     {
-        Write(ErrorStyle, tag, format, arg0);
-    }
-    public void Error(string tag, string format, object? arg0, object? arg1)
-    {
-        Write(ErrorStyle, tag, format, arg0, arg1);
-    }
-    public void Error(string tag, string format, object? arg0, object? arg1, object? arg2)
-    {
-        Write(ErrorStyle, tag, format, arg0, arg1, arg2);
-    }
-    public void Error(string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3)
-    {
-        Write(ErrorStyle, tag, format, arg0, arg1, arg2, arg3);
-    }
-    public void Error(string tag, string format, object? arg0, object? arg1, object? arg2, object? arg3, object? arg4)
-    {
-        Write(ErrorStyle, tag, format, arg0, arg1, arg2, arg4);
+        Write(ErrorStyle, tag, format, args);
     }
 }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using DwebBrowser.Helper;
 
@@ -50,7 +51,7 @@ public class HttpNMM : NativeMicroModule
         if (request.RequestUri?.AbsolutePath.StartsWith(X_DWEB_HREF) is true)
         {
             request.RequestUri = new Uri(request.RequestUri.AbsolutePath.Substring(X_DWEB_HREF.Length));
-            request.Headers.TryAddWithoutValidation("X-Dweb-Host", request.RequestUri.Host);
+            request.Headers.TryAddWithoutValidation("X-Dweb-Host", request.RequestUri.Authority);
         }
 
 

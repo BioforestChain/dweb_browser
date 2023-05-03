@@ -89,6 +89,7 @@ public class ReadableStreamIpc : Ipc
             //var reader = new BinaryReader(stream);
             while (stream.CanRead)
             {
+                Console.Log("BindIncomeStream", "waitting/{0:H}", stream);
                 var size = await stream.ReadIntAsync();
 
                 // 心跳包？
@@ -97,11 +98,12 @@ public class ReadableStreamIpc : Ipc
                     continue;
                 }
 
-                Console.Log("BindIncomeStream", "size/{0} {1}", stream, size);
+                Console.Log("BindIncomeStream", "size/{0:H} {1}", stream, size);
                 var buffer = await stream.ReadBytesAsync(size);
 
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
                 var message = MessageToIpcMessage.JsonToIpcMessage(buffer, this);
+                Console.Log("BindIncomeStream", "message/{0:H} {1}", stream, message);
                 switch (message)
                 {
                     case "close":
@@ -121,7 +123,7 @@ public class ReadableStreamIpc : Ipc
                 }
             }
 
-            Console.Log("BindIncomeStream", "END/{0}", stream);
+            Console.Log("BindIncomeStream", "END/{0:H}", stream);
         });
 
         _incomeStream = stream;
