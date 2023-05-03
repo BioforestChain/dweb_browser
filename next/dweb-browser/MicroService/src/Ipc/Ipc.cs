@@ -155,9 +155,9 @@ public abstract class Ipc
 
         Task.Run(async () =>
         {
-            await foreach (var args in streamChannel.ReceiveAllAsync())
+            await foreach (var (ipcStreamMessage, ipc) in streamChannel.ReceiveAllAsync())
             {
-                await (OnStream?.Emit(args.Item1, args.Item2)).ForAwait();
+                await (OnStream?.Emit(ipcStreamMessage, ipc)).ForAwait();
             }
         }).Background();
 

@@ -5,7 +5,7 @@ namespace DwebBrowser.MicroService.Message;
 public class ReadableStream
 {
     static int sidAcc = 0;
-    string sid = "ReadableStream" + Interlocked.Increment(ref sidAcc);
+    string sid = "ReadableStream@" + Interlocked.Increment(ref sidAcc);
     public override string ToString()
     {
         return sid;
@@ -53,7 +53,7 @@ public class ReadableStream
     public class PipeStream : Stream
     {
         static int sidAcc = 0;
-        string sid = "R::Stream" + Interlocked.Increment(ref sidAcc);
+        string sid = "R::Stream@" + Interlocked.Increment(ref sidAcc);
         public override string ToString()
         {
             return sid;

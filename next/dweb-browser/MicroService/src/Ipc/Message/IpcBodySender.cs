@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
 
 namespace DwebBrowser.MicroService.Message;
@@ -70,7 +71,7 @@ public class IpcBodySender : IpcBody
         ABORTED,
     }
 
-    private BufferBlock<StreamStatusSignal> _streamStatusSignal = new BufferBlock<StreamStatusSignal>();
+    private BufferBlock<StreamStatusSignal> _streamStatusSignal = new BufferBlock<StreamStatusSignal>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
     public class IPC
     {
@@ -213,7 +214,7 @@ public class IpcBodySender : IpcBody
 
     private UsedIpcInfo? _useByIpc(Ipc ipc)
     {
-        var usedIpcInfo = _usedIpcMap[ipc];
+        var usedIpcInfo = _usedIpcMap.GetValueOrDefault(ipc);
 
         if (usedIpcInfo is null)
         {
@@ -245,7 +246,9 @@ public class IpcBodySender : IpcBody
         /// 更新带宽限制
         info.Bandwidth = message.Bandwidth;
         /// 只要有一个开始读取，那么就可以开始
-        await _streamStatusSignal.SendAsync(StreamStatusSignal.PULLING);
+        var success = await _streamStatusSignal.SendAsync(StreamStatusSignal.PULLING);
+
+        Console.Log("EmitStreamPullAsync", "{0:H} {1}", _streamStatusSignal, success);
     }
 
     /// <summary>
@@ -275,16 +278,16 @@ public class IpcBodySender : IpcBody
     /// <summary>
     /// 解绑使用
     /// </summary>
-    private Task EmitStreamAbortedAsync(UsedIpcInfo info) => Task.Run(() =>
+    private async Task EmitStreamAbortedAsync(UsedIpcInfo info)
     {
         if (_usedIpcMap.Remove(info.Uipc))
         {
             if (_usedIpcMap.Count == 0)
             {
-                _streamStatusSignal.Post(StreamStatusSignal.ABORTED);
+                await _streamStatusSignal.SendAsync(StreamStatusSignal.ABORTED);
             }
         }
-    });
+    }
 
     public event Signal? OnStreamClose;
 
@@ -323,13 +326,15 @@ public class IpcBodySender : IpcBody
 
     public IpcBodySender(object raw, Ipc ipc)
     {
-        CACHE.Raw_ipcBody_WMap.TryAdd(raw, this);
-        IPC.UsableByIpc(ipc, this);
 
         Raw = raw;
         SenderIpc = ipc;
 
         MetaBody = BodyAsMeta(Raw, SenderIpc);
+
+        /// init
+        CACHE.Raw_ipcBody_WMap.TryAdd(raw, this);
+        IPC.UsableByIpc(ipc, this);
     }
 
 
@@ -359,11 +364,25 @@ public class IpcBodySender : IpcBody
         _ => throw new Exception(String.Format("invalid body type {0}", body)),
     };
 
+    /// <summary>
+    /// _streamStatusSignal 作为 BlockBuffer，它只能同时有一个在读取
+    /// 所以这里定义一个Signal，分发成事件
+    /// </summary>
+    Signal<StreamStatusSignal> streamStatusSignal;
+
     private MetaBody StreamAsMeta(Stream stream, Ipc ipc)
     {
         var stream_id = s_getStreamId(stream);
 
-        Console.Log("StreamAsMeta", "sender/INIT/{0} {1}", stream, stream_id);
+        Console.Log("StreamAsMeta", "sender/INIT/{0:H} {1}", stream, stream_id);
+
+        Task.Run(async () =>
+        {
+            await foreach (var signal in _streamStatusSignal.ReceiveAllAsync())
+            {
+                streamStatusSignal?.Emit(signal);
+            }
+        }).Background();
 
         Task.Run(async () =>
         {
@@ -372,26 +391,29 @@ public class IpcBodySender : IpcBody
              */
             var pullingPo = new PromiseOut<Unit>();
 
-            _ = Task.Run(async () =>
+            Task.Run(async () =>
             {
-                var signal = await _streamStatusSignal.ReceiveAsync();
-                switch (signal)
+                streamStatusSignal += async (signal, self) =>
                 {
-                    case StreamStatusSignal.PULLING:
-                        pullingPo.Resolve(unit);
-                        break;
-                    case StreamStatusSignal.PAUSED:
-                        if (pullingPo.IsFinished)
-                        {
-                            pullingPo = new PromiseOut<Unit>();
-                        }
-                        break;
-                    case StreamStatusSignal.ABORTED:
-                        stream.Dispose();
-                        _emitStreamClose();
-                        break;
-                }
-            });
+                    switch (signal)
+                    {
+                        case StreamStatusSignal.PULLING:
+                            pullingPo.Resolve(unit);
+                            break;
+                        case StreamStatusSignal.PAUSED:
+                            if (pullingPo.IsFinished)
+                            {
+                                pullingPo = new PromiseOut<Unit>();
+                            }
+                            break;
+                        case StreamStatusSignal.ABORTED:
+                            stream.Dispose();
+                            _emitStreamClose();
+                            break;
+                    }
+                };
+
+            }).Background();
 
             /// 持续发送数据
             while (true)
@@ -399,44 +421,33 @@ public class IpcBodySender : IpcBody
                 // 等待流开始被拉取
                 await pullingPo.WaitPromiseAsync();
 
-                Console.Log("StreamAsMeta", "sender/PULLING/{0} {1}", stream, stream_id);
-
-
-                switch (stream.Length)
+                Console.Log("StreamAsMeta", "sender/PULLING/{0:H} {1}", stream, stream_id);
+                try
                 {
-                    case 0L:
-                        Console.Log("StreamAsMeta", "sender/END/{0} -1 >> {1}", stream, stream_id);
 
-                        /// 不论是不是被 aborted，都发送结束信号
-                        var ipcStreamEnd = new IpcStreamEnd(stream_id);
-
-                        foreach (Ipc ipc in _usedIpcMap.Keys)
-                        {
-                            await ipc.PostMessageAsync(ipcStreamEnd);
-                        }
-
-                        _emitStreamClose();
-                        break;
-                    case long availableLen:
-                        // 开光了，流已经开始被读取
-                        _isStreamOpened = true;
-                        Console.Log("StreamAsMeta", "sender/READ/{0} {1} >> {2}", stream, availableLen, stream_id);
-
-                        // TODO: 流读取是否大于Int32.MaxValue,待优化
-                        int bytesRead = availableLen.ToInt();
-                        byte[] buffer = new BinaryReader(stream).ReadBytes(bytesRead);
-                        await stream.ReadAsync(buffer, 0, bytesRead);
-                        //await stream.FlushAsync();
-
-                        var ipcStreamData = IpcStreamData.FromBinary(stream_id, buffer);
+                    await foreach (var bytes in stream.ReadBytesStream())
+                    {
+                        var ipcStreamData = IpcStreamData.FromBinary(stream_id, bytes);
 
                         foreach (Ipc ipc in _usedIpcMap.Keys)
                         {
                             await ipc.PostMessageAsync(ipcStreamData);
                         }
+                    }
 
-                        break;
                 }
+                finally
+                {
+                    /// 不论是不是被 aborted，都发送结束信号
+                    var ipcStreamEnd = new IpcStreamEnd(stream_id);
+
+                    foreach (Ipc ipc in _usedIpcMap.Keys)
+                    {
+                        await ipc.PostMessageAsync(ipcStreamEnd);
+                    }
+
+                }
+               
             }
         });
 
@@ -463,11 +474,13 @@ public class IpcBodySender : IpcBody
         {
             // 流对象，写入缓存
             CACHE.MetaId_ipcBodySender_Map.TryAdd(it.MetaId, this);
-            Task.Run(async () => await _streamStatusSignal.ReceiveAsync() switch
+            streamStatusSignal += async (signal, self) =>
             {
-                StreamStatusSignal.ABORTED => CACHE.MetaId_ipcBodySender_Map.Remove(it.MetaId),
-                _ => false
-            });
+                if (signal == StreamStatusSignal.ABORTED)
+                {
+                    CACHE.MetaId_ipcBodySender_Map.Remove(it.MetaId);
+                }
+            };
         });
     }
 }

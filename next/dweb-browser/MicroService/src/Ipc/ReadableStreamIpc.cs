@@ -98,12 +98,11 @@ public class ReadableStreamIpc : Ipc
                     continue;
                 }
 
-                Console.Log("BindIncomeStream", "size/{0:H} {1}", stream, size);
                 var buffer = await stream.ReadBytesAsync(size);
 
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
                 var message = MessageToIpcMessage.JsonToIpcMessage(buffer, this);
-                Console.Log("BindIncomeStream", "message/{0:H} {1}", stream, message);
+                Console.Log("BindIncomeStream", "message/{0:H} {1}({2}bytes)", stream, message, size);
                 switch (message)
                 {
                     case "close":
