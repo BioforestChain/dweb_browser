@@ -122,17 +122,7 @@ public class IpcRequest : IpcMessage
                         throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
                 }
 
-                foreach (var (key, value) in Headers.GetEnumerator())
-                {
-                    if (key.StartsWith("Content-", true, null))
-                    {
-                        it.Content.Headers.Add(key, value);
-                    }
-                    else
-                    {
-                        it.Headers.TryAddWithoutValidation(key, value);
-                    }
-                }
+                Headers.ToHttpMessage(it.Headers, it.Content.Headers);
             });
 
     public IpcReqMessage LazyIpcReqMessage

@@ -98,17 +98,7 @@ public class IpcResponse : IpcMessage
                     throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
             }
 
-            foreach (var entry in Headers.GetEnumerator())
-            {
-                if (entry.Key.StartsWith("Content", true, null))
-                {
-                    it.Content.Headers.Add(entry.Key, entry.Value);
-                }
-                else
-                {
-                    it.Headers.TryAddWithoutValidation(entry.Key, entry.Value);
-                }
-            }
+            Headers.ToHttpMessage(it.Headers, it.Content.Headers);
         });
 
     public IpcResMessage LazyIpcResMessage

@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using System.Reflection.PortableExecutable;
 
 namespace DwebBrowser.MicroService.Message;
 
@@ -62,6 +63,57 @@ public class IpcHeaders
         foreach (KeyValuePair<string, string> entry in _headersMap)
         {
             yield return entry;
+        }
+    }
+    public void ToHttpMessage(HttpHeaders headers, HttpContentHeaders contentHeaders)
+    {
+        foreach (var (key, value) in GetEnumerator())
+        {
+            switch (key)
+            {
+                case "Content-Encoding":
+                    contentHeaders.ContentEncoding.Clear();
+                    contentHeaders.ContentEncoding.Add(value);
+                    break;
+                case "Content-Length":
+                    contentHeaders.ContentLength = value.ToLongOrNull();
+                    break;
+                case "Content-Language":
+                    contentHeaders.ContentLanguage.Clear();
+                    contentHeaders.ContentLanguage.Add(value);
+                    break;
+                case "Content-Location":
+                    if (Uri.TryCreate(value, new(), out var uri))
+                    {
+                        contentHeaders.ContentLocation = uri;
+                    }
+                    break;
+                case "Content-Disposition":
+                    if (ContentDispositionHeaderValue.TryParse(value, out var contentDisposition))
+                    {
+                        contentHeaders.ContentDisposition = contentDisposition;
+                    }
+                    break;
+                case "Content-MD5":
+                    contentHeaders.ContentMD5 = value.ToBase64ByteArray();
+                    break;
+                case "Content-Range":
+                    if (ContentRangeHeaderValue.TryParse(value, out var contentRange))
+                    {
+                        contentHeaders.ContentRange = contentRange;
+                    }
+                    break;
+                case "Content-Type":
+                    if (MediaTypeHeaderValue.TryParse(value, out var contentType))
+                    {
+                        contentHeaders.ContentType = contentType;
+                    }
+                    break;
+                default:
+                    headers.TryAddWithoutValidation(key, value);
+                    break;
+            }
+
         }
     }
 
