@@ -56,7 +56,7 @@ internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: Brows
         viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
       }
     }) {
-    HomePage(viewModel) // 暂时屏蔽下面的内容，直接显示空白主页
+    HomePage() // 暂时屏蔽下面的内容，直接显示空白主页
     /*LazyColumn(state = lazyListState) {
       item { HotWebSiteView(viewModel) }
       item { InstalledApp(viewModel) }

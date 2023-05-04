@@ -241,16 +241,12 @@ private fun HeadContent(jmmMetadata: JmmMetadata) {
       Column(modifier = Modifier.align(Alignment.TopStart)) {
         Text(text = jmmMetadata.title, fontSize = 24.sp)
         Text(text = jmmMetadata.subtitle, fontSize = 12.sp, color = Color.Gray)
-      }
-
-      Column(modifier = Modifier.align(Alignment.BottomStart)) {
-
         Row {
           Text(text = "版本：${jmmMetadata.version}", fontSize = 12.sp, color = Color.Gray)
-          Spacer(modifier = Modifier.width(8.dp))
+          Spacer(modifier = Modifier.width(4.dp))
           Text(text = "大小：${jmmMetadata.size.toSpaceSize()}", fontSize = 12.sp, color = Color.Gray)
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(text = "作者：${jmmMetadata.author}", fontSize = 12.sp, color = Color.Gray)
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(text = "作者：${jmmMetadata.author}", fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
       }
     }

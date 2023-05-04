@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -29,6 +30,7 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.entity.*
+import info.bagen.dwebbrowser.util.*
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -93,11 +95,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
     viewModelScope.launch(ioAsyncExceptionHandler) {
       WebsiteDB.queryHistoryWebsiteInfoMap().collect {
         uiState.historyWebsiteMap.clear()
-        var index = 0
-        it.toSortedMap { o1, o2 ->
-          if (o1 < o2) 1 else -1
-        }.forEach { (key, value) ->
-          value.forEach { webSiteInfo -> webSiteInfo.index = index++ }
+        it.forEach { (key, value) ->
           uiState.historyWebsiteMap[key] = value
         }
       }
@@ -211,7 +209,9 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         }
         is BrowserIntent.SaveHistoryWebSiteInfo -> {
           action.url?.let {
-            WebsiteDB.saveHistoryWebsiteInfo(WebSiteInfo(title = action.title ?: it, url = it))
+            if (!isNoTrace.value) { // 无痕模式，不保存历史搜索记录
+              WebsiteDB.saveHistoryWebsiteInfo(WebSiteInfo(title = action.title ?: it, url = it))
+            }
           }
         }
         is BrowserIntent.SaveBookWebSiteInfo -> {
@@ -283,6 +283,16 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         it.webViewClient = DwebBrowserWebViewClient()
       }
     }
+
+  val isNoTrace = mutableStateOf(App.appContext.getBoolean(KEY_NO_TRACE, false))
+  fun saveBrowserMode(noTrace: Boolean) {
+    isNoTrace.value = noTrace
+    App.appContext.saveBoolean(KEY_NO_TRACE, noTrace)
+  }
+
+  fun saveLastKeyword(url: String) {
+    App.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
+  }
 }
 
 internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
@@ -312,7 +322,7 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
     error: WebResourceError?
   ) {
     // super.onReceivedError(view, request, error)
-    if (error?.errorCode == -2) { // net::ERR_NAME_NOT_RESOLVED
+    if (error?.errorCode == -2 && App.appContext.getString(KEY_LAST_SEARCH_KEY) == request?.url?.toString()) { // net::ERR_NAME_NOT_RESOLVED
       val param = request?.url?.let { uri -> "?text=${uri.host}${uri.path}" } ?: ""
       view?.loadUrl("file:///android_asset/error.html$param")
     }

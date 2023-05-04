@@ -180,8 +180,6 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           .fillMaxWidth()
           .height(10.dp)
       )
-    }
-    item {
       Box(modifier = Modifier
         .fillMaxWidth()
         .height(50.dp)
@@ -204,6 +202,38 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
             modifier = Modifier
               .padding(15.dp)
               .size(30.dp)
+          )
+        }
+      }
+    }
+    item {
+      Spacer(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(10.dp)
+      )
+      Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(50.dp)
+        .padding(horizontal = 10.dp)
+        .clip(RoundedCornerShape(8.dp))
+        .background(MaterialTheme.colorScheme.background)
+        .clickable {
+          launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) // 请求权限
+          //viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+        }) {
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
+          Text(
+            text = "无痕浏览", modifier = Modifier
+              .weight(1f)
+              .padding(horizontal = 10.dp)
+          )
+          Switch(
+            checked = viewModel.isNoTrace.value,
+            onCheckedChange = { viewModel.saveBrowserMode(it) },
+            modifier = Modifier
+              .height(30.dp)
+              .padding(15.dp)
           )
         }
       }
@@ -310,7 +340,7 @@ fun ExpandTextFiled(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
-  if (viewModel.uiState.historyWebsiteMap.isEmpty()) {
+  if (viewModel.isNoTrace.value || viewModel.uiState.historyWebsiteMap.isEmpty()) {
     Text(
       text = "未发现历史记录", modifier = Modifier
         .align(TopCenter)

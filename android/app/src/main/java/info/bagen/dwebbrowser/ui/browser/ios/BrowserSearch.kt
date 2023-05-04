@@ -149,6 +149,7 @@ private fun SearchItemEngines(viewModel: BrowserViewModel, text: String) {
         )
       }
       SearchWebsiteCardView(viewModel, webSiteInfo, index == 0, index == list.size - 1) {
+        viewModel.saveLastKeyword(webSiteInfo.url)
         viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
       }
     }

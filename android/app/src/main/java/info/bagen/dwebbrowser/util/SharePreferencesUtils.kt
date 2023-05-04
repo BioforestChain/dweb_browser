@@ -7,6 +7,8 @@ private const val SHARED_PREFERENCES_NAME = "dwebBrowser"
 const val KEY_ENABLE_AGREEMENT = "enable.agreement" // 判断是否第一次运行程序
 const val KEY_FIRST_LAUNCH = "app.first.launch" // 判断是否第一次运行程序
 const val KEY_MEDIA_IS_LOADED = "media.is.loaded" // 判断media数据是否已经加载过了
+const val KEY_NO_TRACE = "browser.no.trace" // 无痕浏览
+const val KEY_LAST_SEARCH_KEY = "browser.last.keyword" // 最后一次使用引擎搜索的关键字
 
 fun Context.saveString(key: String, value: String) {
   val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
