@@ -17,15 +17,16 @@ public partial class MultiWebViewController : BaseViewController
     {
         // 设置视图控制器的背景颜色
         webviewContainer.BackgroundColor = UIColor.Green;
-        /// 移除所有的子视图
-        foreach (var view in webviewContainer.Subviews.ToArray())
-        {
-            view.RemoveFromSuperview();
-        }
 
-        /// 注入子视图
+        /// 视图绑定
         await foreach (var viewItemList in this.WebViewList.ToStream())
         {
+            /// 移除所有的子视图
+            foreach (var view in webviewContainer.Subviews.ToArray())
+            {
+                view.RemoveFromSuperview();
+            }
+            /// 注入子视图
             foreach (var viewItem in viewItemList)
             {
                 viewItem.webView.Frame = View.Frame;

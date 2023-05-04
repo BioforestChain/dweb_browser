@@ -38,7 +38,6 @@ public partial class MultiWebViewController : BaseViewController
     {
         var dwebview = await CreateDwebView(url, configuration);
 
-        _ = dwebview.LoadURL(dwebview.Url?.AbsoluteString ?? "");
         var viewItem = AppendWebViewAsItem(dwebview);
         Console.Log("openWebView", viewItem.webviewId);
 
@@ -94,9 +93,8 @@ public partial class MultiWebViewController : BaseViewController
             {
                 viewItem.webView.Dispose();
                 await (_OnWebViewClose?.Emit(webviewId)).ForAwait();
+                return true;
             }
-
-            return true;
         }
 
         return false;

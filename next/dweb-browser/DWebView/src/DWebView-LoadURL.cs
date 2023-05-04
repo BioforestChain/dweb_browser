@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Versioning;
+using AngleSharp;
 using AngleSharp.Html.Parser;
 using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Core;
@@ -69,45 +70,66 @@ public partial class DWebView : WKWebView
 
     public Task LoadURL(string url) => LoadURL(new Uri(url));
 
-    //HtmlParser htmlParser = new HtmlParser();
+    //HtmlParser htmlParser = new HtmlParser(new()
+    //{
+    //});
 
     public async Task LoadURL(Uri url, HttpMethod? method = default)
     {
 
+        WKNavigation? wkNavigation;
+
         /// 如果是 dweb 域名，这是需要加入网关的链接前缀才能被正常加载
         if (url.Host.EndsWith(".dweb") && url.Scheme is "http" or "https")
         {
-            url = new Uri(url.ToPublicDwebHref());
-            //using var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
+            /// 这个域名是通过buildInternal得来的
+            var internalUrl = url;
+            /// 作为base的href，我们需要确保是标准的http请求，所以这个域名在前缀加上“网关”，确保是 http 域名
+            var baseUrl = new Uri(internalUrl.ToPublicDwebHref());
+
+            url = baseUrl;
+
+            ///// 我们需要确保最终显示的链接必须是非安全的，因为IOS的安全策略
+            //var unsafeUrl = new Uri(url.AbsoluteUri).SetSchema("http");
+
+            //#region 这里我们通过 ipc 获得 http 的响应，然后为其强制填充 base-href
+            //using var request = new HttpRequestMessage(method ?? HttpMethod.Get, internalUrl);
             //using var response = await remoteMM.NativeFetchAsync(request);
 
+            //using var nsUrlRequest = new NSUrlRequest(new NSUrl(internalUrl.AbsoluteUri));
             //using var nsUrlResponse = new NSUrlResponse(nsUrlRequest.Url, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream", new IntPtr(response.Content.Headers.ContentLength ?? 0), response.Content.Headers.ContentType?.CharSet);
             //string responseData = await response.Content.ReadAsStringAsync() ?? "";
 
-            //var document = htmlParser.ParseDocument(responseData);
-            //var baseNode = document.Head?.QuerySelector("base");
-            //if (baseNode is null)
+            //try
             //{
-            //    baseNode = document.CreateElement("base");
-            //    document.Head!.InsertBefore(baseNode, document.Head.FirstChild);
-            //}
-            //string origin = baseNode.GetAttribute("href")?.Let((href) => new Uri(url, href).ToString()) ?? uri;
-            //string gatewayOrigin = HttpNMM.DwebServer.Origin; // "dweb:";
-            //if (!origin.StartsWith(gatewayOrigin))
-            //{
-            //    baseNode.SetAttribute("href", gatewayOrigin + HttpNMM.X_DWEB_HREF + origin);
-            //    responseData = document.ToHtml();
-            //}
+            //    var document = await htmlParser.ParseDocumentAsync(responseData);
+            //    var baseNode = document.Head?.QuerySelector("base");
+            //    if (baseNode is null)
+            //    {
+            //        baseNode = document.CreateElement("base");
+            //        document.Head!.InsertBefore(baseNode, document.Head.FirstChild);
+            //    }
 
-            ///// 模拟加载
+            //    /// 然后，我们强制注入(或篡改) <base href/>
+            //    string origin = baseNode.GetAttribute("href")?.Let((href) => new Uri(url, href).ToString()) ?? internalUrl.AbsoluteUri;
+            //    string gatewayOrigin = HttpNMM.DwebServer.Origin;
+            //    if (!origin.StartsWith(gatewayOrigin))
+            //    {
+            //        baseNode.SetAttribute("href", baseUrl.AbsoluteUri);
+            //        responseData = document.ToHtml();
+            //    }
+            //}
+            //finally { }
+            //#endregion
+
+            ///// 最终，我们进行模拟加载
             //var nsData = NSData.FromString(responseData);
-            //nsNavigation = LoadSimulatedRequest(nsUrlRequest, nsUrlResponse, nsData);
+            //wkNavigation = LoadSimulatedRequest(new NSUrlRequest(new NSUrl(baseUrl.AbsoluteUri)), nsUrlResponse, nsData);
         }
 
         string uri = url.ToString() ?? throw new ArgumentException();
         var nsUrlRequest = new NSUrlRequest(new NSUrl(uri));
-        WKNavigation? nsNavigation;
-        nsNavigation = LoadRequest(nsUrlRequest);
+        wkNavigation = LoadRequest(nsUrlRequest);
 
 
         if (OnReady is not null && !OnReady.IsEmpty())
