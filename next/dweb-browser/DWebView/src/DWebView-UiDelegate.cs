@@ -7,7 +7,7 @@ namespace DwebBrowser.DWebView;
 
 public partial class DWebView : WKWebView
 {
-    public event Signal<(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures, PromiseOut<WKWebView?> result)>? OnCreateWebView;
+    public event Signal<(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures, Action<WKWebView?> completionHandler)>? OnCreateWebView;
     public event Signal<WKWebView>? OnClose;
     public event Signal<(WKWebView webView, string message, WKFrameInfo frame, Action completionHandler)>? OnAlert;
     public event Signal<(WKWebView webView, string message, WKFrameInfo frame, Action<bool> completionHandler)> OnConfirm;
@@ -25,10 +25,14 @@ public partial class DWebView : WKWebView
         [Export("webView:createWebViewWithConfiguration:forNavigationAction:windowFeatures:")]
         public override WKWebView? CreateWebView(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures)
         {
-            var result = new PromiseOut<WKWebView?>();
-            var args = (webView, configuration, navigationAction, windowFeatures, result);
+            WKWebView? result = null;
+            var completionHandler = (WKWebView? webView) =>
+            {
+                result = webView;
+            };
+            var args = (webView, configuration, navigationAction, windowFeatures, completionHandler);
             (dWebView.OnCreateWebView?.Emit(args))?.Wait();
-            return args.result.Value;
+            return result;
         }
         [Export("webViewDidClose:")]
         public override void DidClose(WKWebView webView)

@@ -1,7 +1,9 @@
 ﻿using UIKit;
+using WebKit;
 using DwebBrowser.MicroService.Sys.Js;
 using DwebBrowser.Base;
 using System.Collections.Generic;
+using DwebBrowser.DWebView;
 
 #nullable enable
 
@@ -32,20 +34,35 @@ public partial class MultiWebViewController : BaseViewController
 
     public record ViewItem(string webviewId, DWebView.DWebView webView);
 
-    public async Task<ViewItem> OpenWebViewAsync(string url)
+    public async Task<ViewItem> OpenWebViewAsync(string url, WKWebViewConfiguration? configuration = null)
     {
-        var dwebview = await CreateDwebView(url);
-        await dwebview.LoadURL(dwebview.Url?.AbsoluteString ?? "");
+        var dwebview = await CreateDwebView(url, configuration);
+
+        _ = dwebview.LoadURL(dwebview.Url?.AbsoluteString ?? "");
         var viewItem = AppendWebViewAsItem(dwebview);
         Console.Log("openWebView", viewItem.webviewId);
-        await _updateStateHookAsync("openWebView");
+
+        /// 提供窗口相关的行为
+        dwebview.OnCreateWebView += async (args, _) =>
+        {
+            var item = await OpenWebViewAsync(args.navigationAction.Request.Url.AbsoluteString!, args.configuration);
+            args.completionHandler(item.webView);
+        };
+        dwebview.OnClose += async (args, _) =>
+        {
+            await CloseWebViewAsync(viewItem.webviewId);
+        };
 
         return viewItem;
     }
 
-    public Task<DWebView.DWebView> CreateDwebView(string url)
+    public Task<DWebView.DWebView> CreateDwebView(string url, WKWebViewConfiguration? configuration = null)
     {
-        return MainThread.InvokeOnMainThreadAsync(() => new DWebView.DWebView(null, LocaleMM, RemoteMM, new(url), null));
+        return MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            var dwebview = new DWebView.DWebView(null, LocaleMM, RemoteMM, new(url), configuration);
+            return dwebview;
+        });
     }
 
     public ViewItem AppendWebViewAsItem(DWebView.DWebView dwebview)
@@ -75,11 +92,9 @@ public partial class MultiWebViewController : BaseViewController
 
             if (WebViewList.Update((list) => list!.Remove(viewItem)))
             {
-                await _updateStateHookAsync("closeWebView");
+                viewItem.webView.Dispose();
+                await (_OnWebViewClose?.Emit(webviewId)).ForAwait();
             }
-
-            //await MainThread.InvokeOnMainThreadAsync(() => viewItem.webView.)
-            await (_OnWebViewClose?.Emit(webviewId)).ForAwait();
 
             return true;
         }
@@ -93,23 +108,6 @@ public partial class MultiWebViewController : BaseViewController
     /// </summary>
     public void DestroyWebView() => WebViewList.Update(list => list!.Clear());
 
-    // TODO _updateStateHook未完成
-    private async Task _updateStateHookAsync(string handler)
-    {
-        Console.Log("_updateStateHook " + handler, "localeMM: {0} mmid: {1} {2}", LocaleMM.Mmid, Mmid, WebViewList.Get().Count);
-        var ipc = await _mIpcMap.GetValueOrPutAsync(Mmid, async () =>
-        {
-            var connectResult = await LocaleMM.ConnectAsync(Mmid);
-            var ipc = connectResult.IpcForFromMM;
-            ipc.OnEvent += async (Event, _, _) =>
-            {
-                Console.Log("event", "name={0}, data={1}", Event.Name, Event.Data);
-            };
-            return ipc;
-        });
-
-        await ipc.PostMessageAsync(IpcEvent.FromUtf8("state", ""));
-    }
 
     private event Signal<string>? _OnWebViewClose;
     private event Signal<string>? _OnWebViewOpen;

@@ -19,7 +19,7 @@ var script = () => {
   };
   const $ = (selector) => document.querySelector(selector);
   $("#open-btn").onclick = async () => {
-    open(`/index.html?qaq=${encodeURIComponent(Date.now())}`);
+    open(new URL( `index.html?qaq=${encodeURIComponent(Date.now())}`, location.href));
   };
   $("#close-btn").onclick = async () => {
     close();

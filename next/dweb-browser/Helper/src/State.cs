@@ -94,7 +94,7 @@ public class State<T>
 
     public event Signal<T, T?> OnChange;
 
-    public T Get()
+    public T Get(bool? force = null)
     {
         lock (StateShared.ObsStack)
         {
@@ -105,9 +105,13 @@ public class State<T>
                 caller.AddDep(this);
             }
         }
+        if (force == null)
+        {
+            force = !hasCache;
+        }
 
 
-        if (!hasCache)
+        if ((bool)force)
         {
             /// 自己也将作为调用者
             /// 
@@ -141,12 +145,12 @@ public class State<T>
     {
         if (setter(value) || force)
         {
-            hasCache = false;
+            /// 强制更新值
+            Get(true);
             /// 向自己的调用者发去通知
             foreach (var @ref in _Refs.ToArray())
             {
-                @ref.hasCache = false;
-                @ref.Get();
+                @ref.Get(true);
             }
             return true;
         }

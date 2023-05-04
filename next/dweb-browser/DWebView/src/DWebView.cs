@@ -42,10 +42,7 @@ public partial class DWebView : WKWebView
 
 
 
-    public DWebView(CGRect frame, MicroModule localeMM, MicroModule remoteMM, Options options, WKWebViewConfiguration configuration) : base(frame, configuration.Also(configuration =>
-    {
-        //configuration.SetUrlSchemeHandler(new DwebSchemeHandler(remoteMM), urlScheme: "dweb");
-    }))
+    public DWebView(CGRect frame, MicroModule localeMM, MicroModule remoteMM, Options options, WKWebViewConfiguration configuration) : base(frame, configuration)
     {
         this.localeMM = localeMM;
         this.remoteMM = remoteMM;
