@@ -181,7 +181,6 @@ export class NavigationBarNMM extends NativeMicroModule {
   }
   
   private _waitForOperation = async (req: IncomingMessage, res: OutgoingMessage) => {
-    const origin = req.headers.origin;
     const appUrl = new URL(req.url as string, req.headers.referer).searchParams.get('app_url')
     if(appUrl === null) throw new Error(`${this.mmid} _waiForOperation appUrl === null`)
     this.waitForOperationRes.set(appUrl, res)
@@ -211,7 +210,13 @@ export class NavigationBarNMM extends NativeMicroModule {
       const origin = req.headers.from
       if(origin === undefined) throw new Error(`origin === undefined`);
       const observe = this.observeMap.get(origin);
-      if(id !== "observe" && observe === undefined) throw new Error(`observe === undefined`);
+      
+      if(id !== "observe" && observe === undefined) {
+        console.log(`${this.mmid} this.observeMap: `, this.observeMap)
+        console.log(`${this.mmid} origin: `, origin)
+        console.log(`${this.mmid} req.headers: `, req.headers)
+        throw new Error(`observe === undefined`);
+      }
       // 需要加入一个 \n 符号
       observe?.res?.write(Buffer.concat([chunks, this.encoder.encode("\n")]))
     })

@@ -21,11 +21,16 @@ declare namespace globalThis {
   };
   function open(url: string): Window;
 }
-const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
-if (native_close_watcher_kit) {
-  native_close_watcher_kit._watchers ??= new Map();
-  native_close_watcher_kit._tasks ??= new Map();
-}
+
+// if(!globalThis.__native_close_watcher_kit__){
+//   Object.defineProperties(globalThis,{ __native_close_watcher_kit__: { value: {}}})
+// }
+
+// const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
+// if (native_close_watcher_kit) {
+//   native_close_watcher_kit._watchers ??= new Map();
+//   native_close_watcher_kit._tasks ??= new Map();
+// }
 export class CloseWatcher extends EventTarget {
   constructor() {
     super();
@@ -37,6 +42,7 @@ export class CloseWatcher extends EventTarget {
       new Blob(["create-close-watcher"], { type: "text/html" })
     );
 
+    const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
     const tasks = native_close_watcher_kit._tasks;
     const po = this.#id;
     // 注册回调
@@ -68,6 +74,7 @@ export class CloseWatcher extends EventTarget {
       return;
     }
     const id = await this.#id.promise;
+    const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
     native_close_watcher_kit.tryClose(id);
   }
   #onclose?: (event: CloseEvent) => void;

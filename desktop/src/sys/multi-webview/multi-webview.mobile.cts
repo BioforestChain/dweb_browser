@@ -9,8 +9,10 @@ import {
   openNativeWindow,
 } from "../../helper/openNativeWindow.cjs";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
+import path from "node:path";
 const resolveTo = createResolveTo(__dirname);
 import chalk from "chalk"
+
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
@@ -73,8 +75,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { webview_id: "number" },
       output: "boolean",
       handler: async (args, client_ipc) => {
-
-        console.log('------ multi-webview.mobile.cts 执行了关闭');
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         return wapis.apis.closeWebview(args.webview_id);
       },
