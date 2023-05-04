@@ -29,7 +29,6 @@
 		F02899AA29FA499D00B8754A /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899A929FA499D00B8754A /* HomeView.swift */; };
 		F02899AC29FA882C00B8754A /* TabHStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899AB29FA882C00B8754A /* TabHStackView.swift */; };
 		F02899AF29FBA28E00B8754A /* AutoFillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899AE29FBA28E00B8754A /* AutoFillView.swift */; };
-		F02899B129FBAC0000B8754A /* webViewRedrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899B029FBAC0000B8754A /* webViewRedrawView.swift */; };
 		F02899B629FBD3EA00B8754A /* TabPagesState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899B529FBD3EA00B8754A /* TabPagesState.swift */; };
 		F02899BB2A033E2F00B8754A /* WebView_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899BA2A033E2E00B8754A /* WebView_test.swift */; };
 		F0B2AB172A03AC40000AD502 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B2AB162A03AC40000AD502 /* WebView.swift */; };
@@ -58,7 +57,6 @@
 		F02899A929FA499D00B8754A /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		F02899AB29FA882C00B8754A /* TabHStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabHStackView.swift; sourceTree = "<group>"; };
 		F02899AE29FBA28E00B8754A /* AutoFillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoFillView.swift; sourceTree = "<group>"; };
-		F02899B029FBAC0000B8754A /* webViewRedrawView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = webViewRedrawView.swift; sourceTree = "<group>"; };
 		F02899B529FBD3EA00B8754A /* TabPagesState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabPagesState.swift; sourceTree = "<group>"; };
 		F02899BA2A033E2E00B8754A /* WebView_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView_test.swift; sourceTree = "<group>"; };
 		F0B2AB162A03AC40000AD502 /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
@@ -171,7 +169,6 @@
 			children = (
 				F028997829F7C38500B8754A /* ObservableObjectView.swift */,
 				F02899AE29FBA28E00B8754A /* AutoFillView.swift */,
-				F02899B029FBAC0000B8754A /* webViewRedrawView.swift */,
 			);
 			path = Example;
 			sourceTree = "<group>";
@@ -270,7 +267,6 @@
 				F028999129F7C4AA00B8754A /* SnapshotView.swift in Sources */,
 				F0B2AB172A03AC40000AD502 /* WebView.swift in Sources */,
 				F02899BB2A033E2F00B8754A /* WebView_test.swift in Sources */,
-				F02899B129FBAC0000B8754A /* webViewRedrawView.swift in Sources */,
 				F02899AA29FA499D00B8754A /* HomeView.swift in Sources */,
 				F028998A29F7C3DC00B8754A /* AddressBarHStack.swift in Sources */,
 				F02899A329F91DF300B8754A /* Placeholder_extention.swift in Sources */,
