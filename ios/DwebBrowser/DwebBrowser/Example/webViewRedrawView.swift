@@ -23,13 +23,13 @@ struct webViewRedrawView: View {
             }
             
             if showWebView {
-                WebView(url: "https://www.google.com")
+                WebView_ex(url: "https://www.google.com")
             }
         }
     }
 }
 
-struct WebView: UIViewRepresentable {
+struct WebView_ex: UIViewRepresentable {
     
     let url: String
         

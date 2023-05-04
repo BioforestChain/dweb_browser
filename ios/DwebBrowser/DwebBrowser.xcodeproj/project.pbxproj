@@ -30,6 +30,9 @@
 		F02899AC29FA882C00B8754A /* TabHStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899AB29FA882C00B8754A /* TabHStackView.swift */; };
 		F02899AF29FBA28E00B8754A /* AutoFillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899AE29FBA28E00B8754A /* AutoFillView.swift */; };
 		F02899B129FBAC0000B8754A /* webViewRedrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899B029FBAC0000B8754A /* webViewRedrawView.swift */; };
+		F02899B629FBD3EA00B8754A /* TabPagesState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899B529FBD3EA00B8754A /* TabPagesState.swift */; };
+		F02899BB2A033E2F00B8754A /* WebView_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899BA2A033E2E00B8754A /* WebView_test.swift */; };
+		F0B2AB172A03AC40000AD502 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B2AB162A03AC40000AD502 /* WebView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +59,9 @@
 		F02899AB29FA882C00B8754A /* TabHStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabHStackView.swift; sourceTree = "<group>"; };
 		F02899AE29FBA28E00B8754A /* AutoFillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoFillView.swift; sourceTree = "<group>"; };
 		F02899B029FBAC0000B8754A /* webViewRedrawView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = webViewRedrawView.swift; sourceTree = "<group>"; };
+		F02899B529FBD3EA00B8754A /* TabPagesState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabPagesState.swift; sourceTree = "<group>"; };
+		F02899BA2A033E2E00B8754A /* WebView_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView_test.swift; sourceTree = "<group>"; };
+		F0B2AB162A03AC40000AD502 /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,11 +119,10 @@
 		F028998429F7C3B100B8754A /* MainContainer */ = {
 			isa = PBXGroup;
 			children = (
+				F02899B229FBB75000B8754A /* HomePage */,
 				F028998529F7C3DA00B8754A /* MainContainerView.swift */,
 				F02899AB29FA882C00B8754A /* TabHStackView.swift */,
-				F028998B29F7C3E400B8754A /* TabPageView.swift */,
 				F028999A29F7CC0000B8754A /* TabsCollectionView.swift */,
-				F02899A929FA499D00B8754A /* HomeView.swift */,
 				F028998729F7C3DC00B8754A /* AddressBarHStack.swift */,
 				F028998629F7C3DB00B8754A /* ToolbarView.swift */,
 			);
@@ -169,6 +174,18 @@
 				F02899B029FBAC0000B8754A /* webViewRedrawView.swift */,
 			);
 			path = Example;
+			sourceTree = "<group>";
+		};
+		F02899B229FBB75000B8754A /* HomePage */ = {
+			isa = PBXGroup;
+			children = (
+				F028998B29F7C3E400B8754A /* TabPageView.swift */,
+				F0B2AB162A03AC40000AD502 /* WebView.swift */,
+				F02899A929FA499D00B8754A /* HomeView.swift */,
+				F02899B529FBD3EA00B8754A /* TabPagesState.swift */,
+				F02899BA2A033E2E00B8754A /* WebView_test.swift */,
+			);
+			path = HomePage;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -251,6 +268,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F028999129F7C4AA00B8754A /* SnapshotView.swift in Sources */,
+				F0B2AB172A03AC40000AD502 /* WebView.swift in Sources */,
+				F02899BB2A033E2F00B8754A /* WebView_test.swift in Sources */,
 				F02899B129FBAC0000B8754A /* webViewRedrawView.swift in Sources */,
 				F02899AA29FA499D00B8754A /* HomeView.swift in Sources */,
 				F028998A29F7C3DC00B8754A /* AddressBarHStack.swift in Sources */,
@@ -264,6 +283,7 @@
 				F028998829F7C3DC00B8754A /* MainContainerView.swift in Sources */,
 				F028998929F7C3DC00B8754A /* ToolbarView.swift in Sources */,
 				F028998F29F7C42300B8754A /* const.swift in Sources */,
+				F02899B629FBD3EA00B8754A /* TabPagesState.swift in Sources */,
 				F028999729F7C87000B8754A /* HistoryView.swift in Sources */,
 				F028997729F7C38500B8754A /* DwebBrowserApp.swift in Sources */,
 				F028998C29F7C3E400B8754A /* TabPageView.swift in Sources */,
@@ -403,7 +423,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -433,7 +453,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

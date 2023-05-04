@@ -78,17 +78,14 @@ struct ToolbarView: View {
             }
         }
         .frame(height: toolBarHeight)
-//        .background(Color.white)
     }
 }
-
 
 struct ToolbarView_Previews: PreviewProvider {
     static var previews: some View {
         ToolbarView()
     }
 }
-
 
 struct ToolbarItem: View {
     var imageName: String

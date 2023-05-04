@@ -42,6 +42,7 @@ struct TabsCollectionView: View {
               hPadding: 20) { person in
             GridCell(person: person)
         }
+              .background(.gray)
     }
 }
 

@@ -7,54 +7,34 @@
 
 import SwiftUI
 
-struct AddressBarHStack_Previews: PreviewProvider {
-    static var previews: some View {
-        WrapTestView()
-    }
-}
-
-
-struct WrapTestView:View{
-    @State var testOffset: CGFloat = 0
-    
+struct AddressBarHContainer:View{
     var body: some View{
-        VStack{
-            Spacer()
-            AddressBarHStack()
-            Text("dragOffset:\(testOffset)")
-                .background(.green)
-        }.background(.red)
+        HStack(spacing: 0) {
+            AddressBar(inputText: "")
+                .frame(width: screen_width)
+            AddressBar(inputText: "")
+                .frame(width: screen_width)
+            AddressBar(inputText: "")
+                .frame(width: screen_width)
+        }
+        .background(.orange)
     }
 }
 
 struct AddressBarHStack: View {
     @EnvironmentObject var states: ToolbarState
     @EnvironmentObject var mainVstate: MainViewState
+    @State private var selectedTab = 0
 
     var body: some View {
         GeometryReader { innerGeometry in
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
-                    AddressBar(inputText: "")
-                        .frame(width: screen_width)
-                    AddressBar(inputText: "")
-                        .frame(width: screen_width)
-                    AddressBar(inputText: "")
-                        .frame(width: screen_width)
-                }
-            }
-            .onAppear{
-                UIScrollView.appearance().isPagingEnabled = true
-            }
-            .background(.orange)
+            PageScroll(contentSize: 3, content:AddressBarHContainer())
         }
         .frame(height: states.showMenu ? 0 : addressBarHeight)
-
         .animation(.easeInOut(duration: 0.3), value: states.showMenu)
-
     }
 }
+
 
 struct AddressBar: View {
     @State var inputText: String = ""
@@ -91,9 +71,15 @@ struct AddressBar: View {
                         print("Offset X: \(offsetX)")
                         offsetState.adressBarHstackOffset = offsetX
                       }
-                
+//                Progress
             }.frame(height: addressBarHeight)
         }
     }
 }
 
+
+struct AddressBarHStack_Previews: PreviewProvider {
+    static var previews: some View {
+        AddressBarHStack()
+    }
+}

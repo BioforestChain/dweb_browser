@@ -12,10 +12,15 @@ struct TabsContainerView: View{
     
     var body: some View{
         ZStack{
-            if toolbarStates.showMenu{
-                TabsCollectionView().background(.secondary)
+            TabHStackView()
+
+            if !toolbarStates.showMenu{
+                TabsCollectionView()
+                    .background(.secondary)
+                    .hidden()
             }else{
-                TabHStackView()
+                TabsCollectionView()
+                    .background(.secondary)
             }
         }
     }
@@ -26,20 +31,26 @@ struct TabHStackView: View{
     
     var body: some View{
         
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 0) {
-                TabPageView()
-                    .frame(width: screen_width)
-                TabPageView()
-                    .frame(width: screen_width)
-                TabPageView()
-                    .frame(width: screen_width)
-            }
-            .offset(x: offsetState.adressBarHstackOffset)
-            .onAppear {
-                
-            }
-        }
+//        if #available(iOS 16.0, *) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    TabPageView()
+                        .frame(width: screen_width)
+                    TabPageView()
+                        .frame(width: screen_width)
+                    TabPageView()
+                        .frame(width: screen_width)
+                }
+                .offset(x: offsetState.adressBarHstackOffset)
+//                .gesture(DragGesture())
+                .onAppear {
+                    
+                }
+            }.scrollDisabled(true)
+
+//        } else {
+//            // Fallback on earlier versions
+//        }
     }
 }
 
