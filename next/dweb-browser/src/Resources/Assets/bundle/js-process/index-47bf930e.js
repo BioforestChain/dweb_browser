@@ -17,15 +17,15 @@
       }
     }
   }).observe(document, { childList: true, subtree: true });
-  function getFetchOpts(link) {
+  function getFetchOpts(script) {
     const fetchOpts = {};
-    if (link.integrity)
-      fetchOpts.integrity = link.integrity;
-    if (link.referrerPolicy)
-      fetchOpts.referrerPolicy = link.referrerPolicy;
-    if (link.crossOrigin === "use-credentials")
+    if (script.integrity)
+      fetchOpts.integrity = script.integrity;
+    if (script.referrerpolicy)
+      fetchOpts.referrerPolicy = script.referrerpolicy;
+    if (script.crossorigin === "use-credentials")
       fetchOpts.credentials = "include";
-    else if (link.crossOrigin === "anonymous")
+    else if (script.crossorigin === "anonymous")
       fetchOpts.credentials = "omit";
     else
       fetchOpts.credentials = "same-origin";
@@ -186,7 +186,6 @@ const ALL_PROCESS_MAP = /* @__PURE__ */ new Map();
 let acc_process_id = 0;
 const allocProcessId = () => acc_process_id++;
 const createProcess = async (env_script_url, metadata_json, env_json, fetch_port, name = new URL(env_script_url).hostname) => {
-  console.log("createProcess =>", env_script_url, fetch_port);
   const process_id = allocProcessId();
   const worker_url = URL.createObjectURL(
     new Blob(
@@ -198,7 +197,7 @@ const createProcess = async (env_script_url, metadata_json, env_json, fetch_port
       ],
       {
         // esm 代码必须有正确的 mime
-        type: "application/javascript"
+        type: "text/javascript"
       }
     )
   );

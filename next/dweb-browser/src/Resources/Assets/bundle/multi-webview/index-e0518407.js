@@ -17,15 +17,15 @@
       }
     }
   }).observe(document, { childList: true, subtree: true });
-  function getFetchOpts(link) {
+  function getFetchOpts(script) {
     const fetchOpts = {};
-    if (link.integrity)
-      fetchOpts.integrity = link.integrity;
-    if (link.referrerPolicy)
-      fetchOpts.referrerPolicy = link.referrerPolicy;
-    if (link.crossOrigin === "use-credentials")
+    if (script.integrity)
+      fetchOpts.integrity = script.integrity;
+    if (script.referrerpolicy)
+      fetchOpts.referrerPolicy = script.referrerpolicy;
+    if (script.crossorigin === "use-credentials")
       fetchOpts.credentials = "include";
-    else if (link.crossOrigin === "anonymous")
+    else if (script.crossorigin === "anonymous")
       fetchOpts.credentials = "omit";
     else
       fetchOpts.credentials = "same-origin";
@@ -1632,7 +1632,10 @@ let MultiWebViewContent = class extends s$1 {
                     data-app-url=${this.src}
                 ></iframe>
                 <!-- 内容容器 -->
-                <div class="webview-container">
+                <div 
+                    class="webview-container"
+                    data-app-url=${this.src}
+                >
                     <webview
                         id="view-${this.customWebviewId}"
                         class="webview"
@@ -1647,7 +1650,10 @@ let MultiWebViewContent = class extends s$1 {
                         class="toast"
                         style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; position: absolute; left: 0px; bottom: 0px"
                         src="http://toast.nativeui.sys.dweb-80.localhost:22605"
-                        @load=${() => console.log("toast 载入完成")}
+                        @load=${(e2) => {
+      console.log("toast 载入完成");
+      this.onPluginNativeUiLoadBase(e2);
+    }}
                         data-app-url=${this.src}
                     ></iframe>
                 </div>
@@ -1688,10 +1694,21 @@ let MultiWebViewContent = class extends s$1 {
                 <iframe 
                     id="barcode-scanning"
                     class="iframe-barcode-scanning"
-                    style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
-                    src="http://barcode-scanning.nativeui.sys.dweb-80.localhost:22605"
+                    style="width:100%; height:0px; border: none; flex-grow:0; flex-shrink:0; overflow: hidden; position: absolute; left: 0px; bottom: 0px; z-index: 100;"
+                    src="http://barcode-scanning.sys.dweb-80.localhost:22605"
                     @load=${(e2) => {
       console.log("barcode-scanning 载入完成");
+      this.onPluginNativeUiLoadBase(e2);
+    }}
+                    data-app-url=${this.src}
+                ></iframe>
+                <iframe 
+                    id="haptics"
+                    class="iframe-haptics"
+                    style="width:0px; height:0px; border: none; flex-grow:0; flex-shrink:0; overflow: hidden; position: absolute; left: 0px; bottom: 0px; z-index: 100;"
+                    src="http://haptics.sys.dweb-80.localhost:22605"
+                    @load=${(e2) => {
+      console.log("haptics 载入完成");
       this.onPluginNativeUiLoadBase(e2);
     }}
                     data-app-url=${this.src}
@@ -1985,10 +2002,53 @@ let ViewTree = class extends s$1 {
     );
   }
   async destroyWebview(webview) {
+    console.log("webveiw: ", webview);
+    console.log("this.webviews: ", this.webviews);
     await mainApis.destroy(webview.webContentId);
   }
+  async destroyWebviewByHost(host) {
+    this.webviews.forEach((webview) => {
+      const _url = new URL(webview.src);
+      const _host = `api${_url.host.slice(3)}`;
+      console.log(_host);
+      console.log(host);
+      if (_host === host) {
+        this.destroyWebview(webview);
+      }
+    });
+    return true;
+  }
+  async restartWebviewByHost(host) {
+    this.webviews.forEach((webview) => {
+      const _url = new URL(webview.src);
+      const _host = `api${_url.host.slice(3)}`;
+      console.log(_host);
+      console.log(host);
+      if (_host === host) {
+        this.render();
+      }
+    });
+    console.log(this.webviews);
+    return true;
+  }
+  // override connectedCallback = () => {
+  //   super.connectedCallback()
+  //   console.log('connectedCallback------')
+  // }
+  // override connectedCallback(){
+  //   super.connectedCallback();
+  //   fetch("./mwebview.sys.dweb/wati_operation")
+  //   .then(
+  //     async (res) => {
+  //       console.log("接收到了数据")
+  //     },
+  //     err => {throw err}
+  //   )
+  //   console.log('--------')
+  // }
   // Render the UI as a function of component state
   render() {
+    console.log("render: ");
     return y`
       <div class="layer stack app-container">
         ${c(
@@ -2249,7 +2309,9 @@ const viewTree = new ViewTree();
 document.body.appendChild(viewTree);
 const APIS = {
   openWebview: viewTree.openWebview.bind(viewTree),
-  closeWebview: viewTree.closeWebview.bind(viewTree)
+  closeWebview: viewTree.closeWebview.bind(viewTree),
+  destroyWebviewByHost: viewTree.destroyWebviewByHost.bind(viewTree),
+  restartWebviewByHost: viewTree.restartWebviewByHost.bind(viewTree)
 };
 exportApis(APIS);
 Object.assign(globalThis, APIS);

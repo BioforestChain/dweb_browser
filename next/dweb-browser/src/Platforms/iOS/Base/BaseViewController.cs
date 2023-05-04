@@ -14,7 +14,7 @@ public abstract class BaseViewController : UIViewController
     }
 
     /// <summary>
-    /// 舒适化数据，或者注册监听
+    /// 初始化数据，或者注册监听
     /// </summary>
     public virtual void InitData() { }
 

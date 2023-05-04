@@ -10,7 +10,7 @@ export const main = async () => {
   const { createHttpDwebServer } = http;
 
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
-  const httpDwebServer = await createHttpDwebServer(jsProcess, {});
+  const httpDwebServer = await createHttpDwebServer(jsProcess, {subdomain: "", port: 8080});
 
   // if (jsProcess.meta.envBooleanOrNull("debug")) {
   //   await new Promise((resolve) => {
