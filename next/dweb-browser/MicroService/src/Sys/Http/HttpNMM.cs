@@ -165,13 +165,15 @@ public class HttpNMM : NativeMicroModule
         /// 为 nativeFetch 函数提供支持
         var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
         {
-            if (request.RequestUri is not null &&
-                request.RequestUri.Scheme is "http" or "https" &&
-                request.RequestUri.Host.EndsWith(".dweb"))
+            if (request.RequestUri is not null and var requestUri &&
+                requestUri.Scheme is "http" or "https" &&
+                requestUri.Host.EndsWith(".dweb"))
             {
                 // 无需走网络层，直接内部处理掉
-                request.Headers.Add(X_DWEB_HOST, request.RequestUri.GetFullAuthority(request.RequestUri.Authority));
-                request.RequestUri = request.RequestUri.SetSchema("http").SetAuthority(DwebServer.Authority);
+                if (request.Headers.Contains(X_DWEB_HOST) is false)
+                {
+                    request.Headers.Add(X_DWEB_HOST, request.RequestUri.GetFullAuthority(request.RequestUri.Authority));
+                }
                 return await _httpHandler(request);
             }
 

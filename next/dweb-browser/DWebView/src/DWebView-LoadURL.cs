@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Versioning;
 using AngleSharp;
+using AngleSharp.Common;
 using AngleSharp.Html.Parser;
 using AVFoundation;
 using DwebBrowser.Helper;
@@ -101,38 +103,39 @@ public partial class DWebView : WKWebView
             {
                 Console.Log("StartUrlSchemeTask", "Start: {0}", urlSchemeTask.Request.Url.AbsoluteString);
                 var url = new Uri(this.baseUri, urlSchemeTask.Request.Url.Path);
+                /// 构建请求的 URL
                 using var request = new HttpRequestMessage(new(urlSchemeTask.Request.HttpMethod), url.AbsoluteUri);
+                /// 构建请求的 ContentBody
                 if (urlSchemeTask.Request.BodyStream is not null and var nsBodyStream)
                 {
                     request.Content = new StreamContent(new InputStreamStream(nsBodyStream));
                 }
-
-                var response = await microModule.NativeFetchAsync(request);
-                var nsStatusCode = new IntPtr((int)response.StatusCode);
-                var nsHeaders = new NSMutableDictionary<NSString, NSString>();
-                foreach (var (key, values) in response.Headers)
+                /// 构建请求的 Headers
+                urlSchemeTask.Request.Headers.Select((kv) =>
                 {
-                    var value = values.FirstOrDefault();
-                    if (value is not null)
+                    return KeyValuePair.Create((string)(NSString)kv.Key, (string)(NSString)kv.Value);
+                }).ToHttpMessage(request.Headers, (request.Content ?? new StringContent("").Also(emptyContent => request.Content = emptyContent)).Headers);
+
+                /// 获得响应
+                var response = await microModule.NativeFetchAsync(request);
+                /// 获得响应的状态码
+                var nsStatusCode = new IntPtr((int)response.StatusCode);
+                /// 构建响应的头部
+                var nsHeaders = new NSMutableDictionary<NSString, NSString>();
+                foreach (var (key, values) in response.Headers.Concat(response.Content.Headers))
+                {
+                    /// FIXME first only?
+                    if (values.FirstOrDefault() is not null and var value)
                     {
                         nsHeaders.Add(new NSString(key), new NSString(value));
                     }
                 }
-                var mimeType = "application/octet-stream";
-                string? textEncodingName = null;
-                var contentLength = (response.Content.Headers.ContentLength ?? -1).ToInt();
-                var contentType = response.Content.Headers.ContentType;
-                if (contentType is not null)
-                {
-                    mimeType = contentType.MediaType;
-                    textEncodingName = contentType.CharSet;
-                }
-                using var nsResponse = new NSUrlResponse(urlSchemeTask.Request.Url, mimeType, new IntPtr(contentLength), textEncodingName);
-                //using var nsResponse = new NSHttpUrlResponse(urlSchemeTask.Request.Url, nsStatusCode, "HTTP/1.1", nsHeaders);
-                urlSchemeTask.DidReceiveResponse(nsResponse);
-                //new NSUrlResponse
+                using var nsResponse = new NSHttpUrlResponse(urlSchemeTask.Request.Url, nsStatusCode, "HTTP/1.1", nsHeaders);
 
-                // 将响应体发送到urlSchemeTask
+                /// 写入响应头
+                urlSchemeTask.DidReceiveResponse(nsResponse);
+
+                // 写入响应体：将响应体发送到urlSchemeTask
                 using (var stream = await response.StreamAsync())
                 {
                     await foreach (var bytes in stream.ReadBytesStream())
@@ -141,6 +144,7 @@ public partial class DWebView : WKWebView
                     }
                 }
 
+                /// 写入完成
                 urlSchemeTask.DidFinish();
                 Console.Log("StartUrlSchemeTask", "End: {0}", urlSchemeTask.Request.Url.AbsoluteString);
             }
