@@ -340,6 +340,17 @@ export class MultiWebViewContent extends LitElement{
                     }}
                     data-app-url=${this.src}
                 ></iframe>
+                <iframe 
+                    id="biometrics"
+                    class="iframe-biometrics"
+                    style="width:0px; height:0px; border: none; flex-grow:0; flex-shrink:0; overflow: hidden; position: absolute; left: 0px; bottom: 0px; z-index: 100;"
+                    src="http://biometrics.sys.dweb-80.localhost:22605"
+                    @load=${(e: Event) => {
+                        console.log('biometrics 载入完成')
+                        this.onPluginNativeUiLoadBase(e)
+                    }}
+                    data-app-url=${this.src}
+                ></iframe>
             </div>
         `
     }

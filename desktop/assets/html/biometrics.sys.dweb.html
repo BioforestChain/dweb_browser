@@ -1,0 +1,153 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="text/javascript" src="../scripts/defined_app_url.js"></script>
+  <title>biometrics.sys.dweb</title>
+</head>
+<body>
+  <script type="text/javascript">
+    const mmid = "biometrics.sys.dweb"
+    function windowOnMessage (){
+      console.log(`${mmid}.html windowOnMessage`)
+      awaitOperation()
+      window.removeEventListener('message', windowOnMessage)
+    }
+
+    /*
+        监听操作的方法
+    */
+    async function awaitOperation(){
+      fetch(`http://${mmid}-80.localhost:22605/biometrics_sys_dweb_ui/wait_for_operation?app_url=`+window.appUrl)
+      .then(async (res) => {
+        console.log('res: ', res)
+          const reader = res.body.getReader()
+          let loop = true;
+          do{
+              const {value, done} = await reader.read()
+              loop = !done
+              if(!value) continue;
+              const o = JSON.parse(new TextDecoder().decode(value))
+              console.log(`${mmid}.html 请求的结果： `, o)
+              
+              if(!appUrl.startsWith(o.from)) continue;
+              switch(o.operationName){
+                case "check":
+                  check(o);
+                  break;
+                case "biometrics":
+                  biometrics(o);
+                  break;
+                default: console.error(`${mmid}.html 没有匹配的功能 o.operationName === `, o.operationName)
+              }
+          }while(loop)
+      })
+      .catch(err => {
+        console.error(`${mmid}.htmlerr: `, err)
+          
+      })
+    }
+
+    // 通过发送请求把数据传送回去
+    function fetchReturn(value,id, from){
+      fetch(
+        `http://${mmid}-80.localhost:22605/biometrics_sys_dweb_ui/operation_return?app_url=`+from,
+        {
+          method: 'POST',
+          body: value,
+          headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+            "id": id,
+            "from": from
+          }
+        }
+      )
+      .catch(err => console.error("fetchReturn 出错", err))
+    }
+
+    // 检查是否支持 生物识别
+    function check(data){
+      fetchReturn(
+        (window?.PublicKeyCredential !== undefined && typeof window.PublicKeyCredential === 'function') ? true : false,
+        data.id,
+        data.from,
+      )
+    }
+
+    // 生物识别开始
+    async function biometrics(data){
+      // 有问题暂时模拟
+      const el = document.createElement('div')
+            el.style = `
+              position: absolute;
+              top: 0px;
+              left: 0px;
+              z-index: 999999999;
+              width: 100%;
+              height: 100%;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            `
+
+      const container = document.createElement('div')
+            container.style = `
+              width: 300px;
+              height: auto;
+              padding: 30px 0px;
+              display: flex;
+              justify-content: space-around;
+              align-items: center;
+              background: #FFFFFF;
+              border-radius: 20px;
+            `
+      const btnStyle = `
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+      `
+
+      const btnPass = document.createElement('button')
+            btnPass.innerHTML = "识别通过"
+            btnPass.style = btnStyle;
+            btnPass.style.backgroundColor = "#2f54eb"
+            btnPass.addEventListener('click', () => {
+              el.remove()
+              fetchReturn(
+                JSON.stringify({
+                  success: true,
+                  message: "pass"
+                }),
+                data.id,
+                data.from,
+              )
+            })
+
+      const btnNoPass = document.createElement('button');
+            btnNoPass.innerHTML = "识别没有通过"
+            btnNoPass.style = btnStyle;
+            btnNoPass.style.backgroundColor = "#bfbfbf";
+            btnNoPass.addEventListener('click', () => {
+              el.remove();
+              fetchReturn(
+                JSON.stringify({
+                  success: false,
+                  message: "not pass"
+                }),
+                data.id,
+                data.from,
+              )
+            })
+
+      container.append(btnPass, btnNoPass)
+      el.append(container)
+      window.parentElement.append(el)
+    }
+    
+  </script>
+  <script type="text/javascript">
+    window.addEventListener('message', windowOnMessage)
+  </script>
+</body>
+</html>

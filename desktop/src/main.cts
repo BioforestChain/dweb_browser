@@ -49,8 +49,10 @@ dns.install(new ToastNMM())
 dns.install(new TorchNMM())
 
 import { BarcodeScanningNativeUiNMM } from "./sys/plugins/sys/barcode-scanning/barcode-scanning.main.cjs";
+import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.cjs";
 import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.cjs"
 dns.install(new BarcodeScanningNativeUiNMM())
+dns.install(new BiometricsNMM());
 dns.install(new HapticsNMM())
 
 // 安装 jmmMetadata.sys.dweb
@@ -77,6 +79,7 @@ dns.install(new BootNMM([
   "barcode-scanning.sys.dweb",
   "toast.nativeui.sys.dweb",
   "torch.nativeui.sys.dweb",
+  "biometrics.sys.dweb",
   "haptics.sys.dweb",
   "browser.sys.dweb",
   // cotDemoJMM.mmid

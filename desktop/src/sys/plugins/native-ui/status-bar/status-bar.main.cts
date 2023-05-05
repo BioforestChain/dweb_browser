@@ -199,6 +199,7 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
       if(id !== "observe"){ // 如果不是监听需要按正常路径返回
         if(reqRes === undefined) throw new Error(`reqRes === undefined`);
         reqRes.res.end(Buffer.from(chunks));
+        this.reqResMap.delete(parseInt(id as string))
       } 
 
       // 是否需要 按监听的请求返回数据
