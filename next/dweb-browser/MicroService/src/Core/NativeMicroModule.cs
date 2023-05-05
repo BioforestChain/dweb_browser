@@ -68,9 +68,8 @@ public abstract class NativeMicroModule : MicroModule
             switch (RegMap.GetValueOrDefault(result.GetType()))
             {
                 case null:
-                    var superClassType = result.GetType().BaseType;
-
-                    while (superClassType != null)
+                    var superClassType = result.GetType().BaseType; // 这里要声明在 while 循环外，因为要循环更新
+                    while (superClassType is not null)
                     {
                         // 尝试寻找继承关系
                         switch (RegMap.GetValueOrDefault(superClassType))

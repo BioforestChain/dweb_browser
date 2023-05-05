@@ -192,7 +192,13 @@ public class JsProcessNMM : NativeMicroModule
 
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
-            var dwebview = new DWebView.DWebView(localeMM: this);
+            var dwebview = new DWebView.DWebView(
+                localeMM: this,
+                options: new()
+                {
+                    BaseUri = urlInfo.BuildInternalUrl(),
+                    AllowDwebScheme = false,
+                });
 
             var apis = new JsProcessWebApi(dwebview).Also(apis =>
             {
@@ -200,8 +206,10 @@ public class JsProcessNMM : NativeMicroModule
             });
             dwebview.OnReady += async (_) =>
                afterReadyPo.Resolve(apis);
+
+            /// 确保 OnReady 函数绑定上后，再执行 LoadURL 
             var mainUrl = urlInfo.BuildInternalUrl().Path("/index.html");
-            dwebview.LoadURL(mainUrl);
+            dwebview.LoadURL(mainUrl).Background();
         });
         var apis = await afterReadyPo.WaitPromiseAsync();
         return apis;

@@ -135,7 +135,7 @@ public class IpcHeaders
 sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>
 {
     public override bool CanConvert(Type typeToConvert) =>
-        typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
+        typeToConvert.GetMethod("ToJson") is not null && typeToConvert.GetMethod("FromJson") is not null;
 
     public override IpcHeaders? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

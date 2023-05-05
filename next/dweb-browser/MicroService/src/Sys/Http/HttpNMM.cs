@@ -13,7 +13,9 @@ public class HttpNMM : NativeMicroModule
 {
     static Debugger Console = new Debugger("HttpNMM");
     public static Http1Server DwebServer = new Http1Server();
-    public static readonly string X_DWEB_HREF = "/X-Dweb-Href/";
+    public const string X_DWEB_HREF = "/X-Dweb-Href/";
+    public const string X_DWEB_HOST = "X-Dweb-Host";
+    public const string INTERNAL_SCHEME = "https";
     /// <summary>
     /// 基于BuildInternalUrl拼接出来的链接，不基于Query，所以适用性更好，可以用于base-uri
     /// </summary>
@@ -48,17 +50,17 @@ public class HttpNMM : NativeMicroModule
      */
     private async Task<HttpResponseMessage> _httpHandler(HttpRequestMessage request)
     {
-        if (request.RequestUri?.AbsolutePath.StartsWith(X_DWEB_HREF) is true)
+        if (request.RequestUri?.PathAndQuery.StartsWith(X_DWEB_HREF) is true)
         {
-            request.RequestUri = new Uri(request.RequestUri.AbsolutePath.Substring(X_DWEB_HREF.Length));
-            request.Headers.TryAddWithoutValidation("X-Dweb-Host", request.RequestUri.Authority);
+            request.RequestUri = new Uri(request.RequestUri.PathAndQuery.Substring(X_DWEB_HREF.Length));
+            request.Headers.TryAddWithoutValidation(X_DWEB_HOST, request.RequestUri.Authority);
         }
 
 
         string? header_host = null;
         string? header_x_dweb_host = null;
         string? header_user_agent_host = null;
-        string? query_x_web_host = request.RequestUri?.GetQuery("X-Dweb-Host")?.DecodeURIComponent();
+        string? query_x_web_host = request.RequestUri?.GetQuery(X_DWEB_HOST)?.DecodeURIComponent();
 
         foreach (var entry in request.Headers)
         {
@@ -67,7 +69,7 @@ public class HttpNMM : NativeMicroModule
                 case "Host":
                     header_host = entry.Value.FirstOrDefault();
                     break;
-                case "X-Dweb-Host":
+                case X_DWEB_HOST:
                     header_x_dweb_host = entry.Value.FirstOrDefault();
                     break;
                 case "User-Agent":
@@ -133,7 +135,7 @@ public class HttpNMM : NativeMicroModule
             Public_Origin = public_origin;
         }
 
-        public Uri BuildPublicUrl() => new Uri(Public_Origin).AppendQuery("X-Dweb-Host", Host);
+        public Uri BuildPublicUrl() => new Uri(Public_Origin).AppendQuery(X_DWEB_HOST, Host);
         public Uri BuildInternalUrl() => new(Internal_Origin);
     }
 
@@ -147,7 +149,7 @@ public class HttpNMM : NativeMicroModule
             ? throw new Exception(String.Format("invalid dweb http port: {0}", options.port)) : options.port;
 
         var host = String.Format("{0}{1}:{2}", subdomainPrefix, mmid, port);
-        var internal_origin = String.Format("https://{0}", host);
+        var internal_origin = String.Format("{0}://{1}", INTERNAL_SCHEME, host);
         var public_origin = DwebServer.Origin;
 
         return new ServerUrlInfo(host, internal_origin, public_origin);
@@ -168,7 +170,7 @@ public class HttpNMM : NativeMicroModule
                 request.RequestUri.Host.EndsWith(".dweb"))
             {
                 // 无需走网络层，直接内部处理掉
-                request.Headers.Add("X-Dweb-Host", request.RequestUri.GetFullAuthority(request.RequestUri.Authority));
+                request.Headers.Add(X_DWEB_HOST, request.RequestUri.GetFullAuthority(request.RequestUri.Authority));
                 request.RequestUri = request.RequestUri.SetSchema("http").SetAuthority(DwebServer.Authority);
                 return await _httpHandler(request);
             }

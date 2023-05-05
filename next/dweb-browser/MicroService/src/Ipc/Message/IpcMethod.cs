@@ -86,7 +86,7 @@ public class IpcMethod
 public class IpcMethodConverter : JsonConverter<IpcMethod>
 {
     public override bool CanConvert(Type typeToConvert) =>
-        typeToConvert.GetMethod("ToJson") != null && typeToConvert.GetMethod("FromJson") != null;
+        typeToConvert.GetMethod("ToJson") is not null && typeToConvert.GetMethod("FromJson") is not null;
 
     public override IpcMethod? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

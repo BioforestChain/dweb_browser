@@ -57,7 +57,7 @@ public class IpcRequest : IpcMessage
                 {
                     it.Init("Content-Type", "application/octet-stream");
 
-                    if (size != null)
+                    if (size is not null)
                     {
                         headers.Init("Content-Length", size.ToString()!);
                     }

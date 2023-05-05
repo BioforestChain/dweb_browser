@@ -121,7 +121,7 @@ public class MetaBody : IToJsonAble
         string? streamId = null,
         int? receiverUid = null
         ) => new MetaBody(
-            type: streamId == null ? IPC_META_BODY_TYPE.INLINE_TEXT : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
+            type: streamId is null ? IPC_META_BODY_TYPE.INLINE_TEXT : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
             senderUid: senderUid,
             data: data,
             streamId: streamId,
@@ -134,7 +134,7 @@ public class MetaBody : IToJsonAble
         string? streamId = null,
         int? receiverUid = null
         ) => new MetaBody(
-            type: streamId == null ? IPC_META_BODY_TYPE.INLINE_BASE64 : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
+            type: streamId is null ? IPC_META_BODY_TYPE.INLINE_BASE64 : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
             senderUid: senderUid,
             data: data,
             streamId: streamId,
@@ -147,7 +147,7 @@ public class MetaBody : IToJsonAble
         string? streamId = null,
         int? receiverUid = null
         ) => new MetaBody(
-            type: streamId == null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
+            type: streamId is null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
             senderUid: senderUid,
             data: data,
             streamId: streamId,

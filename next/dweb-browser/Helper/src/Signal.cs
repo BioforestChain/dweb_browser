@@ -18,10 +18,8 @@ public static class SignalExtendsions
         try
         {
             var list = self?.GetInvocationList();
-            if (list == null)
-            {
-                return;
-            }
+            if (list is null) return;
+
             if (list.Length == 1)
             {
                 await self!(self).ForAwait();
@@ -45,10 +43,8 @@ public static class SignalExtendsions
         try
         {
             var list = self?.GetInvocationList();
-            if (list == null)
-            {
-                return;
-            }
+            if (list is null) return;
+
             if (list.Length == 1)
             {
                 await self!(arg1, self).ForAwait();
@@ -72,10 +68,8 @@ public static class SignalExtendsions
         try
         {
             var list = self?.GetInvocationList();
-            if (list == null)
-            {
-                return;
-            }
+            if (list is null) return;
+
             if (list.Length == 1)
             {
                 await self!(arg1, arg2, self).ForAwait();

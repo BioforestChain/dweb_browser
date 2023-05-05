@@ -5,20 +5,6 @@ namespace DwebBrowser.DWebView;
 
 public partial class DWebView : WKWebView
 {
-    public static WKWebViewConfiguration CreateDWebViewConfiguration()
-    {
-        var configuration = new WKWebViewConfiguration();
-        var preferences = configuration.Preferences;
-        preferences.JavaScriptCanOpenWindowsAutomatically = true;
-        preferences.JavaScriptEnabled = true;
-
-        var webpagePreferences = configuration.DefaultWebpagePreferences ?? new WKWebpagePreferences();
-        webpagePreferences.AllowsContentJavaScript = true;
-        configuration.DefaultWebpagePreferences = webpagePreferences;
-
-        return configuration;
-
-    }
     /// <summary>
     ///  这段代码使用 MessageChannelShim.ts 文件来生成，到 https://www.typescriptlang.org/play 粘贴这个文件的代码即可
     /// </summary>

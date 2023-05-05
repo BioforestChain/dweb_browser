@@ -20,9 +20,9 @@ public static class ResponseExtensions
         }
 
         // Set the response content (if there is any)
-        if (self.OutputStream != null)
+        if (self.OutputStream is not null and var outputStream)
         {
-            responseMessage.Content = new StreamContent(self.OutputStream);
+            responseMessage.Content = new StreamContent(outputStream);
             if (self.ContentType is not null)
             {
                 responseMessage.Content.Headers.ContentType = new(self.ContentType);

@@ -98,14 +98,13 @@ public class State<T>
     {
         lock (StateShared.ObsStack)
         {
-            var caller = StateShared.ObsStack.LastOrDefault();
-            if (caller != null)
+            if (StateShared.ObsStack.LastOrDefault() is not null and var caller)
             {
                 /// 将调用者存储到自己的依赖中
                 caller.AddDep(this);
             }
         }
-        if (force == null)
+        if (force is null)
         {
             force = !hasCache;
         }
@@ -182,9 +181,8 @@ public class State<T>
 
             try
             {
-                if (waitter != null)
+                if (waitter is not null)
                 {
-
                     waitter.Resolve(value);
                     waitter = null;
                     return;

@@ -34,12 +34,10 @@ public class Debugger
         var myFormat = Regex.Replace(format, @"{(\d):H}", (match) =>
         {
             var index = match.Groups[1].Value;
-            var index_int = index.ToIntOrNull();
             var hashCode = "";
-            if (index_int != null)
+            if (index.ToIntOrNull() is not null and int index_int)
             {
-                var arg = args.GetValue((int)index_int);
-                if (arg != null)
+                if (args.GetValue(index_int) is not null and var arg)
                 {
                     hashCode = "@" + arg.GetHashCode().ToString();
                 }
