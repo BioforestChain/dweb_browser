@@ -1583,6 +1583,40 @@ let MultiWebViewContent = class extends s$1 {
       }
     ));
   }
+  webviewDidStartLoading(e2) {
+    const el = e2.target;
+    if (el === null)
+      throw new Error(`el === null`);
+    e2.target.executeJavaScript(`
+        (function a(){
+          if (!globalThis.__native_close_watcher_kit__) {
+            globalThis.__native_close_watcher_kit__ =  {
+              allc: 0,
+              _watchers: new Map(),
+              _tasks: new Map(),
+              registryToken: function(consumeToken){
+                if (consumeToken === null || consumeToken === "") {
+                  throw new Error("CloseWatcher.registryToken invalid arguments");
+                }
+                const resolve = this._tasks.get(consumeToken)
+                if(resolve === undefined) throw new Error('resolve === undefined');
+                const id = this.allc++;
+                resolve(id + "");
+              },
+              tryClose: function(id){
+                const watcher = this._watchers.get(id);
+                if(watcher === undefined) throw new Error('watcher === undefined');
+                watcher.dispatchEvent(new Event("close"))
+              }
+            };
+            // 这里会修改了 window.open 的方法 是否有问题了？？
+            globalThis.open = function(arg){
+              console.log('open', arg)
+            }
+          }
+        })()
+      `);
+  }
   onShow() {
     this.isShow = true;
   }
@@ -1636,26 +1670,28 @@ let MultiWebViewContent = class extends s$1 {
                     class="webview-container"
                     data-app-url=${this.src}
                 >
-                    <webview
-                        id="view-${this.customWebviewId}"
-                        class="webview"
-                        src=${l(this.src)}
-                        partition="trusted"
-                        allownw
-                        allowpopups
-                        @dom-ready=${this.onDomReady}
-                    ></webview>
-                    <iframe 
-                        id="toast"
-                        class="toast"
-                        style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; position: absolute; left: 0px; bottom: 0px"
-                        src="http://toast.nativeui.sys.dweb-80.localhost:22605"
-                        @load=${(e2) => {
+                  <webview
+                      id="view-${this.customWebviewId}"
+                      class="webview"
+                      src=${l(this.src)}
+                      partition="trusted"
+                      allownw
+                      allowpopups
+                      @did-start-loading=${this.webviewDidStartLoading}
+                      @dom-ready=${this.onDomReady}
+                  ></webview>
+                  
+                  <iframe 
+                      id="toast"
+                      class="toast"
+                      style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; position: absolute; left: 0px; bottom: 0px"
+                      src="http://toast.nativeui.sys.dweb-80.localhost:22605"
+                      @load=${(e2) => {
       console.log("toast 载入完成");
       this.onPluginNativeUiLoadBase(e2);
     }}
-                        data-app-url=${this.src}
-                    ></iframe>
+                      data-app-url=${this.src}
+                  ></iframe>
                 </div>
                 <!-- navgation-bar -->
                 <iframe 
