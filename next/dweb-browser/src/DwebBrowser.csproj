@@ -59,7 +59,6 @@
 	  <None Remove="Resources\.DS_Store" />
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\StatusBar\" />
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Base\" />
-	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Touch\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -83,7 +82,6 @@
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\StatusBar\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Base\" />
-	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Touch\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\bundle\**\*.*" />

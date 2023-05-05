@@ -1,14 +1,14 @@
 ﻿using AVFoundation;
 
-namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Touch;
+namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Torch;
 
-public class TouchNMM : NativeMicroModule
+public class TorchNMM : NativeMicroModule
 {
-    public TouchNMM() : base("torch.nativeui.sys.dweb")
+    public TorchNMM() : base("torch.nativeui.sys.dweb")
     {
     }
 
-    static Debugger Console = new Debugger("TouchNMM");
+    static Debugger Console = new Debugger("TorchNMM");
 
     private AVCaptureDevice _device = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
 
