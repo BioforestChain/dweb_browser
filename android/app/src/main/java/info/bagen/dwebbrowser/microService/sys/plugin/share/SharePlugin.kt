@@ -31,11 +31,12 @@ object SharePlugin {
       files: List<String>? = null,
       po: PromiseOut<String>,
     ) {
-        if (text == null && url == null && (files == null || files.isEmpty())) {
+        debugShare("open_share", "title==>$title text==>$text  url==>$url,${url.isNullOrEmpty()} files==>$files")
+        if (text.isNullOrEmpty() && url.isNullOrEmpty() && (files != null && files.isEmpty())) {
             po.resolve("Must provide a URL or Message or files")
             return
         }
-        if (url != null && !isFileUrl(url) && !isHttpUrl(url)) {
+        if (!url.isNullOrEmpty() && !isFileUrl(url) && !isHttpUrl(url)) {
             po.resolve("Unsupported url")
             return
         }

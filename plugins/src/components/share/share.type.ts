@@ -31,13 +31,6 @@ export interface ShareOptions {
 }
 
 export interface ShareResult {
-  /**
-   * Identifier of the app that received the share action.
-   * Can be an empty string in some cases.
-   *
-   * On web it will be undefined.
-   *
-   * @since 1.0.0
-   */
-  activityType?: string;
+  success: boolean;
+  message: string;
 }

@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type { ShareOptions } from "./share.type.ts";
+import type { ShareOptions, ShareResult } from "./share.type.ts";
 export class SharePlugin extends BasePlugin {
   readonly tagName = "dweb-share";
 
@@ -29,7 +29,7 @@ export class SharePlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async share(options: ShareOptions): Promise<string> {
+  async share(options: ShareOptions): Promise<ShareResult> {
     const data = new FormData();
     if (options.files && options.files.length !== 0) {
       for (const key in options.files) {
@@ -49,7 +49,7 @@ export class SharePlugin extends BasePlugin {
       base: await BasePlugin.public_url.promise,
     })
       .fetch()
-      .text();
+      .object<ShareResult>();
     return result;
   }
 }

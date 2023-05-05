@@ -57,15 +57,13 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
                         )
                         files.add(url)
                     }
-                    debugShare("open_share", "share===>${ipc.remote.mmid}  $files")
                 } catch (e: Exception) {
-                    debugShare("catch", "e===>$e $files")
+                    debugShare("share catch", "e===>$e $files")
                 }
                 openActivity(ipc.remote.mmid)
                 controller.waitActivityResultLauncherCreated()
 
                 SharePlugin.share(controller, ext.title, ext.text, ext.url, files, result)
-
 
                 // 等待结果回调
                 controller.activity?.getShareData { it ->
@@ -74,13 +72,14 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
 
                 val data = result.waitPromise()
                 debugShare("share", "result => $data")
-                if (data !== "ok") {
+                if (data !== "OK") {
                     controller.activity?.finish()
                 }
-                return@defineHandler data
+                return@defineHandler ShareResult(data == "OK",data)
             },
         )
     }
+    data class ShareResult(val success:Boolean,val message:String)
 
     override fun openActivity(remoteMmid: Mmid) {
         val activity = getActivity(remoteMmid)
@@ -92,6 +91,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         activity?.startActivity(intent)
     }
+
 
 
     override suspend fun _shutdown() {
