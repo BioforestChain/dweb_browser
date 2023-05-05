@@ -10,22 +10,19 @@ import UIKit
 
 struct WebPage: Identifiable, Codable{
     var id = UUID()
-      
     // url to the source of somewhere in internet
     var icon: URL
-    var openedUrl: URL  //the website that user has opened on webview
+    var openedUrl: String?  //the website that user has opened on webview
     var title: String   // page title
   
     
     //local file path is direct to the image has saved in document dir
     var snapshot: UIImage{
-        
         let url = URL(fileURLWithPath: "本地路径")
         return UIImage(contentsOfFile: url.path) ?? UIImage(named: "snapshot")!
-//        URL(filePath: "\(id)_snapshot")
     }
     
-    static let example = WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: URL(string: "https://www.apple.com")!, title: "Apple")
+    static let example = WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
 }
 
 
@@ -40,7 +37,7 @@ class WebPages: ObservableObject{
            let models = try? NSKeyedUnarchiver.unarchiveObject(with: data) as? [WebPage] {
             pages =  models
         }else{
-            pages =  [WebPage.example]
+            pages =  [WebPage.example,WebPage.example,WebPage.example,WebPage.example]
         }
     }
     

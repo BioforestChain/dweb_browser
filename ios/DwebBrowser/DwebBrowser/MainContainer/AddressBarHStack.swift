@@ -24,11 +24,13 @@ struct AddressBarHContainer:View{
 struct AddressBarHStack: View {
     @EnvironmentObject var states: ToolbarState
     @EnvironmentObject var mainVstate: MainViewState
+    @EnvironmentObject var pages: WebPages
+
     @State private var selectedTab = 0
 
     var body: some View {
         GeometryReader { innerGeometry in
-            PageScroll(contentSize: 3, content:AddressBarHContainer())
+            PageScroll(contentSize: pages.pages.count, content:AddressBarHContainer())
         }
         .frame(height: states.showMenu ? 0 : addressBarHeight)
         .animation(.easeInOut(duration: 0.3), value: states.showMenu)

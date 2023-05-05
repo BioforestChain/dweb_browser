@@ -28,17 +28,15 @@ struct TabsContainerView: View{
 
 struct TabHStackView: View{
     @EnvironmentObject var offsetState: MainViewState
-    
+    @EnvironmentObject var pages: WebPages
     var body: some View{
         
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
-                TabPageView()
-                    .frame(width: screen_width)
-                TabPageView()
-                    .frame(width: screen_width)
-                TabPageView()
-                    .frame(width: screen_width)
+                ForEach(pages.pages, id: \.self.id) { page in
+                    TabPageView(page: page)
+                        .frame(width: screen_width)
+                }
             }
             .offset(x: offsetState.adressBarHstackOffset)
         }

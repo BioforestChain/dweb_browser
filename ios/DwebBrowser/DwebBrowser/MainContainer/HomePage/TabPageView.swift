@@ -11,7 +11,9 @@ import WebView
 //层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 
 struct TabPageView: View {
-    @State var showWebview = true
+    
+    @State var page: WebPage
+//    @State var showWebview = true
 
     @State var homeview = HomePage()
 
@@ -37,11 +39,12 @@ struct TabPageView: View {
                         }.disabled(!webViewStore.canGoForward)
                     })
             }.onAppear {
-                self.webViewStore.webView.load(URLRequest(url: URL(string: "https://www.163.com")!))
+                print(Unmanaged.passUnretained(self.webViewStore).toOpaque())
+                self.webViewStore.webView.load(URLRequest(url: URL(string: page.openedUrl ?? "163.com")!))
             }
-            if showWebview{
-                homeview
-                    .hidden()
+            
+            if page.openedUrl != nil{
+                homeview.hidden()
             }else{
                 homeview
             }
