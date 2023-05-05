@@ -32,7 +32,7 @@ class ToastNMM: NativeMicroModule("toast.sys.dweb") {
                     else ->  PositionType.TOP
                 }
               ToastController.show(message, durationType, positionType)
-                Response(Status.OK)
+                return@defineHandler true
             },
         )
     }

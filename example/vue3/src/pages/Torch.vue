@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 import type { HTMLDwebTorchElement } from "@bfex/plugin";
 const title = "Toast";

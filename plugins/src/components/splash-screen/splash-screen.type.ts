@@ -66,14 +66,14 @@ export interface PluginsConfig {
      * @example "CENTER_CROP"
      */
     androidScaleType?:
-    | 'CENTER'
-    | 'CENTER_CROP'
-    | 'CENTER_INSIDE'
-    | 'FIT_CENTER'
-    | 'FIT_END'
-    | 'FIT_START'
-    | 'FIT_XY'
-    | 'MATRIX';
+      | "CENTER"
+      | "CENTER_CROP"
+      | "CENTER_INSIDE"
+      | "FIT_CENTER"
+      | "FIT_END"
+      | "FIT_START"
+      | "FIT_XY"
+      | "MATRIX";
 
     /**
      * Show a loading spinner on the Splash Screen.
@@ -93,12 +93,12 @@ export interface PluginsConfig {
      * @example "large"
      */
     androidSpinnerStyle?:
-    | 'horizontal'
-    | 'small'
-    | 'large'
-    | 'inverse'
-    | 'smallInverse'
-    | 'largeInverse';
+      | "horizontal"
+      | "small"
+      | "large"
+      | "inverse"
+      | "smallInverse"
+      | "largeInverse";
 
     /**
      * Style of the iOS spinner.
@@ -110,7 +110,7 @@ export interface PluginsConfig {
      * @default large
      * @example "small"
      */
-    iosSpinnerStyle?: 'large' | 'small';
+    iosSpinnerStyle?: "large" | "small";
 
     /**
      * Color of the spinner in hex format, #RRGGBB or #RRGGBBAA.
@@ -173,7 +173,7 @@ export interface PluginsConfig {
     useDialog?: boolean;
   };
 }
-export interface ShowOptions {
+export interface SplashScreenShowOptions {
   /**
    * Whether to auto hide the splash after showDuration
    *
@@ -203,7 +203,7 @@ export interface ShowOptions {
   showDuration?: number;
 }
 
-export interface HideOptions {
+export interface SplashScreenHideOptions {
   /**
    * How long (in ms) to fade out.
    *
@@ -215,30 +215,3 @@ export interface HideOptions {
    */
   fadeOutDuration?: number;
 }
-
-export interface ISplashScreenPlugin {
-  /**
-   * Show the splash screen
-   *
-   * @since 1.0.0
-   */
-  show(options?: ShowOptions): Promise<boolean>;
-  /**
-   * Hide the splash screen
-   *
-   * @since 1.0.0
-   */
-  hide(options?: HideOptions): Promise<boolean>;
-}
-
-/**
- * @deprecated Use `ShowOptions`.
- * @since 1.0.0
- */
-export type SplashScreenShowOptions = ShowOptions;
-
-/**
- * @deprecated Use `HideOptions`.
- * @since 1.0.0
- */
-export type SplashScreenHideOptions = HideOptions;

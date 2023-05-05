@@ -1,14 +1,11 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import type {
-  HideOptions,
-  ShowOptions,
-  ISplashScreenPlugin,
+  SplashScreenHideOptions,
+  SplashScreenShowOptions,
 } from "./splash-screen.type.ts";
 
-export class SplashScreenPlugin
-  extends BasePlugin
-  implements ISplashScreenPlugin {
+export class SplashScreenPlugin extends BasePlugin {
   readonly tagName = "dweb-splash-screen";
   constructor() {
     super("splash-screen.nativeui.sys.dweb");
@@ -19,7 +16,7 @@ export class SplashScreenPlugin
    * @param options
    */
   @bindThis
-  async show(options?: ShowOptions): Promise<boolean> {
+  async show(options?: SplashScreenShowOptions): Promise<boolean> {
     return await this.fetchApi(`/show`, {
       search: {
         autoHide: options?.autoHide,
@@ -35,7 +32,7 @@ export class SplashScreenPlugin
    * @param options
    */
   @bindThis
-  async hide(options?: HideOptions): Promise<boolean> {
+  async hide(options?: SplashScreenHideOptions): Promise<boolean> {
     return await this.fetchApi(`/hide`, {
       search: {
         fadeOutDuration: options?.fadeOutDuration,

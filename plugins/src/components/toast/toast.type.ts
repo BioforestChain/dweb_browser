@@ -1,46 +1,28 @@
-export type Duration = 'long' | 'short';
-export type Position = 'top' | 'center' | 'bottom'
-
-export interface IToastPlugin {
+export type ToastDuration = "long" | "short";
+export type ToastPosition = "top" | "center" | "bottom";
+export interface ToastShowOptions {
   /**
-   * Shows a Toast on the screen
-   *
-   * @since 1.0.0
-   */
-  show(options: IShowOptions): Promise<Response>;
-}
-
-export type Tduration = 'short' | 'long' | undefined;
-
-export interface IShowOptions {
-  /**
-   * Text to display on the Toast
+   * Toast 上显示的文本
    *
    * @since 1.0.0
    */
   text: string;
 
   /**
-   * Duration of the Toast, either 'short' (2000ms) or 'long' (3500ms)
+   * Toast 的持续时间，“短”（2000 毫秒）或“长”（3500 毫秒）
    *
    * @default 'short'
    * @since 1.0.0
    */
-  duration?: Tduration;
+  duration?: ToastDuration;
 
   /**
-   * Position of the Toast.
+   * Toast 的位置。
    *
-   * On Android 12 and newer all toasts are shown at the bottom.
+   * 在 Android 12 及更高版本上，所有 toast 都显示在底部。
    *
    * @default 'bottom'
    * @since 1.0.0
    */
-  position?: 'top' | 'center' | 'bottom';
+  position?: "top" | "center" | "bottom";
 }
-
-/**
- * @deprecated Use `ToastShowOptions`.
- * @since 1.0.0
- */
-export type IToastShowOptions = IShowOptions;

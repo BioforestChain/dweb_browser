@@ -2,14 +2,14 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { Tduration, ToastPlugin } from "@bfex/plugin";
+import type { HTMLDwebToastElement, ToastDuration } from "@bfex/plugin";
 const title = "Toast";
 
 const $logPanel = ref<typeof LogPanel>();
-const $toastPlugin = ref<ToastPlugin>();
+const $toastPlugin = ref<HTMLDwebToastElement>();
 
 let console: Console;
-let toast: ToastPlugin;
+let toast: HTMLDwebToastElement;
 onMounted(() => {
   console = toConsole($logPanel);
   toast = $toastPlugin.value!;
@@ -17,7 +17,7 @@ onMounted(() => {
 
 // export default {};
 const toast_message = ref("我是toast🍓");
-const toast_duration = ref<Tduration>("short");
+const toast_duration = ref<ToastDuration>("short");
 const showToast = defineLogAction(
   async () => {
     return toast.show({ text: toast_message.value, duration: toast_duration.value });

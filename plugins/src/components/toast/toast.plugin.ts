@@ -1,12 +1,11 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type { IShowOptions } from "./toast.type.ts";
-import { IToastPlugin } from "./toast.type.ts";
+import type { ToastShowOptions } from "./toast.type.ts";
 
 /**
  * 访问 toast 能力的插件
  */
-export class ToastPlugin extends BasePlugin implements IToastPlugin {
+export class ToastPlugin extends BasePlugin {
   readonly tagName = "dweb-toast";
 
   constructor() {
@@ -20,10 +19,10 @@ export class ToastPlugin extends BasePlugin implements IToastPlugin {
    * @returns
    */
   @bindThis
-  async show(options: IShowOptions) {
+  async show(options: ToastShowOptions) {
     const { text: message, duration = "long", position = "bottom" } = options;
 
-    return await this.fetchApi(`/show`, {
+    await this.fetchApi(`/show`, {
       search: { message, duration, position },
     });
   }
