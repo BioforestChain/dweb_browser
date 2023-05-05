@@ -1,5 +1,5 @@
-﻿using System;
-using UIKit;
+﻿using UIKit;
+using System.Text.Json.Serialization;
 
 namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Base;
 
@@ -25,8 +25,10 @@ public abstract class AreaController
 
 public class AreaState
 {
-    public bool Overlay;
-    public AreaJson Area;
+    [JsonPropertyName("overlay")]
+    public bool Overlay { get; set; }
+    [JsonPropertyName("area")]
+    public AreaJson Area { get; set; }
 }
 
 public static class CGRectExtensions

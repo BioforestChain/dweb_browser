@@ -24,7 +24,7 @@ class VirtualKeyboardNMM : NativeMicroModule("virtual-keyboard.nativeui.sys.dweb
                 debugNativeUi("virtual-keyboard getState",controller.overlayState.value)
                 return@defineHandler controller
             },
-            /** 获取状态 */
+            /** 设置状态 */
             "/setState" bind Method.GET to defineHandler { request, ipc ->
                 val controller = getController(ipc.remote.mmid)
                 QueryHelper.overlay(request)?.also { controller.overlayState.value = it }
@@ -38,7 +38,7 @@ class VirtualKeyboardNMM : NativeMicroModule("virtual-keyboard.nativeui.sys.dweb
                 return@defineHandler getController(ipc.remote.mmid).observer.startObserve(ipc)
             },
             /**
-             * 开始数据订阅
+             * 停止数据订阅
              */
             "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)

@@ -12,7 +12,7 @@ public class StatusBarNMM : NativeMicroModule
 
 
     private StatusBarController GetController(Mmid mmid) =>
-        NativeUiController.FromMicroModule(mmid).StatusBar;
+        NativeUiController.FromMultiWebView(mmid).StatusBar;
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {

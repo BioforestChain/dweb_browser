@@ -1,6 +1,6 @@
-﻿using System;
-using CoreGraphics;
+﻿using CoreGraphics;
 using UIKit;
+using System.Text.Json.Serialization;
 using static DwebBrowser.MicroService.Sys.NativeUI.NativeUiController;
 
 namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Base;
@@ -53,9 +53,12 @@ public static class StatusBarStyleExtionsions
 
 public class BarState : AreaState
 {
-    public bool Visible;
-    public ColorJson Color;
-    public BarStyle Style;
+    [JsonPropertyName("visible")]
+    public bool Visible { get; set; }
+    [JsonPropertyName("color")]
+    public ColorJson Color { get; set; }
+    [JsonPropertyName("style")]
+    public BarStyle Style { get; set; }
 }
 public sealed record BarStyle(string style)
 {

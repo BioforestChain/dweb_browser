@@ -1,6 +1,7 @@
 ﻿using UIKit;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Base;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.StatusBar;
+using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.VirtualKeyboard;
 using DwebBrowser.MicroService.Sys.Mwebview;
 using System.Text.Json;
 
@@ -10,11 +11,12 @@ public class NativeUiController
 {
     // TODO: 多个Dwebview共用一个MWebviewController，共享nativeui状态？
     // Android是多个Dwebview公用一个Activity，共享nativeui状态？
-    public static NativeUiController FromMicroModule(Mmid mmid) =>
+    public static NativeUiController FromMultiWebView(Mmid mmid) =>
         new(MultiWebViewNMM.GetCurrentWebViewController(mmid)
             ?? throw new Exception(String.Format("current webview instance is invalid for {0}", mmid)));
 
     public readonly StatusBarController StatusBar = new();
+    public readonly VirtualKeyboardController VirtualKeyboard = new();
 
     public NativeUiController(UIViewController activity)
     {
@@ -27,12 +29,6 @@ public class NativeUiController
 
         //      NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, OnKeyboardShow);
         //      NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillHideNotification, OnKeyboardHide);
-    }
-
-    static NativeUiController()
-    {
-        NativeMicroModule.ResponseRegistry.RegistryJsonAble<ColorJson>(typeof(ColorJson), item =>
-            JsonSerializer.Serialize(item, typeof(ColorJson)));
     }
 }
 
