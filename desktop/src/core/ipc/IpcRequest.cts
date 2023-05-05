@@ -99,10 +99,10 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
       method?: string;
       body?: /* json+text */
       | string
-        /* base64 */
-        | Uint8Array
-        /* stream+base64 */
-        | ReadableStream<Uint8Array>;
+      /* base64 */
+      | Uint8Array
+      /* stream+base64 */
+      | ReadableStream<Uint8Array>;
       headers?: IpcHeaders | HeadersInit;
     } = {}
   ) {
@@ -138,16 +138,28 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   }
 
   readonly ipcReqMessage = once(
-    () =>
-      new IpcReqMessage(
+    () => new IpcReqMessage(
+      this.req_id,
+      this.method,
+      this.url,
+      this.headers.toJSON(),
+      this.body.metaBody,
+    )
+  );
+
+  toJSON() {
+    const { method } = this;
+    let body: undefined | $BodyData;
+    if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
+      body = this.body.raw;
+      return new IpcReqMessage(
         this.req_id,
         this.method,
         this.url,
         this.headers.toJSON(),
-        this.body.metaBody
+        this.body.metaBody,
       )
-  );
-  toJSON() {
+    }
     return this.ipcReqMessage();
   }
 }
@@ -158,7 +170,7 @@ export class IpcReqMessage extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     readonly method: IPC_METHOD,
     readonly url: string,
     readonly headers: Record<string, string>,
-    readonly metaBody: MetaBody
+    readonly metaBody: MetaBody,
   ) {
     super(IPC_MESSAGE_TYPE.REQUEST);
   }

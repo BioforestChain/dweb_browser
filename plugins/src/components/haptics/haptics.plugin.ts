@@ -14,7 +14,7 @@ export class HapticsPlugin extends BasePlugin {
   /** 触碰轻质量物体 */
   @bindThis
   async impactLight(options: ImpactOptions) {
-    return await this.fetchApi("/impactLight", {
+    await this.fetchApi("/impactLight", {
       search: {
         style: options.style,
       },
@@ -24,7 +24,7 @@ export class HapticsPlugin extends BasePlugin {
   /** 振动通知 */
   @bindThis
   async notification(options: NotificationOptions) {
-    return await this.fetchApi("/notification", {
+    await this.fetchApi("/notification", {
       search: {
         style: options.type,
       },
@@ -37,7 +37,7 @@ export class HapticsPlugin extends BasePlugin {
     await this.fetchApi("/vibrateClick");
   }
 
-  /** 禁用手势的反馈振动,
+  /** 禁用手势的反馈振动
    * 与 headShak 特效一致, 详见 ripple-button.animation.ts
    * headShak 是一段抖动特效, 前面抖动增强然后衰退
    * 这里只针对抖动增强阶段提供同步的振动反馈

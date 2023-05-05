@@ -1,3 +1,5 @@
+import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
+
 interface FetchEventInit {
   request: Request;
   clientId?: string;
@@ -9,6 +11,7 @@ export type $FetchEventType = "fetch" | "onFetch";
 // | "message";
 
 export class FetchEvent extends Event {
+  plugin = dwebServiceWorkerPlugin;
   readonly type: $FetchEventType;
   request: Request;
   clientId: string | null;

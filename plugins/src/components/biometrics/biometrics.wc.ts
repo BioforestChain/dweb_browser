@@ -2,21 +2,17 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { biometricsPlugin } from "./biometrics.plugin.ts";
 
 export class HTMLDwebBiometricsElement extends HTMLElement {
-
-  plugin = biometricsPlugin
+  plugin = biometricsPlugin;
 
   @cacheGetter()
-  get chuck() {
-    return this.plugin.check
+  get check() {
+    return this.plugin.check;
   }
 
   @cacheGetter()
   get biometrics() {
-    return this.plugin.biometrics
+    return this.plugin.biometrics;
   }
 }
 
-customElements.define(
-  biometricsPlugin.tagName,
-  HTMLDwebBiometricsElement
-);
+customElements.define(biometricsPlugin.tagName, HTMLDwebBiometricsElement);

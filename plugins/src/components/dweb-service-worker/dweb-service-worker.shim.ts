@@ -62,11 +62,21 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
 
   private toRequest(ipcRequest: IpcRequest) {
     const method = ipcRequest.method;
-    let body: undefined | $BodyData;
-    if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
-      body = ipcRequest.body._bodyHub.data;
+    let body: undefined | $BodyData = "";
+    if (method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) {
+      return new Request(ipcRequest.url, {
+        method,
+        headers: ipcRequest.headers,
+      });
     }
-    return new Request(ipcRequest.url, {
+    if (ipcRequest.body) {
+      body = ipcRequest.body;
+    }
+    /**
+     * 这里的请求是这样的，要发给用户转发需要添加http
+     * /barcode-scanning.sys.dweb/process?X-Dweb-Host=api.cotdemo.bfs.dweb%3A443&rotation=0&formats=QR_CODE
+     */
+    return new Request(`http://localhost:22206${ipcRequest.url}`, {
       method,
       headers: ipcRequest.headers,
       body,

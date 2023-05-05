@@ -86,7 +86,7 @@ export class IpcRequest {
     readonly url: string,
     readonly method: IPC_METHOD,
     readonly headers: Headers,
-    readonly body: IpcBody,
+    readonly body: $BodyData,
     readonly metaBody: {
       data: string;
       metaId: string;

@@ -13,7 +13,6 @@ export class CameraPlugin extends BasePlugin {
    */
   @bindThis
   async getPhoto(options: ImageOptions) {
-    console.log("--");
     return await this.fetchApi("/getPhoto", {
       search: {
         resultType: options.resultType,

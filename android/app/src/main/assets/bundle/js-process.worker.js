@@ -3293,6 +3293,18 @@ var _IpcRequest = class extends IpcMessage {
     });
   }
   toJSON() {
+    const { method } = this;
+    let body;
+    if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
+      body = this.body.raw;
+      return new IpcReqMessage(
+        this.req_id,
+        this.method,
+        this.url,
+        this.headers.toJSON(),
+        this.body.metaBody
+      );
+    }
     return this.ipcReqMessage();
   }
 };

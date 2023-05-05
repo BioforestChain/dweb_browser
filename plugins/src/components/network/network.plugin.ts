@@ -88,6 +88,10 @@ export class NetworkPlugin extends BaseEvent<keyof NetworkStatusMap> {
 
 export const networkPlugin = new NetworkPlugin();
 
+/**
+ * 查看当前的网络连接
+ * @returns
+ */
 function translatedConnection(): ConnectionType {
   const connection =
     window.navigator.connection ||

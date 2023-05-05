@@ -41,32 +41,43 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
         apiRouting = routes(
             /** 分享*/
             "/share" bind Method.POST to defineHandler { request, ipc ->
-                val ext = shareOption(request)
-                val receivedForm = MultipartFormBody.from(request)
-                val fileByteArray = receivedForm.files("files")
                 val files = mutableListOf<String>()
                 val result = PromiseOut<String>()
-                // 写入缓存
-                fileByteArray.map { file ->
-                    val url = plugin.writeFile(
-                        file.filename,
-                        EFileDirectory.Cache.location,
-                        file.content,
-                        false
-                    )
-                    files.add(url)
+                val ext = shareOption(request)
+                try {
+                    val receivedForm = MultipartFormBody.from(request)
+                    val fileByteArray = receivedForm.files("files")
+                    // 写入缓存
+                    fileByteArray.map { file ->
+                        val url = plugin.writeFile(
+                            file.filename,
+                            EFileDirectory.Cache.location,
+                            file.content,
+                            false
+                        )
+                        files.add(url)
+                    }
+                    debugShare("open_share", "share===>${ipc.remote.mmid}  $files")
+                } catch (e: Exception) {
+                    debugShare("catch", "e===>$e $files")
                 }
-                debugShare("open_share", "share===>${ipc.remote.mmid}  ${files}")
                 openActivity(ipc.remote.mmid)
                 controller.waitActivityResultLauncherCreated()
-              SharePlugin.share(controller, ext.title, ext.text, ext.url, files, result)
+
+                SharePlugin.share(controller, ext.title, ext.text, ext.url, files, result)
+
+
                 // 等待结果回调
                 controller.activity?.getShareData { it ->
-                    debugShare("share", "result => $it")
                     result.resolve(it)
                 }
 
-                return@defineHandler result.waitPromise()
+                val data = result.waitPromise()
+                debugShare("share", "result => $data")
+                if (data !== "ok") {
+                    controller.activity?.finish()
+                }
+                return@defineHandler data
             },
         )
     }

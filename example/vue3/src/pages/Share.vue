@@ -15,7 +15,6 @@ let share: HTMLDwebShareElement;
 
 
 const shareData = reactive({
-  dialogTitle: "我是dialogTitle",
   title: "分享标题🍉",
   text: "分享文字分享文字",
   url: "https://gpt.waterbang.top",

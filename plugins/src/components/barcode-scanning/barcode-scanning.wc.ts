@@ -28,13 +28,8 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   private createClose() {
     const closer = new CloseWatcher();
     this._isCloceLock = true;
-    closer.addEventListener("close", (event) => {
+    closer.addEventListener("close", (_event) => {
       this._isCloceLock = false;
-      console.log(
-        "CloseWatcher stopScanning",
-        event.isTrusted,
-        event.timeStamp
-      );
       if (this._activity) {
         this.stopScanning();
       }

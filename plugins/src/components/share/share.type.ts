@@ -28,14 +28,6 @@ export interface ShareOptions {
    * @since 4.1.0
    */
   files?: File[];
-
-  /**
-   * Set a title for the share modal.
-   * This option is only supported on Android.
-   *
-   * @since 1.0.0
-   */
-  dialogTitle?: string;
 }
 
 export interface ShareResult {
@@ -48,29 +40,4 @@ export interface ShareResult {
    * @since 1.0.0
    */
   activityType?: string;
-}
-
-export interface CanShareResult {
-  /**
-   * Whether sharing is supported or not.
-   *
-   * @since 1.1.0
-   */
-  value: boolean;
-}
-
-export interface ISharePlugin {
-  /**
-   * Check if sharing is supported.
-   *
-   * @since 1.1.0
-   */
-  canShare(): Promise<CanShareResult>;
-
-  /**
-   * Show a Share modal for sharing content with other apps
-   *
-   * @since 1.0.0
-   */
-  share(options: ShareOptions): Promise<string>;
 }

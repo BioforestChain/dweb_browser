@@ -1,7 +1,7 @@
 export interface NetworkStatusMap {
   change: ConnectionStatus;
-  onLine: Event,
-  offLine:Event
+  onLine: Event;
+  offLine: Event;
 }
 
 /**
@@ -11,7 +11,7 @@ export interface NetworkStatusMap {
  */
 export interface ConnectionStatus {
   /**
-   * 是否存在活动连接。
+   * 是否存在网络连接。
    *
    * @since 1.0.0
    */

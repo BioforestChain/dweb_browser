@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from "vue-router";
-import { dwebServiceWorker } from "@bfex/plugin"
+import { FetchEvent, dwebServiceWorker } from "@bfex/plugin"
 import { routes } from "./routes";
 
 const router = useRouter();
 
 // router.push("/biometrics")
 // router.push("/serviceworker")
-// router.push("/share");
-router.push("/barcodescanning");
+router.push("/share");
+// router.push("/barcodescanning");
 // router.push("/network");
 
 dwebServiceWorker.addEventListener("pause", (event) => {

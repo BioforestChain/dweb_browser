@@ -10,11 +10,10 @@ export class BiometricsPlugin extends BasePlugin {
 
   /**
    * 检查是否支持生物识别
-   * @param type
    * @returns boolean
    */
   @bindThis
-  async check() {
+  async check(): Promise<boolean> {
     return await this.fetchApi("/check").boolean();
   }
   /**
