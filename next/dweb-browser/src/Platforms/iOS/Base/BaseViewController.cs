@@ -1,5 +1,6 @@
 ﻿using UIKit;
 using DwebBrowser.Helper;
+using CoreGraphics;
 
 #nullable enable
 
@@ -31,5 +32,57 @@ public abstract class BaseViewController : UIViewController
             await (OnDestroyController?.Emit()).ForAwait();
         });
     }
+
+
+
+    protected void AddDebugPoints()
+    {
+
+    }
 }
 
+public static class UIViewExtendsions
+{
+    public class DebugPointsView : UIView
+    {
+        public readonly uint PointSize = 30;
+        public readonly UIColor PointColor = UIColor.Red;
+        public DebugPointsView(uint pointSize = default, UIColor? pointColor = default)
+        {
+            if (pointSize is not 0)
+            {
+                this.PointSize = pointSize;
+            }
+            if (pointColor is not null)
+            {
+                this.PointColor = pointColor;
+            }
+            this.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
+        }
+        public override void LayoutSubviews()
+        {
+            base.LayoutSubviews();
+            /// 填充父级的宽高
+            Frame = new CGRect(0, 0, Superview.Bounds.Width, Superview.Bounds.Height);
+            /// 添加子视图
+            var pFrame = Frame;
+            var pView = this;
+            var dSize = PointSize;
+
+            var point1 = new UIView(new CGRect(pFrame.Left, pFrame.Top, dSize, dSize)).Also(it => it.BackgroundColor = UIColor.Red);
+            pView.AddSubview(point1);
+            var point2 = new UIView(new CGRect(pFrame.Right - dSize, pFrame.Top, dSize, dSize)).Also(it => it.BackgroundColor = UIColor.Blue);
+            pView.AddSubview(point2);
+            var point3 = new UIView(new CGRect(pFrame.Left, pFrame.Bottom - dSize, dSize, dSize)).Also(it => it.BackgroundColor = UIColor.Green);
+            pView.AddSubview(point3);
+            var point4 = new UIView(new CGRect(pFrame.Right - dSize, pFrame.Bottom - dSize, dSize, dSize)).Also(it => it.BackgroundColor = UIColor.Purple);
+            pView.AddSubview(point4);
+        }
+    }
+    public static void AddDebugPoints(this UIView pView, uint pointSize = default, UIColor? pointColor = default)
+    {
+        var debugPointsView = new DebugPointsView(pointSize, pointColor);
+        //debugPointsView.Frame = pView.Frame;
+        pView.AddSubview(debugPointsView);
+    }
+}

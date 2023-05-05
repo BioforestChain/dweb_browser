@@ -25,7 +25,6 @@ public partial class DWebView : WKWebView
 
     internal class AsyncCodeMessageHanlder : WKScriptMessageHandler
     {
-
         [Export("userContentController:didReceiveScriptMessage:")]
         public override void DidReceiveScriptMessage(WKUserContentController userContentController, WKScriptMessage messageEvent)
         {

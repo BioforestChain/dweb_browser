@@ -18,6 +18,7 @@ public partial class MultiWebViewController : BaseViewController
         // 设置视图控制器的背景颜色
         webviewContainer.BackgroundColor = UIColor.Green;
 
+
         /// 视图绑定
         await foreach (var viewItemList in this.WebViewList.ToStream())
         {
@@ -26,24 +27,52 @@ public partial class MultiWebViewController : BaseViewController
             {
                 view.RemoveFromSuperview();
             }
+            /// 填充父级视图的宽高
+            var webViewFrame = new CGRect(0, 0, webviewContainer.Frame.Width, webviewContainer.Frame.Height);
             /// 注入子视图
             foreach (var viewItem in viewItemList)
             {
-                viewItem.webView.Frame = View.Frame;
+                viewItem.webView.Frame = webViewFrame;
                 webviewContainer.AddSubview(viewItem.webView);
+
             }
+            //webviewContainer.AddDebugPoints();
         }
     }
 
 
+
+    public override void ViewWillAppear(bool animated)
+    {
+        base.ViewWillAppear(animated);
+    }
     public override void ViewDidLoad()
     {
         base.ViewDidLoad();
-        webviewContainer.Frame = View.Frame;
+        /// webview 完全覆盖屏幕，包括安全区域
+        webviewContainer.Frame = new CGRect(0, 0, View.Frame.Width, View.Frame.Height);
+
         View.AddSubview(webviewContainer);
 
         BindWebViewItems();
     }
+    public override void ViewWillLayoutSubviews()
+    {
+        base.ViewWillLayoutSubviews();
+    }
+    public override void ViewDidLayoutSubviews()
+    {
+        base.ViewDidLayoutSubviews();
+    }
+    //public override bool PrefersStatusBarHidden()
+    //{
+    //    return false;
+    //}
+
+    //public override UIStatusBarStyle PreferredStatusBarStyle()
+    //{
+    //    return UIStatusBarStyle.LightContent;
+    //}
     #endregion
 }
 

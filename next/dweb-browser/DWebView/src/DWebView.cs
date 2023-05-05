@@ -93,6 +93,17 @@ public partial class DWebView : WKWebView
             LoadURL(loadUrl).Background();
         }
         this.UIDelegate = new DWebViewUiDelegate(this);
+
+
+        /// 设置 ContentInsetAdjustment 的默认行为，这样 SafeArea 就不会注入到 WKWebView.ScrollView.ContentInset 中
+        this.ScrollView.ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior.Never;
+
+        /// 移除关于键盘的默认监听，这样键盘就不会注入到 ScrollView.ContentInset 中
+        NSNotificationCenter.DefaultCenter.RemoveObserver(this, UIKeyboard.WillChangeFrameNotification, null);
+        NSNotificationCenter.DefaultCenter.RemoveObserver(this, UIKeyboard.WillShowNotification, null);
+        NSNotificationCenter.DefaultCenter.RemoveObserver(this, UIKeyboard.WillHideNotification, null);
+        /// TODO 键盘的安全区域是可以呗外部控制的，那么就需要实现相关的控制、绑定相关的监听
+        this.ScrollView.DidChangeAdjustedContentInset += ScrollView_DidChangeAdjustedContentInset;
     }
     public DWebView(CGRect? frame, MicroModule localeMM, MicroModule? remoteMM, Options? options, WKWebViewConfiguration? configuration) : this(frame ?? CGRect.Empty, localeMM, remoteMM ?? localeMM, options ?? Options.Empty, configuration ?? CreateDWebViewConfiguration())
     {
@@ -137,5 +148,14 @@ public partial class DWebView : WKWebView
 
     }
 
+    private void ScrollView_DidChangeAdjustedContentInset(object? sender, EventArgs e)
+    {
+        Console.Log("ScrollView_DidChangeAdjustedContentInset", "ContentOffset:{0}", ScrollView.AdjustedContentInset);
+        //if (ScrollView.ContentOffset != CGPoint.Empty)
+        //{
+        //    ScrollView.ContentOffset = CGPoint.Empty;
+        //    ScrollView.ContentSize = Frame.Size;
+        //}
+    }
 }
 
