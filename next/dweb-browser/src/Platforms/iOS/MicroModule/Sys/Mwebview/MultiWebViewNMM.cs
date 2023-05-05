@@ -17,7 +17,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
     }
 
     private static Dictionary<Mmid, MultiWebViewController> s_controllerMap = new();
-    private static MultiWebViewController? s_getCurrentWebViewController(Mmid mmid) => s_controllerMap.GetValueOrDefault(mmid);
+    public static MultiWebViewController? GetCurrentWebViewController(Mmid mmid) => s_controllerMap.GetValueOrDefault(mmid);
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
