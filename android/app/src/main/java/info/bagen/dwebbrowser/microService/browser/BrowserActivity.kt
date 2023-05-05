@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class BrowserActivity : AppCompatActivity() {
-  var blueToothReceiver: BlueToothReceiver? = null
+//  var blueToothReceiver: BlueToothReceiver? = null
   fun getContext() = this
   val qrCodeViewModel: QRCodeViewModel = QRCodeViewModel()
 
@@ -69,26 +69,25 @@ class BrowserActivity : AppCompatActivity() {
   }
 
 
-  // 选择图片后回调到这
-  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-    super.onActivityResult(requestCode, resultCode, data)
-    // 申请蓝牙启动的返回
-    if (requestCode == BLUETOOTH_REQUEST) {
-      when (resultCode) {
-        RESULT_OK -> bluetoothOp.resolve("success")
-        RESULT_CANCELED -> bluetoothOp.resolve("Application for bluetooth rejected")
-        else -> bluetoothOp.resolve("Application for bluetooth rejected")
-      }
-    }
-    // 启动蓝牙可以发现的返回
-    if (requestCode == BLUETOOTH_CAN_BE_FOUND) {
-      when (resultCode) {
-        RESULT_OK -> bluetooth_found.resolve("success")
-        RESULT_CANCELED -> bluetooth_found.resolve("rejected")
-        else -> bluetooth_found.resolve("rejected")
-      }
-    }
-  }
+//  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//    super.onActivityResult(requestCode, resultCode, data)
+//    // 申请蓝牙启动的返回
+//    if (requestCode == BLUETOOTH_REQUEST) {
+//      when (resultCode) {
+//        RESULT_OK -> bluetoothOp.resolve("success")
+//        RESULT_CANCELED -> bluetoothOp.resolve("Application for bluetooth rejected")
+//        else -> bluetoothOp.resolve("Application for bluetooth rejected")
+//      }
+//    }
+//    // 启动蓝牙可以发现的返回
+//    if (requestCode == BLUETOOTH_CAN_BE_FOUND) {
+//      when (resultCode) {
+//        RESULT_OK -> bluetooth_found.resolve("success")
+//        RESULT_CANCELED -> bluetooth_found.resolve("rejected")
+//        else -> bluetooth_found.resolve("rejected")
+//      }
+//    }
+//  }
 
   override fun onRequestPermissionsResult(
     requestCode: Int, permissions: Array<out String>, grantResults: IntArray
@@ -137,43 +136,43 @@ class BrowserActivity : AppCompatActivity() {
     // 退出APP关闭服务
     super.onDestroy()
     browserController.activity = null
-    blueToothReceiver?.let { unregisterReceiver(it) }
-    blueToothReceiver = null
+//    blueToothReceiver?.let { unregisterReceiver(it) }
+//    blueToothReceiver = null
   }
 
   // 创建查找对象
-  class BlueToothReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-      val result = mutableListOf<BluetoothNMM.BluetoothTargets>()
-      when (intent.action) {
-        // 查找设备
-        BluetoothDevice.ACTION_FOUND -> {
-          val device: BluetoothDevice? =
-            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-          // 权限判断
-          if (ActivityCompat.checkSelfPermission(
-              App.appContext,
-              Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-          ) {
-            // TODO: 处理没有权限的情况
-            return
-          }
-          device?.let {
-            result.add(
-              BluetoothNMM.BluetoothTargets(
-                it.name,
-                it.address,
-                it.uuids[0].uuid
-              )
-            )
-          }
-        }
-      }
-      BluetoothNMM.findBluetoothResult.resolve(result)
-    }
-  }
-}
+//  class BlueToothReceiver : BroadcastReceiver() {
+//    override fun onReceive(context: Context, intent: Intent) {
+//      val result = mutableListOf<BluetoothNMM.BluetoothTargets>()
+//      when (intent.action) {
+//        // 查找设备
+//        BluetoothDevice.ACTION_FOUND -> {
+//          val device: BluetoothDevice? =
+//            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+//          // 权限判断
+//          if (ActivityCompat.checkSelfPermission(
+//              App.appContext,
+//              Manifest.permission.BLUETOOTH_CONNECT
+//            ) != PackageManager.PERMISSION_GRANTED
+//          ) {
+//            // TODO: 处理没有权限的情况
+//            return
+//          }
+//          device?.let {
+//            result.add(
+//              BluetoothNMM.BluetoothTargets(
+//                it.name,
+//                it.address,
+//                it.uuids[0].uuid
+//              )
+//            )
+//          }
+//        }
+//      }
+//      BluetoothNMM.findBluetoothResult.resolve(result)
+//    }
+//  }
+//}
 
 // 监听键盘是否显示
 class SoftKeyboardStateWatcher(private val activityRootView: View, private val  context: Context) :
@@ -188,7 +187,6 @@ class SoftKeyboardStateWatcher(private val activityRootView: View, private val  
   override fun onGlobalLayout() {
     //下面这种方式则对软键盘没有设置要求
     val r = Rect()
-    //r will be populated with the coordinates of your view that area still visible.
     //r will be populated with the coordinates of your view that area still visible.
     activityRootView.getWindowVisibleDisplayFrame(r)
 

@@ -5,8 +5,7 @@ import android.os.Bundle
 import android.provider.Settings.ACTION_BIOMETRIC_ENROLL
 import android.provider.Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED
 import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
-import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.BiometricManager.Authenticators.*
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC
 import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL
@@ -91,7 +90,7 @@ class BiometricsActivity :FragmentActivity() {
 
      fun chuck():Boolean {
         val biometricManager = BiometricManager.from(this)
-        return when (biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)) {
+        return when (biometricManager.canAuthenticate(BIOMETRIC_STRONG)) {
             BiometricManager.BIOMETRIC_SUCCESS ->{
                 debugBiometrics("MY_APP_TAG", "应用程序可以使用生物识别技术进行身份验证.")
                  true

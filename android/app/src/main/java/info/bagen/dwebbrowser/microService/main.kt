@@ -144,7 +144,7 @@ suspend fun startDwebBrowser(): DnsNMM {
         )
         DEVELOPER.HuangLin, DEVELOPER.HLVirtual -> listOf(desktopJMM.mmid, browserNMM.mmid)
         DEVELOPER.WaterBang -> listOf(cotDemoJMM.mmid, browserNMM.mmid)
-        else -> listOf(browserNMM.mmid)
+        else -> listOf(cotDemoJMM.mmid,browserNMM.mmid)
     }
 
     /// 启动程序
