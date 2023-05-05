@@ -2,7 +2,7 @@
 
 import { proxy } from "comlink";
 import { css, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, queryAll } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import { styleMap } from "lit/directives/style-map.js";
 import {
@@ -17,7 +17,7 @@ import type {
   CustomEventDomReadyDetail,
   CustomEventAnimationendDetail
 } from "./multi-webview-content.html.mjs"
-
+import type { MultiWebViewContent } from "./multi-webview-content.html.mjs";
 @customElement("view-tree")
 export class ViewTree extends LitElement {
   // Define scoped styles right with your component, in plain CSS
@@ -212,6 +212,9 @@ export class ViewTree extends LitElement {
   // Declare reactive properties
   @property()
   name?: string = "Multi Webview";
+  
+  @queryAll('multi-webview-content')
+  _multiWebviewContent: MultiWebViewContent[] | undefined;
 
   private webviews: Array<Webview> = [];
   /** 对webview视图进行状态整理 */
@@ -347,9 +350,18 @@ export class ViewTree extends LitElement {
     return true;
   }
 
-
-
-
+  /**
+   * 根据host执行 javaScript
+   * @param host 
+   * @param code 
+   */
+  async executeJavascriptByHost(host: string, code: string){
+    this._multiWebviewContent?.forEach(el => {
+      if(el.src.includes(host)){
+        el.executeJavascript(code)
+      }
+    })
+  }
 
   // override connectedCallback = () => {
   //   super.connectedCallback()
@@ -471,7 +483,8 @@ export const APIS = {
   openWebview: viewTree.openWebview.bind(viewTree),
   closeWebview: viewTree.closeWebview.bind(viewTree),
   destroyWebviewByHost: viewTree.destroyWebviewByHost.bind(viewTree),
-  restartWebviewByHost: viewTree.restartWebviewByHost.bind(viewTree)
+  restartWebviewByHost: viewTree.restartWebviewByHost.bind(viewTree),
+  executeJavascriptByHost: viewTree.executeJavascriptByHost.bind(viewTree),
 };
 
 exportApis(APIS);

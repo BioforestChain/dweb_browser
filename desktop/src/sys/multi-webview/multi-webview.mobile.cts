@@ -2,17 +2,13 @@ import type { Remote } from "comlink";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
-import { createResolveTo } from "../../helper/createResolveTo.cjs";
 import { locks } from "../../helper/locksManager.cjs";
 import {
   $NativeWindow,
   openNativeWindow,
 } from "../../helper/openNativeWindow.cjs";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
-import path from "node:path";
-const resolveTo = createResolveTo(__dirname);
 import chalk from "chalk"
-
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
@@ -114,6 +110,23 @@ export class MultiWebviewNMM extends NativeMicroModule {
       },
     })
 
+    // 通过 host 更新
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/webview_execute_javascript_by_host",
+      method: "POST",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: async(args, client_ipc, request) => {
+        const host = request.headers.get("origin")
+        if(host === null) throw new Error(`${this.mmid} registerCommonIpcOnMessageHandler /webview_execute_javascript_by_host host === null`);
+        const code = await request.body.text();
+        Array.from(this._uid_wapis_map.values()).forEach(({apis}) => {
+          apis.executeJavascriptByHost(host, code);
+        })
+        return true;
+      }
+    })
   }
   
   _shutdown() {

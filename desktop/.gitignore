@@ -6,5 +6,7 @@ git-sim_media
 temp
 cot
 app
+apps
+assets/data
 
 proxy/src/index.cjs

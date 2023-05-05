@@ -1,6 +1,6 @@
 // 效果 webview 容器
 import { css , html, LitElement } from "lit"
-import { customElement, property, state } from "lit/decorators.js"
+import { customElement, property, query, state } from "lit/decorators.js"
 import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from "lit/directives/if-defined.js"; 
 import { Webview } from "./multi-webview.mjs";
@@ -139,6 +139,8 @@ export class MultiWebViewContent extends LitElement{
     @property({type: Number}) customWebviewId: Number = 0;
     @property({type: String}) src: String = ""
     @state() statusbarHidden: boolean = false;
+    @query("webview")
+    elWebview: WebviewTag | undefined
 
     static override styles  = allCss
 
@@ -149,23 +151,23 @@ export class MultiWebViewContent extends LitElement{
     }
 
     onDomReady(event: Event){
-        this.dispatchEvent(new CustomEvent(
-            "dom-ready",
-            {
-                bubbles: true,
-                detail: {
-                    customWebview: this.customWebview,
-                    event: event,
-                    from: event.target
-                }
-            }
-        ))
+      this.dispatchEvent(new CustomEvent(
+        "dom-ready",
+        {
+          bubbles: true,
+          detail: {
+            customWebview: this.customWebview,
+            event: event,
+            from: event.target
+          }
+        }
+      ))
     }
 
     webviewDidStartLoading(e: Event){
       const el = e.target;
       if(el === null) throw new Error(`el === null`);
-      (e.target as unknown as  {executeJavaScript: {(str: string): void}})
+      (e.target as  WebviewTag)
       .executeJavaScript(`
         (function a(){
           if (!globalThis.__native_close_watcher_kit__) {
@@ -190,7 +192,7 @@ export class MultiWebViewContent extends LitElement{
             };
             // 这里会修改了 window.open 的方法 是否有问题了？？
             globalThis.open = function(arg){
-              console.log('open', arg)
+              console.error('open 方法被修改了', arg)
             }
           }
         })()
@@ -198,7 +200,7 @@ export class MultiWebViewContent extends LitElement{
     }
 
     onShow(){
-        this.isShow = true;
+      this.isShow = true;
     }
 
     onAnimationend(event: AnimationEvent){
@@ -213,6 +215,15 @@ export class MultiWebViewContent extends LitElement{
                 }
             }
         ))
+    }
+
+    /**
+     * 向内部的 webview 的内容执行 code
+     * @param code 
+     */
+    executeJavascript = (code: string) => {
+      if(this.elWebview === undefined) throw new Error(`this.elWebview === undefined`);
+      this.elWebview.executeJavaScript(code)
     }
 
     onPluginNativeUiLoadBase(e: Event){
