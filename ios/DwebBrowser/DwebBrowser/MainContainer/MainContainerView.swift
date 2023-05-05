@@ -39,6 +39,7 @@ struct MainContainerView: View {
                 .environmentObject(ToolbarState())
                 .environmentObject(MainViewState())
                 .environmentObject(tabPageStates)
+                .environmentObject(WebPages())
             }
         }
     }

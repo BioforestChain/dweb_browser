@@ -31,6 +31,9 @@
 		F02899AF29FBA28E00B8754A /* AutoFillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899AE29FBA28E00B8754A /* AutoFillView.swift */; };
 		F02899B629FBD3EA00B8754A /* TabPagesState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899B529FBD3EA00B8754A /* TabPagesState.swift */; };
 		F02899BB2A033E2F00B8754A /* WebView_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02899BA2A033E2E00B8754A /* WebView_test.swift */; };
+		F08E10402A04917600899DF8 /* WebPages.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E103F2A04917600899DF8 /* WebPages.swift */; };
+		F08E10432A04EFB800899DF8 /* FavIcon in Frameworks */ = {isa = PBXBuildFile; productRef = F08E10422A04EFB800899DF8 /* FavIcon */; };
+		F08E10452A04FBEE00899DF8 /* DWButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10442A04FBEE00899DF8 /* DWButton.swift */; };
 		F0B2AB172A03AC40000AD502 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B2AB162A03AC40000AD502 /* WebView.swift */; };
 /* End PBXBuildFile section */
 
@@ -59,6 +62,8 @@
 		F02899AE29FBA28E00B8754A /* AutoFillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoFillView.swift; sourceTree = "<group>"; };
 		F02899B529FBD3EA00B8754A /* TabPagesState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabPagesState.swift; sourceTree = "<group>"; };
 		F02899BA2A033E2E00B8754A /* WebView_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView_test.swift; sourceTree = "<group>"; };
+		F08E103F2A04917600899DF8 /* WebPages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebPages.swift; sourceTree = "<group>"; };
+		F08E10442A04FBEE00899DF8 /* DWButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWButton.swift; sourceTree = "<group>"; };
 		F0B2AB162A03AC40000AD502 /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -68,6 +73,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F02899A129F7CDAB00B8754A /* QGrid in Frameworks */,
+				F08E10432A04EFB800899DF8 /* FavIcon in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,6 +139,7 @@
 				F028999029F7C4AA00B8754A /* SnapshotView.swift */,
 				F028998E29F7C42300B8754A /* const.swift */,
 				F02899A229F91DF200B8754A /* Placeholder_extention.swift */,
+				F08E10442A04FBEE00899DF8 /* DWButton.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -181,6 +188,7 @@
 				F02899A929FA499D00B8754A /* HomeView.swift */,
 				F02899B529FBD3EA00B8754A /* TabPagesState.swift */,
 				F02899BA2A033E2E00B8754A /* WebView_test.swift */,
+				F08E103F2A04917600899DF8 /* WebPages.swift */,
 			);
 			path = HomePage;
 			sourceTree = "<group>";
@@ -203,6 +211,7 @@
 			name = DwebBrowser;
 			packageProductDependencies = (
 				F02899A029F7CDAB00B8754A /* QGrid */,
+				F08E10422A04EFB800899DF8 /* FavIcon */,
 			);
 			productName = DwebBrowser;
 			productReference = F028997329F7C38500B8754A /* DwebBrowser.app */;
@@ -234,6 +243,7 @@
 			mainGroup = F028996A29F7C38500B8754A;
 			packageReferences = (
 				F028999F29F7CDAB00B8754A /* XCRemoteSwiftPackageReference "QGrid" */,
+				F08E10412A04EFB800899DF8 /* XCRemoteSwiftPackageReference "FavIcon" */,
 			);
 			productRefGroup = F028997429F7C38500B8754A /* Products */;
 			projectDirPath = "";
@@ -273,6 +283,7 @@
 				F028999629F7C87000B8754A /* HistoryItem.swift in Sources */,
 				F028999829F7C87000B8754A /* HistoryStore.swift in Sources */,
 				F028999B29F7CC0000B8754A /* TabsCollectionView.swift in Sources */,
+				F08E10452A04FBEE00899DF8 /* DWButton.swift in Sources */,
 				F028997929F7C38500B8754A /* ObservableObjectView.swift in Sources */,
 				F02899AF29FBA28E00B8754A /* AutoFillView.swift in Sources */,
 				F02899AC29FA882C00B8754A /* TabHStackView.swift in Sources */,
@@ -281,6 +292,7 @@
 				F028998F29F7C42300B8754A /* const.swift in Sources */,
 				F02899B629FBD3EA00B8754A /* TabPagesState.swift in Sources */,
 				F028999729F7C87000B8754A /* HistoryView.swift in Sources */,
+				F08E10402A04917600899DF8 /* WebPages.swift in Sources */,
 				F028997729F7C38500B8754A /* DwebBrowserApp.swift in Sources */,
 				F028998C29F7C3E400B8754A /* TabPageView.swift in Sources */,
 			);
@@ -495,6 +507,14 @@
 				kind = branch;
 			};
 		};
+		F08E10412A04EFB800899DF8 /* XCRemoteSwiftPackageReference "FavIcon" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/leonbreedt/FavIcon";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -502,6 +522,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F028999F29F7CDAB00B8754A /* XCRemoteSwiftPackageReference "QGrid" */;
 			productName = QGrid;
+		};
+		F08E10422A04EFB800899DF8 /* FavIcon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F08E10412A04EFB800899DF8 /* XCRemoteSwiftPackageReference "FavIcon" */;
+			productName = FavIcon;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

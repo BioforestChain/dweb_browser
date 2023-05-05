@@ -28,49 +28,55 @@ struct Storage {
     }
 }
 
-
 struct TabsCollectionView: View {
     @ObservedObject var historyStore = HistoryStore()
+    @EnvironmentObject var pages: WebPages
     
     var body: some View {
-        QGrid(Storage.people,
+        QGrid(pages.pages,
               columns: 2,
               columnsInLandscape: 4,
               vSpacing: 20,
               hSpacing: 20,
-              vPadding: 15,
-              hPadding: 20) { person in
-            GridCell(person: person)
+              vPadding: 10,
+              hPadding: 20)
+        { person in
+            GridCell(page: person)
         }
-              .background(.gray)
+        .background(Color(white: 0.7))
     }
 }
 
 struct GridCell: View {
-    var person: Person
+    var page: WebPage
     @State var runCount = 0
     var body: some View {
-//        GeometryReader{ geometry in
+        //        GeometryReader{ geometry in
+        ZStack(alignment: .topTrailing){
             VStack() {
-                Image(person.imageName)
+                Image(uiImage: page.snapshot)
                     .resizable()
-                    .scaledToFit()
+                    .shadow(color: .secondary, radius: 3)
+                    .cornerRadius(10)
                 
-                    .shadow(color: .primary, radius: 5)
-                    .padding([.horizontal, .top], 7)
-                    .onTapGesture {
-//                        print("VStack was tapped!")
+                HStack{
+                    AsyncImage(url: page.icon) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 25, height: 25)
+                        
+                    } placeholder: {
+                        Color.clear
+                            .frame(width: 25, height: 25)
                     }
-                Text(person.lastName).lineLimit(1)
+                    
+                    Text(page.title)
+                        .fontWeight(.semibold)
+                        .lineLimit(1)
+                }
             }
-            .padding(.bottom, 60)
-            .background(.cyan)
-            
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.blue, lineWidth: 3)
-            )
-            .cornerRadius(10)
+            .aspectRatio(2.0/3.2, contentMode: .fit)
             .onTapGesture {
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
@@ -79,11 +85,27 @@ struct GridCell: View {
                 print("cell tapped")
                 let uiImage = self.snapshot()
                 print(uiImage.size)
-//                print(geometry.frame(in: .global))
+            }
+            
+            Button {
+                print("delete this tab, remove data from cache")
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 26)
+            }
+            .padding(.top, 8)
+            .padding(.trailing, 8)
+            .buttonStyle(CloseTabStyle())
+            .alignmentGuide(.top) { d in
+                d[.top]
+            }
+            .alignmentGuide(.trailing) { d in
+                d[.trailing]
             }
         }
-        
-//    }
+    }
 }
 
 struct TabsCollectionView_Previews: PreviewProvider {
