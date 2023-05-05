@@ -93,7 +93,6 @@ export class BiometricsNMM extends NativeMicroModule{
   }
 
   private _operationReturn = async (req: IncomingMessage, res: OutgoingMessage) => {
-    
     let chunks = Buffer.alloc(0);
     req.on('data', (chunk) => {
       chunks = Buffer.concat([chunks, chunk]);
@@ -102,7 +101,8 @@ export class BiometricsNMM extends NativeMicroModule{
       res.end();
       const {err, id} = this.getIdFromReq(req);
       if(err) throw err;
-      const reqRes = this.reqResMap.get(parseInt(id));
+      const key = parseInt(id)
+      const reqRes = this.reqResMap.get(key);
       if(reqRes === undefined){
         console.log('id', id)
         console.log("this.reqResMap: ", this.reqResMap)
@@ -110,7 +110,7 @@ export class BiometricsNMM extends NativeMicroModule{
       };
       
       reqRes.res.end(chunks);
-      this.reqResMap.delete(parseInt(id))
+      this.reqResMap.delete(key)
     })
   }
 

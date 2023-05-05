@@ -188,7 +188,7 @@ export class NavigationBarNMM extends NativeMicroModule {
   
   private _operationReturn = async (req: IncomingMessage, res: OutgoingMessage) => {
     const id = req.headers.id
-    if(id === undefined) throw new Error(`id === undefined`)
+    if(typeof id !== "string") throw new Error(`${this.mmid} typeof id !== string`)
     if(Object.prototype.toString.call(id).slice(8, -1) === "Array") throw new Error(`id === Array`)
     let chunks = Buffer.alloc(0);
     req.on('data', (chunk) => {
@@ -196,10 +196,12 @@ export class NavigationBarNMM extends NativeMicroModule {
     })
     req.on('end', () => {
       res.end()
-      const reqRes = this.reqResMap.get(parseInt(id as string))
+      const key = parseInt(id);
+      const reqRes = this.reqResMap.get(key)
       if(id !== "observe"){ // 如果不是监听需要按正常路径返回
         if(reqRes === undefined) throw new Error(`reqRes === undefined`);
         reqRes.res.end(Buffer.from(chunks));
+        this.reqResMap.delete(key)
       } 
 
       // 是否需要 按监听的请求返回数据
