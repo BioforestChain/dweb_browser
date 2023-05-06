@@ -14,6 +14,8 @@ const main = async () => {
   let oldWebviewState: WebViewState[] = [];
   // 跟 browser建立连接
   const browserIpc = await jsProcess.connect("browser.sys.dweb");
+  // 跟multiWebView 建立连接
+  const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
   // 关闭信号
   const closeSignal = createSignal<() => unknown>()
 
@@ -155,13 +157,8 @@ const main = async () => {
   // 这里是全局的连接 负责接收别人发送的信息
   const connectGlobal = () => {
     jsProcess.onConnect((ipc) => {
-      ipc.onEvent(async (event) => {
-        if (event.name === EVENT.State && typeof event.data === "string") {
-          const newState = JSON.parse(event.data)
-          const diff = detailedDiff(oldWebviewState, newState)
-          oldWebviewState = newState
-          diffFactory(diff)
-        }
+      ipc.onEvent((event) => {
+
       });
       // 每个人来连接都会注册监听，关闭时统一close
       closeSignal.listen(() => {
@@ -172,7 +169,26 @@ const main = async () => {
   }
   connectGlobal()
 
+  const connectMultiWebView = () => {
+    multiWebViewIpc.onEvent(async (event) => {
+      console.log("connectMultiWebView =>", event.name)
+      if (event.name === EVENT.State && typeof event.data === "string") {
+        const newState = JSON.parse(event.data)
+        const diff = detailedDiff(oldWebviewState, newState)
+        oldWebviewState = newState
+        diffFactory(diff)
+      }
+    })
+    closeSignal.listen(() => {
+      multiWebViewIpc.postMessage(IpcEvent.fromText("close", ""))
+      multiWebViewIpc.close()
+    })
+  }
+
+  connectMultiWebView()
+
   const diffFactory = async (diff: DetailedDiff) => {
+    console.log("connectMultiWebView diffFactory=>", diff.added, diff.deleted, diff.updated)
     //  是否有新增
     for (const id in diff.added) {
       webViewMap.set(id, JSON.parse(diff.added[id as keyof typeof diff.added]));

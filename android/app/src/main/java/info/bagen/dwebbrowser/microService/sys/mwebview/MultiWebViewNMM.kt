@@ -66,7 +66,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
             "/activate" bind Method.GET to defineHandler { request, ipc ->
                 val remoteMmid = ipc.remote.mmid
                 val webViewId = queryWebviewId(request)
-                debugMultiWebView("REOPEN-WEBVIEW", "remote-mmid: $remoteMmid==>$webViewId")
+                debugMultiWebView("/activate", "remote-mmid: $remoteMmid==>$webViewId")
                 activityClassList.find { it.mmid == remoteMmid }?.let { activityClass ->
                     App.startActivity(activityClass.ctor) { intent ->
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
@@ -112,7 +112,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
         url: String,
     ): MultiWebViewController.ViewItem {
         val remoteMmid = remoteMm.mmid
-        debugMultiWebView("OPEN-WEBVIEW", "remote-mmid: $remoteMmid / url:$url")
+        debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
         val controller = controllerMap.getOrPut(remoteMmid) {
             MultiWebViewController(
                 remoteMmid,

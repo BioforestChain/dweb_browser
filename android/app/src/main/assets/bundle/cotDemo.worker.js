@@ -738,6 +738,7 @@ var main = async () => {
   const mainUrl = new PromiseOut();
   let oldWebviewState = [];
   const browserIpc = await jsProcess.connect("browser.sys.dweb");
+  const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
   const closeSignal = createSignal();
   const tryOpenView = async () => {
     if (webViewMap.size === 0) {
@@ -835,13 +836,7 @@ var main = async () => {
   connectBrowser();
   const connectGlobal = () => {
     jsProcess.onConnect((ipc2) => {
-      ipc2.onEvent(async (event) => {
-        if (event.name === "state" /* State */ && typeof event.data === "string") {
-          const newState = JSON.parse(event.data);
-          const diff = detailed_default(oldWebviewState, newState);
-          oldWebviewState = newState;
-          diffFactory(diff);
-        }
+      ipc2.onEvent((event) => {
       });
       closeSignal.listen(() => {
         ipc2.postMessage(IpcEvent.fromText("close", ""));
@@ -850,7 +845,24 @@ var main = async () => {
     });
   };
   connectGlobal();
+  const connectMultiWebView = () => {
+    multiWebViewIpc.onEvent(async (event) => {
+      console.log("connectMultiWebView =>", event.name);
+      if (event.name === "state" /* State */ && typeof event.data === "string") {
+        const newState = JSON.parse(event.data);
+        const diff = detailed_default(oldWebviewState, newState);
+        oldWebviewState = newState;
+        diffFactory(diff);
+      }
+    });
+    closeSignal.listen(() => {
+      multiWebViewIpc.postMessage(IpcEvent.fromText("close", ""));
+      multiWebViewIpc.close();
+    });
+  };
+  connectMultiWebView();
   const diffFactory = async (diff) => {
+    console.log("connectMultiWebView diffFactory=>", diff.added, diff.deleted, diff.updated);
     for (const id in diff.added) {
       webViewMap.set(id, JSON.parse(diff.added[id]));
     }

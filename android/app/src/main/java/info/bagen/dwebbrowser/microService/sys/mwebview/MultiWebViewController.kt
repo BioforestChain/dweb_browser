@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser.microService.sys.mwebview
 
 import androidx.compose.runtime.*
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
@@ -15,6 +17,7 @@ import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.util.IsChange
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import okhttp3.internal.notify
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -32,17 +35,33 @@ class MultiWebViewController(
         private var webviewId_acc = AtomicInteger(1)
     }
 
-    private var webViewList = mutableStateListOf<ViewItem>()
-    private val listState = MutableStateFlow(webViewList)
+    data class MWebViewState(
+        val webviewId: String,
+        val isActivated: Boolean
+    )
 
-    init {
-        GlobalScope.launch(ioAsyncExceptionHandler) {
-            listState.collect {
+    private var webViewList = mutableStateListOf<ViewItem>()
+    fun ViewItem.toJsonAble():MWebViewState {
+        return MWebViewState(this.webviewId, this.hidden.value)
+    }
+
+//    @Composable
+//    fun effectItem(viewItem:ViewItem) {
+//        debugMultiWebView("effectItem","${viewItem.webviewId} ${viewItem.hidden}")
+//        LaunchedEffect(viewItem) {
+//               snapshotFlow { viewItem.hidden }.collect {
+//                   updateStateHook()
+//               }
+//           }
+//    }
+    @Composable
+    fun effect() {
+        LaunchedEffect(webViewList) {
+            snapshotFlow { webViewList.size }.collect {
                 updateStateHook()
             }
         }
     }
-
     @Composable
     fun eachView(action: @Composable (viewItem: ViewItem) -> Unit) {
         webViewList.forEachIndexed { _, viewItem ->
@@ -56,18 +75,13 @@ class MultiWebViewController(
 
     private val mIpcMap = mutableMapOf<Mmid, Ipc>()
 
-    data class MWebViewState(
-        val webviewId: String? = null,
-        val isActivated: Boolean?= null,
-    )
-
     data class ViewItem(
       val webviewId: String,
       val webView: DWebView,
       val state: WebViewState,
       val navigator: WebViewNavigator,
       val coroutineScope: CoroutineScope,
-      var hidden: Boolean = false
+      var hidden: MutableState<Boolean> = mutableStateOf(false)
     ) {
         val nativeUiController by lazy {
 
@@ -124,12 +138,12 @@ class MultiWebViewController(
             state = state,
             coroutineScope = coroutineScope,
             navigator = navigator,
-        ).also {
-            webViewList.add(it)
+        ).also {viewItem ->
+            webViewList.add(viewItem)
             dWebView.onCloseWindow {
                 closeWebView(webviewId)
             }
-            it.coroutineScope.launch {
+            viewItem.coroutineScope.launch {
                 webViewOpenSignal.emit(webviewId)
             }
         }
@@ -140,7 +154,6 @@ class MultiWebViewController(
      */
     suspend fun closeWebView(webviewId: String) =
         webViewList.find { it.webviewId == webviewId }?.let { viewItem ->
-            debugMultiWebView("closeWebView =>", viewItem.webviewId)
             webViewList.remove(viewItem)
             withContext(Dispatchers.Main) {
                 viewItem.webView.destroy()
@@ -167,7 +180,7 @@ class MultiWebViewController(
         debugMultiWebView("updateStateHook =>", webViewList)
         val currentState = JSONObject()
         webViewList.map {
-            currentState.put(it.webviewId, gson.toJson(MWebViewState(it.webviewId, it.hidden)))
+            currentState.put(it.webviewId, it.toJsonAble())
         }
         mIpcMap.getOrPut(mmid) {
             val (ipc) = localeMM.connect(mmid)
@@ -187,17 +200,4 @@ class MultiWebViewController(
     fun onWebViewClose(cb: Callback<String>) = webViewCloseSignal.listen(cb)
     fun onWebViewOpen(cb: Callback<String>) = webViewOpenSignal.listen(cb)
 
-}
-
-class ListStateWatcher<T> {
-    private val _listState = MutableStateFlow(listOf<T>())
-    val listState = _listState.asStateFlow()
-
-    fun add(item: T) {
-        _listState.value.plus(item)
-    }
-//     fun map(it:T) {
-//        return listState.map(T)
-//     }
-//    fun find = listState.find
 }

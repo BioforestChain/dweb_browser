@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser.util
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import info.bagen.dwebbrowser.microService.sys.mwebview.debugMultiWebView
 
 @Stable
 class IsChange(
@@ -52,6 +54,23 @@ class IsChange(
     }
 
     return state
+  }
+
+  @Composable
+  inline fun <T> rememberByListState(list: SnapshotStateList<T>):  SnapshotStateList<T> {
+    list.map { state ->
+      LaunchedEffect(state) {
+        if (needFirstCall) {
+          changes.value += 1
+        }
+        snapshotFlow {
+          state
+        }.collect {
+          changes.value += 1
+        }
+      }
+    }
+    return  list
   }
 
 }

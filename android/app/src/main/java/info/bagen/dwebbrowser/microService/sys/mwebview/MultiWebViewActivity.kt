@@ -159,8 +159,10 @@ open class MultiWebViewActivity : PermissionActivity() {
         setContent {
             RustApplicationTheme {
                 val wc = rememberViewController()
+                wc.effect()
                 wc.eachView { viewItem ->
                     key(viewItem.webviewId) {
+//                        wc.effectItem(viewItem)
                         val nativeUiController = viewItem.nativeUiController.effect()
 
                         val state = viewItem.state
