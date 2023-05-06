@@ -21,9 +21,19 @@ struct WebPage: Identifiable, Codable{
         let url = URL(fileURLWithPath: "本地路径")
         return UIImage(contentsOfFile: url.path) ?? UIImage(named: "snapshot")!
     }
+    static let websites = [
+        "baidu.com",
+        "163.com",
+        "sohu.com",
+        "yahoo.com",
+        "douban.com",
+        "zhihu.com",
+        
+        
+    ]
     
     static func createItem() -> WebPage{
-        WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
+        WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: websites[Int.random(in: 0..<websites.count)], title: "Apple")
     }
     
     static let example = WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
@@ -41,7 +51,7 @@ class WebPages: ObservableObject{
            let models = try? NSKeyedUnarchiver.unarchiveObject(with: data) as? [WebPage] {
             pages =  models
         }else{
-            pages =  [WebPage.createItem(),WebPage.createItem(),WebPage.createItem(),WebPage.createItem()]
+            pages =  [WebPage.createItem(),WebPage.createItem()]//,WebPage.createItem(),WebPage.createItem()]
         }
     }
     

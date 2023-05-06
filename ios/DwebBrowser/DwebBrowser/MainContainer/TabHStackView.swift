@@ -14,7 +14,7 @@ struct TabsContainerView: View{
         ZStack{
             TabHStackView()
             
-            if !toolbarStates.showMenu{
+            if !toolbarStates.showOptions{
                 TabsCollectionView()
                     .background(.secondary)
                     .hidden()

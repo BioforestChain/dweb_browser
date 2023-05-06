@@ -32,11 +32,10 @@ struct AddressBarHStack: View {
         GeometryReader { innerGeometry in
             PageScroll(contentSize: pages.pages.count, content:AddressBarHContainer())
         }
-        .frame(height: states.showMenu ? 0 : addressBarHeight)
-        .animation(.easeInOut(duration: 0.3), value: states.showMenu)
+        .frame(height: states.showOptions ? 0 : addressBarHeight)
+        .animation(.easeInOut(duration: 0.3), value: states.showOptions)
     }
 }
-
 
 struct AddressBar: View {
     @State var inputText: String = ""
@@ -52,24 +51,31 @@ struct AddressBar: View {
                     .fill(Color(.darkGray))
                     .frame(width:screen_width - 48 ,height: 40)
                     .overlay {
-                        GeometryReader { geometry in
-                            VStack(alignment: .leading, spacing: 0) {
-                                ProgressView(value: progressValue)
-                                    .progressViewStyle(LinearProgressViewStyle())
-                                    .foregroundColor(.blue)
-                                    .background(Color(white: 1))
-                                    .cornerRadius(4)
-                                    .alignmentGuide(.leading) { d in
-                                        d[.leading]
-                                    }
-                                    .onAppear{
-                                        performNetworkRequest()
-                                    }
+                        if progressValue > 0.0 && progressValue <= 1.0{
+                            GeometryReader { geometry in
+                                VStack(alignment: .leading, spacing: 0) {
+                                    
+                                    ProgressView(value: progressValue)
+                                        .progressViewStyle(LinearProgressViewStyle())
+                                        .foregroundColor(.blue)
+                                        .background(Color(white: 1))
+                                        .cornerRadius(4)
+                                        .alignmentGuide(.leading) { d in
+                                            d[.leading]
+                                        }
+                                    
+                                        .onDisappear{
+                                            
+                                        }
+                                }
+                                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                
                             }
-                            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-
                         }
+                    }
+                    .onAppear{
+                        performNetworkRequest()
                     }
                 TextField("", text: $inputText)
                 
@@ -94,23 +100,18 @@ struct AddressBar: View {
                         print("Offset X: \(offsetX)")
                         offsetState.adressBarHstackOffset = offsetX
                     }
-                
-                
-                
             }.frame(height: addressBarHeight)
         }
-//        .onAppear{
-//            performNetworkRequest()
-//        }
     }
     
     func performNetworkRequest() {
+        // i
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-                if progressValue >= 1.0 {
-                    progressValue = 0.0
-                }
-                progressValue += 0.05
+            if progressValue >= 1.0 {
+                timer.invalidate()
             }
+            progressValue += 0.05
+        }
     }
 }
 
@@ -118,10 +119,6 @@ struct AddressBar: View {
 struct AddressBarHStack_Previews: PreviewProvider {
     static var previews: some View {
         
-        //        ProgressView(value: 0.5)
-        //            .progressViewStyle(LinearProgressViewStyle())
-        //            .foregroundColor(.blue)
-        //            .padding(.horizontal, 10)
         AddressBar()
             .environmentObject(MainViewState())
     }

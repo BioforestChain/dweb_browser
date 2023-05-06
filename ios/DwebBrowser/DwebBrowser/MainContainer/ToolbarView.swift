@@ -8,76 +8,96 @@
 import SwiftUI
 
 class ToolbarState: ObservableObject {
-    @Published var button1Clicked = false
-    @Published var button2Clicked = false
-    @Published var button3Clicked = false
-    @Published var button4Clicked = false
-    @Published var button5Clicked = false
-    @Published var showMenu = true
+    @Published var canGoForward = false
+    @Published var canGoBack = false
+    @Published var addTapped = false
+    @Published var moreTapped = false
+    @Published var showOptions = false  //显示多标签页
     
+    @Published var newPageTapped = false
+    @Published var doneTapped = false
 }
 
 struct ToolbarView: View {
     
     @EnvironmentObject var states: ToolbarState
-
+    
     var body: some View {
-        HStack(spacing: 5){
-            
-            Group{
-                Spacer()
+        if states.showOptions{
+            HStack(spacing: 5){
                 
-                ToolbarItem(imageName: "chevron.backward") {
-                    states.button1Clicked = true
-                    print("arrow.up was clicked")
+                Group{
+                    Spacer()
+                        .frame(width: 25)
+                    ToolbarItem(imageName: "chevron.backward") {
+                        states.canGoBack = true
+                        print("arrow.up was clicked")
+                    }
+                    
+                    Spacer()
+                    
+                    ToolbarItem(imageName: "chevron.forward") {
+                        states.canGoForward.toggle()
+                        print("arrow.up was clicked")
+                    }
+                    
+                    Spacer()
+                    
+                    ToolbarItem(imageName: "plus") {
+                        states.addTapped.toggle()
+                        
+                        print("arrow.up was clicked")
+                    }
                 }
-                
-                Spacer()
-                
-                ToolbarItem(imageName: "chevron.forward") {
-                    states.button2Clicked.toggle()
-                    print("arrow.up was clicked")
-                }
-                
-                Spacer()
-                
-                ToolbarItem(imageName: "square.and.arrow.up") {
-                    states.button3Clicked.toggle()
-
-                    print("arrow.up was clicked")
+                Group{
+                    Spacer()
+                    
+                    ToolbarItem(imageName: "book") {
+                        print("arrow.up was clicked")
+                        states.moreTapped = true
+                    }.sheet(isPresented: $states.moreTapped) {
+                        states.moreTapped = false
+                    } content: {
+                        HistoryView()
+                    }
+                    
+                    Spacer()
+                    
+                    ToolbarItem(imageName: "doc.on.doc") {
+                        states.showOptions.toggle()
+                        print("arrow.up was clicked")
+                    }
+                    
+                    Spacer()
+                        .frame(width: 25)
                 }
             }
-            Group{
-                Spacer()
-                
-                ToolbarItem(imageName: "pencil") {
-                    states.button4Clicked.toggle()
+            .frame(height: toolBarHeight)
 
-                    print("arrow.up was clicked")
+        }else{
+            HStack(spacing: 5){
+                Spacer()
+                    .frame(width: 25)
+                
+                ToolbarItem(imageName: "plus") {
+                    states.newPageTapped.toggle()
                 }
                 
                 Spacer()
-                
-                ToolbarItem(imageName: "book") {
-                    print("arrow.up was clicked")
-                    states.button5Clicked = true
-                }.sheet(isPresented: $states.button5Clicked) {
-                    states.button5Clicked = false
-                } content: {
-                    HistoryView()
-                }
-                
+                Text("15个标签页")
                 Spacer()
                 
-                ToolbarItem(imageName: "doc.on.doc") {
-                    states.showMenu.toggle()
-                    print("arrow.up was clicked")
+                ToolbarItem(title: "完成") {
+                    states.doneTapped.toggle()
+                    states.showOptions.toggle()
                 }
-                
+                .fontWeight(.semibold)
                 Spacer()
+                    .frame(width: 25)
             }
+            .frame(height: toolBarHeight)
+
         }
-        .frame(height: toolBarHeight)
     }
 }
 
@@ -88,17 +108,22 @@ struct ToolbarView_Previews: PreviewProvider {
 }
 
 struct ToolbarItem: View {
-    var imageName: String
+    var imageName: String?
+    var title: String?
     var tapAction: ()->()
     var body: some View {
         
         Button(action: {
             tapAction()
         }) {
-            Image(systemName: imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(height: 25)
+            if imageName != nil{
+                Image(systemName: imageName!)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 25)
+            }else{
+                Text(title!)
+            }
         }
     }
 }

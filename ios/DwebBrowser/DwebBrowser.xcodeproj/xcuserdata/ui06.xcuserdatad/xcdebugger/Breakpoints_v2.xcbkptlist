@@ -7,22 +7,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "3E1224B7-0963-42C9-8491-D7F40A01D8D9"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/MainContainer/ToolbarView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "73"
-            endingLineNumber = "73"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "D28DF9C0-00D9-4C6F-8978-F4AD83819932"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -30,8 +14,8 @@
             filePath = "DwebBrowser/MainContainer/AddressBarHStack.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "96"
-            endingLineNumber = "96"
+            startingLineNumber = "102"
+            endingLineNumber = "102"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -46,8 +30,8 @@
             filePath = "DwebBrowser/MainContainer/TabsCollectionView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "87"
-            endingLineNumber = "87"
+            startingLineNumber = "83"
+            endingLineNumber = "83"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -119,54 +103,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "45E79A5B-6493-4CD7-8952-B8A1596F1BB0"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/MainContainer/TabsCollectionView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "82"
-            endingLineNumber = "82"
-            landmarkName = "body"
-            landmarkType = "24">
-            <Locations>
-               <Location
-                  uuid = "45E79A5B-6493-4CD7-8952-B8A1596F1BB0 - f03bfca6b481c6f3"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #2 () -&gt; () in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.onTapGesture(count: Swift.Int, perform: () -&gt; ()) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.alignmentGuide(_: SwiftUI.HorizontalAlignment, computeValue: (SwiftUI.ViewDimensions) -&gt; CoreGraphics.CGFloat) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.GridCell.body.getter : some"
-                  moduleName = "DwebBrowser"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/MainContainer/TabsCollectionView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "82"
-                  endingLineNumber = "82"
-                  offsetFromSymbolStart = "316">
-               </Location>
-               <Location
-                  uuid = "45E79A5B-6493-4CD7-8952-B8A1596F1BB0 - e8ce06100e779209"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 @Swift.MainActor () -&gt; () in closure #2 () -&gt; () in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.onTapGesture(count: Swift.Int, perform: () -&gt; ()) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.alignmentGuide(_: SwiftUI.HorizontalAlignment, computeValue: (SwiftUI.ViewDimensions) -&gt; CoreGraphics.CGFloat) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.GridCell.body.getter : some"
-                  moduleName = "DwebBrowser"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/MainContainer/TabsCollectionView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "83"
-                  endingLineNumber = "83"
-                  offsetFromSymbolStart = "68">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "13697FFF-9C9C-4D91-957C-70D83B31018E"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -174,8 +110,8 @@
             filePath = "DwebBrowser/MainContainer/HomePage/TabPageView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "50"
-            endingLineNumber = "50"
+            startingLineNumber = "51"
+            endingLineNumber = "51"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -194,6 +130,70 @@
             endingLineNumber = "24"
             landmarkName = "init(page:)"
             landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2EF95CB0-2442-4B65-86ED-F68A533BB446"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/MainContainer/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "110"
+            endingLineNumber = "110"
+            landmarkName = "performNetworkRequest()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "449D1715-C1AB-4264-9539-6EFEA5AFCAA8"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/MainContainer/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "55"
+            endingLineNumber = "55"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "449D1715-C1AB-4264-9539-6EFEA5AFCAA8 - c812628c4d7f5fbb"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; Swift.Optional&lt;SwiftUI.GeometryReader&lt;&lt;&lt;opaque return type of SwiftUI.View.clipShape&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.Shape&gt;(_: &#x3c4;_1_0, style: SwiftUI.FillStyle) -&gt; some&gt;&gt;.0&gt;&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(SwiftUI.Color, &lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.onChange&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Equatable&gt;(of: &#x3c4;_1_0, perform: (&#x3c4;_1_0) -&gt; ()) -&gt; some&gt;&gt;.0)&gt; in closure #1 (SwiftUI.GeometryProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in DwebBrowser.AddressBar.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/MainContainer/AddressBarHStack.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "56"
+                  endingLineNumber = "56"
+                  offsetFromSymbolStart = "219">
+               </Location>
+               <Location
+                  uuid = "449D1715-C1AB-4264-9539-6EFEA5AFCAA8 - d3e34fe11392760d"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (SwiftUI.GeometryProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.clipShape&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.Shape&gt;(_: &#x3c4;_1_0, style: SwiftUI.FillStyle) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; Swift.Optional&lt;SwiftUI.GeometryReader&lt;&lt;&lt;opaque return type of SwiftUI.View.clipShape&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.Shape&gt;(_: &#x3c4;_1_0, style: SwiftUI.FillStyle) -&gt; some&gt;&gt;.0&gt;&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(SwiftUI.Color, &lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.onChange&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Equatable&gt;(of: &#x3c4;_1_0, perform: (&#x3c4;_1_0) -&gt; ()) -&gt; some&gt;&gt;.0)&gt; in closure #1 (SwiftUI.GeometryProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in DwebBrowser.AddressBar.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/MainContainer/AddressBarHStack.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "57"
+                  endingLineNumber = "57"
+                  offsetFromSymbolStart = "794">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

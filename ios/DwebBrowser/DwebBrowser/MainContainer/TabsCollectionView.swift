@@ -53,7 +53,7 @@ struct GridCell: View {
     var body: some View {
         //        GeometryReader{ geometry in
         ZStack(alignment: .topTrailing){
-            VStack() {
+            VStack(spacing: 5) {
                 Image(uiImage: page.snapshot)
                     .resizable()
                     .shadow(color: .secondary, radius: 3)
@@ -78,10 +78,6 @@ struct GridCell: View {
             }
             .aspectRatio(2.0/3.2, contentMode: .fit)
             .onTapGesture {
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-                    runCount += 1
-                })
                 print("cell tapped")
                 let uiImage = self.snapshot()
                 print(uiImage.size)

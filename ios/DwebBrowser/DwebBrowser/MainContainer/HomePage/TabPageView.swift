@@ -47,6 +47,7 @@ struct TabPageView: View {
                     })
             }.onAppear {
                 print(Unmanaged.passUnretained(self.webViewStore).toOpaque())
+                print("opening \(page.openedUrl)")
                 self.webViewStore.webView.load(URLRequest(url: URL(string: page.openedUrl ?? "163.com")!))
             }
             
