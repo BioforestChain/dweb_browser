@@ -22,6 +22,10 @@ struct WebPage: Identifiable, Codable{
         return UIImage(contentsOfFile: url.path) ?? UIImage(named: "snapshot")!
     }
     
+    static func createItem() -> WebPage{
+        WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
+    }
+    
     static let example = WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
 }
 
@@ -37,7 +41,7 @@ class WebPages: ObservableObject{
            let models = try? NSKeyedUnarchiver.unarchiveObject(with: data) as? [WebPage] {
             pages =  models
         }else{
-            pages =  [WebPage.example,WebPage.example,WebPage.example,WebPage.example]
+            pages =  [WebPage.createItem(),WebPage.createItem(),WebPage.createItem(),WebPage.createItem()]
         }
     }
     

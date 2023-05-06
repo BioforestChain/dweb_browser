@@ -17,7 +17,14 @@ struct TabPageView: View {
 
     @State var homeview = HomePage()
 
-    @StateObject var webViewStore = WebViewStore()
+//    @StateObject var webViewStore = WebViewStore()
+    
+    @ObservedObject var webViewStore: WebViewStore
+    init(page: WebPage) {
+        self._webViewStore = ObservedObject(initialValue: WebViewStore())
+        self._page = State(initialValue: page)
+//        super.init(nibName: nil, bundle: nil)
+      }
 
     var  body: some View {
         ZStack{
