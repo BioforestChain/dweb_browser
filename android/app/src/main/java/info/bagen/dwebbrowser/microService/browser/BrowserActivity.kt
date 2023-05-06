@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class BrowserActivity : AppCompatActivity() {
-//  var blueToothReceiver: BlueToothReceiver? = null
+  //  var blueToothReceiver: BlueToothReceiver? = null
   fun getContext() = this
   val qrCodeViewModel: QRCodeViewModel = QRCodeViewModel()
 
@@ -173,6 +173,7 @@ class BrowserActivity : AppCompatActivity() {
 //    }
 //  }
 //}
+}
 
 // 监听键盘是否显示
 class SoftKeyboardStateWatcher(private val activityRootView: View, private val  context: Context) :

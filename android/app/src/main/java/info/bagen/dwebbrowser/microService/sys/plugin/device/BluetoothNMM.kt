@@ -76,18 +76,18 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                 Response(Status.OK).body(result)
             },
             /** 关闭蓝牙*/
-            "/close" bind Method.GET to defineHandler { request ->
-                // 检测是否有权限
-                if (ActivityCompat.checkSelfPermission(
-                        App.appContext,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    return@defineHandler Response(Status.CONNECTION_REFUSED).body("Connection refused without permission")
-                }
-                bluetoothAdapter?.disable()
-                Response(Status.OK)
-            },
+//            "/close" bind Method.GET to defineHandler { request ->
+//                // 检测是否有权限
+//                if (ActivityCompat.checkSelfPermission(
+//                        App.appContext,
+//                        Manifest.permission.BLUETOOTH_CONNECT
+//                    ) != PackageManager.PERMISSION_GRANTED
+//                ) {
+//                    return@defineHandler Response(Status.CONNECTION_REFUSED).body("Connection refused without permission")
+//                }
+//                bluetoothAdapter?.disable()
+//                Response(Status.OK)
+//            },
             /** 检测是否开启蓝牙*/
             "/check" bind Method.GET to defineHandler { request ->
                 if (bluetoothAdapter == null) {
@@ -98,23 +98,23 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                 Response(Status.OK).body(json)
             },
             /** 查找已连接的设备（查找已经连接的设备会更快）*/
-            "/query" bind Method.GET to defineHandler { request ->
-                val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
-                val result = mutableListOf<BluetoothTargets>()
-                pairedDevices?.forEach { device ->
-                    val name = device.name
-                    val address = device.address // MAC address
-                    result.add(BluetoothTargets(name, address, device.uuids[0].uuid))
-                }
-                bluetoothAdapter?.cancelDiscovery() // 取消正在进行的发现
-                Response(Status.OK).body(JsonUtil.toJson(result))
-            },
-            /** 发现设备*/
-            "/find" bind Method.GET to defineHandler { request ->
-                val result = findBluetooth()
-                bluetoothAdapter?.cancelDiscovery()// 取消正在进行的发现
-                Response(Status.OK).body(result)
-            },
+//            "/query" bind Method.GET to defineHandler { request ->
+//                val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+//                val result = mutableListOf<BluetoothTargets>()
+//                pairedDevices?.forEach { device ->
+//                    val name = device.name
+//                    val address = device.address // MAC address
+//                    result.add(BluetoothTargets(name, address, device.uuids[0].uuid))
+//                }
+//                bluetoothAdapter?.cancelDiscovery() // 取消正在进行的发现
+//                Response(Status.OK).body(JsonUtil.toJson(result))
+//            },
+//            /** 发现设备*/
+//            "/find" bind Method.GET to defineHandler { request ->
+//                val result = findBluetooth()
+//                bluetoothAdapter?.cancelDiscovery()// 取消正在进行的发现
+//                Response(Status.OK).body(result)
+//            },
             /** 连接设备
              * 作为客户端连接 /connect/client
              * 作为服务端连接 /connect/server
@@ -190,21 +190,21 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
     data class BluetoothTargets(val name: String, val address: String, val uuid: UUID? = null)
 
     /** 查找新的蓝牙设备*/
-    private suspend fun findBluetooth(): String {
-        if (browserController.activity == null) {
-            return "App initialization not completed"
-        }
-        // 发现设备时注册广播。
-        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        browserController.activity?.blueToothReceiver = BrowserActivity.BlueToothReceiver()
-        registerReceiver(
-            App.appContext,
-            browserController.activity!!.blueToothReceiver,
-            filter,
-            ContextCompat.RECEIVER_VISIBLE_TO_INSTANT_APPS
-        )
-        return JsonUtil.toJson(findBluetoothResult.waitPromise())
-    }
+//    private suspend fun findBluetooth(): String {
+//        if (browserController.activity == null) {
+//            return "App initialization not completed"
+//        }
+//        // 发现设备时注册广播。
+//        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+//        browserController.activity?.blueToothReceiver = BrowserActivity.BlueToothReceiver()
+//        registerReceiver(
+//            App.appContext,
+//            browserController.activity!!.blueToothReceiver,
+//            filter,
+//            ContextCompat.RECEIVER_VISIBLE_TO_INSTANT_APPS
+//        )
+//        return JsonUtil.toJson(findBluetoothResult.waitPromise())
+//    }
 
     @SuppressLint("MissingPermission")
     private inner class AcceptThread() : Thread() {
@@ -266,7 +266,7 @@ class BluetoothNMM : NativeMicroModule("bluetooth.sys.dweb") {
                 Manifest.permission.BLUETOOTH_CONNECT
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            bluetoothAdapter?.disable()
+//            bluetoothAdapter?.disable()
         }
     }
 }
