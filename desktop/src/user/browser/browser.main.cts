@@ -7,3 +7,4 @@ export const browserJMM = new JsMicroModule(
     server: { root: "file:///bundle", entry: "/browser.worker.js" },
   })
 );
+

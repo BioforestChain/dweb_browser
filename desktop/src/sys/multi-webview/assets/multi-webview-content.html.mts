@@ -162,12 +162,15 @@ export class MultiWebViewContent extends LitElement{
           }
         }
       ))
+
+      this.webviewDidStartLoading(event)
     }
 
     webviewDidStartLoading(e: Event){
       const el = e.target;
       if(el === null) throw new Error(`el === null`);
-      (e.target as  WebviewTag)
+      console.log('location.host: ', location)
+      ;(e.target as  WebviewTag)
       .executeJavaScript(`
         (function a(){
           if (!globalThis.__native_close_watcher_kit__) {
@@ -190,14 +193,43 @@ export class MultiWebViewContent extends LitElement{
                 watcher.dispatchEvent(new Event("close"))
               }
             };
+
             // 这里会修改了 window.open 的方法 是否有问题了？？
             globalThis.open = function(arg){
               console.error('open 方法被修改了', arg)
+            }
+            
+            // 设置 userAgent
+            Object.defineProperty(globalThis.navigator, 'userAgent', {
+              value: window.navigator.userAgent + " dweb-host/${location.host}",
+              configurable: false,
+              writable: false
+            });
+
+            
+            // 拦截 fetch
+            const nativeFetch = globalThis.fetch;
+            globalThis.fetch = (request) => {
+              console.log('request', request)
+              let url = typeof request === 'string' ? request : request.url;
+              if(url.endsWith('bfs-metadata.json')){
+                // 把请求发送出去
+                console.log('需要拦截的请求', request)
+                console.log('window.navigator.userAgent', window.navigator.userAgent);
+                // 把请求发送给 jsMM 模块
+                url = 'http://api.browser.sys.dweb-443.localhost:22605/open_download?url=' + url
+                // 只能够想办法 发送给 browser 让 browser 处理
+                return nativeFetch(url)
+              }else{
+                return nativeFetch(request)
+              }
             }
           }
         })()
       `)
     }
+    // 通过 brwoser 打开一个新的webview
+    // "http://api.browser.sys.dweb-443.localhost:22605/open?url=https://qawww.bfmeta.info"
 
     onShow(){
       this.isShow = true;
@@ -271,6 +303,10 @@ export class MultiWebViewContent extends LitElement{
                     class="webview-container"
                     data-app-url=${this.src}
                 >
+                  <!--
+                    webview 不能够使用 @did-start-loading=${this.webviewDidStartLoading}
+                    electron 会报错
+                  -->
                   <webview
                       id="view-${this.customWebviewId}"
                       class="webview"
@@ -278,7 +314,6 @@ export class MultiWebViewContent extends LitElement{
                       partition="trusted"
                       allownw
                       allowpopups
-                      @did-start-loading=${this.webviewDidStartLoading}
                       @dom-ready=${this.onDomReady}
                   ></webview>
                   

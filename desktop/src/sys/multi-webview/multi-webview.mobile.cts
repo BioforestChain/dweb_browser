@@ -1,5 +1,3 @@
-import type { Remote } from "comlink";
-import type { Ipc } from "../../core/ipc/ipc.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { locks } from "../../helper/locksManager.cjs";
@@ -7,8 +5,12 @@ import {
   $NativeWindow,
   openNativeWindow,
 } from "../../helper/openNativeWindow.cjs";
+import { log } from "../../helper/devtools.cjs";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 import chalk from "chalk"
+import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
+import type { Remote } from "comlink";
+import type { Ipc } from "../../core/ipc/ipc.cjs";
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
@@ -24,8 +26,9 @@ export class MultiWebviewNMM extends NativeMicroModule {
     { nww: $NativeWindow; apis: Remote<$APIS> }
   >();
 
-  async _bootstrap() {
-    console.log('[multi-webview.mobile.cts] _bootstrap')
+  async _bootstrap(context: $BootstrapContext) {
+    log.green(`${this.mmid} _bootstrap`)
+    
     const httpDwebServer = await createHttpDwebServer(this, {});
     this._after_shutdown_signal.listen(() => httpDwebServer.close());
     /// 从本地文件夹中读取数据返回，
@@ -55,7 +58,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { url: "string" },
       output: "number",
       handler: async (args, client_ipc, request) => {
-        console.log('[multi-webview.mobile.cts 接受到了 open 请求]--------------------------------------', client_ipc.uid)
+        console.log('[multi-webview.mobile.cts 接受到了 open 请求>>>>>>>>>>>>>]--------------------------------------', args.url, client_ipc.uid)
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         const webview_id = await wapis.apis.openWebview(args.url);
         console.log('multi-webview.mobile.cts /open args.url:', args.url)

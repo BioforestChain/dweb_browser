@@ -11,18 +11,16 @@ const main = async () => {
   const wwwServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www", port: 443 });
   const apiServer = await http.createHttpDwebServer(jsProcess, { subdomain: "api", port: 443 });
   // console.log('url: ', wwwServer.startResult.urlInfo.internal_origin)
-  // http://www.browser.sys.dweb-443.localhost:22605/index.html?X-Dweb-Host=www.browser.sys.dweb%3A443#/toast)
-  ; (await wwwServer.listen()).onRequest(wwwServerOnRequest)
-    ; (await apiServer.listen()).onRequest(await createApiServerOnRequest(wwwServer.startResult.urlInfo.internal_origin, apiServer.startResult.urlInfo))
-  // 打开 browser.sys.dweb 配套的html 页面
-  // 验证 JSMM 之间通信 实现消息推送 不需要打开匹配的html
+ 
+  ;(await wwwServer.listen()).onRequest(wwwServerOnRequest)
+  ;(await apiServer.listen()).onRequest(await createApiServerOnRequest(wwwServer.startResult.urlInfo.internal_origin, apiServer.startResult.urlInfo))
+   
+  // 根据 wwwServer 打开页面
   {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href
     
-    console.log('--------------------------------------****')
-    console.log("cot#open interUrl=>", interUrl)
     const view_id = await nativeOpen(interUrl)
   }
 

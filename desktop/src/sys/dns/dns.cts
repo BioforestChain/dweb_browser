@@ -1,11 +1,6 @@
-import type { IncomingMessage, OutgoingMessage } from "http";
-import type {
-  $BootstrapContext,
-  $DnsMicroModule,
-} from "../../core/bootstrapContext.cjs";
+
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-import type { MicroModule } from "../../core/micro-module.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import {
   $ConnectResult,
@@ -15,9 +10,16 @@ import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.
 import { log } from "../../helper/devtools.cjs";
 import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
-import type { $MMID } from "../../helper/types.cjs";
-import type { HttpServerNMM } from "../http-server/http-server.cjs";
+import querystring from "node:querystring";
 import { nativeFetchAdaptersManager } from "./nativeFetch.cjs";
+import type { IncomingMessage, OutgoingMessage } from "http";
+import type {
+  $BootstrapContext,
+  $DnsMicroModule,
+} from "../../core/bootstrapContext.cjs";
+import type { MicroModule } from "../../core/micro-module.cjs";
+import type { HttpServerNMM } from "../http-server/http-server.cjs";
+import type { $MMID } from "../../helper/types.cjs";
 
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
@@ -188,6 +190,7 @@ export class DnsNMM extends NativeMicroModule {
     if(httpNMM === undefined) throw new Error(`httpNmm === undefined`);
     httpNMM.addRoute('/dns.sys.dweb/close', this._close);
     httpNMM.addRoute("/dns.sys.dweb/restart", this._restart);
+    // httpNMM.addRoute("/dns.sys.dweb/doanload_bfsa", this._downloadBFSA)
   }
 
   private _close = async(req: IncomingMessage, response: OutgoingMessage ) => {
@@ -213,15 +216,36 @@ export class DnsNMM extends NativeMicroModule {
     )
     response.end()
   }
+
+  // private _downloadBFSA = async(req: IncomingMessage, response: OutgoingMessage ) => {
+  //   if(req.url === undefined) throw new Error(`${this.mmid} req.url === undefined`);
+  //   const query: querystring.ParsedUrlQuery =  querystring.parse(req.url.split("?")[1]);
+  //   const downloadUrl = query.url;
+  //   if(typeof downloadUrl !== "string"){
+  //     throw new Error(`${this.mmid} typeof downloadUrl !== string`);
+  //   }
+  //   console.log('下载的 url: ', downloadUrl)
+  //   // 需要打开一个新的 webview 页面指向 download 这个地方
+  //   // http://www.browser.sys.dweb-443.localhost:22605/index.html?X-Dweb-Host=www.browser.sys.dweb%3A443
+  //   // const webviewURL = `http://download.sys.dweb-80.localhost:22605`
+  //   // const result = await this.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(webviewURL)}`).text()
+  //   // console.log('result: ', result)
+  //   // 需要打开 dweb 
+  //   this.open("download.sys.dweb")
+
+  // }
+  
   async _shutdown() {
     for (const mmid of this.running_apps.keys()) {
       await this.close(mmid);
     }
   }
+
   /** 安装应用 */
   install(mm: MicroModule) {
     this.apps.set(mm.mmid, mm);
   }
+
   /** 卸载应用 */
   uninstall(mm: MicroModule) {
     this.apps.delete(mm.mmid);

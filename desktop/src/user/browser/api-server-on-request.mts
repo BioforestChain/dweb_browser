@@ -1,82 +1,66 @@
 
-// import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-// import { ReadableStreamOut } from "../../helper/readableStreamHelper.cjs"
-// import { mapHelper } from "../../helper/mapHelper.cjs"
-// import { PromiseOut } from "../../helper/PromiseOut.cjs";
-// import { simpleEncoder } from "../../helper/encoding.cjs";
-// import { u8aConcat } from "../../helper/binaryHelper.cjs";
-import { log } from "../../helper/devtools.cjs";
-
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 import type { ServerUrlInfo } from "../../sys/http-server/const.js"
 
 const symbolETO = Symbol("***eto***");
 const { IpcEvent, IpcResponse } = ipc
+const MMID = "browser.sys.dweb"
 
 export async function createApiServerOnRequest(www_server_internal_origin: string, apiServerUrlInfo: ServerUrlInfo){
-    return async (ipcRequest: IpcRequest, ipc: Ipc): Promise<void> => {
-        apiServerOnRequest(ipcRequest, ipc, www_server_internal_origin, apiServerUrlInfo)
-    }
-}
-
-export async function apiServerOnRequest(ipcRequest: IpcRequest, ipc: Ipc, www_server_internal_origin: string, apiServerUrlInfo: ServerUrlInfo){
+  return async (ipcRequest: IpcRequest, ipc: Ipc): Promise<void> => {
     const pathname = ipcRequest.parsed_url.pathname;
-    console.log('api-server-on-request.mts',ipcRequest.parsed_url)
-    
-    switch(pathname){
-        case pathname.startsWith("/internal") ? pathname : symbolETO:
-            apiServerOnRequestInternal(ipcRequest, ipc, www_server_internal_origin, apiServerUrlInfo);
-            break;
-        default: throw new Error(`[缺少处理器] ${ipcRequest.parsed_url}`);
+    console.log('pathnaem: ', pathname, pathname === "/open")
+    switch(ipcRequest.parsed_url.pathname){
+      case "/open":
+        open(
+          www_server_internal_origin, 
+          apiServerUrlInfo,
+          ipcRequest,
+          ipc
+        )
+        break;
+      case "/open_download":
+        open_download(
+          www_server_internal_origin, 
+          apiServerUrlInfo,
+          ipcRequest,
+          ipc)
+        break;
     }
+  }
 }
 
-export async function apiServerOnRequestInternal(ipcRequest: IpcRequest, ipc: Ipc, www_server_internal_origin: string, apiServerUrlInfo: ServerUrlInfo){
-    const pathname = ipcRequest.parsed_url.pathname;
-    switch(pathname){
-        case "/internal/public-url":
-            apiServerOnRequestInternalPublicUrl(ipcRequest, ipc, www_server_internal_origin, apiServerUrlInfo);
-            break;
-        default: throw new Error(`[缺少处理器] ${ipcRequest.parsed_url}`);
+async function open(
+  www_server_internal_origin: string,
+  apiServerUrlInfo: ServerUrlInfo,
+  ipcRequest: IpcRequest, 
+  ipc: Ipc
+){
+  const _url = ipcRequest.parsed_url.searchParams.get('url');
+  if(_url === null) throw new Error(`${MMID} createApiServerOnRequest _url === null`)
+  console.log('_url: ', _url)
+  console.log('globalThis:', globalThis)
+  const result = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text()
+  console.log('result: ', result)
+} 
 
-    }
-}
+async function open_download(
+  www_server_internal_origin: string,
+  apiServerUrlInfo: ServerUrlInfo,
+  ipcRequest: IpcRequest, 
+  ipc: Ipc
+){
 
-/**
- * 处理 获取 public-url 的请求
- * @param ipcRequest 
- * @param ipc 
- * @param www_server_internal_origin 
- * @param apiServerUrlInfo 
- */
-async function  apiServerOnRequestInternalPublicUrl(ipcRequest: IpcRequest, ipc: Ipc, www_server_internal_origin: string, apiServerUrlInfo: ServerUrlInfo){
-    const ipcResponse = IpcResponse.fromText(
-        ipcRequest.req_id,
-        200,
-        undefined,
-        apiServerUrlInfo.buildPublicUrl(() => { }).href,
-        ipc
-    );
-    ipcResponse.headers.init("Access-Control-Allow-Origin", "*");
-    ipcResponse.headers.init("Access-Control-Allow-Headers", "*");  
-    ipcResponse.headers.init("Access-Control-Allow-Methods", "*");
-    ipc.postMessage(ipcResponse);
-}
-
-
-const { IpcHeaders } = ipc;
-export interface $StatusBarState{
-    color: string // 十六进制
-    insets: {
-        bottom: number;
-        left: number;
-        right: number;
-        top: number;
-    },
-    overlay: boolean;
-    style: "DEFAULT" | "DARK" | "LIGHT";
-    visible: boolean;
-}
+  // 这里还是有问题，需要打开一个新的webview ？？ 
+  // download.sys.dweb 同 新的webview de url 的服务
+  // const _url = ipcRequest.parsed_url.searchParams.get('url');
+  // if(_url === null) throw new Error(`${MMID} createApiServerOnRequest _url === null`)
+  // console.log('_url: ', _url)
+  // console.log('globalThis:', globalThis)
+  const _url = `http://download.sys.dweb-80.localhost:22605`
+  const result = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text()
+  // console.log('result: ', result)
+} 
 
  

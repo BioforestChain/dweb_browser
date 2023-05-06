@@ -1,5 +1,6 @@
 import { BootNMM } from "./sys/boot.cjs";
 import { DnsNMM } from "./sys/dns/dns.cjs";
+import { DownloadNMM } from "./sys/download/download.cjs"
 import "./sys/dns/localeFileFetch.cjs";
 import { HttpServerNMM } from "./sys/http-server/http-server.cjs";
 import { JsProcessNMM } from "./sys/js-process/js-process.cjs";
@@ -9,6 +10,7 @@ export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 dns.install(new HttpServerNMM());
+dns.install(new DownloadNMM());
 
 import { desktopJmm } from "./user/desktop/desktop.main.cjs";
 dns.install(desktopJmm);
@@ -70,6 +72,7 @@ dns.install(jmmtestconnectJMM2)
 
 
 dns.install(new BootNMM([
+  "download.sys.dweb",
   "http.sys.dweb",
   "jmm.sys.dweb",
   "mwebview.sys.dweb",
