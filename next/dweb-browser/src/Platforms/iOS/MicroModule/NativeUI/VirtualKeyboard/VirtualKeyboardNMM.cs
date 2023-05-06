@@ -29,8 +29,8 @@ public class VirtualKeyboardNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/setState", async (request, ipc) =>
         {
             var controller = _getController(ipc.Remote.Mmid);
-            request.QueryValidate<bool>("overlay", false).Also(it => controller.OverlayState = new(it));
-            request.QueryValidate<bool>("visible", false).Also(it => controller.VisibleState = new(it));
+            request.QueryValidate<bool>("overlay", false).Also(it => controller.OverlayState.Set(it));
+            request.QueryValidate<bool>("visible", false).Also(it => controller.VisibleState.Set(it));
 
             return null;
         });
