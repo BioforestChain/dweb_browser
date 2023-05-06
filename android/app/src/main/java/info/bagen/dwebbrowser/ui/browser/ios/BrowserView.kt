@@ -31,12 +31,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.LoadingState
@@ -66,14 +68,43 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserView(viewModel: BrowserViewModel) {
-  Box(modifier = Modifier.fillMaxSize()) {
-    BrowserViewContent(viewModel)   // 中间主体部分
-    BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
-    BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
-    BrowserPopView(viewModel)       // 用于处理弹出框
-    BrowserMultiPopupView(viewModel)// 用于显示多界面
+  val scope = rememberCoroutineScope()
+  BackHandler {
+    if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.isVisible) {
+      scope.launch {
+        viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+      }
+    }
+  }
+  BottomSheetScaffold(
+    modifier = Modifier.statusBarsPadding(),
+    scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
+    sheetPeekHeight = LocalConfiguration.current.screenHeightDp.dp / 2,
+    sheetContent = {
+      BrowserPopView(viewModel)       // 用于处理弹出框
+    }
+  ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+      BrowserViewContent(viewModel)   // 中间主体部分
+      BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
+      BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
+      // BrowserPopView(viewModel)       // 用于处理弹出框
+      BrowserMultiPopupView(viewModel)// 用于显示多界面
+    }
+    if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.isVisible) {
+      Box(modifier = Modifier
+        .fillMaxSize()
+        .clickable(
+          indication = null,
+          interactionSource = remember { MutableInteractionSource() }) {
+          scope.launch {
+            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+          }
+        })
+    }
   }
 }
 
@@ -215,9 +246,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       resId = R.drawable.ic_main_option, resName = R.string.browser_nav_option, show = true
     ) {
       scope.launch {
-        viewModel.uiState.openBottomSheet.value = true
-        delay(8)
-        viewModel.uiState.modalBottomSheetState.partialExpand()
+        viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.show()
       }
     }
   }
@@ -229,6 +258,7 @@ private fun RowScope.NavigatorButton(
 ) {
   Box(modifier = Modifier
     .weight(1f)
+    .fillMaxHeight()
     .padding(horizontal = 2.dp)
     .clickable(enabled = show) { onClick() }) {
     Column(modifier = Modifier.align(Alignment.Center)) {
@@ -476,7 +506,9 @@ private fun parseInputText(text: String, host: Boolean = true): String? {
     uri.host == "www.sogou.com" && uri.path == "/web" && uri.getQueryParameter("query") != null -> {
       uri.getQueryParameter("query")
     }
-    (uri.host == "m.so.com" || uri.host == "www.so.com") && uri.path == "/s" && uri.getQueryParameter("q") != null -> {
+    (uri.host == "m.so.com" || uri.host == "www.so.com") && uri.path == "/s" && uri.getQueryParameter(
+      "q"
+    ) != null -> {
       uri.getQueryParameter("q")
     }
     else -> {

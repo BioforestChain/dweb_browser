@@ -2,16 +2,15 @@ package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetState
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.AccompanistWebViewClient
@@ -43,22 +42,24 @@ data class BrowserUIState @OptIn(
   val currentBrowserBaseView: MutableState<BrowserBaseView>,
   val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
   val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
-  val popupViewState: MutableState<PopupViewState> = mutableStateOf(PopupViewState.Options),
   val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
-  val modalBottomSheetState: SheetState = SheetState(skipPartiallyExpanded = false), // 用于显示“选项”菜单
-  val openBottomSheet: MutableState<Boolean> = mutableStateOf(false), // 用于显示“选项”菜单
+  val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
+    bottomSheetState = SheetState(
+      skipPartiallyExpanded = false, initialValue = SheetValue.Hidden, skipHiddenState = false
+    ),
+    snackbarHostState = SnackbarHostState()
+  ),
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
-  val keyboardOpened: MutableState<Boolean> = mutableStateOf(false), // 用于判断键盘的状态
+  val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
 )
 
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
   object WebViewGoBack : BrowserIntent()
   object AddNewMainView : BrowserIntent()
-  class UpdatePopupViewState(val state: PopupViewState) : BrowserIntent()
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
   class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
@@ -70,18 +71,18 @@ sealed class BrowserIntent {
   object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   object ShareWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   class UpdateInputText(val text: String) : BrowserIntent()
-  class KeyboardStateChanged(val pair: Pair<Boolean, Int>) : BrowserIntent() // 键盘显示与否
   class DeleteWebSiteList(
     val type: ListType, val website: WebSiteInfo?, val clsAll: Boolean = false
   ) : BrowserIntent()
   class UninstallJmmMetadata(val jmmMetadata: JmmMetadata) : BrowserIntent()
+  class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
 }
 
 enum class ListType {
   History, Book
 }
 
-class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
+class BrowserViewModel(private val browserController: BrowserController) : ViewModel() {
   val uiState: BrowserUIState
 
   companion object {
@@ -90,7 +91,10 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
 
   init {
     val browserMainView = BrowserMainView()
-    uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserMainView))
+    uiState = BrowserUIState(
+      currentBrowserBaseView = mutableStateOf(browserMainView),
+      currentInsets = browserController.currentInsets
+    )
     uiState.browserViewList.add(browserMainView)
     viewModelScope.launch(ioAsyncExceptionHandler) {
       WebsiteDB.queryHistoryWebsiteInfoMap().collect {
@@ -110,7 +114,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
     }
   }
 
-  @OptIn(ExperimentalFoundationApi::class)
+  @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
   fun handleIntent(action: BrowserIntent) {
     viewModelScope.launch(ioAsyncExceptionHandler) {
       when (action) {
@@ -123,9 +127,6 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           uiState.currentBrowserBaseView.value.let { browserBaseView ->
             if (browserBaseView is BrowserWebView) browserBaseView.navigator.navigateBack()
           }
-        }
-        is BrowserIntent.UpdatePopupViewState -> {
-          uiState.popupViewState.value = action.state
         }
         is BrowserIntent.UpdateCurrentBaseView -> {
           if (action.currentPage >= 0 && action.currentPage < uiState.browserViewList.size) {
@@ -220,6 +221,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
               WebsiteDB.saveBookWebsiteInfo(
                 WebSiteInfo(title = it.state.pageTitle ?: "", url = it.state.lastLoadedUrl ?: "")
               )
+              //handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
             }
           }
         }
@@ -238,9 +240,6 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         }
         is BrowserIntent.UpdateInputText -> {
           uiState.inputText.value = action.text
-        }
-        is BrowserIntent.KeyboardStateChanged -> {
-          uiState.keyboardOpened.value = action.pair.first
         }
         is BrowserIntent.DeleteWebSiteList -> {
           when (action.type) {
@@ -262,6 +261,10 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         }
         is BrowserIntent.UninstallJmmMetadata -> {
           browserController.uninstallJMM(action.jmmMetadata)
+        }
+        is BrowserIntent.ShowSnackbarMessage -> {
+          uiState.bottomSheetScaffoldState.snackbarHostState
+            .showSnackbar(action.message, action.actionLabel)
         }
       }
     }

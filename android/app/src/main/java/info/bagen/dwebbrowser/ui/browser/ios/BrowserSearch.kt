@@ -1,5 +1,7 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -25,11 +27,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.Insets
+import androidx.core.view.WindowInsetsCompat
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.entity.WebSiteInfo
 
+@SuppressLint("NewApi")
 @Composable
 fun BrowserSearchPreview(viewModel: BrowserViewModel) {
   val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -46,11 +51,12 @@ fun BrowserSearchPreview(viewModel: BrowserViewModel) {
           viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
         },
         interactionSource = remember { MutableInteractionSource() })) {
-      val keyboardOpened = viewModel.uiState.keyboardOpened.value
+      val imeHeight = viewModel.uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime())
+      Log.e("lin.huang", "xxxxxxxxxxxxx bottom=${imeHeight.bottom},${imeHeight.top}, $imeHeight")
       Box(
         modifier = Modifier
           .fillMaxWidth()
-          .height(if (keyboardOpened) screenHeight / 2 - 30.dp else screenHeight)
+          .height(if (imeHeight.bottom > 0) screenHeight / 2 - 30.dp else screenHeight)
           .align(Alignment.BottomCenter)
           .animateContentSize()
       ) {

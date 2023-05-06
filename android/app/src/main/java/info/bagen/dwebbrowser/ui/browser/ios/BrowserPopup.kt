@@ -1,8 +1,11 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.Manifest
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,6 +37,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -54,73 +58,91 @@ private val screenHeight: Dp
     return LocalConfiguration.current.screenHeightDp.dp
   }
 
-@OptIn(ExperimentalMaterial3Api::class)
+enum class PopupViewState(
+  private val height: Dp = 0.dp,
+  private val percentage: Float? = null,
+  val title: String,
+) {
+  Options(height = 120.dp, title = "选项"),
+  BookList(percentage = 0.9f, title = "书签列表"),
+  HistoryList(percentage = 0.9f, title = "历史记录"),
+  Share(percentage = 0.5f, title = "分享");
+
+  fun getLocalHeight(screenHeight: Dp? = null): Dp {
+    return screenHeight?.let { screenHeight ->
+      percentage?.let { percentage ->
+        screenHeight * percentage
+      }
+    } ?: height
+  }
+}
+
+class TabItem(
+  @StringRes val title_res: Int,
+  @DrawableRes val icon_res: Int,
+  val entry: PopupViewState
+) {
+  val title @Composable get() = stringResource(id = title_res)
+  val icon @Composable get() = ImageVector.vectorResource(id = icon_res)
+}
+
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
-  if (viewModel.uiState.openBottomSheet.value) {
-    ModalBottomSheet(
-      onDismissRequest = {
-        viewModel.uiState.openBottomSheet.value = false
-      },
-      sheetState = viewModel.uiState.modalBottomSheetState,
-    ) {
-      val tabs = when (viewModel.uiState.currentBrowserBaseView.value) {
-        is BrowserWebView -> {
-          listOf(
-            TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
-            TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
-            TabItem(
-              R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList
-            ),
-          )
-        }
-        else -> {
-          listOf(
-            TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
-            TabItem(
-              R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList
-            ),
-          )
-        }
-      }
+  var selectedTabIndex by remember { mutableStateOf(0) }
+  val popupViewState = remember { mutableStateOf(PopupViewState.Options) }
+  val tabs = when (viewModel.uiState.currentBrowserBaseView.value) {
+    is BrowserWebView -> {
+      listOf(
+        TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
+        TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
+        TabItem(
+          R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList
+        ),
+      )
+    }
+    else -> {
+      listOf(
+        TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
+        TabItem(
+          R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList
+        ),
+      )
+    }
+  }
 
-      var selectedTabIndex by remember {
-        mutableStateOf(0)
-      }
-      var popupViewState by viewModel.uiState.popupViewState;
-      LaunchedEffect(selectedTabIndex) {
-        snapshotFlow { selectedTabIndex }.collect {
-          popupViewState = tabs[it].entry
-        }
-      }
+  LaunchedEffect(selectedTabIndex) {
+    snapshotFlow { selectedTabIndex }.collect {
+      popupViewState.value = tabs[it].entry
+    }
+  }
 
-      Column {
-        TabRow(selectedTabIndex = selectedTabIndex) {
-          tabs.forEachIndexed { index, tabItem ->
-            Tab(
-              selected = selectedTabIndex == index,
-              onClick = { selectedTabIndex = index },
-              icon = {
-                Icon(
-                  imageVector = tabItem.icon,
-                  contentDescription = tabItem.title,
-                  modifier = Modifier.size(24.dp)
-                )
-              },
+  Column {
+    TabRow(selectedTabIndex = selectedTabIndex) {
+      tabs.forEachIndexed { index, tabItem ->
+        Tab(
+          selected = selectedTabIndex == index,
+          onClick = { selectedTabIndex = index },
+          icon = {
+            Icon(
+              imageVector = tabItem.icon,
+              contentDescription = tabItem.title,
+              modifier = Modifier.size(24.dp)
             )
-          }
-        }
-        PopContentView(viewModel)
+          },
+        )
       }
     }
+    PopContentView(popupViewState, viewModel)
   }
 }
 
 // 显示具体内容部分，其中又可以分为三个部分类型，操作页，书签列表，历史列表
 @Composable
-private fun PopContentView(viewModel: BrowserViewModel) {
+private fun PopContentView(
+  popupViewState: MutableState<PopupViewState>, viewModel: BrowserViewModel
+) {
   Box(modifier = Modifier.fillMaxSize()) {
-    when (viewModel.uiState.popupViewState.value) {
+    when (popupViewState.value) {
       PopupViewState.BookList -> PopContentBookListItem(viewModel)
       PopupViewState.HistoryList -> PopContentHistoryListItem(viewModel)
       else -> PopContentOptionItem(viewModel)
@@ -259,9 +281,7 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
       ListItemDeleteView(
         onClick = {
           scope.launch {
-            viewModel.uiState.modalBottomSheetState.hide()
-            delay(100)
-            viewModel.uiState.openBottomSheet.value = false
+            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
           }
           viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
         },
@@ -369,9 +389,7 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
           ListItemDeleteView(
             onClick = {
               scope.launch {
-                viewModel.uiState.modalBottomSheetState.hide()
-                delay(100)
-                viewModel.uiState.openBottomSheet.value = false
+                viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
               }
               viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
             },

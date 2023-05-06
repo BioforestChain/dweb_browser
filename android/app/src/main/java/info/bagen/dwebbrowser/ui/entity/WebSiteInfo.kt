@@ -1,22 +1,14 @@
 package info.bagen.dwebbrowser.ui.entity
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
@@ -63,35 +55,6 @@ data class BrowserWebView(
   val navigator: WebViewNavigator,
   val coroutineScope: CoroutineScope
 ) : BrowserBaseView
-
-enum class PopupViewState(
-  private val height: Dp = 0.dp,
-  private val percentage: Float? = null,
-  val title: String,
-) {
-  Options(height = 120.dp, title = "选项"),
-  BookList(percentage = 0.9f, title = "书签列表"),
-  HistoryList(percentage = 0.9f, title = "历史记录"),
-  Share(percentage = 0.5f, title = "分享");
-
-  fun getLocalHeight(screenHeight: Dp? = null): Dp {
-    return screenHeight?.let { screenHeight ->
-      percentage?.let { percentage ->
-        screenHeight * percentage
-      }
-    } ?: height
-  }
-}
-
-class TabItem(
-  @StringRes val title_res: Int,
-  @DrawableRes val icon_res: Int,
-  val entry: PopupViewState
-) {
-  val title @Composable get() = stringResource(id = title_res)
-  val icon @Composable get() = ImageVector.vectorResource(id = icon_res)
-
-}
 
 data class HotspotInfo(
   val id: Int = 0,

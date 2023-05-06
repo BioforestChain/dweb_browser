@@ -3,8 +3,13 @@ package info.bagen.dwebbrowser.microService.browser
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.gson.JsonSyntaxException
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
@@ -21,7 +26,7 @@ import org.http4k.core.query
 
 class BrowserController(val browserNMM: BrowserNMM) {
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
-    val browserViewModel = BrowserViewModel(this)
+    val browserViewModel by lazy { BrowserViewModel(this) }
 
     private var activityTask = PromiseOut<BrowserActivity>()
     suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -38,6 +43,34 @@ class BrowserController(val browserNMM: BrowserNMM) {
                 activityTask.resolve(value)
             }
         }
+
+    val currentInsets : MutableState<WindowInsetsCompat> by lazy {
+        mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(
+            activity!!.window.decorView.rootWindowInsets
+        ))
+    }
+    // mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity!!.window.decorView.rootWindowInsets))
+
+    @Composable
+    fun effect(activity: BrowserActivity): BrowserController {
+        /**
+         * 这个 NativeUI 的逻辑是工作在全屏幕下，所以会使得默认覆盖 系统 UI
+         */
+        SideEffect {
+            WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+            /// system-bar 一旦隐藏（visible = false），那么被手势划出来后，过一会儿自动回去
+            //windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+            ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView) { _, insets ->
+                currentInsets.value = insets
+                Log.e("lin.huang", "InsetsListener -> ${insets.getInsets(WindowInsetsCompat.Type.ime())}")
+                Log.e("lin.huang", "InsetsListener -> ${insets.getInsets(WindowInsetsCompat.Type.statusBars())}")
+                insets
+            }
+
+        }
+        return this
+    }
 
     private val openIPCMap = mutableMapOf<Mmid, Ipc>()
     private val dWebViewList = mutableListOf<View>()
