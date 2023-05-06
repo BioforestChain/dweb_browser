@@ -92,7 +92,7 @@ public partial class DWebView : WKWebView
         {
             LoadURL(loadUrl).Background();
         }
-        this.UIDelegate = new DWebViewUiDelegate(this);
+        this.UIDelegate = new DWebViewUIDelegate(this);
 
 
         /// 设置 ContentInsetAdjustment 的默认行为，这样 SafeArea 就不会注入到 WKWebView.ScrollView.ContentInset 中
@@ -105,6 +105,7 @@ public partial class DWebView : WKWebView
         /// TODO 键盘的安全区域是可以呗外部控制的，那么就需要实现相关的控制、绑定相关的监听
         this.ScrollView.DidChangeAdjustedContentInset += ScrollView_DidChangeAdjustedContentInset;
     }
+
     public DWebView(CGRect? frame, MicroModule localeMM, MicroModule? remoteMM, Options? options, WKWebViewConfiguration? configuration) : this(frame ?? CGRect.Empty, localeMM, remoteMM ?? localeMM, options ?? Options.Empty, configuration ?? CreateDWebViewConfiguration())
     {
     }

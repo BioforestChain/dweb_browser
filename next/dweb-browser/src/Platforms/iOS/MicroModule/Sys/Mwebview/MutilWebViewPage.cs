@@ -34,7 +34,6 @@ public partial class MultiWebViewController : BaseViewController
             {
                 viewItem.webView.Frame = webViewFrame;
                 webviewContainer.AddSubview(viewItem.webView);
-
             }
             //webviewContainer.AddDebugPoints();
         }

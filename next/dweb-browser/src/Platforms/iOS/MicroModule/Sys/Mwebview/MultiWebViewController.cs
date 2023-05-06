@@ -4,6 +4,8 @@ using DwebBrowser.MicroService.Sys.Js;
 using DwebBrowser.Base;
 using System.Collections.Generic;
 using DwebBrowser.DWebView;
+using Foundation;
+using Microsoft.Maui.Animations;
 
 #nullable enable
 

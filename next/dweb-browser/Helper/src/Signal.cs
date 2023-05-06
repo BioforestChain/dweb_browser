@@ -4,6 +4,28 @@ public delegate Task? Signal(Signal self);
 public delegate Task? Signal<T1>(T1 arg1, Signal<T1> self);
 public delegate Task? Signal<T1, T2>(T1 arg1, T2 arg2, Signal<T1, T2> self);
 
+public class SignalResult<R>
+{
+    public R? Result;
+    public bool HasResult = false;
+    /// <summary>
+    /// 写入结果
+    /// </summary>
+    /// <param name="result"></param>
+    public void Complete(R result)
+    {
+        if (HasResult) return;
+        Result = result;
+        HasResult = true;
+        Next();
+    }
+    /// <summary>
+    /// 跳过处置，由下一个处理者接管
+    /// </summary>
+    /// <param name="nexter"></param>
+    public void Next() => Waitter.Resolve(Unit.Default);
+    internal PromiseOut<Unit> Waitter = new();
+}
 
 
 public static class SignalExtendsions
@@ -86,6 +108,33 @@ public static class SignalExtendsions
         {
             Console.Error("Emit", "{0}", e);
         }
+    }
+
+    public static async Task<(R?,bool)> EmitForResult<T, R>(this Signal<T, SignalResult<R>>? self, T args, Signal<T, SignalResult<R>> finallyNext)
+    {
+        try
+        {
+            Delegate[] list = (self?.GetInvocationList() ?? new Delegate[0]).Append(finallyNext).ToArray();
+
+            for (int i = 0; i < list.Length; i++)
+            {
+                var cb = (Signal<T, SignalResult<R>>)list[i];
+
+                var ctx = new SignalResult<R>();
+                await cb(args, ctx, cb).ForAwait();
+                await ctx.Waitter.WaitPromiseAsync();
+                if (ctx.HasResult)
+                {
+                    return (ctx.Result,true);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Error("EmitForResult", "{0}", e);
+        }
+        return (default(R),false);
+
     }
 }
 
