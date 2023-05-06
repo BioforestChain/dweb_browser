@@ -28,7 +28,6 @@ export class BiometricsNMM extends NativeMicroModule{
       this.httpNMM.addRoute(`/biometrics.sys.dweb/biometrics`, this._biometrics)
       this.httpNMM.addRoute(`/biometrics_sys_dweb_ui/wait_for_operation`, this._waitForOperation);
       this.httpNMM.addRoute(`/biometrics_sys_dweb_ui/operation_return`, this._operationReturn);
-    
     }
 
     // 静态服务器
