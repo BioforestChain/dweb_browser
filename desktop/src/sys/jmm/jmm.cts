@@ -2,11 +2,9 @@
 
 import type { IncomingMessage, OutgoingMessage } from "http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
-import { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
-import type { MicroModule } from "../../core/micro-module.cjs";
+import type { HttpServerNMM } from "../http-server/http-server.cjs";
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { log } from "../../helper/devtools.cjs";
-import type { HttpServerNMM } from "../http-server/http-server.cjs";
 import { $JmmMetadata, JmmMetadata } from "./JmmMetadata.cjs";
 import { JsMicroModule } from "./micro-module.js.cjs";
 const fs = require('fs');
@@ -21,12 +19,21 @@ const tar = require('tar')
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.sys.dweb" as const;
   httpNMM: HttpServerNMM | undefined;
+  downloadStatus: DOWNLOAD_STATUS = 0
+  resume: {
+    handler: Function,
+    response: OutgoingMessage | undefined
+  } = {
+    response: undefined,
+    handler: async () => {}
+  }
+
+
   async _bootstrap(context: $BootstrapContext) {
 
     log.green(`[${this.mmid}] _bootstrap`)
-    console.log("context.dns.query: ", context.dns.connect, context.dns.query)
+     
     this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-
     if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
 
     this.httpNMM.addRoute('/jmm.sys.dweb/install', this._install)
@@ -84,12 +91,24 @@ export class JmmNMM extends NativeMicroModule {
     return config;
   }
 
+  /**
+   * 支持一次下载一个条目
+   * 在下载完成之前多次点击， 会从头开始下载
+   * @param req 
+   * @param response 
+   * @returns 
+   */
   private _install = async(req: IncomingMessage, response: OutgoingMessage ) => {
     const origin = req.headers.origin;
     if(origin === undefined) throw new Error(`${this.mmid} _install origin === undefined`)
     const searchParams = new URL(req.url as string, `http://${this.mmid}/`).searchParams
     const metadataUrl = searchParams.get("metadataUrl")
     if(metadataUrl === null) return;
+    this.downloadStatus = DOWNLOAD_STATUS.DOWNLOAD;
+    this.resume = {
+      response: response,
+      handler: async () => {}
+    }
     fetch(metadataUrl)
     .then(
       async(res) => {
@@ -97,40 +116,49 @@ export class JmmNMM extends NativeMicroModule {
         const downloadUrl = data.downloadUrl
         const tempPath = path.resolve(process.cwd(), `./temp/${data.title}.tar.gz`)
         const writeAblestream = fs.createWriteStream(tempPath, {flags: "w"});
-
-              writeAblestream.on('close', async () => {
-                // 解压
-                const target = path.resolve(process.cwd(), `./apps/${data.title}`)
-                tar.x(
-                  {
-                    cwd: target,
-                    file: tempPath,
-                    sync: true,
-                  }
-                )
-                await fsPromises.unlink(tempPath)
-                // 需要把 json 文件保存起来
-                // 同步的更新 json
-                this._updateAppsInfo(data)
-                this.changeProgress(100, origin)
-                response.end("")
-              })
+              writeAblestream.on('close', this.onCloseAtWriteAblestream.bind(null, data, tempPath, response, origin))
         progress(request(downloadUrl), {})
-        .on('progress', (state: $State) => this.onProgress(state,origin))
+        .on('progress', this.onProgress.bind(null, origin))
         .on('error', (err: Error) => {throw err})
         .pipe(writeAblestream) 
-        
       },
       err => {
         throw err
       }
     )
-    console.log("metadataUrl: ", metadataUrl)
   }
 
-  private onProgress = async (state: $State, host: string) => {
-    const percent = state.percent * 100
-    this.changeProgress(percent, host)
+  private onCloseAtWriteAblestream = async (
+    data: $AppMetaData,
+    tempPath: string,
+    response: OutgoingMessage,
+    origin: string
+  ) => {
+
+    switch(this.downloadStatus){
+      case DOWNLOAD_STATUS.DOWNLOAD:
+        this._extract.bind(null, data,tempPath, response, origin)()
+        break;
+      case DOWNLOAD_STATUS.PAUSE:
+        this.resume.handler = this._extract.bind(null, data,tempPath, response, origin)
+        break;
+      case DOWNLOAD_STATUS.CANCEL:
+        break;
+    }
+  }
+
+  private onProgress = async (host: string, state: $State, installResponse: OutgoingMessage) => {
+    switch(this.downloadStatus){
+      case DOWNLOAD_STATUS.DOWNLOAD:
+        const percent = (state.percent * 100).toFixed(0)
+        this.changeProgress(percent, host)
+        break;
+      case DOWNLOAD_STATUS.PAUSE:
+        break;
+      case DOWNLOAD_STATUS.CANCEL:
+        installResponse.writableEnded ? "" : installResponse.end(JSON.stringify({}))
+        break;
+    }
   }
 
   private changeProgress = async (percent: string | number, host: string) => {
@@ -145,14 +173,15 @@ export class JmmNMM extends NativeMicroModule {
     this.nativeFetch(url, init)
   }
 
-  
-
   private _updateAppsInfo = async (data: $AppMetaData) => {
     // 读取文件内容
-    // src/sys/jmm/jmm.cts
     const filename = path.resolve(__dirname, "../../../assets/data/apps_info.json")
+    // 需要先检查是否有 如果没有就创建
+    if(!fs.existsSync(filename)){
+      await fsPromises.writeFile(filename, "")
+    }
     const buffer = await fsPromises.readFile(filename)
-    const content = JSON.parse(new TextDecoder().decode(buffer))
+    const content = buffer.length === 0 ? {} : JSON.parse(new TextDecoder().decode(buffer));
     const key = data.downloadUrl.split("/").pop()?.split(".")[0]
     if(key === undefined) throw new Error(`key === undefined`);
     content[key] = data;
@@ -166,7 +195,11 @@ export class JmmNMM extends NativeMicroModule {
    * @param response 
    */
   private _pause = async(req: IncomingMessage, response: OutgoingMessage ) => {
-
+    // 只有下载状态才能够暂停
+    if(this.downloadStatus === DOWNLOAD_STATUS.DOWNLOAD){
+      this.downloadStatus = DOWNLOAD_STATUS.PAUSE
+    }
+    response.end()
   }
 
   /**
@@ -175,7 +208,12 @@ export class JmmNMM extends NativeMicroModule {
    * @param response 
    */
   private _resume = async(req: IncomingMessage, response: OutgoingMessage ) => {
-
+    // 只有暂停状态才能够 重新下载
+    if(this.downloadStatus === DOWNLOAD_STATUS.PAUSE){
+      this.downloadStatus = DOWNLOAD_STATUS.DOWNLOAD
+      this.resume.handler();
+    }
+    response.end()
   }
 
   /**
@@ -184,17 +222,44 @@ export class JmmNMM extends NativeMicroModule {
    * @param response 
    */
   private _cancel = async(req: IncomingMessage, response: OutgoingMessage ) => {
-
+    if(this.downloadStatus === DOWNLOAD_STATUS.CANCEL) return;
+    this.downloadStatus = DOWNLOAD_STATUS.CANCEL
+    this.resume.response && !this.resume.response.writableEnded ? this.resume.response.end(JSON.stringify({})) : "";
+    this.resume = {
+      response: undefined,
+      handler: async () => {}
+    }
+    response.end()
   }
-}
 
-
-
-/**
- * 创建 mmid 根据appId
- */
-function createMMIDFromAppID(appId: string) {
-  return `app.${appId.toLocaleLowerCase()}.dweb` as $MMID;
+  /**
+   * 执行解压缩操作
+   * @param data 
+   * @param tempPath 
+   * @param response 
+   * @param origin 
+   */
+  private _extract = async (
+    data: $AppMetaData,
+    tempPath: string,
+    response: OutgoingMessage,
+    origin: string
+  ) => {
+    const target = path.resolve(process.cwd(), `./apps/${data.title}`)
+    tar.x(
+      {
+        cwd: target,
+        file: tempPath,
+        sync: true,
+      }
+    )
+    await fsPromises.unlink(tempPath)
+    // 需要把 json 文件保存起来
+    // 同步的更新 json
+    this._updateAppsInfo(data)
+    this.changeProgress(100, origin)
+    response.writableEnded ? "" : response.end(JSON.stringify({}));
+  }
 }
 
 export interface $State{
@@ -271,3 +336,10 @@ export interface  $StaticWebServers{
 //   plugins: [ 'statusBar', 'share', 'notification', 'keyboard', 'scanner' ],
 //   releaseDate: '1677667362583'
 // }
+
+
+export enum DOWNLOAD_STATUS{
+  DOWNLOAD,
+  PAUSE,
+  CANCEL
+}
