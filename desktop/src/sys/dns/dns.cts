@@ -51,6 +51,7 @@ class MyDnsMicroModule implements $DnsMicroModule {
     })
   }
 }
+
 class MyBootstrapContext implements $BootstrapContext {
   constructor(readonly dns: MyDnsMicroModule) {}
 }

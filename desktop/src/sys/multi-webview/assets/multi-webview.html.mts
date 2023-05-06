@@ -337,16 +337,17 @@ export class ViewTree extends LitElement {
   }
 
   async restartWebviewByHost(host: string){
-    this.webviews.forEach(webview => {
-      const _url = new URL(webview.src);
-      const _host = `api${_url.host.slice(3)}`
-      console.log(_host)
-      console.log(host)
-      if(_host === host){
-        this.render()
-      }
-    })
-    console.log(this.webviews)
+    // this.webviews.forEach(webview => {
+    //   const _url = new URL(webview.src);
+    //   const _host = `api${_url.host.slice(3)}`
+    //   console.log(_host)
+    //   console.log(host)
+    //   if(_host === host){
+    //     this.render()
+    //   }
+    // })
+    // console.log(this.webviews)
+    this._restateWebviews()
     return true;
   }
 
