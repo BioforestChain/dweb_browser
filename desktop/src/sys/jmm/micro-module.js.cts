@@ -54,9 +54,8 @@ export class JsMicroModule extends MicroModule {
       // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
       ipc.onRequest(async (request) => {
         const init = httpMethodCanOwnBody(request.method)
-          ? { method: request.method, body: await request.body.stream() }
-          : { method: request.method };
-
+          ? { method: request.method, body: await request.body.stream(), headers: request.headers }
+          : { method: request.method, headers: request.headers };
         const response = await this.nativeFetch(request.parsed_url.href, init);
         ipc.postMessage(
           await IpcResponse.fromResponse(request.req_id, response, ipc)

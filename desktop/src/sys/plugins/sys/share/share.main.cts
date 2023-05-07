@@ -49,12 +49,12 @@ export class ShareNMM extends NativeMicroModule{
         }
       }
 
-      const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_host?`
+      const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`
       const init: RequestInit = {
         body: createShareUI(title, text, _url, filename),
         method: "POST",
         headers: {
-          "origin": origin
+          "webview_url": origin
         }
       }
       this.nativeFetch(url, init)

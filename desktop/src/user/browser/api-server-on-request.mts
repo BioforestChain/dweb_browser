@@ -1,4 +1,4 @@
-
+import { IpcHeaders } from "../../core/ipc/IpcHeaders.cjs";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 import type { ServerUrlInfo } from "../../sys/http-server/const.js"
@@ -10,7 +10,6 @@ const MMID = "browser.sys.dweb"
 export async function createApiServerOnRequest(www_server_internal_origin: string, apiServerUrlInfo: ServerUrlInfo){
   return async (ipcRequest: IpcRequest, ipc: Ipc): Promise<void> => {
     const pathname = ipcRequest.parsed_url.pathname;
-    console.log('pathnaem: ', pathname, pathname === "/open")
     switch(ipcRequest.parsed_url.pathname){
       case "/open":
         open(
@@ -39,10 +38,16 @@ async function open(
 ){
   const _url = ipcRequest.parsed_url.searchParams.get('url');
   if(_url === null) throw new Error(`${MMID} createApiServerOnRequest _url === null`)
-  console.log('_url: ', _url)
-  console.log('globalThis:', globalThis)
   const result = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text()
-  console.log('result: ', result)
+  ipc.postMessage(
+    await IpcResponse.fromText(
+      ipcRequest.req_id,
+      200,
+      undefined,
+      result,
+      ipc, 
+    )
+  )
 } 
 
 async function open_download(
@@ -51,16 +56,33 @@ async function open_download(
   ipcRequest: IpcRequest, 
   ipc: Ipc
 ){
-
-  // 这里还是有问题，需要打开一个新的webview ？？ 
-  // download.sys.dweb 同 新的webview de url 的服务
-  // const _url = ipcRequest.parsed_url.searchParams.get('url');
-  // if(_url === null) throw new Error(`${MMID} createApiServerOnRequest _url === null`)
-  // console.log('_url: ', _url)
-  // console.log('globalThis:', globalThis)
   const _url = `http://download.sys.dweb-80.localhost:22605`
-  const result = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text()
-  // console.log('result: ', result)
+  const webview_id = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text()
+  // 向 webview 执行 javascript
+  const metaDataJsonUrl = ipcRequest.parsed_url.searchParams.get('url');
+  const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`
+  const init = {
+    body: `
+      (() => {
+        setContentByMateDataJsonUrl('${metaDataJsonUrl}');
+      })()
+    `,
+    method: "POST",
+    headers: {
+      "webview_url": _url
+    }
+  }
+  const request = new Request(url,init);
+  await jsProcess.nativeFetch(request)
+  ipc.postMessage(
+    await IpcResponse.fromText(
+      ipcRequest.req_id,
+      200,
+      undefined,
+      "ok",
+      ipc, 
+    )
+  )
 } 
 
  

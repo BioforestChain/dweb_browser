@@ -162,12 +162,12 @@ export class JmmNMM extends NativeMicroModule {
   }
 
   private changeProgress = async (percent: string | number, host: string) => {
-    const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_host?`
+    const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`
     const init: RequestInit = {
       body: `window.__app_upgrade_watcher_kit__._listeners.progress.forEach(callback => callback(${percent}))`,
       method: "POST",
       headers: {
-        "origin": host
+        "webview_url": host
       }
     }
     this.nativeFetch(url, init)

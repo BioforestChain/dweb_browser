@@ -51,7 +51,11 @@ export class MultiWebviewNMM extends NativeMicroModule {
       }
     ).href;
 
-    // 打开一个新的window对象
+    /**
+     * 打开 应用
+     * 如果 是由 jsProcdss 调用 会在当前的 browserWindow 打开一个新的 webview
+     * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
+     */
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
       matchMode: "full",
@@ -61,7 +65,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
         console.log('[multi-webview.mobile.cts 接受到了 open 请求>>>>>>>>>>>>>]--------------------------------------', args.url, client_ipc.uid)
         const wapis = await this.forceGetWapis(client_ipc, root_url);
         const webview_id = await wapis.apis.openWebview(args.url);
-        console.log('multi-webview.mobile.cts /open args.url:', args.url)
         return webview_id
       },
     });
@@ -113,16 +116,22 @@ export class MultiWebviewNMM extends NativeMicroModule {
       },
     })
 
-    // 通过 host 更新
+    // 通过 host 执行 javascript
     this.registerCommonIpcOnMessageHandler({
-      pathname: "/webview_execute_javascript_by_host",
+      pathname: "/webview_execute_javascript_by_webview_url",
       method: "POST",
       matchMode: "full",
       input: {},
       output: "boolean",
       handler: async(args, client_ipc, request) => {
-        const host = request.headers.get("origin")
-        if(host === null) throw new Error(`${this.mmid} registerCommonIpcOnMessageHandler /webview_execute_javascript_by_host host === null`);
+        const host = request.headers.get("webview_url")
+        if(host === null) {
+          throw new Error(chalk.red(`
+            ${this.mmid} registerCommonIpcOnMessageHandler /webview_execute_javascript_by_webview_url host === null
+            args: ${JSON.stringify(args)}
+            request: ${JSON.stringify(request)}
+          `));
+        }
         const code = await request.body.text();
         Array.from(this._uid_wapis_map.values()).forEach(({apis}) => {
           apis.executeJavascriptByHost(host, code);

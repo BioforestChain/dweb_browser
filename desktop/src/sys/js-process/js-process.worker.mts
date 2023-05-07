@@ -137,14 +137,17 @@ export class JsProcessMicroModule implements $MicroModule {
     );
     return await ipc_response.toResponse(args.parsed_url.href);
   }
+  
   /** 模拟fetch的返回值 */
   nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
+
   private async _nativeRequest(parsed_url: URL, request_init: RequestInit) {
     const ipc_req_init = await $readRequestAsIpcRequest(request_init);
     return await this.fetchIpc.request(parsed_url.href, ipc_req_init);
   }
+
   /** 同 ipc.request，只不过使用 fetch 接口的输入参数 */
   nativeRequest(url: RequestInfo | URL, init?: RequestInit) {
     const args = normalizeFetchArgs(url, init);

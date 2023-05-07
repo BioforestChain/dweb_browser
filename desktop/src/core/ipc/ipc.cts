@@ -158,7 +158,6 @@ export abstract class Ipc {
   }
 
   /** 发起请求并等待响应 */
-  // 会提供给 http-server模块的 gateway.listener.hookHttpRequest
   request(
     url: string,
     init?: {
@@ -174,7 +173,6 @@ export abstract class Ipc {
   ) {
     const req_id = this.allocReqId();
     const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
-
     const result = this.registerReqId(req_id);
     this.postMessage(ipcRequest);
     return result.promise;
