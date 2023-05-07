@@ -6,7 +6,7 @@ namespace DwebBrowser.MicroServiceTests;
 
 public class NativeIpcTest
 {
-    class M1 : NativeMicroModule
+    public class M1 : NativeMicroModule
     {
         public M1() : base("m1")
         { }
@@ -26,7 +26,7 @@ public class NativeIpcTest
         }
     }
 
-    class M2 : NativeMicroModule
+    public class M2 : NativeMicroModule
     {
         public M2() : base("m2")
         { }

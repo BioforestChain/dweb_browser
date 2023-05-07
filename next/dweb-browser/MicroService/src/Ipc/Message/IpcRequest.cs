@@ -103,6 +103,33 @@ public class IpcRequest : IpcMessage
         return ipcRequest;
     }
 
+    public class RefStreamContent : HttpContent
+    {
+        Stream RefStream;
+        public RefStreamContent(ref Stream stream)
+        {
+            RefStream = stream;
+        }
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override bool TryComputeLength(out long length)
+        {
+            try
+            {
+                length = RefStream.Length;
+                return true;
+            }
+            catch
+            {
+                length = 0;
+                return false;
+            }
+        }
+    }
+
 
     public HttpRequestMessage ToRequest() =>
         new HttpRequestMessage(new HttpMethod(Method.Method), new Uri(Url)).Also(it =>

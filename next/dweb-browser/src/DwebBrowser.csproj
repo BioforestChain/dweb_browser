@@ -61,38 +61,6 @@
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\StatusBar\" />
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Base\" />
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\VirtualKeyboard\" />
-	  <None Remove="Resources\Assets\cot-demo\index.html" />
-	  <None Remove="Resources\Assets\cot-demo\assets\FieldLabel.0ad06583.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\Torch.05069182.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\CloseWatcher.65ab6c33.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\Share.e73a9dc8.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\VColorPicker.d715487d.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\closewatcher.21ec84b6.svg" />
-	  <None Remove="Resources\Assets\cot-demo\assets\toast.7a5f524e.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\Toast.1aa01b3b.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\toast.5cc20700.svg" />
-	  <None Remove="Resources\Assets\cot-demo\assets\NavigationBar.de8977f1.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\SplashScreen.8efc98f9.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\StatusBar.813e96ef.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\vibrate.d24dcb2b.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\splashscreen.ecee76e9.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\index.cbad1eef.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\Haptics.a5c26d4d.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\Network.60cf1f33.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\splashscreen.361e86f1.svg" />
-	  <None Remove="Resources\Assets\cot-demo\assets\vibrate.c9e805b1.svg" />
-	  <None Remove="Resources\Assets\cot-demo\assets\SafeArea.08a633a3.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\DwebServiceWorker.c56c27cf.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\LogPanel.49aa16ff.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\Biometrics.31e053e7.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\BarcodeScanning.e69c88e2.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\safearea.d6166183.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\share.945dcf3d.svg" />
-	  <None Remove="Resources\Assets\cot-demo\assets\bg.496d8515.png" />
-	  <None Remove="Resources\Assets\cot-demo\assets\safearea.91acab9d.svg" />
-	  <None Remove="Resources\Assets\cot-demo\assets\statusbar.8abf1ec3.svg" />
-	  <None Remove="Resources\Assets\cot-demo\assets\VirtualKeyboard.f7aabc0e.js" />
-	  <None Remove="Resources\Assets\cot-demo\assets\navigationbar.fceda033.svg" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -119,52 +87,6 @@
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\VirtualKeyboard\" />
 	</ItemGroup>
 	<ItemGroup>
-	  <BundleResource Include="Resources\Assets\bundle\**\*.*" />
-	  <BundleResource Include="Resources\Assets\cot-demo\index.html" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\FieldLabel.0ad06583.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\Torch.05069182.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\CloseWatcher.65ab6c33.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\Share.e73a9dc8.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\VColorPicker.d715487d.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\closewatcher.21ec84b6.svg" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\VColorPicker.01e58ad4.css" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\toast.7a5f524e.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\Toast.1aa01b3b.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\FieldLabel.af3dd146.css" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\toast.5cc20700.svg" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\NavigationBar.de8977f1.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\SplashScreen.8efc98f9.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\StatusBar.813e96ef.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\vibrate.d24dcb2b.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\splashscreen.ecee76e9.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\VirtualKeyboard.e8f5dd9c.css" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\index.cbad1eef.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\Haptics.a5c26d4d.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\LogPanel.0f9085e0.css" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\Network.60cf1f33.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\splashscreen.361e86f1.svg" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\vibrate.c9e805b1.svg" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\SafeArea.08a633a3.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\DwebServiceWorker.c56c27cf.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\SafeArea.39edc6b3.css" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\LogPanel.49aa16ff.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\Biometrics.31e053e7.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\BarcodeScanning.e69c88e2.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\safearea.d6166183.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\share.945dcf3d.svg" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\bg.496d8515.png" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\safearea.91acab9d.svg" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\statusbar.8abf1ec3.svg" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\VirtualKeyboard.f7aabc0e.js" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\index.5e594dfa.css" />
-	  <BundleResource Include="Resources\Assets\cot-demo\assets\navigationbar.fceda033.svg" />
-	</ItemGroup>
-	<ItemGroup>
-	  <MauiCss Remove="Resources\Assets\cot-demo\assets\VColorPicker.01e58ad4.css" />
-	  <MauiCss Remove="Resources\Assets\cot-demo\assets\FieldLabel.af3dd146.css" />
-	  <MauiCss Remove="Resources\Assets\cot-demo\assets\VirtualKeyboard.e8f5dd9c.css" />
-	  <MauiCss Remove="Resources\Assets\cot-demo\assets\LogPanel.0f9085e0.css" />
-	  <MauiCss Remove="Resources\Assets\cot-demo\assets\SafeArea.39edc6b3.css" />
-	  <MauiCss Remove="Resources\Assets\cot-demo\assets\index.5e594dfa.css" />
+	  <BundleResource Include="Resources\Assets\**\*.*" />
 	</ItemGroup>
 </Project>
