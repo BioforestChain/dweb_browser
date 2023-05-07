@@ -136,8 +136,16 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
 
             // buffer 模式，就是直接全部读取出来
             // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍。如果分片次数少于2次，那么就直接发送，没必要分片
-            response = if (mode != "stream") {
+            response = if (mode == "stream") {
+                val streamBody = ChunkAssetsFileStream(
+                    src, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0
+                )
                 /**
+                 * 将它分片读取
+                 */
+                response.header("X-Assets-Id", streamBody.id.toString()).body(streamBody)
+            } else {
+                 /**
                  * 打开一个读取流
                  */
                 val assetStream = App.appContext.assets.open(
@@ -147,14 +155,6 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
                  * 一次性发送
                  */
                 response.body(MemoryBody(assetStream.readByteArray()))
-            } else {
-                val streamBody = ChunkAssetsFileStream(
-                    src, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0
-                )
-                /**
-                 * 将它分片读取
-                 */
-                response.header("X-Assets-Id", streamBody.id.toString()).body(streamBody)
             }
 
             /// 尝试加入 Content-Type

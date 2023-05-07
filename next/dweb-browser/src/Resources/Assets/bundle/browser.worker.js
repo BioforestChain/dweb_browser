@@ -3,7 +3,7 @@ var { IpcResponse, IpcHeaders } = ipc;
 async function wwwServerOnRequest(request, ipc2) {
   let pathname = request.parsed_url.pathname;
   pathname = pathname === "/" ? "/index.html" : pathname;
-  const url = `file:///app/cot-demo${pathname}?mode=stream`;
+  const url = `file:///assets/html/browser.html?mode=stream`;
   const response = await jsProcess.nativeRequest(url);
   ipc2.postMessage(
     new IpcResponse(
@@ -11,6 +11,77 @@ async function wwwServerOnRequest(request, ipc2) {
       response.statusCode,
       response.headers,
       response.body,
+      ipc2
+    )
+  );
+}
+
+// src/user/browser/api-server-on-request.mts
+var symbolETO = Symbol("***eto***");
+var { IpcEvent, IpcResponse: IpcResponse2 } = ipc;
+var MMID = "browser.sys.dweb";
+async function createApiServerOnRequest(www_server_internal_origin, apiServerUrlInfo) {
+  return async (ipcRequest, ipc2) => {
+    const pathname = ipcRequest.parsed_url.pathname;
+    switch (ipcRequest.parsed_url.pathname) {
+      case "/open":
+        open(
+          www_server_internal_origin,
+          apiServerUrlInfo,
+          ipcRequest,
+          ipc2
+        );
+        break;
+      case "/open_download":
+        open_download(
+          www_server_internal_origin,
+          apiServerUrlInfo,
+          ipcRequest,
+          ipc2
+        );
+        break;
+    }
+  };
+}
+async function open(www_server_internal_origin, apiServerUrlInfo, ipcRequest, ipc2) {
+  const _url = ipcRequest.parsed_url.searchParams.get("url");
+  if (_url === null)
+    throw new Error(`${MMID} createApiServerOnRequest _url === null`);
+  const result = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text();
+  ipc2.postMessage(
+    await IpcResponse2.fromText(
+      ipcRequest.req_id,
+      200,
+      void 0,
+      result,
+      ipc2
+    )
+  );
+}
+async function open_download(www_server_internal_origin, apiServerUrlInfo, ipcRequest, ipc2) {
+  const _url = `http://download.sys.dweb-80.localhost:22605`;
+  const webview_id = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text();
+  const metaDataJsonUrl = ipcRequest.parsed_url.searchParams.get("url");
+  const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`;
+  const init = {
+    body: `
+      (() => {
+        setContentByMateDataJsonUrl('${metaDataJsonUrl}');
+      })()
+    `,
+    method: "POST",
+    headers: {
+      "webview_url": _url
+    }
+  };
+  const request = new Request(url, init);
+  await jsProcess.nativeFetch(request);
+  ipc2.postMessage(
+    await IpcResponse2.fromText(
+      ipcRequest.req_id,
+      200,
+      void 0,
+      "ok",
       ipc2
     )
   );
@@ -46,51 +117,6 @@ var Log = class {
 };
 var log = new Log();
 
-// src/user/browser/api-server-on-request.mts
-var symbolETO = Symbol("***eto***");
-var { IpcEvent, IpcResponse: IpcResponse2 } = ipc;
-async function createApiServerOnRequest(www_server_internal_origin, apiServerUrlInfo) {
-  return async (ipcRequest, ipc2) => {
-    apiServerOnRequest(ipcRequest, ipc2, www_server_internal_origin, apiServerUrlInfo);
-  };
-}
-async function apiServerOnRequest(ipcRequest, ipc2, www_server_internal_origin, apiServerUrlInfo) {
-  const pathname = ipcRequest.parsed_url.pathname;
-  console.log("api-server-on-request.mts", ipcRequest.parsed_url);
-  switch (pathname) {
-    case (pathname.startsWith("/internal") ? pathname : symbolETO):
-      apiServerOnRequestInternal(ipcRequest, ipc2, www_server_internal_origin, apiServerUrlInfo);
-      break;
-    default:
-      throw new Error(`[\u7F3A\u5C11\u5904\u7406\u5668] ${ipcRequest.parsed_url}`);
-  }
-}
-async function apiServerOnRequestInternal(ipcRequest, ipc2, www_server_internal_origin, apiServerUrlInfo) {
-  const pathname = ipcRequest.parsed_url.pathname;
-  switch (pathname) {
-    case "/internal/public-url":
-      apiServerOnRequestInternalPublicUrl(ipcRequest, ipc2, www_server_internal_origin, apiServerUrlInfo);
-      break;
-    default:
-      throw new Error(`[\u7F3A\u5C11\u5904\u7406\u5668] ${ipcRequest.parsed_url}`);
-  }
-}
-async function apiServerOnRequestInternalPublicUrl(ipcRequest, ipc2, www_server_internal_origin, apiServerUrlInfo) {
-  const ipcResponse = IpcResponse2.fromText(
-    ipcRequest.req_id,
-    200,
-    void 0,
-    apiServerUrlInfo.buildPublicUrl(() => {
-    }).href,
-    ipc2
-  );
-  ipcResponse.headers.init("Access-Control-Allow-Origin", "*");
-  ipcResponse.headers.init("Access-Control-Allow-Headers", "*");
-  ipcResponse.headers.init("Access-Control-Allow-Methods", "*");
-  ipc2.postMessage(ipcResponse);
-}
-var { IpcHeaders: IpcHeaders2 } = ipc;
-
 // src/user/tool/tool.native.mts
 var nativeOpen = async (url) => {
   return await jsProcess.nativeFetch(
@@ -111,8 +137,6 @@ var main = async () => {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
-    console.log("--------------------------------------****");
-    console.log("cot#open interUrl=>", interUrl);
     const view_id = await nativeOpen(interUrl);
   }
   {

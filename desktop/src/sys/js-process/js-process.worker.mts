@@ -3,7 +3,7 @@
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
-import { Ipc, IPC_ROLE } from "../../core/ipc/index.cjs";
+import { Ipc, IPC_ROLE, $OnIpcEventMessage } from "../../core/ipc/index.cjs";
 import { fetchExtends } from "../../helper/$makeFetchExtends.cjs";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.cjs";
 import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.cjs";
@@ -23,7 +23,7 @@ import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import * as http from "../http-server/$createHttpDwebServer.cjs";
 
 export class Metadata<T extends $Metadata = $Metadata> {
-  constructor(readonly data: T, readonly env: Record<string, string>) { }
+  constructor(readonly data: T, readonly env: Record<string, string>) {}
   envString(key: string) {
     const val = this.envStringOrNull(key);
     if (val == null) {
@@ -156,9 +156,22 @@ export class JsProcessMicroModule implements $MicroModule {
   /**重启 */
   restart() {
     // 发送指令
-    this.fetchIpc.postMessage(
-      IpcEvent.fromText("restart", "")
-    );
+    this.fetchIpc.postMessage(IpcEvent.fromText("restart", ""));
+  }
+  private _activitySignal = createSignal<$OnIpcEventMessage>();
+  private _on_activity_inited = false;
+  onActivity(cb: $OnIpcEventMessage) {
+    if (this._on_activity_inited === false) {
+      this._on_activity_inited = true;
+      this.onConnect((ipc) => {
+        ipc.onEvent((ipcEvent, ipc) => {
+          if (ipcEvent.name === "activity") {
+            this._activitySignal.emit(ipcEvent, ipc);
+          }
+        });
+      });
+    }
+    return this._activitySignal.listen(cb);
   }
 
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();

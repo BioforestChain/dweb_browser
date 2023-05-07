@@ -3293,6 +3293,18 @@ var _IpcRequest = class extends IpcMessage {
     });
   }
   toJSON() {
+    const { method } = this;
+    let body;
+    if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
+      body = this.body.raw;
+      return new IpcReqMessage(
+        this.req_id,
+        this.method,
+        this.url,
+        this.headers.toJSON(),
+        this.body.metaBody
+      );
+    }
     return this.ipcReqMessage();
   }
 };
@@ -3429,7 +3441,6 @@ var Ipc = class {
     return reqresMap;
   }
   /** 发起请求并等待响应 */
-  // 会提供给 http-server模块的 gateway.listener.hookHttpRequest
   request(url, init) {
     const req_id = this.allocReqId();
     const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
@@ -4243,6 +4254,8 @@ var JsProcessMicroModule = class {
       this,
       "server" /* SERVER */
     );
+    this._activitySignal = createSignal();
+    this._on_activity_inited = false;
     this._ipcConnectsMap = /* @__PURE__ */ new Map();
     this._connectSignal = createSignal(false);
     const _beConnect = async (event) => {
@@ -4300,9 +4313,20 @@ var JsProcessMicroModule = class {
   }
   /**重启 */
   restart() {
-    this.fetchIpc.postMessage(
-      IpcEvent.fromText("restart", "")
-    );
+    this.fetchIpc.postMessage(IpcEvent.fromText("restart", ""));
+  }
+  onActivity(cb) {
+    if (this._on_activity_inited === false) {
+      this._on_activity_inited = true;
+      this.onConnect((ipc) => {
+        ipc.onEvent((ipcEvent, ipc2) => {
+          if (ipcEvent.name === "activity") {
+            this._activitySignal.emit(ipcEvent, ipc2);
+          }
+        });
+      });
+    }
+    return this._activitySignal.listen(cb);
   }
   connect(mmid) {
     return mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {

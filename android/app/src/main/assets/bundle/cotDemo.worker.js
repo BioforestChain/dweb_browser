@@ -737,23 +737,35 @@ var main = async () => {
   const { IpcEvent } = ipc;
   const mainUrl = new PromiseOut();
   let oldWebviewState = [];
-  const browserIpc = await jsProcess.connect("browser.sys.dweb");
   const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
-  const closeSignal = createSignal();
-  const tryOpenView = async () => {
-    if (webViewMap.size === 0) {
-      const url = await mainUrl.promise;
-      const view_id = await nativeOpen(url);
-      webViewMap.set(view_id, {
-        isActivated: true,
-        webviewId: view_id
-      });
-      return view_id;
-    }
-    webViewMap.forEach((item, key) => {
-      nativeActivate(item.webviewId);
-    });
+  const multiWebViewCloseSignal = createSignal();
+  const tryOpenView = () => {
+    const newWindowState = new PromiseOut();
+    (async () => {
+      try {
+        if (webViewMap.size === 0) {
+          const url = await mainUrl.promise;
+          const view_id = await nativeOpen(url);
+          webViewMap.set(view_id, {
+            isActivated: true,
+            webviewId: view_id
+          });
+          return view_id;
+        }
+        await Promise.all(
+          [...webViewMap.values()].map((item) => {
+            return nativeActivate(item.webviewId);
+          })
+        );
+      } finally {
+        newWindowState.resolve(true);
+      }
+    })();
+    windowState = newWindowState;
+    return newWindowState;
   };
+  let windowState;
+  windowState = tryOpenView();
   const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
@@ -771,7 +783,10 @@ var main = async () => {
   const wwwReadableStreamIpc = await wwwServer.listen();
   const externalReadableStreamIpc = await externalServer.listen();
   apiReadableStreamIpc.onRequest(async (request, ipc2) => {
-    const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
+    const url = new URL(
+      request.url,
+      apiServer.startResult.urlInfo.internal_origin
+    );
     if (url.pathname.startsWith("/dns.sys.dweb")) {
       const result = await serviceWorkerFactory(url, ipc2);
       const ipcResponse = IpcResponse2.fromText(
@@ -787,6 +802,7 @@ var main = async () => {
     onApiRequest(apiServer.startResult.urlInfo, request, ipc2);
   });
   wwwReadableStreamIpc.onRequest(async (request, ipc2) => {
+    console.log("www onrequest", request);
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -813,56 +829,43 @@ var main = async () => {
       return closeFront();
     }
     if (pathname.endsWith("restart")) {
-      return restartApp([apiServer, wwwServer], [apiReadableStreamIpc, wwwReadableStreamIpc]);
+      return restartApp(
+        [apiServer, wwwServer],
+        [apiReadableStreamIpc, wwwReadableStreamIpc]
+      );
     }
     return "no action for serviceWorker Factory !!!";
   };
-  let hasActivity = false;
-  const connectBrowser = async () => {
-    Object.assign(globalThis, { browserIpc });
-    browserIpc.onEvent(async (event) => {
-      if (event.name === "activity") {
-        hasActivity = true;
-        const view_id = await tryOpenView();
-        browserIpc.postMessage(IpcEvent.fromText("ready", view_id ?? "activity"));
-        return;
-      }
-    });
-    closeSignal.listen(() => {
-      browserIpc.postMessage(IpcEvent.fromText("close", ""));
-      browserIpc.close();
-    });
-  };
-  connectBrowser();
-  const connectGlobal = () => {
-    jsProcess.onConnect((ipc2) => {
-      ipc2.onEvent((event) => {
-      });
-      closeSignal.listen(() => {
+  jsProcess.onActivity(async (ipcEvent, ipc2) => {
+    if (await windowState.promise === false) {
+      await tryOpenView();
+    }
+    ipc2.postMessage(IpcEvent.fromText("ready", "activity"));
+    if (hasActivityEventIpcs.has(ipc2) === false) {
+      hasActivityEventIpcs.add(ipc2);
+      multiWebViewCloseSignal.listen(() => {
         ipc2.postMessage(IpcEvent.fromText("close", ""));
         ipc2.close();
       });
-    });
-  };
-  connectGlobal();
-  const connectMultiWebView = () => {
-    multiWebViewIpc.onEvent(async (event) => {
-      console.log("connectMultiWebView =>", event.name);
-      if (event.name === "state" /* State */ && typeof event.data === "string") {
-        const newState = JSON.parse(event.data);
-        const diff = detailed_default(oldWebviewState, newState);
-        oldWebviewState = newState;
-        diffFactory(diff);
-      }
-    });
-    closeSignal.listen(() => {
-      multiWebViewIpc.postMessage(IpcEvent.fromText("close", ""));
-      multiWebViewIpc.close();
-    });
-  };
-  connectMultiWebView();
+    }
+  });
+  const hasActivityEventIpcs = /* @__PURE__ */ new Set();
+  multiWebViewIpc.onEvent(async (event) => {
+    console.log("connectMultiWebView =>", event.name);
+    if (event.name === "state" /* State */ && typeof event.data === "string") {
+      const newState = JSON.parse(event.data);
+      const diff = detailed_default(oldWebviewState, newState);
+      oldWebviewState = newState;
+      diffFactory(diff);
+    }
+  });
   const diffFactory = async (diff) => {
-    console.log("connectMultiWebView diffFactory=>", diff.added, diff.deleted, diff.updated);
+    console.log(
+      "connectMultiWebView diffFactory=>",
+      diff.added,
+      diff.deleted,
+      diff.updated
+    );
     for (const id in diff.added) {
       webViewMap.set(id, JSON.parse(diff.added[id]));
     }
@@ -871,7 +874,10 @@ var main = async () => {
       await closeDwebView(id);
     }
     for (const id in diff.updated) {
-      webViewMap.set(id, JSON.parse(diff.updated[id]));
+      webViewMap.set(
+        id,
+        JSON.parse(diff.updated[id])
+      );
       await nativeActivate(id);
     }
   };
@@ -880,9 +886,6 @@ var main = async () => {
       url.pathname = "/index.html";
     }).href;
     mainUrl.resolve(interUrl);
-    if (hasActivity === false) {
-      await tryOpenView();
-    }
   }
 };
 main();

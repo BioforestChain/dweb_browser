@@ -25,7 +25,7 @@ public static class ObjectExtensions
         block(self);
         return self;
     }
-    public static async Task<T> AlsoAsync<T>(this T self, Func<T, Task> block)  
+    public static async Task<T> AlsoAsync<T>(this T self, Func<T, Task> block)
     {
         await block(self);
         return self;
@@ -37,6 +37,34 @@ public static class ObjectExtensions
         to = self;
         return self;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Try<T>(this T self, Func<T, T> tryFun, Func<T, Exception, T>? catchFun = null)
+    {
+        try
+        {
+            return tryFun(self);
+        }
+        catch (Exception err)
+        {
+            Func<T, Exception, T> internalCatchFun = catchFun ?? ((self, _) => self);
+            return internalCatchFun(self, err);
+        }
+    }
+
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //public static R Try<T, R>(this T self, Func<T, R> tryFun, Func<T, Exception, R>? catchFun = null) where R : T
+    //{
+    //    try
+    //    {
+    //        return tryFun(self);
+    //    }
+    //    catch (Exception err)
+    //    {
+    //        Func<T, Exception, R> internalCatchFun = catchFun ?? ((self, _) => (R)self);
+    //        return internalCatchFun(self, err);
+    //    }
+    //}
 
 }
 

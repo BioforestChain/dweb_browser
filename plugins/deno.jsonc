@@ -9,6 +9,7 @@
     "build:demo": "cd ../example/vue3 && pnpm build",
     "sync:android": "deno run -A ./scripts/sync-android.mts",
     "sync:desktop": "deno run -A ./scripts/sync-desktop.mts",
+    "sync:next": "deno run -A ./scripts/sync-next.mts",
     "pub": "deno run -A ./scripts/pub_npm.ts",
     "test": "deno test -A --unstable --no-check  ./test"
   },

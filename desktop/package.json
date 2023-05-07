@@ -22,8 +22,8 @@
     "scripts": {
         "dev": "concurrently npm:dev:*",
         "dev:tsc": "tsc -w --preserveWatchOutput",
-        "sync-to-android-assets": "node ./scripts/sync-to-android-assets.cjs",
-        "dev:sync-to-android-assets": "npm run sync-to-android-assets -- --watch",
+        "sync-assets": "node ./scripts/sync-assets.cjs",
+        "dev:sync-assets": "npm run sync-assets -- --watch",
         "bundle:jmm.html": "vite build src/sys/jmm/assets/ --outDir=../../../../bundle/jmm --emptyOutDir -c electron-vite.config.ts",
         "dev:jmm.html": "npm run bundle:jmm.html -- --minify=false --watch",
         "bundle:js-process.worker": "esbuild ./src/sys/js-process/js-process.worker.mts --outfile=./bundle/js-process.worker.js --bundle --format=esm --target=es2020",
@@ -70,6 +70,7 @@
         "vite-plugin-electron-renderer": "^0.12.1"
     },
     "dependencies": {
+        "@bnqkl/util-web": "^1.1.3",
         "@lit-labs/motion": "^1.0.3",
         "@msgpack/msgpack": "^2.8.0",
         "@types/chrome": "^0.0.210",

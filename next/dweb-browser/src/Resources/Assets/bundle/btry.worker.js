@@ -1487,7 +1487,7 @@ var main = async () => {
         }, 500);
       });
       ipc2.onMessage((event, ipc3) => {
-        if (event.type === 6 /* EVENT */)
+        if (event.type === 7 /* EVENT */)
           return;
         console.error("ipc onmessage");
       });

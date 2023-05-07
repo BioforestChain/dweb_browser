@@ -28,7 +28,7 @@ public static class StreamExtensions
         return buffer.ToInt();
     }
 
-    public static async Task<byte[]> ReadBytesAsync(this Stream self, int size)
+    public static async Task<byte[]> ReadBytesAsync(this Stream self, long size)
     {
         var buffer = new byte[size];
         //return new BinaryReader(self).ReadBytes(size);
@@ -42,7 +42,8 @@ public static class StreamExtensions
             throw;
         }
     }
-    public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, int usize = 4096)
+
+    public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, long usize = 4096)
     {
         var bytes = new byte[usize]!;
         while (true)

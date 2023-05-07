@@ -102,7 +102,7 @@ public partial class DWebView : WKWebView
             try
             {
                 Console.Log("StartUrlSchemeTask", "Start: {0}", urlSchemeTask.Request.Url.AbsoluteString);
-                var url = new Uri(this.baseUri, urlSchemeTask.Request.Url.Path);
+                var url = new Uri(this.baseUri, urlSchemeTask.Request.Url.ResourceSpecifier);
                 /// 构建请求的 URL
                 using var request = new HttpRequestMessage(new(urlSchemeTask.Request.HttpMethod), url.AbsoluteUri);
                 /// 构建请求的 ContentBody

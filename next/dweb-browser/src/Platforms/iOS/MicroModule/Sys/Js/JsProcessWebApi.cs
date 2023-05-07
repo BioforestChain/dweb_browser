@@ -100,7 +100,7 @@ public class JsProcessWebApi
                 }
             })
         })
-        """.Trim(), () => this.DWebView.PostMessage("js-process/create-pic/" + hid, new[] { port1 }));
+        """.Trim(), () => this.DWebView.PostMessage("js-process/create-ipc/" + hid, new[] { port1 }));
 
         return IpcWebMessageCache.SaveNative2JsIpcPort(port2);
     }

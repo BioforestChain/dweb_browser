@@ -526,7 +526,7 @@ var INTERNAL_PREFIX = "/internal";
 var fetchSignal = createSignal();
 var onFetchSignal = createSignal();
 var fetchLock = false;
-var fetchSet = /* @__PURE__ */ new Set();
+var fetchSet = /* @__PURE__ */ new Map();
 async function onApiRequest(serverurlInfo, request, httpServerIpc) {
   let ipcResponse;
   try {
@@ -534,12 +534,11 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       ipcResponse = internalFactory(url, request.req_id, httpServerIpc, serverurlInfo);
     } else {
-      if (fetchLock) {
+      if (fetchLock && (request.method === "GET" || request.method === "HEAD")) {
         if (!fetchSet.has(url.pathname)) {
-          fetchSet.add(url.pathname);
+          fetchSet.set(url.pathname, request.req_id);
           return fetchSignal.emit(request);
         }
-        fetchSet.delete(url.pathname);
       }
       const path = `file:/${url.pathname}${url.search}`;
       const response = await jsProcess.nativeFetch(path, {
@@ -552,6 +551,19 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         response,
         httpServerIpc
       );
+      if (fetchSet.has(url.pathname)) {
+        const req_id = fetchSet.get(url.pathname);
+        if (!req_id)
+          return;
+        const ipcResponse2 = await IpcResponse.fromResponse(
+          req_id,
+          response,
+          httpServerIpc
+        );
+        cros(ipcResponse2.headers);
+        httpServerIpc.postMessage(ipcResponse2);
+        fetchSet.delete(url.pathname);
+      }
     }
     if (!ipcResponse) {
       throw new Error(`unknown gateway: ${url.search}`);
@@ -627,7 +639,8 @@ var serviceWorkerFetch = () => {
   const ob = { controller: streamPo.controller };
   fetchSignal.listen((ipcRequest) => {
     const jsonlineEnd = simpleEncoder("\n", "utf8");
-    const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8");
+    const json = ipcRequest.toJSON();
+    const uint8 = simpleEncoder(JSON.stringify(json), "utf8");
     ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
   });
   return streamPo;
@@ -637,7 +650,8 @@ var serviceWorkerOnFetch = () => {
   const ob = { controller: streamPo.controller };
   onFetchSignal.listen((ipcRequest) => {
     const jsonlineEnd = simpleEncoder("\n", "utf8");
-    const uint8 = simpleEncoder(JSON.stringify(ipcRequest.toJSON()), "utf8");
+    const json = ipcRequest.toJSON();
+    const uint8 = simpleEncoder(JSON.stringify(json), "utf8");
     ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
   });
   return streamPo;

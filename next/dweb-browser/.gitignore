@@ -403,3 +403,7 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+# Resource
+src/Resources/Assets/
+-src/Resources/Assets/bundle

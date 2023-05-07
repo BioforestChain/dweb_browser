@@ -7,7 +7,17 @@ public class IpcEvent : IpcMessage
     [JsonPropertyName("name")]
     public string Name { get; set; }
     [JsonPropertyName("data")]
-    public object Data { get; set; }
+    public object _Data { get; set; }
+    public object Data
+    {
+        get => _Data switch
+        {
+            JsonElement element => _Data = element.GetString()!, // JSON 模式下，只可能输出字符串格式，不可能是 byte[]
+            /// TODO 未来支持 CBOR 的时候，这里可以直接读取出 byte[]
+            _ => _Data,
+        };
+        set => _Data = value;
+    }
     [JsonPropertyName("encoding")]
     public IPC_DATA_ENCODING Encoding { get; set; }
 
@@ -21,9 +31,6 @@ public class IpcEvent : IpcMessage
         Name = name;
         Data = data;
         Encoding = encoding;
-
-        _binary = new Lazy<byte[]>(() => EncodingConverter.DataToBinary(Data, Encoding), true);
-        _text = new Lazy<string>(() => EncodingConverter.DataToText(Data, Encoding), true);
     }
 
     public static IpcEvent FromBinary(string name, byte[] data) => new IpcEvent(name, data, IPC_DATA_ENCODING.BINARY);
@@ -32,15 +39,15 @@ public class IpcEvent : IpcMessage
     public static IpcEvent FromUtf8(string name, byte[] data) => FromUtf8(name, data.ToUtf8());
     public static IpcEvent FromUtf8(string name, string data) => new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8);
 
-    private Lazy<byte[]> _binary;
+    private LazyBox<byte[]> _binary = new();
     public byte[] Binary
     {
-        get { return _binary.Value; }
+        get { return _binary.GetOrPut(() => EncodingConverter.DataToBinary(Data, Encoding)); }
     }
-    private Lazy<string> _text;
+    private LazyBox<string> _text = new();
     public string Text
     {
-        get { return _text.Value; }
+        get { return _text.GetOrPut(() => EncodingConverter.DataToText(Data, Encoding)); }
     }
     public IpcEvent JsonAble() => Encoding switch
     {

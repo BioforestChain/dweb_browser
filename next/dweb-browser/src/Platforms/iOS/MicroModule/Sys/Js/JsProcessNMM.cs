@@ -42,7 +42,7 @@ public class JsProcessNMM : NativeMicroModule
         // 将本地资源文件读取添加到适配器中
         var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (mm, request) =>
         {
-            return LocaleFile.LocaleFileFetch(mm, request);
+            return await LocaleFile.LocaleFileFetch(mm, request);
         });
         _onAfterShutdown += async (_) => { cb(); };
 
@@ -161,7 +161,7 @@ public class JsProcessNMM : NativeMicroModule
              * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
              * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
              */
-            var mmid = request.QueryValidate<string>("mmid");
+            var mmid = request.QueryValidate<string>("mmid")!;
 
             int process_id;
             if (!ipcProcessIdMap.TryGetValue(ipc, out var processIdMap) || !processIdMap.TryGetValue(processId, out var po))

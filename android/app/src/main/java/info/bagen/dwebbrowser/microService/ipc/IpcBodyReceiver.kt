@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.microService.ipc
 
 import info.bagen.dwebbrowser.microService.helper.SIGNAL_CTOR
-import info.bagen.dwebbrowser.microService.helper.toUtf8ByteArray
 import info.bagen.dwebbrowser.microService.helper.toBase64ByteArray
+import info.bagen.dwebbrowser.microService.helper.toUtf8ByteArray
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -85,18 +85,23 @@ class IpcBodyReceiver(
                 }?.let { firstData -> controller.enqueue(firstData) }
 
                 ipc.onStream { (message) ->
-                    if (message is IpcStreamData && message.stream_id == stream_id) {
-                        debugIpcBody(
-                            "receiver/StreamData/$ipc/${controller.stream}", message
-                        )
-                        controller.enqueue(message.binary)
-                    } else if (message is IpcStreamEnd && message.stream_id == stream_id) {
-                        debugIpcBody(
-                            "receiver/StreamEnd/$ipc/${controller.stream}", message
-                        )
-                        controller.close()
-                        SIGNAL_CTOR.OFF
-                    } else {
+                    when (message) {
+                        is IpcStreamData -> if (message.stream_id == stream_id) {
+                            debugIpcBody(
+                                "receiver/StreamData/$ipc/${controller.stream}", message
+                            )
+                            controller.enqueue(message.binary)
+                        } else {
+                        }
+                        is IpcStreamEnd -> if (message.stream_id == stream_id) {
+                            debugIpcBody(
+                                "receiver/StreamEnd/$ipc/${controller.stream}", message
+                            )
+                            controller.close()
+                            SIGNAL_CTOR.OFF
+                        } else {
+                        }
+                        else -> {}
                     }
                 }
             }, onPull = { (_, controller) ->

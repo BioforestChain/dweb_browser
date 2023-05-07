@@ -2,9 +2,14 @@ import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
 import { webViewMap, closeFront, restartApp } from "../tool/app.handle.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
-import { nativeOpen, nativeActivate, cros, closeDwebView } from "../tool/tool.native.mjs";
+import {
+  nativeOpen,
+  nativeActivate,
+  cros,
+  closeDwebView,
+} from "../tool/tool.native.mjs";
 import { $Ipc, onApiRequest, onFetchSignal } from "../tool/tool.request.mjs";
-import { DetailedDiff, detailedDiff } from "deep-object-diff"
+import { DetailedDiff, detailedDiff } from "deep-object-diff";
 
 const main = async () => {
   const { IpcEvent } = ipc;
@@ -12,32 +17,47 @@ const main = async () => {
   const mainUrl = new PromiseOut<string>();
   // 管理webview的状态，因为当前webview是通过状态判断操作的，比如激活，关闭
   let oldWebviewState: WebViewState[] = [];
-  // 跟 browser建立连接
-  const browserIpc = await jsProcess.connect("browser.sys.dweb");
   // 跟multiWebView 建立连接
   const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
   // 关闭信号
-  const closeSignal = createSignal<() => unknown>()
+  const multiWebViewCloseSignal = createSignal<() => unknown>();
 
   /**尝试打开view */
-  const tryOpenView = async () => {
-    if (webViewMap.size === 0) {
-      // open
-      const url = await mainUrl.promise;
-      const view_id = await nativeOpen(url)
-      webViewMap.set(view_id, {
-        isActivated: true,
-        webviewId: view_id
-      })
-      return view_id
-    }
-    // 当前的策略是有多少个webview激活多少个
-    webViewMap.forEach((item, key) => {
-      // activate
-      nativeActivate(item.webviewId)
-    })
+  const tryOpenView = () => {
+    const newWindowState = new PromiseOut<boolean>();
+    (async () => {
+      try {
+        if (webViewMap.size === 0) {
+          // open
+          const url = await mainUrl.promise;
+          const view_id = await nativeOpen(url);
+          webViewMap.set(view_id, {
+            isActivated: true,
+            webviewId: view_id,
+          });
+          return view_id;
+        }
+        // 当前的策略是有多少个webview激活多少个
+        await Promise.all(
+          [...webViewMap.values()].map((item) => {
+            // activate
+            return nativeActivate(item.webviewId);
+          })
+        );
+      } finally {
+        newWindowState.resolve(true);
+      }
+    })();
+    windowState = newWindowState;
+    return newWindowState;
   };
 
+  /**
+   * 窗口状态
+   * 立刻自启动
+   */
+  let windowState: PromiseOut<boolean>;
+  windowState = tryOpenView();
 
   const { IpcResponse, IpcHeaders } = ipc;
 
@@ -66,10 +86,13 @@ const main = async () => {
   const externalReadableStreamIpc = await externalServer.listen();
 
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
-    const url = new URL(request.url, apiServer.startResult.urlInfo.internal_origin);
+    const url = new URL(
+      request.url,
+      apiServer.startResult.urlInfo.internal_origin
+    );
     // serviceWorker
     if (url.pathname.startsWith("/dns.sys.dweb")) {
-      const result = await serviceWorkerFactory(url, ipc)
+      const result = await serviceWorkerFactory(url, ipc);
       const ipcResponse = IpcResponse.fromText(
         request.req_id,
         200,
@@ -82,9 +105,10 @@ const main = async () => {
       return ipc.postMessage(ipcResponse);
     }
     onApiRequest(apiServer.startResult.urlInfo, request, ipc);
-  })
+  });
 
   wwwReadableStreamIpc.onRequest(async (request, ipc) => {
+    console.log("www onrequest", request);
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -110,110 +134,89 @@ const main = async () => {
   });
   // 外部发来的请求
   externalReadableStreamIpc.onRequest(async (request, ipc) => {
-    onFetchSignal.emit(request)
-  })
+    onFetchSignal.emit(request);
+  });
 
   // 转发serviceWorker 请求
   const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
     const pathname = url.pathname;
     // 关闭前端
     if (pathname.endsWith("close")) {
-      return closeFront()
+      return closeFront();
     }
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
-      return restartApp([apiServer, wwwServer], [apiReadableStreamIpc, wwwReadableStreamIpc])
+      return restartApp(
+        [apiServer, wwwServer],
+        [apiReadableStreamIpc, wwwReadableStreamIpc]
+      );
     }
     // TODO 手动关闭 connect
-    // browserIpc.close()
     // closeSignal.emit()
     // cotDemoJMM.shutdown()
 
     // return await response.text()
-    return "no action for serviceWorker Factory !!!"
-  }
+    return "no action for serviceWorker Factory !!!";
+  };
 
-  let hasActivity = false;
-
-  // 连接到browser
-  const connectBrowser = async () => {
-    Object.assign(globalThis, { browserIpc });
-    browserIpc.onEvent(async (event) => {
-      // browser点击图标，需要开启的逻辑
-      if (event.name === "activity") {
-        hasActivity = true;
-        const view_id = await tryOpenView()
-        browserIpc.postMessage(IpcEvent.fromText("ready", view_id ?? "activity"));
-        return
-      }
-    });
-    closeSignal.listen(() => {
-      browserIpc.postMessage(IpcEvent.fromText("close", ""))
-      browserIpc.close()
-    })
-  }
-  connectBrowser()
-
-  // 这里是全局的连接 负责接收别人发送的信息
-  const connectGlobal = () => {
-    jsProcess.onConnect((ipc) => {
-      ipc.onEvent((event) => {
-
+  /// 如果有人来激活，那我就唤醒我的界面
+  jsProcess.onActivity(async (ipcEvent, ipc) => {
+    if ((await windowState.promise) === false) {
+      await tryOpenView();
+    }
+    ipc.postMessage(IpcEvent.fromText("ready", "activity"));
+    if (hasActivityEventIpcs.has(ipc) === false) {
+      hasActivityEventIpcs.add(ipc);
+      multiWebViewCloseSignal.listen(() => {
+        ipc.postMessage(IpcEvent.fromText("close", ""));
+        ipc.close();
       });
-      // 每个人来连接都会注册监听，关闭时统一close
-      closeSignal.listen(() => {
-        ipc.postMessage(IpcEvent.fromText("close", ""))
-        ipc.close()
-      })
-    });
-  }
-  connectGlobal()
+    }
+  });
+  const hasActivityEventIpcs = new Set<$Ipc>();
 
-  const connectMultiWebView = () => {
-    multiWebViewIpc.onEvent(async (event) => {
-      console.log("connectMultiWebView =>", event.name)
-      if (event.name === EVENT.State && typeof event.data === "string") {
-        const newState = JSON.parse(event.data)
-        const diff = detailedDiff(oldWebviewState, newState)
-        oldWebviewState = newState
-        diffFactory(diff)
-      }
-    })
-    closeSignal.listen(() => {
-      multiWebViewIpc.postMessage(IpcEvent.fromText("close", ""))
-      multiWebViewIpc.close()
-    })
-  }
-
-  connectMultiWebView()
+  /// 同步 mwebview 的状态机
+  multiWebViewIpc.onEvent(async (event) => {
+    console.log("connectMultiWebView =>", event.name);
+    if (event.name === EVENT.State && typeof event.data === "string") {
+      const newState = JSON.parse(event.data);
+      const diff = detailedDiff(oldWebviewState, newState);
+      oldWebviewState = newState;
+      diffFactory(diff);
+    }
+  });
 
   const diffFactory = async (diff: DetailedDiff) => {
-    console.log("connectMultiWebView diffFactory=>", diff.added, diff.deleted, diff.updated)
+    console.log(
+      "connectMultiWebView diffFactory=>",
+      diff.added,
+      diff.deleted,
+      diff.updated
+    );
     //  是否有新增
     for (const id in diff.added) {
       webViewMap.set(id, JSON.parse(diff.added[id as keyof typeof diff.added]));
     }
     // 是否有删除
     for (const id in diff.deleted) {
-      webViewMap.delete(id)
-      await closeDwebView(id)
+      webViewMap.delete(id);
+      await closeDwebView(id);
     }
     // 是否有更新
     for (const id in diff.updated) {
-      webViewMap.set(id, JSON.parse(diff.updated[id as keyof typeof diff.updated]));
-      await nativeActivate(id)
+      webViewMap.set(
+        id,
+        JSON.parse(diff.updated[id as keyof typeof diff.updated])
+      );
+      await nativeActivate(id);
     }
-  }
+  };
 
   {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
     mainUrl.resolve(interUrl);
-    // 如果没有被 browser 激活，那么也尝试自启动
-    if (hasActivity === false) {
-      await tryOpenView();
-    }
   }
 };
 

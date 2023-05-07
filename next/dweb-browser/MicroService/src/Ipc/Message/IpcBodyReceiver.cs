@@ -108,33 +108,37 @@ public class IpcBodyReceiver : IpcBody
             onStart: async controller =>
             {
                 /// 如果有初始帧，直接存起来
-                switch (metaBody.Type_Encoding)
+                var firstData = metaBody.Type_Encoding switch
                 {
-                    case IPC_DATA_ENCODING.UTF8:
-                        await controller.EnqueueAsync(((string)metaBody.Data).ToUtf8ByteArray());
-                        break;
-                    case IPC_DATA_ENCODING.BINARY:
-                        await controller.EnqueueAsync((byte[])metaBody.Data);
-                        break;
-                    case IPC_DATA_ENCODING.BASE64:
-                        await controller.EnqueueAsync(((string)metaBody.Data).ToBase64ByteArray());
-                        break;
-                    default:
-                        break;
+                    IPC_DATA_ENCODING.UTF8 => ((string)metaBody.Data).ToUtf8ByteArray(),
+                    IPC_DATA_ENCODING.BINARY => (byte[])metaBody.Data,
+                    IPC_DATA_ENCODING.BASE64 => ((string)metaBody.Data).ToBase64ByteArray(),
+                    _ => null
+                };
+                if (firstData is not null)
+                {
+                    await controller.EnqueueAsync(firstData);
                 }
+
 
                 Signal<IpcStream, Ipc> cb = async (ipcStream, ipc, self) =>
                 {
-                    if (ipcStream is IpcStreamData data && data.StreamId == stream_id)
+                    if (ipcStream is IpcStreamData data)
                     {
-                        Console.Log("OnStream", "receiver/StreamData/{0}/{1} {2}", ipc, controller.Stream, data);
-                        await controller.EnqueueAsync(data.Binary);
+                        if (data.StreamId == stream_id)
+                        {
+                            Console.Log("OnStream", "receiver/StreamData/{0}/{1}/{2} {3}", ipc, controller.Stream, stream_id, data);
+                            await controller.EnqueueAsync(data.Binary);
+                        }
                     }
-                    else if (ipcStream is IpcStreamEnd end && end.StreamId == stream_id)
+                    else if (ipcStream is IpcStreamEnd end)
                     {
-                        Console.Log("OnStream", "receiver/StreamEnd/{0}/{1} {2}", ipc, controller.Stream, end);
-                        controller.Close();
-                        ipc.OnStream -= self;
+                        if (end.StreamId == stream_id)
+                        {
+                            Console.Log("OnStream", "receiver/StreamEnd/{0}/{1} {2}", ipc, controller.Stream, end);
+                            controller.Close();
+                            ipc.OnStream -= self;
+                        }
                     }
                 };
 
@@ -143,7 +147,7 @@ public class IpcBodyReceiver : IpcBody
             onPull: async args =>
             {
                 var controller = args.Item2;
-                Console.Log("OnPull", "receiver/StreamEnd/{0}/{1} {2}", ipc, controller.Stream, stream_id);
+                Console.Log("OnPull", "receiver/StreamPull/{0}/{1} {2}", ipc, controller.Stream, stream_id);
                 if (Interlocked.CompareExchange(ref paused, 1, 0) == 1)
                 {
                     await ipc.PostMessageAsync(new IpcStreamPulling(stream_id));
