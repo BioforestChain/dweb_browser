@@ -65,7 +65,7 @@ public class IpcHeaders
             yield return entry;
         }
     }
-    public void ToHttpMessage(HttpHeaders headers, HttpContentHeaders contentHeaders)
+    public void ToHttpMessage(HttpHeaders headers, HttpContentHeaders? contentHeaders)
     {
         GetEnumerator().ToHttpMessage(headers, contentHeaders);
     }
@@ -139,8 +139,30 @@ sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>
 static public class IDictionaryExtensions
 {
 
-    public static void ToHttpMessage(this IEnumerable<KeyValuePair<string, string>> allHeaders, HttpHeaders httpHeaders, HttpContentHeaders contentHeaders)
+    public static void ToHttpMessage(this IEnumerable<KeyValuePair<string, string>> allHeaders, HttpHeaders httpHeaders, HttpContentHeaders? contentHeaders)
     {
+        if (contentHeaders is null)
+        {
+            foreach (var (key, value) in allHeaders)
+            {
+                switch (key)
+                {
+                    case "Content-Encoding":
+                    case "Content-Length":
+                    case "Content-Language":
+                    case "Content-Location":
+                    case "Content-Disposition":
+                    case "Content-MD5":
+                    case "Content-Range":
+                    case "Content-Type":
+                        break;
+                    default:
+                        httpHeaders.TryAddWithoutValidation(key, value);
+                        break;
+                }
+            }
+            return;
+        }
         foreach (var (key, value) in allHeaders)
         {
             switch (key)

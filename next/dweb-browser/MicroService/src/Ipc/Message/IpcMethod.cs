@@ -5,45 +5,27 @@ namespace DwebBrowser.MicroService.Message;
 [JsonConverter(typeof(IpcMethodConverter))]
 public class IpcMethod
 {
+    [JsonPropertyName("method")]
     private readonly string _method;
 
-    private static readonly IpcMethod s_getMethod = new IpcMethod("GET");
+    public static readonly IpcMethod Get = new IpcMethod("GET");
 
-    private static readonly IpcMethod s_putMethod = new IpcMethod("PUT");
+    public static readonly IpcMethod Put = new IpcMethod("PUT");
 
-    private static readonly IpcMethod s_postMethod = new IpcMethod("POST");
+    public static readonly IpcMethod Post = new IpcMethod("POST");
 
-    private static readonly IpcMethod s_deleteMethod = new IpcMethod("DELETE");
+    public static readonly IpcMethod Delete = new IpcMethod("DELETE");
 
-    private static readonly IpcMethod s_headMethod = new IpcMethod("HEAD");
+    public static readonly IpcMethod Head = new IpcMethod("HEAD");
 
-    private static readonly IpcMethod s_optionsMethod = new IpcMethod("OPTIONS");
+    public static readonly IpcMethod Options = new IpcMethod("OPTIONS");
 
-    private static readonly IpcMethod s_traceMethod = new IpcMethod("TRACE");
+    public static readonly IpcMethod Trace = new IpcMethod("TRACE");
 
-    private static readonly IpcMethod s_patchMethod = new IpcMethod("PATCH");
+    public static readonly IpcMethod Patch = new IpcMethod("PATCH");
 
-    private static readonly IpcMethod s_connectMethod = new IpcMethod("CONNECT");
+    public static readonly IpcMethod Connect = new IpcMethod("CONNECT");
 
-    public static IpcMethod Get => s_getMethod;
-
-    public static IpcMethod Put => s_putMethod;
-
-    public static IpcMethod Post => s_postMethod;
-
-    public static IpcMethod Delete => s_deleteMethod;
-
-    public static IpcMethod Head => s_headMethod;
-
-    public static IpcMethod Options => s_optionsMethod;
-
-    public static IpcMethod Trace => s_traceMethod;
-
-    public static IpcMethod Patch => s_patchMethod;
-
-    public static IpcMethod Connect => s_connectMethod;
-
-    [JsonPropertyName("method")]
     public string Method => _method;
 
     private IpcMethod(string method)
@@ -54,19 +36,22 @@ public class IpcMethod
     public static IpcMethod From(HttpMethod method) => From(method.Method);
     public static IpcMethod From(string method) => method switch
     {
-        "GET" => s_getMethod,
-        "PUT" => s_putMethod,
-        "POST" => s_postMethod,
-        "DELETE" => s_deleteMethod,
-        "HEAD" => s_headMethod,
-        "OPTIONS" => s_optionsMethod,
-        "TRACE" => s_traceMethod,
-        "PATCH" => s_patchMethod,
-        "CONNECT" => s_connectMethod,
+        "GET" => Get,
+        "PUT" => Put,
+        "POST" => Post,
+        "DELETE" => Delete,
+        "HEAD" => Head,
+        "OPTIONS" => Options,
+        "TRACE" => Trace,
+        "PATCH" => Patch,
+        "CONNECT" => Connect,
         _ => throw new ArgumentException(String.Format("Unknown type {0}", method))
     };
 
     public override string ToString() => _method;
+
+    private LazyBox<HttpMethod> _httpMethod = new();
+    public HttpMethod ToHttpMethod() => _httpMethod.GetOrPut(() => new(_method));
 
     /// <summary>
     /// Serialize IpcMethod
