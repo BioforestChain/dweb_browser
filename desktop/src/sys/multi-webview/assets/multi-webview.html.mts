@@ -358,8 +358,11 @@ export class ViewTree extends LitElement {
    */
   async executeJavascriptByHost(host: string, code: string){
     this._multiWebviewContent?.forEach(el => {
-      if(el.src.includes(host)){
-        el.executeJavascript(code)
+      const webview_url = new URL(el.src.split("?")[0]).origin;
+      const target_url = new URL(host).origin;
+      if(el.src.includes(host) || webview_url === target_url){
+        el.executeJavascript(code);
+        return;
       }
     })
   }

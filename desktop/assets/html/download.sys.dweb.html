@@ -47,7 +47,7 @@
       flex-shrink: 0;
       width: 100px;
       height: 100px;
-      background-size: contain;
+      background-size: 60%;
       background-position: center;
       background-repeat: no-repeat;
       border-radius: 20px;
@@ -106,7 +106,7 @@
       top: 0px;
       height: 100%;
       width: 100%;
-      background: #1677ff
+      background: linear-gradient(90deg, #1677ff 100%, #999);
     }
 
     .btn-download-label{
@@ -247,14 +247,14 @@
   <div class="summary-container">
     <div class="icon-container"></div>
     <div class="text-container">
-        <h1 class="title">美团外卖-外卖订单，送啥都快</h1>
-        <p class="explain">美食生鲜，水果下午茶</p>
-        <div class="button-group-container">
-            <button class="btn-download" data-fn="update">
-                <div class="btn-download-mask"></div>
-                <div class="btn-download-label">更新</div>
-            </button>
-        </div>
+      <h1 class="title"></h1>
+      <p class="explain"></p>
+      <div class="button-group-container">
+        <button class="btn-download" data-fn="update">
+          <div class="btn-download-mask"></div>
+          <div class="btn-download-label">更新</div>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -263,26 +263,20 @@
   <div class="preview-container">
     <h2 class="preview-container-title">预览</h2>
     <div class="img-container">
-        <div class="img-box"></div>
-        <div class="img-box"></div>
-        <div class="img-box"></div>
-        <div class="img-box"></div>
     </div>
   </div>
 
   <!-- 详情 -->
   <hr />
   <div class="detail-contaienr">
-    <p class="detail-text">
-        美团外卖，专业的没事外卖平台, 超长的内容，超长的内容，超长的内容，超长的内容，超长的内容，超长的内容，超长的内容，超长的内容，
-    </p>
+    <p class="detail-text"></p>
     <button class="detail-button-more" data-status="close">更多</button>
   </div>
 
   <!-- 开发者 -->
   <div class="developer-container">
     <div class="developer-text-container">
-      <p class="developer-name">美团</p>
+      <p class="developer-name"></p>
       <p class="developer-title">开发者</p>
     </div>
     <svg 
@@ -310,45 +304,44 @@
     const elMainExplain = document.querySelector('.explain')
     const elBtnDownload = document.querySelector('.btn-download')
     const elBtnDownloadMask = document.querySelector(".btn-download-mask")
+    const elBtnDownloadText = document.querySelector('.btn-download-label')
     const elPreviewImgeContainer = document.querySelector('.img-container')
     const elDetailtext = document.querySelector('.detail-text')
     const elBtnMore = document.querySelector('.detail-button-more')
     const elMoreDeveloperInfo = document.querySelector(".developer-container")
+    const elDeveloperName = document.querySelector(".developer-name");
     let isDownloaded = false
 
-    // 设置内容
-    async function setContentByMateDataJsonUrl (downloadUrl){
-      console.error('setContentByMateDataJsonUrl', downloadUrl)
-      // 根据downloadUrl 后去应用的信息
-    }
+    async function setAppInfoByAppInfo(info){
+      const appInfo = JSON.parse(info)
+      elIcon.style.backgroundImage = "url('https://www.bfmeta.info/imgs/logo3.webp')"
+      elMainTitle.innerHTML = appInfo.title;
+      elMainExplain.innerHTML = appInfo.subtitle;
+      elDetailtext.innerHTML = appInfo.introduction;
+      elDeveloperName.innerText = appInfo.author[0]
 
-    // elBack.addEventListener('click', () => {
-    //   console.log('点击 elBack', window, open)
-    //   close()
-    // })
+      imgs = appInfo.images.map(item => {
+        const img = document.createElement('img')
+              img.classList.add('img-box');
+              img.src = item;
+        return img;
+      })
+      elPreviewImgeContainer.append(...imgs)
+    };
 
     // 下载按钮事件处理器
     elBtnDownload.addEventListener('click', (e) => {
-      console.log('e.target.dataset.dataFn: ', e.target.dataset.fn)
-      isDownloaded = false;
-      elBtnDownloadMask.style.width = "0%"
-      fetch(
-        `./donwload?url=${window.metadataInfo.downloadUrl}&app_id=${window.metadataInfo.id}`,
-        { method: "POST", body: JSON.stringify(window.metadataInfo) }    
+      // metadataUrl 是全局注入进来的
+      const fetchUrl = `./jmm.sys.dweb/install?metadataUrl=${metadataUrl}`;
+      // 因为 注入改写了 fetch
+      setDownloadBackground(0)
+      setDownloadText(0)
+      nativeFetch(fetchUrl, { headers: {origin: location.origin}})
+      .then(
+        res => console.log('res', res),
+        err => console.error(err)
       )
-      .then(res => {
-        isDownloaded = true;
-        if(res.status === 200){
-            console.log('下载完成')
-            process = 1;
-            elBtnDownloadMask.style.width = "100%"
-            return;
-        }
-        console.error('下载出错')
-      })
-      getProcess()
     })
-
     elBtnMore.addEventListener('click', (e) => {
       const has = elDetailtext.classList.contains('detail-text-open')
       if(has){
@@ -366,31 +359,33 @@
       console.log('developerContainer')
     })
 
-    // elIcon.style.backgroundImage = `url('${window.metadataInfo.icon}')`
-    // elMainTitle.innerText = window.metadataInfo.title;
-    // elMainExplain.innerText = window.metadataInfo.subtitle;
-    // elDetailtext.innerText = window.metadataInfo.introduction;
-
-    // const template = document.createElement('template')
-    // elPreviewImgeContainer.innerHTML = null
-    // window.metadataInfo.images.forEach(url => {
-    //   const img = new Image()
-    //     img.setAttribute('class', "img-box")
-    //     img.src= url;
-    //     elPreviewImgeContainer.append(img)
-    // })
-
-    // 查询下载进度
-    async function getProcess(){
-      const result = await fetch("./download_process")
-      if(!isDownloaded){
-        const process = await result.text()
-        elBtnDownloadMask.style.width = parseFloat(process) * 100 + "%"
-        setTimeout(() => {
-          getProcess()
-        }, 1000)
-      } 
+    /**
+     * 设置 下载按钮的背景色
+     */ 
+    function setDownloadBackground(percent){
+      elBtnDownloadMask.style.background = `linear-gradient(90deg, #1677ff ${percent}%, #999)`
     }
+
+    function setDownloadText(percent){
+      elBtnDownloadText.innerText = percent == 100 ? "更新" : percent
+    }
+
+    function progress(percent){
+      setDownloadBackground(percent)
+      setDownloadText(percent)
+    }
+
+    window.__app_upgrade_watcher_kit__ = {
+      _listeners: {
+        progress: [
+          progress
+        ]
+      }
+    }
+    
+  </script>
+  <script type="text/javascript">
+    
   </script>
 </body>
 </html>

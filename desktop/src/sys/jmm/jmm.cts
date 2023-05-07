@@ -99,7 +99,7 @@ export class JmmNMM extends NativeMicroModule {
    * @returns 
    */
   private _install = async(req: IncomingMessage, response: OutgoingMessage ) => {
-    const origin = req.headers.origin;
+    const origin = req.headers.origin || req.headers.referer;
     if(origin === undefined) throw new Error(`${this.mmid} _install origin === undefined`)
     const searchParams = new URL(req.url as string, `http://${this.mmid}/`).searchParams
     const metadataUrl = searchParams.get("metadataUrl")
@@ -164,7 +164,10 @@ export class JmmNMM extends NativeMicroModule {
   private changeProgress = async (percent: string | number, host: string) => {
     const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`
     const init: RequestInit = {
-      body: `window.__app_upgrade_watcher_kit__._listeners.progress.forEach(callback => callback(${percent}))`,
+      body: `
+        window.__app_upgrade_watcher_kit__._listeners.progress.forEach(callback => callback(${percent}));
+        console.log('${percent}')  
+      `,
       method: "POST",
       headers: {
         "webview_url": host

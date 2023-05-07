@@ -208,7 +208,7 @@ export class MultiWebViewContent extends LitElement{
 
             
             // 拦截 fetch
-            const nativeFetch = globalThis.fetch;
+            globalThis.nativeFetch = globalThis.fetch;
             globalThis.fetch = (request) => {
               console.log('request', request)
               let url = typeof request === 'string' ? request : request.url;
@@ -219,7 +219,7 @@ export class MultiWebViewContent extends LitElement{
                 // 把请求发送给 jsMM 模块
                 url = 'http://api.browser.sys.dweb-443.localhost:22605/open_download?url=' + url
                 // 只能够想办法 发送给 browser 让 browser 处理
-                return nativeFetch(url)
+                return globalThis.nativeFetch(url)
               }else{
                 return nativeFetch(request)
               }

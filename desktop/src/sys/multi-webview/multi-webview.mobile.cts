@@ -133,6 +133,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
           `));
         }
         const code = await request.body.text();
+        // 问题新的 webveiw 没有被添加进来？？？
+        // console.log('-------------', this._uid_wapis_map.values())
         Array.from(this._uid_wapis_map.values()).forEach(({apis}) => {
           apis.executeJavascriptByHost(host, code);
         })

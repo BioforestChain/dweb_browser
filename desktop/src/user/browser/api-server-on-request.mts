@@ -56,20 +56,27 @@ async function open_download(
   ipcRequest: IpcRequest, 
   ipc: Ipc
 ){
-  const _url = `http://download.sys.dweb-80.localhost:22605`
-  const webview_id = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text()
+
+   
+  const metadataUrl = ipcRequest.parsed_url.searchParams.get('url');
+  if(metadataUrl === null) throw new Error('metadataUrl === null')
+
+  const appInfo = JSON.stringify(await (await fetch(metadataUrl)).json())
+  const webview_url = `http://download.sys.dweb-80.localhost:22605`
+  const webview_id = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(webview_url)}`).text()
   // 向 webview 执行 javascript
-  const metaDataJsonUrl = ipcRequest.parsed_url.searchParams.get('url');
   const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`
+   // setContentByMateDataJsonUrl('${metaDataJsonUrl}');
   const init = {
     body: `
       (() => {
-        setContentByMateDataJsonUrl('${metaDataJsonUrl}');
+        setAppInfoByAppInfo('${appInfo}');
+        globalThis.metadataUrl = "${metadataUrl}"
       })()
     `,
     method: "POST",
     headers: {
-      "webview_url": _url
+      "webview_url": webview_url
     }
   }
   const request = new Request(url,init);
