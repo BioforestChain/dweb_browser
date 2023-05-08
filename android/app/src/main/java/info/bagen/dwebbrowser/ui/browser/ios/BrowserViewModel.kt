@@ -235,7 +235,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
               WebsiteDB.saveBookWebsiteInfo(
                 WebSiteInfo(title = it.state.pageTitle ?: "", url = it.state.lastLoadedUrl ?: "")
               )
-              //handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
+              handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
             }
           }
         }
@@ -277,8 +277,10 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
           browserController.uninstallJMM(action.jmmMetadata)
         }
         is BrowserIntent.ShowSnackbarMessage -> {
-          uiState.bottomSheetScaffoldState.snackbarHostState
-            .showSnackbar(action.message, action.actionLabel)
+          withContext(mainAsyncExceptionHandler) {
+            uiState.bottomSheetScaffoldState.snackbarHostState
+              .showSnackbar(action.message, action.actionLabel)
+          }
         }
       }
     }

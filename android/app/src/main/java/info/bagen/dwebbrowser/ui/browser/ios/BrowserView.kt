@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -38,7 +37,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.LoadingState
@@ -79,6 +77,7 @@ fun BrowserView(viewModel: BrowserViewModel) {
       }
     }
   }
+
   BottomSheetScaffold(
     modifier = Modifier
       .statusBarsPadding()
@@ -400,6 +399,7 @@ private fun SearchTextField(
         viewModel.handleIntent(BrowserIntent.UpdateInputText(text))
       },
     singleLine = true,
+    maxLines = 1,
     textStyle = TextStyle.Default.copy(
       /*color = MaterialTheme.colorScheme.onPrimary, */fontSize = dimenTextFieldFontSize
     ),

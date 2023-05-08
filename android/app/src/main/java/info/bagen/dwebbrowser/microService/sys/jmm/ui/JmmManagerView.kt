@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.microService.sys.PluginType
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
 import java.text.DecimalFormat
 
@@ -43,12 +44,13 @@ fun MALLBrowserView(jmmViewModel: JmmManagerViewModel) {
       item { CaptureListView(jmmMetadata = jmmMetadata) }
       item { Spacer(modifier = Modifier.height(16.dp)) }
       item { AppIntroductionView(jmmMetadata = jmmMetadata) }
-      jmmMetadata.permissions?.let { permissions ->
+      jmmMetadata.plugins?.let { plugins ->
         item { Spacer(modifier = Modifier.height(16.dp)) }
-        item { Text(text = "权限列表", fontSize = 24.sp, fontStyle = FontStyle.Normal) }
+        item { Text(text = "插件列表", fontSize = 24.sp, fontStyle = FontStyle.Normal) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
-        itemsIndexed(permissions) { index, mmid ->
-          InstallItemPermissionView(index, mmid, permissions.size)
+        itemsIndexed(plugins) { _, mmid ->
+          // InstallItemPlugins(index, mmid, plugins.size)
+          enumValues<PluginType>().find { it.mmid == mmid }?.PluginsView()
         }
       }
       item { Spacer(modifier = Modifier.height(60.dp)) }
@@ -74,9 +76,10 @@ fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
       item { Spacer(modifier = Modifier.height(16.dp)) }
       item { Text(text = "权限", fontSize = 16.sp, color = Color.Gray) }
       item { Spacer(modifier = Modifier.height(16.dp)) }
-      jmmViewModel.uiState.downloadInfo.value.jmmMetadata.permissions?.let { permissions ->
-        itemsIndexed(permissions) { index, mmid ->
-          InstallItemPermissionView(index, mmid, permissions.size)
+      jmmViewModel.uiState.downloadInfo.value.jmmMetadata.plugins?.let { plugins ->
+        itemsIndexed(plugins) { _, mmid ->
+          //InstallItemPlugins(index, mmid, plugins.size)
+          enumValues<PluginType>().find { it.mmid == mmid }?.PluginsView()
         }
       }
     }
@@ -318,7 +321,7 @@ fun InstallItemDeleteView() {
 }
 
 @Composable
-fun InstallItemPermissionView(index: Int, mmid: String, size: Int) {
+fun InstallItemPermission(index: Int, mmid: String, size: Int) {
   Box(
     modifier = Modifier
       .clip(
