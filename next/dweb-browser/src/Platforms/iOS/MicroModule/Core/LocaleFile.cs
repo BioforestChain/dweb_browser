@@ -8,15 +8,22 @@ using System.Net.Http.Headers;
 using CoreMedia;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Maui.Storage;
-using static CoreFoundation.DispatchSource;
+using DwebBrowser.MicroService.Http;
 
 #nullable enable
 
-namespace DwebBrowser.MicroService.Sys.Js;
+namespace DwebBrowser.MicroService.Core;
 
 public static class LocaleFile
 {
     static Debugger Console = new Debugger("LocaleFile");
+    /// <summary>
+    /// 需要一些初始化调用，才能让LocaleFile模块正的运作起来
+    /// </summary>
+    public static void Init()
+    {
+        Console.Log("Init", "init!!!");
+    }
     /// <summary>
     /// 应用根目录
     /// </summary>
@@ -43,20 +50,25 @@ public static class LocaleFile
         }
         return contentType;
     }
+    static LocaleFile()
+    {
+        // 将本地资源文件读取添加到适配器中
+        NativeFetch.NativeFetchAdaptersManager.Append((mm, request) => LocaleFile.LocaleFileFetch(mm, request));
+    }
 
-    public static async Task<HttpResponseMessage?> LocaleFileFetch(MicroModule remote, HttpRequestMessage request)
+    public static async Task<PureResponse?> LocaleFileFetch(MicroModule remote, PureRequest request)
     {
         try
         {
-            if (request.RequestUri is not null && request.RequestUri.Scheme == "file" && request.RequestUri.Host == "")
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.Host is "")
             {
-                var query = HttpUtility.ParseQueryString(request.RequestUri.Query);
+                var query = HttpUtility.ParseQueryString(parsedUrl.Query);
 
                 var mode = query["mode"] ?? "auto";
                 var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
                 //var preRead = query["pre-read"]?.ToBooleanStrictOrNull() ?? false;
 
-                var src = request.RequestUri.AbsolutePath.Substring(1); // 移除 '/'
+                var src = parsedUrl.Path.Substring(1); // 移除 '/'
 
                 Console.Log("LocaleFileFetch", "OPEN {0}", src);
                 string dirname = Path.GetDirectoryName(src) ?? "";
@@ -73,20 +85,21 @@ public static class LocaleFile
                 /// 文件不存在
                 if (absoluteDirFiles.Contains(absoluteFile) is false)
                 {
-                    Console.Log("LocaleFileFetch", "NO-FOUND {0}", request.RequestUri.AbsolutePath);
-                    var notFoundResponse = new HttpResponseMessage(HttpStatusCode.NotFound).Also(it =>
-                    {
-                        it.Content = new StringContent(String.Format("the file({0}) not found.", request.RequestUri.AbsolutePath));
-                    });
+                    Console.Log("LocaleFileFetch", "NO-FOUND {0}", parsedUrl.Path);
+                    var notFoundResponse = new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody(String.Format("not found file: {0}.", parsedUrl.Path)));
                     return notFoundResponse;
                 }
 
 
                 /// 开始读取文件来响应内容
 
-                var okResponse = new HttpResponseMessage(HttpStatusCode.OK);
+                //var okResponse = new HttpResponseMessage(HttpStatusCode.OK);
                 var fs = File.OpenRead(absoluteFile);
                 Console.Log("LocaleFileFetch", "Mode: {0}", mode);
+
+
+                PureBody responseBody;
+                var ipcHeaders = new IpcHeaders().Set("Content-Length", fs.Length.ToString());
 
                 // buffer 模式，就是直接全部读取出来
                 // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍，如果分片次数少于2次，那么就直接发送，没必要分片
@@ -110,22 +123,21 @@ public static class LocaleFile
 
                     }).Background();
                     /// 返回流
-                    okResponse.Content = new StreamContent(fs, (int)fs.Length);
+                    responseBody = new PureStreamBody(fs);
                 }
                 else using (fs)
                     {
                         /// 一次性发送
-                        okResponse.Content = new ByteArrayContent(await fs.ReadBytesAsync(fs.Length));
+                        responseBody = new PureByteArrayBody(await fs.ReadBytesAsync(fs.Length));
                     }
 
-                okResponse.Content.Headers.ContentType = new MediaTypeHeaderValue(GetMimeType(filename));
-                return okResponse;
+                return new PureResponse(HttpStatusCode.OK, ipcHeaders, responseBody, Url: request.Url);
             }
         }
         catch (Exception e)
         {
             Console.Warn("LocaleFileFetch", "Exception: {0}", e.Message);
-            return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            return new PureResponse(HttpStatusCode.InternalServerError);
         }
 
         return null;

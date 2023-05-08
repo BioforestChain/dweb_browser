@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using DwebBrowser.MicroService.Http;
 
 namespace DwebBrowser.MicroService.Sys.Dns;
 
@@ -50,7 +51,7 @@ public class DnsNMM : NativeMicroModule
     private Dictionary<MM, PromiseOut<ConnectResult>> _mmConnectsMap = new();
 
     /** <summary>为两个mm建立 ipc 通讯</summary> */
-    private Task<ConnectResult> _connectTo(MicroModule fromMM, Mmid toMmid, HttpRequestMessage reason)
+    private Task<ConnectResult> _connectTo(MicroModule fromMM, Mmid toMmid, PureRequest reason)
     {
         PromiseOut<ConnectResult> wait;
         lock (_mmConnectsMap)
@@ -148,10 +149,10 @@ public class DnsNMM : NativeMicroModule
             });
         }
 
-        public Task<ConnectResult> ConnectAsync(string mmid, HttpRequestMessage? reason = null)
+        public Task<ConnectResult> ConnectAsync(string mmid, PureRequest? reason = null)
         {
             return _dnsMM._connectTo(
-                _fromMM, mmid, reason ?? new HttpRequestMessage(HttpMethod.Get, new Uri(String.Format("file://{0}", mmid))));
+                _fromMM, mmid, reason ?? new PureRequest(String.Format("file://{0}", mmid), IpcMethod.Get));
         }
 
         public Task BootstrapAsync(string mmid) => _dnsMM.Open(mmid);
@@ -168,33 +169,34 @@ public class DnsNMM : NativeMicroModule
          */
         var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
         {
-            if (request.RequestUri is not null && request.RequestUri!.Scheme == "file"
-                && request.RequestUri.Host.EndsWith(".dweb"))
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.Host.EndsWith(".dweb"))
             {
-                var mmid = request.RequestUri.Host;
+                var mmid = parsedUrl.Host;
 
                 var microModule = _installApps.GetValueOrDefault(mmid);
 
                 if (microModule is not null)
                 {
                     var connectResult = await _connectTo(fromMM, mmid, request);
-                    Console.Log("NativeFetch", "DNS/request/{0} => {1} [{2}] {3}", fromMM.Mmid, mmid, request.Method.Method, request.RequestUri.AbsolutePath);
+                    Console.Log("NativeFetch", "DNS/request/{0} => {1} [{2}] {3}", fromMM.Mmid, mmid, request.Method.Method, parsedUrl.Path);
                     return await connectResult.IpcForFromMM.Request(request);
                 }
 
-                return new HttpResponseMessage(HttpStatusCode.BadGateway).Also(it =>
-                    it.Content = new StringContent(request.RequestUri.ToString()));
+                return new PureResponse(HttpStatusCode.BadGateway, Body: new PureUtf8StringBody(request.Url));
             }
 
             return null;
         });
         _onAfterShutdown += async (_) => { cb(); };
 
+        var Query_appId = (URL parsedUrl) => parsedUrl.SearchParams.Get("app_id") ?? throw new ArgumentException("no found app_id");
+
         // 打开应用
         HttpRouter.AddRoute(IpcMethod.Get, "/open", async (request, _) =>
         {
-            Console.Log("Open", "{0} {1}", Mmid, request.RequestUri?.AbsolutePath);
-            await Open(request.QueryValidate<Mmid>("app_id")!);
+            var parsedUrl = request.SafeUrl;
+            Console.Log("Open", "{0} {1}", Mmid, parsedUrl.Path);
+            await Open(parsedUrl.SearchParams.ForceGet("app_id"));
             return true;
         });
 
@@ -202,8 +204,9 @@ public class DnsNMM : NativeMicroModule
         // TODO 能否关闭一个应该应该由应用自己决定
         HttpRouter.AddRoute(IpcMethod.Get, "/close", async (request, _) =>
         {
-            Console.Log("Close", "{0} {1}", Mmid, request.RequestUri?.AbsolutePath);
-            await Open(request.QueryValidate<string>("app_id")!);
+            var parsedUrl = request.SafeUrl;
+            Console.Log("Close", "{0} {1}", Mmid, parsedUrl.Path);
+            await Open(parsedUrl.SearchParams.ForceGet("app_id"));
             return true;
         });
     }

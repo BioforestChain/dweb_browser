@@ -15,6 +15,7 @@ public partial class DWebView : WKWebView
             webkit.messageHandlers.asyncCode.postMessage([1,id,res])
         },
         reject(id,err){
+            console.error(err);
             webkit.messageHandlers.asyncCode.postMessage([0,id,"QQQQ:"+(err instanceof Error?(err.stack||err.message):String(err))])
         }
     };

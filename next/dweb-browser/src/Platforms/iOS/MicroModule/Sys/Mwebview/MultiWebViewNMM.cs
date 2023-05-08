@@ -37,7 +37,8 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         // 关闭指定 webview 窗口
         HttpRouter.AddRoute(IpcMethod.Get, "/close", async (request, ipc) =>
         {
-            var webviewId = request.QueryValidate<string>("webview_id")!;
+            var searchParams = request.SafeUrl.SearchParams;
+            var webviewId = searchParams.ForceGet("webview_id");
             var remoteMmid = ipc!.Remote.Mmid;
 
             return await _closeDwebViewAsync(remoteMmid, webviewId);

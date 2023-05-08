@@ -38,7 +38,11 @@ namespace DwebBrowser.MicroService.Sys.Http.Net
         public Func<Task<bool>> Close { get; init; }
     }
 
-    public record DwebHttpServerOptions(int port = 80, string subdomain = "");
+    public record DwebHttpServerOptions(int? port = null, string? subdomain = null)
+    {
+        public int Port = port ?? 80;
+        public string Subdomain = subdomain ?? "";
+    };
 }
 
 namespace DwebBrowser.MicroService.Core
@@ -46,33 +50,32 @@ namespace DwebBrowser.MicroService.Core
     public abstract partial class MicroModule
     {
         public async Task<HttpNMM.ServerStartResult> StartHttpDwebServer(DwebHttpServerOptions options) =>
-            await (await NativeFetchAsync(new Uri("file://http.sys.dweb/start")
-                .AppendQuery("port", options.port.ToString())
-                .AppendQuery("subdomain", options.subdomain)))
-            .Json<HttpNMM.ServerStartResult>();
+            await (await NativeFetchAsync(new URL("file://http.sys.dweb/start")
+                .SearchParamsSet("port", options.port.ToString())
+                .SearchParamsSet("subdomain", options.subdomain)))
+            .JsonAsync<HttpNMM.ServerStartResult>();
 
         public async Task<ReadableStreamIpc> ListenHttpDwebServer(
             HttpNMM.ServerStartResult startResult, Gateway.RouteConfig[] routes)
         {
-            var streamIpc = new ReadableStreamIpc(this,String.Format("http-server/{0}", startResult.urlInfo.Host));
-            var res = await NativeFetchAsync(
-                new HttpRequestMessage(
-                    HttpMethod.Post,
-                    new Uri("file://http.sys.dweb/listen")
-                        .AppendQuery("host", startResult.urlInfo.Host)
-                        .AppendQuery("token", startResult.token)
-                        .AppendQuery("routes", JsonSerializer.Serialize(routes))
-                    ).Also((it) => it.Content = new StreamContent(streamIpc.ReadableStream.Stream))
-                );
+            var streamIpc = new ReadableStreamIpc(this, String.Format("http-server/{0}", startResult.urlInfo.Host));
+            var pureResponse = await NativeFetchAsync(
+                new PureRequest(
+                    new URL("file://http.sys.dweb/listen")
+                        .SearchParamsSet("host", startResult.urlInfo.Host)
+                        .SearchParamsSet("token", startResult.token)
+                        .SearchParamsSet("routes", JsonSerializer.Serialize(routes)).Href,
+                    IpcMethod.Post,
+                    Body: new PureStreamBody(streamIpc.ReadableStream.Stream)));
 
-            streamIpc.BindIncomeStream(res.Stream());
+            streamIpc.BindIncomeStream(pureResponse.Body.ToStream());
             return streamIpc;
         }
 
         public async Task<bool> CloseHttpDwebServer(DwebHttpServerOptions options) =>
-            await (await NativeFetchAsync(new Uri("file://http.sys.dweb/close")
-                .AppendQuery("port", options.port.ToString())
-                .AppendQuery("subdomain", options.subdomain)))
+            await (await NativeFetchAsync(new URL("file://http.sys.dweb/close")
+                .SearchParamsSet("port", options.port.ToString())
+                .SearchParamsSet("subdomain", options.subdomain)))
             .BoolAsync();
 
         public async Task<HttpDwebServer> CreateHttpDwebServer(DwebHttpServerOptions options) =>

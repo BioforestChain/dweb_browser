@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks.Dataflow;
 using DwebBrowser.Helper;
+using DwebBrowser.MicroService.Http;
 
 namespace DwebBrowser.MicroService;
 public abstract class Ipc
@@ -59,9 +60,6 @@ public abstract class Ipc
 
         await _doPostMessageAsync(message);
     }
-
-    public async Task PostResponseAsync(int req_id, HttpResponseMessage response) =>
-        await PostMessageAsync(await IpcResponse.FromResponse(req_id, response, this));
 
     public event Signal<IpcMessage, Ipc>? OnMessage;
     protected Task _OnMessageEmit(IpcMessage msg, Ipc ipc) => (OnMessage?.Emit(msg, ipc)).ForAwait();
@@ -171,6 +169,12 @@ public abstract class Ipc
 
     private LazyBox<Dictionary<int, PromiseOut<IpcResponse>>> _reqResMap = new();
 
+    /// <summary>
+    /// 发送请求
+    /// </summary>
+    /// <param name="ipcRequest"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public async Task<IpcResponse> Request(IpcRequest ipcRequest)
     {
         var result = new PromiseOut<IpcResponse>();
@@ -192,16 +196,12 @@ public abstract class Ipc
         return await result.WaitPromiseAsync();
     }
 
-
-    /**
-     * 发送请求
-     */
-    public Task<HttpResponseMessage> Request(string url) =>
-        Request(new HttpRequestMessage(HttpMethod.Get, new Uri(url)));
-    public Task<HttpResponseMessage> Request(Uri url) =>
-        Request(new HttpRequestMessage(HttpMethod.Get, url));
-    public async Task<HttpResponseMessage> Request(HttpRequestMessage request) =>
-        (await Request(await IpcRequest.FromRequest(AllocReqId(), request, this))).ToResponse();
+    public Task<PureResponse> Request(string url) =>
+        Request(new PureRequest(url, IpcMethod.Get));
+    public Task<PureResponse> Request(Uri url) =>
+        Request(new PureRequest(url.ToString(), IpcMethod.Get));
+    public async Task<PureResponse> Request(PureRequest request) =>
+        (await Request(request.ToIpcRequest(AllocReqId(), this))).ToPureResponse();
 
     public int AllocReqId()
     {

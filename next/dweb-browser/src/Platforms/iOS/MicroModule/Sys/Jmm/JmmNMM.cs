@@ -33,7 +33,7 @@ public class JmmNMM : NativeMicroModule
 
                 try
                 {
-                    await NativeFetchAsync(new Uri("file://dns.sys.dweb/open").AppendQuery("app_id", "jmm.sys.dweb".EncodeURIComponent()));
+                    await NativeFetchAsync(new URL("file://dns.sys.dweb/open").SearchParamsSet("app_id", "jmm.sys.dweb".EncodeURIComponent()).Uri);
                     break;
                 }
                 catch
@@ -63,8 +63,9 @@ public class JmmNMM : NativeMicroModule
     {
         HttpRouter.AddRoute(IpcMethod.Get, "/install", async (request, _) =>
         {
-            var metadataUrl = request.QueryValidate<string>("metadataUrl")!;
-            var jmmMetadata = await (await NativeFetchAsync(metadataUrl)).Json<JmmMetadata>()!;
+            var searchParams = request.SafeUrl.SearchParams;
+            var metadataUrl = searchParams.ForceGet("metadataUrl");
+            var jmmMetadata = await (await NativeFetchAsync(metadataUrl)).JsonAsync<JmmMetadata>()!;
             _openJmmMetadataInstallPage(jmmMetadata);
 
             return jmmMetadata;
@@ -72,7 +73,8 @@ public class JmmNMM : NativeMicroModule
 
         HttpRouter.AddRoute(IpcMethod.Get, "/uninstall", async (request, _) =>
         {
-            var mmid = request.QueryValidate<string>("mmid")!;
+            var searchParams = request.SafeUrl.SearchParams;
+            var mmid = searchParams.ForceGet("mmid");
             var jmm = s_apps.GetValueOrDefault(mmid) ?? throw new Exception("");
             _openJmmMetadataUninstallPage(jmm.Metadata);
 

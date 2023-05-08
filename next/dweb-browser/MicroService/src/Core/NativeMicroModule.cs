@@ -1,4 +1,5 @@
 ﻿using DwebBrowser.Helper;
+using DwebBrowser.MicroService.Http;
 
 namespace DwebBrowser.MicroService.Core;
 
@@ -33,74 +34,10 @@ public abstract class NativeMicroModule : MicroModule
             clientIpc.OnRequest += async (ipcRequest, _, _) =>
             {
                 Console.Log("OnRequest", "Handler {0}", ipcRequest.Url);
-                var request = ipcRequest.ToRequest();
-                var response = await HttpRouter.RoutesWithContext(request, clientIpc);
-                await clientIpc.PostMessageAsync(await IpcResponse.FromResponse(ipcRequest.ReqId, response, clientIpc));
+                var pureResponse = await HttpRouter.RoutesWithContext(ipcRequest.ToPureRequest(), clientIpc);
+                await clientIpc.PostMessageAsync(pureResponse.ToIpcResponse(ipcRequest.ReqId, clientIpc));
             };
         };
-    }
-
-    // TODO: ResponseRegistry 静态初始化问题未解决
-    public static class ResponseRegistry
-    {
-        static readonly Dictionary<Type, Func<object, HttpResponseMessage>> RegMap = new();
-
-        public static void RegistryResponse<T>(Type type, Func<T, HttpResponseMessage> handler)
-        {
-            RegMap.Add(type, obj => handler((T)obj));
-        }
-
-        static ResponseRegistry()
-        {
-            RegistryResponse<byte[]>(typeof(byte[]), item =>
-                new HttpResponseMessage(HttpStatusCode.OK).Also(res => res.Content = new StreamContent(new MemoryStream(item))));
-            RegistryResponse<Stream>(typeof(Stream), item =>
-                new HttpResponseMessage(HttpStatusCode.OK).Also(res => res.Content = new StreamContent(item)));
-        }
-
-        public static void RegistryJsonAble<T>(Type type, Func<T, object> handler)
-        {
-            RegistryResponse<T>(type, item => AsJson(handler(item)));
-        }
-
-        public static HttpResponseMessage Handler(object result)
-        {
-            switch (RegMap.GetValueOrDefault(result.GetType()))
-            {
-                case null:
-                    var superClassType = result.GetType().BaseType; // 这里要声明在 while 循环外，因为要循环更新
-                    while (superClassType is not null)
-                    {
-                        // 尝试寻找继承关系
-                        switch (RegMap.GetValueOrDefault(superClassType))
-                        {
-                            case null:
-                                superClassType = superClassType.BaseType;
-                                break;
-                            default:
-                                return Handler(result);
-                        }
-                    }
-
-                    // 否则默认当成JSON来返回
-                    return AsJson(result);
-                default:
-                    return Handler(result);
-            }
-        }
-
-        static HttpResponseMessage AsJson(object result) =>
-            new HttpResponseMessage(HttpStatusCode.OK).Also(res =>
-            {
-                Console.Log("AsJson", "{0}", result);
-                var jsonString = result switch
-                {
-                    IToJsonAble toJsonAble => toJsonAble.ToJson(),
-                    _ => JsonSerializer.Serialize(result)
-                };
-                res.Content = new StringContent(jsonString);
-                res.Content.Headers.ContentType = new("application/json");
-            });
     }
 
 

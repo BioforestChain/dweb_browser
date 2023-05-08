@@ -20,9 +20,9 @@ public class IpcBodyZeroCopyTest
         var ipcRequest = new IpcRequest(1, "http://test.com", IpcMethod.Post, new(), ipcBody, ipc1);
 
 
-        var httpRequestMessage = ipcRequest.ToRequest();
+        var pureRequest = ipcRequest.ToPureRequest();
         //var httpContentStream = await httpRequestMessage.Content!.ReadAsStreamAsync();
-        var httpContentStream = httpRequestMessage.Content!.ReadAsStream();
+        var httpContentStream = pureRequest.Body.ToStream();
 
         Assert.Equal(httpContentStream, readableStream.Stream);
     }

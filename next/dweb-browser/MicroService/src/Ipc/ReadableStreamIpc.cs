@@ -69,7 +69,7 @@ public class ReadableStreamIpc : Ipc
      * 输入流要额外绑定
      * </summary>
      */
-    public void BindIncomeStream(Stream stream)
+    public ReadableStreamIpc BindIncomeStream(Stream stream)
     {
         if (_incomeStream is not null)
         {
@@ -126,6 +126,7 @@ public class ReadableStreamIpc : Ipc
         });
 
         _incomeStream = stream;
+        return this;
     }
 }
 

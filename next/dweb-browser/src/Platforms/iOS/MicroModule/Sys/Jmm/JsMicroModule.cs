@@ -1,9 +1,7 @@
 ﻿
 using System.Net;
 using System.Text.Json;
-//using Microsoft.Maui.Controls;
-using System.Security.Cryptography;
-
+using DwebBrowser.MicroService.Http;
 // https://learn.microsoft.com/zh-cn/dotnet/csharp/nullable-references
 #nullable enable
 
@@ -73,20 +71,21 @@ public class JsMicroModule : MicroModule
         streamIpc.OnRequest += async (request, ipc, _) =>
         {
             var response = request.Uri.AbsolutePath.EndsWith("/")
-                ? new HttpResponseMessage(HttpStatusCode.Forbidden)
+                ? new PureResponse(HttpStatusCode.Forbidden)
                 : await NativeFetchAsync(Metadata.Server.Root + request.Uri.AbsolutePath);
 
-            await ipc.PostMessageAsync(await IpcResponse.FromResponse(request.ReqId, response, ipc));
+            await ipc.PostMessageAsync(response.ToIpcResponse(request.ReqId, ipc));
         };
 
-        var createIpcReq = new HttpRequestMessage(
-            HttpMethod.Post,
-            new Uri("file://js.sys.dweb/create-process")
-                .AppendQuery("entry", Metadata.Server.Entry)
-                .AppendQuery("process_id", Pid));
-        createIpcReq.Content = new StreamContent(streamIpc.ReadableStream.Stream);
-        var createIpcRes = await NativeFetchAsync(createIpcReq);
-        streamIpc.BindIncomeStream(await createIpcRes.StreamAsync());
+        var createIpc_req = new PureRequest(
+
+            new URL("file://js.sys.dweb/create-process")
+                .SearchParamsSet("entry", Metadata.Server.Entry)
+                .SearchParamsSet("process_id", Pid).Href,
+            IpcMethod.Post,
+            Body: new PureStreamBody(streamIpc.ReadableStream.Stream));
+        var createIpc_res = await NativeFetchAsync(createIpc_req);
+        streamIpc.BindIncomeStream(createIpc_res.Body.ToStream());
 
         return streamIpc;
     }
@@ -118,9 +117,9 @@ public class JsMicroModule : MicroModule
         {
             try
             {
-                var request = ipcRequest.ToRequest();
-                var response = await NativeFetchAsync(request);
-                var ipcResponse = await IpcResponse.FromResponse(ipcRequest.ReqId, response, ipc);
+                var pureRequest = ipcRequest.ToPureRequest();
+                var pureResponse = await NativeFetchAsync(pureRequest);
+                var ipcResponse = pureResponse.ToIpcResponse(ipcRequest.ReqId, ipc);
                 await ipc.PostMessageAsync(ipcResponse);
             }
             catch (Exception ex)
@@ -190,14 +189,13 @@ public class JsMicroModule : MicroModule
                      * 向js模块发起连接
                      */
                     var portId = await (await NativeFetchAsync(
-                        new Uri("file://js.sys.dweb/create-ipc")
-                        .AppendQuery("process_id", Pid).AppendQuery("mmid", fromMmid)))
-                        .IntAsync();
+                        new URL("file://js.sys.dweb/create-ipc")
+                        .SearchParamsSet("process_id", Pid).SearchParamsSet("mmid", fromMmid)))
+                        .IntAsync() ?? throw new Exception("invalid Native2JsIpc.PortId");
 
                     var originIpc = new Native2JsIpc(portId, this);
                     // 同样要被生命周期管理销毁
-                    await BeConnectAsync(originIpc, new HttpRequestMessage(HttpMethod.Get,
-                        String.Format("file://{0}/event/dns/connect", Mmid)));
+                    await BeConnectAsync(originIpc, new PureRequest(String.Format("file://{0}/event/dns/connect", Mmid), IpcMethod.Get));
 
                     /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，
                     /// 包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理

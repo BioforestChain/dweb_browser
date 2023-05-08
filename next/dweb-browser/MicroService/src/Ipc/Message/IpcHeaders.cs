@@ -1,10 +1,11 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Collections;
+using System.Net.Http.Headers;
 using System.Reflection.PortableExecutable;
 
 namespace DwebBrowser.MicroService.Message;
 
 [JsonConverter(typeof(IpcHeadersConverter))]
-public class IpcHeaders
+public class IpcHeaders : IEnumerable<KeyValuePair<string, string>>
 {
     private Dictionary<string, string> _headersMap { get; set; }
 
@@ -16,6 +17,14 @@ public class IpcHeaders
     public IpcHeaders(HttpHeaders headers)
     {
         _headersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
+    }
+    public IpcHeaders(IEnumerable<(string, string)> headers)
+    {
+        _headersMap = headers.ToDictionary(h => h.Item1, h => h.Item2);
+    }
+    public IpcHeaders(IEnumerable<KeyValuePair<string, string>> headers)
+    {
+        _headersMap = headers.ToDictionary(h => h.Key, h => h.Value);
     }
     public IpcHeaders(HttpHeaders headers, HttpContentHeaders? contentHeaders)
     {
@@ -32,14 +41,19 @@ public class IpcHeaders
     public static IpcHeaders With(Dictionary<string, string> headers) => new IpcHeaders() { _headersMap = headers };
 
 
-    public void Set(string key, string value) => _headersMap.Add(key.ToLower(), value);
+    public IpcHeaders Set(string key, string value)
+    {
+        _headersMap.Add(key.ToLower(), value);
+        return this;
+    }
 
-    public void Init(string key, string value)
+    public IpcHeaders Init(string key, string value)
     {
         if (!_headersMap.ContainsKey(key))
         {
             _headersMap.Add(key.ToLower(), value);
         }
+        return this;
     }
 
     public string? Get(string key) => _headersMap.GetValueOrDefault(key.ToLower());
@@ -48,7 +62,7 @@ public class IpcHeaders
 
     public bool Has(string key) => _headersMap.ContainsKey(key.ToLower());
 
-    public void Delete(string key) => _headersMap.Remove(key.ToLower());
+    public bool Delete(string key) => _headersMap.Remove(key.ToLower());
 
     public void ForEach(Action<string, string> fn)
     {
@@ -56,18 +70,6 @@ public class IpcHeaders
         {
             fn(entry.Key, entry.Value);
         }
-    }
-
-    public IEnumerable<KeyValuePair<string, string>> GetEnumerator()
-    {
-        foreach (KeyValuePair<string, string> entry in _headersMap)
-        {
-            yield return entry;
-        }
-    }
-    public void ToHttpMessage(HttpHeaders headers, HttpContentHeaders? contentHeaders)
-    {
-        GetEnumerator().ToHttpMessage(headers, contentHeaders);
     }
 
     /// <summary>
@@ -82,6 +84,19 @@ public class IpcHeaders
     /// <param name="json">JSON string representation of IpcHeaders</param>
     /// <returns>An instance of a IpcHeaders object.</returns>
     public static IpcHeaders? FromJson(string json) => JsonSerializer.Deserialize<IpcHeaders>(json);
+
+    public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+    {
+        return _headersMap.GetEnumerator();
+    }
+    public Dictionary<string, string> ToDictionary()
+    {
+        return _headersMap.ToDictionary(k => k.Key, v => v.Value);
+    }
+
+    IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator() => GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
 #region IpcHeaders序列化反序列化
@@ -125,7 +140,7 @@ sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>
     {
         writer.WriteStartObject();
 
-        foreach (KeyValuePair<string, string> entry in value.GetEnumerator())
+        foreach (var entry in value)
         {
             writer.WriteString(entry.Key, entry.Value);
         }
@@ -138,8 +153,11 @@ sealed class IpcHeadersConverter : JsonConverter<IpcHeaders>
 
 static public class IDictionaryExtensions
 {
-
-    public static void ToHttpMessage(this IEnumerable<KeyValuePair<string, string>> allHeaders, HttpHeaders httpHeaders, HttpContentHeaders? contentHeaders)
+    public static IpcHeaders ToIpcHeaders(this IEnumerable<KeyValuePair<string, string>> allHeaders)
+    {
+        return new IpcHeaders(allHeaders);
+    }
+    public static void WriteToHttpMessage(this IEnumerable<KeyValuePair<string, string>> allHeaders, HttpHeaders httpHeaders, HttpContentHeaders? contentHeaders)
     {
         if (contentHeaders is null)
         {

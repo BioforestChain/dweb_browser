@@ -42,9 +42,8 @@ public class Gateway
          * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
          * </summary>
          */
-        public async Task<HttpResponseMessage?> HookHttpRequestAsync(HttpRequestMessage request)
+        public async Task<PureResponse?> HookHttpRequestAsync(PureRequest request)
         {
-
             foreach (var router in _routerSet)
             {
                 var response = await router.Key.Handler(request).ForAwait(default);
@@ -70,12 +69,12 @@ public class Gateway
 
     public record RouteConfig(string pathname, IpcMethod method, MatchMode? matchMode = MATCH_MODE.PREFIX)
     {
-        public bool IsMatch(HttpRequestMessage request) => matchMode switch
+        public bool IsMatch(PureRequest request) => matchMode switch
         {
-            MATCH_MODE.PREFIX => request.Method.Method == method.Method && request.RequestUri is not null
-                       && request.RequestUri.AbsolutePath.StartsWith(pathname),
-            MATCH_MODE.FULL => request.Method.Method == method.Method && request.RequestUri is not null
-                       && request.RequestUri.AbsolutePath == pathname,
+            MATCH_MODE.PREFIX => request.Method == method && request.ParsedUrl is not null and var parsedUrl
+                       && parsedUrl.Path.StartsWith(pathname),
+            MATCH_MODE.FULL => request.Method == method && request.ParsedUrl is not null and var parsedUrl
+                       && parsedUrl.Path == pathname,
             _ => false
         };
     }
@@ -89,42 +88,22 @@ public class Gateway
         {
             Config = config;
             StreamIpc = streamIpc;
-
-            switch (Config.matchMode)
-            {
-                case MATCH_MODE.PREFIX:
-                    IsMatch = (request) =>
-                    {
-                        return request.Method.Method == Config.method.Method && request.RequestUri is not null
-                            && request.RequestUri.AbsolutePath.StartsWith(Config.pathname);
-                    };
-                    break;
-                case MATCH_MODE.FULL:
-                    IsMatch = (request) =>
-                    {
-                        return request.Method.Method == Config.method.Method && request.RequestUri is not null
-                            && request.RequestUri.AbsolutePath == Config.pathname;
-                    };
-                    break;
-            }
         }
 
-        public Func<HttpRequestMessage, bool> IsMatch { get; init; }
 
-        public async Task<HttpResponseMessage?> Handler(HttpRequestMessage request)
+        public async Task<PureResponse?> Handler(PureRequest request)
         {
-            if (IsMatch(request))
+            if (Config.IsMatch(request))
             {
                 return await StreamIpc.Request(request);
             }
-            else if (request.Method == HttpMethod.Options)
+            else if (request.Method == IpcMethod.Options)
             {
-                return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-                {
-                    it.Headers.Add("Access-Control-Allow-Methods", "*");
-                    it.Headers.Add("Access-Control-Allow-Origin", "*");
-                    it.Headers.Add("Access-Control-Allow-Headers", "*");
-                });
+                return new PureResponse(Headers: new IpcHeaders()
+                    .Set("Access-Control-Allow-Methods", "*")
+                    .Set("Access-Control-Allow-Origin", "*")
+                    .Set("Access-Control-Allow-Headers", "*")
+                );
             }
             else
             {

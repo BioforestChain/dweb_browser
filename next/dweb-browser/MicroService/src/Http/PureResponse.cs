@@ -2,35 +2,22 @@
 namespace DwebBrowser.MicroService.Http;
 
 public record PureResponse(
-    int StatusCode,
-    IpcHeaders Headers,
-    PureBody Body,
-    string? StatusText,
-    string? Url
+    HttpStatusCode StatusCode = HttpStatusCode.OK,
+    IpcHeaders? Headers = null,
+    PureBody? Body = null,
+    string? StatusText = null,
+    string? Url = null
 )
 {
-    public HttpResponseMessage ToHttpResponseMessage()
-    {
-        var response = new HttpResponseMessage((HttpStatusCode)StatusCode);
-        response.ReasonPhrase = StatusText;
-
-        switch (Body.Raw)
-        {
-            case string body:
-                response.Content = new StringContent(body);
-                break;
-            case byte[] body:
-                response.Content = new ByteArrayContent(body);
-                break;
-            case Stream body:
-                response.Content = new StreamContent(body);
-                break;
-            default:
-                throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
-        }
-
-        Headers.ToHttpMessage(response.Headers, response.Content.Headers);
-        return response;
-    }
+    public IpcHeaders Headers = Headers ?? new();
+    public PureBody Body = Body ?? PureBody.Empty;
+    public async Task<string> TextAsync() => await Body.ToUtf8StringAsync();
+    public async Task<bool?> BooleanStrictAsync() => (await TextAsync()).ToBooleanStrictOrNull();
+    public async Task<bool> BoolAsync() => (await BooleanStrictAsync()) ?? false;
+    public async Task<int?> IntAsync() => (await TextAsync()).ToIntOrNull();
+    public async Task<long?> LongAsync() => (await TextAsync()).ToLongOrNull();
+    public async Task<float?> FloatAsync() => (await TextAsync()).ToFloatOrNull();
+    public async Task<double?> DoubleAsync() => (await TextAsync()).ToDoubleOrNull();
+    public async Task<T> JsonAsync<T>() => JsonSerializer.Deserialize<T>(await TextAsync()) ?? throw new JsonException("fail parse to json");
 }
 

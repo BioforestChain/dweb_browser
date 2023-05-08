@@ -1,17 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection.PortableExecutable;
-using System.Runtime.Versioning;
-using AngleSharp;
+﻿using System.Runtime.Versioning;
 using AngleSharp.Common;
-using AngleSharp.Html.Parser;
-using AVFoundation;
 using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Core;
+using DwebBrowser.MicroService.Http;
 using DwebBrowser.MicroService.Message;
 using DwebBrowser.MicroService.Sys.Http;
-using SystemConfiguration;
 using WebKit;
 
 namespace DwebBrowser.DWebView;
@@ -103,32 +96,31 @@ public partial class DWebView : WKWebView
             {
                 Console.Log("StartUrlSchemeTask", "Start: {0}", urlSchemeTask.Request.Url.AbsoluteString);
                 var url = new Uri(this.baseUri, urlSchemeTask.Request.Url.ResourceSpecifier);
-                /// 构建请求的 URL
-                using var request = new HttpRequestMessage(new(urlSchemeTask.Request.HttpMethod), url.AbsoluteUri);
-                /// 构建请求的 ContentBody
-                if (urlSchemeTask.Request.BodyStream is not null and var nsBodyStream)
-                {
-                    request.Content = new StreamContent(new InputStreamStream(nsBodyStream));
-                }
-                /// 构建请求的 Headers
-                urlSchemeTask.Request.Headers.Select((kv) =>
-                {
-                    return KeyValuePair.Create((string)(NSString)kv.Key, (string)(NSString)kv.Value);
-                }).ToHttpMessage(request.Headers, (request.Content ?? new StringContent("").Also(emptyContent => request.Content = emptyContent)).Headers);
+                /// 构建请求
+                var pureRequest = new PureRequest(
+                    url.AbsoluteUri,
+                    IpcMethod.From(urlSchemeTask.Request.HttpMethod),
+                    /// 构建请求的 Headers
+                    urlSchemeTask.Request.Headers.Select((kv) =>
+                    {
+                        return KeyValuePair.Create((string)(NSString)kv.Key, (string)(NSString)kv.Value);
+                    }).ToIpcHeaders(),
+                    /// 构建请求的 ContentBody
+                    urlSchemeTask.Request.BodyStream switch
+                    {
+                        null => null,
+                        var nsBodyStream => new PureStreamBody(new InputStreamStream(nsBodyStream))
+                    });
 
                 /// 获得响应
-                var response = await microModule.NativeFetchAsync(request);
+                var pureResponse = await microModule.NativeFetchAsync(pureRequest);
                 /// 获得响应的状态码
-                var nsStatusCode = new IntPtr((int)response.StatusCode);
+                var nsStatusCode = new IntPtr((int)pureResponse.StatusCode);
                 /// 构建响应的头部
                 var nsHeaders = new NSMutableDictionary<NSString, NSString>();
-                foreach (var (key, values) in response.Headers.Concat(response.Content.Headers))
+                foreach (var (key, value) in pureResponse.Headers)
                 {
-                    /// FIXME first only?
-                    if (values.FirstOrDefault() is not null and var value)
-                    {
-                        nsHeaders.Add(new NSString(key), new NSString(value));
-                    }
+                    nsHeaders.Add(new NSString(key), new NSString(value));
                 }
                 using var nsResponse = new NSHttpUrlResponse(urlSchemeTask.Request.Url, nsStatusCode, "HTTP/1.1", nsHeaders);
 
@@ -136,12 +128,17 @@ public partial class DWebView : WKWebView
                 urlSchemeTask.DidReceiveResponse(nsResponse);
 
                 // 写入响应体：将响应体发送到urlSchemeTask
-                using (var stream = await response.StreamAsync())
+                var nsData = pureResponse.Body switch
                 {
-                    await foreach (var bytes in stream.ReadBytesStream())
-                    {
-                        urlSchemeTask.DidReceiveData(NSData.FromArray(bytes));
-                    }
+                    PureStreamBody streamBody => NSData.FromStream(streamBody.Data),
+                    PureUtf8StringBody stringBody => NSData.FromString(stringBody.Data),
+                    PureEmptyBody => null,
+                    PureBody body => NSData.FromArray(body.ToByteArray()),
+                    _ => null
+                };
+                if (nsData is not null)
+                {
+                    urlSchemeTask.DidReceiveData(nsData);
                 }
 
                 /// 写入完成

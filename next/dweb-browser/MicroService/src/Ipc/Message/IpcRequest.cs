@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using DwebBrowser.MicroService.Http;
 
 namespace DwebBrowser.MicroService.Message;
 
@@ -65,92 +66,6 @@ public class IpcRequest : IpcMessage
                 IpcBodySender.FromStream(stream, ipc),
                 ipc);
 
-    public static async Task<IpcRequest> FromRequest(int req_id, HttpRequestMessage request, Ipc ipc)
-    {
-        var body = (request.Method.Method is "GET" or "HEAD")
-                ? IpcBodySender.FromText("", ipc)
-                : request.Content switch
-                {
-                    StringContent stringContent => IpcBodySender.FromText(await stringContent.ReadAsStringAsync(), ipc),
-                    ByteArrayContent byteArrayContent => IpcBodySender.FromBinary(await byteArrayContent.ReadAsByteArrayAsync(), ipc),
-                    StreamContent streamContent => IpcBodySender.FromStream(await streamContent.ReadAsStreamAsync(), ipc),
-                    null => IpcBodySender.FromText("", ipc),
-                    _ => await request.Content.ReadAsStreamAsync().Let(async streamTask =>
-                    {
-                        var stream = await streamTask;
-                        try
-                        {
-                            if (stream.Length == 0)
-                            {
-                                return IpcBodySender.FromText("", ipc);
-                            }
-                        }
-                        catch
-                        { // ignore error
-                        }
-                        return IpcBodySender.FromStream(stream, ipc);
-                    })
-
-                };
-
-        var ipcRequest = new IpcRequest(req_id,
-                request.RequestUri?.ToString() ?? "",
-                IpcMethod.From(request.Method),
-                new IpcHeaders(request.Headers, request.Content?.Headers),
-                body,
-                ipc
-            );
-        return ipcRequest;
-    }
-
-    public class RefStreamContent : HttpContent
-    {
-        Stream RefStream;
-        public RefStreamContent(ref Stream stream)
-        {
-            RefStream = stream;
-        }
-        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override bool TryComputeLength(out long length)
-        {
-            try
-            {
-                length = RefStream.Length;
-                return true;
-            }
-            catch
-            {
-                length = 0;
-                return false;
-            }
-        }
-    }
-
-
-    public HttpRequestMessage ToRequest() =>
-        new HttpRequestMessage(new HttpMethod(Method.Method), new Uri(Url)).Also(it =>
-            {
-                switch (Body.Raw)
-                {
-                    case string body:
-                        it.Content = new StringContent(body);
-                        break;
-                    case byte[] body:
-                        it.Content = new ByteArrayContent(body);
-                        break;
-                    case Stream body:
-                        it.Content = new StreamContent(body);
-                        break;
-                    default:
-                        throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
-                }
-
-                Headers.ToHttpMessage(it.Headers, it.Content.Headers);
-            });
 
     public IpcReqMessage LazyIpcReqMessage
     {
@@ -161,7 +76,7 @@ public class IpcRequest : IpcMessage
                     ReqId,
                     Method,
                     Url,
-                    Headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value),
+                    Headers.ToDictionary(),
                     Body.MetaBody)), true).Value;
         }
     }
@@ -172,7 +87,9 @@ public class IpcRequest : IpcMessage
 public class IpcReqMessage : IpcMessage
 {
     [Obsolete("使用带参数的构造函数", true)]
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     public IpcReqMessage() : base(IPC_MESSAGE_TYPE.REQUEST)
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     {
         /// 给JSON反序列化用的空参数构造函数
     }

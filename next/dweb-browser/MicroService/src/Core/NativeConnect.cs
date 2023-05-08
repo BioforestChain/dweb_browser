@@ -1,6 +1,8 @@
 ﻿
 namespace DwebBrowser.MicroService.Core;
 
+using DwebBrowser.MicroService.Http;
+
 /**
  * <summary>
  * 两个模块的连接结果：
@@ -10,7 +12,7 @@ namespace DwebBrowser.MicroService.Core;
  * </summary>
  */
 
-using ConnectAdapter = Func<MicroModule, MicroModule, HttpRequestMessage, Task<ConnectResult?>>;
+using ConnectAdapter = Func<MicroModule, MicroModule, Http.PureRequest, Task<ConnectResult?>>;
 public record ConnectResult(Ipc IpcForFromMM, Ipc? IpcForToMM);
 
 
@@ -18,7 +20,7 @@ public static class NativeConnect
 {
     public static readonly AdapterManager<ConnectAdapter> ConnectAdapterManager = new();
 
-    public static async Task<ConnectResult> ConnectMicroModulesAsync(MicroModule fromMM, MicroModule toMM, HttpRequestMessage reason)
+    public static async Task<ConnectResult> ConnectMicroModulesAsync(MicroModule fromMM, MicroModule toMM, PureRequest reason)
     {
         foreach (ConnectAdapter connectAdapter in ConnectAdapterManager.Adapters)
         {

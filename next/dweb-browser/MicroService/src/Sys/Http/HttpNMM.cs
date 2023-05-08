@@ -48,29 +48,29 @@ public class HttpNMM : NativeMicroModule
      * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
      * </summary>
      */
-    private async Task<HttpResponseMessage> _httpHandler(HttpRequestMessage request)
+    private async Task<PureResponse> _httpHandler(PureRequest request)
     {
-        if (request.RequestUri?.PathAndQuery.StartsWith(X_DWEB_HREF) is true)
+        if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.PathAndQuery.StartsWith(X_DWEB_HREF) is true)
         {
-            request.RequestUri = new Uri(request.RequestUri.PathAndQuery.Substring(X_DWEB_HREF.Length));
-            request.Headers.TryAddWithoutValidation(X_DWEB_HOST, request.RequestUri.Authority);
+            request.ParsedUrl = new URL(parsedUrl.PathAndQuery.Substring(X_DWEB_HREF.Length));
+            request.Headers.Set(X_DWEB_HOST, parsedUrl.Authority);
         }
 
 
         string? header_host = null;
         string? header_x_dweb_host = null;
         string? header_user_agent_host = null;
-        string? query_x_web_host = request.RequestUri?.GetQuery(X_DWEB_HOST)?.DecodeURIComponent();
+        string? query_x_web_host = request.ParsedUrl?.SearchParams.Get(X_DWEB_HOST)?.DecodeURIComponent();
 
         foreach (var entry in request.Headers)
         {
             switch (entry.Key)
             {
                 case "Host":
-                    header_host = entry.Value.FirstOrDefault();
+                    header_host = entry.Value;
                     break;
                 case X_DWEB_HOST:
-                    header_x_dweb_host = entry.Value.FirstOrDefault();
+                    header_x_dweb_host = entry.Value;
                     break;
                 case "User-Agent":
                     header_user_agent_host = _dwebHostRegex(string.Join(" ", entry.Value));
@@ -100,7 +100,7 @@ public class HttpNMM : NativeMicroModule
          */
         var response = await (_gatewayMap.GetValueOrDefault(host)?.Listener.HookHttpRequestAsync(request)).ForAwait(default);
 
-        return response ?? new HttpResponseMessage(HttpStatusCode.NotFound);
+        return response ?? new PureResponse(HttpStatusCode.NotFound);
     }
 
     private string? _dwebHostRegex(string? str)
@@ -135,18 +135,23 @@ public class HttpNMM : NativeMicroModule
             Public_Origin = public_origin;
         }
 
-        public Uri BuildPublicUrl() => new Uri(Public_Origin).AppendQuery(X_DWEB_HOST, Host);
+        public Uri BuildPublicUrl()
+        {
+            var url = new URL(Public_Origin);
+            url.SearchParams.Set(X_DWEB_HOST, Host);
+            return url.Uri;
+        }
         public Uri BuildInternalUrl() => new(Internal_Origin);
     }
 
     private ServerUrlInfo _getServerUrlInfo(Ipc ipc, DwebHttpServerOptions options)
     {
         var mmid = ipc.Remote.Mmid;
-        var subdomainPrefix = options.subdomain == "" || options.subdomain.EndsWith(".")
-            ? options.subdomain : options.subdomain + ".";
+        var subdomainPrefix = options.Subdomain == "" || options.Subdomain.EndsWith(".")
+            ? options.Subdomain : options.Subdomain + ".";
 
-        var port = options.port <= 0 || options.port >= 65536
-            ? throw new Exception(String.Format("invalid dweb http port: {0}", options.port)) : options.port;
+        var port = options.Port <= 0 || options.Port >= 65536
+            ? throw new Exception(String.Format("invalid dweb http port: {0}", options.Port)) : options.Port;
 
         var host = String.Format("{0}{1}:{2}", subdomainPrefix, mmid, port);
         var internal_origin = String.Format("{0}://{1}", INTERNAL_SCHEME, host);
@@ -165,14 +170,14 @@ public class HttpNMM : NativeMicroModule
         /// 为 nativeFetch 函数提供支持
         var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
         {
-            if (request.RequestUri is not null and var requestUri &&
-                requestUri.Scheme is "http" or "https" &&
-                requestUri.Host.EndsWith(".dweb"))
+            if (request.ParsedUrl is not null and var parsedUrl &&
+                parsedUrl.Scheme is "http" or "https" &&
+                parsedUrl.Host.EndsWith(".dweb"))
             {
                 // 无需走网络层，直接内部处理掉
-                if (request.Headers.Contains(X_DWEB_HOST) is false)
+                if (request.Headers.Has(X_DWEB_HOST) is false)
                 {
-                    request.Headers.Add(X_DWEB_HOST, request.RequestUri.GetFullAuthority(request.RequestUri.Authority));
+                    request.Headers.Set(X_DWEB_HOST, parsedUrl.Authority);
                 }
                 return await _httpHandler(request);
             }
@@ -183,16 +188,18 @@ public class HttpNMM : NativeMicroModule
 
         HttpRouter.AddRoute(IpcMethod.Get, "/start", async (request, ipc) =>
         {
+            var searchParams = request.SafeUrl.SearchParams;
             var dwebServerOptions = new DwebHttpServerOptions(
-                request.QueryValidate<int>("port", false),
-                request.QueryValidate<string>("subdomain", false) ?? "");
+                searchParams.Get("port")?.ToIntOrNull(),
+                searchParams.Get("subdomain"));
             return _start(ipc!, dwebServerOptions);
         });
 
         HttpRouter.AddRoute(IpcMethod.Post, "/listen", async (request, _) =>
         {
-            var token = request.QueryValidate<string>("token")!;
-            var routes = request.QueryValidate<string>("routes")!;
+            var searchParams = request.SafeUrl.SearchParams;
+            var token = searchParams.ForceGet("token")!;
+            var routes = searchParams.ForceGet("routes")!;
             var routesType = typeof(List<Gateway.RouteConfig>)!;
             var gatewayRoutes = (List<Gateway.RouteConfig>)JsonSerializer.Deserialize(routes, routesType)!;
             return _listen(token, request, gatewayRoutes);
@@ -200,9 +207,10 @@ public class HttpNMM : NativeMicroModule
 
         HttpRouter.AddRoute(IpcMethod.Get, "/close", async (request, ipc) =>
         {
+            var searchParams = request.SafeUrl.SearchParams;
             var dwebServerOptions = new DwebHttpServerOptions(
-                request.QueryValidate<int>("port", false),
-                request.QueryValidate<string>("subdomain", false) ?? "");
+                searchParams.Get("port")?.ToIntOrNull(),
+                searchParams.Get("subdomain"));
             return await _close(ipc!, dwebServerOptions);
         });
         /// HTTP-GET 请求，但是不是通过网关，直接走IPC
@@ -243,16 +251,16 @@ public class HttpNMM : NativeMicroModule
      *  绑定流监听
      *  </summary>
      */
-    private HttpResponseMessage _listen(
+    private PureResponse _listen(
         string token,
-        HttpRequestMessage request,
+        PureRequest request,
         List<Gateway.RouteConfig> routes)
     {
         var gateway = _tokenMap.GetValueOrDefault(token) ?? throw new Exception(String.Format("no gateway with token: {0}", token));
         Console.Log("Listen", "host: {0}, token: {1}", gateway.UrlInfo.Host, token);
 
         var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, String.Format("http-gateway/{0}", gateway.UrlInfo.Host));
-        streamIpc.BindIncomeStream(request.Content!.ReadAsStream());
+        streamIpc.BindIncomeStream(request.Body.ToStream());
 
         foreach (var routeConfig in routes)
         {
@@ -260,8 +268,7 @@ public class HttpNMM : NativeMicroModule
             streamIpc.OnClose += async (_) => offRouter();
         }
 
-        return new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-                it.Content = new StreamContent(streamIpc.ReadableStream.Stream));
+        return new PureResponse(Body: new PureStreamBody(streamIpc.ReadableStream.Stream));
     }
 
     private async Task<bool> _close(Ipc ipc, DwebHttpServerOptions options)

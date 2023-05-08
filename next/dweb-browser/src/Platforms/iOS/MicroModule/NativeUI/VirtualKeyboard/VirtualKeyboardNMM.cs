@@ -28,6 +28,7 @@ public class VirtualKeyboardNMM : NativeMicroModule
         /// 设置状态
         HttpRouter.AddRoute(IpcMethod.Get, "/setState", async (request, ipc) =>
         {
+            var searchParams = request.SafeUrl.SearchParams;
             var controller = _getController(ipc.Remote.Mmid);
             
             QueryHelper.QueryOverlay(request)?.Also(it =>
