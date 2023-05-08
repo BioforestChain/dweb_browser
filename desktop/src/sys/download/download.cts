@@ -1,13 +1,11 @@
-// 实现下载的模块
-
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { log } from "../../helper/devtools.cjs";
-import querystring from "node:querystring";
 import { WWWServer } from "./www-server.cjs";
 import type { IncomingMessage, OutgoingMessage } from "http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { HttpServerNMM } from "../http-server/http-server.cjs";
 
+// 提供下载的 UI 
 export class DownloadNMM extends NativeMicroModule{
   mmid = "download.sys.dweb" as const;
   httpNMM: HttpServerNMM | undefined;

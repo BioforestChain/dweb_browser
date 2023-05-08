@@ -4,6 +4,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>navgation-bar</title>
+  <!-- 向全局对象添加 appUrl 属性 appUrl 指向的是 当前插件匹配的 webview.src -->
   <script type="text/javascript" src="../scripts/defined_app_url.js"></script>
   <script type="text/javascript" src="../scripts/defined_plugins.js"></script>
   <style type="text/css">
@@ -171,10 +172,13 @@
     awaitOperation()
     window.removeEventListener('message', windowOnMessage)
   }
-
   
   async function awaitOperation(){
-    fetch("http://navigation-bar.nativeui.sys.dweb-80.localhost:22605/navigation-bar-ui/wait_for_operation?app_url="+ window.appUrl)
+    const baseUrl = "http://navigation-bar.nativeui.sys.dweb-80.localhost:22605/navigation-bar-ui/wait_for_operation"
+    // window.appUrl 是通过 mwebview.sys.dweb 注入进来的
+    // appUrl 指向 mwebview 标签的 src;
+    const searchStr = `?app_url=${window.appUrl}`
+    fetch(`${baseUrl}${searchStr}`)
     .then(async (res) => {
       const reader = res.body.getReader();
       let loop = true;

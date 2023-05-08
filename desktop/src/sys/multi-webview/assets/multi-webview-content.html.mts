@@ -146,7 +146,6 @@ export class MultiWebViewContent extends LitElement{
   webviewDidStartLoading(e: Event){
     const el = e.target;
     if(el === null) throw new Error(`el === null`);
-    console.log('location.host: ', location)
     ;(e.target as  WebviewTag)
     .executeJavaScript(`
       (function a(){
