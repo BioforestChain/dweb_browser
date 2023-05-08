@@ -8,6 +8,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.StatusBar;
 public class StatusBarController : BarController, IToJsonAble
 {
     public readonly State<StatusBarState> Observer;
+    public StateObservable<StatusBarState> StateObserver;
 
     public StatusBarController(UIApplication app) : base(
         colorState: new(app.StatusBarStyle.ToColor()),
@@ -18,6 +19,7 @@ public class StatusBarController : BarController, IToJsonAble
     )
     {
         Observer = new State<StatusBarState>(() => GetState());
+        StateObserver = new(Observer, () => ToJson());
     }
     public StatusBarController() : this(UIApplication.SharedApplication) { }
 

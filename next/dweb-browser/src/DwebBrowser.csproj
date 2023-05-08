@@ -61,6 +61,7 @@
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\StatusBar\" />
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Base\" />
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\VirtualKeyboard\" />
+	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Helper\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -85,6 +86,7 @@
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\StatusBar\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Base\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\VirtualKeyboard\" />
+	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Helper\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />

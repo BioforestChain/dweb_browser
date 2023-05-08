@@ -29,8 +29,10 @@ public class VirtualKeyboardNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/setState", async (request, ipc) =>
         {
             var controller = _getController(ipc.Remote.Mmid);
-            request.QueryValidate<bool>("overlay", false).Also(it => controller.OverlayState.Set(it));
-            request.QueryValidate<bool>("visible", false).Also(it => controller.VisibleState.Set(it));
+            request.QueryValidate<bool>("overlay", false).Also(it =>
+                controller.OverlayState.Update(cache => cache = it));
+            request.QueryValidate<bool>("visible", false).Also(it =>
+                controller.VisibleState.Update(cache => cache = it));
 
             return null;
         });
@@ -38,15 +40,13 @@ public class VirtualKeyboardNMM : NativeMicroModule
         /// 开始数据订阅
         HttpRouter.AddRoute(IpcMethod.Get, "/startObserve", async (_, ipc) =>
         {
-            //return _getController(ipc.Remote.Mmid).Observer.
-            return null;
+            return _getController(ipc.Remote.Mmid).StateObserver.StartObserve(ipc);
         });
 
         /// 停止数据订阅
         HttpRouter.AddRoute(IpcMethod.Get, "/stopObserve", async (_, ipc) =>
         {
-            //return _getController(ipc.Remote.Mmid).Observer.
-            return null;
+            return _getController(ipc.Remote.Mmid).StateObserver.StopObserve(ipc);
         });
     }
 }
