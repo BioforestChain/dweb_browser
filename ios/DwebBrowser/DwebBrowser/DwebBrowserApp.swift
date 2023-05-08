@@ -11,7 +11,7 @@ import SwiftUI
 struct DwebBrowserApp: App {
     var body: some Scene {
         WindowGroup {
-            MainContainerView()
+            BrowserView()
         }
     }
 }

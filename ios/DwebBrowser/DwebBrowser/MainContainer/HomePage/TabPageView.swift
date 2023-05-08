@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import WebView
 
 //层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 
@@ -23,7 +22,6 @@ struct TabPageView: View {
     init(page: WebPage) {
         self._webViewStore = ObservedObject(initialValue: WebViewStore())
         self._page = State(initialValue: page)
-//        super.init(nibName: nil, bundle: nil)
       }
 
     var  body: some View {

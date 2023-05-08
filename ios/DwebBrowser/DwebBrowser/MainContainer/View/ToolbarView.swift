@@ -12,7 +12,6 @@ class ToolbarState: ObservableObject {
     @Published var canGoBack = false
     @Published var addTapped = false
     @Published var moreTapped = false
-    @Published var showOptions = false  //显示多标签页
     
     @Published var newPageTapped = false
     @Published var doneTapped = false
@@ -20,32 +19,31 @@ class ToolbarState: ObservableObject {
 
 struct ToolbarView: View {
     
-    @EnvironmentObject var states: ToolbarState
+    @EnvironmentObject var toolbarStates: ToolbarState
+    @EnvironmentObject var browserState: BrowerVM
     
     var body: some View {
-        if states.showOptions{
+        if !browserState.showingOptions{
             HStack(spacing: 5){
-                
                 Group{
                     Spacer()
                         .frame(width: 25)
                     ToolbarItem(imageName: "chevron.backward") {
-                        states.canGoBack = true
+                        toolbarStates.canGoBack = true
                         print("arrow.up was clicked")
                     }
                     
                     Spacer()
                     
                     ToolbarItem(imageName: "chevron.forward") {
-                        states.canGoForward.toggle()
+                        toolbarStates.canGoForward.toggle()
                         print("arrow.up was clicked")
                     }
                     
                     Spacer()
                     
                     ToolbarItem(imageName: "plus") {
-                        states.addTapped.toggle()
-                        
+                        toolbarStates.addTapped.toggle()
                         print("arrow.up was clicked")
                     }
                 }
@@ -54,9 +52,14 @@ struct ToolbarView: View {
                     
                     ToolbarItem(imageName: "book") {
                         print("arrow.up was clicked")
-                        states.moreTapped = true
-                    }.sheet(isPresented: $states.moreTapped) {
-                        states.moreTapped = false
+                        withAnimation {
+                            toolbarStates.moreTapped = true
+                            
+                        }
+                    }.sheet(isPresented: $toolbarStates.moreTapped) {
+                        withAnimation {
+                            toolbarStates.moreTapped = false
+                        }
                     } content: {
                         HistoryView()
                     }
@@ -64,7 +67,10 @@ struct ToolbarView: View {
                     Spacer()
                     
                     ToolbarItem(imageName: "doc.on.doc") {
-                        states.showOptions.toggle()
+                        withAnimation(.easeInOut) {
+                            browserState.showingOptions = true
+                        }
+                        
                         print("arrow.up was clicked")
                     }
                     
@@ -73,14 +79,14 @@ struct ToolbarView: View {
                 }
             }
             .frame(height: toolBarHeight)
-
+            
         }else{
             HStack(spacing: 5){
                 Spacer()
                     .frame(width: 25)
                 
                 ToolbarItem(imageName: "plus") {
-                    states.newPageTapped.toggle()
+                    toolbarStates.newPageTapped.toggle()
                 }
                 
                 Spacer()
@@ -88,15 +94,14 @@ struct ToolbarView: View {
                 Spacer()
                 
                 ToolbarItem(title: "完成") {
-                    states.doneTapped.toggle()
-                    states.showOptions.toggle()
+                    toolbarStates.doneTapped.toggle()
+                    browserState.showingOptions = false
                 }
                 .fontWeight(.semibold)
                 Spacer()
                     .frame(width: 25)
             }
             .frame(height: toolBarHeight)
-
         }
     }
 }

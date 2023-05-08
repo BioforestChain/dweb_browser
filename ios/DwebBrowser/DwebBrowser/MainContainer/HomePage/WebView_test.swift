@@ -8,7 +8,7 @@
 import SwiftUI
 
 import WebKit
-import WebView
+//import WebView
 
 struct MyWeb: View {
     @StateObject var webViewStore = WebViewStore()

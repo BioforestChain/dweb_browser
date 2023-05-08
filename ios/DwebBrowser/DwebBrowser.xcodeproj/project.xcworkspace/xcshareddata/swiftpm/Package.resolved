@@ -1,21 +1,30 @@
 {
   "pins" : [
     {
-      "identity" : "favicon",
+      "identity" : "faviconfinder",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/leonbreedt/FavIcon",
+      "location" : "https://github.com/will-lumley/FaviconFinder",
       "state" : {
-        "revision" : "5bf16aad3ea543891eaef7e8da2aa2f6bb29e6e4",
-        "version" : "3.1.0"
+        "revision" : "b8cde6c03b0cf72829b327c2c537bd39c1a8f60b",
+        "version" : "4.1.0"
       }
     },
     {
-      "identity" : "qgrid",
+      "identity" : "kingfisher",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Q-Mobile/QGrid",
+      "location" : "https://github.com/onevcat/Kingfisher",
       "state" : {
-        "branch" : "master",
-        "revision" : "8565654a123a0fa5e7969443cc2b13512c6cea33"
+        "revision" : "af4be924ad984cf4d16f4ae4df424e79a443d435",
+        "version" : "7.6.2"
+      }
+    },
+    {
+      "identity" : "swiftsoup",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/scinfu/SwiftSoup.git",
+      "state" : {
+        "revision" : "0e96a20ffd37a515c5c963952d4335c89bed50a6",
+        "version" : "2.6.0"
       }
     }
   ],

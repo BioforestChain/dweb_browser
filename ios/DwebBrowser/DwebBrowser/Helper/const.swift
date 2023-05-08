@@ -12,5 +12,5 @@ let screen_width = UIScreen.main.bounds.width
 let screen_height = UIScreen.main.bounds.height
 
 let toolBarHeight: CGFloat = 50
-let addressBarHeight: CGFloat = 60
+//let addressBarHeight: CGFloat = 60
 

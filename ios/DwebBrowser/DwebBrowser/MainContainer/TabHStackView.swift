@@ -8,26 +8,26 @@
 import SwiftUI
 
 struct TabsContainerView: View{
-    @EnvironmentObject var toolbarStates: ToolbarState
+    @EnvironmentObject var optionsState: BrowerVM
     
     var body: some View{
         ZStack{
             TabHStackView()
             
-            if !toolbarStates.showOptions{
+            if optionsState.showingOptions{
                 TabsCollectionView()
                     .background(.secondary)
-                    .hidden()
             }else{
                 TabsCollectionView()
                     .background(.secondary)
+                    .hidden()
             }
         }
     }
 }
 
 struct TabHStackView: View{
-    @EnvironmentObject var offsetState: MainViewState
+    @EnvironmentObject var adressBarOffset: BrowerVM
     @EnvironmentObject var pages: WebPages
     var body: some View{
         
@@ -38,7 +38,7 @@ struct TabHStackView: View{
                         .frame(width: screen_width)
                 }
             }
-            .offset(x: offsetState.adressBarHstackOffset)
+            .offset(x: adressBarOffset.addressBarOffset)
         }
         .scrollDisabled(true)
         
@@ -49,7 +49,7 @@ struct TabHStackView: View{
 struct TabHStackView_Previews: PreviewProvider {
     static var previews: some View {
         TabHStackView()
-            .environmentObject(MainViewState())
+            .environmentObject(BrowerVM())
 
     }
 }

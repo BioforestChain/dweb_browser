@@ -17,13 +17,13 @@ struct AddressBarHContainer:View{
             AddressBar(inputText: "")
                 .frame(width: screen_width)
         }
-        .background(.orange)
+        .background(.white)
     }
 }
 
 struct AddressBarHStack: View {
     @EnvironmentObject var states: ToolbarState
-    @EnvironmentObject var mainVstate: MainViewState
+    @EnvironmentObject var browser: BrowerVM
     @EnvironmentObject var pages: WebPages
     
     @State private var selectedTab = 0
@@ -32,15 +32,15 @@ struct AddressBarHStack: View {
         GeometryReader { innerGeometry in
             PageScroll(contentSize: pages.pages.count, content:AddressBarHContainer())
         }
-        .frame(height: states.showOptions ? 0 : addressBarHeight)
-        .animation(.easeInOut(duration: 0.3), value: states.showOptions)
+        .frame(height: browser.addressBarHeight)
+        .animation(.easeInOut(duration: 0.3))
     }
 }
 
 struct AddressBar: View {
     @State var inputText: String = ""
     @FocusState var isAdressBarFocused: Bool
-    @EnvironmentObject var offsetState: MainViewState
+    @EnvironmentObject var browser: BrowerVM
     @State var progressValue: Float = 0.0
     var body: some View {
         GeometryReader{ geometry in
@@ -75,7 +75,7 @@ struct AddressBar: View {
                         }
                     }
                     .onAppear{
-                        performNetworkRequest()
+//                        performNetworkRequest()
                     }
                 TextField("", text: $inputText)
                 
@@ -98,9 +98,9 @@ struct AddressBar: View {
                     .onChange(of: geometry.frame(in: .named("Root")).minX) { offsetX in
                         // Do something with the offsetY value
                         print("Offset X: \(offsetX)")
-                        offsetState.adressBarHstackOffset = offsetX
+                        browser.addressBarOffset = offsetX
                     }
-            }.frame(height: addressBarHeight)
+            }.frame(height: browser.addressBarHeight)
         }
     }
     
@@ -120,6 +120,6 @@ struct AddressBarHStack_Previews: PreviewProvider {
     static var previews: some View {
         
         AddressBar()
-            .environmentObject(MainViewState())
+            .environmentObject(BrowerVM())
     }
 }

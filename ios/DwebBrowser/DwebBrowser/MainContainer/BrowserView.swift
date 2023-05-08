@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-class MainViewState: ObservableObject{
-    @Published var adressBarHstackOffset: CGFloat = 0.0
-    @Published var currentTabIndex: Int = 0
-    @Published var addressBarHeight: CGFloat = 60
-}
+//class MainViewState: ObservableObject{
+//    @Published var adressBarHstackOffset: CGFloat = 0.0
+//    @Published var currentTabIndex: Int = 0
+//    @Published var addressBarHeight: CGFloat = 60
+//}
 
 
 
@@ -21,8 +21,10 @@ class WebViewState: ObservableObject {
     @Published var canGoback: Bool = false
 }
 
-struct MainContainerView: View {
-    @StateObject var tabPageStates = TabPageStates()
+struct BrowserView: View {
+//    @StateObject var tabPageStates = TabPageStates()
+    @ObservedObject var browser = BrowerVM()
+    
     var body: some View {
         ZStack{
             GeometryReader{ sGgeometry in
@@ -37,8 +39,8 @@ struct MainContainerView: View {
                 .frame(height: sGgeometry.size.height)
                 .coordinateSpace(name: "Root")
                 .environmentObject(ToolbarState())
-                .environmentObject(MainViewState())
-                .environmentObject(tabPageStates)
+//                .environmentObject(MainViewState())
+                .environmentObject(browser)
                 .environmentObject(WebPages())
             }
         }
@@ -47,6 +49,6 @@ struct MainContainerView: View {
 
 struct MainContainerView_Previews: PreviewProvider {
     static var previews: some View {
-        MainContainerView()
+        BrowserView()
     }
 }

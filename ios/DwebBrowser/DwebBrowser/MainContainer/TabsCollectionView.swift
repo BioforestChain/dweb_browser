@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import QGrid
 
 struct Person : Codable, Identifiable {
     var id: Int
@@ -29,11 +28,10 @@ struct Storage {
 }
 
 struct TabsCollectionView: View {
-    @ObservedObject var historyStore = HistoryStore()
     @EnvironmentObject var pages: WebPages
     
     var body: some View {
-        QGrid(pages.pages,
+        Grid(pages.pages,
               columns: 2,
               columnsInLandscape: 4,
               vSpacing: 20,
@@ -50,6 +48,7 @@ struct TabsCollectionView: View {
 struct GridCell: View {
     var page: WebPage
     @State var runCount = 0
+//    var snapshotImage: Image
     var body: some View {
         //        GeometryReader{ geometry in
         ZStack(alignment: .topTrailing){
@@ -58,7 +57,11 @@ struct GridCell: View {
                     .resizable()
                     .shadow(color: .secondary, radius: 3)
                     .cornerRadius(10)
-                
+                    .onTapGesture {
+                        print("cell tapped")
+                        let uiImage = self.snapshot()
+                        print(uiImage.size)
+                    }
                 HStack{
                     AsyncImage(url: page.icon) { image in
                         image
@@ -77,11 +80,7 @@ struct GridCell: View {
                 }
             }
             .aspectRatio(2.0/3.2, contentMode: .fit)
-            .onTapGesture {
-                print("cell tapped")
-                let uiImage = self.snapshot()
-                print(uiImage.size)
-            }
+            
             
             Button {
                 print("delete this tab, remove data from cache")
@@ -112,3 +111,33 @@ struct TabsCollectionView_Previews: PreviewProvider {
         
     }
 }
+
+
+
+/*
+ struct ContentView: View {
+     @State private var image: UIImage?
+     
+     var body: some View {
+         VStack {
+             if let image = image {
+                 Image(uiImage: image)
+                     .resizable()
+                     .shadow(color: .secondary, radius: 3)
+                     .cornerRadius(10)
+             } else {
+                 Text("Tap to take a screenshot")
+             }
+         }
+         .onTapGesture {
+             if let view = UIApplication.shared.windows.first?.rootViewController?.view {
+                 let renderer = UIGraphicsImageRenderer(size: view.bounds.size)
+                 let image = renderer.image { ctx in
+                     view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+                 }
+                 self.image = image
+             }
+         }
+     }
+ }
+ */
