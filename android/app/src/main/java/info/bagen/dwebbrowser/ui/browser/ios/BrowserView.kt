@@ -466,6 +466,7 @@ private fun SearchTextField(
                   currentText.value = ""
                   viewModel.handleIntent(BrowserIntent.UpdateInputText(""))
                   viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
+                  if (!viewModel.isShowKeyboard) focusManager.clearFocus() // 补充取消聚焦
                 })
           }
         }
