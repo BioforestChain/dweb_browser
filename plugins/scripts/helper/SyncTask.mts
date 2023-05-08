@@ -48,9 +48,18 @@ export class SyncTask {
 
   watch(recursive = false) {
     const debounceSync = debounce(() => this.sync(), 500);
-    const watcherList = this.tasks.map((task) =>
-      Deno.watchFs(task.from, { recursive })
-    );
+    const watcherList = this.tasks.map((task) => {
+      // https://deno.land/std@0.186.0/fs/mod.ts?s=existsSync
+      // deno去掉了exists和existsSync方法，改用try/catch方式处理
+      try {
+        return Deno.watchFs(task.from, { recursive });
+      } catch (error) {
+        if (error instanceof Deno.errors.NotFound) {
+          Deno.mkdirSync(task.from);
+          return Deno.watchFs(task.from, { recursive });
+        }
+      }
+    });
     console.log("watching");
     watcherList.forEach(async (watcher) => {
       for await (const event of watcher) {
