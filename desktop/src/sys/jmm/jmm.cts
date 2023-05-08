@@ -1,5 +1,3 @@
-//  jmm.sys.dweb 负责启动 第三方应用程序
-
 import type { IncomingMessage, OutgoingMessage } from "http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { HttpServerNMM } from "../http-server/http-server.cjs";
@@ -15,7 +13,6 @@ const progress = require('request-progress');
 const extract = require('extract-zip')
 const tar = require('tar')
 
-// 运行在 node 环境
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.sys.dweb" as const;
   httpNMM: HttpServerNMM | undefined;
@@ -339,7 +336,6 @@ export interface  $StaticWebServers{
 //   plugins: [ 'statusBar', 'share', 'notification', 'keyboard', 'scanner' ],
 //   releaseDate: '1677667362583'
 // }
-
 
 export enum DOWNLOAD_STATUS{
   DOWNLOAD,

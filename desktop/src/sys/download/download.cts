@@ -8,7 +8,6 @@ import type { IncomingMessage, OutgoingMessage } from "http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { HttpServerNMM } from "../http-server/http-server.cjs";
 
-
 export class DownloadNMM extends NativeMicroModule{
   mmid = "download.sys.dweb" as const;
   httpNMM: HttpServerNMM | undefined;

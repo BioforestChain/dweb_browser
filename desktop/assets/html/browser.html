@@ -107,7 +107,6 @@
 <body>
   <div class="logo-container">logo---</div>
   <div class="search-container">
-    <!-- <input class="search-input" placeholder="search app" value="https://shop.plaoc.com/bfs-metadata.json"/> -->
     <input class="search-input" placeholder="search app" value="https://qawww.bfmeta.info"/>
     <button class="search-bottom" onclick="onClick()" >搜索</button>
   </div>
@@ -130,32 +129,6 @@
     }
 
     onClick();
-
-
-
-
-
-
-    // const elInput = document.querySelector('.search-input')
-    // const elView = document.querySelector('.search-bottom')
-    // const elAppsContainer = document.querySelector('.apps-container')
-
-    // // 执行
-    // getAllAppsInfo()
-
-    
-    // elView.addEventListener('click', ()=> {
-    //     // console.log('开始跳转到下载页面')
-    //     // fetch("/open_webview?mmid=jmmmetadata.sys.dweb")
-    //     // .then(async (res) => {
-    //     //     console.log('res: ', res)
-    //     //     const result = JSON.parse(await res.json())
-    //     //     const origin = result.origin;
-    //     //     const url = `${origin}?url=${elInput?.value}`
-    //     //     open(url)
-    //     // })
-    //     // .catch(err => console.log('err', err)) 
-    // })
 
     // 查询 apps 列表
     async function getAllAppsInfo(){

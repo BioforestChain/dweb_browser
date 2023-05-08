@@ -227,9 +227,6 @@ export class ViewTree extends LitElement {
     let scale_sub = 0.05;
     let scale_acc = 1 + scale_sub;
 
-    // let y_sub = 5;
-    // let y_acc = 0 + y_sub;
-
     let opacity_sub = 0.1;
     let opacity_acc = 1 + opacity_sub;
     for (const webview of this.webviews) {
@@ -318,8 +315,6 @@ export class ViewTree extends LitElement {
   }
 
   private async destroyWebview(webview: Webview) {
-    console.log('webveiw: ', webview)
-    console.log('this.webviews: ', this.webviews)
     await mainApis.destroy(webview.webContentId);
   }
 
@@ -366,24 +361,6 @@ export class ViewTree extends LitElement {
       }
     })
   }
-
-
-  // override connectedCallback = () => {
-  //   super.connectedCallback()
-  //   console.log('connectedCallback------')
-  // }
-
-  // override connectedCallback(){
-  //   super.connectedCallback();
-  //   fetch("./mwebview.sys.dweb/wati_operation")
-  //   .then(
-  //     async (res) => {
-  //       console.log("接收到了数据")
-  //     },
-  //     err => {throw err}
-  //   )
-  //   console.log('--------')
-  // }
 
   // Render the UI as a function of component state
   override render() {
@@ -453,33 +430,6 @@ export class ViewTree extends LitElement {
     `;
   }
 }
-
-// class Webview {
-//   constructor(readonly id: number, readonly src: string) {}
-//   webContentId = -1;
-//   webContentId_devTools = -1;
-//   private _api!: WebviewTag;
-//   get api(): WebviewTag {
-//     return this._api;
-//   }
-//   doReady(value: WebviewTag) {
-//     this._api = value;
-//     this._api_po.resolve(value);
-//   }
-//   private _api_po = new PromiseOut<WebviewTag>();
-//   ready() {
-//     return this._api_po.promise;
-//   }
-//   closing = false;
-//   state = {
-//     zIndex: 0,
-//     openingIndex: 0,
-//     closingIndex: 0,
-//     scale: 1,
-//     opacity: 1,
-//     // translateY: 0,
-//   };
-// }
 
 const viewTree = new ViewTree();
 document.body.appendChild(viewTree);
