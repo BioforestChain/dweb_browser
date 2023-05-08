@@ -89,7 +89,7 @@ class TabItem(
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
   var selectedTabIndex by remember { mutableStateOf(0) }
-  val popupViewState = remember { mutableStateOf(PopupViewState.Options) }
+  var popupViewState = PopupViewState.Options
   val tabs = when (viewModel.uiState.currentBrowserBaseView.value) {
     is BrowserWebView -> {
       listOf(
@@ -108,11 +108,15 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
         ),
       )
     }
+  }.also {
+    popupViewState = if (it.size > selectedTabIndex) it[selectedTabIndex].entry else it.first().entry
   }
 
   LaunchedEffect(selectedTabIndex) {
     snapshotFlow { selectedTabIndex }.collect {
-      popupViewState.value = tabs[it].entry
+      if (it < tabs.size && it >= 0) {
+        popupViewState = tabs[it].entry
+      }
     }
   }
 
@@ -139,10 +143,10 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
 // 显示具体内容部分，其中又可以分为三个部分类型，操作页，书签列表，历史列表
 @Composable
 private fun PopContentView(
-  popupViewState: MutableState<PopupViewState>, viewModel: BrowserViewModel
+  popupViewState: PopupViewState, viewModel: BrowserViewModel
 ) {
   Box(modifier = Modifier.fillMaxSize()) {
-    when (popupViewState.value) {
+    when (popupViewState) {
       PopupViewState.BookList -> PopContentBookListItem(viewModel)
       PopupViewState.HistoryList -> PopContentHistoryListItem(viewModel)
       else -> PopContentOptionItem(viewModel)
@@ -581,7 +585,7 @@ private fun MultiItemView(
       }
     }
 
-    if (!onlyOne) {
+    if (!onlyOne || browserBaseView is BrowserWebView) {
       Box(modifier = Modifier
         .padding(8.dp)
         .clip(CircleShape)

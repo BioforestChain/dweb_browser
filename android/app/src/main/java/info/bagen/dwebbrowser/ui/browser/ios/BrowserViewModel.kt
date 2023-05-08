@@ -9,7 +9,10 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,7 +31,10 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.webview.DWebView
-import info.bagen.dwebbrowser.ui.entity.*
+import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
+import info.bagen.dwebbrowser.ui.entity.BrowserMainView
+import info.bagen.dwebbrowser.ui.entity.BrowserWebView
+import info.bagen.dwebbrowser.ui.entity.WebSiteInfo
 import info.bagen.dwebbrowser.util.*
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -74,6 +80,7 @@ sealed class BrowserIntent {
   class DeleteWebSiteList(
     val type: ListType, val website: WebSiteInfo?, val clsAll: Boolean = false
   ) : BrowserIntent()
+
   class UninstallJmmMetadata(val jmmMetadata: JmmMetadata) : BrowserIntent()
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
 }
@@ -207,6 +214,13 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
         }
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id)
+          if (uiState.browserViewList.size  == 0) {
+            BrowserMainView().also {
+              uiState.browserViewList.add(it)
+              uiState.currentBrowserBaseView.value = it
+              handleIntent(BrowserIntent.UpdateMultiViewState(false))
+            }
+          }
         }
         is BrowserIntent.SaveHistoryWebSiteInfo -> {
           action.url?.let {
@@ -296,6 +310,10 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
   fun saveLastKeyword(url: String) {
     App.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
   }
+
+  val isShowKeyboard
+    get() =
+      uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
 }
 
 internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {

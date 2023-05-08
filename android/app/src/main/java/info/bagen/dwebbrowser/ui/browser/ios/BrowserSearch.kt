@@ -51,12 +51,10 @@ fun BrowserSearchPreview(viewModel: BrowserViewModel) {
           viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
         },
         interactionSource = remember { MutableInteractionSource() })) {
-      val imeHeight = viewModel.uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime())
-      Log.e("lin.huang", "xxxxxxxxxxxxx bottom=${imeHeight.bottom},${imeHeight.top}, $imeHeight")
       Box(
         modifier = Modifier
           .fillMaxWidth()
-          .height(if (imeHeight.bottom > 0) screenHeight / 2 - 30.dp else screenHeight)
+          .height(if (viewModel.isShowKeyboard) screenHeight / 2 - 30.dp else screenHeight)
           .align(Alignment.BottomCenter)
           .animateContentSize()
       ) {

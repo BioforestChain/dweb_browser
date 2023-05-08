@@ -80,7 +80,9 @@ fun BrowserView(viewModel: BrowserViewModel) {
     }
   }
   BottomSheetScaffold(
-    modifier = Modifier.statusBarsPadding(),
+    modifier = Modifier
+      .statusBarsPadding()
+      .navigationBarsPadding(),
     scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
     sheetPeekHeight = LocalConfiguration.current.screenHeightDp.dp / 2,
     sheetContent = {
@@ -195,6 +197,14 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   LaunchedEffect(PagerState) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
     delay(100)
     viewModel.uiState.pagerStateNavigator.scrollToPage(viewModel.uiState.pagerStateNavigator.settledPage)
+  }
+  val localFocus = LocalFocusManager.current
+  LaunchedEffect(viewModel.isShowKeyboard) {
+    snapshotFlow { viewModel.isShowKeyboard }.collect {
+      if (!it && !viewModel.uiState.showSearchEngine.targetState) {
+        localFocus.clearFocus()
+      }
+    }
   }
   HorizontalPager(
     state = viewModel.uiState.pagerStateNavigator,

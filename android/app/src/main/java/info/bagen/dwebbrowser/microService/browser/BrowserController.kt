@@ -63,8 +63,6 @@ class BrowserController(val browserNMM: BrowserNMM) {
 
             ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView) { _, insets ->
                 currentInsets.value = insets
-                Log.e("lin.huang", "InsetsListener -> ${insets.getInsets(WindowInsetsCompat.Type.ime())}")
-                Log.e("lin.huang", "InsetsListener -> ${insets.getInsets(WindowInsetsCompat.Type.statusBars())}")
                 insets
             }
 
