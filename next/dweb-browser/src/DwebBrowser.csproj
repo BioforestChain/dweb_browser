@@ -62,6 +62,8 @@
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Base\" />
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\VirtualKeyboard\" />
 	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Helper\" />
+	  <None Remove="Platforms\iOS\MicroModule\Plugin\" />
+	  <None Remove="Platforms\iOS\MicroModule\Plugin\Clipboard\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -87,6 +89,8 @@
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Base\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\VirtualKeyboard\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Helper\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Plugin\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Clipboard\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />

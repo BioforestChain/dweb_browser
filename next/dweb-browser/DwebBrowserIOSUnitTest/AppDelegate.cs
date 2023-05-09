@@ -20,7 +20,8 @@ public class AppDelegate : UIApplicationDelegate
         // create a new window instance based on the screen size
         Window = new UIWindow(UIScreen.MainScreen.Bounds);
 
-        ColorTest.FromRgba_string_ReturnSuccess();
+        //ColorTest.FromRgba_string_ReturnSuccess();
+        UTTypesTest.UTTypes_ToString();
 
 
         // create a UIViewController with a single UILabel
