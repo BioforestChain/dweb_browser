@@ -71,14 +71,15 @@ public struct WebView: View, UIViewRepresentable {
     public init(webView: WKWebView, url: URL) {
         self.webView = webView
         self.url = url
+        
     }
     
     public func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
-        webView.load(URLRequest(url:url))
         return webView
     }
     
     public func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {
-        
+        uiView.load(URLRequest(url:url))
+
     }
 }

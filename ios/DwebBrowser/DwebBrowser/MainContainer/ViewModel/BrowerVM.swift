@@ -32,9 +32,6 @@ class Page: Identifiable, ObservableObject, Hashable{
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
-    
-    
 }
 
 class Address:ObservableObject{
@@ -46,7 +43,7 @@ class BrowerVM: ObservableObject {
     @Published var selectedTabIndex = 0
     @Published var addressBarOffset = 0.0
     
-    @Published var pages = [Page(),Page(),Page()]
+    @Published var pages = [Page(),Page(),Page(),Page(),Page()]
     @Published var addresses = [Address]()
     
     

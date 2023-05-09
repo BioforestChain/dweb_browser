@@ -34,6 +34,7 @@
 		F08E104B2A065C1F00899DF8 /* FaviconFinder in Frameworks */ = {isa = PBXBuildFile; productRef = F08E104A2A065C1F00899DF8 /* FaviconFinder */; };
 		F08E104D2A08A10700899DF8 /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E104C2A08A10700899DF8 /* Grid.swift */; };
 		F08E10532A08DC9C00899DF8 /* BrowerVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10522A08DC9C00899DF8 /* BrowerVM.swift */; };
+		F08E10572A0A4F7C00899DF8 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10562A0A4F7C00899DF8 /* TestView.swift */; };
 		F0B2AB172A03AC40000AD502 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B2AB162A03AC40000AD502 /* WebView.swift */; };
 /* End PBXBuildFile section */
 
@@ -64,6 +65,7 @@
 		F08E10442A04FBEE00899DF8 /* DWButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWButton.swift; sourceTree = "<group>"; };
 		F08E104C2A08A10700899DF8 /* Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
 		F08E10522A08DC9C00899DF8 /* BrowerVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowerVM.swift; sourceTree = "<group>"; };
+		F08E10562A0A4F7C00899DF8 /* TestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestView.swift; sourceTree = "<group>"; };
 		F0B2AB162A03AC40000AD502 /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -131,6 +133,7 @@
 				F02899AB29FA882C00B8754A /* TabHStackView.swift */,
 				F028999A29F7CC0000B8754A /* TabsCollectionView.swift */,
 				F028998729F7C3DC00B8754A /* AddressBarHStack.swift */,
+				F08E10562A0A4F7C00899DF8 /* TestView.swift */,
 			);
 			path = MainContainer;
 			sourceTree = "<group>";
@@ -300,6 +303,7 @@
 			files = (
 				F08E10532A08DC9C00899DF8 /* BrowerVM.swift in Sources */,
 				F028999129F7C4AA00B8754A /* SnapshotView.swift in Sources */,
+				F08E10572A0A4F7C00899DF8 /* TestView.swift in Sources */,
 				F0B2AB172A03AC40000AD502 /* WebView.swift in Sources */,
 				F02899AA29FA499D00B8754A /* HomeView.swift in Sources */,
 				F028998A29F7C3DC00B8754A /* AddressBarHStack.swift in Sources */,

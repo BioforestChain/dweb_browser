@@ -44,30 +44,6 @@ struct ContentView: View {
     }
 }
 
-struct PageScroll<Content: View>: UIViewRepresentable {
-    
-    var contentSize: Int
-    var content: Content
-    
-    func makeUIView(context: Context) -> UIScrollView {
-        let scrollView = UIScrollView()
-        scrollView.isPagingEnabled = true
-        scrollView.showsHorizontalScrollIndicator = false
-        scrollView.contentSize = CGSize(width: UIScreen.main.bounds.width * CGFloat(contentSize), height: 0)
-        return scrollView
-    }
-    
-    func updateUIView(_ uiView: UIScrollView, context: Context) {
-        
-        uiView.subviews.forEach { $0.removeFromSuperview() }
-        let hostingController = UIHostingController(rootView: content)
-        for i in 0..<contentSize {
-            let childView = hostingController.view!
-            childView.frame = CGRect(x: UIScreen.main.bounds.width * CGFloat(i-1), y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-            uiView.addSubview(childView)
-        }
-    }
-}
 
 struct HContainer:View{
     var body: some View{
