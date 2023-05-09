@@ -2,16 +2,35 @@ import SwiftUI
 import Combine
 import WebKit
 
+
+var visitCount: Int = 0
+
 @dynamicMemberLookup
-public class WebViewStore: ObservableObject {
+public class WebViewStore: ObservableObject,Identifiable,Hashable{
+    public static func == (lhs: WebViewStore, rhs: WebViewStore) -> Bool {
+         lhs.id == rhs.id
+     }
+     
+     public func hash(into hasher: inout Hasher) {
+         hasher.combine(id)
+     }
+    
+    public let id = UUID()
     @Published public var webView: WKWebView {
         didSet {
             setupObservers()
         }
     }
     
-    public init(webView: WKWebView = WKWebView()) {
+    @Published public var web: WebPage
+    
+    public init(webView: WKWebView = WKWebView(), web: WebPage) {
         self.webView = webView
+        self.web = web
+        webView.load(URLRequest(url: URL(string: "www.bing.com")!))
+        visitCount += 1
+        print("has visited \(visitCount) times")
+
         setupObservers()
     }
     
@@ -46,14 +65,17 @@ public class WebViewStore: ObservableObject {
 /// A container for using a WKWebView in SwiftUI
 public struct WebView: View, UIViewRepresentable {
     /// The WKWebView to display
+    let url: URL
     public let webView: WKWebView
-    
-    public init(webView: WKWebView) {
+
+    public init(webView: WKWebView, url: URL) {
         self.webView = webView
+        self.url = url
     }
     
     public func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
-        webView
+        webView.load(URLRequest(url:url))
+        return webView
     }
     
     public func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {

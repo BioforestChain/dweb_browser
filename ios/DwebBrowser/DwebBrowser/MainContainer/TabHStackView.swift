@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WebKit
 
 struct TabsContainerView: View{
     @EnvironmentObject var optionsState: BrowerVM
@@ -27,24 +28,22 @@ struct TabsContainerView: View{
 }
 
 struct TabHStackView: View{
-    @EnvironmentObject var adressBarOffset: BrowerVM
-    @EnvironmentObject var pages: WebPages
+    @EnvironmentObject var browser: BrowerVM
+    
     var body: some View{
         
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
-                ForEach(pages.pages, id: \.self.id) { page in
-                    TabPageView(page: page)
+                ForEach(browser.pages, id: \.self) { page in
+                    TabPageView(webViewStore: page.webStore)
                         .frame(width: screen_width)
                 }
             }
-            .offset(x: adressBarOffset.addressBarOffset)
+            .offset(x: browser.addressBarOffset)
         }
         .scrollDisabled(true)
-        
     }
 }
-
 
 struct TabHStackView_Previews: PreviewProvider {
     static var previews: some View {

@@ -10,8 +10,10 @@ import UIKit
 import SwiftUI
 import FaviconFinder
 
-struct WebPage: Identifiable{
-    var id = UUID()
+
+
+public struct WebPage: Identifiable{
+    public var id = UUID()
     // url to the source of somewhere in internet
      var icon: URL
     var openedUrl: String?  //the website that user has opened on webview
@@ -24,12 +26,12 @@ struct WebPage: Identifiable{
         return UIImage(contentsOfFile: url.path) ?? UIImage(named: "snapshot")!
     }
     static let websites = [
-        "baidu.com",
-        "163.com",
-        "sohu.com",
-        "yahoo.com",
-        "douban.com",
-        "zhihu.com",
+        "https://www.baidu.com",
+        "https://www.163.com",
+        "https://www.sohu.com",
+        "https://www.yahoo.com",
+        "https://www.douban.com",
+        "https://www.zhihu.com",
     ]
     
     static func createItem() -> WebPage{

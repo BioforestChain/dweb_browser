@@ -28,18 +28,18 @@ struct Storage {
 }
 
 struct TabsCollectionView: View {
-    @EnvironmentObject var pages: WebPages
+    @EnvironmentObject var brower: BrowerVM
     
     var body: some View {
-        Grid(pages.pages,
+        Grid(brower.pages,
               columns: 2,
               columnsInLandscape: 4,
               vSpacing: 20,
               hSpacing: 20,
               vPadding: 10,
               hPadding: 20)
-        { person in
-            GridCell(page: person)
+        { page in
+            GridCell(page: page.webStore.web)
         }
         .background(Color(white: 0.7))
     }
@@ -111,33 +111,3 @@ struct TabsCollectionView_Previews: PreviewProvider {
         
     }
 }
-
-
-
-/*
- struct ContentView: View {
-     @State private var image: UIImage?
-     
-     var body: some View {
-         VStack {
-             if let image = image {
-                 Image(uiImage: image)
-                     .resizable()
-                     .shadow(color: .secondary, radius: 3)
-                     .cornerRadius(10)
-             } else {
-                 Text("Tap to take a screenshot")
-             }
-         }
-         .onTapGesture {
-             if let view = UIApplication.shared.windows.first?.rootViewController?.view {
-                 let renderer = UIGraphicsImageRenderer(size: view.bounds.size)
-                 let image = renderer.image { ctx in
-                     view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
-                 }
-                 self.image = image
-             }
-         }
-     }
- }
- */

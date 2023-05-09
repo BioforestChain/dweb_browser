@@ -141,3 +141,8 @@ struct ContentView: View {
         MyView(model: model)
     }
 }
+
+
+#打印指针
+
+print(Unmanaged.passUnretained(self.webViewStore).toOpaque())

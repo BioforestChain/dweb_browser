@@ -16,9 +16,24 @@ class Home: ObservableObject{
     
 }
 
-class Page: ObservableObject{
-//    @Published var web: Web
+class Page: Identifiable, ObservableObject, Hashable{
+
+    
+    @Published var webStore = WebViewStore( web: WebPage.example)
+
 //    @Published var home: Home
+    
+    
+    var id = UUID()
+    static func == (lhs: Page, rhs: Page) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    
     
 }
 
@@ -31,7 +46,7 @@ class BrowerVM: ObservableObject {
     @Published var selectedTabIndex = 0
     @Published var addressBarOffset = 0.0
     
-    @Published var pages = [Page]()
+    @Published var pages = [Page(),Page(),Page()]
     @Published var addresses = [Address]()
     
     

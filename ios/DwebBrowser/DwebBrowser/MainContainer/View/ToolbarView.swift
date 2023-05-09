@@ -14,16 +14,16 @@ class ToolbarState: ObservableObject {
     @Published var moreTapped = false
     
     @Published var newPageTapped = false
-    @Published var doneTapped = false
+//    @Published var doneTapped = false
 }
 
 struct ToolbarView: View {
     
     @EnvironmentObject var toolbarStates: ToolbarState
-    @EnvironmentObject var browserState: BrowerVM
+    @EnvironmentObject var browser: BrowerVM
     
     var body: some View {
-        if !browserState.showingOptions{
+        if !browser.showingOptions{
             HStack(spacing: 5){
                 Group{
                     Spacer()
@@ -68,7 +68,7 @@ struct ToolbarView: View {
                     
                     ToolbarItem(imageName: "doc.on.doc") {
                         withAnimation(.easeInOut) {
-                            browserState.showingOptions = true
+                            browser.showingOptions = true
                         }
                         
                         print("arrow.up was clicked")
@@ -94,8 +94,7 @@ struct ToolbarView: View {
                 Spacer()
                 
                 ToolbarItem(title: "完成") {
-                    toolbarStates.doneTapped.toggle()
-                    browserState.showingOptions = false
+                    browser.showingOptions = false
                 }
                 .fontWeight(.semibold)
                 Spacer()

@@ -24,16 +24,15 @@ struct AddressBarHContainer:View{
 struct AddressBarHStack: View {
     @EnvironmentObject var states: ToolbarState
     @EnvironmentObject var browser: BrowerVM
-    @EnvironmentObject var pages: WebPages
     
     @State private var selectedTab = 0
     
     var body: some View {
         GeometryReader { innerGeometry in
-            PageScroll(contentSize: pages.pages.count, content:AddressBarHContainer())
+            PageScroll(contentSize: browser.pages.count, content:AddressBarHContainer())
         }
         .frame(height: browser.addressBarHeight)
-        .animation(.easeInOut(duration: 0.3))
+        .animation(.easeInOut(duration:0.3), value: browser.addressBarHeight)
     }
 }
 

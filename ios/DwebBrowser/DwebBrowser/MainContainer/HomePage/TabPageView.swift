@@ -9,25 +9,18 @@ import SwiftUI
 
 //层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 
+
 struct TabPageView: View {
     
-    @State var page: WebPage
-//    @State var showWebview = true
-
-    @State var homeview = HomePage()
-
-//    @StateObject var webViewStore = WebViewStore()
-    
     @ObservedObject var webViewStore: WebViewStore
-    init(page: WebPage) {
-        self._webViewStore = ObservedObject(initialValue: WebViewStore())
-        self._page = State(initialValue: page)
-      }
+
+    @State var homeview = HomeView()
 
     var  body: some View {
         ZStack{
             NavigationView {
-                WebView(webView: webViewStore.webView)
+//                Text("there is a webview")
+                WebView(webView: webViewStore.webView, url:URL(string: webViewStore.web.openedUrl!)!)
                     .navigationBarTitle(Text(verbatim: webViewStore.title ?? ""), displayMode: .inline)
                     .navigationBarItems(trailing: HStack {
                         Button(action: goBack) {
@@ -43,13 +36,14 @@ struct TabPageView: View {
                                 .frame(width: 32, height: 32)
                         }.disabled(!webViewStore.canGoForward)
                     })
+                    .background(.orange)
             }.onAppear {
-                print(Unmanaged.passUnretained(self.webViewStore).toOpaque())
-                print("opening \(page.openedUrl)")
-                self.webViewStore.webView.load(URLRequest(url: URL(string: page.openedUrl ?? "163.com")!))
+//                
+                print("webViewStore.webView ---- \(webViewStore.webView)")
+//                self.webViewStore.webView.load(URLRequest(url: URL(string: "163.com")!))
             }
             
-            if page.openedUrl != nil{
+            if webViewStore.web.openedUrl != nil{
                 homeview.hidden()
             }else{
                 homeview
@@ -65,30 +59,6 @@ struct TabPageView: View {
         webViewStore.webView.goForward()
     }
 }
-
-struct HomePage: View{
-    var body: some View{
-//        Color.clear
-        ScrollView(.vertical){
-            VStack{
-                HStack{
-                    Text("HomepageHeader")
-                    Spacer()
-                }
-                HStack{
-                    Text("Homepage")
-                }
-                Spacer()
-
-                Text("HomepageFooter")
-                Spacer()
-
-            }
-        }.background(.yellow)
-            
-    }
-}
-
 
 struct TabPageView_Previews: PreviewProvider {
     static var previews: some View {
