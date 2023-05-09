@@ -6,6 +6,7 @@ enum class DEVELOPER(val deviceName: String) {
     GAUBEE("Xiaomi/M2006J10C"),
     HuangLin("HUAWEI/ELE-AL00"),
     HLVirtual("Google/sdk_gphone64_x86_64"),
+    HLOppo("OPPO/PGJM10"),
     WaterBang("samsung/SM-A9080"),
     ANONYMOUS("*");
 

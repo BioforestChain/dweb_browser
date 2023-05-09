@@ -5,14 +5,13 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.ui.browser.ios.BrowserIntent
 import info.bagen.dwebbrowser.ui.browser.ios.BrowserView
 import info.bagen.dwebbrowser.ui.camera.QRCodeIntent
 import info.bagen.dwebbrowser.ui.camera.QRCodeScanning
@@ -35,13 +34,21 @@ class BrowserActivity : AppCompatActivity() {
         !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
       RustApplicationTheme {
         browserController.effect(activity = this@BrowserActivity)
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.background(Color.Black)) {
           BrowserView(viewModel = browserController.browserViewModel)
           QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
           LoadingView(browserController.showLoading)
         }
       }
     }
+  }
+
+  override fun onBackPressed() {
+    if (browserController.browserViewModel.canMoveToBackground) {
+      moveTaskToBack(false)
+      return // 如果没有直接return，会导致重新打开app时，webview都是显示首页
+    }
+    super.onBackPressed()
   }
 
   override fun onRequestPermissionsResult(

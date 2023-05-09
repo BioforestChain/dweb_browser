@@ -1,0 +1,23 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.gradient-text {
+    font-size: 32px;
+    font-weight: bold;
+    background: linear-gradient(to right, #71D78E, #548FE3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.icon {
+    display: inline-block;
+    width: 128px;
+    height: 128px;
+    background-repeat: no-repeat;
+    background-size: cover;
+}

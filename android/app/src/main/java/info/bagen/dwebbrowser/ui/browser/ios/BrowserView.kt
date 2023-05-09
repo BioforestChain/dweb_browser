@@ -75,24 +75,37 @@ fun BrowserView(viewModel: BrowserViewModel) {
       scope.launch {
         viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
       }
+    } else {
+      when (val itemView = viewModel.uiState.currentBrowserBaseView.value) {
+        is BrowserWebView -> {
+          if (itemView.navigator.canGoBack) {
+            itemView.navigator.navigateBack()
+          }
+        }
+        else -> {}
+      }
     }
   }
 
   BottomSheetScaffold(
-    modifier = Modifier
-      .statusBarsPadding()
-      .navigationBarsPadding(),
+    modifier = Modifier.navigationBarsPadding(),
     scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
     sheetPeekHeight = LocalConfiguration.current.screenHeightDp.dp / 2,
     sheetContent = {
-      BrowserPopView(viewModel)       // 用于处理弹出框
+      Box(modifier = Modifier.navigationBarsPadding()) {
+        BrowserPopView(viewModel)       // 用于处理弹出框
+      }
     }
   ) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+      modifier = Modifier
+        .statusBarsPadding()
+        .navigationBarsPadding()
+    ) {
       BrowserViewContent(viewModel)   // 中间主体部分
       BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
       BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
-      // BrowserPopView(viewModel)       // 用于处理弹出框
+      // BrowserPopView(viewModel)    // 用于处理弹出框
       BrowserMultiPopupView(viewModel)// 用于显示多界面
     }
     if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.isVisible) {
@@ -294,12 +307,6 @@ private fun BrowserViewContentMain(viewModel: BrowserViewModel, browserMainView:
 
 @Composable
 private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
-  BackHandler {
-    if (browserWebView.navigator.canGoBack) {
-      viewModel.handleIntent(BrowserIntent.WebViewGoBack)
-    }
-  }
-
   key(browserWebView.webViewId) {
     Box(
       modifier = Modifier
@@ -374,7 +381,15 @@ private fun SearchTextField(
 ) {
   val keyboardController = LocalSoftwareKeyboardController.current
   val focusManager = LocalFocusManager.current
-  val currentText = remember { mutableStateOf(if (focus.value) inputText.value else "") }
+  val currentText = remember {
+    mutableStateOf(
+      if (focus.value && !inputText.value.startsWith("file:///android_asset/dweb/")) {
+        inputText.value
+      } else {
+        ""
+      }
+    )
+  }
 
   BasicTextField(
     value = currentText.value,
@@ -390,7 +405,7 @@ private fun SearchTextField(
       .padding(horizontal = dimenSearchVerticalAlign)
       .onFocusChanged {
         focus.value = it.isFocused
-        val text = if (!it.isFocused) {
+        val text = if (!it.isFocused || inputText.value.startsWith("file:///android_asset/dweb/")) {
           ""
         } else {
           parseInputText(inputText.value, host = false) ?: inputText.value
@@ -436,22 +451,26 @@ private fun SearchTextField(
               .weight(1f)
               .padding(horizontal = dimenSearchHorizontalAlign)
           ) {
-            if ((focus.value && currentText.value.isEmpty()) || (!focus.value && inputText.value.isEmpty())) {
-              Text(
-                text = stringResource(id = R.string.browser_search_hint),
-                //color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.align(Alignment.CenterStart),
-                fontSize = dimenTextFieldFontSize
-              )
+            val pair = if (focus.value && currentText.value.isEmpty()) {
+              Pair(stringResource(id = R.string.browser_search_hint), Alignment.CenterStart)
             } else if (!focus.value) {
-              parseInputText(inputText.value)?.let { text ->
-                Text(
-                  text = text,
-                  //color = MaterialTheme.colorScheme.surfaceVariant,
-                  modifier = Modifier.align(Alignment.Center),
-                  fontSize = dimenTextFieldFontSize
-                )
+              if (inputText.value.isEmpty() ||
+                inputText.value.startsWith("file:///android_asset/dweb/")
+              ) {
+                Pair(stringResource(id = R.string.browser_search_hint), Alignment.CenterStart)
+              } else {
+                parseInputText(inputText.value)?.let { text ->
+                  Pair(text, Alignment.Center)
+                } ?: Pair(stringResource(id = R.string.browser_search_hint), Alignment.CenterStart)
               }
+            } else null
+            pair?.let { pair ->
+              Text(
+                text = pair.first,
+                modifier = Modifier.align(pair.second),
+                fontSize = dimenTextFieldFontSize,
+                maxLines = 1
+              )
             }
             innerTextField()
           }

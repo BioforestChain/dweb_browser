@@ -32,7 +32,6 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
-import info.bagen.dwebbrowser.ui.entity.BrowserMainView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.entity.WebSiteInfo
 import info.bagen.dwebbrowser.util.*
@@ -97,12 +96,13 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
   }
 
   init {
-    val browserMainView = BrowserMainView()
-    uiState = BrowserUIState(
-      currentBrowserBaseView = mutableStateOf(browserMainView),
-      currentInsets = browserController.currentInsets
-    )
-    uiState.browserViewList.add(browserMainView)
+    getNewTabBrowserView().also { browserView ->
+      uiState = BrowserUIState(
+        currentBrowserBaseView = mutableStateOf(browserView),
+        currentInsets = browserController.currentInsets
+      )
+      uiState.browserViewList.add(browserView)
+    }
     viewModelScope.launch(ioAsyncExceptionHandler) {
       WebsiteDB.queryHistoryWebsiteInfoMap().collect {
         uiState.historyWebsiteMap.clear()
@@ -119,6 +119,22 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
         }
       }
     }
+  }
+
+  private fun getNewTabBrowserView(url: String? = null): BrowserBaseView {
+    // return info.bagen.dwebbrowser.ui.entity.BrowserMainView() // 打开原生的主界面
+    // 打开webview
+    val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
+    val state = WebViewState(WebContent.Url(url ?: "file:///android_asset/dweb/newtab.html"))
+    val coroutineScope = CoroutineScope(CoroutineName(webviewId))
+    val navigator = WebViewNavigator(coroutineScope)
+    return BrowserWebView(
+      webViewId = webviewId,
+      webView = createDwebView(url ?: "file:///android_asset/dweb/newtab.html"),
+      state = state,
+      coroutineScope = coroutineScope,
+      navigator = navigator
+    )
   }
 
   @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -149,7 +165,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
           }
           uiState.multiViewShow.targetState = action.show
           action.index?.let {
-            viewModelScope.launch(mainAsyncExceptionHandler) {
+            withContext(mainAsyncExceptionHandler) {
               uiState.pagerStateNavigator.scrollToPage(it)
               uiState.pagerStateContent.scrollToPage(it)
             }
@@ -159,10 +175,10 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
           uiState.showSearchEngine.targetState = action.show
         }
         is BrowserIntent.AddNewMainView -> {
-          val itemView = BrowserMainView()
-          uiState.browserViewList.add(itemView)
-          uiState.currentBrowserBaseView.value = itemView
-          viewModelScope.launch(mainAsyncExceptionHandler) {
+          withContext(mainAsyncExceptionHandler) {
+            val itemView = getNewTabBrowserView()
+            uiState.browserViewList.add(itemView)
+            uiState.currentBrowserBaseView.value = itemView
             delay(100)
             uiState.multiViewShow.targetState = false
             uiState.pagerStateNavigator.scrollToPage(uiState.browserViewList.size - 1)
@@ -214,11 +230,13 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
         }
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id)
-          if (uiState.browserViewList.size  == 0) {
-            BrowserMainView().also {
-              uiState.browserViewList.add(it)
-              uiState.currentBrowserBaseView.value = it
-              handleIntent(BrowserIntent.UpdateMultiViewState(false))
+          if (uiState.browserViewList.size == 0) {
+            withContext(mainAsyncExceptionHandler) {
+              getNewTabBrowserView().also {
+                uiState.browserViewList.add(it)
+                uiState.currentBrowserBaseView.value = it
+                handleIntent(BrowserIntent.UpdateMultiViewState(false))
+              }
             }
           }
         }
@@ -286,21 +304,19 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     }
   }
 
-  private suspend fun createDwebView(url: String): DWebView =
-    withContext(mainAsyncExceptionHandler) {
-      DWebView(
-        App.appContext,
-        browserController.browserNMM,
-        browserController.browserNMM,
-        DWebView.Options(
-          url = url,
-          /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
-          onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
-        ),
-        null
-      ).also {
-        it.webViewClient = DwebBrowserWebViewClient()
-      }
+  private fun createDwebView(url: String): DWebView =
+    DWebView(
+      App.appContext,
+      browserController.browserNMM,
+      browserController.browserNMM,
+      DWebView.Options(
+        url = url,
+        /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
+        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+      ),
+      null
+    ).also {
+      it.webViewClient = DwebBrowserWebViewClient()
     }
 
   val isNoTrace = mutableStateOf(App.appContext.getBoolean(KEY_NO_TRACE, false))
@@ -316,6 +332,14 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
   val isShowKeyboard
     get() =
       uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
+
+  val canMoveToBackground get() =
+    when (val itemView = uiState.currentBrowserBaseView.value) {
+      is BrowserWebView -> {
+        !itemView.navigator.canGoBack
+      }
+      else -> false
+    }
 }
 
 internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {

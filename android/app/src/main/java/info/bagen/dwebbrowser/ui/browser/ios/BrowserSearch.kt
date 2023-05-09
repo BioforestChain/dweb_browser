@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -20,15 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.Insets
-import androidx.core.view.WindowInsetsCompat
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
@@ -37,24 +33,26 @@ import info.bagen.dwebbrowser.ui.entity.WebSiteInfo
 @SuppressLint("NewApi")
 @Composable
 fun BrowserSearchPreview(viewModel: BrowserViewModel) {
-  val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+  // val screenHeight = LocalConfiguration.current.screenHeightDp.dp
   val focusManager = LocalFocusManager.current
 
   if (viewModel.uiState.showSearchEngine.targetState) {
-    Box(modifier = Modifier
-      .fillMaxSize()
-      .padding(bottom = dimenBottomHeight)
-      .background(MaterialTheme.colorScheme.outlineVariant)
-      .clickable(indication = null,
-        onClick = {
-          focusManager.clearFocus()
-          viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
-        },
-        interactionSource = remember { MutableInteractionSource() })) {
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(bottom = dimenBottomHeight)
+        .background(MaterialTheme.colorScheme.outlineVariant)
+        .clickable(indication = null,
+          onClick = {
+            focusManager.clearFocus()
+            viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
+          },
+          interactionSource = remember { MutableInteractionSource() })
+    ) {
       Box(
         modifier = Modifier
           .fillMaxWidth()
-          .height(if (viewModel.isShowKeyboard) screenHeight / 2 - 30.dp else screenHeight)
+          //.height(if (viewModel.isShowKeyboard) screenHeight / 2 - 30.dp else screenHeight)
           .align(Alignment.BottomCenter)
           .animateContentSize()
       ) {
@@ -64,9 +62,11 @@ fun BrowserSearchPreview(viewModel: BrowserViewModel) {
             .padding(horizontal = 20.dp)
         ) {
           item {
-            Box(modifier = Modifier
-              .fillMaxWidth()
-              .padding(vertical = 8.dp)) {
+            Box(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+            ) {
               Text(text = "搜索", modifier = Modifier.align(Alignment.Center), fontSize = 16.sp)
               Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
@@ -130,10 +130,22 @@ private fun SearchItemEngines(viewModel: BrowserViewModel, text: String) {
       modifier = Modifier.padding(vertical = 10.dp)
     )
     val list = arrayListOf<WebSiteInfo>().apply {
-      add(WebSiteInfo("百度", "https://m.baidu.com/s?word=$text", null)) // 百度：https://www.baidu.com/s?wd=你好
+      add(
+        WebSiteInfo(
+          "百度",
+          "https://m.baidu.com/s?word=$text",
+          null
+        )
+      ) // 百度：https://www.baidu.com/s?wd=你好
       // add(WebSiteInfo("谷歌", "https://www.google.com/search?q=$text", null)) // https://www.google.com/search?q=你好
       // add(WebSiteInfo("必应", "https://cn.bing.com/search?q=$text", null)) // https://cn.bing.com/search?q=hello
-      add(WebSiteInfo("搜狗", "https://wap.sogou.com/web/searchList.jsp?keyword=$text", null)) // https://www.sogou.com/web?query=你好
+      add(
+        WebSiteInfo(
+          "搜狗",
+          "https://wap.sogou.com/web/searchList.jsp?keyword=$text",
+          null
+        )
+      ) // https://www.sogou.com/web?query=你好
       add(WebSiteInfo("360", "https://m.so.com/s?q=$text", null)) // https://www.so.com/s?q=你好
     }
     Spacer(
@@ -236,5 +248,18 @@ fun SearchWebsiteCardView(
         )
       }
     }
+  }
+}
+
+/*****************
+ * 重新规划搜索页
+ */
+@Composable
+fun BrowserSearchView(
+  viewModel: BrowserViewModel,
+
+) {
+  Box(modifier = Modifier.fillMaxSize()) {
+    // 背景是首页，右上角有个取消名称
   }
 }

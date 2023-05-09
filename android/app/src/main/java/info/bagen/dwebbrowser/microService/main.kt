@@ -58,7 +58,7 @@ suspend fun startDwebBrowser(): DnsNMM {
                 "dwebview",
             )
         )
-        DEVELOPER.HuangLin, DEVELOPER.HLVirtual -> debugTags.addAll(
+        DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo -> debugTags.addAll(
             listOf("Share", "fetch", "http", "jmm", "browser", "biometrics", "mwebview")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
@@ -142,9 +142,9 @@ suspend fun startDwebBrowser(): DnsNMM {
             cotDemoJMM.mmid,
 //            browserNMM.mmid,
         )
-        DEVELOPER.HuangLin, DEVELOPER.HLVirtual -> listOf(browserNMM.mmid)
+        DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo -> listOf(browserNMM.mmid)
         DEVELOPER.WaterBang -> listOf(cotDemoJMM.mmid, browserNMM.mmid)
-        else -> listOf(cotDemoJMM.mmid,browserNMM.mmid)
+        else -> listOf(cotDemoJMM.mmid, browserNMM.mmid)
     }
 
     /// 启动程序

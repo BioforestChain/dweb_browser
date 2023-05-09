@@ -285,8 +285,8 @@ private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
         onClick = {
           scope.launch {
             viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+            viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
           }
-          viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
         },
         onDelete = {
           viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(ListType.Book, webSiteInfo, false))
@@ -393,8 +393,8 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
             onClick = {
               scope.launch {
                 viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+                viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
               }
-              viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
             },
             onDelete = {
               viewModel.handleIntent(
