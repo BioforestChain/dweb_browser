@@ -1,24 +1,24 @@
 ﻿using System;
 namespace DwebBrowser.Helper;
 
-public record ColorJson(int red, int green, int blue, int alpha)
+public record ColorJson(float red, float green, float blue, float alpha)
 {
-    public static ColorJson White = new(255, 255, 255, 255);
-    public static ColorJson Black = new(0, 0, 0, 255);
-    public static ColorJson Transparent = new(0, 0, 0, 0);
+    public static readonly ColorJson White = new(1, 1, 1, 1);
+    public static readonly ColorJson Black = new(0, 0, 0, 1);
+    public static readonly ColorJson Transparent = new(0, 0, 0, 0);
     public ColorJson SetRed(int red)
     {
         return new ColorJson(red, green, blue, alpha);
     }
-    public ColorJson SetGreen(int green)
+    public ColorJson SetGreen(float green)
     {
         return new ColorJson(red, green, blue, alpha);
     }
-    public ColorJson SetBlue(int blue)
+    public ColorJson SetBlue(float blue)
     {
         return new ColorJson(red, green, blue, alpha);
     }
-    public ColorJson SetAlpha(int alpha)
+    public ColorJson SetAlpha(float alpha)
     {
         return new ColorJson(red, green, blue, alpha);
     }

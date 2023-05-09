@@ -20,6 +20,7 @@ public class NativeUiController
 
     public NativeUiController(UIViewController activity)
     {
+        _ = new QueryHelper();
         //var a = UIApplication.SharedApplication.StatusBarFrame;
         //      //UIApplication.SharedApplication.Keybo
 
