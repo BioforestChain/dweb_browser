@@ -2,6 +2,7 @@
 using DwebBrowser.MicroService.Sys.Js;
 using System.Diagnostics;
 using System.Net.Http;
+using DwebBrowserIOSUnitTest.Tests;
 
 namespace DwebBrowserIOSUnitTest;
 
@@ -18,6 +19,9 @@ public class AppDelegate : UIApplicationDelegate
     {
         // create a new window instance based on the screen size
         Window = new UIWindow(UIScreen.MainScreen.Bounds);
+
+        ColorTest.FromRgba_string_ReturnSuccess();
+
 
         // create a UIViewController with a single UILabel
         var vc = new UIViewController();
