@@ -1,4 +1,5 @@
-﻿using DwebBrowser.MicroService.Sys.Mwebview;
+﻿using DwebBrowser.Helper;
+using DwebBrowser.MicroService.Sys.Mwebview;
 
 namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Toast;
 
@@ -12,9 +13,9 @@ public class ToastNMM: NativeMicroModule
     {
         HttpRouter.AddRoute(IpcMethod.Get, "/show", async (request, ipc) =>
         {
-            var duration = request.QueryValidate<string>("duration", false);
-            var message = request.QueryValidate<string>("message")!;
-            var position = request.QueryValidate<string>("position", false);
+            var duration = request.SafeUrl.SearchParams.Get("duration") ;
+            var message = request.SafeUrl.SearchParams.ForceGet("message");
+            var position = request.SafeUrl.SearchParams.Get("position");
             var durationType = duration switch
             {
                 string d when d.ToUpper() is "LONG" => ToastController.ToastDuration.LONG,

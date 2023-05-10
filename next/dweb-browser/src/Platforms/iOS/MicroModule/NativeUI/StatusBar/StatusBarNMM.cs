@@ -24,13 +24,13 @@ public class StatusBarNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/setState", async (request, ipc) =>
         {
             var controller = _getController(ipc.Remote.Mmid);
-            QueryHelper.QueryColor(request)?.Also(it =>
+            request.QueryColor("color")?.Also(it =>
                 controller.ColorState.Update(cache => cache = it));
-            QueryHelper.QueryStyle(request)?.Also(it =>
+            request.QueryStyle("style")?.Also(it =>
                 controller.StyleState.Update(cache => cache = it));
-            QueryHelper.QueryOverlay(request)?.Also(it =>
+            request.QueryBool("overlay")?.Also(it =>
                 controller.OverlayState.Update(cache => cache = it));
-            QueryHelper.QueryVisible(request)?.Also(it =>
+            request.QueryBool("visible")?.Also(it =>
                 controller.VisibleState.Update(cache => cache = it));
             return null;
         });

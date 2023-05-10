@@ -60,13 +60,13 @@ public static class MessageToIpcMessage
                     IpcReqMessage.FromJson(data).Let(it =>
                     {
                         return new IpcRequest(
-                            it!.ReqId, it.Url, it.Method, IpcHeaders.With(it.Headers), new IpcBodyReceiver(it.MetaBody, ipc), ipc);
+                            it!.ReqId, it.Url, it.Method, IpcHeaders.With(it.Headers), IpcBodyReceiver.From(it.MetaBody, ipc), ipc);
                     }),
                 IPC_MESSAGE_TYPE.RESPONSE =>
                     IpcResMessage.FromJson(data).Let(it =>
                     {
                         return new IpcResponse(
-                            it!.ReqId, it.StatusCode, IpcHeaders.With(it.Headers), new IpcBodyReceiver(it.MetaBody, ipc), ipc);
+                            it!.ReqId, it.StatusCode, IpcHeaders.With(it.Headers), IpcBodyReceiver.From(it.MetaBody, ipc), ipc);
                     }),
                 IPC_MESSAGE_TYPE.EVENT => IpcEvent.FromJson(data)!,
                 IPC_MESSAGE_TYPE.STREAM_DATA => IpcStreamData.FromJson(data)!,

@@ -31,9 +31,9 @@ public class ClipboardNMM : NativeMicroModule
 
         HttpRouter.AddRoute(IpcMethod.Get, "/write", async (request, _) =>
         {
-            var text = request.QueryValidate<string>("string", false);
-            var image = request.QueryValidate<string>("image", false);
-            var url = request.QueryValidate<string>("url", false);
+            var text = request.QueryString("string");
+            var image = request.QueryString("image");
+            var url = request.QueryString("url");
             Console.Log("/write", "string: {0}, image: {1}, url: {2}", text, image, url);
 
             if (text is null && image is null && url is null)

@@ -31,10 +31,10 @@ public class VirtualKeyboardNMM : NativeMicroModule
             var searchParams = request.SafeUrl.SearchParams;
             var controller = _getController(ipc.Remote.Mmid);
             
-            QueryHelper.QueryOverlay(request)?.Also(it =>
-                controller.OverlayState.Update(cache => cache = it));
-            QueryHelper.QueryVisible(request)?.Also(it =>
-                controller.VisibleState.Update(cache => cache = it));
+            //QueryHelper.QueryOverlay(request)?.Also(it =>
+            //    controller.OverlayState.Update(cache => cache = it));
+            //QueryHelper.QueryVisible(request)?.Also(it =>
+            //    controller.VisibleState.Update(cache => cache = it));
 
             return null;
         });
