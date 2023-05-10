@@ -53,7 +53,8 @@ public class AppDelegate : UIApplicationDelegate
         var localeNmm = new TestNMM();
         Func<PureRequest, Task<PureResponse>> httpHanlder = async (request) =>
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Authority is "localhost:20222")
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.FullHost
+             is "localhost:20222")
             {
                 if (parsedUrl.Path.StartsWith(HttpNMM.X_DWEB_HREF))
                 {
@@ -94,7 +95,7 @@ public class AppDelegate : UIApplicationDelegate
         };
         NativeFetch.NativeFetchAdaptersManager.Append(async (mm, request) =>
         {
-            if (request.ParsedUrl?.Host is "test.sys.dweb")
+            if (request.ParsedUrl?.Hostname is "test.sys.dweb")
             {
                 return await httpHanlder(request);
             }

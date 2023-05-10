@@ -106,7 +106,7 @@ public class DnsNMM : NativeMicroModule
                 });
             });
 
-            Console.Log("_connectTo","new MM => {0}", _mmConnectsMap.GetValueOrDefault(new MM(fromMM.Mmid, toMmid)));
+            Console.Log("_connectTo", "new MM => {0}", _mmConnectsMap.GetValueOrDefault(new MM(fromMM.Mmid, toMmid)));
         }
 
         return wait.WaitPromiseAsync();
@@ -168,10 +168,8 @@ public class DnsNMM : NativeMicroModule
          */
         var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.Host.EndsWith(".dweb"))
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is var mmid && mmid.EndsWith(".dweb"))
             {
-                var mmid = parsedUrl.Host;
-
                 var microModule = _installApps.GetValueOrDefault(mmid);
 
                 if (microModule is not null)

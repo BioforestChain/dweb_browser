@@ -53,7 +53,7 @@ public class URL
         get => uriBuilder.Password;
         set => uriBuilder.Password = value;
     }
-    public string Host
+    public string Hostname
     {
         get => uriBuilder.Host;
         set => uriBuilder.Host = value;
@@ -63,7 +63,8 @@ public class URL
         get => uriBuilder.Port;
         set => uriBuilder.Port = value;
     }
-    public string Authority => Uri.Authority;
+    private LazyBox<string> _fullHost => new();
+    public string FullHost => _fullHost.GetOrPut(() => uriBuilder.Uri.GetFullAuthority());
     public string Path
     {
         get => Uri.AbsolutePath;

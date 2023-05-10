@@ -21,26 +21,17 @@ public partial class DWebView : WKWebView
         public string scheme;
         public static string GetScheme(Uri url)
         {
-            return GetScheme(GetHost(url));
+            return GetScheme(url.GetFullAuthority());
         }
         public static string GetScheme(string host)
         {
             return host.Replace(":", "+");
         }
-        public static string GetHost(Uri url)
-        {
-            var host = url.Authority;
-            if (host.Contains(":") is false)
-            {
-                host += url.Scheme is "https" ? ":443" : ":80";
-            }
-            return host;
-        }
         public DwebSchemeHandler(MicroModule microModule, Uri url)
         {
             this.microModule = microModule;
             this.baseUri = url;
-            this.host = GetHost(url);
+            this.host = url.GetFullAuthority();
             this.scheme = GetScheme(host);
         }
 

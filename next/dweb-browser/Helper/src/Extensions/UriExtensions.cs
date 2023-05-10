@@ -20,24 +20,24 @@ public static class UriExtensions
     //     return query[name];
     // }
 
-    // public static string GetFullAuthority(this Uri self, string hostOrAuthority)
-    // {
-    //     var authority1 = hostOrAuthority;
+    public static string GetFullAuthority(this Uri self, string? maybeHost = null)
+    {
+        maybeHost ??= self.Authority;
 
-    //     if (!authority1.Contains(':'))
-    //     {
-    //         if (self.Scheme == "http")
-    //         {
-    //             authority1 += ":80";
-    //         }
-    //         else if (self.Scheme == "https")
-    //         {
-    //             authority1 += ":443";
-    //         }
-    //     }
+        if (!maybeHost.Contains(':'))
+        {
+            if (self.Scheme == "http")
+            {
+                maybeHost += ":80";
+            }
+            else if (self.Scheme == "https")
+            {
+                maybeHost += ":443";
+            }
+        }
 
-    //     return authority1;
-    // }
+        return maybeHost;
+    }
 
     // public static Uri SetSchema(this Uri self, string schema) =>
     //     new(self.AbsoluteUri.Replace(self.Scheme, schema));
