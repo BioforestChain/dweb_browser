@@ -3,6 +3,10 @@ using System.Text.Json.Serialization;
 using DwebBrowser.MicroService.Sys.Mwebview;
 using Foundation;
 using AngleSharp.Io;
+using DwebBrowser.Helper;
+using DwebBrowser.MicroService.Http;
+using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Http;
 
 #nullable enable
 
@@ -21,9 +25,9 @@ public class ShareNMM : NativeMicroModule
         /// 系统分享
         HttpRouter.AddRoute(IpcMethod.Post, "/share", async (request, ipc) =>
         {
-            var title = request.QueryValidate<string>("title", false);
-            var text = request.QueryValidate<string>("text", false);
-            var url = request.QueryValidate<string>("url", false);
+            var title = request.QueryString("title");
+            var text = request.QueryString("text");
+            var url = request.QueryString("url");
             var formData = await _parsePostFormDataAsync(request);
 
             var result = await ShowSharePanel(
@@ -40,53 +44,56 @@ public class ShareNMM : NativeMicroModule
         });
     }
 
-    private async Task<FormData> _parsePostFormDataAsync(HttpRequestMessage request)
+    private async Task<FormData> _parsePostFormDataAsync(PureRequest request)
     {
         var formData = new FormData();
-        var stream = await request.Content.ReadAsStreamAsync();
+        var stream = request.Body.ToStream();
         var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         memoryStream.Position = 0;
 
         // 获取 boundary
-        var contentType = request.Content.Headers.ContentType?.MediaType
-            ?? throw new HttpRequestException(
-                "The request could not be parsed properly without a valid Content-Type header.");
-        var boundary = contentType.Substring(contentType.IndexOf("boundary=") + 9);
-
-        if (boundary is null)
+        if (MediaTypeHeaderValue.TryParse(request.Headers.Get("Content-Type"), out var contentType) is false)
         {
-            throw new HttpRequestException(
-                "The request could not be parsed properly without a valid Content-Type header." +
-                " A correct header would include a boundary parameter");
+            throw new Exception("The request could not be parsed properly without a valid Content-Type header.");
         }
+        //var x = contentType.Bou
 
-        var reader = new StreamReader(memoryStream);
+        //var boundary = contentType.Substring(contentType.IndexOf("boundary=") + 9);
 
-        string? line = null;
-        while ((line = await reader.ReadLineAsync()) != null)
-        {
-            if (line == "--" + boundary)
-            {
-                // 新部分开始,获取name
-                var fieldName = reader.ReadLine();
-                var name = "name=\"";
-                var start = fieldName.IndexOf(name) + name.Length;
-                var end = fieldName.IndexOf("\"", start);
-                var nameString = fieldName.Substring(start, end - start);
+        //if (boundary is null)
+        //{
+        //    throw new HttpRequestException(
+        //        "The request could not be parsed properly without a valid Content-Type header." +
+        //        " A correct header would include a boundary parameter");
+        //}
 
-                // 如果name重复,追加到现有列表
-                if (formData.TryGetValue(nameString, out var value))
-                {
-                    value.Add(_readPartData(reader, boundary));
-                }
-                else
-                {
-                    // 新的name,添加列表
-                    formData[nameString] = new List<string> { _readPartData(reader, boundary) };
-                }
-            }
-        }
+        //var reader = new StreamReader(memoryStream);
+
+        //string? line = null;
+        //while ((line = await reader.ReadLineAsync()) != null)
+        //{
+        //    if (line == "--" + boundary)
+        //    {
+        //        // 新部分开始,获取name
+        //        var fieldName = reader.ReadLine();
+        //        var name = "name=\"";
+        //        var start = fieldName.IndexOf(name) + name.Length;
+        //        var end = fieldName.IndexOf("\"", start);
+        //        var nameString = fieldName.Substring(start, end - start);
+
+        //        // 如果name重复,追加到现有列表
+        //        if (formData.TryGetValue(nameString, out var value))
+        //        {
+        //            value.Add(_readPartData(reader, boundary));
+        //        }
+        //        else
+        //        {
+        //            // 新的name,添加列表
+        //            formData[nameString] = new List<string> { _readPartData(reader, boundary) };
+        //        }
+        //    }
+        //}
 
         return formData;
     }

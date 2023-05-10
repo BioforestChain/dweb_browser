@@ -35,4 +35,5 @@ public static class PureRequestQueryExtensions
 
     public static bool? QueryBool(this PureRequest req, string key) => req.ParsedUrl?.SearchParams.Get(key)?.ToBooleanStrictOrNull();
     public static string? QueryString(this PureRequest req, string key) => req.ParsedUrl?.SearchParams.Get(key);
+    public static string QueryStringRequired(this PureRequest req, string key) => QueryString(req, key) ?? throw new KeyNotFoundException("require query." + key);
 }
