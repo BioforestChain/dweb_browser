@@ -44,8 +44,20 @@ public class MetaBody : IToJsonAble
      * 远端可以发送句柄回来，这样可以省去一些数据的回传延迟。
      * </summary>
      */
+    private string? _metaId;
     [JsonPropertyName("metaId")]
-    public string MetaId = Token.RandomCryptoString(8);
+    public string MetaId
+    {
+        get
+        {
+            if (_metaId is null)
+            {
+                _metaId = Token.RandomCryptoString(8);
+            }
+            return _metaId;
+        }
+        set => _metaId = value;
+    }
 
     //[Obsolete("使用带参数的构造函数", true)]
     public MetaBody()
@@ -179,7 +191,7 @@ public class MetaBody : IToJsonAble
     /// Serialize MetaBody
     /// </summary>
     /// <returns>JSON string representation of the MetaBody</returns>
-    public string ToJson() => JsonSerializer.Serialize(JsonAble());
+    public string ToJson() => JsonSerializer.Serialize(JsonAble(), options: new() { IncludeFields = true });
 
     /// <summary>
     /// Deserialize MetaBody

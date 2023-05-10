@@ -10,6 +10,7 @@
     "sync:android": "deno run -A ./scripts/sync-android.mts",
     "sync:desktop": "deno run -A ./scripts/sync-desktop.mts",
     "sync:next": "deno run -A ./scripts/sync-next.mts",
+    "sync": "deno task sync:android && deno task sync:desktop && deno task sync:next",
     "pub": "deno run -A ./scripts/pub_npm.ts",
     "test": "deno test -A --unstable --no-check  ./test"
   },

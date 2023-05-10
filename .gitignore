@@ -30,3 +30,6 @@ lerna-debug.log*
 
 #plugins
 plugins/build
+
+# bak
+.*.bak

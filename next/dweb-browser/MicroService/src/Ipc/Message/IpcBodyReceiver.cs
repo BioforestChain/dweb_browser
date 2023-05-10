@@ -146,7 +146,7 @@ public class IpcBodyReceiver : IpcBody
             },
             onPull: async args =>
             {
-                var controller = args.Item2;
+                var (_, controller) = args;
                 Console.Log("OnPull", "receiver/StreamPull/{0}/{1} {2}", ipc, controller.Stream, stream_id);
                 if (Interlocked.CompareExchange(ref paused, 1, 0) == 1)
                 {

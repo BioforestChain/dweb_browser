@@ -37,7 +37,7 @@ public class ReadableStreamIpc : Ipc
             },
         };
 
-        Console.Log("PostMessage", "post/{0} {1}", ReadableStream, message.Length);
+        Console.Log("PostMessage", "post/{0} {1:H}", ReadableStream.Stream, data);
         return EnqueueAsync(message.Length.ToByteArray().Combine(message));
     }
 
@@ -64,12 +64,13 @@ public class ReadableStreamIpc : Ipc
 
     //protected event Signal<IpcMessage, ReadableStreamIpc>? _onMessage;
 
-    /**
-     * <summary>
-     * 输入流要额外绑定
-     * </summary>
-     */
-    public void BindIncomeStream(Stream stream)
+    /// <summary>
+    /// 输入流要额外绑定
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <exception cref="Exception"></exception>
+    /// 注意，这里不返回Task，所以这里是async void，属于 Task.Background。
+    public async void BindIncomeStream(Stream stream)
     {
         if (_incomeStream is not null)
         {
@@ -84,46 +85,43 @@ public class ReadableStreamIpc : Ipc
             throw new Exception("还未实现 cbor 的编解码能力");
         }
 
-        Task.Run(async () =>
+        //var reader = new BinaryReader(stream);
+        while (stream.CanRead)
         {
-            //var reader = new BinaryReader(stream);
-            while (stream.CanRead)
+            Console.Log("BindIncomeStream", "waitting/{0}", stream);
+            var size = await stream.ReadIntAsync();
+
+            // 心跳包？
+            if (size <= 0)
             {
-                Console.Log("BindIncomeStream", "waitting/{0:H}", stream);
-                var size = await stream.ReadIntAsync();
-
-                // 心跳包？
-                if (size <= 0)
-                {
-                    continue;
-                }
-
-                var buffer = await stream.ReadBytesAsync(size);
-
-                // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                var message = MessageToIpcMessage.JsonToIpcMessage(buffer, this);
-                Console.Log("BindIncomeStream", "message/{0:H} {1}({2}bytes)", stream, message, size);
-                switch (message)
-                {
-                    case "close":
-                        await Close();
-                        break;
-                    case "ping":
-                        await EnqueueAsync(_PONG_DATA);
-                        break;
-                    case "pong":
-                        Console.Log("BindIncomeStream", "PONG/{0}", stream);
-                        break;
-                    case IpcMessage ipcMessage:
-                        await _OnMessageEmit(ipcMessage, this);
-                        break;
-                    default:
-                        throw new Exception(String.Format("unknown message: {0}", message));
-                }
+                continue;
             }
 
-            Console.Log("BindIncomeStream", "END/{0:H}", stream);
-        });
+            var buffer = await stream.ReadBytesAsync(size);
+
+            // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
+            var message = MessageToIpcMessage.JsonToIpcMessage(buffer, this);
+            Console.Log("BindIncomeStream", "message/{0} {1}({2}bytes)", stream, message, size);
+            switch (message)
+            {
+                case "close":
+                    await Close();
+                    break;
+                case "ping":
+                    await EnqueueAsync(_PONG_DATA);
+                    break;
+                case "pong":
+                    Console.Log("BindIncomeStream", "PONG/{0}", stream);
+                    break;
+                case IpcMessage ipcMessage:
+                    await _OnMessageEmit(ipcMessage, this);
+                    break;
+                default:
+                    throw new Exception(String.Format("unknown message: {0}", message));
+            }
+        }
+
+        Console.Log("BindIncomeStream", "end/{0}", stream);
 
         _incomeStream = stream;
     }

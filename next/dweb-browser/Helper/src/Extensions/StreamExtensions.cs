@@ -8,12 +8,21 @@ public static class StreamExtensions
 {
     public static byte[] ToByteArray(this Stream self)
     {
-        var bytes = new byte[self.Length];
-        if (bytes.Length != self.Read(bytes))
+        IEnumerable<byte> result = new byte[0];
+        foreach (var bytes in self.GetEnumerator())
         {
-            throw new IndexOutOfRangeException();
+            result = result.Concat(bytes);
         }
-        return bytes;
+        return result.ToArray();
+    }
+    public static async Task<byte[]> ToByteArrayAsync(this Stream self)
+    {
+        IEnumerable<byte> result = new byte[0];
+        await foreach (var bytes in self.ReadBytesStream())
+        {
+            result = result.Concat(bytes);
+        }
+        return result.ToArray();
     }
 
     public static BinaryReader GetBinaryReader(this Stream self) =>
@@ -32,15 +41,15 @@ public static class StreamExtensions
     {
         var buffer = new byte[size];
         //return new BinaryReader(self).ReadBytes(size);
-        try
-        {
-            await self.ReadExactlyAsync(buffer);
-            return buffer;
-        }
-        catch (Exception e)
-        {
-            throw;
-        }
+        // try
+        // {
+        await self.ReadExactlyAsync(buffer);
+        return buffer;
+        // }
+        // catch 
+        // {
+        //     throw;
+        // }
     }
 
     public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, long usize = 4096)
@@ -49,6 +58,21 @@ public static class StreamExtensions
         while (true)
         {
             var read = await stream.ReadAtLeastAsync(bytes, 1, false);
+            if (read == 0)
+            {
+                /// 流完成流
+                yield break;
+            }
+            yield return bytes.AsSpan(0, read).ToArray();
+        }
+    }
+
+    public static IEnumerable<byte[]> GetEnumerator(this Stream stream, long usize = 4096)
+    {
+        var bytes = new byte[usize]!;
+        while (true)
+        {
+            var read = stream.ReadAtLeast(bytes, 1, false);
             if (read == 0)
             {
                 /// 流完成流

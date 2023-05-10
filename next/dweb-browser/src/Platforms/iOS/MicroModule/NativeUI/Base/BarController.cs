@@ -66,3 +66,5 @@ public sealed record BarStyle(string style)
     public static BarStyle Default = new("DEFAULT");
 }
 
+
+record class A(string a);

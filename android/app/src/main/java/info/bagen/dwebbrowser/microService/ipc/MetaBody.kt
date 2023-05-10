@@ -9,17 +9,17 @@ import java.util.*
 
 @JsonAdapter(MetaBody::class)
 data class MetaBody(
-  /**
+    /**
      * 类型信息，包含了 编码信息 与 形态信息
      * 编码信息是对 data 的解释
      * 形态信息（流、内联）是对 "是否启用 streamId" 的描述（注意，流也可以内联第一帧的数据）
      */
     val type: IPC_META_BODY_TYPE,
-  val senderUid: Int,
-  val data: Any,
-  val streamId: String? = null,
-  var receiverUid: Int? = null,
-  /**
+    val senderUid: Int,
+    val data: Any,
+    val streamId: String? = null,
+    var receiverUid: Int? = null,
+    /**
      * 唯一id，指代这个数据的句柄
      *
      * 需要使用这个值对应的数据进行缓存操作
@@ -68,7 +68,7 @@ data class MetaBody(
         }
 
         override fun serialize(
-          src: IPC_META_BODY_TYPE, typeOfSrc: Type?, context: JsonSerializationContext?
+            src: IPC_META_BODY_TYPE, typeOfSrc: Type?, context: JsonSerializationContext?
         ) = JsonPrimitive(src.type)
 
         override fun deserialize(
@@ -120,10 +120,10 @@ data class MetaBody(
         )
 
         fun fromBinary(
-          senderIpc: Ipc,
-          data: ByteArray,
-          streamId: String? = null,
-          receiverUid: Int? = null,
+            senderIpc: Ipc,
+            data: ByteArray,
+            streamId: String? = null,
+            receiverUid: Int? = null,
         ) = if (senderIpc.supportBinary) fromBinary(
             senderIpc.uid, data, streamId, receiverUid
         ) else fromBase64(
@@ -145,7 +145,7 @@ data class MetaBody(
     }
 
     override fun serialize(
-      src: MetaBody, typeOfSrc: Type, context: JsonSerializationContext
+        src: MetaBody, typeOfSrc: Type, context: JsonSerializationContext
     ) = JsonObject().also { jsonObject ->
         with(src.jsonAble) {
             jsonObject.add("type", context.serialize(type))
@@ -183,6 +183,7 @@ private fun JsonObject.getElementOrNull(key: String): JsonElement? {
         null
     else value
 }
+
 private fun JsonObject.getStringOrNull(key: String) = getElementOrNull(key)?.asString
 
 private fun JsonObject.getIntOrNull(key: String) = getElementOrNull(key)?.asInt

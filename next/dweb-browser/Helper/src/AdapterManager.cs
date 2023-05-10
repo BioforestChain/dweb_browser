@@ -7,6 +7,12 @@ public class AdapterManager<T> where T: notnull
 
 	public IEnumerable<T> Adapters { get => _orderAdapters; }
 
+	/// <summary>
+	///	
+	/// </summary>
+	/// <param name="adapter"></param>
+	/// <param name="order"></param> 越大排序越靠后
+	/// <returns></returns>
 	public Func<bool> Append(T adapter, int order = 0)
 	{
 		_adapterOrderMap[adapter] = order;

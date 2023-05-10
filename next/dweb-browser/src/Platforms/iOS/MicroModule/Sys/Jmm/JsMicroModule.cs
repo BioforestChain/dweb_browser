@@ -1,9 +1,8 @@
 ﻿
 using System.Net;
 using System.Text.Json;
-//using Microsoft.Maui.Controls;
-using System.Security.Cryptography;
-
+using DwebBrowser.MicroService.Http;
+using static DwebBrowser.MicroService.Message.IpcBodySender;
 // https://learn.microsoft.com/zh-cn/dotnet/csharp/nullable-references
 #nullable enable
 
@@ -73,20 +72,21 @@ public class JsMicroModule : MicroModule
         streamIpc.OnRequest += async (request, ipc, _) =>
         {
             var response = request.Uri.AbsolutePath.EndsWith("/")
-                ? new HttpResponseMessage(HttpStatusCode.Forbidden)
+                ? new PureResponse(HttpStatusCode.Forbidden)
                 : await NativeFetchAsync(Metadata.Server.Root + request.Uri.AbsolutePath);
 
-            await ipc.PostMessageAsync(await IpcResponse.FromResponse(request.ReqId, response, ipc));
+            await ipc.PostMessageAsync(response.ToIpcResponse(request.ReqId, ipc));
         };
 
-        var createIpcReq = new HttpRequestMessage(
-            HttpMethod.Post,
-            new Uri("file://js.sys.dweb/create-process")
-                .AppendQuery("entry", Metadata.Server.Entry)
-                .AppendQuery("process_id", Pid));
-        createIpcReq.Content = new StreamContent(streamIpc.ReadableStream.Stream);
-        var createIpcRes = await NativeFetchAsync(createIpcReq);
-        streamIpc.BindIncomeStream(await createIpcRes.StreamAsync());
+        var createIpc_req = new PureRequest(
+
+            new URL("file://js.sys.dweb/create-process")
+                .SearchParamsSet("entry", Metadata.Server.Entry)
+                .SearchParamsSet("process_id", Pid).Href,
+            IpcMethod.Post,
+            Body: new PureStreamBody(streamIpc.ReadableStream.Stream));
+        var createIpc_res = await NativeFetchAsync(createIpc_req);
+        streamIpc.BindIncomeStream(createIpc_res.Body.ToStream());
 
         return streamIpc;
     }
@@ -101,26 +101,26 @@ public class JsMicroModule : MicroModule
          * 拿到与js.sys.dweb模块的直连通道，它会将 Worker 中的数据带出来
          */
         var connectResult = await bootstrapContext.Dns.ConnectAsync("js.sys.dweb");
-        var jsIpc = connectResult.IpcForFromMM;
+        var fetchIpc = connectResult.IpcForFromMM;
 
         // 监听关闭事件
         _onCloseJsProcess += async (_) =>
         {
             await streamIpc.Close();
-            await jsIpc.Close();
+            await fetchIpc.Close();
         };
 
         /**
          * 这里 jmm 的对于 request 的默认处理方式是将这些请求直接代理转发出去
          * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
          */
-        jsIpc.OnRequest += async (ipcRequest, ipc, _) =>
+        fetchIpc.OnRequest += async (ipcRequest, ipc, _) =>
         {
             try
             {
-                var request = ipcRequest.ToRequest();
-                var response = await NativeFetchAsync(request);
-                var ipcResponse = await IpcResponse.FromResponse(ipcRequest.ReqId, response, ipc);
+                var pureRequest = ipcRequest.ToPureRequest();
+                var pureResponse = await NativeFetchAsync(pureRequest);
+                var ipcResponse = pureResponse.ToIpcResponse(ipcRequest.ReqId, ipc);
                 await ipc.PostMessageAsync(ipcResponse);
             }
             catch (Exception ex)
@@ -134,7 +134,7 @@ public class JsMicroModule : MicroModule
         /**
          * 收到 Worker 的事件，如果是指令，执行一些特定的操作
          */
-        jsIpc.OnEvent += async (ipcEvent, _, _) =>
+        fetchIpc.OnEvent += async (ipcEvent, _, _) =>
         {
             /**
              * 收到要与其它模块进行ipc连接的指令
@@ -174,12 +174,14 @@ public class JsMicroModule : MicroModule
 
     private Dictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
 
-    /**
-     * <summary>
-     * 桥接ipc到js内部：
-     * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
-     * </summary>
-     */
+
+    /// <summary>
+    /// 桥接ipc到js内部：
+    /// 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
+    /// </summary>
+    /// <param name="fromMmid"></param>
+    /// <param name="targetIpc">如果填充了该参数，说明 targetIpc 是别人用于通讯的对象，那么我们需要主动将 targetIpc与originIpc进行桥接；如果没有填充，我们返回的 originIpc 可以直接与 Worker 通讯</param>
+    /// <returns></returns>
     private PromiseOut<Ipc> _ipcBridge(Mmid fromMmid, Ipc? targetIpc = null) =>
         _fromMmid_originIpc_map.GetValueOrPut(fromMmid, () =>
             new PromiseOut<Ipc>().Also(async po =>
@@ -190,14 +192,13 @@ public class JsMicroModule : MicroModule
                      * 向js模块发起连接
                      */
                     var portId = await (await NativeFetchAsync(
-                        new Uri("file://js.sys.dweb/create-ipc")
-                        .AppendQuery("process_id", Pid).AppendQuery("mmid", fromMmid)))
-                        .IntAsync();
+                        new URL("file://js.sys.dweb/create-ipc")
+                        .SearchParamsSet("process_id", Pid).SearchParamsSet("mmid", fromMmid)))
+                        .IntAsync() ?? throw new Exception("invalid Native2JsIpc.PortId");
 
                     var originIpc = new Native2JsIpc(portId, this);
                     // 同样要被生命周期管理销毁
-                    await BeConnectAsync(originIpc, new HttpRequestMessage(HttpMethod.Get,
-                        String.Format("file://{0}/event/dns/connect", Mmid)));
+                    await BeConnectAsync(originIpc, new PureRequest(String.Format("file://{0}/event/dns/connect", Mmid), IpcMethod.Get));
 
                     /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，
                     /// 包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理

@@ -1,4 +1,6 @@
-﻿namespace DwebBrowser.MicroService.Core;
+﻿using DwebBrowser.MicroService.Http;
+
+namespace DwebBrowser.MicroService.Core;
 
 public abstract partial class MicroModule : Ipc.MicroModuleInfo
 {
@@ -97,20 +99,14 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
      * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
      * </summary>
      */
-    public event Signal<Ipc, HttpRequestMessage>? OnConnect;
+    public event Signal<Ipc, PureRequest>? OnConnect;
 
     /**
      * <summary>
      * 尝试连接到指定对象
      * </summary>
      */
-    //public Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null) =>
-    //    _bootstrapContext!.Dns.Let(it =>
-    //    {
-    //        it.BootstrapAsync(mmid);
-    //        return it.ConnectAsync(mmid);
-    //    });
-    public async Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null)
+    public async Task<ConnectResult> ConnectAsync(Mmid mmid, PureRequest? reason = null)
     {
         await _bootstrapContext!.Dns.BootstrapAsync(mmid);
         return await _bootstrapContext!.Dns.ConnectAsync(mmid);
@@ -122,7 +118,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
      * 收到一个连接，触发相关事件
      * </summary>
      */
-    public Task BeConnectAsync(Ipc ipc, HttpRequestMessage reason)
+    public Task BeConnectAsync(Ipc ipc, PureRequest reason)
     {
         _ipcSet.Add(ipc);
         ipc.OnClose += async (_) => _ipcSet.Remove(ipc);

@@ -6,6 +6,7 @@ using DwebBrowser.Helper;
 using System.Text.Json;
 using WebKit;
 using DwebBrowser.MicroService.Sys.Http;
+using DwebBrowser.MicroService.Http;
 
 
 #nullable enable
@@ -16,14 +17,12 @@ public class JsProcessNMM : NativeMicroModule
 {
     public JsProcessNMM() : base("js.sys.dweb")
     {
-        _LAZY_JS_PROCESS_WORKER_CODE = new Lazy<string>(() =>
-            Task.Run(async () => await (await NativeFetchAsync("file:///bundle/js-process.worker.js")).TextAsync()).Result);
     }
 
-    private Lazy<string> _LAZY_JS_PROCESS_WORKER_CODE;
+    private LazyBox<string> _LAZY_JS_PROCESS_WORKER_CODE = new();
     private string _JS_PROCESS_WORKER_CODE
     {
-        get => _LAZY_JS_PROCESS_WORKER_CODE.Value;
+        get => _LAZY_JS_PROCESS_WORKER_CODE.GetOrPut(() => NativeFetchAsync("file:///bundle/js-process.worker.js").Result.Body.ToUtf8String());
     }
 
     private Dictionary<string, string> _CORS_HEADERS = new()
@@ -39,13 +38,6 @@ public class JsProcessNMM : NativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        // 将本地资源文件读取添加到适配器中
-        var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (mm, request) =>
-        {
-            return await LocaleFile.LocaleFileFetch(mm, request);
-        });
-        _onAfterShutdown += async (_) => { cb(); };
-
         /// 主页的网页服务
         var mainServer = await (await CreateHttpDwebServer(new DwebHttpServerOptions())).AlsoAsync(async server =>
         {
@@ -89,19 +81,12 @@ public class JsProcessNMM : NativeMicroModule
                     /// 加入跨域支持
                     foreach (var (key, value) in _CORS_HEADERS)
                     {
-                        if (key is "Content-Type")
-                        {
-                            continue;
-                        }
-                        else if (!response.Headers.Contains(key))
-                        {
-                            response.Headers.TryAddWithoutValidation(key, value);
-                        }
+                        response.Headers.Init(key, value);
                     }
 
-                    var res = await IpcResponse.FromResponse(request.ReqId, response, ipc);
+                    var ipcReponse = response.ToIpcResponse(request.ReqId, ipc);
 
-                    await ipc.PostMessageAsync(res);
+                    await ipc.PostMessageAsync(ipcReponse);
                 }
             };
         });
@@ -118,10 +103,12 @@ public class JsProcessNMM : NativeMicroModule
         /// request 需要携带一个流，来为 web worker 提供代码服务
         HttpRouter.AddRoute(IpcMethod.Post, "/create-process", async (request, ipc) =>
         {
+            var searchParams = request.SafeUrl.SearchParams;
+            _ = ipc ?? throw new Exception("no found ipc");
             processIpcMap.Add(ipc.Remote.Mmid, ipc);
             PromiseOut<int> po = null!;
 
-            var processId = request.QueryValidate<string>("process_id")!;
+            var processId = searchParams.ForceGet("process_id");
             lock (ipcProcessIdMap)
             {
                 var processIdMap = ipcProcessIdMap.GetValueOrPut(ipc, () =>
@@ -143,7 +130,7 @@ public class JsProcessNMM : NativeMicroModule
                 apis,
                 bootstrap_url,
                 request,
-                request.QueryValidate<string>("entry", false));
+                searchParams.Get("entry"));
 
             // 将自定义的 processId 与 真实的 js-process_id 进行关联
             po.Resolve(result.processHandler.Info.ProcessId);
@@ -155,13 +142,14 @@ public class JsProcessNMM : NativeMicroModule
         /// 创建 web 通讯管道
         HttpRouter.AddRoute(IpcMethod.Get, "/create-ipc", async (request, ipc) =>
         {
-            var processId = request.QueryValidate<string>("process_id")!;
+            var searchParams = request.SafeUrl.SearchParams;
+            var processId = searchParams.ForceGet("process_id");
 
             /**
              * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
              * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
              */
-            var mmid = request.QueryValidate<string>("mmid")!;
+            var mmid = searchParams.ForceGet("mmid");
 
             int process_id;
             if (!ipcProcessIdMap.TryGetValue(ipc, out var processIdMap) || !processIdMap.TryGetValue(processId, out var po))
@@ -220,7 +208,7 @@ public class JsProcessNMM : NativeMicroModule
         Ipc ipc,
         JsProcessWebApi apis,
         string bootstrap_url,
-        HttpRequestMessage requestMessage,
+        PureRequest requestMessage,
         string? entry)
     {
         /**
@@ -231,10 +219,8 @@ public class JsProcessNMM : NativeMicroModule
         /**
          * 远端是代码服务，所以这里是 client 的身份
          */
-        var streamIpc = await new ReadableStreamIpc(ipc.Remote, "code-proxy-server").AlsoAsync(async it =>
-        {
-            it.BindIncomeStream(await requestMessage.Content.ReadAsStreamAsync());
-        });
+        var streamIpc = new ReadableStreamIpc(ipc.Remote, "code-proxy-server");
+        streamIpc.BindIncomeStream(requestMessage.Body.ToStream());
 
         /**
          * 代理监听
@@ -246,24 +232,20 @@ public class JsProcessNMM : NativeMicroModule
 
         codeProxyServerIpc.OnRequest += async (request, ipc, _) =>
         {
-            await ipc.PostResponseAsync(
+            await ipc.PostPureResponseAsync(
                 request.ReqId,
                 // 转发给远端来处理
                 // TODO：对代码进行翻译处理
-                (await streamIpc.Request(request.ToRequest())).Let(it =>
+                (await streamIpc.Request(request)).Let(it =>
                 {
                     /// 加入跨域配置
                     var response = it;
                     foreach (var (key, value) in _CORS_HEADERS)
                     {
-                        if (key is "Content-Type")
-                        {
-                            continue;
-                        }
-                        response.Headers.Add(key, value);
+                        response.Headers.Init(key, value);
                     }
 
-                    return response;
+                    return response.ToPureResponse();
                 }));
         };
 
@@ -295,13 +277,12 @@ public class JsProcessNMM : NativeMicroModule
          */
         processHandler.Ipc.OnMessage += async (workerIpcMessage, _, _) =>
         {
-            /**
-             * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
-             */
+            /// 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
             await ipc.PostMessageAsync(workerIpcMessage);
         };
         ipc.OnMessage += async (remoteIpcMessage, _, _) =>
         {
+            /// 将远端的响应，发回给 Worker-IPC
             await processHandler.Ipc.PostMessageAsync(remoteIpcMessage);
         };
 

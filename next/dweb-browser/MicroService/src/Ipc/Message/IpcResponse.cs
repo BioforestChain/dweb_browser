@@ -18,11 +18,16 @@ public class IpcResponse : IpcMessage
         Headers = headers;
         Body = body;
         Ipc = ipc;
+
+        if(body is IpcBodySender ipcBodySender)
+        {
+            IpcBodySender.IPC.UsableByIpc(ipc, ipcBodySender);
+        }
     }
 
     // TODO: FromJson 未完成
-    public static IpcResponse FromJson(int req_id, int statusCode, IpcHeaders headers, object jsonAble, Ipc ipc) =>
-        FromText(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "application/json")), jsonAble.ToString(), ipc);
+    public static IpcResponse FromJson(int req_id, int statusCode, IpcHeaders headers, IToJsonAble jsonAble, Ipc ipc) =>
+        FromText(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "application/json")), jsonAble.ToJson(), ipc);
     public static IpcResponse FromText(int req_id, int statusCode, IpcHeaders headers, string text, Ipc ipc) =>
         new IpcResponse(req_id, statusCode, headers.Also(it =>
             it.Init("Content-Type", "text/plain")), IpcBodySender.FromText(text, ipc), ipc);
@@ -47,60 +52,6 @@ public class IpcResponse : IpcMessage
             IpcBodySender.FromStream(stream, ipc),
             ipc);
 
-    public static async Task<IpcResponse> FromResponse(int req_id, HttpResponseMessage response, Ipc ipc) =>
-        new IpcResponse(
-            req_id,
-            (int)response.StatusCode,
-            new IpcHeaders(response.Headers, response.Content.Headers),
-            response.Content switch
-            {
-                StringContent stringContent => IpcBodySender.FromText(await stringContent.ReadAsStringAsync(), ipc),
-                ByteArrayContent byteArrayContent => IpcBodySender.FromBinary(await byteArrayContent.ReadAsByteArrayAsync(), ipc),
-                StreamContent streamContent => IpcBodySender.FromStream(await streamContent.ReadAsStreamAsync(), ipc),
-                null => IpcBodySender.FromText("", ipc),
-                _ => response.Content.ToString() switch
-                {
-                    "System.Net.Http.EmptyContent" => IpcBodySender.FromText("", ipc),
-                    _ => await response.Content.ReadAsStreamAsync().Let(async streamTask =>
-                    {
-                        var stream = await streamTask;
-                        try
-                        {
-                            if (stream.Length == 0)
-                            {
-                                return IpcBodySender.FromText("", ipc);
-                            }
-                        }
-                        catch
-                        { // ignore error
-                        }
-                        return IpcBodySender.FromStream(stream, ipc);
-                    })
-                }
-            },
-            ipc);
-
-    public HttpResponseMessage ToResponse() =>
-        new HttpResponseMessage((HttpStatusCode)StatusCode).Also(it =>
-        {
-            switch (Body.Raw)
-            {
-                case string body:
-                    it.Content = new StringContent(body);
-                    break;
-                case byte[] body:
-                    it.Content = new ByteArrayContent(body);
-                    break;
-                case Stream body:
-                    it.Content = new StreamContent(body);
-                    break;
-                default:
-                    throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
-            }
-
-            Headers.ToHttpMessage(it.Headers, it.Content.Headers);
-        });
-
     public IpcResMessage LazyIpcResMessage
     {
         get
@@ -109,7 +60,7 @@ public class IpcResponse : IpcMessage
                 new IpcResMessage(
                     ReqId,
                     StatusCode,
-                    Headers.GetEnumerator().ToDictionary(k => k.Key, v => v.Value),
+                    Headers.ToDictionary(),
                     Body.MetaBody)), true).Value;
         }
     }
@@ -128,7 +79,9 @@ public class IpcResMessage : IpcMessage
     public MetaBody MetaBody { get; set; }
 
     [Obsolete("使用带参数的构造函数", true)]
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     public IpcResMessage() : base(IPC_MESSAGE_TYPE.RESPONSE)
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     {
         /// 给JSON反序列化用的空参数构造函数
     }
@@ -139,7 +92,6 @@ public class IpcResMessage : IpcMessage
         Headers = headers;
         MetaBody = metaBody;
     }
-
 
     public IpcResMessage JsonAble() => MetaBody.JsonAble().Let(metaBody =>
     {

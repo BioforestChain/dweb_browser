@@ -4,5 +4,6 @@ global using System.Diagnostics;
 global using Xunit.Abstractions;
 
 global using DwebBrowser.MicroService;
+global using DwebBrowser.MicroService.Http;
 global using DwebBrowser.Helper;
 global using DwebBrowser.MicroService.Message;

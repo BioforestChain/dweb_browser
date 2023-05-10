@@ -1,4 +1,5 @@
 ﻿
+using DwebBrowser.MicroService.Http;
 using static DwebBrowser.MicroService.Sys.Http.Gateway;
 
 namespace DwebBrowser.MicroService.Core;
@@ -20,46 +21,46 @@ public class HttpRouter
         _routes.Clear();
     }
 
-    public async Task RouterHandler(HttpListenerContext context, Ipc? ipc = null)
-    {
-        var request = context.Request;
-        var response = context.Response;
+    // public async Task RouterHandler(HttpListenerContext context, Ipc? ipc = null)
+    // {
+    //     var request = context.Request;
+    //     var response = context.Response;
 
-        var result = await RouterHandler(request.ToHttpRequestMessage(), ipc);
+    //     var result = await RouterHandler(request.ToHttpRequestMessage(), ipc);
 
-        if (result is not null && response is not null)
-        {
-            switch (result)
-            {
-                case HttpResponseMessage res:
-                    (await res.ToHttpListenerResponse(response)).Close();
-                    break;
-                case byte[] byteResult:
-                    response.StatusCode = (int)HttpStatusCode.OK;
-                    Stream outputStream = response.OutputStream;
-                    outputStream.Write(byteResult, 0, byteResult.Length);
-                    outputStream.Close();
-                    response.Close();
-                    break;
-                case Stream stream:
-                    response.StatusCode = (int)HttpStatusCode.OK;
-                    stream.CopyTo(response.OutputStream);
-                    response.Close();
-                    break;
-                default:
-                    response.StatusCode = (int)HttpStatusCode.OK;
-                    response.Close();
-                    break;
-            }
-        }
-        else
-        {
-            response!.StatusCode = (int)HttpStatusCode.NotFound;
-            response.Close();
-        }
-    }
+    //     if (result is not null && response is not null)
+    //     {
+    //         switch (result)
+    //         {
+    //             case HttpResponseMessage res:
+    //                 (await res.ToHttpListenerResponse(response)).Close();
+    //                 break;
+    //             case byte[] byteResult:
+    //                 response.StatusCode = (int)HttpStatusCode.OK;
+    //                 Stream outputStream = response.OutputStream;
+    //                 outputStream.Write(byteResult, 0, byteResult.Length);
+    //                 outputStream.Close();
+    //                 response.Close();
+    //                 break;
+    //             case Stream stream:
+    //                 response.StatusCode = (int)HttpStatusCode.OK;
+    //                 stream.CopyTo(response.OutputStream);
+    //                 response.Close();
+    //                 break;
+    //             default:
+    //                 response.StatusCode = (int)HttpStatusCode.OK;
+    //                 response.Close();
+    //                 break;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         response!.StatusCode = (int)HttpStatusCode.NotFound;
+    //         response.Close();
+    //     }
+    // }
 
-    public async Task<object?> RouterHandler(HttpRequestMessage request, Ipc? ipc)
+    public async Task<object?> RouterHandler(PureRequest request, Ipc? ipc)
     {
         foreach (var (route, handler) in _routes)
         {
@@ -73,24 +74,17 @@ public class HttpRouter
         return null;
     }
 
-    public async Task<HttpResponseMessage> RoutesWithContext(HttpRequestMessage request, Ipc ipc)
+    public async Task<PureResponse> RoutesWithContext(PureRequest request, Ipc ipc)
     {
         object? res;
         return (res = await RouterHandler(request, ipc)) switch
         {
-            null => new HttpResponseMessage(HttpStatusCode.OK),
-            HttpResponseMessage response => response,
-            byte[] result => new HttpResponseMessage(HttpStatusCode.OK).Also(it =>
-                            {
-                                //it.Content = new StreamContent(new MemoryStream().Let(s =>
-                                //{
-                                //    s.Write(result, 0, result.Length);
-                                //    return s;
-                                //}));
-                                it.Content = new ByteArrayContent(result);
-                            }),
-            Stream stream => new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StreamContent(stream)),
-            _ => NativeMicroModule.ResponseRegistry.Handler(res),
+            null => new PureResponse(HttpStatusCode.OK),
+            PureResponse pureResponse => pureResponse,
+            byte[] byteArrayData => new PureResponse(HttpStatusCode.OK, Body: new PureByteArrayBody(byteArrayData)),
+            Stream streamData => new PureResponse(HttpStatusCode.OK, Body: new PureStreamBody(streamData)),
+            string stringData => new PureResponse(HttpStatusCode.OK, Body: new PureUtf8StringBody(stringData)),
+            _ => ResponseRegistry.Handler(res),
         };
     }
 }

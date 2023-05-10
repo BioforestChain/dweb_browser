@@ -1,34 +1,52 @@
-﻿namespace DwebBrowser.MicroService.Http;
+﻿
+namespace DwebBrowser.MicroService.Http;
 
 public record PureRequest(
     string Url,
     IpcMethod Method,
-    IpcHeaders Headers,
-    PureBody Body
+    IpcHeaders? Headers = null,
+    PureBody? Body = null
 )
 {
-    public HttpRequestMessage ToHttpRequestMessage()
+    static Debugger Console = new("PureRequest");
+
+    public IpcHeaders Headers = Headers ?? new();
+    public PureBody Body = Body ?? PureBody.Empty;
+
+    string _url = Url;
+    public string Url
     {
-        var repuest = new HttpRequestMessage(Method.ToHttpMethod(), Url);
-
-        switch (Body.Raw)
+        get => _url;
+        set
         {
-            case string body:
-                repuest.Content = new StringContent(body);
-                break;
-            case byte[] body:
-                repuest.Content = new ByteArrayContent(body);
-                break;
-            case Stream body:
-                repuest.Content = new StreamContent(body);
-                break;
-            case null:
-                break;
-            default:
-                throw new Exception(String.Format("invalid body to request: {0}", Body.Raw));
+            if (_url != value)
+            {
+                _url = value;
+                _ParsedUrl.Reset();
+            }
         }
-
-        Headers.ToHttpMessage(repuest.Headers, repuest.Content?.Headers);
-        return repuest;
     }
+
+    LazyBox<URL?> _ParsedUrl = new();
+    public URL? ParsedUrl
+    {
+        get => _ParsedUrl.GetOrPut(() =>
+        {
+            if (Uri.TryCreate(Url, UriKind.Absolute, out var parsedUrl) is false)
+            {
+                Console.Log("ParsedUrl", "TryParse Failed: {0}", Url);
+                return null;
+            }
+            return new URL(parsedUrl);
+        });
+        set
+        {
+            if (value?.Uri.AbsoluteUri is var new_url && _url != new_url)
+            {
+                _url = new_url ?? "";
+                _ParsedUrl.SetValue(value);
+            };
+        }
+    }
+    public URL SafeUrl { get => ParsedUrl ?? throw new FormatException("invalid url: " + Url); }
 }

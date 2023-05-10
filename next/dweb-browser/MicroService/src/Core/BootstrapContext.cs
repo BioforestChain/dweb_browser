@@ -1,4 +1,6 @@
 ﻿
+using DwebBrowser.MicroService.Http;
+
 namespace DwebBrowser.MicroService.Core;
 
 public interface IBootstrapContext
@@ -43,7 +45,7 @@ public interface IDnsMicroModule
      * 与其它应用建立连接
      * </summary>
      */
-    public Task<ConnectResult> ConnectAsync(Mmid mmid, HttpRequestMessage? reason = null);
+    public Task<ConnectResult> ConnectAsync(Mmid mmid, PureRequest? reason = null);
 
     /**
      * <summary>

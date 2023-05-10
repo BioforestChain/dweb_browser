@@ -59,19 +59,23 @@ async function open(www_server_internal_origin, apiServerUrlInfo, ipcRequest, ip
   );
 }
 async function open_download(www_server_internal_origin, apiServerUrlInfo, ipcRequest, ipc2) {
-  const _url = `http://download.sys.dweb-80.localhost:22605`;
-  const webview_id = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(_url)}`).text();
-  const metaDataJsonUrl = ipcRequest.parsed_url.searchParams.get("url");
+  const metadataUrl = ipcRequest.parsed_url.searchParams.get("url");
+  if (metadataUrl === null)
+    throw new Error("metadataUrl === null");
+  const appInfo = JSON.stringify(await (await fetch(metadataUrl)).json());
+  const webview_url = `http://download.sys.dweb-80.localhost:22605`;
+  const webview_id = await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(webview_url)}`).text();
   const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`;
   const init = {
     body: `
       (() => {
-        setContentByMateDataJsonUrl('${metaDataJsonUrl}');
+        setAppInfoByAppInfo('${appInfo}');
+        globalThis.metadataUrl = "${metadataUrl}"
       })()
     `,
     method: "POST",
     headers: {
-      "webview_url": _url
+      "webview_url": webview_url
     }
   };
   const request = new Request(url, init);

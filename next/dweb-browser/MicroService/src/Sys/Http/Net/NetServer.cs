@@ -1,5 +1,4 @@
-﻿
-namespace DwebBrowser.MicroService.Sys.Http.Net;
+﻿namespace DwebBrowser.MicroService.Sys.Http.Net;
 
 public interface IProtocol
 {
@@ -76,24 +75,22 @@ public static class NetServer
             while (true)
             {
                 var context = await listener.GetContextAsync();
-                _ = Task.Run(async () =>
+                Task.Run(async () =>
                 {
                     var request = context.Request;
-                    var response = context.Response;
+                    using var response = context.Response;
                     try
                     {
-
-                        var result = await handler(request.ToHttpRequestMessage());
-                        (await result.ToHttpListenerResponse(response)).Close();
+                        var pureRequest = request.ToPureRequest();
+                        var pureReponse = await handler(pureRequest);
+                        await pureReponse.WriteToHttpListenerResponse(response);
                     }
                     catch (Exception e)
                     {
                         response.OutputStream.Write(e.Message.ToUtf8ByteArray());
                         response.StatusCode = 502;
-                        response.Close();
                     }
-                });
-
+                }).Background();
             }
         });
 

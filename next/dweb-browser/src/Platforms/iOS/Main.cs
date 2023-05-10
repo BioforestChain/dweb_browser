@@ -24,6 +24,7 @@ public class MicroService
 {
     public static async Task<DnsNMM> Start()
     {
+        LocaleFile.Init();
         var dnsNMM = new DnsNMM();
         /// 安装系统应用
         var jsProcessNMM = new JsProcessNMM().InstallBy(dnsNMM);
