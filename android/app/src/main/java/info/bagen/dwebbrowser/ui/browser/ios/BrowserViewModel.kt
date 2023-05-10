@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -21,6 +22,8 @@ import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.datastore.DefaultAllWebEngine
+import info.bagen.dwebbrowser.datastore.WebEngine
 import info.bagen.dwebbrowser.datastore.WebsiteDB
 import info.bagen.dwebbrowser.microService.browser.BrowserController
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM
@@ -59,6 +62,7 @@ data class BrowserUIState @OptIn(
   ),
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
+  val showSearchView: MutableState<Boolean> = mutableStateOf(false), // 用于显示搜索的界面，也就是点击搜索框后界面
 )
 
 sealed class BrowserIntent {
@@ -88,7 +92,7 @@ enum class ListType {
   History, Book
 }
 
-class BrowserViewModel(private val browserController: BrowserController) : ViewModel() {
+class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
   val uiState: BrowserUIState
 
   companion object {
@@ -121,7 +125,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     }
   }
 
-  private fun getNewTabBrowserView(url: String? = null): BrowserBaseView {
+  fun getNewTabBrowserView(url: String? = null): BrowserWebView {
     // return info.bagen.dwebbrowser.ui.entity.BrowserMainView() // 打开原生的主界面
     // 打开webview
     val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
@@ -327,6 +331,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
 
   fun saveLastKeyword(url: String) {
     App.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
+    uiState.inputText.value = url
   }
 
   val isShowKeyboard
@@ -370,8 +375,53 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
   ) {
     // super.onReceivedError(view, request, error)
     if (error?.errorCode == -2 && App.appContext.getString(KEY_LAST_SEARCH_KEY) == request?.url?.toString()) { // net::ERR_NAME_NOT_RESOLVED
-      val param = request?.url?.let { uri -> "?text=${uri.host}${uri.path}" } ?: ""
+      val param = request.url?.let { uri -> "?text=${uri.host}${uri.path}" } ?: ""
       view?.loadUrl("file:///android_asset/error.html$param")
     }
+  }
+}
+
+/**
+ * 根据内容解析成需要显示的内容
+ */
+internal fun parseInputText(text: String, needHost: Boolean = true): String {
+  val uri = Uri.parse(text)
+  for (item in DefaultAllWebEngine) {
+    if (item.fit(text)) return uri.getQueryParameter(item.queryName())!!
+  }
+  return if (needHost && uri.host?.isNotEmpty() == true) {
+    uri.host!!
+  } else if (uri.getQueryParameter("text")?.isNotEmpty() == true) {
+    uri.getQueryParameter("text")!!
+  } else {
+    text
+  }
+}
+
+/**
+ * 根据内容来判断获取引擎
+ */
+internal fun findWebEngine(url: String): WebEngine? {
+  for (item in DefaultAllWebEngine) {
+    if (item.fit(url)) return item
+  }
+  return null
+}
+
+internal fun String.isUrlOrHost(): Boolean {
+  // 只判断 host(长度1~63,结尾是.然后带2~6个字符如[.com]，没有端口判断)：val regex = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}\$".toRegex()
+  // 以 http 或者 https 或者 ftp 打头，可以没有
+  // 字符串中只能包含数字和字母，同时可以存在-
+  // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
+  val regex =
+    "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
+  return regex.matches(this)
+}
+
+internal fun String.toRequestUrl(): String {
+  return if (this.startsWith("http://") || this.startsWith("https://") || this.startsWith("ftp://")) {
+    this
+  } else {
+    "https://$this"
   }
 }

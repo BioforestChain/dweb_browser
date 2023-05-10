@@ -45,7 +45,6 @@ object WebsiteDB {
       }
     }.map { pref ->
       val map = mutableMapOf<String, MutableList<WebSiteInfo>>()
-      var index = 0
       pref.asMap().forEach { (key, value) ->
         // map[key.name] = gson.fromJson((value as String), object : TypeToken<MutableList<WebSiteInfo>>() {}.type)
         map.getOrPut(key.name.toLong().toMapKey()) {
@@ -60,6 +59,7 @@ object WebsiteDB {
 
   fun saveHistoryWebsiteInfo(webSiteInfo: WebSiteInfo) = runBlocking(ioAsyncExceptionHandler) {
     // edit 函数需要在挂起环境中执行
+    if (webSiteInfo.url.startsWith("file:///android_asset")) return@runBlocking
     App.appContext.dataStoreHistory.edit { pref ->
       val timeMillis = webSiteInfo.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
       webSiteInfo.timeMillis = timeMillis
@@ -102,6 +102,7 @@ object WebsiteDB {
 
   fun saveBookWebsiteInfo(webSiteInfo: WebSiteInfo) = runBlocking(ioAsyncExceptionHandler) {
     // edit 函数需要在挂起环境中执行
+    if (webSiteInfo.url.startsWith("file:///android_asset")) return@runBlocking
     App.appContext.dataStoreBook.edit { pref ->
       val timeMillis = webSiteInfo.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
       webSiteInfo.timeMillis = timeMillis

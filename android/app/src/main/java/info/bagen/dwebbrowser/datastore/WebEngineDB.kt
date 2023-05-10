@@ -1,0 +1,105 @@
+package info.bagen.dwebbrowser.datastore
+
+import android.content.Context
+import android.net.Uri
+import androidx.datastore.core.DataStore
+import androidx.datastore.core.IOException
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.helper.gson
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import io.ktor.util.date.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
+
+/**
+ * 该文件主要定义搜索引擎和引擎默认值，以及配置存储
+ */
+
+data class WebEngine(
+  val name: String,
+  val host: String,
+  val format: String,
+  var timeMillis: String = "",
+) {
+  fun fit(url: String) : Boolean {
+    val current = Uri.parse(String.format(format, "test"))
+    val query = current.queryParameterNames.first()
+    val uri = Uri.parse(url)
+    return uri.host == current.host && uri.path == current.path && uri.getQueryParameter(query) != null
+  }
+
+  fun queryName() : String {
+    val current = Uri.parse(String.format(format, "test"))
+    return current.queryParameterNames.first()
+  }
+}
+
+internal val DefaultSearchWebEngine: List<WebEngine>
+  get() = listOf(
+    WebEngine("百度", "m.baidu.com", "https://m.baidu.com/s?word=%s"),
+    WebEngine("搜狗", "wap.sogou.com", "https://wap.sogou.com/web/searchList.jsp?keyword=%s"),
+    WebEngine("360", "m.so.com", "https://m.so.com/s?q=%s"),
+  )
+
+internal val DefaultAllWebEngine: List<WebEngine>
+  get() = listOf(
+    WebEngine("必应"   , "cn.bing.com"     , "https://cn.bing.com/search?q=%s"),
+    WebEngine("百度"   , "m.baidu.com"     , "https://m.baidu.com/s?word=%s"),
+    WebEngine("百度"   , "www.baidu.com"   , "https://www.baidu.com/s?wd=%s"),
+    WebEngine("谷歌"   , "www.google.com"  , "https://www.google.com/search?q=%s"),
+    WebEngine("搜狗"   , "wap.sogou.com"   , "https://wap.sogou.com/web/searchList.jsp?keyword=%s"),
+    WebEngine("搜狗"   , "www.sogou.com"   , "https://www.sogou.com/web?query=%s"),
+    WebEngine("360搜索", "m.so.com"        , "https://m.so.com/s?q=%s"),
+    WebEngine("360搜索", "www.so.com"      , "https://www.so.com/s?q=%s"),
+    WebEngine("雅虎"   , "search.yahoo.com", "https://search.yahoo.com/search?p=%s")
+  )
+
+object WebEngineDB {
+  private const val PREFERENCE_NAME_WebEngine = "WebEngine"
+  private val Context.dataStoreWebEngine: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME_WebEngine)
+
+  suspend fun queryBookWebsiteInfoList(): Flow<MutableList<WebEngine>> {
+    return App.appContext.dataStoreWebEngine.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
+      if (e is IOException) {
+        e.printStackTrace()
+        emit(emptyPreferences())
+      } else {
+        throw e
+      }
+    }.map { pref ->
+      val list = mutableListOf<WebEngine>()
+      pref.asMap().forEach { (_, value) ->
+        val webSiteInfo = gson.fromJson((value as String), WebEngine::class.java)
+        list.add(webSiteInfo)
+      }
+      list
+    }
+  }
+
+  fun saveBookWebsiteInfo(webEngine: WebEngine) = runBlocking(ioAsyncExceptionHandler) {
+    // edit 函数需要在挂起环境中执行
+    App.appContext.dataStoreWebEngine.edit { pref ->
+      val timeMillis = webEngine.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
+      pref[stringPreferencesKey(timeMillis)] = gson.toJson(webEngine)
+    }
+  }
+
+  fun deleteBookWebsiteInfo(webEngine: WebEngine) = runBlocking(ioAsyncExceptionHandler) {
+    App.appContext.dataStoreWebEngine.edit { pref ->
+      pref.remove(stringPreferencesKey(webEngine.timeMillis))
+    }
+  }
+
+  fun clearBookWebsiteInfo() = runBlocking(ioAsyncExceptionHandler) {
+    App.appContext.dataStoreWebEngine.edit { pref ->
+      pref.clear()
+    }
+  }
+}

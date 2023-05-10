@@ -19,6 +19,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
@@ -37,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.LoadingState
@@ -55,6 +58,7 @@ internal val dimenShadowElevation = 4.dp
 internal val dimenHorizontalPagerHorizontal = 20.dp
 internal val dimenBottomHeight = 100.dp
 internal val dimenSearchHeight = 40.dp
+internal val dimenNavigationHeight = 40.dp
 internal val dimenMinBottomHeight = 20.dp
 
 private val bottomEnterAnimator = slideInVertically(animationSpec = tween(300),//动画时长1s
@@ -87,26 +91,25 @@ fun BrowserView(viewModel: BrowserViewModel) {
     }
   }
 
-  BottomSheetScaffold(
-    modifier = Modifier.navigationBarsPadding(),
+  BottomSheetScaffold(modifier = Modifier.navigationBarsPadding(),
     scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
     sheetPeekHeight = LocalConfiguration.current.screenHeightDp.dp / 2,
     sheetContent = {
       Box(modifier = Modifier.navigationBarsPadding()) {
         BrowserPopView(viewModel)       // 用于处理弹出框
       }
-    }
-  ) {
+    }) {
     Box(
       modifier = Modifier
         .statusBarsPadding()
         .navigationBarsPadding()
     ) {
       BrowserViewContent(viewModel)   // 中间主体部分
-      BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
+      // BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
       BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
       // BrowserPopView(viewModel)    // 用于处理弹出框
       BrowserMultiPopupView(viewModel)// 用于显示多界面
+      BrowserSearchView(viewModel)
     }
     if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.isVisible) {
       Box(modifier = Modifier
@@ -171,9 +174,7 @@ fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
   }
 
   Text(
-    text = inputText,
-    fontSize = 12.sp,
-    modifier = Modifier.align(Alignment.CenterHorizontally)
+    text = inputText, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally)
   )
 }
 
@@ -234,7 +235,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .height(dimenSearchHeight)
+      .height(dimenNavigationHeight)
   ) {
     val navigator = when (val item = viewModel.uiState.currentBrowserBaseView.value) {
       is BrowserWebView -> item.navigator
@@ -250,11 +251,9 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       resName = R.string.browser_nav_forward,
       show = navigator?.canGoForward ?: false
     ) { navigator?.navigateForward() }
-    NavigatorButton(
-      resId = R.drawable.ic_main_add, // navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
+    NavigatorButton(resId = R.drawable.ic_main_add, // navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
       resName = navigator?.let { R.string.browser_nav_add } ?: R.string.browser_nav_scan,
-      show = navigator?.let { true } ?: false
-    ) {
+      show = navigator?.let { true } ?: false) {
       navigator?.let {
         viewModel.handleIntent(BrowserIntent.AddNewMainView)
       }
@@ -324,20 +323,20 @@ private fun SearchBox(
   viewModel: BrowserViewModel,
   baseView: BrowserBaseView,
 ) {
-  Box(
-    modifier = Modifier
-      .padding(
-        horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
-      )
-      .fillMaxWidth()
-      .shadow(
-        elevation = dimenShadowElevation,
-        shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
-      )
-      .height(dimenSearchHeight)
-      .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
-      .background(MaterialTheme.colorScheme.background)
-  ) {
+  Box(modifier = Modifier
+    .padding(
+      horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
+    )
+    .fillMaxWidth()
+    .shadow(
+      elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
+    )
+    .height(dimenSearchHeight)
+    .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
+    .background(MaterialTheme.colorScheme.background)
+    .clickable {
+      viewModel.uiState.showSearchView.value = true
+    }) {
     val inputText = when (baseView) {
       is BrowserWebView -> {
         ShowLinearProgressIndicator(baseView)
@@ -345,8 +344,38 @@ private fun SearchBox(
       }
       else -> mutableStateOf("")
     }
-    SearchTextField(viewModel, inputText, baseView.focus)
-    // SearchText(inputText, showCamera, baseView.focus, focusRequester)
+    //SearchTextField(viewModel, inputText, baseView.focus)
+    val search =
+      if (inputText.value.isEmpty() || inputText.value.startsWith("file:///android_asset/dweb/")) {
+        Triple(
+          stringResource(id = R.string.browser_search_hint),
+          TextAlign.Start,
+          Icons.Default.Search
+        )
+      } else {
+        Triple(
+          parseInputText(inputText.value) ?: inputText.value,
+          TextAlign.Center,
+          Icons.Default.FormatSize
+        )
+      }
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 10.dp)
+        .align(Alignment.Center),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Icon(search.third, contentDescription = "Search")
+      Spacer(modifier = Modifier.width(5.dp))
+      Text(
+        text = search.first,
+        textAlign = search.second,
+        fontSize = dimenTextFieldFontSize,
+        maxLines = 1,
+        modifier = Modifier.weight(1f)
+      )
+    }
   }
 }
 
@@ -408,7 +437,7 @@ private fun SearchTextField(
         val text = if (!it.isFocused || inputText.value.startsWith("file:///android_asset/dweb/")) {
           ""
         } else {
-          parseInputText(inputText.value, host = false) ?: inputText.value
+          parseInputText(inputText.value, needHost = false) ?: inputText.value
         }
         currentText.value = text
         viewModel.handleIntent(BrowserIntent.UpdateInputText(text))
@@ -425,14 +454,11 @@ private fun SearchTextField(
         ImeAction.Done
       }
     ),
-    keyboardActions = KeyboardActions(
-      onDone = { keyboardController?.hide() },
-      onSearch = {
-        if (currentText.value.isEmpty()) return@KeyboardActions
-        viewModel.handleIntent(BrowserIntent.SearchWebView(currentText.value.toRequestUrl()))
-        focusManager.clearFocus()
-      }
-    )
+    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }, onSearch = {
+      if (currentText.value.isEmpty()) return@KeyboardActions
+      viewModel.handleIntent(BrowserIntent.SearchWebView(currentText.value.toRequestUrl()))
+      focusManager.clearFocus()
+    })
   ) { innerTextField ->
     Box {
       Surface(modifier = Modifier.align(Alignment.Center)) {
@@ -454,9 +480,7 @@ private fun SearchTextField(
             val pair = if (focus.value && currentText.value.isEmpty()) {
               Pair(stringResource(id = R.string.browser_search_hint), Alignment.CenterStart)
             } else if (!focus.value) {
-              if (inputText.value.isEmpty() ||
-                inputText.value.startsWith("file:///android_asset/dweb/")
-              ) {
+              if (inputText.value.isEmpty() || inputText.value.startsWith("file:///android_asset/dweb/")) {
                 Pair(stringResource(id = R.string.browser_search_hint), Alignment.CenterStart)
               } else {
                 parseInputText(inputText.value)?.let { text ->
@@ -489,65 +513,6 @@ private fun SearchTextField(
                 })
           }
         }
-      }
-    }
-  }
-}
-
-private fun String.isUrlOrHost(): Boolean {
-  // 只判断 host(长度1~63,结尾是.然后带2~6个字符如[.com]，没有端口判断)：val regex = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}\$".toRegex()
-  // 以 http 或者 https 或者 ftp 打头，可以没有
-  // 字符串中只能包含数字和字母，同时可以存在-
-  // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
-  val regex =
-    "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
-  return regex.matches(this)
-}
-
-private fun String.toRequestUrl(): String {
-  return if (this.startsWith("http://") || this.startsWith("https://") || this.startsWith("ftp://")) {
-    this
-  } else {
-    "https://$this"
-  }
-}
-
-/**
- * 根据内容来判断
- */
-private fun parseInputText(text: String, host: Boolean = true): String? {
-  val uri = Uri.parse(text)
-  return when {
-    uri.host == "cn.bing.com" && uri.path == "/search" && uri.getQueryParameter("q") != null -> {
-      uri.getQueryParameter("q")
-    }
-    uri.host == "m.baidu.com" && uri.path == "/s" && uri.getQueryParameter("word") != null -> {
-      uri.getQueryParameter("word")
-    }
-    uri.host == "www.baidu.com" && uri.path == "/s" && uri.getQueryParameter("wd") != null -> {
-      uri.getQueryParameter("wd")
-    }
-    uri.host == "www.google.com" && uri.path == "/search" && uri.getQueryParameter("q") != null -> {
-      uri.getQueryParameter("q")
-    }
-    uri.host == "wap.sogou.com" && uri.path == "/web/searchList.jsp" && uri.getQueryParameter("keyword") != null -> {
-      uri.getQueryParameter("keyword")
-    }
-    uri.host == "www.sogou.com" && uri.path == "/web" && uri.getQueryParameter("query") != null -> {
-      uri.getQueryParameter("query")
-    }
-    (uri.host == "m.so.com" || uri.host == "www.so.com") && uri.path == "/s" && uri.getQueryParameter(
-      "q"
-    ) != null -> {
-      uri.getQueryParameter("q")
-    }
-    else -> {
-      if (host && uri.host?.isNotEmpty() == true) {
-        uri.host
-      } else if (uri.getQueryParameter("text")?.isNotEmpty() == true) {
-        uri.getQueryParameter("text")
-      } else {
-        text
       }
     }
   }
