@@ -28,7 +28,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/open", async (request, ipc) =>
         {
             var url = request.QueryValidate<string>("url")!;
-            var remoteMM = ipc.AsRemoteInstance() ?? throw new Exception("mwebview.sys.dweb/open should be call by locale");
+            var remoteMM = ipc?.AsRemoteInstance() ?? throw new Exception("mwebview.sys.dweb/open should be call by locale");
 
             var viewItem = await _openDwebViewAsync(remoteMM, url);
             return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StringContent(viewItem.webviewId));
@@ -46,7 +46,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         // 界面没有关闭，用于重新唤醒
         HttpRouter.AddRoute(IpcMethod.Get, "/activate", async (request, ipc) =>
         {
-            var remoteMmid = ipc.Remote.Mmid;
+            var remoteMmid = ipc!.Remote.Mmid;
             var webViewId = request.QueryValidate<string>("webview_id")!;
 
             Console.Log("REOPEN-WEBVIEW", "remote-mmid: {0} ==> {1}", remoteMmid, webViewId);
@@ -56,7 +56,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         });
     }
 
-    public async override void OpenActivity(string remoteMmid)
+    public async override void OpenActivity(Mmid remoteMmid)
     {
         if (s_controllerMap.TryGetValue(remoteMmid, out var controller))
         {

@@ -22,7 +22,7 @@ public class ToastNMM: NativeMicroModule
             };
             var positionType = position switch
             {
-                string p when p.ToUpper() is "Top" => ToastController.ToastPosition.TOP,
+                string p when p.ToUpper() is "TOP" => ToastController.ToastPosition.TOP,
                 string p when p.ToUpper() is "CENTER" => ToastController.ToastPosition.CENTER,
                 _ => ToastController.ToastPosition.BOTTOM
             };

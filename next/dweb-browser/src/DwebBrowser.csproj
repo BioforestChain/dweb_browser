@@ -65,6 +65,7 @@
 	  <None Remove="Platforms\iOS\MicroModule\Plugin\" />
 	  <None Remove="Platforms\iOS\MicroModule\Plugin\Clipboard\" />
 	  <None Remove="Platforms\iOS\MicroModule\Plugin\Toast\" />
+	  <None Remove="Platforms\iOS\MicroModule\Plugin\Share\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -93,6 +94,7 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Clipboard\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Toast\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Share\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />
