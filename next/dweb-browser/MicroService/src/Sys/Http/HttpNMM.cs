@@ -174,7 +174,7 @@ public class HttpNMM : NativeMicroModule
         {
             if (request.ParsedUrl is not null and var parsedUrl &&
                 parsedUrl.Scheme is "http" or "https" &&
-                parsedUrl.FullHost.EndsWith(".dweb"))
+                parsedUrl.Hostname.EndsWith(".dweb"))
             {
                 // 无需走网络层，直接内部处理掉
                 if (request.Headers.Has(X_DWEB_HOST) is false)

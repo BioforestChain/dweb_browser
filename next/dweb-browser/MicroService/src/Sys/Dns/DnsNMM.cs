@@ -168,7 +168,7 @@ public class DnsNMM : NativeMicroModule
          */
         var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is var mmid && mmid.EndsWith(".dweb"))
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.Hostname is var mmid && mmid.EndsWith(".dweb"))
             {
                 var microModule = _installApps.GetValueOrDefault(mmid);
 

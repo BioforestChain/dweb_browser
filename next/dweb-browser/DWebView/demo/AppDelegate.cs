@@ -53,8 +53,7 @@ public class AppDelegate : UIApplicationDelegate
         var localeNmm = new TestNMM();
         Func<PureRequest, Task<PureResponse>> httpHanlder = async (request) =>
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.FullHost
-             is "localhost:20222")
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.FullHost is "localhost:20222")
             {
                 if (parsedUrl.Path.StartsWith(HttpNMM.X_DWEB_HREF))
                 {
