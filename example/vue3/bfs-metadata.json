@@ -1,0 +1,15 @@
+{
+  "name":"demo",
+  "subName":"vue3-demo",
+  "introduction":"这是一个实例应用，包含了dweb_plugins全部组件的实例。",
+  "icon":"https://www.bfmeta.info/imgs/logo3.webp",
+  "images": [
+    "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
+    "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
+    "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
+    ],
+  "author": ["bfs","bfs@bfs.com"],
+  "version": "1.0.0",
+  "keywords": ["demo","vue3"],
+  "home": "https://github.com/BioforestChain/dweb_browser/tree/main/example/vue3"
+}
