@@ -18,11 +18,16 @@ public class IpcResponse : IpcMessage
         Headers = headers;
         Body = body;
         Ipc = ipc;
+
+        if(body is IpcBodySender ipcBodySender)
+        {
+            IpcBodySender.IPC.UsableByIpc(ipc, ipcBodySender);
+        }
     }
 
     // TODO: FromJson 未完成
-    public static IpcResponse FromJson(int req_id, int statusCode, IpcHeaders headers, object jsonAble, Ipc ipc) =>
-        FromText(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "application/json")), jsonAble.ToString(), ipc);
+    public static IpcResponse FromJson(int req_id, int statusCode, IpcHeaders headers, IToJsonAble jsonAble, Ipc ipc) =>
+        FromText(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "application/json")), jsonAble.ToJson(), ipc);
     public static IpcResponse FromText(int req_id, int statusCode, IpcHeaders headers, string text, Ipc ipc) =>
         new IpcResponse(req_id, statusCode, headers.Also(it =>
             it.Init("Content-Type", "text/plain")), IpcBodySender.FromText(text, ipc), ipc);
@@ -87,7 +92,6 @@ public class IpcResMessage : IpcMessage
         Headers = headers;
         MetaBody = metaBody;
     }
-
 
     public IpcResMessage JsonAble() => MetaBody.JsonAble().Let(metaBody =>
     {

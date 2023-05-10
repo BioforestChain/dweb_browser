@@ -63,51 +63,50 @@ public class DnsNMM : NativeMicroModule
              */
             wait = _mmConnectsMap.GetValueOrPut(mmKey, () =>
             {
-                return new PromiseOut<ConnectResult>().Also(po =>
+                return new PromiseOut<ConnectResult>().Also(async po =>
                 {
-                    Task.Run(async () =>
+                    Console.Log("ConnectTo", "DNS/opening {0} => {1}", fromMM.Mmid, toMmid);
+                    var toMM = await Open(toMmid);
+                    Console.Log("ConnectTo", "DNS/connect {0} => {1}", fromMM.Mmid, toMmid);
+                    var connectResult = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
+                    connectResult.IpcForFromMM.OnClose += async (_) =>
                     {
-                        Console.Log("ConnectTo", "DNS/opening {0} => {1}", fromMM.Mmid, toMmid);
-                        var toMM = await Open(toMmid);
-                        Console.Log("ConnectTo", "DNS/connect {0} => {1}", fromMM.Mmid, toMmid);
-                        var connectResult = await NativeConnect.ConnectMicroModulesAsync(fromMM, toMM, reason);
-                        connectResult.IpcForFromMM.OnClose += async (_) =>
+                        lock (_mmConnectsMap)
                         {
-                            lock (_mmConnectsMap)
-                            {
-                                _mmConnectsMap.Remove(mmKey);
-                            }
-                        };
-                        po.Resolve(connectResult);
-
-                        /// 如果可以，反向存储
-                        if (connectResult.IpcForToMM is not null)
-                        {
-                            var mmkey2 = MM.From(toMmid, fromMM.Mmid);
-                            lock (_mmConnectsMap)
-                            {
-                                _mmConnectsMap.GetValueOrPut(mmkey2, () =>
-                                {
-                                    return new PromiseOut<ConnectResult>().Also(po2 =>
-                                    {
-                                        var connectResult2 = new ConnectResult(
-                                        connectResult.IpcForToMM, connectResult.IpcForFromMM);
-
-                                        connectResult2.IpcForFromMM.OnClose += async (_) =>
-                                        {
-                                            lock (_mmConnectsMap)
-                                            {
-                                                _mmConnectsMap.Remove(mmkey2);
-                                            }
-                                        };
-                                        po2.Resolve(connectResult2);
-                                    });
-                                });
-                            }
+                            _mmConnectsMap.Remove(mmKey);
                         }
-                    }).Background();
+                    };
+                    po.Resolve(connectResult);
+
+                    /// 如果可以，反向存储
+                    if (connectResult.IpcForToMM is not null)
+                    {
+                        var mmkey2 = MM.From(toMmid, fromMM.Mmid);
+                        lock (_mmConnectsMap)
+                        {
+                            _mmConnectsMap.GetValueOrPut(mmkey2, () =>
+                            {
+                                return new PromiseOut<ConnectResult>().Also(po2 =>
+                                {
+                                    var connectResult2 = new ConnectResult(
+                                    connectResult.IpcForToMM, connectResult.IpcForFromMM);
+
+                                    connectResult2.IpcForFromMM.OnClose += async (_) =>
+                                    {
+                                        lock (_mmConnectsMap)
+                                        {
+                                            _mmConnectsMap.Remove(mmkey2);
+                                        }
+                                    };
+                                    po2.Resolve(connectResult2);
+                                });
+                            });
+                        }
+                    }
                 });
             });
+
+            Console.Log("_connectTo","new MM => {0}", _mmConnectsMap.GetValueOrDefault(new MM(fromMM.Mmid, toMmid)));
         }
 
         return wait.WaitPromiseAsync();

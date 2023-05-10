@@ -99,29 +99,14 @@ public static class LocaleFile
 
 
                 PureBody responseBody;
-                var ipcHeaders = new IpcHeaders().Set("Content-Length", fs.Length.ToString());
+                var ipcHeaders = new IpcHeaders()
+                    .Set("Content-Length", fs.Length.ToString())
+                    .Set("Content-Type", GetMimeType(filename));
 
                 // buffer 模式，就是直接全部读取出来
                 // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍，如果分片次数少于2次，那么就直接发送，没必要分片
                 if (mode is "stream")
                 {
-                    Task.Run(async () =>
-                    {
-                        var fs = File.OpenRead(absoluteFile);
-                        var z = new StreamContent(fs, (int)fs.Length);
-                        var s = await z.ReadAsStreamAsync();
-                        Task.Run(async () =>
-                        {
-                            await Task.Delay(1000);
-                            Console.Log("LocaleFileFetch", "Start Read Test: {0}", s);
-                            await foreach (var data in s.ReadBytesStream(chunk))
-                            {
-                                Console.Log("LocaleFileFetch", "Read Test: {0}", data.Length);
-                            }
-                            Console.Log("LocaleFileFetch", "End Read Test: {0}", s);
-                        }).Background();
-
-                    }).Background();
                     /// 返回流
                     responseBody = new PureStreamBody(fs);
                 }

@@ -5,6 +5,7 @@ using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Http;
 using DwebBrowser.MicroService.Message;
 using DwebBrowser.MicroService.Sys.Http;
+using Foundation;
 using WebKit;
 
 namespace DwebBrowser.DWebView;
@@ -128,18 +129,23 @@ public partial class DWebView : WKWebView
                 urlSchemeTask.DidReceiveResponse(nsResponse);
 
                 // 写入响应体：将响应体发送到urlSchemeTask
-                var nsData = pureResponse.Body switch
+                switch (pureResponse.Body)
                 {
-                    PureStreamBody streamBody => NSData.FromStream(streamBody.Data),
-                    PureUtf8StringBody stringBody => NSData.FromString(stringBody.Data),
-                    PureEmptyBody => null,
-                    PureBody body => NSData.FromArray(body.ToByteArray()),
-                    _ => null
+                    case PureEmptyBody: break;
+                    case PureStreamBody streamBody:
+                        await foreach (var chunk in streamBody.Data.ReadBytesStream())
+                        {
+                            urlSchemeTask.DidReceiveData(NSData.FromArray(chunk));
+                        }
+                        break;
+                    case PureBody body:
+                        var data = body.ToByteArray();
+                        if (data.Length > 0)
+                        {
+                            urlSchemeTask.DidReceiveData(NSData.FromArray(data));
+                        }
+                        break;
                 };
-                if (nsData is not null)
-                {
-                    urlSchemeTask.DidReceiveData(nsData);
-                }
 
                 /// 写入完成
                 urlSchemeTask.DidFinish();

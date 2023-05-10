@@ -132,21 +132,20 @@ public abstract class Ipc
 
         OnMessage += async (ipcMessage, ipc, _) =>
         {
-            if (ipcMessage is IpcRequest ipcRequest)
+            switch (ipcMessage)
             {
-                OnRequest?.Emit(ipcRequest, ipc); // 不 Await
-            }
-            else if (ipcMessage is IpcResponse ipcResponse)
-            {
-                OnResponse?.Emit(ipcResponse, ipc); // 不 Await
-            }
-            else if (ipcMessage is IpcEvent ipcEvent)
-            {
-                OnEvent?.Emit(ipcEvent, ipc); // 不 Await
-            }
-            else if (ipcMessage is IpcStream ipcStream)
-            {
-                streamChannel.Post((ipcStream, ipc));
+                case IpcRequest ipcRequest:
+                    OnRequest?.Emit(ipcRequest, ipc); // 不 Await
+                    break;
+                case IpcResponse ipcResponse:
+                    OnResponse?.Emit(ipcResponse, ipc); // 不 Await
+                    break;
+                case IpcEvent ipcEvent:
+                    OnEvent?.Emit(ipcEvent, ipc); // 不 Await
+                    break;
+                case IpcStream ipcStream:
+                    streamChannel.Post((ipcStream, ipc));
+                    break;
             }
         };
 

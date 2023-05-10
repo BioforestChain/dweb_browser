@@ -139,6 +139,8 @@ public class IpcBodySender : IpcBody
             }
 
             var streamId = ipcBody.MetaBody.StreamId!;
+            Console.Log("UsableByIpc", "ipc:{0}; streamId:{1}", ipc, streamId);
+
             var usableIpcBodyMapper = s_ipcUsableIpcBodyMap.GetValueOrPut(ipc, () =>
             {
                 var mapper = new UsableIpcBodyMapper(new Dictionary<string, IpcBodySender>());
@@ -339,7 +341,7 @@ public class IpcBodySender : IpcBody
 
 
     private static IpcBody s_fromAny(object raw, Ipc ipc) =>
-        CACHE.Raw_ipcBody_WMap.TryGetValue(raw, out IpcBody ipcBody) ? ipcBody : new IpcBodySender(raw, ipc);
+        CACHE.Raw_ipcBody_WMap.TryGetValue(raw, out var ipcBody) ? ipcBody : new IpcBodySender(raw, ipc);
     public static IpcBody FromText(string raw, Ipc ipc) => FromBinary(raw.ToUtf8ByteArray(), ipc);
     public static IpcBody FromBase64(string raw, Ipc ipc) => s_fromAny(raw, ipc);
     public static IpcBody FromBinary(byte[] raw, Ipc ipc) => s_fromAny(raw, ipc);
@@ -368,7 +370,7 @@ public class IpcBodySender : IpcBody
     /// _streamStatusSignal 作为 BlockBuffer，它只能同时有一个在读取
     /// 所以这里定义一个Signal，分发成事件
     /// </summary>
-    Signal<StreamStatusSignal> streamStatusSignal;
+    Signal<StreamStatusSignal>? streamStatusSignal;
 
     private MetaBody StreamAsMeta(Stream stream, Ipc ipc)
     {
@@ -427,12 +429,14 @@ public class IpcBodySender : IpcBody
 
                     await foreach (var bytes in stream.ReadBytesStream())
                     {
-                        var ipcStreamData = IpcStreamData.FromBinary(stream_id, bytes);
+                        Console.Log("StreamAsMeta", "sender/READ/{0:H} {1} >> {2}", stream, stream_id, bytes.Length);
 
+                        var ipcStreamData = IpcStreamData.FromBinary(stream_id, bytes);
                         foreach (Ipc ipc in _usedIpcMap.Keys)
                         {
                             await ipc.PostMessageAsync(ipcStreamData);
                         }
+                        Console.Log("StreamAsMeta", "sender/WAITTING/{0:H} {1}", stream, stream_id);
                     }
 
                 }
@@ -447,7 +451,7 @@ public class IpcBodySender : IpcBody
                     }
 
                 }
-               
+
             }
         });
 

@@ -219,7 +219,8 @@ public class JsProcessNMM : NativeMicroModule
         /**
          * 远端是代码服务，所以这里是 client 的身份
          */
-        var streamIpc = new ReadableStreamIpc(ipc.Remote, "code-proxy-server").BindIncomeStream(requestMessage.Body.ToStream());
+        var streamIpc = new ReadableStreamIpc(ipc.Remote, "code-proxy-server");
+        streamIpc.BindIncomeStream(requestMessage.Body.ToStream());
 
         /**
          * 代理监听
@@ -276,13 +277,12 @@ public class JsProcessNMM : NativeMicroModule
          */
         processHandler.Ipc.OnMessage += async (workerIpcMessage, _, _) =>
         {
-            /**
-             * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
-             */
+            /// 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
             await ipc.PostMessageAsync(workerIpcMessage);
         };
         ipc.OnMessage += async (remoteIpcMessage, _, _) =>
         {
+            /// 将远端的响应，发回给 Worker-IPC
             await processHandler.Ipc.PostMessageAsync(remoteIpcMessage);
         };
 

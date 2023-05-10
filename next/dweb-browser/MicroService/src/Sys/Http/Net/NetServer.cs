@@ -81,9 +81,9 @@ public static class NetServer
                     using var response = context.Response;
                     try
                     {
-
-                        var result = await handler(request.ToPureRequest());
-                        await result.WriteToHttpListenerResponse(response);
+                        var pureRequest = request.ToPureRequest();
+                        var pureReponse = await handler(pureRequest);
+                        await pureReponse.WriteToHttpListenerResponse(response);
                     }
                     catch (Exception e)
                     {

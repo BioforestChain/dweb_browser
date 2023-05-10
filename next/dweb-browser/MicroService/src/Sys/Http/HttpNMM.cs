@@ -52,10 +52,12 @@ public class HttpNMM : NativeMicroModule
     {
         if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.PathAndQuery.StartsWith(X_DWEB_HREF) is true)
         {
-            request.ParsedUrl = new URL(parsedUrl.PathAndQuery.Substring(X_DWEB_HREF.Length));
-            request.Headers.Set(X_DWEB_HOST, parsedUrl.Authority);
+            if (Uri.TryCreate(parsedUrl.PathAndQuery.Substring(X_DWEB_HREF.Length), new(), out var newUrl))
+            {
+                request.ParsedUrl = new URL(newUrl);
+                request.Headers.Set(X_DWEB_HOST, newUrl.Authority);
+            }
         }
-
 
         string? header_host = null;
         string? header_x_dweb_host = null;

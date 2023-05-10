@@ -65,7 +65,7 @@ static public class HttpMessageExtendsions
         // Create a new HttpRequestMessage object
         var pureRequest = new PureRequest(
             // Set the request URI
-            self.RawUrl ?? "",
+            self.Url?.AbsoluteUri ?? "",
             // Set the request method
             IpcMethod.From(self.HttpMethod),
             new IpcHeaders().Also(ipcHeaders =>
@@ -143,33 +143,31 @@ static public class HttpMessageExtendsions
 
     public static async Task<HttpListenerResponse> WriteToHttpListenerResponse(this PureResponse self, HttpListenerResponse response)
     {
-        using (response)
+        response.StatusCode = (int)self.StatusCode;
+
+        foreach (var header in self.Headers)
         {
-            response.StatusCode = (int)self.StatusCode;
-
-            foreach (var header in self.Headers)
-            {
-                response.Headers[header.Key] = string.Join(",", header.Value);
-            }
-
-            //response.ContentEncoding = self.Headers.Get("Content-Encoding");
-            response.ContentType = self.Headers.Get("Content-Type");
-            response.ContentLength64 = self.Headers.Get("Content-Length")?.ToLongOrNull() ?? 0;
-
-            switch (self.Body)
-            {
-                case PureStreamBody streamBody:
-                    await streamBody.Data.CopyToAsync(response.OutputStream);
-                    break;
-                case PureByteArrayBody byteArrayBody:
-                    await response.OutputStream.WriteAsync(byteArrayBody.Data);
-                    break;
-                case PureUtf8StringBody byteArrayBody:
-                    await response.OutputStream.WriteAsync(byteArrayBody.ToByteArray());
-                    break;
-            }
-
-            return response;
+            response.Headers[header.Key] = string.Join(",", header.Value);
         }
+
+        //response.ContentEncoding = self.Headers.Get("Content-Encoding");
+        //response.ContentType = self.Headers.Get("Content-Type");
+        //response.ContentLength64 = self.Headers.Get("Content-Length")?.ToLongOrNull() ?? 0;
+
+        switch (self.Body)
+        {
+            case PureEmptyBody:
+                break;
+            case PureStreamBody streamBody:
+                await streamBody.Data.CopyToAsync(response.OutputStream);
+                break;
+            //case PureByteArrayBody byteArrayBody:
+            //case PureUtf8StringBody byteArrayBody:
+            default:
+                await response.OutputStream.WriteAsync(self.Body.ToByteArray());
+                break;
+        }
+
+        return response;
     }
 }

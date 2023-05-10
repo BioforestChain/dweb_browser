@@ -22,6 +22,11 @@ public class IpcRequest : IpcMessage
         Ipc = ipc;
 
         Uri = new Uri(url);
+
+        if (body is IpcBodySender ipcBodySender)
+        {
+            IpcBodySender.IPC.UsableByIpc(ipc, ipcBodySender);
+        }
     }
 
     public Uri Uri { get; init; }

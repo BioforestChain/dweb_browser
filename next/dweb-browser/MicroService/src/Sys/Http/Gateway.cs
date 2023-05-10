@@ -53,7 +53,15 @@ public class Gateway
                     return response;
                 }
             }
-
+            /// 缺省的 OPTIONS 处理逻辑
+            if (request.Method == IpcMethod.Options)
+            {
+                return new PureResponse(Headers: new IpcHeaders()
+                    .Set("Access-Control-Allow-Methods", "*")
+                    .Set("Access-Control-Allow-Origin", "*")
+                    .Set("Access-Control-Allow-Headers", "*")
+                );
+            }
             return null;
         }
 
@@ -97,18 +105,7 @@ public class Gateway
             {
                 return await StreamIpc.Request(request);
             }
-            else if (request.Method == IpcMethod.Options)
-            {
-                return new PureResponse(Headers: new IpcHeaders()
-                    .Set("Access-Control-Allow-Methods", "*")
-                    .Set("Access-Control-Allow-Origin", "*")
-                    .Set("Access-Control-Allow-Headers", "*")
-                );
-            }
-            else
-            {
-                return null;
-            }
+            return null;
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text.Json;
 using DwebBrowser.MicroService.Http;
+using static DwebBrowser.MicroService.Message.IpcBodySender;
 // https://learn.microsoft.com/zh-cn/dotnet/csharp/nullable-references
 #nullable enable
 
@@ -100,20 +101,20 @@ public class JsMicroModule : MicroModule
          * 拿到与js.sys.dweb模块的直连通道，它会将 Worker 中的数据带出来
          */
         var connectResult = await bootstrapContext.Dns.ConnectAsync("js.sys.dweb");
-        var jsIpc = connectResult.IpcForFromMM;
+        var fetchIpc = connectResult.IpcForFromMM;
 
         // 监听关闭事件
         _onCloseJsProcess += async (_) =>
         {
             await streamIpc.Close();
-            await jsIpc.Close();
+            await fetchIpc.Close();
         };
 
         /**
          * 这里 jmm 的对于 request 的默认处理方式是将这些请求直接代理转发出去
          * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
          */
-        jsIpc.OnRequest += async (ipcRequest, ipc, _) =>
+        fetchIpc.OnRequest += async (ipcRequest, ipc, _) =>
         {
             try
             {
@@ -133,7 +134,7 @@ public class JsMicroModule : MicroModule
         /**
          * 收到 Worker 的事件，如果是指令，执行一些特定的操作
          */
-        jsIpc.OnEvent += async (ipcEvent, _, _) =>
+        fetchIpc.OnEvent += async (ipcEvent, _, _) =>
         {
             /**
              * 收到要与其它模块进行ipc连接的指令
@@ -173,12 +174,14 @@ public class JsMicroModule : MicroModule
 
     private Dictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
 
-    /**
-     * <summary>
-     * 桥接ipc到js内部：
-     * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
-     * </summary>
-     */
+
+    /// <summary>
+    /// 桥接ipc到js内部：
+    /// 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
+    /// </summary>
+    /// <param name="fromMmid"></param>
+    /// <param name="targetIpc">如果填充了该参数，说明 targetIpc 是别人用于通讯的对象，那么我们需要主动将 targetIpc与originIpc进行桥接；如果没有填充，我们返回的 originIpc 可以直接与 Worker 通讯</param>
+    /// <returns></returns>
     private PromiseOut<Ipc> _ipcBridge(Mmid fromMmid, Ipc? targetIpc = null) =>
         _fromMmid_originIpc_map.GetValueOrPut(fromMmid, () =>
             new PromiseOut<Ipc>().Also(async po =>

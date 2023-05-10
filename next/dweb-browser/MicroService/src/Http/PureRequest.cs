@@ -41,7 +41,11 @@ public record PureRequest(
         });
         set
         {
-            _ParsedUrl.SetValue(value);
+            if (value?.Uri.AbsoluteUri is var new_url && _url != new_url)
+            {
+                _url = new_url ?? "";
+                _ParsedUrl.SetValue(value);
+            };
         }
     }
     public URL SafeUrl { get => ParsedUrl ?? throw new FormatException("invalid url: " + Url); }

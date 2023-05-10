@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Reflection.PortableExecutable;
 
@@ -7,6 +8,9 @@ namespace DwebBrowser.MicroService.Message;
 [JsonConverter(typeof(IpcHeadersConverter))]
 public class IpcHeaders : IEnumerable<KeyValuePair<string, string>>
 {
+    static TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+    public static string NormalizeKey(string key) => textInfo.ToTitleCase(key.ToLower());
+
     private Dictionary<string, string> _headersMap { get; set; }
 
     public IpcHeaders()
@@ -16,15 +20,15 @@ public class IpcHeaders : IEnumerable<KeyValuePair<string, string>>
 
     public IpcHeaders(HttpHeaders headers)
     {
-        _headersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
+        _headersMap = headers.ToDictionary(h => NormalizeKey(h.Key), h => string.Join(",", h.Value));
     }
     public IpcHeaders(IEnumerable<(string, string)> headers)
     {
-        _headersMap = headers.ToDictionary(h => h.Item1, h => h.Item2);
+        _headersMap = headers.ToDictionary(h => NormalizeKey(h.Item1), h => h.Item2);
     }
     public IpcHeaders(IEnumerable<KeyValuePair<string, string>> headers)
     {
-        _headersMap = headers.ToDictionary(h => h.Key, h => h.Value);
+        _headersMap = headers.ToDictionary(h => NormalizeKey(h.Key), h => h.Value);
     }
     public IpcHeaders(HttpHeaders headers, HttpContentHeaders? contentHeaders)
     {
@@ -43,26 +47,27 @@ public class IpcHeaders : IEnumerable<KeyValuePair<string, string>>
 
     public IpcHeaders Set(string key, string value)
     {
-        _headersMap.Add(key.ToLower(), value);
+        _headersMap.Add(NormalizeKey(key), value);
         return this;
     }
 
     public IpcHeaders Init(string key, string value)
     {
+        key = NormalizeKey(key);
         if (!_headersMap.ContainsKey(key))
         {
-            _headersMap.Add(key.ToLower(), value);
+            _headersMap.Add(key, value);
         }
         return this;
     }
 
-    public string? Get(string key) => _headersMap.GetValueOrDefault(key.ToLower());
+    public string? Get(string key) => _headersMap.GetValueOrDefault(NormalizeKey(key));
 
-    public string GetOrDefault(string key, string defaultValue) => _headersMap.GetValueOrDefault(key.ToLower()) ?? defaultValue;
+    public string GetOrDefault(string key, string defaultValue) => _headersMap.GetValueOrDefault(NormalizeKey(key)) ?? defaultValue;
 
-    public bool Has(string key) => _headersMap.ContainsKey(key.ToLower());
+    public bool Has(string key) => _headersMap.ContainsKey(NormalizeKey(key));
 
-    public bool Delete(string key) => _headersMap.Remove(key.ToLower());
+    public bool Delete(string key) => _headersMap.Remove(NormalizeKey(key));
 
     public void ForEach(Action<string, string> fn)
     {
