@@ -52,20 +52,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
-	  <None Remove="Platforms\iOS\MicroModule\NativeUI\StatusBar\" />
-	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Base\" />
-	  <None Remove="Platforms\iOS\MicroModule\NativeUI\VirtualKeyboard\" />
-	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Helper\" />
-	  <None Remove="Platforms\iOS\MicroModule\Plugin\" />
-	  <None Remove="Platforms\iOS\MicroModule\Plugin\Clipboard\" />
-	  <None Remove="Platforms\iOS\MicroModule\Plugin\Toast\" />
-	  <None Remove="Platforms\iOS\MicroModule\Plugin\Share\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -75,6 +67,7 @@
 		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Folder Include="Helper\" />
 	  <Folder Include="Resources\Assets\" />
 	  <Folder Include="Platforms\iOS\UI\" />
 	  <Folder Include="Platforms\iOS\Base\" />

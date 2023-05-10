@@ -3,6 +3,7 @@
 public interface PureBody
 {
     public abstract dynamic? Raw { get; }
+    long? ContentLength { get; }
 
     public abstract Stream ToStream();
     // public virtual async Task<Stream> ToStreamAsync() => ToStream();
@@ -19,6 +20,7 @@ public interface PureBody
 public record PureStreamBody(Stream Data) : PureBody
 {
     public dynamic? Raw => Data;
+    public long? ContentLength => Data.TryReturn(data => (long?)data.Length, (data, err) => null);
 
     public Stream ToStream() => Data;
 
@@ -31,6 +33,8 @@ public record PureStreamBody(Stream Data) : PureBody
 public record PureByteArrayBody(byte[] Data) : PureBody
 {
     public dynamic? Raw => Data;
+    public long? ContentLength => Data.LongLength;
+
     public byte[] ToByteArray() => Data;
     public Stream ToStream() => new MemoryStream(Data);
 
@@ -41,6 +45,8 @@ public record PureBase64StringBody(string XData) : PureByteArrayBody(XData.ToBas
 public record PureUtf8StringBody(string Data) : PureBody
 {
     public dynamic? Raw => Data;
+    public long? ContentLength => Data.Length;
+
     public byte[] ToByteArray() => Data.ToUtf8ByteArray();
 
     public Stream ToStream() => new MemoryStream(ToByteArray());
@@ -51,6 +57,7 @@ public record PureUtf8StringBody(string Data) : PureBody
 public record PureEmptyBody() : PureBody
 {
     public dynamic? Raw => null;
+    public long? ContentLength => 0;
 
     static byte[] EmptyByteArray = new byte[0];
     static Stream EmptyStream = new MemoryStream(EmptyByteArray);

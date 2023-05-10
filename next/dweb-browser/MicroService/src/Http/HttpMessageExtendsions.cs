@@ -85,24 +85,6 @@ static public class HttpMessageExtendsions
            }
          );
 
-
-        // // Set the request content (if there is any)
-        // if (self.HasEntityBody)
-        // {
-        //     requestMessage.Content = new StreamContent(self.InputStream);
-        //     if (self.ContentType is not null)
-        //     {
-        //         requestMessage.Content.Headers.ContentType = new(self.ContentType);
-        //     }
-        //     requestMessage.Content.Headers.ContentEncoding.Clear();
-        //     requestMessage.Content.Headers.ContentEncoding.Add(self.ContentEncoding.WebName);
-        // }
-
-        // Optionally, you can set other properties of the HttpRequestMessage
-        // such as the request version, content headers, etc.
-
-        // Now you can use the requestMessage object to send the request
-        // using HttpClient or any other HTTP client library
         return pureRequest;
     }
     static public HttpRequestMessage ToHttpRequestMessage(this PureRequest self)

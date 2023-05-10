@@ -52,19 +52,19 @@ public static class ObjectExtensions
         }
     }
 
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-    //public static R Try<T, R>(this T self, Func<T, R> tryFun, Func<T, Exception, R>? catchFun = null) where R : T
-    //{
-    //    try
-    //    {
-    //        return tryFun(self);
-    //    }
-    //    catch (Exception err)
-    //    {
-    //        Func<T, Exception, R> internalCatchFun = catchFun ?? ((self, _) => (R)self);
-    //        return internalCatchFun(self, err);
-    //    }
-    //}
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static R TryReturn<R, T>(this T self, Func<T, R> tryFun, Func<T, Exception, R> catchFun)
+    {
+        try
+        {
+            return tryFun(self);
+        }
+        catch (Exception err)
+        {
+            Func<T, Exception, R> internalCatchFun = catchFun;
+            return internalCatchFun(self, err);
+        }
+    }
 
 }
 
