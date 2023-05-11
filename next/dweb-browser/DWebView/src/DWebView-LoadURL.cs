@@ -4,7 +4,6 @@ using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Http;
 using DwebBrowser.MicroService.Message;
 using DwebBrowser.MicroService.Sys.Http;
-using Foundation;
 using WebKit;
 
 namespace DwebBrowser.DWebView;

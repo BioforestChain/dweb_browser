@@ -417,42 +417,37 @@ public class IpcBodySender : IpcBody
 
             }).Background();
 
-            /// 持续发送数据
-            while (true)
+
+            // 等待流开始被拉取
+            await pullingPo.WaitPromiseAsync();
+
+            Console.Log("StreamAsMeta", "sender/PULLING/{0:H} {1}", stream, stream_id);
+            try
             {
-                // 等待流开始被拉取
-                await pullingPo.WaitPromiseAsync();
-
-                Console.Log("StreamAsMeta", "sender/PULLING/{0:H} {1}", stream, stream_id);
-                try
+                /// 持续发送数据
+                await foreach (var bytes in stream.ReadBytesStream())
                 {
+                    Console.Log("StreamAsMeta", "sender/READ/{0:H} {1} >> {2}", stream, stream_id, bytes.Length);
 
-                    await foreach (var bytes in stream.ReadBytesStream())
-                    {
-                        Console.Log("StreamAsMeta", "sender/READ/{0:H} {1} >> {2}", stream, stream_id, bytes.Length);
-
-                        var ipcStreamData = IpcStreamData.FromBinary(stream_id, bytes);
-                        foreach (Ipc ipc in _usedIpcMap.Keys)
-                        {
-                            await ipc.PostMessageAsync(ipcStreamData);
-                        }
-                        Console.Log("StreamAsMeta", "sender/WAITTING/{0:H} {1}", stream, stream_id);
-                    }
-
-                }
-                finally
-                {
-                    /// 不论是不是被 aborted，都发送结束信号
-                    var ipcStreamEnd = new IpcStreamEnd(stream_id);
-
+                    var ipcStreamData = IpcStreamData.FromBinary(stream_id, bytes);
                     foreach (Ipc ipc in _usedIpcMap.Keys)
                     {
-                        await ipc.PostMessageAsync(ipcStreamEnd);
+                        await ipc.PostMessageAsync(ipcStreamData);
                     }
-
+                    Console.Log("StreamAsMeta", "sender/WAITTING/{0:H} {1}", stream, stream_id);
                 }
-
             }
+            finally
+            {
+                /// 不论是不是被 aborted，都发送结束信号
+                var ipcStreamEnd = new IpcStreamEnd(stream_id);
+
+                foreach (Ipc ipc in _usedIpcMap.Keys)
+                {
+                    await ipc.PostMessageAsync(ipcStreamEnd);
+                }
+            }
+
         });
 
         // 写入第一帧数据
