@@ -87,6 +87,7 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Clipboard\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Toast\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Share\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Haptics\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />
