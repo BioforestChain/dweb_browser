@@ -7,6 +7,25 @@
 
 import SwiftUI
 import Foundation
+import UIKit
+
+extension UIView {
+    func takeScreenshot(completion:@escaping (UIImage) -> Void) {
+        print("before take screen shot:")
+        printDate()
+        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
+        self.drawHierarchy(in: bounds, afterScreenUpdates: true)
+
+        // 从绘制的图像中获取图像
+        let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()
+
+        // 结束绘制
+        UIGraphicsEndImageContext()
+        completion(snapshotImage!)
+        print("after take screen shot:")
+        printDate()
+    }
+}
 
 func printDate(){
     let date = Date()

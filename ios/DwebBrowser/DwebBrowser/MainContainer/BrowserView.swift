@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 class WebViewState: ObservableObject {
     @Published var loadingProgress: CGFloat = 0
@@ -13,8 +14,21 @@ class WebViewState: ObservableObject {
     @Published var canGoback: Bool = false
 }
 
+/*
+ some views that need to be visited in outer view
+some methods and some datas might be visited in somewhere of the whole app
+ */
+class SharedSourcesVM: ObservableObject {
+    @Published var webViews: [WebView] = []
+    func shiftPage(image: UIImage){
+        
+    }
+}
+
+
 struct BrowserView: View {
     @ObservedObject var browser = BrowerVM()
+    @ObservedObject var sharedResources = SharedSourcesVM()
 
     var body: some View {
         ZStack{
@@ -30,6 +44,8 @@ struct BrowserView: View {
                 .coordinateSpace(name: "Root")
                 .environmentObject(ToolbarState())
                 .environmentObject(browser)
+//                .environmentObject(browser)
+                
             }
         }
     }

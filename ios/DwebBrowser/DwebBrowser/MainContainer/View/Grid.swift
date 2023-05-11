@@ -141,27 +141,28 @@ where Data : RandomAccessCollection, Content : View, Data.Element : Identifiable
     }
 }
 
-struct testContent: View{
-    let pages = WebPages()
-    
-    var body: some View{
-        Grid(pages.pages,
-             columns: 2,
-             columnsInLandscape: 4,
-             vSpacing: 20,
-             hSpacing: 20,
-             vPadding: 10,
-             hPadding: 20)
-        { person in
-            GridCell(page: person)
-        }
-        .background(Color(white: 0.7))
-    }
-}
+//struct testContent: View{
+//    let pages = WebPages()
+//
+//    var body: some View{
+//        Grid(pages.pages,
+//             columns: 2,
+//             columnsInLandscape: 4,
+//             vSpacing: 20,
+//             hSpacing: 20,
+//             vPadding: 10,
+//             hPadding: 20)
+//        { person in
+//            GridCell(page: person)
+//        }
+//        .background(Color(white: 0.7))
+//    }
+//}
 
 
 struct MyGrid_Previews: PreviewProvider {
     static var previews: some View {
-        testContent()
+//        testContent()
+        Text("")
     }
 }

@@ -19,7 +19,7 @@ class Home: ObservableObject{
 class Page: Identifiable, ObservableObject, Hashable{
 
     
-    @Published var webStore = WebViewStore( web: WebPage.example)
+    @Published var webStore = WebViewStore( web: WebCache.createItem())
 
 //    @Published var home: Home
     
@@ -46,6 +46,8 @@ class BrowerVM: ObservableObject {
     @Published var pages = [Page(),Page(),Page(),Page(),Page()]
     @Published var addresses = [Address]()
     
+    @Published var sharedResources = SharedSourcesVM()
+
     
     var addressBarHeight: CGFloat{
         showingOptions ? 0:60

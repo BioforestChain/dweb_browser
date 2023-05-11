@@ -12,7 +12,7 @@ import FaviconFinder
 
 
 
-public struct WebPage: Identifiable{
+public struct WebCache: Identifiable, Hashable{
     public var id = UUID()
     // url to the source of somewhere in internet
      var icon: URL
@@ -34,11 +34,11 @@ public struct WebPage: Identifiable{
         "https://www.zhihu.com",
     ]
     
-    static func createItem() -> WebPage{
-        WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: websites[Int.random(in: 0..<websites.count)], title: "Apple")
+    static func createItem() -> WebCache{
+        WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: websites[Int.random(in: 0..<websites.count)], title: "Apple")
     }
     
-    static let example = WebPage(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
+    static let example = WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
 //
 //    init(from decoder: Decoder) throws {
 //
@@ -52,31 +52,31 @@ public struct WebPage: Identifiable{
 
 
 class WebPages: ObservableObject{
-    let pages: [WebPage]
+    let pages: [WebCache]
     private let storageKey = "WebPages"
     
     init() {
         let fileManager = FileManager.default
         let url = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent(storageKey)
         if let data = try? Data(contentsOf: url),
-           let models = try? NSKeyedUnarchiver.unarchiveObject(with: data) as? [WebPage] {
+           let models = try? NSKeyedUnarchiver.unarchiveObject(with: data) as? [WebCache] {
             pages =  models
         }else{
-            pages =  [WebPage.createItem(),WebPage.createItem(),WebPage.createItem()]
+            pages =  [WebCache.createItem(),WebCache.createItem(),WebCache.createItem()]
         }
     }
     
-    func getWebPages() -> [WebPage] {
+    func getWebPages() -> [WebCache] {
         let fileManager = FileManager.default
         let url = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent(storageKey)
         if let data = try? Data(contentsOf: url),
-           let models = try? NSKeyedUnarchiver.unarchiveObject(with: data) as? [WebPage] {
+           let models = try? NSKeyedUnarchiver.unarchiveObject(with: data) as? [WebCache] {
             return models
         }
-        return [WebPage.example]
+        return [WebCache.example]
     }
     
-    func saveWebPages(_ pages: [WebPage]) {
+    func saveWebPages(_ pages: [WebCache]) {
         if let data = try? NSKeyedArchiver.archivedData(withRootObject: pages, requiringSecureCoding: false) {
             let fileManager = FileManager.default
             let url = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent(storageKey)

@@ -146,3 +146,74 @@ struct ContentView: View {
 #打印指针
 
 print(Unmanaged.passUnretained(self.webViewStore).toOpaque())
+
+
+#显示与隐藏一个view
+struct CustomView<Content: View>: View {
+    let content: () -> Content
+    let isViewVisible: Bool
+    
+    var body: some View {
+        if isViewVisible {
+            content()
+        } else {
+            EmptyView()
+        }
+    }
+}
+
+#获取某个视图里的特定子视图
+struct ViewTree {
+    let view: Any
+    var subviews: [ViewTree] = []
+}
+
+extension View {
+    func viewTree() -> ViewTree {
+        let view = Mirror(reflecting: self)
+        var children: [ViewTree] = []
+        for child in view.children {
+            if let childView = child.value as? View {
+                children.append(childView.viewTree())
+            }
+            if let childViews = child.value as? [View] {
+                children.append(contentsOf: childViews.map { $0.viewTree() })
+            }
+        }
+        return ViewTree(view: self, subviews: children)
+    }
+}
+
+struct ContentView: View {
+    var body: some View {
+        TabView {
+            WebView(webView: WKWebView(), url: URL(string: "https://www.apple.com")!)
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text("Home")
+                }
+            VStack {
+                Text("This is a VStack")
+                WebView(webView: WKWebView(), url: URL(string: "https://www.google.com")!)
+                Text("This is another Text")
+            }
+            .tabItem {
+                Image(systemName: "star.fill")
+                Text("Favorites")
+            }
+        }
+        .onAppear {
+            let viewTree = TabView().viewTree()
+            let webViews = viewTree.subviews
+                .flatMap { $0.subviews }
+                .compactMap { $0.view as? WebView }
+            print(webViews)
+        }
+    }
+}
+在这个示例中，我们在ContentView中创建了一个TabView，其中包含两个子视图，其中一个子视图包含一个VStack和一个WebView。在TabView的onAppear回调中，我们使用viewTree方法获取TabView的视图层次结构，并从中查找WebView视图。我们首先使用flatMap方法将每个子视图的子视图数组合并成一个数组，然后使用compactMap方法过滤掉不是WebView的视图，最后得到了包含所有WebView视图的数组。
+
+需要注意的是，由于WebView是一个自定义的视图，我们需要将其标记为Any类型，以便在ViewTree中使用。
+
+
+![alts]('/Users/ui06/Desktop/asTile.jpg')

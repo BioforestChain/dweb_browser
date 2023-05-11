@@ -22,9 +22,9 @@ public class WebViewStore: ObservableObject,Identifiable,Hashable{
         }
     }
     
-    @Published public var web: WebPage
+    @Published public var web: WebCache
     
-    public init(webView: WKWebView = WKWebView(), web: WebPage) {
+    public init(webView: WKWebView = WKWebView(), web: WebCache) {
         self.webView = webView
         self.web = web
         webView.load(URLRequest(url: URL(string: "www.bing.com")!))
@@ -38,7 +38,11 @@ public class WebViewStore: ObservableObject,Identifiable,Hashable{
         func subscriber<Value>(for keyPath: KeyPath<WKWebView, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { _, change in
                 if change.isPrior {
-                    self.objectWillChange.send()
+                    DispatchQueue.main.async {
+                        self.objectWillChange.send()
+
+                    }
+//                    OperationQueue.main
                 }
             }
         }

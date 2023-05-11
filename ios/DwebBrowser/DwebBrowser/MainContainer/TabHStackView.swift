@@ -9,17 +9,17 @@ import SwiftUI
 import WebKit
 
 struct TabsContainerView: View{
-    @EnvironmentObject var optionsState: BrowerVM
+    @EnvironmentObject var browser: BrowerVM
     
     var body: some View{
         ZStack{
             TabHStackView()
             
-            if optionsState.showingOptions{
-                TabsCollectionView()
+            if browser.showingOptions{
+                WebPreViewGrid()
                     .background(.secondary)
             }else{
-                TabsCollectionView()
+                WebPreViewGrid()
                     .background(.secondary)
                     .hidden()
             }
@@ -37,8 +37,10 @@ struct TabHStackView: View{
                 ForEach(browser.pages, id: \.self) { page in
                     TabPageView(webViewStore: page.webStore)
                         .frame(width: screen_width)
+                        
                 }
             }
+            
             .offset(x: browser.addressBarOffset)
         }
         .scrollDisabled(true)
