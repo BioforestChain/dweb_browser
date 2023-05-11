@@ -1,7 +1,10 @@
 package info.bagen.dwebbrowser.microService.sys.plugin.haptics
 
+import com.google.gson.reflect.TypeToken
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
+import info.bagen.dwebbrowser.microService.helper.gson
+import info.bagen.dwebbrowser.microService.sys.http.Gateway
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -11,13 +14,14 @@ import org.http4k.lens.string
 
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.util.ArrayList
 
-class HapticsNMM: NativeMicroModule("haptics.sys.dweb") {
+class HapticsNMM : NativeMicroModule("haptics.sys.dweb") {
     private val vibrateManage = VibrateManage()
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
- {
-     val query_type = Query.string().optional("style")
-     val query_duration = Query.long().required("duration")
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+        val query_type = Query.string().optional("style")
+        val query_duration = Query.string().required("duration")
+        val type_duration = object : TypeToken<ArrayList<Long>>() {}.type
         apiRouting = routes(
             /** 触碰轻质量物体 */
             "/impactLight" bind Method.GET to defineHandler { request ->
@@ -67,7 +71,8 @@ class HapticsNMM: NativeMicroModule("haptics.sys.dweb") {
             /** 自定义传递 振动频率 */
             "/customize" bind Method.GET to defineHandler { request ->
                 val duration = query_duration(request)
-                vibrateManage.vibrate(duration)
+                val durationArray: List<Long> = gson.fromJson(duration, type_duration)
+                vibrateManage.vibratePre26(durationArray.toLongArray(), 0)
                 Response(Status.OK)
             },
         )

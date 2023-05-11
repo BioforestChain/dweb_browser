@@ -23,18 +23,14 @@ enum class HapticsNotificationType(
         longArrayOf(0, 30, 40, 30, 50, 60)
     ),
     ERROR(
-        "ERROR",
-        longArrayOf(0, 27, 45, 50),
-        intArrayOf(0, 120, 0, 25),
-        longArrayOf(0, 27, 45, 50)
+        "ERROR", longArrayOf(0, 27, 45, 50), intArrayOf(0, 120, 0, 25), longArrayOf(0, 27, 45, 50)
     ),
 }
 
 enum class HapticsImpactType(
     val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray
 ) {
-    LIGHT("LIGHT", longArrayOf(0, 50), intArrayOf(0, 110), longArrayOf(0, 20)),
-    MEDIUM(
+    LIGHT("LIGHT", longArrayOf(0, 50), intArrayOf(0, 110), longArrayOf(0, 20)), MEDIUM(
         "MEDIUM", longArrayOf(0, 43), intArrayOf(0, 180), longArrayOf(0, 43)
     ),
     HEAVY("HEAVY", longArrayOf(0, 60), intArrayOf(0, 255), longArrayOf(0, 61)),
@@ -52,8 +48,7 @@ enum class VibrateType(
     HEAVY_CLICK(
         "HEAVY_CLICK", longArrayOf(0, 10), intArrayOf(0, 10), longArrayOf(1, 100, 1, 1)
     ),
-    TICK("TICK", longArrayOf(0, 10), intArrayOf(0, 10), longArrayOf(10, 999, 1, 1)),
-    DISABLED(
+    TICK("TICK", longArrayOf(0, 10), intArrayOf(0, 10), longArrayOf(10, 999, 1, 1)), DISABLED(
         "DISABLED", longArrayOf(0, 10), intArrayOf(0, 10), longArrayOf(1, 63, 1, 119, 1, 129, 1)
     ),
 }
@@ -82,7 +77,7 @@ class VibrateManage() {
     }
 
     @SuppressWarnings("deprecation")
-    private fun vibratePre26(pattern: LongArray, repeat: Int) {
+    public fun vibratePre26(pattern: LongArray, repeat: Int) {
         mVibrate.vibrate(pattern, repeat)
     }
 
@@ -96,8 +91,7 @@ class VibrateManage() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             mVibrate.vibrate(
                 VibrationEffect.createOneShot(
-                    duration,
-                    VibrationEffect.DEFAULT_AMPLITUDE
+                    duration, VibrationEffect.DEFAULT_AMPLITUDE
                 )
             )
         } else {
@@ -178,8 +172,6 @@ class VibrateManage() {
             vibratePre26(VibrateType.TICK.oldSDKPattern, -1)
         }
     }
-
-    // TODO: 添加 customze 方法，duration频率是数组
 }
 
 data class ImpactOption(
