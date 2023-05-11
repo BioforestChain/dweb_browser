@@ -51,8 +51,9 @@ public static class StreamExtensions
         //     throw;
         // }
     }
+    private const int DefaultStreamChunkSize = 64 * 1024; // 64kb
 
-    public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, long usize = 4096)
+    public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, long usize = DefaultStreamChunkSize)
     {
         var bytes = new byte[usize]!;
         while (true)
@@ -67,7 +68,7 @@ public static class StreamExtensions
         }
     }
 
-    public static IEnumerable<byte[]> GetEnumerator(this Stream stream, long usize = 4096)
+    public static IEnumerable<byte[]> GetEnumerator(this Stream stream, long usize = DefaultStreamChunkSize)
     {
         var bytes = new byte[usize]!;
         while (true)

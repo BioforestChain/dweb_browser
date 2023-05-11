@@ -491,7 +491,7 @@ var ReadableStreamOut = class {
 };
 
 // src/user/tool/tool.request.mts
-var { IpcResponse, Ipc, IpcRequest, IpcHeaders } = ipc;
+var { IpcResponse, Ipc, IpcRequest, IpcHeaders, IPC_METHOD } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
 var fetchSignal = createSignal2();
@@ -503,7 +503,12 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
   try {
     const url = new URL(request.url, serverurlInfo.internal_origin);
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
-      ipcResponse = internalFactory(url, request.req_id, httpServerIpc, serverurlInfo);
+      ipcResponse = internalFactory(
+        url,
+        request.req_id,
+        httpServerIpc,
+        serverurlInfo
+      );
     } else {
       if (fetchLock && (request.method === "GET" || request.method === "HEAD")) {
         if (!fetchSet.has(url.pathname)) {
@@ -512,29 +517,18 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         }
       }
       const path = `file:/${url.pathname}${url.search}`;
-      const response = await jsProcess.nativeFetch(path, {
-        body: request.body.raw,
-        headers: request.headers,
-        method: request.method
-      });
-      ipcResponse = await IpcResponse.fromResponse(
-        request.req_id,
-        response,
-        httpServerIpc
+      const ipcProxyRequest = new IpcRequest(
+        jsProcess.fetchIpc.allocReqId(),
+        path,
+        request.method,
+        request.headers,
+        request.body,
+        jsProcess.fetchIpc
       );
-      if (fetchSet.has(url.pathname)) {
-        const req_id = fetchSet.get(url.pathname);
-        if (!req_id)
-          return;
-        const ipcResponse2 = await IpcResponse.fromResponse(
-          req_id,
-          response,
-          httpServerIpc
-        );
-        cros(ipcResponse2.headers);
-        httpServerIpc.postMessage(ipcResponse2);
-        fetchSet.delete(url.pathname);
-      }
+      jsProcess.fetchIpc.postMessage(ipcProxyRequest);
+      ipcResponse = await jsProcess.fetchIpc.registerReqId(
+        ipcProxyRequest.req_id
+      ).promise;
     }
     if (!ipcResponse) {
       throw new Error(`unknown gateway: ${url.search}`);
