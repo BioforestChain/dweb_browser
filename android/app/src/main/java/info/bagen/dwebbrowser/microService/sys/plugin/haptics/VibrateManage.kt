@@ -178,6 +178,8 @@ class VibrateManage() {
             vibratePre26(VibrateType.TICK.oldSDKPattern, -1)
         }
     }
+
+    // TODO: 添加 customze 方法，duration频率是数组
 }
 
 data class ImpactOption(

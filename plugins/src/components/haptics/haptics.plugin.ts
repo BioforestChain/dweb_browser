@@ -69,7 +69,7 @@ export class HapticsPlugin extends BasePlugin {
    */
   @bindThis
   async vibrate(options: VibrateOptions) {
-    const duration = options?.duration || 300;
+    const duration = options?.duration || [300];
     await this.fetchApi("/customize", {
       search: {
         duration: duration,

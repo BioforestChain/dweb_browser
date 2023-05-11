@@ -72,10 +72,9 @@ export interface VibrateOptions {
   /**
    * 振动持续时间（以毫秒为单位）。
    *
-   * @default 300
    * @since 1.0.0
    */
-  duration: number;
+  duration: number[];
 }
 
 /**
