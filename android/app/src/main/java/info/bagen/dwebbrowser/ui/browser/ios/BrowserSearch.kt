@@ -37,11 +37,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.LifecycleOwner
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.database.WebSiteDao
+import info.bagen.dwebbrowser.database.WebSiteDatabase
+import info.bagen.dwebbrowser.database.WebSiteInfo
+import info.bagen.dwebbrowser.database.WebSiteType
 import info.bagen.dwebbrowser.datastore.DefaultSearchWebEngine
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
-import info.bagen.dwebbrowser.ui.entity.WebSiteInfo
+import io.ktor.util.reflect.*
 import kotlinx.coroutines.delay
 
 /**
@@ -259,7 +264,7 @@ private fun SearchPreview( // 输入搜索内容后，显示的搜索信息
         SearchItemEngines(text) { onSearch(it) }
       }
       item { // 历史记录
-        //SearchItemHistory(text)
+        SearchItemHistory(text) { onSearch(it) }
       }
     }
   }
@@ -278,7 +283,7 @@ private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
   }.firstOrNull()?.also { browserBaseView ->
     if (browserBaseView === viewModel.uiState.currentBrowserBaseView.value) return@also // TODO 如果搜索到的界面就是我当前显示的界面，就不显示该项
     val website = (browserBaseView as BrowserWebView).state.let {
-      WebSiteInfo(it.pageTitle ?: "无标题", it.lastLoadedUrl ?: "localhost")
+      WebSiteInfo(title = it.pageTitle ?: "无标题", url = it.lastLoadedUrl ?: "localhost", type = WebSiteType.Multi)
     }
     SearchWebsiteCardView(webSiteInfo = website, drawableId = R.drawable.ic_main_multi) {
       // TODO 调转到指定的标签页
@@ -302,9 +307,7 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
         .background(MaterialTheme.colorScheme.background)
     ) {
       DefaultSearchWebEngine.forEachIndexed { index, webEngine ->
-        if (index > 0) {
-          Divider()
-        }
+        if (index > 0) Divider()
         Card(modifier = Modifier
           .fillMaxWidth()
           .height(50.dp)
@@ -339,13 +342,38 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
         }
       }
     }
-
   }
 }
 
 @Composable
-private fun SearchItemHistory(viewModel: BrowserViewModel, text: String) {
-  viewModel.uiState.historyWebsiteMap.firstNotNullOfOrNull {
+private fun SearchItemHistory(text: String, onSearch: (String) -> Unit) {
+  val list = remember { mutableListOf<WebSiteInfo>() }
+  LaunchedEffect(list) {
+    WebSiteDatabase.INSTANCE.websiteDao().findByNameTop10(text).observeForever {
+      list.clear()
+      it.forEach { webSiteInfo ->
+        list.add(webSiteInfo)
+      }
+    }
+  }
+
+  Column(
+    modifier = Modifier
+      .fillMaxWidth()
+      .clip(RoundedCornerShape(8.dp))
+      .background(MaterialTheme.colorScheme.background)
+  ) {
+    list.forEachIndexed { index, webSiteInfo ->
+      if (index > 0) Divider()
+      SearchWebsiteCardView(webSiteInfo, drawableId = R.drawable.ic_main_history) {
+        // TODO 调转到指定的标签页
+        onSearch(webSiteInfo.url)
+      }
+    }
+  }
+
+
+  /*viewModel.uiState.historyWebsiteMap.firstNotNullOfOrNull {
     it.value.find { websiteInfo -> websiteInfo.title.contains(text) }
   }?.also { websiteInfo ->
     Spacer(modifier = Modifier.height(10.dp))
@@ -353,7 +381,7 @@ private fun SearchItemHistory(viewModel: BrowserViewModel, text: String) {
       // TODO 调转到指定的标签页
       viewModel.handleIntent(BrowserIntent.SearchWebView(websiteInfo.url))
     }
-  }
+  }*/
 }
 
 @Composable

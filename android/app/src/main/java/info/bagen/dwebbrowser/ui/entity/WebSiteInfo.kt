@@ -16,19 +16,14 @@ import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.view.CaptureController
 import kotlinx.coroutines.CoroutineScope
 
-data class WebSiteInfo(
+/*data class WebSiteInfo(
   var title: String,
   var url: String,
   val icon: ImageBitmap? = null,
   var timeMillis: String = "",
 ) {
   //val expand: MutableState<Boolean> = mutableStateOf(false)
-}
-
-data class BookWebSiteInfo(
-  val webSiteInfo: WebSiteInfo,
-  val expand: MutableState<Boolean> = mutableStateOf(false)
-)
+}*/
 
 interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩

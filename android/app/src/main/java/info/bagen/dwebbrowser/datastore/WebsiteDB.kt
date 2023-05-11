@@ -10,9 +10,9 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.database.WebSiteInfo
 import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.ui.entity.WebSiteInfo
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -27,10 +27,29 @@ object WebsiteDB {
   private const val PREFERENCE_NAME_HISTORY = "Website-history"
   private const val PREFERENCE_NAME_BOOK = "Website-book"
 
-  private val KEY_PREFER_BOOK = stringPreferencesKey(PREFERENCE_NAME_BOOK)
+  enum class PreferenceType() {
+    WebsiteHistory, WebsiteBook;
 
-  private val Context.dataStoreHistory: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME_HISTORY)
-  private val Context.dataStoreBook: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME_BOOK)
+    val preferenceKey = stringPreferencesKey(this.name)
+
+    val data: DataStore<Preferences>?
+      get() = when (this.name) {
+        WebsiteHistory.name -> {
+          App.appContext.dataStoreHistory
+        }
+        WebsiteBook.name -> {
+          App.appContext.dataStoreBook
+        }
+        else -> null
+      }
+  }
+
+  private val Context.dataStoreHistory: DataStore<Preferences> by preferencesDataStore(
+    PreferenceType.WebsiteHistory.name
+  )
+  private val Context.dataStoreBook: DataStore<Preferences> by preferencesDataStore(
+    PreferenceType.WebsiteBook.name
+  )
 
   /**
    * 历史记录部分
@@ -60,17 +79,18 @@ object WebsiteDB {
   fun saveHistoryWebsiteInfo(webSiteInfo: WebSiteInfo) = runBlocking(ioAsyncExceptionHandler) {
     // edit 函数需要在挂起环境中执行
     if (webSiteInfo.url.startsWith("file:///android_asset")) return@runBlocking
-    App.appContext.dataStoreHistory.edit { pref ->
-      val timeMillis = webSiteInfo.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
+    /*App.appContext.dataStoreHistory.edit { pref ->
+      val timeMillis =
+        webSiteInfo.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
       webSiteInfo.timeMillis = timeMillis
       pref[stringPreferencesKey(timeMillis)] = gson.toJson(webSiteInfo)
-    }
+    }*/
   }
 
   fun deleteHistoryWebsiteInfo(webSiteInfo: WebSiteInfo) = runBlocking(ioAsyncExceptionHandler) {
-    App.appContext.dataStoreHistory.edit { pref ->
+    /*App.appContext.dataStoreHistory.edit { pref ->
       pref.remove(stringPreferencesKey(webSiteInfo.timeMillis))
-    }
+    }*/
   }
 
   fun clearHistoryWebsiteInfo() = runBlocking(ioAsyncExceptionHandler) {
@@ -103,17 +123,18 @@ object WebsiteDB {
   fun saveBookWebsiteInfo(webSiteInfo: WebSiteInfo) = runBlocking(ioAsyncExceptionHandler) {
     // edit 函数需要在挂起环境中执行
     if (webSiteInfo.url.startsWith("file:///android_asset")) return@runBlocking
-    App.appContext.dataStoreBook.edit { pref ->
-      val timeMillis = webSiteInfo.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
+    /*App.appContext.dataStoreBook.edit { pref ->
+      val timeMillis =
+        webSiteInfo.timeMillis.takeIf { it.isNotEmpty() } ?: getTimeMillis().toString()
       webSiteInfo.timeMillis = timeMillis
       pref[stringPreferencesKey(timeMillis)] = gson.toJson(webSiteInfo)
-    }
+    }*/
   }
 
   fun deleteBookWebsiteInfo(webSiteInfo: WebSiteInfo) = runBlocking(ioAsyncExceptionHandler) {
-    App.appContext.dataStoreBook.edit { pref ->
+    /*App.appContext.dataStoreBook.edit { pref ->
       pref.remove(stringPreferencesKey(webSiteInfo.timeMillis))
-    }
+    }*/
   }
 
   fun clearBookWebsiteInfo() = runBlocking(ioAsyncExceptionHandler) {

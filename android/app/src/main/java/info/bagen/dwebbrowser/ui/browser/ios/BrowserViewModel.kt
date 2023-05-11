@@ -22,6 +22,9 @@ import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.database.WebSiteDatabase
+import info.bagen.dwebbrowser.database.WebSiteInfo
+import info.bagen.dwebbrowser.database.WebSiteType
 import info.bagen.dwebbrowser.datastore.DefaultAllWebEngine
 import info.bagen.dwebbrowser.datastore.WebEngine
 import info.bagen.dwebbrowser.datastore.WebsiteDB
@@ -36,7 +39,6 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
-import info.bagen.dwebbrowser.ui.entity.WebSiteInfo
 import info.bagen.dwebbrowser.util.*
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -53,7 +55,6 @@ data class BrowserUIState @OptIn(
   val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
-  val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
     bottomSheetState = SheetState(
       skipPartiallyExpanded = false, initialValue = SheetValue.Hidden, skipHiddenState = false
@@ -63,6 +64,7 @@ data class BrowserUIState @OptIn(
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
   val showSearchView: MutableState<Boolean> = mutableStateOf(false), // 用于显示搜索的界面，也就是点击搜索框后界面
+  val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
 )
 
 sealed class BrowserIntent {
@@ -247,7 +249,9 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         is BrowserIntent.SaveHistoryWebSiteInfo -> {
           action.url?.let {
             if (!isNoTrace.value) { // 无痕模式，不保存历史搜索记录
-              WebsiteDB.saveHistoryWebsiteInfo(WebSiteInfo(title = action.title ?: it, url = it))
+              WebSiteDatabase.INSTANCE.websiteDao().insert(
+                WebSiteInfo(title = action.title ?: it, url = it, type = WebSiteType.History)
+              )
             }
           }
         }
@@ -255,7 +259,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           uiState.currentBrowserBaseView.value.let {
             if (it is BrowserWebView) {
               WebsiteDB.saveBookWebsiteInfo(
-                WebSiteInfo(title = it.state.pageTitle ?: "", url = it.state.lastLoadedUrl ?: "")
+                WebSiteInfo(title = it.state.pageTitle ?: "", url = it.state.lastLoadedUrl ?: "", type = WebSiteType.Book)
               )
               handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
             }

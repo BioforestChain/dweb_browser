@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
 }
 android {
     compileSdk = 33
@@ -195,6 +196,13 @@ dependencies {
 
     /// 依赖
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    // 增加 room 存储列表数据
+    val roomVersion = "2.5.0"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    kapt("androidx.room:room-compiler:2.5.0") // To use Kotlin annotation processing tool (kapt)
+    //annotationProcessor("androidx.room:room-compiler:$roomVersion") // 注释处理工具
+    implementation("androidx.room:room-ktx:$roomVersion") // kotlin扩展和协同程序对Room的支持
 }
 
 tasks.withType<Test> {

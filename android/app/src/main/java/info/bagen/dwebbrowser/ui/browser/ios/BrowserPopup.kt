@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -44,12 +46,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.database.WebSiteDatabase
+import info.bagen.dwebbrowser.database.WebSiteInfo
+import info.bagen.dwebbrowser.database.WebSiteType
 import info.bagen.dwebbrowser.datastore.WebsiteDB
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.ui.entity.*
 import info.bagen.dwebbrowser.ui.theme.DimenBottomBarHeight
 import info.bagen.dwebbrowser.ui.view.ListItemDeleteView
 import info.bagen.dwebbrowser.util.BitmapUtil
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val screenHeight: Dp
@@ -108,7 +113,8 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
       )
     }
   }.also {
-    popupViewState = if (it.size > selectedTabIndex) it[selectedTabIndex].entry else it.first().entry
+    popupViewState =
+      if (it.size > selectedTabIndex) it[selectedTabIndex].entry else it.first().entry
   }
 
   LaunchedEffect(selectedTabIndex) {
@@ -147,7 +153,7 @@ private fun PopContentView(
   Box(modifier = Modifier.fillMaxSize()) {
     when (popupViewState) {
       PopupViewState.BookList -> PopContentBookListItem(viewModel)
-      PopupViewState.HistoryList -> PopContentHistoryListItem(viewModel)
+      PopupViewState.HistoryList -> PopContentHistoryListItem {} //PopContentHistoryListItem(viewModel)
       else -> PopContentOptionItem(viewModel)
     }
   }
@@ -360,10 +366,24 @@ fun ExpandTextFiled(
   )
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@SuppressLint("RememberReturnType", "CoroutineCreationDuringComposition")
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
-  if (viewModel.isNoTrace.value || viewModel.uiState.historyWebsiteMap.isEmpty()) {
+private fun BoxScope.PopContentHistoryListItem(onSearch: (String) -> Unit) {
+  val historyWebsiteMap = remember { mutableStateMapOf<String, MutableList<WebSiteInfo>>() }
+  val webSiteDao = WebSiteDatabase.INSTANCE.websiteDao()
+  val scope = rememberCoroutineScope()
+  scope.launch(ioAsyncExceptionHandler) {
+    webSiteDao.loadAllByType(WebSiteType.History).forEach { webSiteInfo ->
+      historyWebsiteMap.getOrPut(webSiteInfo.getStickyName()) {
+        mutableListOf()
+      }.also { list ->
+        list.add(webSiteInfo)
+      }
+    }
+  }
+
+  if (historyWebsiteMap.isEmpty()) {
     Text(
       text = "未发现历史记录", modifier = Modifier
         .align(TopCenter)
@@ -371,15 +391,14 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
     )
     return
   }
-  val scope = rememberCoroutineScope()
   Box {
     LazyColumn {
-      viewModel.uiState.historyWebsiteMap.toSortedMap { o1, o2 ->
+      historyWebsiteMap.toSortedMap { o1, o2 ->
         if (o1 < o2) 1 else -1
       }.forEach { (key, value) ->
         stickyHeader {
           Text(
-            text = WebsiteDB.compareWithLocalTime(key),
+            text = key,
             modifier = Modifier
               .fillMaxWidth()
               .height(30.dp)
@@ -390,21 +409,8 @@ private fun BoxScope.PopContentHistoryListItem(viewModel: BrowserViewModel) {
         items(value.size) { index ->
           val webSiteInfo = value[index]
           ListItemDeleteView(
-            onClick = {
-              scope.launch {
-                viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
-                viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
-              }
-            },
-            onDelete = {
-              viewModel.handleIntent(
-                BrowserIntent.DeleteWebSiteList(
-                  ListType.History,
-                  webSiteInfo,
-                  false
-                )
-              )
-            }
+            onClick = { onSearch(webSiteInfo.url) },
+            onDelete = { webSiteDao.delete(webSiteInfo) }
           ) {
             Column(
               modifier = Modifier
