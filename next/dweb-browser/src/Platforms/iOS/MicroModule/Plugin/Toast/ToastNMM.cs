@@ -3,28 +3,26 @@ using DwebBrowser.MicroService.Sys.Mwebview;
 
 namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Toast;
 
-public class ToastNMM: NativeMicroModule
+public class ToastNMM : NativeMicroModule
 {
-	public ToastNMM(): base("toast.sys.dweb")
-	{
-	}
+    public ToastNMM() : base("toast.sys.dweb")
+    {
+    }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         HttpRouter.AddRoute(IpcMethod.Get, "/show", async (request, ipc) =>
         {
-            var duration = request.SafeUrl.SearchParams.Get("duration") ;
-            var message = request.SafeUrl.SearchParams.ForceGet("message");
-            var position = request.SafeUrl.SearchParams.Get("position");
-            var durationType = duration switch
+            var message = request.QueryStringRequired("message");
+            var durationType = request.QueryString("duration") switch
             {
-                string d when d.ToUpper() is "LONG" => ToastController.ToastDuration.LONG,
+                string d when d.EqualsIgnoreCase("LONG") => ToastController.ToastDuration.LONG,
                 _ => ToastController.ToastDuration.SHORT
             };
-            var positionType = position switch
+            var positionType = request.QueryString("position") switch
             {
-                string p when p.ToUpper() is "TOP" => ToastController.ToastPosition.TOP,
-                string p when p.ToUpper() is "CENTER" => ToastController.ToastPosition.CENTER,
+                string p when p.EqualsIgnoreCase("TOP") => ToastController.ToastPosition.TOP,
+                string p when p.EqualsIgnoreCase("CENTER") => ToastController.ToastPosition.CENTER,
                 _ => ToastController.ToastPosition.BOTTOM
             };
 

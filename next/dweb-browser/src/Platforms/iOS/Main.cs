@@ -12,6 +12,7 @@ using DwebBrowser.MicroService.Sys.Mwebview;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Share;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Clipboard;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Toast;
+using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Haptics;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -38,6 +39,7 @@ public class MicroService
         new ShareNMM().InstallBy(dnsNMM);
         new ClipboardNMM().InstallBy(dnsNMM);
         new ToastNMM().InstallBy(dnsNMM);
+        new HapticsNMM().InstallBy(dnsNMM);
 
         /// 安装用户应用
         var desktopJMM = new DesktopJMM().InstallBy(dnsNMM);

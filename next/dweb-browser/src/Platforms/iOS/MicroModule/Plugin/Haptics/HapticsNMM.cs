@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text.Json;
 using DwebBrowser.MicroService.Http;
+using DwebBrowser.Helper;
 
 namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Haptics;
 
@@ -18,18 +19,22 @@ public class HapticsNMM : NativeMicroModule
         {
             var style = request.QueryString("style") switch
             {
-                string s when s.ToUpper() == "MEDIUM" => UIImpactFeedbackStyle.Medium,
-                string s when s.ToUpper() == "HEAVY" => UIImpactFeedbackStyle.Heavy,
+                string s when s.EqualsIgnoreCase("MEDIUM") => UIImpactFeedbackStyle.Medium,
+                string s when s.EqualsIgnoreCase("HEAVY") => UIImpactFeedbackStyle.Heavy,
                 _ => UIImpactFeedbackStyle.Light
             };
 
-            // 初始化反馈
-            var impact = new UIImpactFeedbackGenerator(style);
-            // 通知系统即将发生触觉反馈
-            impact.Prepare();
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                // 初始化反馈
+                var impact = new UIImpactFeedbackGenerator(style);
+                // 通知系统即将发生触觉反馈
+                impact.Prepare();
 
-            // 触发反馈
-            impact.ImpactOccurred();
+                // 触发反馈
+                impact.ImpactOccurred();
+            });
+
             return new PureResponse(HttpStatusCode.OK);
         });
 
@@ -38,18 +43,20 @@ public class HapticsNMM : NativeMicroModule
         {
             var type = request.QueryStringRequired("duration") switch
             {
-                string t when t.ToUpper() == "SUCCESS" => UINotificationFeedbackType.Success,
-                string t when t.ToUpper() == "WARNING" => UINotificationFeedbackType.Warning,
+                string t when t.EqualsIgnoreCase("SUCCESS") => UINotificationFeedbackType.Success,
+                string t when t.EqualsIgnoreCase("WARNING") => UINotificationFeedbackType.Warning,
                 _ => UINotificationFeedbackType.Error,
             };
 
-            // 初始化反馈
-            var notification = new UINotificationFeedbackGenerator();
-            // 通知系统即将发生触觉反馈
-            notification.Prepare();
-
-            // 触发反馈
-            notification.NotificationOccurred(type);
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                // 初始化反馈
+                var notification = new UINotificationFeedbackGenerator();
+                // 通知系统即将发生触觉反馈
+                notification.Prepare();
+                // 触发反馈
+                notification.NotificationOccurred(type);
+            });
             return new PureResponse(HttpStatusCode.OK);
         });
 

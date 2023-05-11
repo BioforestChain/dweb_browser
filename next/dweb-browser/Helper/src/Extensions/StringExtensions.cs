@@ -37,4 +37,6 @@ public static class StringExtensions
     public static string EncodeURIComponent(this string self) => Uri.EscapeDataString(self);
 
     public static string DecodeURIComponent(this string self) => Uri.UnescapeDataString(self);
+
+    public static bool EqualsIgnoreCase(this string self, string? value) => self.Equals(value, StringComparison.OrdinalIgnoreCase);
 }

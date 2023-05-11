@@ -27,7 +27,7 @@ public class ToastController
         ToastDuration duration = ToastDuration.SHORT,
         ToastPosition position = ToastPosition.BOTTOM)
     {
-        return MainThread.InvokeOnMainThreadAsync(() =>
+        return MainThread.InvokeOnMainThreadAsync(async () =>
         {
             // 创建一个标签作为 Toast 的内容
             var toastLabel = new UILabel();
@@ -83,6 +83,14 @@ public class ToastController
                 options: UIViewAnimationOptions.CurveEaseOut,
                 animation: () => { toastLabel.Alpha = 0; },
                 completion: (finished) => { if (finished) { toastLabel.RemoveFromSuperview(); } });
+
+
+            //uIAlertController.Message = message;
+
+            //controller.PresentViewController(uIAlertController, true, null);
+
+            //await Task.Delay(((int)((double)duration * 1000)));
+            //uIAlertController.DismissViewController(true, null);
         });
     }
 }

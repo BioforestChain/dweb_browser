@@ -526,7 +526,6 @@ var INTERNAL_PREFIX = "/internal";
 var fetchSignal = createSignal();
 var onFetchSignal = createSignal();
 var fetchLock = false;
-var fetchSet = /* @__PURE__ */ new Map();
 async function onApiRequest(serverurlInfo, request, httpServerIpc) {
   let ipcResponse;
   try {
@@ -539,12 +538,6 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         serverurlInfo
       );
     } else {
-      if (fetchLock && (request.method === "GET" || request.method === "HEAD")) {
-        if (!fetchSet.has(url.pathname)) {
-          fetchSet.set(url.pathname, request.req_id);
-          return fetchSignal.emit(request);
-        }
-      }
       const path = `file:/${url.pathname}${url.search}`;
       const ipcProxyRequest = new IpcRequest(
         jsProcess.fetchIpc.allocReqId(),
@@ -555,9 +548,16 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
         jsProcess.fetchIpc
       );
       jsProcess.fetchIpc.postMessage(ipcProxyRequest);
-      ipcResponse = await jsProcess.fetchIpc.registerReqId(
+      const ipcProxyResponse = await jsProcess.fetchIpc.registerReqId(
         ipcProxyRequest.req_id
       ).promise;
+      ipcResponse = new IpcResponse(
+        request.req_id,
+        ipcProxyResponse.statusCode,
+        ipcProxyResponse.headers,
+        ipcProxyResponse.body,
+        httpServerIpc
+      );
     }
     if (!ipcResponse) {
       throw new Error(`unknown gateway: ${url.search}`);

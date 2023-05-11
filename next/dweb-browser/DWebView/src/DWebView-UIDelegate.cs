@@ -4,6 +4,7 @@ using DwebBrowser.Helper;
 using UIKit;
 using WebKit;
 using static System.Net.Mime.MediaTypeNames;
+using static DwebBrowser.Helper.Prelude;
 
 namespace DwebBrowser.DWebView;
 
@@ -78,7 +79,7 @@ public partial class DWebView : WKWebView
                 else
                 {
                     /// 默认行为, 不做理会
-                    ctx.Complete(Unit.Default);
+                    ctx.Complete(unit);
                 }
             });
             completionHandler();

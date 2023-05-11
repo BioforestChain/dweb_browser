@@ -49,19 +49,6 @@ export async function onApiRequest(
         serverurlInfo
       );
     } else {
-      // 如果用户要自己处理
-      if (
-        fetchLock &&
-        (request.method === "GET" || request.method === "HEAD")
-      ) {
-        // 已经转发到serviceWorker去了，那么就不要再抛给用户了
-        if (!fetchSet.has(url.pathname)) {
-          fetchSet.set(url.pathname, request.req_id);
-          // 触发fetch
-          return fetchSignal.emit(request);
-        }
-      }
-
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
       const ipcProxyRequest = new IpcRequest(
@@ -73,10 +60,16 @@ export async function onApiRequest(
         jsProcess.fetchIpc
       );
       jsProcess.fetchIpc.postMessage(ipcProxyRequest);
-      ipcResponse = await jsProcess.fetchIpc.registerReqId(
+      const ipcProxyResponse = await jsProcess.fetchIpc.registerReqId(
         ipcProxyRequest.req_id
       ).promise;
-
+      ipcResponse = new IpcResponse(
+        request.req_id,
+        ipcProxyResponse.statusCode,
+        ipcProxyResponse.headers,
+        ipcProxyResponse.body,
+        httpServerIpc
+      );
     }
     if (!ipcResponse) {
       throw new Error(`unknown gateway: ${url.search}`);
