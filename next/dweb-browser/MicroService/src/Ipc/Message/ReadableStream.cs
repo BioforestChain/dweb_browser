@@ -66,57 +66,45 @@ public class ReadableStream
             this.pipeStream = pipeStream;
             this.onStartRead = onStartRead;
         }
-        public override bool CanRead => pipeStream.CanRead && !isEndRead;
-
+        public override bool CanRead => !isEndRead && pipeStream.CanRead;
         public override bool CanSeek => pipeStream.CanSeek;
-
         public override bool CanWrite => pipeStream.CanWrite;
-
         public override long Length => pipeStream.Length;
-
         public override long Position { get => pipeStream.Position; set => pipeStream.Position = value; }
+        public override void Flush() => pipeStream.Flush();
 
-        public override void Flush()
-        {
-            pipeStream.Flush();
-        }
-
-        private bool isFirstRead = true;
+        private bool hasFirstRead = false;
         private bool isEndRead = false;
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (isFirstRead)
+            if (isEndRead)
             {
-                isFirstRead = false;
+                return 0;
+            }
+            if (hasFirstRead is false)
+            {
+                hasFirstRead = true;
                 onStartRead();
             }
-            try
+
+            var bufferForWriter = offset switch
             {
-                var readLen = pipeStream.ReadAtLeast(buffer.AsSpan(offset, count), 1);
-                return readLen;
-            }
-            catch
+                0 => count == buffer.Length ? buffer : buffer.AsSpan(0, count),
+                _ => buffer.AsSpan(offset, count),
+            };
+
+            var readLen = pipeStream.ReadAtLeast(bufferForWriter, 1, false);
+            if (readLen == 0)
             {
-                Close();
-                throw new ArgumentOutOfRangeException();
+                isEndRead = true;
             }
+            return readLen;
         }
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return pipeStream.Seek(offset, origin);
-        }
-
-        public override void SetLength(long value)
-        {
-            pipeStream.SetLength(value);
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            pipeStream.Write(buffer, offset, count);
-        }
+        public override long Seek(long offset, SeekOrigin origin) => pipeStream.Seek(offset, origin);
+        public override void SetLength(long value) => pipeStream.SetLength(value);
+        public override void Write(byte[] buffer, int offset, int count) => pipeStream.Write(buffer, offset, count);
         public override void Close()
         {
             if (isEndRead)
@@ -124,7 +112,7 @@ public class ReadableStream
                 return;
             }
             isEndRead = true;
-            base.Close();
+            pipeStream.Close();
         }
     }
 

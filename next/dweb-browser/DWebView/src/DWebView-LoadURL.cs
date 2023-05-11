@@ -35,48 +35,50 @@ public partial class DWebView : WKWebView
         }
 
 
-        public class InputStreamStream : Stream
+        public class NSStream : Stream
         {
-            NSInputStream inputStream;
+            NSInputStream _nsStream;
 
-            public InputStreamStream(NSInputStream inputStream)
+            public NSStream(NSInputStream inputStream)
             {
-                this.inputStream = inputStream;
+                this._nsStream = inputStream;
             }
 
-            public override bool CanRead => throw new NotImplementedException();
+            public override bool CanRead => true;
 
-            public override bool CanSeek => throw new NotImplementedException();
+            public override bool CanSeek => false;
 
-            public override bool CanWrite => throw new NotImplementedException();
+            public override bool CanWrite => false;
 
-            public override long Length => throw new NotImplementedException();
+            public override long Length => throw new NotSupportedException();
 
-            public override long Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
             public override void Flush()
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             }
 
             public override int Read(byte[] buffer, int offset, int count)
             {
-                return (int)inputStream.Read(buffer, offset, (uint)count);
+                if (offset != 0)
+                    throw new NotSupportedException();
+                return (int)_nsStream.Read(buffer, offset, (uint)count);
             }
 
             public override long Seek(long offset, SeekOrigin origin)
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             }
 
             public override void SetLength(long value)
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             }
 
             public override void Write(byte[] buffer, int offset, int count)
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             }
         }
         [Export("webView:startURLSchemeTask:")]
@@ -100,7 +102,7 @@ public partial class DWebView : WKWebView
                     urlSchemeTask.Request.BodyStream switch
                     {
                         null => null,
-                        var nsBodyStream => new PureStreamBody(new InputStreamStream(nsBodyStream))
+                        var nsBodyStream => new PureStreamBody(new NSStream(nsBodyStream))
                     });
 
                 /// 获得响应

@@ -7,7 +7,7 @@ using System.Net;
 using DwebBrowser.Helper;
 
 
-namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Clipboardl;
+namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Clipboard;
 
 public class ClipboardNMM : NativeMicroModule
 {

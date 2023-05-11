@@ -9,6 +9,9 @@ using DwebBrowser.MicroService.Sys.Http;
 using DwebBrowser.MicroService.Sys.User;
 using DwebBrowser.MicroService.Sys.Boot;
 using DwebBrowser.MicroService.Sys.Mwebview;
+using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Share;
+using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Clipboard;
+using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Toast;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -31,10 +34,14 @@ public class MicroService
         var httpNMM = new HttpNMM().InstallBy(dnsNMM);
         var mwebiewNMM = new MultiWebViewNMM().InstallBy(dnsNMM);
 
+        /// 安装平台模块
+        new ShareNMM().InstallBy(dnsNMM);
+        new ClipboardNMM().InstallBy(dnsNMM);
+        new ToastNMM().InstallBy(dnsNMM);
+
         /// 安装用户应用
         var desktopJMM = new DesktopJMM().InstallBy(dnsNMM);
         var cotDemoJMM = new CotDemoJMM().InstallBy(dnsNMM);
-
 
         var bootMmidList = new List<Mmid> { cotDemoJMM.Mmid };
         /// 启动程序
