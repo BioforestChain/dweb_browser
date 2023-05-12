@@ -47,7 +47,7 @@ data class BrowserUIState @OptIn(
   ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
 ) constructor(
   val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(), // 多浏览器列表
-  val historyWebsiteMap: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf(), // 历史列表
+  // val historyWebsiteMap: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf(), // 历史列表
   val bookWebsiteList: MutableList<WebSiteInfo> = mutableStateListOf(), // 书签列表
   val currentBrowserBaseView: MutableState<BrowserBaseView>,
   val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
@@ -109,22 +109,22 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
       )
       uiState.browserViewList.add(browserView)
     }
-    viewModelScope.launch(ioAsyncExceptionHandler) {
+    /*viewModelScope.launch(ioAsyncExceptionHandler) {
       WebsiteDB.queryHistoryWebsiteInfoMap().collect {
         uiState.historyWebsiteMap.clear()
         it.forEach { (key, value) ->
           uiState.historyWebsiteMap[key] = value
         }
       }
-    }
-    viewModelScope.launch(ioAsyncExceptionHandler) {
+    }*/
+    /*viewModelScope.launch(ioAsyncExceptionHandler) {
       WebsiteDB.queryBookWebsiteInfoList().collect { list ->
         uiState.bookWebsiteList.clear()
         list.forEach {
           uiState.bookWebsiteList.add(it)
         }
       }
-    }
+    }*/
   }
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {

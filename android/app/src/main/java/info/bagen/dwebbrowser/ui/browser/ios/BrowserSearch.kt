@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.ui.browser.ios
 
 import android.annotation.SuppressLint
+import android.view.KeyEvent
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
@@ -25,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -37,10 +39,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.LifecycleOwner
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.database.WebSiteDao
 import info.bagen.dwebbrowser.database.WebSiteDatabase
 import info.bagen.dwebbrowser.database.WebSiteInfo
 import info.bagen.dwebbrowser.database.WebSiteType
@@ -104,6 +104,7 @@ private fun SearchView(
     focusRequester.requestFocus()
   }
 
+
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -135,7 +136,7 @@ private fun SearchView(
     CustomTextField(
       value = inputText,
       onValueChange = {
-        inputText = it
+        inputText = it.trim()
         searchPreviewState.targetState = it.isNotEmpty()
       },
       modifier = Modifier
@@ -153,7 +154,21 @@ private fun SearchView(
         .height(dimenSearchHeight)
         .clip(RoundedCornerShape(8.dp))
         .background(MaterialTheme.colorScheme.background)
-        .focusRequester(focusRequester),
+        .focusRequester(focusRequester)
+        .onKeyEvent {
+          if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+            webEngine?.let { webEngine ->
+              onSearch(String.format(webEngine.format, inputText))
+            } ?: if (inputText.isUrlOrHost()) {
+              onSearch(inputText.toRequestUrl())
+            } else {
+              focusManager.clearFocus(); keyboardController?.hide()
+            }
+            true
+          } else {
+            false
+          }
+        },
       label = {
         Text(
           text = stringResource(id = R.string.browser_search_hint),
@@ -170,12 +185,13 @@ private fun SearchView(
         )
       },
       keyboardOptions = KeyboardOptions(
-        imeAction = webEngine?.let { ImeAction.Search } ?: ImeAction.Done
+        imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
       ),
       keyboardActions = KeyboardActions(
-        onDone = { keyboardController?.hide() },
+        onDone = { focusManager.clearFocus(); keyboardController?.hide() },
         onSearch = {
           webEngine?.let { onSearch(String.format(it.format, inputText)) }
+            ?: onSearch(inputText.toRequestUrl())
         }
       )
     )
@@ -283,7 +299,11 @@ private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
   }.firstOrNull()?.also { browserBaseView ->
     if (browserBaseView === viewModel.uiState.currentBrowserBaseView.value) return@also // TODO 如果搜索到的界面就是我当前显示的界面，就不显示该项
     val website = (browserBaseView as BrowserWebView).state.let {
-      WebSiteInfo(title = it.pageTitle ?: "无标题", url = it.lastLoadedUrl ?: "localhost", type = WebSiteType.Multi)
+      WebSiteInfo(
+        title = it.pageTitle ?: "无标题",
+        url = it.lastLoadedUrl ?: "localhost",
+        type = WebSiteType.Multi
+      )
     }
     SearchWebsiteCardView(webSiteInfo = website, drawableId = R.drawable.ic_main_multi) {
       // TODO 调转到指定的标签页

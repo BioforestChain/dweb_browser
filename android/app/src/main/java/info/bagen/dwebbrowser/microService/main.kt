@@ -59,7 +59,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             )
         )
         DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo -> debugTags.addAll(
-            listOf("Share", "fetch", "http", "jmm", "browser", "biometrics", "mwebview")
+            listOf("Share", "fetch", "http", "jmm", "browser", "biometrics", "mwebview", "fetch-file")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
             listOf( "mwebview","Share")
@@ -115,7 +115,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
 
     /// 安装用户应用
-    val desktopJMM = DesktopJMM().also {
+    /*val desktopJMM = DesktopJMM().also {
         dnsNMM.install(it)
     }
     val cotJMM = CotJMM().also {
@@ -126,7 +126,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     }
     val toyJMM = ToyJMM().also {
         dnsNMM.install(it)
-    }
+    }*/
 
     /**
      *
@@ -139,12 +139,12 @@ suspend fun startDwebBrowser(): DnsNMM {
     val bootMmidList = when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> listOf(
 //            cotJMM.mmid,
-            cotDemoJMM.mmid,
+//            cotDemoJMM.mmid,
 //            browserNMM.mmid,
         )
         DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo -> listOf(browserNMM.mmid)
-        DEVELOPER.WaterBang -> listOf(cotDemoJMM.mmid, browserNMM.mmid)
-        else -> listOf(cotDemoJMM.mmid, browserNMM.mmid)
+        DEVELOPER.WaterBang -> listOf(/*cotDemoJMM.mmid,*/ browserNMM.mmid)
+        else -> listOf(/*cotDemoJMM.mmid,*/ browserNMM.mmid)
     }
 
     /// 启动程序
