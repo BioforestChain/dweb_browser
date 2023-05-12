@@ -109,6 +109,9 @@ export abstract class MicroModule implements $MicroModule {
   }
 
   nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    if(init?.body instanceof ReadableStream){
+      Reflect.set(init, "duplex", "half")
+    }
     // console.log('[micro-module.cts nativeFetch init: ]', init)
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }

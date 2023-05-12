@@ -76,8 +76,10 @@ export class ForRenderApi {
     devToolsId?: number
   ) {
     const content_wcs = Electron.webContents.fromId(webContentsId);
+    if(content_wcs === undefined) throw new Error(`content_wcs === undefined`)
     if (devToolsId) {
       const devTools_wcs = Electron.webContents.fromId(devToolsId);
+      if(devTools_wcs === undefined) throw new Error(`content_wcs === undefined`)
       content_wcs.setDevToolsWebContents(devTools_wcs);
       queueMicrotask(() => {
         devTools_wcs.executeJavaScript("window.location.reload()");
@@ -89,23 +91,29 @@ export class ForRenderApi {
     webContentsId: number,
     onDeny: (details: Electron.HandlerDetails) => unknown
   ) {
-    return Electron.webContents
-      .fromId(webContentsId)
-      .setWindowOpenHandler((detail) => {
+    const contents = Electron.webContents.fromId(webContentsId)
+    if(contents === undefined) throw new Error(`contents === undefined`);
+    return contents.setWindowOpenHandler((detail) => {
         onDeny(detail);
         return { action: "deny" };
       });
   }
   destroy(webContentsId: number, options?: Electron.CloseOpts) {
-    return Electron.webContents.fromId(webContentsId).close(options);
+    const contents = Electron.webContents.fromId(webContentsId)
+    if(contents === undefined) throw new Error(`contents === undefined`);
+    return contents.close(options);
   }
   onDestroy(webContentsId: number, onDestroy: () => unknown) {
-    Electron.webContents.fromId(webContentsId).addListener("destroyed", () => {
+    const contents = Electron.webContents.fromId(webContentsId)
+    if(contents === undefined) throw new Error(`contents === undefined`);
+    contents.addListener("destroyed", () => {
       onDestroy();
     });
   }
   getWenContents(webContentsId: number) {
-    return proxy(Electron.webContents.fromId(webContentsId));
+    const contents = Electron.webContents.fromId(webContentsId)
+    if(contents === undefined) throw new Error(`contents === undefined`);
+    return proxy(contents);
   }
 }
 

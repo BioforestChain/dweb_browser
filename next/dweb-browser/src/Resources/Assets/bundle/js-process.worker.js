@@ -2540,6 +2540,9 @@ var MicroModule = class {
     return fetch(args.parsed_url, args.request_init);
   }
   nativeFetch(url, init) {
+    if (init?.body instanceof ReadableStream) {
+      Reflect.set(init, "duplex", "half");
+    }
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 };
