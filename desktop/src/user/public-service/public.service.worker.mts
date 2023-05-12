@@ -1,15 +1,15 @@
+import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
-import { webViewMap, closeFront, restartApp } from "../tool/app.handle.mjs";
+import { closeFront, restartApp, webViewMap } from "../tool/app.handle.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import {
-  nativeOpen,
-  nativeActivate,
-  cros,
   closeDwebView,
+  cros,
+  nativeActivate,
+  nativeOpen,
 } from "../tool/tool.native.mjs";
-import { $Ipc, onApiRequest, onFetchSignal } from "../tool/tool.request.mjs";
-import { DetailedDiff, detailedDiff } from "deep-object-diff";
+import { $Ipc, fetchSignal, onApiRequest } from "../tool/tool.request.mjs";
 
 const main = async () => {
   const { IpcEvent } = ipc;
@@ -108,7 +108,6 @@ const main = async () => {
   });
 
   wwwReadableStreamIpc.onRequest(async (request, ipc) => {
-    console.log("www onrequest", request);
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -132,9 +131,13 @@ const main = async () => {
       )
     );
   });
-  // 外部发来的请求
+  // 提供APP之间通信的方法
   externalReadableStreamIpc.onRequest(async (request, ipc) => {
-    onFetchSignal.emit(request);
+    console.log("externalReadableStreamIpc =>", request, ipc);
+    // 当用户请求其他APP的时候请求走的是这里
+    fetchSignal.emit(request);
+    // TODO
+    console.log(request, ipc);
   });
 
   // 转发serviceWorker 请求
@@ -187,12 +190,7 @@ const main = async () => {
   });
 
   const diffFactory = async (diff: DetailedDiff) => {
-    console.log(
-      "connectMultiWebView diffFactory=>",
-      diff.added,
-      diff.deleted,
-      diff.updated
-    );
+    console.log("connectMultiWebView diffFactory=>", diff);
     //  是否有新增
     for (const id in diff.added) {
       webViewMap.set(id, JSON.parse(diff.added[id as keyof typeof diff.added]));

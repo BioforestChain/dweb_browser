@@ -63,6 +63,12 @@ export abstract class BasePlugin {
     url.pathname = `/internal${pathname}`;
     return this.buildRequest(url, init);
   }
+  
+  buildExternalApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
+    const url = new URL(init?.base ?? BasePlugin.internal_url);
+    url.pathname = `/external${pathname}`;
+    return this.buildRequest(url, init);
+  }
 
   protected createSignal = createSignal;
 }
@@ -73,6 +79,6 @@ interface $BuildRequestInit extends RequestInit {
     | Record<string, any>;
   base?: string;
 }
-interface $BuildRequestWithBaseInit extends $BuildRequestInit {
+export interface $BuildRequestWithBaseInit extends $BuildRequestInit {
   base?: string;
 }

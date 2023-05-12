@@ -23,11 +23,9 @@ const ipcObserversMap = new Map<
 
 const INTERNAL_PREFIX = "/internal";
 type $OnIpcRequestUrl = (request: $IpcRequest) => void;
-const fetchSignal = createSignal<$OnIpcRequestUrl>();
+export const fetchSignal = createSignal<$OnIpcRequestUrl>();
 export const onFetchSignal = createSignal<$OnIpcRequestUrl>();
-// serviceWorker 的fetch锁，如果打开了我们就不帮忙处理请求，让前端自己处理
-let fetchLock = false;
-const fetchSet = new Map<string, number>();
+
 
 /**
  * request 事件处理器
@@ -130,7 +128,6 @@ const internalFactory = (
   }
   // 监听fetch
   if (pathname === "/fetch") {
-    fetchLock = true;
     // serviceWorker fetch
     const streamPo = serviceWorkerFetch();
     return IpcResponse.fromStream(

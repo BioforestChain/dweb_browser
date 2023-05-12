@@ -10,13 +10,13 @@ class CotDemoJMM : JsMicroModule(
         version = "1.0.0",
         server = JmmMetadata.MainServer(
             root = "file:///bundle",
-            entry = "/cotDemo.worker.js"
+            entry = "/public.service.worker.js"
         ),
         splashScreen = JmmMetadata.SplashScreen("https://www.bfmeta.org/"),
         staticWebServers = listOf(
             JmmMetadata.StaticWebServer(
                 root = "file:///bundle",
-                entry = "/cotDemo.worker.js",
+                entry = "/public.service.worker.js",
                 port = 80,
                 subdomain = "cotdemo.bfs.dweb"
             )

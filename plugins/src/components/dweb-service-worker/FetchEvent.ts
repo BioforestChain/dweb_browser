@@ -1,3 +1,4 @@
+import { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
 
 interface FetchEventInit {
@@ -30,6 +31,11 @@ export class FetchEvent extends Event {
     // this.resultingClientId = null;
     this.waitUntilPromise = null;
   }
+  
+  async fetch(pathname: string, init?: $BuildRequestWithBaseInit) {
+    return await this.plugin.buildExternalApiRequest(pathname, init).fetch();
+  }
+
   respondWith(response: Response | Promise<Response>) {
     if (!(response instanceof Response)) {
       response = Promise.resolve(response).then((res) => {

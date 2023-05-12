@@ -1,16 +1,16 @@
-import "./sys/dns/localeFileFetch.cjs";
 import { BootNMM } from "./sys/boot.cjs";
 import { DnsNMM } from "./sys/dns/dns.cjs";
-import { DownloadNMM } from "./sys/download/download.cjs"
+import "./sys/dns/localeFileFetch.cjs";
+import { DownloadNMM } from "./sys/download/download.cjs";
 import { HttpServerNMM } from "./sys/http-server/http-server.cjs";
 import { JsProcessNMM } from "./sys/js-process/js-process.cjs";
 import { MultiWebviewNMM } from "./sys/multi-webview/multi-webview.mobile.cjs";
-import { StatusbarNativeUiNMM } from "./sys/plugins/native-ui/status-bar/status-bar.main.cjs";
 import { NavigationBarNMM } from "./sys/plugins/native-ui/navigation-bar/navigation-bar.main.cjs";
-import { SafeAreaNMM } from "./sys/plugins/native-ui/safe-area/safe-area.main.cjs"
-import { VirtualKeyboardNMM } from "./sys/plugins/native-ui/virtual-keyboard/virtual-keyboard.main.cjs"
+import { SafeAreaNMM } from "./sys/plugins/native-ui/safe-area/safe-area.main.cjs";
+import { StatusbarNativeUiNMM } from "./sys/plugins/native-ui/status-bar/status-bar.main.cjs";
 import { ToastNMM } from "./sys/plugins/native-ui/toast/toast.main.cjs";
 import { TorchNMM } from "./sys/plugins/native-ui/torch/torch.main.cjs";
+import { VirtualKeyboardNMM } from "./sys/plugins/native-ui/virtual-keyboard/virtual-keyboard.main.cjs";
 import { BarcodeScanningNativeUiNMM } from "./sys/plugins/sys/barcode-scanning/barcode-scanning.main.cjs";
 import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.cjs";
 import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.cjs";
@@ -38,12 +38,8 @@ dns.install(desktopJmm);
 import { browserJMM } from "./user/browser/browser.main.cjs";
 dns.install(browserJMM);
 
-// 安装 cot
-import { cotJMM } from "./user/cot/cot.main.cjs";
-dns.install(cotJMM);
-
-import { cotDemoJMM } from "./user/cot-demo/cotDemo.main.cjs";
-dns.install(cotDemoJMM);
+import { publicServiceJMM } from "./user/public-service/public.service.main.cjs";
+dns.install(publicServiceJMM);
 
 // 安装 file.sys.dweb
 import { FileNMM } from "./sys/file/file.cjs";
@@ -53,10 +49,10 @@ import { JmmNMM } from "./sys/jmm/jmm.cjs";
 dns.install(new JmmNMM());
 
 
-import { jmmtestconnectJMM } from "./user/jmm-test-connect/jmmtestconnect.main.cjs";
-import { jmmtestconnectJMM2 } from "./user/jmm-test-connect2/jmmtestconnect2.main.cjs";
-dns.install(jmmtestconnectJMM)
-dns.install(jmmtestconnectJMM2)
+// import { jmmtestconnectJMM } from "./user/jmm-test-connect/jmmtestconnect.main.cjs";
+// import { jmmtestconnectJMM2 } from "./user/jmm-test-connect2/jmmtestconnect2.main.cjs";
+// dns.install(jmmtestconnectJMM)
+// dns.install(jmmtestconnectJMM2)
 
 
 dns.install(new BootNMM([

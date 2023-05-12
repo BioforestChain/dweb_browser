@@ -66,5 +66,4 @@ if (process.argv.includes("--watch")) {
       debounceSync();
     });
   }
-  return;
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { dwebServiceWorker } from "@bfex/plugin";
+import { ref } from 'vue';
 import { useRouter } from "vue-router";
-import { FetchEvent, dwebServiceWorker } from "@bfex/plugin"
 import { routes } from "./routes";
 
 const router = useRouter();
@@ -23,12 +23,17 @@ dwebServiceWorker.addEventListener("resume", (event) => {
 
 dwebServiceWorker.addEventListener("fetch", async (event) => {
   console.log("Dweb Service Worker fetch!", event);
-  const response = await fetch(event.request)
+  const response = await event.fetch("https://play.dweb.waterbang.top.dweb/say/hi",{
+    search: {
+      messages: "hi 今晚吃螃🦀️蟹吗？"
+    }
+  })
   console.log("Dweb Service Worker fetch response=>", response)
   return event.respondWith(response)
 })
 
 dwebServiceWorker.addEventListener("onFetch", (event) => {
+  //TODO get outder handle
   console.log("Dweb Service Worker onFetch!", event);
 })
 

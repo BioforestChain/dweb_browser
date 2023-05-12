@@ -41,9 +41,6 @@ class MultiWebViewController(
     )
 
     private var webViewList = mutableStateListOf<ViewItem>()
-    fun ViewItem.toJsonAble():MWebViewState {
-        return MWebViewState(this.webviewId, this.hidden.value)
-    }
 
 //    @Composable
 //    fun effectItem(viewItem:ViewItem) {
@@ -180,7 +177,7 @@ class MultiWebViewController(
         debugMultiWebView("updateStateHook =>", webViewList)
         val currentState = JSONObject()
         webViewList.map {
-            currentState.put(it.webviewId, it.toJsonAble())
+            currentState.put(it.webviewId, """{"webviewId":"${it.webviewId}","isActivated":"${it.hidden.value}"}""")
         }
         mIpcMap.getOrPut(mmid) {
             val (ipc) = localeMM.connect(mmid)
@@ -190,6 +187,7 @@ class MultiWebViewController(
             ipc
         }.also {ipc ->
             ipc.postMessage(IpcEvent.fromUtf8("state", currentState.toString()))
+            println("currentState.toString()=> $currentState")
         }
     }
 
