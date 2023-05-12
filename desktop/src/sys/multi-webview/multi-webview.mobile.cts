@@ -8,12 +8,13 @@ import {
 import { log } from "../../helper/devtools.cjs";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 import chalk from "chalk"
+import { converRGBAToHexa, hexaToRGBA } from "../plugins/helper.cjs";
+import querystring from "node:querystring"
+import path from "node:path"
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { Remote } from "comlink";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IncomingMessage, OutgoingMessage } from "node:http";
-import { converRGBAToHexa, hexaToRGBA } from "../plugins/helper.cjs";
-import querystring from "node:querystring"
 import type { $BarState, $BAR_STYLE, $SafeAreaState, $VirtualKeyboardState } from "./assets/types";
 
 // @ts-ignore
@@ -406,6 +407,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
         nww.webContents.openDevTools();
 
         const apis = nww.getApis<$APIS>();
+        const absolutePath = "file://" + path.resolve(__dirname, "./assets/preload.cjs")
+        apis.preloadAbsolutePathSet(absolutePath)
         this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));
       }
       return wapi;
