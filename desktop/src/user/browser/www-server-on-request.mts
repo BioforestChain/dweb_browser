@@ -9,9 +9,9 @@ export async function wwwServerOnRequest(request: IpcRequest, ipc: Ipc){
       pathname = pathname === "/" ? "/index.html" : pathname;
   
   // 打开 dweb_browser/example/vue3 这个 demo 的路径 
-  // const url = `file:///app/cot-demo${pathname}?mode=stream`
+  const url = `file:///app/cot-demo${pathname}?mode=stream`
   // 打开首页的 路径
-  const url = `file:///assets/html/browser.html?mode=stream`;
+  // const url = `file:///assets/html/browser.html?mode=stream`;
   const response = await jsProcess.nativeRequest(url);
 
   ipc.postMessage(

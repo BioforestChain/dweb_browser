@@ -1,237 +1,307 @@
 /// <reference lib="DOM"/>
-
-import { proxy } from "comlink";
-import { css, html, LitElement } from "lit";
-import { customElement, property, queryAll } from "lit/decorators.js";
-import { repeat } from "lit/directives/repeat.js";
-import { styleMap } from "lit/directives/style-map.js";
-import {
-  exportApis,
-  mainApis,
-} from "../../../helper/openNativeWindow.preload.mjs";
-import { Webview } from "./multi-webview.mjs"
 import "./multi-webview-content.html.mjs"
 import "./multi-webview-devtools.html.mjs"
+import "./components/multi-webview-comp-status-bar.html.mjs"
+import "./components/multi-webview-comp-mobile-shell.html.mjs";
+import "./components/multi-webview-comp-navigator-bar.html.mjs";
+import "./components/multi-webview-comp-virtual-keyboard.html.mjs";
+import "./components/multi-webview-comp-toast.html.mjs";
+import "./components/multi-webview-comp-barcode-scanning.html.mjs";
+import "./components/multi-webview-comp-biometrics.html.mjs";
+import "./components/multi-webview-comp-haptics.html.mjs";
+import "./components/multi-webview-comp-share.html.mjs"
+import excuteJavascriptCode from "./multi-webview-excute-javascript.mjs"
+import { repeat } from "lit/directives/repeat.js";
+import { styleMap } from "lit/directives/style-map.js";
+import { when } from "lit/directives/when.js";
+import { css, html, LitElement, PropertyValueMap } from "lit";
+import { customElement, property, query, queryAll, state } from "lit/decorators.js";
+import { proxy } from "comlink";
+import { exportApis, mainApis } from "../../../helper/openNativeWindow.preload.mjs";
+import { getButtomBarState } from "./components/multi-webview-comp-safe-area.shim.mjs";
+import { Webview } from "./multi-webview.mjs"
 import WebviewTag = Electron.WebviewTag;
-import type { 
+import type {
   CustomEventDomReadyDetail,
   CustomEventAnimationendDetail
 } from "./multi-webview-content.html.mjs"
+// import { hexaToRGBA } from "../../../helper/colorFormat.cjs"
 import type { MultiWebViewContent } from "./multi-webview-content.html.mjs";
+import type { $BarState, $BAR_STYLE, $ShareOptions, $VirtualKeyboardState } from "./types.js";
+import type { MultiWebViewCompMobileShell } from "./components/multi-webview-comp-mobile-shell.html.mjs";
+import type { MultiWebviewCompVirtualKeyboard } from "./components/multi-webview-comp-virtual-keyboard.html.mjs";
+import type { MultiWebviewCompNavigationBar } from "./components/multi-webview-comp-navigator-bar.html.mjs";
+import { ipcRenderer, webContents } from "electron";
+
 @customElement("view-tree")
 export class ViewTree extends LitElement {
-  // Define scoped styles right with your component, in plain CSS
-  static override styles = [
-    css`
-      :host {
-        display: flex;
-        flex-direction: row;
-
-        height: 100%;
-
-        grid-template-areas: "layer";
-      }
-      * {
-        box-sizing: border-box;
-      }
-      .layer {
-        grid-area: layer;
-        /* flex: 1; */
-        display: grid;
-        grid-template-areas: "layer-content";
-        height: 100%;
-        padding: 0.5em 1em;
-      }
-      .app-container{
-        flex-grow: 0;
-        flex-shrink: 0;
-        width: 375px;
-        height: 812px;
-      }
-      .webview-container {
-        position: relative;
-        grid-area: layer-content;
-
-        height: 100%;
-
-        display: grid;
-        grid-template-areas: "webview";
-        grid-template-rows: 1fr;
-      }
-
-      .webview-statusbar{
-        position: absolute;
-        left: 0px;
-        top: 0px;
-        z-index: 100;
-        width: 100%;
-        height: 80px;
-        background: #9993;
-      }
-
-      .webview-content{
-        position: absolute;
-        left: 0px;
-        top: 0px;
-        box-sizing: border-box;
-        width: 100%;
-        min-height: 100%;
-        z-index: 0;
-        border: 10px solid blue;
-      }
-
-      .devtool-container {
-        grid-area: layer-content;
-
-        height: 100%;
-
-        display: grid;
-        grid-template-areas: "toolbar" "devtool";
-        grid-template-rows: 2em 1fr;
-      }
-    `,
-    css`
-      .webview {
-        grid-area: webview;
-
-        width: 100%;
-        height: 100%;
-        border: 0;
-        outline: 1px solid red;
-        border-radius: 1em;
-        overflow: hidden;
-      }
-      .devtool {
-        grid-area: devtool;
-
-        width: 100%;
-        height: 100%;
-        border: 0;
-        outline: 1px solid blue;
-        border-radius: 1em;
-        overflow: hidden;
-      }
-      .dev-tools-container{
-        min-width:500px;
-      }
-      .toolbar {
-        grid-area: toolbar;
-
-        display: flex;
-        height: 100%;
-        flex-direction: row;
-        align-items: center;
-      }
-      fieldset {
-        border: 0;
-        padding: 0;
-      }
-      fieldset:disabled {
-        display: none;
-      }
-    `,
-    css`
-      :host {
-        --easing: cubic-bezier(0.36, 0.66, 0.04, 1);
-      }
-      .opening > .ani-view {
-        animation: slideIn 3520ms var(--easing) forwards;
-      }
-      .closing > .ani-view {
-        animation: slideOut 830ms var(--easing) forwards;
-      }
-      @keyframes slideIn {
-        0% {
-          transform: translateY(60%) translateZ(0);
-          opacity: 0.4;
-        }
-        100% {
-          transform: translateY(0%) translateZ(0);
-          opacity: 1;
-        }
-      }
-      @keyframes slideOut {
-        0% {
-          transform: translateY(0%) translateZ(0);
-          opacity: 1;
-        }
-        30% {
-          transform: translateY(-30%) translateZ(0) scale(0.4);
-          opacity: 0.6;
-        }
-        100% {
-          transform: translateY(-100%) translateZ(0) scale(0.3);
-          opacity: 0.5;
-        }
-      }
-    `,
-    css`
-      .stack {
-        /* display: inline-grid;
-        place-items: center;
-        align-items: flex-end; */
-      }
-      .stack > * {
-        grid-column-start: 1;
-        grid-row-start: 1;
-        width: 100%;
-        transition-duration: 520ms;
-        transition-timing-function: var(--easing);
-        /* pointer-events: none; */
-        transition-property: transform, opacity;
-        // backdrop-filter: blur(5px);
-        z-index: var(--z-index, 1);
-        transform: translateZ(0) scale(var(--scale, 1));
-        opacity: var(--opacity, 1);
-      }
-      .stack > .closing {
-        pointer-events: none;
-      }
-      
-      
-      /* 
-      .stack > .opening {
-        transform: translateY(min(10%, 10px)) translateZ(0) scale(0.9);
-        z-index: 1;
-        opacity: 0.6;
-      }
-      .stack > .opening.opening-2 {
-        transform: translateY(min(5%, 5px)) translateZ(0) scale(0.95);
-        z-index: 2;
-        opacity: 0.8;
-      }
-      .stack > .opening.opening-1 {
-        transform: translateY(0) translateZ(0) scale(1);
-        z-index: 3;
-        opacity: 1;
-        pointer-events: unset;
-      } */
-    `,
-  ];
-
-  // Declare reactive properties
-  @property()
-  name?: string = "Multi Webview";
-  
+  static override styles = createAllCSS()
+  private _id_acc = 0;
+  private webviews: Array<Webview> = [];
+  statusBarHeight = "38px";
+  navigationBarHeight = "26px";
+  virtualKeyboardAnimationSetIntervalId: unknown = 0
   @queryAll('multi-webview-content')
   _multiWebviewContent: MultiWebViewContent[] | undefined;
+  @query('multi-webview-comp-mobile-shell') multiWebviewCompMobileShell: MultiWebViewCompMobileShell | undefined | null;
+  @query('multi-webview-comp-virtual-keyboard') multiWebviewCompVirtualKeyboard: MultiWebviewCompVirtualKeyboard | undefined;
+  @query('multi-webview-comp-navigation-bar') multiWebviewCompNavigationBar: MultiWebviewCompNavigationBar | undefined;
+  @property() name?: string = "Multi Webview";
+  @property({ type: Object }) statusBarState: $BarState[] = [{
+    color: "#FFFFFFFF",
+    style: "DEFAULT",
+    insets: {
+      top: parseInt(this.statusBarHeight),
+      right: 0,
+      bottom: 0,
+      left: 0
+    },
+    overlay: false,
+    visible: true
+  }]
+  @property({ type: Object }) navigationBarState: $BarState[] = [{
+    color: "#FFFFFFFF",
+    style: "DEFAULT",
+    insets: {
+      top: 0,
+      right: 0,
+      bottom: parseInt(this.navigationBarHeight),
+      left: 0
+    },
+    overlay: false,
+    visible: true
+  }]
+  @property({ type: Object }) safeAreaState = {
+    overlay: false
+  }
+  @property({ type: Boolean }) isShowVirtualKeyboard = false;
+  @property({ type: Object }) virtualKeyboardState: $VirtualKeyboardState = {
+    insets: {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0
+    },
+    overlay: false,
+    visible: false
+  }
+  @state() torchState = { isOpen: false }
+  @state() preloadAbsolutePath = ""
 
-  private webviews: Array<Webview> = [];
+  barSetState<
+    $PropertyName extends keyof Pick<this, "statusBarState" | "navigationBarState">,
+    K extends keyof $BarState, V extends $BarState[K]
+  >(
+    propertyName: $PropertyName, key: K, value: V
+  ){
+    const state = this[propertyName];
+    const len = state.length;
+    state[len - 1][key] = value;
+    this[propertyName] = JSON.parse(JSON.stringify(state))
+    
+    // 把状态改变的消息发送给safe area
+    if(key === "overlay" || key === "visible"){
+      ipcRenderer.send('safe_are_insets_change')
+    }
+    
+    return this[propertyName][len - 1]
+  }
+
+  barGetState<
+    $PropertyName extends keyof Pick<this, "statusBarState" | "navigationBarState">
+  >(
+    propertyName: $PropertyName, 
+  ){
+    const i = this[propertyName].length - 1
+    return this[propertyName][i];
+  }
+
+  /**
+   * 根据 multi-webview-comp-virtual-keyboard 标签
+   * 和 navigationBarState.insets.bottom 的值
+   * 设置 virtualKeyboardState.inserts.bottom
+   */
+  virtualKeyboardStateUpdateInsetsByEl(){
+    const height = this.multiWebviewCompVirtualKeyboard?.getBoundingClientRect().height;
+    if(height === undefined) throw new Error(`height === undefined`)
+    const currentNavigationBarHeight = this.navigationBarState[
+      this.navigationBarState.length - 1
+    ].insets.bottom;
+    this.virtualKeyboardState = {
+      ...this.virtualKeyboardState,
+      insets:{
+        ...this.virtualKeyboardState.insets,
+        bottom: height <= currentNavigationBarHeight ? 0 : height
+      }
+    }
+    ipcRenderer.send('safe_are_insets_change')
+  }
+
+  virtualKeyboardFirstUpdated() {
+    this.virtualKeyboardState = {
+      ...this.virtualKeyboardState,
+      visible: true
+    }
+  }
+
+  virtualKeyboardHideCompleted() {
+    this.isShowVirtualKeyboard = false;
+    ipcRenderer.send('safe_are_insets_change')
+    clearInterval(this.virtualKeyboardAnimationSetIntervalId as number)
+  }
+
+  virtualKeyboardShowCompleted() {
+    ipcRenderer.send('safe_are_insets_change')
+    clearInterval(this.virtualKeyboardAnimationSetIntervalId as number)
+  }
+
+  virtualKeyboardSetOverlay(overlay: boolean) {
+    const state = {
+      ...this.virtualKeyboardState,
+      overlay: overlay
+    }
+    this.virtualKeyboardState = state;
+    return state
+  }
+
+  virtualKeyboardGetState(){
+    return this.virtualKeyboardState;
+  }
+
+  toast(
+    message: string,
+    duration: string,
+    position: "top" | "bottom",
+  ){
+    this.multiWebviewCompMobileShell?.toastShow(
+      message, duration, position
+    );
+  }
+
+  safeAreaGetState = () => {
+    const navigationBarState = this.navigationBarState[this.navigationBarState.length - 1];
+    const statusbarState = this.statusBarState[this.statusBarState.length - 1]
+    const bottomBarState = getButtomBarState(
+      navigationBarState,
+      this.isShowVirtualKeyboard,
+      this.virtualKeyboardState
+    );
+    return {
+      overlay: this.safeAreaState.overlay,
+      insets: {
+        left: 0,
+        top: statusbarState.overlay ? statusbarState.insets.top : 0,
+        right: 0,
+        bottom: bottomBarState.visible
+                ? bottomBarState.overlay ? bottomBarState.insets.bottom : 0
+                : 0
+          
+      },
+      cutoutInsets: {
+        left: 0,
+        top: statusbarState.insets.top,
+        right: 0,
+        bottom: 0,
+      },
+      // 外部尺寸
+      outerInsets: {
+        left: 0,
+        top: statusbarState.overlay ? 0 : statusbarState.insets.top,
+        right: 0,
+        bottom: bottomBarState.visible
+                ? bottomBarState.overlay ? 0 : bottomBarState.insets.bottom
+                : 0
+          
+      }
+    }
+  };
+
+  safeAreaSetOverlay = (overlay: boolean) => {
+    this.safeAreaState = {
+      ...this.safeAreaState,
+      overlay: overlay
+    }
+    this.barSetState("statusBarState", "overlay", overlay)
+    this.barSetState("navigationBarState","overlay", overlay)
+    this.virtualKeyboardSetOverlay(overlay)
+    return this.safeAreaGetState()
+  };
+
+  torchToggleTorch() {
+    this.torchState = {
+      ...this.torchState,
+      isOpen: !this.torchState.isOpen
+    }
+    return this;
+  }
+
+  barcodeScanningGetPhoto() {
+    const el = document.createElement('multi-webview-comp-barcode-scanning');
+    document.body.append(el)
+  }
+
+  biometricsMock() {
+    this.multiWebviewCompMobileShell?.biometricsMock()
+  }
+
+  hapticsMock() {
+    this.multiWebviewCompMobileShell?.hapticsMock('HEAVY');
+  }
+
+  shareShare(options: $ShareOptions) {
+    this.multiWebviewCompMobileShell?.shareShare(options)
+  }
+
+  navigationBarOnBack = () => {
+    const len = this.webviews.length;
+    if (len === 0) {
+      console.error('没有 dweb app 在打开状态，但是还没有处理 是否需要关闭 window??')
+      return;
+    }
+    const webview = this.webviews[len - 1];
+    const origin = new URL(webview.src).origin;
+    this._multiWebviewContent?.forEach(el => {
+      if (el.src.includes(origin)) {
+        const webview = el.getWebviewTag();
+        webview?.addEventListener('ipc-message', this.webviewTagOnIpcMessageHandlerBack);
+      }
+    })
+
+    // executre 通过 fetch 把消息发送出来
+    this.executeJavascriptByHost(
+      origin,
+      excuteJavascriptCode
+    )
+  }
+
+  navigationBarStateUpdateInsetsByEl = () => {
+    console.log("this.multiWebviewCompNavigationBar: ", this.multiWebviewCompNavigationBar)
+    const height = this.multiWebviewCompNavigationBar?.getBoundingClientRect().height;
+    if(height === undefined) throw new Error(`height === undefined`)
+    const len = this.navigationBarState.length;
+    const state = {
+      ...this.navigationBarState[len - 1],
+      insets: {
+        ...this.navigationBarState[len - 1].insets,
+        bottom: height
+      }
+    }
+    this.navigationBarState[len - 1].insets.bottom = height;
+    this.navigationBarState = JSON.parse(JSON.stringify(this.navigationBarState))
+    console.log('navigationbar的状态发生了改变', this.navigationBarState)
+  }
+
   /** 对webview视图进行状态整理 */
   private _restateWebviews() {
     let index_acc = 0;
-
     let closing_acc = 0;
     let opening_acc = 0;
-
     let scale_sub = 0.05;
     let scale_acc = 1 + scale_sub;
-
     let opacity_sub = 0.1;
     let opacity_acc = 1 + opacity_sub;
     for (const webview of this.webviews) {
       webview.state.zIndex = this.webviews.length - ++index_acc;
-
       if (webview.closing) {
         webview.state.closingIndex = closing_acc++;
       } else {
@@ -251,8 +321,6 @@ export class ViewTree extends LitElement {
     this.requestUpdate("webviews");
   }
 
-  private _id_acc = 0;
-
   // 打开一个新的webview标签
   // 在html中执行 open() 也会调用这个方法
   openWebview(src: string) {
@@ -271,7 +339,7 @@ export class ViewTree extends LitElement {
     this._restateWebviews();
     return true;
   }
-  
+
   private _removeWebview(webview: Webview) {
     const index = this.webviews.indexOf(webview);
     if (index === -1) {
@@ -299,6 +367,7 @@ export class ViewTree extends LitElement {
       })
     );
     const webcontents = await mainApis.getWenContents(webview.webContentId);
+    ele?.addEventListener('ipc-message', this.webviewTagOnIpcMessageHandlerNormal)
   }
 
   private async onDevtoolReady(webview: Webview, ele_devTool: WebviewTag) {
@@ -318,30 +387,27 @@ export class ViewTree extends LitElement {
     await mainApis.destroy(webview.webContentId);
   }
 
-  async destroyWebviewByHost(host: string){
+  async destroyWebviewByHost(host: string) {
     this.webviews.forEach(webview => {
       const _url = new URL(webview.src);
       const _host = `api${_url.host.slice(3)}`
-      console.log(_host)
-      console.log(host)
-      if(_host === host){
+      if (_host === host) {
         this.destroyWebview(webview)
       }
     })
     return true;
   }
 
-  async restartWebviewByHost(host: string){
-    // this.webviews.forEach(webview => {
-    //   const _url = new URL(webview.src);
-    //   const _host = `api${_url.host.slice(3)}`
-    //   console.log(_host)
-    //   console.log(host)
-    //   if(_host === host){
-    //     this.render()
-    //   }
-    // })
-    // console.log(this.webviews)
+  async destroyWebviewByOrigin(origin: string) {
+    this.webviews.forEach(webview => {
+      if (webview.src.includes(origin)) {
+        this.destroyWebview(webview)
+      }
+    })
+    return true;
+  }
+
+  async restartWebviewByHost(host: string) {
     this._restateWebviews()
     return true;
   }
@@ -351,79 +417,177 @@ export class ViewTree extends LitElement {
    * @param host 
    * @param code 
    */
-  async executeJavascriptByHost(host: string, code: string){
+  async executeJavascriptByHost(host: string, code: string) {
     this._multiWebviewContent?.forEach(el => {
       const webview_url = new URL(el.src.split("?")[0]).origin;
       const target_url = new URL(host).origin;
-      if(el.src.includes(host) || webview_url === target_url){
+      if (el.src.includes(host) || webview_url === target_url) {
         el.executeJavascript(code);
         return;
       }
     })
   }
 
+  async acceptMessageFromWebview(
+    options: {
+      origin: string,
+      action: string,
+      value: string,
+    }
+  ) {
+    switch (options.action) {
+      case "history_back":
+        this.destroyWebviewByOrigin(options.origin);
+        break;
+      default: console.error("acceptMessageFromWebview 还有没有处理的 action = " + options.action)
+    }
+  }
+
+  preloadAbsolutePathSet(path: string) {
+    this.preloadAbsolutePath = path;
+  }
+
+  webviewTagOnIpcMessageHandlerBack = (e: Event) => {
+    const channel = Reflect.get(e, "channel")
+    const args = Reflect.get(e, 'args')
+    if (channel === "webveiw_message" && args[0] === "back" && e.target !== null) {
+      e.target.removeEventListener('ipc-message', this.webviewTagOnIpcMessageHandlerBack);
+      // 需要从 webviews 删除最后一位
+      this.navigationBarState = this.navigationBarState.slice(0, -1)
+      this.statusBarState = this.statusBarState.slice(0, -1)
+      // 把 navigationBarState statusBarStte safe-area 的改变发出
+      ipcRenderer.send('safe_are_insets_change')
+      ipcRenderer.send('navigation_bar_state_change')
+      ipcRenderer.send('status_bar_state_change')
+    }
+
+    const len = this.webviews.length;
+    len === 1
+      ? mainApis.closedBrowserWindow()
+      : this.destroyWebview(this.webviews[len - 1])
+  }
+
+  webviewTagOnIpcMessageHandlerNormal = (e: Event) => {
+    const channel = Reflect.get(e, "channel");
+    const args = Reflect.get(e, 'args');
+    switch(channel){
+      case "virtual_keyboard_open": 
+        this.isShowVirtualKeyboard = true;
+        break;
+      case "virtual_keyboard_close":
+        this.virtualKeyboardState = {
+          ...this.virtualKeyboardState,
+          visible: false
+        } 
+        break;
+      default: throw new Error(`webview ipc-message 还有没有处理的channel===${channel}`)
+    }
+  }
+
   // Render the UI as a function of component state
   override render() {
-     console.log('render: ')
+    const statusbarState = this.statusBarState[this.statusBarState.length - 1];
+    const navigationBarState = this.navigationBarState[this.navigationBarState.length - 1];
     return html`
-      <div class="layer stack app-container">
-        ${repeat(
-          this.webviews,
-          (dialog) => dialog.id,
-          (webview) => {
-            const zIndexStr = `z-index: ${webview.state.zIndex};`
-            const _styleMap = styleMap({
-              zIndex: webview.state.zIndex + "",
-             
-            })
-            return html`
-              <multi-webview-content
-                .customWebview=${webview}
-                .closing=${webview.closing}
-                .zIndex=${webview.state.zIndex}
-                .scale=${webview.state.scale}
-                .opacity=${webview.state.opacity}
-                .customWebviewId=${webview.id}
-                .src=${webview.src}
-                style=${_styleMap}
-                @animationend=${(event: CustomEvent<CustomEventAnimationendDetail>) => {
-                   if (event.detail.event.animationName === "slideOut" && event.detail.customWebview.closing) {
-                    this._removeWebview(webview);
-                  }
-                }} 
-                @dom-ready=${(event: CustomEvent<CustomEventDomReadyDetail>) => {
-                  this.onWebviewReady(webview, event.detail.event.target as WebviewTag);
-                }}
-                data-app-url=${webview.src}
-              ></multi-webview-content>
-            `;
-          }
-        )}
-      </div>
-      <div class="layer stack dev-tools-container" style="flex: 2.5;">
-        ${repeat(
-          this.webviews,
-          (dialog) => dialog.id,
-          (webview) => {
-            const _styleMap = styleMap({
-              zIndex: webview.state.zIndex + "",
-            })
-            
-            return html`
-              <multi-webview-devtools
-                .customWebview=${webview}
-                .closing=${webview.closing}
-                .zIndex=${webview.state.zIndex}
-                .scale=${webview.state.scale}
-                .opacity=${webview.state.opacity}
-                .customWebviewId=${webview.id}
-                style="${_styleMap}"
-                @dom-ready=${(event: CustomEvent & { target: WebviewTag }) => {
-                  this.onDevtoolReady(webview, event.detail.event.target as WebviewTag);
-                }}
-                @destroy-webview=${() =>this.destroyWebview(webview)}
-              ></multi-webview-devtools>
+      <div class="app-container">
+        <multi-webview-comp-mobile-shell>
+          <multi-webview-comp-status-bar 
+            slot="status-bar" 
+            ._color=${statusbarState.color}
+            ._style = ${statusbarState.style}
+            ._overlay = ${statusbarState.overlay}
+            ._visible = ${statusbarState.visible}
+            ._height = ${this.statusBarHeight}
+            ._inserts = ${statusbarState.insets}
+            ._torchIsOpen=${this.torchState.isOpen}
+          ></multi-webview-comp-status-bar>
+          ${repeat(
+            this.webviews,
+            (dialog) => dialog.id,
+            (webview) => {
+              const _styleMap = styleMap({zIndex: webview.state.zIndex + "",})
+              return html`
+                <multi-webview-content
+                  slot="app_content"
+                  .customWebview=${webview}
+                  .closing=${webview.closing}
+                  .zIndex=${webview.state.zIndex}
+                  .scale=${webview.state.scale}
+                  .opacity=${webview.state.opacity}
+                  .customWebviewId=${webview.id}
+                  .src=${webview.src}
+                  .preload=${this.preloadAbsolutePath}
+                  style=${_styleMap}
+                  @animationend=${(event: CustomEvent<CustomEventAnimationendDetail>) => {
+                    if (event.detail.event.animationName === "slideOut" && event.detail.customWebview.closing) {
+                      this._removeWebview(webview);
+                    }
+                  }} 
+                  @dom-ready=${(event: CustomEvent<CustomEventDomReadyDetail>) => {
+                    this.onWebviewReady(webview, event.detail.event.target as WebviewTag);
+                  }}
+                  data-app-url=${webview.src}
+                ></multi-webview-content>
+              `;
+            }
+          )}
+          ${when(
+            this.isShowVirtualKeyboard,
+            () => html`
+              <multi-webview-comp-virtual-keyboard
+                slot="bottom-bar"
+                ._navigation_bar_height=${
+                  this.navigationBarState[
+                    this.navigationBarState.length - 1
+                  ].insets.bottom
+                }
+                ._visible=${this.virtualKeyboardState.visible}
+                ._overlay=${this.virtualKeyboardState.overlay}
+                @first-updated=${this.virtualKeyboardFirstUpdated}
+                @hide-completed=${this.virtualKeyboardHideCompleted} 
+                @show-completed=${this.virtualKeyboardShowCompleted}
+                @height-changed=${this.virtualKeyboardStateUpdateInsetsByEl}
+              ></multi-webview-comp-virtual-keyboard>
+            `,
+            () => {
+              return html`
+              <multi-webview-comp-navigation-bar
+                slot="bottom-bar"
+                ._color=${navigationBarState.color}
+                ._style = ${navigationBarState.style}
+                ._overlay = ${navigationBarState.overlay}
+                ._visible = ${navigationBarState.visible}
+                ._height = ${this.navigationBarHeight}
+                ._inserts = ${navigationBarState.insets}
+                @back=${this.navigationBarOnBack}
+                @height-changed=${this.navigationBarStateUpdateInsetsByEl}
+              ></multi-webview-comp-navigation-bar>
             `
+            },
+          )}
+        </multi-webview-comp-mobile-shell>
+      </div>
+      <div class="dev-tools-container">
+        ${repeat(
+          this.webviews,
+          (dialog) => dialog.id,
+          (webview) => {
+            const _styleMap = styleMap({zIndex: webview.state.zIndex + "",})
+            return html`
+                <multi-webview-devtools
+                  .customWebview=${webview}
+                  .closing=${webview.closing}
+                  .zIndex=${webview.state.zIndex}
+                  .scale=${webview.state.scale}
+                  .opacity=${webview.state.opacity}
+                  .customWebviewId=${webview.id}
+                  style="${_styleMap}"
+                  @dom-ready=${(event: CustomEvent & { target: WebviewTag }) => {
+                this.onDevtoolReady(webview, event.detail.event.target as WebviewTag);
+              }}
+                  @destroy-webview=${() => this.destroyWebview(webview)}
+                ></multi-webview-devtools>
+              `
           }
         )}
       </div>
@@ -433,13 +597,60 @@ export class ViewTree extends LitElement {
 
 const viewTree = new ViewTree();
 document.body.appendChild(viewTree);
- 
+
 export const APIS = {
   openWebview: viewTree.openWebview.bind(viewTree),
   closeWebview: viewTree.closeWebview.bind(viewTree),
   destroyWebviewByHost: viewTree.destroyWebviewByHost.bind(viewTree),
   restartWebviewByHost: viewTree.restartWebviewByHost.bind(viewTree),
   executeJavascriptByHost: viewTree.executeJavascriptByHost.bind(viewTree),
+  acceptMessageFromWebview: viewTree.acceptMessageFromWebview.bind(viewTree),
+  statusBarSetState: viewTree.barSetState.bind(viewTree, "statusBarState"),
+  statusBarGetState: viewTree.barGetState.bind(viewTree, "statusBarState"),
+  navigationBarSetState: viewTree.barSetState.bind(viewTree,'navigationBarState'),
+  navigationBarGetState: viewTree.barGetState.bind(viewTree, 'navigationBarState'),
+  safeAreaSetOverlay: viewTree.safeAreaSetOverlay.bind(viewTree),
+  safeAreaGetState: viewTree.safeAreaGetState.bind(viewTree),
+  virtualKeyboardGetState: viewTree.virtualKeyboardGetState.bind(viewTree),
+  virtualKeyboardSetOverlay: viewTree.virtualKeyboardSetOverlay.bind(viewTree),
+  toast: viewTree.toast.bind(viewTree),
+  preloadAbsolutePathSet: viewTree.preloadAbsolutePathSet.bind(viewTree)
 };
 
 exportApis(APIS);
+
+function createAllCSS() {
+  return [
+    css`
+      :host {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        background: #00000022;
+      }
+
+      .app-container{
+        flex-grow: 0;
+        flex-shrink: 0;
+      }
+
+      .dev-tools-container{
+        flex-grow: 100;
+        flex-shrink: 100;
+        min-width:500px;
+        height: 100%;
+      }
+    `
+  ];
+}
+
+console.log(`
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+`,
+
+ipcRenderer
+
+)

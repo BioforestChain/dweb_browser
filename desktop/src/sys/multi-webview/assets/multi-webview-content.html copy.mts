@@ -1,0 +1,379 @@
+// 效果 webview 容器
+import { css , html, LitElement } from "lit"
+import { customElement, property, query, state } from "lit/decorators.js"
+import { styleMap } from 'lit/directives/style-map.js';
+import { ifDefined } from "lit/directives/if-defined.js"; 
+import { Webview } from "./multi-webview.mjs";
+import WebviewTag = Electron.WebviewTag
+
+const allCss = [
+  css`
+    :host{
+      --status-bar-height: 47px;
+      --navigation-bar-height: 64px;
+      --border-radius: 46px;
+      --cmera-container-zindex: 999;
+      --bottom-line-container-height:10px;
+      width:100%;
+      height:100%;
+    }
+    
+    .container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      border: 10px solid #333;
+      border-radius:var(--border-radius);
+      overflow: hidden;
+    }
+
+    .iframe-statusbar{
+      position: relative;
+      left: 0px;
+      top: 0px;
+      z-index: 100;
+      box-sizing: border-box;
+      width:100%;
+      height: 48px;
+      border: none;
+      flex-grow: 0;
+      flex-shrink: 0;
+    }
+
+    .webview-container{
+      position: relative;
+      flex-grow: 100;
+      flex-shrink: 100;
+      box-sizing: border-box;
+      width:100%;
+      height:100%;
+      scrollbar-width: 2px;
+      overflow: hidden;
+      overflow-y: auto;
+      background: #fff;
+      border:1px solid red;
+    }
+
+    .webview{
+      box-sizing: border-box;
+      width:100%;
+      min-height:100%;
+      height: auto;
+    }
+
+  `,
+  // 需要啊全部的custom.属性传递进来
+  // 动画相关
+  css`
+    :host {
+      --easing: cubic-bezier(0.36, 0.66, 0.04, 1);
+    }
+    .opening-ani-view {
+      animation: slideIn 520ms var(--easing) forwards;
+    }
+    .closing-ani-view {
+      animation: slideOut 830ms var(--easing) forwards;
+    }
+    @keyframes slideIn {
+      0% {
+        transform: translateY(60%) translateZ(0);
+        opacity: 0.4;
+      }
+      100% {
+        transform: translateY(0%) translateZ(0);
+        opacity: 1;
+      }
+    }
+    @keyframes slideOut {
+      0% {
+        transform: translateY(0%) translateZ(0);
+        opacity: 1;
+      }
+      30% {
+        transform: translateY(-30%) translateZ(0) scale(0.4);
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100%) translateZ(0) scale(0.3);
+        opacity: 0.5;
+      }
+    }
+  `,
+]
+
+@customElement("multi-webview-content")
+export class MultiWebViewContent extends LitElement{
+  @property({type: Webview}) customWebview: Webview | undefined = undefined;
+  @property({type: Boolean}) closing: Boolean = false;
+  @property({type: Number}) zIndex: Number = 0;
+  @property({type: Number}) scale: Number = 0;
+  @property({type: Number}) opacity: Number = 1;
+  @property({type: Number}) customWebviewId: Number = 0;
+  @property({type: String}) src: String = ""
+  @state() statusbarHidden: boolean = false;
+  @query("webview")
+  elWebview: WebviewTag | undefined
+
+  static override styles  = allCss
+
+  @state() isShow: boolean = false;
+
+  override connectedCallback(){
+    super.connectedCallback()
+  }
+
+  onDomReady(event: Event){
+    this.dispatchEvent(new CustomEvent(
+      "dom-ready",
+      {
+        bubbles: true,
+        detail: {
+          customWebview: this.customWebview,
+          event: event,
+          from: event.target
+        }
+      }
+    ))
+
+    this.webviewDidStartLoading(event)
+  }
+
+  webviewDidStartLoading(e: Event){
+    const el = e.target;
+    if(el === null) throw new Error(`el === null`);
+    ;(e.target as  WebviewTag)
+    .executeJavaScript(`
+      (function a(){
+        if (!globalThis.__native_close_watcher_kit__) {
+          globalThis.__native_close_watcher_kit__ =  {
+            allc: 0,
+            _watchers: new Map(),
+            _tasks: new Map(),
+            registryToken: function(consumeToken){
+              if (consumeToken === null || consumeToken === "") {
+                throw new Error("CloseWatcher.registryToken invalid arguments");
+              }
+              const resolve = this._tasks.get(consumeToken)
+              if(resolve === undefined) throw new Error('resolve === undefined');
+              const id = this.allc++;
+              resolve(id + "");
+            },
+            tryClose: function(id){
+              const watcher = this._watchers.get(id);
+              if(watcher === undefined) throw new Error('watcher === undefined');
+              watcher.dispatchEvent(new Event("close"))
+            }
+          };
+
+          // 这里会修改了 window.open 的方法 是否有问题了？？
+          globalThis.open = function(arg){
+            console.error('open 方法被修改了', arg)
+          }
+          
+          // 设置 userAgent
+          Object.defineProperty(globalThis.navigator, 'userAgent', {
+            value: window.navigator.userAgent + " dweb-host/${location.host}",
+            configurable: false,
+            writable: false
+          });
+
+          
+          // 拦截 fetch
+          globalThis.nativeFetch = globalThis.fetch;
+          globalThis.fetch = (request) => {
+            let url = typeof request === 'string' ? request : request.url;
+            if(url.endsWith('bfs-metadata.json')){
+              // 把请求发送出去
+              console.log('需要拦截的请求', request)
+              console.log('window.navigator.userAgent', window.navigator.userAgent);
+              // 把请求发送给 jsMM 模块
+              url = 'http://api.browser.sys.dweb-443.localhost:22605/open_download?url=' + url
+              // 只能够想办法 发送给 browser 让 browser 处理
+              return globalThis.nativeFetch(url)
+            }else{
+              return nativeFetch(request)
+            }
+          }
+        }
+      })()
+    `)
+  }
+  
+  onShow(){
+    this.isShow = true;
+  }
+
+  onAnimationend(event: AnimationEvent){
+    this.dispatchEvent(new CustomEvent(
+      "animationend",
+      {
+        bubbles: true,
+        detail: {
+          customWebview: this.customWebview,
+          event: event,
+          from: event.target
+        }
+      }
+    ))
+  }
+
+  /**
+   * 向内部的 webview 的内容执行 code
+   * @param code 
+   */
+  executeJavascript = (code: string) => {
+    if(this.elWebview === undefined) throw new Error(`this.elWebview === undefined`);
+    this.elWebview.executeJavaScript(code)
+  }
+
+  onPluginNativeUiLoadBase(e: Event){
+    const iframe = e.target as HTMLIFrameElement;
+    const contentWindow = iframe.contentWindow as Window;;
+    // 把 status-bar 添加到容器上 
+    // 把容器 元素传递给内部的内部的window
+    const container = iframe.parentElement as HTMLDivElement;
+    Reflect.set(contentWindow, "parentElement", container);
+    contentWindow.postMessage("loaded","*")
+  }
+
+  override render(){
+    const containerStyleMap = styleMap({
+        "--z-index": this.zIndex + "",
+        "--scale": this.scale + "",
+        "--opacity": this.opacity + ""
+    })
+
+    const host = document.querySelector(":host")
+    
+    return html`
+      <div 
+          class="container ${ this.closing ? `closing-ani-view` : `opening-ani-view`}"
+          style="${containerStyleMap}"  
+          @animationend=${this.onAnimationend} 
+          data-app-url=${this.src} 
+      >
+        <!-- 启动了服务后确实能够显示内容 webview 请求状态栏的服务-->
+        <iframe
+          id="statusbar"
+          class="iframe-statusbar"
+          src="http://status-bar.nativeui.sys.dweb-80.localhost:22605/"
+          @load=${(e: Event) => {
+            console.log('statusbar iframe 载入完成')
+            this.onPluginNativeUiLoadBase(e)
+          }}
+          data-app-url=${this.src}
+        ></iframe>
+        <!-- 内容容器 -->
+        <div 
+          class="webview-container"
+          data-app-url=${this.src}
+        >
+          <webview
+            id="view-${this.customWebviewId}"
+            class="webview"
+            src=${ifDefined(this.src)}
+            partition="trusted"
+            allownw
+            allowpopups
+            @dom-ready=${this.onDomReady}
+          ></webview>
+          <iframe 
+            id="toast"
+            class="toast"
+            style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; position: absolute; left: 0px; bottom: 0px"
+            src="http://toast.nativeui.sys.dweb-80.localhost:22605"
+            @load=${(e: Event) => {
+              console.log('toast iframe 载入完成')
+              this.onPluginNativeUiLoadBase(e)
+            }}
+            data-app-url=${this.src}
+          ></iframe>
+        </div>
+        <!-- navgation-bar -->
+        <iframe 
+          id="navgation-bar"
+          class="iframe-navgation-bar"
+          style="width:100%; height:20px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
+          src="http://navigation-bar.nativeui.sys.dweb-80.localhost:22605"
+          @load=${(e: Event) => {
+            console.log('navgation-bar iframe 载入完成')
+            this.onPluginNativeUiLoadBase(e)
+          }}
+          data-app-url=${this.src}
+        ></iframe>
+        <iframe 
+          id="safe-area"
+          class="iframe-safe-area"
+          style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
+          src="http://safe-area.nativeui.sys.dweb-80.localhost:22605"
+          @load=${(e: Event) => {
+            console.log('safe-area 载入完成')
+            this.onPluginNativeUiLoadBase(e)
+          }}
+          data-app-url=${this.src}
+        ></iframe>
+        <iframe 
+          id="virtual-keyboard"
+          class="iframe-virtual-keyboard"
+          style="width:100%; height:0px; border:none; flex-grow:0; flex-shrink:0; overflow: hidden; position: relative; left: 0px; bottom: 0px"
+          src="http://virtual-keyboard.nativeui.sys.dweb-80.localhost:22605"
+          @load=${(e: Event) => {
+            console.log('virtual-keyboard 载入完成')
+            this.onPluginNativeUiLoadBase(e)
+          }}
+          data-app-url=${this.src}
+        ></iframe>
+        <iframe 
+          id="barcode-scanning"
+          class="iframe-barcode-scanning"
+          style="width:100%; height:0px; border: none; flex-grow:0; flex-shrink:0; overflow: hidden; position: absolute; left: 0px; bottom: 0px; z-index: 100;"
+          src="http://barcode-scanning.sys.dweb-80.localhost:22605"
+          @load=${(e: Event) => {
+              console.log('barcode-scanning 载入完成')
+              this.onPluginNativeUiLoadBase(e)
+          }}
+          data-app-url=${this.src}
+        ></iframe>
+        <iframe 
+            id="haptics"
+            class="iframe-haptics"
+            style="width:0px; height:0px; border: none; flex-grow:0; flex-shrink:0; overflow: hidden; position: absolute; left: 0px; bottom: 0px; z-index: 100;"
+            src="http://haptics.sys.dweb-80.localhost:22605"
+            @load=${(e: Event) => {
+                console.log('haptics 载入完成')
+                this.onPluginNativeUiLoadBase(e)
+            }}
+            data-app-url=${this.src}
+        ></iframe>
+        <iframe 
+          id="biometrics"
+          class="iframe-biometrics"
+          style="width:0px; height:0px; border: none; flex-grow:0; flex-shrink:0; overflow: hidden; position: absolute; left: 0px; bottom: 0px; z-index: 100;"
+          src="http://biometrics.sys.dweb-80.localhost:22605"
+          @load=${(e: Event) => {
+              console.log('biometrics 载入完成')
+              this.onPluginNativeUiLoadBase(e)
+          }}
+          data-app-url=${this.src}
+        ></iframe>
+      </div>
+    `
+  }
+}
+
+export interface CustomEventDomReadyDetail{
+  customWebview: Webview ;
+  event: Event,
+  from: EventTarget & WebviewTag;
+}
+
+export interface CustomEventAnimationendDetail{
+  customWebview: Webview,
+  event: AnimationEvent,
+  from: EventTarget | null
+}
