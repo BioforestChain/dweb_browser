@@ -71,13 +71,17 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
       }
     }
 
-    SearchView(text = text, imeShowed = imeShowed, onClose = {
-      viewModel.uiState.showSearchView.value = false
-    }, onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-      viewModel.uiState.showSearchView.value = false
-      viewModel.saveLastKeyword(url)
-      viewModel.handleIntent(BrowserIntent.SearchWebView(url))
-    })
+    SearchView(
+      text = text,
+      imeShowed = imeShowed,
+      onClose = {
+        viewModel.uiState.showSearchView.value = false
+      },
+      onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
+        viewModel.uiState.showSearchView.value = false
+        viewModel.saveLastKeyword(url)
+        viewModel.handleIntent(BrowserIntent.SearchWebView(url))
+      })
   }
 }
 
@@ -86,9 +90,10 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun SearchView(
+internal fun SearchView(
   text: String,
   imeShowed: MutableState<Boolean> = mutableStateOf(false),
+  searchPreview: (@Composable () -> Unit)? = null,
   onClose: () -> Unit,
   onSearch: (String) -> Unit,
 ) {
@@ -103,7 +108,6 @@ private fun SearchView(
     delay(100)
     focusRequester.requestFocus()
   }
-
 
   Box(
     modifier = Modifier
@@ -121,16 +125,19 @@ private fun SearchView(
         .padding(bottom = dimenBottomHeight)
     ) {
       //HomePage()
-      SearchPreview(show = searchPreviewState,
-        text = inputText,
-        onClose = {
-          focusManager.clearFocus()
-          onClose()
-        },
-        onSearch = {
-          focusManager.clearFocus()
-          onSearch(it)
-        })
+      searchPreview?.let { it() }
+        ?: SearchPreview(
+          show = searchPreviewState,
+          text = inputText,
+          onClose = {
+            focusManager.clearFocus()
+            onClose()
+          },
+          onSearch = {
+            focusManager.clearFocus()
+            onSearch(it)
+          }
+        )
     }
 
     CustomTextField(
@@ -199,7 +206,7 @@ private fun SearchView(
 }
 
 @Composable
-private fun CustomTextField(
+internal fun CustomTextField(
   value: String,
   onValueChange: (String) -> Unit,
   modifier: Modifier = Modifier,
@@ -243,7 +250,7 @@ private fun CustomTextField(
 
 @SuppressLint("NewApi")
 @Composable
-private fun SearchPreview( // 输入搜索内容后，显示的搜索信息
+internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
   show: MutableTransitionState<Boolean>,
   text: String,
   onClose: () -> Unit,
@@ -272,15 +279,45 @@ private fun SearchPreview( // 输入搜索内容后，显示的搜索信息
               .clickable { onClose() })
         }
       }
-      // 1. 标签页中查找关键字， 2. 搜索引擎， 3. 历史记录， 4.页内查找
-      item { // 标签页中查找
-        //SearchItemForTab(text)
-      }
       item { // 搜索引擎
         SearchItemEngines(text) { onSearch(it) }
       }
-      item { // 历史记录
-        SearchItemHistory(text) { onSearch(it) }
+    }
+  }
+}
+
+@Composable
+private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Text(
+      text = "搜索引擎",
+      color = MaterialTheme.colorScheme.outline,
+      modifier = Modifier.padding(vertical = 10.dp)
+    )
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(8.dp))
+        .background(MaterialTheme.colorScheme.background)
+    ) {
+      DefaultSearchWebEngine.forEachIndexed { index, webEngine ->
+        if (index > 0) Divider()
+        androidx.compose.material3.ListItem(
+          headlineContent = {
+            Text(text = webEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          },
+          modifier = Modifier.clickable { onSearch(String.format(webEngine.format, text)) },
+          supportingContent = {
+            Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          },
+          leadingContent = {
+            AsyncImage(
+              model = webEngine.iconRes,
+              contentDescription = null,
+              modifier = Modifier.size(40.dp)
+            )
+          }
+        )
       }
     }
   }
@@ -312,58 +349,6 @@ private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
   }
 }
 
-@Composable
-private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
-  Column(modifier = Modifier.fillMaxWidth()) {
-    Text(
-      text = "搜索引擎",
-      color = MaterialTheme.colorScheme.outline,
-      modifier = Modifier.padding(vertical = 10.dp)
-    )
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(8.dp))
-        .background(MaterialTheme.colorScheme.background)
-    ) {
-      DefaultSearchWebEngine.forEachIndexed { index, webEngine ->
-        if (index > 0) Divider()
-        Card(modifier = Modifier
-          .fillMaxWidth()
-          .height(50.dp)
-          .clickable { onSearch(String.format(webEngine.format, text)) }) {
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            AsyncImage(
-              model = R.drawable.ic_web,
-              contentDescription = null,
-              modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.fillMaxWidth()) {
-              Text(
-                text = webEngine.name,
-                //color = MaterialTheme.colorScheme.surfaceTint,
-                fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis
-              )
-              Text(
-                text = text,
-                color = MaterialTheme.colorScheme.outlineVariant,
-                fontSize = 12.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-              )
-            }
-          }
-        }
-      }
-    }
-  }
-}
 
 @Composable
 private fun SearchItemHistory(text: String, onSearch: (String) -> Unit) {
@@ -391,21 +376,10 @@ private fun SearchItemHistory(text: String, onSearch: (String) -> Unit) {
       }
     }
   }
-
-
-  /*viewModel.uiState.historyWebsiteMap.firstNotNullOfOrNull {
-    it.value.find { websiteInfo -> websiteInfo.title.contains(text) }
-  }?.also { websiteInfo ->
-    Spacer(modifier = Modifier.height(10.dp))
-    SearchWebsiteCardView(websiteInfo, drawableId = R.drawable.ic_main_history) {
-      // TODO 调转到指定的标签页
-      viewModel.handleIntent(BrowserIntent.SearchWebView(websiteInfo.url))
-    }
-  }*/
 }
 
 @Composable
-fun SearchWebsiteCardView(
+private fun SearchWebsiteCardView(
   webSiteInfo: WebSiteInfo,
   @DrawableRes drawableId: Int = R.drawable.ic_web,
   onClick: () -> Unit

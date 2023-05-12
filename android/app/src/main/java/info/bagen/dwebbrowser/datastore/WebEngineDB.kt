@@ -2,6 +2,8 @@ package info.bagen.dwebbrowser.datastore
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.DrawableRes
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import androidx.datastore.preferences.core.Preferences
@@ -10,6 +12,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import io.ktor.util.date.*
@@ -27,6 +30,7 @@ data class WebEngine(
   val host: String,
   val format: String,
   var timeMillis: String = "",
+  @DrawableRes val iconRes: Int = R.drawable.ic_web,
 ) {
   fun fit(url: String) : Boolean {
     val current = Uri.parse(String.format(format, "test"))
@@ -43,22 +47,22 @@ data class WebEngine(
 
 internal val DefaultSearchWebEngine: List<WebEngine>
   get() = listOf(
-    WebEngine("百度", "m.baidu.com", "https://m.baidu.com/s?word=%s"),
-    WebEngine("搜狗", "wap.sogou.com", "https://wap.sogou.com/web/searchList.jsp?keyword=%s"),
-    WebEngine("360", "m.so.com", "https://m.so.com/s?q=%s"),
+    WebEngine(name = "百度", host = "m.baidu.com"  , iconRes = R.drawable.ic_engine_baidu , format = "https://m.baidu.com/s?word=%s"),
+    WebEngine(name = "搜狗", host = "wap.sogou.com", iconRes = R.drawable.ic_engine_sougou,format = "https://wap.sogou.com/web/searchList.jsp?keyword=%s"),
+    WebEngine(name = "360", host = "m.so.com"     , iconRes = R.drawable.ic_engine_360   ,format = "https://m.so.com/s?q=%s"),
   )
 
 internal val DefaultAllWebEngine: List<WebEngine>
   get() = listOf(
-    WebEngine("必应"   , "cn.bing.com"     , "https://cn.bing.com/search?q=%s"),
-    WebEngine("百度"   , "m.baidu.com"     , "https://m.baidu.com/s?word=%s"),
-    WebEngine("百度"   , "www.baidu.com"   , "https://www.baidu.com/s?wd=%s"),
-    WebEngine("谷歌"   , "www.google.com"  , "https://www.google.com/search?q=%s"),
-    WebEngine("搜狗"   , "wap.sogou.com"   , "https://wap.sogou.com/web/searchList.jsp?keyword=%s"),
-    WebEngine("搜狗"   , "www.sogou.com"   , "https://www.sogou.com/web?query=%s"),
-    WebEngine("360搜索", "m.so.com"        , "https://m.so.com/s?q=%s"),
-    WebEngine("360搜索", "www.so.com"      , "https://www.so.com/s?q=%s"),
-    WebEngine("雅虎"   , "search.yahoo.com", "https://search.yahoo.com/search?p=%s")
+    WebEngine(name = "必应"   , host = "cn.bing.com"     , format = "https://cn.bing.com/search?q=%s"),
+    WebEngine(name = "百度"   , host = "m.baidu.com"     , format = "https://m.baidu.com/s?word=%s"),
+    WebEngine(name = "百度"   , host = "www.baidu.com"   , format = "https://www.baidu.com/s?wd=%s"),
+    WebEngine(name = "谷歌"   , host = "www.google.com"  , format = "https://www.google.com/search?q=%s"),
+    WebEngine(name = "搜狗"   , host = "wap.sogou.com"   , format = "https://wap.sogou.com/web/searchList.jsp?keyword=%s"),
+    WebEngine(name = "搜狗"   , host = "www.sogou.com"   , format = "https://www.sogou.com/web?query=%s"),
+    WebEngine(name = "360搜索", host = "m.so.com"        , format = "https://m.so.com/s?q=%s"),
+    WebEngine(name = "360搜索", host = "www.so.com"      , format = "https://www.so.com/s?q=%s"),
+    WebEngine(name = "雅虎"   , host = "search.yahoo.com", format = "https://search.yahoo.com/search?p=%s")
   )
 
 object WebEngineDB {
