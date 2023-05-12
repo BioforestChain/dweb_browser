@@ -88,6 +88,7 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Toast\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Share\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Haptics\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Notification\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />
