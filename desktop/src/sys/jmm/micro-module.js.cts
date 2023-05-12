@@ -47,14 +47,16 @@ export class JsMicroModule extends MicroModule {
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
     console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`);
+
+
+
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
     this.onConnect((ipc, rease) => {
       console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
-      // ipc === js-process registerCommonIpcOnMessageHandler /create-process" handle 里面的第二个参数ipc
       ipc.onRequest(async (request) => {
         const init = httpMethodCanOwnBody(request.method)
-          ? { method: request.method, body: await request.body.stream(), headers: request.headers }
+          ? { method: request.method, body: await request.body.stream(), headers: request.headers}
           : { method: request.method, headers: request.headers };
         const response = await this.nativeFetch(request.parsed_url.href, init);
         ipc.postMessage(
@@ -74,37 +76,25 @@ export class JsMicroModule extends MicroModule {
       ipc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === workerIpc */) => {
         console.log(`[micro-module.js.cts ${this.mmid} ipc.onEvent]`, ipcEventMessage)
         if (ipcEventMessage.name === "dns/connect") {
-          if (Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data')
-          // 创建同 远程模块的 ipc 通道
+          if (Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data');
           const mmid = JSON.parse(ipcEventMessage.data as string).mmid
-          const [remoteIpc, localIpc] = await context.dns.connect(mmid)
-          this._remoteIpcs.set(mmid, remoteIpc)
-          // 如果能够把 remoteIpc 直接返回回去就完美了
-          ipc.postMessage(IpcEvent.fromText("dns/connect", "done"))
-          // 从连接的模块中收到的 IpcEvent 直接转发
-          remoteIpc.onEvent((event, _ipc) => ipc.postMessage(event))
-          return;
+          const [targetIpc, localIpc] = await context.dns.connect(mmid)
+          const url = `file://js.sys.dweb/create-ipc?process_id=${this._process_id}&mmid=${mmid}`
+          const portId = await (await this.nativeFetch(url)).json() 
+          const originIpc = new Native2JsIpc(portId, this)
+          /**
+           * 将两个消息通道间接互联
+           */
+          originIpc.onMessage((ipcMessage) => targetIpc.postMessage(ipcMessage));
+          targetIpc.onMessage((ipcMessage) => originIpc.postMessage(ipcMessage));
         }
 
-        // 如何把 发送给
-        if (this.mmid === ipcEventMessage.name) {
-          // console.log(chalk.red(`micro-module.js.cts ipc.onEvent 这里还有问题 还需要处理，无法把消息发送给对应的 worker`), ipcEventMessage, ipc);
-          // 测试代码 创建链接
-          // 判断是是有已经有了链接
-          this._workerIpc = this._workerIpc === undefined ? await this._beConnect(this) : this._workerIpc;
-          this._workerIpc.postMessage(ipcEventMessage)
-          // 接受到 从 worker 中返回的消息
-          this._workerIpc.onMessage((message, _ipc /** 这个ipc 匹配的是 this._workerIpc*/) => {
-            // 把这个消息发送给 ipc
-            ipc.postMessage(message)
-          })
-
-          return;
+        if (ipcEventMessage.name == "restart") {
+          // 调用重启
+          // restart 方法还没有实现
+          console.log("xxxxxxxxxxxxxxxxx restart 方法还没有实现")
+          // context.dns.restart(mmid)
         }
-
-        const remoteIpc = this._remoteIpcs.get(ipcEventMessage.name)
-        if (remoteIpc === undefined) throw new Error(`${this.mmid} 模块 ipc.onEvent 没有匹配的 remoteIpc ipcEventMessage.name = ${ipcEventMessage.name}`)
-        remoteIpc.postMessage(ipcEventMessage)
       });
     });
 
