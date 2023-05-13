@@ -25,6 +25,9 @@ struct WebPreViewGrid: View {
     @EnvironmentObject var brower: BrowerVM
     
     @State var frames: [CellFrameInfo] = []
+    
+    @Binding var selectedCellFrame: CGRect
+    
     var caches: [WebCache] {
         brower.pages.map { $0.webStore.web}
     }
@@ -33,7 +36,7 @@ struct WebPreViewGrid: View {
         GeometryReader { geo in
             ScrollView{
                 LazyVGrid(columns: [
-                    GridItem(.adaptive(minimum: 120,maximum: 300),spacing: 15)
+                    GridItem(.adaptive(minimum: (screen_width/3.0 + 1),maximum: screen_width/2.0),spacing: 15)
                 ],spacing: 20,content: {
                     ForEach(caches, id: \.self) {cache in
                         GridCell(cache: cache)
@@ -41,11 +44,22 @@ struct WebPreViewGrid: View {
                                 Color.clear
                                     .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo( index:caches.firstIndex(of: cache)!, frame: geometry.frame(in: .global))])
                             })
+                            .onTapGesture {
+                                if let index = caches.firstIndex(of: cache){
+                                    print("tapped the \(index)th cell", "frame is \(cellFrame(at: index))")
+                                }else{
+                                    print("can't read the clicked cell information")
+                                }
+                                
+                            }
                     }
                 })
                 .padding(15)
                 .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
-                    self.frames = newFrames
+                    if brower.showingOptions{
+                        self.frames = newFrames
+                        selectedCellFrame = newFrames[brower.selectedTabIndex].frame
+                    }
                 }
             }
             .background(Color(white: 0.7))
@@ -68,16 +82,14 @@ struct GridCell: View {
     @State var runCount = 0
     var body: some View {
         ZStack(alignment: .topTrailing){
-            VStack(spacing: 5) {
+            VStack(spacing: 0) {
                 
                 Image(uiImage: UIImage(named: "snapshot")!) // cache.snapshot
                     .resizable()
                     .shadow(color: .secondary, radius: 3)
-                    .cornerRadius(10)
+                    .cornerRadius(gridcellCornerR)
                     .onTapGesture {
-                        print("cell tapped")
-                        let uiImage = self.snapshot()
-                        print(uiImage.size)
+                        
                     }
                 HStack{
                     KFImage.url(cache.icon)
@@ -91,7 +103,9 @@ struct GridCell: View {
                     Text(cache.title)
                         .fontWeight(.semibold)
                         .lineLimit(1)
-                }
+                        
+                }.frame(height: gridcellBottomH)
+                    
             }
             .aspectRatio(2.0/3.2, contentMode: .fit)
             
@@ -113,12 +127,13 @@ struct GridCell: View {
                 d[.trailing]
             }
         }
+        .background(.cyan)
     }
 }
 
 struct TabsCollectionView_Previews: PreviewProvider {
     static var previews: some View {
-        WebPreViewGrid()
+        WebPreViewGrid(selectedCellFrame: .constant(.zero))
             .frame(height: 754)
     }
 }

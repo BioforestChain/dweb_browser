@@ -217,3 +217,56 @@ struct ContentView: View {
 
 
 ![alts]('/Users/ui06/Desktop/asTile.jpg')
+
+
+ #不在同一视图中的事件触发，也可以用        .onReceive(browser.$showingOptions) { showOpthions in ... }
+
+ 
+struct PView: View{
+    var body: some View{
+        VStack{
+            View1()
+                .environmentObject(View2Trigger())
+            View2()
+        }
+    }
+}
+
+struct View1: View{
+    @EnvironmentObject var trigger: View2Trigger
+    
+    var body: some View{
+        VStack{
+            Button {
+                trigger.trigger()
+            } label: {
+                Text("Tap Me")
+            }
+        }
+    }
+}
+
+class View2Trigger: ObservableObject {
+    var trigger: () -> Void = {}
+}
+
+struct View2: View{
+    @State private var x = ""
+    @EnvironmentObject var trigger: View2Trigger
+    
+    var body: some View{
+        VStack{
+            Text(x)
+        }
+    }
+    
+    func triggerAct(){
+        x = "sssss"
+    }
+    
+    init() {
+        trigger.trigger = triggerAct
+    }
+}
+
+

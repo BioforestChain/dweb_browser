@@ -43,9 +43,7 @@ struct TabPageView: View {
 //                self.webViewStore.webView.load(URLRequest(url: URL(string: "163.com")!))
             }
             
-            if webViewStore.web.openedUrl != nil{
-                homeview.hidden()
-            }else{
+            if webViewStore.web.openedUrl == nil{
                 homeview
             }
         }

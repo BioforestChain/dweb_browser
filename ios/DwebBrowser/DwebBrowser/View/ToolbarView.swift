@@ -69,16 +69,7 @@ struct ToolbarView: View {
                     
                     ToolbarItem(imageName: "doc.on.doc") {
                         withAnimation(.easeInOut) {
-                            printDate()
-                            let webView = browser.pages[browser.selectedTabIndex].webStore.webView
-                            let snapshot = webView.snapshotView(afterScreenUpdates: true)
-                            print(snapshot)
-                            let image = snapshot?.takeScreenshot(completion: { image  in
-                                printDate()
-                                print(image)
-                                browser.sharedResources.shiftPage(image: image)
-                            })
-                            
+                            browser.shouldTakeSnapshot = true
                             browser.showingOptions = true
                         }
                         

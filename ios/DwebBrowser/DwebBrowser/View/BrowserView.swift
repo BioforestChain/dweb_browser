@@ -20,15 +20,13 @@ some methods and some datas might be visited in somewhere of the whole app
  */
 class SharedSourcesVM: ObservableObject {
     @Published var webViews: [WebView] = []
-    func shiftPage(image: UIImage){
-        
-    }
+    @Published var shiftingTrigger: () -> Void = {}
 }
 
 
 struct BrowserView: View {
     @ObservedObject var browser = BrowerVM()
-    @ObservedObject var sharedResources = SharedSourcesVM()
+//    @ObservedObject var sharedResources = SharedSourcesVM()
 
     var body: some View {
         ZStack{

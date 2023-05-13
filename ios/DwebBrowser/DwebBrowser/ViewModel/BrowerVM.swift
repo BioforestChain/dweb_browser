@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import SwiftUI
 
 class Web: ObservableObject{
     
@@ -47,10 +47,16 @@ class BrowerVM: ObservableObject {
     @Published var addresses = [Address]()
     
     @Published var sharedResources = SharedSourcesVM()
-
+    
+    
+    @Published var shrinkingSnapshot: UIImage? = nil
+    
+    @Published var shouldTakeSnapshot = false
     
     var addressBarHeight: CGFloat{
         showingOptions ? 0:60
     }
+    
+    
 }
 

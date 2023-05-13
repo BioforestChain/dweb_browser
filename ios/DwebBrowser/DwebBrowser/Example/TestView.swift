@@ -60,14 +60,56 @@ struct TestView: View {
     }
 }
 
-//struct ContentView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ContentView()
-//    }
-//}
+struct ZoomAnimationView: View{
+    @State var isZoomed = false
+    @Namespace private var animation
+    var frame: CGFloat{
+        isZoomed ? 300 : 44
+    }
+    
+    var body: some View{
+        VStack{
+            Spacer()
+            VStack{
+                HStack{
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(.red)
+                        .frame(width: frame, height: frame)
+                        .padding(.top, isZoomed ? 20 : 0)
+                    
+                    if !isZoomed {
+                        Text("Jay Chow")
+                            .font(.headline)
+                            .matchedGeometryEffect(id: "name", in: animation)
+                        Spacer()
+                    }
+                }
+                
+                if isZoomed{
+                    Text("Jay Chow")
+                        .font(.headline)
+                        .matchedGeometryEffect(id: "name", in: animation)
+                        .padding(.bottom,60)
+                    
+                    Spacer()
+                }
+            }
+            .onTapGesture {
+                withAnimation(.spring(),{
+                    isZoomed.toggle()
+                })
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .frame(height: isZoomed ? 400 : 60)
+            .background(Color(white: 0.8))
+        }
+    }
+}
 
 struct TestView_Previews: PreviewProvider {
     static var previews: some View {
-        TestView(offset: width/2.0)
+                TestView(offset: width/2.0)
+//        TakeSnapShotView()
     }
 }

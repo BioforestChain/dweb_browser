@@ -2,7 +2,6 @@ import SwiftUI
 import Combine
 import WebKit
 
-
 var visitCount: Int = 0
 
 @dynamicMemberLookup
@@ -40,9 +39,7 @@ public class WebViewStore: ObservableObject,Identifiable,Hashable{
                 if change.isPrior {
                     DispatchQueue.main.async {
                         self.objectWillChange.send()
-
                     }
-//                    OperationQueue.main
                 }
             }
         }

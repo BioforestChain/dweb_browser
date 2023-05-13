@@ -10,8 +10,6 @@ import UIKit
 import SwiftUI
 import FaviconFinder
 
-
-
 public struct WebCache: Identifiable, Hashable{
     public var id = UUID()
     // url to the source of somewhere in internet

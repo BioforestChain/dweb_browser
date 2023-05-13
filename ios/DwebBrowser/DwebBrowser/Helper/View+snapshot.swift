@@ -9,20 +9,8 @@ import SwiftUI
 import Foundation
 import UIKit
 
-extension UIView {
-    func takeScreenshot(completion:@escaping (UIImage) -> Void) {
-        print("before take screen shot:")
-        printDate()
-        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
-        self.drawHierarchy(in: bounds, afterScreenUpdates: true)
-
-        // 从绘制的图像中获取图像
-        let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()
-
-        // 结束绘制
-        UIGraphicsEndImageContext()
-        completion(snapshotImage!)
-        print("after take screen shot:")
+extension Date{
+    static func printPrecise(){
         printDate()
     }
 }
@@ -35,30 +23,33 @@ func printDate(){
     print(dateString)
 }
 
-struct SnapshotView3_Previews: PreviewProvider {
-    static var previews: some View {
-        SnapshotViewWraperView()
+extension UIView {
+    func asImage() -> UIImage {
+        let renderer = UIGraphicsImageRenderer(bounds: bounds)
+        return renderer.image { rendererContext in
+            layer.render(in: rendererContext.cgContext)
+        }
     }
 }
 
 extension View {
-    func snapshot() -> UIImage {
-        let controller = UIHostingController(rootView: self)
-        let view = controller.view
-        
-        let targetSize = controller.view.intrinsicContentSize
-        //        let targetSize = controller.view.frame.size
-        view?.bounds = CGRect(origin: .zero, size: targetSize)
-        view?.backgroundColor = .clear
-        
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
-        
-        return renderer.image { _ in
-            view?.drawHierarchy(in: controller.view.bounds, afterScreenUpdates: true)
-            print("in snapshot5: " , Thread.current)
-            printDate()
-        }
-        
+    func snapshot() -> UIImage? {
+        // 创建UIView
+        let uiView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)))
+
+        // 将视图添加到UIView上
+        let hostingController = UIHostingController(rootView: self)
+        hostingController.view.frame = uiView.bounds
+        uiView.addSubview(hostingController.view)
+
+        // 绘制屏幕可见区域
+        UIGraphicsBeginImageContextWithOptions(uiView.bounds.size, false, UIScreen.main.scale)
+        uiView.drawHierarchy(in: uiView.bounds, afterScreenUpdates: true)
+
+        // 获取截图并输出
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return image
     }
 }
 
@@ -67,8 +58,8 @@ struct SnapshotViewWraperView: View {
     let sampleView = SampleView()
     
     var body: some View {
-        HStack {
-            ZStack(alignment: .bottom) {
+        ScrollView {
+            VStack() {
                 sampleView
                 Button("Capture", action: {
                     print("before snapshot5: " , Thread.current )
@@ -96,7 +87,7 @@ struct SampleView: View {
         ZStack {
             Rectangle().fill(.red)
             VStack {
-                Image("profile")
+                Image("snapshot")
                     .font(.system(size: 80))
                     .background(in: Circle().inset(by: -40))
                     .background(.blue)
@@ -106,5 +97,11 @@ struct SampleView: View {
                     .font(.largeTitle)
             }
         }
+    }
+}
+
+struct SnapshotView3_Previews: PreviewProvider {
+    static var previews: some View {
+        SnapshotViewWraperView()
     }
 }
