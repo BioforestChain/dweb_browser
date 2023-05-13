@@ -9,7 +9,6 @@ import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.BuildConfig
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.PromiseOut
 import java.io.File
@@ -104,16 +103,17 @@ object SharePlugin {
                     }
                     intent.type = type
 
+                    val fileUrl = Uri.parse(file);
 
-                    val fileUrl = App.appContext.let {
-                        println("path=> ${File(Uri.parse(file).path)}")
-                        FileProvider.getUriForFile(
-                            it,
-                            "${BuildConfig.APPLICATION_ID}.file.opener.provider",
-                            File(Uri.parse(file).path)
-                        )
-                    }
-                    arrayListFiles.add(fileUrl!!)
+//                    App.appContext.let {
+//                        println("path=> ${File(Uri.parse(file).path)}")
+//                        FileProvider.getUriForFile(
+//                            it,
+//                            "${BuildConfig.APPLICATION_ID}.file.opener.provider",
+//                            File(Uri.parse(file).path)
+//                        )
+//                    }
+                    arrayListFiles.add(fileUrl)
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && files.size == 1) {
                         intent.setDataAndType(fileUrl, type)

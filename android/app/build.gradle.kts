@@ -50,11 +50,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
         val kotlin_version = "1.8.10"
         freeCompilerArgs += listOf(
             "-P",
@@ -126,11 +126,12 @@ dependencies {
     implementation("androidx.core:core-ktx:$coreVersion")
     implementation("androidx.datastore:datastore:1.0.0")
     implementation("androidx.datastore:datastore-preferences:1.1.0-alpha01")
-    val activity_version = "1.6.1"
+    val activity_version = "1.7.0-beta02"
     // Java language implementation
     implementation("androidx.activity:activity:$activity_version")
     // Kotlin
     implementation("androidx.activity:activity-ktx:$activity_version")
+    implementation("androidx.activity:activity-compose:$activity_version")
 
     /// Compose 相关
     val composeBom = platform("androidx.compose:compose-bom:2023.03.00")
@@ -144,7 +145,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    implementation("androidx.activity:activity-compose:1.6.1")
     implementation("com.google.android.material:material")
 
     // 工具库

@@ -16,7 +16,7 @@ enum class DEVELOPER(val deviceName: String) {
         val CURRENT = find(Build.MANUFACTURER + "/" + Build.MODEL)
 
         init {
-            println("Hi Developer! ${CURRENT.deviceName} => ${Build.MANUFACTURER}/${Build.MODEL}")
+            println("Hi Developer! ${CURRENT.deviceName}")
         }
     }
 }

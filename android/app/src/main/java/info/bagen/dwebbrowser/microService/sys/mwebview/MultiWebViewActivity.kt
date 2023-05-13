@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
+import info.bagen.dwebbrowser.base.ExtensionResultContracts
 import info.bagen.dwebbrowser.microService.helper.PromiseOut
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM.Companion.controllerMap
@@ -32,62 +33,62 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
 
-open class PermissionActivity : BaseActivity() {
-    companion object {
-        private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
-        private var requestPermissionsCodeAcc = AtomicInteger(1);
-    }
+//open class PermissionActivity : BaseActivity() {
+//    companion object {
+//        private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
+//        private var requestPermissionsCodeAcc = AtomicInteger(1);
+//    }
+//
+//    class RequestPermissionsResult(val code: Int) {
+//        val grants = mutableListOf<String>()
+//        val denied = mutableListOf<String>()
+//        private val task = PromiseOut<Unit>()
+//        fun done() {
+//            task.resolve(Unit)
+//        }
+//
+//        val isGranted get() = denied.size == 0
+//
+//        suspend fun waitPromise() = task.waitPromise()
+//    }
+//
+//    suspend fun requestPermissions(permissions: Array<String>): RequestPermissionsResult {
+//        val result = RequestPermissionsResult(requestPermissionsCodeAcc.getAndAdd(1))
+//
+//        if (permissions.isNotEmpty()) {
+//            requestPermissionsResultMap[result.code] = result
+//            runOnUiThread {
+//                ActivityCompat.requestPermissions(
+//                    this, permissions, result.code
+//                )
+//            }
+//        } else {
+//            result.done()
+//        }
+//
+//        result.waitPromise()
+//        return result
+//    }
+//
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+//    ) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//
+//        requestPermissionsResultMap.remove(requestCode)?.also { result ->
+//            grantResults.forEachIndexed { index, p ->
+//                if (p == PackageManager.PERMISSION_GRANTED) {
+//                    result.grants.add(permissions[index])
+//                } else {
+//                    result.denied.add(permissions[index])
+//                }
+//            }
+//            result.done()
+//        }
+//    }
+//}
 
-    class RequestPermissionsResult(val code: Int) {
-        val grants = mutableListOf<String>()
-        val denied = mutableListOf<String>()
-        private val task = PromiseOut<Unit>()
-        fun done() {
-            task.resolve(Unit)
-        }
-
-        val isGranted get() = denied.size == 0
-
-        suspend fun waitPromise() = task.waitPromise()
-    }
-
-    suspend fun requestPermissions(permissions: Array<String>): RequestPermissionsResult {
-        val result = RequestPermissionsResult(requestPermissionsCodeAcc.getAndAdd(1))
-
-        if (permissions.isNotEmpty()) {
-            requestPermissionsResultMap[result.code] = result
-            runOnUiThread {
-                ActivityCompat.requestPermissions(
-                    this, permissions, result.code
-                )
-            }
-        } else {
-            result.done()
-        }
-
-        result.waitPromise()
-        return result
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        requestPermissionsResultMap.remove(requestCode)?.also { result ->
-            grantResults.forEachIndexed { index, p ->
-                if (p == PackageManager.PERMISSION_GRANTED) {
-                    result.grants.add(permissions[index])
-                } else {
-                    result.denied.add(permissions[index])
-                }
-            }
-            result.done()
-        }
-    }
-}
-
-open class MultiWebViewActivity : PermissionActivity() {
+open class MultiWebViewActivity : BaseActivity() {
     private var remoteMmid by mutableStateOf("")
     private var controller: MultiWebViewController? = null
 
@@ -105,33 +106,6 @@ open class MultiWebViewActivity : PermissionActivity() {
             }
         } ?: throw Exception("no found controller by mmid:$remoteMmid")
     }
-
-    val resultLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val resultCode: Int = result.resultCode
-            val data: Intent? = result.data
-            // 选中图片
-            controller?.lastViewOrNull?.also { (_, webview) ->
-                if (resultCode == RESULT_OK) {
-                    val uris = data?.clipData?.let { clipData ->
-                        val count = clipData.itemCount
-                        val uris = ArrayList<Uri>()
-                        for (i in 0 until count) {
-                            clipData.getItemAt(i)?.uri?.let { uri ->
-                                uris.add(uri)
-                            }
-                        }
-                        uris.toTypedArray()
-                    } ?: arrayOf(data?.data!!)
-                    // 调用回调函数，将Uri数组传递给WebView
-                    webview.filePathCallback?.onReceiveValue(uris)
-                } else {
-                    // 取消选择文件操作，调用回调函数并传递null值
-                    webview.filePathCallback?.onReceiveValue(null)
-                }
-                webview.filePathCallback = null
-            }
-        }
 
     override fun onResume() {
         super.onResume()
@@ -152,6 +126,13 @@ open class MultiWebViewActivity : PermissionActivity() {
         controller?.destroyWebView()
         controllerMap.remove(remoteMmid)
     }
+
+    val getContentLauncher = QueueResultLauncher(this, ActivityResultContracts.GetContent())
+    val getMultipleContentsLauncher = QueueResultLauncher(this, ActivityResultContracts.GetMultipleContents())
+    val recordSoundLauncher = QueueResultLauncher(this, ExtensionResultContracts.RecordSound())
+
+    val captureVideoLauncher = QueueResultLauncher(this, ActivityResultContracts.CaptureVideo())
+    val takePictureLauncher = QueueResultLauncher(this, ActivityResultContracts.TakePicture())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

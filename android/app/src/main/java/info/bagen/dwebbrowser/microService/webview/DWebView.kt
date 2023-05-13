@@ -1,11 +1,21 @@
 package info.bagen.dwebbrowser.microService.webview
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withStarted
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.*
@@ -13,18 +23,21 @@ import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.http.CORS_HEADERS
 import info.bagen.dwebbrowser.microService.sys.http.getFullAuthority
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewActivity
-import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.microService.sys.plugin.permission.debugPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import okhttp3.internal.wait
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
 import org.http4k.lens.Header
+import java.io.File
+import java.lang.Exception
 import java.util.*
 
 
@@ -76,6 +89,7 @@ inline fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
  * 某些情况可能是平台接口无法很好地覆盖的，这时候需要开发者手动进行修改，
  * DWebView 会提供基本的修改脚本，来方便开发者定制这些情况（比方说在一些 iframe、WebWorker 中，或者一些沙盒API中需要额外的定制化服务）
  */
+@SuppressLint("SetJavaScriptEnabled")
 class DWebView(
     context: Context,
     val localeMM: MicroModule,
@@ -83,8 +97,6 @@ class DWebView(
     val options: Options,
     var activity: MultiWebViewActivity? = null,
 ) : WebView(context) {
-
-    var filePathCallback: ValueCallback<Array<android.net.Uri>>? = null
 
     data class Options(
         /**
@@ -186,9 +198,6 @@ class DWebView(
         settings.userAgentString = "$baseUserAgentString dweb-host/${dwebHost}"
     }
 
-    //
-//    private val openSignal = Signal<Message>()
-//    fun onOpen(cb: Callback<Message>) = openSignal.listen(cb)
     private val closeSignal = SimpleSignal()
     fun onCloseWindow(cb: SimpleCallback) = closeSignal.listen(cb)
 
@@ -207,12 +216,7 @@ class DWebView(
             } else if (request.url.path?.endsWith("bfs-metadata.json") == true) {
                 browserController.checkJmmMetadataJson(request.url.toString())
                 return WebResourceResponse(
-                    "application/json",
-                    "",
-                    200,
-                    "OK",
-                    CORS_HEADERS.toMap(),
-                    "OK".byteInputStream()
+                    "application/json", "", 200, "OK", CORS_HEADERS.toMap(), "OK".byteInputStream()
                 )
             }
             return super.shouldInterceptRequest(view, request)
@@ -231,8 +235,7 @@ class DWebView(
             remoteMM.nativeFetch(
                 Request(
                     Method.GET, request.url.toString()
-                ).headers(request.requestHeaders.toList())
-                    .header("X-Dweb-Proxy-Id", localeMM.mmid)
+                ).headers(request.requestHeaders.toList()).header("X-Dweb-Proxy-Id", localeMM.mmid)
             )
         }.getOrThrow()
         debugDWebView("shouldInterceptRequest/RESPONSE", lazy {
@@ -266,25 +269,101 @@ class DWebView(
             filePathCallback: ValueCallback<Array<android.net.Uri>>,
             fileChooserParams: FileChooserParams
         ): Boolean {
-            val acceptTypes: List<String> = fileChooserParams.acceptTypes.toList()
-            val captureEnabled = fileChooserParams.isCaptureEnabled
-            val capturePhoto = captureEnabled && acceptTypes.contains("image/*")
-            val captureVideo = captureEnabled && acceptTypes.contains("video/*")
-            this@DWebView.filePathCallback = filePathCallback
-
-            val pickIntent = Intent(
-                Intent.ACTION_GET_CONTENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            )
-            pickIntent.addCategory(Intent.CATEGORY_OPENABLE);
-            pickIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-            // 如果是选择图片或者是视频
-            if (capturePhoto || captureVideo) {
-                pickIntent.setDataAndType(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    fileChooserParams.acceptTypes.joinToString(",")
-                )
+            if (activity == null) {
+                filePathCallback.onReceiveValue(null);
+                return false;
             }
-            activity?.resultLauncher?.launch(pickIntent)
+            val context = activity!!;
+
+            val mimeTypes = fileChooserParams.acceptTypes.joinToString(",")
+                .let { if (it.isEmpty()) "*/*" else it };
+            val captureEnabled = fileChooserParams.isCaptureEnabled
+            if (captureEnabled) {
+                if (mimeTypes.startsWith("video/")) {
+                    context.lifecycleScope.launch {
+                        if (!context.requestSelfPermission(Manifest.permission.CAMERA)) {
+                            filePathCallback.onReceiveValue(null)
+                            return@launch
+                        }
+                        val tmpFile =
+                            File.createTempFile("temp_capture", ".mp4", context.cacheDir);
+                        val tmpUri = FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.file.opener.provider",
+                            tmpFile
+                        )
+
+                        if (context.captureVideoLauncher.launch(tmpUri)) {
+                            filePathCallback.onReceiveValue(arrayOf(tmpUri))
+                        } else {
+                            filePathCallback.onReceiveValue(null)
+                        }
+                    }
+                    return true;
+                } else if (mimeTypes.startsWith("image/")) {
+                    context.lifecycleScope.launch {
+                        if (!context.requestSelfPermission(Manifest.permission.CAMERA)) {
+                            filePathCallback.onReceiveValue(null)
+                            return@launch
+                        }
+
+                        val tmpFile =
+                            File.createTempFile("temp_capture", ".jpg", context.cacheDir);
+                        val tmpUri = FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.file.opener.provider",
+                            tmpFile
+                        )
+
+                        if (context.takePictureLauncher.launch(tmpUri)) {
+                            filePathCallback.onReceiveValue(arrayOf(tmpUri))
+                        } else {
+                            filePathCallback.onReceiveValue(null)
+                        }
+                    }
+                    return true;
+                } else if (mimeTypes.startsWith("audio/")) {
+                    context.lifecycleScope.launch {
+                        if (!context.requestSelfPermission(Manifest.permission.RECORD_AUDIO)) {
+                            filePathCallback.onReceiveValue(null)
+                            return@launch
+                        }
+
+                        val tmpFile =
+                            File.createTempFile("temp_capture", ".ogg", context.cacheDir);
+                        val tmpUri = FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.file.opener.provider",
+                            tmpFile
+                        )
+
+                        if (context.recordSoundLauncher.launch(tmpUri)) {
+                            filePathCallback.onReceiveValue(arrayOf(tmpUri))
+                        } else {
+                            filePathCallback.onReceiveValue(null)
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            context.lifecycleScope.launch {
+                try {
+                    if (fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE) {
+                        val uris = context.getMultipleContentsLauncher.launch(mimeTypes)
+                        filePathCallback.onReceiveValue(uris.toTypedArray())
+                    } else {
+                        val uri = context.getContentLauncher.launch(mimeTypes)
+                        if (uri != null) {
+                            filePathCallback.onReceiveValue(arrayOf(uri))
+                        } else {
+                            filePathCallback.onReceiveValue(null)
+                        }
+                    }
+                } catch (e: Exception) {
+                    filePathCallback.onReceiveValue(null)
+                }
+            }
             return true
         }
 
@@ -310,18 +389,28 @@ class DWebView(
                             permissions.add("android.permission.RECORD_AUDIO")
                         }
                     }
-                    val result = it.requestPermissions(permissions.toTypedArray())
-                    debugPermission(
-                        "onPermissionRequest",
-                        "activity:$activity result:${result.grants.joinToString()}"
-                    )
-                    it.runOnUiThread {
-                        if (result.denied.size == 0) {
-                            request.grant(request.resources)
-                        } else {
-                            request.deny()
+                    var requestPermissionLauncher =
+                        it.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+                            var grants = result.filterValues { value -> value };
+                            if (grants.isEmpty()) {
+                                request.deny()
+                            } else {
+                                request.grant(grants.keys.toTypedArray())
+                            }
                         }
-                    }
+                    requestPermissionLauncher.launch(permissions.toTypedArray());
+//                    val result = it.requestPermissions(permissions.toTypedArray())
+//                    debugPermission(
+//                        "onPermissionRequest",
+//                        "activity:$activity result:${result.grants.joinToString()}"
+//                    )
+//                    it.runOnUiThread {
+//                        if (result.denied.size == 0) {
+//                            request.grant(request.resources)
+//                        } else {
+//                            request.deny()
+//                        }
+//                    }
                 }
             } ?: request.deny()
         }

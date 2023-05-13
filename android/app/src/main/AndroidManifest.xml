@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!--蓝牙-->
@@ -28,8 +32,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- 相机 -->
     <uses-permission android:name="android.permission.CAMERA" /> <!-- 手机 -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <!--<uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!--<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />--> <!--生物识别-->
 
@@ -47,9 +51,9 @@
 
         <activity
             android:name="info.bagen.dwebbrowser.SplashActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/app_name"
-            android:excludeFromRecents="true"
             android:theme="@style/Theme.plaoc">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -61,28 +65,45 @@
             android:name="info.bagen.dwebbrowser.microService.browser.BrowserActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.plaoc"/>
-<!--            android:launchMode="singleInstance"-->
-        <activity android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder1Activity" android:exported="true" android:windowSoftInputMode="adjustPan"/>
-        <activity android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder2Activity" android:exported="true" android:windowSoftInputMode="adjustPan"/>
-        <activity android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder3Activity" android:exported="true" android:windowSoftInputMode="adjustPan"/>
-        <activity android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder4Activity" android:exported="true" android:windowSoftInputMode="adjustPan"/>
-        <activity android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder5Activity" android:exported="true" android:windowSoftInputMode="adjustPan"/>
+            android:theme="@style/Theme.plaoc" />
+        <!--            android:launchMode="singleInstance"-->
+        <activity
+            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder1Activity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder2Activity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder3Activity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder4Activity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder5Activity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan" />
 
         <meta-data
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"
             android:value="barcode" />
-        <activity android:name="info.bagen.dwebbrowser.microService.sys.plugin.share.ShareActivity"
+
+        <activity
+            android:name="info.bagen.dwebbrowser.microService.sys.plugin.share.ShareActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Transparent">
             <intent-filter>
                 <action android:name="info.bagen.dwebbrowser.share" />
             </intent-filter>
         </activity>
-        <activity android:name="info.bagen.dwebbrowser.microService.sys.plugin.biometrics.BiometricsActivity"
+        <activity
+            android:name="info.bagen.dwebbrowser.microService.sys.plugin.biometrics.BiometricsActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Transparent">
-        </activity>
+            android:theme="@style/Theme.AppCompat.Transparent"></activity>
 
         <activity
             android:name="info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity"
@@ -91,6 +112,7 @@
                 <action android:name="info.bagen.dwebbrowser.openjmm" />
             </intent-filter>
         </activity>
+
         <service android:name="info.bagen.dwebbrowser.service.DwebBrowserService" />
 
         <provider
@@ -102,6 +124,20 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_opener_paths" />
         </provider>
+        <!-- Prompt Google Play services to install the backported photo picker module -->
+        <service
+            android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false"
+            tools:ignore="MissingClass">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+            </intent-filter>
+
+            <meta-data
+                android:name="photopicker_activity:0:required"
+                android:value="" />
+        </service>
     </application>
 
 </manifest>

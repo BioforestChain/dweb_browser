@@ -28,6 +28,9 @@ const props = defineProps({ label: String });
 .form-control :deep(input[type="file"]) {
   @apply file-input file-input-bordered file-input-accent max-w-xs;
 }
+.form-control :deep(input[type="checkbox"]) {
+  @apply toggle;
+}
 .form-control :deep(select) {
   @apply select input-bordered input-accent max-w-xs;
 }

@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.helper
 import kotlinx.coroutines.future.await
 import java.util.concurrent.CompletableFuture
 
-open class PromiseOut<T : Any> {
+open class PromiseOut<T> {
     companion object {
         fun <T : Any> resolve(value: T) = PromiseOut<T>().also { it.resolve(value) }
         fun <T : Any> reject(e: Throwable) = PromiseOut<T>().also { it.reject(e) }

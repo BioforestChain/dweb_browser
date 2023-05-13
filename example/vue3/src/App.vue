@@ -8,7 +8,7 @@ const router = useRouter();
 
 // router.push("/biometrics")
 // router.push("/serviceworker")
-router.push("/share");
+router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");
 
@@ -55,7 +55,7 @@ const apiUrl = new URL(location.href);
 
   <v-app>
     <v-main>
-      <div class="h-full drawer app-bg">
+      <div class="h-full drawer app-bg pt-10">
         <input id="my-drawer-controller" type="checkbox" class="drawer-toggle" v-model="drawer_controller" />
         <div class="flex flex-col drawer-content">
           <!-- Navbar -->
@@ -89,7 +89,7 @@ const apiUrl = new URL(location.href);
         </div>
         <div class="drawer-side">
           <label for="my-drawer-controller" class="drawer-overlay" />
-          <ul class="p-4 bg-opacity-50 menu w-80 glass bg-base-100">
+          <ul class="p-4 bg-opacity-50 menu w-80 glass bg-base-100 rounded-lg">
             <!-- Sidebar content here -->
             <li v-for="route in routes" :key="route.path">
               <router-link :to="route.path" @click="() => {

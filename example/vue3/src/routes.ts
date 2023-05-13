@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from "vue-router";
 
 export const routes = [
+  { title: "Input File", path: "/inputfile", component: () => import("./pages/InputFile.vue") },
   { title: "Status Bar", path: "/statusbar", component: () => import("./pages/StatusBar.vue") },
   { title: "Navigation Bar", path: "/navigationbar", component: () => import("./pages/NavigationBar.vue") },
   { title: "Safe Area", path: "/safearea", component: () => import("./pages/SafeArea.vue") },
@@ -18,4 +19,4 @@ export const routes = [
   { title: "Dweb ServiceWorker", path: "/serviceworker", component: () => import("./pages/DwebServiceWorker.vue") },
   { title: "Biometrics", path: "/biometrics", component: () => import("./pages/Biometrics.vue") },
   { title: "Network", path: "/network", component: () => import("./pages/Network.vue") },
-]; //satisfies RouteRecordRaw[];
+] satisfies (RouteRecordRaw & { title: string })[];
