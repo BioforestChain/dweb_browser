@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.ui.browser.ios
+package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
 import android.view.MotionEvent

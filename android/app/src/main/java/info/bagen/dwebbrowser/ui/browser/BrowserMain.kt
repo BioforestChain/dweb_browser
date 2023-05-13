@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.ui.browser.ios
+package info.bagen.dwebbrowser.ui.browser
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi

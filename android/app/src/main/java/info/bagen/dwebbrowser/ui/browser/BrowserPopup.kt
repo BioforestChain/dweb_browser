@@ -1,14 +1,14 @@
-package info.bagen.dwebbrowser.ui.browser.ios
+package info.bagen.dwebbrowser.ui.browser
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,10 +17,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -41,20 +36,18 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.database.WebSiteDatabase
-import info.bagen.dwebbrowser.database.WebSiteInfo
-import info.bagen.dwebbrowser.database.WebSiteType
-import info.bagen.dwebbrowser.datastore.WebsiteDB
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.ui.entity.*
+import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
+import info.bagen.dwebbrowser.ui.entity.BrowserMainView
+import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.theme.DimenBottomBarHeight
-import info.bagen.dwebbrowser.ui.view.ListItemDeleteView
 import info.bagen.dwebbrowser.util.BitmapUtil
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val screenHeight: Dp
@@ -93,34 +86,17 @@ class TabItem(
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
   var selectedTabIndex by remember { mutableStateOf(0) }
-  var popupViewState = PopupViewState.Options
-  val tabs = when (viewModel.uiState.currentBrowserBaseView.value) {
-    is BrowserWebView -> {
-      listOf(
-        TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
-        TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
-        TabItem(
-          R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList
-        ),
-      )
-    }
-    else -> {
-      listOf(
-        TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
-        TabItem(
-          R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList
-        ),
-      )
-    }
-  }.also {
-    popupViewState =
-      if (it.size > selectedTabIndex) it[selectedTabIndex].entry else it.first().entry
-  }
+  var popupViewState = remember { mutableStateOf(PopupViewState.Options) }
+  val tabs = listOf(
+    TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
+    TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
+    TabItem(R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList),
+  )
 
   LaunchedEffect(selectedTabIndex) {
     snapshotFlow { selectedTabIndex }.collect {
       if (it < tabs.size && it >= 0) {
-        popupViewState = tabs[it].entry
+        popupViewState.value = tabs[it].entry
       }
     }
   }
@@ -146,14 +122,31 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
 }
 
 // 显示具体内容部分，其中又可以分为三个部分类型，操作页，书签列表，历史列表
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PopContentView(
-  popupViewState: PopupViewState, viewModel: BrowserViewModel
+  popupViewState: MutableState<PopupViewState>, viewModel: BrowserViewModel
 ) {
-  Box(modifier = Modifier.fillMaxSize()) {
-    when (popupViewState) {
-      PopupViewState.BookList -> PopContentBookListItem(viewModel)
-      PopupViewState.HistoryList -> PopContentHistoryListItem {} //PopContentHistoryListItem(viewModel)
+  val bookViewModel = remember { BookViewModel() }
+  val historyViewModel = remember { HistoryViewModel() }
+  val scope = rememberCoroutineScope()
+
+  Box(modifier = Modifier.fillMaxSize().navigationBarsPadding()) {
+    when (popupViewState.value) {
+      PopupViewState.BookList -> BrowserListOfBook(
+        bookViewModel,
+        onOpenSetting = {
+          scope.launch {
+            delay(500)
+            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.expand()
+          }
+        }
+      ) {
+        viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+      }
+      PopupViewState.HistoryList -> BrowserListOfHistory(historyViewModel) {
+        viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+      }
       else -> PopContentOptionItem(viewModel)
     }
   }
@@ -161,6 +154,7 @@ private fun PopContentView(
 
 @Composable
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
+  // 判断权限
   val launcher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
       onResult = { isGranted ->
@@ -169,272 +163,63 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
         }
       })
-  LazyColumn {
-    item {
-      Spacer(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(10.dp)
-      )
-    }
+  LazyColumn(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.outlineVariant)
+  ) {
     // 分享和添加书签
     item {
-      Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(50.dp)
-        .padding(horizontal = 10.dp)
-        .clip(RoundedCornerShape(8.dp))
-        .background(MaterialTheme.colorScheme.background)
-        .clickable {
-          viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo)
-        }) {
-        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
-          Text(
-            text = "添加书签", modifier = Modifier
-              .weight(1f)
-              .padding(horizontal = 10.dp)
-          )
+      ListItem(
+        modifier = Modifier
+          .padding(horizontal = 10.dp, vertical = 5.dp)
+          .clip(RoundedCornerShape(8.dp))
+          .clickable { viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo) },
+        colors = ListItemDefaults.colors(
+          containerColor = MaterialTheme.colorScheme.background,
+        ),
+        headlineContent = { Text(text = "添加书签") },
+        trailingContent = {
           Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_book),
             contentDescription = null,
-            modifier = Modifier
-              .padding(15.dp)
-              .size(30.dp)
+            modifier = Modifier.size(32.dp)
           )
         }
-
-      }
-    }
-    item {
-      Spacer(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(10.dp)
       )
-      Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(50.dp)
-        .padding(horizontal = 10.dp)
-        .clip(RoundedCornerShape(8.dp))
-        .background(MaterialTheme.colorScheme.background)
-        .clickable {
-          launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) // 请求权限
-          //viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
-        }) {
-        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
-          Text(
-            text = "分享", modifier = Modifier
-              .weight(1f)
-              .padding(horizontal = 10.dp)
-          )
+    }
+
+    item {
+      ListItem(
+        modifier = Modifier
+          .padding(horizontal = 10.dp, vertical = 5.dp)
+          .clip(RoundedCornerShape(8.dp))
+          .clickable { launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) /*请求权限*/ },
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
+        headlineContent = { Text(text = "分享") },
+        trailingContent = {
           Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_share),
-            contentDescription = null,
-            modifier = Modifier
-              .padding(15.dp)
-              .size(30.dp)
+            contentDescription = "Share",
+            modifier = Modifier.size(32.dp)
           )
         }
-      }
+      )
     }
     item {
-      Spacer(
+      ListItem(
         modifier = Modifier
-          .fillMaxWidth()
-          .height(10.dp)
-      )
-      Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(50.dp)
-        .padding(horizontal = 10.dp)
-        .clip(RoundedCornerShape(8.dp))
-        .background(MaterialTheme.colorScheme.background)
-        .clickable {
-          launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) // 请求权限
-          //viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
-        }) {
-        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = CenterVertically) {
-          Text(
-            text = "无痕浏览", modifier = Modifier
-              .weight(1f)
-              .padding(horizontal = 10.dp)
-          )
+          .padding(horizontal = 10.dp, vertical = 5.dp)
+          .clip(RoundedCornerShape(8.dp)),
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
+        headlineContent = { Text(text = "无痕浏览") },
+        trailingContent = {
           Switch(
             checked = viewModel.isNoTrace.value,
-            onCheckedChange = { viewModel.saveBrowserMode(it) },
-            modifier = Modifier
-              .height(30.dp)
-              .padding(15.dp)
+            onCheckedChange = { viewModel.saveBrowserMode(it) }
           )
         }
-      }
-    }
-  }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BoxScope.PopContentBookListItem(viewModel: BrowserViewModel) {
-  if (viewModel.uiState.bookWebsiteList.isEmpty()) {
-    Text(
-      text = "未发现书签列表", modifier = Modifier
-        .align(TopCenter)
-        .padding(top = screenHeight / 5)
-    )
-    return
-  }
-  val scope = rememberCoroutineScope()
-  LazyColumn {
-    items(viewModel.uiState.bookWebsiteList.size) { index ->
-      val webSiteInfo = viewModel.uiState.bookWebsiteList[index]
-      ListItemDeleteView(
-        onClick = {
-          scope.launch {
-            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
-            viewModel.handleIntent(BrowserIntent.SearchWebView(webSiteInfo.url))
-          }
-        },
-        onDelete = {
-          viewModel.handleIntent(BrowserIntent.DeleteWebSiteList(ListType.Book, webSiteInfo, false))
-        },
-        enableExpand = true,
-        expandContent = {
-          ExpandTextFiled("书签名称", webSiteInfo.title) {
-            webSiteInfo.title = it
-            WebsiteDB.saveBookWebsiteInfo(webSiteInfo)
-          }
-          ExpandTextFiled("网址详情", webSiteInfo.url) {
-            webSiteInfo.url = it
-            WebsiteDB.saveBookWebsiteInfo(webSiteInfo)
-          }
-        }
-      ) {
-        Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp), verticalAlignment = CenterVertically
-        ) {
-          Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_book),
-            contentDescription = "Book",
-            modifier = Modifier
-              .padding(10.dp)
-              .size(30.dp)
-          )
-          Text(
-            text = webSiteInfo.title, fontSize = 16.sp, maxLines = 1, modifier = Modifier.weight(1f)
-          )
-          Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.ic_more),
-            contentDescription = "More",
-            modifier = Modifier
-              .padding(10.dp)
-              .size(30.dp)
-              .graphicsLayer(rotationX = 90f)
-          )
-        }
-      }
-    }
-  }
-}
-
-@Composable
-fun ExpandTextFiled(
-  label: String,
-  title: String,
-  modifier: Modifier = Modifier.fillMaxWidth(),
-  onValueChanged: (String) -> Unit
-) {
-  var text by remember { mutableStateOf(title) }
-  OutlinedTextField(
-    value = text,
-    onValueChange = { text = it },
-    modifier = modifier
-      .background(MaterialTheme.colorScheme.surface)
-      .padding(10.dp),
-    label = { Text(text = label) },
-    singleLine = true,
-    maxLines = 1,
-    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-    keyboardActions = KeyboardActions(onDone = {
-      if (text.isEmpty()) return@KeyboardActions
-      onValueChanged(text)
-    }),
-    trailingIcon = {
-      Icon(Icons.Default.Done, contentDescription = "Done")
-    }
-  )
-}
-
-@SuppressLint("RememberReturnType", "CoroutineCreationDuringComposition")
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun BoxScope.PopContentHistoryListItem(onSearch: (String) -> Unit) {
-  val historyWebsiteMap = remember { mutableStateMapOf<String, MutableList<WebSiteInfo>>() }
-  val webSiteDao = WebSiteDatabase.INSTANCE.websiteDao()
-  val scope = rememberCoroutineScope()
-  scope.launch(ioAsyncExceptionHandler) {
-    webSiteDao.loadAllByType(WebSiteType.History).forEach { webSiteInfo ->
-      historyWebsiteMap.getOrPut(webSiteInfo.getStickyName()) {
-        mutableListOf()
-      }.also { list ->
-        list.add(webSiteInfo)
-      }
-    }
-  }
-
-  if (historyWebsiteMap.isEmpty()) {
-    Text(
-      text = "未发现历史记录", modifier = Modifier
-        .align(TopCenter)
-        .padding(top = screenHeight / 5)
-    )
-    return
-  }
-  Box {
-    LazyColumn {
-      historyWebsiteMap.toSortedMap { o1, o2 ->
-        if (o1 < o2) 1 else -1
-      }.forEach { (key, value) ->
-        stickyHeader {
-          Text(
-            text = key,
-            modifier = Modifier
-              .fillMaxWidth()
-              .height(30.dp)
-              .background(MaterialTheme.colorScheme.outlineVariant)
-              .padding(horizontal = 10.dp, vertical = 6.dp)
-          )
-        }
-        items(value.size) { index ->
-          val webSiteInfo = value[index]
-          ListItemDeleteView(
-            onClick = { onSearch(webSiteInfo.url) },
-            onDelete = { webSiteDao.delete(webSiteInfo) }
-          ) {
-            Column(
-              modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterStart)
-            ) {
-              Text(
-                text = webSiteInfo.title,
-                fontSize = 16.sp,
-                maxLines = 1,
-                modifier = Modifier.height(25.dp),
-                color = MaterialTheme.colorScheme.onSurface
-              )
-              Text(
-                text = webSiteInfo.url,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 12.sp,
-                maxLines = 1,
-                modifier = Modifier.height(20.dp)
-              )
-            }
-          }
-        }
-      }
+      )
     }
   }
 }

@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.ui.browser.ios
+package info.bagen.dwebbrowser.ui.browser
 
 import android.content.Intent
 import android.net.Uri
@@ -12,8 +12,8 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.*
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -46,10 +46,10 @@ import java.util.concurrent.atomic.AtomicInteger
 data class BrowserUIState @OptIn(
   ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
 ) constructor(
-  val browserViewList: MutableList<BrowserBaseView> = mutableStateListOf(), // 多浏览器列表
+  val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
   // val historyWebsiteMap: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf(), // 历史列表
   val bookWebsiteList: MutableList<WebSiteInfo> = mutableStateListOf(), // 书签列表
-  val currentBrowserBaseView: MutableState<BrowserBaseView>,
+  val currentBrowserBaseView: MutableState<BrowserWebView>,
   val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
   val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
   val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
@@ -248,7 +248,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         }
         is BrowserIntent.SaveHistoryWebSiteInfo -> {
           action.url?.let {
-            if (!isNoTrace.value) { // 无痕模式，不保存历史搜索记录
+            if (!isNoTrace.value && !it.startsWith("file:///android_asset/")) { // 无痕模式，不保存历史搜索记录
               WebSiteDatabase.INSTANCE.websiteDao().insert(
                 WebSiteInfo(title = action.title ?: it, url = it, type = WebSiteType.History)
               )
@@ -258,8 +258,15 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         is BrowserIntent.SaveBookWebSiteInfo -> {
           uiState.currentBrowserBaseView.value.let {
             if (it is BrowserWebView) {
-              WebsiteDB.saveBookWebsiteInfo(
-                WebSiteInfo(title = it.state.pageTitle ?: "", url = it.state.lastLoadedUrl ?: "", type = WebSiteType.Book)
+              val url = it.state.lastLoadedUrl ?: ""
+              if (url.isEmpty() || url.startsWith("file:///android_asset/")) return@let
+              WebSiteDatabase.INSTANCE.websiteDao().insert(
+                WebSiteInfo(
+                  title = it.state.pageTitle ?: "",
+                  url = url,
+                  type = WebSiteType.Book,
+                  icon = it.state.pageIcon?.asImageBitmap()
+                )
               )
               handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
             }

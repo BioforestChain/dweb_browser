@@ -26,7 +26,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.*
 import info.bagen.dwebbrowser.microService.sys.plugin.permission.PermissionManager
-import info.bagen.dwebbrowser.ui.browser.ios.HomePage
+import info.bagen.dwebbrowser.ui.browser.HomePage
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.splash.SplashPrivacyDialog
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme

@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
-import info.bagen.dwebbrowser.ui.browser.ios.BrowserView
+import info.bagen.dwebbrowser.ui.browser.BrowserView
 import info.bagen.dwebbrowser.ui.camera.QRCodeIntent
 import info.bagen.dwebbrowser.ui.camera.QRCodeScanning
 import info.bagen.dwebbrowser.ui.camera.QRCodeScanningView
@@ -36,7 +36,7 @@ class BrowserActivity : AppCompatActivity() {
         browserController.effect(activity = this@BrowserActivity)
         Box(modifier = Modifier.background(Color.Black)) {
           BrowserView(viewModel = browserController.browserViewModel)
-          QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
+          // QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
           LoadingView(browserController.showLoading)
         }
       }

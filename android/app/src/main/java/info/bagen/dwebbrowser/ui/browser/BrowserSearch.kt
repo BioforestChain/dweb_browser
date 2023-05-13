@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.ui.browser.ios
+package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
 import android.view.KeyEvent
@@ -17,6 +17,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,12 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -38,7 +37,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowInsetsCompat
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.database.WebSiteDatabase
@@ -50,45 +48,9 @@ import io.ktor.util.reflect.*
 import kotlinx.coroutines.delay
 
 /**
- * 提供给外部调用的  搜索界面，可以含有BrowserViewModel
- */
-@Composable
-fun BrowserSearchView(viewModel: BrowserViewModel) {
-  if (viewModel.uiState.showSearchView.value) {
-    val inputText = viewModel.uiState.inputText.value
-    val text = if (inputText.startsWith("file:///android_asset") ||
-      inputText == stringResource(id = R.string.browser_search_hint)
-    ) {
-      ""
-    } else {
-      inputText
-    }
-    val imeShowed = remember { mutableStateOf(false) }
-
-    LaunchedEffect(imeShowed) {
-      snapshotFlow { viewModel.uiState.currentInsets.value }.collect {
-        imeShowed.value = it.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
-      }
-    }
-
-    SearchView(
-      text = text,
-      imeShowed = imeShowed,
-      onClose = {
-        viewModel.uiState.showSearchView.value = false
-      },
-      onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-        viewModel.uiState.showSearchView.value = false
-        viewModel.saveLastKeyword(url)
-        viewModel.handleIntent(BrowserIntent.SearchWebView(url))
-      })
-  }
-}
-
-/**
  * 组件： 搜索组件
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchView(
   text: String,
@@ -113,10 +75,10 @@ internal fun SearchView(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background.copy(0.5f))
-      .clickable(indication = null, onClick = {
+      /*.clickable(indication = null, onClick = {
         focusManager.clearFocus()
         onClose()
-      }, interactionSource = remember { MutableInteractionSource() })
+      }, interactionSource = remember { MutableInteractionSource() })*/
   ) {
     Box(
       modifier = Modifier
@@ -125,6 +87,16 @@ internal fun SearchView(
         .padding(bottom = dimenBottomHeight)
     ) {
       //HomePage()
+      Text(
+        text = "取消",
+        modifier = Modifier
+          .align(Alignment.TopEnd)
+          .padding(20.dp)
+          .clickable { onClose() },
+        fontSize = 16.sp,
+        color = MaterialTheme.colorScheme.primary
+      )
+
       searchPreview?.let { it() }
         ?: SearchPreview(
           show = searchPreviewState,
@@ -248,6 +220,7 @@ internal fun CustomTextField(
   }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("NewApi")
 @Composable
 internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
@@ -267,16 +240,24 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
         Box(
           modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 20.dp)
         ) {
-          Text(text = "搜索", modifier = Modifier.align(Alignment.Center), fontSize = 16.sp)
-          Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
+          Text(text = "搜索", modifier = Modifier.align(Alignment.Center), fontSize = 20.sp)
+          /*Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
             contentDescription = "Close",
             modifier = Modifier
               .padding(end = 16.dp)
               .size(24.dp)
               .align(Alignment.CenterEnd)
-              .clickable { onClose() })
+              .clickable { onClose() })*/
+          Text(
+            text = "取消",
+            modifier = Modifier
+              .align(Alignment.TopEnd)
+              .clickable { onClose() },
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.primary
+          )
         }
       }
       item { // 搜索引擎

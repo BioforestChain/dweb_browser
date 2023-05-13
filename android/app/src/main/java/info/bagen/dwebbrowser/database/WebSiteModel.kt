@@ -19,7 +19,10 @@ internal const val WebSiteTableName = "website"
 /**
  * 定义数据实体
  */
-@Entity(tableName = WebSiteTableName, indices = [Index(value = ["type"])])
+@Entity(
+  tableName = WebSiteTableName,
+  indices = [Index(value = ["type"]), Index(value = ["timeMillis"]), Index(value = ["title"])]
+)
 data class WebSiteInfo(
   @PrimaryKey(autoGenerate = true) val id: Long = 0L,
   var title: String,
@@ -59,7 +62,7 @@ interface WebSiteDao {
   @Query("SELECT * FROM $WebSiteTableName WHERE type IN (:type)")
   fun loadAllByType(type: WebSiteType): List<WebSiteInfo>
 
-  @Query("SELECT * FROM $WebSiteTableName WHERE type IN (:type)")
+  @Query("SELECT * FROM $WebSiteTableName WHERE type IN (:type) limit 500")
   fun loadAllByTypeObserve(type: WebSiteType): LiveData<List<WebSiteInfo>>
 
   @Query(

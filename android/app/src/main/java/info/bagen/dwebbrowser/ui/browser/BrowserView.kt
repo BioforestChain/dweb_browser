@@ -1,7 +1,6 @@
-package info.bagen.dwebbrowser.ui.browser.ios
+package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -42,6 +41,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.web.LoadingState
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
@@ -90,6 +90,7 @@ fun BrowserView(viewModel: BrowserViewModel) {
       }
     }
   }
+  rememberModalBottomSheetState()
 
   BottomSheetScaffold(modifier = Modifier.navigationBarsPadding(),
     scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
@@ -155,10 +156,11 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       beyondBoundsPageCount = 5,
       userScrollEnabled = false
     ) { currentPage ->
-      when (val item = viewModel.uiState.browserViewList[currentPage]) {
+      BrowserViewContentWeb(viewModel, viewModel.uiState.browserViewList[currentPage])
+      /*when (val item = viewModel.uiState.browserViewList[currentPage]) {
         is BrowserMainView -> BrowserViewContentMain(viewModel, item)
         is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
-      }
+      }*/
     }
   }
 }
@@ -515,5 +517,41 @@ private fun SearchTextField(
         }
       }
     }
+  }
+}
+
+/**
+ * 提供给外部调用的  搜索界面，可以含有BrowserViewModel
+ */
+@Composable
+fun BrowserSearchView(viewModel: BrowserViewModel) {
+  if (viewModel.uiState.showSearchView.value) {
+    val inputText = viewModel.uiState.currentBrowserBaseView.value.state.lastLoadedUrl ?: ""
+    val text = if (inputText.startsWith("file:///android_asset") ||
+      inputText == stringResource(id = R.string.browser_search_hint)
+    ) {
+      ""
+    } else {
+      inputText
+    }
+    val imeShowed = remember { mutableStateOf(false) }
+
+    LaunchedEffect(imeShowed) {
+      snapshotFlow { viewModel.uiState.currentInsets.value }.collect {
+        imeShowed.value = it.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
+      }
+    }
+
+    SearchView(
+      text = text,
+      imeShowed = imeShowed,
+      onClose = {
+        viewModel.uiState.showSearchView.value = false
+      },
+      onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
+        viewModel.uiState.showSearchView.value = false
+        viewModel.saveLastKeyword(url)
+        viewModel.handleIntent(BrowserIntent.SearchWebView(url))
+      })
   }
 }

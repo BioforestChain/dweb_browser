@@ -18,7 +18,7 @@ import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
 import info.bagen.dwebbrowser.network.HttpClient
 import info.bagen.dwebbrowser.network.base.byteBufferToString
-import info.bagen.dwebbrowser.ui.browser.ios.BrowserViewModel
+import info.bagen.dwebbrowser.ui.browser.BrowserViewModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.http4k.core.Uri
