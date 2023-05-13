@@ -20,15 +20,15 @@ export class BiometricsNMM extends NativeMicroModule{
   protected async _bootstrap(context: $BootstrapContext) {
     log.green(`[${this.mmid}] _bootstrap`);
 
-    this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
+    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
+    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
 
-    {
-      this.httpNMM.addRoute(`/biometrics.sys.dweb/check`, this._check);
-      this.httpNMM.addRoute(`/biometrics.sys.dweb/biometrics`, this._biometrics)
-      this.httpNMM.addRoute(`/biometrics_sys_dweb_ui/wait_for_operation`, this._waitForOperation);
-      this.httpNMM.addRoute(`/biometrics_sys_dweb_ui/operation_return`, this._operationReturn);
-    }
+    // {
+    //   this.httpNMM.addRoute(`/biometrics.sys.dweb/check`, this._check);
+    //   this.httpNMM.addRoute(`/biometrics.sys.dweb/biometrics`, this._biometrics)
+    //   this.httpNMM.addRoute(`/biometrics_sys_dweb_ui/wait_for_operation`, this._waitForOperation);
+    //   this.httpNMM.addRoute(`/biometrics_sys_dweb_ui/operation_return`, this._operationReturn);
+    // }
 
     // 静态服务器
     {

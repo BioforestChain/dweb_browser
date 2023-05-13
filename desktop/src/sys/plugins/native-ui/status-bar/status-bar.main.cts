@@ -1,38 +1,93 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 import { NativeMicroModule } from "../../../../core/micro-module.native.cjs";
-import { WWWServer }from "./www-server.cjs";
 import { log } from "../../../../helper/devtools.cjs"
-import querystring from "node:querystring"
-import { converRGBAToHexa } from "../../helper.cjs"
+import { 
+  getState, setState, startObserve, stopObserve
+ } from "./handlers.cjs"
 import type { Ipc } from "../../../../core/ipc/ipc.cjs";
 import type { IpcRequest } from "../../../../core/ipc/IpcRequest.cjs";
 import type { $BootstrapContext } from "../../../../core/bootstrapContext.cjs"
-import type { HttpServerNMM } from "../../../http-server/http-server.cjs";
 import type { IncomingMessage, OutgoingMessage } from "node:http";
+import { IpcEvent } from "../../../../core/ipc/IpcEvent.cjs";
+import { ipcMain, IpcMainEvent } from "electron/main";
+// import type { $Schema1, $Schema2 } from "../../../../helper/types.cjs";
 export class StatusbarNativeUiNMM extends NativeMicroModule {
   mmid = "status-bar.nativeui.sys.dweb" as const;
   httpIpc: Ipc | undefined
-  // httpNMM: HttpServerNMM | undefined;
-  observe: Map<string, OutgoingMessage> = new Map();
-  waitForOperationRes: Map<string, OutgoingMessage> = new Map();
-  reqResMap: Map<number, $ReqRes> = new Map();
-  observeMap: Map<string, $Observe> = new Map() 
+  observes: Map<string /** headers.host */ , Ipc> = new Map();
+  observesState: Map<string /**headers.host */, boolean>  = new Map();
   encoder = new TextEncoder();
-  allocId = 0;
 
   _bootstrap = async (context: $BootstrapContext) => {
     log.green(`[${this.mmid} _bootstrap]`)
+
+    {
+      // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
+      ipcMain.on(
+        'status_bar_state_change', 
+        (ipcMainEvent: IpcMainEvent, host, statusbarState) => {
+          const b = this.observesState.get(host)
+          if(b === true){
+            const ipc = this.observes.get(host);
+            if(ipc === undefined) throw new Error(`ipc === undefined`);
+            ipc.postMessage(
+              IpcEvent.fromText(
+                "observe",
+                `${JSON.stringify(statusbarState)}`
+              )
+            )
+          }
+        }
+      )
+    }
     
-    //   获取全部的 appsInfo
     this.registerCommonIpcOnMessageHandler({
       pathname: "/getState",
       matchMode: "full",
       input: {},
       output: "object",
-      handler: async (args,client_ipc, request) => {
-       console.error(`${this.mmid} getState`)
-      }
+      handler: getState.bind(this)
+    });    
+    
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/setState",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: setState.bind(this)
     });
+     
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/startObserve",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: startObserve.bind(this)
+    });
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/stopObserve",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: stopObserve.bind(this)
+    });
+
+  }
+
+  override _onConnect(ipc: Ipc){
+    ipc.onEvent((event: IpcEvent) => {
+      console.log('ipc.uid: ', ipc.uid)
+
+      if(event.name === "observe"){
+        const host = event.data;
+        this.observes.set(host as string, ipc)
+      }
+
+      if(event.name === "updated"){
+
+      }
+    })
   }
 
   _shutdown() {

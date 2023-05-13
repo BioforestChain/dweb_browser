@@ -13,29 +13,29 @@ import type {
 import { NativeIpc } from "./ipc.native.cjs";
 import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.cjs";
 import { MicroModule } from "./micro-module.cjs";
-import { connectAdapterManager } from "./nativeConnect.cjs";
+// import { connectAdapterManager } from "./nativeConnect.cjs";
 
-connectAdapterManager.append((fromMM, toMM, reason) => {
-  // // 原始代码
-  // if (toMM instanceof NativeMicroModule) {
-  //   const channel = new MessageChannel();
-  //   const { port1, port2 } = channel;
-  //   const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
-  //   const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
-  //   fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
-  //   toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
-  //   return [fromNativeIpc, toNativeIpc];
-  // }
+// connectAdapterManager.append((fromMM, toMM, reason) => {
+//   // // 原始代码
+//   // if (toMM instanceof NativeMicroModule) {
+//   //   const channel = new MessageChannel();
+//   //   const { port1, port2 } = channel;
+//   //   const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
+//   //   const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
+//   //   fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
+//   //   toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
+//   //   return [fromNativeIpc, toNativeIpc];
+//   // }
 
-  // 测试代码
-  const channel = new MessageChannel();
-  const { port1, port2 } = channel;
-  const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
-  const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
-  fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
-  toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
-  return [fromNativeIpc, toNativeIpc];
-});
+//   // 测试代码
+//   const channel = new MessageChannel();
+//   const { port1, port2 } = channel;
+//   const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
+//   const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
+//   fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
+//   toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
+//   return [fromNativeIpc, toNativeIpc];
+// });
 
 export abstract class NativeMicroModule extends MicroModule {
   readonly ipc_support_protocols: $IpcSupportProtocols = {
@@ -44,6 +44,7 @@ export abstract class NativeMicroModule extends MicroModule {
     raw: true,
   };
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
+  _onConnect(ipc: Ipc){};
 
   private _commmon_ipc_on_message_hanlders =
     new Set<$RequestCustomHanlderSchema>();
@@ -55,6 +56,8 @@ export abstract class NativeMicroModule extends MicroModule {
     this._inited_commmon_ipc_on_message = true;
 
     this.onConnect((client_ipc) => {
+      this._onConnect(client_ipc)
+
       client_ipc.onRequest(async (request) => {
         const { pathname } = request.parsed_url;
         let response: IpcResponse | undefined;
@@ -80,7 +83,6 @@ export abstract class NativeMicroModule extends MicroModule {
                 );
               }
             } catch (err) {
-              console.log("err: ", err);
               let body: string;
               if (err instanceof Error) {
                 body = err.stack ?? err.message;

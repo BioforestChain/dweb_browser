@@ -31,7 +31,7 @@ import type { $BarState, $BAR_STYLE, $ShareOptions, $VirtualKeyboardState } from
 import type { MultiWebViewCompMobileShell } from "./components/multi-webview-comp-mobile-shell.html.mjs";
 import type { MultiWebviewCompVirtualKeyboard } from "./components/multi-webview-comp-virtual-keyboard.html.mjs";
 import type { MultiWebviewCompNavigationBar } from "./components/multi-webview-comp-navigator-bar.html.mjs";
-import { ipcRenderer, webContents } from "electron";
+import { ipcRenderer } from "electron";
 
 @customElement("view-tree")
 export class ViewTree extends LitElement {
@@ -97,13 +97,13 @@ export class ViewTree extends LitElement {
     const state = this[propertyName];
     const len = state.length;
     state[len - 1][key] = value;
-    this[propertyName] = JSON.parse(JSON.stringify(state))
-    
-    // 把状态改变的消息发送给safe area
-    if(key === "overlay" || key === "visible"){
-      ipcRenderer.send('safe_are_insets_change')
+    // 如果改变的 navigationBarState.visible 
+    // 还需要改变 insets.bottom 的值
+    if(propertyName === "navigationBarState" && key === "visible"){
+      state[len - 1].insets.bottom = value ? parseInt(this.navigationBarHeight) : 0;
     }
-    
+
+    this[propertyName] = JSON.parse(JSON.stringify(state))
     return this[propertyName][len - 1]
   }
 
@@ -227,6 +227,13 @@ export class ViewTree extends LitElement {
     return this.safeAreaGetState()
   };
 
+  safeAreaNeedUpdate = () => {
+    ipcRenderer.send(
+      "safe_area_update",
+      this.safeAreaGetState()
+    )
+  }
+
   torchToggleTorch() {
     this.torchState = {
       ...this.torchState,
@@ -252,6 +259,13 @@ export class ViewTree extends LitElement {
     this.multiWebviewCompMobileShell?.shareShare(options)
   }
 
+  /**
+   * navigation-bar 点击 back 的事件处理器
+   * 业务逻辑：
+   * 向 webview 添加一个 ipc-message 事件监听器
+   * 向 webview 注入执行一段 javascript code
+   * @returns 
+   */
   navigationBarOnBack = () => {
     const len = this.webviews.length;
     if (len === 0) {
@@ -272,23 +286,6 @@ export class ViewTree extends LitElement {
       origin,
       excuteJavascriptCode
     )
-  }
-
-  navigationBarStateUpdateInsetsByEl = () => {
-    console.log("this.multiWebviewCompNavigationBar: ", this.multiWebviewCompNavigationBar)
-    const height = this.multiWebviewCompNavigationBar?.getBoundingClientRect().height;
-    if(height === undefined) throw new Error(`height === undefined`)
-    const len = this.navigationBarState.length;
-    const state = {
-      ...this.navigationBarState[len - 1],
-      insets: {
-        ...this.navigationBarState[len - 1].insets,
-        bottom: height
-      }
-    }
-    this.navigationBarState[len - 1].insets.bottom = height;
-    this.navigationBarState = JSON.parse(JSON.stringify(this.navigationBarState))
-    console.log('navigationbar的状态发生了改变', this.navigationBarState)
   }
 
   /** 对webview视图进行状态整理 */
@@ -447,6 +444,7 @@ export class ViewTree extends LitElement {
     this.preloadAbsolutePath = path;
   }
 
+
   webviewTagOnIpcMessageHandlerBack = (e: Event) => {
     const channel = Reflect.get(e, "channel")
     const args = Reflect.get(e, 'args')
@@ -488,19 +486,37 @@ export class ViewTree extends LitElement {
   override render() {
     const statusbarState = this.statusBarState[this.statusBarState.length - 1];
     const navigationBarState = this.navigationBarState[this.navigationBarState.length - 1];
+    const arrWebviews = this.webviews;
+    console.log('arrWebiews: ', arrWebviews)
     return html`
       <div class="app-container">
         <multi-webview-comp-mobile-shell>
-          <multi-webview-comp-status-bar 
-            slot="status-bar" 
-            ._color=${statusbarState.color}
-            ._style = ${statusbarState.style}
-            ._overlay = ${statusbarState.overlay}
-            ._visible = ${statusbarState.visible}
-            ._height = ${this.statusBarHeight}
-            ._inserts = ${statusbarState.insets}
-            ._torchIsOpen=${this.torchState.isOpen}
-          ></multi-webview-comp-status-bar>
+          ${
+            repeat(
+              this.webviews,
+              (webview) => webview.src,
+              (webview, index) => {
+                if(this.webviews.length - 1 === index){
+                  return html`
+                    <multi-webview-comp-status-bar 
+                      slot="status-bar" 
+                      ._color=${statusbarState.color}
+                      ._style = ${statusbarState.style}
+                      ._overlay = ${statusbarState.overlay}
+                      ._visible = ${statusbarState.visible}
+                      ._height = ${this.statusBarHeight}
+                      ._inserts = ${statusbarState.insets}
+                      ._torchIsOpen=${this.torchState.isOpen}
+                      ._webview_src=${webview.src}
+                      @safe_area_need_update=${this.safeAreaNeedUpdate}
+                    ></multi-webview-comp-status-bar>
+                  `
+                }else{
+                  return html``
+                }
+              }
+            )
+          }
           ${repeat(
             this.webviews,
             (dialog) => dialog.id,
@@ -531,40 +547,62 @@ export class ViewTree extends LitElement {
               `;
             }
           )}
-          ${when(
-            this.isShowVirtualKeyboard,
-            () => html`
-              <multi-webview-comp-virtual-keyboard
-                slot="bottom-bar"
-                ._navigation_bar_height=${
-                  this.navigationBarState[
-                    this.navigationBarState.length - 1
-                  ].insets.bottom
+          ${
+            repeat(
+              this.webviews,
+              webview => webview.src,
+              (webview, index) => {
+                if(this.webviews.length - 1 === index){
+                  return html`
+                    ${when(
+                      this.isShowVirtualKeyboard,
+                      () => html`
+                        <multi-webview-comp-virtual-keyboard
+                          slot="bottom-bar"
+                          ._navigation_bar_height=${
+                            this.navigationBarState[
+                              this.navigationBarState.length - 1
+                            ].insets.bottom
+                          }
+                          ._visible=${this.virtualKeyboardState.visible}
+                          ._overlay=${this.virtualKeyboardState.overlay}
+                          ._webview_src=${webview.src}
+                          @first-updated=${this.virtualKeyboardFirstUpdated}
+                          @hide-completed=${this.virtualKeyboardHideCompleted} 
+                          @show-completed=${this.virtualKeyboardShowCompleted}
+                          @height-changed=${this.virtualKeyboardStateUpdateInsetsByEl}
+                        ></multi-webview-comp-virtual-keyboard>
+                      `,
+                      () => {
+                        const syleMap = styleMap({
+                          "flex-grow": "0",
+                          "flex-sharink": "0",
+                          height: navigationBarState.visible ? this.navigationBarHeight : "0px"
+                        })
+                        return html`
+                          <multi-webview-comp-navigation-bar
+                            style=${syleMap}
+                            slot="bottom-bar"
+                            ._color=${navigationBarState.color}
+                            ._style = ${navigationBarState.style}
+                            ._overlay = ${navigationBarState.overlay}
+                            ._visible = ${navigationBarState.visible}
+                            ._inserts = ${navigationBarState.insets}
+                            ._webview_src=${webview.src}
+                            @back=${this.navigationBarOnBack}
+                            @safe_area_need_update=${this.safeAreaNeedUpdate}
+                          ></multi-webview-comp-navigation-bar>
+                        `
+                      },
+                    )}
+                  `
+                }else{
+                  return html``
                 }
-                ._visible=${this.virtualKeyboardState.visible}
-                ._overlay=${this.virtualKeyboardState.overlay}
-                @first-updated=${this.virtualKeyboardFirstUpdated}
-                @hide-completed=${this.virtualKeyboardHideCompleted} 
-                @show-completed=${this.virtualKeyboardShowCompleted}
-                @height-changed=${this.virtualKeyboardStateUpdateInsetsByEl}
-              ></multi-webview-comp-virtual-keyboard>
-            `,
-            () => {
-              return html`
-              <multi-webview-comp-navigation-bar
-                slot="bottom-bar"
-                ._color=${navigationBarState.color}
-                ._style = ${navigationBarState.style}
-                ._overlay = ${navigationBarState.overlay}
-                ._visible = ${navigationBarState.visible}
-                ._height = ${this.navigationBarHeight}
-                ._inserts = ${navigationBarState.insets}
-                @back=${this.navigationBarOnBack}
-                @height-changed=${this.navigationBarStateUpdateInsetsByEl}
-              ></multi-webview-comp-navigation-bar>
-            `
-            },
-          )}
+              }
+            )
+          }
+          
         </multi-webview-comp-mobile-shell>
       </div>
       <div class="dev-tools-container">
@@ -645,12 +683,3 @@ function createAllCSS() {
     `
   ];
 }
-
-console.log(`
->>>>>>>>>>>>>>>>>>>>>>>>
-
-`,
-
-ipcRenderer
-
-)

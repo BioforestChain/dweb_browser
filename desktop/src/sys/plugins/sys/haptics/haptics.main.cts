@@ -19,27 +19,27 @@ export class HapticsNMM extends NativeMicroModule{
   protected async _bootstrap(context: $BootstrapContext) {
     log.green(`[${this.mmid}] _bootstrap`);
 
-    this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
+    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
+    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
 
-    // haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.sys.dweb%3A443&style=HEAVY
-    this.httpNMM.addRoute(`/${this.mmid}/impactLight`, this._impactLight)
-    // /haptics.sys.dweb/notification?X-Dweb-Host=api.browser.sys.dweb%3A443&style=SUCCESS
-    this.httpNMM.addRoute(`/${this.mmid}/notification`, this._notification)
-    // /haptics.sys.dweb/vibrateClick
-    this.httpNMM.addRoute(`/${this.mmid}/vibrateClick`, this._vibrateClick)
-    // vibrateDisabled
-    this.httpNMM.addRoute(`/${this.mmid}/vibrateDisabled`, this._vibrateDisabled)
-    // vibrateDoubleClick
-    this.httpNMM.addRoute(`/${this.mmid}/vibrateDoubleClick`, this._vibrateDoubleClick)
-    // vibrateHeavyClick
-    this.httpNMM.addRoute(`/${this.mmid}/vibrateHeavyClick`, this._vibrateHeavyClick)
-    // vibrateTick
-    this.httpNMM.addRoute(`/${this.mmid}/vibrateTick`, this._vibrateTick)
-    // /haptics.sys.dweb/customize?X-Dweb-Host=api.browser.sys.dweb%3A443&duration=300
-    this.httpNMM.addRoute(`/${this.mmid}/customize`, this._customize)
-    // /haptics.sys.dweb/wait_for_operation
-    this.httpNMM.addRoute(`/haptics_sys_dweb_ui/wait_for_operation`, this._waitForOperation)
+    // // haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.sys.dweb%3A443&style=HEAVY
+    // this.httpNMM.addRoute(`/${this.mmid}/impactLight`, this._impactLight)
+    // // /haptics.sys.dweb/notification?X-Dweb-Host=api.browser.sys.dweb%3A443&style=SUCCESS
+    // this.httpNMM.addRoute(`/${this.mmid}/notification`, this._notification)
+    // // /haptics.sys.dweb/vibrateClick
+    // this.httpNMM.addRoute(`/${this.mmid}/vibrateClick`, this._vibrateClick)
+    // // vibrateDisabled
+    // this.httpNMM.addRoute(`/${this.mmid}/vibrateDisabled`, this._vibrateDisabled)
+    // // vibrateDoubleClick
+    // this.httpNMM.addRoute(`/${this.mmid}/vibrateDoubleClick`, this._vibrateDoubleClick)
+    // // vibrateHeavyClick
+    // this.httpNMM.addRoute(`/${this.mmid}/vibrateHeavyClick`, this._vibrateHeavyClick)
+    // // vibrateTick
+    // this.httpNMM.addRoute(`/${this.mmid}/vibrateTick`, this._vibrateTick)
+    // // /haptics.sys.dweb/customize?X-Dweb-Host=api.browser.sys.dweb%3A443&duration=300
+    // this.httpNMM.addRoute(`/${this.mmid}/customize`, this._customize)
+    // // /haptics.sys.dweb/wait_for_operation
+    // this.httpNMM.addRoute(`/haptics_sys_dweb_ui/wait_for_operation`, this._waitForOperation)
 
     // 静态服务器
     {

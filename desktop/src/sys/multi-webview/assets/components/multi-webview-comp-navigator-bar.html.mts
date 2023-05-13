@@ -1,6 +1,8 @@
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
+import { ipcRenderer } from "electron";
+import { hexaToRGBA } from "../../../plugins/helper.mjs";
 
 @customElement("multi-webview-comp-navigation-bar")
 export class MultiWebviewCompNavigationBar extends LitElement{
@@ -11,12 +13,35 @@ export class MultiWebviewCompNavigationBar extends LitElement{
   @property({type: String}) _style = "DEFAULT";
   @property({type: Boolean}) _overlay = false;
   @property({type: Boolean}) _visible = true;
-  @property({type: String}) _height = "26px";
   @property({type: Object}) _insets = {
     top: 0,
     right: 0,
     bottom: 20,
     left: 0
+  }
+  @property() _webview_src: any = {}
+
+  protected override updated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
+    const attributes = Array.from(_changedProperties.values());
+    ipcRenderer.send(
+      'navigation_bar_state_change', 
+      // 数据格式 api.browser.sys.dweb-443.localhost:22605
+      new URL(this._webview_src).host.replace('www.', "api."),
+      {
+        color: hexaToRGBA(this._color),
+        style: this._style,
+        overlay: this._overlay,
+        visible: this._visible,
+        insets: this._insets
+      } 
+    )
+    // 在影响 safe-area 的情况下 需要报消息发送给 safe-area 模块
+    if(
+      attributes.includes('_visible') 
+      || attributes.includes('_overlay') 
+    ){
+      this.dispatchEvent(new Event("safe_area_need_update_"))
+    } 
   }
 
   createBackgroundStyleMap(){
@@ -41,9 +66,7 @@ export class MultiWebviewCompNavigationBar extends LitElement{
   setHostStyle(){
     const host = ((this.renderRoot as ShadowRoot).host as HTMLElement);
     host.style.position = this._overlay ? "absolute" : "relative";
-    host.style.height = this._visible ? this._height : "0px";
     host.style.overflow = this._visible ? "visible" : "hidden";
-    this.dispatchEvent(new Event('height-changed'))
   }
 
   back(){

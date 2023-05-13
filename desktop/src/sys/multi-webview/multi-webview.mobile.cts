@@ -11,6 +11,10 @@ import chalk from "chalk"
 import { converRGBAToHexa, hexaToRGBA } from "../plugins/helper.cjs";
 import querystring from "node:querystring"
 import path from "node:path"
+import { 
+  barGetState,
+  barSetState
+ } from "./handler.cjs"
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { Remote } from "comlink";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
@@ -99,13 +103,11 @@ export class MultiWebviewNMM extends NativeMicroModule {
         Array.from(this._uid_wapis_map.values()).forEach(wapis => {
           wapis.apis.destroyWebviewByHost(args.host)
         })
-
         // console.log('------ multi-webview.mobile.cts 执行了销毁', wapisArr);
         // console.log('this._uid_wapis_map: ', this._uid_wapis_map)
         // console.log('ipc.uid: ', (client_ipc as any).uid)
         // const wapis = await this.forceGetWapis(client_ipc, root_url);
         // return wapis.apis.destroyWebviewByHost(args.host);\
-
         return true;
       },
     });
@@ -148,7 +150,44 @@ export class MultiWebviewNMM extends NativeMicroModule {
         return true;
       }
     })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/status-bar.nativeui.sys.dweb/getState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: barGetState.bind(this, "statusBarGetState",root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/status-bar.nativeui.sys.dweb/setState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: barSetState.bind(this, "statusBarSetState", root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/navigation-bar.nativeui.sys.dweb/getState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: barGetState.bind(this, "navigationBarGetState", root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/navigation-bar.nativeui.sys.dweb/setState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: barSetState.bind(this, "navigationBarSetState", root_url)
+    })
   }
+
   ipcMinOnStateChange = async<
     $ApisPerperName extends keyof Pick<
       $APIS, "safeAreaGetState" | "navigationBarGetState" | "statusBarGetState"
@@ -329,7 +368,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
     const observeItem = observe_map_nww_item.get(mmid);
     if(observeItem === undefined) {
       // 如果没有表示没有监听
-      console.log(">>>>>>>>>>>>>>>>>>>>>> 没有相关的监听", mmid)
       return;
     };
     if(observeItem.res === undefined) throw new Error(`observeItem.res === undefined`);
@@ -413,6 +451,11 @@ export class MultiWebviewNMM extends NativeMicroModule {
       }
       return wapi;
     });
+  }
+
+  getWapisByUid(uid: number){
+    console.log("this._uid_wapis_map: ", this._uid_wapis_map,'---', uid)
+    return this._uid_wapis_map.get(uid);
   }
 }
 

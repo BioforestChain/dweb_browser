@@ -115,6 +115,11 @@ export class ForRenderApi {
     if(contents === undefined) throw new Error(`contents === undefined`);
     return proxy(contents);
   }
+  
+  // 关闭 Browserwindow
+  closedBrowserWindow(){
+    this.win.close()
+  }
 }
 
 // export const wrapNativeWindowAsApis = <T>(win: $NativeWindow) => {

@@ -78,6 +78,7 @@ export class DnsNMM extends NativeMicroModule {
     MicroModule,
     Map<$MMID, PromiseOut<$ConnectResult>>
   >();
+  
   async [connectTo_symbol](
     fromMM: MicroModule,
     toMmid: $MMID,
@@ -122,13 +123,6 @@ export class DnsNMM extends NativeMicroModule {
       handler: async (args, client_ipc, request) => {
         /// TODO 询问用户是否授权该行为
         const app = await this.open(args.app_id);
-        
-        if(args.app_id === "http.sys.dweb"){
-          // 向 http.sys.dweb 添加路由
-          this._addRoutes()
-        }
-
-
         return IpcResponse.fromJson(
           request.req_id,
           200,
@@ -156,7 +150,6 @@ export class DnsNMM extends NativeMicroModule {
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(
         async (fromMM, parsedUrl, requestInit) => {
-          // console.log('[dns.cts 适配器执行了] requestInit === ',JSON.stringify(requestInit))
           if (
             parsedUrl.protocol === "file:" &&
             parsedUrl.hostname.endsWith(".dweb")
@@ -168,12 +161,10 @@ export class DnsNMM extends NativeMicroModule {
               new Request(parsedUrl, requestInit)
             );
             const ipc_req_init = await $readRequestAsIpcRequest(requestInit);
-            // console.log('[dns.cts 适配器执行了] ipc_req_init === ',JSON.stringify(ipc_req_init))
             const ipc_response = await ipc.request(
               parsedUrl.href,
               ipc_req_init
             );
-
             return ipc_response.toResponse(parsedUrl.href);
           }
         }
@@ -184,56 +175,6 @@ export class DnsNMM extends NativeMicroModule {
     return this.open(`boot.sys.dweb`);
     //#endregion
   }
-
-  private _addRoutes = async () => {
-    const httpNMM = (await this.query('http.sys.dweb')) as HttpServerNMM;
-    if(httpNMM === undefined) throw new Error(`httpNmm === undefined`);
-    httpNMM.addRoute('/dns.sys.dweb/close', this._close);
-    httpNMM.addRoute("/dns.sys.dweb/restart", this._restart);
-    // httpNMM.addRoute("/dns.sys.dweb/doanload_bfsa", this._downloadBFSA)
-  }
-
-  private _close = async(req: IncomingMessage, response: OutgoingMessage ) => {
-    console.log('req.headers', req.headers.host)
-    const mmid = req.headers.host?.split("-")[0].slice(4) as $MMID;
-    if(mmid === undefined) throw new Error(`${mmid} === undefined`)
-    console.log('mmid: ', mmid)
-    this.close(mmid)
-    // 还需要关闭 UI
-    await this.nativeFetch(
-      `file://mwebview.sys.dweb/destroy_webview_by_host?host=${encodeURIComponent(req.headers.host as string)}`
-    )
-    response.end(true)
-  }
-
-  private _restart = async(req: IncomingMessage, response: OutgoingMessage ) => {
-    // 重新载入一个应用
-    // 首先销毁
-    const mmid = req.headers.host?.split("-")[0].slice(4) as $MMID;
-    if(mmid === undefined) throw new Error(`${mmid} === undefined`)
-    await this.nativeFetch(
-      `file://mwebview.sys.dweb/restart_webview_by_host?host=${encodeURIComponent(req.headers.host as string)}`
-    )
-    response.end()
-  }
-
-  // private _downloadBFSA = async(req: IncomingMessage, response: OutgoingMessage ) => {
-  //   if(req.url === undefined) throw new Error(`${this.mmid} req.url === undefined`);
-  //   const query: querystring.ParsedUrlQuery =  querystring.parse(req.url.split("?")[1]);
-  //   const downloadUrl = query.url;
-  //   if(typeof downloadUrl !== "string"){
-  //     throw new Error(`${this.mmid} typeof downloadUrl !== string`);
-  //   }
-  //   console.log('下载的 url: ', downloadUrl)
-  //   // 需要打开一个新的 webview 页面指向 download 这个地方
-  //   // http://www.browser.sys.dweb-443.localhost:22605/index.html?X-Dweb-Host=www.browser.sys.dweb%3A443
-  //   // const webviewURL = `http://download.sys.dweb-80.localhost:22605`
-  //   // const result = await this.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(webviewURL)}`).text()
-  //   // console.log('result: ', result)
-  //   // 需要打开 dweb 
-  //   this.open("download.sys.dweb")
-
-  // }
   
   async _shutdown() {
     for (const mmid of this.running_apps.keys()) {

@@ -8,9 +8,10 @@ import {
   cros,
   closeDwebView,
 } from "../tool/tool.native.mjs";
-import { $Ipc, onApiRequest, onFetchSignal } from "../tool/tool.request.mjs";
+import { $Ipc, onFetchSignal } from "../tool/tool.request.mjs";
 import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import { wwwServerOnRequest } from "./www-server-on-request.mjs"
+import { onApiRequest } from "./api.request.mjs"
 
 const main = async () => {
   console.log("bootstrap browser.worker.mts")
@@ -30,7 +31,6 @@ const main = async () => {
     (async () => {
       try {
         if (webViewMap.size === 0) {
-          console.log(">>>>> ")
           // open
           const url = await mainUrl.promise;
           const view_id = await nativeOpen(url);
@@ -75,6 +75,7 @@ const main = async () => {
     subdomain: "api",
     port: 443,
   });
+  
   /**给前端的api服务 */
   const externalServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "external",

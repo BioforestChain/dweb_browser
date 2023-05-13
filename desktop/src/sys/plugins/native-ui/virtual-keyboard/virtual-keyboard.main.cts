@@ -24,18 +24,18 @@ export class VirtualKeyboardNMM extends NativeMicroModule {
   _bootstrap = async (context: any) => {
     log.green(`[${this.mmid} _bootstrap]`)
 
-    this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
+    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
+    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
     
-    {
-      this.httpNMM.addRoute(`/${this.mmid}/startObserve`, this._startObserve)
-      this.httpNMM.addRoute(`/${this.mmid}/stopObserve`, this._stopObserve);
-      this.httpNMM.addRoute(`/${this.mmid}/getState`, this._getState);
-      this.httpNMM.addRoute(`/${this.mmid}/setState`, this._setState);
-      this.httpNMM.addRoute(`/internal/observe`, this._observe);
-      this.httpNMM.addRoute(`/virtual-keyboard-ui/wait_for_operation`, this._waitForOperation)
-      this.httpNMM.addRoute(`/virtual-keyboard-ui/operation_return`, this._operationReturn)
-    }
+    // {
+    //   this.httpNMM.addRoute(`/${this.mmid}/startObserve`, this._startObserve)
+    //   this.httpNMM.addRoute(`/${this.mmid}/stopObserve`, this._stopObserve);
+    //   this.httpNMM.addRoute(`/${this.mmid}/getState`, this._getState);
+    //   this.httpNMM.addRoute(`/${this.mmid}/setState`, this._setState);
+    //   this.httpNMM.addRoute(`/internal/observe`, this._observe);
+    //   this.httpNMM.addRoute(`/virtual-keyboard-ui/wait_for_operation`, this._waitForOperation)
+    //   this.httpNMM.addRoute(`/virtual-keyboard-ui/operation_return`, this._operationReturn)
+    // }
     
     {
       new WWWServer(this)

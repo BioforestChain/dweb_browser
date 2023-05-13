@@ -21,14 +21,14 @@ export class ToastNMM extends NativeMicroModule {
   _bootstrap = async (context: any) => {
     log.green(`[${this.mmid} _bootstrap]`)
 
-    this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
+    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
+    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
     
-    {
-      this.httpNMM.addRoute(`/toast.sys.dweb/show`, this._show);
-      this.httpNMM.addRoute(`/toast-ui/wait_for_operation`, this._waitForOperation)
-      this.httpNMM.addRoute(`/toast-ui/operation_return`, this._operationReturn)
-    }
+    // {
+    //   this.httpNMM.addRoute(`/toast.sys.dweb/show`, this._show);
+    //   this.httpNMM.addRoute(`/toast-ui/wait_for_operation`, this._waitForOperation)
+    //   this.httpNMM.addRoute(`/toast-ui/operation_return`, this._operationReturn)
+    // }
     {
       new WWWServer(this)
     }

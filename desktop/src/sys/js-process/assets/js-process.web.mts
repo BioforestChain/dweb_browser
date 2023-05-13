@@ -100,10 +100,12 @@ const runProcessMain = (process_id: number, config: $RunMainConfig) => {
 const createIpc = async (
   process_id: number,
   mmid: string,
-  ipc_port: MessagePort
+  ipc_port: MessagePort,
+  env_json: string = '{}'
 ) => {
   const process = _forceGetProcess(process_id);
-  process.worker.postMessage(["ipc-connect", mmid], [ipc_port]);
+
+  process.worker.postMessage(["ipc-connect", mmid, env_json], [ipc_port]);
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
   const onEnvReady = (event: MessageEvent) => {

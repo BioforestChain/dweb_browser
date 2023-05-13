@@ -164,6 +164,7 @@ export class JsProcessNMM extends NativeMicroModule {
         )
       );
     });
+    
     const bootstrap_url = mainServer.startResult.urlInfo.buildInternalUrl(
       (url) => {
         url.pathname = `${this.INTERNAL_PATH}/bootstrap.js`;
@@ -216,7 +217,6 @@ export class JsProcessNMM extends NativeMicroModule {
         }
         const po = new PromiseOut<number>();
         processIdMap.set(args.process_id, po);
-
         const result = await this.createProcessAndRun(
           ipc,
           apis,
@@ -242,7 +242,6 @@ export class JsProcessNMM extends NativeMicroModule {
       },
       output: "number",
       handler: async (args, ipc) => {
-        console.log(`js-process.cts /create-ipc`)
         const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
         if (process_id_po === undefined) {
           throw new Error(
@@ -396,6 +395,9 @@ export class JsProcessNMM extends NativeMicroModule {
     process_id: number,
     mmid: string
   ) {
+    const env = JSON.stringify({
+      "ipc-support-protocols": "raw message_pack",
+    } satisfies Record<string, string>);
     /**
      * 创建一个通往 worker 的消息通道
      */
@@ -403,7 +405,8 @@ export class JsProcessNMM extends NativeMicroModule {
     await apis.createIpc(
       process_id,
       mmid,
-      transfer(channel_for_worker.port2, [channel_for_worker.port2])
+      transfer(channel_for_worker.port2, [channel_for_worker.port2]),
+      env
     );
     return saveNative2JsIpcPort(channel_for_worker.port1);
   }

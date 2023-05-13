@@ -1,8 +1,10 @@
 // 状态栏
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { when } from "lit/directives/when.js";
+import { ipcRenderer } from "electron";
+import { hexaToRGBA } from "../../../plugins/helper.mjs";
 
 @customElement('multi-webview-comp-status-bar')
 export class MultiWebviewCompStatusBar extends LitElement{
@@ -18,6 +20,7 @@ export class MultiWebviewCompStatusBar extends LitElement{
     left: 0
   }
   @property({type: Boolean}) _torchIsOpen = false;
+  @property() _webview_src: any = {}
 
   static override styles = createAllCSS()
 
@@ -40,6 +43,30 @@ export class MultiWebviewCompStatusBar extends LitElement{
                 : isLight 
                   ? "#000000FF"
                   : "#FFFFFFFF"
+    }
+  }
+
+  protected override updated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
+    const attributeProperties = Array.from(_changedProperties.values())
+    ipcRenderer.send(
+      'status_bar_state_change', 
+      // 数据格式 api.browser.sys.dweb-443.localhost:22605
+      new URL(this._webview_src).host.replace('www.', "api."),
+      {
+        color: hexaToRGBA(this._color),
+        style: this._style,
+        overlay: this._overlay,
+        visible: this._visible,
+        insets: this._insets
+      } 
+    )
+
+    // 在影响 safe-area 的情况下 需要报消息发送给 safe-area 模块
+    if(
+      attributeProperties.includes('_visible') 
+      || attributeProperties.includes('_overlay') 
+    ){
+      this.dispatchEvent(new Event("safe_area_need_update_"))
     }
   }
 
@@ -262,7 +289,6 @@ function createAllCSS(){
         width: 18px;
         height: 18px;
       }
-      
     `
   ]
 }

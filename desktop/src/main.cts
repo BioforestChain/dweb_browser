@@ -84,7 +84,6 @@ Object.assign(globalThis, { dns: dns });
 
 process.on("unhandledRejection", (error) => {
   console.error("????", error);
-  debugger;
 });
 
 import { webcrypto } from "node:crypto";
