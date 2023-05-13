@@ -3,19 +3,11 @@ package info.bagen.dwebbrowser.microService.webview
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.withStarted
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.*
@@ -26,12 +18,10 @@ import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewActivity
 import info.bagen.dwebbrowser.microService.sys.plugin.permission.debugPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import okhttp3.internal.wait
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
@@ -379,38 +369,35 @@ class DWebView(
                 "onPermissionRequest",
                 "activity:$activity request.resources:${request.resources.joinToString { it }}"
             )
-            activity?.also {
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    val permissions = mutableListOf<String>()
+            activity?.also { context ->
+                context.lifecycleScope.launch {
+                    val requestPermissionsMap = mutableMapOf<String, String>();
+                    // 参考资料： https://developer.android.com/reference/android/webkit/PermissionRequest#constants_1
                     for (res in request.resources) {
-                        if (res == "android.webkit.resource.VIDEO_CAPTURE") {
-                            permissions.add("android.permission.CAMERA")
-                        } else if (res == "android.webkit.resource.AUDIO_CAPTURE") {
-                            permissions.add("android.permission.RECORD_AUDIO")
+                        if (res == PermissionRequest.RESOURCE_VIDEO_CAPTURE) {
+                            requestPermissionsMap[Manifest.permission.CAMERA] = res
+                        } else if (res == PermissionRequest.RESOURCE_AUDIO_CAPTURE) {
+                            requestPermissionsMap[Manifest.permission.RECORD_AUDIO] = res
+                        } else if (res == PermissionRequest.RESOURCE_MIDI_SYSEX) {
+                            requestPermissionsMap[Manifest.permission.BIND_MIDI_DEVICE_SERVICE] =
+                                res
+                        } else if (res == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID) {
+                            // TODO android.webkit.resource.PROTECTED_MEDIA_ID
                         }
                     }
-                    var requestPermissionLauncher =
-                        it.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-                            var grants = result.filterValues { value -> value };
-                            if (grants.isEmpty()) {
-                                request.deny()
-                            } else {
-                                request.grant(grants.keys.toTypedArray())
-                            }
-                        }
-                    requestPermissionLauncher.launch(permissions.toTypedArray());
-//                    val result = it.requestPermissions(permissions.toTypedArray())
-//                    debugPermission(
-//                        "onPermissionRequest",
-//                        "activity:$activity result:${result.grants.joinToString()}"
-//                    )
-//                    it.runOnUiThread {
-//                        if (result.denied.size == 0) {
-//                            request.grant(request.resources)
-//                        } else {
-//                            request.deny()
-//                        }
-//                    }
+                    if (requestPermissionsMap.isEmpty()) {
+                        request.grant(arrayOf());
+                        return@launch
+                    }
+                    var responsePermissionsMap =
+                        context.requestMultiplePermissionsLauncher.launch(requestPermissionsMap.keys.toTypedArray());
+                    var grants = responsePermissionsMap.filterValues { value -> value };
+                    if (grants.isEmpty()) {
+                        request.deny()
+                    } else {
+                        request.grant(grants.keys.map { requestPermissionsMap[it] }.toTypedArray())
+                    }
+
                 }
             } ?: request.deny()
         }
