@@ -84,7 +84,7 @@ struct GridCell: View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
                 
-                Image(uiImage: UIImage(named: "snapshot")!) // cache.snapshot
+                Image(uiImage: snapshotImage(url: cache.snapshot!))
                     .resizable()
                     .shadow(color: .secondary, radius: 3)
                     .cornerRadius(gridcellCornerR)
@@ -92,7 +92,7 @@ struct GridCell: View {
                         
                     }
                 HStack{
-                    KFImage.url(cache.icon)
+                    KFImage.url(cache.webIcon)
                         .fade(duration: 0.1)
                         .onProgress { receivedSize, totalSize in  }
                         .onSuccess { result in  }
@@ -128,6 +128,15 @@ struct GridCell: View {
             }
         }
         .background(.cyan)
+    }
+    
+    func snapshotImage(url: URL)->UIImage{
+        do{
+            return UIImage(data: try Data(contentsOf: url))!
+        }catch{
+            print("")
+            return UIImage(named: "snapshot")!
+        }
     }
 }
 

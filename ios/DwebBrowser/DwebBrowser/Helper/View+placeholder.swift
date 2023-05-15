@@ -30,7 +30,7 @@ struct Placeholder_extention: View {
                 Text("please input").foregroundColor(Color(white: 0.8))
             }
             .padding(30)
-            .background(.orange)
+//            .background(.orange)
     }
 }
 

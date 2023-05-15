@@ -10,19 +10,23 @@ import UIKit
 import SwiftUI
 import FaviconFinder
 
-public struct WebCache: Identifiable, Hashable{
+//打开新页面时
+public class WebCache: Identifiable, Hashable{
     public var id = UUID()
-    // url to the source of somewhere in internet
-     var icon: URL
-    var openedUrl: String?  //the website that user has opened on webview
-    var title: String   // page title
+    @Published public var webIcon: URL?     // url to the source of somewhere in internet
+    @Published var openedUrl: String?       //the website that user has opened on webview
+    @Published var title: String            // page title
+    @Published var snapshot: URL?            //local file path is direct to the image has saved in document dir
     
     
-    //local file path is direct to the image has saved in document dir
-    var snapshot: UIImage{
-        let url = URL(fileURLWithPath: "本地路径")
-        return UIImage(contentsOfFile: url.path) ?? UIImage(named: "snapshot")!
+    public init(icon: URL? = nil, openedUrl: String? = nil, title: String = "", snapshot: URL? = nil) {
+        self.webIcon = icon ?? UIImage.defaultSnapshot()
+        self.openedUrl = openedUrl ?? testLink
+        self.title = title
+        self.snapshot = snapshot ?? UIImage.defaultSnapshot()
     }
+    
+    
     static let websites = [
         "https://www.baidu.com",
         "https://www.163.com",
@@ -33,19 +37,26 @@ public struct WebCache: Identifiable, Hashable{
     ]
     
     static func createItem() -> WebCache{
-        WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: websites[Int.random(in: 0..<websites.count)], title: "Apple")
+        //        WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: websites[Int.random(in: 0..<websites.count)], title: "Apple")
+        WebCache()
     }
     
     static let example = WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
-//
-//    init(from decoder: Decoder) throws {
-//
-//    }
-//
-//    func encode(to encoder: Encoder) throws {
-//
-//    }
+    //
+    //    init(from decoder: Decoder) throws {
+    //
+    //    }
+    //
+    //    func encode(to encoder: Encoder) throws {
+    //
+    //    }
+    public static func == (lhs: WebCache, rhs: WebCache) -> Bool {
+        return lhs.id == rhs.id
+    }
     
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 
@@ -91,25 +102,25 @@ class WebPages: ObservableObject{
             
             Task {
                 do {
-                    let favicon = try await FaviconFinder(url: page.icon, preferredType: .html, preferences: [
+                    let favicon = try await FaviconFinder(url: page.webIcon!, preferredType: .html, preferences: [
                         FaviconDownloadType.html: FaviconType.appleTouchIcon.rawValue,
                         FaviconDownloadType.ico: "favicon.ico"
                     ]).downloadFavicon()
                     
                     print("URL of Favicon: \(favicon.url)")
-//                    page.icon = favicon.url
+                    //                    page.icon = favicon.url
                     
-//                    AsyncImage(url: favicon) { image in
-//                        page.icon
-//                        image.resizable()
-//                            .scaledToFit()
-//                    } placeholder: {
-//                        UIColor.blue
-//                    }
-
-//                    DispatchQueue.main.async {
-//                        self.imageView.image = favicon.image
-//                    }
+                    //                    AsyncImage(url: favicon) { image in
+                    //                        page.icon
+                    //                        image.resizable()
+                    //                            .scaledToFit()
+                    //                    } placeholder: {
+                    //                        UIColor.blue
+                    //                    }
+                    
+                    //                    DispatchQueue.main.async {
+                    //                        self.imageView.image = favicon.image
+                    //                    }
                     
                 } catch let error {
                     print("Error: \(error)")

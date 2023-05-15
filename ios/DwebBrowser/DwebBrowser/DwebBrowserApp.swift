@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+
+
 @main
 struct DwebBrowserApp: App {
     var body: some Scene {

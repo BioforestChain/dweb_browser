@@ -15,3 +15,6 @@ let toolBarHeight: CGFloat = 50
 
 let gridcellCornerR: CGFloat = 10
 let gridcellBottomH: CGFloat = 35
+
+
+let testLink = "https://www.hackingwithswift.com/quick-start"

@@ -68,11 +68,12 @@ struct ToolbarView: View {
                     Spacer()
                     
                     ToolbarItem(imageName: "doc.on.doc") {
-                        withAnimation(.easeInOut) {
-                            browser.shouldTakeSnapshot = true
-                            browser.showingOptions = true
-                        }
-                        
+                        browser.shouldTakeSnapshot = true
+                        browser.showingOptions = true
+
+//                        withAnimation(.easeInOut) {
+//                        }
+//                        
                         print("arrow.up was clicked")
                     }
                     

@@ -56,7 +56,5 @@ class BrowerVM: ObservableObject {
     var addressBarHeight: CGFloat{
         showingOptions ? 0:60
     }
-    
-    
 }
 

@@ -15,6 +15,8 @@ struct TabsContainerView: View{
     @State var selectedCellFrame: CGRect = .zero
     @Namespace private var zoomAnimation
     
+    @State private var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
+
     @State var isZoomed = true
     
     init(){
@@ -39,21 +41,27 @@ struct TabsContainerView: View{
                 if browser.shrinkingSnapshot != nil{
                     Image(uiImage: browser.shrinkingSnapshot!)
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: cellWidth(fullW: geo.frame(in: .global).width),
-                               height: cellHeight(fullH: geo.frame(in: .global).height))
-                        .cornerRadius(gridcellCornerR)
+                        .scaledToFill()
+                        .frame(width: cellWidth(fullW: geoRect.width),
+                               height: cellHeight(fullH: geoRect.height),alignment: .top)
+                        .cornerRadius(isZoomed ? 0 : gridcellCornerR)
                     
                         .clipped()
-                        .position(x: cellCenterX(geoMidX: geo.frame(in: .global).midX),
-                                  y: cellCenterY(geoMidY: geo.frame(in: .global).midY))
-                    
+                        .position(x: cellCenterX(geoMidX: geoRect.midX),
+                                  y: cellCenterY(geoMidY: geoRect.midY - geoRect.minY))
+
                         .onAppear{
-                            print(geo.frame(in: .global))
+                            geoRect = geo.frame(in: .global)
+                            print()
                             
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                                withAnimation(.easeInOut(duration: 30)) {
+                            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                                withAnimation(.easeInOut(duration: 0.5)) {
                                     isZoomed = false
+                                }
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                withAnimation(.easeInOut(duration: 30)) {
+                                    browser.shrinkingSnapshot = nil
                                 }
                             }
                         }
@@ -77,24 +85,6 @@ struct TabsContainerView: View{
     func cellHeight(fullH: CGFloat)->CGFloat{
         return isZoomed ? fullH : selectedCellFrame.height - gridcellBottomH
     }
-    
-    var AnimationImage: some View{
-        Image(uiImage: UIImage())//browser.shrinkingSnapshot
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .onTapGesture {
-                withAnimation(.spring()) {
-                    //                    isZoomed.toggle()
-                }
-                
-            }
-    }
-    
-    func startShifting(){
-        let image = self.environmentObject(self.browser).snapshot()
-        print(image)
-        
-    }
 }
 
 struct TabHStackView: View{
@@ -107,14 +97,25 @@ struct TabHStackView: View{
                 ForEach(browser.pages, id: \.self) { page in
                     TabPageView(webViewStore: page.webStore)
                         .frame(width: screen_width)
-                        .onReceive(browser.$shouldTakeSnapshot) { show in
-                            if show {
+                        .onReceive(browser.$shouldTakeSnapshot) { shouldTake in
+                            if shouldTake {
                                 if let index = browser.pages.firstIndex(of: page), index == browser.selectedTabIndex{
-                                    if let image = self.environmentObject(browser).snapshot(){
+                                    if browser.shrinkingSnapshot == nil, let image = self.environmentObject(browser).snapshot(){
                                         browser.shrinkingSnapshot = image
+                                        browser.shouldTakeSnapshot = false
+                                        
+                                        print(page.webStore.web.snapshot)
+                                        page.webStore.web.snapshot = UIImage.saveSnapShot(image, withName: page.webStore.web.id.uuidString)
+                                        print(page.webStore.web.snapshot)
+                                        
+                                        
+                                        
+
+
+                                        print(page.webStore.web.title)
+                                        page.webStore.web.title = "else"
+                                        print(page.webStore.web.title)
                                     }
-                                    
-                                    browser.shouldTakeSnapshot = false
                                 }
                             }
                         }

@@ -22,21 +22,21 @@ struct TabPageView: View {
 //                Text("there is a webview")
                 WebView(webView: webViewStore.webView, url:URL(string: webViewStore.web.openedUrl!)!)
                     .navigationBarTitle(Text(verbatim: webViewStore.title ?? ""), displayMode: .inline)
-                    .navigationBarItems(trailing: HStack {
-                        Button(action: goBack) {
-                            Image(systemName: "chevron.left")
-                                .imageScale(.large)
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 32, height: 32)
-                        }.disabled(!webViewStore.canGoBack)
-                        Button(action: goForward) {
-                            Image(systemName: "chevron.right")
-                                .imageScale(.large)
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 32, height: 32)
-                        }.disabled(!webViewStore.canGoForward)
-                    })
-                    .background(.orange)
+//                    .navigationBarItems(trailing: HStack {
+//                        Button(action: goBack) {
+//                            Image(systemName: "chevron.left")
+//                                .imageScale(.large)
+//                                .aspectRatio(contentMode: .fit)
+//                                .frame(width: 32, height: 32)
+//                        }.disabled(!webViewStore.canGoBack)
+//                        Button(action: goForward) {
+//                            Image(systemName: "chevron.right")
+//                                .imageScale(.large)
+//                                .aspectRatio(contentMode: .fit)
+//                                .frame(width: 32, height: 32)
+//                        }.disabled(!webViewStore.canGoForward)
+//                    })
+//                    .background(.red)
             }.onAppear {
 //                
                 print("webViewStore.webView ---- \(webViewStore.webView)")
