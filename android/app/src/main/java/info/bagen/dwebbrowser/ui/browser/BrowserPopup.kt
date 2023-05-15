@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -41,6 +43,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
@@ -142,10 +146,16 @@ private fun PopContentView(
           }
         }
       ) {
-        viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+        scope.launch {
+          viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+          viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+        }
       }
       PopupViewState.HistoryList -> BrowserListOfHistory(historyViewModel) {
-        viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+        scope.launch {
+          viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+          viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+        }
       }
       else -> PopContentOptionItem(viewModel)
     }
@@ -158,7 +168,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   val launcher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
       onResult = { isGranted ->
-        //判断权限申请结果，并根据结果侠士不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composalbe 需要通过修改 state 等方式间接显示 Composable
+        //判断权限申请结果，并根据结果显示不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composalbe 需要通过修改 state 等方式间接显示 Composable
         if (isGranted) {
           viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
         }
@@ -194,7 +204,13 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         modifier = Modifier
           .padding(horizontal = 10.dp, vertical = 5.dp)
           .clip(RoundedCornerShape(8.dp))
-          .clickable { launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) /*请求权限*/ },
+          .clickable {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+              viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+            } else {
+              launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)/*请求权限*/
+            }
+          },
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
         headlineContent = { Text(text = "分享") },
         trailingContent = {
@@ -347,7 +363,11 @@ private fun MultiItemView(
           Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
         }
         is BrowserWebView -> {
-          Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
+          if (browserBaseView.state.lastLoadedUrl?.startsWith("file:///android_asset") == true) {
+            Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
+          } else {
+            Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
+          }
         }
         else -> {
           Pair(null, null)

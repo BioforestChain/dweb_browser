@@ -80,17 +80,12 @@ fun BrowserView(viewModel: BrowserViewModel) {
         viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
       }
     } else {
-      when (val itemView = viewModel.uiState.currentBrowserBaseView.value) {
-        is BrowserWebView -> {
-          if (itemView.navigator.canGoBack) {
-            itemView.navigator.navigateBack()
-          }
-        }
-        else -> {}
+      val browserWebView = viewModel.uiState.currentBrowserBaseView.value
+      if (browserWebView.navigator.canGoBack) {
+        browserWebView.navigator.navigateBack()
       }
     }
   }
-  rememberModalBottomSheetState()
 
   BottomSheetScaffold(modifier = Modifier.navigationBarsPadding(),
     scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
@@ -122,6 +117,12 @@ fun BrowserView(viewModel: BrowserViewModel) {
             viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
           }
         })
+    }
+  }
+  LaunchedEffect(Unit) { // TODO 这个是因为华为鸿蒙系统，运行后，半屏显示了Sheet，这边强制隐藏下
+    scope.launch {
+      delay(15)
+      viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
     }
   }
 }
@@ -167,13 +168,8 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
 
 @Composable
 fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
-  val inputText = when (val browserBaseView = viewModel.uiState.currentBrowserBaseView.value) {
-    is BrowserWebView -> {
-      parseInputText(browserBaseView.state.lastLoadedUrl ?: "")
-        ?: stringResource(id = R.string.browser_search_hint)
-    }
-    else -> stringResource(id = R.string.browser_search_hint)
-  }
+  val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
+  val inputText = parseInputText(browserBaseView.state.lastLoadedUrl ?: "")
 
   Text(
     text = inputText, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -239,24 +235,21 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       .fillMaxWidth()
       .height(dimenNavigationHeight)
   ) {
-    val navigator = when (val item = viewModel.uiState.currentBrowserBaseView.value) {
-      is BrowserWebView -> item.navigator
-      else -> null
-    }
+    val navigator = viewModel.uiState.currentBrowserBaseView.value.navigator
     NavigatorButton(
       resId = R.drawable.ic_main_back,
       resName = R.string.browser_nav_back,
-      show = navigator?.canGoBack ?: false
-    ) { navigator?.navigateBack() }
+      show = navigator.canGoBack
+    ) { navigator.navigateBack() }
     NavigatorButton(
       resId = R.drawable.ic_main_forward,
       resName = R.string.browser_nav_forward,
-      show = navigator?.canGoForward ?: false
-    ) { navigator?.navigateForward() }
+      show = navigator.canGoForward ?: false
+    ) { navigator.navigateForward() }
     NavigatorButton(resId = R.drawable.ic_main_add, // navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
-      resName = navigator?.let { R.string.browser_nav_add } ?: R.string.browser_nav_scan,
-      show = navigator?.let { true } ?: false) {
-      navigator?.let {
+      resName = navigator.let { R.string.browser_nav_add },
+      show = navigator.let { true } ?: false) {
+      navigator.let {
         viewModel.handleIntent(BrowserIntent.AddNewMainView)
       }
     }
@@ -292,17 +285,6 @@ private fun RowScope.NavigatorButton(
         tint = if (show) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
       )
     }
-  }
-}
-
-@Composable
-private fun BrowserViewContentMain(viewModel: BrowserViewModel, browserMainView: BrowserMainView) {
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(bottom = dimenBottomHeight)
-  ) {
-    BrowserMainView(viewModel, browserMainView)
   }
 }
 

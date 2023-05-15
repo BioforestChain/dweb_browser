@@ -57,7 +57,7 @@ fun BrowserListOfBook(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun BookListContent(
   viewModel: BookViewModel = BookViewModel(),
@@ -76,7 +76,7 @@ private fun BookListContent(
         // 数字变小时，进入的数字从左向右变深划入，退出的数字从左向右变浅划出
         slideInHorizontally { fullWidth -> -fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
       }
-    }
+    }, label = ""
   ) { targetCount ->
     if (targetCount == 0) {
       LazyColumnView(viewModel, modifier, onSearch = { onSearch(it) }) {
@@ -210,7 +210,9 @@ private fun BookManagerView(viewModel: BookViewModel, onBack: () -> Unit) {
     }
 
     Button(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp),
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 50.dp),
       onClick = {
       scope.launch(ioAsyncExceptionHandler) {
         WebSiteDatabase.INSTANCE.websiteDao().delete(webSiteInfo)
@@ -231,7 +233,12 @@ private fun LazyColumnView(
 ) {
   LazyColumn(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
     items(viewModel.bookList) { webSiteInfo ->
-      Column(modifier = Modifier.fillMaxWidth()) {
+      ListSwipeItem(
+        webSiteInfo = webSiteInfo,
+        onRemove = {
+          viewModel.bookList.remove(it)
+          WebSiteDatabase.INSTANCE.websiteDao().delete(it)
+        }) {
         ListItem(
           headlineContent = {
             Text(text = webSiteInfo.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -263,6 +270,35 @@ private fun LazyColumnView(
       Divider()
     }
   }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun ListSwipeItem(
+  webSiteInfo: WebSiteInfo, onRemove: (WebSiteInfo) -> Unit, listItemView: @Composable () -> Unit
+) {
+  val dismissState = DismissState(DismissValue.Default, { true }, SwipeToDismissDefaults.FixedPositionalThreshold)
+  LaunchedEffect(dismissState) {
+    snapshotFlow { dismissState.currentValue }.collect {
+      if (it != DismissValue.Default) {
+        onRemove(webSiteInfo)
+      }
+    }
+  }
+
+  SwipeToDismiss(
+    state = dismissState,
+    background = { // "背景 "，即原来显示的内容被划走一部分时显示什么
+      Box(
+        Modifier
+          .fillMaxSize()
+          .background(MaterialTheme.colorScheme.outlineVariant))
+    },
+    dismissContent = { // ”前景“ 显示的内容
+        listItemView()
+    },
+    directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart)
+  )
 }
 
 class BookViewModel : ViewModel() {

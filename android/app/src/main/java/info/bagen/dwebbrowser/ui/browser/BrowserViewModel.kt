@@ -257,32 +257,35 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         }
         is BrowserIntent.SaveBookWebSiteInfo -> {
           uiState.currentBrowserBaseView.value.let {
-            if (it is BrowserWebView) {
-              val url = it.state.lastLoadedUrl ?: ""
-              if (url.isEmpty() || url.startsWith("file:///android_asset/")) return@let
-              WebSiteDatabase.INSTANCE.websiteDao().insert(
-                WebSiteInfo(
-                  title = it.state.pageTitle ?: "",
-                  url = url,
-                  type = WebSiteType.Book,
-                  icon = it.state.pageIcon?.asImageBitmap()
-                )
-              )
-              handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
+            val url = it.state.lastLoadedUrl ?: ""
+            if (url.isEmpty() || url.startsWith("file:///android_asset/")) {
+              handleIntent(BrowserIntent.ShowSnackbarMessage("无效书签页"))
+              return@let
             }
+            WebSiteDatabase.INSTANCE.websiteDao().insert(
+              WebSiteInfo(
+                title = it.state.pageTitle ?: "",
+                url = url,
+                type = WebSiteType.Book,
+                icon = it.state.pageIcon?.asImageBitmap()
+              )
+            )
+            handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
           }
         }
         is BrowserIntent.ShareWebSiteInfo -> {
           uiState.currentBrowserBaseView.value.let {
-            if (it is BrowserWebView) {
-              val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, it.state.lastLoadedUrl ?: "") // 分享内容
-                // putExtra(Intent.EXTRA_SUBJECT, "分享标题")
-                putExtra(Intent.EXTRA_TITLE, it.state.pageTitle) // 分享标题
-              }
-              browserController.activity?.startActivity(Intent.createChooser(shareIntent, "分享到"))
+            if (it.state.lastLoadedUrl?.startsWith("file:///android_asset") == true) {
+              handleIntent(BrowserIntent.ShowSnackbarMessage("无效的分享"))
+              return@let
             }
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+              type = "text/plain"
+              putExtra(Intent.EXTRA_TEXT, it.state.lastLoadedUrl ?: "") // 分享内容
+              // putExtra(Intent.EXTRA_SUBJECT, "分享标题")
+              putExtra(Intent.EXTRA_TITLE, it.state.pageTitle) // 分享标题
+            }
+            browserController.activity?.startActivity(Intent.createChooser(shareIntent, "分享到"))
           }
         }
         is BrowserIntent.UpdateInputText -> {

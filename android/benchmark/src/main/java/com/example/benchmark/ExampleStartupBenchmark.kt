@@ -1,5 +1,7 @@
 package com.example.benchmark
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.benchmark.macro.*
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
@@ -44,9 +46,11 @@ class ExampleStartupBenchmark {
 @ExperimentalBaselineProfilesApi
 @RunWith(AndroidJUnit4::class)
 class BaselineProfileGenerator {
+    @RequiresApi(Build.VERSION_CODES.P)
     @get:Rule
     val baselineProfileRule = BaselineProfileRule()
 
+    @RequiresApi(Build.VERSION_CODES.P)
     @Test
     fun startup() =
         baselineProfileRule.collectBaselineProfile(packageName = "info.bagen.dwebbrowser") {
