@@ -5,11 +5,11 @@ public class CotDemoJMM: JsMicroModule
 {
 	public CotDemoJMM(): base(new JmmMetadata(
 		"cotdemo.bfs.dweb",
-		new JmmMetadata.MainServer() { Root = "file:///bundle", Entry = "/cotDemo.worker.js" },
+		new JmmMetadata.MainServer() { Root = "file:///bundle", Entry = "/public.service.worker.js" },
 		splashScreen: new JmmMetadata.SSplashScreen("https://www.bfmeta.org/"),
 		staticWebServers: new List<JmmMetadata.StaticWebServer>
 		{
-			new JmmMetadata.StaticWebServer("file:///bundle", "/cotDemo.worker.js", "cotdemo.bfs.dweb", 80)
+			new JmmMetadata.StaticWebServer("file:///bundle", "/public.service.worker.js", "cotdemo.bfs.dweb", 80)
 		}))
 	{
 		JmmNMM.GetAndUpdateJmmNmmApps().Add(Mmid, this);
