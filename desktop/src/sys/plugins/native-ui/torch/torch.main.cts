@@ -21,13 +21,13 @@ export class TorchNMM extends NativeMicroModule {
   _bootstrap = async (context: any) => {
     log.green(`[${this.mmid} _bootstrap]`)
 
-    this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
+    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
+    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
     
-    {
-      this.httpNMM.addRoute(`/${this.mmid}/torchState`, this._torchState);
-      this.httpNMM.addRoute(`/${this.mmid}/toggleTorch`, this._toggleTorch);
-    }
+    // {
+    //   this.httpNMM.addRoute(`/${this.mmid}/torchState`, this._torchState);
+    //   this.httpNMM.addRoute(`/${this.mmid}/toggleTorch`, this._toggleTorch);
+    // }
   }
 
   private _torchState = async (req: IncomingMessage, res: OutgoingMessage) => {

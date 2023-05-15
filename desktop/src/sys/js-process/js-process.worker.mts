@@ -92,6 +92,13 @@ export class JsProcessMicroModule implements $MicroModule {
       if (data[0] === "ipc-connect") {
         const mmid = data[1];
         const port = event.ports[0];
+        const env = JSON.parse( data[2]??'{}');
+        const protocols =  env['ipc-support-protocols']??''
+        const ipc_support_protocols = {
+          raw: protocols.includes("raw"),
+          message_pack: protocols.includes("message_pack"),
+          protobuf: protocols.includes("protobuf"),
+        } satisfies $IpcSupportProtocols;
         let rote = IPC_ROLE.CLIENT as IPC_ROLE;
         const port_po = mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
           rote = IPC_ROLE.SERVER;
@@ -101,11 +108,7 @@ export class JsProcessMicroModule implements $MicroModule {
           port,
           {
             mmid,
-            ipc_support_protocols: {
-              raw: false,
-              message_pack: false,
-              protobuf: false,
-            },
+            ipc_support_protocols,
           },
           rote
         );

@@ -268,6 +268,13 @@ export class RootComp extends LitElement{
       src: "https://img.tukuppt.com/photo-big/00/00/94/6152bc0ce6e5d805.jpg"
     })
   }
+
+  testStatusbarSetBackground(){
+    this.statusBarState = {
+      ...this.statusBarState,
+      color: "#FF0000FF"
+    }
+  }
   // 测试代码结束
 
   protected override render() {
@@ -295,6 +302,7 @@ export class RootComp extends LitElement{
             <button @click=${this.biometricsMock}>biometrics mock </button>
             <button @click=${this.hapticsMock}>haptics mock</button>
             <button @click=${this.testShare}>share</button>
+            <button @click=${this.testStatusbarSetBackground}>设置 statusbar 背景色</button>
           </div>
           ${
             when(

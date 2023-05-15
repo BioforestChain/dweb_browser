@@ -8,6 +8,7 @@
     "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
     "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ],
+  "downloadUrl":"https://shop.plaoc.com/demo.www.bfmeta.info.dweb.bfsa",
   "author": ["bfs","bfs@bfs.com"],
   "version": "1.0.0",
   "keywords": ["demo","vue3"],

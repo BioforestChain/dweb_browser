@@ -48,15 +48,13 @@ export class JsMicroModule extends MicroModule {
   async _bootstrap(context: $BootstrapContext) {
     console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`);
 
-
-
     // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
     this.onConnect((ipc, rease) => {
       console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
       ipc.onRequest(async (request) => {
         const init = httpMethodCanOwnBody(request.method)
-          ? { method: request.method, body: await request.body.stream(), headers: request.headers}
+          ? { method: request.method, body: await request.body.stream(), headers: request.headers }
           : { method: request.method, headers: request.headers };
         const response = await this.nativeFetch(request.parsed_url.href, init);
         ipc.postMessage(
@@ -66,6 +64,7 @@ export class JsMicroModule extends MicroModule {
 
       ipc.onMessage(async (request) => {
         // console.log('ipc.onMessage', request)
+        // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>. micro-module.js.cts onMessage 但是还没有处理', request)
       });
 
       /** 
@@ -74,13 +73,12 @@ export class JsMicroModule extends MicroModule {
        * 
        */
       ipc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === workerIpc */) => {
-        console.log(`[micro-module.js.cts ${this.mmid} ipc.onEvent]`, ipcEventMessage)
         if (ipcEventMessage.name === "dns/connect") {
           if (Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data');
           const mmid = JSON.parse(ipcEventMessage.data as string).mmid
           const [targetIpc, localIpc] = await context.dns.connect(mmid)
           const url = `file://js.sys.dweb/create-ipc?process_id=${this._process_id}&mmid=${mmid}`
-          const portId = await (await this.nativeFetch(url)).json() 
+          const portId = await (await this.nativeFetch(url)).json()
           const originIpc = new Native2JsIpc(portId, this)
           /**
            * 将两个消息通道间接互联

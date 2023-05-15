@@ -13,10 +13,10 @@ export class ShareNMM extends NativeMicroModule{
   protected async _bootstrap(context: $BootstrapContext) {
     log.green(`[${this.mmid}] _bootstrap`);
 
-    this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
+    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
+    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
      
-    this.httpNMM.addRoute(`/${this.mmid}/share`, this._share)
+    // this.httpNMM.addRoute(`/${this.mmid}/share`, this._share)
   }
 
   private _share = async (req: IncomingMessage, res: OutgoingMessage) => {
