@@ -4,7 +4,7 @@
     "mainExports": ".",
     "buildToRootDir": "./build/plugin",
     "name": "@bfex/plugin",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "lib": [
       "es2021",
       "dom"
