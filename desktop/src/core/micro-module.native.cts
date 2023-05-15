@@ -57,7 +57,6 @@ export abstract class NativeMicroModule extends MicroModule {
 
     this.onConnect((client_ipc) => {
       this._onConnect(client_ipc)
-
       client_ipc.onRequest(async (request) => {
         const { pathname } = request.parsed_url;
         let response: IpcResponse | undefined;

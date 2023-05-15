@@ -27,7 +27,6 @@ export class MultiWebviewCompToast extends LitElement{
       (e.target as HTMLDivElement).remove()
       return;
     }
-
     setTimeout(() => {
       this._beforeEntry = true;
     }, parseInt(this._duration))

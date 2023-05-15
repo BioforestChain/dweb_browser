@@ -13,7 +13,15 @@ import querystring from "node:querystring"
 import path from "node:path"
 import { 
   barGetState,
-  barSetState
+  barSetState,
+  safeAreaGetState,
+  safeAreaSetState,
+  virtualKeyboardGetState,
+  virtualKeyboardSetState,
+  toastShow,
+  shareShare,
+  toggleTorch,
+  torchState
  } from "./handler.cjs"
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { Remote } from "comlink";
@@ -186,6 +194,79 @@ export class MultiWebviewNMM extends NativeMicroModule {
       output: "object",
       handler: barSetState.bind(this, "navigationBarSetState", root_url)
     })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/safe-area.nativeui.sys.dweb/getState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: safeAreaGetState.bind(this, root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/safe-area.nativeui.sys.dweb/setState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: safeAreaSetState.bind(this, root_url)
+    })    
+    
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/virtual-keyboard.nativeui.sys.dweb/getState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: virtualKeyboardGetState.bind(this, root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/virtual-keyboard.nativeui.sys.dweb/setState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: virtualKeyboardSetState.bind(this, root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/toast.sys.dweb/show",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: toastShow.bind(this, root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/share.sys.dweb/share",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: shareShare.bind(this, root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/torch.nativeui.sys.dweb/toggleTorch",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: toggleTorch.bind(this, root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/torch.nativeui.sys.dweb/torchState",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: torchState.bind(this, root_url)
+    })
+    
   }
 
   ipcMinOnStateChange = async<

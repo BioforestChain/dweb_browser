@@ -71,7 +71,7 @@ export class MessagePortIpc extends Ipc {
     } else {
       message_raw = message;
     }
-
+  
     if (this.support_raw) {
       message_data = message_raw;
     } else if (this.support_message_pack) {
@@ -79,7 +79,6 @@ export class MessagePortIpc extends Ipc {
     } else {
       message_data = JSON.stringify(message_raw);
     }
-
     this.port.postMessage(message_data);
   }
 

@@ -8,7 +8,7 @@ import { MultiWebviewNMM } from "./sys/multi-webview/multi-webview.mobile.cjs";
 import { NavigationBarNMM } from "./sys/plugins/native-ui/navigation-bar/navigation-bar.main.cjs";
 import { SafeAreaNMM } from "./sys/plugins/native-ui/safe-area/safe-area.main.cjs";
 import { StatusbarNativeUiNMM } from "./sys/plugins/native-ui/status-bar/status-bar.main.cjs";
-import { ToastNMM } from "./sys/plugins/native-ui/toast/toast.main.cjs";
+import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.cjs";
 import { TorchNMM } from "./sys/plugins/native-ui/torch/torch.main.cjs";
 import { VirtualKeyboardNMM } from "./sys/plugins/native-ui/virtual-keyboard/virtual-keyboard.main.cjs";
 import { BarcodeScanningNativeUiNMM } from "./sys/plugins/sys/barcode-scanning/barcode-scanning.main.cjs";
@@ -66,7 +66,7 @@ dns.install(new BootNMM([
   "safe-area.nativeui.sys.dweb",
   "virtual-keyboard.nativeui.sys.dweb",
   "barcode-scanning.sys.dweb",
-  "toast.nativeui.sys.dweb",
+  "toast.sys.dweb",
   "torch.nativeui.sys.dweb",
   "biometrics.sys.dweb",
   "haptics.sys.dweb",

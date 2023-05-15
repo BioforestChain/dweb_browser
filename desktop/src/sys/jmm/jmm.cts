@@ -30,13 +30,13 @@ export class JmmNMM extends NativeMicroModule {
 
     log.green(`[${this.mmid}] _bootstrap`)
      
-    this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
+    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
+    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
 
-    this.httpNMM.addRoute('/jmm.sys.dweb/install', this._install)
-    this.httpNMM.addRoute('/jmm.sys.dweb/pause', this._pause)
-    this.httpNMM.addRoute("/jmm.sys.dweb/resume", this._resume)
-    this.httpNMM.addRoute("/jmm.sys.dweb/cancel", this._cancel)
+    // this.httpNMM.addRoute('/jmm.sys.dweb/install', this._install)
+    // this.httpNMM.addRoute('/jmm.sys.dweb/pause', this._pause)
+    // this.httpNMM.addRoute("/jmm.sys.dweb/resume", this._resume)
+    // this.httpNMM.addRoute("/jmm.sys.dweb/cancel", this._cancel)
 
 
     // for (const app of this.apps.values()) {

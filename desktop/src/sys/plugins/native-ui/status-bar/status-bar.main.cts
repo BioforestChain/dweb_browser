@@ -77,8 +77,6 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
 
   override _onConnect(ipc: Ipc){
     ipc.onEvent((event: IpcEvent) => {
-      console.log('ipc.uid: ', ipc.uid)
-
       if(event.name === "observe"){
         const host = event.data;
         this.observes.set(host as string, ipc)

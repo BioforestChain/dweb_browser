@@ -1,4 +1,6 @@
+import { IPC_DATA_ENCODING } from "../../core/ipc/index.cjs";
 import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
+import { IpcStreamData } from "../../core/ipc/IpcStreamData.cjs";
 import { u8aConcat } from "../../helper/binaryHelper.cjs";
 import { createSignal } from "../../helper/createSignal.cjs";
 import { simpleEncoder } from "../../helper/encoding.cjs";
@@ -8,6 +10,7 @@ import { ReadableStreamOut } from "../../helper/readableStreamHelper.cjs";
 import type { ServerUrlInfo } from "../../sys/http-server/const.js";
 import { OBSERVE } from "../tool/tool.event.mjs";
 import { cros } from "../tool/tool.native.mjs";
+import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 
 const { IpcResponse, Ipc, IpcRequest, IpcHeaders, IPC_METHOD } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
@@ -50,7 +53,6 @@ export async function onApiRequest(
     } else {
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
-      // const path = `file://mwebview.sys.dweb/plugin${url.pathname}${url.search}`
       const ipcProxyRequest = new IpcRequest(
         jsProcess.fetchIpc.allocReqId(),
         path,

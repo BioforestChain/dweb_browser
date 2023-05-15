@@ -103,7 +103,7 @@ export class MultiWebViewContent extends LitElement{
         allownw
         preload=${this.preload}
         @dom-ready=${this.onDomReady}
-        useragent=${navigator.userAgent + "dweb-host/" + location.host}
+        useragent=${navigator.userAgent + " dweb-host/" + location.host}
       ></webview>
     `
   }

@@ -1,6 +1,7 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.cjs";
 import { log } from "../../../../helper/devtools.cjs";
 import querystring from "node:querystring"
+import { share } from "./handlers.cjs"
 import type { IncomingMessage, OutgoingMessage } from "http";
 import type { $BootstrapContext } from "../../../../core/bootstrapContext.cjs";
 import type { HttpServerNMM } from "../../../http-server/http-server.cjs";
@@ -13,57 +14,62 @@ export class ShareNMM extends NativeMicroModule{
   protected async _bootstrap(context: $BootstrapContext) {
     log.green(`[${this.mmid}] _bootstrap`);
 
-    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
-     
-    // this.httpNMM.addRoute(`/${this.mmid}/share`, this._share)
+    this.registerCommonIpcOnMessageHandler({
+      method: "POST",
+      pathname: "/share",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: share.bind(this)
+    }); 
   }
+ 
 
-  private _share = async (req: IncomingMessage, res: OutgoingMessage) => {
-    const origin = req.headers.origin;
-    if(origin === undefined) throw new Error(`${this.mmid} _install origin === undefined`)
+  // private _share = async (req: IncomingMessage, res: OutgoingMessage) => {
+  //   const origin = req.headers.origin;
+  //   if(origin === undefined) throw new Error(`${this.mmid} _install origin === undefined`)
 
-    const searchStr = req.url?.split("?")[1];
-    if(searchStr === undefined) throw new Error(`${this.mmid} _share searchStr === undefined`)
-    const query: querystring.ParsedUrlQuery= querystring.parse(searchStr);
-    const title = query.title ? query.title : "";
-    const text = query.text ? query.text : "";
-    const _url = query.url ? query.url : "";
-    if(typeof title !== "string") throw new Error(`tpeof title !== string`);
-    if(typeof text !== "string") throw new Error(`typeof text !== string`);
-    if(typeof _url !== "string") throw new Error(`typeof _url !== string`);
+  //   const searchStr = req.url?.split("?")[1];
+  //   if(searchStr === undefined) throw new Error(`${this.mmid} _share searchStr === undefined`)
+  //   const query: querystring.ParsedUrlQuery= querystring.parse(searchStr);
+  //   const title = query.title ? query.title : "";
+  //   const text = query.text ? query.text : "";
+  //   const _url = query.url ? query.url : "";
+  //   if(typeof title !== "string") throw new Error(`tpeof title !== string`);
+  //   if(typeof text !== "string") throw new Error(`typeof text !== string`);
+  //   if(typeof _url !== "string") throw new Error(`typeof _url !== string`);
     
-    let chunks = ""
-    req.setEncoding('binary');
-    req.on('data', chunk => chunks += chunk)
-    req.on('end', () => {
+  //   let chunks = ""
+  //   req.setEncoding('binary');
+  //   req.on('data', chunk => chunks += chunk)
+  //   req.on('end', () => {
       
-      let file = querystring.parse(chunks, '\r\n', ':');
-      let fileInfo = file['Content-Disposition'];
-      let filename: string = "";
-      if(fileInfo && typeof fileInfo === "object") {
-        for(let value of fileInfo){
-          if(value.includes("filename=")){
-            filename = value.split("filename=")[1].slice(1, -1);
-          }
-        }
-      }
+  //     let file = querystring.parse(chunks, '\r\n', ':');
+  //     let fileInfo = file['Content-Disposition'];
+  //     let filename: string = "";
+  //     if(fileInfo && typeof fileInfo === "object") {
+  //       for(let value of fileInfo){
+  //         if(value.includes("filename=")){
+  //           filename = value.split("filename=")[1].slice(1, -1);
+  //         }
+  //       }
+  //     }
 
-      const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`
-      const init: RequestInit = {
-        body: createShareUI(title, text, _url, filename),
-        method: "POST",
-        headers: {
-          "webview_url": origin
-        }
-      }
-      this.nativeFetch(url, init)
-      res.end(JSON.stringify({
-        success: true,
-        message: "ok"
-      }))
-    })
-  } 
+  //     const url = `file://mwebview.sys.dweb/webview_execute_javascript_by_webview_url?`
+  //     const init: RequestInit = {
+  //       body: createShareUI(title, text, _url, filename),
+  //       method: "POST",
+  //       headers: {
+  //         "webview_url": origin
+  //       }
+  //     }
+  //     this.nativeFetch(url, init)
+  //     res.end(JSON.stringify({
+  //       success: true,
+  //       message: "ok"
+  //     }))
+  //   })
+  // } 
 
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");

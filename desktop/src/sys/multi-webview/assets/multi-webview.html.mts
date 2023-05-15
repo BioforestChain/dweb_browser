@@ -134,7 +134,8 @@ export class ViewTree extends LitElement {
         bottom: height <= currentNavigationBarHeight ? 0 : height
       }
     }
-    ipcRenderer.send('safe_are_insets_change')
+    // 需要把改变发送给 sare-area
+    this.safeAreaNeedUpdate()
   }
 
   virtualKeyboardFirstUpdated() {
@@ -168,7 +169,7 @@ export class ViewTree extends LitElement {
     return this.virtualKeyboardState;
   }
 
-  toast(
+  toastShow(
     message: string,
     duration: string,
     position: "top" | "bottom",
@@ -190,7 +191,9 @@ export class ViewTree extends LitElement {
       overlay: this.safeAreaState.overlay,
       insets: {
         left: 0,
-        top: statusbarState.overlay ? statusbarState.insets.top : 0,
+        top: statusbarState.visible
+            ? statusbarState.overlay ? statusbarState.insets.top : 0
+            : statusbarState.insets.top,
         right: 0,
         bottom: bottomBarState.visible
                 ? bottomBarState.overlay ? bottomBarState.insets.bottom : 0
@@ -206,12 +209,13 @@ export class ViewTree extends LitElement {
       // 外部尺寸
       outerInsets: {
         left: 0,
-        top: statusbarState.overlay ? 0 : statusbarState.insets.top,
+        top: statusbarState.visible
+            ? statusbarState.overlay ? 0 : statusbarState.insets.top
+            : 0,
         right: 0,
         bottom: bottomBarState.visible
                 ? bottomBarState.overlay ? 0 : bottomBarState.insets.bottom
                 : 0
-          
       }
     }
   };
@@ -229,17 +233,23 @@ export class ViewTree extends LitElement {
 
   safeAreaNeedUpdate = () => {
     ipcRenderer.send(
-      "safe_area_update",
+      "safe_area_update", 
+      new URL(this.webviews[this.webviews.length - 1].src).host.replace("www.", "api."),
       this.safeAreaGetState()
     )
   }
 
-  torchToggleTorch() {
-    this.torchState = {
+  torchStateToggle() {
+    const state = {
       ...this.torchState,
       isOpen: !this.torchState.isOpen
     }
-    return this;
+    this.torchState = state
+    return state.isOpen;
+  }
+
+  torchStateGet(){
+    return this.torchState.isOpen;
   }
 
   barcodeScanningGetPhoto() {
@@ -651,7 +661,10 @@ export const APIS = {
   safeAreaGetState: viewTree.safeAreaGetState.bind(viewTree),
   virtualKeyboardGetState: viewTree.virtualKeyboardGetState.bind(viewTree),
   virtualKeyboardSetOverlay: viewTree.virtualKeyboardSetOverlay.bind(viewTree),
-  toast: viewTree.toast.bind(viewTree),
+  toastShow: viewTree.toastShow.bind(viewTree),
+  shareShare: viewTree.shareShare.bind(viewTree),
+  torchStateToggle: viewTree.torchStateToggle.bind(viewTree),
+  torchStateGet: viewTree.torchStateGet.bind(viewTree),
   preloadAbsolutePathSet: viewTree.preloadAbsolutePathSet.bind(viewTree)
 };
 

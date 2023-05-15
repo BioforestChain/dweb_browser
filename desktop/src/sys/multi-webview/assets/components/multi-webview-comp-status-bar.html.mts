@@ -47,7 +47,7 @@ export class MultiWebviewCompStatusBar extends LitElement{
   }
 
   protected override updated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
-    const attributeProperties = Array.from(_changedProperties.values())
+    const attributeProperties = Array.from(_changedProperties.keys())
     ipcRenderer.send(
       'status_bar_state_change', 
       // 数据格式 api.browser.sys.dweb-443.localhost:22605
@@ -66,7 +66,7 @@ export class MultiWebviewCompStatusBar extends LitElement{
       attributeProperties.includes('_visible') 
       || attributeProperties.includes('_overlay') 
     ){
-      this.dispatchEvent(new Event("safe_area_need_update_"))
+      this.dispatchEvent(new Event("safe_area_need_update"))
     }
   }
 

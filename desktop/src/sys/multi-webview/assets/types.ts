@@ -67,6 +67,11 @@ export interface $ColorRGB{
   alpha: number;
 }
 
+export type $ToastPosition = "top" | "bottom"
+export type $ImpactLightStyle = "HEAVY" | "MEDIUM" | "LIGHT";
+export type $NotificationStyle = "SUCCESS" | "WARNING" | "ERROR";
+
+
  
 
 

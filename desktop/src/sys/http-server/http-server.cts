@@ -50,14 +50,6 @@ export class HttpServerNMM extends NativeMicroModule {
  
   private _allRoutes: Map<string, $Listener> = new Map()
 
-  addRoute(path: string, listener: $Listener){
-    this._allRoutes.set(path, listener)
-  }
-
-  delRoute(path: string, listener: $Listener){
-    this._allRoutes.delete(path)
-  }
-
   protected async _bootstrap() {
     log.green(`${this.mmid} _bootstrap`)
 
@@ -76,17 +68,6 @@ export class HttpServerNMM extends NativeMicroModule {
       res.setHeader("Access-Control-Allow-Methods","*");  
       /// 获取 host
       const host = this.getHostByReq(req)
-
-      // 通过 _allRoutes 分发路由
-      {
-        console.log('接受到了请求', req.url);
-        const pathname = url.parse(req.url as string,).pathname;
-        if(pathname === null) throw new Error(`http-server pathname === null`)
-        const listener = this._allRoutes.get(pathname)
-        if(listener){
-          return listener(req, res)
-        }
-      }
        
       {
         // 在网关中寻址能够处理该 host 的监听者

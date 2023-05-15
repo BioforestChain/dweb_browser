@@ -52,11 +52,12 @@ export class JsMicroModule extends MicroModule {
     // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
     this.onConnect((ipc, rease) => {
       console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
+      // 是发送到这里了吗？？
       ipc.onRequest(async (request) => {
         const init = httpMethodCanOwnBody(request.method)
           ? { method: request.method, body: await request.body.stream(), headers: request.headers }
           : { method: request.method, headers: request.headers };
-        const response = await this.nativeFetch(request.parsed_url.href, init);
+          const response = await this.nativeFetch(request.parsed_url.href, init);
         ipc.postMessage(
           await IpcResponse.fromResponse(request.req_id, response, ipc)
         );
@@ -127,6 +128,7 @@ export class JsMicroModule extends MicroModule {
       }
     });
 
+
     // console.log("[micro-module.js.cts 执行 bindIncomeStream:]", this.mmid)
     void streamIpc.bindIncomeStream(
       this.nativeFetch(
@@ -146,6 +148,7 @@ export class JsMicroModule extends MicroModule {
 
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
     jsIpc.onRequest(async (ipcRequest) => {
+      console.log("------------- jsIPc")
       const response = await this.nativeFetch(ipcRequest.toRequest());
       jsIpc.postMessage(
         await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc)

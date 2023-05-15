@@ -22,7 +22,7 @@ export class MultiWebviewCompNavigationBar extends LitElement{
   @property() _webview_src: any = {}
 
   protected override updated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
-    const attributes = Array.from(_changedProperties.values());
+    const attributes = Array.from(_changedProperties.keys());
     ipcRenderer.send(
       'navigation_bar_state_change', 
       // 数据格式 api.browser.sys.dweb-443.localhost:22605
@@ -40,7 +40,7 @@ export class MultiWebviewCompNavigationBar extends LitElement{
       attributes.includes('_visible') 
       || attributes.includes('_overlay') 
     ){
-      this.dispatchEvent(new Event("safe_area_need_update_"))
+      this.dispatchEvent(new Event("safe_area_need_update"))
     } 
   }
 
