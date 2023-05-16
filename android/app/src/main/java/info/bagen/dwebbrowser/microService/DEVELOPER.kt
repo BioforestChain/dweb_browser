@@ -7,7 +7,7 @@ enum class DEVELOPER(val deviceName: String) {
     HuangLin("HUAWEI/ELE-AL00"),
     HLVirtual("Google/sdk_gphone64_x86_64"),
     HLOppo("OPPO/PGJM10"),
-    WaterBang("samsung/SM-A9080"),
+    WaterBang("HONOR/ADT-AN00"),
     ANONYMOUS("*");
 
 

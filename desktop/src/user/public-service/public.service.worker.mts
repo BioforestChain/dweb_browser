@@ -180,7 +180,6 @@ const main = async () => {
 
   /// 同步 mwebview 的状态机
   multiWebViewIpc.onEvent(async (event) => {
-    console.log("connectMultiWebView =>", event.name);
     if (event.name === EVENT.State && typeof event.data === "string") {
       const newState = JSON.parse(event.data);
       const diff = detailedDiff(oldWebviewState, newState);
@@ -190,7 +189,6 @@ const main = async () => {
   });
 
   const diffFactory = async (diff: DetailedDiff) => {
-    console.log("connectMultiWebView diffFactory=>", diff);
     //  是否有新增
     for (const id in diff.added) {
       webViewMap.set(id, JSON.parse(diff.added[id as keyof typeof diff.added]));

@@ -3,11 +3,13 @@ package info.bagen.dwebbrowser.microService.sys.plugin.share
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
+import android.content.Intent.ACTION_OPEN_DOCUMENT
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
+import com.google.android.datatransport.BuildConfig
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.PromiseOut
@@ -23,14 +25,17 @@ object SharePlugin {
      * @param files Array of file:// URLs of the files to be shared. Only supported on iOS and Android.
      */
     fun share(
-      controller: ShareController,
-      title: String? = null,
-      text: String? = null,
-      url: String? = null,
-      files: List<String>? = null,
-      po: PromiseOut<String>,
+        controller: ShareController,
+        title: String? = null,
+        text: String? = null,
+        url: String? = null,
+        files: List<String>? = null,
+        po: PromiseOut<String>,
     ) {
-        debugShare("open_share", "title==>$title text==>$text  url==>$url,${url.isNullOrEmpty()} files==>$files")
+        debugShare(
+            "open_share",
+            "title==>$title text==>$text  url==>$url,${url.isNullOrEmpty()} files==>$files"
+        )
         if (text.isNullOrEmpty() && url.isNullOrEmpty() && (files != null && files.isEmpty())) {
             po.resolve("Must provide a URL or Message or files")
             return
@@ -41,7 +46,7 @@ object SharePlugin {
         }
 
         val intent = Intent().apply {
-            action = if (files != null && files.isNotEmpty()) {
+            action = if (!files.isNullOrEmpty()) {
                 Intent.ACTION_SEND_MULTIPLE
             } else {
                 Intent.ACTION_SEND
@@ -68,12 +73,13 @@ object SharePlugin {
 
             title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
 
-            if (files != null && files.isNotEmpty()) {
+            if (!files.isNullOrEmpty()) {
                 shareFiles(files, this, po)
             }
         }
 
         var flags = PendingIntent.FLAG_UPDATE_CURRENT
+        // 如果当前sdk >= 31
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             flags = flags or PendingIntent.FLAG_MUTABLE
         }
@@ -92,7 +98,7 @@ object SharePlugin {
         }
     }
 
-    private fun shareFiles(files: List<String>, intent: Intent, po: PromiseOut<String>) {
+    private fun shareFiles(files: List<String>, intent: Intent, po: PromiseOut<String>): ArrayList<Uri> {
         val arrayListFiles = arrayListOf<Uri>()
         try {
             files.forEach { file ->
@@ -102,37 +108,38 @@ object SharePlugin {
                         type = "*/*"
                     }
                     intent.type = type
-
-                    val fileUrl = Uri.parse(file);
-
-//                    App.appContext.let {
-//                        println("path=> ${File(Uri.parse(file).path)}")
-//                        FileProvider.getUriForFile(
-//                            it,
-//                            "${BuildConfig.APPLICATION_ID}.file.opener.provider",
-//                            File(Uri.parse(file).path)
-//                        )
-//                    }
-                    arrayListFiles.add(fileUrl)
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && files.size == 1) {
-                        intent.setDataAndType(fileUrl, type)
-                        intent.putExtra(Intent.EXTRA_STREAM, fileUrl)
+                    val fileUrl = Uri.parse(file)
+                    // android7 以上不能对外直接分享file://
+                    val  shareFile =  App.appContext.let {
+                        FileProvider.getUriForFile(
+                            it,
+                            "info.bagen.dwebbrowser.file.opener.provider",
+                            File(fileUrl.path!!)
+                        )
                     }
+                    arrayListFiles.add(shareFile)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && arrayListFiles.size == 1) {
+//                        intent.setDataAndType(shareFile, type)
+                        intent.action = Intent.ACTION_SEND
+                        intent.putExtra(Intent.EXTRA_STREAM, shareFile)
+                    }
+
                 } else {
                     debugShare("shareFiles", "only file urls are supported")
                     po.resolve("only file urls are supported")
-                    return
                 }
             }
+
             if (arrayListFiles.size > 1) {
                 intent.putExtra(Intent.EXTRA_STREAM, arrayListFiles)
             }
-            // 添加权限
+            // 添加权限 将于任务堆栈完成后自动过期
             intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         } catch (e: Throwable) {
+            debugShare("shareFiles Error", e)
             po.resolve(e.message ?: "share file error")
         }
+        return  arrayListFiles
     }
 
     private fun isFileUrl(url: String): Boolean {

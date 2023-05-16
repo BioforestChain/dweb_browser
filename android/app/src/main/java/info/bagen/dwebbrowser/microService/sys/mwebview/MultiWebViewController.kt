@@ -187,7 +187,6 @@ class MultiWebViewController(
             ipc
         }.also {ipc ->
             ipc.postMessage(IpcEvent.fromUtf8("state", currentState.toString()))
-            println("currentState.toString()=> $currentState")
         }
     }
 

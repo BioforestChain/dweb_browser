@@ -1,7 +1,6 @@
-import chalk from "chalk";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
-import { Ipc, IpcEvent, IpcResponse, IPC_ROLE } from "../../core/ipc/index.cjs";
+import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.cjs";
 import { MicroModule } from "../../core/micro-module.cjs";
 import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.cjs";
 import type { $IpcSupportProtocols } from "../../helper/types.cjs";
@@ -62,12 +61,7 @@ export class JsMicroModule extends MicroModule {
           await IpcResponse.fromResponse(request.req_id, response, ipc)
         );
       });
-
-      ipc.onMessage(async (request) => {
-        // console.log('ipc.onMessage', request)
-        // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>. micro-module.js.cts onMessage 但是还没有处理', request)
-      });
-
+      
       /** 
        * 处理从 js-process.cts 发送过来的 
        * messate.type === IPC_MESSAGE_TYPE.EVENT
