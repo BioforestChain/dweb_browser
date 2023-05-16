@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Kingfisher
+import FaviconFinder
 
 struct CellFrameInfo: Equatable{
     var index: Int
@@ -29,7 +30,7 @@ struct WebPreViewGrid: View {
     @Binding var selectedCellFrame: CGRect
     
     var caches: [WebCache] {
-        brower.pages.map { $0.webStore.web}
+        brower.pages.map { $0.webStore.webCache}
     }
     
     var body: some View {
@@ -50,7 +51,6 @@ struct WebPreViewGrid: View {
                                 }else{
                                     print("can't read the clicked cell information")
                                 }
-                                
                             }
                     }
                 })
@@ -78,16 +78,17 @@ struct WebPreViewGrid: View {
 }
 
 struct GridCell: View {
-    var cache: WebCache
+    @ObservedObject var cache: WebCache
     @State var runCount = 0
     var body: some View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
                 
-                Image(uiImage: snapshotImage(url: cache.snapshot!))
+                Image(uiImage: .snapshot(from: cache.snapshot!))
                     .resizable()
-                    .shadow(color: .secondary, radius: 3)
+                    .frame(alignment: .top)
                     .cornerRadius(gridcellCornerR)
+                    .clipped()
                     .onTapGesture {
                         
                     }
@@ -99,7 +100,8 @@ struct GridCell: View {
                         .onFailure { error in }
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 25)
+                        .frame(width: 22)
+                    
                     Text(cache.title)
                         .fontWeight(.semibold)
                         .lineLimit(1)
@@ -127,15 +129,20 @@ struct GridCell: View {
                 d[.trailing]
             }
         }
-        .background(.cyan)
-    }
-    
-    func snapshotImage(url: URL)->UIImage{
-        do{
-            return UIImage(data: try Data(contentsOf: url))!
-        }catch{
-            print("")
-            return UIImage(named: "snapshot")!
+        .onAppear{
+            if cache.lastVisitedUrl != nil{
+                Task {
+                    do {
+                        let favicon = try await FaviconFinder(url: cache.lastVisitedUrl!).downloadFavicon()
+                        print("URL of Favicon: \(favicon.url)")
+                        DispatchQueue.main.async {
+                            cache.webIcon = favicon.url
+                        }
+                    } catch let error {
+                        print("Error: \(error)")
+                    }
+                }
+            }
         }
     }
 }

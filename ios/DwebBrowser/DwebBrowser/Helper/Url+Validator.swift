@@ -9,14 +9,9 @@ import Foundation
 import UIKit
 import FaviconFinder
 
-class URLGenerator {
-//    private let urlValidator: URLValidator
-    
-//    init(urlValidator: URLValidator = .init()) {
-//        self.urlValidator = urlValidator
-//    }
-    
-    func getURL(for text: String) -> URL? {
+extension URL {
+
+    static func makeURL(from text: String) -> URL? {
         let text = text.lowercased()
         guard isValidURL(text) else {
             return getSearchURL(for: text)
@@ -29,7 +24,7 @@ class URLGenerator {
         return URL(string: text)
     }
     
-    func isValidURL(_ urlString: String) -> Bool {
+    static func isValidURL(_ urlString: String) -> Bool {
         guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue),
               let match = detector.firstMatch(in: urlString,
                                               options: [],
@@ -39,10 +34,8 @@ class URLGenerator {
         // it is a link, if the match covers the whole string
         return match.range.length == urlString.utf16.count
     }
-}
-
-private extension URLGenerator {
-    func getSearchURL(for text: String) -> URL? {
+    
+    static private func getSearchURL(for text: String) -> URL? {
         guard let encodedSearchString = text.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed) else {
             return nil
         }

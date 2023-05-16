@@ -19,7 +19,7 @@ class Home: ObservableObject{
 class Page: Identifiable, ObservableObject, Hashable{
 
     
-    @Published var webStore = WebViewStore( web: WebCache.createItem())
+    @Published var webStore = WebViewStore( webCache: WebCache.createItem())
 
 //    @Published var home: Home
     

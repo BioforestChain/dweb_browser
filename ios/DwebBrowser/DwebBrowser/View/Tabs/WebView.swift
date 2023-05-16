@@ -21,13 +21,13 @@ public class WebViewStore: ObservableObject,Identifiable,Hashable{
         }
     }
     
-    @Published public var web: WebCache
+    @Published public var webCache: WebCache
     
-    public init(webView: WKWebView = WKWebView(), web: WebCache) {
+    public init(webView: WKWebView = WKWebView(), webCache: WebCache) {
         self.webView = webView
-        self.web = web
-        webView.load(URLRequest(url: URL(string: "www.bing.com")!))
-        visitCount += 1
+        self.webCache = webCache
+//        webView.load(URLRequest(url: URL(string: "www.bing.com")!))
+//        visitCount += 1
         print("has visited \(visitCount) times")
 
         setupObservers()

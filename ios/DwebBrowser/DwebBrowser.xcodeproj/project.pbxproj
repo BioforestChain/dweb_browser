@@ -39,7 +39,7 @@
 		F0B68D012A12333D00215036 /* defWebIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = F0B68D002A12333D00215036 /* defWebIcon.png */; };
 		F0B68D032A123B4F00215036 /* Url+Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D022A123B4F00215036 /* Url+Validator.swift */; };
 		F0BC1C0B2A0F86D50077BE0A /* View+AnimationObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BC1C0A2A0F86D50077BE0A /* View+AnimationObserver.swift */; };
-		F0BC1C0D2A1219CA0077BE0A /* ImageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BC1C0C2A1219CA0077BE0A /* ImageManager.swift */; };
+		F0BC1C0D2A1219CA0077BE0A /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,7 +74,7 @@
 		F0B68D002A12333D00215036 /* defWebIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = defWebIcon.png; sourceTree = "<group>"; };
 		F0B68D022A123B4F00215036 /* Url+Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Url+Validator.swift"; sourceTree = "<group>"; };
 		F0BC1C0A2A0F86D50077BE0A /* View+AnimationObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+AnimationObserver.swift"; sourceTree = "<group>"; };
-		F0BC1C0C2A1219CA0077BE0A /* ImageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageManager.swift; sourceTree = "<group>"; };
+		F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,7 +152,7 @@
 				F08E10442A04FBEE00899DF8 /* DWButton.swift */,
 				F08E10582A0B3AD700899DF8 /* View+ancesterTree.swift */,
 				F0BC1C0A2A0F86D50077BE0A /* View+AnimationObserver.swift */,
-				F0BC1C0C2A1219CA0077BE0A /* ImageManager.swift */,
+				F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */,
 				F0B68D022A123B4F00215036 /* Url+Validator.swift */,
 			);
 			path = Helper;
@@ -317,7 +317,7 @@
 				F08E10532A08DC9C00899DF8 /* BrowerVM.swift in Sources */,
 				F028999129F7C4AA00B8754A /* View+snapshot.swift in Sources */,
 				F08E10572A0A4F7C00899DF8 /* TestView.swift in Sources */,
-				F0BC1C0D2A1219CA0077BE0A /* ImageManager.swift in Sources */,
+				F0BC1C0D2A1219CA0077BE0A /* UIImage+Cache.swift in Sources */,
 				F0B2AB172A03AC40000AD502 /* WebView.swift in Sources */,
 				F02899AA29FA499D00B8754A /* HomeView.swift in Sources */,
 				F028998A29F7C3DC00B8754A /* AddressBarHStack.swift in Sources */,

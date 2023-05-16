@@ -19,31 +19,28 @@ struct TabPageView: View {
     var  body: some View {
         ZStack{
             NavigationView {
-//                Text("there is a webview")
-                WebView(webView: webViewStore.webView, url:URL(string: webViewStore.web.openedUrl!)!)
+                WebView(webView: webViewStore.webView, url: webViewStore.webCache.lastVisitedUrl!)
                     .navigationBarTitle(Text(verbatim: webViewStore.title ?? ""), displayMode: .inline)
-//                    .navigationBarItems(trailing: HStack {
-//                        Button(action: goBack) {
-//                            Image(systemName: "chevron.left")
-//                                .imageScale(.large)
-//                                .aspectRatio(contentMode: .fit)
-//                                .frame(width: 32, height: 32)
-//                        }.disabled(!webViewStore.canGoBack)
-//                        Button(action: goForward) {
-//                            Image(systemName: "chevron.right")
-//                                .imageScale(.large)
-//                                .aspectRatio(contentMode: .fit)
-//                                .frame(width: 32, height: 32)
-//                        }.disabled(!webViewStore.canGoForward)
-//                    })
-//                    .background(.red)
+                    .navigationBarItems(trailing: HStack {
+                        Button(action: goBack) {
+                            Image(systemName: "chevron.left")
+                                .imageScale(.large)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                        }.disabled(!webViewStore.canGoBack)
+                        Button(action: goForward) {
+                            Image(systemName: "chevron.right")
+                                .imageScale(.large)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                        }.disabled(!webViewStore.canGoForward)
+                    })
+                    .background(.red)
             }.onAppear {
-//                
                 print("webViewStore.webView ---- \(webViewStore.webView)")
-//                self.webViewStore.webView.load(URLRequest(url: URL(string: "163.com")!))
             }
             
-            if webViewStore.web.openedUrl == nil{
+            if webViewStore.webCache.lastVisitedUrl == nil{
                 homeview
             }
         }

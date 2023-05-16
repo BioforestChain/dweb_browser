@@ -17,4 +17,4 @@ let gridcellCornerR: CGFloat = 10
 let gridcellBottomH: CGFloat = 35
 
 
-let testLink = "https://www.hackingwithswift.com/quick-start"
+let testURL = URL(string: "https://www.hackingwithswift.com/quick-start")!

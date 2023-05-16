@@ -11,17 +11,17 @@ import SwiftUI
 import FaviconFinder
 
 //打开新页面时
-public class WebCache: Identifiable, Hashable{
+public class WebCache: ObservableObject, Identifiable, Hashable{
     public var id = UUID()
-    @Published public var webIcon: URL?     // url to the source of somewhere in internet
-    @Published var openedUrl: String?       //the website that user has opened on webview
+    @Published var webIcon: URL?            // url to the source of somewhere in internet
+    @Published var lastVisitedUrl: URL?     //the website that user has opened on webview
     @Published var title: String            // page title
-    @Published var snapshot: URL?            //local file path is direct to the image has saved in document dir
+    @Published var snapshot: URL?           //local file path is direct to the image has saved in document dir
     
     
-    public init(icon: URL? = nil, openedUrl: String? = nil, title: String = "", snapshot: URL? = nil) {
-        self.webIcon = icon ?? UIImage.defaultSnapshot()
-        self.openedUrl = openedUrl ?? testLink
+    public init(icon: URL? = nil, lastVisitedUrl: URL? = nil, title: String = "", snapshot: URL? = nil) {
+        self.webIcon = icon ?? UIImage.defaultWebIcon()
+        self.lastVisitedUrl = lastVisitedUrl ?? testURL
         self.title = title
         self.snapshot = snapshot ?? UIImage.defaultSnapshot()
     }
@@ -37,11 +37,11 @@ public class WebCache: Identifiable, Hashable{
     ]
     
     static func createItem() -> WebCache{
-        //        WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: websites[Int.random(in: 0..<websites.count)], title: "Apple")
-        WebCache()
+        //        WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  lastVisitedUrl: websites[Int.random(in: 0..<websites.count)], title: "Apple")
+        WebCache(title: "收藏")
     }
     
-    static let example = WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  openedUrl: "https://www.apple.com", title: "Apple")
+    static let example = WebCache(icon: URL(string: "https://img.icons8.com/?size=2x&id=VJz2Ob51dvZJ&format=png")!,  lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "Apple")
     //
     //    init(from decoder: Decoder) throws {
     //

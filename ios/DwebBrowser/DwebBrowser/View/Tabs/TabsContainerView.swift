@@ -16,7 +16,7 @@ struct TabsContainerView: View{
     @Namespace private var zoomAnimation
     
     @State private var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
-
+    
     @State var isZoomed = true
     
     init(){
@@ -49,7 +49,7 @@ struct TabsContainerView: View{
                         .clipped()
                         .position(x: cellCenterX(geoMidX: geoRect.midX),
                                   y: cellCenterY(geoMidY: geoRect.midY - geoRect.minY))
-
+                    
                         .onAppear{
                             geoRect = geo.frame(in: .global)
                             print()
@@ -103,18 +103,7 @@ struct TabHStackView: View{
                                     if browser.shrinkingSnapshot == nil, let image = self.environmentObject(browser).snapshot(){
                                         browser.shrinkingSnapshot = image
                                         browser.shouldTakeSnapshot = false
-                                        
-                                        print(page.webStore.web.snapshot)
-                                        page.webStore.web.snapshot = UIImage.saveSnapShot(image, withName: page.webStore.web.id.uuidString)
-                                        print(page.webStore.web.snapshot)
-                                        
-                                        
-                                        
-
-
-                                        print(page.webStore.web.title)
-                                        page.webStore.web.title = "else"
-                                        print(page.webStore.web.title)
+                                        page.webStore.webCache.snapshot = UIImage.createSnapShot(withImage: image, imageName: page.webStore.webCache.id.uuidString)
                                     }
                                 }
                             }

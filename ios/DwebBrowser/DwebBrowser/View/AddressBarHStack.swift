@@ -13,7 +13,7 @@ struct AddressBarHContainer:View{
     var body: some View{
         HStack(spacing: 0) {
             ForEach(browser.pages){ page in
-                AddressBar(inputText: "")
+                AddressBar(inputText: "", webStore: page.webStore)
                     .frame(width: screen_width)
             }
         }
@@ -47,8 +47,9 @@ struct AddressBar: View {
     @State var inputText: String = ""
     @FocusState var isAdressBarFocused: Bool
     @EnvironmentObject var browser: BrowerVM
-    @State var progressValue: Float = 0.0
+//    @State var progressValue: Float = 0.0
     
+    @ObservedObject var webStore: WebViewStore
     
     var body: some View {
         GeometryReader{ geometry in
@@ -59,14 +60,15 @@ struct AddressBar: View {
                     .fill(Color(.darkGray))
                     .frame(width:screen_width - 48 ,height: 40)
                     .overlay {
-                        if progressValue > 0.0 && progressValue <= 1.0{
+                        if webStore.estimatedProgress > 0.0 && webStore.estimatedProgress < 1.0{
                             GeometryReader { geometry in
                                 VStack(alignment: .leading, spacing: 0) {
-                                    ProgressView(value: progressValue)
+                                    ProgressView(value: webStore.estimatedProgress)
                                         .progressViewStyle(LinearProgressViewStyle())
                                         .foregroundColor(.blue)
                                         .background(Color(white: 1))
                                         .cornerRadius(4)
+                                        .frame(height: webStore.estimatedProgress >= 1.0 ? 0 : 3)
                                         .alignmentGuide(.leading) { d in
                                             d[.leading]
                                         }
@@ -104,14 +106,6 @@ struct AddressBar: View {
         }
     }
     
-    func performNetworkRequest() {
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-            if progressValue >= 1.0 {
-                timer.invalidate()
-            }
-            progressValue += 0.05
-        }
-    }
 }
 
 struct PageScroll<Content: View>: UIViewRepresentable {
@@ -144,7 +138,7 @@ struct PageScroll<Content: View>: UIViewRepresentable {
 
 struct AddressBarHStack_Previews: PreviewProvider {
     static var previews: some View {
-        AddressBar()
+        AddressBar(webStore: WebViewStore(webCache: WebCache()))
             .environmentObject(BrowerVM())
     }
 }
