@@ -1,5 +1,6 @@
 ﻿using WebKit;
 using DwebBrowser.Helper;
+using UIKit;
 
 namespace DwebBrowser.DWebView;
 
@@ -33,9 +34,9 @@ public class WebMessagePort
                 message.Data,
                 NSArray.FromNSObjects(message.Ports.Select(port => new NSNumber(port.portId)).ToArray())
             });
-        await webview.CallAsyncJavaScriptAsync("nativePortPostMessage(portId,data,ports)", arguments, null, DWebView.webMessagePortContentWorld);
+        await webview.InvokeOnMainThreadAsync(() => webview.CallAsyncJavaScriptAsync("nativePortPostMessage(portId,data,ports)", arguments, null, DWebView.webMessagePortContentWorld));
     }
-    public Task Start() => webview.EvaluateJavaScriptAsync("nativeStart(" + portId + ")", null, DWebView.webMessagePortContentWorld);
+    public Task Start() => webview.InvokeOnMainThreadAsync(() => webview.EvaluateJavaScriptAsync("nativeStart(" + portId + ")", null, DWebView.webMessagePortContentWorld));
 
     public event Signal<WebMessage>? OnMessage;
     internal Task _emitOnMessage(WebMessage msg) => (OnMessage?.Emit(msg)).ForAwait();

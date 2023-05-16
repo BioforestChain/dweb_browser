@@ -29,11 +29,20 @@ public static class StreamExtensions
         new BinaryReader(self);
 
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<int> ReadIntAsync(this Stream self)
     {
         var buffer = new byte[4];
-        await self.ReadExactlyAsync(buffer);
+        try
+        {
+            Console.WriteLine("ReadIntAsync start:{0}", self);
+            await self.ReadExactlyAsync(buffer);
+            Console.WriteLine("ReadIntAsync end:{0}", self);
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine("EEE: {0}", e);
+        }
         return buffer.ToInt();
     }
 

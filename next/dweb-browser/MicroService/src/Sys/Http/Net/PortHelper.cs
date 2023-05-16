@@ -7,33 +7,28 @@ public static class PortHelper
 {
     public static (bool, int?) IsPortInUse(int? try_port)
     {
-        int? port = try_port;
-
-        if (port is null)
+        int port = try_port ?? 0;
+        int tryTimes = 100;
+        while (tryTimes-- > 0)
         {
-            TcpListener tcpListen = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
-            tcpListen.Start();
-            port = ((IPEndPoint)tcpListen.LocalEndpoint).Port;
-            tcpListen.Stop();
 
-            return (true, port);
-        }
-        else
-        {
-            bool inUse = false;
-            IPGlobalProperties ipProperties = IPGlobalProperties.GetIPGlobalProperties();
-            IPEndPoint[] ipEndPoints = ipProperties.GetActiveTcpListeners();
-            foreach (IPEndPoint endPoint in ipEndPoints)
-            {
-                if (endPoint.Port == port)
-                {
-                    inUse = true;
-                    break;
-                }
+            try { 
+                TcpListener tcpListen = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
+                tcpListen.Start();
+                port = ((IPEndPoint)tcpListen.LocalEndpoint).Port;
+                tcpListen.Stop();
+
+                return (false, port);
             }
-
-            return (inUse, port);
+            catch
+            {
+                if(port is 0) {
+                    throw;
+                }
+                port++;
+            }
         }
+        throw new Exception("No found usebale ip port");
     }
 
     public static int FindPort(int[] favorite_ports)

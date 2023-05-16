@@ -15,6 +15,7 @@ namespace DwebBrowser.MicroService.Sys.Js;
 
 public class JsProcessNMM : NativeMicroModule
 {
+    static Debugger Console = new("JsProcessNMM");
     public JsProcessNMM() : base("js.sys.dweb")
     {
     }
@@ -159,7 +160,9 @@ public class JsProcessNMM : NativeMicroModule
             process_id = await po.WaitPromiseAsync();
 
             // 返回 port_id
-            return await _createIpc(ipc, apis, process_id, mmid);
+            var js_port_id = await _createIpc(ipc, apis, process_id, mmid);
+            Console.Log("create-ipc", "js_port_id:{0}", js_port_id);
+            return js_port_id;
         });
 
         /// 关闭 process
@@ -263,13 +266,14 @@ public class JsProcessNMM : NativeMicroModule
         /**
          * 创建一个通往 worker 的消息通道
          */
-        var processHandler = await apis.CreateProcess(
-            bootstrap_url,
-            JsonSerializer.Serialize(metadata),
-            JsonSerializer.Serialize(env),
-            ipc.Remote,
-            httpDwebServer.StartResult.urlInfo.Host);
-
+        var processHandler = await MainThread.InvokeOnMainThreadAsync(() =>
+            apis.CreateProcess(
+                bootstrap_url,
+                JsonSerializer.Serialize(metadata),
+                JsonSerializer.Serialize(env),
+                ipc.Remote,
+                httpDwebServer.StartResult.urlInfo.Host)
+        );
         /**
          * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
          *
@@ -289,12 +293,12 @@ public class JsProcessNMM : NativeMicroModule
         /**
          * 开始执行代码
          */
-        await apis.RunProcessMain(
+        await MainThread.InvokeOnMainThreadAsync(()=> apis.RunProcessMain(
             processHandler.Info.ProcessId,
             new JsProcessWebApi.RunProcessMainOptions(
                 httpDwebServer.StartResult.urlInfo.BuildInternalUrl().Path(entry ?? "/index.js").ToPublicDwebHref()
             )
-         );
+         ));
 
         /// 绑定销毁
         /**
@@ -315,6 +319,5 @@ public class JsProcessNMM : NativeMicroModule
 
     public record CreateProcessAndRunResult(ReadableStreamIpc streamIpc, JsProcessWebApi.ProcessHandler processHandler);
 
-    private Task<int> _createIpc(Ipc ipc, JsProcessWebApi apis, int process_id, Mmid mmid) =>
-        apis.CreateIpc(process_id, mmid);
+    private Task<int> _createIpc(Ipc ipc, JsProcessWebApi apis, int process_id, Mmid mmid) => MainThread.InvokeOnMainThreadAsync(() => apis.CreateIpc(process_id, mmid));
 }

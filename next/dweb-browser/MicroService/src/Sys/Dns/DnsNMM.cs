@@ -250,15 +250,22 @@ public class DnsNMM : NativeMicroModule
             _runningApps[mmid] = po = new();
             Task.Run(async () =>
             {
-                var app = Query(mmid);
-                if (app is not null)
-                {
-                    await BootstrapMicroModule(app);
-                    po.Resolve(app);
-                }
-                else
-                {
-                    po.Reject(String.Format("no found app: {0}", mmid));
+                try
+                    {
+
+                    var app = Query(mmid);
+                    if (app is not null)
+                    {
+                        await BootstrapMicroModule(app);
+                        po.Resolve(app);
+                    }
+                    else
+                    {
+                        po.Reject(String.Format("no found app: {0}", mmid));
+                        }
+                    }
+                catch (Exception e) {
+                    Console.Error("Open", "{0}", e);
                 }
             });
         }
