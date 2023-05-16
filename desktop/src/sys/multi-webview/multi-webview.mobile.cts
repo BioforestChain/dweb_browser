@@ -12,6 +12,7 @@ import { converRGBAToHexa, hexaToRGBA } from "../plugins/helper.cjs";
 import querystring from "node:querystring"
 import path from "node:path"
 import { 
+  open,
   barGetState,
   barSetState,
   safeAreaGetState,
@@ -80,12 +81,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: { url: "string" },
       output: "number",
-      handler: async (args, client_ipc, request) => {
-        console.log('[multi-webview.mobile.cts 接受到了 open 请求>>>>>>>>>>>>>]--------------------------------------', args.url, client_ipc.uid)
-        const wapis = await this.forceGetWapis(client_ipc, root_url);
-        const webview_id = await wapis.apis.openWebview(args.url);
-        return webview_id
-      },
+      handler: open.bind(this, root_url),
     });
 
     // 关闭 ？？ 这个是关闭整个window  还是关闭一个 webview 标签
@@ -269,224 +265,224 @@ export class MultiWebviewNMM extends NativeMicroModule {
     
   }
 
-  ipcMinOnStateChange = async<
-    $ApisPerperName extends keyof Pick<
-      $APIS, "safeAreaGetState" | "navigationBarGetState" | "statusBarGetState"
-    >
-  >(
-    apisPropertyName: $ApisPerperName,
-    mmid: $MMID
-  )=> {
-    const apis  = this.apisGetFromFocused()
-    if(apis === undefined) throw new Error('apis === undefined')
-    const state = await apis[apisPropertyName]();
-    this.observeMapWrite(
-      Buffer.from(JSON.stringify(state)),
-      mmid
-    )
-  }
+  // ipcMinOnStateChange = async<
+  //   $ApisPerperName extends keyof Pick<
+  //     $APIS, "safeAreaGetState" | "navigationBarGetState" | "statusBarGetState"
+  //   >
+  // >(
+  //   apisPropertyName: $ApisPerperName,
+  //   mmid: $MMID
+  // )=> {
+  //   const apis  = this.apisGetFromFocused()
+  //   if(apis === undefined) throw new Error('apis === undefined')
+  //   const state = await apis[apisPropertyName]();
+  //   this.observeMapWrite(
+  //     Buffer.from(JSON.stringify(state)),
+  //     mmid
+  //   )
+  // }
 
-  internalObserveToogle = async (isObserve: boolean,req: IncomingMessage, res: OutgoingMessage) => {
-    // 获取 mmid
-    const mmid = req.url?.split("?")[0].split("/")[1];
-    if(mmid === undefined) throw new Error(`mmid === undefined`);
-    const nww = this.browserWindowGetFocused();
-    if(nww === undefined) throw new Error(`nww === undefined`);
-    const observe_map_nww_item = this.observeMap.get(nww);
-    if(observe_map_nww_item === undefined){
-      const observe_map_nww_item = new Map();
-      observe_map_nww_item.set(mmid, { isObserve: isObserve, res: undefined})
-      this.observeMap.set(nww, observe_map_nww_item)
-      res.end()
-      return;
-    }
-    const observerItem = observe_map_nww_item.get(mmid);
-    if(observerItem === undefined){
-      const observerItem = {isObserve: isObserve, res: undefined}
-      observe_map_nww_item.set(mmid, observerItem)
-      res.end()
-      return;
-    }
+  // internalObserveToogle = async (isObserve: boolean,req: IncomingMessage, res: OutgoingMessage) => {
+  //   // 获取 mmid
+  //   const mmid = req.url?.split("?")[0].split("/")[1];
+  //   if(mmid === undefined) throw new Error(`mmid === undefined`);
+  //   const nww = this.browserWindowGetFocused();
+  //   if(nww === undefined) throw new Error(`nww === undefined`);
+  //   const observe_map_nww_item = this.observeMap.get(nww);
+  //   if(observe_map_nww_item === undefined){
+  //     const observe_map_nww_item = new Map();
+  //     observe_map_nww_item.set(mmid, { isObserve: isObserve, res: undefined})
+  //     this.observeMap.set(nww, observe_map_nww_item)
+  //     res.end()
+  //     return;
+  //   }
+  //   const observerItem = observe_map_nww_item.get(mmid);
+  //   if(observerItem === undefined){
+  //     const observerItem = {isObserve: isObserve, res: undefined}
+  //     observe_map_nww_item.set(mmid, observerItem)
+  //     res.end()
+  //     return;
+  //   }
 
-    observerItem.isObserve = isObserve;
-    res.end()
-  }
+  //   observerItem.isObserve = isObserve;
+  //   res.end()
+  // }
 
-  internalObserve = async (req: IncomingMessage, res: OutgoingMessage) => {
-    const queryStr = req.url?.split("?")[1]
-    if(queryStr === undefined) throw new Error(`queryStr === undefined`)
-    const mmid = querystring.parse(queryStr).mmid
-    if(typeof mmid !== 'string') throw new Error(`typeof mmid !== 'string'`)
-    // 保存在当前激活的 nww.mmid = observe
-    const nww = this.browserWindowGetFocused()
-    if(nww === undefined) throw new Error(`nww === undefined`)
-    const observe_nww_item = this.observeMap.get(nww)
-    if(observe_nww_item === undefined){
-      const observeItem = {res: res, isObserve: false};
-      const observe_nww_item = new Map()
-      observe_nww_item.set(mmid, observeItem)
-      this.observeMap.set(nww, observe_nww_item)
-      return;
-    }
-    const observeItem = observe_nww_item.get(mmid)
-    if(observeItem === undefined){
-      const _observeItem = {res: res, isObserve: false};
-      observe_nww_item.set(mmid, _observeItem)
-      return;
-    }
+  // internalObserve = async (req: IncomingMessage, res: OutgoingMessage) => {
+  //   const queryStr = req.url?.split("?")[1]
+  //   if(queryStr === undefined) throw new Error(`queryStr === undefined`)
+  //   const mmid = querystring.parse(queryStr).mmid
+  //   if(typeof mmid !== 'string') throw new Error(`typeof mmid !== 'string'`)
+  //   // 保存在当前激活的 nww.mmid = observe
+  //   const nww = this.browserWindowGetFocused()
+  //   if(nww === undefined) throw new Error(`nww === undefined`)
+  //   const observe_nww_item = this.observeMap.get(nww)
+  //   if(observe_nww_item === undefined){
+  //     const observeItem = {res: res, isObserve: false};
+  //     const observe_nww_item = new Map()
+  //     observe_nww_item.set(mmid, observeItem)
+  //     this.observeMap.set(nww, observe_nww_item)
+  //     return;
+  //   }
+  //   const observeItem = observe_nww_item.get(mmid)
+  //   if(observeItem === undefined){
+  //     const _observeItem = {res: res, isObserve: false};
+  //     observe_nww_item.set(mmid, _observeItem)
+  //     return;
+  //   }
 
-    observeItem.res = res;
-  } 
+  //   observeItem.res = res;
+  // } 
 
-  barGetState = async <
-    $ApisFnName extends keyof Pick<$APIS, 'statusBarGetState' | "navigationBarGetState">
-  >(
-    apisFnName: $ApisFnName,
-    req: IncomingMessage,
-    res: OutgoingMessage
-  ) =>{
-    const apis  = this.apisGetFromFocused()
-    if(apis === undefined) throw new Error('apis === undefined')
-    const state = await apis[apisFnName]()
-    const stateRGB = {
-      ...state,
-      color: hexaToRGBA(state.color)
-    }
-    res.end(Buffer.from(JSON.stringify(stateRGB)))
-  }
+  // barGetState = async <
+  //   $ApisFnName extends keyof Pick<$APIS, 'statusBarGetState' | "navigationBarGetState">
+  // >(
+  //   apisFnName: $ApisFnName,
+  //   req: IncomingMessage,
+  //   res: OutgoingMessage
+  // ) =>{
+  //   const apis  = this.apisGetFromFocused()
+  //   if(apis === undefined) throw new Error('apis === undefined')
+  //   const state = await apis[apisFnName]()
+  //   const stateRGB = {
+  //     ...state,
+  //     color: hexaToRGBA(state.color)
+  //   }
+  //   res.end(Buffer.from(JSON.stringify(stateRGB)))
+  // }
 
-  onHistoryBack = async (req: IncomingMessage, res: OutgoingMessage) => {
-    const origin = getOriginByReq(req)
-    const apis = this.apisGetFromFocused()
-    if(apis === undefined) throw new Error(`apis === undefined`)
-    apis.acceptMessageFromWebview({
-      origin: origin,
-      action: "history_back",
-      value: ""
-    });
-    res.end()
-  }
+  // onHistoryBack = async (req: IncomingMessage, res: OutgoingMessage) => {
+  //   const origin = getOriginByReq(req)
+  //   const apis = this.apisGetFromFocused()
+  //   if(apis === undefined) throw new Error(`apis === undefined`)
+  //   apis.acceptMessageFromWebview({
+  //     origin: origin,
+  //     action: "history_back",
+  //     value: ""
+  //   });
+  //   res.end()
+  // }
 
-  barSetState = async <
-    $ApiFnName extends keyof Pick<
-      $APIS, "statusBarSetState" | "navigationBarSetState"
-    >,
-  >(
-    apisFnName: $ApiFnName,
-    req: IncomingMessage, 
-    res: OutgoingMessage
-  ) => {
-    const mmid = req.url?.split("?")[0].split("/")[1];
-    if(mmid === undefined) throw new Error(`mmid === undefined`);
-    const searchParams = querystring.parse(req.url as string);
-    const apis  = this.apisGetFromFocused()
-    if(apis === undefined) throw new Error('apis === undefined')
-    let state: $BarState | undefined;
-    if(searchParams.color !== undefined && typeof searchParams.color === "string"){
-      const color = JSON.parse(searchParams.color)
-      state  = await apis[apisFnName](
-        'color', 
-        converRGBAToHexa(
-          color.red, color.green, color.blue, color.alpha
-        )
-      )
-    }
+  // barSetState = async <
+  //   $ApiFnName extends keyof Pick<
+  //     $APIS, "statusBarSetState" | "navigationBarSetState"
+  //   >,
+  // >(
+  //   apisFnName: $ApiFnName,
+  //   req: IncomingMessage, 
+  //   res: OutgoingMessage
+  // ) => {
+  //   const mmid = req.url?.split("?")[0].split("/")[1];
+  //   if(mmid === undefined) throw new Error(`mmid === undefined`);
+  //   const searchParams = querystring.parse(req.url as string);
+  //   const apis  = this.apisGetFromFocused()
+  //   if(apis === undefined) throw new Error('apis === undefined')
+  //   let state: $BarState | undefined;
+  //   if(searchParams.color !== undefined && typeof searchParams.color === "string"){
+  //     const color = JSON.parse(searchParams.color)
+  //     state  = await apis[apisFnName](
+  //       'color', 
+  //       converRGBAToHexa(
+  //         color.red, color.green, color.blue, color.alpha
+  //       )
+  //     )
+  //   }
 
-    if(searchParams.style !== undefined && typeof searchParams.style === "string"){
-      state = await apis[apisFnName](
-        'style', searchParams.style as $BAR_STYLE
-      )
-    }
+  //   if(searchParams.style !== undefined && typeof searchParams.style === "string"){
+  //     state = await apis[apisFnName](
+  //       'style', searchParams.style as $BAR_STYLE
+  //     )
+  //   }
 
-    if(searchParams.overlay !== undefined && typeof searchParams.overlay === "string"){
-      state = await apis[apisFnName](
-        'overlay', searchParams.overlay === "true" ? true : false
-      )
-    }
+  //   if(searchParams.overlay !== undefined && typeof searchParams.overlay === "string"){
+  //     state = await apis[apisFnName](
+  //       'overlay', searchParams.overlay === "true" ? true : false
+  //     )
+  //   }
 
-    if(searchParams.visible !== undefined && typeof searchParams.visible === "string"){
-      state = await apis[apisFnName](
-        'visible', searchParams.visible === "true" ? true : false
-      )
-    }
+  //   if(searchParams.visible !== undefined && typeof searchParams.visible === "string"){
+  //     state = await apis[apisFnName](
+  //       'visible', searchParams.visible === "true" ? true : false
+  //     )
+  //   }
 
-    if(state === undefined) throw new Error(`state === undefined`);
-    const stateRGB = {
-      ...state,
-      color: hexaToRGBA(state.color)
-    }
+  //   if(state === undefined) throw new Error(`state === undefined`);
+  //   const stateRGB = {
+  //     ...state,
+  //     color: hexaToRGBA(state.color)
+  //   }
 
-    const buffer = Buffer.from(JSON.stringify(stateRGB))
-    res.end(Buffer.from(buffer))
-    this.observeMapWrite(buffer, mmid)
-  }
+  //   const buffer = Buffer.from(JSON.stringify(stateRGB))
+  //   res.end(Buffer.from(buffer))
+  //   this.observeMapWrite(buffer, mmid)
+  // }
 
-  safeAreaSetState = async (req: IncomingMessage, res: OutgoingMessage) => {
-    const mmid = req.url?.split("?")[0].split("/")[1];
-    if(mmid === undefined) throw new Error(`mmid === undefined`);
-    const searchParams = querystring.parse(req.url as string);
-    if(searchParams.overlay == undefined) throw new Error(`searchParams.overlay == undefined`);
-    if(typeof searchParams.overlay !== 'string') throw new Error(`typeof searchParams.overlay !== 'string'`)
-    const apis  = this.apisGetFromFocused()
-    if(apis === undefined) throw new Error('apis === undefined')
-    let state: $SafeAreaState
-    state = await apis.safeAreaSetOverlay(
-      searchParams.overlay === "true" ? true : false
-    )
-    const buffer = Buffer.from(JSON.stringify(state))
-    res.end(Buffer.from(buffer))
-    this.observeMapWrite(buffer, mmid)
-  }
+  // safeAreaSetState = async (req: IncomingMessage, res: OutgoingMessage) => {
+  //   const mmid = req.url?.split("?")[0].split("/")[1];
+  //   if(mmid === undefined) throw new Error(`mmid === undefined`);
+  //   const searchParams = querystring.parse(req.url as string);
+  //   if(searchParams.overlay == undefined) throw new Error(`searchParams.overlay == undefined`);
+  //   if(typeof searchParams.overlay !== 'string') throw new Error(`typeof searchParams.overlay !== 'string'`)
+  //   const apis  = this.apisGetFromFocused()
+  //   if(apis === undefined) throw new Error('apis === undefined')
+  //   let state: $SafeAreaState
+  //   state = await apis.safeAreaSetOverlay(
+  //     searchParams.overlay === "true" ? true : false
+  //   )
+  //   const buffer = Buffer.from(JSON.stringify(state))
+  //   res.end(Buffer.from(buffer))
+  //   this.observeMapWrite(buffer, mmid)
+  // }
 
-  observeMapWrite(buffer: Buffer, mmid: string){
-    const nww = this.browserWindowGetFocused()
-    if(nww === undefined) throw new Error(`nww === undefined`);
-    const observe_map_nww_item =  this.observeMap.get(nww)
-    if(observe_map_nww_item === undefined) {
-      console.log("observe_map_nww_item === undefined")
-      return;
-    };
-    const observeItem = observe_map_nww_item.get(mmid);
-    if(observeItem === undefined) {
-      // 如果没有表示没有监听
-      return;
-    };
-    if(observeItem.res === undefined) throw new Error(`observeItem.res === undefined`);
-    observeItem.isObserve 
-    ? observeItem.res.write(Buffer.concat([buffer, this.encoder.encode("\n")])) 
-    : ""
-  }
+  // observeMapWrite(buffer: Buffer, mmid: string){
+  //   const nww = this.browserWindowGetFocused()
+  //   if(nww === undefined) throw new Error(`nww === undefined`);
+  //   const observe_map_nww_item =  this.observeMap.get(nww)
+  //   if(observe_map_nww_item === undefined) {
+  //     console.log("observe_map_nww_item === undefined")
+  //     return;
+  //   };
+  //   const observeItem = observe_map_nww_item.get(mmid);
+  //   if(observeItem === undefined) {
+  //     // 如果没有表示没有监听
+  //     return;
+  //   };
+  //   if(observeItem.res === undefined) throw new Error(`observeItem.res === undefined`);
+  //   observeItem.isObserve 
+  //   ? observeItem.res.write(Buffer.concat([buffer, this.encoder.encode("\n")])) 
+  //   : ""
+  // }
 
-  safeAreaGetState = async (req: IncomingMessage, res: OutgoingMessage) => {
-    const apis  = this.apisGetFromFocused()
-    if(apis === undefined) throw new Error('apis === undefined')
-    const state = await apis.safeAreaGetState()
-    res.end(Buffer.from(JSON.stringify(state)))
-  }
+  // safeAreaGetState = async (req: IncomingMessage, res: OutgoingMessage) => {
+  //   const apis  = this.apisGetFromFocused()
+  //   if(apis === undefined) throw new Error('apis === undefined')
+  //   const state = await apis.safeAreaGetState()
+  //   res.end(Buffer.from(JSON.stringify(state)))
+  // }
 
-  virtualKeyboardGetState = async (req: IncomingMessage, res: OutgoingMessage) => {
-    const apis  = this.apisGetFromFocused()
-    if(apis === undefined) throw new Error('apis === undefined')
-    const state = await apis.virtualKeyboardGetState()
-    res.end(Buffer.from(JSON.stringify(state)))
-  }
+  // virtualKeyboardGetState = async (req: IncomingMessage, res: OutgoingMessage) => {
+  //   const apis  = this.apisGetFromFocused()
+  //   if(apis === undefined) throw new Error('apis === undefined')
+  //   const state = await apis.virtualKeyboardGetState()
+  //   res.end(Buffer.from(JSON.stringify(state)))
+  // }
 
-  virtualKeyboardSetState = async (req: IncomingMessage, res: OutgoingMessage) => {
-    const mmid = req.url?.split("?")[0].split("/")[1];
-    if(mmid === undefined) throw new Error(`mmid === undefined`);
-    const searchParams = querystring.parse(req.url as string);
-    if(searchParams.overlay == undefined) throw new Error(`searchParams.overlay == undefined`);
-    if(typeof searchParams.overlay !== 'string') throw new Error(`typeof searchParams.overlay !== 'string'`)
-    const apis  = this.apisGetFromFocused()
-    if(apis === undefined) throw new Error('apis === undefined')
-    let state: $VirtualKeyboardState
-    state = await apis.virtualKeyboardSetOverlay(
-      searchParams.overlay === "true" ? true : false
-    )
-    const buffer = Buffer.from(JSON.stringify(state))
-    res.end(Buffer.from(buffer))
-    this.observeMapWrite(buffer, mmid)
-  }
+  // virtualKeyboardSetState = async (req: IncomingMessage, res: OutgoingMessage) => {
+  //   const mmid = req.url?.split("?")[0].split("/")[1];
+  //   if(mmid === undefined) throw new Error(`mmid === undefined`);
+  //   const searchParams = querystring.parse(req.url as string);
+  //   if(searchParams.overlay == undefined) throw new Error(`searchParams.overlay == undefined`);
+  //   if(typeof searchParams.overlay !== 'string') throw new Error(`typeof searchParams.overlay !== 'string'`)
+  //   const apis  = this.apisGetFromFocused()
+  //   if(apis === undefined) throw new Error('apis === undefined')
+  //   let state: $VirtualKeyboardState
+  //   state = await apis.virtualKeyboardSetOverlay(
+  //     searchParams.overlay === "true" ? true : false
+  //   )
+  //   const buffer = Buffer.from(JSON.stringify(state))
+  //   res.end(Buffer.from(buffer))
+  //   this.observeMapWrite(buffer, mmid)
+  // }
 
   /**
    * 获取当前激活的 browserWindow 的 apis
@@ -510,7 +506,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   // this._uid_wapis_map 是更具 ipc.uid 作为键明保存的，
   // 但是在一个 BrowserWindow 的内部会有多个 ipc 
   // 这样会导致问题出现 会多次触发 openNativeWindow
-  private forceGetWapis(ipc: Ipc, root_url: string) {
+  forceGetWapis(ipc: Ipc, root_url: string) {
     return locks.request("multi-webview-get-window-" + ipc.uid, async () => {
       let wapi = this._uid_wapis_map.get(ipc.uid);
       if (wapi === undefined) {

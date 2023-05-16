@@ -1897,11 +1897,15 @@ var _IpcRequest = class extends IpcMessage {
     if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
       body = this.body.raw;
     }
-    return new Request(this.url, {
+    const init = {
       method,
       headers: this.headers,
       body
-    });
+    };
+    if (body) {
+      Reflect.set(init, "duplex", "half");
+    }
+    return new Request(this.url, init);
   }
   toJSON() {
     const { method } = this;
@@ -4327,6 +4331,7 @@ var main = async () => {
   const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
   const multiWebViewCloseSignal = createSignal();
   const tryOpenView = () => {
+    console.log("tryOpenView");
     const newWindowState = new PromiseOut();
     (async () => {
       try {

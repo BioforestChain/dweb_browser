@@ -34,7 +34,6 @@ export class BootNMM extends NativeMicroModule {
     for (const mmid of this.registeredMmids) {
       /// TODO 这里应该使用总线进行通讯，而不是拿到core直接调用。在未来分布式系统中，core模块可能是远程模块
       await this.nativeFetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
-      //  await core.open(mmid);
     }
   }
   _shutdown() {}

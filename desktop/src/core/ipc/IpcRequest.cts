@@ -130,11 +130,15 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
       body = this.body.raw;
     }
-    return new Request(this.url, {
+    const init = {
       method,
       headers: this.headers,
       body,
-    });
+    }
+    if(body){
+      Reflect.set(init, "duplex", 'half')
+    }
+    return new Request(this.url, init);
   }
 
   readonly ipcReqMessage = once(

@@ -42,57 +42,16 @@ export class JsMicroModule extends MicroModule {
    */
   private _remoteIpcs = new Map<string, Ipc>();
   private _workerIpc: Native2JsIpc | undefined;
+  private _connecting_ipcs = new Set<Ipc>();
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
-    console.log(`[micro-module.js.ct _bootstrap ${this.mmid}]`);
-
-    // 需要添加 onConenct 这样通过 jsProcess 发送过来的 ipc.posetMessage 能够能够接受的到这个请求
-    // 也就是能够接受 匹配的 worker 发送你过来的请求能够接受的到
-    this.onConnect((ipc, rease) => {
-      console.log(`[micro-module.js.cts ${this.mmid} onConnect]`)
-      // 是发送到这里了吗？？
-      ipc.onRequest(async (request) => {
-        const init = httpMethodCanOwnBody(request.method)
-          ? { method: request.method, body: await request.body.stream(), headers: request.headers }
-          : { method: request.method, headers: request.headers };
-          const response = await this.nativeFetch(request.parsed_url.href, init);
-        ipc.postMessage(
-          await IpcResponse.fromResponse(request.req_id, response, ipc)
-        );
-      });
-      
-      /** 
-       * 处理从 js-process.cts 发送过来的 
-       * messate.type === IPC_MESSAGE_TYPE.EVENT
-       * 
-       */
-      ipc.onEvent(async (ipcEventMessage, nativeIpc /** nativeIpc === workerIpc */) => {
-        if (ipcEventMessage.name === "dns/connect") {
-          if (Object.prototype.toString.call(ipcEventMessage.data).slice(8, -1) !== "String") throw new Error('非法的 ipcEvent.data');
-          const mmid = JSON.parse(ipcEventMessage.data as string).mmid
-          const [targetIpc, localIpc] = await context.dns.connect(mmid)
-          const url = `file://js.sys.dweb/create-ipc?process_id=${this._process_id}&mmid=${mmid}`
-          const portId = await (await this.nativeFetch(url)).json()
-          const originIpc = new Native2JsIpc(portId, this)
-          /**
-           * 将两个消息通道间接互联
-           */
-          originIpc.onMessage((ipcMessage) => targetIpc.postMessage(ipcMessage));
-          targetIpc.onMessage((ipcMessage) => originIpc.postMessage(ipcMessage));
-        }
-
-        if (ipcEventMessage.name == "restart") {
-          // 调用重启
-          // restart 方法还没有实现
-          console.log("xxxxxxxxxxxxxxxxx restart 方法还没有实现")
-          // context.dns.restart(mmid)
-        }
-      });
-    });
+    console.log(`[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`);
 
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
+    // 这个 streamIpc 专门服务于 file://js.sys.dweb/create-process
+    // 也就是 JsMicroModule 对应的 worker.js 发送过来的消息
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     streamIpc.onRequest(async (request) => {
       if (request.parsed_url.pathname.endsWith("/")) {
@@ -122,14 +81,13 @@ export class JsMicroModule extends MicroModule {
       }
     });
 
-
-    // console.log("[micro-module.js.cts 执行 bindIncomeStream:]", this.mmid)
+    // 创建一个 streamIpc
     void streamIpc.bindIncomeStream(
       this.nativeFetch(
         buildUrl(new URL(`file://js.sys.dweb/create-process`), {
           search: {
             entry: this.metadata.config.server.entry,
-            process_id: pid,
+            process_id: this._process_id,
           },
         }),
         {
@@ -142,20 +100,20 @@ export class JsMicroModule extends MicroModule {
 
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
     jsIpc.onRequest(async (ipcRequest) => {
-      const response = await this.nativeFetch(ipcRequest.toRequest());
-      jsIpc.postMessage(
-        await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc)
-      );
+      const request = ipcRequest.toRequest()
+      console.log("------------- jsIPc")
+      const response = await this.nativeFetch(request);
+      const newResponse = await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc)
+      jsIpc.postMessage(newResponse);
     });
 
     jsIpc.onEvent(async (ipcEvent) => {
-      console.log("接收到连接的请求");
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
         const [targetIpc] = await context.dns.connect(mmid);
         const portId = await this.nativeFetch(
           buildUrl(new URL(`file://js.sys.dweb/create-ipc`), {
-            search: { pid, mmid },
+            search: { process_id: this._process_id, mmid },
           })
         ).number();
         const originIpc = new Native2JsIpc(portId, this);
@@ -167,24 +125,7 @@ export class JsMicroModule extends MicroModule {
       }
     });
   }
-  private _connecting_ipcs = new Set<Ipc>();
-
-  async _beConnect(from: MicroModule): Promise<Native2JsIpc> {
-    const process_id = this._process_id;
-    if (process_id === undefined) {
-      throw new Error("process_id no found.");
-    }
-    // console.log(chalk.red(`问题从这里开始 process_id === ${this._process_id}`))
-    const port_id = await this.nativeFetch(
-      `file://js.sys.dweb/create-ipc?process_id=${process_id}&mmid=${this.mmid}`
-    ).number();
-
-    const outer_ipc = new Native2JsIpc(port_id, this);
-    this._connecting_ipcs.add(outer_ipc);
-    this._workerIpc = outer_ipc; /** 测试代码 */
-    return outer_ipc;
-  }
-
+ 
   _shutdown() {
     console.log('关闭了进程 micro-module.js.cts')
     for (const outer_ipc of this._connecting_ipcs) {

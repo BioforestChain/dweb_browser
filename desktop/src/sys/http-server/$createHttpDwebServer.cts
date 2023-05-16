@@ -15,7 +15,6 @@ export const createHttpDwebServer = async (
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const startResult = await startHttpDwebServer(microModule, options);
   console.log("获得域名授权：", startResult.urlInfo.internal_origin, startResult.urlInfo.public_origin);
-
   return new HttpDwebServer(microModule, options, startResult);
 };
 
@@ -102,12 +101,11 @@ export const startHttpDwebServer = (
   microModule: $MicroModule,
   options: $DwebHttpServerOptions
 ) => {
+  const url = buildUrl(new URL(`file://http.sys.dweb/start`), {
+    search: options,
+  })
   return microModule
-    .nativeFetch(
-      buildUrl(new URL(`file://http.sys.dweb/start`), {
-        search: options,
-      })
-    )
+    .nativeFetch(url)
     .object<ServerStartResult>()
     .then((obj) => {
       const { urlInfo, token } = obj;

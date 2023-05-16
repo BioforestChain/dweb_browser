@@ -123,6 +123,10 @@ const CORS_HEADERS = [
 /**
  * 将指定的js运行在后台的一个管理器，
  * 注意它们共享一个域，所以要么就关闭
+ * 
+ * 功能：
+ * 用来创建 woker.js 线程
+ * 用来中转  woker.js 同匹配的 JsMicroModule 通信
  */
 export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.sys.dweb` as const;
@@ -204,6 +208,7 @@ export class JsProcessNMM extends NativeMicroModule {
       input: { entry: "string", process_id: "string" },
       output: "object",
       handler: async (args, ipc, requestMessage) => {
+        console.log('ipc.', ipc.remote.mmid)
         const processIdMap = mapHelper.getOrPut(
           ipcProcessIdMap,
           ipc,
@@ -225,6 +230,7 @@ export class JsProcessNMM extends NativeMicroModule {
           requestMessage
         );
         po.resolve(result.processInfo.process_id);
+
         return result.streamIpc.stream;
       },
     });
@@ -349,15 +355,16 @@ export class JsProcessNMM extends NativeMicroModule {
       ipc.remote,
       IPC_ROLE.CLIENT
     );
-    /// 收到 Worker 的数据请求，由 js-process 代理转发出去，然后将返回的内容再代理响应会去
-    ipc_to_worker.onMessage((ipcMessage) => {
-      ipc.postMessage(ipcMessage);
-    });
-    ipc.onMessage((ipcMessage) => {
-      ipc_to_worker.postMessage(ipcMessage);
-    });
 
-    // this.processImportsMap.set(host, processImports);
+    // 把 worker 的消息发送给对应的 主进程 NMM 也就是 JsMicroModule;
+    ipc_to_worker.onMessage(ipcMessage => {
+      ipc.postMessage(ipcMessage)
+    })
+    ipc.onMessage(message => {
+      // 这条消息是谁发过来的看样子是不需要转发的吗？？
+      ipc_to_worker.postMessage(message)
+    
+    })
 
     /**
      * 开始执行代码
@@ -402,12 +409,14 @@ export class JsProcessNMM extends NativeMicroModule {
      * 创建一个通往 worker 的消息通道
      */
     const channel_for_worker = new MessageChannel();
+    // 把一个 mesageChange 发送给 worker
     await apis.createIpc(
       process_id,
       mmid,
       transfer(channel_for_worker.port2, [channel_for_worker.port2]),
       env
     );
+    // 把一个messageChange保存到全局对象
     return saveNative2JsIpcPort(channel_for_worker.port1);
   }
   // static singleton = once(() => new JsProcessManager());

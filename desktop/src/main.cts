@@ -56,11 +56,14 @@ dns.install(new JmmNMM());
 
 
 dns.install(new BootNMM([
-  "download.sys.dweb",
+  // 核心模块
   "http.sys.dweb",
-  "jmm.sys.dweb",
   "mwebview.sys.dweb",
+  "jmm.sys.dweb",
   "js.sys.dweb",
+
+  // 插件模块
+  "download.sys.dweb",
   "status-bar.nativeui.sys.dweb",
   "navigation-bar.nativeui.sys.dweb",
   "safe-area.nativeui.sys.dweb",
@@ -73,15 +76,22 @@ dns.install(new BootNMM([
   "share.sys.dweb",
   "browser.sys.dweb",
   // cotDemoJMM.mmid
+  // 下面是专门用来测是 connect 的模块
+  // "test-from.sys.dweb",
 
-  // 下面是专门用来测是 connect
   // "js.sys.dweb",
   // jmmtestconnectJMM.mmid,
   // jmmtestconnectJMM2.mmid
 ]));
 
-Object.assign(globalThis, { dns: dns });
+// 载入安装测试的代码
+import { TestFromNMM } from "./test/test.from.nmm.cjs";
+import { TestToNMM } from "./test/test.to.nmm.cjs";
+dns.install(new TestFromNMM())
+dns.install(new TestToNMM())
 
+
+Object.assign(globalThis, { dns: dns });
 process.on("unhandledRejection", (error) => {
   console.error("????", error);
 });

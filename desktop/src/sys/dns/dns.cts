@@ -34,7 +34,7 @@ class MyDnsMicroModule implements $DnsMicroModule {
   
   connect(mmid: $MMID, reason?: Request) {
     return this.dnsNN[connectTo_symbol](
-      this.dnsNN,
+      this.fromMM,
       mmid,
       reason ?? new Request(`file://${mmid}`)
     );
@@ -42,15 +42,6 @@ class MyDnsMicroModule implements $DnsMicroModule {
 
   query(mmid: $MMID){
     return this.dnsNN.query(mmid)
-  }
-
-  // 私有的一对一的连接
-  async privateConnect(toMmid: $MMID, reason?: Request){
-    return new Promise(async (resolve) => {
-      const toMM = await this.dnsNN.open(toMmid);
-      const connects = await connectMicroModules(this.fromMM, toMM, reason ? reason : new Request(`file://${toMmid}`));
-      resolve(connects)
-    })
   }
 }
 
@@ -79,31 +70,60 @@ export class DnsNMM extends NativeMicroModule {
     Map<$MMID, PromiseOut<$ConnectResult>>
   >();
   
+  /**
+   * 创建通过 MessageChannel 实现同行的 ipc
+   * @param fromMM 
+   * @param toMmid 
+   * @param reason 
+   * @returns 
+   */
   async [connectTo_symbol](
     fromMM: MicroModule,
     toMmid: $MMID,
     reason: Request
   ) {
-    /// 拦截到了，走自定义总线
-    // 全部的 connect 都是保存在dns中
-    // 多个不同的模块 connect 一个相同模块，这个相同模块如果发送消息，发起连接的不同模块都会受到消息
-    const connectsMap = mapHelper.getOrPut(
+
+    // v2.0
+    // 创建连接
+    const fromMMconnectsMap = mapHelper.getOrPut(
       this.mmConnectsMap,
       fromMM,
       () => new Map<$MMID, PromiseOut<$ConnectResult>>()
     );
 
-    const po = mapHelper.getOrPut(connectsMap, toMmid, () => {
+    const po = mapHelper.getOrPut(fromMMconnectsMap, toMmid, () => {
       const po = new PromiseOut<$ConnectResult>();
       (async () => {
         /// 与指定应用建立通讯
         const toMM = await this.open(toMmid);
-        const connects = await connectMicroModules(fromMM, toMM, reason);
+        
+        const result = await connectMicroModules(fromMM, toMM, reason);
+        const [ipcForFromMM,ipcForToMM] = result
+        
         // 监听生命周期 释放引用
-        connects[0].onClose(() => {
-          connectsMap?.delete(toMmid);
+        ipcForFromMM.onClose(() => {
+          fromMMconnectsMap?.delete(toMmid);
         });
-        po.resolve(connects);
+
+        // 反向存储 toMM
+        if(ipcForToMM){
+          const result2 :$ConnectResult= [ipcForToMM,ipcForFromMM];
+          const toMMconnectsMap = mapHelper.getOrPut(
+            this.mmConnectsMap,
+            toMM,
+            () => new Map<$MMID, PromiseOut<$ConnectResult>>()
+          )
+          
+          mapHelper.getOrPut(toMMconnectsMap, fromMM.mmid,() => {
+            const toMMPromise = new PromiseOut<$ConnectResult>();
+            ipcForToMM.onClose(() => {
+              toMMconnectsMap?.delete(fromMM.mmid);
+            })
+            toMMPromise.resolve(result2)
+            return toMMPromise;
+          });
+      }
+        po.resolve(result);
       })();
       return po;
     });
@@ -150,6 +170,8 @@ export class DnsNMM extends NativeMicroModule {
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(
         async (fromMM, parsedUrl, requestInit) => {
+          // 测试代码 
+          // Reflect.set(requestInit, "duplex", "half")
           if (
             parsedUrl.protocol === "file:" &&
             parsedUrl.hostname.endsWith(".dweb")

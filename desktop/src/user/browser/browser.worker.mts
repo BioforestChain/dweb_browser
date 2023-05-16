@@ -24,9 +24,9 @@ const main = async () => {
   const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb")
   // 关闭信号
   const multiWebViewCloseSignal = createSignal<() => unknown>();
-
   /**尝试打开view */
   const tryOpenView = () => {
+    console.log("tryOpenView")
     const newWindowState = new PromiseOut<boolean>();
     (async () => {
       try {
@@ -63,8 +63,8 @@ const main = async () => {
   windowState = tryOpenView();
 
   const { IpcResponse, IpcHeaders } = ipc;
-
   /**给前端的文件服务 */
+ 
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443,

@@ -79,6 +79,7 @@ export class MessagePortIpc extends Ipc {
     } else {
       message_data = JSON.stringify(message_raw);
     }
+
     this.port.postMessage(message_data);
   }
 

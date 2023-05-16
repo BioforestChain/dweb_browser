@@ -8,5 +8,6 @@ cot
 app
 apps
 assets/data
+src/test
 
 proxy/src/index.cjs

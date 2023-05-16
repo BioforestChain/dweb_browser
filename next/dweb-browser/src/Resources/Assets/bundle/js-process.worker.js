@@ -3289,11 +3289,15 @@ var _IpcRequest = class extends IpcMessage {
     if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
       body = this.body.raw;
     }
-    return new Request(this.url, {
+    const init = {
       method,
       headers: this.headers,
       body
-    });
+    };
+    if (body) {
+      Reflect.set(init, "duplex", "half");
+    }
+    return new Request(this.url, init);
   }
   toJSON() {
     const { method } = this;
@@ -4180,11 +4184,10 @@ var listenHttpDwebServer = async (microModule, startResult, routes = [
   return httpServerIpc;
 };
 var startHttpDwebServer = (microModule, options) => {
-  return microModule.nativeFetch(
-    buildUrl(new URL(`file://http.sys.dweb/start`), {
-      search: options
-    })
-  ).object().then((obj) => {
+  const url = buildUrl(new URL(`file://http.sys.dweb/start`), {
+    search: options
+  });
+  return microModule.nativeFetch(url).object().then((obj) => {
     const { urlInfo, token } = obj;
     const serverUrlInfo = new ServerUrlInfo(
       urlInfo.host,
@@ -4298,10 +4301,12 @@ var JsProcessMicroModule = class {
   }
   async _nativeFetch(url, init) {
     const args = normalizeFetchArgs(url, init);
+    console.log("1");
     const ipc_response = await this._nativeRequest(
       args.parsed_url,
       args.request_init
     );
+    console.log("2");
     return await ipc_response.toResponse(args.parsed_url.href);
   }
   /** 模拟fetch的返回值 */

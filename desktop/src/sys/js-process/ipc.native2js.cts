@@ -2,6 +2,9 @@ import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
 import type { NativeIpc } from "../../core/ipc.native.cjs";
 import { IPC_ROLE } from "../../core/ipc/const.cjs";
 
+/**
+ * 单例模式用来保存全部的, port 发送给 woker.js 的对应 port
+ */
 export const ALL_IPC_CACHE = new Map<number, MessagePort>();
 export const saveNative2JsIpcPort = (port: MessagePort) => {
   const port_id = all_ipc_id_acc++;

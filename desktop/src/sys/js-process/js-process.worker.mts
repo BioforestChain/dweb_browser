@@ -134,15 +134,18 @@ export class JsProcessMicroModule implements $MicroModule {
     init?: RequestInit
   ): Promise<Response> {
     const args = normalizeFetchArgs(url, init);
+    console.log('1')
     const ipc_response = await this._nativeRequest(
       args.parsed_url,
       args.request_init
     );
+    console.log('2')
     return await ipc_response.toResponse(args.parsed_url.href);
   }
   
   /** 模拟fetch的返回值 */
   nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 

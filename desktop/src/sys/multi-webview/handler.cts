@@ -6,6 +6,28 @@ import type { $BarState, $ToastPosition } from "./assets/types";
 import type { MultiWebviewNMM } from "./multi-webview.mobile.cjs"
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
+
+export async function open(
+  this: MultiWebviewNMM,
+  root_url: string,
+  args: $Schema1ToType<{url: "string"}>,
+  clientIpc: Ipc,
+  request: IpcRequest,
+){
+  console.log('[multi-webview.mobile.cts 接受到了 open 请求>>>>>>>>>>>>>]--------------------------------------', args.url, clientIpc.uid)
+  const wapis = await this.forceGetWapis(clientIpc, root_url);
+  const webview_id = await wapis.apis.openWebview(args.url);
+  return webview_id
+  // return IpcResponse.fromText(
+  //   request.req_id,
+  //   200,
+  //   undefined,
+  //   webview_id,
+  //   clientIpc
+  // )
+}
+
+
 /**
  * 设置状态栏
  * @param this 
