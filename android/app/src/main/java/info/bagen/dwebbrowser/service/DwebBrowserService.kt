@@ -131,6 +131,14 @@ class DwebBrowserService : Service() {
   }
 
   private fun DownLoadInfo.callDownLoadProgress(current: Long, total: Long) {
+    if (current < 0) { // 专门针对下载异常情况，直接返回-1和0
+      this.downLoadStatus = DownLoadStatus.FAIL
+      DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)
+      sendStatusToEmitEvent(this.jmmMetadata.id, DownloadControllerEvent.End.event)
+      downloadMap.remove(jmmMetadata.id) // 下载失败后也需要移除
+      DownLoadObserver.close(jmmMetadata.id) // 同时移除当前mmid所有关联推送
+      return
+    }
     this.downLoadStatus = DownLoadStatus.DownLoading
     this.size = total
     this.dSize = current

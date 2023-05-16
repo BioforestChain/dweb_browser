@@ -179,18 +179,19 @@ object ZipUtil {
   @Throws(IOException::class)
   private fun unZip(file: File?, outputDir: String, mmid: String? = null): String {
     Log.d(TAG, "unZip->${file?.absolutePath}, $outputDir")
-    var dirName = ""
+    val dirName = "$outputDir/$mmid"
     ZipFile(file, StandardCharsets.UTF_8).use { zipFile ->
       //创建输出目录
-      //createDirectory(outputDir, null)
+      createDirectory(outputDir, null)
       val enums: Enumeration<*> = zipFile.entries()
       while (enums.hasMoreElements()) {
         val entry: ZipEntry = enums.nextElement() as ZipEntry
-        val name = getEntryName(entry.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
+        val name = entry.name // getEntryName(entry.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         if (entry.isDirectory) {
           //创建空目录
           createDirectory(outputDir, name)
-        } else {
+        } else { //是文件
+          createDirectory(outputDir, name.substring(0, name.lastIndexOf("/"))) // 需要确保父级目录存在
           zipFile.getInputStream(entry).use { inputStream ->
             FileOutputStream(
               File(outputDir + File.separator + name)
@@ -204,20 +205,20 @@ object ZipUtil {
 
   @Throws(IOException::class)
   private fun decompressTar(file: File?, outputDir: String, mmid: String? = null): String {
-    Log.d(TAG, "decompressTar->${file?.absolutePath}, $outputDir")
-    var dirName = ""
+    val dirName = "$outputDir/$mmid"
     TarArchiveInputStream(FileInputStream(file)).use { tarIn ->
       //创建输出目录
-      //createDirectory(outputDir, null)
+      createDirectory(outputDir, null)
       var entry: TarArchiveEntry? = null
       while (tarIn.nextTarEntry.also { entry = it } != null) {
-        val name = getEntryName(entry!!.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
+        val name = entry!!.name
+        //val name = getEntryName(entry!!.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         //是目录
         if (entry!!.isDirectory) {
           //创建空目录
           createDirectory(outputDir, name)
-        } else {
-          //是文件
+        } else { //是文件
+          createDirectory(outputDir, name.substring(0, name.lastIndexOf("/"))) // 需要确保父级目录存在
           FileOutputStream(
             File(outputDir + File.separator.toString() + name)
           ).use { out -> writeFile(tarIn, out) }
@@ -230,21 +231,21 @@ object ZipUtil {
   @Throws(IOException::class)
   private fun decompressTarGz(file: File?, outputDir: String, mmid: String? = null): String {
     Log.d(TAG, "decompressTarGz->${file?.absolutePath}, $outputDir")
-    var dirName = ""
+    val dirName = "$outputDir/$mmid"
     TarArchiveInputStream(
       GzipCompressorInputStream(BufferedInputStream(FileInputStream(file)))
     ).use { tarIn ->
       //创建输出目录
-      //createDirectory(outputDir, null)
+      createDirectory(outputDir, null)
       var entry: TarArchiveEntry? = null
       while (tarIn.nextTarEntry.also { entry = it } != null) {
-        val name = getEntryName(entry!!.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
+        val name = entry!!.name // getEntryName(entry!!.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         //是目录
         if (entry!!.isDirectory) {
           //创建空目录
           createDirectory(outputDir, name)
-        } else {
-          //是文件
+        } else { //是文件
+          createDirectory(outputDir, name.substring(0, name.lastIndexOf("/"))) // 需要确保父级目录存在
           FileOutputStream(
             File(outputDir + File.separator + name)
           ).use { out -> writeFile(tarIn, out) }
@@ -263,17 +264,18 @@ object ZipUtil {
   @Throws(IOException::class)
   private fun decompressTarBz2(file: File?, outputDir: String, mmid: String? = null): String {
     Log.d(TAG, "decompressTarBz2->${file?.absolutePath}, $outputDir")
-    var dirName = ""
+    val dirName = "$outputDir/$mmid"
     TarArchiveInputStream(
       BZip2CompressorInputStream(FileInputStream(file))
     ).use { tarIn ->
-      //createDirectory(outputDir, null)
+      createDirectory(outputDir, null)
       var entry: TarArchiveEntry
       while (tarIn.nextTarEntry.also { entry = it } != null) {
-        val name = getEntryName(entry.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
-        if (entry.isDirectory) {
+        val name = entry.name // getEntryName(entry.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
+        if (entry.isDirectory) { // 是目录
           createDirectory(outputDir, name)
-        } else {
+        } else { // 是文件
+          createDirectory(outputDir, name.substring(0, name.lastIndexOf("/"))) // 需要确保父级目录存在
           FileOutputStream(
             File(outputDir + File.separator.toString() + name)
           ).use { out -> writeFile(tarIn, out) }
@@ -312,8 +314,8 @@ object ZipUtil {
       file = File(outputDir + File.separator.toString() + subDir)
     }
     if (!file.exists()) {
-      if (!file.parentFile.exists()) {
-        file.parentFile.mkdirs()
+      if (file.parentFile?.exists() == false) {
+        file.parentFile?.mkdirs()
       }
       file.mkdirs()
     }
@@ -326,12 +328,13 @@ object ZipUtil {
    */
   private fun filterFile(filteredFile: File?) {
     if (filteredFile != null) {
-      val files: Array<File> = filteredFile.listFiles()
-      for (file in files) {
-        if (file.name.startsWith(".") ||
-          file.isDirectory && file.name.equals("__MACOSX")
-        ) {
-          FilesUtil.deleteQuietly(file)
+      filteredFile.listFiles()?.let { files ->
+        for (file in files) {
+          if (file.name.startsWith(".") ||
+            file.isDirectory && file.name.equals("__MACOSX")
+          ) {
+            FilesUtil.deleteQuietly(file)
+          }
         }
       }
     }

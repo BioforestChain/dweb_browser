@@ -26,7 +26,6 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     httpClient.requestPath(path = path, bodyMode = Stream)
       .let { httpResponse ->
-        println("xx${file?.absoluteFile}")
         val fileOutputStream:FileOutputStream? = file?.let { FileOutputStream(file) }
         try {
           if (!httpResponse.status.successful) { // 如果网络请求失败，直接抛异常
@@ -49,7 +48,8 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
           }
           // Log.e("ApiServiceImpl", "downloadAndSave-> $contentLength,$currentLength,${file?.length()}")
         } catch (e: Exception) {
-          e.printStackTrace()
+          println("${file?.absoluteFile}->$path, issue[${httpResponse.status}]==>${e.message}")
+          DLProgress(-1, httpResponse.status.code.toLong())
         } finally {
           fileOutputStream?.flush()
           fileOutputStream?.close()
@@ -93,7 +93,8 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
           length = inputStream.read(byteArray)
         }
       } catch (e: Exception) {
-        e.printStackTrace()
+        println("${file?.absoluteFile}->$path, issue[${httpResponse.status}]==>${e.message}")
+        DLProgress(-1, httpResponse.status.code.toLong())
       } finally {
         fileOutputStream?.flush()
         fileOutputStream?.close()
