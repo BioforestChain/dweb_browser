@@ -9,6 +9,7 @@ import info.bagen.dwebbrowser.microService.helper.printdebugln
 import info.bagen.dwebbrowser.microService.helper.readByteArray
 import info.bagen.dwebbrowser.microService.ipc.PreReadableInputStream
 import info.bagen.dwebbrowser.util.APP_DIR_TYPE
+import info.bagen.dwebbrowser.util.FilesUtil
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
 import java.io.File
@@ -232,7 +233,7 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
         val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkDataFileStream.defaultChunkSize
         val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
 
-        val src = request.uri.path.substring(1)
+        val src = request.uri.path//.substring(1)
         // 默认是需要 dweb:///sys/xxx.js
         val dirname: String = App.appContext.dataDir.absolutePath + File.separator +
                 APP_DIR_TYPE.SystemApp.rootName + File.separator + remote.mmid
@@ -240,11 +241,17 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
         debugFetchFile("OPEN-DataSrc", "dirname=$dirname, src=$src")
 
         /// 尝试打开文件，如果打开失败就走 404 no found 响应
-        val filenameList = File(dirname).list() ?: emptyArray()
+
+
+        /*File(dirname).listfi .listFiles { dir, name ->
+            debugFetchFile("NO-FOUND-DataSrc", dir.absolutePath + "......" + name)
+            true
+        }*/
+        val filenameList = FilesUtil.traverseFileTree(dirname)
 
         lateinit var response: Response
         if (!filenameList.contains(filename)) {
-            debugFetchFile("NO-FOUND-DataSrc", request.uri.path)
+            debugFetchFile("NO-FOUND-DataSrc", request.uri.path + "-->" + filename)
             response = Response(Status.NOT_FOUND).body("the file(${request.uri.path}) not found.")
         } else {
             response = Response(status = Status.OK)
