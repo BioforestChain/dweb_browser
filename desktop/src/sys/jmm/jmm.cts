@@ -58,12 +58,19 @@ export class JmmNMM extends NativeMicroModule {
       input: { metadataUrl: "string" },
       output: "boolean",
       handler: async (args, client_ipc, request) => {
+        // 需要同时查询参数传递进去
         const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
           url.pathname = "/index.html";
         }).href;
         const url = `file://mwebview.sys.dweb/open_download?url=${interUrl}`
         console.log('url: ', url)
-        await this.nativeFetch(url)
+        const body = JSON.stringify({
+          metadataUrl: args.metadataUrl
+        })
+        await this.nativeFetch(url,{
+          method: "POST",
+          body
+        })
         return true;
       },
     });

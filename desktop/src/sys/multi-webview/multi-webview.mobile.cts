@@ -82,6 +82,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
     });
 
     this.registerCommonIpcOnMessageHandler({
+      method: "POST",
       pathname: "/open_download",
       matchMode: "full",
       input: { url: "string" },

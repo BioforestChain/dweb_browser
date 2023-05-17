@@ -385,6 +385,9 @@
     
   </script>
   <script type="text/javascript">
+    console.log('location',location)
+    const search = new URLSearchParams(location.search);
+    const metadataUrl = search.get('metadataUrl')
     
   </script>
 </body>

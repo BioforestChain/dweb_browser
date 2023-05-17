@@ -31,11 +31,14 @@ export async function openDownloadPage(
   clientIpc: Ipc,
   request: IpcRequest,
 ){
+  console.log(await request.body.text())
+  const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl
   const apis = await this.apisGetFromFocused()
+  const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`
   if(apis === undefined) {
     throw new Error(`apis === undefined`)
   }
-  const webview_id = await apis.openWebview(args.url);
+  const webview_id = await apis.openWebview(targetUrl);
   return {}
 }
 
