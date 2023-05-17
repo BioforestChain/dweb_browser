@@ -7,6 +7,7 @@ namespace DwebBrowser.MicroService.Core;
 // TODO: ResponseRegistry 静态初始化问题未解决
 public static class ResponseRegistry
 {
+    static Debugger Console = new("ResponseRegistry");
     static readonly Dictionary<Type, Func<object, PureResponse>> RegMap = new();
 
     public static void RegistryResponse<T>(Type type, Func<T, PureResponse> handler)
@@ -35,27 +36,28 @@ public static class ResponseRegistry
 
     public static PureResponse Handler(object result)
     {
-        switch (RegMap.GetValueOrDefault(result.GetType()))
+        dynamic handler;
+        switch (handler = RegMap.GetValueOrDefault(result.GetType()))
         {
             case null:
                 var superClassType = result.GetType().BaseType; // 这里要声明在 while 循环外，因为要循环更新
                 while (superClassType is not null)
                 {
                     // 尝试寻找继承关系
-                    switch (RegMap.GetValueOrDefault(superClassType))
+                    switch (handler = RegMap.GetValueOrDefault(superClassType))
                     {
                         case null:
                             superClassType = superClassType.BaseType;
                             break;
                         default:
-                            return Handler(result);
+                            return handler(result);
                     }
                 }
 
                 // 否则默认当成JSON来返回
                 return AsJson(result);
             default:
-                return Handler(result);
+                return handler(result);
         }
     }
 

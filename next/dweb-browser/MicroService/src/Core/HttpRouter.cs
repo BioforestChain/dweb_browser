@@ -80,6 +80,7 @@ public class HttpRouter
         return (res = await RouterHandler(request, ipc)) switch
         {
             null => new PureResponse(HttpStatusCode.OK),
+            Unit => new PureResponse(HttpStatusCode.OK),
             PureResponse pureResponse => pureResponse,
             byte[] byteArrayData => new PureResponse(HttpStatusCode.OK, Body: new PureByteArrayBody(byteArrayData)),
             Stream streamData => new PureResponse(HttpStatusCode.OK, Body: new PureStreamBody(streamData)),
