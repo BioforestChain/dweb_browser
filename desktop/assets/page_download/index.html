@@ -316,6 +316,8 @@
     // 根据获取到的 appInfo 设置内容
     async function setAppInfoByAppInfo(info){
       const appInfo = typeof info === "object" ? info : JSON.parse(info);
+      window.appInfo = appInfo;
+      console.log('appInfo: ', appInfo)
       elIcon.style.backgroundImage = "url('https://www.bfmeta.info/imgs/logo3.webp')"
       elMainTitle.innerHTML = appInfo.title;
       elMainExplain.innerHTML = appInfo.subtitle;
@@ -332,17 +334,38 @@
     };
 
     // 下载按钮事件处理器
-    elBtnDownload.addEventListener('click', (e) => {
-      // metadataUrl 是全局注入进来的
-      const fetchUrl = `./jmm.sys.dweb/install?metadataUrl=${metadataUrl}`;
+    elBtnDownload.addEventListener('click', async (e) => {
+      const decoder = new TextDecoder()
+      progress(0)
+      // setDownloadBackground(0)
+      // setDownloadText(0)
+      // 通过返回一个 stream 实现 长连接
+      const url = location.origin.replace("www.", "api.")
+      const res = await fetch(`${url}/app/download?url=${window.appInfo.downloadUrl}&id=${window.appInfo.id}`)
+      
+      const stream = res.body;
+      const reader = stream.getReader();
+
+      while(true){
+        const {value, done} = await reader.read();
+        if(done) return;
+        let percent  = decoder.decode(value)
+        progress(parseInt(percent))
+      }
+
+      stream.cancel("done");
+      
+      console.error('还需要触发自动返回')
+      
+      
       // 因为 注入改写了 fetch
-      setDownloadBackground(0)
-      setDownloadText(0)
-      nativeFetch(fetchUrl, { headers: {origin: location.origin}})
-      .then(
-        res => console.log('res', res),
-        err => console.error(err)
-      )
+      // setDownloadBackground(0)
+      // setDownloadText(0)
+      // nativeFetch(fetchUrl, { headers: {origin: location.origin}})
+      // .then(
+      //   res => console.log('res', res),
+      //   err => console.error(err)
+      // )
     })
     elBtnMore.addEventListener('click', (e) => {
       const has = elDetailtext.classList.contains('detail-text-open')
@@ -365,7 +388,10 @@
      * 设置 下载按钮的背景色
      */ 
     function setDownloadBackground(percent){
-      elBtnDownloadMask.style.background = `linear-gradient(90deg, #1677ff ${percent}%, #999)`
+      console.log('--- setDownloadBackground', percent)
+      const backgroundStyle = `linear-gradient(90deg, #1677ff ${percent}%, #999)`
+      console.log('background: ', backgroundStyle)
+      elBtnDownloadMask.style.background = backgroundStyle
     }
 
     function setDownloadText(percent){
@@ -396,8 +422,6 @@
       console.log('response: ', response)
       setAppInfoByAppInfo(await response.json())
     })()
-    console.log(window.electron)
-    
   </script>
 </body>
 </html>

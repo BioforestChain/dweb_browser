@@ -1,7 +1,13 @@
-
-import { Ipc, IpcRequest, IpcResponse } from "../../core/ipc/index.cjs";
+const fs = require('fs');
+const fsPromises = require('node:fs/promises')
+const path = require('path')
+const request = require('request');
+const progress = require('request-progress');
+const extract = require('extract-zip')
+const tar = require('tar')
+import { Ipc, IpcHeaders, IpcRequest, IpcResponse } from "../../core/ipc/index.cjs";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
-import type { JmmNMM } from "./jmm.cjs";
+import type { $AppMetaData, $State, JmmNMM } from "./jmm.cjs";
 
 export async function createApiServer(
   this: JmmNMM
@@ -11,9 +17,6 @@ export async function createApiServer(
     subdomain: "api",
     port: 6363
   });
-
-  // 
-
   const streamIpc = await this.apiServer.listen();
   streamIpc.onRequest(onRequest.bind(this))
 }
@@ -27,12 +30,13 @@ async function onRequest(
   switch(request.parsed_url.pathname){
     case "/get_data":
       return getData.bind(this)(request, ipc)
-    break;
+    case "/app/download":
+      return appDownload.bind(this)(request, ipc);
     default: {
       throw new Error(`${this.mmid} 有没有处理的pathname === ${request.parsed_url.pathname}`)
+      debugger;
     }
   }
-  const url = request.url
 }
 
 async function getData(
@@ -52,4 +56,84 @@ async function getData(
       true
     )
   )
+}
+
+let controller: ReadableStreamDefaultController | undefined = undefined
+// const eventTarget = new EventTarget()
+async function appDownload(
+  this: JmmNMM,
+  ipcRequest: IpcRequest,
+  ipc: Ipc
+){
+  const search = ipcRequest.parsed_url.searchParams
+  const downloadUrl = search.get('url')
+  const id = search.get('id')
+  if(downloadUrl === null) throw new Error(`downloadUrl === null`)
+  if(id === null) throw new Error(`id === null`);
+  const stream = new ReadableStream({
+    start(_controller){
+      controller = _controller
+    },
+    cancel(resone){
+      controller?.close();
+    },
+    pull(controller){
+      // eventTarget.dispatchEvent(new Event('pull'))
+    }
+  })
+
+  ipc.postMessage(
+    await IpcResponse.fromStream(
+      ipcRequest.req_id,
+      200,
+      new IpcHeaders(),
+      stream,
+      ipc
+    )
+  )
+  const tempPath = path.resolve(process.cwd(), `./temp/${id}.tar.gz`)
+  const writeAblestream = fs.createWriteStream(tempPath, {flags: "w"});
+        writeAblestream.on('close', () => _extract(id, tempPath, ipcRequest, ipc))
+  progress(request(downloadUrl), {})
+  .on('progress', onProgress.bind(this, ipcRequest, ipc))
+  .on('error', (err: Error) => {throw err})
+  .pipe(writeAblestream) 
+}
+
+async function onProgress(
+  this: JmmNMM,
+  ipcRequest: IpcRequest,
+  ipc: Ipc,
+  state: $State,
+){
+  const value = (state.percent * 100).toFixed(0);
+  console.log('onProcess: ', value)
+  const ui8 = new TextEncoder().encode(`${value}\n`)
+  controller?.enqueue(ui8)
+}
+
+async function _extract(
+  id: string,
+  tempPath: string,
+  request: IpcRequest,
+  ipc: Ipc
+){
+  const target = path.resolve(process.cwd(), `./apps`)
+  // 判断 target 目录是否存在 不存在就创建目录
+  if(!fs.existsSync(target)){
+    await fsPromises.mkdir(target, {
+      recersive: true,
+    })
+  }
+ 
+  tar.x(
+    {
+      cwd: target,
+      file: tempPath,
+      sync: true,
+    }
+  )
+  await fsPromises.unlink(tempPath)
+  controller?.enqueue(new TextEncoder().encode(`100\n`))
+  
 }
