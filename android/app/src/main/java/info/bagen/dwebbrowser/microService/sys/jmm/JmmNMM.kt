@@ -134,24 +134,6 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
         bootstrapContext.dns.uninstall(jsMicroModule)
         FilesUtil.uninstallApp(jsMicroModule.metadata.id)
     }
-
-    fun checkJmmMetadataJson(url: String): Boolean {
-        android.net.Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
-            if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
-                try {
-                    val jmmMetadata = gson.fromJson(
-                        byteBufferToString(HttpClient().requestPath(url).body.payload),
-                        JmmMetadata::class.java
-                    )
-//                    return jmmMetadata
-                } catch (e: JsonSyntaxException) {
-                    Log.e("DWebBrowserModel", "checkJmmMetadataJson fail -> ${e.message}")
-                }
-            }
-        }
-        return false
-    }
-
     override suspend fun _shutdown() {
 
     }

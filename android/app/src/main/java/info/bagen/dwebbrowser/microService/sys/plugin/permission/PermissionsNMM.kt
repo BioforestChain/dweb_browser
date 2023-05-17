@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.sys.plugin.permission
 
-import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.Mmid
@@ -52,28 +51,11 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
     }
 
     private fun applyPermission(permission: String, mmid: Mmid) {
-        browserController.activity?.let {
-          PermissionManager.requestPermissions(
-            it,
-            permission
-          )
-        }
-        val list = systemPermissions[mmid] ?: mutableListOf()
-        list.add(permission)
+
     }
 
     private fun applyPermissions(permissions: ArrayList<String>, mmid: Mmid) {
-        browserController.activity?.let {
-          PermissionManager.requestPermissions(
-            it,
-            permissions
-          )
-        }
-        //TODO 存一下，这里如果是数据库会好一点
-        val list = systemPermissions[mmid] ?: mutableListOf()
-        permissions.forEach {
-            list.add(it)
-        }
+
     }
 
     override suspend fun _shutdown() {

@@ -25,41 +25,30 @@ const main = async () => {
   const EXTERNAL_PREFIX = "/external";
 
   /**尝试打开view */
-  const tryOpenView = () => {
-    const newWindowState = new PromiseOut<boolean>();
-    (async () => {
-      try {
-        if (webViewMap.size === 0) {
-          // open
-          const url = await mainUrl.promise;
-          const view_id = await nativeOpen(url);
-          webViewMap.set(view_id, {
-            isActivated: true,
-            webviewId: view_id,
-          });
-          return view_id;
-        }
-        // 当前的策略是有多少个webview激活多少个
-        await Promise.all(
-          [...webViewMap.values()].map((item) => {
-            // activate
-            return nativeActivate(item.webviewId);
-          })
-        );
-      } finally {
-        newWindowState.resolve(true);
-      }
-    })();
-    windowState = newWindowState;
-    return newWindowState;
+  const tryOpenView = async () => {
+    if (webViewMap.size === 0) {
+      // open
+      const url = await mainUrl.promise;
+      const view_id = await nativeOpen(url);
+      webViewMap.set(view_id, {
+        isActivated: true,
+        webviewId: view_id,
+      });
+      return view_id;
+    }
+    // 当前的策略是有多少个webview激活多少个
+    await Promise.all(
+      [...webViewMap.values()].map((item) => {
+        // activate
+        return nativeActivate(item.webviewId);
+      })
+    );
   };
 
   /**
-   * 窗口状态
    * 立刻自启动
    */
-  let windowState: PromiseOut<boolean>;
-  windowState = tryOpenView();
+  tryOpenView();
 
   const { IpcResponse, IpcHeaders } = ipc;
 
@@ -144,8 +133,8 @@ const main = async () => {
     // 处理serviceworker respondWith过来的请求,回复给别的app
     if (url.pathname.startsWith(EXTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(EXTERNAL_PREFIX.length);
-      const externalReqId = parseInt(pathname)
-      console.log("externalReqId => ",externalReqId, url.pathname)
+      const externalReqId = parseInt(pathname);
+      console.log("externalReqId => ", externalReqId, url.pathname);
       if (externalReqId) {
         const externalIpc = externalMap.get(externalReqId);
         if (externalIpc) {
@@ -175,7 +164,6 @@ const main = async () => {
       externalMap.set(request.req_id, ipc);
       return;
     }
-
   });
 
   // 转发serviceWorker 请求
@@ -202,9 +190,7 @@ const main = async () => {
 
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (ipcEvent, ipc) => {
-    if ((await windowState.promise) === false) {
-      await tryOpenView();
-    }
+    await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
     if (hasActivityEventIpcs.has(ipc) === false) {
       hasActivityEventIpcs.add(ipc);
@@ -249,7 +235,7 @@ const main = async () => {
   {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
-    })
+    });
     interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
     mainUrl.resolve(interUrl.href);
   }
