@@ -4,6 +4,7 @@ import type { $Schema1ToType, $Schema2 } from "../../helper/types.cjs";
 import { hexaToRGBA,  converRGBAToHexa} from "../plugins/helper.cjs";
 import type { $BarState, $ToastPosition } from "./assets/types";
 import type { MultiWebviewNMM } from "./multi-webview.mobile.cjs"
+import querystring from "node:querystring"
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
 
@@ -18,13 +19,6 @@ export async function open(
   const wapis = await this.forceGetWapis(clientIpc, root_url);
   const webview_id = await wapis.apis.openWebview(args.url);
   return webview_id
-  // return IpcResponse.fromText(
-  //   request.req_id,
-  //   200,
-  //   undefined,
-  //   webview_id,
-  //   clientIpc
-  // )
 }
 
 
@@ -211,12 +205,15 @@ export async function shareShare(
   const apis = this.apisGetFromFocused()
   if(apis === undefined) throw new Error(`wapi === undefined`);
   const searchParams = request.parsed_url.searchParams
-  console.log('request: ', request)
-  debugger
-  // if(message === null || duration === null || position === null) throw new Error(
-  //   `message === null || duration === null || position === null`
-  // )
-  // await apis.toastShow(message, duration === "short" ? "1000" : "2000", position as $ToastPosition)
+  const title = searchParams.get("title");
+  const text = searchParams.get('text');
+  const link = searchParams.get('url');
+  apis.shareShare({
+    title: title === null ? "" : title,
+    text: text === null ? "" : text,
+    link: link === null ? "" : link,
+    src: "",
+  })
   return true;
 }
 

@@ -1,4 +1,5 @@
 import { encode } from "@msgpack/msgpack";
+
 import type {
   $IpcMicroModuleInfo,
   $IpcSupportProtocols,
@@ -61,7 +62,7 @@ export class MessagePortIpc extends Ipc {
     port.start();
   }
 
-  _doPostMessage(message: $IpcMessage): void {
+  _doPostMessage(message: $IpcMessage, transfer?: Transferable[]): void {
     var message_data: any;
     var message_raw: IpcMessage<any>;
     if (message instanceof IpcRequest) {
@@ -80,7 +81,7 @@ export class MessagePortIpc extends Ipc {
       message_data = JSON.stringify(message_raw);
     }
 
-    this.port.postMessage(message_data);
+    this.port.postMessage(message_data, transfer ? transfer : []);
   }
 
   _doClose() {

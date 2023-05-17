@@ -1,5 +1,6 @@
 import querystring from "querystring"
-import type { Ipc, IpcRequest } from "../../../../core/ipc/index.cjs";
+import { ReadableStreamIpc } from "../../../../core/ipc-web/ReadableStreamIpc.cjs";
+import { Ipc, IpcRequest, IPC_ROLE } from "../../../../core/ipc/index.cjs";
 import type { $Schema1, $Schema1ToType } from "../../../../helper/types.cjs";
 import type { ShareNMM } from "./share.main.cjs"
 
@@ -21,38 +22,35 @@ export async function share(
   const pathname = ipcRequest.parsed_url.pathname;
   const search = ipcRequest.parsed_url.search;
   const url = `file://mwebview.sys.dweb/plugin/${host}${pathname}${search}`
-  
-  const stream = await ipcRequest.body.stream()
-  
-  if(stream instanceof ReadableStream){
-    const reader =  stream.getReader()
-    while(true) {
-      const {value,done} = await reader.read()
-      console.log('value: ', value)
-      if(done){
-        return
-      }
-    }
-  }else{
-    console.log('stream: ', stream)
-  }
 
-  debugger;
+  console.log('ipcRequest.body', ipcRequest.body)
+  
+  console.log("ipcRequest.body.u8a(): ", await ipcRequest.body.u8a())
+
+
   const result = await this.nativeFetch(url,{
-    body: await ipcRequest.body.stream(),
+    body: ipcRequest.body.raw,
     headers: ipcRequest.headers,
     method: ipcRequest.method,
   })
-
   return result;
 }
 
-// 判断类型
 
-function isReadableStream(o: unknown): o is ReadableStream{
-  if((o as ReadableStream).getReader){
-    return true
-  }else{
-    return false
-  }
+export async function createStreamIpc(
+  this: ShareNMM,
+  args: $Schema1ToType<{}>,
+  client_ipc: Ipc, 
+  ipcRequest: IpcRequest
+){
+  const readableStreamIpcToTestFromSysDweb = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
+  readableStreamIpcToTestFromSysDweb.bindIncomeStream(ipcRequest.body.stream());
+  readableStreamIpcToTestFromSysDweb.onEvent(event => {
+    console.log('event: ', event)
+  })
+  readableStreamIpcToTestFromSysDweb.onStream(stream => {
+    console.log('stream: ', (stream as any).binary)
+  })
+
+  return readableStreamIpcToTestFromSysDweb.stream;
 }

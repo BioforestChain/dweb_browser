@@ -1,7 +1,8 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.cjs";
 import { log } from "../../../../helper/devtools.cjs";
 import querystring from "node:querystring"
-import { share } from "./handlers.cjs"
+import { share,
+  createStreamIpc } from "./handlers.cjs"
 import type { IncomingMessage, OutgoingMessage } from "http";
 import type { $BootstrapContext } from "../../../../core/bootstrapContext.cjs";
 import type { HttpServerNMM } from "../../../http-server/http-server.cjs";
@@ -22,6 +23,16 @@ export class ShareNMM extends NativeMicroModule{
       output: "object",
       handler: share.bind(this)
     }); 
+
+    // // create_stream_ipc
+    // this.registerCommonIpcOnMessageHandler({
+    //   method: "POST",
+    //   pathname: "/share/create_stream_ipc",
+    //   matchMode: "full",
+    //   input: {},
+    //   output: "object",
+    //   handler: createStreamIpc.bind(this)
+    // }); 
   }
  
 

@@ -3876,7 +3876,7 @@ var MessagePortIpc = class extends Ipc {
     });
     port.start();
   }
-  _doPostMessage(message) {
+  _doPostMessage(message, transfer) {
     var message_data;
     var message_raw;
     if (message instanceof IpcRequest) {
@@ -3893,7 +3893,7 @@ var MessagePortIpc = class extends Ipc {
     } else {
       message_data = JSON.stringify(message_raw);
     }
-    this.port.postMessage(message_data);
+    this.port.postMessage(message_data, transfer ? transfer : []);
   }
   _doClose() {
     console.log("web-message-port-ipc", "onclose");

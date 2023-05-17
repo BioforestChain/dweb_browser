@@ -238,7 +238,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/share.sys.dweb/share",
-      method: "GET",
+      method: "POST",
       matchMode: "full",
       input: {},
       output: "object",

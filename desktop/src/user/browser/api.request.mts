@@ -1,4 +1,4 @@
-import { IPC_DATA_ENCODING } from "../../core/ipc/index.cjs";
+import { IpcMessage, IPC_DATA_ENCODING, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { IpcEvent } from "../../core/ipc/IpcEvent.cjs";
 import { IpcStreamData } from "../../core/ipc/IpcStreamData.cjs";
 import { u8aConcat } from "../../helper/binaryHelper.cjs";
@@ -11,7 +11,8 @@ import type { ServerUrlInfo } from "../../sys/http-server/const.js";
 import { OBSERVE } from "../tool/tool.event.mjs";
 import { cros } from "../tool/tool.native.mjs";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
-
+import { transfer } from "comlink";
+import { IpcBodySender } from "../../core/ipc/index.cjs"
 const { IpcResponse, Ipc, IpcRequest, IpcHeaders, IPC_METHOD } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 export type $Ipc = InstanceType<typeof Ipc>;
