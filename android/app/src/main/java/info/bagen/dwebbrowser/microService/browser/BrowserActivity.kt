@@ -15,7 +15,6 @@ import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserC
 import info.bagen.dwebbrowser.ui.browser.BrowserView
 import info.bagen.dwebbrowser.ui.camera.QRCodeIntent
 import info.bagen.dwebbrowser.ui.camera.QRCodeScanning
-import info.bagen.dwebbrowser.ui.camera.QRCodeScanningView
 import info.bagen.dwebbrowser.ui.camera.QRCodeViewModel
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
@@ -28,23 +27,26 @@ class BrowserActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    browserController.activity = this
+    browserController?.activity = this
     setContent {
       WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
         !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
       RustApplicationTheme {
-        browserController.effect(activity = this@BrowserActivity)
-        Box(modifier = Modifier.background(Color.Black)) {
-          BrowserView(viewModel = browserController.browserViewModel)
-          // QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
-          LoadingView(browserController.showLoading)
+        browserController?.apply {
+          effect(activity = this@BrowserActivity)
+          Box(modifier = Modifier.background(Color.Black)) {
+            BrowserView(viewModel = browserViewModel)
+            // QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
+            LoadingView(showLoading)
+          }
         }
       }
     }
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onBackPressed() {
-    if (browserController.browserViewModel.canMoveToBackground) {
+    if (browserController?.browserViewModel?.canMoveToBackground == true) {
       moveTaskToBack(false)
       return // 如果没有直接return，会导致重新打开app时，webview都是显示首页
     }
@@ -89,14 +91,14 @@ class BrowserActivity : AppCompatActivity() {
 
   override fun onStop() {
     super.onStop()
-    if (browserController.showLoading.value) { // 如果已经跳转了，这边直接改为隐藏
-      browserController.showLoading.value = false
+    browserController?.apply {
+      if (showLoading.value) showLoading.value = false // 如果已经跳转了，这边直接改为隐藏
     }
   }
 
   override fun onDestroy() {
     // 退出APP关闭服务
     super.onDestroy()
-    browserController.activity = null
+    browserController?.activity = null
   }
 }

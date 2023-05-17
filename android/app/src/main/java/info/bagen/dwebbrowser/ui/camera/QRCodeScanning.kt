@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.ui.camera
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.graphics.Point
 import android.util.Log
 import android.widget.FrameLayout
@@ -63,6 +64,7 @@ fun QRCodeScanningView(
 
 private typealias ScanCallback = List<Barcode>
 
+@SuppressLint("ViewConstructor")
 class QRCodeScanning(val activity: FragmentActivity, val scanType: ScanType) :
   FrameLayout(activity) {
 

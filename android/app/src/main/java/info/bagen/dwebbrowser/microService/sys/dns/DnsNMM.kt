@@ -6,6 +6,7 @@ import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -207,8 +208,12 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     }
 
     /** 卸载应用 */
+    @OptIn(DelicateCoroutinesApi::class)
     fun uninstall(mm: MicroModule) {
         installApps.remove(mm.mmid)
+        GlobalScope.launch(ioAsyncExceptionHandler) {
+            close(mm.mmid)
+        }
     }
 
     /** 查询应用 */

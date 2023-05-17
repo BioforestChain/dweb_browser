@@ -173,7 +173,6 @@ class DwebBrowserService : Service() {
       if (unzip) {
         JmmMetadataDB.saveJmmMetadata(jmmMetadata.id, jmmMetadata)
         // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
-        // BrowserNMM.getBrowserController().installApp(jmmMetadata.id)
         DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.INSTALLED)
         sendStatusToEmitEvent(this.jmmMetadata.id, DownloadControllerEvent.End.event)
         this.downLoadStatus = DownLoadStatus.INSTALLED

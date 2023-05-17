@@ -194,10 +194,11 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
   if (url.value.isNotEmpty()) {
     val webViewClient = object : AccompanistWebViewClient() {
       override fun onReceivedError(
-        view: WebView?, request: WebResourceRequest?, error: WebResourceError?
+        view: WebView,
+        request: WebResourceRequest?,
+        error: WebResourceError?
       ) {
         super.onReceivedError(view, request, error)
-        // Log.e("SplashActivity", "PrivacyView::onReceivedError $error")
         // android 6.0以下执行
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
           return
@@ -205,7 +206,7 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
         // 断网或者网络连接超时
         val errorCode = error?.errorCode
         if (errorCode == ERROR_HOST_LOOKUP || errorCode == ERROR_CONNECT || errorCode == ERROR_TIMEOUT) {
-          view!!.loadUrl("about:blank") // 避免出现默认的错误界面
+          view.loadUrl("about:blank") // 避免出现默认的错误界面
           //view!!.loadUrl(mErrorUrl) // 加载自定义错误页面
         }
       }
@@ -225,17 +226,16 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
     }
 
     val webChromeClient = object : AccompanistWebChromeClient() {
-      override fun onReceivedTitle(view: WebView?, title: String?) {
+      override fun onReceivedTitle(view: WebView, title: String?) {
         super.onReceivedTitle(view, title)
         // Log.e("SplashActivity", "SplashActivity::PrivacyView::onReceivedTitle $title")
         // android 6.0 以下通过title获取判断
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-          title?.let { title ->
-            if (title.contains("404") || title.contains("500") || title.contains("Error") || title.contains(
-                "找不到网页"
-              ) || title.contains("网页无法打开")
+          title?.let {
+            if (it.contains("404") || it.contains("500") || it.contains("Error") ||
+              it.contains("找不到网页") || it.contains("网页无法打开")
             ) {
-              view!!.loadUrl("about:blank") // 避免出现默认的错误界面
+              view.loadUrl("about:blank") // 避免出现默认的错误界面
               // view!!.loadUrl(mErrorUrl) // 加载自定义错误页面
             }
           }

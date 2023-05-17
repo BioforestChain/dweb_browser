@@ -110,12 +110,16 @@ dependencies {
 //    implementation("androidx.navigation:navigation-fragment-ktx:2.5.1")
     implementation("androidx.navigation:navigation-ui-ktx:2.5.1")
     implementation("androidx.gridlayout:gridlayout:1.0.0")
-    val accompanistVersion = "0.29.2-rc"
+    val accompanistVersion = "0.31.2-alpha" // "0.29.2-rc"
     implementation("com.google.accompanist:accompanist-webview:$accompanistVersion")
     implementation("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
     implementation("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
     implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
-    implementation("androidx.profileinstaller:profileinstaller:1.2.0-alpha02")
+    implementation("com.google.accompanist:accompanist-permissions:$accompanistVersion") // 权限功能
+    implementation("com.google.accompanist:accompanist-insets:$accompanistVersion") // 界面安全区功能
+    implementation("com.google.accompanist:accompanist-insets-ui:$accompanistVersion") // 界面安全区功能
+
+    implementation("androidx.profileinstaller:profileinstaller:1.3.0")
     testImplementation("org.junit.jupiter:junit-jupiter")
     val appcompatVersion = "1.6.1"
     implementation("androidx.appcompat:appcompat:$appcompatVersion")

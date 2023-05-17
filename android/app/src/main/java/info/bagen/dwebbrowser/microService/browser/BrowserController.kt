@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser
 
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.Composable
@@ -10,17 +9,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import com.google.gson.JsonSyntaxException
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
-import info.bagen.dwebbrowser.network.HttpClient
-import info.bagen.dwebbrowser.network.base.byteBufferToString
 import info.bagen.dwebbrowser.ui.browser.BrowserViewModel
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.http4k.core.Uri
 import org.http4k.core.query
 
@@ -90,17 +84,18 @@ class BrowserController(val browserNMM: BrowserNMM) {
     }
 
     suspend fun openApp(mmid: Mmid) {
+        showLoading.value = true
         openIPCMap.getOrPut(mmid) {
             val (ipc) = browserNMM.connect(mmid)
             ipc.onEvent {
                 if (it.event.name == EIpcEvent.Ready.event) { // webview加载完成，可以隐藏加载框
-                    BrowserNMM.browserController.showLoading.value = false
+                    BrowserNMM.browserController?.showLoading?.value = false
                     debugBrowser("openApp", "event::${it.event.name}==>${it.event.data}  from==> $mmid ")
                 }
             }
             ipc
         }.also { ipc ->
-            debugBrowser("openApp", "postMessage==>activity  $mmid")
+            debugBrowser("openApp", "postMessage==>activity  $mmid, $ipc")
             ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         }
     }

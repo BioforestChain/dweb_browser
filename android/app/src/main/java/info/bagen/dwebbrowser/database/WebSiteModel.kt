@@ -81,6 +81,11 @@ interface WebSiteDao {
 
   @Delete
   fun delete(user: WebSiteInfo)
+
+  @Query(
+    "DELETE FROM $WebSiteTableName WHERE type = :type"
+  )
+  fun clearByType(type: WebSiteType): Int
 }
 
 class Converters {

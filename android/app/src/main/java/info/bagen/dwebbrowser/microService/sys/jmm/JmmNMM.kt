@@ -1,22 +1,17 @@
 package info.bagen.dwebbrowser.microService.sys.jmm
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
-import com.google.gson.JsonSyntaxException
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.encodeURIComponent
-import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
-import info.bagen.dwebbrowser.microService.user.CotDemoJMM
-import info.bagen.dwebbrowser.network.HttpClient
-import info.bagen.dwebbrowser.network.base.byteBufferToString
 import info.bagen.dwebbrowser.service.DownLoadController
+import info.bagen.dwebbrowser.service.compareAppVersionHigh
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import info.bagen.dwebbrowser.util.FilesUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -32,14 +27,34 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
+/**
+ * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
+ */
+inline fun <K, V> MutableMap<K, V>.getAndCheckOrPut(
+    key: K, replace: (V) -> Boolean, defaultValue: () -> V
+): V {
+    val value = get(key)
+    return if (value == null || replace(value)) {
+        val answer = defaultValue()
+        put(key, answer)
+        answer
+    } else {
+        value
+    }
+}
+
 @OptIn(DelicateCoroutinesApi::class)
 class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
     companion object {
         private val apps = mutableStateMapOf<Mmid, JsMicroModule>()
         fun getAndUpdateJmmNmmApps() = apps
+
+        private val controllerList = mutableListOf<JmmController>()
+        val jmmController get() = controllerList.firstOrNull()
     }
 
     init {
+        controllerList.add(JmmController(this))
         // 启动的时候，从数据库中恢复 apps 对象
         GlobalScope.launch(ioAsyncExceptionHandler) {
             while (true) { // TODO 为了将 jmm.sys.dweb 启动，否则 bootstrapContext 会报错
@@ -50,17 +65,30 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                     break
                 } catch (_: Exception) {}
             }
-            JmmMetadataDB.queryJmmMetadataList().collectLatest { // TODO 只要datastore更新，这边就会实时更新
-                debugJMM("init/JmmNMM", "init Apps list -> ${it.size}")
-                it.forEach { (key, value) ->
-                    // debugJMM("init/JmmNMM", "init Apps item -> $key==>$value")
-                    apps.getOrPut(key) {
+            JmmMetadataDB.queryJmmMetadataList().collectLatest { maps -> // TODO 只要datastore更新，这边就会实时更新
+                debugJMM("init/JmmNMM", "init Apps list -> ${maps.size}")
+
+                maps.forEach { (key, value) ->
+                    apps.getAndCheckOrPut(key, replace = { local ->
+                        val replace = compareAppVersionHigh(local.metadata.version, value.version) // 版本不一致则替换
+                        if (replace) bootstrapContext.dns.uninstall(local) // 将旧的移除
+                        replace
+                    }) {
                         JsMicroModule(value).also { jsMicroModule ->
                             try {
-                              bootstrapContext.dns.install(jsMicroModule)
-                            } catch (_ : Exception) { }
+                                bootstrapContext.dns.install(jsMicroModule)
+                            } catch (_: Exception) {
+                            }
                         }
                     }
+                    /*apps.getOrPut(key) {
+                        JsMicroModule(value).also { jsMicroModule ->
+                            try {
+                                bootstrapContext.dns.install(jsMicroModule)
+                            } catch (_: Exception) {
+                            }
+                        }
+                    }*/
                 }
             }
         }

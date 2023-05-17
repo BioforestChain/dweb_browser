@@ -27,7 +27,6 @@ import info.bagen.dwebbrowser.database.WebSiteInfo
 import info.bagen.dwebbrowser.database.WebSiteType
 import info.bagen.dwebbrowser.datastore.DefaultAllWebEngine
 import info.bagen.dwebbrowser.datastore.WebEngine
-import info.bagen.dwebbrowser.datastore.WebsiteDB
 import info.bagen.dwebbrowser.microService.browser.BrowserController
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM
 import info.bagen.dwebbrowser.microService.helper.Mmid
@@ -37,7 +36,6 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.webview.DWebView
-import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.util.*
 import kotlinx.coroutines.*
@@ -47,8 +45,6 @@ data class BrowserUIState @OptIn(
   ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
 ) constructor(
   val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
-  // val historyWebsiteMap: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf(), // 历史列表
-  val bookWebsiteList: MutableList<WebSiteInfo> = mutableStateListOf(), // 书签列表
   val currentBrowserBaseView: MutableState<BrowserWebView>,
   val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
   val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
@@ -82,16 +78,9 @@ sealed class BrowserIntent {
   object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   object ShareWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   class UpdateInputText(val text: String) : BrowserIntent()
-  class DeleteWebSiteList(
-    val type: ListType, val website: WebSiteInfo?, val clsAll: Boolean = false
-  ) : BrowserIntent()
 
   class UninstallJmmMetadata(val jmmMetadata: JmmMetadata) : BrowserIntent()
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
-}
-
-enum class ListType {
-  History, Book
 }
 
 class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
@@ -109,22 +98,6 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
       )
       uiState.browserViewList.add(browserView)
     }
-    /*viewModelScope.launch(ioAsyncExceptionHandler) {
-      WebsiteDB.queryHistoryWebsiteInfoMap().collect {
-        uiState.historyWebsiteMap.clear()
-        it.forEach { (key, value) ->
-          uiState.historyWebsiteMap[key] = value
-        }
-      }
-    }*/
-    /*viewModelScope.launch(ioAsyncExceptionHandler) {
-      WebsiteDB.queryBookWebsiteInfoList().collect { list ->
-        uiState.bookWebsiteList.clear()
-        list.forEach {
-          uiState.bookWebsiteList.add(it)
-        }
-      }
-    }*/
   }
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
@@ -153,9 +126,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
           }
         }
         is BrowserIntent.WebViewGoBack -> {
-          uiState.currentBrowserBaseView.value.let { browserBaseView ->
-            if (browserBaseView is BrowserWebView) browserBaseView.navigator.navigateBack()
-          }
+          uiState.currentBrowserBaseView.value.navigator.navigateBack()
         }
         is BrowserIntent.UpdateCurrentBaseView -> {
           if (action.currentPage >= 0 && action.currentPage < uiState.browserViewList.size) {
@@ -193,7 +164,8 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         }
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
-          when (val itemView = uiState.currentBrowserBaseView.value) {
+          uiState.currentBrowserBaseView.value.state.content = WebContent.Url(action.url)
+          /*when (val itemView = uiState.currentBrowserBaseView.value) {
             is BrowserWebView -> {
               itemView.state.content = WebContent.Url(action.url)
             }
@@ -229,10 +201,10 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
                 }
               }
             }
-          }
+          }*/
         }
         is BrowserIntent.OpenDwebBrowser -> {
-          BrowserNMM.browserController.openApp(action.mmid)
+          BrowserNMM.browserController?.openApp(action.mmid)
         }
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id)
@@ -291,24 +263,6 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
         is BrowserIntent.UpdateInputText -> {
           uiState.inputText.value = action.text
         }
-        is BrowserIntent.DeleteWebSiteList -> {
-          when (action.type) {
-            ListType.Book -> {
-              if (action.clsAll) {
-                WebsiteDB.clearBookWebsiteInfo()
-              } else {
-                action.website?.let { item -> WebsiteDB.deleteBookWebsiteInfo(item) }
-              }
-            }
-            ListType.History -> {
-              if (action.clsAll) {
-                WebsiteDB.clearHistoryWebsiteInfo()
-              } else {
-                action.website?.let { WebsiteDB.deleteHistoryWebsiteInfo(it) }
-              }
-            }
-          }
-        }
         is BrowserIntent.UninstallJmmMetadata -> {
           browserController.uninstallJMM(action.jmmMetadata)
         }
@@ -352,13 +306,7 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
     get() =
       uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
 
-  val canMoveToBackground get() =
-    when (val itemView = uiState.currentBrowserBaseView.value) {
-      is BrowserWebView -> {
-        !itemView.navigator.canGoBack
-      }
-      else -> false
-    }
+  val canMoveToBackground = !uiState.currentBrowserBaseView.value.navigator.canGoBack
 }
 
 internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
@@ -383,14 +331,14 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
   }
 
   override fun onReceivedError(
-    view: WebView?,
+    view: WebView,
     request: WebResourceRequest?,
     error: WebResourceError?
   ) {
     // super.onReceivedError(view, request, error)
     if (error?.errorCode == -2 && App.appContext.getString(KEY_LAST_SEARCH_KEY) == request?.url?.toString()) { // net::ERR_NAME_NOT_RESOLVED
       val param = request.url?.let { uri -> "?text=${uri.host}${uri.path}" } ?: ""
-      view?.loadUrl("file:///android_asset/error.html$param")
+      view.loadUrl("file:///android_asset/error.html$param")
     }
   }
 }
