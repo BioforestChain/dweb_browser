@@ -124,12 +124,8 @@ const main = async () => {
   // 提供APP之间通信的方法
   externalReadableStreamIpc.onRequest(async (request, ipc) => {
     const url = request.parsed_url;
-    console.log(
-      "externalReadableStreamIpc =>",
-      request,
-      ipc.remote.mmid,
-      jsProcess.mmid
-    );
+    console.log("publicService externalReadableStreamIpc request =>", request);
+    console.log("remoteIpc=>", ipc.remote.mmid, "jsProcess =>", jsProcess.mmid);
     // 处理serviceworker respondWith过来的请求,回复给别的app
     if (url.pathname.startsWith(EXTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(EXTERNAL_PREFIX.length);
@@ -176,8 +172,8 @@ const main = async () => {
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
       return restartApp(
-        [apiServer, wwwServer],
-        [apiReadableStreamIpc, wwwReadableStreamIpc]
+        [apiServer, wwwServer, externalServer],
+        [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
       );
     }
     // TODO 手动关闭 connect

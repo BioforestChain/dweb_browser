@@ -22,7 +22,7 @@ dwebServiceWorker.addEventListener("resume", (event) => {
 
 /**
  * 别人发送消息给我,我处理完使用responedWith返回回去
- * const response = await event.fetch("https://play.dweb.waterbang.top.dweb/say/hi",{
+ * const response = await event.fetch("https://desktop.dweb.waterbang.top.dweb/say/hi",{
  *  search: {
  *    messages: "hi 今晚吃螃🦀️蟹吗？"
  *   }

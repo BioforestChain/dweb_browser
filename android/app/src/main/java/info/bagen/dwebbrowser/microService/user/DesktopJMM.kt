@@ -6,19 +6,19 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 
 class DesktopJMM : JsMicroModule(
     JmmMetadata(
-        id = "desktop.user.dweb",  // TODO warning 不能写大写
+        id = "desktop.dweb.waterbang.top.dweb",  // TODO warning 不能写大写
         version = "1.0.0",
         server = JmmMetadata.MainServer(
             root = "file:///bundle",
-            entry = "/public.service.worker.js"
+            entry = "/desktop.worker.js"
         ),
         splashScreen = JmmMetadata.SplashScreen("https://dweb.waterbang.top/"),
         staticWebServers = listOf(
             JmmMetadata.StaticWebServer(
                 root = "file:///bundle",
-                entry = "/public.service.worker.js",
+                entry = "/desktop.worker.js",
                 port = 80,
-                subdomain = "desktop.user.dweb"
+                subdomain = "desktop.dweb.waterbang.top.dweb"
             )
         ),
         icon = "https://www.bfmeta.info/imgs/logo3.webp",

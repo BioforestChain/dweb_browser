@@ -65,7 +65,7 @@ export abstract class BasePlugin {
   
   buildExternalApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
     const url = new URL(init?.base ?? BasePlugin.internal_url);
-    url.pathname = `/external${pathname}`;
+    url.pathname = pathname
     return this.buildRequest(url, init);
   }
 

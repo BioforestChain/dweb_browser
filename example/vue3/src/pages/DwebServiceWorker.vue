@@ -1,69 +1,95 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { dwebServiceWorker as sw } from "@bfex/plugin"
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import { dwebServiceWorker as sw } from "@bfex/plugin";
+import { onMounted, ref } from "vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;
 
-const progress = ref(0)
+const progress = ref(0);
 
 onMounted(async () => {
   console = toConsole($logPanel);
   sw.addEventListener("updatefound", (event) => {
     console.log("Dweb Service Worker update found!", event);
-  })
+  });
   // app暂停触发事件（这个时候后台还会运行，前端界面被关闭）
   sw.addEventListener("pause", (event) => {
     console.log("app pause", event);
-  })
+  });
   // app恢复触发事件
   sw.addEventListener("resume", (event) => {
-    console.log("app resume", event)
-  })
+    console.log("app resume", event);
+  });
 
-  const updateContoller = sw.update
+  const updateContoller = sw.update;
 
   updateContoller.addEventListener("start", (event) => {
     console.log("Dweb Service Worker updateContoller start =>", event);
-  })
+  });
   updateContoller.addEventListener("end", (event) => {
     console.log("Dweb Service Worker updateContoller end =>", event);
-  })
+  });
   updateContoller.addEventListener("progress", (progressRate) => {
-    progress.value = parseFloat(progressRate)
+    progress.value = parseFloat(progressRate);
     console.log("Dweb Service Worker updateContoller progress =>", progressRate, parseFloat(progressRate));
-  })
+  });
   updateContoller.addEventListener("cancel", (event) => {
     console.log("Dweb Service Worker updateContoller cancel =>", event);
-  })
+  });
+});
 
-})
+const close = defineLogAction(
+  async () => {
+    return await sw.close();
+  },
+  { name: "close", args: [], logPanel: $logPanel }
+);
 
+const restart = defineLogAction(
+  async () => {
+    return await sw.restart();
+  },
+  { name: "restart", args: [], logPanel: $logPanel }
+);
 
-const close = defineLogAction(async () => {
-  return await sw.close()
-}, { name: "close", args: [], logPanel: $logPanel })
+const pause = defineLogAction(
+  async () => {
+    return await sw.updateContoller.pause();
+  },
+  { name: "pause", args: [], logPanel: $logPanel }
+);
 
-const restart = defineLogAction(async () => {
-  return await sw.restart()
-}, { name: "restart", args: [], logPanel: $logPanel })
+const resume = defineLogAction(
+  async () => {
+    return await sw.updateContoller.resume();
+  },
+  { name: "resume", args: [], logPanel: $logPanel }
+);
 
+const cancel = defineLogAction(
+  async () => {
+    return await sw.updateContoller.cancel();
+  },
+  { name: "cancel", args: [], logPanel: $logPanel }
+);
 
-const pause = defineLogAction(async () => {
-  return await sw.updateContoller.pause()
-}, { name: "pause", args: [], logPanel: $logPanel })
+const download = defineLogAction(
+  async () => {
+    return await sw.updateContoller.download("https://shop.plaoc.com/bfs-metadata.json");
+  },
+  { name: "cancel", args: [], logPanel: $logPanel }
+);
 
-const resume = defineLogAction(async () => {
-  return await sw.updateContoller.resume()
-}, { name: "resume", args: [], logPanel: $logPanel })
-
-const cancel = defineLogAction(async () => {
-  return await sw.updateContoller.cancel()
-}, { name: "cancel", args: [], logPanel: $logPanel })
-
-const download = defineLogAction(async () => {
-  return await sw.updateContoller.download("https://shop.plaoc.com/bfs-metadata.json")
-}, { name: "cancel", args: [], logPanel: $logPanel })
+// 向desktop.dweb.waterbang.top.dweb 发送消息
+const sayHi = async () => {
+  const result = await sw.externalFetch(`/desktop.dweb.waterbang.top.dweb/say/hi`,{
+    search: {
+      message: "今晚吃螃🦀️蟹吗？"
+    }
+  });
+  const text = await result.text();
+  console.log("sayHi return => ",text);
+};
 
 const title = "Dweb Service Worker";
 </script>
@@ -73,7 +99,12 @@ const title = "Dweb Service Worker";
     <figure class="icon">
       <img src="../../assets/splashscreen.svg" :alt="title" />
     </figure>
-
+    <article class="card-body">
+      <h2 class="card-title">APP之间通信</h2>
+      <div class="card-actions">
+        <button class="inline-block rounded-full btn btn-accent" @click="sayHi">say hi</button>
+      </div>
+    </article>
     <article class="card-body">
       <h2 class="card-title">下载测试</h2>
       <div class="justify-end card-actions">
@@ -116,4 +147,3 @@ const title = "Dweb Service Worker";
   <div class="divider">LOG</div>
   <LogPanel ref="$logPanel"></LogPanel>
 </template>
-

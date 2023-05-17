@@ -33,19 +33,19 @@ export class FetchEvent extends Event {
     // this.resultingClientId = null;
     this.waitUntilPromise = null;
   }
-
-  async fetch(pathname: string, init?: $BuildRequestWithBaseInit) {
+  // 回复别的app的消息
+  private async fetch(pathname: string, init?: $BuildRequestWithBaseInit) {
     return await this.plugin.buildExternalApiRequest(pathname, init).fetch();
   }
 
   async respondWith(response: Blob | ReadableStream<Uint8Array> | string) {
     if (!this.public_url) throw Error("you need init <web-config></dweb-config>")
-
+    const base = `https://${new URL(await this.public_url).hostname}:443`
     return this.fetch(`/${this.clientId}`, {
       search: {
         data: response,
       },
-      base: await this.public_url
+      base: base
     });
     // this.waitUntilPromise = response;
   }

@@ -47,6 +47,11 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   updateContoller = new UpdateController();
 
   @cacheGetter()
+  get externalFetch() {
+    return this.plugin.externalFetch
+  }
+
+  @cacheGetter()
   get update() {
     return this.updateContoller;
   }

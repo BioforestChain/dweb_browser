@@ -1,4 +1,6 @@
+import { convertToHttps } from "../../helper/String.ts";
 import { bindThis } from "../../helper/bindThis.ts";
+import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { BFSMetaData } from "./dweb-service-worker.type.ts";
 
@@ -70,6 +72,30 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   async restart(): Promise<boolean> {
     return await this.fetchApi("/restart").boolean();
   }
+
+  /**
+   * 跟外部app通信
+   * @param pathname 
+   * @param init 
+   * @returns 
+   * 
+   * https://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
+   * 
+   */
+  @bindThis
+  async externalFetch(pathname: string,init?:$BuildRequestWithBaseInit) {
+    const url = convertToHttps(pathname);
+    // http://localhost:22206/?X-Dweb-Host=api.desktop.dweb.waterbang.top.dweb%3A443
+    const public_url = new URL(await BasePlugin.public_url);
+    public_url.searchParams.set("X-Dweb-Host",`external.${url.hostname}%3A443`)
+    const base = public_url.href
+
+    console.log("externalFetch =>",url,base)
+
+    const config = Object.assign(init??{},{base: base})
+    return await this.buildExternalApiRequest(url.pathname,config).fetch();
+  }
+// http://localhost:22206/?X-Dweb-Host=external.demo.www.bfmeta.info.dweb%3A443
 }
 
 export const dwebServiceWorkerPlugin = new DwebServiceWorkerPlugin();
