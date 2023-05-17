@@ -1,4 +1,4 @@
-import { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
+import { $BuildRequestWithBaseInit, BasePlugin } from "../base/BasePlugin.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
 
 interface FetchEventInit {
@@ -6,7 +6,8 @@ interface FetchEventInit {
   clientId?: string;
 }
 
-export type $FetchEventType = "fetch" | "onFetch";
+export type $FetchEventType = "fetch";
+//| "onFetch"
 // | "activate"
 // | "install"
 // | "message";
@@ -20,6 +21,7 @@ export class FetchEvent extends Event {
   // resultingClientId: string | null; // 不需要
   // deno-lint-ignore no-explicit-any
   waitUntilPromise: Promise<any> | any;
+  public_url = BasePlugin.public_url;
 
   constructor(type: $FetchEventType, init: FetchEventInit) {
     super(type);
@@ -31,23 +33,21 @@ export class FetchEvent extends Event {
     // this.resultingClientId = null;
     this.waitUntilPromise = null;
   }
-  
+
   async fetch(pathname: string, init?: $BuildRequestWithBaseInit) {
     return await this.plugin.buildExternalApiRequest(pathname, init).fetch();
   }
 
-  respondWith(response: Response | Promise<Response>) {
-    if (!(response instanceof Response)) {
-      response = Promise.resolve(response).then((res) => {
-        if (!(res instanceof Response)) {
-          throw new TypeError(
-            "The value returned from respondWith() must be a Response or a Promise that resolves to a Response."
-          );
-        }
-        return res;
-      });
-    }
-    this.waitUntilPromise = response;
+  async respondWith(response: Blob | ReadableStream<Uint8Array> | string) {
+    if (!this.public_url) throw Error("you need init <web-config></dweb-config>")
+
+    return this.fetch(`/${this.clientId}`, {
+      search: {
+        data: response,
+      },
+      base: await this.public_url
+    });
+    // this.waitUntilPromise = response;
   }
   /**
    * 将Promise添加到事件的等待列表中。

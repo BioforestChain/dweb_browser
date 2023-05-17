@@ -31,7 +31,7 @@ export class BarcodeScannerPlugin extends BasePlugin {
       },
       method: "POST",
       body: blob,
-      base: await BasePlugin.public_url.promise,
+      base: await BasePlugin.public_url,
     })
       .fetch()
       .object<string[]>();

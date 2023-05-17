@@ -3,15 +3,14 @@
 import { $makeExtends } from "../../helper/$makeExtends.ts";
 import { fetchExtends } from "../../helper/$makeFetchExtends.ts";
 import { createSignal } from "../../helper/createSignal.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
 
 export abstract class BasePlugin {
   abstract tagName: string;
-
-  constructor(readonly mmid: string) {}
-
   static internal_url: string = globalThis.location?.href ?? "http://localhost";
-  static public_url = new PromiseOut<string>();
+  static public_url:Promise<string> | string = ""
+
+  constructor(readonly mmid: string) {
+  }
 
   protected buildRequest(url: URL, init?: $BuildRequestInit) {
     const search = init?.search;
@@ -59,6 +58,7 @@ export abstract class BasePlugin {
     return this.buildRequest(url, init);
   }
   buildInternalApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
+    console.log("base>",init?.base,"internal_url",BasePlugin.internal_url,`con=> ${init?.base ?? BasePlugin.internal_url}`)
     const url = new URL(init?.base ?? BasePlugin.internal_url);
     url.pathname = `/internal${pathname}`;
     return this.buildRequest(url, init);

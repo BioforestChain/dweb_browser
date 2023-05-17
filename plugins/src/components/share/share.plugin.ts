@@ -37,7 +37,6 @@ export class SharePlugin extends BasePlugin {
         data.append("files", file);
       }
     }
-
     const result = await this.buildApiRequest("/share", {
       search: {
         title: options?.title,
@@ -46,7 +45,7 @@ export class SharePlugin extends BasePlugin {
       },
       method: "POST",
       body: data,
-      base: await BasePlugin.public_url.promise,
+      base:await BasePlugin.public_url,
     })
       .fetch()
       .object<ShareResult>();

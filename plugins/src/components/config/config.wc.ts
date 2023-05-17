@@ -6,6 +6,10 @@ export class HTMLDwebConfigElement extends HTMLElement {
     return configPlugin.public_url;
   }
 
+  connectedCallback() {
+    configPlugin.setInternalUrl(`https://${new URL(location.href).searchParams.get("X-Api-Host")}`);
+  }
+
   getPublicUrl() {
     return configPlugin.getPublicUrl();
   }

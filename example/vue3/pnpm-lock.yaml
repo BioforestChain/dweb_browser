@@ -2,8 +2,8 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@bfex/plugin':
-    specifier: ^1.2.0
-    version: 1.2.0
+    specifier: link:../../plugins/build/plugin
+    version: link:../../plugins/build/plugin
   vite-plugin-vuetify:
     specifier: ^1.0.2
     version: 1.0.2(vite@4.3.5)(vue@3.3.2)(vuetify@3.2.4)
@@ -75,12 +75,6 @@ packages:
       '@babel/helper-string-parser': 7.21.5
       '@babel/helper-validator-identifier': 7.19.1
       to-fast-properties: 2.0.0
-
-  /@bfex/plugin@1.2.0:
-    resolution: {integrity: sha512-cWT/CdXw4kHq+tVQDSunff90INChcsPNEyAtXjpmTDkgeEgnD0+W1DDRmscBSKsXt+1E9fxDsqbixm95oovLnA==}
-    dependencies:
-      tslib: 2.3.1
-    dev: false
 
   /@esbuild/android-arm64@0.17.19:
     resolution: {integrity: sha512-KBMWvEZooR7+kzY0BtbTQn0OAYY7CsiydT63pVEaPtVYF0hXbUaOyZog37DKxK7NF3XacBJOpYT4adIJh+avxA==}
@@ -1225,10 +1219,6 @@ packages:
   /ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
-
-  /tslib@2.3.1:
-    resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}
-    dev: false
 
   /typescript@4.9.5:
     resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}

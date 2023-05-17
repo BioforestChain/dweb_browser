@@ -1,6 +1,6 @@
 {
-  "name":"demo",
-  "subName":"vue3-demo",
+  "name":"game",
+  "subName":"vue3-game",
   "introduction":"这是一个实例应用，包含了dweb_plugins全部组件的实例。",
   "icon":"https://www.bfmeta.info/imgs/logo3.webp",
   "images": [
@@ -8,9 +8,9 @@
     "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
     "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ],
-  "downloadUrl":"https://shop.plaoc.com/demo.www.bfmeta.info.dweb.bfsa",
+  "downloadUrl":"https://dweb.waterbang.top/game.dweb.waterbang.top.bfsa",
   "author": ["bfs","bfs@bfs.com"],
   "version": "1.0.0",
   "keywords": ["demo","vue3"],
-  "home": "https://www.bfmeta.info/"
+  "home": "https://dweb.waterbang.top"
 }

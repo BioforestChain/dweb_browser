@@ -1,4 +1,3 @@
-import type { RouteRecordRaw } from "vue-router";
 
 export const routes = [
   { title: "Input File", path: "/inputfile", component: () => import("./pages/InputFile.vue") },
@@ -19,4 +18,5 @@ export const routes = [
   { title: "Dweb ServiceWorker", path: "/serviceworker", component: () => import("./pages/DwebServiceWorker.vue") },
   { title: "Biometrics", path: "/biometrics", component: () => import("./pages/Biometrics.vue") },
   { title: "Network", path: "/network", component: () => import("./pages/Network.vue") },
-] satisfies (RouteRecordRaw & { title: string })[];
+];
+//satisfies (RouteRecordRaw & { title: string })[];

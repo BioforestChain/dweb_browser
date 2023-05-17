@@ -5,7 +5,7 @@ export interface DwebWorkerEventMap {
   pause: Event; // 监听应用暂停
   resume: Event; // 监听应用恢复
   fetch: FetchEvent;
-  onFetch: FetchEvent;
+  // onFetch: FetchEvent;
 }
 
 export interface UpdateControllerMap {

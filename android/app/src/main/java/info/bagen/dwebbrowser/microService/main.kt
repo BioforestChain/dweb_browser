@@ -87,8 +87,8 @@ suspend fun startDwebBrowser(): DnsNMM {
     val deviceNMM = DeviceNMM().also { dnsNMM.install(it) }
     ///位置
     val locationNMM = LocationNMM().also { dnsNMM.install(it) }
-    /// 蓝牙
-    val bluetoothNMM = BluetoothNMM().also { dnsNMM.install(it) }
+//    /// 蓝牙
+//    val bluetoothNMM = BluetoothNMM().also { dnsNMM.install(it) }
     ///权限
     val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
     ///文件系统
@@ -142,8 +142,12 @@ suspend fun startDwebBrowser(): DnsNMM {
             cotDemoJMM.mmid,
 //            browserNMM.mmid,
         )
-        DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo -> listOf(browserNMM.mmid)
-        DEVELOPER.WaterBang -> listOf(cotDemoJMM.mmid, browserNMM.mmid)
+        DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo -> listOf(cotDemoJMM.mmid,browserNMM.mmid)
+        DEVELOPER.WaterBang -> listOf(
+            cotDemoJMM.mmid,
+//            browserNMM.mmid,
+//            desktopJMM.mmid
+        )
         else -> listOf(/*cotDemoJMM.mmid,*/ browserNMM.mmid)
     }
 

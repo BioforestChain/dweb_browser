@@ -1,17 +1,17 @@
+import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
-import { webViewMap, closeFront, restartApp } from "../tool/app.handle.mjs";
+import { closeFront, restartApp, webViewMap } from "../tool/app.handle.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import {
-  nativeOpen,
-  nativeActivate,
-  cros,
   closeDwebView,
+  cros,
+  nativeActivate,
+  nativeOpen,
 } from "../tool/tool.native.mjs";
-import { $Ipc, onFetchSignal } from "../tool/tool.request.mjs";
-import { DetailedDiff, detailedDiff } from "deep-object-diff";
-import { wwwServerOnRequest } from "./www-server-on-request.mjs"
-import { onApiRequest } from "./api.request.mjs"
+import type { $Ipc } from "../tool/tool.request.mjs";
+import { onApiRequest } from "./api.request.mjs";
+import { wwwServerOnRequest } from "./www-server-on-request.mjs";
 
 const main = async () => {
   console.log("bootstrap browser.worker.mts")
@@ -115,7 +115,7 @@ const main = async () => {
 
   // 外部发来的请求
   externalReadableStreamIpc.onRequest(async (request, ipc) => {
-    onFetchSignal.emit(request);
+    // onFetchSignal.emit(request);
   });
 
   // 转发serviceWorker 请求

@@ -38,24 +38,10 @@ class UpdateControllerPlugin extends BasePlugin {
   async cancel(): Promise<boolean> {
     return await this.fetchApi("/cancel").boolean();
   }
-  /**返回进度信息 */
-  // @bindThis
-  // async *progress(options?: { signal?: AbortSignal }) {
-  //   const jsonlines = await this
-  //     .buildInternalApiRequest("/observeUpdateProgress", {
-  //       search: { mmid: this.mmid },
-  //       base: await BasePlugin.public_url,
-  //     })
-  //     .fetch()
-  //     .jsonlines(Number);
-  //   for await (const progress of streamRead(jsonlines, options)) {
-  //     this.progressNum = progress
-  //     yield progress;
-  //   }
-  // }
+ 
   @bindThis
   async getMMid() {
-    return await BasePlugin.public_url.promise;
+    return await BasePlugin.public_url;
   }
 }
 

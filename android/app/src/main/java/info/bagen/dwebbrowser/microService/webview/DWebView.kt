@@ -173,9 +173,7 @@ class DWebView(
         val baseUserAgentString = settings.userAgentString
         val baseDwebHost = remoteMM.mmid
         var dwebHost = baseDwebHost
-        if (options.url == null) {
-            return
-        }
+
         // 初始化设置 ua，这个是无法动态修改的
         val uri = Uri.of(options.url)
         if ((uri.scheme == "http" || uri.scheme == "https") && uri.host.endsWith(".dweb")) {

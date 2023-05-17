@@ -1,20 +1,21 @@
-import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import {
-  $BodyData,
-  DwebWorkerEventMap,
-  IpcRequest,
-  IPC_METHOD,
-  UpdateControllerMap,
-} from "./dweb-service-worker.type.ts";
+import { streamRead } from "../../helper/readableStreamHelper.ts";
 import {
   BaseEvent,
   ListenerCallback,
   WindowListenerHandle,
 } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { streamRead } from "../../helper/readableStreamHelper.ts";
+import { configPlugin } from "../index.ts";
 import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
+import {
+  $BodyData,
+  DwebWorkerEventMap,
+  IPC_METHOD,
+  IpcRequest,
+  UpdateControllerMap,
+} from "./dweb-service-worker.type.ts";
+import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
 
 declare namespace globalThis {
   const __app_upgrade_watcher_kit__: {
@@ -59,7 +60,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   get restart() {
     return this.plugin.restart;
   }
-
+  // ipcRequest to Request
   private toRequest(ipcRequest: IpcRequest) {
     const method = ipcRequest.method;
     let body: undefined | $BodyData = "";
@@ -76,7 +77,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
      * 这里的请求是这样的，要发给用户转发需要添加http
      * /barcode-scanning.sys.dweb/process?X-Dweb-Host=api.cotdemo.bfs.dweb%3A443&rotation=0&formats=QR_CODE
      */
-    return new Request(`http://localhost:22206${ipcRequest.url}`, {
+    return new Request(`${ipcRequest.url}`, {
       method,
       headers: ipcRequest.headers,
       body,
@@ -90,27 +91,21 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     });
   };
 
-  private decodeOnFetch = (ipcRequest: IpcRequest) => {
-    return new FetchEvent("onFetch", {
-      request: this.toRequest(ipcRequest),
-      clientId: ipcRequest.req_id,
-    });
-  };
-
   private async *registerEvent(
     eventName: $FetchEventType,
     options?: { signal?: AbortSignal }
   ) {
-    const pub = await BasePlugin.public_url.promise;
-    const decodeEvent =
-      eventName === "fetch" ? this.decodeFetch : this.decodeOnFetch;
+    let pub = await BasePlugin.public_url;
+    if (pub === "") {
+      pub = await configPlugin.getPublicUrl()
+    }
     const jsonlines = await this.plugin
       .buildInternalApiRequest(`/${eventName}`, {
         search: { mmid: this.plugin.mmid },
         base: pub,
       })
       .fetch()
-      .jsonlines(decodeEvent);
+      .jsonlines(this.decodeFetch);
     for await (const onfetchString of streamRead(jsonlines, options)) {
       this.notifyListeners(eventName, onfetchString);
       yield onfetchString;
@@ -129,7 +124,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     options?: boolean | AddEventListenerOptions
   ): EventTarget {
     // 用户需要的时候再去注册
-    if (eventName === "fetch" || eventName === "onFetch") {
+    if (eventName === "fetch") { //  || eventName === "onFetch"
       (async () => {
         for await (const _info of this.registerEvent(eventName)) {
           // console.log("registerFetch", _info);

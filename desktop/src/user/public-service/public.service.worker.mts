@@ -1,4 +1,5 @@
 import { DetailedDiff, detailedDiff } from "deep-object-diff";
+import type { Ipc } from "../../core/ipc/ipc.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
 import { closeFront, restartApp, webViewMap } from "../tool/app.handle.mjs";
@@ -21,6 +22,7 @@ const main = async () => {
   const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
   // 关闭信号
   const multiWebViewCloseSignal = createSignal<() => unknown>();
+  const EXTERNAL_PREFIX = "/external";
 
   /**尝试打开view */
   const tryOpenView = () => {
@@ -82,14 +84,11 @@ const main = async () => {
   const apiReadableStreamIpc = await apiServer.listen();
   // 文件服务处理
   const wwwReadableStreamIpc = await wwwServer.listen();
-  // 别人调用处理 onFetch
+  // 别滴app发送到请求走这里发送到前端的DwebServiceWorker fetch
   const externalReadableStreamIpc = await externalServer.listen();
 
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
-    const url = new URL(
-      request.url,
-      apiServer.startResult.urlInfo.internal_origin
-    );
+    const url = request.parsed_url;
     // serviceWorker
     if (url.pathname.startsWith("/dns.sys.dweb")) {
       const result = await serviceWorkerFactory(url, ipc);
@@ -131,13 +130,52 @@ const main = async () => {
       )
     );
   });
+
+  const externalMap = new Map<number, Ipc>();
   // 提供APP之间通信的方法
   externalReadableStreamIpc.onRequest(async (request, ipc) => {
-    console.log("externalReadableStreamIpc =>", request, ipc);
-    // 当用户请求其他APP的时候请求走的是这里
-    fetchSignal.emit(request);
-    // TODO
-    console.log(request, ipc);
+    const url = request.parsed_url;
+    console.log(
+      "externalReadableStreamIpc =>",
+      request,
+      ipc.remote.mmid,
+      jsProcess.mmid
+    );
+    // 处理serviceworker respondWith过来的请求,回复给别的app
+    if (url.pathname.startsWith(EXTERNAL_PREFIX)) {
+      const pathname = url.pathname.slice(EXTERNAL_PREFIX.length);
+      const externalReqId = parseInt(pathname)
+      console.log("externalReqId => ",externalReqId, url.pathname)
+      if (externalReqId) {
+        const externalIpc = externalMap.get(externalReqId);
+        if (externalIpc) {
+          // 转发给外部的app
+          const ipcResponse = new IpcResponse(
+            externalReqId,
+            200,
+            request.headers,
+            request.body,
+            ipc
+          );
+          cros(ipcResponse.headers);
+          // 返回数据到发送者那边
+          return externalIpc.postMessage(ipcResponse);
+        }
+      }
+      // 告知自己的 respondWith 已经发送成功了
+      ipc.postMessage(
+        IpcResponse.fromText(request.req_id, 200, request.headers, "ok", ipc)
+      );
+      return;
+    }
+
+    // 别的app发送消息，触发一下前端注册的fetch
+    if (jsProcess.mmid !== ipc.remote.mmid) {
+      fetchSignal.emit(request);
+      externalMap.set(request.req_id, ipc);
+      return;
+    }
+
   });
 
   // 转发serviceWorker 请求
@@ -211,8 +249,9 @@ const main = async () => {
   {
     const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
-    }).href;
-    mainUrl.resolve(interUrl);
+    })
+    interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
+    mainUrl.resolve(interUrl.href);
   }
 };
 

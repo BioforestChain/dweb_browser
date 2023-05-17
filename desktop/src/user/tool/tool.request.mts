@@ -24,8 +24,6 @@ const ipcObserversMap = new Map<
 const INTERNAL_PREFIX = "/internal";
 type $OnIpcRequestUrl = (request: $IpcRequest) => void;
 export const fetchSignal = createSignal<$OnIpcRequestUrl>();
-export const onFetchSignal = createSignal<$OnIpcRequestUrl>();
-
 
 /**
  * request 事件处理器
@@ -36,8 +34,8 @@ export async function onApiRequest(
   httpServerIpc: $Ipc
 ) {
   let ipcResponse: undefined | $IpcResponse;
+  const url = request.parsed_url
   try {
-    const url = new URL(request.url, serverurlInfo.internal_origin);
     // 是否是内部请求
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
       ipcResponse = internalFactory(
@@ -138,19 +136,6 @@ const internalFactory = (
       httpServerIpc
     );
   }
-
-  // 监听Onfetch
-  if (pathname === "/onFetch") {
-    // serviceWorker fetch
-    const streamPo = serviceWorkerOnFetch();
-    return IpcResponse.fromStream(
-      req_id,
-      200,
-      undefined,
-      streamPo.stream,
-      httpServerIpc
-    );
-  }
 };
 
 /**这里会处理api的消息返回到前端serviceWorker 构建onFetchEvent 并触发fetch事件 */
@@ -158,19 +143,6 @@ const serviceWorkerFetch = () => {
   const streamPo = new ReadableStreamOut<Uint8Array>();
   const ob = { controller: streamPo.controller };
   fetchSignal.listen((ipcRequest) => {
-    const jsonlineEnd = simpleEncoder("\n", "utf8");
-    const json = ipcRequest.toJSON();
-    const uint8 = simpleEncoder(JSON.stringify(json), "utf8");
-    ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
-  });
-  return streamPo;
-};
-
-/**这里会处理别人发给这个app的消息 */
-const serviceWorkerOnFetch = () => {
-  const streamPo = new ReadableStreamOut<Uint8Array>();
-  const ob = { controller: streamPo.controller };
-  onFetchSignal.listen((ipcRequest) => {
     const jsonlineEnd = simpleEncoder("\n", "utf8");
     const json = ipcRequest.toJSON();
     const uint8 = simpleEncoder(JSON.stringify(json), "utf8");
