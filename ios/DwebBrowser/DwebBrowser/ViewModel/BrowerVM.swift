@@ -17,16 +17,18 @@ class Home: ObservableObject{
 }
 
 class Page: Identifiable, ObservableObject, Hashable{
-
-    
-    @Published var webStore = WebViewStore( webCache: WebCache.createItem())
-
-//    @Published var home: Home
-    
-    
     var id = UUID()
+
+    
+    @Published var webStore: WebViewStore //= WebViewStore( webCache: WebCache.createItem())
+
+    init(id: UUID = UUID(), webStore: WebViewStore) {
+        self.id = id
+        self.webStore = webStore
+    }
+    
     static func == (lhs: Page, rhs: Page) -> Bool {
-        return lhs.id == rhs.id
+        lhs.id == rhs.id
     }
     
     public func hash(into hasher: inout Hasher) {
@@ -34,20 +36,14 @@ class Page: Identifiable, ObservableObject, Hashable{
     }
 }
 
-class Address:ObservableObject{
-    
-}
-
 class BrowerVM: ObservableObject {
     @Published var showingOptions = true
     @Published var selectedTabIndex = 0
     @Published var addressBarOffset = 0.0
     
-    @Published var pages = [Page(),Page(),Page(),Page(),Page()]
-    @Published var addresses = [Address]()
+    @Published var pages = WebCacheStore().store.map{Page(webStore: WebViewStore(webCache: $0))}
     
     @Published var sharedResources = SharedSourcesVM()
-    
     
     @Published var shrinkingSnapshot: UIImage? = nil
     

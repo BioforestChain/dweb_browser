@@ -39,6 +39,9 @@ struct TabPageView: View {
             }.onAppear {
                 print("webViewStore.webView ---- \(webViewStore.webView)")
             }
+            .onChange(of: webViewStore.webView.url) { visitingUrl in
+                webViewStore.webCache.lastVisitedUrl = visitingUrl
+            }
             
             if webViewStore.webCache.lastVisitedUrl == nil{
                 homeview

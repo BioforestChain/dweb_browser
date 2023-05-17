@@ -6,28 +6,18 @@ var visitCount: Int = 0
 
 @dynamicMemberLookup
 public class WebViewStore: ObservableObject,Identifiable,Hashable{
-    public static func == (lhs: WebViewStore, rhs: WebViewStore) -> Bool {
-         lhs.id == rhs.id
-     }
-     
-     public func hash(into hasher: inout Hasher) {
-         hasher.combine(id)
-     }
-    
+
     public let id = UUID()
+    @Published var webCache: WebCache
     @Published public var webView: WKWebView {
         didSet {
             setupObservers()
         }
     }
     
-    @Published public var webCache: WebCache
-    
-    public init(webView: WKWebView = WKWebView(), webCache: WebCache) {
+    init(webView: WKWebView = WKWebView(), webCache: WebCache) {
         self.webView = webView
         self.webCache = webCache
-//        webView.load(URLRequest(url: URL(string: "www.bing.com")!))
-//        visitCount += 1
         print("has visited \(visitCount) times")
 
         setupObservers()
@@ -52,7 +42,7 @@ public class WebViewStore: ObservableObject,Identifiable,Hashable{
             subscriber(for: \.hasOnlySecureContent),
             subscriber(for: \.serverTrust),
             subscriber(for: \.canGoBack),
-            subscriber(for: \.canGoForward)
+            subscriber(for: \.canGoForward),
         ]
     }
     
@@ -61,6 +51,14 @@ public class WebViewStore: ObservableObject,Identifiable,Hashable{
     public subscript<T>(dynamicMember keyPath: KeyPath<WKWebView, T>) -> T {
         webView[keyPath: keyPath]
     }
+    
+    public static func == (lhs: WebViewStore, rhs: WebViewStore) -> Bool {
+         lhs.id == rhs.id
+     }
+     
+     public func hash(into hasher: inout Hasher) {
+         hasher.combine(id)
+     }
 }
 
 /// A container for using a WKWebView in SwiftUI

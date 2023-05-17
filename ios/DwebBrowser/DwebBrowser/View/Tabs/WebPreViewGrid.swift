@@ -29,8 +29,8 @@ struct WebPreViewGrid: View {
     
     @Binding var selectedCellFrame: CGRect
     
-    var caches: [WebCache] {
-        brower.pages.map { $0.webStore.webCache}
+    var webStores: [WebViewStore] {
+        brower.pages.map { $0.webStore}
     }
     
     var body: some View {
@@ -39,18 +39,21 @@ struct WebPreViewGrid: View {
                 LazyVGrid(columns: [
                     GridItem(.adaptive(minimum: (screen_width/3.0 + 1),maximum: screen_width/2.0),spacing: 15)
                 ],spacing: 20,content: {
-                    ForEach(caches, id: \.self) {cache in
-                        GridCell(cache: cache)
+                    ForEach(webStores, id: \.self) {webstore in
+                        GridCell(webstore: webstore)
                             .background(GeometryReader { geometry in
                                 Color.clear
-                                    .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo( index:caches.firstIndex(of: cache)!, frame: geometry.frame(in: .global))])
+                                    .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo( index:webStores.firstIndex(of: webstore)!, frame: geometry.frame(in: .global))])
                             })
                             .onTapGesture {
-                                if let index = caches.firstIndex(of: cache){
+                                if let index = webStores.firstIndex(of: webstore){
                                     print("tapped the \(index)th cell", "frame is \(cellFrame(at: index))")
                                 }else{
                                     print("can't read the clicked cell information")
                                 }
+                            }
+                            .onAppear{
+                                print("show the \(String(describing: webStores.firstIndex(of: webstore)))th cell")
                             }
                     }
                 })
@@ -78,13 +81,16 @@ struct WebPreViewGrid: View {
 }
 
 struct GridCell: View {
-    @ObservedObject var cache: WebCache
+    @ObservedObject var webstore: WebViewStore
     @State var runCount = 0
+    
+    @State private var iconUrl: URL?
+
     var body: some View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
                 
-                Image(uiImage: .snapshot(from: cache.snapshot!))
+                Image(uiImage: .snapshot(from: webstore.webCache.snapshot!))
                     .resizable()
                     .frame(alignment: .top)
                     .cornerRadius(gridcellCornerR)
@@ -93,16 +99,17 @@ struct GridCell: View {
                         
                     }
                 HStack{
-                    KFImage.url(cache.webIcon)
-                        .fade(duration: 0.1)
-                        .onProgress { receivedSize, totalSize in  }
-                        .onSuccess { result in  }
-                        .onFailure { error in }
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 22)
-                    
-                    Text(cache.title)
+                    if iconUrl != nil{
+                        KFImage.url(iconUrl)
+                            .fade(duration: 0.1)
+                            .onProgress { receivedSize, totalSize in print("\(receivedSize / totalSize) %") }
+                            .onSuccess { result in print(result) }
+                            .onFailure { error in print(error) }
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 22)
+                    }
+                    Text(webstore.title ?? "")
                         .fontWeight(.semibold)
                         .lineLimit(1)
                         
@@ -130,14 +137,13 @@ struct GridCell: View {
             }
         }
         .onAppear{
-            if cache.lastVisitedUrl != nil{
+            if webstore.webCache.lastVisitedUrl != nil{
                 Task {
                     do {
-                        let favicon = try await FaviconFinder(url: cache.lastVisitedUrl!).downloadFavicon()
+                        let favicon = try await FaviconFinder(url: webstore.webCache.lastVisitedUrl!).downloadFavicon()
                         print("URL of Favicon: \(favicon.url)")
-                        DispatchQueue.main.async {
-                            cache.webIcon = favicon.url
-                        }
+                        webstore.webCache.webIcon = favicon.url
+                        iconUrl = favicon.url
                     } catch let error {
                         print("Error: \(error)")
                     }
