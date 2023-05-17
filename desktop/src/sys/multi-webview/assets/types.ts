@@ -37,6 +37,10 @@ export interface $SafeAreaState  {
   outerInsets: $Insets;
 }
 
+export interface $OverlayState{
+  overlay: boolean;
+}
+
 export interface $VirtualKeyboardState extends $InsetsState{
   visible: boolean;
 }

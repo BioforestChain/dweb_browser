@@ -22,5 +22,5 @@ export async function wwwServerOnRequest(request: IpcRequest, ipc: Ipc){
       response.body,
       ipc
     )
-    );
+  );
 }

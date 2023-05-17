@@ -13,6 +13,7 @@ import querystring from "node:querystring"
 import path from "node:path"
 import { 
   open,
+  openDownloadPage,
   barGetState,
   barSetState,
   safeAreaGetState,
@@ -72,11 +73,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       }
     ).href;
 
-    /**
-     * 打开 应用
-     * 如果 是由 jsProcdss 调用 会在当前的 browserWindow 打开一个新的 webview
-     * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
-     */
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
       matchMode: "full",
@@ -84,6 +80,14 @@ export class MultiWebviewNMM extends NativeMicroModule {
       output: "number",
       handler: open.bind(this, root_url),
     });
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/open_download",
+      matchMode: "full",
+      input: { url: "string" },
+      output: "object",
+      handler: openDownloadPage.bind(this, root_url)
+    })
 
     // 关闭 ？？ 这个是关闭整个window  还是关闭一个 webview 标签
     // 用来关闭webview标签
@@ -542,6 +546,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
         const apis = nww.getApis<$APIS>();
         const absolutePath = "file://" + path.resolve(__dirname, "./assets/preload.cjs")
         apis.preloadAbsolutePathSet(absolutePath)
+        
         this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));
       }
       return wapi;

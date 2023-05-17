@@ -5,6 +5,9 @@ import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { log } from "../../helper/devtools.cjs";
 import { $JmmMetadata, JmmMetadata } from "./JmmMetadata.cjs";
 import { JsMicroModule } from "./micro-module.js.cjs";
+import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
+import type { Ipc, IpcRequest } from "../../core/ipc/index.cjs";
+import { IpcResponse } from "../../core/ipc/index.cjs";
 const fs = require('fs');
 const fsPromises = require('node:fs/promises')
 const path = require('path')
@@ -15,7 +18,6 @@ const tar = require('tar')
 
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.sys.dweb" as const;
-  httpNMM: HttpServerNMM | undefined;
   downloadStatus: DOWNLOAD_STATUS = 0
   resume: {
     handler: Function,
@@ -25,35 +27,64 @@ export class JmmNMM extends NativeMicroModule {
     handler: async () => {}
   }
 
-
   async _bootstrap(context: $BootstrapContext) {
-
     log.green(`[${this.mmid}] _bootstrap`)
-     
-    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
+    
+    // 为 下载页面做 准备
+    const wwwServer = await createHttpDwebServer(this, {
+      subdomain: "www",
+      port: 6363
+    });
+    const wwwReadableStreamIpc = await wwwServer.listen();
+    wwwReadableStreamIpc.onRequest(async (request: IpcRequest, ipc: Ipc) => {
+      let pathname = request.parsed_url.pathname;
+      pathname = pathname === "/" ? "/index.html" : pathname;
+      const url = `file:///assets/page_download/${pathname}?mode=stream`
+      // 打开首页的 路径
+      const response = await this.nativeFetch(url);
+      ipc.postMessage(
+        await IpcResponse.fromResponse(
+          request.req_id, 
+          response, 
+          ipc, 
+        )
+      );
+    });
+   
+    //  安装 第三方 app
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/install",
+      matchMode: "full",
+      input: { metadataUrl: "string" },
+      output: "boolean",
+      handler: async (args, client_ipc, request) => {
+        const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+          url.pathname = "/index.html";
+        }).href;
+        const url = `file://mwebview.sys.dweb/open_download?url=${interUrl}`
+        console.log('url: ', url)
+        await this.nativeFetch(url)
+        return true;
+      },
+    });
 
-    // this.httpNMM.addRoute('/jmm.sys.dweb/install', this._install)
-    // this.httpNMM.addRoute('/jmm.sys.dweb/pause', this._pause)
-    // this.httpNMM.addRoute("/jmm.sys.dweb/resume", this._resume)
-    // this.httpNMM.addRoute("/jmm.sys.dweb/cancel", this._cancel)
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/open_page",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: async (args, client_ipc, request) => {
+        console.log('request: ', request)
+        const path = require('path');
+        const pathname = path.resolve(__dirname, './assets/index.html')
+        console.log('pathname: ', pathname)
+        const result = this.nativeFetch(`file:///assets/html/download.sys.dweb.html`)
+        return result;
+      }
+    })
 
 
-    // for (const app of this.apps.values()) {
-    //   context.dns.install(app);
-      
-    // }
-    // //  安装 第三方 app
-    // this.registerCommonIpcOnMessageHandler({
-    //   pathname: "/install",
-    //   matchMode: "full",
-    //   input: { metadataUrl: "string" },
-    //   output: "boolean",
-    //   handler: async (args, client_ipc, request) => {
-    //     await this.openInstallPage(args.metadataUrl);
-    //     return true;
-    //   },
-    // });
 
     // // 专门用来做静态服务
     // this.registerCommonIpcOnMessageHandler({

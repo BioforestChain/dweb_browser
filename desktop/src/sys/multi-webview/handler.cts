@@ -8,6 +8,11 @@ import querystring from "node:querystring"
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];
 
+ /**
+ * 打开 应用
+ * 如果 是由 jsProcdss 调用 会在当前的 browserWindow 打开一个新的 webview
+ * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
+ */
 export async function open(
   this: MultiWebviewNMM,
   root_url: string,
@@ -15,10 +20,23 @@ export async function open(
   clientIpc: Ipc,
   request: IpcRequest,
 ){
-  console.log('[multi-webview.mobile.cts 接受到了 open 请求>>>>>>>>>>>>>]--------------------------------------', args.url, clientIpc.uid)
   const wapis = await this.forceGetWapis(clientIpc, root_url);
   const webview_id = await wapis.apis.openWebview(args.url);
   return webview_id
+}
+export async function openDownloadPage(
+  this: MultiWebviewNMM,
+  root_url: string,
+  args: $Schema1ToType<{url: "string"}>,
+  clientIpc: Ipc,
+  request: IpcRequest,
+){
+  const apis = await this.apisGetFromFocused()
+  if(apis === undefined) {
+    throw new Error(`apis === undefined`)
+  }
+  const webview_id = await apis.openWebview(args.url);
+  return {}
 }
 
 
