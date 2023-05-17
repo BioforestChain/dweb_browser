@@ -5,9 +5,12 @@ import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { log } from "../../helper/devtools.cjs";
 import { $JmmMetadata, JmmMetadata } from "./JmmMetadata.cjs";
 import { JsMicroModule } from "./micro-module.js.cjs";
-import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
+import type { HttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 import type { Ipc, IpcRequest } from "../../core/ipc/index.cjs";
 import { IpcResponse } from "../../core/ipc/index.cjs";
+import { install } from "./jmm.handler.cjs"
+import { createWWWServer } from "./jmm.www.serve.cjs"
+import { createApiServer } from "./jmm.api.serve.cjs";
 const fs = require('fs');
 const fsPromises = require('node:fs/promises')
 const path = require('path')
@@ -19,6 +22,8 @@ const tar = require('tar')
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.sys.dweb" as const;
   downloadStatus: DOWNLOAD_STATUS = 0
+  wwwServer: HttpDwebServer | undefined;
+  apiServer: HttpDwebServer | undefined;
   resume: {
     handler: Function,
     response: OutgoingMessage | undefined
@@ -29,67 +34,33 @@ export class JmmNMM extends NativeMicroModule {
 
   async _bootstrap(context: $BootstrapContext) {
     log.green(`[${this.mmid}] _bootstrap`)
-    
-    // 为 下载页面做 准备
-    const wwwServer = await createHttpDwebServer(this, {
-      subdomain: "www",
-      port: 6363
-    });
-    const wwwReadableStreamIpc = await wwwServer.listen();
-    wwwReadableStreamIpc.onRequest(async (request: IpcRequest, ipc: Ipc) => {
-      let pathname = request.parsed_url.pathname;
-      pathname = pathname === "/" ? "/index.html" : pathname;
-      const url = `file:///assets/page_download/${pathname}?mode=stream`
-      // 打开首页的 路径
-      const response = await this.nativeFetch(url);
-      ipc.postMessage(
-        await IpcResponse.fromResponse(
-          request.req_id, 
-          response, 
-          ipc, 
-        )
-      );
-    });
-   
+
+    await createWWWServer.bind(this)();
+    await createApiServer.bind(this)()
     //  安装 第三方 app
     this.registerCommonIpcOnMessageHandler({
       pathname: "/install",
       matchMode: "full",
       input: { metadataUrl: "string" },
       output: "boolean",
-      handler: async (args, client_ipc, request) => {
-        // 需要同时查询参数传递进去
-        const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-          url.pathname = "/index.html";
-        }).href;
-        const url = `file://mwebview.sys.dweb/open_download?url=${interUrl}`
-        console.log('url: ', url)
-        const body = JSON.stringify({
-          metadataUrl: args.metadataUrl
-        })
-        await this.nativeFetch(url,{
-          method: "POST",
-          body
-        })
-        return true;
-      },
+      handler: install.bind(this)
     });
 
 
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/open_page",
-      matchMode: "full",
-      input: {},
-      output: "object",
-      handler: async (args, client_ipc, request) => {
-        console.log('request: ', request)
-        const path = require('path');
-        const pathname = path.resolve(__dirname, './assets/index.html')
-        console.log('pathname: ', pathname)
-        const result = this.nativeFetch(`file:///assets/html/download.sys.dweb.html`)
-        return result;
-      }
-    })
+    // this.registerCommonIpcOnMessageHandler({
+    //   pathname: "/open_page",
+    //   matchMode: "full",
+    //   input: {},
+    //   output: "object",
+    //   handler: async (args, client_ipc, request) => {
+    //     console.log('request: ', request)
+    //     const path = require('path');
+    //     const pathname = path.resolve(__dirname, './assets/index.html')
+    //     console.log('pathname: ', pathname)
+    //     const result = this.nativeFetch(`file:///assets/html/download.sys.dweb.html`)
+    //     return result;
+    //   }
+    // })
 
 
 

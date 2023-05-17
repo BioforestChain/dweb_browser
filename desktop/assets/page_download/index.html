@@ -11,6 +11,7 @@
     body{
       margin: 0px;
       padding: 0px 12px;
+      background: #FFFFFFFF;
     }
     body::-webkit-scrollbar{
       display: block;
@@ -312,8 +313,9 @@
     const elDeveloperName = document.querySelector(".developer-name");
     let isDownloaded = false
 
+    // 根据获取到的 appInfo 设置内容
     async function setAppInfoByAppInfo(info){
-      const appInfo = JSON.parse(info)
+      const appInfo = typeof info === "object" ? info : JSON.parse(info);
       elIcon.style.backgroundImage = "url('https://www.bfmeta.info/imgs/logo3.webp')"
       elMainTitle.innerHTML = appInfo.title;
       elMainExplain.innerHTML = appInfo.subtitle;
@@ -385,9 +387,16 @@
     
   </script>
   <script type="text/javascript">
-    console.log('location',location)
-    const search = new URLSearchParams(location.search);
-    const metadataUrl = search.get('metadataUrl')
+    (async () => {
+      console.log('location',location)
+      const search = new URLSearchParams(location.search);
+      const metadataUrl = search.get('metadataUrl')
+      const url = location.origin.replace("www.", "api.")
+      const response = await fetch(`${url}/get_data?url=${metadataUrl}`)
+      console.log('response: ', response)
+      setAppInfoByAppInfo(await response.json())
+    })()
+    console.log(window.electron)
     
   </script>
 </body>

@@ -81,9 +81,10 @@ export class MultiWebviewNMM extends NativeMicroModule {
       handler: open.bind(this, root_url),
     });
 
+    // 在当前焦点的 BrowserWindow对向上打开新的webveiw
     this.registerCommonIpcOnMessageHandler({
       method: "POST",
-      pathname: "/open_download",
+      pathname: "/open_new_webveiw_at_focused",
       matchMode: "full",
       input: { url: "string" },
       output: "object",
