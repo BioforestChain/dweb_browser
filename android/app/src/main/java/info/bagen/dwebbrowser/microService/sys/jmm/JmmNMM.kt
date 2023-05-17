@@ -1,16 +1,21 @@
 package info.bagen.dwebbrowser.microService.sys.jmm
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
+import com.google.gson.JsonSyntaxException
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.encodeURIComponent
+import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.microService.user.CotDemoJMM
+import info.bagen.dwebbrowser.network.HttpClient
+import info.bagen.dwebbrowser.network.base.byteBufferToString
 import info.bagen.dwebbrowser.service.DownLoadController
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import info.bagen.dwebbrowser.util.FilesUtil
@@ -128,6 +133,23 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
         apps.remove(jsMicroModule.metadata.id)
         bootstrapContext.dns.uninstall(jsMicroModule)
         FilesUtil.uninstallApp(jsMicroModule.metadata.id)
+    }
+
+    fun checkJmmMetadataJson(url: String): Boolean {
+        android.net.Uri.parse(url).lastPathSegment?.let { lastPathSegment ->
+            if (lastPathSegment.endsWith(".json")) { // 如果是json，进行请求判断并解析jmmMetadata
+                try {
+                    val jmmMetadata = gson.fromJson(
+                        byteBufferToString(HttpClient().requestPath(url).body.payload),
+                        JmmMetadata::class.java
+                    )
+//                    return jmmMetadata
+                } catch (e: JsonSyntaxException) {
+                    Log.e("DWebBrowserModel", "checkJmmMetadataJson fail -> ${e.message}")
+                }
+            }
+        }
+        return false
     }
 
     override suspend fun _shutdown() {

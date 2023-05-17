@@ -58,7 +58,6 @@ export abstract class BasePlugin {
     return this.buildRequest(url, init);
   }
   buildInternalApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
-    console.log("base>",init?.base,"internal_url",BasePlugin.internal_url,`con=> ${init?.base ?? BasePlugin.internal_url}`)
     const url = new URL(init?.base ?? BasePlugin.internal_url);
     url.pathname = `/internal${pathname}`;
     return this.buildRequest(url, init);

@@ -7,8 +7,8 @@ import { routes } from "./routes";
 const router = useRouter();
 
 // router.push("/biometrics")
-// router.push("/serviceworker")
-router.push("/inputfile");
+router.push("/serviceworker")
+// router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");
 

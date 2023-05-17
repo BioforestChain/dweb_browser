@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.webkit.*
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
@@ -202,7 +201,9 @@ class DWebView(
             if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
                 return dwebFactory(request)
             } else if (request.url.path?.endsWith("bfs-metadata.json") == true) {
-                browserController.checkJmmMetadataJson(request.url.toString())
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    remoteMM.nativeFetch("file://jmm.sys.dweb/install?metadataUrl=${request.url}")
+                }
                 return WebResourceResponse(
                     "application/json", "", 200, "OK", CORS_HEADERS.toMap(), "OK".byteInputStream()
                 )

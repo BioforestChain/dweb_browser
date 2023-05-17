@@ -19,7 +19,7 @@ fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
     companion object {
-        lateinit var browserController: BrowserController
+        lateinit var browserController: BrowserController // 只能browser 里面调用，不能给外部调用
     }
     init {
         browserController = BrowserController(this)

@@ -6,7 +6,7 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 
 class CotDemoJMM : JsMicroModule(
     JmmMetadata(
-        id = "cotdemo.bfs.dweb",  // TODO warning 不能写大写
+        id = "demo.www.bfmeta.info.dweb",  // TODO warning 不能写大写
         version = "1.0.0",
         server = JmmMetadata.MainServer(
             root = "file:///bundle",
@@ -18,7 +18,7 @@ class CotDemoJMM : JsMicroModule(
                 root = "file:///bundle",
                 entry = "/public.service.worker.js",
                 port = 80,
-                subdomain = "cotdemo.bfs.dweb"
+                subdomain = "demo.www.bfmeta.info.dweb"
             )
         ),
         icon = "https://www.bfmeta.info/imgs/logo3.webp",
