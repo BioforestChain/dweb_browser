@@ -171,7 +171,7 @@ object FilesUtil {
       /*if (!file.exists()) {
         file.mkdirs()
       }*/
-      var childrenMap: HashMap<String, String> = HashMap<String, String>()
+      val childrenMap: HashMap<String, String> = HashMap<String, String>()
       file.listFiles()?.forEach {
         if (it.isDirectory) {
           // Log.d(TAG, "name=${it.name}, absolutePath=${it.absolutePath}")
@@ -195,7 +195,7 @@ object FilesUtil {
   /**
    * 遍历当前目录及其子目录所有文件和文件夹
    */
-  private fun traverseFileTree(fileName: String): List<String> {
+  fun traverseFileTree(fileName: String): List<String> {
     return traverseFileTree(File(fileName))
   }
 
@@ -206,7 +206,7 @@ object FilesUtil {
     if (!file.exists()) {
       file.mkdirs()
     }
-    var fileList = arrayListOf<String>()
+    val fileList = arrayListOf<String>()
     val fileTreeWalk = file.walk() // 遍历目录及其子目录所有文件和目录
     fileTreeWalk.iterator().forEach {
       fileList.add(it.absolutePath)
@@ -218,9 +218,9 @@ object FilesUtil {
    * 获取文件全部内容字符串
    * @param filename
    */
-  fun getFileContent(filename: String): String? {
+  private fun getFileContent(filename: String): String? {
     // Log.d("FilesUtil", "getFileContent filename->$filename")
-    var file = File(filename)
+    val file = File(filename)
     if (!file.exists()) {
       return null
     }
@@ -231,7 +231,7 @@ object FilesUtil {
    * 将content信息写入到文件中
    */
   fun writeFileContent(filename: String, content: String) {
-    var file = File(filename)
+    val file = File(filename)
     if (!file.parentFile.exists()) {
       file.parentFile.mkdirs()
     }
@@ -245,7 +245,7 @@ object FilesUtil {
    * 末尾追加
    */
   private fun appendFileContent(filename: String, content: String) {
-    var file: File = File(filename)
+    val file: File = File(filename)
     if (!file.exists()) {
       file.createNewFile()
     }
@@ -259,11 +259,11 @@ object FilesUtil {
       } else {
         file.delete()
       }
-    } catch (e: Throwable) {
+    } catch (_: Throwable) {
     }
   }
 
-  fun deleteQuietly(path: String, recursively: Boolean = true) {
+  private fun deleteQuietly(path: String, recursively: Boolean = true) {
     deleteQuietly(File(path), recursively)
   }
 
@@ -285,10 +285,7 @@ object FilesUtil {
    */
   private fun copyFilesFassets(oldPath: String, newPath: String) {
     try {
-      val fileNames = App.appContext.assets.list(oldPath) //获取assets目录下的所有文件及目录名，空目录不会存在
-      if (fileNames == null) {
-        return
-      }
+      val fileNames = App.appContext.assets.list(oldPath) ?: return //获取assets目录下的所有文件及目录名，空目录不会存在
       if (fileNames.isNotEmpty()) { // 目录
         val file = File(newPath);
         file.mkdirs();//如果文件夹不存在，则递归
@@ -411,17 +408,17 @@ object FilesUtil {
    * 遍历当前目录及其子目录所有文件
    */
   private fun traverseDCIM(path: String, maps: HashMap<String, ArrayList<MediaInfo>>) {
-    var defaultPicture = "Pictures"
+    val defaultPicture = "Pictures"
     if (!maps.containsKey(defaultPicture)) maps[defaultPicture] =
       arrayListOf() // 默认先创建一个图片目录，用于保存根目录存在的图片
     File(path).listFiles()?.forEach inLoop@{ file ->
-      var name = file.name
+      val name = file.name
       if (name.startsWith(".")) return@inLoop // 判断第一个字符如果是. 不执行当前文件，直接continue
       if (file.isFile) {
         // 判断文件是否符合要求，如果符合，添加到maps
         file.createMediaInfo()?.let { maps[defaultPicture]!!.add(it) }
       } else if (file.isDirectory) {
-        var list = maps[name] ?: arrayListOf()
+        val list = maps[name] ?: arrayListOf()
         file.walk().iterator().forEach subLoop@{ subFile ->
           if (subFile.name.startsWith(".")) return@subLoop
           if (subFile.isFile) {
