@@ -101,7 +101,7 @@ export class JsMicroModule extends MicroModule {
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
     jsIpc.onRequest(async (ipcRequest) => {
 
-      console.log("------------- jsIPc", ipcRequest.url)
+      // console.log("------------- jsIPc", ipcRequest.url)
       const request = ipcRequest.toRequest()
       const response = await this.nativeFetch(request);
       const newResponse = await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc)

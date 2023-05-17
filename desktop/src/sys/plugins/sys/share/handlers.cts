@@ -22,12 +22,6 @@ export async function share(
   const pathname = ipcRequest.parsed_url.pathname;
   const search = ipcRequest.parsed_url.search;
   const url = `file://mwebview.sys.dweb/plugin/${host}${pathname}${search}`
-
-  console.log('ipcRequest.body', ipcRequest.body)
-  
-  console.log("ipcRequest.body.u8a(): ", await ipcRequest.body.u8a())
-
-
   const result = await this.nativeFetch(url,{
     body: ipcRequest.body.raw,
     headers: ipcRequest.headers,

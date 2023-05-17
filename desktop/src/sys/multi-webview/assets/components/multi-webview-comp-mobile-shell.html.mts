@@ -49,8 +49,10 @@ export class MultiWebViewCompMobileShell extends LitElement{
   }
 
   hapticsMock(text: string){
+    console.log("hapticsMock", text)
     const el = document.createElement('multi-webview-comp-haptics');
           el.setAttribute('text', text)
+          
     this.appContentContainer?.appendChild(el)
   }
 

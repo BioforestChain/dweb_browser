@@ -261,8 +261,9 @@ export class ViewTree extends LitElement {
     this.multiWebviewCompMobileShell?.biometricsMock()
   }
 
-  hapticsMock() {
-    this.multiWebviewCompMobileShell?.hapticsMock('HEAVY');
+  hapticsSet(value: string) {
+    this.multiWebviewCompMobileShell?.hapticsMock(value);
+    return true;
   }
 
   shareShare(options: $ShareOptions) {
@@ -665,6 +666,7 @@ export const APIS = {
   shareShare: viewTree.shareShare.bind(viewTree),
   torchStateToggle: viewTree.torchStateToggle.bind(viewTree),
   torchStateGet: viewTree.torchStateGet.bind(viewTree),
+  hapticsSet: viewTree.hapticsSet.bind(viewTree),
   preloadAbsolutePathSet: viewTree.preloadAbsolutePathSet.bind(viewTree)
 };
 

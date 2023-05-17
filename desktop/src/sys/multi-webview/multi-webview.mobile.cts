@@ -22,7 +22,8 @@ import {
   toastShow,
   shareShare,
   toggleTorch,
-  torchState
+  torchState,
+  haptics
  } from "./handler.cjs"
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { Remote } from "comlink";
@@ -261,6 +262,23 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: {},
       output: "boolean",
       handler: torchState.bind(this, root_url)
+    })
+
+    // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.sys.dweb%3A443&style=HEAVY&action=impactLight
+    // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/notification?X-Dweb-Host=api.browser.sys.dweb%3A443&style=SUCCESS&action=notification
+    // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/vibrateClick?X-Dweb-Host=api.browser.sys.dweb%3A443&action=vibrateClick
+    // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/vibrateDisabled?X-Dweb-Host=api.browser.sys.dweb%3A443&action=vibrateDisabled
+    // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/vibrateDoubleClick?X-Dweb-Host=api.browser.sys.dweb%3A443&action=vibrateDoubleClick
+    // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/vibrateHeavyClick?X-Dweb-Host=api.browser.sys.dweb%3A443&action=vibrateHeavyClick
+    // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/vibrateTick?X-Dweb-Host=api.browser.sys.dweb%3A443&action=vibrateTick
+    // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/customize?X-Dweb-Host=api.browser.sys.dweb%3A443&duration=300&action=customize
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plugin/haptics.sys.dweb",
+      method: "GET",
+      matchMode: "prefix",
+      input: {action: "string"},
+      output: "boolean",
+      handler: haptics.bind(this, root_url)
     })
     
   }

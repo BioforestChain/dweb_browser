@@ -1,7 +1,6 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 import { NativeMicroModule } from "../../../../core/micro-module.native.cjs";
 import { log } from "../../../../helper/devtools.cjs"
-import { WWWServer }from "./www-server.cjs";
 import type { Ipc } from "../../../../core/ipc/ipc.cjs";
 import type { $BootstrapContext } from "../../../../core/bootstrapContext.cjs"
 import type { IncomingMessage,OutgoingMessage } from "node:http";
@@ -23,22 +22,44 @@ export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
 
   _bootstrap = async (context: $BootstrapContext) => {
     log.green(`[${this.mmid} _bootstrap]`)
+    let isStop = false;
+    this.registerCommonIpcOnMessageHandler({
+      method: "POST",
+      pathname: "/process",
+      matchMode: "full",
+      input: {},
+      output: "string",
+      handler: async (args, client_ipc, ipcRequest ) => {
+        // const host: string = ipcRequest.parsed_url.host;
+        // const pathname = ipcRequest.parsed_url.pathname;
+        // const search = ipcRequest.parsed_url.search;
+        // const url = `file://mwebview.sys.dweb/plugin/${host}${pathname}${search}`
+        // const result = await this.nativeFetch(url)
+        // 直接解析二维码
+        const Jimp = require("jimp");
+        const jsQR = require("jsqr");
+        return await Jimp.read(await ipcRequest.body.u8a()).then(({bitmap}: any) => {
+          const result = jsQR(bitmap.data, bitmap.width, bitmap.height);
+          console.log('result: ', result)
+          return JSON.stringify(result === null ? []: [result.data])
+        })
+      }
+    })
 
-    // this.httpNMM = (await context.dns.query('http.sys.dweb')) as HttpServerNMM
-    // if(this.httpNMM === undefined) throw new Error(`[${this.mmid}] this.httpNMM === undefined`)
-    
-    // {
-    //   this.httpNMM.addRoute(`/${this.mmid}/process`, this._process)
-    //   this.httpNMM.addRoute(`/barcode-scanning.sys.dweb/stop`, this._stop)
-    //   this.httpNMM.addRoute(`/camera.sys.dweb/getPhoto`, this._getPhoto);
-    //   this.httpNMM.addRoute(`/barcode-scanning-ui/wait_for_operation`, this._waitForOperation)
-    //   this.httpNMM.addRoute(`/barcode-scanning-ui/operation_return`, this._operationReturn)
-    // }
-     
-    {
-      new WWWServer(this)
-    }
-   
+    this.registerCommonIpcOnMessageHandler({
+      method: "GET",
+      pathname: "/stop",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: async (args, client_ipc, ipcRequest) => {
+        // 停止及解析
+        isStop = true;
+        return true;
+      }
+    })
+
+
   }
 
 

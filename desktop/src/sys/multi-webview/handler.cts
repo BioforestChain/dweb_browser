@@ -242,5 +242,37 @@ export async function torchState(
   return await apis.torchStateGet()
 }
 
+export async function haptics(
+  this: MultiWebviewNMM, 
+  root_url: string,
+  args: $Schema1ToType<{action: "string"}>,
+  clientIpc: Ipc,
+  request: IpcRequest,
+){
+  const query =  request.parsed_url.searchParams;
+  let str: string = ""
+  if(
+    args.action === "impactLight"
+    || args.action === "notification"
+  ){
+    str = `${args.action} : ${query.get('style')}`
+  }else if (
+    args.action === "vibrateClick" 
+    || args.action === "vibrateDisabled" 
+    || args.action === "vibrateDoubleClick"
+    || args.action === "vibrateHeavyClick"
+    || args.action === "vibrateTick"
+  ){
+    str = `${args.action}`
+  }else{
+    str = `${args.action} : ${query.get("duration")}`
+  }
+  const apis = this.apisGetFromFocused()
+  if(apis === undefined) throw new Error(`wapi === undefined`);
+  return await apis.hapticsSet(str)
+}
+
+
+
  
  
