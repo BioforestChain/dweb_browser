@@ -1,8 +1,10 @@
 package info.bagen.dwebbrowser.microService.user
 
+import android.util.Log
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
+import info.bagen.dwebbrowser.microService.sys.jmm.getOrPutOrReplace
 
 class CotDemoJMM : JsMicroModule(
     JmmMetadata(
@@ -25,8 +27,9 @@ class CotDemoJMM : JsMicroModule(
         title = "CotDemo"
     )
 ) {
-    init {
+    /*init {
         // TODO 测试打开的需要把metadata添加到 jmm app
+        Log.e("lin.huang", "CotDemoJMM -> $mmid -> ${getAndUpdateJmmNmmApps().size}")
         getAndUpdateJmmNmmApps().getOrPut(mmid) { this }
-    }
+    }*/
 }
