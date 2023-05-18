@@ -1,58 +1,59 @@
 ﻿using System;
+using System.Diagnostics;
 namespace DwebBrowser.Helper;
 
 
 static class StateShared
 {
-    internal static List<dynamic> ObsStack = new();
+    internal static List<StateBase> ObsStack = new();
 }
-public class State<T>
-{
 
+public abstract class StateBase
+{
     /// <summary>
     /// 我的依赖：当依赖更新，我需要重新执行更新
     /// </summary>
-    HashSet<dynamic> _Deps = new();
-    public IReadOnlySet<dynamic> Deps { get => _Deps; }
+    protected HashSet<StateBase> _Deps = new();
+    public IReadOnlySet<StateBase> Deps { get => _Deps; }
     /// <summary>
     /// 我的引用：当我更新，我需要去通知它们执行更新
     /// </summary>
-    HashSet<dynamic> _Refs = new();
-    public IReadOnlySet<dynamic> Refs { get => _Refs; }
+    protected HashSet<StateBase> _Refs = new();
+    public IReadOnlySet<StateBase> Refs { get => _Refs; }
 
-    public bool AddDep(dynamic dep)
+    public bool AddDep(StateBase dep)
     {
         var success = _Deps.Add(dep);
         if (success)
         {
-            dep.AddRef((dynamic)this);
+            dep.AddRef(this);
         }
         return success;
     }
-    public bool AddRef(dynamic @ref)
+    public bool AddRef(StateBase @ref)
     {
         var success = _Refs.Add(@ref);
         if (success)
         {
-            @ref.AddDep((dynamic)this);
+            @ref.AddDep(this);
         }
         return success;
     }
-    public bool RmDep(dynamic dep)
+    public bool RmDep(StateBase dep)
     {
         var success = _Deps.Remove(dep);
         if (success)
         {
-            dep.RmRef((dynamic)this);
+            dep.RmRef(this);
         }
         return success;
     }
-    public bool RmRef(dynamic @ref)
+    public bool RmRef(StateBase @ref)
     {
         var success = _Refs.Remove(@ref);
         if (success)
         {
-            @ref.RmDep((dynamic)this);
+            @ref.RmDep(this);
         }
         return success;
     }
@@ -64,9 +65,15 @@ public class State<T>
         }
     }
 
+    public abstract void BeGet(bool? force = null);
+}
+public class State<T> : StateBase
+{
+
+
     Func<T> getter;
     Func<T, bool> setter;
-    T cache;
+    T? cache;
     bool hasCache = false;
     public State(Func<T> getter, Func<T, bool> setter)
     {
@@ -80,7 +87,7 @@ public class State<T>
 
     public State(T defaultValue) : this(() => defaultValue, (newValue) =>
     {
-        if (defaultValue.Equals(newValue))
+        if (defaultValue!.Equals(newValue))
         {
             return false;
         }
@@ -92,7 +99,7 @@ public class State<T>
         hasCache = true;
     }
 
-    public event Signal<T, T?> OnChange;
+    public event Signal<T, T?>? OnChange;
 
     public T Get(bool? force = null)
     {
@@ -110,7 +117,7 @@ public class State<T>
         }
 
 
-        if ((bool)force)
+        if (force is true)
         {
             /// 自己也将作为调用者
             /// 
@@ -125,7 +132,7 @@ public class State<T>
                 var oldValue = cache;
                 cache = getter();
                 hasCache = true;
-                _ = OnChange.Emit(cache, oldValue);
+                _ = OnChange?.Emit(cache, oldValue);
                 return cache;
             }
             finally
@@ -137,7 +144,7 @@ public class State<T>
                 }
             }
         }
-        return cache;
+        return cache!;
     }
 
     public bool Set(T value, bool force = false)
@@ -149,25 +156,29 @@ public class State<T>
             /// 向自己的调用者发去通知
             foreach (var @ref in _Refs.ToArray())
             {
-                @ref.Get(true);
+                @ref.BeGet(true);
             }
             return true;
         }
         return false;
     }
+
+    #region 仅适用于引用类型
     public bool Update(Func<T?, T> updater, bool force = true)
     {
         return Set(updater(cache), force);
     }
     public bool Update(Func<T?, bool> updater)
     {
-        return Set(cache, updater(cache));
+        return cache is not null ? Set(cache, updater(cache)) : false;
     }
     public bool Update(Action<T?> updater, bool force = true)
     {
         updater(cache);
-        return Set(cache, force);
+        return cache is not null ? Set(cache, force) : false;
     }
+    #endregion
+
     public async IAsyncEnumerable<T> ToStream()
     {
         PromiseOut<T>? waitter = null;
@@ -235,5 +246,10 @@ public class State<T>
             OnChange -= onChange;
             locker.Dispose();
         }
+    }
+
+    public override void BeGet(bool? force = null)
+    {
+        Get(force);
     }
 }
