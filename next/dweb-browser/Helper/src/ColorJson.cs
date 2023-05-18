@@ -1,7 +1,7 @@
 ﻿using System;
 namespace DwebBrowser.Helper;
 
-public record ColorJson(float red, float green, float blue, float alpha)
+public record ColorJson(double red, double green, double blue, double alpha)
 {
     public static readonly ColorJson White = new(1, 1, 1, 1);
     public static readonly ColorJson Black = new(0, 0, 0, 1);

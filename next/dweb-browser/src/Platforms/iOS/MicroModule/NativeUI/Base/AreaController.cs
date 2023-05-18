@@ -27,11 +27,12 @@ public class AreaState
 {
     [JsonPropertyName("overlay")]
     public bool Overlay { get; set; }
-    [JsonPropertyName("area")]
+    [JsonPropertyName("insets")]
     public AreaJson Area { get; set; }
 }
 
 public static class CGRectExtensions
 {
-    public static AreaJson ToAreaJson(this CoreGraphics.CGRect rect) => new((float)rect.Top, (float)rect.Left, (float)rect.Right, (float)rect.Bottom);
+    public static AreaJson ToAreaJson(this CoreGraphics.CGRect rect) =>
+        new(rect.Top.Value, rect.Left.Value, rect.Right.Value, rect.Bottom.Value);
 }

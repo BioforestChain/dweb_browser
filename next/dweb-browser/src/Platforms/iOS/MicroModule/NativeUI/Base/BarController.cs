@@ -1,6 +1,7 @@
 ﻿using CoreGraphics;
 using UIKit;
 using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Base;
 
@@ -59,12 +60,43 @@ public class BarState : AreaState
     [JsonPropertyName("style")]
     public BarStyle Style { get; set; }
 }
+[JsonConverter(typeof(BarStyleConverter))]
 public sealed record BarStyle(string style)
 {
-    public static BarStyle DarkContent = new("DARK");
-    public static BarStyle LightContent = new("LIGHT");
-    public static BarStyle Default = new("DEFAULT");
+    public static readonly BarStyle DarkContent = new("DARK");
+    public static readonly BarStyle LightContent = new("LIGHT");
+    public static readonly BarStyle Default = new("DEFAULT");
 }
 
+#region BarStyle序列化反序列化
+public class BarStyleConverter : JsonConverter<BarStyle>
+{
+    public override BarStyle? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var method = reader.GetString();
+        return method switch
+        {
+            "DARK" => BarStyle.DarkContent,
+            "LIGHT" => BarStyle.LightContent,
+            "DEFAULT" => BarStyle.Default,
+            _ => throw new JsonException("Invalid BarStyle")
+        };
 
-record class A(string a);
+    }
+
+    public override void Write(Utf8JsonWriter writer, BarStyle value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.style);
+    }
+}
+#endregion
+
+public static class BarStyleExtensions
+{
+    public static UIStatusBarStyle ToUIStatusBarStyle(this BarStyle style) => style.style switch
+    {
+        "DARK" => UIStatusBarStyle.DarkContent,
+        "LIGHT" => UIStatusBarStyle.LightContent,
+        _ => UIStatusBarStyle.Default
+    };
+}

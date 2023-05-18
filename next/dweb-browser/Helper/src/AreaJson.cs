@@ -1,5 +1,7 @@
-﻿using System;
-namespace DwebBrowser.Helper;
+﻿namespace DwebBrowser.Helper;
 
-public record AreaJson(float top, float left, float right, float bottom);
+public record AreaJson(double top, double left, double right, double bottom)
+{
+    public static readonly AreaJson Empty = new(0, 0, 0, 0);
+}
 
