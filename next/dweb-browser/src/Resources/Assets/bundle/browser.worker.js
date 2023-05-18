@@ -556,9 +556,7 @@ var restartApp = async (servers, ipcs) => {
     ipc2.close();
   });
   await Promise.all([serverOp, opcOp]);
-  webViewMap.forEach(async (state) => {
-    await closeDwebView(state.webviewId);
-  });
+  closeFront();
   jsProcess.restart();
   return "ok";
 };
@@ -566,6 +564,7 @@ var closeFront = () => {
   webViewMap.forEach(async (state) => {
     await closeDwebView(state.webviewId);
   });
+  webViewMap.clear();
   return "ok";
 };
 

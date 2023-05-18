@@ -35,11 +35,6 @@ class MultiWebViewController(
         private var webviewId_acc = AtomicInteger(1)
     }
 
-    data class MWebViewState(
-        val webviewId: String,
-        val isActivated: Boolean
-    )
-
     private var webViewList = mutableStateListOf<ViewItem>()
 
 //    @Composable

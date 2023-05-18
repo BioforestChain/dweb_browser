@@ -57,16 +57,11 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
 
     init {
         controllerList.add(JmmController(this))
-        // 启动的时候，从数据库中恢复 apps 对象
+    }
+
+    /** 启动的时候，从数据库中恢复 apps 对象*/
+    private fun recoverAppData() {
         GlobalScope.launch(ioAsyncExceptionHandler) {
-            while (true) { // TODO 为了将 jmm.sys.dweb 启动，否则 bootstrapContext 会报错
-                delay(1000)
-                try {
-                    nativeFetch(Uri.of("file://dns.sys.dweb/open")
-                        .query("app_id", "jmm.sys.dweb".encodeURIComponent()))
-                    break
-                } catch (_: Exception) {}
-            }
             JmmMetadataDB.queryJmmMetadataList().collectLatest { maps -> // TODO 只要datastore更新，这边就会实时更新
                 debugJMM("init/JmmNMM", "init Apps list -> ${maps.size}")
 
@@ -74,15 +69,12 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                     apps.getOrPutOrReplace(key, replaceValue = { local ->
                         if (compareAppVersionHigh(local.metadata.version, value.version)) {
                             local.metadata = value
-                            emitEvent(value.id, ServiceWorkerEvent.UpdateFound.event)
+                            // emitEvent(value.id, ServiceWorkerEvent.UpdateFound.event)
                         }
                         local
                     }) {
                         JsMicroModule(value).also { jsMicroModule ->
-                            try {
-                                bootstrapContext.dns.install(jsMicroModule)
-                            } catch (_: Exception) {
-                            }
+                            bootstrapContext.dns.install(jsMicroModule)
                         }
                     }
                     /*apps.getOrPut(key) {
@@ -97,12 +89,11 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
             }
         }
     }
-
     val queryMetadataUrl = Query.string().required("metadataUrl")
     val queryMmid = Query.string().required("mmid")
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-
+        recoverAppData()
         apiRouting = routes(
             "/install" bind Method.GET to defineHandler { request ->
                 val metadataUrl = queryMetadataUrl(request)

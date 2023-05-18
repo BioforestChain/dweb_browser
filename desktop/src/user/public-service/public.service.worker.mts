@@ -45,10 +45,6 @@ const main = async () => {
     );
   };
 
-  /**
-   * 立刻自启动
-   */
-  tryOpenView();
 
   const { IpcResponse, IpcHeaders } = ipc;
 
@@ -193,15 +189,14 @@ const main = async () => {
     }
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
+      // 关闭别人来激活的ipc
+      multiWebViewCloseSignal.emit();
+
       return restartApp(
         [apiServer, wwwServer, externalServer],
         [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
       );
     }
-    // TODO 手动关闭 connect
-    // closeSignal.emit()
-    // cotDemoJMM.shutdown()
-
     // return await response.text()
     return "no action for serviceWorker Factory !!!";
   };
@@ -221,13 +216,17 @@ const main = async () => {
   const hasActivityEventIpcs = new Set<$Ipc>();
 
   /// 同步 mwebview 的状态机
-  multiWebViewIpc.onEvent(async (event) => {
+  multiWebViewIpc.onEvent(async (event,ipc) => {
     if (event.name === EVENT.State && typeof event.data === "string") {
       const newState = JSON.parse(event.data);
       const diff = detailedDiff(oldWebviewState, newState);
       oldWebviewState = newState;
       diffFactory(diff);
     }
+    multiWebViewCloseSignal.listen(() => {
+      ipc.postMessage(IpcEvent.fromText("close", ""));
+      ipc.close();
+    });
   });
 
   const diffFactory = async (diff: DetailedDiff) => {
@@ -250,13 +249,16 @@ const main = async () => {
     }
   };
 
-  {
-    const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-      url.pathname = "/index.html";
-    });
-    interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
-    mainUrl.resolve(interUrl.href);
-  }
+  const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+    url.pathname = "/index.html";
+  });
+  interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
+  mainUrl.resolve(interUrl.href);
+
+  /**
+   * 立刻自启动
+   */
+  tryOpenView();
 };
 
 main();

@@ -198,15 +198,18 @@ class DWebView(
         override fun shouldInterceptRequest(
             view: WebView, request: WebResourceRequest
         ): WebResourceResponse? {
-            if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
-                return dwebFactory(request)
-            } else if (request.url.path?.endsWith("bfs-metadata.json") == true) {
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    remoteMM.nativeFetch("file://jmm.sys.dweb/install?metadataUrl=${request.url}")
-                }
+            // 拦截配置文件
+            if (request.url.path?.endsWith("bfs-metadata.json") == true) {
+               runBlockingCatching(ioAsyncExceptionHandler) {
+                   remoteMM.nativeFetch("file://jmm.sys.dweb/install?metadataUrl=${request.url}")
+               }
                 return WebResourceResponse(
                     "application/json", "", 200, "OK", CORS_HEADERS.toMap(), "OK".byteInputStream()
                 )
+            }
+            // 转发请求
+            if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
+                return dwebFactory(request)
             }
             return super.shouldInterceptRequest(view, request)
         }

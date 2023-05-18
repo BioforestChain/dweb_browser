@@ -1,7 +1,7 @@
 import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs";
 import type { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
 import type { WebViewState } from "./tool.event.mjs";
-import { closeDwebView, emitUpdateFoundEvent } from "./tool.native.mjs";
+import { closeDwebView } from "./tool.native.mjs";
 
 // 管理webView
 export const webViewMap = new Map<string, WebViewState>()
@@ -27,9 +27,7 @@ export const restartApp = async (
   });
   await Promise.all([serverOp, opcOp])
   // 关闭所有的DwebView
-  webViewMap.forEach(async (state) => {
-    await closeDwebView(state.webviewId);
-  });
+  closeFront()
   // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
   jsProcess.restart()
   return "ok"
@@ -43,5 +41,6 @@ export const closeFront = () => {
   webViewMap.forEach(async (state) => {
     await closeDwebView(state.webviewId);
   });
+  webViewMap.clear()
   return "ok"
 }

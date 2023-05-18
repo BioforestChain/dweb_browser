@@ -40,11 +40,6 @@ class UpdateControllerPlugin extends BasePlugin {
   async cancel(): Promise<boolean> {
     return await this.fetchApi("/cancel").boolean();
   }
- 
-  @bindThis
-  async getMMid() {
-    return await BasePlugin.public_url;
-  }
 }
 
 export class DwebServiceWorkerPlugin extends BasePlugin {
@@ -78,9 +73,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * @param pathname 
    * @param init 
    * @returns 
-   * 
    * https://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
-   * 
    */
   @bindThis
   async externalFetch(pathname: string,init?:$BuildRequestWithBaseInit) {
@@ -89,8 +82,6 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     const public_url = new URL(await BasePlugin.public_url);
     public_url.searchParams.set("X-Dweb-Host",`external.${url.hostname}:443`)
     const base = public_url.href
-
-    console.log("externalFetch =>",url,base)
 
     const config = Object.assign(init??{},{base: base})
     return await this.buildExternalApiRequest(url.pathname,config).fetch();

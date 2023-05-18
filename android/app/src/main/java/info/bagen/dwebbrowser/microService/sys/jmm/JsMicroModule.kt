@@ -150,7 +150,6 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             null
         }
         _ipcSet.add(streamIpc);
-        debugJMM("running!!", mmid)
     }
 
     private val fromMmid_originIpc_WM = mutableMapOf<Mmid, PromiseOut<Ipc>>();
@@ -191,15 +190,17 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                              * 监听关闭事件
                              */
                             originIpc.onClose {
+                                fromMmid_originIpc_WM.remove(originIpc.remote.mmid)
                                 targetIpc.close()
                             }
                             targetIpc.onClose {
+                                fromMmid_originIpc_WM.remove(targetIpc.remote.mmid)
                                 originIpc.close()
                             }
                         }
                         po.resolve(originIpc);
                     } catch (e: Exception) {
-                        println("xxx=> $e")
+                        debugJMM("_ipcBridge Error", e)
                         po.reject(e)
                     }
                 }

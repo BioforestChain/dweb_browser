@@ -7,9 +7,9 @@ import info.bagen.dwebbrowser.microService.ipc.IpcEvent
 
 class JmmController(private val jmmNMM: JmmNMM) {
 
-  private val openIPCMap = mutableMapOf<Mmid, Ipc>()
+  private val openIpcMap = mutableMapOf<Mmid, Ipc>()
   suspend fun openApp(mmid: Mmid) {
-    openIPCMap.getOrPut(mmid) {
+    openIpcMap.getOrPut(mmid) {
       val (ipc) = jmmNMM.connect(mmid)
       ipc.onEvent {
         if (it.event.name == EIpcEvent.Ready.event) { // webview加载完成，可以隐藏加载框

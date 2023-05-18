@@ -27,9 +27,8 @@ class CotDemoJMM : JsMicroModule(
         title = "CotDemo"
     )
 ) {
-    /*init {
+    init {
         // TODO 测试打开的需要把metadata添加到 jmm app
-        Log.e("lin.huang", "CotDemoJMM -> $mmid -> ${getAndUpdateJmmNmmApps().size}")
-        getAndUpdateJmmNmmApps().getOrPut(mmid) { this }
-    }*/
+        getAndUpdateJmmNmmApps()[mmid] = this
+    }
 }
