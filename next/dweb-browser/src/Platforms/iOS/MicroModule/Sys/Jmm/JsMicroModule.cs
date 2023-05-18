@@ -219,8 +219,16 @@ public class JsMicroModule : MicroModule
                         /**
                          * 监听关闭事件
                          */
-                        originIpc.OnClose += async (_) => { await targetIpc.Close(); };
-                        targetIpc.OnClose += async (_) => { await originIpc.Close(); };
+                        originIpc.OnClose += async (_) =>
+                        {
+                            _fromMmid_originIpc_map.Remove(originIpc.Remote.Mmid);
+                            await targetIpc.Close();
+                        };
+                        targetIpc.OnClose += async (_) =>
+                        {
+                            _fromMmid_originIpc_map.Remove(targetIpc.Remote.Mmid);
+                            await originIpc.Close();
+                        };
                     }
                     po.Resolve(originIpc);
                 }
