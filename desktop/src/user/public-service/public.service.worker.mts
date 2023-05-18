@@ -1,5 +1,5 @@
 import { DetailedDiff, detailedDiff } from "deep-object-diff";
-import type { Ipc } from "../../core/ipc/ipc.cjs";
+import type { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
 import { closeFront, restartApp, webViewMap } from "../tool/app.handle.mjs";
@@ -22,7 +22,7 @@ const main = async () => {
   const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
   // 关闭信号
   const multiWebViewCloseSignal = createSignal<() => unknown>();
-  const EXTERNAL_PREFIX = "/external";
+  const EXTERNAL_PREFIX = "/external/";
 
   /**尝试打开view */
   const tryOpenView = async () => {
@@ -120,45 +120,67 @@ const main = async () => {
     );
   });
 
-  const externalMap = new Map<number, Ipc>();
+  const externalMap = new Map<number, PromiseOut<IpcResponse>>();
   // 提供APP之间通信的方法
   externalReadableStreamIpc.onRequest(async (request, ipc) => {
     const url = request.parsed_url;
-    console.log("publicService externalReadableStreamIpc request =>", request);
-    console.log("remoteIpc=>", ipc.remote.mmid, "jsProcess =>", jsProcess.mmid);
+    const xHost = decodeURIComponent(url.searchParams.get("X-Dweb-Host") ?? "");
+
     // 处理serviceworker respondWith过来的请求,回复给别的app
     if (url.pathname.startsWith(EXTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(EXTERNAL_PREFIX.length);
       const externalReqId = parseInt(pathname);
-      console.log("externalReqId => ", externalReqId, url.pathname);
-      if (externalReqId) {
-        const externalIpc = externalMap.get(externalReqId);
-        if (externalIpc) {
-          // 转发给外部的app
-          const ipcResponse = new IpcResponse(
-            externalReqId,
-            200,
+      // 验证传递的reqId
+      if (typeof externalReqId !== "number" || isNaN(externalReqId)) {
+        return ipc.postMessage(
+          IpcResponse.fromText(
+            request.req_id,
+            400,
             request.headers,
-            request.body,
+            "reqId is NAN",
             ipc
-          );
-          cros(ipcResponse.headers);
-          // 返回数据到发送者那边
-          return externalIpc.postMessage(ipcResponse);
-        }
+          )
+        );
       }
-      // 告知自己的 respondWith 已经发送成功了
-      ipc.postMessage(
-        IpcResponse.fromText(request.req_id, 200, request.headers, "ok", ipc)
+      const responsePOo = externalMap.get(externalReqId);
+      // 验证是否有外部请求
+      if (!responsePOo) {
+        return ipc.postMessage(
+          IpcResponse.fromText(
+            request.req_id,
+            500,
+            request.headers,
+            `not found external requst,req_id ${externalReqId}`,
+            ipc
+          )
+        );
+      }
+      // 转发给外部的app
+      responsePOo.resolve(
+        new IpcResponse(externalReqId, 200, request.headers, request.body, ipc)
       );
-      return;
+      externalMap.delete(externalReqId);
+      const icpResponse = IpcResponse.fromText(
+        request.req_id,
+        200,
+        request.headers,
+        "ok",
+        ipc
+      );
+      cros(icpResponse.headers);
+      // 告知自己的 respondWith 已经发送成功了
+      return ipc.postMessage(icpResponse);
     }
 
     // 别的app发送消息，触发一下前端注册的fetch
-    if (jsProcess.mmid !== ipc.remote.mmid) {
+    if (xHost === externalServer.startResult.urlInfo.host) {
       fetchSignal.emit(request);
-      externalMap.set(request.req_id, ipc);
-      return;
+      const awaitResponse = new PromiseOut<IpcResponse>();
+      externalMap.set(request.req_id, awaitResponse);
+      const ipcResponse = await awaitResponse.promise;
+      cros(ipcResponse.headers);
+      // 返回数据到发送者那边
+      ipc.postMessage(ipcResponse);
     }
   });
 

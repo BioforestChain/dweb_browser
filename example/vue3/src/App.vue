@@ -20,25 +20,6 @@ dwebServiceWorker.addEventListener("resume", (event) => {
   console.log("app 恢复🍉", event);
 });
 
-/**
- * 别人发送消息给我,我处理完使用responedWith返回回去
- * const response = await event.fetch("https://desktop.dweb.waterbang.top.dweb/say/hi",{
- *  search: {
- *    messages: "hi 今晚吃螃🦀️蟹吗？"
- *   }
- *})
- */
-dwebServiceWorker.addEventListener("fetch", async (event) => {
-  console.log("Dweb Service Worker fetch!", event);
-  const url = new URL(event.request.url);
-  if (url.pathname.endsWith("/say/hi")) {
-    console.log(`收到:${url.search}`)
-    return event.respondWith(`吃，再来两斤二锅头。`);
-  }
-
-  return event.respondWith("Not match any routes")
-});
-
 const drawer_controller = ref(false);
 
 // const apiUrl = new URL(location.href);

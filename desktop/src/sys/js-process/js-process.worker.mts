@@ -3,7 +3,7 @@
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.cjs";
-import { Ipc, IPC_ROLE, $OnIpcEventMessage } from "../../core/ipc/index.cjs";
+import { $OnIpcEventMessage, Ipc, IPC_ROLE } from "../../core/ipc/index.cjs";
 import { fetchExtends } from "../../helper/$makeFetchExtends.cjs";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.cjs";
 import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.cjs";
@@ -134,13 +134,11 @@ export class JsProcessMicroModule implements $MicroModule {
     init?: RequestInit
   ): Promise<Response> {
     const args = normalizeFetchArgs(url, init);
-    console.log('1')
     const ipc_response = await this._nativeRequest(
       args.parsed_url,
       args.request_init
     );
-    console.log('2')
-    return await ipc_response.toResponse(args.parsed_url.href);
+    return ipc_response.toResponse(args.parsed_url.href);
   }
   
   /** 模拟fetch的返回值 */

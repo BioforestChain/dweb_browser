@@ -87,7 +87,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     const url = convertToHttps(pathname);
     // http://localhost:22206/?X-Dweb-Host=api.desktop.dweb.waterbang.top.dweb%3A443
     const public_url = new URL(await BasePlugin.public_url);
-    public_url.searchParams.set("X-Dweb-Host",`external.${url.hostname}%3A443`)
+    public_url.searchParams.set("X-Dweb-Host",`external.${url.hostname}:443`)
     const base = public_url.href
 
     console.log("externalFetch =>",url,base)

@@ -709,7 +709,7 @@ var main = async () => {
   let oldWebviewState = [];
   const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
   const multiWebViewCloseSignal = createSignal();
-  const EXTERNAL_PREFIX = "/external";
+  const EXTERNAL_PREFIX = "/external/";
   const tryOpenView = async () => {
     if (webViewMap.size === 0) {
       const url = await mainUrl.promise;
@@ -780,35 +780,54 @@ var main = async () => {
   const externalMap = /* @__PURE__ */ new Map();
   externalReadableStreamIpc.onRequest(async (request, ipc2) => {
     const url = request.parsed_url;
-    console.log("desktop externalReadableStreamIpc request =>", request);
-    console.log("remoteIpc=>", ipc2.remote.mmid, "jsProcess =>", jsProcess.mmid);
+    const xHost = decodeURIComponent(url.searchParams.get("X-Dweb-Host") ?? "");
     if (url.pathname.startsWith(EXTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(EXTERNAL_PREFIX.length);
       const externalReqId = parseInt(pathname);
-      console.log("externalReqId => ", externalReqId, url.pathname);
-      if (externalReqId) {
-        const externalIpc = externalMap.get(externalReqId);
-        if (externalIpc) {
-          const ipcResponse = new IpcResponse2(
-            externalReqId,
-            200,
+      if (typeof externalReqId !== "number" || isNaN(externalReqId)) {
+        return ipc2.postMessage(
+          IpcResponse2.fromText(
+            request.req_id,
+            400,
             request.headers,
-            request.body,
+            "reqId is NAN",
             ipc2
-          );
-          cros(ipcResponse.headers);
-          return externalIpc.postMessage(ipcResponse);
-        }
+          )
+        );
       }
-      ipc2.postMessage(
-        IpcResponse2.fromText(request.req_id, 200, request.headers, "ok", ipc2)
+      const responsePOo = externalMap.get(externalReqId);
+      if (!responsePOo) {
+        return ipc2.postMessage(
+          IpcResponse2.fromText(
+            request.req_id,
+            500,
+            request.headers,
+            `not found external requst,req_id ${externalReqId}`,
+            ipc2
+          )
+        );
+      }
+      responsePOo.resolve(
+        new IpcResponse2(externalReqId, 200, request.headers, request.body, ipc2)
       );
-      return;
+      externalMap.delete(externalReqId);
+      const icpResponse = IpcResponse2.fromText(
+        request.req_id,
+        200,
+        request.headers,
+        "ok",
+        ipc2
+      );
+      cros(icpResponse.headers);
+      return ipc2.postMessage(icpResponse);
     }
-    if (jsProcess.mmid !== ipc2.remote.mmid) {
+    if (xHost === externalServer.startResult.urlInfo.host) {
       fetchSignal.emit(request);
-      externalMap.set(request.req_id, ipc2);
-      return;
+      const awaitResponse = new PromiseOut();
+      externalMap.set(request.req_id, awaitResponse);
+      const ipcResponse = await awaitResponse.promise;
+      cros(ipcResponse.headers);
+      ipc2.postMessage(ipcResponse);
     }
   });
   const serviceWorkerFactory = async (url, ipc2) => {

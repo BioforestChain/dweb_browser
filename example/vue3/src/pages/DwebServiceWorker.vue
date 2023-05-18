@@ -9,9 +9,6 @@ const progress = ref(0);
 
 onMounted(async () => {
   console = toConsole($logPanel);
-  sw.addEventListener("updatefound", (event) => {
-    console.log("Dweb Service Worker update found!", event);
-  });
   // app暂停触发事件（这个时候后台还会运行，前端界面被关闭）
   sw.addEventListener("pause", (event) => {
     console.log("app pause", event);
@@ -79,17 +76,34 @@ const download = defineLogAction(
   },
   { name: "cancel", args: [], logPanel: $logPanel }
 );
-
+const message = ref("这里显示收到的消息")
 // 向desktop.dweb.waterbang.top.dweb 发送消息
+// external.desktop.dweb.waterbang.top.dweb%3A443
 const sayHi = async () => {
   const result = await sw.externalFetch(`/desktop.dweb.waterbang.top.dweb/say/hi`,{
     search: {
       message: "今晚吃螃🦀️蟹吗？"
     }
   });
-  const text = await result.text();
-  console.log("sayHi return => ",text);
+  message.value = await result.text();
+  console.log("sayHi return => ",message.value);
 };
+
+sw.addEventListener("fetch", async (event) => {
+  console.log("Dweb Service Worker fetch!", event);
+  const url = new URL(event.request.url);
+  if (url.pathname.endsWith("/say/hi")) {
+    const hiMessage = url.searchParams.get("message");
+    console.log(`收到:${hiMessage}`)
+    if (hiMessage) {
+      message.value = hiMessage
+    }
+    // 发送消息回去
+    return event.respondWith(`吃，再来两斤二锅头。`);
+  }
+
+  return event.respondWith("Not match any routes")
+});
 
 const title = "Dweb Service Worker";
 </script>
@@ -101,6 +115,9 @@ const title = "Dweb Service Worker";
     </figure>
     <article class="card-body">
       <h2 class="card-title">APP之间通信</h2>
+      <div class="card-actions">
+        <input  type="text" v-model="message" />
+      </div>
       <div class="card-actions">
         <button class="inline-block rounded-full btn btn-accent" @click="sayHi">say hi</button>
       </div>

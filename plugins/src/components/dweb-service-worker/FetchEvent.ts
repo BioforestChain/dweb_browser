@@ -40,11 +40,12 @@ export class FetchEvent extends Event {
 
   async respondWith(response: Blob | ReadableStream<Uint8Array> | string) {
     if (!this.public_url) throw Error("you need init <web-config></dweb-config>")
-    const base = `https://${new URL(await this.public_url).hostname}:443`
-    return this.fetch(`/${this.clientId}`, {
-      search: {
-        data: response,
-      },
+
+    const public_url = new URL(await BasePlugin.public_url);
+    const base = public_url.href.replace(/X-Dweb-Host=api/,"X-Dweb-Host=external")
+    return this.fetch(`/external/${this.clientId}`, {
+      method:"POST",
+      body:response,
       base: base
     });
     // this.waitUntilPromise = response;
