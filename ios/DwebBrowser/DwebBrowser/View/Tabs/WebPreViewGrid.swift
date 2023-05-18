@@ -27,7 +27,7 @@ struct WebPreViewGrid: View {
     
     @State var frames: [CellFrameInfo] = []
     
-    @Binding var selectedCellFrame: CGRect
+    @Binding var cellFrames: [CGRect]
     
     var webStores: [WebViewStore] {
         brower.pages.map { $0.webStore}
@@ -61,7 +61,7 @@ struct WebPreViewGrid: View {
                 .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
                     if brower.showingOptions{
                         self.frames = newFrames
-                        selectedCellFrame = newFrames[brower.selectedTabIndex].frame
+                        cellFrames = newFrames.map{ $0.frame }
                     }
                 }
             }
@@ -81,25 +81,31 @@ struct WebPreViewGrid: View {
 }
 
 struct GridCell: View {
+    @EnvironmentObject var browser: BrowerVM
     @ObservedObject var webstore: WebViewStore
     @State var runCount = 0
     
-    @State private var iconUrl: URL?
+    @State private var iconUrl = URL.defaultWebIconURL
+//    @State private var snapshotUrl = URL.defaultSnapshotURL
 
     var body: some View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
                 
-                Image(uiImage: .snapshot(from: webstore.webCache.snapshot!))
+                Image(uiImage: .snapshot(from: webstore.webCache.snapshot))
                     .resizable()
                     .frame(alignment: .top)
                     .cornerRadius(gridcellCornerR)
                     .clipped()
                     .onTapGesture {
-                        
+//                        browser.selectedTabIndex = 
+                        browser.expandingSnapshot = UIImage.snapshot(from: webstore.webCache.snapshot)
+                    }
+                    .onAppear{
+                        print("comes to Image onAppear")
                     }
                 HStack{
-                    if iconUrl != nil{
+//                    if iconUrl != nil{
                         KFImage.url(iconUrl)
                             .fade(duration: 0.1)
                             .onProgress { receivedSize, totalSize in print("\(receivedSize / totalSize) %") }
@@ -108,13 +114,13 @@ struct GridCell: View {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 22)
-                    }
+//                    }
                     Text(webstore.title ?? "")
                         .fontWeight(.semibold)
                         .lineLimit(1)
-                        
-                }.frame(height: gridcellBottomH)
                     
+                }.frame(height: gridcellBottomH)
+                
             }
             .aspectRatio(2.0/3.2, contentMode: .fit)
             
@@ -137,25 +143,23 @@ struct GridCell: View {
             }
         }
         .onAppear{
-            if webstore.webCache.lastVisitedUrl != nil{
-                Task {
-                    do {
-                        let favicon = try await FaviconFinder(url: webstore.webCache.lastVisitedUrl!).downloadFavicon()
-                        print("URL of Favicon: \(favicon.url)")
-                        webstore.webCache.webIcon = favicon.url
-                        iconUrl = favicon.url
-                    } catch let error {
-                        print("Error: \(error)")
-                    }
+            if webstore.webCache.webIcon.scheme == "file"{
+                URL.downloadWebsiteIcon(iconUrl: webstore.webCache.lastVisitedUrl) { url in
+                    print("URL of Favicon: \(url)")
+                    webstore.webCache.webIcon = url
+                    iconUrl = url
                 }
             }
+        }
+        .onChange(of: webstore.webCache.snapshot) { newUrl in
+            print("new snapshot is \(newUrl)")
         }
     }
 }
 
 struct TabsCollectionView_Previews: PreviewProvider {
     static var previews: some View {
-        WebPreViewGrid(selectedCellFrame: .constant(.zero))
+        WebPreViewGrid(cellFrames: .constant([.zero]))
             .frame(height: 754)
     }
 }

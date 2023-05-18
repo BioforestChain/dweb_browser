@@ -19,7 +19,7 @@ struct TabPageView: View {
     var  body: some View {
         ZStack{
             NavigationView {
-                WebView(webView: webViewStore.webView, url: webViewStore.webCache.lastVisitedUrl!)
+                WebView(webView: webViewStore.webView, url: webViewStore.webCache.lastVisitedUrl)
                     .navigationBarTitle(Text(verbatim: webViewStore.title ?? ""), displayMode: .inline)
                     .navigationBarItems(trailing: HStack {
                         Button(action: goBack) {
@@ -37,10 +37,17 @@ struct TabPageView: View {
                     })
                     .background(.red)
             }.onAppear {
-                print("webViewStore.webView ---- \(webViewStore.webView)")
+//                print("webViewStore.webView ---- \(webViewStore.webView)")
             }
             .onChange(of: webViewStore.webView.url) { visitingUrl in
-                webViewStore.webCache.lastVisitedUrl = visitingUrl
+                if let url = visitingUrl{
+                    webViewStore.webCache.lastVisitedUrl = url
+                }
+            }
+            .onChange(of: webViewStore.webView.estimatedProgress) { progress in
+                if progress >= 1.0{
+                    WebCacheStore.shared.saveCaches()
+                }
             }
             
             if webViewStore.webCache.lastVisitedUrl == nil{

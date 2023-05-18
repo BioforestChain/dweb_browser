@@ -47,15 +47,24 @@ extension URL {
 
 
 extension URL{
-    func downloadWebsiteIcon(with completion:@escaping (UIImage)->Void) {
+    static var defaultSnapshotURL: URL{
+        Bundle.main.url(forResource: "snapshot", withExtension: "png")!
+    }
+    
+    static var defaultWebIconURL: URL {
+        Bundle.main.url(forResource: "defWebIcon", withExtension: "png")!
+    }
+    
+    
+    static func downloadWebsiteIcon(iconUrl: URL, with completion:@escaping (URL)->Void) {
         Task{
             do {
-                let favicon = try await FaviconFinder(url: self).downloadFavicon()
+                let favicon = try await FaviconFinder(url: iconUrl).downloadFavicon()
                 
-                print("URL of Favicon: \(favicon.url)")
-                DispatchQueue.main.async {
-                    completion(favicon.image)
-                }
+//                print("URL of Favicon: \(favicon.url)")
+//                DispatchQueue.main.async {
+                    completion(favicon.url)
+//                }
             } catch let error {
                 print("Error: \(error)")
             }

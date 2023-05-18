@@ -16,14 +16,14 @@ extension UIImage {
     // 保存图片到本地文件
     static func createSnapShot(withImage image: UIImage, imageName: String) -> URL {
         guard let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
-            return defaultSnapshot()
+            return URL.defaultSnapshotURL
         }
         let filePath = (documentsPath as NSString).appendingPathComponent(imageName + snapshotId)
         do {
             try image.jpegData(compressionQuality: 1.0)?.write(to: URL(fileURLWithPath: filePath), options: [.atomic])
         }catch{
             print("writing image data went wrong!")
-            return defaultSnapshot()
+            return URL.defaultSnapshotURL
         }
         return URL(fileURLWithPath: filePath)
     }
@@ -43,21 +43,16 @@ extension UIImage {
         
         return image
     }
-    
-    static func defaultSnapshot()->URL{
-        Bundle.main.url(forResource: "snapshot", withExtension: "png")!
-    }
-    
-    static func defaultWebIcon()->URL{
-        Bundle.main.url(forResource: "defWebIcon", withExtension: "png")!
-    }
-    
+
     static func snapshot(from localUrl: URL)->UIImage{
+        print("snapshot url is \(localUrl)")
+        var image: UIImage?
         do{
-            return UIImage(data: try Data(contentsOf: localUrl))!
+            image = UIImage(data: try Data(contentsOf: localUrl))!
         }catch{
-            return UIImage(named: "snapshot")!
+            image = UIImage(named: "snapshot")!
         }
+        
+        return image!
     }
-    
 }

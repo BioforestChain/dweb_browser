@@ -41,12 +41,13 @@ class BrowerVM: ObservableObject {
     @Published var selectedTabIndex = 0
     @Published var addressBarOffset = 0.0
     
-    @Published var pages = WebCacheStore().store.map{Page(webStore: WebViewStore(webCache: $0))}
+    @Published var pages = WebCacheStore.shared.store.map{Page(webStore: WebViewStore(webCache: $0))}
     
     @Published var sharedResources = SharedSourcesVM()
     
     @Published var shrinkingSnapshot: UIImage? = nil
-    
+    @Published var expandingSnapshot: UIImage? = nil
+
     @Published var shouldTakeSnapshot = false
     
     var addressBarHeight: CGFloat{
