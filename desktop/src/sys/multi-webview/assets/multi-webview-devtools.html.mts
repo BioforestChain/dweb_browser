@@ -101,7 +101,6 @@ export class MultiWebviewDevtools extends LitElement{
   }
 
   override render(){
-    console.log('this.closing: ', this.closing)
     const containerStyleMap = styleMap({
         "--z-index": this.zIndex + "",
         "--scale": this.scale + "",

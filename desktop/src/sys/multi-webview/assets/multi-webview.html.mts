@@ -384,15 +384,26 @@ export class ViewTree extends LitElement {
     );
   }
 
+  private async deleteTopBarState(){
+    this.statusBarState = this.statusBarState.slice(1);
+    this.navigationBarState = this.navigationBarState.slice(1)
+  }
+
+  private async deleteTopSafeAreaState(){
+    this.safeAreaState = this.safeAreaState.slice(1);
+  }
+
   private async destroyWebview(webview: Webview) {
     await mainApis.destroy(webview.webContentId);
+    // 还需要更新 statusbar navigationbar 和 safearea
+    this.deleteTopBarState()
+    this.deleteTopSafeAreaState()
   }
 
   async destroyWebviewByHost(host: string) {
     this.webviews.forEach(webview => {
       const _url = new URL(webview.src);
-      const _host = `api${_url.host.slice(3)}`
-      if (_host === host) {
+      if (_url.host === host) {
         this.destroyWebview(webview)
       }
     })
@@ -627,8 +638,8 @@ export class ViewTree extends LitElement {
                   .customWebviewId=${webview.id}
                   style="${_styleMap}"
                   @dom-ready=${(event: CustomEvent & { target: WebviewTag }) => {
-                this.onDevtoolReady(webview, event.detail.event.target as WebviewTag);
-              }}
+                    this.onDevtoolReady(webview, event.detail.event.target as WebviewTag);
+                  }}
                   @destroy-webview=${() => this.destroyWebview(webview)}
                 ></multi-webview-devtools>
               `

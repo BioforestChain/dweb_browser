@@ -138,7 +138,7 @@ export class JsProcessMicroModule implements $MicroModule {
       args.parsed_url,
       args.request_init
     );
-    return ipc_response.toResponse(args.parsed_url.href);
+    return await ipc_response.toResponse(args.parsed_url.href);
   }
 
   /**

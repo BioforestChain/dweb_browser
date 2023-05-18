@@ -299,7 +299,11 @@
     </svg>
   </div>
   <script type="text/javascript">
+  </script>
+  
+  <script type="text/javascript">
     // const elBack = document.querySelector('.top-bar-container')
+    const decoder = new TextDecoder()
     const elIcon = document.querySelector('.icon-container')
     const elMainTitle = document.querySelector('.title')
     const elMainExplain = document.querySelector('.explain')
@@ -317,7 +321,6 @@
     async function setAppInfoByAppInfo(info){
       const appInfo = typeof info === "object" ? info : JSON.parse(info);
       window.appInfo = appInfo;
-      console.log('appInfo: ', appInfo)
       elIcon.style.backgroundImage = "url('https://www.bfmeta.info/imgs/logo3.webp')"
       elMainTitle.innerHTML = appInfo.title;
       elMainExplain.innerHTML = appInfo.subtitle;
@@ -335,10 +338,8 @@
 
     // 下载按钮事件处理器
     elBtnDownload.addEventListener('click', async (e) => {
-      const decoder = new TextDecoder()
+      
       progress(0)
-      // setDownloadBackground(0)
-      // setDownloadText(0)
       // 通过返回一个 stream 实现 长连接
       const url = location.origin.replace("www.", "api.")
       const res = await fetch(`${url}/app/download?url=${window.appInfo.downloadUrl}&id=${window.appInfo.id}`)
@@ -348,15 +349,15 @@
 
       while(true){
         const {value, done} = await reader.read();
-        if(done) return;
+        if(done) break;
+        console.log('done: ', done)
         let percent  = decoder.decode(value)
         progress(parseInt(percent))
       }
 
+      console.log('---')
       stream.cancel("done");
-      
-      console.error('还需要触发自动返回')
-      
+      closeSelf();
       
       // 因为 注入改写了 fetch
       // setDownloadBackground(0)
@@ -367,6 +368,7 @@
       //   err => console.error(err)
       // )
     })
+
     elBtnMore.addEventListener('click', (e) => {
       const has = elDetailtext.classList.contains('detail-text-open')
       if(has){
@@ -388,9 +390,7 @@
      * 设置 下载按钮的背景色
      */ 
     function setDownloadBackground(percent){
-      console.log('--- setDownloadBackground', percent)
       const backgroundStyle = `linear-gradient(90deg, #1677ff ${percent}%, #999)`
-      console.log('background: ', backgroundStyle)
       elBtnDownloadMask.style.background = backgroundStyle
     }
 
@@ -410,18 +410,41 @@
         ]
       }
     }
-    
+
+    /**
+     * 关闭当前APP
+     */ 
+    function closeSelf(){
+      const url = `${getApiOrigin()}/close/self`
+      fetch(url)
+    }
+
+    function getApiOrigin(){
+      return location.origin.replace("www.", "api.")
+    }
+
   </script>
   <script type="text/javascript">
     (async () => {
-      console.log('location',location)
       const search = new URLSearchParams(location.search);
       const metadataUrl = search.get('metadataUrl')
-      const url = location.origin.replace("www.", "api.")
+      const url = getApiOrigin()
       const response = await fetch(`${url}/get_data?url=${metadataUrl}`)
-      console.log('response: ', response)
       setAppInfoByAppInfo(await response.json())
     })()
+  </script>
+  <script type="text/javascript">
+    // 测试开启
+    // setTimeout(() => {
+    //   const url = `http://api.browser.sys.dweb-443.localhost:22605/status-bar.nativeui.sys.dweb/setState?X-Dweb-Host=api.browser.sys.dweb%3A443&color=%7B%22red%22%3A204%2C%22green%22%3A30%2C%22blue%22%3A30%2C%22alpha%22%3A255%7D`
+    //   fetch(url)
+    //   .then(res => {
+    //     setTimeout(() => {
+    //       closeSelf()
+    //     },1000)
+    //   })
+    // },1000)
+     
   </script>
 </body>
 </html>

@@ -4305,7 +4305,11 @@ var JsProcessMicroModule = class {
       args.parsed_url,
       args.request_init
     );
+<<<<<<< HEAD
     return ipc_response.toResponse(args.parsed_url.href);
+=======
+    return await ipc_response.toResponse(args.parsed_url.href);
+>>>>>>> b39c8e19 (👔 [desktop] jsmm.sys.dweb 下载完成后自动关闭下载模块)
   }
   /**
    * 模拟fetch的返回值

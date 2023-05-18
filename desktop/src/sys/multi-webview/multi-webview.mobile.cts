@@ -25,7 +25,7 @@ import {
   toggleTorch,
   torchState,
   haptics
- } from "./handler.cjs"
+ } from "./multi-webview.mobile.handler.cjs"
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { Remote } from "comlink";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
@@ -114,11 +114,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
         Array.from(this._uid_wapis_map.values()).forEach(wapis => {
           wapis.apis.destroyWebviewByHost(args.host)
         })
-        // console.log('------ multi-webview.mobile.cts 执行了销毁', wapisArr);
-        // console.log('this._uid_wapis_map: ', this._uid_wapis_map)
-        // console.log('ipc.uid: ', (client_ipc as any).uid)
-        // const wapis = await this.forceGetWapis(client_ipc, root_url);
-        // return wapis.apis.destroyWebviewByHost(args.host);\
         return true;
       },
     });

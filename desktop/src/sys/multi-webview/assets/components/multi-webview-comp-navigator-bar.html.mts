@@ -85,7 +85,6 @@ export class MultiWebviewCompNavigationBar extends LitElement{
     this.setHostStyle()
     const backgroundStyleMap = this.createBackgroundStyleMap()
     const containerStyleMap = this.createContainerStyleMap()
-    console.log('---------- this.color: ', this._color)
     return html`
       <div class="container">
         <div class="background" style=${styleMap(backgroundStyleMap)}></div>

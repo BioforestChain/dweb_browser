@@ -32,6 +32,8 @@ async function onRequest(
       return getData.bind(this)(request, ipc)
     case "/app/download":
       return appDownload.bind(this)(request, ipc);
+    case "/close/self":
+      return appCloseSelf.bind(this)(request, ipc);
     default: {
       throw new Error(`${this.mmid} 有没有处理的pathname === ${request.parsed_url.pathname}`)
       debugger;
@@ -107,7 +109,6 @@ async function onProgress(
   state: $State,
 ){
   const value = (state.percent * 100).toFixed(0);
-  console.log('onProcess: ', value)
   const ui8 = new TextEncoder().encode(`${value}\n`)
   controller?.enqueue(ui8)
 }
@@ -135,5 +136,25 @@ async function _extract(
   )
   await fsPromises.unlink(tempPath)
   controller?.enqueue(new TextEncoder().encode(`100\n`))
-  
+  controller?.close();
+}
+
+async function appCloseSelf(
+  this: JmmNMM,
+  ipcRequest: IpcRequest,
+  ipc: Ipc
+){
+  const headers = ipcRequest.headers
+  const referer = ipcRequest.headers.get('referer');
+  if(referer === null) throw new Error(`${this.mmid} referer === null`);
+  const host = new URL(referer).host
+  const res = await this.nativeFetch(`file://mwebview.sys.dweb/destroy_webview_by_host?host=${host}`);
+  ipc.postMessage(
+    await IpcResponse.fromResponse(
+      ipcRequest.req_id, 
+      res, 
+      ipc,
+      true
+    )
+  )
 }
