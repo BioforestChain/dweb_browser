@@ -1,6 +1,7 @@
 ﻿using UIKit;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Base;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.StatusBar;
+using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.NavigationBar;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.VirtualKeyboard;
 using DwebBrowser.MicroService.Sys.Mwebview;
 using System.Text.Json;
@@ -15,21 +16,19 @@ public class NativeUiController
         new(MultiWebViewNMM.GetCurrentWebViewController(mmid)
             ?? throw new Exception(String.Format("current webview instance is invalid for {0}", mmid)));
 
-    public readonly StatusBarController StatusBar = new();
+    public StatusBarController StatusBar { get; init; }
+    public NavigationBarController NavigationBar { get; init; }
     public readonly VirtualKeyboardController VirtualKeyboard = new();
 
-    public NativeUiController(UIViewController activity)
+    static NativeUiController()
     {
         _ = new QueryHelper();
-        //var a = UIApplication.SharedApplication.StatusBarFrame;
-        //      //UIApplication.SharedApplication.Keybo
+    }
 
-        //      var x = UIApplication.SharedApplication.StatusBarStyle;
-        //      var xx = UIApplication.SharedApplication.StatusBarTintColor;
-        //      UIApplication.SharedApplication.SetStatusBarHidden()
-
-        //      NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, OnKeyboardShow);
-        //      NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillHideNotification, OnKeyboardHide);
+    public NativeUiController(MultiWebViewController mwebviewController)
+    {
+        StatusBar = new(mwebviewController);
+        NavigationBar = new(mwebviewController);
     }
 }
 

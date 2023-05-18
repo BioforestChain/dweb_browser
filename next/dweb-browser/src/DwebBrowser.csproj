@@ -58,6 +58,7 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
+	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Extensions\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -89,6 +90,10 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Share\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Haptics\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Notification\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Plugin\Barcode\" />
+	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\SafeArea\" />
+	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\NavigationBar\" />
+	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Extensions\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />

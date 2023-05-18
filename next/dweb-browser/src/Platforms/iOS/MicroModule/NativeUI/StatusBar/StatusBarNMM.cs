@@ -6,43 +6,57 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.StatusBar;
 
 public class StatusBarNMM : NativeMicroModule
 {
+    static Debugger Console = new("StatusBarNMM");
     public StatusBarNMM() : base("status-bar.nativeui.sys.dweb")
     {
     }
 
-
-    private StatusBarController _getController(Mmid mmid) =>
-        NativeUiController.FromMultiWebView(mmid).StatusBar;
+    private Task<StatusBarController> _getControllerAsync(Mmid mmid) =>
+        MainThread.InvokeOnMainThreadAsync(() => NativeUiController.FromMultiWebView(mmid).StatusBar);
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         HttpRouter.AddRoute(IpcMethod.Get, "/getState", async (_, ipc) =>
         {
-            return _getController(ipc.Remote.Mmid);
+            return await _getControllerAsync(ipc.Remote.Mmid);
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/setState", async (request, ipc) =>
         {
-            var controller = _getController(ipc.Remote.Mmid);
+            var controller = await _getControllerAsync(ipc.Remote.Mmid);
             request.QueryColor("color")?.Also(it =>
-                controller.ColorState.Update(cache => cache = it));
+            {
+                controller.ColorState.Set(it);
+                //Console.Log("setState", "red: {0}, green: {1}, blue: {2}, alpha: {3}",
+                //    it.red, it.green, it.blue, it.alpha);
+                controller.Observer.Get();
+            });
             request.QueryStyle("style")?.Also(it =>
-                controller.StyleState.Update(cache => cache = it));
+            {
+                controller.StyleState.Set(it);
+                controller.Observer.Get();
+            });
             request.QueryBool("overlay")?.Also(it =>
-                controller.OverlayState.Update(cache => cache = it));
+            {
+                controller.OverlayState.Set(it);
+                controller.Observer.Get();
+            });
             request.QueryBool("visible")?.Also(it =>
-                controller.VisibleState.Update(cache => cache = it));
+            {
+                controller.VisibleState.Set(it);
+                controller.Observer.Get();
+            });
             return null;
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/startObserve", async (_, ipc) =>
         {
-            return _getController(ipc.Remote.Mmid).StateObserver.StartObserve(ipc);
+            return (await _getControllerAsync(ipc.Remote.Mmid)).StateObserver.StartObserve(ipc);
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/stopObserve", async (_, ipc) =>
         {
-            return _getController(ipc.Remote.Mmid).StateObserver.StopObserve(ipc);
+            return (await _getControllerAsync(ipc.Remote.Mmid)).StateObserver.StopObserve(ipc);
         });
     }
 }

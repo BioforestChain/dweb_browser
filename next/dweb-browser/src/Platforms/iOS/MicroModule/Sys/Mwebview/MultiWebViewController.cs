@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using DwebBrowser.DWebView;
 using Foundation;
 using Microsoft.Maui.Animations;
+using DwebBrowser.MicroService.Sys.NativeUI;
 
 #nullable enable
 
@@ -29,18 +30,17 @@ public partial class MultiWebViewController : BaseViewController
 
     private static int s_webviewId_acc = 0;
 
-    //private List<ViewItem> _webViewList = new();
     public State<List<ViewItem>> WebViewList = new(new List<ViewItem>());
 
     private Dictionary<Mmid, Ipc> _mIpcMap = new();
 
-    public record ViewItem(string webviewId, DWebView.DWebView webView);
+    public record ViewItem(string webviewId, DWebView.DWebView webView, NativeUiController nativeUiController);
 
     public async Task<ViewItem> OpenWebViewAsync(string url, WKWebViewConfiguration? configuration = null)
     {
         var dwebview = await CreateDwebView(url, configuration);
 
-        var viewItem = AppendWebViewAsItem(dwebview);
+        var viewItem = await AppendWebViewAsItemAsync(dwebview);
         Console.Log("openWebView", viewItem.webviewId);
 
         /// 提供窗口相关的行为
@@ -66,11 +66,11 @@ public partial class MultiWebViewController : BaseViewController
         });
     }
 
-    public ViewItem AppendWebViewAsItem(DWebView.DWebView dwebview)
+    public Task<ViewItem> AppendWebViewAsItemAsync(DWebView.DWebView dwebview)
     {
         var webviewId = "#w" + Interlocked.Increment(ref s_webviewId_acc);
 
-        return new ViewItem(webviewId, dwebview).Also(it =>
+        return MainThread.InvokeOnMainThreadAsync(() => new ViewItem(webviewId, dwebview, new(this)).Also(it =>
         {
             WebViewList.Update(list => list?.Add(it));
             // TODO: DWebView 还未实现 onCloseWindow
@@ -80,7 +80,7 @@ public partial class MultiWebViewController : BaseViewController
             {
                 await (_OnWebViewOpen?.Emit(webviewId)).ForAwait();
             });
-        });
+        }));
     }
 
     public async Task<bool> CloseWebViewAsync(string webviewId)

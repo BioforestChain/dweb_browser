@@ -28,7 +28,7 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
     protected event Signal<Mmid, BaseViewController> _OnActivity;
     protected Task _OnActivityEmit(Mmid mmid, BaseViewController controller) => (_OnActivity?.Emit(mmid, controller)).ForAwait();
 
-    public static PromiseOut<UIWindow> Window = new();
-    public static PromiseOut<UINavigationController> RootViewController = new();
+    public static readonly PromiseOut<UIWindow> Window = new();
+    public static readonly PromiseOut<UINavigationController> RootViewController = new();
 }
 
