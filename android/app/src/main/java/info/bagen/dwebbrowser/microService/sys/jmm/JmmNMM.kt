@@ -10,6 +10,8 @@ import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
+import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.service.DownLoadController
 import info.bagen.dwebbrowser.service.compareAppVersionHigh
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
@@ -30,16 +32,16 @@ import org.http4k.routing.routes
 /**
  * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
  */
-inline fun <K, V> MutableMap<K, V>.getAndCheckOrPut(
-    key: K, replace: (V) -> Boolean, defaultValue: () -> V
+inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
+    key: K, replaceValue: (V) -> V, defaultValue: () -> V
 ): V {
     val value = get(key)
-    return if (value == null || replace(value)) {
+    return if (value == null) {
         val answer = defaultValue()
         put(key, answer)
         answer
     } else {
-        value
+        replaceValue(value)
     }
 }
 
@@ -69,10 +71,12 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                 debugJMM("init/JmmNMM", "init Apps list -> ${maps.size}")
 
                 maps.forEach { (key, value) ->
-                    apps.getAndCheckOrPut(key, replace = { local ->
-                        val replace = compareAppVersionHigh(local.metadata.version, value.version) // 版本不一致则替换
-                        if (replace) bootstrapContext.dns.uninstall(local) // 将旧的移除
-                        replace
+                    apps.getOrPutOrReplace(key, replaceValue = { local ->
+                        if (compareAppVersionHigh(local.metadata.version, value.version)) {
+                            local.metadata = value
+                            emitEvent(value.id, ServiceWorkerEvent.UpdateFound.event)
+                        }
+                        local
                     }) {
                         JsMicroModule(value).also { jsMicroModule ->
                             try {

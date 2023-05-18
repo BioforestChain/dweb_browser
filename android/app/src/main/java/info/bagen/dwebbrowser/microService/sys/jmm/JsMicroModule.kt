@@ -18,7 +18,7 @@ import java.util.*
 fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("jmm", tag, msg, err)
 
-open class JsMicroModule(val metadata: JmmMetadata) : MicroModule() {
+open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     companion object {
         init {
             connectAdapterManager.append(99) { fromMM, toMM, reason ->

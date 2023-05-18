@@ -1,9 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.mwebview
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
@@ -18,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.base.ExtensionResultContracts
