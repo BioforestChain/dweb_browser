@@ -4307,7 +4307,10 @@ var JsProcessMicroModule = class {
     );
     return ipc_response.toResponse(args.parsed_url.href);
   }
-  /** 模拟fetch的返回值 */
+  /**
+   * 模拟fetch的返回值
+   * 这里的做fetch的时候需要先connect
+   */
   nativeFetch(url, init) {
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }

@@ -8,13 +8,13 @@ import { MultiWebviewNMM } from "./sys/multi-webview/multi-webview.mobile.cjs";
 import { NavigationBarNMM } from "./sys/plugins/native-ui/navigation-bar/navigation-bar.main.cjs";
 import { SafeAreaNMM } from "./sys/plugins/native-ui/safe-area/safe-area.main.cjs";
 import { StatusbarNativeUiNMM } from "./sys/plugins/native-ui/status-bar/status-bar.main.cjs";
-import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.cjs";
 import { TorchNMM } from "./sys/plugins/native-ui/torch/torch.main.cjs";
 import { VirtualKeyboardNMM } from "./sys/plugins/native-ui/virtual-keyboard/virtual-keyboard.main.cjs";
 import { BarcodeScanningNativeUiNMM } from "./sys/plugins/sys/barcode-scanning/barcode-scanning.main.cjs";
 import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.cjs";
 import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.cjs";
 import { ShareNMM } from "./sys/plugins/sys/share/share.main.cjs";
+import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.cjs";
 
 export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());
@@ -85,10 +85,10 @@ dns.install(new BootNMM([
 ]));
 
 // 载入安装测试的代码
-import { TestFromNMM } from "./test/test.from.nmm.cjs";
-import { TestToNMM } from "./test/test.to.nmm.cjs";
-dns.install(new TestFromNMM())
-dns.install(new TestToNMM())
+// import { TestFromNMM } from "./test/test.from.nmm.cjs";
+// import { TestToNMM } from "./test/test.to.nmm.cjs";
+// dns.install(new TestFromNMM())
+// dns.install(new TestToNMM())
 
 
 Object.assign(globalThis, { dns: dns });

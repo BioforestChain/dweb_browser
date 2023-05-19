@@ -92,8 +92,8 @@ export class JsProcessMicroModule implements $MicroModule {
       if (data[0] === "ipc-connect") {
         const mmid = data[1];
         const port = event.ports[0];
-        const env = JSON.parse( data[2]??'{}');
-        const protocols =  env['ipc-support-protocols']??''
+        const env = JSON.parse(data[2] ?? "{}");
+        const protocols = env["ipc-support-protocols"] ?? "";
         const ipc_support_protocols = {
           raw: protocols.includes("raw"),
           message_pack: protocols.includes("message_pack"),
@@ -134,16 +134,25 @@ export class JsProcessMicroModule implements $MicroModule {
     init?: RequestInit
   ): Promise<Response> {
     const args = normalizeFetchArgs(url, init);
+    // const hostName = args.parsed_url.hostname;
+    // if (!hostName.endsWith(".dweb")) {
     const ipc_response = await this._nativeRequest(
       args.parsed_url,
       args.request_init
     );
     return ipc_response.toResponse(args.parsed_url.href);
+    //   }
+    //   const ipc = await jsProcess.connect(hostName as $MMID)
+    //   const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+    //   const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
+    //  return ipc_response.toResponse(args.parsed_url.href)
   }
-  
-  /** 模拟fetch的返回值 */
+
+  /**
+   * 模拟fetch的返回值
+   * 这里的做fetch的时候需要先connect
+   */
   nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
-    
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 
@@ -159,8 +168,7 @@ export class JsProcessMicroModule implements $MicroModule {
   }
   /**重启 */
   restart() {
-    // 发送指令
-    this.fetchIpc.postMessage(IpcEvent.fromText("restart", ""));
+    this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
   private _activitySignal = createSignal<$OnIpcEventMessage>();
   private _on_activity_inited = false;

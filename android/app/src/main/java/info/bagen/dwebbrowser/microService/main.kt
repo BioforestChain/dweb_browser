@@ -62,7 +62,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             listOf("Share", "fetch", "http", "jmm", "browser", "biometrics", "mwebview", "fetch-file")
         )
         DEVELOPER.WaterBang -> debugTags.addAll(
-            listOf( "mwebview","jmm", "browser","http")
+            listOf( "mwebview","jmm")
         )
         else -> debugTags.addAll(
             listOf("Share", "FileSystem")
@@ -142,7 +142,7 @@ suspend fun startDwebBrowser(): DnsNMM {
             cotDemoJMM.mmid,
 //            browserNMM.mmid,
         )
-        DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo -> listOf(browserNMM.mmid)
+        DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo -> listOf(cotDemoJMM.mmid)
         DEVELOPER.WaterBang -> listOf(
             cotDemoJMM.mmid,
 //            browserNMM.mmid,

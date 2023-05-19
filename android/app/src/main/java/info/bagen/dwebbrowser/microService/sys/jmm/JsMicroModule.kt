@@ -21,13 +21,20 @@ fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
 open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     companion object {
         init {
-            connectAdapterManager.append(99) { fromMM, toMM, reason ->
-                data class JsMM(val jmm: JsMicroModule, val remoteMmid: Mmid)
+            val nativeToWhiteList = listOf<Mmid>("js.sys.dweb")
 
-                val jsMM = if (toMM is JsMicroModule) JsMM(
-                    toMM, fromMM.mmid
-                ) else if (fromMM is JsMicroModule) JsMM(fromMM, toMM.mmid) else null
+            data class JsMM(val jmm: JsMicroModule, val remoteMmid: Mmid)
+            connectAdapterManager.append(1) { fromMM, toMM, reason ->
 
+                val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
+                else if (toMM is JsMicroModule) JsMM(toMM, fromMM.mmid)
+                else if (fromMM is JsMicroModule) JsMM(fromMM, toMM.mmid)
+                else null
+
+                debugJMM(
+                    "connectAdapterManager",
+                    "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid} ==> jsMM:${jsMM != null}"
+                )
                 if (jsMM is JsMM) {
                     /**
                      * 与 NMM 相比，这里会比较难理解：
@@ -42,7 +49,16 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                     return@append ConnectResult(ipcForFromMM = originIpc, ipcForToMM = originIpc)
                 } else null
             }
-
+            /**
+             * -1
+             * connectAdapterManager   fromMM: dns.sys.dweb => toMM: boot.sys.dweb ==> jsMM:false
+             * connectAdapterManager   fromMM: js.sys.dweb => toMM: http.sys.dweb ==> jsMM:false
+             * connectAdapterManager   fromMM: demo.www.bfmeta.info.dweb => toMM: js.sys.dweb ==> jsMM:true
+             */
+            /**
+             * 99
+             * connectAdapterManager   fromMM: boot.sys.dweb => toMM: demo.www.bfmeta.info.dweb ==> true
+             */
         }
     }
 
@@ -102,6 +118,8 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         jsIpc.onRequest { (ipcRequest, ipc) ->
             val request = ipcRequest.toRequest()
             kotlin.runCatching {
+                /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
+                /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
                 // 转发请求
                 val response = nativeFetch(request)
                 val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
@@ -163,7 +181,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             PromiseOut<Ipc>().also { po ->
                 GlobalScope.launch(ioAsyncExceptionHandler) {
                     try {
-
+                        debugJMM("ipcBridge", "fromMmid:$fromMmid targetIpc:$targetIpc")
                         /**
                          * 向js模块发起连接
                          */

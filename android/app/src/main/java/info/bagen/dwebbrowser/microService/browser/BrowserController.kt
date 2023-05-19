@@ -95,7 +95,7 @@ class BrowserController(val browserNMM: BrowserNMM) {
             }
             ipc
         }.also { ipc ->
-            debugBrowser("openApp", "postMessage==>activity  $mmid, $ipc")
+            debugBrowser("openApp", "postMessage==>activity  $mmid, ${ipc.remote.mmid}")
             ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         }
     }

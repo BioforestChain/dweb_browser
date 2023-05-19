@@ -4,7 +4,6 @@ import info.bagen.dwebbrowser.microService.helper.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 

@@ -3,8 +3,6 @@ package info.bagen.dwebbrowser.microService.core
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
-import info.bagen.dwebbrowser.microService.ipc.IpcEventMessageArgs
-import info.bagen.dwebbrowser.microService.sys.nativeui.helper.debugNativeUi
 import org.http4k.core.*
 
 
@@ -119,11 +117,9 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
             if (event.name == "activity") {
                 onActivity(event, ipc)
             }
-
         }
         _connectSignal.emit(Pair(ipc, reason))
     }
-
 
 
     /** 激活NMM入口*/

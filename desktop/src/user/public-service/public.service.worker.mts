@@ -45,7 +45,6 @@ const main = async () => {
     );
   };
 
-
   const { IpcResponse, IpcHeaders } = ipc;
 
   /**给前端的文件服务 */
@@ -53,7 +52,6 @@ const main = async () => {
     subdomain: "www",
     port: 443,
   });
-
   /**给前端的api服务 */
   const apiServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "api",
@@ -197,12 +195,12 @@ const main = async () => {
         [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
       );
     }
-    // return await response.text()
     return "no action for serviceWorker Factory !!!";
   };
 
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (ipcEvent, ipc) => {
+    console.log("onActivity =>",ipcEvent.name,ipcEvent.data)
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
     if (hasActivityEventIpcs.has(ipc) === false) {
@@ -216,7 +214,7 @@ const main = async () => {
   const hasActivityEventIpcs = new Set<$Ipc>();
 
   /// 同步 mwebview 的状态机
-  multiWebViewIpc.onEvent(async (event,ipc) => {
+  multiWebViewIpc.onEvent(async (event, ipc) => {
     if (event.name === EVENT.State && typeof event.data === "string") {
       const newState = JSON.parse(event.data);
       const diff = detailedDiff(oldWebviewState, newState);
