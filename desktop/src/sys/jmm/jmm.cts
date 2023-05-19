@@ -8,7 +8,7 @@ import { JsMicroModule } from "./micro-module.js.cjs";
 import type { HttpDwebServer } from "../http-server/$createHttpDwebServer.cjs";
 import type { Ipc, IpcRequest } from "../../core/ipc/index.cjs";
 import { IpcResponse } from "../../core/ipc/index.cjs";
-import { install } from "./jmm.handler.cjs"
+import { install,pause, resume, cancel } from "./jmm.handler.cjs"
 import { createWWWServer } from "./jmm.www.serve.cjs"
 import { createApiServer } from "./jmm.api.serve.cjs";
 const fs = require('fs');
@@ -24,6 +24,9 @@ export class JmmNMM extends NativeMicroModule {
   downloadStatus: DOWNLOAD_STATUS = 0
   wwwServer: HttpDwebServer | undefined;
   apiServer: HttpDwebServer | undefined;
+  donwloadStramController: ReadableStreamDefaultController | undefined;
+  downloadStream: ReadableStream | undefined;
+
   resume: {
     handler: Function,
     response: OutgoingMessage | undefined
@@ -45,6 +48,31 @@ export class JmmNMM extends NativeMicroModule {
       output: "boolean",
       handler: install.bind(this)
     });
+
+    // 下载暂停
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/pause",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: pause.bind(this)
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/resume",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: resume.bind(this)
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/cancel",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: cancel.bind(this)
+    });
+
+    
 
 
     // this.registerCommonIpcOnMessageHandler({

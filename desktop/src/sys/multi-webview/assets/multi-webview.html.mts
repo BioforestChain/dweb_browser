@@ -342,6 +342,10 @@ export class ViewTree extends LitElement {
     return true;
   }
 
+  closeWindow(){
+    mainApis.closedBrowserWindow();
+  }
+
   private _removeWebview(webview: Webview) {
     const index = this.webviews.indexOf(webview);
     if (index === -1) {
@@ -394,6 +398,9 @@ export class ViewTree extends LitElement {
   }
 
   private async destroyWebview(webview: Webview) {
+    
+    console.log('destroyWebview: ')
+
     await mainApis.destroy(webview.webContentId);
     // 还需要更新 statusbar navigationbar 和 safearea
     this.deleteTopBarState()
@@ -411,6 +418,7 @@ export class ViewTree extends LitElement {
   }
 
   async destroyWebviewByOrigin(origin: string) {
+    console.log('destroyWebviewByOrigin: ')
     this.webviews.forEach(webview => {
       if (webview.src.includes(origin)) {
         this.destroyWebview(webview)
@@ -656,6 +664,7 @@ document.body.appendChild(viewTree);
 export const APIS = {
   openWebview: viewTree.openWebview.bind(viewTree),
   closeWebview: viewTree.closeWebview.bind(viewTree),
+  closeWindow: viewTree.closeWindow.bind(viewTree),
   destroyWebviewByHost: viewTree.destroyWebviewByHost.bind(viewTree),
   restartWebviewByHost: viewTree.restartWebviewByHost.bind(viewTree),
   executeJavascriptByHost: viewTree.executeJavascriptByHost.bind(viewTree),

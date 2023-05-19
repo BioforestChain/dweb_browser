@@ -60,8 +60,6 @@ async function getData(
   )
 }
 
-let controller: ReadableStreamDefaultController | undefined = undefined
-// const eventTarget = new EventTarget()
 async function appDownload(
   this: JmmNMM,
   ipcRequest: IpcRequest,
@@ -72,14 +70,14 @@ async function appDownload(
   const id = search.get('id')
   if(downloadUrl === null) throw new Error(`downloadUrl === null`)
   if(id === null) throw new Error(`id === null`);
-  const stream = new ReadableStream({
-    start(_controller){
-      controller = _controller
+  this.downloadStream = new ReadableStream({
+    start: (_controller) => {
+      this.donwloadStramController = _controller
     },
-    cancel(resone){
-      controller?.close();
+    cancel: (resone) => {
+      this.donwloadStramController?.close();
     },
-    pull(controller){
+    pull: (controller) => {
       // eventTarget.dispatchEvent(new Event('pull'))
     }
   })
@@ -89,13 +87,13 @@ async function appDownload(
       ipcRequest.req_id,
       200,
       new IpcHeaders(),
-      stream,
+      this.downloadStream,
       ipc
     )
   )
   const tempPath = path.resolve(process.cwd(), `./temp/${id}.tar.gz`)
   const writeAblestream = fs.createWriteStream(tempPath, {flags: "w"});
-        writeAblestream.on('close', () => _extract(id, tempPath, ipcRequest, ipc))
+        writeAblestream.on('close', () => _extract.bind(this)(id, tempPath, ipcRequest, ipc))
   progress(request(downloadUrl), {})
   .on('progress', onProgress.bind(this, ipcRequest, ipc))
   .on('error', (err: Error) => {throw err})
@@ -108,12 +106,18 @@ async function onProgress(
   ipc: Ipc,
   state: $State,
 ){
+  // 测试关闭下载
+  if(this.downloadStream){
+    this.donwloadStramController?.close()
+  }
+  // 测试关闭下载
   const value = (state.percent * 100).toFixed(0);
   const ui8 = new TextEncoder().encode(`${value}\n`)
-  controller?.enqueue(ui8)
+  this.donwloadStramController?.enqueue(ui8)
 }
 
 async function _extract(
+  this: JmmNMM,
   id: string,
   tempPath: string,
   request: IpcRequest,
@@ -135,8 +139,8 @@ async function _extract(
     }
   )
   await fsPromises.unlink(tempPath)
-  controller?.enqueue(new TextEncoder().encode(`100\n`))
-  controller?.close();
+  this.donwloadStramController?.enqueue(new TextEncoder().encode(`100\n`))
+  this.donwloadStramController?.close();
 }
 
 async function appCloseSelf(
