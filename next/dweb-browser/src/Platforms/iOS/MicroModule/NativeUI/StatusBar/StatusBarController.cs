@@ -14,7 +14,7 @@ public class StatusBarController : BarController, IToJsonAble
 
     public StatusBarController(MultiWebViewController mwebviewController) : base(
         colorState: new(mwebviewController.StatusBarView.BackgroundColor.ToColor()),
-        styleState: new(mwebviewController.PreferredStatusBarStyle().ToBarStyle()),
+        styleState: new(mwebviewController.StatusBarStyle),
         visibleState: new(!mwebviewController.StatusBarView.Hidden),
         overlayState: new(mwebviewController.StatusBarView.Alpha >= 1 ? false : true),
         areaState: new(mwebviewController.StatusBarView.Frame.ToAreaJson())

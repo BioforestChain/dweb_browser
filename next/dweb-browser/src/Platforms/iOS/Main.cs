@@ -10,6 +10,7 @@ using DwebBrowser.MicroService.Sys.User;
 using DwebBrowser.MicroService.Sys.Boot;
 using DwebBrowser.MicroService.Sys.Mwebview;
 using DwebBrowser.MicroService.Sys.NativeUI;
+using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Torch;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Share;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Clipboard;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Toast;
@@ -41,6 +42,7 @@ public class MicroService
         new ClipboardNMM().InstallBy(dnsNMM);
         new ToastNMM().InstallBy(dnsNMM);
         new HapticsNMM().InstallBy(dnsNMM);
+        new TorchNMM().InstallBy(dnsNMM);
 
         /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
         new NativeUiNMM().InstallBy(dnsNMM);

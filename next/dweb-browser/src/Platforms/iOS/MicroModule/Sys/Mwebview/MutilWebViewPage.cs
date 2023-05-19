@@ -73,7 +73,7 @@ public partial class MultiWebViewController : BaseViewController
                         0,
                         StatusBarView.Frame.Height.Value,
                         webviewContainer.Frame.Width.Value,
-                        webViewHeight - NavigationBarView.Frame.Height.Value);
+                        webViewHeight - NavigationBarView.Frame.Height.Value - VirtualKeyboardView.Frame.Height.Value);
                     viewItem.webView.Frame = webViewFrame;
                     webviewContainer.AddSubview(viewItem.webView);
                     var insets = webviewContainer.SafeAreaInsets;
@@ -86,6 +86,7 @@ public partial class MultiWebViewController : BaseViewController
                         StatusBarView.Frame.Left.Value,
                         StatusBarView.Frame.Right.Value);
                     webviewContainer.AddSubview(NavigationBarView);
+                    webviewContainer.AddSubview(VirtualKeyboardView);
                 }
                 catch (Exception e)
                 {

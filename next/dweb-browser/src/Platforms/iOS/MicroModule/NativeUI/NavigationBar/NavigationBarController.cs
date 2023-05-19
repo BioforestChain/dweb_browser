@@ -13,11 +13,11 @@ public class NavigationBarController : BarController, IToJsonAble
     public StateObservable<NavigationBarState> StateObserver;
 
     public NavigationBarController(MultiWebViewController mwebviewController) : base(
-        new(mwebviewController.NavigationBarView.BackgroundColor.ToColor()),
-        new(mwebviewController.PreferredStatusBarStyle().ToBarStyle()),
-        new(!mwebviewController.NavigationBarView.Hidden),
-        new(mwebviewController.NavigationBarView.Alpha >= 1 ? false : true),
-        new(mwebviewController.NavigationBarView.Frame.ToAreaJson()))
+        colorState: new(mwebviewController.NavigationBarView.BackgroundColor.ToColor()),
+        styleState: new(mwebviewController.StatusBarStyle),
+        visibleState: new(!mwebviewController.NavigationBarView.Hidden),
+        overlayState: new(mwebviewController.NavigationBarView.Alpha >= 1 ? false : true),
+        areaState: new(mwebviewController.NavigationBarView.Frame.ToAreaJson()))
     {
         Observer = new State<NavigationBarState>(() => GetState());
         StateObserver = new(() => ToJson());

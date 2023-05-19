@@ -18,7 +18,6 @@ public class QueryHelper
             typeof(StatusBarController), it => it.GetState());
         ResponseRegistry.RegistryJsonAble<NavigationBarController>(
             typeof(NavigationBarController), it => it.GetState());
-        
         ResponseRegistry.RegistryJsonAble<VirtualKeyboardController>(
             typeof(VirtualKeyboardController), it => it.GetState());
     }

@@ -18,7 +18,7 @@ public class NativeUiController
 
     public StatusBarController StatusBar { get; init; }
     public NavigationBarController NavigationBar { get; init; }
-    public readonly VirtualKeyboardController VirtualKeyboard = new();
+    public VirtualKeyboardController VirtualKeyboard { get; init; }
 
     static NativeUiController()
     {
@@ -29,6 +29,7 @@ public class NativeUiController
     {
         StatusBar = new(mwebviewController);
         NavigationBar = new(mwebviewController);
+        VirtualKeyboard = new(mwebviewController);
     }
 }
 
