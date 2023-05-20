@@ -158,9 +158,16 @@ dependencies {
     implementation("com.daveanthonythomas.moshipack:moshipack:1.0.1") // message-pack
 
     //扫码核心库
-    implementation(project(":mlkit-camera-core"))
-    implementation(project(":mlkit-barcode-scanning"))
-//    implementation("com.github.jenly1314.AppUpdater:app-dialog:1.1.0")
+    // implementation(project(":mlkit-camera-core"))
+    // implementation(project(":mlkit-barcode-scanning"))
+    // implementation("com.github.jenly1314.AppUpdater:app-dialog:1.1.0")
+    implementation("com.google.mlkit:barcode-scanning:17.1.0")
+    val cameraVersion = "1.3.0-alpha06"
+    implementation("androidx.camera:camera-core:$cameraVersion")
+    implementation("androidx.camera:camera-camera2:$cameraVersion")
+    implementation("androidx.camera:camera-view:$cameraVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraVersion")
+    // implementation("com.google.accompanist:accompanist-permissions:0.31.2-alpha")
 
     /// 测试相关
     testImplementation(kotlin("test"))

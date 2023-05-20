@@ -16,7 +16,7 @@ import org.http4k.lens.int
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-inline fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("Scanning", tag, msg, err)
 
 class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
@@ -68,9 +68,9 @@ class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
             .addOnSuccessListener { barcodes ->
                 task.resolve(barcodes.map {
                     BarcodeResult(
-                        it.rawBytes,
-                        it.boundingBox,
-                        it.cornerPoints.toList()
+                        it.rawBytes!!,
+                        it.boundingBox!!,
+                        it.cornerPoints!!.toList()
                     )
                 })
             }

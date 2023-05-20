@@ -1,7 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser
 
-import android.content.*
-import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -13,17 +11,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.ui.browser.BrowserView
-import info.bagen.dwebbrowser.ui.camera.QRCodeIntent
-import info.bagen.dwebbrowser.ui.camera.QRCodeScanning
-import info.bagen.dwebbrowser.ui.camera.QRCodeViewModel
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
-import info.bagen.dwebbrowser.util.permission.PermissionManager
-import info.bagen.dwebbrowser.util.permission.PermissionUtil
 
 class BrowserActivity : AppCompatActivity() {
   fun getContext() = this
-  val qrCodeViewModel: QRCodeViewModel = QRCodeViewModel()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -36,7 +28,6 @@ class BrowserActivity : AppCompatActivity() {
           effect(activity = this@BrowserActivity)
           Box(modifier = Modifier.background(Color.Black)) {
             BrowserView(viewModel = browserViewModel)
-            // QRCodeScanningView(this@BrowserActivity, qrCodeViewModel)
             LoadingView(showLoading)
           }
         }
@@ -51,42 +42,6 @@ class BrowserActivity : AppCompatActivity() {
       return // 如果没有直接return，会导致重新打开app时，webview都是显示首页
     }
     super.onBackPressed()
-  }
-
-  override fun onRequestPermissionsResult(
-    requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-  ) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    if (requestCode == PermissionManager.MY_PERMISSIONS) {
-      PermissionManager(this@BrowserActivity)
-        .onRequestPermissionsResult(requestCode,
-          permissions,
-          grantResults,
-          object :
-            PermissionManager.PermissionCallback {
-            override fun onPermissionGranted(
-              permissions: Array<out String>, grantResults: IntArray
-            ) {
-              // openScannerActivity()
-              qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
-            }
-
-            override fun onPermissionDismissed(permission: String) {
-            }
-
-            override fun onNegativeButtonClicked(dialog: DialogInterface, which: Int) {
-            }
-
-            override fun onPositiveButtonClicked(dialog: DialogInterface, which: Int) {
-              PermissionUtil.openAppSettings()
-            }
-          })
-    } else if (requestCode == QRCodeScanning.CAMERA_PERMISSION_REQUEST_CODE) {
-      grantResults.forEach {
-        if (it != PackageManager.PERMISSION_GRANTED) return
-      }
-      qrCodeViewModel.handleIntent(QRCodeIntent.OpenOrHide(true))
-    }
   }
 
   override fun onStop() {
