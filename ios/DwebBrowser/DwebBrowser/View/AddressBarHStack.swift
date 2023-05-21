@@ -13,7 +13,7 @@ struct AddressBarHContainer:View{
     var body: some View{
         HStack(spacing: 0) {
             ForEach(browser.pages){ page in
-                AddressBar(inputText: "", webStore: page.webStore)
+                AddressBar(inputText: "", webStore: page.webWrapper)
                     .frame(width: screen_width)
             }
         }
@@ -57,7 +57,7 @@ struct AddressBar: View {
     @EnvironmentObject var browser: BrowerVM
 //    @Binding var currentIndex: Int
     
-    @ObservedObject var webStore: WebViewStore
+    @ObservedObject var webStore: WebWrapper
     
     var body: some View {
         GeometryReader{ geometry in
@@ -158,7 +158,7 @@ struct PageScroll<Content: View>: UIViewRepresentable {
 
 struct AddressBarHStack_Previews: PreviewProvider {
     static var previews: some View {
-        AddressBar(webStore: WebViewStore(webCache: WebCache()))
+        AddressBar(webStore: WebWrapper(webCache: WebCache()))
             .environmentObject(BrowerVM())
     }
 }

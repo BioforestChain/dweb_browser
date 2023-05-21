@@ -8,32 +8,34 @@
 import SwiftUI
 import WebKit
 
-//observe the showingOptions variety to do the switch animation
-struct TabsContainerView: View{
-    enum AnimateImageState: Int{
-        case initial
-        case startExpanding
-        case expanded
+enum AnimateImageState: Int{
+    case initial
+    case startExpanding
+    case expanded
 
-        case startShrinking
-        case shrinked
-        
-        case animateDone
-        
-        func next()->AnimateImageState{
-            switch self{
-            case .startExpanding: return .expanded
-            case .startShrinking: return .shrinked
-            default: return .animateDone
-            }
-        }
-        func isLarge() -> Bool{
-            return self == .startShrinking || self == .expanded
-        }
-        func isSmall() -> Bool{
-            return self == .startExpanding || self == .shrinked
+    case startShrinking
+    case shrinked
+    
+    case animateDone
+    
+    func next()->AnimateImageState{
+        switch self{
+        case .startExpanding: return .expanded
+        case .startShrinking: return .shrinked
+        default: return .animateDone
         }
     }
+    func isLarge() -> Bool{
+        return self == .startShrinking || self == .expanded
+    }
+    func isSmall() -> Bool{
+        return self == .startExpanding || self == .shrinked
+    }
+}
+
+
+//observe the showingOptions variety to do the switch animation
+struct TabsContainerView: View{
     
     @EnvironmentObject var browser: BrowerVM
 //    @Environment(\.safeAreaInsets) var safeAreaInsets
@@ -61,33 +63,6 @@ struct TabsContainerView: View{
     
     init(){
         print("visiting TabsContainerView init")
-    }
-    
-    var animationImage: some View{
-        Image(uiImage: animateImage)
-//        Image(uiImage: UIImage(named: "darkImage")!)
-            .resizable()
-            .scaledToFill()
-            .frame(width: cellWidth(fullW: geoRect.width),
-                   height: cellHeight(fullH: geoRect.height),alignment: .top)
-            .cornerRadius(imageState == .shrinked || imageState == .startExpanding ? gridcellCornerR : 0)
-        
-            .clipped()
-            .position(x: cellCenterX(geoMidX: geoRect.midX),
-                      y: cellCenterY(geoMidY: geoRect.midY - geoRect.minY))
-        
-            .onAppear{
-                DispatchQueue.main.asyncAfter(deadline: .now()) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        imageState = imageState.next()
-                    }
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        imageState = .animateDone
-                    }
-                }
-            }
     }
     
     var body: some View{
@@ -125,9 +100,37 @@ struct TabsContainerView: View{
                 withAnimation(.easeInOut(duration: 0.5),{
                     gridScale = shouldShowGrid ? 1 : 0.8
                 })
+//                animateImage = browser.currentSnapshotImage!
             }
         }
     }
+    
+    var animationImage: some View{
+        Image(uiImage: browser.currentSnapshotImage!)
+            .resizable()
+            .scaledToFill()
+            .frame(width: cellWidth(fullW: geoRect.width),
+                   height: cellHeight(fullH: geoRect.height),alignment: .top)
+            .cornerRadius(imageState == .shrinked || imageState == .startExpanding ? gridcellCornerR : 0)
+        
+            .clipped()
+            .position(x: cellCenterX(geoMidX: geoRect.midX),
+                      y: cellCenterY(geoMidY: geoRect.midY - geoRect.minY))
+        
+            .onAppear{
+                DispatchQueue.main.asyncAfter(deadline: .now()) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        imageState = imageState.next()
+                    }
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        imageState = .animateDone
+                    }
+                }
+            }
+    }
+    
 
     func cellCenterX(geoMidX: CGFloat)-> CGFloat{
         if imageState.isSmall(){
@@ -178,15 +181,16 @@ struct TabHStackView: View{
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
                 ForEach(browser.pages, id: \.self) { page in
-                    TabPageView(webViewStore: page.webStore)
+                    TabPageView(webWrapper: page.webWrapper)
                         .frame(width: screen_width)
                         .onReceive(browser.$showingOptions) { showDeck in
                             if showDeck {
                                 if let index = browser.pages.firstIndex(of: page), index == browser.selectedTabIndex{
-                                    if browser.currentSnapshotImage == nil, let image = self.environmentObject(browser).snapshot(){
-                                        browser.currentSnapshotImage = image
-                                        page.webStore.webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: page.webStore.webCache.id.uuidString)
-                                        WebCacheStore.shared.saveCaches()
+                                    if let image = self.environmentObject(browser).snapshot(){
+                                        browser.capturedImage = image
+                                        page.webWrapper.webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: page.webWrapper.webCache.id.uuidString)
+                                        
+                                        WebCacheStore.shared.saveCaches(caches: browser.pages.map({ $0.webWrapper.webCache }))
                                     }
                                 }
                             }

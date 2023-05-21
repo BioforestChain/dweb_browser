@@ -12,56 +12,57 @@ import SwiftUI
 
 struct TabPageView: View {
     
-    @ObservedObject var webViewStore: WebViewStore
+    @ObservedObject var webWrapper: WebWrapper
+    @EnvironmentObject var browser: BrowerVM
 
     @State var homeview = HomeView()
 
     var  body: some View {
         ZStack{
             NavigationView {
-                WebView(webView: webViewStore.webView, url: webViewStore.webCache.lastVisitedUrl)
-                    .navigationBarTitle(Text(verbatim: webViewStore.title ?? ""), displayMode: .inline)
+                WebView(webView: webWrapper.webView, url: webWrapper.webCache.lastVisitedUrl)
+                    .navigationBarTitle(Text(verbatim: webWrapper.title ?? ""), displayMode: .inline)
                     .navigationBarItems(trailing: HStack {
                         Button(action: goBack) {
                             Image(systemName: "chevron.left")
                                 .imageScale(.large)
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 32, height: 32)
-                        }.disabled(!webViewStore.canGoBack)
+                        }.disabled(!webWrapper.canGoBack)
                         Button(action: goForward) {
                             Image(systemName: "chevron.right")
                                 .imageScale(.large)
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 32, height: 32)
-                        }.disabled(!webViewStore.canGoForward)
+                        }.disabled(!webWrapper.canGoForward)
                     })
                     .background(.red)
             }.onAppear {
-//                print("webViewStore.webView ---- \(webViewStore.webView)")
+//                print("webWrapper.webView ---- \(webWrapper.webView)")
             }
-            .onChange(of: webViewStore.webView.url) { visitingUrl in
+            .onChange(of: webWrapper.webView.url) { visitingUrl in
                 if let url = visitingUrl{
-                    webViewStore.webCache.lastVisitedUrl = url
+                    webWrapper.webCache.lastVisitedUrl = url
                 }
             }
-            .onChange(of: webViewStore.webView.estimatedProgress) { progress in
+            .onChange(of: webWrapper.webView.estimatedProgress) { progress in
                 if progress >= 1.0{
-                    WebCacheStore.shared.saveCaches()
+                    browser.saveCaches()
                 }
             }
             
-            if webViewStore.webCache.lastVisitedUrl == nil{
+            if webWrapper.webCache.lastVisitedUrl == nil{
                 homeview
             }
         }
     }
     
     func goBack() {
-        webViewStore.webView.goBack()
+        webWrapper.webView.goBack()
     }
     
     func goForward() {
-        webViewStore.webView.goForward()
+        webWrapper.webView.goForward()
     }
 }
 

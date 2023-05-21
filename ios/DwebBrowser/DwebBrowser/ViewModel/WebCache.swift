@@ -80,12 +80,12 @@ class WebCacheStore: ObservableObject{
     }
     
     func addCacheItem(cache: WebCache){
-        store.append(cache)
-        saveCaches()
+//        store.append(cache)
+//        saveCaches()
     }
     
-    func saveCaches() {
-        let data = try? JSONEncoder().encode(store)
+    func saveCaches(caches: [WebCache]) {
+        let data = try? JSONEncoder().encode(caches)
         UserDefaults.standard.set(data, forKey: userdefaultKey)
     }
     

@@ -113,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				F028997629F7C38500B8754A /* DwebBrowserApp.swift */,
+				F028998529F7C3DA00B8754A /* BrowserView.swift */,
 				F02899AD29FBA27700B8754A /* Example */,
 				F028999C29F7CC5000B8754A /* Resource */,
 				F0BC1C092A0F66C50077BE0A /* Util */,
@@ -137,7 +138,6 @@
 		F028998429F7C3B100B8754A /* View */ = {
 			isa = PBXGroup;
 			children = (
-				F028998529F7C3DA00B8754A /* BrowserView.swift */,
 				F05A7F1F2A0CDF0D00FE4B32 /* Tabs */,
 				F028998729F7C3DC00B8754A /* AddressBarHStack.swift */,
 				F028998629F7C3DB00B8754A /* ToolbarView.swift */,

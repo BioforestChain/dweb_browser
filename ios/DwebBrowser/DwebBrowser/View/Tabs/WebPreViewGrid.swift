@@ -29,8 +29,8 @@ struct WebPreViewGrid: View {
     
     @Binding var cellFrames: [CGRect]
     
-    var webStores: [WebViewStore] {
-        brower.pages.map { $0.webStore}
+    var wrappers: [WebWrapper] {
+        brower.pages.map { $0.webWrapper}
     }
     
     var body: some View {
@@ -39,11 +39,11 @@ struct WebPreViewGrid: View {
                 LazyVGrid(columns: [
                     GridItem(.adaptive(minimum: (screen_width/3.0 + 1),maximum: screen_width/2.0),spacing: 15)
                 ],spacing: 20,content: {
-                    ForEach(webStores, id: \.self) {webstore in
-                        GridCell(webstore: webstore)
+                    ForEach(wrappers, id: \.self) {webWrapper in
+                        GridCell(webWrapper: webWrapper)
                             .background(GeometryReader { geometry in
                                 Color.clear
-                                    .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo( index:webStores.firstIndex(of: webstore) ?? 0, frame: geometry.frame(in: .global))])
+                                    .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo( index:wrappers.firstIndex(of: webWrapper) ?? 0, frame: geometry.frame(in: .global))])
                             })
                     }
                 })
@@ -71,25 +71,22 @@ struct WebPreViewGrid: View {
 
 struct GridCell: View {
     @EnvironmentObject var browser: BrowerVM
-    @ObservedObject var webstore: WebViewStore
+    @ObservedObject var webWrapper: WebWrapper
     @State var runCount = 0
     
     @State private var iconUrl = URL.defaultWebIconURL
-    //    @State private var snapshotUrl = URL.defaultSnapshotURL
     
     var body: some View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
                 
-                Image(uiImage: .snapshotImage(from: webstore.webCache.snapshotUrl))
+                Image(uiImage: .snapshotImage(from: webWrapper.webCache.snapshotUrl))
                     .resizable()
                     .frame(alignment: .top)
                     .cornerRadius(gridcellCornerR)
                     .clipped()
                     .onTapGesture {
-                        browser.currentSnapshotImage = UIImage.snapshotImage(from: webstore.webCache.snapshotUrl)
-                        
-                        if let clickIndex = browser.pages.map({ $0.webStore }).firstIndex(of: webstore){
+                        if let clickIndex = browser.pages.map({ $0.webWrapper }).firstIndex(of: webWrapper){
                             browser.selectedTabIndex = clickIndex
                         }
                         browser.showingOptions = false
@@ -109,7 +106,7 @@ struct GridCell: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 22)
                     //                    }
-                    Text(webstore.title ?? "")
+                    Text(webWrapper.title ?? "")
                         .fontWeight(.semibold)
                         .lineLimit(1)
                     
@@ -120,7 +117,7 @@ struct GridCell: View {
             
             Button {
                 print("delete this tab, remove data from cache")
-                if let deleteIndex = browser.pages.map({ $0.webStore }).firstIndex(of: webstore){
+                if let deleteIndex = browser.pages.map({ $0.webWrapper }).firstIndex(of: webWrapper){
                     browser.removePage(at: deleteIndex)
                 }
                 
@@ -141,15 +138,15 @@ struct GridCell: View {
             }
         }
         .onAppear{
-            if webstore.webCache.webIconUrl.scheme == "file"{
-                URL.downloadWebsiteIcon(iconUrl: webstore.webCache.lastVisitedUrl) { url in
+            if webWrapper.webCache.webIconUrl.scheme == "file"{
+                URL.downloadWebsiteIcon(iconUrl: webWrapper.webCache.lastVisitedUrl) { url in
                     print("URL of Favicon: \(url)")
-                    webstore.webCache.webIconUrl = url
+                    webWrapper.webCache.webIconUrl = url
                     iconUrl = url
                 }
             }
         }
-        .onChange(of: webstore.webCache.snapshotUrl) { newUrl in
+        .onChange(of: webWrapper.webCache.snapshotUrl) { newUrl in
             print("new snapshot is \(newUrl)")
         }
     }

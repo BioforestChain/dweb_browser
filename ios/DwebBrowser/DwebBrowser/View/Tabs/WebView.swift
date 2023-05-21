@@ -5,7 +5,7 @@ import WebKit
 var visitCount: Int = 0
 
 @dynamicMemberLookup
-public class WebViewStore: ObservableObject,Identifiable,Hashable{
+public class WebWrapper: ObservableObject,Identifiable,Hashable{
 
     public let id = UUID()
     @Published var webCache: WebCache
@@ -52,7 +52,7 @@ public class WebViewStore: ObservableObject,Identifiable,Hashable{
         webView[keyPath: keyPath]
     }
     
-    public static func == (lhs: WebViewStore, rhs: WebViewStore) -> Bool {
+    public static func == (lhs: WebWrapper, rhs: WebWrapper) -> Bool {
          lhs.id == rhs.id
      }
      
