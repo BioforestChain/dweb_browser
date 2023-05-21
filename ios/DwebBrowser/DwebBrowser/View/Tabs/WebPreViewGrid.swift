@@ -43,18 +43,8 @@ struct WebPreViewGrid: View {
                         GridCell(webstore: webstore)
                             .background(GeometryReader { geometry in
                                 Color.clear
-                                    .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo( index:webStores.firstIndex(of: webstore)!, frame: geometry.frame(in: .global))])
+                                    .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo( index:webStores.firstIndex(of: webstore) ?? 0, frame: geometry.frame(in: .global))])
                             })
-                            .onTapGesture {
-                                if let index = webStores.firstIndex(of: webstore){
-                                    print("tapped the \(index)th cell", "frame is \(cellFrame(at: index))")
-                                }else{
-                                    print("can't read the clicked cell information")
-                                }
-                            }
-                            .onAppear{
-                                print("show the \(String(describing: webStores.firstIndex(of: webstore)))th cell")
-                            }
                     }
                 })
                 .padding(15)
@@ -65,7 +55,6 @@ struct WebPreViewGrid: View {
                     }
                 }
             }
-            .background(Color(white: 0.7))
         }
     }
     
@@ -86,35 +75,40 @@ struct GridCell: View {
     @State var runCount = 0
     
     @State private var iconUrl = URL.defaultWebIconURL
-//    @State private var snapshotUrl = URL.defaultSnapshotURL
-
+    //    @State private var snapshotUrl = URL.defaultSnapshotURL
+    
     var body: some View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
                 
-                Image(uiImage: .snapshot(from: webstore.webCache.snapshot))
+                Image(uiImage: .snapshotImage(from: webstore.webCache.snapshotUrl))
                     .resizable()
                     .frame(alignment: .top)
                     .cornerRadius(gridcellCornerR)
                     .clipped()
                     .onTapGesture {
-//                        browser.selectedTabIndex = 
-                        browser.expandingSnapshot = UIImage.snapshot(from: webstore.webCache.snapshot)
+                        browser.currentSnapshotImage = UIImage.snapshotImage(from: webstore.webCache.snapshotUrl)
+                        
+                        if let clickIndex = browser.pages.map({ $0.webStore }).firstIndex(of: webstore){
+                            browser.selectedTabIndex = clickIndex
+                        }
+                        browser.showingOptions = false
+                        
                     }
                     .onAppear{
                         print("comes to Image onAppear")
                     }
                 HStack{
-//                    if iconUrl != nil{
-                        KFImage.url(iconUrl)
-                            .fade(duration: 0.1)
-                            .onProgress { receivedSize, totalSize in print("\(receivedSize / totalSize) %") }
-                            .onSuccess { result in print(result) }
-                            .onFailure { error in print(error) }
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 22)
-//                    }
+                    //                    if iconUrl != nil{
+                    KFImage.url(iconUrl)
+                        .fade(duration: 0.1)
+                        .onProgress { receivedSize, totalSize in print("\(receivedSize / totalSize) %") }
+                        .onSuccess { result in print(result) }
+                        .onFailure { error in print(error) }
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 22)
+                    //                    }
                     Text(webstore.title ?? "")
                         .fontWeight(.semibold)
                         .lineLimit(1)
@@ -126,6 +120,10 @@ struct GridCell: View {
             
             Button {
                 print("delete this tab, remove data from cache")
+                if let deleteIndex = browser.pages.map({ $0.webStore }).firstIndex(of: webstore){
+                    browser.removePage(at: deleteIndex)
+                }
+                
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .resizable()
@@ -143,15 +141,15 @@ struct GridCell: View {
             }
         }
         .onAppear{
-            if webstore.webCache.webIcon.scheme == "file"{
+            if webstore.webCache.webIconUrl.scheme == "file"{
                 URL.downloadWebsiteIcon(iconUrl: webstore.webCache.lastVisitedUrl) { url in
                     print("URL of Favicon: \(url)")
-                    webstore.webCache.webIcon = url
+                    webstore.webCache.webIconUrl = url
                     iconUrl = url
                 }
             }
         }
-        .onChange(of: webstore.webCache.snapshot) { newUrl in
+        .onChange(of: webstore.webCache.snapshotUrl) { newUrl in
             print("new snapshot is \(newUrl)")
         }
     }

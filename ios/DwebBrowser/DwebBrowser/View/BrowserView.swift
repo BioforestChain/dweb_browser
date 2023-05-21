@@ -33,6 +33,7 @@ struct BrowserView: View {
                 .coordinateSpace(name: "Root")
                 .environmentObject(ToolbarState())
                 .environmentObject(browser)
+                .background(Color(white: 0.7))
             }
         }
     }

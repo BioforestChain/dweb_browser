@@ -14,7 +14,7 @@ private let snapshotId = "_snapshot"
 extension UIImage {
     
     // 保存图片到本地文件
-    static func createSnapShot(withImage image: UIImage, imageName: String) -> URL {
+    static func createLocalUrl(withImage image: UIImage, imageName: String) -> URL {
         guard let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
             return URL.defaultSnapshotURL
         }
@@ -44,7 +44,7 @@ extension UIImage {
         return image
     }
 
-    static func snapshot(from localUrl: URL)->UIImage{
+    static func snapshotImage(from localUrl: URL)->UIImage{
         print("snapshot url is \(localUrl)")
         var image: UIImage?
         do{

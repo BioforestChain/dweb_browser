@@ -26,10 +26,18 @@ struct AddressBarHStack: View {
     @EnvironmentObject var browser: BrowerVM
     
     @State private var selectedTab = 0
+    @State private var currentIndex = 0
     
     var body: some View {
         GeometryReader { innerGeometry in
-            PageScroll(contentSize: browser.pages.count, content:AddressBarHContainer())
+            PagingScroll(contentSize: browser.pages.count, content: AddressBarHContainer(), currentPage: $currentIndex)
+                .onChange(of: browser.selectedTabIndex) { newValue in
+                    
+                    print("")
+                    currentIndex = newValue
+                }
+            
+//            PageScroll(contentSize: browser.pages.count, content:AddressBarHContainer())
         }
         .frame(height: browser.addressBarHeight)
         .animation(.easeInOut(duration:0.3), value: browser.addressBarHeight)
@@ -47,7 +55,7 @@ struct AddressBar: View {
     @State var inputText: String = ""
     @FocusState var isAdressBarFocused: Bool
     @EnvironmentObject var browser: BrowerVM
-//    @State var progressValue: Float = 0.0
+//    @Binding var currentIndex: Int
     
     @ObservedObject var webStore: WebViewStore
     
@@ -101,6 +109,18 @@ struct AddressBar: View {
                     }
                     .onChange(of: geometry.frame(in: .named("Root")).minX) { offsetX in
                         browser.addressBarOffset = offsetX
+                        let rest = CGFloat( Int(offsetX) % Int(screen_width) ) / screen_width
+                        if rest <= 0.0001, rest >= -0.0001{
+                            //滚动完成
+                            print("current whole:\(offsetX)")
+                        }
+                        
+                        
+//                        browser.selectedTabIndex = Int(floor(offsetX / screen_width))
+//                        let pageCount = Int(floor(geometry.size.width / pageWidth))
+
+//                        currentIndex = Int(floor(offsetX / screen_width))
+
                     }
             }.frame(height: browser.addressBarHeight)
         }

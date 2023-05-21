@@ -107,9 +107,48 @@ struct ZoomAnimationView: View{
     }
 }
 
+
+struct TouchView: View{
+    @State var redatFront = true
+    @State var blueatFront = false
+//    @State var showRed = false
+//    @Namespace private var animation
+//    var frame: CGFloat{
+//        isZoomed ? 300 : 44
+//    }
+    
+    var body: some View{
+        VStack{
+            ZStack{
+                Color.red
+                    .opacity(redatFront ? 1 : 0)
+                    .onTapGesture {
+                        print("tap red")
+                        redatFront = false
+                        blueatFront = true
+                    }
+                Color.blue
+                    .opacity(blueatFront ? 1 : 0)
+                    .onTapGesture {
+                        print("tap blue")
+                        redatFront = true
+                        blueatFront = false
+//                        showRed.toggle()
+                    }
+            }
+            
+            
+        }
+        
+    }
+}
+            
+
+
+
 struct TestView_Previews: PreviewProvider {
     static var previews: some View {
-                TestView(offset: width/2.0)
-//        TakeSnapShotView()
+        TouchView()
+        //        TakeSnapShotView()
     }
 }

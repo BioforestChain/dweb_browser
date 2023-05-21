@@ -38,7 +38,7 @@
 		F0B68CFF2A12333900215036 /* snapshot.png in Resources */ = {isa = PBXBuildFile; fileRef = F0B68CFE2A12333900215036 /* snapshot.png */; };
 		F0B68D012A12333D00215036 /* defWebIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = F0B68D002A12333D00215036 /* defWebIcon.png */; };
 		F0B68D032A123B4F00215036 /* Url+Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D022A123B4F00215036 /* Url+Validator.swift */; };
-		F0B68D072A162DF000215036 /* ScrollPageContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D062A162DF000215036 /* ScrollPageContainer.swift */; };
+		F0B68D072A162DF000215036 /* PagingScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D062A162DF000215036 /* PagingScroll.swift */; };
 		F0BC1C0B2A0F86D50077BE0A /* View+AnimationObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BC1C0A2A0F86D50077BE0A /* View+AnimationObserver.swift */; };
 		F0BC1C0D2A1219CA0077BE0A /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */; };
 /* End PBXBuildFile section */
@@ -74,7 +74,7 @@
 		F0B68CFE2A12333900215036 /* snapshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = snapshot.png; sourceTree = "<group>"; };
 		F0B68D002A12333D00215036 /* defWebIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = defWebIcon.png; sourceTree = "<group>"; };
 		F0B68D022A123B4F00215036 /* Url+Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Url+Validator.swift"; sourceTree = "<group>"; };
-		F0B68D062A162DF000215036 /* ScrollPageContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollPageContainer.swift; sourceTree = "<group>"; };
+		F0B68D062A162DF000215036 /* PagingScroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagingScroll.swift; sourceTree = "<group>"; };
 		F0BC1C0A2A0F86D50077BE0A /* View+AnimationObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+AnimationObserver.swift"; sourceTree = "<group>"; };
 		F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -156,6 +156,7 @@
 				F0BC1C0A2A0F86D50077BE0A /* View+AnimationObserver.swift */,
 				F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */,
 				F0B68D022A123B4F00215036 /* Url+Validator.swift */,
+				F0B68D062A162DF000215036 /* PagingScroll.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -194,7 +195,6 @@
 				F08E10562A0A4F7C00899DF8 /* TestView.swift */,
 				F028997829F7C38500B8754A /* ObservableObjectView.swift */,
 				F02899AE29FBA28E00B8754A /* AutoFillView.swift */,
-				F0B68D062A162DF000215036 /* ScrollPageContainer.swift */,
 			);
 			path = Example;
 			sourceTree = "<group>";
@@ -338,7 +338,7 @@
 				F028998929F7C3DC00B8754A /* ToolbarView.swift in Sources */,
 				F0BC1C0B2A0F86D50077BE0A /* View+AnimationObserver.swift in Sources */,
 				F028998F29F7C42300B8754A /* const.swift in Sources */,
-				F0B68D072A162DF000215036 /* ScrollPageContainer.swift in Sources */,
+				F0B68D072A162DF000215036 /* PagingScroll.swift in Sources */,
 				F028999729F7C87000B8754A /* HistoryView.swift in Sources */,
 				F08E10402A04917600899DF8 /* WebCache.swift in Sources */,
 				F028997729F7C38500B8754A /* DwebBrowserApp.swift in Sources */,
@@ -399,7 +399,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -453,7 +453,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;

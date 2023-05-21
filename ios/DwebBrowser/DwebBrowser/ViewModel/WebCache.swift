@@ -24,41 +24,41 @@ let websites = [
 class WebCache: ObservableObject, Identifiable, Hashable,Codable{
     enum CodingKeys: String, CodingKey {
         case id
-        case webIcon
+        case webIconUrl
         case lastVisitedUrl
         case title
-        case snapshot
+        case snapshotUrl
     }
     
     public var id = UUID()
-    @Published var webIcon: URL            // url to the source of somewhere in internet
+    @Published var webIconUrl: URL            // url to the source of somewhere in internet
     @Published var lastVisitedUrl: URL     //the website that user has opened on webview
     @Published var title: String            // page title
-    @Published var snapshot: URL           //local file path is direct to the image has saved in document dir
+    @Published var snapshotUrl: URL           //local file path is direct to the image has saved in document dir
     
-    public init(icon: URL = URL.defaultWebIconURL, lastVisitedUrl: URL = testURL, title: String = "", snapshot: URL = URL.defaultSnapshotURL) {
-        self.webIcon = icon
+    public init(icon: URL = URL.defaultWebIconURL, lastVisitedUrl: URL = testURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
+        self.webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
         self.title = title
-        self.snapshot = snapshot
+        self.snapshotUrl = snapshotUrl
     }
     
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
-        webIcon = try container.decodeIfPresent(URL.self, forKey: .webIcon) ?? URL.defaultWebIconURL
+        webIconUrl = try container.decodeIfPresent(URL.self, forKey: .webIconUrl) ?? URL.defaultWebIconURL
         lastVisitedUrl = try container.decodeIfPresent(URL.self, forKey: .lastVisitedUrl) ?? testURL
         title = try container.decode(String.self, forKey: .title)
-        snapshot = try container.decodeIfPresent(URL.self, forKey: .snapshot) ?? URL.defaultSnapshotURL
+        snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
-        try container.encodeIfPresent(webIcon, forKey: .webIcon)
+        try container.encodeIfPresent(webIconUrl, forKey: .webIconUrl)
         try container.encodeIfPresent(lastVisitedUrl, forKey: .lastVisitedUrl)
         try container.encode(title, forKey: .title)
-        try container.encodeIfPresent(snapshot, forKey: .snapshot)
+        try container.encodeIfPresent(snapshotUrl, forKey: .snapshotUrl)
     }
     
     public static func == (lhs: WebCache, rhs: WebCache) -> Bool {
@@ -98,7 +98,10 @@ class WebCacheStore: ObservableObject{
         if store.count == 0 {
             store = [
                 WebCache(lastVisitedUrl: testURL),
-                WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!)
+                WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!),
+                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!),
+//                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!),
+//                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!),
             ]
         }
     }

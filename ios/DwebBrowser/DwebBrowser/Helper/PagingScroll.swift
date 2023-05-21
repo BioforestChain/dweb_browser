@@ -7,45 +7,7 @@
 
 import SwiftUI
 
-struct ContentView9: View {
-    @State var currentPage = 0
-    
-    @State private var randomIndex = 0
-    var body: some View {
-        VStack {
-            ScrollPageContainer(contentSize: 5, content: HStack(spacing: 0) {
-                Color.red.frame(width: screen_width, height: 50)
-                Color.green.frame(width: screen_width, height: 50)
-                Color.blue.frame(width: screen_width, height: 50)
-                Color.orange.frame(width: screen_width, height: 50)
-                Color.cyan.frame(width: screen_width, height: 50)
-            }, currentPage: $currentPage)
-            
-            Button("Random") {
-                
-                    currentPage = Int.random(in: Range(0...4))
-            }
-            
-            HStack {
-                Button("Prev") {
-                    if currentPage > 0 {
-                        currentPage -= 1
-                    }
-                }
-                Spacer()
-                Text("Page \(currentPage + 1)")
-                Spacer()
-                Button("Next") {
-                    if currentPage < 2 {
-                        currentPage += 1
-                    }
-                }
-            }.padding()
-        }
-    }
-}
-
-struct ScrollPageContainer<Content: View>: UIViewRepresentable {
+struct PagingScroll<Content: View>: UIViewRepresentable {
     
     var contentSize: Int
     var content: Content
@@ -81,9 +43,9 @@ struct ScrollPageContainer<Content: View>: UIViewRepresentable {
     }
     
     class Coordinator: NSObject, UIScrollViewDelegate {
-        var parent: ScrollPageContainer
+        var parent: PagingScroll
         
-        init(_ parent: ScrollPageContainer) {
+        init(_ parent: PagingScroll) {
             self.parent = parent
         }
         
@@ -96,8 +58,46 @@ struct ScrollPageContainer<Content: View>: UIViewRepresentable {
 
 //let screen_width = UIScreen.main.bounds.width
 
+struct PagingScrollTestView: View {
+    @State var currentPage = 0
+    
+    @State private var randomIndex = 0
+    var body: some View {
+        VStack {
+            PagingScroll(contentSize: 5, content: HStack(spacing: 0) {
+                Color.red.frame(width: screen_width, height: 50)
+                Color.green.frame(width: screen_width, height: 50)
+                Color.blue.frame(width: screen_width, height: 50)
+                Color.orange.frame(width: screen_width, height: 50)
+                Color.cyan.frame(width: screen_width, height: 50)
+            }, currentPage: $currentPage)
+            
+            Button("Random") {
+                
+                    currentPage = Int.random(in: Range(0...4))
+            }
+            
+            HStack {
+                Button("Prev") {
+                    if currentPage > 0 {
+                        currentPage -= 1
+                    }
+                }
+                Spacer()
+                Text("Page \(currentPage + 1)")
+                Spacer()
+                Button("Next") {
+                    if currentPage < 2 {
+                        currentPage += 1
+                    }
+                }
+            }.padding()
+        }
+    }
+}
+
 struct ContentView_Previews9: PreviewProvider {
     static var previews: some View {
-        ContentView9()
+        PagingScrollTestView()
     }
 }

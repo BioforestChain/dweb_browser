@@ -18,9 +18,8 @@ class Home: ObservableObject{
 
 class Page: Identifiable, ObservableObject, Hashable{
     var id = UUID()
-
     
-    @Published var webStore: WebViewStore //= WebViewStore( webCache: WebCache.createItem())
+    @Published var webStore: WebViewStore
 
     init(id: UUID = UUID(), webStore: WebViewStore) {
         self.id = id
@@ -45,13 +44,24 @@ class BrowerVM: ObservableObject {
     
     @Published var sharedResources = SharedSourcesVM()
     
-    @Published var shrinkingSnapshot: UIImage? = nil
-    @Published var expandingSnapshot: UIImage? = nil
-
-    @Published var shouldTakeSnapshot = false
+    @Published var currentSnapshotImage: UIImage? = nil
     
     var addressBarHeight: CGFloat{
         showingOptions ? 0:60
+    }
+    
+    func removePage(at index: Int){
+        var newStores = pages.map({ $0.webStore })
+        newStores.remove(at: index)
+        withAnimation(.easeIn(duration: 0.3),{
+            pages = newStores.map({Page(webStore: $0)})
+        })
+        
+        // TODO:
+        
+        // remove the snap shot
+        
+        //save caches to the sandbox
     }
 }
 

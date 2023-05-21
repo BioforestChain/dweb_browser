@@ -68,7 +68,8 @@ struct ToolbarView: View {
                     Spacer()
                     
                     ToolbarItem(imageName: "doc.on.doc") {
-                        browser.shouldTakeSnapshot = true
+//                        browser.shouldTakeSnapshot = true
+//                        browser.doShrinkAnimation = true
                         browser.showingOptions = true
 
 //                        withAnimation(.easeInOut) {
@@ -93,7 +94,7 @@ struct ToolbarView: View {
                 }
                 
                 Spacer()
-                Text("15个标签页")
+                Text("\(browser.pages.count)个标签页")
                 Spacer()
                 
                 ToolbarItem(title: "完成") {
