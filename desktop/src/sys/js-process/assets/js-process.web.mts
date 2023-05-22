@@ -2,6 +2,8 @@ import { createSignal } from "../../../helper/createSignal.mjs";
 import { PromiseOut } from "../../../helper/PromiseOut.mjs";
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
+// 也可以用在其他的 .html 文件中 但是内容需要部分的修改 
+// 如果我们使用其他的 ***.html 文件作为渲染进程总的主线程，同样需要用这个来协调 js-worker 同 native 之间通信；
 const ALL_PROCESS_MAP = new Map<
   number,
   {
@@ -12,6 +14,15 @@ const ALL_PROCESS_MAP = new Map<
 let acc_process_id = 0;
 const allocProcessId = () => acc_process_id++;
 
+/**
+ * 创建 woker 线程 同样是当做一个程序角色
+ * @param env_script_url 需要导入的环境目录 *** bootstramp.js 也就是 js-prcess.woker.cts 代码部分
+ * @param metadata_json 对应的 JsMicroModurl 的 元数据 一般包括 mmid 和 worker.js 的位置
+ * @param env_json 
+ * @param fetch_port messagePort 通过 js.sys.dweb 传递进来的 transfer
+ * @param name woker 的名称
+ * @returns 
+ */
 const createProcess = async (
   env_script_url: string,
   metadata_json: string,
@@ -23,10 +34,14 @@ const createProcess = async (
   const worker_url = URL.createObjectURL(
     new Blob(
       [
-        `import("${env_script_url}").then(async({installEnv,Metadata})=>{
-          void installEnv(new Metadata(${metadata_json},${env_json}));
-          postMessage("ready")
-        },(err)=>postMessage("ERROR:"+err))`,
+        `import("${env_script_url}")
+        .then(
+          async({installEnv,Metadata})=>{
+            void installEnv(new Metadata(${metadata_json},${env_json}));
+            postMessage("ready")
+          },
+          (err)=>postMessage("ERROR:"+err)
+        )`,
       ],
       {
         // esm 代码必须有正确的 mime
@@ -39,6 +54,7 @@ const createProcess = async (
     type: "module",
     name: name,
   });
+
   await new Promise<void>((resolve, reject) => {
     worker.addEventListener(
       "message",
@@ -69,6 +85,7 @@ const createProcess = async (
   ALL_PROCESS_MAP.set(process_id, { worker, fetch_port });
 
   /// 触发事件
+  // 这个触发可有可无，只有在调试阶段 才需要
   on_create_process_signal.emit({
     process_id,
     env_script_url,
@@ -85,19 +102,15 @@ const createProcess = async (
   };
 };
 
-const _forceGetProcess = (process_id: number) => {
-  const process = ALL_PROCESS_MAP.get(process_id);
-  if (process === undefined) {
-    throw new Error(`no found worker by id: ${process_id}`);
-  }
-  return process;
-};
-const runProcessMain = (process_id: number, config: $RunMainConfig) => {
-  const process = _forceGetProcess(process_id);
-  process.worker.postMessage(["run-main", config]);
-};
-
-const createIpc = async (
+/**
+ * 创建 ipc 通信 接受从 js.sys.dweb 传递寄哪里的 port 
+ * @param process_id 
+ * @param mmid 
+ * @param ipc_port 
+ * @param env_json 
+ * @returns 
+ */
+const createIpc = async ( 
   process_id: number,
   mmid: string,
   ipc_port: MessagePort,
@@ -122,6 +135,26 @@ const createIpc = async (
   process.worker.removeEventListener("message", onEnvReady);
   return;
 };
+
+// 根据 process_id 获取进程
+const _forceGetProcess = (process_id: number) => {
+  const process = ALL_PROCESS_MAP.get(process_id);
+  if (process === undefined) {
+    throw new Error(`no found worker by id: ${process_id}`);
+  }
+  return process;
+};
+
+/**
+ * 通过 process.worker 发送 run-main 的消息
+ * @param process_id 
+ * @param config 
+ */
+const runProcessMain = (process_id: number, config: $RunMainConfig) => {
+  const process = _forceGetProcess(process_id);
+  process.worker.postMessage(["run-main", config]);
+};
+
 /**
  * 彻底退出后端，即删除APP的worker
  * @param process_id 
@@ -133,6 +166,7 @@ const destroyProcess = (process_id: number) => {
 
 const on_create_process_signal = createSignal();
 
+// 这里到处的 APIS 会通过 expose() 导入到给主进程调用
 export const APIS = {
   createProcess,
   runProcessMain,

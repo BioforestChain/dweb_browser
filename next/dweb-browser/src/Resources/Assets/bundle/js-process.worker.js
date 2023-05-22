@@ -4327,6 +4327,10 @@ var JsProcessMicroModule = class {
     const args = normalizeFetchArgs(url, init);
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
+  /** 关闭 */
+  close() {
+    this.nativeFetch(`file://dns.sys.dweb/close?app_id=${this.mmid}`);
+  }
   /**重启 */
   restart() {
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", ""));
@@ -4421,6 +4425,7 @@ self.addEventListener("message", async function runMain(event) {
       enumerable: false,
       writable: false
     });
+    console.log("config.main_url: ", config.main_url);
     await import(config.main_url);
     this.self.removeEventListener("message", runMain);
   }

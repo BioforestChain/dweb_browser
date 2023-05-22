@@ -20,7 +20,6 @@ import type {
 import type { MicroModule } from "../../core/micro-module.cjs";
 import type { HttpServerNMM } from "../http-server/http-server.cjs";
 import type { $MMID } from "../../helper/types.cjs";
-
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
 
@@ -141,8 +140,44 @@ export class DnsNMM extends NativeMicroModule {
       input: { app_id: "mmid" },
       output: "boolean",
       handler: async (args, client_ipc, request) => {
+
         /// TODO 询问用户是否授权该行为
         const app = await this.open(args.app_id);
+        return IpcResponse.fromJson(
+          request.req_id,
+          200,
+          new IpcHeaders({
+            "Content-Type": "application/json; charset=UTF-8",
+          }),
+          JSON.stringify(app),
+          client_ipc
+        );
+      },
+    });
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/open_browser",
+      matchMode: "full",
+      input: { mmid: "mmid", root: "string", entry: "string" },
+      output: "boolean",
+      handler: async (args, client_ipc, request) => {
+        const { JsMicroModule } = await import("../jmm/micro-module.js.cjs")
+        const { JmmMetadata } = await import("../jmm/JmmMetadata.cjs")
+        const metadata = new JmmMetadata({
+          id: args.mmid,
+          server: {root: args.root, entry: args.entry}
+        })
+
+        console.log('metadata: ', metadata)
+        
+        // 实例化
+        // 安装 
+        this.install(new JsMicroModule(
+          metadata
+        ))
+        
+        /// TODO 询问用户是否授权该行为
+        const app = await this.open(args.mmid);
         return IpcResponse.fromJson(
           request.req_id,
           200,
@@ -159,13 +194,53 @@ export class DnsNMM extends NativeMicroModule {
       pathname: "/close",
       matchMode: "full",
       input: { app_id: "mmid" },
-      output: "boolean",
+      output: "number",
       handler: async (args) => {
         /// TODO 关闭应用首先要确保该应用的 parentProcessId 在 processTree 中
-        await this.close(args.app_id);
-        return true;
+        const n = await this.close(args.app_id);
+        const result = await this.nativeFetch(
+          `file://mwebview.sys.dweb/close/focused_window`
+        )
+        return n
       },
     });
+
+    // 检查工具 提供查询 mmConnectsMap  的结果
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/query/mm_connects_map",
+      matchMode: "full",
+      input: {app_id: "mmid"},
+      output: "object",
+      handler: async (args) => {
+        const mm = await this.query(args.app_id);
+        if(mm === undefined){
+          throw new Error(`mm === undefined`)
+        }
+        const _map = this.mmConnectsMap.get(mm);
+        return {}
+      }
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/restart",
+      matchMode: "full",
+      input: {app_id: "mmid"},
+      output: "boolean",
+      handler: async (args, ipc, request) => {
+        // 需要停止匹配的 jsMicroModule
+        const mm = (await this.query(args.app_id))
+        if(mm === undefined) return false;
+        this.close(args.app_id)
+        // 关闭当前window对象
+        const result = await this.nativeFetch(
+          `file://mwebview.sys.dweb/close/focused_window`
+        )
+
+        this.install(mm);
+        this.open(args.app_id)
+        return true;
+      }
+    })
 
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(
@@ -213,6 +288,7 @@ export class DnsNMM extends NativeMicroModule {
   uninstall(mm: MicroModule) {
     this.apps.delete(mm.mmid);
   }
+
   /** 查询应用 */
   async query(mmid: $MMID) {
     return this.apps.get(mmid);
@@ -221,6 +297,7 @@ export class DnsNMM extends NativeMicroModule {
   private running_apps = new Map<$MMID, MicroModule>();
   /** 打开应用 */
   async open(mmid: $MMID) {
+    console.log("open: ", mmid)
     let app = this.running_apps.get(mmid);
     if (app === undefined) {
       const mm = await this.query(mmid);
@@ -234,17 +311,22 @@ export class DnsNMM extends NativeMicroModule {
     }
     return app;
   }
+
   /** 关闭应用 */
   async close(mmid: $MMID) {
     const app = this.running_apps.get(mmid);
     if (app === undefined) {
+      // 关闭失败没有匹配的 microModule 运行
       return -1;
     }
     try {
       this.running_apps.delete(mmid);
       await app.shutdown();
+      this.uninstall(app);
+      // 关闭成功
       return 0;
     } catch {
+      // 关闭失败
       return 1;
     }
   }

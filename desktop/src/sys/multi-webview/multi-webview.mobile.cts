@@ -13,6 +13,7 @@ import querystring from "node:querystring"
 import path from "node:path"
 import { 
   open,
+  closeFocusedWindow,
   openDownloadPage,
   barGetState,
   barSetState,
@@ -43,7 +44,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   mmid = "mwebview.sys.dweb" as const;
   observeMap: $ObserveMapNww= new Map()
   encoder = new TextEncoder()
-  private _uid_wapis_map = new Map<
+  _uid_wapis_map = new Map<
     number,
     { nww: $NativeWindow; apis: Remote<$APIS> }
   >();
@@ -103,6 +104,17 @@ export class MultiWebviewNMM extends NativeMicroModule {
         return wapis.apis.closeWebview(args.webview_id);
       },
     });
+
+    /**
+     * 关闭当前激活的window
+     */
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/close/focused_window",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: closeFocusedWindow.bind(this, root_url)
+    })
 
     // 销毁指定的 webview
     this.registerCommonIpcOnMessageHandler({
@@ -511,6 +523,17 @@ export class MultiWebviewNMM extends NativeMicroModule {
   }
 
   browserWindowGetFocused(){
+    console.log('this._uid_wapis_map', this._uid_wapis_map)
+    // Array.from(this._uid_wapis_map.values()).forEach(item => {
+    //   console.log('item.nww.isFocused(): ', item.nww.isFocused())
+    //   // 没有删除 _uid_wapis_map 里面的向
+    //   // 同时第二次之心删除没有走到这个里面来？？
+    // })
+
+    setTimeout(() => {
+      console.log('this._uid_wapis_map: ', this._uid_wapis_map)
+    },3000)
+
     return Array.from(this._uid_wapis_map.values()).find(item => item.nww.isFocused())?.nww
   }
   

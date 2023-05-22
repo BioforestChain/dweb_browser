@@ -315,7 +315,7 @@
     const elBtnMore = document.querySelector('.detail-button-more')
     const elMoreDeveloperInfo = document.querySelector(".developer-container")
     const elDeveloperName = document.querySelector(".developer-name");
-    let isDownloaded = false
+    let downloadState = -1; // -1 没有在下载 0 下载暂停中
 
     // 根据获取到的 appInfo 设置内容
     async function setAppInfoByAppInfo(info){
@@ -355,7 +355,6 @@
         progress(parseInt(percent))
       }
 
-      console.log('---')
       stream.cancel("done");
       closeSelf();
       

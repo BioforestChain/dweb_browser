@@ -13,7 +13,7 @@ import type { $Ipc } from "../tool/tool.request.mjs";
 import { onApiRequest } from "./api.request.mjs";
 import { wwwServerOnRequest } from "./www-server-on-request.mjs";
 
-const main = async () => {
+;(async () => {
   console.log("bootstrap browser.worker.mts")
   const { IpcEvent } = ipc;
   // 启动主页面的地址
@@ -121,22 +121,26 @@ const main = async () => {
   // 转发serviceWorker 请求
   const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
     const pathname = url.pathname;
-    // 关闭前端
+
+    if(pathname.endsWith('close') || pathname.endsWith('restart')){
+      // 关闭全部的服务
+      await apiServer.close();
+      await wwwServer.close();
+      await externalServer.close();
+      
+      // 关闭全部的ipc
+      apiReadableStreamIpc.close();
+      wwwReadableStreamIpc.close();
+      externalReadableStreamIpc.close();
+    }
+    // 关闭
     if (pathname.endsWith("close")) {
-      return closeFront();
+      jsProcess.close()
     }
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
-      return restartApp(
-        [apiServer, wwwServer],
-        [apiReadableStreamIpc, wwwReadableStreamIpc]
-      );
+      jsProcess.restart()
     }
-    // TODO 手动关闭 connect
-    // closeSignal.emit()
-    // cotDemoJMM.shutdown()
-
-    // return await response.text()
     return "no action for serviceWorker Factory !!!";
   };
 
@@ -199,6 +203,4 @@ const main = async () => {
     }).href;
     mainUrl.resolve(interUrl);
   }
-};
-
-main();
+})();

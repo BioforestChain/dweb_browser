@@ -63,17 +63,17 @@ dns.install(new BootNMM([
   "js.sys.dweb",
 
   // 插件模块
-  "download.sys.dweb",
-  "status-bar.nativeui.sys.dweb",
-  "navigation-bar.nativeui.sys.dweb",
-  "safe-area.nativeui.sys.dweb",
-  "virtual-keyboard.nativeui.sys.dweb",
-  "barcode-scanning.sys.dweb",
-  "toast.sys.dweb",
-  "torch.nativeui.sys.dweb",
-  "biometrics.sys.dweb",
-  "haptics.sys.dweb",
-  "share.sys.dweb",
+  // "download.sys.dweb",
+  // "status-bar.nativeui.sys.dweb",
+  // "navigation-bar.nativeui.sys.dweb",
+  // "safe-area.nativeui.sys.dweb",
+  // "virtual-keyboard.nativeui.sys.dweb",
+  // "barcode-scanning.sys.dweb",
+  // "toast.sys.dweb",
+  // "torch.nativeui.sys.dweb",
+  // "biometrics.sys.dweb",
+  // "haptics.sys.dweb",
+  // "share.sys.dweb",
   "browser.sys.dweb",
   // cotDemoJMM.mmid
   // 下面是专门用来测是 connect 的模块

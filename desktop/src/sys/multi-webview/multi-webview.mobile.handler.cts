@@ -24,6 +24,33 @@ export async function open(
   const webview_id = await wapis.apis.openWebview(args.url);
   return webview_id
 }
+
+/**
+ * 关闭当前激活项
+ * @param this 
+ * @param root_url 
+ * @param args 
+ * @param clientIpc 
+ * @param request 
+ * @returns 
+ */
+export async function closeFocusedWindow(
+  this: MultiWebviewNMM,
+  root_url: string,
+  args: $Schema1ToType<{}>,
+  clientIpc: Ipc,
+  request: IpcRequest,
+){
+  const iterator = this._uid_wapis_map.entries()
+  for(let item of iterator){
+    if(item[1].nww?.isFocused()){
+      item[1].nww.close();
+      this._uid_wapis_map.delete(item[0])
+    }
+  }
+  return true
+}
+
 export async function openDownloadPage(
   this: MultiWebviewNMM,
   root_url: string,

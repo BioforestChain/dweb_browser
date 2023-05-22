@@ -546,6 +546,9 @@ var closeDwebView = async (webview_id) => {
   ).text();
 };
 
+// src/user/tool/app.handle.mts
+var webViewMap = /* @__PURE__ */ new Map();
+
 // src/helper/binaryHelper.cts
 var isBinary = (data) => data instanceof ArrayBuffer || ArrayBuffer.isView(data);
 var binaryToU8a = (binary) => {
@@ -4328,7 +4331,7 @@ async function wwwServerOnRequest(request, ipc2) {
 }
 
 // src/user/browser/browser.worker.mts
-var main = async () => {
+(async () => {
   console.log("bootstrap browser.worker.mts");
   const { IpcEvent: IpcEvent2 } = ipc;
   const mainUrl = new PromiseOut();
@@ -4403,14 +4406,19 @@ var main = async () => {
   });
   const serviceWorkerFactory = async (url, ipc2) => {
     const pathname = url.pathname;
+    if (pathname.endsWith("close") || pathname.endsWith("restart")) {
+      await apiServer.close();
+      await wwwServer.close();
+      await externalServer.close();
+      apiReadableStreamIpc.close();
+      wwwReadableStreamIpc.close();
+      externalReadableStreamIpc.close();
+    }
     if (pathname.endsWith("close")) {
-      return closeFront();
+      jsProcess.close();
     }
     if (pathname.endsWith("restart")) {
-      return restartApp(
-        [apiServer, wwwServer],
-        [apiReadableStreamIpc, wwwReadableStreamIpc]
-      );
+      jsProcess.restart();
     }
     return "no action for serviceWorker Factory !!!";
   };
@@ -4465,5 +4473,4 @@ var main = async () => {
     }).href;
     mainUrl.resolve(interUrl);
   }
-};
-main();
+})();

@@ -23,7 +23,7 @@ import { saveNative2JsIpcPort } from "./ipc.native2js.cjs";
 import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.cjs"
 import chalk from "chalk"
  
-
+let pre = 0;
 const resolveTo = createResolveTo(__dirname);
 
 // @ts-ignore
@@ -141,8 +141,6 @@ export class JsProcessNMM extends NativeMicroModule {
     console.log('[js-process _bootstrap]')
     const mainServer = await createHttpDwebServer(this, {});
     (await mainServer.listen()).onRequest(async (request, ipc) => {
-      // console.log("[js-process mainServer onRequest ]request.parsed_url.pathname", request.parsed_url.pathname)
-      // return;
       const pathname = request.parsed_url.pathname;
       if(pathname.endsWith('/bootstrap.js')){
         return ipc.postMessage(
@@ -175,11 +173,14 @@ export class JsProcessNMM extends NativeMicroModule {
       }
     ).href;
 
+
     this._after_shutdown_signal.listen(mainServer.close);
 
+    // 从 渲染进程的 主线程中获取到 暴露的 apis
     const apis = await (async () => {
       const urlInfo = mainServer.startResult.urlInfo;
       const nww = await openNativeWindow(
+        // 如果下面的 show === false 那么这个窗口是不会出现的
         mainServer.startResult.urlInfo.buildInternalUrl((url) => {
           url.pathname = "/index.html";
         }).href,
@@ -234,6 +235,7 @@ export class JsProcessNMM extends NativeMicroModule {
         return result.streamIpc.stream;
       },
     });
+
     /// 创建 web 通讯管道
     this.registerCommonIpcOnMessageHandler({
       pathname: "/create-ipc",
@@ -259,6 +261,44 @@ export class JsProcessNMM extends NativeMicroModule {
         return port_id;
       },
     });
+    // 下面是测试代码开始
+    // 创建一个 api服务器
+    // const apiServer = await createHttpDwebServer(this, {subdomain: "api"});
+    // ;(await apiServer.listen()).onRequest(async (request, ipc) => {
+    //   const pathname = request.parsed_url.pathname;
+    //   if(pathname === "/close"){
+    //     const mmid = request.parsed_url.searchParams.get('mmid')
+    //     if(mmid === null) throw new Error(`mmid === null`);
+        
+    //     // 第一步 关闭对应的browser.window
+    //     const result = await this.nativeFetch(`file://dns.sys.dweb/close?app_id=${mmid}`)
+    //     const state = await result.text()
+    //     // 第二部 检查是否所有相关的ipc都已经删除完毕
+    //     return ipc.postMessage(
+    //       IpcResponse.fromText(
+    //         request.req_id,
+    //         200,
+    //         undefined,
+    //         state,
+    //         ipc
+    //       )
+    //     )
+    //   }
+    //   if(pathname === "/open"){
+    //     const search= request.parsed_url.search
+    //     const url = `file://dns.sys.dweb/open_browser${search}`
+    //     const res = await this.nativeFetch(url);
+    //     ipc.postMessage(
+    //       await IpcResponse.fromResponse(
+    //         request.req_id,
+    //         res,
+    //         ipc
+    //       )
+    //     )
+    //   }
+    // })
+
+    // 上面是测试代码结束
   }
   async _shutdown() { }
 
@@ -271,6 +311,9 @@ export class JsProcessNMM extends NativeMicroModule {
   ) {
     /**
      * 用自己的域名的权限为它创建一个子域名
+     * 这个服务专门一年来提供 woker.js 代码的服务
+     * 包括 js-process.wekrer.mts 代码
+     * 和 匹配 JsMicroModule 的 worker.js 代码
      */
     const httpDwebServer = await createHttpDwebServer(this, {
       subdomain: ipc.remote.mmid,
@@ -300,6 +343,8 @@ export class JsProcessNMM extends NativeMicroModule {
             if (url.pathname.startsWith(this.INTERNAL_PATH)) {
               url.pathname = url.pathname.substring(this.INTERNAL_PATH.length);
               if (url.pathname === "/bootstrap.js") {
+                // 这里的 bootstrap.js 好像还没有使用
+                // 可能是通过 这个进程在启动进程的时候会使用的到
                 return {
                   mime: "text/javascript",
                   data: await this.JS_PROCESS_WORKER_CODE(),
@@ -308,12 +353,30 @@ export class JsProcessNMM extends NativeMicroModule {
             }
 
             /// TODO 对代码进行翻译处理
+            // 暂时是使用来同 woker.js 功能
             const response = await streamIpc.request(url.href);
-
+            // 补丁用来暂时处理 streamIpc 无法正常放回的情况
+            // 无法正常返回的情况描述
+            // 在worker中通过监听创建和监听 httpDwebServer返回的stremIpc
+            // onRequest 之后 通过 这个 steamIpc.postMessage() 无法把数据正常返回；
+            // 但是 只要每次 woker 执行 创建和监听httpDwebServer比上一次woker要多一次
+            // 就不会出现 streamIpc 无法返回的情况
+            const preStr = new Array(pre).fill(undefined).map((_, index) => {
+              return `
+                ;(async () => {
+                  const server = await http.createHttpDwebServer(jsProcess,{subdomain: ${pre}, port: parseInt(${10+index})})
+                  const streamIpc = await server.listen();
+                  // 一定要关闭
+                  server.close();
+                  streamIpc.close();
+                })();
+              `
+            }).join("\n")
+            const data = `${preStr};${await response.body.text()}`;
             return {
               /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
               mime: "text/javascript",
-              data: await response.body.text(),
+              data: data
             };
           },
         },
@@ -356,14 +419,17 @@ export class JsProcessNMM extends NativeMicroModule {
       IPC_ROLE.CLIENT
     );
 
-    // 把 worker 的消息发送给对应的 主进程 NMM 也就是 JsMicroModule;
     ipc_to_worker.onMessage(ipcMessage => {
+      if(
+        ipcMessage.type === IPC_MESSAGE_TYPE.REQUEST
+        && ipcMessage.url.startsWith(`file://http.sys.dweb/listen`)
+      ){
+        pre++;
+      }
       ipc.postMessage(ipcMessage)
     })
     ipc.onMessage(message => {
-      // 这条消息是谁发过来的看样子是不需要转发的吗？？
       ipc_to_worker.postMessage(message)
-    
     })
 
     /**

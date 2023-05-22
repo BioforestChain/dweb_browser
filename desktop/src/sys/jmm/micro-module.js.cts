@@ -47,11 +47,10 @@ export class JsMicroModule extends MicroModule {
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
     console.log(`[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`);
-
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.sys.dweb/create-process
-    // 也就是 JsMicroModule 对应的 worker.js 发送过来的消息
+    // 用来提供 JsMicroModule 匹配的 worker.js 代码
     const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     streamIpc.onRequest(async (request) => {
       if (request.parsed_url.pathname.endsWith("/")) {
@@ -65,6 +64,7 @@ export class JsMicroModule extends MicroModule {
           )
         );
       } else {
+        // 获取 worker.js 代码
         const main_code = await this.nativeFetch(
           this.metadata.config.server.root + request.parsed_url.pathname
         ).text();
@@ -99,9 +99,8 @@ export class JsMicroModule extends MicroModule {
     this._connecting_ipcs.add(streamIpc);
 
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
+    this._connecting_ipcs.add(jsIpc)
     jsIpc.onRequest(async (ipcRequest) => {
-
-      // console.log("------------- jsIPc", ipcRequest.url)
       const request = ipcRequest.toRequest()
       const response = await this.nativeFetch(request);
       const newResponse = await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc)
@@ -109,6 +108,10 @@ export class JsMicroModule extends MicroModule {
     });
 
     jsIpc.onEvent(async (ipcEvent) => {
+      if(ipcEvent.name === "restart"){
+        this.nativeFetch(`file://dns.sys.dweb/restart?app_id=${this.mmid}`)
+        return;
+      }
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
         const [targetIpc] = await context.dns.connect(mmid);
@@ -118,6 +121,8 @@ export class JsMicroModule extends MicroModule {
           })
         ).number();
         const originIpc = new Native2JsIpc(portId, this);
+        this._connecting_ipcs.add(targetIpc)
+        this._connecting_ipcs.add(originIpc)
         /**
          * 将两个消息通道间接互联
          */
@@ -128,6 +133,7 @@ export class JsMicroModule extends MicroModule {
   }
  
   _shutdown() {
+    // 这里是否要全部关闭 ipc 这里的操作是 new 的时候就走了一遍了？
     console.log('关闭了进程 micro-module.js.cts')
     for (const outer_ipc of this._connecting_ipcs) {
       outer_ipc.close();
