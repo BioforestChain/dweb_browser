@@ -47,8 +47,6 @@ struct TabsContainerView: View{
     
     @State var imageState: AnimateImageState = .initial
     
-    @State private var animateImage = UIImage.snapshotImage(from: URL.defaultSnapshotURL)
-    
     private var selectedCellFrame: CGRect {
         cellFrames[browser.selectedTabIndex]
     }
@@ -100,7 +98,6 @@ struct TabsContainerView: View{
                 withAnimation(.easeInOut(duration: 0.5),{
                     gridScale = shouldShowGrid ? 1 : 0.8
                 })
-//                animateImage = browser.currentSnapshotImage!
             }
         }
     }

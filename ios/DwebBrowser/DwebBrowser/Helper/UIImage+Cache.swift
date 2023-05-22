@@ -55,4 +55,7 @@ extension UIImage {
         
         return image!
     }
+    
+    static var defaultSnapShotImage = UIImage(named: "snapshot")!
+    
 }

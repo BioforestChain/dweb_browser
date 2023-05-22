@@ -21,7 +21,7 @@ class Page: Identifiable, ObservableObject, Hashable{
     var id = UUID()
     
     @Published var webWrapper: WebWrapper
-
+    
     init(id: UUID = UUID(), webWrapper: WebWrapper) {
         self.id = id
         self.webWrapper = webWrapper
@@ -46,22 +46,22 @@ class BrowerVM: ObservableObject {
     @Published var sharedResources = SharedSourcesVM()
     
     
-    @Published var currentSnapshotImage: UIImage? = UIImage.snapshotImage(from: URL.defaultSnapshotURL)
+    @Published var currentSnapshotImage: UIImage?
     {
         didSet{
             print(currentSnapshotImage)
         }
-        willSet{ 
+        willSet{
             print(newValue)
-
         }
     }
     
     @Published var capturedImage: UIImage?
-
+    
     var cancellables = Set<AnyCancellable>()
-     
+    
     init(){
+        currentSnapshotImage = UIImage.defaultSnapShotImage
         addCapturedImageSubscriber()
     }
     
@@ -72,15 +72,17 @@ class BrowerVM: ObservableObject {
     func addCapturedImageSubscriber(){
         $capturedImage
             .sink(receiveValue: {[weak self] image in
-                self?.currentSnapshotImage = image
+                if let image = image {
+                    self?.currentSnapshotImage = image
+                }
             })
-//            .assign(to: \.currentSnapshotImage, on: self)
             .store(in: &cancellables)
     }
     
     func saveCaches(){
         WebCacheStore.shared.saveCaches(caches: self.pages.map({ $0.webWrapper.webCache }))
-
+        print("save times \(savetimes)")
+        savetimes += 1
     }
     
     func removePage(at index: Int){
@@ -97,4 +99,4 @@ class BrowerVM: ObservableObject {
         //save caches to the sandbox
     }
 }
-
+ var savetimes = 1

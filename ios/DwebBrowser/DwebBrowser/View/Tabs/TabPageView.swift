@@ -47,6 +47,7 @@ struct TabPageView: View {
             }
             .onChange(of: webWrapper.webView.estimatedProgress) { progress in
                 if progress >= 1.0{
+                    print("caching \(webWrapper.webCache)")
                     browser.saveCaches()
                 }
             }

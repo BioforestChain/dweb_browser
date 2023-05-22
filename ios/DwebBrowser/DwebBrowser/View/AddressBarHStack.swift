@@ -108,22 +108,27 @@ struct AddressBar: View {
                         isAdressBarFocused = true
                     }
                     .onChange(of: geometry.frame(in: .named("Root")).minX) { offsetX in
-                        browser.addressBarOffset = offsetX
-                        let rest = CGFloat( Int(offsetX) % Int(screen_width) ) / screen_width
-                        if rest <= 0.0001, rest >= -0.0001{
-                            //滚动完成
-                            print("current whole:\(offsetX)")
+                        if isFirstAddress(){ // avoid calculate as many times as pages's count
+                            browser.addressBarOffset = offsetX
+                            let rest = offsetX / screen_width
+                            
+                            if rest.truncatingRemainder(dividingBy: 1) == 0{
+                                print("current whole:\(offsetX)")
+                                let index = abs(Int(offsetX / screen_width))
+                                if index != browser.selectedTabIndex{
+                                    browser.selectedTabIndex = index
+                                }
+                            }
+                            
                         }
-                        
-                        
-//                        browser.selectedTabIndex = Int(floor(offsetX / screen_width))
-//                        let pageCount = Int(floor(geometry.size.width / pageWidth))
-
-//                        currentIndex = Int(floor(offsetX / screen_width))
 
                     }
             }.frame(height: browser.addressBarHeight)
         }
+    }
+    
+    func isFirstAddress()->Bool{
+        return webStore == browser.pages.map({$0.webWrapper}).first
     }
     
 }

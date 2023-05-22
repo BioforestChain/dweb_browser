@@ -71,16 +71,16 @@ struct WebPreViewGrid: View {
 
 struct GridCell: View {
     @EnvironmentObject var browser: BrowerVM
-    @ObservedObject var webWrapper: WebWrapper
     @State var runCount = 0
-    
-    @State private var iconUrl = URL.defaultWebIconURL
-    
+    @ObservedObject var webWrapper: WebWrapper
+
+//    @State private var iconUrl = URL.defaultWebIconURL
+//    @State private var snapShotUrl  = URL.defaultSnapshotURL
+
     var body: some View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
-                
-                Image(uiImage: .snapshotImage(from: webWrapper.webCache.snapshotUrl))
+                Image(uiImage:  .snapshotImage(from: webWrapper.webCache.snapshotUrl))
                     .resizable()
                     .frame(alignment: .top)
                     .cornerRadius(gridcellCornerR)
@@ -97,11 +97,11 @@ struct GridCell: View {
                     }
                 HStack{
                     //                    if iconUrl != nil{
-                    KFImage.url(iconUrl)
+                    KFImage.url(webWrapper.webCache.webIconUrl)
                         .fade(duration: 0.1)
-                        .onProgress { receivedSize, totalSize in print("\(receivedSize / totalSize) %") }
-                        .onSuccess { result in print(result) }
-                        .onFailure { error in print(error) }
+//                        .onProgress { receivedSize, totalSize in print("\(receivedSize / totalSize) %") }
+//                        .onSuccess { result in print(result) }
+//                        .onFailure { error in print(error) }
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 22)
@@ -142,12 +142,13 @@ struct GridCell: View {
                 URL.downloadWebsiteIcon(iconUrl: webWrapper.webCache.lastVisitedUrl) { url in
                     print("URL of Favicon: \(url)")
                     webWrapper.webCache.webIconUrl = url
-                    iconUrl = url
+//                    iconUrl = url
                 }
             }
         }
         .onChange(of: webWrapper.webCache.snapshotUrl) { newUrl in
             print("new snapshot is \(newUrl)")
+//            snapShotUrl = webWrapper.webCache.snapshotUrl
         }
     }
 }
