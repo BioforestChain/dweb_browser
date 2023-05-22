@@ -26,7 +26,7 @@ import info.bagen.dwebbrowser.microService.user.DesktopJMM
 import info.bagen.dwebbrowser.microService.user.ToyJMM
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
-    DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true
+    DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.HLOppo, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true
     else -> false
 } // 用户临时区分上架时的分支,false为上架的apk
 

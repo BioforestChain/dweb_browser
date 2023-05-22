@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -63,6 +64,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.vectorResource
@@ -72,10 +74,14 @@ import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.common.Barcode
 import java.util.concurrent.Executors
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.ui.view.PermissionSingleView
+
+internal const val PERMISSION_CAMERA = android.Manifest.permission.CAMERA
+internal const val PERMISSION_WRITE = android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 
 data class QRCodeScanState(
-  val state: MutableState<QRCodeState> = mutableStateOf(QRCodeState.Scanning),
-  var analyzeResult: AnalyzeResult = AnalyzeResult(),
+  val state: MutableState<QRCodeState> = mutableStateOf(QRCodeState.Hide),
+  val analyzeResult: AnalyzeResult = AnalyzeResult(),
 ) {
   enum class QRCodeState(val type: Int) {
     Hide(0), Scanning(1), Completed(2);
@@ -92,6 +98,16 @@ data class QRCodeScanState(
     analyzeResult.previewBitmap = previewBitmap
     analyzeResult.barcodes = barcodes
   }
+
+  fun show() {
+    state.value = QRCodeState.Scanning
+  }
+
+  fun hide() {
+    state.value = QRCodeState.Hide
+  }
+
+  val isHidden get() = state.value == QRCodeState.Hide
 }
 
 @Composable
@@ -127,7 +143,6 @@ fun QRCodeScanView(
     }
     qrCodeScanState.state.value = type
   }
-  var camera by remember { mutableStateOf<Camera?>(null) }
 
   AnimatedContent(
     targetState = qrCodeScanState.state.value.type, label = "",
@@ -141,17 +156,15 @@ fun QRCodeScanView(
         slideInHorizontally { fullWidth -> -fullWidth } + fadeIn() with
             slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
       }
-    }) { state ->
+    }
+  ) { state ->
     Box(modifier = modifier) {
       when (state) {
         QRCodeScanState.QRCodeState.Scanning.type -> {
-          CameraSurfaceView(onCameraCallback = { camera = it }) { preview, bitmap, barcodes ->
+          CameraSurfaceView(onBarcodeDetected = { preview, bitmap, barcodes ->
             qrCodeScanState.updateAnalyzeResult(bitmap, preview, barcodes)
             qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Completed
-          }
-          camera?.let {
-            scanningContent(it)
-          }
+          }) { scanningContent(it) }
         }
 
         QRCodeScanState.QRCodeState.Completed.type -> {
@@ -167,11 +180,12 @@ fun QRCodeScanView(
 
 @Composable
 private fun CameraSurfaceView(
-  onCameraCallback: (camera: Camera) -> Unit,
-  onBarcodeDetected: (Bitmap?, Bitmap?, List<Barcode>) -> Unit
+  onBarcodeDetected: (Bitmap?, Bitmap?, List<Barcode>) -> Unit,
+  onContent: @Composable (Camera) -> Unit,
 ) {
   var cameraProvider: ProcessCameraProvider? = null
   val context = LocalContext.current
+  val camera: MutableState<Camera?> = remember { mutableStateOf(null) }
 
   DisposableEffect(Surface(
     modifier = Modifier.fillMaxSize(),
@@ -181,8 +195,6 @@ private fun CameraSurfaceView(
       val previewView = PreviewView(ctx).also {
         it.scaleType = PreviewView.ScaleType.FILL_CENTER
       }
-      previewView
-    }, update = { previewView ->
       val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
       cameraProviderFuture.addListener({
         cameraProvider = cameraProviderFuture.get()
@@ -204,15 +216,16 @@ private fun CameraSurfaceView(
         try {
           cameraProvider!!.unbindAll() // Unbind use cases before rebinding
           // Bind use cases to camera
-          val camera = cameraProvider!!.bindToLifecycle(
+          camera.value = cameraProvider!!.bindToLifecycle(
             context as ComponentActivity, cameraSelector, preview, imageCapture, imageAnalyzer
           )
-          onCameraCallback(camera) // 返回camera，用于处理数据
         } catch (exc: Exception) {
           Log.e("QRCodeScanView", "Use case binding failed", exc)
         }
       }, ContextCompat.getMainExecutor(context))
+      previewView
     })
+    camera.value?.let { onContent(it) }
   }) {
     onDispose {
       cameraProvider?.unbindAll()
@@ -222,7 +235,9 @@ private fun CameraSurfaceView(
 
 @Composable
 private fun DefaultScanningView(camera: Camera, onClose: () -> Unit) {
-  Box(modifier = Modifier.fillMaxSize()) {
+  Box(modifier = Modifier
+    .fillMaxSize()
+    .statusBarsPadding()) {
     ScannerLine() // 添加扫描线
     CloseIcon { onClose() } // 关闭按钮
     FlashlightIcon(camera)
@@ -291,14 +306,19 @@ private fun DefaultScanResultView(
     onDispose { }
   }
 
-  Box(modifier = Modifier.fillMaxSize()) {
-    CloseIcon { onClose() }
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
+  ) {
 
     analyzeResult.previewBitmap?.let { bitmap ->
       Image(
         bitmap = bitmap.asImageBitmap(),
         contentDescription = "Scan",
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.FillBounds,
+        alignment = Alignment.TopCenter
       )
     }/* ?: run {// 没有图片信息，不要显示选择
       state.state.value = QRCodeScanState.QRCodeState.Scanning
@@ -343,6 +363,11 @@ private fun DefaultScanResultView(
         drawerPoint(point = point, scale = pointScale, showPic = showBitmap)
       }
     }
+  }
+  Box(modifier = Modifier
+    .fillMaxSize()
+    .statusBarsPadding()) {
+    CloseIcon { onClose() }
   }
 }
 

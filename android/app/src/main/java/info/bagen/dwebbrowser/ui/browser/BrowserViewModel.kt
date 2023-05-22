@@ -37,13 +37,13 @@ import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.webview.DWebView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
+import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanState
 import info.bagen.dwebbrowser.util.*
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicInteger
 
-data class BrowserUIState @OptIn(
-  ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
-) constructor(
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+data class BrowserUIState (
   val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
   val currentBrowserBaseView: MutableState<BrowserWebView>,
   val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
@@ -61,6 +61,7 @@ data class BrowserUIState @OptIn(
   val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
   val showSearchView: MutableState<Boolean> = mutableStateOf(false), // 用于显示搜索的界面，也就是点击搜索框后界面
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
+  val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
 )
 
 sealed class BrowserIntent {
@@ -83,7 +84,7 @@ sealed class BrowserIntent {
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
 }
 
-class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
+class BrowserViewModel(private val browserController: BrowserController) : ViewModel() {
   val uiState: BrowserUIState
 
   companion object {
@@ -306,7 +307,8 @@ class BrowserViewModel(val browserController: BrowserController) : ViewModel() {
     get() =
       uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
 
-  val canMoveToBackground = !uiState.currentBrowserBaseView.value.navigator.canGoBack
+  val canMoveToBackground get() = !uiState.currentBrowserBaseView.value.navigator.canGoBack &&
+      uiState.qrCodeScanState.isHidden
 }
 
 internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {

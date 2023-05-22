@@ -45,8 +45,9 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.web.LoadingState
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
-import info.bagen.dwebbrowser.ui.entity.BrowserMainView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
+import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanView
+import info.bagen.dwebbrowser.ui.view.PermissionSingleView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -107,6 +108,16 @@ fun BrowserView(viewModel: BrowserViewModel) {
       BrowserMultiPopupView(viewModel)// 用于显示多界面
       BrowserSearchView(viewModel)
     }
+    // 增加扫码的界面
+    QRCodeScanView(
+      qrCodeScanState = viewModel.uiState.qrCodeScanState,
+      onDataCallback = { data ->
+        if (data.startsWith("http://") || data.startsWith("https://")) {
+          viewModel.handleIntent(BrowserIntent.SearchWebView(data))
+        } else {
+          viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
+        }
+      })
     if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.isVisible) {
       Box(modifier = Modifier
         .fillMaxSize()
@@ -246,11 +257,15 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       resName = R.string.browser_nav_forward,
       show = navigator.canGoForward ?: false
     ) { navigator.navigateForward() }
-    NavigatorButton(resId = R.drawable.ic_main_add, // navigator?.let { R.drawable.ic_main_add } ?: R.drawable.ic_main_qrcode_scan,
-      resName = navigator.let { R.string.browser_nav_add },
-      show = navigator.let { true } ?: false) {
-      navigator.let {
+    NavigatorButton(
+      resId = if (navigator.canGoBack) R.drawable.ic_main_add else R.drawable.ic_main_qrcode_scan,
+      resName = if (navigator.canGoBack) R.string.browser_nav_add else R.string.browser_nav_scan,
+      show = true
+    ) {
+      if (navigator.canGoBack) {
         viewModel.handleIntent(BrowserIntent.AddNewMainView)
+      } else {
+        viewModel.uiState.qrCodeScanState.show()
       }
     }
     NavigatorButton(
