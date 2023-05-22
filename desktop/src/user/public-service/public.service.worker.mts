@@ -200,7 +200,6 @@ const main = async () => {
 
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (ipcEvent, ipc) => {
-    console.log("onActivity =>",ipcEvent.name,ipcEvent.data)
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
     if (hasActivityEventIpcs.has(ipc) === false) {

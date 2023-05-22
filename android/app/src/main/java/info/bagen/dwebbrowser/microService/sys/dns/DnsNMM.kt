@@ -156,6 +156,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                     "fromMM=${fromMM.mmid} >> requestMmid=$mmid: >> path=${request.uri.path} >> ${request.uri}"
                 )
                 installApps[mmid]?.let {
+                    println("fromMM=>$fromMM mmid=>$mmid ${request.uri}")
                     val (fromIpc) = connectTo(fromMM, mmid, request)
                     return@let fromIpc.request(request)
                 } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())

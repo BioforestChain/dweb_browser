@@ -12,6 +12,7 @@ const { IpcResponse, Ipc, IpcRequest, IpcHeaders, IPC_METHOD } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 export type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;
+export const hashConnentMap = new Set<$MMID>();
 
 const ipcObserversMap = new Map<
   $MMID,
@@ -34,7 +35,7 @@ export async function onApiRequest(
   httpServerIpc: $Ipc
 ) {
   let ipcResponse: undefined | $IpcResponse;
-  const url = request.parsed_url
+  const url = request.parsed_url;
   try {
     // 是否是内部请求
     if (url.pathname.startsWith(INTERNAL_PREFIX)) {
@@ -47,6 +48,17 @@ export async function onApiRequest(
     } else {
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
+      // 截取mmid
+      const pathName = url.pathname.slice(
+        1,
+        url.pathname.indexOf(".dweb/") + 5
+      );
+      // 当识别到mmid 并且没有建立过连接
+      if (pathName.endsWith(".dweb") && !hashConnentMap.has(pathName)) {
+        hashConnentMap.add(pathName);
+        await jsProcess.connect(pathName as $MMID);
+      }
+
       const ipcProxyRequest = new IpcRequest(
         jsProcess.fetchIpc.allocReqId(),
         path,

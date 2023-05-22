@@ -24,7 +24,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             val nativeToWhiteList = listOf<Mmid>("js.sys.dweb")
 
             data class JsMM(val jmm: JsMicroModule, val remoteMmid: Mmid)
-            connectAdapterManager.append(1) { fromMM, toMM, reason ->
+            connectAdapterManager.append { fromMM, toMM, reason ->
 
                 val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
                 else if (toMM is JsMicroModule) JsMM(toMM, fromMM.mmid)
@@ -44,6 +44,9 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                      * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
                      * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
                      */
+                    debugJMM(
+                        "🎃 connectAdapterManager",
+                        "remoteMmid: ${jsMM.remoteMmid} ")
                     val originIpc = jsMM.jmm.ipcBridge(jsMM.remoteMmid)
 
                     return@append ConnectResult(ipcForFromMM = originIpc, ipcForToMM = originIpc)

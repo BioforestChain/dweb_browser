@@ -256,28 +256,6 @@ var closeDwebView = async (webview_id) => {
   ).text();
 };
 
-// src/user/tool/app.handle.mts
-var webViewMap = /* @__PURE__ */ new Map();
-var restartApp = async (servers, ipcs) => {
-  const serverOp = servers.map(async (server) => {
-    await server.close();
-  });
-  const opcOp = ipcs.map((ipc2) => {
-    ipc2.close();
-  });
-  await Promise.all([serverOp, opcOp]);
-  closeFront();
-  jsProcess.restart();
-  return "ok";
-};
-var closeFront = () => {
-  webViewMap.forEach(async (state) => {
-    await closeDwebView(state.webviewId);
-  });
-  webViewMap.clear();
-  return "ok";
-};
-
 // src/helper/binaryHelper.cts
 var u8aConcat = (binaryList) => {
   let totalLength = 0;
@@ -567,6 +545,7 @@ var ReadableStreamOut = class {
 
 // src/user/tool/tool.request.mts
 var { IpcResponse, Ipc, IpcRequest, IpcHeaders, IPC_METHOD } = ipc;
+var hashConnentMap = /* @__PURE__ */ new Set();
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
 var fetchSignal = createSignal2();
@@ -583,6 +562,14 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
       );
     } else {
       const path = `file:/${url.pathname}${url.search}`;
+      const pathName = url.pathname.slice(
+        1,
+        url.pathname.indexOf(".dweb/") + 5
+      );
+      if (pathName.endsWith(".dweb") && !hashConnentMap.has(pathName)) {
+        hashConnentMap.add(pathName);
+        await jsProcess.connect(pathName);
+      }
       const ipcProxyRequest = new IpcRequest(
         jsProcess.fetchIpc.allocReqId(),
         path,
@@ -699,6 +686,29 @@ var observeFactory = (mmid) => {
     observers.obs.delete(ob);
   });
   return streamPo;
+};
+
+// src/user/tool/app.handle.mts
+var webViewMap = /* @__PURE__ */ new Map();
+var restartApp = async (servers, ipcs) => {
+  hashConnentMap.clear();
+  const serverOp = servers.map(async (server) => {
+    await server.close();
+  });
+  const opcOp = ipcs.map((ipc2) => {
+    ipc2.close();
+  });
+  await Promise.all([serverOp, opcOp]);
+  closeFront();
+  jsProcess.restart();
+  return "ok";
+};
+var closeFront = () => {
+  webViewMap.forEach(async (state) => {
+    await closeDwebView(state.webviewId);
+  });
+  webViewMap.clear();
+  return "ok";
 };
 
 // src/user/desktop/desktop.worker.mts

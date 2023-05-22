@@ -134,18 +134,11 @@ export class JsProcessMicroModule implements $MicroModule {
     init?: RequestInit
   ): Promise<Response> {
     const args = normalizeFetchArgs(url, init);
-    // const hostName = args.parsed_url.hostname;
-    // if (!hostName.endsWith(".dweb")) {
     const ipc_response = await this._nativeRequest(
       args.parsed_url,
       args.request_init
     );
     return ipc_response.toResponse(args.parsed_url.href);
-    //   }
-    //   const ipc = await jsProcess.connect(hostName as $MMID)
-    //   const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
-    //   const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
-    //  return ipc_response.toResponse(args.parsed_url.href)
   }
 
   /**

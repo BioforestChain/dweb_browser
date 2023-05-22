@@ -2,6 +2,7 @@ import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.cjs
 import type { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.cjs";
 import type { WebViewState } from "./tool.event.mjs";
 import { closeDwebView } from "./tool.native.mjs";
+import { hashConnentMap } from "./tool.request.mjs";
 
 // 管理webView
 export const webViewMap = new Map<string, WebViewState>()
@@ -17,6 +18,8 @@ export const restartApp = async (
   servers: HttpDwebServer[],
   ipcs: ReadableStreamIpc[]
 ) => {
+  // 清空建立的连接
+  hashConnentMap.clear()
   // 关闭api和文件的http服务
   const serverOp = servers.map(async (server) => {
     await server.close();
