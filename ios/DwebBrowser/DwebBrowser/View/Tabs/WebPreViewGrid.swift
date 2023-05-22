@@ -73,10 +73,7 @@ struct GridCell: View {
     @EnvironmentObject var browser: BrowerVM
     @State var runCount = 0
     @ObservedObject var webWrapper: WebWrapper
-
-//    @State private var iconUrl = URL.defaultWebIconURL
-//    @State private var snapShotUrl  = URL.defaultSnapshotURL
-
+    @State var iconUrl = URL.defaultWebIconURL
     var body: some View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
@@ -96,16 +93,14 @@ struct GridCell: View {
                         print("comes to Image onAppear")
                     }
                 HStack{
-                    //                    if iconUrl != nil{
-                    KFImage.url(webWrapper.webCache.webIconUrl)
+                    KFImage.url(iconUrl)
                         .fade(duration: 0.1)
-//                        .onProgress { receivedSize, totalSize in print("\(receivedSize / totalSize) %") }
-//                        .onSuccess { result in print(result) }
-//                        .onFailure { error in print(error) }
+                        .onProgress { receivedSize, totalSize in print("dowloading icon right now \(receivedSize / totalSize) %") }
+                        .onSuccess { result in print("dowload icon done \(result)") }
+                        .onFailure { error in print("dowload icon failed \(error)") }
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 22)
-                    //                    }
                     Text(webWrapper.title ?? "")
                         .fontWeight(.semibold)
                         .lineLimit(1)
@@ -142,7 +137,7 @@ struct GridCell: View {
                 URL.downloadWebsiteIcon(iconUrl: webWrapper.webCache.lastVisitedUrl) { url in
                     print("URL of Favicon: \(url)")
                     webWrapper.webCache.webIconUrl = url
-//                    iconUrl = url
+                    iconUrl = url
                 }
             }
         }

@@ -7,9 +7,32 @@
 
 import SwiftUI
 
+struct AddressBarHStack: View {
+    @EnvironmentObject var states: ToolbarState
+    @EnvironmentObject var browser: BrowerVM
+    
+    @State var currentIndex: Int = 0
+    @State var offsetX: CGFloat = 0
+    
+    var body: some View {
+        GeometryReader { innerGeometry in
+            PagingScroll(contentSize: browser.pages.count, content: AddressBarHContainer(), currentPage: $currentIndex, offsetX: $offsetX)
+                .onChange(of: currentIndex) { newValue in
+                    browser.selectedTabIndex = currentIndex
+                    //                    print("currentIndex changed to \(newValue)")
+                }
+                .onChange(of: offsetX) { newValue in
+                    browser.addressBarOffset = offsetX
+                    //                    print("currentIndex offsetX to \(offsetX)")
+                }
+        }
+        .frame(height: browser.addressBarHeight)
+    }
+}
+
 struct AddressBarHContainer:View{
     @EnvironmentObject var browser: BrowerVM
-
+    
     var body: some View{
         HStack(spacing: 0) {
             ForEach(browser.pages){ page in
@@ -21,41 +44,9 @@ struct AddressBarHContainer:View{
     }
 }
 
-struct AddressBarHStack: View {
-    @EnvironmentObject var states: ToolbarState
-    @EnvironmentObject var browser: BrowerVM
-    
-    @State private var selectedTab = 0
-    @State private var currentIndex = 0
-    
-    var body: some View {
-        GeometryReader { innerGeometry in
-            PagingScroll(contentSize: browser.pages.count, content: AddressBarHContainer(), currentPage: $currentIndex)
-                .onChange(of: browser.selectedTabIndex) { newValue in
-                    
-                    print("")
-                    currentIndex = newValue
-                }
-            
-//            PageScroll(contentSize: browser.pages.count, content:AddressBarHContainer())
-        }
-        .frame(height: browser.addressBarHeight)
-        .animation(.easeInOut(duration:0.3), value: browser.addressBarHeight)
-    }
-}
-
-struct AddressBarState{
-    var inputText: String
-    var isAdressBarFocused: Bool
-    var progressValue: Float = 0.0
-
-}
-
 struct AddressBar: View {
     @State var inputText: String = ""
     @FocusState var isAdressBarFocused: Bool
-    @EnvironmentObject var browser: BrowerVM
-//    @Binding var currentIndex: Int
     
     @ObservedObject var webStore: WebWrapper
     
@@ -68,28 +59,26 @@ struct AddressBar: View {
                     .fill(Color(.darkGray))
                     .frame(width:screen_width - 48 ,height: 40)
                     .overlay {
-                        if webStore.estimatedProgress > 0.0 && webStore.estimatedProgress < 1.0{
-                            GeometryReader { geometry in
-                                VStack(alignment: .leading, spacing: 0) {
-                                    ProgressView(value: webStore.estimatedProgress)
-                                        .progressViewStyle(LinearProgressViewStyle())
-                                        .foregroundColor(.blue)
-                                        .background(Color(white: 1))
-                                        .cornerRadius(4)
-                                        .frame(height: webStore.estimatedProgress >= 1.0 ? 0 : 3)
-                                        .alignmentGuide(.leading) { d in
-                                            d[.leading]
-                                        }
-                                    
-                                }
-                                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        GeometryReader { geometry in
+                            VStack(alignment: .leading, spacing: 0) {
+                                ProgressView(value: webStore.estimatedProgress)
+                                    .progressViewStyle(LinearProgressViewStyle())
+                                    .foregroundColor(.blue)
+                                    .background(Color(white: 1))
+                                    .cornerRadius(4)
+                                    .frame(height: webStore.estimatedProgress >= 1.0 ? 0 : 3)
+                                    .alignmentGuide(.leading) { d in
+                                        d[.leading]
+                                    }
+                                    .opacity(webStore.estimatedProgress > 0.0 && webStore.estimatedProgress < 1.0 ? 1 : 0)
+                                
                             }
+                            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
-                    .onAppear{
-//                        performNetworkRequest()
-                    }
+                
+                
                 TextField("", text: $inputText)
                     .placeholder(when: inputText.isEmpty) {
                         Text("请输入搜索内容").foregroundColor(Color(white: 0.8))
@@ -107,56 +96,7 @@ struct AddressBar: View {
                         print("tapped")
                         isAdressBarFocused = true
                     }
-                    .onChange(of: geometry.frame(in: .named("Root")).minX) { offsetX in
-                        if isFirstAddress(){ // avoid calculate as many times as pages's count
-                            browser.addressBarOffset = offsetX
-                            let rest = offsetX / screen_width
-                            
-                            if rest.truncatingRemainder(dividingBy: 1) == 0{
-                                print("current whole:\(offsetX)")
-                                let index = abs(Int(offsetX / screen_width))
-                                if index != browser.selectedTabIndex{
-                                    browser.selectedTabIndex = index
-                                }
-                            }
-                            
-                        }
-
-                    }
-            }.frame(height: browser.addressBarHeight)
-        }
-    }
-    
-    func isFirstAddress()->Bool{
-        return webStore == browser.pages.map({$0.webWrapper}).first
-    }
-    
-}
-
-struct PageScroll<Content: View>: UIViewRepresentable {
-    
-    var contentSize: Int
-    var content: Content
-    
-    func makeUIView(context: Context) -> UIScrollView {
-        let scrollView = UIScrollView()
-        scrollView.isPagingEnabled = true
-        scrollView.showsHorizontalScrollIndicator = false
-        scrollView.contentSize = CGSize(width: screen_width * CGFloat(contentSize), height: 0)
-        
-        return scrollView
-    }
-    
-    func updateUIView(_ uiView: UIScrollView, context: Context) {
-        
-        uiView.subviews.forEach { $0.removeFromSuperview() }
-        let hostingController = UIHostingController(rootView: content)
-        for i in 0..<contentSize {
-            let childView = hostingController.view!
-            // There must be an adjustment to fix an unknown reason that is causing a strange bug.
-            let adjustment = CGFloat((contentSize - 1)) * screen_width/2.0
-            childView.frame = CGRect(x: screen_width * CGFloat(i) - adjustment, y: 0, width: screen_width, height: 50)
-            uiView.addSubview(childView)
+            }.frame(height: addressBarH)
         }
     }
 }

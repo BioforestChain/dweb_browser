@@ -13,6 +13,8 @@ let screen_height = UIScreen.main.bounds.height
 
 let toolBarHeight: CGFloat = 50
 
+let addressBarH: CGFloat = 60
+
 let gridcellCornerR: CGFloat = 10
 let gridcellBottomH: CGFloat = 35
 

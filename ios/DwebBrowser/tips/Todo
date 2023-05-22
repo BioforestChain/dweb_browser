@@ -13,3 +13,10 @@
 3.删除某个tab之后的cache数据需要重新写入沙盒中，同时需要把snapshot删除掉
 
 4.根据输入的内容搜索
+
+
+5.22发现的问题
+
+在滚动addressbar时，TabsContainerView会疯狂创建，导致snapshot疯狂加载
+
+

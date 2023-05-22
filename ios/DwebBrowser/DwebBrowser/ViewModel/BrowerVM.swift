@@ -66,7 +66,7 @@ class BrowerVM: ObservableObject {
     }
     
     var addressBarHeight: CGFloat{
-        showingOptions ? 0:60
+        showingOptions ? 0 : addressBarH
     }
     
     func addCapturedImageSubscriber(){

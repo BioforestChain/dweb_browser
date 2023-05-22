@@ -59,6 +59,36 @@ struct HContainer:View{
     }
 }
 
+
+struct PageScroll<Content: View>: UIViewRepresentable {
+    
+    var contentSize: Int
+    var content: Content
+    
+    func makeUIView(context: Context) -> UIScrollView {
+        let scrollView = UIScrollView()
+        scrollView.isPagingEnabled = true
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.contentSize = CGSize(width: screen_width * CGFloat(contentSize), height: 0)
+        
+        return scrollView
+    }
+    
+    func updateUIView(_ uiView: UIScrollView, context: Context) {
+        
+        uiView.subviews.forEach { $0.removeFromSuperview() }
+        let hostingController = UIHostingController(rootView: content)
+        for i in 0..<contentSize {
+            let childView = hostingController.view!
+            // There must be an adjustment to fix an unknown reason that is causing a strange bug.
+            let adjustment = CGFloat((contentSize - 1)) * screen_width/2.0
+            childView.frame = CGRect(x: screen_width * CGFloat(i) - adjustment, y: 0, width: screen_width, height: 50)
+            uiView.addSubview(childView)
+        }
+    }
+}
+
+
 struct PagingScrollContent: View {
     
     var body: some View {

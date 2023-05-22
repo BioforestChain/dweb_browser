@@ -12,7 +12,8 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
     var contentSize: Int
     var content: Content
     @Binding var currentPage: Int
-    
+    @Binding var offsetX: CGFloat
+
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
         scrollView.isPagingEnabled = true
@@ -34,7 +35,7 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
             childView.frame = CGRect(x: screen_width * CGFloat(i) - adjustment, y: 0, width: screen_width, height: 50)
             uiView.addSubview(childView)
         }
-                uiView.setContentOffset(CGPoint(x: screen_width * CGFloat(currentPage), y: 0), animated: true)
+//                uiView.setContentOffset(CGPoint(x: screen_width * CGFloat(currentPage), y: 0), animated: true)
 
     }
     
@@ -52,6 +53,14 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
             let page = Int(scrollView.contentOffset.x / scrollView.frame.width)
             parent.currentPage = page
+//            print("scolling offsetX is \(scrollView.contentOffset.x)")
+        }
+        
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//            scrollView.contentOffset
+            parent.offsetX = -( scrollView.contentOffset.x)
+//            print("scolling offsetX is \(scrollView.contentOffset.x)")
+
         }
     }
 }
@@ -60,7 +69,8 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
 
 struct PagingScrollTestView: View {
     @State var currentPage = 0
-    
+    @State var offsetX: CGFloat = 0.0
+
     @State private var randomIndex = 0
     var body: some View {
         VStack {
@@ -70,7 +80,7 @@ struct PagingScrollTestView: View {
                 Color.blue.frame(width: screen_width, height: 50)
                 Color.orange.frame(width: screen_width, height: 50)
                 Color.cyan.frame(width: screen_width, height: 50)
-            }, currentPage: $currentPage)
+            }, currentPage: $currentPage,offsetX: $offsetX)
             
             Button("Random") {
                 
