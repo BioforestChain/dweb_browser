@@ -12,6 +12,7 @@ import info.bagen.dwebbrowser.microService.startDwebBrowser
 import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import info.bagen.dwebbrowser.util.PlaocUtil
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -20,6 +21,7 @@ class App : Application() {
     lateinit var appContext: Context
 
     val grant = PromiseOut<Boolean>()
+    @OptIn(DelicateCoroutinesApi::class)
     fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
       GlobalScope.launch(ioAsyncExceptionHandler) {
         if (!grant.waitPromise()) {
