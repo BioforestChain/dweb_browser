@@ -1,4 +1,3 @@
-import { convertToHttps } from "../../helper/String.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
@@ -76,17 +75,22 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * https://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
    */
   @bindThis
-  async externalFetch(pathname: string,init?:$BuildRequestWithBaseInit) {
-    const url = convertToHttps(pathname);
+  async externalFetch(hostname: $MMID,init:$ExterRequestWithBaseInit) {
     // http://localhost:22206/?X-Dweb-Host=api.desktop.dweb.waterbang.top.dweb%3A443
     const public_url = new URL(await BasePlugin.public_url);
-    public_url.searchParams.set("X-Dweb-Host",`external.${url.hostname}:443`)
+    public_url.searchParams.set("X-Dweb-Host",`external.${hostname}:443`)
     const base = public_url.href
 
     const config = Object.assign(init??{},{base: base})
-    return await this.buildExternalApiRequest(url.pathname,config).fetch();
+    return await this.buildExternalApiRequest(init.pathname,config).fetch();
   }
 // http://localhost:22206/?X-Dweb-Host=external.demo.www.bfmeta.info.dweb%3A443
+}
+
+export type $MMID = `${string}.dweb`;
+
+export interface $ExterRequestWithBaseInit extends $BuildRequestWithBaseInit {
+  pathname:string
 }
 
 export const dwebServiceWorkerPlugin = new DwebServiceWorkerPlugin();
