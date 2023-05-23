@@ -36,25 +36,17 @@ class Page: Identifiable, ObservableObject, Hashable{
     }
 }
 
+
+
 class BrowerVM: ObservableObject {
     @Published var showingOptions = true
     @Published var selectedTabIndex = 0
-    @Published var addressBarOffset = 0.0
     
     @Published var pages = WebCacheStore.shared.store.map{Page(webWrapper: WebWrapper(webCache: $0))}
     
     @Published var sharedResources = SharedSourcesVM()
     
-    
     @Published var currentSnapshotImage: UIImage?
-    {
-        didSet{
-            print(currentSnapshotImage)
-        }
-        willSet{
-            print(newValue)
-        }
-    }
     
     @Published var capturedImage: UIImage?
     

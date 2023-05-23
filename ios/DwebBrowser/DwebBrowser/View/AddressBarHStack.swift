@@ -10,23 +10,21 @@ import SwiftUI
 struct AddressBarHStack: View {
     @EnvironmentObject var states: ToolbarState
     @EnvironmentObject var browser: BrowerVM
+    @EnvironmentObject var xoffset: AddressBarOffsetOnX
     
     @State var currentIndex: Int = 0
     @State var offsetX: CGFloat = 0
     
     var body: some View {
-        GeometryReader { innerGeometry in
-            PagingScroll(contentSize: browser.pages.count, content: AddressBarHContainer(), currentPage: $currentIndex, offsetX: $offsetX)
-                .onChange(of: currentIndex) { newValue in
-                    browser.selectedTabIndex = currentIndex
-                    //                    print("currentIndex changed to \(newValue)")
-                }
-                .onChange(of: offsetX) { newValue in
-                    browser.addressBarOffset = offsetX
-                    //                    print("currentIndex offsetX to \(offsetX)")
-                }
-        }
-        .frame(height: browser.addressBarHeight)
+        PagingScroll(contentSize: browser.pages.count, content: AddressBarHContainer(), currentPage: $currentIndex, offsetX: $offsetX)
+            .onChange(of: currentIndex) { newValue in
+                browser.selectedTabIndex = currentIndex
+            }
+            .onChange(of: offsetX) { newValue in
+                xoffset.offset = offsetX
+                print("currentIndex offsetX : \(offsetX)")
+            }
+            .frame(height: browser.addressBarHeight)
     }
 }
 

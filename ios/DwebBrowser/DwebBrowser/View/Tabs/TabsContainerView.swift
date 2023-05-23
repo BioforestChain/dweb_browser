@@ -32,21 +32,27 @@ enum AnimateImageState: Int{
         return self == .startExpanding || self == .shrinked
     }
 }
+//struct TabsContainerView: View{
+//    init(){
+//        print("visiting TabsContainerView init")
+//    }
+//
+//    var body: some View{
+//        ZStack{}
+//            .id("TabsContainerView")
+//    }
+//}
 
-
-//observe the showingOptions variety to do the switch animation
+// observe the showingOptions variety to do the switch animation
 struct TabsContainerView: View{
-    
     @EnvironmentObject var browser: BrowerVM
-//    @Environment(\.safeAreaInsets) var safeAreaInsets
 
     @State var cellFrames: [CGRect] = [.zero]
-    @Namespace private var zoomAnimation
-    
+
     @State private var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
-    
+
     @State var imageState: AnimateImageState = .initial
-    
+
     private var selectedCellFrame: CGRect {
         cellFrames[browser.selectedTabIndex]
     }
@@ -74,11 +80,11 @@ struct TabsContainerView: View{
                 if imageState == .shrinked {
                     Color(white: 0.8)
                 }
-                
+
                 if !browser.showingOptions, imageState == .animateDone{
                     TabHStackView()
                 }
-                
+
                 if imageState.rawValue < AnimateImageState.animateDone.rawValue, imageState != .initial{
                     animationImage
                 }
@@ -109,11 +115,11 @@ struct TabsContainerView: View{
             .frame(width: cellWidth(fullW: geoRect.width),
                    height: cellHeight(fullH: geoRect.height),alignment: .top)
             .cornerRadius(imageState == .shrinked || imageState == .startExpanding ? gridcellCornerR : 0)
-        
+
             .clipped()
             .position(x: cellCenterX(geoMidX: geoRect.midX),
                       y: cellCenterY(geoMidY: geoRect.midY - geoRect.minY))
-        
+
             .onAppear{
                 DispatchQueue.main.asyncAfter(deadline: .now()) {
                     withAnimation(.easeInOut(duration: 0.5)) {
@@ -127,7 +133,7 @@ struct TabsContainerView: View{
                 }
             }
     }
-    
+
 
     func cellCenterX(geoMidX: CGFloat)-> CGFloat{
         if imageState.isSmall(){
@@ -138,7 +144,7 @@ struct TabsContainerView: View{
             return selectedCellFrame.minX + selectedCellFrame.width/2.0
         }
     }
-    
+
     func cellCenterY(geoMidY: CGFloat)-> CGFloat{
         if imageState.isSmall(){
             return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - topSafeArea
@@ -148,7 +154,7 @@ struct TabsContainerView: View{
             return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0
         }
     }
-    
+
     func cellWidth(fullW: CGFloat)->CGFloat{
         if imageState.isSmall(){
             return selectedCellFrame.width
@@ -158,7 +164,7 @@ struct TabsContainerView: View{
             return selectedCellFrame.width
         }
     }
-    
+
     func cellHeight(fullH: CGFloat)->CGFloat{
         if imageState.isSmall(){
             return selectedCellFrame.height - gridcellBottomH
@@ -172,7 +178,9 @@ struct TabsContainerView: View{
 
 struct TabHStackView: View{
     @EnvironmentObject var browser: BrowerVM
-    
+
+    @EnvironmentObject var xoffset: AddressBarOffsetOnX
+
     var body: some View{
         
         ScrollView(.horizontal, showsIndicators: false) {
@@ -194,7 +202,7 @@ struct TabHStackView: View{
                         }
                 }
             }
-            .offset(x: browser.addressBarOffset)
+            .offset(x: xoffset.offset)
         }
         .scrollDisabled(true)
     }

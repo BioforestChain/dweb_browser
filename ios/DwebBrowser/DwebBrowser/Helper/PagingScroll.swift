@@ -53,14 +53,10 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
             let page = Int(scrollView.contentOffset.x / scrollView.frame.width)
             parent.currentPage = page
-//            print("scolling offsetX is \(scrollView.contentOffset.x)")
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//            scrollView.contentOffset
             parent.offsetX = -( scrollView.contentOffset.x)
-//            print("scolling offsetX is \(scrollView.contentOffset.x)")
-
         }
     }
 }

@@ -7,13 +7,16 @@
 
 import SwiftUI
 
-
+class AddressBarOffsetOnX: ObservableObject {
+    @Published var offset: CGFloat = 0
+}
 
 @main
 struct DwebBrowserApp: App {
     var body: some Scene {
         WindowGroup {
             BrowserView()
+                .environmentObject(AddressBarOffsetOnX())
         }
     }
 }
