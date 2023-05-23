@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.ui.qrcode
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
@@ -7,20 +8,30 @@ import android.graphics.Matrix
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.media.AudioManager
 import android.media.Image
 import android.media.Image.Plane
+import android.net.Uri
 import android.util.Log
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
+import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.barcode.common.Barcode.BarcodeFormat
 import com.google.mlkit.vision.common.InputImage
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import java.util.concurrent.Executor
 
-class QRCodeAnalyzer(
+internal fun beepAudio(context: Context) {
+  (context.getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+    .playSoundEffect(AudioManager.FX_KEY_CLICK, 1.0f)
+}
+
+internal class QRCodeAnalyzer(
   private val onFailure: (Exception) -> Unit,
   private val onBarcodeDetected: (Bitmap?, List<Barcode>) -> Unit,
 ) : ImageAnalysis.Analyzer {
@@ -47,6 +58,88 @@ class QRCodeAnalyzer(
         imageProxy.close()
       }
     }
+  }
+}
+
+internal object BarcodeDecoder {
+  fun fromFilePath(context: Context, uri: Uri): InputImage {
+    return InputImage.fromFilePath(context, uri)
+  }
+
+  fun fromBitmap(bitmap: Bitmap): InputImage {
+    return fromBitmap(bitmap, 0)
+  }
+
+  fun fromBitmap(bitmap: Bitmap, rotation: Int): InputImage {
+    return InputImage.fromBitmap(bitmap, rotation)
+  }
+
+  fun process(bitmap: Bitmap): Task<List<Barcode>> {
+    return BarcodeScanning.getClient().process(fromBitmap(bitmap))
+  }
+
+  fun process(context: Context, uri: Uri): Task<List<Barcode>> {
+    return BarcodeScanning.getClient().process(fromFilePath(context, uri))
+  }
+
+  fun process(
+    bitmap: Bitmap, @BarcodeFormat format: Int, @BarcodeFormat vararg formats: Int
+  ): Task<List<Barcode>> {
+    return BarcodeScanning.getClient(
+      BarcodeScannerOptions.Builder().setBarcodeFormats(format, *formats).build()
+    ).process(fromBitmap(bitmap))
+  }
+
+  fun process(
+    inputImage: InputImage, onSuccess: (List<Barcode>) -> Unit, onFailure: (Exception) -> Unit,
+  ) {
+    process(inputImage, onSuccess, onFailure, Barcode.FORMAT_ALL_FORMATS)
+  }
+
+  fun process(
+    inputImage: InputImage,
+    onSuccess: (List<Barcode>) -> Unit,
+    onFailure: (Exception) -> Unit,
+    @BarcodeFormat format: Int,
+    @BarcodeFormat vararg formats: Int
+  ) {
+    BarcodeScanning.getClient(
+      BarcodeScannerOptions.Builder().setBarcodeFormats(format, *formats).build()
+    ).process(inputImage).addOnSuccessListener { result ->
+      if (result.isEmpty()) {
+        onFailure(Exception("照片中未识别到二维码"))
+      } else {
+        onSuccess(result)
+      }
+    }.addOnFailureListener { e -> onFailure(e) }
+  }
+
+  fun process(
+    inputImage: InputImage,
+    executor: Executor,
+    onSuccess: (List<Barcode>) -> Unit,
+    onFailure: (Exception) -> Unit,
+  ) {
+    process(inputImage, executor, onSuccess, onFailure, Barcode.FORMAT_ALL_FORMATS)
+  }
+
+  fun process(
+    inputImage: InputImage,
+    executor: Executor,
+    onSuccess: (List<Barcode>) -> Unit,
+    onFailure: (Exception) -> Unit,
+    @BarcodeFormat format: Int,
+    @BarcodeFormat vararg formats: Int
+  ) {
+    BarcodeScanning.getClient(
+      BarcodeScannerOptions.Builder().setBarcodeFormats(format, *formats).build()
+    ).process(inputImage).addOnSuccessListener(executor) { result ->
+      if (result.isEmpty()) {
+        onFailure(Exception("照片中未识别到二维码"))
+      } else {
+        onSuccess(result)
+      }
+    }.addOnFailureListener(executor) { e -> onFailure(e) }
   }
 }
 

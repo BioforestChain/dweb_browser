@@ -1,10 +1,10 @@
-@file:OptIn(ExperimentalPermissionsApi::class)
-
 package info.bagen.dwebbrowser.ui.qrcode
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Point
+import android.net.Uri
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -34,20 +34,30 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +83,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -80,8 +91,8 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.common.Barcode
 import java.util.concurrent.Executors
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.ui.view.DeniedView
 import info.bagen.dwebbrowser.ui.view.PermissionSingleView
+import kotlinx.coroutines.delay
 
 internal const val PERMISSION_CAMERA = android.Manifest.permission.CAMERA
 internal const val PERMISSION_WRITE = android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -91,7 +102,7 @@ data class QRCodeScanState(
   val analyzeResult: AnalyzeResult = AnalyzeResult(),
 ) {
   enum class QRCodeState(val type: Int) {
-    Hide(0), Scanning(1), Completed(2);
+    Hide(0), Scanning(1), AnalyzePhoto(2), Completed(3);
   }
 
   class AnalyzeResult {
@@ -99,6 +110,8 @@ data class QRCodeScanState(
     var previewBitmap: Bitmap? = null
     var barcodes: List<Barcode>? = null
   }
+
+  var uri: Uri? = null
 
   fun updateAnalyzeResult(bitmap: Bitmap?, previewBitmap: Bitmap?, barcodes: List<Barcode>) {
     analyzeResult.bitmap = bitmap
@@ -122,22 +135,22 @@ fun rememberQRCodeScanState(): QRCodeScanState {
   return remember { QRCodeScanState() }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun QRCodeScanView(
   qrCodeScanState: QRCodeScanState = rememberQRCodeScanState(),
   @SuppressLint("ModifierParameter") modifier: Modifier = Modifier.fillMaxSize(),
   onDataCallback: (String) -> Unit, // 返回数据
+  enableBeep: Boolean = true, // 扫码成功后是否打开提示音
   scanningContent: @Composable (Camera) -> Unit = {
-    DefaultScanningView(camera = it) {
-      qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide
-    }
+    DefaultScanningView(camera = it, onSelect = { uri ->
+      qrCodeScanState.uri = uri
+      qrCodeScanState.state.value = QRCodeScanState.QRCodeState.AnalyzePhoto
+    }, onClose = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide })
   },
   scanResultContent: @Composable (QRCodeScanState.AnalyzeResult) -> Unit = { analyzeResult ->
-    DefaultScanResultView(
-      analyzeResult = analyzeResult,
-      onClose = {
-        qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning
-      }) { data ->
+    DefaultScanResultView(analyzeResult = analyzeResult,
+      onClose = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning }) { data ->
       qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide
       onDataCallback(data)
     }
@@ -151,33 +164,45 @@ fun QRCodeScanView(
     qrCodeScanState.state.value = type
   }
   val launchCamera = rememberPermissionState(permission = PERMISSION_CAMERA)
+  val context = LocalContext.current
 
-  AnimatedContent(
-    targetState = qrCodeScanState.state.value.type, label = "",
-    transitionSpec = {
-      if (targetState > initialState) {
-        // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
-        slideInHorizontally { fullWidth -> fullWidth } + fadeIn() with
-            slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
-      } else {
-        // 数字变小时，进入的数字从左向右变深划入，退出的数字从左向右变浅划出
-        slideInHorizontally { fullWidth -> -fullWidth } + fadeIn() with
-            slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
-      }
+  AnimatedContent(targetState = qrCodeScanState.state.value.type, label = "", transitionSpec = {
+    if (targetState > initialState) {
+      // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
+      slideInHorizontally { fullWidth -> fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
+    } else {
+      // 数字变小时，进入的数字从左向右变深划入，退出的数字从左向右变浅划出
+      slideInHorizontally { fullWidth -> -fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
     }
-  ) { state ->
+  }) { state ->
     when (state) {
       QRCodeScanState.QRCodeState.Scanning.type -> {
-        PermissionSingleView(
-          permissionState = launchCamera,
-          onPermissionDenied = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide }
-        ) {
+        PermissionSingleView(permissionState = launchCamera,
+          onPermissionDenied = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide }) {
           Box(modifier = modifier.background(Color.Black)) {
             CameraSurfaceView(onBarcodeDetected = { preview, bitmap, barcodes ->
+              if (enableBeep) beepAudio(context)
               qrCodeScanState.updateAnalyzeResult(bitmap, preview, barcodes)
               qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Completed
             }) { scanningContent(it) }
           }
+        }
+      }
+
+      QRCodeScanState.QRCodeState.AnalyzePhoto.type -> {
+        qrCodeScanState.uri?.let { uri ->
+          Box(modifier = modifier.background(Color.Black)) {
+            AnalyzePhotoView(uri = uri,
+              onBackHandler = {
+                qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning
+              }) { preview, bitmap, barcodes ->
+              if (enableBeep) beepAudio(context)
+              qrCodeScanState.updateAnalyzeResult(bitmap, preview, barcodes)
+              qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Completed
+            }
+          }
+        } ?: run {
+          qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning
         }
       }
 
@@ -192,7 +217,6 @@ fun QRCodeScanView(
   }
 }
 
-
 @Composable
 private fun CameraSurfaceView(
   onBarcodeDetected: (Bitmap?, Bitmap?, List<Barcode>) -> Unit,
@@ -203,8 +227,7 @@ private fun CameraSurfaceView(
   val camera: MutableState<Camera?> = remember { mutableStateOf(null) }
 
   DisposableEffect(Surface(
-    modifier = Modifier.fillMaxSize(),
-    color = MaterialTheme.colorScheme.onBackground
+    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.onBackground
   ) {
     AndroidView(factory = { ctx ->
       val previewView = PreviewView(ctx).also {
@@ -218,8 +241,9 @@ private fun CameraSurfaceView(
           it.setSurfaceProvider(previewView.surfaceProvider)
         }
 
-        val imageAnalyzer = ImageAnalysis.Builder()
-          .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
+        val imageAnalyzer =
+          ImageAnalysis.Builder().setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
         val qrCodeAnalyser = QRCodeAnalyzer(onFailure = {}) { bitmap, barcodes ->
           imageAnalyzer.clearAnalyzer()
           onBarcodeDetected(previewView.bitmap, bitmap, barcodes)
@@ -249,7 +273,12 @@ private fun CameraSurfaceView(
 }
 
 @Composable
-private fun DefaultScanningView(camera: Camera, onClose: () -> Unit) {
+private fun DefaultScanningView(camera: Camera, onSelect: (Uri) -> Unit, onClose: () -> Unit) {
+  val launchPhoto = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    // TODO 将这个Bitmap解码
+    uri?.let { onSelect(uri) }
+  }
+
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -258,19 +287,7 @@ private fun DefaultScanningView(camera: Camera, onClose: () -> Unit) {
     ScannerLine() // 添加扫描线
     CloseIcon { onClose() } // 关闭按钮
     FlashlightIcon(camera)
-    Icon(
-      imageVector = ImageVector.vectorResource(R.drawable.ic_photo),
-      contentDescription = "Photo",
-      tint = MaterialTheme.colorScheme.background,
-      modifier = Modifier
-        .padding(16.dp)
-        .size(48.dp)
-        .clip(CircleShape)
-        .background(MaterialTheme.colorScheme.onBackground.copy(0.5f))
-        .clickable { /* TODO 打开相册选择功能，并接收返回值信息 */ }
-        .padding(10.dp)
-        .align(Alignment.BottomEnd)
-    )
+    AlbumButton { launchPhoto.launch("image/*") }
   }
 }
 
@@ -306,6 +323,30 @@ private fun ScannerLine() {
 }
 
 @Composable
+private fun BoxScope.AlbumButton(onClick: () -> Unit) {
+  Box(modifier = Modifier
+    .padding(16.dp)
+    .size(48.dp)
+    .clip(CircleShape)
+    .background(MaterialTheme.colorScheme.onBackground.copy(0.5f))
+    .clickable { onClick() }
+    .align(Alignment.BottomEnd)) {
+    Column(
+      modifier = Modifier.align(Alignment.Center),
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      Icon(
+        imageVector = ImageVector.vectorResource(R.drawable.ic_photo),
+        contentDescription = "Photo",
+        tint = MaterialTheme.colorScheme.background,
+        modifier = Modifier.size(22.dp)
+      )
+      Text(text = "相册", color = MaterialTheme.colorScheme.background, fontSize = 12.sp)
+    }
+  }
+}
+
+@Composable
 private fun DefaultScanResultView(
   analyzeResult: QRCodeScanState.AnalyzeResult,
   onClose: () -> Unit,
@@ -333,9 +374,9 @@ private fun DefaultScanResultView(
       Image(
         bitmap = bitmap.asImageBitmap(),
         contentDescription = "Scan",
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.FillBounds,
-        alignment = Alignment.TopCenter
+        modifier = Modifier.align(Alignment.Center),
+        contentScale = ContentScale.Fit,
+        alignment = Alignment.Center
       )
     }/* ?: run {// 没有图片信息，不要显示选择
       state.state.value = QRCodeScanState.QRCodeState.Scanning
@@ -350,9 +391,7 @@ private fun DefaultScanResultView(
       .pointerInput(Unit) {
         detectTapGestures { offset ->
           pointList.forEachIndexed { index, point ->
-            if (offset.x >= point.x - 56f && offset.x <= point.x + 56f &&
-              offset.y >= point.y - 56f && offset.y <= point.y + 56f
-            ) {
+            if (offset.x >= point.x - 56f && offset.x <= point.x + 56f && offset.y >= point.y - 56f && offset.y <= point.y + 56f) {
               val data = try {
                 barcodes[index].displayValue ?: "data is null"
               } catch (e: java.lang.Exception) {
@@ -427,8 +466,7 @@ private fun DrawScope.drawerPoint(
 
 @Composable
 private fun BoxScope.CloseIcon(onClick: () -> Unit) {
-  Icon(
-    imageVector = Icons.Default.AddCircle,
+  Icon(imageVector = Icons.Default.AddCircle,
     contentDescription = "Close",
     tint = MaterialTheme.colorScheme.background,
     modifier = Modifier
@@ -436,8 +474,7 @@ private fun BoxScope.CloseIcon(onClick: () -> Unit) {
       .size(32.dp)
       .clickable { onClick() }
       .rotate(45f)
-      .align(Alignment.TopStart)
-  )
+      .align(Alignment.TopStart))
 }
 
 @Composable
@@ -451,25 +488,99 @@ private fun BoxScope.FlashlightIcon(camera: Camera) {
     targetValue = Color(0xFF000000),
     animationSpec = infiniteRepeatable(
       animation = tween(durationMillis = 2000), repeatMode = RepeatMode.Reverse
-    ), label = ""
+    ),
+    label = ""
   )
 
   DisposableEffect(animateColor) {
     animationColor = animateColor
     onDispose { }
   }
+  Box(modifier = Modifier
+    .align(Alignment.BottomCenter)
+    .padding(16.dp)
+    .size(46.dp)
+    .clip(CircleShape)
+    .clickable { camera.cameraControl.enableTorch(!lightState); lightState = !lightState }
+  ) {
+    Icon(
+      bitmap = ImageBitmap.imageResource(iconDrawableId),
+      contentDescription = "FlashLight",
+      tint = animationColor,
+      modifier = Modifier
+        .align(Alignment.Center)
+        .size(36.dp)
+    )
+  }
+}
 
-  Icon(
-    bitmap = ImageBitmap.imageResource(iconDrawableId),
-    contentDescription = "FlashLight",
-    tint = animationColor,
-    modifier = Modifier
-      .align(Alignment.BottomCenter)
-      .padding(50.dp)
-      .size(36.dp)
-      .clickable {
-        camera.cameraControl.enableTorch(!lightState)
-        lightState = !lightState
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AnalyzePhotoView(
+  uri: Uri, onBackHandler: () -> Unit, onBarcodeDetected: (Bitmap, Bitmap, List<Barcode>) -> Unit
+) {
+  BackHandler { onBackHandler() }
+  val context = LocalContext.current
+  val bitmap = remember { BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri)) }
+  var showAlert by remember { mutableStateOf(true) }
+  var alertMsg by remember { mutableStateOf<String?>(null) }
+  LaunchedEffect(uri) {
+    delay(1000)
+    BarcodeDecoder.process(BarcodeDecoder.fromBitmap(bitmap), onSuccess = {
+      onBarcodeDetected(bitmap, bitmap, it)
+    }, onFailure = {
+      alertMsg = it.message
+    }, format = Barcode.FORMAT_ALL_FORMATS
+    )
+  }
+  Box(modifier = Modifier
+    .fillMaxSize()
+    .background(Color.Black)
+    .clickable(false) {}) {
+    Image(
+      bitmap = bitmap.asImageBitmap(),
+      contentDescription = "Photo",
+      alignment = Alignment.Center,
+      contentScale = ContentScale.Fit,
+      modifier = Modifier.align(Alignment.Center)
+    )
+
+    alertMsg?.let { msg ->
+      if (showAlert) {
+        AlertDialog(
+          onDismissRequest = { showAlert = false },
+          modifier = Modifier
+            .clip(AlertDialogDefaults.shape)
+            .background(AlertDialogDefaults.containerColor),
+        ) {
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = msg, modifier = Modifier.padding(vertical = 20.dp))
+            Text(
+              text = "确认",
+              modifier = Modifier
+                .clickable(indication = null,
+                  onClick = { showAlert = false; onBackHandler() },
+                  interactionSource = remember { MutableInteractionSource() })
+                .padding(20.dp),
+              color = MaterialTheme.colorScheme.primary
+            )
+          }
+        }
       }
-  )
+    } ?: run {
+      Box(
+        modifier = Modifier
+          .size(120.dp)
+          .background(Color.Black.copy(0.5f))
+          .align(Alignment.Center),
+        contentAlignment = Alignment.Center
+      ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+          CircularProgressIndicator(color = Color.White)
+          Spacer(modifier = Modifier.height(10.dp))
+          Text(text = "正在识别...", color = Color.White)
+        }
+      }
+    }
+  }
 }
