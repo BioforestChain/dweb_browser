@@ -44,6 +44,12 @@ export class MultiWebViewCompMobileShell extends LitElement{
 
   biometricsMock(){
     const el = document.createElement('multi-webview-comp-biometrics')
+    el.addEventListener('pass', () => {
+      this.dispatchEvent(new Event("biometrices-pass"))
+    })
+    el.addEventListener('no-pass', () => {
+      this.dispatchEvent(new Event('biometrices-no-pass'))
+    })
     this.appContentContainer?.appendChild(el)
     console.log('biometrics', el, this.appContentContainer)
   }

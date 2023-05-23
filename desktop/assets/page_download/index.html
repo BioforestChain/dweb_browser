@@ -425,8 +425,10 @@
   </script>
   <script type="text/javascript">
     (async () => {
+      
       const search = new URLSearchParams(location.search);
       const metadataUrl = search.get('metadataUrl')
+      console.log("metadataUrl: ", metadataUrl)
       const url = getApiOrigin()
       const response = await fetch(`${url}/get_data?url=${metadataUrl}`)
       setAppInfoByAppInfo(await response.json())

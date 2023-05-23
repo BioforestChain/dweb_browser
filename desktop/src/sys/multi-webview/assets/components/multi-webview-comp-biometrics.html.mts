@@ -9,11 +9,13 @@ export class MultiWebviewCompBiometrics extends LitElement{
 
   pass(){
     console.error('点击了 pass 但是还没有处理')
+    this.dispatchEvent(new Event('pass'))
     this.shadowRoot?.host.remove();
   }
 
   noPass(){
     console.error('点击了 no pass 但是还没有处理')
+    this.dispatchEvent(new Event("no-pass"))
     this.shadowRoot?.host.remove()
   }
 

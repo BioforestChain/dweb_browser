@@ -234,8 +234,14 @@ export class ViewTree extends LitElement {
     document.body.append(el)
   }
 
+  biometricesResolve: {(value: unknown): void} | undefined;
   biometricsMock() {
     this.multiWebviewCompMobileShell?.biometricsMock()
+    return new Promise(resolve => this.biometricesResolve = resolve);
+  }
+
+  biometricessPass(b: boolean){
+    this.biometricesResolve?.(b)
   }
 
   hapticsSet(value: string) {
@@ -515,7 +521,10 @@ export class ViewTree extends LitElement {
     const arrWebviews = this.webviews;
     return html`
       <div class="app-container">
-        <multi-webview-comp-mobile-shell>
+        <multi-webview-comp-mobile-shell
+          @biometrices-pass=${() =>this.biometricessPass(true)}
+          @biometrices-no-pass=${() => this.biometricessPass(false)}
+        >
           ${
             repeat(
               this.webviews,
@@ -682,6 +691,7 @@ export const APIS = {
   torchStateToggle: viewTree.torchStateToggle.bind(viewTree),
   torchStateGet: viewTree.torchStateGet.bind(viewTree),
   hapticsSet: viewTree.hapticsSet.bind(viewTree),
+  biometricsMock: viewTree.biometricsMock.bind(viewTree),
   preloadAbsolutePathSet: viewTree.preloadAbsolutePathSet.bind(viewTree)
 };
 

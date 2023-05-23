@@ -320,6 +320,18 @@ export async function haptics(
   return await apis.hapticsSet(str)
 }
 
+export async function biometricsMock(
+  this: MultiWebviewNMM, 
+  root_url: string,
+  args: $Schema1ToType<{}>,
+  clientIpc: Ipc,
+  request: IpcRequest,
+){
+  const apis = this.apisGetFromFocused()
+  if(apis === undefined) throw new Error(`wapi === undefined`);
+  return await apis.biometricsMock() as boolean;
+}
+
 
 
  

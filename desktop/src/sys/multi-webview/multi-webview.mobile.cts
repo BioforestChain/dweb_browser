@@ -25,7 +25,8 @@ import {
   shareShare,
   toggleTorch,
   torchState,
-  haptics
+  haptics,
+  biometricsMock
  } from "./multi-webview.mobile.handler.cjs"
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { Remote } from "comlink";
@@ -292,6 +293,15 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: {action: "string"},
       output: "boolean",
       handler: haptics.bind(this, root_url)
+    })
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/plubin/biommetrices",
+      method: "GET",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: biometricsMock.bind(this, root_url)
     })
     
   }

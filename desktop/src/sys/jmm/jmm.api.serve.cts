@@ -81,7 +81,7 @@ async function appDownload(
       // eventTarget.dispatchEvent(new Event('pull'))
     }
   })
-
+   
   ipc.postMessage(
     await IpcResponse.fromStream(
       ipcRequest.req_id,
@@ -106,10 +106,10 @@ async function onProgress(
   ipc: Ipc,
   state: $State,
 ){
-  // 测试关闭下载
-  if(this.downloadStream){
-    this.donwloadStramController?.close()
-  }
+  // // 测试关闭下载
+  // if(this.downloadStream){
+  //   this.donwloadStramController?.close()
+  // }
   // 测试关闭下载
   const value = (state.percent * 100).toFixed(0);
   const ui8 = new TextEncoder().encode(`${value}\n`)
