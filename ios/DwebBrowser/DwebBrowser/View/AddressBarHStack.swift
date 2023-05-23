@@ -22,7 +22,7 @@ struct AddressBarHStack: View {
             }
             .onChange(of: offsetX) { newValue in
                 xoffset.offset = offsetX
-                print("currentIndex offsetX : \(offsetX)")
+//                print("offsetX : \(offsetX)")
             }
             .frame(height: browser.addressBarHeight)
     }

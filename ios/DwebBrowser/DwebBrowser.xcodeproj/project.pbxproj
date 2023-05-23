@@ -39,6 +39,8 @@
 		F0B68D012A12333D00215036 /* defWebIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = F0B68D002A12333D00215036 /* defWebIcon.png */; };
 		F0B68D032A123B4F00215036 /* Url+Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D022A123B4F00215036 /* Url+Validator.swift */; };
 		F0B68D072A162DF000215036 /* PagingScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D062A162DF000215036 /* PagingScroll.swift */; };
+		F0B68D092A1C906E00215036 /* AutoScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D082A1C906E00215036 /* AutoScrollView.swift */; };
+		F0B68D0C2A1CC6C700215036 /* CheckCellInGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D0B2A1CC6C600215036 /* CheckCellInGrid.swift */; };
 		F0BC1C0B2A0F86D50077BE0A /* View+AnimationObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BC1C0A2A0F86D50077BE0A /* View+AnimationObserver.swift */; };
 		F0BC1C0D2A1219CA0077BE0A /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */; };
 /* End PBXBuildFile section */
@@ -75,6 +77,8 @@
 		F0B68D002A12333D00215036 /* defWebIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = defWebIcon.png; sourceTree = "<group>"; };
 		F0B68D022A123B4F00215036 /* Url+Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Url+Validator.swift"; sourceTree = "<group>"; };
 		F0B68D062A162DF000215036 /* PagingScroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagingScroll.swift; sourceTree = "<group>"; };
+		F0B68D082A1C906E00215036 /* AutoScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoScrollView.swift; sourceTree = "<group>"; };
+		F0B68D0B2A1CC6C600215036 /* CheckCellInGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCellInGrid.swift; sourceTree = "<group>"; };
 		F0BC1C0A2A0F86D50077BE0A /* View+AnimationObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+AnimationObserver.swift"; sourceTree = "<group>"; };
 		F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -192,9 +196,12 @@
 		F02899AD29FBA27700B8754A /* Example */ = {
 			isa = PBXGroup;
 			children = (
+				F0B68D0A2A1CC6B400215036 /* New Group */,
 				F08E10562A0A4F7C00899DF8 /* TestView.swift */,
 				F028997829F7C38500B8754A /* ObservableObjectView.swift */,
 				F02899AE29FBA28E00B8754A /* AutoFillView.swift */,
+				F0B68D082A1C906E00215036 /* AutoScrollView.swift */,
+				F0B68D0B2A1CC6C600215036 /* CheckCellInGrid.swift */,
 			);
 			path = Example;
 			sourceTree = "<group>";
@@ -225,6 +232,13 @@
 				F08E10522A08DC9C00899DF8 /* BrowerVM.swift */,
 			);
 			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		F0B68D0A2A1CC6B400215036 /* New Group */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "New Group";
 			sourceTree = "<group>";
 		};
 		F0BC1C092A0F66C50077BE0A /* Util */ = {
@@ -336,11 +350,13 @@
 				F02899AC29FA882C00B8754A /* TabsContainerView.swift in Sources */,
 				F028998829F7C3DC00B8754A /* BrowserView.swift in Sources */,
 				F028998929F7C3DC00B8754A /* ToolbarView.swift in Sources */,
+				F0B68D0C2A1CC6C700215036 /* CheckCellInGrid.swift in Sources */,
 				F0BC1C0B2A0F86D50077BE0A /* View+AnimationObserver.swift in Sources */,
 				F028998F29F7C42300B8754A /* const.swift in Sources */,
 				F0B68D072A162DF000215036 /* PagingScroll.swift in Sources */,
 				F028999729F7C87000B8754A /* HistoryView.swift in Sources */,
 				F08E10402A04917600899DF8 /* WebCache.swift in Sources */,
+				F0B68D092A1C906E00215036 /* AutoScrollView.swift in Sources */,
 				F028997729F7C38500B8754A /* DwebBrowserApp.swift in Sources */,
 				F028998C29F7C3E400B8754A /* TabPageView.swift in Sources */,
 			);

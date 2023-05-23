@@ -80,8 +80,12 @@ class BrowerVM: ObservableObject {
     func removePage(at index: Int){
         var newStores = pages.map({ $0.webWrapper })
         newStores.remove(at: index)
+        
+        if selectedTabIndex >= newStores.count{
+            selectedTabIndex = newStores.count-1
+        }
         withAnimation(.easeIn(duration: 0.3),{
-            pages = newStores.map({Page(webWrapper: $0)})
+            pages = newStores.map{Page(webWrapper: $0)}
         })
         
         // TODO:
