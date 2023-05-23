@@ -171,6 +171,7 @@ export class JsProcessMicroModule implements $MicroModule {
   }
   
   private _activitySignal = createSignal<$OnIpcEventMessage>();
+  private _closeSignal = createSignal<$OnIpcEventMessage>();
   private _on_activity_inited = false;
   onActivity(cb: $OnIpcEventMessage) {
     if (this._on_activity_inited === false) {
@@ -178,12 +179,18 @@ export class JsProcessMicroModule implements $MicroModule {
       this.onConnect((ipc) => {
         ipc.onEvent((ipcEvent, ipc) => {
           if (ipcEvent.name === "activity") {
-            this._activitySignal.emit(ipcEvent, ipc);
+           return this._activitySignal.emit(ipcEvent, ipc);
+          }
+          if (ipcEvent.name === "close") {
+           return this._closeSignal.emit(ipcEvent, ipc);
           }
         });
       });
     }
     return this._activitySignal.listen(cb);
+  }
+  onClose(cb: $OnIpcEventMessage) {
+    return this._closeSignal.listen(cb);
   }
 
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();

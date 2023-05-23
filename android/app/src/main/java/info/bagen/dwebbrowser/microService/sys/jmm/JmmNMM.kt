@@ -4,10 +4,12 @@ import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
+import info.bagen.dwebbrowser.microService.helper.EIpcEvent
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.encodeURIComponent
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
+import info.bagen.dwebbrowser.microService.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
@@ -67,11 +69,13 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
 
                 maps.forEach { (key, value) ->
                     apps.getOrPutOrReplace(key, replaceValue = { local ->
+                        debugJMM("update","old version:${local.metadata.version} new:${value.version} ${compareAppVersionHigh(local.metadata.version, value.version)}")
                         if (compareAppVersionHigh(local.metadata.version, value.version)) {
-                            local.metadata = value
-                            // emitEvent(value.id, ServiceWorkerEvent.UpdateFound.event)
+                            jmmController?.jmmCloseSignal?.emit()
                         }
-                        local
+                        JsMicroModule(value).also { jsMicroModule ->
+                            bootstrapContext.dns.install(jsMicroModule)
+                        }
                     }) {
                         JsMicroModule(value).also { jsMicroModule ->
                             bootstrapContext.dns.install(jsMicroModule)

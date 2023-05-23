@@ -66,7 +66,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                     }
                     po.resolve(connectResult)
 
-                    /// 如果可以，反向存储
+                        // 如果可以，反向存储
                     if (connectResult.ipcForToMM != null) {
                         val mmKey2 = MM.from(toMmid, fromMM.mmid)
                         mmConnectsMapLock.withLock {
@@ -156,7 +156,6 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                     "fromMM=${fromMM.mmid} >> requestMmid=$mmid: >> path=${request.uri.path} >> ${request.uri}"
                 )
                 installApps[mmid]?.let {
-                    println("fromMM=>$fromMM mmid=>$mmid ${request.uri}")
                     val (fromIpc) = connectTo(fromMM, mmid, request)
                     return@let fromIpc.request(request)
                 } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())

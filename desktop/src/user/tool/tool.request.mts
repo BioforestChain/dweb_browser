@@ -48,16 +48,6 @@ export async function onApiRequest(
     } else {
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
-      // 截取mmid
-      const pathName = url.pathname.slice(
-        1,
-        url.pathname.indexOf(".dweb/") + 5
-      );
-      // 当识别到mmid 并且没有建立过连接
-      if (pathName.endsWith(".dweb") && !hashConnentMap.has(pathName)) {
-        hashConnentMap.add(pathName);
-        await jsProcess.connect(pathName as $MMID);
-      }
 
       const ipcProxyRequest = new IpcRequest(
         jsProcess.fetchIpc.allocReqId(),

@@ -2,7 +2,7 @@ import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import type { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
-import { closeFront, restartApp, webViewMap } from "../tool/app.handle.mjs";
+import { closeApp, closeFront, webViewMap } from "../tool/app.handle.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import {
   closeDwebView,
@@ -45,11 +45,6 @@ const main = async () => {
     );
   };
 
-  /**
-   * 立刻自启动
-   */
-  tryOpenView();
-
   const { IpcResponse, IpcHeaders } = ipc;
 
   /**给前端的文件服务 */
@@ -57,7 +52,6 @@ const main = async () => {
     subdomain: "www",
     port: 443,
   });
-
   /**给前端的api服务 */
   const apiServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "api",
@@ -193,16 +187,16 @@ const main = async () => {
     }
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
-      return restartApp(
+      // 关闭别人来激活的ipc
+      multiWebViewCloseSignal.emit();
+     closeApp(
         [apiServer, wwwServer, externalServer],
         [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
       );
+      // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
+      jsProcess.restart();
+      return "restart ok"
     }
-    // TODO 手动关闭 connect
-    // closeSignal.emit()
-    // cotDemoJMM.shutdown()
-
-    // return await response.text()
     return "no action for serviceWorker Factory !!!";
   };
 
@@ -219,15 +213,27 @@ const main = async () => {
     }
   });
   const hasActivityEventIpcs = new Set<$Ipc>();
+  jsProcess.onClose(async (event,ipc) => {
+    // 接收JMM更新程序的关闭消息（安装完新的app需要重启应用）
+      multiWebViewCloseSignal.emit();
+      return closeApp(
+        [apiServer, wwwServer, externalServer],
+        [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
+      );
+  })
 
   /// 同步 mwebview 的状态机
-  multiWebViewIpc.onEvent(async (event) => {
+  multiWebViewIpc.onEvent(async (event, ipc) => {
     if (event.name === EVENT.State && typeof event.data === "string") {
       const newState = JSON.parse(event.data);
       const diff = detailedDiff(oldWebviewState, newState);
       oldWebviewState = newState;
       diffFactory(diff);
     }
+    multiWebViewCloseSignal.listen(() => {
+      ipc.postMessage(IpcEvent.fromText("close", ""));
+      ipc.close();
+    });
   });
 
   const diffFactory = async (diff: DetailedDiff) => {
@@ -250,13 +256,16 @@ const main = async () => {
     }
   };
 
-  {
-    const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-      url.pathname = "/index.html";
-    });
-    interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
-    mainUrl.resolve(interUrl.href);
-  }
+  const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+    url.pathname = "/index.html";
+  });
+  interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
+  mainUrl.resolve(interUrl.href);
+
+  /**
+   * 立刻自启动
+   */
+  tryOpenView();
 };
 
 main();
