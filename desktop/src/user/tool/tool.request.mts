@@ -48,7 +48,17 @@ export async function onApiRequest(
     } else {
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
-
+      //  // 截取mmid
+      //  const pathName = url.pathname.slice(
+      //   1,
+      //   url.pathname.indexOf(".dweb/") + 5
+      // );
+      // const ipc = await jsProcess.connect(pathName as $MMID);
+      // const ipcProxyResponse = await ipc.request(path, {
+      //   method:request.method,
+      //   body:  request.body.raw,
+      //   headers:request.headers
+      // });
       const ipcProxyRequest = new IpcRequest(
         jsProcess.fetchIpc.allocReqId(),
         path,

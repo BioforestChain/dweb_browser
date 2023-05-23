@@ -71,7 +71,7 @@ class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
                     apps.getOrPutOrReplace(key, replaceValue = { local ->
                         debugJMM("update","old version:${local.metadata.version} new:${value.version} ${compareAppVersionHigh(local.metadata.version, value.version)}")
                         if (compareAppVersionHigh(local.metadata.version, value.version)) {
-                            jmmController?.jmmCloseSignal?.emit()
+                            jmmController?.closeApp(local.mmid)
                         }
                         JsMicroModule(value).also { jsMicroModule ->
                             bootstrapContext.dns.install(jsMicroModule)

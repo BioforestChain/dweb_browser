@@ -134,11 +134,18 @@ export class JsProcessMicroModule implements $MicroModule {
     init?: RequestInit
   ): Promise<Response> {
     const args = normalizeFetchArgs(url, init);
-    const ipc_response = await this._nativeRequest(
-      args.parsed_url,
-      args.request_init
-    );
-    return await ipc_response.toResponse(args.parsed_url.href);
+    const hostName = args.parsed_url.hostname;
+    if (!(hostName.endsWith(".dweb")&& args.parsed_url.protocol ==="file:")) {
+      const ipc_response = await this._nativeRequest(
+        args.parsed_url,
+        args.request_init
+      );
+      return ipc_response.toResponse(args.parsed_url.href);
+    }
+    const ipc = await jsProcess.connect(hostName as $MMID);
+    const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+    const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
+    return ipc_response.toResponse(args.parsed_url.href);
   }
 
   /**
@@ -161,15 +168,15 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   /** 关闭 */
-  close(){
-    this.nativeFetch(`file://dns.sys.dweb/close?app_id=${this.mmid}`)
+  close() {
+    this.nativeFetch(`file://dns.sys.dweb/close?app_id=${this.mmid}`);
   }
-  
+
   /**重启 */
   restart() {
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
-  
+
   private _activitySignal = createSignal<$OnIpcEventMessage>();
   private _closeSignal = createSignal<$OnIpcEventMessage>();
   private _on_activity_inited = false;
@@ -179,10 +186,10 @@ export class JsProcessMicroModule implements $MicroModule {
       this.onConnect((ipc) => {
         ipc.onEvent((ipcEvent, ipc) => {
           if (ipcEvent.name === "activity") {
-           return this._activitySignal.emit(ipcEvent, ipc);
+            return this._activitySignal.emit(ipcEvent, ipc);
           }
           if (ipcEvent.name === "close") {
-           return this._closeSignal.emit(ipcEvent, ipc);
+            return this._closeSignal.emit(ipcEvent, ipc);
           }
         });
       });
@@ -287,7 +294,7 @@ self.addEventListener("message", async function runMain(event) {
       writable: false,
     });
 
-    console.log("config.main_url: ", config.main_url)
+    console.log("config.main_url: ", config.main_url);
     await import(config.main_url);
     this.self.removeEventListener("message", runMain);
   }

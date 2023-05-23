@@ -4302,11 +4302,18 @@ var JsProcessMicroModule = class {
   }
   async _nativeFetch(url, init) {
     const args = normalizeFetchArgs(url, init);
-    const ipc_response = await this._nativeRequest(
-      args.parsed_url,
-      args.request_init
-    );
-    return await ipc_response.toResponse(args.parsed_url.href);
+    const hostName = args.parsed_url.hostname;
+    if (!(hostName.endsWith(".dweb") && args.parsed_url.protocol === "file:")) {
+      const ipc_response2 = await this._nativeRequest(
+        args.parsed_url,
+        args.request_init
+      );
+      return ipc_response2.toResponse(args.parsed_url.href);
+    }
+    const ipc = await jsProcess.connect(hostName);
+    const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+    const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
+    return ipc_response.toResponse(args.parsed_url.href);
   }
   /**
    * 模拟fetch的返回值
