@@ -19,11 +19,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
@@ -31,7 +30,7 @@ import info.bagen.dwebbrowser.R
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionSingleView(
-  permission: String,
+  permissionState: PermissionState,
   @SuppressLint("ModifierParameter") modifier: Modifier? = null,
   onPermissionDenied: () -> Unit, // 权限申请失败，需要上级界面处理相应逻辑
   permissionNotAvailableContent: @Composable (String) -> Unit = { p ->
@@ -39,8 +38,6 @@ fun PermissionSingleView(
   },
   content: @Composable BoxScope.() -> Unit
 ) {
-  val permissionState: PermissionState = rememberPermissionState(permission)
-
   Box(modifier = modifier ?: Modifier.fillMaxSize()) {
     when (permissionState.status) {
       is PermissionStatus.Granted -> {
@@ -51,7 +48,7 @@ fun PermissionSingleView(
         if (permissionState.status.shouldShowRationale) { // 可以请求权限
           permissionState.launchPermissionRequest()
         } else {
-          permissionNotAvailableContent(permission)
+          permissionNotAvailableContent(permissionState.permission)
         }
       }
 
@@ -63,7 +60,7 @@ fun PermissionSingleView(
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionMultiView(
-  permissions: List<String>,
+  multiplePermissionsState: MultiplePermissionsState,
   @SuppressLint("ModifierParameter") modifier: Modifier? = null,
   onPermissionDenied: () -> Unit, // 权限申请失败，需要上级界面处理相应逻辑
   permissionNotAvailableContent: @Composable (String) -> Unit = { p ->
@@ -71,18 +68,17 @@ fun PermissionMultiView(
   },
   content: @Composable () -> Unit
 ) {
-  val permissionState = rememberMultiplePermissionsState(permissions = permissions)
   Box(modifier = modifier ?: Modifier.fillMaxSize()) {
-    when (permissionState.allPermissionsGranted) {
+    when (multiplePermissionsState.allPermissionsGranted) {
       true -> {
         content()
       }
 
       else -> {
-        if (permissionState.shouldShowRationale) { // 可以请求权限
-          permissionState.launchMultiplePermissionRequest()
+        if (multiplePermissionsState.shouldShowRationale) { // 可以请求权限
+          multiplePermissionsState.launchMultiplePermissionRequest()
         } else {
-          permissionState.permissions.forEach {
+          multiplePermissionsState.permissions.forEach {
             if (!it.status.isGranted) {
               permissionNotAvailableContent(it.permission)
               return@forEach

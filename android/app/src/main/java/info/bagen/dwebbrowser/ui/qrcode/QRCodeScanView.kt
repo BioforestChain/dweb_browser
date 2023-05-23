@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalPermissionsApi::class)
+
 package info.bagen.dwebbrowser.ui.qrcode
 
 import android.annotation.SuppressLint
@@ -6,6 +8,8 @@ import android.graphics.Point
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -71,9 +75,12 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.common.Barcode
 import java.util.concurrent.Executors
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.ui.view.DeniedView
 import info.bagen.dwebbrowser.ui.view.PermissionSingleView
 
 internal const val PERMISSION_CAMERA = android.Manifest.permission.CAMERA
@@ -143,6 +150,7 @@ fun QRCodeScanView(
     }
     qrCodeScanState.state.value = type
   }
+  val launchCamera = rememberPermissionState(permission = PERMISSION_CAMERA)
 
   AnimatedContent(
     targetState = qrCodeScanState.state.value.type, label = "",
@@ -158,21 +166,28 @@ fun QRCodeScanView(
       }
     }
   ) { state ->
-    Box(modifier = modifier) {
-      when (state) {
-        QRCodeScanState.QRCodeState.Scanning.type -> {
-          CameraSurfaceView(onBarcodeDetected = { preview, bitmap, barcodes ->
-            qrCodeScanState.updateAnalyzeResult(bitmap, preview, barcodes)
-            qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Completed
-          }) { scanningContent(it) }
+    when (state) {
+      QRCodeScanState.QRCodeState.Scanning.type -> {
+        PermissionSingleView(
+          permissionState = launchCamera,
+          onPermissionDenied = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide }
+        ) {
+          Box(modifier = modifier.background(Color.Black)) {
+            CameraSurfaceView(onBarcodeDetected = { preview, bitmap, barcodes ->
+              qrCodeScanState.updateAnalyzeResult(bitmap, preview, barcodes)
+              qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Completed
+            }) { scanningContent(it) }
+          }
         }
+      }
 
-        QRCodeScanState.QRCodeState.Completed.type -> {
+      QRCodeScanState.QRCodeState.Completed.type -> {
+        Box(modifier = modifier.background(Color.Black)) {
           scanResultContent(qrCodeScanState.analyzeResult)
         }
-
-        else -> {}
       }
+
+      else -> {}
     }
   }
 }
@@ -235,9 +250,11 @@ private fun CameraSurfaceView(
 
 @Composable
 private fun DefaultScanningView(camera: Camera, onClose: () -> Unit) {
-  Box(modifier = Modifier
-    .fillMaxSize()
-    .statusBarsPadding()) {
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .statusBarsPadding()
+  ) {
     ScannerLine() // 添加扫描线
     CloseIcon { onClose() } // 关闭按钮
     FlashlightIcon(camera)
@@ -364,9 +381,11 @@ private fun DefaultScanResultView(
       }
     }
   }
-  Box(modifier = Modifier
-    .fillMaxSize()
-    .statusBarsPadding()) {
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .statusBarsPadding()
+  ) {
     CloseIcon { onClose() }
   }
 }
