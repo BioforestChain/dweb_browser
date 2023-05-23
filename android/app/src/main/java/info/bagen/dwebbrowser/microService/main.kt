@@ -148,6 +148,11 @@ suspend fun startDwebBrowser(): DnsNMM {
 //            browserNMM.mmid,
 //            desktopJMM.mmid
         )
+        DEVELOPER.Kingsword09 -> listOf(
+            cotDemoJMM.mmid,
+//            browserNMM.mmid,
+//            desktopJMM.mmid
+        )
         else -> listOf(/*cotDemoJMM.mmid,*/ browserNMM.mmid)
     }
 

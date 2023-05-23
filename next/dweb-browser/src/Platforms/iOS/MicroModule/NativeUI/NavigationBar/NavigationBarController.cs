@@ -1,6 +1,7 @@
 ﻿using UIKit;
 using CoreGraphics;
 using System.Text.Json;
+using DwebBrowser.MicroService.Sys.NativeUI;
 using DwebBrowser.MicroService.Sys.Mwebview;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Base;
 
@@ -10,9 +11,12 @@ public class NavigationBarController : BarController, IToJsonAble
 {
     static Debugger Console = new("NavigationBarController");
     public readonly State<NavigationBarState> Observer;
-    public StateObservable<NavigationBarState> StateObserver;
+    public StateObservable<NavigationBarState> StateObserver { get; init; }
+    public NativeUiController NativeUiController { get; init; }
 
-    public NavigationBarController(MultiWebViewController mwebviewController) : base(
+    public NavigationBarController(
+        MultiWebViewController mwebviewController,
+        NativeUiController nativeUiController) : base(
         colorState: new(mwebviewController.NavigationBarView.BackgroundColor.ToColor()),
         styleState: new(mwebviewController.StatusBarStyle),
         visibleState: new(!mwebviewController.NavigationBarView.Hidden),
@@ -21,19 +25,26 @@ public class NavigationBarController : BarController, IToJsonAble
     {
         Observer = new State<NavigationBarState>(() => GetState());
         StateObserver = new(() => ToJson());
+        NativeUiController = nativeUiController;
 
         Observer.OnChange += async (value, oldValue, _) =>
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                //Console.Log("OnChange", "visible: {0}, style: {1}, color: {2}, overlay: {3}",
-                //    value.Visible, value.Style, value.Color, value.Overlay);
+                var currentAlpha = mwebviewController.NavigationBarView.Alpha;
 
                 var currentHidden = mwebviewController.NavigationBarView.Hidden;
                 mwebviewController.NavigationBarView.Hidden = !value.Visible;
 
                 var currentStatusBarStyle = mwebviewController.StatusBarStyle;
                 mwebviewController.NavigationBarView.Alpha = value.Overlay ? new nfloat(0.5) : 1;
+
+                AreaState.Set(value.Overlay ? AreaJson.Empty : new(
+                    0,
+                    0,
+                    0,
+                    mwebviewController.NavigationBarView.Frame.GetMaxY().Value
+                    - mwebviewController.NavigationBarView.Frame.GetMinY().Value));
 
                 mwebviewController.NavigationBarView.BackgroundColor = UIColor.FromRGBA(
                     value.Color.red.ToNFloat(),
@@ -44,6 +55,13 @@ public class NavigationBarController : BarController, IToJsonAble
                 if (currentHidden == value.Visible)
                 {
                     mwebviewController.SetNeedsUpdateOfHomeIndicatorAutoHidden();
+                }
+
+                // 如果overlay有变化，主动通知SafeArea
+                if ((currentAlpha < 1 && !value.Overlay) || (currentAlpha >= 1 && value.Overlay))
+                {
+                    NativeUiController.SafeArea.AreaState.Set(new(0, 0, 0, 0));
+                    NativeUiController.SafeArea.Observer.Get();
                 }
             });
 

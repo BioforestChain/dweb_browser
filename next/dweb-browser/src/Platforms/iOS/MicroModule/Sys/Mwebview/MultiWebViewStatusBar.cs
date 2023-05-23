@@ -21,7 +21,7 @@ public partial class MultiWebViewController : BaseViewController
             statusBarView.BackgroundColor = UIColor.Red;
             statusBarView.Hidden = app.StatusBarHidden;
             statusBarView.Alpha = new nfloat(0.5);
-            statusBarView.Frame = app.StatusBarFrame;
+            statusBarView.Frame = app.KeyWindow.WindowScene.StatusBarManager.StatusBarFrame;
 
             return statusBarView;
         });

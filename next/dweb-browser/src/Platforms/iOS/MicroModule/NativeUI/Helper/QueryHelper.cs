@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.Maui.Graphics;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Base;
+using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.SafeArea;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.StatusBar;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.NavigationBar;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.VirtualKeyboard;
@@ -20,6 +21,8 @@ public class QueryHelper
             typeof(NavigationBarController), it => it.GetState());
         ResponseRegistry.RegistryJsonAble<VirtualKeyboardController>(
             typeof(VirtualKeyboardController), it => it.GetState());
+        ResponseRegistry.RegistryJsonAble<SafeAreaController>(
+            typeof(SafeAreaController), it => it.GetState());
     }
 
 }

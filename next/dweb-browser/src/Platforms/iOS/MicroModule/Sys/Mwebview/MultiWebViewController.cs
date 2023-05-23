@@ -32,9 +32,21 @@ public partial class MultiWebViewController : BaseViewController
 
     public State<List<ViewItem>> WebViewList = new(new List<ViewItem>());
 
+    public ViewItem? LastViewOrNull { get => WebViewList.Get().LastOrDefault(); }
+
+    public bool IsLastView(ViewItem viewItem) => WebViewList.Get().LastOrDefault() == viewItem;
+
     private Dictionary<Mmid, Ipc> _mIpcMap = new();
 
-    public record ViewItem(string webviewId, DWebView.DWebView webView, NativeUiController nativeUiController);
+    public record ViewItem(string webviewId, DWebView.DWebView webView, MultiWebViewController mwebviewController)
+    {
+        private LazyBox<NativeUiController> _nativeUiController = new();
+        public NativeUiController nativeUiController
+        {
+            get => _nativeUiController.GetOrPut(() => new NativeUiController(mwebviewController));
+        }
+    }
+    //public record ViewItem(string webviewId, DWebView.DWebView webView);
 
     public async Task<ViewItem> OpenWebViewAsync(string url, WKWebViewConfiguration? configuration = null)
     {
@@ -70,7 +82,7 @@ public partial class MultiWebViewController : BaseViewController
     {
         var webviewId = "#w" + Interlocked.Increment(ref s_webviewId_acc);
 
-        return MainThread.InvokeOnMainThreadAsync(() => new ViewItem(webviewId, dwebview, new(this)).Also(it =>
+        return MainThread.InvokeOnMainThreadAsync(() => new ViewItem(webviewId, dwebview, this).Also(it =>
         {
             WebViewList.Update(list => list?.Add(it));
             // TODO: DWebView 还未实现 onCloseWindow

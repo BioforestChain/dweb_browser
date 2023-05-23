@@ -15,8 +15,6 @@ using DwebBrowser.Helper.Extensions;
 
 namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Share;
 
-using FormData = Dictionary<string, List<string>>;
-
 public class ShareNMM : NativeMicroModule
 {
     public ShareNMM() : base("share.sys.dweb")
@@ -100,10 +98,6 @@ public class ShareNMM : NativeMicroModule
             };
 
             var mwebviewController = MultiWebViewNMM.GetCurrentWebViewController(ipc.Remote.Mmid);
-            //if (activityController.PopoverPresentationController is not null && mwebviewController is not null)
-            //{
-            //    activityController.PopoverPresentationController.SourceView = mwebviewController.webviewContainer;
-            //}
 
             if (mwebviewController is not null)
             {

@@ -3,6 +3,7 @@ using Foundation;
 using CoreGraphics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using DwebBrowser.MicroService.Sys.NativeUI;
 using DwebBrowser.MicroService.Sys.Mwebview;
 using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Base;
 using DwebBrowser.Helper;
@@ -12,26 +13,36 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.VirtualKeyboard;
 public class VirtualKeyboardController : AreaController, IToJsonAble
 {
     static Debugger Console = new("VirtualKeyboardController");
-    public State<VirtualKeyboardState> Observer;
-    public StateObservable<VirtualKeyboardState> StateObserver;
+    public readonly State<VirtualKeyboardState> Observer;
+    public StateObservable<VirtualKeyboardState> StateObserver { get; init; }
     public readonly State<bool> VisibleState = new(false);
+    public NativeUiController NativeUiController { get; init; }
 
     // TODO: 未验证Keyboard
-    public VirtualKeyboardController(MultiWebViewController mwebviewController) : base(
+    public VirtualKeyboardController(
+        MultiWebViewController mwebviewController,
+        NativeUiController nativeUiController) : base(
             overlayState: new(mwebviewController.VirtualKeyboardView.Alpha >= 1 ? false : true),
             areaState: new(mwebviewController.VirtualKeyboardView.Frame.ToAreaJson()))
     {
         Observer = new(() => GetState());
         StateObserver = new(() => ToJson());
+        NativeUiController = nativeUiController;
 
         Observer.OnChange += async (value, oldValue, _) =>
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                Console.Log("OnChange", "visible: {0}, overlay: {1}",
-                    value.Visible, value.Overlay);
+                var currentAlpha = mwebviewController.VirtualKeyboardView.Alpha;
                 mwebviewController.VirtualKeyboardView.Hidden = !value.Visible;
                 mwebviewController.VirtualKeyboardView.Alpha = value.Overlay ? new nfloat(0.5) : 1;
+
+                // 如果overlay有变化，主动通知SafeArea
+                if ((currentAlpha < 1 && !value.Overlay) || (currentAlpha >= 1 && value.Overlay))
+                {
+                    nativeUiController.SafeArea.AreaState.Set(new(0, 0, 0, 0));
+                    nativeUiController.SafeArea.Observer.Get();
+                }
             });
 
             await StateObserver.EmitAsync();
@@ -43,19 +54,24 @@ public class VirtualKeyboardController : AreaController, IToJsonAble
             if (mwebviewController.VirtualKeyboardView.Hidden == true)
             {
                 VisibleState.Set(true);
-                //AreaState.Update(cache => cache = args.FrameEnd.ToAreaJson());
 
-                Console.Log("ObserveWillShow", "FrameBegin top: {0}, bottom: {1}, left: {2}, right: {3}",
-                    args.FrameBegin.Top.Value,
-                    args.FrameBegin.Bottom.Value,
-                    args.FrameBegin.Left.Value,
-                    args.FrameBegin.Right.Value);
-                Console.Log("ObserveWillShow", "FrameEnd top: {0}, bottom: {1}, left: {2}, right: {3}",
-                    args.FrameEnd.Top.Value,
-                    args.FrameEnd.Bottom.Value,
-                    args.FrameEnd.Left.Value,
-                    args.FrameEnd.Right.Value);
+                //Console.Log("ObserveWillShow", "FrameBegin top: {0}, bottom: {1}, left: {2}, right: {3}",
+                //    args.FrameBegin.Top.Value,
+                //    args.FrameBegin.Bottom.Value,
+                //    args.FrameBegin.Left.Value,
+                //    args.FrameBegin.Right.Value);
+                //Console.Log("ObserveWillShow", "FrameEnd top: {0}, bottom: {1}, left: {2}, right: {3}",
+                //    args.FrameEnd.Top.Value,
+                //    args.FrameEnd.Bottom.Value,
+                //    args.FrameEnd.Left.Value,
+                //    args.FrameEnd.Right.Value);
                 mwebviewController.VirtualKeyboardView.Frame = args.FrameEnd;
+                AreaState.Set(new(
+                    0,
+                    0,
+                    0,
+                    args.FrameEnd.Bottom.Value - args.FrameEnd.Top.Value));
+
                 Observer.Get();
             }
         });
@@ -66,18 +82,18 @@ public class VirtualKeyboardController : AreaController, IToJsonAble
             if (mwebviewController.VirtualKeyboardView.Hidden == false)
             {
                 VisibleState.Set(false);
-                //AreaState.Update(cache => cache = args.FrameEnd.ToAreaJson());
-                Console.Log("ObserveWillHide", "FrameBegin top: {0}, bottom: {1}, left: {2}, right: {3}",
-                    args.FrameBegin.Top.Value,
-                    args.FrameBegin.Bottom.Value,
-                    args.FrameBegin.Left.Value,
-                    args.FrameBegin.Right.Value);
-                Console.Log("ObserveWillHide", "FrameEnd top: {0}, bottom: {1}, left: {2}, right: {3}",
-                    args.FrameEnd.Top.Value,
-                    args.FrameEnd.Bottom.Value,
-                    args.FrameEnd.Left.Value,
-                    args.FrameEnd.Right.Value);
-                mwebviewController.VirtualKeyboardView.Frame = args.FrameEnd;
+                //Console.Log("ObserveWillHide", "FrameBegin top: {0}, bottom: {1}, left: {2}, right: {3}",
+                //    args.FrameBegin.Top.Value,
+                //    args.FrameBegin.Bottom.Value,
+                //    args.FrameBegin.Left.Value,
+                //    args.FrameBegin.Right.Value);
+                //Console.Log("ObserveWillHide", "FrameEnd top: {0}, bottom: {1}, left: {2}, right: {3}",
+                //    args.FrameEnd.Top.Value,
+                //    args.FrameEnd.Bottom.Value,
+                //    args.FrameEnd.Left.Value,
+                //    args.FrameEnd.Right.Value);
+                mwebviewController.VirtualKeyboardView.Frame = CGRect.Empty;
+                AreaState.Set(AreaJson.Empty);
                 Observer.Get();
             }
         });

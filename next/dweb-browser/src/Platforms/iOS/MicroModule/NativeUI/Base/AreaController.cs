@@ -30,9 +30,3 @@ public class AreaState
     [JsonPropertyName("insets")]
     public AreaJson Area { get; set; }
 }
-
-public static class CGRectExtensions
-{
-    public static AreaJson ToAreaJson(this CoreGraphics.CGRect rect) =>
-        new(rect.Top.Value, rect.Left.Value, rect.Right.Value, rect.Bottom.Value);
-}

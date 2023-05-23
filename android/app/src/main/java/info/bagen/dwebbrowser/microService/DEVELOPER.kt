@@ -8,6 +8,7 @@ enum class DEVELOPER(val deviceName: String) {
     HLVirtual("Google/sdk_gphone64_x86_64"),
     HLOppo("OPPO/PGJM10"),
     WaterBang("HONOR/ADT-AN00"),
+    Kingsword09("HUAWEI/BKL-AL20"),
     ANONYMOUS("*");
 
 

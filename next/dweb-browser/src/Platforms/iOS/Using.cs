@@ -1,4 +1,5 @@
-﻿global using DwebBrowser.Helper;
+﻿global using System;
+global using DwebBrowser.Helper;
 global using DwebBrowser.DWebView;
 global using DwebBrowser.IpcWeb;
 global using DwebBrowser.MicroService;

@@ -1,6 +1,5 @@
-﻿using System;
+﻿using UIKit;
 using DwebBrowser.MicroService.Sys.NativeUI;
-using UIKit;
 
 namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.StatusBar;
 
