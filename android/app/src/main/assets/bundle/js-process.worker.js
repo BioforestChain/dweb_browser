@@ -4261,6 +4261,7 @@ var JsProcessMicroModule = class {
       "server" /* SERVER */
     );
     this._activitySignal = createSignal();
+    this._closeSignal = createSignal();
     this._on_activity_inited = false;
     this._ipcConnectsMap = /* @__PURE__ */ new Map();
     this._connectSignal = createSignal(false);
@@ -4305,11 +4306,7 @@ var JsProcessMicroModule = class {
       args.parsed_url,
       args.request_init
     );
-<<<<<<< HEAD
-    return ipc_response.toResponse(args.parsed_url.href);
-=======
     return await ipc_response.toResponse(args.parsed_url.href);
->>>>>>> b39c8e19 (👔 [desktop] jsmm.sys.dweb 下载完成后自动关闭下载模块)
   }
   /**
    * 模拟fetch的返回值
@@ -4341,12 +4338,18 @@ var JsProcessMicroModule = class {
       this.onConnect((ipc) => {
         ipc.onEvent((ipcEvent, ipc2) => {
           if (ipcEvent.name === "activity") {
-            this._activitySignal.emit(ipcEvent, ipc2);
+            return this._activitySignal.emit(ipcEvent, ipc2);
+          }
+          if (ipcEvent.name === "close") {
+            return this._closeSignal.emit(ipcEvent, ipc2);
           }
         });
       });
     }
     return this._activitySignal.listen(cb);
+  }
+  onClose(cb) {
+    return this._closeSignal.listen(cb);
   }
   connect(mmid) {
     return mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {

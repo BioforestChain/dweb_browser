@@ -2,7 +2,7 @@ import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import type { IpcResponse } from "../../core/ipc/IpcResponse.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.mjs";
 import { createSignal } from "../../helper/createSignal.mjs";
-import { closeFront, restartApp, webViewMap } from "../tool/app.handle.mjs";
+import { closeApp, closeFront, webViewMap } from "../tool/app.handle.mjs";
 import { EVENT, WebViewState } from "../tool/tool.event.mjs";
 import {
   closeDwebView,
@@ -189,11 +189,13 @@ const main = async () => {
     if (pathname.endsWith("restart")) {
       // 关闭别人来激活的ipc
       multiWebViewCloseSignal.emit();
-
-      return restartApp(
+     closeApp(
         [apiServer, wwwServer, externalServer],
         [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
       );
+      // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
+      jsProcess.restart();
+      return "restart ok"
     }
     return "no action for serviceWorker Factory !!!";
   };
@@ -211,6 +213,14 @@ const main = async () => {
     }
   });
   const hasActivityEventIpcs = new Set<$Ipc>();
+  jsProcess.onClose(async (event,ipc) => {
+    // 接收JMM更新程序的关闭消息（安装完新的app需要重启应用）
+      multiWebViewCloseSignal.emit();
+      return closeApp(
+        [apiServer, wwwServer, externalServer],
+        [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
+      );
+  })
 
   /// 同步 mwebview 的状态机
   multiWebViewIpc.onEvent(async (event, ipc) => {

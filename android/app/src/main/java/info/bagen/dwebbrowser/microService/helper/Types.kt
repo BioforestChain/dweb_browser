@@ -7,4 +7,5 @@ enum class EIpcEvent(val event:String){
     State("state"),
     Ready("ready"),
     Activity("activity"),
+    Close("close")
 }

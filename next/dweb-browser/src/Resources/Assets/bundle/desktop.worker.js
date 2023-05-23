@@ -562,14 +562,6 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
       );
     } else {
       const path = `file:/${url.pathname}${url.search}`;
-      const pathName = url.pathname.slice(
-        1,
-        url.pathname.indexOf(".dweb/") + 5
-      );
-      if (pathName.endsWith(".dweb") && !hashConnentMap.has(pathName)) {
-        hashConnentMap.add(pathName);
-        await jsProcess.connect(pathName);
-      }
       const ipcProxyRequest = new IpcRequest(
         jsProcess.fetchIpc.allocReqId(),
         path,
@@ -690,7 +682,7 @@ var observeFactory = (mmid) => {
 
 // src/user/tool/app.handle.mts
 var webViewMap = /* @__PURE__ */ new Map();
-var restartApp = async (servers, ipcs) => {
+var closeApp = async (servers, ipcs) => {
   hashConnentMap.clear();
   const serverOp = servers.map(async (server) => {
     await server.close();
@@ -700,15 +692,13 @@ var restartApp = async (servers, ipcs) => {
   });
   await Promise.all([serverOp, opcOp]);
   closeFront();
-  jsProcess.restart();
-  return "ok";
 };
 var closeFront = () => {
   webViewMap.forEach(async (state) => {
     await closeDwebView(state.webviewId);
   });
   webViewMap.clear();
-  return "ok";
+  return "closeFront ok";
 };
 
 // src/user/desktop/desktop.worker.mts
@@ -735,7 +725,6 @@ var main = async () => {
       })
     );
   };
-  tryOpenView();
   const { IpcResponse: IpcResponse2, IpcHeaders: IpcHeaders2 } = ipc;
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
@@ -845,10 +834,13 @@ var main = async () => {
       return closeFront();
     }
     if (pathname.endsWith("restart")) {
-      return restartApp(
+      multiWebViewCloseSignal.emit();
+      closeApp(
         [apiServer, wwwServer, externalServer],
         [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
       );
+      jsProcess.restart();
+      return "restart ok";
     }
     return "no action for serviceWorker Factory !!!";
   };
@@ -864,13 +856,24 @@ var main = async () => {
     }
   });
   const hasActivityEventIpcs = /* @__PURE__ */ new Set();
-  multiWebViewIpc.onEvent(async (event) => {
+  jsProcess.onClose(async (event, ipc2) => {
+    multiWebViewCloseSignal.emit();
+    return closeApp(
+      [apiServer, wwwServer, externalServer],
+      [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
+    );
+  });
+  multiWebViewIpc.onEvent(async (event, ipc2) => {
     if (event.name === "state" /* State */ && typeof event.data === "string") {
       const newState = JSON.parse(event.data);
       const diff = detailed_default(oldWebviewState, newState);
       oldWebviewState = newState;
       diffFactory(diff);
     }
+    multiWebViewCloseSignal.listen(() => {
+      ipc2.postMessage(IpcEvent.fromText("close", ""));
+      ipc2.close();
+    });
   });
   const diffFactory = async (diff) => {
     for (const id in diff.added) {
@@ -888,12 +891,11 @@ var main = async () => {
       await nativeActivate(id);
     }
   };
-  {
-    const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-      url.pathname = "/index.html";
-    });
-    interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
-    mainUrl.resolve(interUrl.href);
-  }
+  const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+    url.pathname = "/index.html";
+  });
+  interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
+  mainUrl.resolve(interUrl.href);
+  tryOpenView();
 };
 main();
