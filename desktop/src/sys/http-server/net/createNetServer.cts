@@ -36,7 +36,7 @@ export const httpCreateServer = async (
   await new Promise<void>((resolve, reject) => {
     server.on("error", reject).listen(port, hostname, resolve);
   });
-
+  
   return {
     hostname,
     port,

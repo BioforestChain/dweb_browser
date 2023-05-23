@@ -742,6 +742,7 @@ var main = async () => {
   const wwwReadableStreamIpc = await wwwServer.listen();
   const externalReadableStreamIpc = await externalServer.listen();
   apiReadableStreamIpc.onRequest(async (request, ipc2) => {
+    console.log("->>>>>>>>>>>>");
     const url = request.parsed_url;
     if (url.pathname.startsWith("/dns.sys.dweb")) {
       const result = await serviceWorkerFactory(url, ipc2);
@@ -763,7 +764,7 @@ var main = async () => {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///cot-demo${pathname}?mode=stream`
+      `file:///app/cot-demo${pathname}?mode=stream`
     );
     ipc2.postMessage(
       new IpcResponse2(

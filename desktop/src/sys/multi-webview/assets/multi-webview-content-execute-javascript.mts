@@ -1,48 +1,59 @@
 export default `
 (() => {
-  if (!globalThis.__native_close_watcher_kit__) {
-    globalThis.__native_close_watcher_kit__ =  {
-      allc: 0,
-      _watchers: new Map(),
-      _tasks: new Map(),
-      registryToken: function(consumeToken){
-        if (consumeToken === null || consumeToken === "") {
-          throw new Error("CloseWatcher.registryToken invalid arguments");
-        }
-        const resolve = this._tasks.get(consumeToken)
-        if(resolve === undefined) throw new Error('resolve === undefined');
-        const id = this.allc++;
-        resolve(id + "");
-      },
-      tryClose: function(id){
-        const watcher = this._watchers.get(id);
-        if(watcher === undefined) throw new Error('watcher === undefined');
-        watcher.dispatchEvent(new Event("close"))
-      }
-    };
+  console.log('--------')
+  // if (!globalThis.__native_close_watcher_kit__) {
+  //   globalThis.__native_close_watcher_kit__ =  {
+  //     allc: 0,
+  //     _watchers: new Map(),
+  //     _tasks: new Map(),
+  //     registryToken: function(consumeToken){
+  //       if (consumeToken === null || consumeToken === "") {
+  //         throw new Error("CloseWatcher.registryToken invalid arguments");
+  //       }
+  //       const resolve = this._tasks.get(consumeToken)
+  //       if(resolve === undefined) throw new Error('resolve === undefined');
+  //       const id = this.allc++;
+  //       resolve(id + "");
+  //     },
+  //     tryClose: function(id){
+  //       const watcher = this._watchers.get(id);
+  //       if(watcher === undefined) throw new Error('watcher === undefined');
+  //       watcher.dispatchEvent(new Event("close"))
+  //     }
+  //   };
 
-    // 这里会修改了 window.open 的方法 是否有问题了？？
-    globalThis.open = function(arg){
-      console.error('open 方法被修改了 需要调用 主渲染进程的 openWebview 方法，但是还没有处理', arg)
-    }
-  }
+  //   // 这里会修改了 window.open 的方法 是否有问题了？？
+  //   globalThis.open = function(arg){
+  //     console.error('open 方法被修改了 需要调用 主渲染进程的 openWebview 方法，但是还没有处理', arg)
+  //   }
+  // }
+
+  // console.log('window: ', window)
+
+  globalThis.fetch = () => {
+    console.log(">>>>>>>>>>>>")
+  } 
   
-  // 拦截 fetch
-  globalThis.nativeFetch = globalThis.fetch;
-  globalThis.fetch = (request) => {
-    let url = typeof request === 'string' ? request : request.url;
-    if(url.endsWith('bfs-metadata.json')){
-      // 把请求发送出去
-      console.log('需要拦截的请求', request)
-      console.log('window.navigator.userAgent', window.navigator.userAgent);
-      // 把请求发送给 jsMM 模块
-      url = 'http://api.browser.sys.dweb-443.localhost:22605/open_download?url=' + url
-      // 只能够想办法 发送给 browser 让 browser 处理
-      return globalThis.nativeFetch(url)
-    }else{
-      return globalThis.nativeFetch(request)
-    }
-  }
+  // // 拦截 fetch
+  // globalThis.nativeFetch = globalThis.fetch;
+  // globalThis.fetch = (request) => {
+  //   let url = typeof request === 'string' ? request : request.url;
+  //   if(url.endsWith('bfs-metadata.json')){
+  //     // 把请求发送出去
+  //     console.log('需要拦截的请求', request)
+  //     console.log('window.navigator.userAgent', window.navigator.userAgent);
+  //     // 把请求发送给 jsMM 模块
+  //     url = 'http://api.browser.sys.dweb-443.localhost:22605/open_download?url=' + url
+  //     // 只能够想办法 发送给 browser 让 browser 处理
+  //     return globalThis.nativeFetch(url)
+  //   }else if(
+  //     request.method == "GET" && request.url.host?.endsWith(".dweb")  && (request.url.scheme == "http" || request.url.scheme == "https")
+  //   ){
+  //     console.log('locstion', location)
+  //   }else{
+  //     return globalThis.nativeFetch(request)
+  //   }
+  // }
 
   // core 
   function inputBindVirtualKeyboard(el){

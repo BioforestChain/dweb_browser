@@ -62,12 +62,27 @@ export class HttpServerNMM extends NativeMicroModule {
 
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     this._info = await this._dwebServer.create();
+    console.log('创建了服务： ', this._info)
+
     this._info.server.on("request", async (req, res) => {
+
+      console.log('接收到熬了请求 --- ')
       res.setHeader("Access-Control-Allow-Origin", "*");  
       res.setHeader("Access-Control-Allow-Headers", "*");  
       res.setHeader("Access-Control-Allow-Methods","*");  
-      /// 获取 host
-      const host = this.getHostByReq(req)
+      // 根据发送改过来的请求 创建一个新的request
+      // console.log('req.url: ', req.url)
+      // console.log('headers: ', req.headers)
+      // const _url = req.url?.split("request_path_100=")[1]
+      // if(_url === undefined) throw new Error(`_url === undefined`);
+      // const urlObj = new URL(_url)
+      // const targetUrl = _url.replace(urlObj.origin, "")
+      // // 需要更新request 试试采用 express 是否可以实现？？
+      // console.log("targetUrl: ", targetUrl)
+      // /// 获取 host
+      // const host = this.getHostByURLAndHeaders(targetUrl, req.headers)
+      // console.log('host: ', host)
+      const host = this.getHostByReq(req);
        
       {
         // 在网关中寻址能够处理该 host 的监听者
@@ -81,7 +96,6 @@ export class HttpServerNMM extends NativeMicroModule {
             "Bad Gateway",
             "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
           );
-          
         }
         
         // gateway.listener.ipc.request("/on-connect")
@@ -236,6 +250,64 @@ export class HttpServerNMM extends NativeMicroModule {
       this._dwebServer.origin
     ).searchParams.get("X-Dweb-Host");
     for (const [key, value] of Object.entries(req.headers)) {
+      switch (key) {
+        case "host":
+        case "Host": {
+          if (typeof value === "string") {
+            header_host = value;
+            /// 桌面模式下，我们没有对链接进行拦截，将其转化为 `public_origin?X-Dweb-Host` 这种链接形式 ，因为支持 *.localhost 通配符这种域名
+            /// 所以这里只需要将 host 中的信息提取出来
+            if (value.endsWith(`.${this._dwebServer.authority}`)) {
+              query_x_web_host = value
+                .slice(0, -this._dwebServer.authority.length - 1)
+                .replace(/-(\d+)/, ":$1");
+            }
+          }
+          break;
+        }
+        case "x-dweb-host":
+        case "X-Dweb-Host": {
+          if (typeof value === "string") {
+            header_x_dweb_host = value;
+          }
+        }
+        case "user-agent":
+        case "User-Agent": {
+          if (typeof value === "string") {
+            const host = value.match(/\sdweb-host\/(.+)\s*/)?.[1];
+            if (typeof host === "string") {
+              header_user_agent_host = host;
+            }
+          }
+        }
+      }
+    }
+  
+    let host =
+      query_x_web_host ||
+      header_x_dweb_host ||
+      header_user_agent_host ||
+      header_host;
+    if (typeof host === "string" && host.includes(":") === false) {
+      host += ":" + this._info?.protocol.port;
+    }
+    if (typeof host !== "string") {
+      /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
+      host = "*";
+    }
+    return host;
+  }
+  // 获取 host
+  getHostByURLAndHeaders = (url: string, headers: {}) => {
+    /// 获取 host
+    var header_host: string | null = null;
+    var header_x_dweb_host: string | null = null;
+    var header_user_agent_host: string | null = null;
+    var query_x_web_host: string | null = new URL(
+      url || "/",
+      this._dwebServer.origin
+    ).searchParams.get("X-Dweb-Host");
+    for (const [key, value] of Object.entries(headers)) {
       switch (key) {
         case "host":
         case "Host": {

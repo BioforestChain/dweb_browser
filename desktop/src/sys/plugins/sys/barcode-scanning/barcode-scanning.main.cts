@@ -35,6 +35,8 @@ export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
         // const search = ipcRequest.parsed_url.search;
         // const url = `file://mwebview.sys.dweb/plugin/${host}${pathname}${search}`
         // const result = await this.nativeFetch(url)
+        console.log(ipcRequest.body)
+
         // 直接解析二维码
         const Jimp = require("jimp");
         const jsQR = require("jsqr");

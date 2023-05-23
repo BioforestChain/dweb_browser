@@ -71,6 +71,7 @@ const main = async () => {
   const externalReadableStreamIpc = await externalServer.listen();
 
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
+    console.log('->>>>>>>>>>>>')
     const url = request.parsed_url;
     // serviceWorker
     if (url.pathname.startsWith("/dns.sys.dweb")) {
@@ -95,7 +96,7 @@ const main = async () => {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///cot-demo${pathname}?mode=stream`
+      `file:///app/cot-demo${pathname}?mode=stream`
     );
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
