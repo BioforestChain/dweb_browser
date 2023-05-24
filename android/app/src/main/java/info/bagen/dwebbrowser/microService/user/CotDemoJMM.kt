@@ -11,17 +11,8 @@ class CotDemoJMM : JsMicroModule(
         id = "demo.www.bfmeta.info.dweb",  // TODO warning 不能写大写
         version = "1.0.0",
         server = JmmMetadata.MainServer(
-            root = "file:///bundle",
-            entry = "/public.service.worker.js"
-        ),
-        splashScreen = JmmMetadata.SplashScreen("https://www.bfmeta.org/"),
-        staticWebServers = listOf(
-            JmmMetadata.StaticWebServer(
-                root = "file:///bundle",
-                entry = "/public.service.worker.js",
-                port = 80,
-                subdomain = "demo.www.bfmeta.info.dweb"
-            )
+            root = "/sys",
+            entry = "/bundle/public.service.worker.js"
         ),
         icon = "https://www.bfmeta.info/imgs/logo3.webp",
         title = "CotDemo"

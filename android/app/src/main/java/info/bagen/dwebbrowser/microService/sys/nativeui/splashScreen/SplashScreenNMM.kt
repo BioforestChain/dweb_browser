@@ -57,7 +57,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
                     val metadata = microModule.metadata
                     debugSplashScreen(
                         "show",
-                        "remoteId:${ipc.remote.mmid} show===>${options} ${metadata?.splashScreen}"
+                        "remoteId:${ipc.remote.mmid} show===>${options} "
                     )
                     if (currentController != null) {
                         show(currentController, metadata, options)
@@ -87,17 +87,17 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
         options: SplashScreenSettings
     ) {
         val webview = controller.lastViewOrNull?.webView
-        val entry = metadata.splashScreen.entry
-        if (webview !== null && entry !== null) {
-            GlobalScope.launch(Dispatchers.Main + commonAsyncExceptionHandler) {
-                webview.loadUrl(entry)
-                if (options.autoHide) {
-                    delay(options.showDuration)
-                    webview.goBack()
-                }
-            }
-
-        }
+//        val entry = metadata.splashScreen.entry
+//        if (webview !== null && entry !== null) {
+//            GlobalScope.launch(Dispatchers.Main + commonAsyncExceptionHandler) {
+//                webview.loadUrl(entry)
+//                if (options.autoHide) {
+//                    delay(options.showDuration)
+//                    webview.goBack()
+//                }
+//            }
+//
+//        }
     }
 
     override suspend fun _shutdown() {

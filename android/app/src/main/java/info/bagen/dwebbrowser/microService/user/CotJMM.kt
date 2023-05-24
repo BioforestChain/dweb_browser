@@ -8,10 +8,9 @@ class CotJMM : JsMicroModule(
     JmmMetadata(
         id = "cot.bfs.dweb",
         server = JmmMetadata.MainServer(
-            root = "file:///bundle",
-            entry = "/cot.worker.js"
+            root = "/sys",
+            entry = "/bundle/public.service.worker.js"
         ),
-        splashScreen = JmmMetadata.SplashScreen("https://www.bfmeta.org/"),
         icon = "https://www.bfmeta.info/imgs/logo3.webp",
         title = "Cot"
     )

@@ -7,8 +7,8 @@ class BrowserJMM : JsMicroModule(
     JmmMetadata(
         id = "browser.sys.dweb",
         server = JmmMetadata.MainServer(
-            root = "file:///bundle/browser/server",
-            entry = "/index.js"
+            root = "/sys",
+            entry = "/bundle/public.service.worker.js"
         ),
     )
 ) {}

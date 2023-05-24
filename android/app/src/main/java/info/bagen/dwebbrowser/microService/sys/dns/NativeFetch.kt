@@ -87,6 +87,7 @@ class ChunkAssetsFileStream(
 //            }
             ptr += readLen
         }
+
         else -> -1
     }
 
@@ -141,6 +142,7 @@ class ChunkDataFileStream(
             }
             ptr += readLen
         }
+
         else -> -1
     }
 
@@ -151,97 +153,20 @@ class ChunkDataFileStream(
     }
 }
 
-/**
- * 加载本地文件
- */
-private fun localeFileFetch(remote: MicroModule, request: Request) = when {
-    request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
-        val mode = request.query("mode") ?: "auto"
-        val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
-        val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
-
-        val src = request.uri.path.substring(1)
-
-        debugFetchFile("OPEN-Assets", src)
-        lateinit var dirname: String
-        lateinit var filename: String
-
-        src.lastIndexOf('/').also { it ->
-            when (it) {
-                -1 -> {
-                    filename = src
-                    dirname = ""
-                }
-                else -> {
-                    filename = src.substring(it + 1)
-                    dirname = src.substring(0..it)
-                }
-            }
-            src.substring(0..it)
-        }
-
-        /// 尝试打开文件，如果打开失败就走 404 no found 响应
-        val filenameList = App.appContext.assets.list(dirname) ?: emptyArray()
-
-        lateinit var response: Response
-        if (!filenameList.contains(filename)) {
-            debugFetchFile("NO-FOUND-Assets", request.uri.path)
-            response = Response(Status.NOT_FOUND).body("the file(${request.uri.path}) not found.")
-        } else {
-            response = Response(status = Status.OK)
-
-            // buffer 模式，就是直接全部读取出来
-            // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍。如果分片次数少于2次，那么就直接发送，没必要分片
-            response = if (mode == "stream") {
-                val streamBody = ChunkAssetsFileStream(
-                    src, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0
-                )
-                /**
-                 * 将它分片读取
-                 */
-                response.header("X-Assets-Id", streamBody.id.toString()).body(streamBody)
-            } else {
-                 /**
-                 * 打开一个读取流
-                 */
-                val assetStream = App.appContext.assets.open(
-                    src, AssetManager.ACCESS_BUFFER
-                )
-                /**
-                 * 一次性发送
-                 */
-                response.body(MemoryBody(assetStream.readByteArray()))
-            }
-
-            /// 尝试加入 Content-Type
-            val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
-            if (extension != null) {
-                val type = mimeTypeMap.getMimeTypeFromExtension(extension)
-                if (type != null) {
-                    response = response.header("Content-Type", type)
-                }
-            }
-            response
-        }
-
-        response
-    }.getOrElse {
-        Response(Status.INTERNAL_SERVER_ERROR)
-    }
-    request.uri.scheme == "dweb" && request.uri.host == "" -> runCatching {
+private fun readUsrFetch(remote: MicroModule, request: Request): Response {
+    runCatching {
         val mode = request.query("mode") ?: "auto"
         val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkDataFileStream.defaultChunkSize
         val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
 
-        val src = request.uri.path//.substring(1)
-        // 默认是需要 dweb:///sys/xxx.js
+        val src = request.uri.path
+        // 默认是需要 file:///usr/xxx.js
         val dirname: String = App.appContext.dataDir.absolutePath + File.separator +
                 APP_DIR_TYPE.SystemApp.rootName + File.separator + remote.mmid
         val filename: String = dirname + src
         debugFetchFile("OPEN-DataSrc", "dirname=$dirname, src=$src")
 
         /// 尝试打开文件，如果打开失败就走 404 no found 响应
-
 
         /*File(dirname).listfi .listFiles { dir, name ->
             debugFetchFile("NO-FOUND-DataSrc", dir.absolutePath + "......" + name)
@@ -279,12 +204,100 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
                     response = response.header("Content-Type", type)
                 }
             }
+            return   response
+        }
+        return response
+    }.getOrElse {
+        return  Response(Status.INTERNAL_SERVER_ERROR)
+    }
+}
+
+/**
+ * 加载本地文件
+ */
+private fun localeFileFetch(remote: MicroModule, request: Request) = when {
+    request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
+        val  path = request.uri.path
+        if (path.startsWith("/usr")) {
+           return@runCatching readUsrFetch(remote,request)
+        }
+        val mode = request.query("mode") ?: "auto"
+        val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
+        val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
+
+        var src = request.uri.path.substring(1)
+        // 如果是sys需要移除sys 然后 转发到assets
+        if (path.startsWith("/sys")) {
+            src = src.substring(4)
+        }
+
+        debugFetchFile("OPEN-Assets", "src:$src path:$path")
+
+        lateinit var dirname: String
+        lateinit var filename: String
+
+        src.lastIndexOf('/').also { it ->
+            when (it) {
+                -1 -> {
+                    filename = src
+                    dirname = ""
+                }
+
+                else -> {
+                    filename = src.substring(it + 1)
+                    dirname = src.substring(0..it)
+                }
+            }
+            src.substring(0..it)
+        }
+        /// 尝试打开文件，如果打开失败就走 404 no found 响应
+        val filenameList = App.appContext.assets.list(dirname) ?: emptyArray()
+
+        lateinit var response: Response
+        if (!filenameList.contains(filename)) {
+            debugFetchFile("NO-FOUND-Assets", request.uri.path)
+            response = Response(Status.NOT_FOUND).body("the file(${request.uri.path}) not found.")
+        } else {
+            response = Response(status = Status.OK)
+
+            // buffer 模式，就是直接全部读取出来
+            // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍。如果分片次数少于2次，那么就直接发送，没必要分片
+            response = if (mode == "stream") {
+                val streamBody = ChunkAssetsFileStream(
+                    src, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0
+                )
+                /**
+                 * 将它分片读取
+                 */
+                response.header("X-Assets-Id", streamBody.id.toString()).body(streamBody)
+            } else {
+                /**
+                 * 打开一个读取流
+                 */
+                val assetStream = App.appContext.assets.open(
+                    src, AssetManager.ACCESS_BUFFER
+                )
+                /**
+                 * 一次性发送
+                 */
+                response.body(MemoryBody(assetStream.readByteArray()))
+            }
+
+            /// 尝试加入 Content-Type
+            val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
+            if (extension != null) {
+                val type = mimeTypeMap.getMimeTypeFromExtension(extension)
+                if (type != null) {
+                    response = response.header("Content-Type", type)
+                }
+            }
             response
         }
+
         response
     }.getOrElse {
-    Response(Status.INTERNAL_SERVER_ERROR)
-  }
+        Response(Status.INTERNAL_SERVER_ERROR)
+    }
     else -> null
 }
 

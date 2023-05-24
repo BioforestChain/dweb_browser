@@ -11,7 +11,6 @@ data class JmmMetadata(
   val downloadUrl: String = "", // 下载应用地址
   val images: List<String>? = null, // 应用截图
   val introduction: String = "", // 应用描述
-  val splashScreen: SplashScreen = SplashScreen(),
   val author: List<String>? = null, // 开发者，作者
   val version: String = "", // 应用版本
   val keywords: List<String>? = null, // 关键词
@@ -21,19 +20,6 @@ data class JmmMetadata(
   val permissions: List<String>? = null,
   val plugins: List<String>? = null,
   val releaseDate: String = "", // 发布时间
-  /**
-     * 静态网络服务
-     */
-    val staticWebServers: List<StaticWebServer> = listOf(),
-  /**
-     * 应用启动时会打开的网页
-     * 要求 http/https 协议。
-     * 它们会依此打开，越往后的层级越高
-     *
-     * TODO httpNMM 网关那边，遇到未知的请求，会等待一段时间，如果这段时间内这个域名被监听了，那么会将请求分发过去
-     * 所以如果是 staticWebServers 定义的链接，那么自然而然地，页面会等到 staticWebServer 启动后得到响应，不会错过请求。
-     */
-    val openWebViewList: List<OpenWebView> = listOf(),
 ):java.io.Serializable {
     data class MainServer(
         /**
@@ -46,25 +32,6 @@ data class JmmMetadata(
         val entry: String
     ):java.io.Serializable
 
-    /**
-     * 静态网络服务定义
-     * 它将按配置托管一个静态网页服务
-     */
-    data class StaticWebServer(
-        /**
-         * 应用文件夹的目录
-         */
-        val root: String,
-        /**
-         * 入口文件
-         */
-        val entry: String = "index.html",
-        val subdomain: String = "cotdemo.bfs.dweb",
-        val port: Int = 80,
-    ):java.io.Serializable
-
-    data class OpenWebView(val url: String = ""):java.io.Serializable
-    data class SplashScreen(val entry:String? = null):java.io.Serializable
 
 }
 
@@ -125,6 +92,5 @@ val defaultJmmMetadata = JmmMetadata(
     ),
     home = "https://www.bfmeta.info/",
     server = JmmMetadata.MainServer(root = "file:///bundle", entry = "/cot.worker.js"),
-    splashScreen = JmmMetadata.SplashScreen(null)
 )
 

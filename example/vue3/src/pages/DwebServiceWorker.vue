@@ -72,7 +72,7 @@ const cancel = defineLogAction(
 
 const download = defineLogAction(
   async () => {
-    return await sw.updateContoller.download("https://shop.plaoc.com/bfs-metadata.json");
+    return await sw.updateContoller.download("https://dweb.waterbang.top/bfs-metadata.json");
   },
   { name: "cancel", args: [], logPanel: $logPanel }
 );

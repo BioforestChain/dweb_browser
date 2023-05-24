@@ -83,7 +83,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             val response = if (request.uri.path.endsWith("/")) {
                 Response(Status.FORBIDDEN)
             } else {
-                nativeFetch(metadata.server.root + request.uri.path)
+                nativeFetch("file://" + metadata.server.root + request.uri.path)
             }
             ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
         }

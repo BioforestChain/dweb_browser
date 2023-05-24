@@ -7,7 +7,8 @@ class ToyJMM : JsMicroModule(
     JmmMetadata(
         id = "toy.bfs.dweb",
         server = JmmMetadata.MainServer(
-            root = "file:///bundle", entry = "/toy.worker.js"
+            root = "/sys",
+            entry = "/bundle/public.service.worker.js"
         ),
     )
 ) {}
