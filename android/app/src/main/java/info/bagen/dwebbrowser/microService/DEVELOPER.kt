@@ -7,6 +7,8 @@ enum class DEVELOPER(val deviceName: String) {
     HuangLin("HUAWEI/ELE-AL00"),
     HLVirtual("Google/sdk_gphone64_x86_64"),
     HLOppo("OPPO/PGJM10"),
+    HBXiaomi("Xiaomi/2209129SC"), // 海兵测试机
+    ZGSansung("samsung/SM-A5360"),// 专桂测试机
     WaterBang("HONOR/ADT-AN00"),
     Kingsword09("HUAWEI/BKL-AL20"),
     ANONYMOUS("*");
@@ -17,7 +19,7 @@ enum class DEVELOPER(val deviceName: String) {
         val CURRENT = find(Build.MANUFACTURER + "/" + Build.MODEL)
 
         init {
-            println("Hi Developer! ${CURRENT.deviceName}")
+            println("Hi Developer! ${CURRENT.deviceName} => ${Build.MANUFACTURER}/${Build.MODEL}")
         }
     }
 }

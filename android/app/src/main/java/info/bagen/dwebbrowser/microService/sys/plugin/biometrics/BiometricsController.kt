@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.sys.plugin.biometrics
 
 
 import info.bagen.dwebbrowser.microService.helper.PromiseOut
+import java.io.Serializable
 
 class BiometricsController {
     companion object {
@@ -40,3 +41,11 @@ class BiometricsController {
 //            }
 //        }
 }
+
+data class BiometricsData(
+    val title: String?,
+    val subtitle: String?,
+    val description: String?,
+    val useFallback: Boolean?,
+    val negativeButtonText: String?,
+) : Serializable
