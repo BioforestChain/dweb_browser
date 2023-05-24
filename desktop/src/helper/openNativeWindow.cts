@@ -1,9 +1,10 @@
 import { expose, proxy, wrap } from "comlink";
-import { app, BrowserWindow, BrowserWindowConstructorOptions } from "electron";
+import { app, BrowserWindow, BrowserWindowConstructorOptions, protocol } from "electron";
 import * as Electron from "electron/main";
 import { createResolveTo } from "./createResolveTo.cjs";
 import { PromiseOut } from "./PromiseOut.cjs";
-const resolveTo = createResolveTo(__dirname);
+const HTTP = require('http')
+const URL = require('node:url')
 
 export const openNativeWindow = async (
   url: string,
@@ -12,6 +13,28 @@ export const openNativeWindow = async (
 ) => {
   const { MainPortToRenderPort } = await import("./electronPortMessage.mjs");
   await app.whenReady();
+
+  protocol.registerHttpProtocol('http', (request, callback) => {
+    callback({
+      url: request.url,
+      method: request.method,
+      session: undefined
+    })
+  })
+
+  protocol.registerHttpProtocol("https", (request, callback) => {
+    console.log('被转发了的请求request: ', request.url)
+    // 把 https 的请求转为 http 发送
+    callback({
+      url: request.url.replace("https://", "http://"),
+      method: request.method,
+      session: undefined
+    })
+  })
+
+
+
+
   options.webPreferences = {
     ...options.webPreferences,
     // preload: resolveTo("./openNativeWindow.preload.cjs"),
@@ -32,7 +55,7 @@ export const openNativeWindow = async (
   const show_po = new PromiseOut<void>();
   win.once("ready-to-show", () => {
     win.show();
-    // win.webContents.openDevTools();
+    win.webContents.openDevTools();
     show_po.resolve();
   });
 

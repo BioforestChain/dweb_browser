@@ -34,10 +34,11 @@ export class MultiWebViewContent extends LitElement{
         }
       }
     ))
-    this.webviewDidStartLoading(event)
+    console.log('onDomReady')
   }
 
   webviewDidStartLoading(e: Event){
+    console.log('did-start-loading')
     const el = e.target;
     if(el === null) throw new Error(`el === null`);
     ;(e.target as  WebviewTag)
@@ -103,6 +104,7 @@ export class MultiWebViewContent extends LitElement{
         allownw
         preload=${this.preload}
         @dom-ready=${this.onDomReady}
+        @did-start-loading=${this.webviewDidStartLoading}
         useragent=${navigator.userAgent + " dweb-host/" + location.host}
       ></webview>
     `

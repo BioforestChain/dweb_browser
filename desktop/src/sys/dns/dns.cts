@@ -297,7 +297,6 @@ export class DnsNMM extends NativeMicroModule {
   private running_apps = new Map<$MMID, MicroModule>();
   /** 打开应用 */
   async open(mmid: $MMID) {
-    console.log("open: ", mmid)
     let app = this.running_apps.get(mmid);
     if (app === undefined) {
       const mm = await this.query(mmid);
