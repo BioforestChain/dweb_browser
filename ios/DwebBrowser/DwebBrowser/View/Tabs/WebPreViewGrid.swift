@@ -24,7 +24,8 @@ struct CellFramePreferenceKey: PreferenceKey {
 
 struct WebPreViewGrid: View {
     @EnvironmentObject var browser: BrowerVM
-    
+    @EnvironmentObject var addressbarOffset: AddressBarOffsetOnX
+
     @State var frames: [CellFrameInfo] = []
     
     @Binding var cellFrames: [CGRect]
@@ -54,13 +55,18 @@ struct WebPreViewGrid: View {
                                     print("\(geoFrame.minY) - \(currentFrame.minY), \(geoFrame.maxY) - \(currentFrame.maxY)")
                                     if geoFrame.minY <= currentFrame.minY, geoFrame.maxY >= currentFrame.maxY{
                                         print("inside of grid")
+                                        
+                                            browser.selectedTabIndex = index
+                                            browser.showingOptions = false
                                     }else{
                                         print("outside of grid")
+                                        browser.selectedTabIndex = index
+                                        addressbarOffset.offset = -CGFloat (index) * screen_width
+
                                         withAnimation(.easeInOut(duration: 0.3),{
                                             scrollproxy.scrollTo(index)
                                         })
                                         DispatchQueue.main.asyncAfter(deadline: .now()+0.4, execute: {
-                                            browser.selectedTabIndex = index
                                             browser.showingOptions = false
                                         })
                                     }

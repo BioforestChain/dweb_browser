@@ -8,7 +8,10 @@
 import SwiftUI
 import WebKit
 
-enum AnimateImageState: Int{
+let expandingDuration = 0.5
+let fadingDuration = 0.1
+
+enum AnimationProgress: Int{
     case initial
     case startExpanding
     case expanded
@@ -16,13 +19,21 @@ enum AnimateImageState: Int{
     case startShrinking
     case shrinked
     
-    case animateDone
+    case fading
+    case invisible
     
-    func next()->AnimateImageState{
+    case finished
+    
+    func isAnimating() -> Bool{
+        return self.rawValue > AnimationProgress.initial.rawValue && self.rawValue < AnimationProgress.invisible.rawValue
+    }
+    
+    func next()->AnimationProgress{
         switch self{
         case .startExpanding: return .expanded
         case .startShrinking: return .shrinked
-        default: return .animateDone
+        case .fading: return .invisible
+        default: return .finished
         }
     }
     func isLarge() -> Bool{
@@ -32,16 +43,7 @@ enum AnimateImageState: Int{
         return self == .startExpanding || self == .shrinked
     }
 }
-//struct TabsContainerView: View{
-//    init(){
-//        print("visiting TabsContainerView init")
-//    }
-//
-//    var body: some View{
-//        ZStack{}
-//            .id("TabsContainerView")
-//    }
-//}
+let animationDuration: CGFloat = 0.5
 
 // observe the showingOptions variety to do the switch animation
 struct TabsContainerView: View{
@@ -51,7 +53,7 @@ struct TabsContainerView: View{
 
     @State private var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
 
-    @State var imageState: AnimateImageState = .initial
+    @State var imageState: AnimationProgress = .initial
 
     private var selectedCellFrame: CGRect {
         cellFrames[browser.selectedTabIndex]
@@ -81,11 +83,11 @@ struct TabsContainerView: View{
                     Color(white: 0.8)
                 }
 
-                if !browser.showingOptions, imageState == .animateDone{
+                if !browser.showingOptions, !imageState.isAnimating(){
                     TabHStackView()
                 }
 
-                if imageState.rawValue < AnimateImageState.animateDone.rawValue, imageState != .initial{
+                if imageState.isAnimating(){
                     animationImage
                 }
             }
@@ -101,7 +103,7 @@ struct TabsContainerView: View{
                 }else{
                     imageState = .startExpanding
                 }
-                withAnimation(.easeInOut(duration: 0.5),{
+                withAnimation(.easeInOut(duration: animationDuration),{
                     gridScale = shouldShowGrid ? 1 : 0.8
                 })
             }
@@ -109,12 +111,13 @@ struct TabsContainerView: View{
     }
     
     var animationImage: some View{
+        
         Image(uiImage: browser.currentSnapshotImage!)
             .resizable()
             .scaledToFill()
             .frame(width: cellWidth(fullW: geoRect.width),
                    height: cellHeight(fullH: geoRect.height),alignment: .top)
-            .cornerRadius(imageState == .shrinked || imageState == .startExpanding ? gridcellCornerR : 0)
+            .cornerRadius(imageState.isSmall() ? gridcellCornerR : 0)
 
             .clipped()
             .position(x: cellCenterX(geoMidX: geoRect.midX),
@@ -122,13 +125,19 @@ struct TabsContainerView: View{
 
             .onAppear{
                 DispatchQueue.main.asyncAfter(deadline: .now()) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        imageState = imageState.next()
+                    withAnimation(.easeInOut(duration: animationDuration)) {
+                        imageState = imageState.next() // change to expanded or shrinked
+                        
                     }
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        imageState = .animateDone
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration + 0.1) {
+                    imageState = .fading // change to expanded or shrinked
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration + 0.1) {
+                    withAnimation(.easeInOut(duration: fadingDuration)) {
+                        imageState = .invisible
                     }
                 }
             }
@@ -181,31 +190,62 @@ struct TabHStackView: View{
 
     @EnvironmentObject var xoffset: AddressBarOffsetOnX
 
-    var body: some View{
-        
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 0) {
-                ForEach(browser.pages, id: \.self) { page in
-                    TabPageView(webWrapper: page.webWrapper)
-                        .frame(width: screen_width)
-                        .onReceive(browser.$showingOptions) { showDeck in
-                            if showDeck {
-                                if let index = browser.pages.firstIndex(of: page), index == browser.selectedTabIndex{
-                                    if let image = self.environmentObject(browser).snapshot(){
-                                        browser.capturedImage = image
-                                        page.webWrapper.webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: page.webWrapper.webCache.id.uuidString)
-                                        
-                                        WebCacheStore.shared.saveCaches(caches: browser.pages.map({ $0.webWrapper.webCache }))
-                                    }
-                                }
-                            }
-                        }
-                }
-            }
-            .offset(x: xoffset.offset)
-        }
-        .scrollDisabled(true)
+//    @Binding var offset: CGFloat
+    private func webWrapper(at index: Int) -> WebWrapper{
+        browser.pages[index].webWrapper
     }
+    var body: some View{
+        GeometryReader{ geo in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(browser.pages.indices){ index in
+                        TabPageView(webWrapper: webWrapper(at:index))
+                            .frame(width: screen_width)
+                           
+                    }
+                }
+                .offset(x: xoffset.offset)
+            }
+            .scrollDisabled(true)
+        }
+        
+    }
+    
+    
+    
+
+    
+    func takeScreenshot(of rect: CGRect) -> UIImage? {
+            guard let window = UIApplication.shared.windows.first else {
+                return nil
+            }
+            let renderer = UIGraphicsImageRenderer(bounds: rect)
+            let image = renderer.image { context in
+                window.drawHierarchy(in: rect, afterScreenUpdates: false)
+            }
+            return image
+        }
+    
+    
+    func snapshot() -> UIImage? {
+        // 创建UIView
+        let uiView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)))
+
+        // 将视图添加到UIView上
+        let hostingController = UIHostingController(rootView: self)
+        hostingController.view.frame = uiView.bounds
+        uiView.addSubview(hostingController.view)
+
+        // 绘制屏幕可见区域
+        UIGraphicsBeginImageContextWithOptions(uiView.bounds.size, false, UIScreen.main.scale)
+        uiView.drawHierarchy(in: uiView.bounds, afterScreenUpdates: true)
+
+        // 获取截图并输出
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return image
+    }
+    
 }
 
 struct TabHStackView_Previews: PreviewProvider {

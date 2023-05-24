@@ -39,8 +39,10 @@ class Page: Identifiable, ObservableObject, Hashable{
 
 
 class BrowerVM: ObservableObject {
+    
     @Published var showingOptions = true
     @Published var selectedTabIndex = 0
+    
     
     @Published var pages = WebCacheStore.shared.store.map{Page(webWrapper: WebWrapper(webCache: $0))}
     
@@ -48,7 +50,15 @@ class BrowerVM: ObservableObject {
     
     @Published var currentSnapshotImage: UIImage?
     
-    @Published var capturedImage: UIImage?
+    @Published var capturedImage: UIImage?{
+        didSet{
+            if capturedImage != nil{
+                pages[selectedTabIndex].webWrapper.webCache.snapshotUrl = UIImage.createLocalUrl(withImage: capturedImage!, imageName: pages[selectedTabIndex].webWrapper.webCache.id.uuidString)
+                WebCacheStore.shared.saveCaches(caches: pages.map({ $0.webWrapper.webCache }))
+            }
+            
+        }
+    }
     
     var cancellables = Set<AnyCancellable>()
     

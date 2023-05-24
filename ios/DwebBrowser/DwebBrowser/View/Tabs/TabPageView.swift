@@ -16,7 +16,7 @@ struct TabPageView: View {
     @EnvironmentObject var browser: BrowerVM
 
     @State var homeview = HomeView()
-
+    @State var hasTook = false
     var  body: some View {
         ZStack{
             NavigationView {
@@ -49,6 +49,25 @@ struct TabPageView: View {
                 if progress >= 1.0{
                     print("caching \(webWrapper.webCache)")
                     browser.saveCaches()
+                }
+            }
+            .onReceive(browser.$showingOptions) { showDeck in
+                if showDeck, !hasTook {
+                    let index = browser.pages.map({$0.webWrapper}).firstIndex(of: webWrapper)
+                    if index == browser.selectedTabIndex{
+                        if let image = self.environmentObject(browser).snapshot(){
+//                                            let rect = geo.frame(in: .global)
+                        print(image)
+                            hasTook = true
+                            browser.currentSnapshotImage = image
+                            DispatchQueue.main.asyncAfter(deadline: .now()+0.5, execute: {hasTook = false})
+//                                        if let image = self.takeScreenshot(of:rect) {
+//                                            if let image = self.snapshot() {
+
+//                                            browser.capturedImage = image
+                            
+                        }
+                    }
                 }
             }
             

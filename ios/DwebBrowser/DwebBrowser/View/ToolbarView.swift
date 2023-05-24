@@ -31,28 +31,28 @@ struct ToolbarView: View {
                         .frame(width: 25)
                     ToolbarItem(imageName: "chevron.backward") {
                         toolbarStates.canGoBack = true
-                        print("arrow.up was clicked")
+                        print("backward was clicked")
                     }
                     
                     Spacer()
                     
                     ToolbarItem(imageName: "chevron.forward") {
                         toolbarStates.canGoForward.toggle()
-                        print("arrow.up was clicked")
+                        print("forwardp was clicked")
                     }
                     
                     Spacer()
                     
                     ToolbarItem(imageName: "plus") {
                         toolbarStates.addTapped.toggle()
-                        print("arrow.up was clicked")
+                        print("plus was clicked")
                     }
                 }
                 Group{
                     Spacer()
                     
                     ToolbarItem(imageName: "book") {
-                        print("arrow.up was clicked")
+                        print("book was clicked")
                         withAnimation {
                             toolbarStates.moreTapped = true
                             
