@@ -28,11 +28,11 @@ import type {
 import { ipcRenderer } from "electron";
 // import { hexaToRGBA } from "../../../helper/colorFormat.cjs"
 import type { MultiWebViewContent } from "./multi-webview-content.html.mjs";
-import type { $BarState, $BAR_STYLE, $SafeAreaState, $ShareOptions, $VirtualKeyboardState } from "./types.js";
+import type { $BarState, $BAR_STYLE, $SafeAreaState, $ShareOptions, $VirtualKeyboardState } from "../types.js";
 import type { MultiWebViewCompMobileShell } from "./components/multi-webview-comp-mobile-shell.html.mjs";
 import type { MultiWebviewCompVirtualKeyboard } from "./components/multi-webview-comp-virtual-keyboard.html.mjs";
 import type { MultiWebviewCompNavigationBar } from "./components/multi-webview-comp-navigator-bar.html.mjs";
-import type { $OverlayState } from "./types.js"
+import type { $OverlayState } from "../types.js"
 
 
 @customElement("view-tree")

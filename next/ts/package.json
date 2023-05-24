@@ -1,0 +1,18 @@
+{
+    "name": "bundle-projects",
+    "description": "该配置文件是给bundle使用的",
+    "scripts": {},
+    "devDependencies": {
+        "esbuild": "^0.17.19",
+        "esbuild-plugin-html-modules": "^0.6.0",
+        "vite-plugin-electron-renderer": "^0.12.1"
+    },
+    "dependencies": {
+        "@lit-labs/motion": "^1.0.3",
+        "@msgpack/msgpack": "3.0.0-beta2",
+        "comlink": "^4.4.1",
+        "deep-object-diff": "^1.1.9",
+        "lit": "^2.6.1",
+        "lodash": "^4.17.21"
+    }
+}

@@ -1,10 +1,15 @@
 import { expose, proxy, wrap } from "comlink";
-import { app, BrowserWindow, BrowserWindowConstructorOptions, protocol } from "electron";
+import {
+  app,
+  BrowserWindow,
+  BrowserWindowConstructorOptions,
+  protocol,
+} from "electron";
 import * as Electron from "electron/main";
 import { createResolveTo } from "./createResolveTo.cjs";
 import { PromiseOut } from "./PromiseOut.cjs";
-const HTTP = require('http')
-const URL = require('node:url')
+import HTTP from "node:http";
+import URL from "node:url";
 
 export const openNativeWindow = async (
   url: string,
@@ -14,26 +19,23 @@ export const openNativeWindow = async (
   const { MainPortToRenderPort } = await import("./electronPortMessage.mjs");
   await app.whenReady();
 
-  protocol.registerHttpProtocol('http', (request, callback) => {
+  protocol.registerHttpProtocol("http", (request, callback) => {
     callback({
       url: request.url,
       method: request.method,
-      session: undefined
-    })
-  })
+      session: undefined,
+    });
+  });
 
   protocol.registerHttpProtocol("https", (request, callback) => {
-    console.log('被转发了的请求request: ', request.url)
+    console.log("被转发了的请求request: ", request.url);
     // 把 https 的请求转为 http 发送
     callback({
       url: request.url.replace("https://", "http://"),
       method: request.method,
-      session: undefined
-    })
-  })
-
-
-
+      session: undefined,
+    });
+  });
 
   options.webPreferences = {
     ...options.webPreferences,
@@ -77,7 +79,7 @@ export const openNativeWindow = async (
       export_port: MainPortToRenderPort(export_port),
     });
   });
-  
+
   console.log("[openNativeWindow.cts]url", url);
   await win.loadURL(url);
   await show_po.promise;
@@ -99,10 +101,11 @@ export class ForRenderApi {
     devToolsId?: number
   ) {
     const content_wcs = Electron.webContents.fromId(webContentsId);
-    if(content_wcs === undefined) throw new Error(`content_wcs === undefined`)
+    if (content_wcs === undefined) throw new Error(`content_wcs === undefined`);
     if (devToolsId) {
       const devTools_wcs = Electron.webContents.fromId(devToolsId);
-      if(devTools_wcs === undefined) throw new Error(`content_wcs === undefined`)
+      if (devTools_wcs === undefined)
+        throw new Error(`content_wcs === undefined`);
       content_wcs.setDevToolsWebContents(devTools_wcs);
       queueMicrotask(() => {
         devTools_wcs.executeJavaScript("window.location.reload()");
@@ -114,34 +117,34 @@ export class ForRenderApi {
     webContentsId: number,
     onDeny: (details: Electron.HandlerDetails) => unknown
   ) {
-    const contents = Electron.webContents.fromId(webContentsId)
-    if(contents === undefined) throw new Error(`contents === undefined`);
+    const contents = Electron.webContents.fromId(webContentsId);
+    if (contents === undefined) throw new Error(`contents === undefined`);
     return contents.setWindowOpenHandler((detail) => {
-        onDeny(detail);
-        return { action: "deny" };
-      });
+      onDeny(detail);
+      return { action: "deny" };
+    });
   }
   destroy(webContentsId: number, options?: Electron.CloseOpts) {
-    const contents = Electron.webContents.fromId(webContentsId)
-    if(contents === undefined) throw new Error(`contents === undefined`);
+    const contents = Electron.webContents.fromId(webContentsId);
+    if (contents === undefined) throw new Error(`contents === undefined`);
     return contents.close(options);
   }
   onDestroy(webContentsId: number, onDestroy: () => unknown) {
-    const contents = Electron.webContents.fromId(webContentsId)
-    if(contents === undefined) throw new Error(`contents === undefined`);
+    const contents = Electron.webContents.fromId(webContentsId);
+    if (contents === undefined) throw new Error(`contents === undefined`);
     contents.addListener("destroyed", () => {
       onDestroy();
     });
   }
   getWenContents(webContentsId: number) {
-    const contents = Electron.webContents.fromId(webContentsId)
-    if(contents === undefined) throw new Error(`contents === undefined`);
+    const contents = Electron.webContents.fromId(webContentsId);
+    if (contents === undefined) throw new Error(`contents === undefined`);
     return proxy(contents);
   }
-  
+
   // 关闭 Browserwindow
-  closedBrowserWindow(){
-    this.win.close()
+  closedBrowserWindow() {
+    this.win.close();
   }
 }
 

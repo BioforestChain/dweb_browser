@@ -1,102 +1,106 @@
 // 效果 webview 容器
-import { css , html, LitElement } from "lit"
-import { customElement, property, query, state } from "lit/decorators.js"
-import { styleMap } from 'lit/directives/style-map.js';
-import { ifDefined } from "lit/directives/if-defined.js"; 
+import { css, html, LitElement } from "lit";
+import { customElement, property, query, state } from "lit/decorators.js";
+import { styleMap } from "lit/directives/style-map.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import { Webview } from "./multi-webview.mjs";
-import ecxuteJavascriptCode from "./multi-webview-content-execute-javascript.mjs"
-import WebviewTag = Electron.WebviewTag
+import ecxuteJavascriptCode from "./multi-webview-content-execute-javascript.mjs";
+import WebviewTag = Electron.WebviewTag;
 
 @customElement("multi-webview-content")
-export class MultiWebViewContent extends LitElement{
-  static override styles  = createAllCSS()
+export class MultiWebViewContent extends LitElement {
+  static override styles = createAllCSS();
 
-  @property({type: Webview}) customWebview: Webview | undefined = undefined;
-  @property({type: Boolean}) closing: Boolean = false;
-  @property({type: Number}) zIndex: Number = 0;
-  @property({type: Number}) scale: Number = 0;
-  @property({type: Number}) opacity: Number = 1;
-  @property({type: Number}) customWebviewId: Number = 0;
-  @property({type: String}) src: String = ""
-  @property({type: String}) preload: String = "";
+  @property({ type: Webview }) customWebview: Webview | undefined = undefined;
+  @property({ type: Boolean }) closing: Boolean = false;
+  @property({ type: Number }) zIndex: Number = 0;
+  @property({ type: Number }) scale: Number = 0;
+  @property({ type: Number }) opacity: Number = 1;
+  @property({ type: Number }) customWebviewId: Number = 0;
+  @property({ type: String }) src: String = "";
+  @property({ type: String }) preload: String = "";
   @state() statusbarHidden: boolean = false;
   @query("webview") elWebview: WebviewTag | undefined;
 
-  onDomReady(event: Event){
-    this.dispatchEvent(new CustomEvent(
-      "dom-ready",
-      {
+  onDomReady(event: Event) {
+    this.dispatchEvent(
+      new CustomEvent("dom-ready", {
         bubbles: true,
         detail: {
           customWebview: this.customWebview,
           event: event,
-          from: event.target
-        }
-      }
-    ))
-    console.log('onDomReady')
+          from: event.target,
+        },
+      })
+    );
+    console.log("onDomReady");
   }
 
-  webviewDidStartLoading(e: Event){
-    console.log('did-start-loading')
+  webviewDidStartLoading(e: Event) {
+    console.log("did-start-loading");
     const el = e.target;
-    if(el === null) throw new Error(`el === null`);
-    ;(e.target as  WebviewTag)
-    .executeJavaScript(ecxuteJavascriptCode)
+    if (el === null) throw new Error(`el === null`);
+    (e.target as WebviewTag).executeJavaScript(ecxuteJavascriptCode);
   }
 
-  onAnimationend(event: AnimationEvent){
-    this.dispatchEvent(new CustomEvent(
-      "animationend",
-      {
+  onAnimationend(event: AnimationEvent) {
+    this.dispatchEvent(
+      new CustomEvent("animationend", {
         bubbles: true,
         detail: {
           customWebview: this.customWebview,
           event: event,
-          from: event.target
-        }
-      }
-    ))
+          from: event.target,
+        },
+      })
+    );
   }
 
   /**
    * 向内部的 webview 的内容执行 code
-   * @param code 
+   * @param code
    */
   executeJavascript = (code: string) => {
-    if(this.elWebview === undefined) throw new Error(`this.elWebview === undefined`);
-    this.elWebview.executeJavaScript(code)
-  }
+    if (this.elWebview === undefined)
+      throw new Error(`this.elWebview === undefined`);
+    this.elWebview.executeJavaScript(code);
+  };
 
-  onPluginNativeUiLoadBase(e: Event){
+  onPluginNativeUiLoadBase(e: Event) {
     const iframe = e.target as HTMLIFrameElement;
-    const contentWindow = iframe.contentWindow as Window;;
-    // 把 status-bar 添加到容器上 
+    const contentWindow = iframe.contentWindow as Window;
+    // 把 status-bar 添加到容器上
     // 把容器 元素传递给内部的内部的window
     const container = iframe.parentElement as HTMLDivElement;
     Reflect.set(contentWindow, "parentElement", container);
-    contentWindow.postMessage("loaded","*")
+    contentWindow.postMessage("loaded", "*");
   }
 
-  getWebviewTag(){
+  getWebviewTag() {
     return this.elWebview;
   }
 
-  override render(){
+  override render() {
     const containerStyleMap = styleMap({
       "--z-index": this.zIndex + "",
       "--scale": this.scale + "",
-      "--opacity": this.opacity + ""
-    })
+      "--opacity": this.opacity + "",
+    });
 
     // useragent=${navigator.userAgent + "dweb-host/" + location.host}
     return html`
       <webview
-        nodeintegration nodeintegrationinsubframes allowpopups disablewebsecurity plugins
-        class="webview ${ this.closing ? `closing-ani-view` : `opening-ani-view`}"
-        style="${containerStyleMap}"  
-        @animationend=${this.onAnimationend} 
-        data-app-url=${this.src} 
+        nodeintegration
+        nodeintegrationinsubframes
+        allowpopups
+        disablewebsecurity
+        plugins
+        class="webview ${this.closing
+          ? `closing-ani-view`
+          : `opening-ani-view`}"
+        style="${containerStyleMap}"
+        @animationend=${this.onAnimationend}
+        data-app-url=${this.src}
         id="view-${this.customWebviewId}"
         class="webview"
         src=${ifDefined(this.src)}
@@ -107,31 +111,30 @@ export class MultiWebViewContent extends LitElement{
         @did-start-loading=${this.webviewDidStartLoading}
         useragent=${navigator.userAgent + " dweb-host/" + location.host}
       ></webview>
-    `
+    `;
   }
 }
 
-function createAllCSS(){
+function createAllCSS() {
   return [
     css`
-      :host{
+      :host {
         box-sizing: border-box;
         margin: 0px;
         padding: 0px;
         width: 100%;
         height: 100%;
       }
-      
+
       .webview {
         position: relative;
         box-sizing: border-box;
         width: 100%;
-        min-height:100%;
+        min-height: 100%;
         scrollbar-width: 2px;
         overflow: hidden;
         overflow-y: auto;
       }
-  
     `,
     // 需要啊全部的custom.属性传递进来
     // 动画相关
@@ -170,17 +173,17 @@ function createAllCSS(){
         }
       }
     `,
-  ]
+  ];
 }
 
-export interface CustomEventDomReadyDetail{
-  customWebview: Webview ;
-  event: Event,
+export interface CustomEventDomReadyDetail {
+  customWebview: Webview;
+  event: Event;
   from: EventTarget & WebviewTag;
 }
 
-export interface CustomEventAnimationendDetail{
-  customWebview: Webview,
-  event: AnimationEvent,
-  from: EventTarget | null
+export interface CustomEventAnimationendDetail {
+  customWebview: Webview;
+  event: AnimationEvent;
+  from: EventTarget | null;
 }

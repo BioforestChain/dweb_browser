@@ -2,7 +2,7 @@ import type { Ipc } from "../../core/ipc/index.cjs";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.cjs";
 import type { $Schema1ToType, $Schema2 } from "../../helper/types.cjs";
 import { hexaToRGBA,  converRGBAToHexa} from "../plugins/helper.cjs";
-import type { $BarState, $ToastPosition } from "./assets/types";
+import type { $BarState, $ToastPosition } from "./types.js";
 import type { MultiWebviewNMM } from "./multi-webview.mobile.cjs"
 import querystring from "node:querystring"
 // @ts-ignore

@@ -15,6 +15,7 @@ import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.cjs"
 import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.cjs";
 import { ShareNMM } from "./sys/plugins/sys/share/share.main.cjs";
 import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.cjs";
+import process from "node:process"
 
 export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());

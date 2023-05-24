@@ -12,7 +12,7 @@ import { mapHelper } from "../../helper/mapHelper.cjs";
 import { PromiseOut } from "../../helper/PromiseOut.cjs";
 import querystring from "node:querystring";
 import { nativeFetchAdaptersManager } from "./nativeFetch.cjs";
-import type { IncomingMessage, OutgoingMessage } from "http";
+import type { IncomingMessage, OutgoingMessage } from "node:http";
 import type {
   $BootstrapContext,
   $DnsMicroModule,

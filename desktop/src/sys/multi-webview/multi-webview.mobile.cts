@@ -32,7 +32,6 @@ import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { Remote } from "comlink";
 import type { Ipc } from "../../core/ipc/ipc.cjs";
 import type { IncomingMessage, OutgoingMessage } from "node:http";
-import type { $BarState, $BAR_STYLE, $SafeAreaState, $VirtualKeyboardState } from "./assets/types";
 
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.mjs")["APIS"];

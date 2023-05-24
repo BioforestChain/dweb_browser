@@ -3,7 +3,7 @@ import { log } from "../../../../helper/devtools.cjs";
 import querystring from "node:querystring"
 import { share,
   createStreamIpc } from "./handlers.cjs"
-import type { IncomingMessage, OutgoingMessage } from "http";
+import type { IncomingMessage, OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../../../core/bootstrapContext.cjs";
 import type { HttpServerNMM } from "../../../http-server/http-server.cjs";
 

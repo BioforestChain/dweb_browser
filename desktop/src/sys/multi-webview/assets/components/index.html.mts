@@ -14,7 +14,7 @@ import { when } from "lit/directives/when.js";
 import { query } from "lit/decorators.js";
 import { state } from "lit/decorators.js";
 import { getButtomBarState } from "./multi-webview-comp-safe-area.shim.mjs"
-import type { $BAR_STYLE, $BarState, $ShareOptions } from "../types.js";
+import type { $BAR_STYLE, $BarState, $ShareOptions } from "../../types.js";
 import type { MultiWebViewCompMobileShell } from "./multi-webview-comp-mobile-shell.html.mjs";
 
 @customElement('root-comp')

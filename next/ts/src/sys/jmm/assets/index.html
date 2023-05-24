@@ -1,0 +1,391 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JMMMetadata</title>
+  <style type="text/css">
+    /* html{
+        border: 10px solid blue;
+    } */
+    body{
+      margin: 0px;
+      padding: 0px 12px;
+    }
+    body::-webkit-scrollbar{
+      display: block;
+      background: transparent;
+      width: 5px;
+    }
+    body::-webkit-scrollbar-thumb{
+      background: #999;
+      border-radius: 5px;
+    }
+
+    .top-bar-container{
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 20px 0px;
+      width: auto;
+      height: 30px;
+      line-height: 30px;
+      cursor: pointer;
+    }
+
+    .summary-container{
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      box-sizing: content-box;
+      padding: 10px 0px;
+      width: 100%;
+      height: 130px;
+    }
+
+    .icon-container{
+      flex-shrink: 0;
+      width: 100px;
+      height: 100px;
+      background-size: 60%;
+      background-position: center;
+      background-repeat: no-repeat;
+      border-radius: 20px;
+    }
+
+    .text-container{
+      position: relative;
+      box-sizing: border-box;
+      margin-left: 10px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .title{
+      margin: 0px;
+      width: 100%;
+      font-size: 24px;
+      line-height: 26px;
+    }
+
+    .explain{
+      margin: 0px;
+      font-size: 14px;
+      line-height: 22px;
+      color: #888;
+    }
+    .button-group-container{
+      position: absolute;
+      left: 0px;
+      bottom: 0px;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .btn-download{
+      position: relative;
+      padding: 3px 20px;
+      width: 60px;
+      height: 30px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #fff;
+      border: none;
+      background: #ddd;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .btn-download-mask{
+      position: absolute;
+      z-index: 0;
+      left: 0px;
+      top: 0px;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #1677ff 100%, #999);
+    }
+
+    .btn-download-label{
+      position: absolute;
+      z-index: 1;
+      left: 0px;
+      top: 0px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .preview-container{
+      width: 100%;
+      height: auto;
+    }
+
+    .preview-container-title{
+      margin: 0px;
+    }
+
+    .img-container{
+      display: flex;
+      margin-top: 10px;
+      width: 100%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+    }
+
+    .img-container::-webkit-scrollbar{
+      height: 5px;
+      background: transparent;
+    }
+
+    .img-container::-webkit-scrollbar-thumb{
+      background: #999;
+      border-radius: 5px;
+    }
+
+    .img-box{
+      flex: none;
+      margin-left: 10px;
+      width: 260px;
+      border-radius: 20px;
+      scroll-snap-align: center;
+    }
+
+    .img-box:first-of-type{
+      margin-left: 0px;
+    }
+
+    .detail-contaienr{
+      --font-size: 13px;
+      --line-height: 16px;
+      position: relative;
+      width: 100%;
+      height: auto;
+      font-size: 13px;
+      line-height: 16px;
+    }
+
+    .detail-text{
+      position: relative;
+      font-size: 13px;
+      line-height: 20px;
+      height: 20px;
+      overflow: hidden;
+    }
+
+    .detail-text-open{
+      height: auto;
+    }
+
+    .detail-button-more{
+      position: absolute;
+      right: 0px;
+      bottom: 0px;
+      padding-left: 50px;
+      border: none;
+      color: #1677ff;
+      background: linear-gradient(to right, transparent, #ffff 40%);
+      cursor: pointer;
+    }
+
+    .detail-button-more-open{
+      bottom: -20px;
+    }
+
+    .developer-container{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0px 50px 0px;
+    }
+
+    .developer-name{
+      margin: 0px;
+      font-size: 13px;
+      line-height: 15px;
+      color: #1677ff;
+    }
+
+    .developer-title{
+      margin: 0px;
+      font-size: 12px;
+      line-height: 15px;
+      color: #999;
+    }
+
+    .icon-right{
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <!-- <div class="top-bar-container">
+    <svg 
+      t="1677677290270" 
+      class="icon-back" 
+      viewBox="0 0 1024 1024" 
+      version="1.1" 
+      xmlns="http://www.w3.org/2000/svg" 
+      p-id="2491" 
+      width="20" 
+      height="20"
+    >
+      <path 
+        d="M395.21518 513.604544l323.135538-312.373427c19.052938-18.416442 19.052938-48.273447 0-66.660212-19.053961-18.416442-49.910737-18.416442-68.964698 0L291.75176 480.290811c-19.052938 18.416442-19.052938 48.273447 0 66.660212l357.633237 345.688183c9.525957 9.207709 22.01234 13.796214 34.497699 13.796214 12.485359 0 24.971741-4.588505 34.466999-13.82896 19.052938-18.416442 19.052938-48.242747 0-66.660212L395.21518 513.604544z" 
+        fill="currentColor" 
+        p-id="2492"
+      >
+      </path>
+    </svg>
+    <span>搜索</span>
+  </div> -->
+  <div class="summary-container">
+    <div class="icon-container"></div>
+    <div class="text-container">
+      <h1 class="title"></h1>
+      <p class="explain"></p>
+      <div class="button-group-container">
+        <button class="btn-download" data-fn="update">
+          <div class="btn-download-mask"></div>
+          <div class="btn-download-label">更新</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 预览 -->
+  <hr />
+  <div class="preview-container">
+    <h2 class="preview-container-title">预览</h2>
+    <div class="img-container">
+    </div>
+  </div>
+
+  <!-- 详情 -->
+  <hr />
+  <div class="detail-contaienr">
+    <p class="detail-text"></p>
+    <button class="detail-button-more" data-status="close">更多</button>
+  </div>
+
+  <!-- 开发者 -->
+  <div class="developer-container">
+    <div class="developer-text-container">
+      <p class="developer-name"></p>
+      <p class="developer-title">开发者</p>
+    </div>
+    <svg 
+      t="1677682363419"
+      class="icon-right" 
+      viewBox="0 0 1024 1024" 
+      version="1.1" 
+      xmlns="http://www.w3.org/2000/svg" 
+      p-id="3462" 
+      width="20" 
+      height="20"
+  >
+      <path 
+        d="M731.733333 480l-384-341.333333c-17.066667-14.933333-44.8-14.933333-59.733333 4.266666-14.933333 17.066667-14.933333 44.8 4.266667 59.733334L640 512 292.266667 821.333333c-17.066667 14.933333-19.2 42.666667-4.266667 59.733334 8.533333 8.533333 19.2 14.933333 32 14.933333 10.666667 0 19.2-4.266667 27.733333-10.666667l384-341.333333c8.533333-8.533333 14.933333-19.2 14.933334-32s-4.266667-23.466667-14.933334-32z" 
+        fill="currentColor" 
+        p-id="3463"
+      >
+      </path>
+    </svg>
+  </div>
+  <script type="text/javascript">
+    // const elBack = document.querySelector('.top-bar-container')
+    const elIcon = document.querySelector('.icon-container')
+    const elMainTitle = document.querySelector('.title')
+    const elMainExplain = document.querySelector('.explain')
+    const elBtnDownload = document.querySelector('.btn-download')
+    const elBtnDownloadMask = document.querySelector(".btn-download-mask")
+    const elBtnDownloadText = document.querySelector('.btn-download-label')
+    const elPreviewImgeContainer = document.querySelector('.img-container')
+    const elDetailtext = document.querySelector('.detail-text')
+    const elBtnMore = document.querySelector('.detail-button-more')
+    const elMoreDeveloperInfo = document.querySelector(".developer-container")
+    const elDeveloperName = document.querySelector(".developer-name");
+    let isDownloaded = false
+
+    async function setAppInfoByAppInfo(info){
+      const appInfo = JSON.parse(info)
+      elIcon.style.backgroundImage = "url('https://www.bfmeta.info/imgs/logo3.webp')"
+      elMainTitle.innerHTML = appInfo.title;
+      elMainExplain.innerHTML = appInfo.subtitle;
+      elDetailtext.innerHTML = appInfo.introduction;
+      elDeveloperName.innerText = appInfo.author[0]
+
+      imgs = appInfo.images.map(item => {
+        const img = document.createElement('img')
+              img.classList.add('img-box');
+              img.src = item;
+        return img;
+      })
+      elPreviewImgeContainer.append(...imgs)
+    };
+
+    // 下载按钮事件处理器
+    elBtnDownload.addEventListener('click', (e) => {
+      // metadataUrl 是全局注入进来的
+      const fetchUrl = `./jmm.sys.dweb/install?metadataUrl=${metadataUrl}`;
+      // 因为 注入改写了 fetch
+      setDownloadBackground(0)
+      setDownloadText(0)
+      nativeFetch(fetchUrl, { headers: {origin: location.origin}})
+      .then(
+        res => console.log('res', res),
+        err => console.error(err)
+      )
+    })
+    elBtnMore.addEventListener('click', (e) => {
+      const has = elDetailtext.classList.contains('detail-text-open')
+      if(has){
+        elDetailtext.classList.remove('detail-text-open')
+        elBtnMore.classList.remove("detail-button-more-open")
+        elBtnMore.innerText = "更多"
+        return;
+      }
+      elDetailtext.classList.add('detail-text-open')
+      elBtnMore.classList.add("detail-button-more-open")
+      elBtnMore.innerText = "收起"
+    }) 
+
+    elMoreDeveloperInfo.addEventListener('click', (e) => {
+      console.log('developerContainer')
+    })
+
+    /**
+     * 设置 下载按钮的背景色
+     */ 
+    function setDownloadBackground(percent){
+      elBtnDownloadMask.style.background = `linear-gradient(90deg, #1677ff ${percent}%, #999)`
+    }
+
+    function setDownloadText(percent){
+      elBtnDownloadText.innerText = percent == 100 ? "更新" : percent
+    }
+
+    function progress(percent){
+      setDownloadBackground(percent)
+      setDownloadText(percent)
+    }
+
+    window.__app_upgrade_watcher_kit__ = {
+      _listeners: {
+        progress: [
+          progress
+        ]
+      }
+    }
+    
+  </script>
+  <script type="text/javascript">
+    
+  </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import { NativeMicroModule } from "../../core/micro-module.native.cjs";
 import { log } from "../../helper/devtools.cjs";
 import { WWWServer } from "./www-server.cjs";
-import type { IncomingMessage, OutgoingMessage } from "http";
+import type { IncomingMessage, OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.cjs";
 import type { HttpServerNMM } from "../http-server/http-server.cjs";
 

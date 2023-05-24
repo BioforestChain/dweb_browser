@@ -1,5 +1,5 @@
 // haptics.sys.dweb
-import type { IncomingMessage, OutgoingMessage } from "http";
+import type { IncomingMessage, OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../../../core/bootstrapContext.cjs";
 import { IpcResponse } from "../../../../core/ipc/IpcResponse.cjs";
 import type { MicroModule } from "../../../../core/micro-module.cjs";
