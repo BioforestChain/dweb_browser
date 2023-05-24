@@ -15,6 +15,8 @@ using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Share;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Clipboard;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Toast;
 using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Haptics;
+using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Barcode;
+using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Biometrics;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -43,6 +45,8 @@ public class MicroService
         new ToastNMM().InstallBy(dnsNMM);
         new HapticsNMM().InstallBy(dnsNMM);
         new TorchNMM().InstallBy(dnsNMM);
+        new ScanningNMM().InstallBy(dnsNMM);
+        new BiometricsNMM().InstallBy(dnsNMM);
 
         /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
         new NativeUiNMM().InstallBy(dnsNMM);
