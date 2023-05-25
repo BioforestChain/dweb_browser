@@ -8,9 +8,15 @@ export abstract class BasePlugin {
   abstract tagName: string;
   static internal_url: string = globalThis.location?.href ?? "http://localhost";
   static public_url: Promise<string> | string = "";
+  static internal_url_useable?: boolean;
   /** internal_url or public_url */
   static get url() {
-    if (typeof this.public_url === "string" && this.public_url !== "") {
+    if (
+      typeof this.public_url === "string" &&
+      this.public_url !== "" &&
+      /// 如果不能明确知道 internal_url 可用，则使用 public_url
+      this.internal_url_useable !== true
+    ) {
       return this.public_url;
     }
     return this.internal_url;

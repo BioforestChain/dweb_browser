@@ -16,7 +16,7 @@ export class HTMLDwebConfigElement extends HTMLElement {
   }
 
   getPublicUrl() {
-    return configPlugin.getPublicUrl();
+    return configPlugin.updatePublicUrl();
   }
   static get observedAttributes() {
     return ["api-url"];

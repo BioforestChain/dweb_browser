@@ -21,16 +21,39 @@ export class ConfigPlugin extends BasePlugin {
       return;
     }
     this._first = true;
-    if (this.public_url == "") {
-      void this.getPublicUrl();
-    }
+    void this.updatePublicUrl();
   }
 
-  private _getPublicUrl() {
-    return this.fetchApi("/public-url").text();
+  private async _getPublicUrl() {
+    try {
+      const public_url = await this.fetchApi("/public-url", {
+        base: BasePlugin.internal_url,
+      }).text();
+      BasePlugin.internal_url_useable = true;
+      return public_url;
+    } catch (err) {
+      BasePlugin.internal_url_useable = false;
+      return "";
+    }
   }
-  getPublicUrl() {
-    return (BasePlugin.public_url = this._getPublicUrl());
+  updatePublicUrl() {
+    let get_public_url = this._getPublicUrl();
+    if (BasePlugin.public_url === "") {
+      get_public_url = get_public_url.then((new_public_url) => {
+        if (new_public_url !== "" || BasePlugin.public_url === get_public_url) {
+          BasePlugin.public_url = new_public_url;
+        }
+        return new_public_url;
+      });
+      BasePlugin.public_url = get_public_url;
+    } else {
+      get_public_url.then((new_public_url) => {
+        if (new_public_url !== "") {
+          BasePlugin.public_url = new_public_url;
+        }
+      });
+    }
+    return get_public_url;
   }
   setPublicUrl(url: string) {
     return (BasePlugin.public_url = url);

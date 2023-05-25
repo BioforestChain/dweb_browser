@@ -102,7 +102,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   ) {
     let pub = await BasePlugin.public_url;
     if (pub === "") {
-      pub = await configPlugin.getPublicUrl();
+      pub = await configPlugin.updatePublicUrl();
     }
     const jsonlines = await this.plugin
       .buildInternalApiRequest(`/${eventName}`, {
