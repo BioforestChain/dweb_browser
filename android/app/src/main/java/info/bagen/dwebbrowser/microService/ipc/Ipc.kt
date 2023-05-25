@@ -66,16 +66,21 @@ abstract class Ipc {
 
     suspend fun postResponse(req_id: Int, response: Response) {
         postMessage(
-          IpcResponse.fromResponse(
-            req_id,
-            response,
-            this
-          )
+            IpcResponse.fromResponse(
+                req_id,
+                response,
+                this
+            )
         )
     }
 
     protected val _messageSignal = Signal<IpcMessageArgs>();
     fun onMessage(cb: OnIpcMessage) = _messageSignal.listen(cb)
+
+    /**
+     * 强制触发消息传入，而不是依赖远端的 postMessage
+     */
+    suspend fun emitMessage(args: IpcMessageArgs) = _messageSignal.emit(args)
 
     abstract suspend fun _doPostMessage(data: IpcMessage): Unit;
 

@@ -67,8 +67,11 @@ export async function onApiRequest(
         request.body,
         jsProcess.fetchIpc
       );
-      jsProcess.fetchIpc.postMessage(ipcProxyRequest);
-      const ipcProxyResponse = await jsProcess.fetchIpc.registerReqId(
+      const targetIpc = await jsProcess.connect(
+        ipcProxyRequest.parsed_url.host as $MMID
+      );
+      targetIpc.postMessage(ipcProxyRequest);
+      const ipcProxyResponse = await targetIpc.registerReqId(
         ipcProxyRequest.req_id
       ).promise;
       ipcResponse = new IpcResponse(

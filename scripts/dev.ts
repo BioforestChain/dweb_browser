@@ -22,9 +22,7 @@ export const devTasks = new ConTasks({
       },
     ],
   },
-  "sync:android": { cmd: "deno", args: "task sync:android --watch" },
-  "sync:desktop": { cmd: "deno", args: "task sync:desktop --watch" },
-  "sync:next": { cmd: "deno", args: "task sync:next --watch" },
+  "sync": { cmd: "deno", args: "task sync --watch" },
 });
 
 if (import.meta.main) {

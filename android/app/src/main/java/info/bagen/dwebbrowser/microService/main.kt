@@ -51,11 +51,9 @@ suspend fun startDwebBrowser(): DnsNMM {
     when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> debugTags.addAll(
             listOf<String>(
-                "message-port-ipc",
-                "stream-ipc",
-                "stream",
-                "ipc-body",
-                "dwebview",
+                "jmm",
+                "fetch",
+                "message-port-ipc"
             )
         )
         DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> debugTags.addAll(
@@ -139,8 +137,8 @@ suspend fun startDwebBrowser(): DnsNMM {
     val bootMmidList = when (DEVELOPER.CURRENT) {
         DEVELOPER.GAUBEE -> listOf(
 //            cotJMM.mmid,
-//            cotDemoJMM.mmid,
-            browserNMM.mmid,
+            cotDemoJMM.mmid,
+//            browserNMM.mmid,
         )
         DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(browserNMM.mmid)
         DEVELOPER.WaterBang -> listOf(

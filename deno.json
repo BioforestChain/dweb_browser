@@ -5,6 +5,6 @@
     "sync:android": "deno run -A ./scripts/sync-android.ts",
     "sync:desktop": "deno run -A ./scripts/sync-desktop.ts",
     "sync:next": "deno run -A ./scripts/sync-next.ts",
-    "sync": "deno task sync:android && deno task sync:desktop && deno task sync:next"
+    "sync": "deno run -A ./scripts/sync.ts"
   }
 }

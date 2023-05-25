@@ -6,6 +6,7 @@ import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.core.connectAdapterManager
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.ipc.Ipc
+import info.bagen.dwebbrowser.microService.ipc.IpcMessageArgs
 import info.bagen.dwebbrowser.microService.ipc.IpcResponse
 import info.bagen.dwebbrowser.microService.ipc.ReadableStreamIpc
 import info.bagen.dwebbrowser.microService.ipc.ipcWeb.Native2JsIpc
@@ -23,12 +24,12 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         init {
             val nativeToWhiteList = listOf<Mmid>("js.sys.dweb")
 
-            data class JsMM(val jmm: JsMicroModule, val remoteMmid: Mmid)
-            connectAdapterManager.append { fromMM, toMM, reason ->
+            data class JsMM(val jmm: JsMicroModule, val rmm: MicroModule)
+            connectAdapterManager.append(-1) { fromMM, toMM, reason ->
 
                 val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
-                else if (toMM is JsMicroModule) JsMM(toMM, fromMM.mmid)
-                else if (fromMM is JsMicroModule) JsMM(fromMM, toMM.mmid)
+                else if (toMM is JsMicroModule) JsMM(toMM, fromMM)
+                else if (fromMM is JsMicroModule) JsMM(fromMM, toMM)
                 else null
 
                 debugJMM(
@@ -44,12 +45,10 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                      * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
                      * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
                      */
-                    debugJMM(
-                        "🎃 connectAdapterManager",
-                        "remoteMmid: ${jsMM.remoteMmid} "
-                    )
-                    val originIpc = jsMM.jmm.ipcBridge(jsMM.remoteMmid)
-
+                    debugJMM("ipcBridge", "begin remoteMmid: ${jsMM.rmm.mmid} ")
+                    val originIpc = jsMM.jmm.ipcBridge(jsMM.rmm.mmid)
+                    jsMM.rmm.beConnect(originIpc, reason)
+                    debugJMM("ipcBridge", "done remoteMmid: ${jsMM.rmm.mmid} ")
                     return@append ConnectResult(ipcForFromMM = originIpc, ipcForToMM = originIpc)
                 } else null
             }
@@ -125,21 +124,29 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
          * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
          */
         jsIpc.onRequest { (ipcRequest, ipc) ->
-            val request = ipcRequest.toRequest()
-            kotlin.runCatching {
-                /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
-                /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
-                // 转发请求
-                val response = nativeFetch(request)
-                val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
-                ipc.postMessage(ipcResponse)
-            }.onFailure {
-                ipc.postMessage(
-                    IpcResponse.fromText(
-                        ipcRequest.req_id, 500, text = it.message ?: "", ipc = ipc
+            /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
+            val scheme = ipcRequest.uri.scheme
+            val host = ipcRequest.uri.host
+            if (scheme == "file" && host.endsWith(".dweb")) {
+                val (jsWebIpc) = connect(host)
+                jsWebIpc.emitMessage(IpcMessageArgs(ipcRequest, jsWebIpc))
+            } else {
+                kotlin.runCatching {
+                    /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
+                    // 转发请求
+                    val request = ipcRequest.toRequest()
+                    val response = nativeFetch(request)
+                    val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
+                    ipc.postMessage(ipcResponse)
+                }.onFailure {
+                    ipc.postMessage(
+                        IpcResponse.fromText(
+                            ipcRequest.req_id, 500, text = it.message ?: "", ipc = ipc
+                        )
                     )
-                )
+                }
             }
+
         }
 
         /**

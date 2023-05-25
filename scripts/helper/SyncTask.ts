@@ -2,14 +2,19 @@ import { debounce } from "https://deno.land/std@0.109.0/async/debounce.ts";
 import { copySync } from "https://deno.land/std@0.179.0/fs/copy.ts";
 import { emptyDirSync } from "https://deno.land/std@0.179.0/fs/mod.ts";
 import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const tryFileURLToPath = (somepath: string) =>
   somepath.startsWith("file://") ? fileURLToPath(somepath) : somepath;
 
+const relativeCwd = (to: string) => path.relative(process.cwd(), to);
+
 export class SyncTask {
   isVerbose = Deno.args.includes("--verbose");
-  constructor(
+  constructor(readonly tasks: Array<{ from: string; to: string }>) {}
+
+  static from(
     root: {
       to: string;
       from: string;
@@ -19,18 +24,26 @@ export class SyncTask {
     const to_dir_root = tryFileURLToPath(root.to);
     const from_dir_root = tryFileURLToPath(root.from);
 
-    this.tasks = input_tasks.map((task) => {
+    const tasks = input_tasks.map((task) => {
       return {
         from: path.join(from_dir_root, task.from),
         to: path.join(to_dir_root, task.to),
       };
     });
+    return new SyncTask(tasks);
   }
-
-  tasks: Array<{ from: string; to: string }>;
+  static concat(...tasks: SyncTask[]) {
+    return new SyncTask(tasks.map((t) => t.tasks).flat());
+  }
 
   sync() {
     for (const task of this.tasks) {
+      console.log(
+        "syncing",
+        relativeCwd(task.from),
+        "=>",
+        relativeCwd(task.to)
+      );
       try {
         /// 尝试清空
         emptyDirSync(task.to);
@@ -43,7 +56,7 @@ export class SyncTask {
         if (error instanceof Deno.errors.NotFound) {
           console.warn(error.message);
         } else {
-          throw error;
+          console.error(error);
         }
       }
     }
