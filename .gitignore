@@ -33,3 +33,4 @@ plugins/build
 
 # bak
 .*.bak
+*.bak
