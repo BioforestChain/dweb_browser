@@ -1,7 +1,7 @@
 // 模拟状态栏模块-用来提供状态UI的模块
+import type { Ipc } from "../../../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import type { Ipc } from "../../../../core/ipc/ipc.ts";
 // import type { $BootstrapContext } from "../../../../core/bootstrapContext.ts";
 // import type { IncomingMessage, OutgoingMessage } from "node:http";
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
@@ -23,7 +23,7 @@ export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
   encoder = new TextEncoder();
   allocId = 0;
 
-  _bootstrap =() => {
+  _bootstrap = () => {
     log.green(`[${this.mmid} _bootstrap]`);
     let isStop = false;
     this.registerCommonIpcOnMessageHandler({

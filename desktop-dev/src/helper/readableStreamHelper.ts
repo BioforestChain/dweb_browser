@@ -136,7 +136,7 @@ export class ReadableStreamOut<T> {
     },
     this.strategy
   );
-  private _on_cancel_signal?: Signal<$Callback<[/* reason: */any]>>;
+  private _on_cancel_signal?: Signal<$Callback<[/* reason: */ any]>>;
   get onCancel() {
     return (this._on_cancel_signal ??= createSignal()).listen;
   }

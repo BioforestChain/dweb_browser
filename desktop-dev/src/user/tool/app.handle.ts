@@ -15,7 +15,7 @@ export const webViewMap = new Map<string, WebViewState>();
  */
 export const closeApp = async (
   servers: HttpDwebServer[],
-  ipcs: ReadableStreamIpc[],
+  ipcs: ReadableStreamIpc[]
 ) => {
   // 清空建立的连接
   hashConnentMap.clear();

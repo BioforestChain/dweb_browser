@@ -1,6 +1,11 @@
+import type {
+  $BootstrapContext,
+  $DnsMicroModule,
+} from "../../core/bootstrapContext.ts";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
 import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import type { MicroModule } from "../../core/micro-module.ts";
 import {
   $ConnectResult,
   connectMicroModules,
@@ -9,13 +14,8 @@ import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.
 import { log } from "../../helper/devtools.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
-import type {
-  $BootstrapContext,
-  $DnsMicroModule,
-} from "../../core/bootstrapContext.ts";
-import type { MicroModule } from "../../core/micro-module.ts";
 import type { $MMID } from "../../helper/types.ts";
+import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
 

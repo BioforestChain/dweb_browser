@@ -1,9 +1,9 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import { share } from "./handlers.ts"
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
+import { share } from "./handlers.ts";
 
-export class ShareNMM extends NativeMicroModule{
+export class ShareNMM extends NativeMicroModule {
   mmid = "share.sys.dweb" as const;
   httpNMM: HttpServerNMM | undefined;
   // waitForOperationResMap: Map<string, OutgoingMessage> = new Map()
@@ -17,8 +17,8 @@ export class ShareNMM extends NativeMicroModule{
       matchMode: "full",
       input: {},
       output: "object",
-      handler: share.bind(this)
-    }); 
+      handler: share.bind(this),
+    });
 
     // // create_stream_ipc
     // this.registerCommonIpcOnMessageHandler({
@@ -28,9 +28,8 @@ export class ShareNMM extends NativeMicroModule{
     //   input: {},
     //   output: "object",
     //   handler: createStreamIpc.bind(this)
-    // }); 
+    // });
   }
- 
 
   // private _share = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   const origin = req.headers.origin;
@@ -45,12 +44,12 @@ export class ShareNMM extends NativeMicroModule{
   //   if(typeof title !== "string") throw new Error(`tpeof title !== string`);
   //   if(typeof text !== "string") throw new Error(`typeof text !== string`);
   //   if(typeof _url !== "string") throw new Error(`typeof _url !== string`);
-    
+
   //   let chunks = ""
   //   req.setEncoding('binary');
   //   req.on('data', chunk => chunks += chunk)
   //   req.on('end', () => {
-      
+
   //     let file = querystring.parse(chunks, '\r\n', ':');
   //     let fileInfo = file['Content-Disposition'];
   //     let filename: string = "";
@@ -76,7 +75,7 @@ export class ShareNMM extends NativeMicroModule{
   //       message: "ok"
   //     }))
   //   })
-  // } 
+  // }
 
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");
@@ -87,9 +86,8 @@ function createShareUI(
   title: string,
   text: string,
   url: string,
-  filename: string,
-){
-
+  filename: string
+) {
   const elContainerStyle = `
     position: fixed; 
     z-index: 999999999; 
@@ -101,15 +99,15 @@ function createShareUI(
     justify-content: center; 
     align-items: center; 
     background: #00000099;
-  `
+  `;
 
-  const elTitleStyle=`
+  const elTitleStyle = `
     font-weight: 900;
-  `
+  `;
 
   const elCotentStyle = `
     margin: 5px 0px 20px 0px;
-  `
+  `;
 
   return `
     (() => {
@@ -153,17 +151,16 @@ function createShareUI(
       elTitleContent.innerHTML = '${title}';
       elTextContent.innerHTML = '${text}';
       elUrlContent.innerHTML = '${url}';
-      elFileContent.innerHTML = '${filename === "" ? "没有选择任何文件" : filename}'
+      elFileContent.innerHTML = '${
+        filename === "" ? "没有选择任何文件" : filename
+      }'
 
       elPanel.append(elTitleLabel, elTitleContent, elTextLabel, elTextContent, elUrlLabel, elUrlContent, elFileLabel, elFileContent)
       elContainer.append(elPanel);
       document.body.append(elContainer);
     })()
-  `
-
+  `;
 }
 
 export type $ImpactLightStyle = "HEAVY" | "MEDIUM" | "LIGHT";
 export type $NotificationStyle = "SUCCESS" | "WARNING" | "ERROR";
-
- 

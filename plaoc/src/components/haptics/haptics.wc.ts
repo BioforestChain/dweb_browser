@@ -6,46 +6,43 @@ export class HTMLDwebHapticsElement extends HTMLElement {
 
   @cacheGetter()
   get vibrate() {
-    return this.plugin.vibrate
+    return this.plugin.vibrate;
   }
 
   @cacheGetter()
   get impactLight() {
-    return this.plugin.impactLight
+    return this.plugin.impactLight;
   }
 
   @cacheGetter()
   get notification() {
-    return this.plugin.notification
+    return this.plugin.notification;
   }
 
   @cacheGetter()
   get vibrateClick() {
-    return this.plugin.vibrateClick
+    return this.plugin.vibrateClick;
   }
 
   @cacheGetter()
   get vibrateDisabled() {
-    return this.plugin.vibrateDisabled
+    return this.plugin.vibrateDisabled;
   }
 
   @cacheGetter()
   get vibrateDoubleClick() {
-    return this.plugin.vibrateDoubleClick
+    return this.plugin.vibrateDoubleClick;
   }
 
   @cacheGetter()
   get vibrateHeavyClick() {
-    return this.plugin.vibrateHeavyClick
+    return this.plugin.vibrateHeavyClick;
   }
 
   @cacheGetter()
   get vibrateTick() {
-    return this.plugin.vibrateTick
+    return this.plugin.vibrateTick;
   }
-
-
-
 }
 
 customElements.define(hapticsPlugin.tagName, HTMLDwebHapticsElement);

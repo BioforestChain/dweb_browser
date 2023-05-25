@@ -1,5 +1,5 @@
 import { decode } from "@msgpack/msgpack";
-import type { $IpcTransferableMessage, IpcMessage } from "../ipc/const.ts";
+import type { $IpcTransferableMessage } from "../ipc/const.ts";
 import type { Ipc } from "../ipc/ipc.ts";
 import {
   $IpcSignalMessage,

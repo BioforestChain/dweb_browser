@@ -3,7 +3,7 @@ import { ConTasks } from "../../scripts/helper/ConTasks.ts";
 /**
  * 所有的打包任务
  */
-const bundleTasks = new ConTasks({
+const devTasks = new ConTasks({
   // "cot-demo":{
   //   "cmd":'pnpm',
   //   args:""
@@ -71,5 +71,5 @@ const bundleTasks = new ConTasks({
 });
 
 if (import.meta.main) {
-  bundleTasks.spawn();
+  devTasks.spawn();
 }

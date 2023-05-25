@@ -1,8 +1,7 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { safeAreaPlugin } from "./safe-area.plugin.ts";
-import { $SafeAreaState } from "./safe-area.type.ts";
-import { $SafeAreaRawState } from "./safe-area.type.ts";
+import { $SafeAreaRawState, $SafeAreaState } from "./safe-area.type.ts";
 
 export class HTMLDwebSafeAreaElement extends HTMLStateObserverElement<
   $SafeAreaRawState,

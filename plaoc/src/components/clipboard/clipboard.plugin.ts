@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type { ReadResult, ClipboardWriteOptions } from "./clipboard.type.ts";
+import type { ClipboardWriteOptions, ReadResult } from "./clipboard.type.ts";
 
 export class ClipboardPlugin extends BasePlugin {
   readonly tagName = "dweb-clipboard";
@@ -20,7 +20,7 @@ export class ClipboardPlugin extends BasePlugin {
         string: options.string,
         url: options.url,
         image: options.image,
-        label: options.label
+        label: options.label,
       },
     });
   }

@@ -8,5 +8,3 @@ export type $FetchAdapter = (
 ) => Promise<Response | void>;
 
 export const nativeFetchAdaptersManager = new AdaptersManager<$FetchAdapter>();
-
-

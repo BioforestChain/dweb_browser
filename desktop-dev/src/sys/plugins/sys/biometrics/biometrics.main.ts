@@ -2,27 +2,27 @@ import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
 
-export class BiometricsNMM extends NativeMicroModule{
+export class BiometricsNMM extends NativeMicroModule {
   mmid = "biometrics.sys.dweb" as const;
   allocId = 0;
   httpNMM: HttpServerNMM | undefined;
-  impactLightStyle: $ImpactLightStyle = "HEAVY"
-  notificationStyle: $NotificationStyle = "SUCCESS"
+  impactLightStyle: $ImpactLightStyle = "HEAVY";
+  notificationStyle: $NotificationStyle = "SUCCESS";
   encoder = new TextEncoder();
   // reqResMap: Map<number, $ReqRes> = new Map();
 
   protected _bootstrap() {
     log.green(`[${this.mmid}] _bootstrap`);
- 
+
     this.registerCommonIpcOnMessageHandler({
       pathname: "/check",
       matchMode: "full",
       input: {},
       output: "boolean",
       handler: () => {
-        return true
-      }
-    })
+        return true;
+      },
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/biometrics",
@@ -30,15 +30,17 @@ export class BiometricsNMM extends NativeMicroModule{
       input: {},
       output: "object",
       handler: async () => {
-        return await this.nativeFetch(`file://mwebview.sys.dweb/plubin/biommetrices`);
-      }
-    })
+        return await this.nativeFetch(
+          `file://mwebview.sys.dweb/plubin/biommetrices`
+        );
+      },
+    });
   }
 
   // private _check = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   const origin = req.headers.origin;
   //   if(origin === undefined) throw new Error(`${this.mmid} origin === undefined`);
-    
+
   //   const waitForRes = this.waitForOperationResMap.get(origin);
   //   if(waitForRes === undefined) {
   //     console.log('origin: ', origin)
@@ -51,7 +53,7 @@ export class BiometricsNMM extends NativeMicroModule{
   //       operationName: "check",
   //       value: "",
   //       from: origin,
-  //       id: id 
+  //       id: id
   //     })}\n`
   //   )
   //   waitForRes.write(value)
@@ -61,7 +63,7 @@ export class BiometricsNMM extends NativeMicroModule{
   // private _biometrics = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   const origin = req.headers.origin;
   //   if(origin === undefined) throw new Error(`origin === undefined`);
-    
+
   //   const waitForRes = this.waitForOperationResMap.get(origin);
   //   if(waitForRes === undefined) throw new Error(`waitForRes === undefined`)
 
@@ -106,7 +108,7 @@ export class BiometricsNMM extends NativeMicroModule{
   //       console.log("this.reqResMap: ", this.reqResMap)
   //       throw new Error(`reqRes === undefined`)
   //     };
-      
+
   //     reqRes.res.end(chunks);
   //     this.reqResMap.delete(key)
   //   })
@@ -142,7 +144,6 @@ export class BiometricsNMM extends NativeMicroModule{
 export type $ImpactLightStyle = "HEAVY" | "MEDIUM" | "LIGHT";
 export type $NotificationStyle = "SUCCESS" | "WARNING" | "ERROR";
 // export interface $ReqRes{
-//   req: IncomingMessage, 
+//   req: IncomingMessage,
 //   res: OutgoingMessage
 // }
- 

@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
-import { networkPlugin } from "./network.plugin.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { networkPlugin } from "./network.plugin.ts";
 
 export class HTMLDwebNetworkElement extends HTMLElement {
   plugin = networkPlugin;

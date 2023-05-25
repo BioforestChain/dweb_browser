@@ -2,7 +2,7 @@ import { createSignal } from "../../../helper/createSignal.ts";
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
-// 也可以用在其他的 .html 文件中 但是内容需要部分的修改 
+// 也可以用在其他的 .html 文件中 但是内容需要部分的修改
 // 如果我们使用其他的 ***.html 文件作为渲染进程总的主线程，同样需要用这个来协调 js-worker 同 native 之间通信；
 const ALL_PROCESS_MAP = new Map<
   number,
@@ -18,10 +18,10 @@ const allocProcessId = () => acc_process_id++;
  * 创建 woker 线程 同样是当做一个程序角色
  * @param env_script_url 需要导入的环境目录 *** bootstramp.js 也就是 js-prcess.woker.cts 代码部分
  * @param metadata_json 对应的 JsMicroModurl 的 元数据 一般包括 mmid 和 worker.js 的位置
- * @param env_json 
+ * @param env_json
  * @param fetch_port messagePort 通过 js.sys.dweb 传递进来的 transfer
  * @param name woker 的名称
- * @returns 
+ * @returns
  */
 const createProcess = async (
   env_script_url: string,
@@ -103,18 +103,18 @@ const createProcess = async (
 };
 
 /**
- * 创建 ipc 通信 接受从 js.sys.dweb 传递寄哪里的 port 
- * @param process_id 
- * @param mmid 
- * @param ipc_port 
- * @param env_json 
- * @returns 
+ * 创建 ipc 通信 接受从 js.sys.dweb 传递寄哪里的 port
+ * @param process_id
+ * @param mmid
+ * @param ipc_port
+ * @param env_json
+ * @returns
  */
-const createIpc = async ( 
+const createIpc = async (
   process_id: number,
   mmid: string,
   ipc_port: MessagePort,
-  env_json: string = '{}'
+  env_json: string = "{}"
 ) => {
   const process = _forceGetProcess(process_id);
 
@@ -147,8 +147,8 @@ const _forceGetProcess = (process_id: number) => {
 
 /**
  * 通过 process.worker 发送 run-main 的消息
- * @param process_id 
- * @param config 
+ * @param process_id
+ * @param config
  */
 const runProcessMain = (process_id: number, config: $RunMainConfig) => {
   const process = _forceGetProcess(process_id);
@@ -157,12 +157,12 @@ const runProcessMain = (process_id: number, config: $RunMainConfig) => {
 
 /**
  * 彻底退出后端，即删除APP的worker
- * @param process_id 
+ * @param process_id
  */
 const destroyProcess = (process_id: number) => {
   const process = _forceGetProcess(process_id);
-  process.worker.terminate()
-}
+  process.worker.terminate();
+};
 
 const on_create_process_signal = createSignal();
 
@@ -171,7 +171,7 @@ export const APIS = {
   createProcess,
   runProcessMain,
   createIpc,
-  destroyProcess
+  destroyProcess,
 };
 export type $RunMainConfig = {
   main_url: string;

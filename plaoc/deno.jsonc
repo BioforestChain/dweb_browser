@@ -5,7 +5,6 @@
     "dev:src": "deno run -A --watch ./scripts/build_npm.ts",
     "dev": "deno task dev:demo & deno task build:watch:demo",
     "dev:demo": "cd ./demo && pnpm dev",
-    "init:demo": "cd ./demo && pnpm i",
     "build:demo": "cd ./demo && pnpm build",
     "build:watch:demo": "cd ./demo && pnpm build:watch",
     "pub": "deno run -A ./scripts/pub_npm.ts",

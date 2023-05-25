@@ -2,9 +2,7 @@
  * 将字符串解码成 jsonlines 格式
  */
 export class JsonlinesStream<T, R = T> extends TransformStream<string, R> {
-  constructor(
-    parser: $Transform<T, R> = (value) => value as unknown as R
-  ) {
+  constructor(parser: $Transform<T, R> = (value) => value as unknown as R) {
     let json = "";
 
     const try_enqueue = (

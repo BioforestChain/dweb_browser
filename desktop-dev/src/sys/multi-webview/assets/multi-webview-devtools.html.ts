@@ -1,35 +1,34 @@
 import { css, html, LitElement } from "lit";
-import { customElement } from "lit/decorators.js";
-import { property } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { Webview } from "./multi-webview.ts";
 
-import WebviewTag = Electron.WebviewTag
+import WebviewTag = Electron.WebviewTag;
 
 const allCss = [
   css`
-    :host{
-      width:100%;
-      height:100%;
+    :host {
+      width: 100%;
+      height: 100%;
     }
 
-    .container{
-      width:100%;
-      height:100%;
+    .container {
+      width: 100%;
+      height: 100%;
     }
 
-    .toolbar{
+    .toolbar {
       display: flex;
       justify-content: flex-start;
       align-items: flex-start;
-      width:100%;
-      height:60px;
+      width: 100%;
+      height: 60px;
     }
 
-    .devtool{
-      width:100%;
-      height:calc(100% - 60px);
-      border:1px solid #ddd;
+    .devtool {
+      width: 100%;
+      height: calc(100% - 60px);
+      border: 1px solid #ddd;
     }
   `,
   // 需要啊全部的custom.属性传递进来
@@ -69,51 +68,52 @@ const allCss = [
       }
     }
   `,
-]
+];
 
 @customElement("multi-webview-devtools")
-export class MultiWebviewDevtools extends LitElement{
-  @property({type: Webview}) customWebview: Webview | undefined = undefined;
-  @property({type: Boolean}) closing: boolean = false;
-  @property({type: Number}) zIndex: Number = 0;
-  @property({type: Number}) scale: Number = 0;
-  @property({type: Number}) opacity: Number = 1;
-  @property({type: Number}) customWebviewId: Number = 0;
+export class MultiWebviewDevtools extends LitElement {
+  @property({ type: Webview }) customWebview: Webview | undefined = undefined;
+  @property({ type: Boolean }) closing: boolean = false;
+  @property({ type: Number }) zIndex: Number = 0;
+  @property({ type: Number }) scale: Number = 0;
+  @property({ type: Number }) opacity: Number = 1;
+  @property({ type: Number }) customWebviewId: Number = 0;
 
   static override styles = allCss;
 
-  onDomReady(event: Event){
-    this.dispatchEvent(new CustomEvent(
-      "dom-ready",
-      {
+  onDomReady(event: Event) {
+    this.dispatchEvent(
+      new CustomEvent("dom-ready", {
         bubbles: true,
         detail: {
           customWebview: this.customWebview,
           event: event,
-          from: event.target
-        }
-      }
-    ))
+          from: event.target,
+        },
+      })
+    );
   }
 
-  onDestroy(){
-    this.dispatchEvent(new Event("destroy-webview"))
+  onDestroy() {
+    this.dispatchEvent(new Event("destroy-webview"));
   }
 
-  override render(){
+  override render() {
     const containerStyleMap = styleMap({
-        "--z-index": this.zIndex + "",
-        "--scale": this.scale + "",
-        "--opacity": this.opacity + ""
-    })
+      "--z-index": this.zIndex + "",
+      "--scale": this.scale + "",
+      "--opacity": this.opacity + "",
+    });
 
     return html`
-      <div 
-        class="container ${this.closing ? 'closing-ani-devtools' : 'opening-ani-devtools'}" 
+      <div
+        class="container ${this.closing
+          ? "closing-ani-devtools"
+          : "opening-ani-devtools"}"
         style=${containerStyleMap}
       >
         <div class="toolbar">
-            <button @click=${this.onDestroy}>销毁</button>
+          <button @click=${this.onDestroy}>销毁</button>
         </div>
         <webview
           id="tool-${this.customWebviewId}"
@@ -123,7 +123,6 @@ export class MultiWebviewDevtools extends LitElement{
           @dom-ready=${this.onDomReady}
         ></webview>
       </div>
-    `
+    `;
   }
 }
-

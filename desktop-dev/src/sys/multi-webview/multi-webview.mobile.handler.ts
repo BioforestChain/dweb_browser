@@ -1,14 +1,13 @@
 import type { Ipc } from "../../core/ipc/index.ts";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
-import type { $Schema1ToType, $Schema2 } from "../../helper/types.ts";
-import { hexaToRGBA,  converRGBAToHexa} from "../plugins/helper.ts";
+import type { $Schema1ToType } from "../../helper/types.ts";
+import { converRGBAToHexa, hexaToRGBA } from "../plugins/helper.ts";
+import type { MultiWebviewNMM } from "./multi-webview.mobile.ts";
 import type { $BarState, $ToastPosition } from "./types.ts";
-import type { MultiWebviewNMM } from "./multi-webview.mobile.ts"
-import querystring from "node:querystring"
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
- /**
+/**
  * 打开 应用
  * 如果 是由 jsProcdss 调用 会在当前的 browserWindow 打开一个新的 webview
  * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
@@ -16,323 +15,332 @@ type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 export async function open(
   this: MultiWebviewNMM,
   root_url: string,
-  args: $Schema1ToType<{url: "string"}>,
+  args: $Schema1ToType<{ url: "string" }>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
+  request: IpcRequest
+) {
   const wapis = await this.forceGetWapis(clientIpc, root_url);
   const webview_id = await wapis.apis.openWebview(args.url);
-  return webview_id
+  return webview_id;
 }
 
 /**
  * 关闭当前激活项
- * @param this 
- * @param root_url 
- * @param args 
- * @param clientIpc 
- * @param request 
- * @returns 
+ * @param this
+ * @param root_url
+ * @param args
+ * @param clientIpc
+ * @param request
+ * @returns
  */
 export async function closeFocusedWindow(
   this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const iterator = this._uid_wapis_map.entries()
-  for(let item of iterator){
-    if(item[1].nww?.isFocused()){
+  request: IpcRequest
+) {
+  const iterator = this._uid_wapis_map.entries();
+  for (let item of iterator) {
+    if (item[1].nww?.isFocused()) {
       item[1].nww.close();
-      this._uid_wapis_map.delete(item[0])
+      this._uid_wapis_map.delete(item[0]);
     }
   }
-  return true
+  return true;
 }
 
 export async function openDownloadPage(
   this: MultiWebviewNMM,
   root_url: string,
-  args: $Schema1ToType<{url: "string"}>,
+  args: $Schema1ToType<{ url: "string" }>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  console.log(await request.body.text())
-  const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl
-  const apis = await this.apisGetFromFocused()
-  const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`
-  if(apis === undefined) {
-    throw new Error(`apis === undefined`)
+  request: IpcRequest
+) {
+  console.log(await request.body.text());
+  const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl;
+  const apis = await this.apisGetFromFocused();
+  const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`;
+  if (apis === undefined) {
+    throw new Error(`apis === undefined`);
   }
   const webview_id = await apis.openWebview(targetUrl);
-  return {}
+  return {};
 }
-
 
 /**
  * 设置状态栏
- * @param this 
- * @param root_url 
- * @param args 
- * @param clientIpc 
- * @param request 
- * @returns 
+ * @param this
+ * @param root_url
+ * @param args
+ * @param clientIpc
+ * @param request
+ * @returns
  */
 export async function barGetState<
-  $ApiKeyName extends keyof Pick<$APIS, "statusBarGetState" | "navigationBarGetState">
+  $ApiKeyName extends keyof Pick<
+    $APIS,
+    "statusBarGetState" | "navigationBarGetState"
+  >
 >(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   apiksKeyName: $ApiKeyName,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
   const state = await apis[apiksKeyName]();
   return {
     ...state,
-    color: hexaToRGBA(state.color)
-  }
+    color: hexaToRGBA(state.color),
+  };
 }
 
 /**
  * 设置状态
- * @param this 
- * @param root_url 
- * @param args 
- * @param clientIpc 
- * @param request 
- * @returns 
+ * @param this
+ * @param root_url
+ * @param args
+ * @param clientIpc
+ * @param request
+ * @returns
  */
 export async function barSetState<
-  $ApiKeyName extends keyof Pick<$APIS, "statusBarSetState" | "navigationBarSetState">
+  $ApiKeyName extends keyof Pick<
+    $APIS,
+    "statusBarSetState" | "navigationBarSetState"
+  >
 >(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   apiKeyName: $ApiKeyName,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
+  request: IpcRequest
+) {
   let state: $BarState | undefined = undefined;
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  const color = request.parsed_url.searchParams.get('color');
-  if(color){
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+  const color = request.parsed_url.searchParams.get("color");
+  if (color) {
     const colorObj = JSON.parse(color);
     const colorHexa = converRGBAToHexa(
-      colorObj.red, colorObj.green, colorObj.blue, colorObj.alpha
+      colorObj.red,
+      colorObj.green,
+      colorObj.blue,
+      colorObj.alpha
     );
-    state = await apis[apiKeyName]('color', colorHexa);
+    state = await apis[apiKeyName]("color", colorHexa);
   }
 
-  const visible = request.parsed_url.searchParams.get("visible")
-  if(visible){
+  const visible = request.parsed_url.searchParams.get("visible");
+  if (visible) {
     state = await apis[apiKeyName](
-      'visible', visible === "true" ? true : false
+      "visible",
+      visible === "true" ? true : false
     );
   }
 
-  const style = request.parsed_url.searchParams.get('style')
-  if(style){
-    state = await apis[apiKeyName]('style', style);
+  const style = request.parsed_url.searchParams.get("style");
+  if (style) {
+    state = await apis[apiKeyName]("style", style);
   }
 
-  const overlay = request.parsed_url.searchParams.get('overlay')
-  if(overlay){
+  const overlay = request.parsed_url.searchParams.get("overlay");
+  if (overlay) {
     state = await apis[apiKeyName](
-      'overlay', overlay === "true" ? true : false
+      "overlay",
+      overlay === "true" ? true : false
     );
   }
 
-  if(state){
+  if (state) {
     return {
       ...state,
-      color: hexaToRGBA(state.color)
-    }
+      color: hexaToRGBA(state.color),
+    };
   }
 }
 
 export async function safeAreaGetState(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
   const state = await apis.safeAreaGetState();
   return {
     ...state,
-  }
+  };
 }
 
 export async function safeAreaSetState(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  const overlay = request.parsed_url.searchParams.get('overlay')
-  if(overlay === null) throw new Error(`overlay === null`)
-  const state = await apis.safeAreaSetOverlay( overlay === "true" ? true : false)
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+  const overlay = request.parsed_url.searchParams.get("overlay");
+  if (overlay === null) throw new Error(`overlay === null`);
+  const state = await apis.safeAreaSetOverlay(
+    overlay === "true" ? true : false
+  );
   return {
     ...state,
-  }
+  };
 }
 
 export async function virtualKeyboardGetState(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
   const state = await apis.virtualKeyboardGetState();
   return {
     ...state,
-  }
+  };
 }
 
 export async function virtualKeyboardSetState(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  const overlay = request.parsed_url.searchParams.get('overlay')
-  if(overlay === null) throw new Error(`overlay === null`)
-  const state = await apis.virtualKeyboardSetOverlay( overlay === "true" ? true : false)
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+  const overlay = request.parsed_url.searchParams.get("overlay");
+  if (overlay === null) throw new Error(`overlay === null`);
+  const state = await apis.virtualKeyboardSetOverlay(
+    overlay === "true" ? true : false
+  );
   return {
     ...state,
-  }
+  };
 }
 
-
 export async function toastShow(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  const searchParams = request.parsed_url.searchParams
-  const message = searchParams.get('message')
-  let duration = searchParams.get('duration')
-  const position = searchParams.get('position')
-  
-  if(message === null || duration === null || position === null) throw new Error(
-    `message === null || duration === null || position === null`
-  )
-  await apis.toastShow(message, duration === "short" ? "1000" : "2000", position as $ToastPosition)
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+  const searchParams = request.parsed_url.searchParams;
+  const message = searchParams.get("message");
+  let duration = searchParams.get("duration");
+  const position = searchParams.get("position");
+
+  if (message === null || duration === null || position === null)
+    throw new Error(
+      `message === null || duration === null || position === null`
+    );
+  await apis.toastShow(
+    message,
+    duration === "short" ? "1000" : "2000",
+    position as $ToastPosition
+  );
   return true;
 }
 
 export async function shareShare(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  const searchParams = request.parsed_url.searchParams
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+  const searchParams = request.parsed_url.searchParams;
   const title = searchParams.get("title");
-  const text = searchParams.get('text');
-  const link = searchParams.get('url');
+  const text = searchParams.get("text");
+  const link = searchParams.get("url");
   apis.shareShare({
     title: title === null ? "" : title,
     text: text === null ? "" : text,
     link: link === null ? "" : link,
     src: "",
-  })
+  });
   return true;
 }
 
 export async function toggleTorch(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  
-  return await apis.torchStateToggle()
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+
+  return await apis.torchStateToggle();
 }
 
 export async function torchState(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  return await apis.torchStateGet()
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+  return await apis.torchStateGet();
 }
 
 export async function haptics(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
-  args: $Schema1ToType<{action: "string"}>,
+  args: $Schema1ToType<{ action: "string" }>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const query =  request.parsed_url.searchParams;
-  let str: string = ""
-  if(
-    args.action === "impactLight"
-    || args.action === "notification"
-  ){
-    str = `${args.action} : ${query.get('style')}`
-  }else if (
-    args.action === "vibrateClick" 
-    || args.action === "vibrateDisabled" 
-    || args.action === "vibrateDoubleClick"
-    || args.action === "vibrateHeavyClick"
-    || args.action === "vibrateTick"
-  ){
-    str = `${args.action}`
-  }else{
-    str = `${args.action} : ${query.get("duration")}`
+  request: IpcRequest
+) {
+  const query = request.parsed_url.searchParams;
+  let str: string = "";
+  if (args.action === "impactLight" || args.action === "notification") {
+    str = `${args.action} : ${query.get("style")}`;
+  } else if (
+    args.action === "vibrateClick" ||
+    args.action === "vibrateDisabled" ||
+    args.action === "vibrateDoubleClick" ||
+    args.action === "vibrateHeavyClick" ||
+    args.action === "vibrateTick"
+  ) {
+    str = `${args.action}`;
+  } else {
+    str = `${args.action} : ${query.get("duration")}`;
   }
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  return await apis.hapticsSet(str)
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+  return await apis.hapticsSet(str);
 }
 
 export async function biometricsMock(
-  this: MultiWebviewNMM, 
+  this: MultiWebviewNMM,
   root_url: string,
   args: $Schema1ToType<{}>,
   clientIpc: Ipc,
-  request: IpcRequest,
-){
-  const apis = this.apisGetFromFocused()
-  if(apis === undefined) throw new Error(`wapi === undefined`);
-  return await apis.biometricsMock() as boolean;
+  request: IpcRequest
+) {
+  const apis = this.apisGetFromFocused();
+  if (apis === undefined) throw new Error(`wapi === undefined`);
+  return (await apis.biometricsMock()) as boolean;
 }
-
-
-
- 
- 

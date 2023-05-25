@@ -1,10 +1,10 @@
 // 下载
+import extract from "extract-zip";
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import request from "request";
 import progress from "request-progress";
-import extract from "extract-zip";
 /**
  *
  * @param url

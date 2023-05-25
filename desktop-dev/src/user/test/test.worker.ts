@@ -1,6 +1,9 @@
 import { nativeOpen } from "../tool/tool.native.ts";
-;(async () => {
-  const server = await http.createHttpDwebServer(jsProcess,{subdomain: "www", port: 443});
+(async () => {
+  const server = await http.createHttpDwebServer(jsProcess, {
+    subdomain: "www",
+    port: 443,
+  });
   const streamIpc = await server.listen();
   const { IpcHeaders, IpcResponse, IpcStreamData, IpcStreamEnd } = ipc;
   streamIpc.onRequest(async (request, ipc) => {
@@ -19,27 +22,18 @@ import { nativeOpen } from "../tool/tool.native.ts";
         }),
         `<html><div>test--  aaaaaaa-------->>>>>>>>>>>>>>>>>1000</div><html>`,
         ipc
-      )
-      ipc.postMessage(
-        response
-      )
-      return ;
-    } 
+      );
+      ipc.postMessage(response);
+      return;
+    }
     ipc.postMessage(
-      IpcResponse.fromText(
-        request.req_id,
-        404,
-        undefined,
-        "No Found",
-        ipc
-      )
+      IpcResponse.fromText(request.req_id, 404, undefined, "No Found", ipc)
     );
-  })
+  });
 
-  const main_url = server.startResult.urlInfo.buildInternalUrl("/index.html").href;
-  await nativeOpen(main_url)
+  const main_url =
+    server.startResult.urlInfo.buildInternalUrl("/index.html").href;
+  await nativeOpen(main_url);
 })();
 
-setTimeout(() => {
- 
-}, 1000)
+setTimeout(() => {}, 1000);

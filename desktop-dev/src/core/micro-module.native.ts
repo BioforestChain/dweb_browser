@@ -10,8 +10,7 @@ import type {
   $Schema2,
   $Schema2ToType,
 } from "../helper/types.ts";
-import { NativeIpc } from "./ipc.native.ts";
-import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.ts";
+import { Ipc, IpcRequest, IpcResponse } from "./ipc/index.ts";
 import { MicroModule } from "./micro-module.ts";
 // import { connectAdapterManager } from "./nativeConnect.ts";
 
@@ -44,7 +43,7 @@ export abstract class NativeMicroModule extends MicroModule {
     raw: true,
   };
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
-  _onConnect(ipc: Ipc){};
+  _onConnect(ipc: Ipc) {}
 
   private _commmon_ipc_on_message_hanlders =
     new Set<$RequestCustomHanlderSchema>();
@@ -56,7 +55,7 @@ export abstract class NativeMicroModule extends MicroModule {
     this._inited_commmon_ipc_on_message = true;
 
     this.onConnect((client_ipc) => {
-      this._onConnect(client_ipc)
+      this._onConnect(client_ipc);
       client_ipc.onRequest(async (request) => {
         const { pathname } = request.parsed_url;
         let response: IpcResponse | undefined;

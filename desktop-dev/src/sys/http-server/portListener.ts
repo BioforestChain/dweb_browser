@@ -33,7 +33,7 @@ export class PortListener {
   addRouter(router: $Router) {
     this._routers.add(router);
     return () => {
-      this._routers.delete(router)
+      this._routers.delete(router);
     };
   }
 
@@ -61,7 +61,7 @@ export class PortListener {
     // if (res.closed) {
     //   throw new Error("http server response already closed");
     // }
-    
+
     const { url = "/", method = "GET" } = req;
     const parsed_url = parseUrl(url, this.origin);
     // console.log('parsed_url: ', parsed_url.href)
@@ -94,9 +94,9 @@ export class PortListener {
       //   : true
     ) {
       /** req body 的转发管道，转发到 响应服务端 */
-      
+
       const server_req_body_writter = new ReadableStreamOut<Uint8Array>();
-      ;(async () => {
+      (async () => {
         const client_req_body_reader = Readable.toWeb(req).getReader();
         client_req_body_reader.closed.then(() => {
           server_req_body_writter.controller.close();
@@ -120,15 +120,14 @@ export class PortListener {
 
       ipc_req_body_stream = server_req_body_writter.stream;
     }
-    console.log(`分发消息 http://${req.headers.host}${url}`)
+    console.log(`分发消息 http://${req.headers.host}${url}`);
     // 分发消息
     const http_response_info = await hasMatch.bind.streamIpc.request(url, {
       method,
       body: ipc_req_body_stream,
       headers: req.headers as Record<string, string>,
     });
-    console.log('消息返回了')
-
+    console.log("消息返回了");
 
     /// 写回 res 对象
     res.statusCode = http_response_info.statusCode;
@@ -163,7 +162,7 @@ export class PortListener {
   onDestroy = this._on_destroy_signal.listen;
   /** 销毁监听器内产生的引用 */
   destroy() {
-    Array.from(this._routers).map(item => item.streamIpc.close()) // 停止 streamIpc 是否还有这个必要吗？？
+    Array.from(this._routers).map((item) => item.streamIpc.close()); // 停止 streamIpc 是否还有这个必要吗？？
     // 删除 Router 保存的IPC
     this._on_destroy_signal.emit();
   }

@@ -1,5 +1,5 @@
-import { splashScreenPlugin } from "./splash-screen.plugin.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { splashScreenPlugin } from "./splash-screen.plugin.ts";
 export class HTMLDwebSplashScreenElement extends HTMLElement {
   readonly plugin = splashScreenPlugin;
 

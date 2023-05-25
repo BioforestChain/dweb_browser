@@ -1,0 +1,12 @@
+{
+    "name": "dweb-browser",
+    "description": "该配置只包含基本的一些全局工具链",
+    "scripts": {},
+    "devDependencies": {
+        "esbuild": "^0.17.19",
+        "esbuild-plugin-html-modules": "^0.6.0",
+        "prettier": "^2.8.8",
+        "prettier-plugin-organize-imports": "^3.2.2",
+        "vite-plugin-electron-renderer": "^0.12.1"
+    }
+}

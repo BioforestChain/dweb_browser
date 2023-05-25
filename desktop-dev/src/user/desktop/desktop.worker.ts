@@ -1,7 +1,7 @@
 import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import type { IpcResponse } from "../../core/ipc/IpcResponse.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { createSignal } from "../../helper/createSignal.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { closeApp, closeFront, webViewMap } from "../tool/app.handle.ts";
 import { EVENT, WebViewState } from "../tool/tool.event.ts";
 import {
@@ -189,13 +189,13 @@ const main = async () => {
     if (pathname.endsWith("restart")) {
       // 关闭别人来激活的ipc
       multiWebViewCloseSignal.emit();
-     closeApp(
+      closeApp(
         [apiServer, wwwServer, externalServer],
         [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
       );
       // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
       jsProcess.restart();
-      return "restart ok"
+      return "restart ok";
     }
     return "no action for serviceWorker Factory !!!";
   };
@@ -213,14 +213,14 @@ const main = async () => {
     }
   });
   const hasActivityEventIpcs = new Set<$Ipc>();
-  jsProcess.onClose(async (event,ipc) => {
+  jsProcess.onClose(async (event, ipc) => {
     // 接收JMM更新程序的关闭消息（安装完新的app需要重启应用）
-      multiWebViewCloseSignal.emit();
-      return closeApp(
-        [apiServer, wwwServer, externalServer],
-        [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
-      );
-  })
+    multiWebViewCloseSignal.emit();
+    return closeApp(
+      [apiServer, wwwServer, externalServer],
+      [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
+    );
+  });
 
   /// 同步 mwebview 的状态机
   multiWebViewIpc.onEvent(async (event, ipc) => {
@@ -259,8 +259,14 @@ const main = async () => {
   const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
     url.pathname = "/index.html";
   });
-  interUrl.searchParams.set("X-Plaoc-Internal-Url", apiServer.startResult.urlInfo.buildInternalUrl().href);
-  interUrl.searchParams.set("X-Plaoc-Public-Url", apiServer.startResult.urlInfo.buildPublicUrl().href);
+  interUrl.searchParams.set(
+    "X-Plaoc-Internal-Url",
+    apiServer.startResult.urlInfo.buildInternalUrl().href
+  );
+  interUrl.searchParams.set(
+    "X-Plaoc-Public-Url",
+    apiServer.startResult.urlInfo.buildPublicUrl().href
+  );
   mainUrl.resolve(interUrl.href);
 
   /**

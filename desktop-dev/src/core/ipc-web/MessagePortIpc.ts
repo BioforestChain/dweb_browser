@@ -39,8 +39,8 @@ export class MessagePortIpc extends Ipc {
       const message = this.support_raw
         ? $messageToIpcMessage(event.data, this)
         : this.support_message_pack
-          ? $messagePackToIpcMessage(event.data, this)
-          : $jsonToIpcMessage(event.data, this);
+        ? $messagePackToIpcMessage(event.data, this)
+        : $jsonToIpcMessage(event.data, this);
       if (message === undefined) {
         console.error("MessagePortIpc.cts unkonwn message", event.data);
         return;
@@ -72,7 +72,7 @@ export class MessagePortIpc extends Ipc {
     } else {
       message_raw = message;
     }
-  
+
     if (this.support_raw) {
       message_data = message_raw;
     } else if (this.support_message_pack) {

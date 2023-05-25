@@ -1,5 +1,5 @@
-import { toastPlugin } from "./toast.plugin.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { toastPlugin } from "./toast.plugin.ts";
 
 export class HTMLDwebToastElement extends HTMLElement {
   readonly plugin = toastPlugin;

@@ -2,21 +2,20 @@ import { css, LitElement } from "lit";
 import { customElement } from "lit/decorators.js";
 import { html } from "lit/static-html.js";
 
-@customElement('multi-webview-comp-biometrics')
-export class MultiWebviewCompBiometrics extends LitElement{
-
+@customElement("multi-webview-comp-biometrics")
+export class MultiWebviewCompBiometrics extends LitElement {
   static override styles = createAllCSS();
 
-  pass(){
-    console.error('点击了 pass 但是还没有处理')
-    this.dispatchEvent(new Event('pass'))
+  pass() {
+    console.error("点击了 pass 但是还没有处理");
+    this.dispatchEvent(new Event("pass"));
     this.shadowRoot?.host.remove();
   }
 
-  noPass(){
-    console.error('点击了 no pass 但是还没有处理')
-    this.dispatchEvent(new Event("no-pass"))
-    this.shadowRoot?.host.remove()
+  noPass() {
+    console.error("点击了 no pass 但是还没有处理");
+    this.dispatchEvent(new Event("no-pass"));
+    this.shadowRoot?.host.remove();
   }
 
   protected override render() {
@@ -28,14 +27,14 @@ export class MultiWebviewCompBiometrics extends LitElement{
           <button class="no_pass" @click=${this.noPass}>识别没通过</button>
         </div>
       </div>
-    `
+    `;
   }
 }
 
-function createAllCSS(){
+function createAllCSS() {
   return [
     css`
-      :host{
+      :host {
         position: absolute;
         z-index: 1;
         left: 0px;
@@ -50,35 +49,34 @@ function createAllCSS(){
         background: #00000033;
       }
 
-      .panel{
+      .panel {
         padding: 12px 20px;
         width: 80%;
         border-radius: 12px;
-        background: #FFFFFFFF;
+        background: #ffffffff;
       }
 
-      .btn_group{
+      .btn_group {
         width: 100%;
         display: flex;
         justify-content: space-between;
       }
 
       .pass,
-      .no_pass{
+      .no_pass {
         padding: 8px 20px;
         border-radius: 5px;
         border: none;
-
       }
 
-      .pass{
-        color: #FFFFFFFF;
-        background: #1677ff;    
+      .pass {
+        color: #ffffffff;
+        background: #1677ff;
       }
 
-      .no_pass{
+      .no_pass {
         background: #d9d9d9;
       }
-    `
-  ]
+    `,
+  ];
 }

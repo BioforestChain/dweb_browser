@@ -1,7 +1,5 @@
 export const throttle = (fn: Function, wait: number = 300) => {
-  let inThrottle: boolean,
-    lastFn: ReturnType<typeof setTimeout>,
-    lastTime: number;
+  let inThrottle: boolean, lastFn: ReturnType<typeof setTimeout>, lastTime: number;
   return function (this: any) {
     const context = this,
       args = arguments;

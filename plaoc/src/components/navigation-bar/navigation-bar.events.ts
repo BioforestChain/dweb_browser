@@ -2,15 +2,15 @@ export enum NavigationBarPluginEvents {
   /**
    * Called after the navigation bar is displayed
    */
-  SHOW = 'onShow',
+  SHOW = "onShow",
 
   /**
    * Called after navigation bar is hidden
    */
-  HIDE = 'onHide',
+  HIDE = "onHide",
 
   /**
    * Called after navigation bar color is changed
    */
-  COLOR_CHANGE = 'onColorChange'
+  COLOR_CHANGE = "onColorChange",
 }

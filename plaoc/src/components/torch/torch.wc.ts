@@ -1,5 +1,5 @@
-import { torchPlugin } from "./torch.plugin.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { torchPlugin } from "./torch.plugin.ts";
 
 export class HTMLDwebTorchElement extends HTMLElement {
   readonly plugin = torchPlugin;

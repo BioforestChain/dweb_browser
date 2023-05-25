@@ -1,5 +1,4 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { BarPlugin } from "../base/BarPlugin.ts";
 import {
   COLOR_FORMAT,
   convertColorToArga,
@@ -7,6 +6,7 @@ import {
 } from "../../util/color.ts";
 import { domInsetsToJson } from "../../util/insets.ts";
 import { $Coder } from "../../util/StateObserver.ts";
+import { BarPlugin } from "../base/BarPlugin.ts";
 import {
   $NavigationBarWritableState,
   type $NavigationBarRawState,

@@ -1,5 +1,3 @@
-
-
 export enum Directory {
   /**
    * The Documents directory
@@ -13,7 +11,7 @@ export enum Directory {
    *
    * @since 1.0.0
    */
-  Documents = 'DOCUMENTS',
+  Documents = "DOCUMENTS",
 
   /**
    * The Data directory
@@ -23,7 +21,7 @@ export enum Directory {
    *
    * @since 1.0.0
    */
-  Data = 'DATA',
+  Data = "DATA",
 
   /**
    * The Library directory
@@ -33,7 +31,7 @@ export enum Directory {
    *
    * @since 1.1.0
    */
-  Library = 'LIBRARY',
+  Library = "LIBRARY",
 
   /**
    * The Cache directory
@@ -42,7 +40,7 @@ export enum Directory {
    *
    * @since 1.0.0
    */
-  Cache = 'CACHE',
+  Cache = "CACHE",
 
   /**
    * The external directory
@@ -55,7 +53,7 @@ export enum Directory {
    *
    * @since 1.0.0
    */
-  External = 'EXTERNAL',
+  External = "EXTERNAL",
 
   /**
    * The external storage directory
@@ -68,7 +66,7 @@ export enum Directory {
    *
    * @since 1.0.0
    */
-  ExternalStorage = 'EXTERNAL_STORAGE',
+  ExternalStorage = "EXTERNAL_STORAGE",
 }
 
 export enum Encoding {
@@ -77,7 +75,7 @@ export enum Encoding {
    *
    * @since 1.0.0
    */
-  UTF8 = 'utf8',
+  UTF8 = "utf8",
 
   /**
    * Seven-bit ASCII, a.k.a. ISO646-US, a.k.a. the Basic Latin block of the
@@ -86,7 +84,7 @@ export enum Encoding {
    *
    * @since 1.0.0
    */
-  ASCII = 'ascii',
+  ASCII = "ascii",
 
   /**
    * Sixteen-bit UCS Transformation Format, byte order identified by an
@@ -95,7 +93,7 @@ export enum Encoding {
    *
    * @since 1.0.0
    */
-  UTF16 = 'utf16',
+  UTF16 = "utf16",
 }
 
 export interface WriteFileOptions {
@@ -380,7 +378,7 @@ export interface FileInfo {
    *
    * @since 4.0.0
    */
-  type: 'directory' | 'file';
+  type: "directory" | "file";
 
   /**
    * Size of the file in bytes.
@@ -428,7 +426,7 @@ export interface StatResult {
    *
    * @since 1.0.0
    */
-  type: 'directory' | 'file';
+  type: "directory" | "file";
 
   /**
    * Size of the file in bytes.
@@ -547,7 +545,6 @@ export interface FilesystemPlugin {
    * @since 1.0.0
    */
   copy(options: CopyOptions): Promise<CopyResult>;
-
 }
 
 /**

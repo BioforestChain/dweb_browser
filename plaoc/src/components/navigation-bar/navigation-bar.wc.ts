@@ -3,7 +3,7 @@ import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts
 import { navigationBarPlugin } from "./navigation-bar.plugin.ts";
 import {
   $NavigationBarRawState,
-  $NavigationBarState
+  $NavigationBarState,
 } from "./navigation-bar.type.ts";
 
 export class HTMLDwebNavigationBarElement extends HTMLStateObserverElement<

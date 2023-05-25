@@ -1,6 +1,4 @@
-import { IpcMessage, IPC_DATA_ENCODING, IPC_ROLE } from "../../core/ipc/index.ts";
 import { IpcEvent } from "../../core/ipc/IpcEvent.ts";
-import { IpcStreamData } from "../../core/ipc/IpcStreamData.ts";
 import { u8aConcat } from "../../helper/binaryHelper.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
@@ -10,9 +8,6 @@ import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
 import type { ServerUrlInfo } from "../../sys/http-server/const.ts";
 import { OBSERVE } from "../tool/tool.event.ts";
 import { cros } from "../tool/tool.native.ts";
-import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
-import { transfer } from "comlink";
-import { IpcBodySender } from "../../core/ipc/index.ts"
 const { IpcResponse, Ipc, IpcRequest, IpcHeaders, IPC_METHOD } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 export type $Ipc = InstanceType<typeof Ipc>;
@@ -30,7 +25,6 @@ const INTERNAL_PREFIX = "/internal";
 type $OnIpcRequestUrl = (request: $IpcRequest) => void;
 export const fetchSignal = createSignal<$OnIpcRequestUrl>();
 export const onFetchSignal = createSignal<$OnIpcRequestUrl>();
-
 
 /**
  * request 事件处理器
@@ -122,7 +116,7 @@ const internalFactory = (
     if (mmid === null) {
       throw new Error("observe require mmid");
     }
-    const host = new URL(serverurlInfo.internal_origin).host
+    const host = new URL(serverurlInfo.internal_origin).host;
     const streamPo = observeFactory(mmid, host);
     return IpcResponse.fromStream(
       req_id,
@@ -192,9 +186,7 @@ const observeFactory = (mmid: string, host: string) => {
     const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };
     result.ipc.resolve(jsProcess.connect(mmid));
     result.ipc.promise.then((ipc) => {
-      ipc.postMessage(
-        IpcEvent.fromText('observe', host)
-      )
+      ipc.postMessage(IpcEvent.fromText("observe", host));
       ipc.onEvent((event) => {
         if (
           event.name !== OBSERVE.State &&

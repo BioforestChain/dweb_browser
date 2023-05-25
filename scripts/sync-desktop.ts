@@ -1,14 +1,14 @@
 import { SyncTask } from "./helper/SyncTask.ts";
-import { syncTask as desktopSyncTask } from './sync-desktop.ts'
+import { syncTask as desktopSyncTask } from "./sync-desktop.ts";
 
 export const syncTask = new SyncTask(
   {
     from: import.meta.resolve("../plaoc/demo"),
     to: import.meta.resolve("../desktop-dev/electron/assets"),
   },
-  [{ from: "dist", to: "cot-demo" },]
+  [{ from: "dist", to: "cot-demo" }]
 );
 if (import.meta.main) {
-  desktopSyncTask.auto()
+  desktopSyncTask.auto();
   syncTask.auto();
 }

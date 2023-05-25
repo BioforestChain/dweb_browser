@@ -1,38 +1,36 @@
+import chalk from "chalk";
+import type { Remote } from "comlink";
+import { pathToFileURL } from "https://deno.land/std@0.177.0/node/url.ts";
+import type { IncomingMessage, OutgoingMessage } from "node:http";
+import path from "node:path";
+import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import type { Ipc } from "../../core/ipc/ipc.ts";
 import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import { log } from "../../helper/devtools.ts";
 import { locks } from "../../helper/locksManager.ts";
 import {
   $NativeWindow,
   openNativeWindow,
 } from "../../helper/openNativeWindow.ts";
-import { log } from "../../helper/devtools.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
-import chalk from "chalk";
-import { converRGBAToHexa, hexaToRGBA } from "../plugins/helper.ts";
-import querystring from "node:querystring";
-import path from "node:path";
 import {
-  open,
-  closeFocusedWindow,
-  openDownloadPage,
   barGetState,
   barSetState,
+  biometricsMock,
+  closeFocusedWindow,
+  haptics,
+  open,
+  openDownloadPage,
   safeAreaGetState,
   safeAreaSetState,
-  virtualKeyboardGetState,
-  virtualKeyboardSetState,
-  toastShow,
   shareShare,
+  toastShow,
   toggleTorch,
   torchState,
-  haptics,
-  biometricsMock,
+  virtualKeyboardGetState,
+  virtualKeyboardSetState,
 } from "./multi-webview.mobile.handler.ts";
-import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import type { Remote } from "comlink";
-import type { Ipc } from "../../core/ipc/ipc.ts";
-import type { IncomingMessage, OutgoingMessage } from "node:http";
-import { pathToFileURL } from "https://deno.land/std@0.177.0/node/url.ts";
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
 /**
@@ -582,9 +580,9 @@ export class MultiWebviewNMM extends NativeMicroModule {
         const apis = nww.getApis<$APIS>();
         const absolutePath = pathToFileURL(
           path.resolve(__dirname, "./assets/preload.js")
-        ).href 
+        ).href;
         /// TIP: 这里通过类型强行引用 preload，目的是确保依赖关系，使得最终能产生编译内容
-        type _Preload = typeof import('./assets/preload.ts');
+        type _Preload = typeof import("./assets/preload.ts");
         apis.preloadAbsolutePathSet(absolutePath);
 
         this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));

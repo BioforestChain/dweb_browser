@@ -30,7 +30,7 @@ export const fetchBaseExtends = $makeExtends<Promise<Response>>()({
     try {
       return (await ok.json()) as T;
     } catch (err) {
-      console.error("fail to object", ok.url)
+      console.error("fail to object", ok.url);
       // deno-lint-ignore no-debugger
       debugger;
       throw err;

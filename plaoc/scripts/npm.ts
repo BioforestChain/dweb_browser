@@ -22,5 +22,3 @@ export const npm = async (args = Deno.args) => {
     }
   }
 };
-
-

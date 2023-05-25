@@ -12,7 +12,7 @@ class Webview {
   doReady(value: WebviewTag) {
     this._api = value;
     this._api_po.resolve(value);
-    console.log('执行了 doReady')
+    console.log("执行了 doReady");
   }
   private _api_po = new PromiseOut<WebviewTag>();
   ready() {
@@ -29,8 +29,4 @@ class Webview {
   };
 }
 
-export {
-  Webview
-}
-
-  
+export { Webview };

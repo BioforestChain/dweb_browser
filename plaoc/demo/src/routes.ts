@@ -1,4 +1,3 @@
-
 export const routes = [
   { title: "Input File", path: "/inputfile", component: () => import("./pages/InputFile.vue") },
   { title: "Status Bar", path: "/statusbar", component: () => import("./pages/StatusBar.vue") },

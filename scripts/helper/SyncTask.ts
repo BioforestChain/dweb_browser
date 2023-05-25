@@ -1,9 +1,8 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { debounce } from "https://deno.land/std@0.109.0/async/debounce.ts";
 import { copySync } from "https://deno.land/std@0.179.0/fs/copy.ts";
-import { ensureDirSync } from "https://deno.land/std@0.179.0/fs/ensure_dir.ts";
 import { emptyDirSync } from "https://deno.land/std@0.179.0/fs/mod.ts";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const tryFileURLToPath = (somepath: string) =>
   somepath.startsWith("file://") ? fileURLToPath(somepath) : somepath;

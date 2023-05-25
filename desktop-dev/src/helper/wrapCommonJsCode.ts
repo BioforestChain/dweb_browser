@@ -1,4 +1,3 @@
-
 export const wrapCommonJsCode = (
   common_js_code: string,
   options: {

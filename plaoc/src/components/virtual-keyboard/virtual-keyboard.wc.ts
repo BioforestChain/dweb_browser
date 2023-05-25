@@ -1,8 +1,10 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { virtualKeyboardPlugin } from "./virtual-keyboard.plugin.ts";
-import { $VirtualKeyboardState } from "./virtual-keyboard.type.ts";
-import { $VirtualKeyboardRawState } from "./virtual-keyboard.type.ts";
+import {
+  $VirtualKeyboardRawState,
+  $VirtualKeyboardState,
+} from "./virtual-keyboard.type.ts";
 
 export class HTMLDwebVirtualKeyboardElement extends HTMLStateObserverElement<
   $VirtualKeyboardRawState,

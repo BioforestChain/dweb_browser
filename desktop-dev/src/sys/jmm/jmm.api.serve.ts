@@ -3,7 +3,6 @@ import fsPromises from "node:fs/promises";
 import path from "node:path";
 import request from "request";
 import progress from "request-progress";
-import extract from "extract-zip";
 import tar from "tar";
 import {
   Ipc,
@@ -12,7 +11,7 @@ import {
   IpcResponse,
 } from "../../core/ipc/index.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
-import type { $AppMetaData, $State, JmmNMM } from "./jmm.ts";
+import type { $State, JmmNMM } from "./jmm.ts";
 
 export async function createApiServer(this: JmmNMM) {
   // 为 下载页面做 准备

@@ -4,7 +4,6 @@
 // }
 
 export interface BioetricsResult {
-  success: boolean,
-  message: string
+  success: boolean;
+  message: string;
 }
-

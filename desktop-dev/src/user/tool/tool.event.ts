@@ -13,11 +13,10 @@ export enum EVENT {
 
 export enum OBSERVE {
   State = "observe",
-  UpdateProgress = "observeUpdateProgress"
+  UpdateProgress = "observeUpdateProgress",
 }
-
 
 export type WebViewState = {
-  "isActivated": boolean,
-  "webviewId": string
-}
+  isActivated: boolean;
+  webviewId: string;
+};

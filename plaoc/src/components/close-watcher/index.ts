@@ -1,2 +1,1 @@
-
-export * from './close-watcher.shim.ts'
+export * from "./close-watcher.shim.ts";

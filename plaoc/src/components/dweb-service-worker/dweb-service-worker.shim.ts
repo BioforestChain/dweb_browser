@@ -7,15 +7,15 @@ import {
 } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { configPlugin } from "../index.ts";
-import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
 import {
   $BodyData,
   DwebWorkerEventMap,
-  IPC_METHOD,
   IpcRequest,
+  IPC_METHOD,
   UpdateControllerMap,
 } from "./dweb-service-worker.type.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
+import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
 
 declare namespace globalThis {
   const __app_upgrade_watcher_kit__: {
@@ -48,7 +48,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
 
   @cacheGetter()
   get externalFetch() {
-    return this.plugin.externalFetch
+    return this.plugin.externalFetch;
   }
 
   @cacheGetter()
@@ -102,7 +102,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   ) {
     let pub = await BasePlugin.public_url;
     if (pub === "") {
-      pub = await configPlugin.getPublicUrl()
+      pub = await configPlugin.getPublicUrl();
     }
     const jsonlines = await this.plugin
       .buildInternalApiRequest(`/${eventName}`, {
@@ -129,7 +129,8 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     options?: boolean | AddEventListenerOptions
   ): EventTarget {
     // 用户需要的时候再去注册
-    if (eventName === "fetch") { //  || eventName === "onFetch"
+    if (eventName === "fetch") {
+      //  || eventName === "onFetch"
       (async () => {
         for await (const _info of this.registerEvent(eventName)) {
           // console.log("registerFetch", _info);

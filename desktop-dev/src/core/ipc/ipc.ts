@@ -164,10 +164,10 @@ export abstract class Ipc {
       method?: string;
       body?: /* json+text */
       | string
-      /* base64 */
-      | Uint8Array
-      /* stream+base64 */
-      | ReadableStream<Uint8Array>;
+        /* base64 */
+        | Uint8Array
+        /* stream+base64 */
+        | ReadableStream<Uint8Array>;
       headers?: IpcHeaders | HeadersInit;
     }
   ) {

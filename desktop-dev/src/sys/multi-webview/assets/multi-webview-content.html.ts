@@ -1,10 +1,10 @@
 // 效果 webview 容器
 import { css, html, LitElement } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
-import { styleMap } from "lit/directives/style-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
-import { Webview } from "./multi-webview.ts";
+import { styleMap } from "lit/directives/style-map.js";
 import ecxuteJavascriptCode from "./multi-webview-content-execute-javascript.ts";
+import { Webview } from "./multi-webview.ts";
 import WebviewTag = Electron.WebviewTag;
 
 @customElement("multi-webview-content")
@@ -40,7 +40,9 @@ export class MultiWebViewContent extends LitElement {
     console.log("did-start-loading");
     const el = e.target;
     if (el === null) throw new Error(`el === null`);
-    (e.target as WebviewTag).executeJavaScript(ecxuteJavascriptCode.toString().match(/\{([\w\W]+)\}/)![0][1]);
+    (e.target as WebviewTag).executeJavaScript(
+      ecxuteJavascriptCode.toString().match(/\{([\w\W]+)\}/)![0][1]
+    );
   }
 
   onAnimationend(event: AnimationEvent) {

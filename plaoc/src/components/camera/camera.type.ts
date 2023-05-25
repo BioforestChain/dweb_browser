@@ -2,15 +2,15 @@ export enum CameraSource {
   /**
    * Prompts the user to select either the photo album or take a photo.
    */
-  Prompt = 'PROMPT',
+  Prompt = "PROMPT",
   /**
    * Take a new photo using the camera.
    */
-  Camera = 'CAMERA',
+  Camera = "CAMERA",
   /**
    * Pick an existing photo from the gallery or photo album.
    */
-  Photos = 'PHOTOS',
+  Photos = "PHOTOS",
 }
 
 export interface ImageOptions {
@@ -83,7 +83,7 @@ export interface ImageOptions {
    *
    * @since 1.0.0
    */
-  presentationStyle?: 'fullscreen' | 'popover';
+  presentationStyle?: "fullscreen" | "popover";
 
   /**
    * Web only: Whether to use the PWA Element experience or file input. The
@@ -189,12 +189,12 @@ export interface Photo {
 }
 
 export enum CameraResultType {
-  Uri = 'uri',
-  Base64 = 'base64',
-  DataUrl = 'dataUrl',
+  Uri = "uri",
+  Base64 = "base64",
+  DataUrl = "dataUrl",
 }
 
 export enum CameraDirection {
-  FRONT = 'user', // 前置摄像头
-  BACK = 'environment', // 后置摄像头
+  FRONT = "user", // 前置摄像头
+  BACK = "environment", // 后置摄像头
 }

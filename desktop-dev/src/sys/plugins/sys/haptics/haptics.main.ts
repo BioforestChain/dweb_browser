@@ -1,88 +1,88 @@
 // haptics.sys.dweb
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import { setHaptics } from "./handlers.ts"
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
+import { setHaptics } from "./handlers.ts";
 
-export class HapticsNMM extends NativeMicroModule{
+export class HapticsNMM extends NativeMicroModule {
   mmid = "haptics.sys.dweb" as const;
   httpNMM: HttpServerNMM | undefined;
-  impactLightStyle: $ImpactLightStyle = "HEAVY"
-  notificationStyle: $NotificationStyle = "SUCCESS"
+  impactLightStyle: $ImpactLightStyle = "HEAVY";
+  notificationStyle: $NotificationStyle = "SUCCESS";
 
   protected _bootstrap() {
     log.green(`[${this.mmid}] _bootstrap`);
     // haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.sys.dweb%3A443&style=HEAVY
     this.registerCommonIpcOnMessageHandler({
       pathname: "/impactLight",
-      matchMode:"full",
-      input:{ style: "string" },
+      matchMode: "full",
+      input: { style: "string" },
       output: "object",
-      handler: setHaptics.bind(this)
-    })
+      handler: setHaptics.bind(this),
+    });
 
     // /haptics.sys.dweb/notification?X-Dweb-Host=api.browser.sys.dweb%3A443&style=SUCCESS | WARNING | ERROR
     this.registerCommonIpcOnMessageHandler({
       pathname: "/notification",
-      matchMode:"full",
-      input:{},
+      matchMode: "full",
+      input: {},
       output: "object",
-      handler: setHaptics.bind(this)
-    })
+      handler: setHaptics.bind(this),
+    });
 
     // haptics.sys.dweb/vibrateClick
     this.registerCommonIpcOnMessageHandler({
       pathname: "/vibrateClick",
-      matchMode:"full",
-      input:{},
+      matchMode: "full",
+      input: {},
       output: "object",
-      handler: setHaptics.bind(this)
-    })
+      handler: setHaptics.bind(this),
+    });
 
     // /haptics.sys.dweb/vibrateDisabled
     this.registerCommonIpcOnMessageHandler({
       pathname: "/vibrateDisabled",
-      matchMode:"full",
-      input:{},
+      matchMode: "full",
+      input: {},
       output: "object",
-      handler: setHaptics.bind(this)
-    })
+      handler: setHaptics.bind(this),
+    });
 
     // /haptics.sys.dweb/vibrateDoubleClick
     this.registerCommonIpcOnMessageHandler({
       pathname: "/vibrateDoubleClick",
-      matchMode:"full",
-      input:{},
+      matchMode: "full",
+      input: {},
       output: "object",
-      handler: setHaptics.bind(this)
-    })
+      handler: setHaptics.bind(this),
+    });
 
     // /haptics.sys.dweb/vibrateHeavyClick
     this.registerCommonIpcOnMessageHandler({
       pathname: "/vibrateHeavyClick",
-      matchMode:"full",
-      input:{},
+      matchMode: "full",
+      input: {},
       output: "object",
-      handler: setHaptics.bind(this)
-    })
-    
+      handler: setHaptics.bind(this),
+    });
+
     // /haptics.sys.dweb/vibrateTick
     this.registerCommonIpcOnMessageHandler({
       pathname: "/vibrateTick",
-      matchMode:"full",
-      input:{},
+      matchMode: "full",
+      input: {},
       output: "object",
-      handler: setHaptics.bind(this)
-    })
-    
+      handler: setHaptics.bind(this),
+    });
+
     // /haptics.sys.dweb/customize?X-Dweb-Host=api.browser.sys.dweb%3A443&duration=300
     this.registerCommonIpcOnMessageHandler({
       pathname: "/customize",
-      matchMode:"full",
-      input:{},
+      matchMode: "full",
+      input: {},
       output: "object",
-      handler: setHaptics.bind(this)
-    })
+      handler: setHaptics.bind(this),
+    });
   }
 
   // private _impactLight = async (req: IncomingMessage, res: OutgoingMessage) => {
@@ -91,13 +91,13 @@ export class HapticsNMM extends NativeMicroModule{
   //   if(style === null) throw new Error(`${this.mmid} _impactLight style === null`);
   //   this.impactLightStyle = style;
   //   this.sendToUi(JSON.stringify({
-  //     operationName: "impactLight", 
+  //     operationName: "impactLight",
   //     value: style,
   //     from: req.headers.origin
   //   }))
   //   res.setHeader('content-type', "text/plain")
   //   res.end(style)
-  // } 
+  // }
 
   // private _notification = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   const url = new URL(req.url as string, `${req.headers.origin}`);
@@ -105,7 +105,7 @@ export class HapticsNMM extends NativeMicroModule{
   //   if(style === null) throw new Error(`${this.mmid} _notification style === null`);
   //   this.notificationStyle = style;
   //   this.sendToUi(JSON.stringify({
-  //     operationName: "notification", 
+  //     operationName: "notification",
   //     value: style,
   //     from: req.headers.origin
   //   }))
@@ -115,27 +115,27 @@ export class HapticsNMM extends NativeMicroModule{
 
   // private _vibrateClick = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   this.sendToUi(JSON.stringify({
-  //     operationName: "vibrateClick", 
+  //     operationName: "vibrateClick",
   //     value: true,
   //     from: req.headers.origin
   //   }))
   //   res.setHeader('content-type', "text/plain");
   //   res.end("vibrateClick")
-  // } 
+  // }
 
   // private _vibrateDisabled = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   this.sendToUi(JSON.stringify({
-  //     operationName: "vibrateDisabled", 
+  //     operationName: "vibrateDisabled",
   //     value: true,
   //     from: req.headers.origin
   //   }))
   //   res.setHeader('content-type', "text/plain");
   //   res.end("vibrateDisabled")
-  // } 
+  // }
 
   // private _vibrateDoubleClick = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   this.sendToUi(JSON.stringify({
-  //     operationName: "vibrateDoubleClick", 
+  //     operationName: "vibrateDoubleClick",
   //     value: true,
   //     from: req.headers.origin
   //   }))
@@ -145,20 +145,20 @@ export class HapticsNMM extends NativeMicroModule{
 
   // private _vibrateHeavyClick = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   this.sendToUi(JSON.stringify({
-  //     operationName: "vibrateHeavyClick", 
+  //     operationName: "vibrateHeavyClick",
   //     value: true,
   //     from: req.headers.origin
-  //   }))  
+  //   }))
   //   res.setHeader('content-type', "text/plain")
   //   res.end("vibrateHeavyClick")
   // }
 
   // private _vibrateTick = async (req: IncomingMessage, res: OutgoingMessage) => {
   //   this.sendToUi(JSON.stringify({
-  //     operationName: "vibrateTick", 
+  //     operationName: "vibrateTick",
   //     value: true,
   //     from: req.headers.origin
-  //   })) 
+  //   }))
   //   res.setHeader('content-type', "text/plain")
   //   res.end("vibrateTick")
   // }
@@ -169,10 +169,10 @@ export class HapticsNMM extends NativeMicroModule{
   //   if(duration === null) throw new Error(`${this.mmid} _customize duration === null`)
   //   this.duration = parseInt(duration);
   //   this.sendToUi(JSON.stringify({
-  //     operationName: "customize", 
+  //     operationName: "customize",
   //     value: this.duration,
   //     from: req.headers.origin
-  //   })) 
+  //   }))
   //   res.setHeader('content-type', "text/plain")
   //   res.end("vibrateTick")
   // }
@@ -197,4 +197,3 @@ export class HapticsNMM extends NativeMicroModule{
 
 export type $ImpactLightStyle = "HEAVY" | "MEDIUM" | "LIGHT";
 export type $NotificationStyle = "SUCCESS" | "WARNING" | "ERROR";
- 

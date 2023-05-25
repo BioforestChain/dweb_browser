@@ -1,20 +1,19 @@
 import crypto from "node:crypto";
-import url from "node:url";
+import type http from "node:http";
+import type { IncomingMessage, OutgoingMessage } from "node:http";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IPC_ROLE } from "../../core/ipc/const.ts";
-import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { ServerStartResult, ServerUrlInfo } from "./const.ts";
-import { defaultErrorResponse } from "./defaultErrorResponse.ts";
-import { Http1Server } from "./net/Http1Server.ts";
-import { PortListener } from "./portListener.ts";
-import { log } from "../../helper/devtools.ts"
-import type { IncomingMessage, OutgoingMessage } from "node:http";
-import type http from "node:http";
-import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
-import type { $ReqMatcher } from "../../helper/$ReqMatcher.ts";
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
- 
+import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import type { $ReqMatcher } from "../../helper/$ReqMatcher.ts";
+import { log } from "../../helper/devtools.ts";
+import { ServerStartResult, ServerUrlInfo } from "./const.ts";
+import { defaultErrorResponse } from "./defaultErrorResponse.ts";
+import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
+import { Http1Server } from "./net/Http1Server.ts";
+import { PortListener } from "./portListener.ts";
+
 interface $Gateway {
   listener: PortListener;
   urlInfo: ServerUrlInfo;
@@ -35,41 +34,40 @@ export class HttpServerNMM extends NativeMicroModule {
 
   private _tokenMap = new Map</* token */ string, $Gateway>();
   private _gatewayMap = new Map</* host */ string, $Gateway>();
-  private _info: {
-    hostname: string;
-    port: number;
-    host: string;
-    origin: string;
-    server: http.Server<typeof IncomingMessage, typeof http.ServerResponse>;
-    protocol: {
-        prefix: string;
-        protocol: string;
+  private _info:
+    | {
+        hostname: string;
         port: number;
-    };
-  } | undefined
- 
-  private _allRoutes: Map<string, $Listener> = new Map()
+        host: string;
+        origin: string;
+        server: http.Server<typeof IncomingMessage, typeof http.ServerResponse>;
+        protocol: {
+          prefix: string;
+          protocol: string;
+          port: number;
+        };
+      }
+    | undefined;
+
+  private _allRoutes: Map<string, $Listener> = new Map();
 
   protected async _bootstrap() {
-    log.green(`${this.mmid} _bootstrap`)
+    log.green(`${this.mmid} _bootstrap`);
 
     // 用来接受 推送的消息
     this.onConnect((remoteIpc) => {
-      remoteIpc.onEvent((ipcEventMessage, ipc) => {
-        
-      })
-    })
+      remoteIpc.onEvent((ipcEventMessage, ipc) => {});
+    });
 
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     this._info = await this._dwebServer.create();
-    console.log('创建了服务： ', this._info)
+    console.log("创建了服务： ", this._info);
 
     this._info.server.on("request", async (req, res) => {
-
-      console.log('接收到熬了请求 --- ')
-      res.setHeader("Access-Control-Allow-Origin", "*");  
-      res.setHeader("Access-Control-Allow-Headers", "*");  
-      res.setHeader("Access-Control-Allow-Methods","*");  
+      console.log("接收到熬了请求 --- ");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Headers", "*");
+      res.setHeader("Access-Control-Allow-Methods", "*");
       // 根据发送改过来的请求 创建一个新的request
       // console.log('req.url: ', req.url)
       // console.log('headers: ', req.headers)
@@ -83,12 +81,14 @@ export class HttpServerNMM extends NativeMicroModule {
       // const host = this.getHostByURLAndHeaders(targetUrl, req.headers)
       // console.log('host: ', host)
       const host = this.getHostByReq(req);
-       
+
       {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
         if (gateway == undefined) {
-          log.red(`[http-server onRequest 既没分发也没有匹配 gatewaty请求] ${req.url}`)
+          log.red(
+            `[http-server onRequest 既没分发也没有匹配 gatewaty请求] ${req.url}`
+          );
           return defaultErrorResponse(
             req,
             res,
@@ -97,9 +97,9 @@ export class HttpServerNMM extends NativeMicroModule {
             "作为网关或者代理工作的服务器尝试执行请求时，从远程服务器接收到了一个无效的响应"
           );
         }
-        
+
         // gateway.listener.ipc.request("/on-connect")
-  
+
         // const gateway_timeout = setTimeout(() => {
         //   if (res.writableLength === 0) {
         //   }
@@ -110,7 +110,6 @@ export class HttpServerNMM extends NativeMicroModule {
         void gateway.listener.hookHttpRequest(req, res);
       }
     });
-
 
     /// 监听 IPC 请求 /start
     this.registerCommonIpcOnMessageHandler({
@@ -282,7 +281,7 @@ export class HttpServerNMM extends NativeMicroModule {
         }
       }
     }
-  
+
     let host =
       query_x_web_host ||
       header_x_dweb_host ||
@@ -296,7 +295,7 @@ export class HttpServerNMM extends NativeMicroModule {
       host = "*";
     }
     return host;
-  }
+  };
   // 获取 host
   getHostByURLAndHeaders = (url: string, headers: {}) => {
     /// 获取 host
@@ -340,7 +339,7 @@ export class HttpServerNMM extends NativeMicroModule {
         }
       }
     }
-  
+
     let host =
       query_x_web_host ||
       header_x_dweb_host ||
@@ -354,6 +353,5 @@ export class HttpServerNMM extends NativeMicroModule {
       host = "*";
     }
     return host;
-  }
+  };
 }
-

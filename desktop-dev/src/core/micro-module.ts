@@ -27,7 +27,7 @@ export abstract class MicroModule implements $MicroModule {
   get isRunning() {
     return this._running_state_lock.promise;
   }
-  
+
   protected async before_bootstrap(context: $BootstrapContext) {
     if (await this._running_state_lock.promise) {
       throw new Error(`module ${this.mmid} alreay running`);
@@ -99,8 +99,8 @@ export abstract class MicroModule implements $MicroModule {
   }
 
   nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
-    if(init?.body instanceof ReadableStream){
-      Reflect.set(init, "duplex", "half")
+    if (init?.body instanceof ReadableStream) {
+      Reflect.set(init, "duplex", "half");
     }
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }

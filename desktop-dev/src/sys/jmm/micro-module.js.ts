@@ -1,14 +1,12 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
-import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.ts";
+import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
-import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.ts";
 import type { $IpcSupportProtocols } from "../../helper/types.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
 
 import type { JmmMetadata } from "./JmmMetadata.ts";
-
 
 /**
  * 所有的js程序都只有这么一个动态的构造器
@@ -46,7 +44,9 @@ export class JsMicroModule extends MicroModule {
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
-    console.log(`[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`);
+    console.log(
+      `[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`
+    );
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.sys.dweb/create-process
@@ -99,17 +99,21 @@ export class JsMicroModule extends MicroModule {
     this._connecting_ipcs.add(streamIpc);
 
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
-    this._connecting_ipcs.add(jsIpc)
+    this._connecting_ipcs.add(jsIpc);
     jsIpc.onRequest(async (ipcRequest) => {
-      const request = ipcRequest.toRequest()
+      const request = ipcRequest.toRequest();
       const response = await this.nativeFetch(request);
-      const newResponse = await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc)
+      const newResponse = await IpcResponse.fromResponse(
+        ipcRequest.req_id,
+        response,
+        jsIpc
+      );
       jsIpc.postMessage(newResponse);
     });
 
     jsIpc.onEvent(async (ipcEvent) => {
-      if(ipcEvent.name === "restart"){
-        this.nativeFetch(`file://dns.sys.dweb/restart?app_id=${this.mmid}`)
+      if (ipcEvent.name === "restart") {
+        this.nativeFetch(`file://dns.sys.dweb/restart?app_id=${this.mmid}`);
         return;
       }
       if (ipcEvent.name === "dns/connect") {
@@ -121,8 +125,8 @@ export class JsMicroModule extends MicroModule {
           })
         ).number();
         const originIpc = new Native2JsIpc(portId, this);
-        this._connecting_ipcs.add(targetIpc)
-        this._connecting_ipcs.add(originIpc)
+        this._connecting_ipcs.add(targetIpc);
+        this._connecting_ipcs.add(originIpc);
         /**
          * 将两个消息通道间接互联
          */
@@ -131,10 +135,10 @@ export class JsMicroModule extends MicroModule {
       }
     });
   }
- 
+
   _shutdown() {
     // 这里是否要全部关闭 ipc 这里的操作是 new 的时候就走了一遍了？
-    console.log('关闭了进程 micro-module.js.cts')
+    console.log("关闭了进程 micro-module.js.cts");
     for (const outer_ipc of this._connecting_ipcs) {
       outer_ipc.close();
     }

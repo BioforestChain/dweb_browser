@@ -1,5 +1,6 @@
 import { encode } from "@msgpack/msgpack";
 import { once } from "lodash";
+import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.ts";
 import { u8aConcat } from "../../helper/binaryHelper.ts";
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.ts";
 import {
@@ -15,7 +16,6 @@ import type { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
 import { $jsonToIpcMessage } from "./$messageToIpcMessage.ts";
-import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.ts"
 
 /**
  * 基于 WebReadableStream 的IPC
@@ -99,7 +99,7 @@ export class ReadableStreamIpc extends Ipc {
     var message_raw: IpcMessage<any>;
     // 源代吗 在 处理 /internal/public-url 的时候无法正确的判断
     // message instanceof IpcResponse === false
-    // 所以更改为使用message.type 判断 
+    // 所以更改为使用message.type 判断
     // if (message instanceof IpcRequest) {
     //   message_raw = message.ipcReqMessage();
     // } else if (message instanceof IpcResponse) {

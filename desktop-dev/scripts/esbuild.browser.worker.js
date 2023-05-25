@@ -34,7 +34,6 @@ async function main() {
     ).watch();
   } else {
     await esbuild.build(options);
-    console.log("qqq")
   }
 }
 
