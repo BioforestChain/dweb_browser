@@ -22,15 +22,6 @@ declare namespace globalThis {
   function open(url: string): Window;
 }
 
-// if(!globalThis.__native_close_watcher_kit__){
-//   Object.defineProperties(globalThis,{ __native_close_watcher_kit__: { value: {}}})
-// }
-
-// const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
-// if (native_close_watcher_kit) {
-//   native_close_watcher_kit._watchers ??= new Map();
-//   native_close_watcher_kit._tasks ??= new Map();
-// }
 export class CloseWatcher extends EventTarget {
   constructor() {
     super();
