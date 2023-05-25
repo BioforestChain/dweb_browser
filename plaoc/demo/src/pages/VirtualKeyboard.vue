@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import { HTMLDwebVirtualKeyboardElement, $VirtualKeyboardState } from "@bfex/plugin";
+import { HTMLDwebVirtualKeyboardElement, $VirtualKeyboardState } from "../plugin";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 const title = "Virtual Keyboard";
 

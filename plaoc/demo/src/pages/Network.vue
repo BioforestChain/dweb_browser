@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { networkPlugin, HTMLDwebNetworkElement } from '@bfex/plugin';
+import { networkPlugin, HTMLDwebNetworkElement } from '../plugin';
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 
 const title = "Scanner";

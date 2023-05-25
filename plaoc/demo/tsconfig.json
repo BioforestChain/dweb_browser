@@ -11,6 +11,7 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "noImplicitOverride": true,
+    "allowImportingTsExtensions": true,
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
     "noEmit": true,

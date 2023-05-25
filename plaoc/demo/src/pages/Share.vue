@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLDwebShareElement } from "@bfex/plugin";
+import type { HTMLDwebShareElement } from "../plugin";
 import { reactive } from "vue";
 
 const title = "Share";

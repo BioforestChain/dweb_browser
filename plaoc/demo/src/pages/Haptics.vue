@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLDwebHapticsElement, ImpactStyle, NotificationType } from '@bfex/plugin';
+import type { HTMLDwebHapticsElement, ImpactStyle, NotificationType } from '../plugin';
 const title = "Haptics";
 
 const $logPanel = ref<typeof LogPanel>();

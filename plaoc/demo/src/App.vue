@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { dwebServiceWorker } from "@bfex/plugin";
+import { dwebServiceWorker } from "./plugin";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { routes } from "./routes";

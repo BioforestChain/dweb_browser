@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { HTMLDwebSafeAreaElement, $SafeAreaState } from "@bfex/plugin";
+import { HTMLDwebSafeAreaElement, $SafeAreaState } from "../plugin";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 const title = "Safe Area";
 

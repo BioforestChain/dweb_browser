@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { biometricsPlugin, HTMLDwebBiometricsElement } from "@bfex/plugin"
+import { biometricsPlugin, HTMLDwebBiometricsElement } from "../plugin"
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;

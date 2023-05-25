@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import { barcodeScannerPlugin, HTMLDwebBarcodeScanningElement, CameraSource } from "@bfex/plugin";
+import { barcodeScannerPlugin, HTMLDwebBarcodeScanningElement, CameraSource } from "../plugin";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
 
 const title = "Scanner";

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { CloseWatcher } from "@bfex/plugin";
+import { CloseWatcher } from "../plugin";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
 
 const title = "Close Watcher";

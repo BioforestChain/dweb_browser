@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLDwebToastElement, ToastDuration } from "@bfex/plugin";
+import type { HTMLDwebToastElement, ToastDuration } from "../plugin";
 const title = "Toast";
 
 const $logPanel = ref<typeof LogPanel>();

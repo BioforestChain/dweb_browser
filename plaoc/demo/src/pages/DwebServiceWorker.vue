@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { dwebServiceWorker as sw } from "@bfex/plugin";
+import { dwebServiceWorker as sw } from "../plugin";
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 const $logPanel = ref<typeof LogPanel>();
