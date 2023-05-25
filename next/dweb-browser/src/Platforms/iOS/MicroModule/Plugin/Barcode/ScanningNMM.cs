@@ -1,8 +1,4 @@
-﻿using Vision;
-//using CoreImage;
-//using CoreFoundation;
-//using CoreGraphics;
-
+﻿
 namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Barcode;
 
 public class ScanningNMM : NativeMicroModule

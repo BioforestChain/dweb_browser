@@ -81,21 +81,21 @@ public class ScanningManager
 
         var results = await MainThread.InvokeOnMainThreadAsync(() =>
         {
-            string[] parseResults = Array.Empty<string>();
+            var parseResults = new List<string>();
             var results = request.GetResults<VNBarcodeObservation>();
             foreach (var result in results)
             {
                 var parseResult = result.PayloadStringValue;
                 if (parseResult is not null)
                 {
-                    parseResults.Append(parseResult);
+                    parseResults.Add(parseResult);
                 }
             }
 
             return parseResults;
         });
 
-        _scanningPo.Resolve(results);
+        _scanningPo.Resolve(results.ToArray());
     }
 }
 

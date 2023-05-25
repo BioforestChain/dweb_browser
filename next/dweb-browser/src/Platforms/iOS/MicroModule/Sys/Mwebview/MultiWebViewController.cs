@@ -7,6 +7,7 @@ using DwebBrowser.DWebView;
 using Foundation;
 using Microsoft.Maui.Animations;
 using DwebBrowser.MicroService.Sys.NativeUI;
+using DwebBrowser.MicroService.Sys.Mwebview.DwebServiceWorker;
 
 #nullable enable
 
@@ -27,6 +28,23 @@ public partial class MultiWebViewController : BaseViewController
         RemoteMM = remoteMM;
     }
 
+    public override void ViewDidAppear(bool animated)
+    {
+        base.ViewDidAppear(animated);
+        Task.Run(async () =>
+        {
+            await ServiceWorker.EmitEventAsync(RemoteMM.Mmid, ServiceWorkerEvent.Resume.Event);
+        });
+    }
+
+    public override void ViewWillDisappear(bool animated)
+    {
+        base.ViewWillDisappear(animated);
+        Task.Run(async () =>
+        {
+            await ServiceWorker.EmitEventAsync(RemoteMM.Mmid, ServiceWorkerEvent.Pause.Event, "new Event(\"pause\")");
+        });
+    }
 
     private static int s_webviewId_acc = 0;
 
@@ -46,7 +64,6 @@ public partial class MultiWebViewController : BaseViewController
             get => _nativeUiController.GetOrPut(() => new NativeUiController(mwebviewController));
         }
     }
-    //public record ViewItem(string webviewId, DWebView.DWebView webView);
 
     public async Task<ViewItem> OpenWebViewAsync(string url, WKWebViewConfiguration? configuration = null)
     {

@@ -58,7 +58,6 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
-	  <None Remove="Platforms\iOS\MicroModule\NativeUI\Extensions\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -94,6 +93,7 @@
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\SafeArea\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\NavigationBar\" />
 	  <Folder Include="Platforms\iOS\MicroModule\NativeUI\Extensions\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Sys\Mwebview\DwebServiceWorker\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />
