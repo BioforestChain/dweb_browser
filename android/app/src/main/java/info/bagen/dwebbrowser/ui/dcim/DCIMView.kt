@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -318,11 +319,14 @@ fun DCIMGridTopBar(dcimVM: DCIMViewModel) {
             modifier = Modifier.align(CenterVertically)
           )
           Spacer(modifier = Modifier.width(6.dp))
-          Image(bitmap = ImageBitmap.imageResource(id = R.drawable.ic_pop),
+          Image(
+            imageVector = ImageVector.vectorResource(R.drawable.ic_more),
             contentDescription = null,
             modifier = Modifier
               .align(CenterVertically)
               .size(20.dp)
+              .clip(CircleShape)
+              .background(Color.White)
               .graphicsLayer { rotationZ = rotationValue })
         }
       }

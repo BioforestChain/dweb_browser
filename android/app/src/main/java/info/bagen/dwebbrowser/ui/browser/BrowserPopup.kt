@@ -135,7 +135,11 @@ private fun PopContentView(
   val historyViewModel = remember { HistoryViewModel() }
   val scope = rememberCoroutineScope()
 
-  Box(modifier = Modifier.fillMaxSize().navigationBarsPadding()) {
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .navigationBarsPadding()
+  ) {
     when (popupViewState.value) {
       PopupViewState.BookList -> BrowserListOfBook(
         bookViewModel,
@@ -151,12 +155,14 @@ private fun PopContentView(
           viewModel.handleIntent(BrowserIntent.SearchWebView(it))
         }
       }
+
       PopupViewState.HistoryList -> BrowserListOfHistory(historyViewModel) {
         scope.launch {
           viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
           viewModel.handleIntent(BrowserIntent.SearchWebView(it))
         }
       }
+
       else -> PopContentOptionItem(viewModel)
     }
   }
@@ -362,6 +368,7 @@ private fun MultiItemView(
         is BrowserMainView -> {
           Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
         }
+
         is BrowserWebView -> {
           if (browserBaseView.state.lastLoadedUrl?.startsWith("file:///android_asset") == true) {
             Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
@@ -369,6 +376,7 @@ private fun MultiItemView(
             Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
           }
         }
+
         else -> {
           Pair(null, null)
         }
@@ -396,21 +404,16 @@ private fun MultiItemView(
     }
 
     if (!onlyOne || browserBaseView is BrowserWebView) {
-      Box(modifier = Modifier
-        .padding(8.dp)
-        .clip(CircleShape)
-        .align(Alignment.TopEnd)
-        .background(MaterialTheme.colorScheme.outlineVariant)
-        .clickable {
-          viewModel.handleIntent(BrowserIntent.RemoveBaseView(index))
-        }) {
-        Icon(
-          imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
-          contentDescription = null,
-          modifier = Modifier.size(18.dp),
-          tint = MaterialTheme.colorScheme.outline
-        )
-      }
+      Icon(
+        imageVector = ImageVector.vectorResource(R.drawable.ic_circle_close),
+        contentDescription = "Close",
+        modifier = Modifier
+          .padding(8.dp)
+          .clip(CircleShape)
+          .align(Alignment.TopEnd)
+          .clickable { viewModel.handleIntent(BrowserIntent.RemoveBaseView(index)) }
+          .size(20.dp)
+      )
     }
   }
 }
