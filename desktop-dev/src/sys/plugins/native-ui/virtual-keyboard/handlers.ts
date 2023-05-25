@@ -1,4 +1,3 @@
-import querystring from "querystring"
 import type { Ipc, IpcRequest } from "../../../../core/ipc/index.ts";
 import type { $Schema1, $Schema1ToType } from "../../../../helper/types.ts";
 import type { VirtualKeyboardNMM } from "./virtual-keyboard.main.ts"
@@ -6,15 +5,15 @@ import type { VirtualKeyboardNMM } from "./virtual-keyboard.main.ts"
 /**
  * 获取状态
  * @param this 
- * @param args 
- * @param client_ipc 
+ * @param _args 
+ * @param _client_ipc 
  * @param ipcRequest 
  * @returns 
  */
 export async function getState(
   this: VirtualKeyboardNMM,
-  args: $Schema1ToType<$Schema1>,
-  client_ipc: Ipc, 
+  _args: $Schema1ToType<$Schema1>,
+  _client_ipc: Ipc, 
   ipcRequest: IpcRequest
 ){
   // const search = querystring.unescape(ipcRequest.url).split("?")[1]
@@ -29,15 +28,15 @@ export async function getState(
 /**
  * 设置状态
  * @param this 
- * @param args 
- * @param client_ipc 
+ * @param _args 
+ * @param _client_ipc 
  * @param ipcRequest 
  * @returns 
  */
 export async function setState(
   this: VirtualKeyboardNMM,
-  args: $Schema1ToType<{}>,
-  client_ipc: Ipc, 
+  _args: $Schema1ToType<$Schema1>,
+  _client_ipc: Ipc, 
   ipcRequest: IpcRequest
 ){
   const host = ipcRequest.parsed_url.host;
@@ -51,46 +50,36 @@ export async function setState(
 /**
  * 开启监听
  * @param this 
- * @param args 
- * @param clientIpc 
+ * @param _args 
+ * @param _clientIpc 
  * @param request 
  * @returns 
  */
-export async function startObserve(
+export function startObserve(
   this: VirtualKeyboardNMM, 
-  args: $Schema1ToType<{}>,
+  _args: $Schema1ToType<$Schema1>,
   clientIpc: Ipc,
-  request: IpcRequest,
+  _request: IpcRequest,
 ){
-  const host = request.headers.get("host")
-  if(host === null){
-    throw new Error('host === null')
-    debugger;
-  }
-  this.observesState.set(host, true)
+  this.observesState.set(clientIpc.remote.mmid, true)
   return true;
 }
 
 /**
  * 停止 监听
  * @param this 
- * @param args 
- * @param clientIpc 
- * @param request 
+ * @param _args 
+ * @param _clientIpc 
+ * @param _request 
  * @returns 
  */
-export async function stopObserve(
+export function stopObserve(
   this: VirtualKeyboardNMM, 
-  args: $Schema1ToType<{}>,
+  _args: $Schema1ToType<$Schema1>,
   clientIpc: Ipc,
-  request: IpcRequest,
+  _request: IpcRequest,
 ){
-  const host = request.headers.get('host')
-  if(host === null){
-    throw new Error('host === null')
-    debugger;
-  }
-  this.observesState.set(host, false)
+  this.observesState.set(clientIpc.remote.mmid, false)
   return true;
 }
 

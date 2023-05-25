@@ -1,18 +1,14 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import querystring from "node:querystring"
-import { share,
-  createStreamIpc } from "./handlers.ts"
-import type { IncomingMessage, OutgoingMessage } from "node:http";
-import type { $BootstrapContext } from "../../../../core/bootstrapContext.ts";
+import { share } from "./handlers.ts"
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
 
 export class ShareNMM extends NativeMicroModule{
   mmid = "share.sys.dweb" as const;
   httpNMM: HttpServerNMM | undefined;
-  waitForOperationResMap: Map<string, OutgoingMessage> = new Map()
+  // waitForOperationResMap: Map<string, OutgoingMessage> = new Map()
 
-  protected async _bootstrap(context: $BootstrapContext) {
+  protected async _bootstrap() {
     log.green(`[${this.mmid}] _bootstrap`);
 
     this.registerCommonIpcOnMessageHandler({

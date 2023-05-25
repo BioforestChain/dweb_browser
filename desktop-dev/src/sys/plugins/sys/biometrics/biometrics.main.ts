@@ -1,9 +1,6 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import querystring from "node:querystring"
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
-import type { IncomingMessage, OutgoingMessage } from "node:http";
-import type { $BootstrapContext } from "../../../../core/bootstrapContext.ts";
 
 export class BiometricsNMM extends NativeMicroModule{
   mmid = "biometrics.sys.dweb" as const;
@@ -11,12 +8,10 @@ export class BiometricsNMM extends NativeMicroModule{
   httpNMM: HttpServerNMM | undefined;
   impactLightStyle: $ImpactLightStyle = "HEAVY"
   notificationStyle: $NotificationStyle = "SUCCESS"
-  duration: number = 0;
-  waitForOperationResMap: Map<string, OutgoingMessage> = new Map()
   encoder = new TextEncoder();
-  reqResMap: Map<number, $ReqRes> = new Map();
+  // reqResMap: Map<number, $ReqRes> = new Map();
 
-  protected async _bootstrap(context: $BootstrapContext) {
+  protected _bootstrap() {
     log.green(`[${this.mmid}] _bootstrap`);
  
     this.registerCommonIpcOnMessageHandler({
@@ -24,7 +19,7 @@ export class BiometricsNMM extends NativeMicroModule{
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: async () => {
+      handler: () => {
         return true
       }
     })
@@ -117,27 +112,27 @@ export class BiometricsNMM extends NativeMicroModule{
   //   })
   // }
 
-  private getIdFromReq = (req: IncomingMessage) => {
-    const id = req.headers.id;
-    if(id === undefined){
-      return {
-        err: new Error(`id === undefined`),
-        id: "",
-      }
-    }
+  // private getIdFromReq = (req: IncomingMessage) => {
+  //   const id = req.headers.id;
+  //   if(id === undefined){
+  //     return {
+  //       err: new Error(`id === undefined`),
+  //       id: "",
+  //     }
+  //   }
 
-    if(typeof id === "string"){
-      return {
-        err: null,
-        id: id
-      }
-    }
+  //   if(typeof id === "string"){
+  //     return {
+  //       err: null,
+  //       id: id
+  //     }
+  //   }
 
-    return {
-      err: new Error(`id === Array`),
-      id: ""
-    }
-  }
+  //   return {
+  //     err: new Error(`id === Array`),
+  //     id: ""
+  //   }
+  // }
 
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");
@@ -146,8 +141,8 @@ export class BiometricsNMM extends NativeMicroModule{
 
 export type $ImpactLightStyle = "HEAVY" | "MEDIUM" | "LIGHT";
 export type $NotificationStyle = "SUCCESS" | "WARNING" | "ERROR";
-export interface $ReqRes{
-  req: IncomingMessage, 
-  res: OutgoingMessage
-}
+// export interface $ReqRes{
+//   req: IncomingMessage, 
+//   res: OutgoingMessage
+// }
  

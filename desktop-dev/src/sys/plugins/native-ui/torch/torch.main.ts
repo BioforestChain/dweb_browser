@@ -5,7 +5,7 @@ import {toggleTorch, torchState } from "./handlers.ts"
 export class TorchNMM extends NativeMicroModule {
   mmid = "torch.nativeui.sys.dweb" as const;
 
-  _bootstrap = async (context: any) => {
+  _bootstrap =() => {
     log.green(`[${this.mmid} _bootstrap]`)
      
     this.registerCommonIpcOnMessageHandler({
@@ -25,7 +25,7 @@ export class TorchNMM extends NativeMicroModule {
     });
   }
 
-  _shutdown = async () => {
-
+  _shutdown = () => {
+    throw new Error("[error:]还没有写关闭程序")
   }
 }

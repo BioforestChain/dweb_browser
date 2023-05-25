@@ -12,13 +12,13 @@ export class VirtualKeyboardNMM extends NativeMicroModule {
   observesState: Map<string /**headers.host */, boolean> = new Map();
   encoder = new TextEncoder();
 
-  _bootstrap = async (context: any) => {
+  _bootstrap = () => {
     log.green(`[${this.mmid} _bootstrap]`);
     {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
       ipcMain.on(
         "virtual_keyboard_state_change",
-        (ipcMainEvent: IpcMainEvent, host, statusbarState) => {
+        (_ipcMainEvent: IpcMainEvent, host: string, statusbarState: Record<string, unknown>) => {
           const b = this.observesState.get(host);
           if (b === true) {
             const ipc = this.observes.get(host);
@@ -65,13 +65,10 @@ export class VirtualKeyboardNMM extends NativeMicroModule {
   };
 
   override _onConnect(ipc: Ipc) {
-    ipc.onEvent((event: IpcEvent) => {
-      if (event.name === "observe") {
-        const host = event.data;
-        this.observes.set(host as string, ipc);
-      }
-    });
+    this.observes.set(ipc.remote.mmid, ipc)
   }
 
-  _shutdown = async () => {};
+  _shutdown = () => {
+    throw new Error("[error:]还没有写关闭程序")
+  };
 }

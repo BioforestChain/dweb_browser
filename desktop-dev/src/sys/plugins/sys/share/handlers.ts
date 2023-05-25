@@ -1,4 +1,3 @@
-import querystring from "querystring"
 import { ReadableStreamIpc } from "../../../../core/ipc-web/ReadableStreamIpc.ts";
 import { Ipc, IpcRequest, IPC_ROLE } from "../../../../core/ipc/index.ts";
 import type { $Schema1, $Schema1ToType } from "../../../../helper/types.ts";
@@ -7,15 +6,15 @@ import type { ShareNMM } from "./share.main.ts"
 /**
  * 设置状态
  * @param this 
- * @param args 
- * @param client_ipc 
+ * @param _args 
+ * @param _client_ipc 
  * @param ipcRequest 
  * @returns 
  */
 export async function share(
   this: ShareNMM,
-  args: $Schema1ToType<{}>,
-  client_ipc: Ipc, 
+  _args: $Schema1ToType<$Schema1>,
+  _client_ipc: Ipc, 
   ipcRequest: IpcRequest
 ){
   const host = ipcRequest.parsed_url.host;
@@ -33,8 +32,8 @@ export async function share(
 
 export async function createStreamIpc(
   this: ShareNMM,
-  args: $Schema1ToType<{}>,
-  client_ipc: Ipc, 
+  _args: $Schema1ToType<$Schema1>,
+  _client_ipc: Ipc, 
   ipcRequest: IpcRequest
 ){
   const readableStreamIpcToTestFromSysDweb = new ReadableStreamIpc(this, IPC_ROLE.SERVER);

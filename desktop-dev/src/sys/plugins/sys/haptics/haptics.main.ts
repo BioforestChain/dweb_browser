@@ -1,23 +1,16 @@
 // haptics.sys.dweb
-import type { IncomingMessage, OutgoingMessage } from "node:http";
-import type { $BootstrapContext } from "../../../../core/bootstrapContext.ts";
-import { IpcResponse } from "../../../../core/ipc/IpcResponse.ts";
-import type { MicroModule } from "../../../../core/micro-module.ts";
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
 import { setHaptics } from "./handlers.ts"
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
-import type { $Schema1ToType } from "../../../../helper/types.ts";
 
 export class HapticsNMM extends NativeMicroModule{
   mmid = "haptics.sys.dweb" as const;
   httpNMM: HttpServerNMM | undefined;
   impactLightStyle: $ImpactLightStyle = "HEAVY"
   notificationStyle: $NotificationStyle = "SUCCESS"
-  duration: number = 0;
-  waitForOperationResMap: Map<string, OutgoingMessage> = new Map()
 
-  protected async _bootstrap(context: $BootstrapContext) {
+  protected _bootstrap() {
     log.green(`[${this.mmid}] _bootstrap`);
     // haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.sys.dweb%3A443&style=HEAVY
     this.registerCommonIpcOnMessageHandler({
@@ -191,11 +184,11 @@ export class HapticsNMM extends NativeMicroModule{
   //   this.waitForOperationResMap.set(appUrl, res)
   // }
 
-  private sendToUi = async (data: string) => {
-    Array.from(this.waitForOperationResMap.values()).forEach(res => {
-      res.write(new TextEncoder().encode(`${data}\n`))
-    })
-  }
+  // private sendToUi = async (data: string) => {
+  //   Array.from(this.waitForOperationResMap.values()).forEach(res => {
+  //     res.write(new TextEncoder().encode(`${data}\n`))
+  //   })
+  // }
 
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");

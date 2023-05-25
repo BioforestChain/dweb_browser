@@ -2,15 +2,14 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts"
 import { 
-  getState, setState, startObserve, stopObserve
+  getState, 
+  setState, 
+  startObserve, 
+  stopObserve
  } from "./handlers.ts"
 import type { Ipc } from "../../../../core/ipc/ipc.ts";
-import type { IpcRequest } from "../../../../core/ipc/IpcRequest.ts";
-import type { $BootstrapContext } from "../../../../core/bootstrapContext.ts"
-import type { IncomingMessage, OutgoingMessage } from "node:http";
 import { IpcEvent } from "../../../../core/ipc/IpcEvent.ts";
 import { ipcMain, IpcMainEvent } from "electron";
-// import type { $Schema1, $Schema2 } from "../../../../helper/types.ts";
 export class StatusbarNativeUiNMM extends NativeMicroModule {
   mmid = "status-bar.nativeui.sys.dweb" as const;
   httpIpc: Ipc | undefined
@@ -18,14 +17,14 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
   observesState: Map<string /**headers.host */, boolean>  = new Map();
   encoder = new TextEncoder();
 
-  _bootstrap = async (context: $BootstrapContext) => {
+  _bootstrap = () => {
     log.green(`[${this.mmid} _bootstrap]`)
 
     {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
       ipcMain.on(
         'status_bar_state_change', 
-        (ipcMainEvent: IpcMainEvent, host, statusbarState) => {
+        (_ipcMainEvent: IpcMainEvent, host: string, statusbarState: Record<string, unknown>) => {
           const b = this.observesState.get(host)
           if(b === true){
             const ipc = this.observes.get(host);
@@ -76,50 +75,10 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
   }
 
   override _onConnect(ipc: Ipc){
-    ipc.onEvent((event: IpcEvent) => {
-      if(event.name === "observe"){
-        const host = event.data;
-        this.observes.set(host as string, ipc)
-      }
-
-      if(event.name === "updated"){
-
-      }
-    })
+    this.observes.set(ipc.remote.mmid, ipc)
   }
 
   _shutdown() {
-    
+    throw new Error("[error:]还没有写关闭程序")
   }
-}
-
-export interface $Operation {
-  acction: string;
-  value: string;
-}
- 
-export interface $StatusbarHtmlRequest {
-  ipc: Ipc;
-  request: IpcRequest;
-  appUrl: string; // appUrl 标识 当前statusbar搭配的是哪个 app 显示的
-}
-
-export enum $StatusbarStyle {
-  light = "light",
-  dark = "dark",
-  default = "default",
-}
-
-export type $isOverlays =
-  | "0" // 不覆盖
-  | "1"; // 覆盖
-
-export interface $ReqRes{
-  req: IncomingMessage, 
-  res: OutgoingMessage
-}
-
-export interface $Observe{
-  res: OutgoingMessage | undefined;
-  isObserve: boolean;
 }

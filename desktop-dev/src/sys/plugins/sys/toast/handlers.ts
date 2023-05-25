@@ -1,4 +1,3 @@
-import querystring from "querystring"
 import type { Ipc, IpcRequest } from "../../../../core/ipc/index.ts";
 import type { $Schema1, $Schema1ToType } from "../../../../helper/types.ts";
 import type { ToastNMM } from "./toast.main.ts"
@@ -6,15 +5,15 @@ import type { ToastNMM } from "./toast.main.ts"
 /**
  * 设置状态
  * @param this 
- * @param args 
- * @param client_ipc 
+ * @param _args 
+ * @param _client_ipc 
  * @param ipcRequest 
  * @returns 
  */
 export async function show(
   this: ToastNMM,
-  args: $Schema1ToType<{}>,
-  client_ipc: Ipc, 
+  _args: $Schema1ToType<$Schema1>,
+  _client_ipc: Ipc, 
   ipcRequest: IpcRequest
 ){
   const host = ipcRequest.parsed_url.host;

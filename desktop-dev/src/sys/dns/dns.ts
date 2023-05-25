@@ -9,15 +9,12 @@ import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.
 import { log } from "../../helper/devtools.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import querystring from "node:querystring";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
-import type { IncomingMessage, OutgoingMessage } from "node:http";
 import type {
   $BootstrapContext,
   $DnsMicroModule,
 } from "../../core/bootstrapContext.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
-import type { HttpServerNMM } from "../http-server/http-server.ts";
 import type { $MMID } from "../../helper/types.ts";
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
