@@ -1,4 +1,6 @@
 import chalk from "https://esm.sh/v124/chalk@5.2.0";
+import { mapHelper } from "../../desktop-dev/src/helper/mapHelper.ts";
+import { PromiseOut } from "../../plaoc/deps.ts";
 
 export type $Task = {
   cmd: string;
@@ -6,6 +8,12 @@ export type $Task = {
   cwd?: string;
   devArgs?: string[] | string;
   devAppendArgs?: string[] | string;
+  /** 启动依赖项 */
+  startDeps?: {
+    name: string;
+    whenLog: string;
+    logType?: "stdout" | "stderr" | "any";
+  }[];
 };
 export type $Tasks = Record<string, $Task>;
 const getArgs = (args?: string[] | string) =>
@@ -28,6 +36,21 @@ class Logger extends WritableStream<string> {
   constructor(prefix: string) {
     super({
       write: async (chunk) => {
+        /// 如果有等待任务，那么进行判定
+        if (this._waitters.size > 0) {
+          const chunkText = chunk.replace(
+            /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
+            ""
+          );
+          for (const fragment of this._waitters.keys()) {
+            if (chunkText.includes(fragment)) {
+              const waitter = mapHelper.getAndRemove(this._waitters, fragment)!;
+              waitter.resolve();
+            }
+          }
+        }
+
+        /// 加上前缀
         let log = chunk
           .split(/\n/g)
           .map((line) => {
@@ -37,13 +60,22 @@ class Logger extends WritableStream<string> {
             return line;
           })
           .join("\n");
-        await Logger.stdWrite(this, log);
+        await this.write(log);
       },
     });
   }
   static textEncoder = new TextEncoder();
-  static stdWrite(from: Logger, content: string) {
-    return Deno.stdout.write(this.textEncoder.encode(content));
+  write(content: string) {
+    return Deno.stdout.write(Logger.textEncoder.encode(content));
+  }
+  private _waitters = new Map<string, PromiseOut<void>>();
+  waitContent(fragment: string) {
+    const waitter = mapHelper.getOrPut(
+      this._waitters,
+      fragment,
+      () => new PromiseOut()
+    );
+    return waitter.promise;
   }
 }
 
@@ -53,7 +85,16 @@ class Logger extends WritableStream<string> {
 export class ConTasks {
   constructor(readonly tasks: $Tasks) {}
   spawn() {
-    const children: Deno.ChildProcess[] = [];
+    const children: Record<
+      string,
+      {
+        task: $Task;
+        command: Deno.Command;
+        stdoutLogger: Logger;
+        stderrLogger: Logger;
+      }
+    > = {};
+    /// 先便利构建出所有任务
     for (const name in this.tasks) {
       if (filters.some((f) => f(name))) {
         const task = this.tasks[name];
@@ -71,15 +112,54 @@ export class ConTasks {
           stderr: "piped",
           stdout: "piped",
         });
-        const child = command.spawn();
-        child.stdout
-          .pipeThrough(new TextDecoderStream())
-          .pipeTo(new Logger(chalk.blue(name + " ")));
-        child.stderr
-          .pipeThrough(new TextDecoderStream())
-          .pipeTo(new Logger(chalk.red(name + " ")));
-        children.push(child);
+        children[name] = {
+          command,
+          task,
+          stdoutLogger: new Logger(chalk.blue(name + " ")),
+          stderrLogger: new Logger(chalk.red(name + " ")),
+        };
       }
+    }
+    /// 根据依赖顺序，启动任务
+    for (const name in children) {
+      const { task, command, stdoutLogger, stderrLogger } = children[name];
+      (async () => {
+        /// 等待依赖执行完成
+        if (task.startDeps?.length) {
+          const allWhenLogs = task.startDeps
+            .map((dep) => {
+              console.log(
+                chalk.gray(name + " "),
+                `waitting dep: ${dep.name} log: ${dep.whenLog}`
+              );
+              const child = children[dep.name];
+              if (child === undefined) {
+                throw new Error(`no found start-dep-task: ${dep.name}`);
+              }
+              const whenLogs: Promise<void>[] = [];
+              const { logType = "any" } = dep;
+              if (logType === "any" || logType === "stdout") {
+                whenLogs.push(child.stdoutLogger.waitContent(dep.whenLog));
+              }
+              if (logType === "any" || logType === "stderr") {
+                whenLogs.push(child.stderrLogger.waitContent(dep.whenLog));
+              }
+              return whenLogs;
+            })
+            .flat();
+          await Promise.all(allWhenLogs);
+        }
+        /// 开始启动任务
+        console.log(chalk.gray(name + " "), "begin");
+
+        const child = command.spawn();
+        child.stdout.pipeThrough(new TextDecoderStream()).pipeTo(stdoutLogger);
+        await child.stderr
+          .pipeThrough(new TextDecoderStream())
+          .pipeTo(stderrLogger);
+
+        console.log(chalk.gray(name + " "), "done");
+      })();
     }
     return children;
   }

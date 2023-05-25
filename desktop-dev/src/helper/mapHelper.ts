@@ -13,4 +13,10 @@ export const mapHelper = new (class {
     map.set(key, put);
     return put;
   }
+  getAndRemove<K, V>(map: Map<K, V>, key: K) {
+    const val = map.get(key);
+    if (map.delete(key)) {
+      return val;
+    }
+  }
 })();
