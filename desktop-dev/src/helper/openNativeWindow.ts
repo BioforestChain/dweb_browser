@@ -1,25 +1,19 @@
 import { expose, proxy, wrap } from "comlink";
-import {
-  app,
-  BrowserWindow,
-  BrowserWindowConstructorOptions,
-  protocol,
-} from "electron";
-import * as Electron from "electron";
-import { createResolveTo } from "./createResolveTo.ts";
+import * as _Electron from "electron";
 import { PromiseOut } from "./PromiseOut.ts";
-import HTTP from "node:http";
-import URL from "node:url";
+Object.assign(globalThis, {
+  Electron: _Electron,
+});
 
 export const openNativeWindow = async (
   url: string,
-  options: BrowserWindowConstructorOptions = {},
+  options: Electron.BrowserWindowConstructorOptions = {},
   webContentsConfig: { userAgent?: (userAgent: string) => string } = {}
 ) => {
   const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
-  await app.whenReady();
+  await Electron.app.whenReady();
 
-  protocol.registerHttpProtocol("http", (request, callback) => {
+  Electron.protocol.registerHttpProtocol("http", (request, callback) => {
     callback({
       url: request.url,
       method: request.method,
@@ -27,7 +21,7 @@ export const openNativeWindow = async (
     });
   });
 
-  protocol.registerHttpProtocol("https", (request, callback) => {
+  Electron.protocol.registerHttpProtocol("https", (request, callback) => {
     console.log("被转发了的请求request: ", request.url);
     // 把 https 的请求转为 http 发送
     callback({
@@ -47,7 +41,7 @@ export const openNativeWindow = async (
     contextIsolation: false,
   };
 
-  const win = new BrowserWindow(options);
+  const win = new Electron.BrowserWindow(options);
   if (webContentsConfig.userAgent) {
     win.webContents.setUserAgent(
       webContentsConfig.userAgent(win.webContents.userAgent)
@@ -94,7 +88,7 @@ export const openNativeWindow = async (
   });
 };
 export class ForRenderApi {
-  constructor(private win: BrowserWindow) {}
+  constructor(private win: Electron.BrowserWindow) {}
   openDevTools(
     webContentsId: number,
     options?: Electron.OpenDevToolsOptions,

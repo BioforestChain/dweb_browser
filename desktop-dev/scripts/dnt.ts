@@ -10,17 +10,17 @@ await build({
     // see JS docs for overview and more options
     deno: true,
   },
-
   importMap: "import_map.json",
   typeCheck: false,
   test: false,
+  esModule: false,
   package: {
     // package.json properties
     name: "@dweb-browser/desktop-sdk",
     version: Deno.args.filter((arg) => /^\d/.test(arg))[0],
     description: "Dweb Browser Development Kit",
     license: "MIT",
-    config: {  
+    config: {
       electron_mirror: "https://npm.taobao.org/mirrors/electron/",
     },
     scripts: {

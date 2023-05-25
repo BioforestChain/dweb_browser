@@ -7,11 +7,11 @@ import {
 } from "../../helper/openNativeWindow.ts";
 import { log } from "../../helper/devtools.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
-import chalk from "chalk"
+import chalk from "chalk";
 import { converRGBAToHexa, hexaToRGBA } from "../plugins/helper.ts";
-import querystring from "node:querystring"
-import path from "node:path"
-import { 
+import querystring from "node:querystring";
+import path from "node:path";
+import {
   open,
   closeFocusedWindow,
   openDownloadPage,
@@ -26,12 +26,14 @@ import {
   toggleTorch,
   torchState,
   haptics,
-  biometricsMock
- } from "./multi-webview.mobile.handler.ts"
+  biometricsMock,
+} from "./multi-webview.mobile.handler.ts";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import type { Remote } from "comlink";
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import type { IncomingMessage, OutgoingMessage } from "node:http";
+import { pathToFileURL } from "https://deno.land/std@0.177.0/node/url.ts";
+type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
 /**
  * 构建一个视图树
@@ -40,16 +42,16 @@ import type { IncomingMessage, OutgoingMessage } from "node:http";
  */
 export class MultiWebviewNMM extends NativeMicroModule {
   mmid = "mwebview.sys.dweb" as const;
-  observeMap: $ObserveMapNww= new Map()
-  encoder = new TextEncoder()
+  observeMap: $ObserveMapNww = new Map();
+  encoder = new TextEncoder();
   _uid_wapis_map = new Map<
     number,
     { nww: $NativeWindow; apis: Remote<$APIS> }
   >();
 
   async _bootstrap(context: $BootstrapContext) {
-    log.green(`${this.mmid} _bootstrap`)
-    
+    log.green(`${this.mmid} _bootstrap`);
+
     const httpDwebServer = await createHttpDwebServer(this, {});
     this._after_shutdown_signal.listen(() => httpDwebServer.close());
     /// 从本地文件夹中读取数据返回，
@@ -87,8 +89,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: { url: "string" },
       output: "object",
-      handler: openDownloadPage.bind(this, root_url)
-    })
+      handler: openDownloadPage.bind(this, root_url),
+    });
 
     // 关闭 ？？ 这个是关闭整个window  还是关闭一个 webview 标签
     // 用来关闭webview标签
@@ -111,8 +113,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: closeFocusedWindow.bind(this, root_url)
-    })
+      handler: closeFocusedWindow.bind(this, root_url),
+    });
 
     // 销毁指定的 webview
     this.registerCommonIpcOnMessageHandler({
@@ -121,9 +123,9 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { host: "string" },
       output: "boolean",
       handler: async (args, client_ipc) => {
-        Array.from(this._uid_wapis_map.values()).forEach(wapis => {
-          wapis.apis.destroyWebviewByHost(args.host)
-        })
+        Array.from(this._uid_wapis_map.values()).forEach((wapis) => {
+          wapis.apis.destroyWebviewByHost(args.host);
+        });
         return true;
       },
     });
@@ -134,12 +136,12 @@ export class MultiWebviewNMM extends NativeMicroModule {
       input: { host: "string" },
       output: "boolean",
       handler: async (args, client_ipc) => {
-        Array.from(this._uid_wapis_map.values()).forEach(wapis => {
-          wapis.apis.restartWebviewByHost(args.host)
-        })
+        Array.from(this._uid_wapis_map.values()).forEach((wapis) => {
+          wapis.apis.restartWebviewByHost(args.host);
+        });
         return true;
       },
-    })
+    });
 
     // 通过 host 执行 javascript
     this.registerCommonIpcOnMessageHandler({
@@ -148,24 +150,28 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: async(args, client_ipc, request) => {
-        const host = request.headers.get("webview_url")
-        if(host === null) {
-          throw new Error(chalk.red(`
-            ${this.mmid} registerCommonIpcOnMessageHandler /webview_execute_javascript_by_webview_url host === null
+      handler: async (args, client_ipc, request) => {
+        const host = request.headers.get("webview_url");
+        if (host === null) {
+          throw new Error(
+            chalk.red(`
+            ${
+              this.mmid
+            } registerCommonIpcOnMessageHandler /webview_execute_javascript_by_webview_url host === null
             args: ${JSON.stringify(args)}
             request: ${JSON.stringify(request)}
-          `));
+          `)
+          );
         }
         const code = await request.body.text();
         // 问题新的 webveiw 没有被添加进来？？？
         // console.log('-------------', this._uid_wapis_map.values())
-        Array.from(this._uid_wapis_map.values()).forEach(({apis}) => {
+        Array.from(this._uid_wapis_map.values()).forEach(({ apis }) => {
           apis.executeJavascriptByHost(host, code);
-        })
+        });
         return true;
-      }
-    })
+      },
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/status-bar.nativeui.sys.dweb/getState",
@@ -173,8 +179,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: barGetState.bind(this, "statusBarGetState",root_url)
-    })
+      handler: barGetState.bind(this, "statusBarGetState", root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/status-bar.nativeui.sys.dweb/setState",
@@ -182,8 +188,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: barSetState.bind(this, "statusBarSetState", root_url)
-    })
+      handler: barSetState.bind(this, "statusBarSetState", root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/navigation-bar.nativeui.sys.dweb/getState",
@@ -191,8 +197,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: barGetState.bind(this, "navigationBarGetState", root_url)
-    })
+      handler: barGetState.bind(this, "navigationBarGetState", root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/navigation-bar.nativeui.sys.dweb/setState",
@@ -200,8 +206,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: barSetState.bind(this, "navigationBarSetState", root_url)
-    })
+      handler: barSetState.bind(this, "navigationBarSetState", root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/safe-area.nativeui.sys.dweb/getState",
@@ -209,8 +215,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: safeAreaGetState.bind(this, root_url)
-    })
+      handler: safeAreaGetState.bind(this, root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/safe-area.nativeui.sys.dweb/setState",
@@ -218,17 +224,17 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: safeAreaSetState.bind(this, root_url)
-    })    
-    
+      handler: safeAreaSetState.bind(this, root_url),
+    });
+
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/virtual-keyboard.nativeui.sys.dweb/getState",
       method: "GET",
       matchMode: "full",
       input: {},
       output: "object",
-      handler: virtualKeyboardGetState.bind(this, root_url)
-    })
+      handler: virtualKeyboardGetState.bind(this, root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/virtual-keyboard.nativeui.sys.dweb/setState",
@@ -236,8 +242,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: virtualKeyboardSetState.bind(this, root_url)
-    })
+      handler: virtualKeyboardSetState.bind(this, root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/toast.sys.dweb/show",
@@ -245,8 +251,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: toastShow.bind(this, root_url)
-    })
+      handler: toastShow.bind(this, root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/share.sys.dweb/share",
@@ -254,8 +260,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: shareShare.bind(this, root_url)
-    })
+      handler: shareShare.bind(this, root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/torch.nativeui.sys.dweb/toggleTorch",
@@ -263,8 +269,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: toggleTorch.bind(this, root_url)
-    })
+      handler: toggleTorch.bind(this, root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plugin/torch.nativeui.sys.dweb/torchState",
@@ -272,8 +278,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: torchState.bind(this, root_url)
-    })
+      handler: torchState.bind(this, root_url),
+    });
 
     // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.sys.dweb%3A443&style=HEAVY&action=impactLight
     // url:  file://mwebview.sys.dweb/plugin/haptics.sys.dweb/notification?X-Dweb-Host=api.browser.sys.dweb%3A443&style=SUCCESS&action=notification
@@ -287,10 +293,10 @@ export class MultiWebviewNMM extends NativeMicroModule {
       pathname: "/plugin/haptics.sys.dweb",
       method: "GET",
       matchMode: "prefix",
-      input: {action: "string"},
+      input: { action: "string" },
       output: "boolean",
-      handler: haptics.bind(this, root_url)
-    })
+      handler: haptics.bind(this, root_url),
+    });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/plubin/biommetrices",
@@ -298,9 +304,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: biometricsMock.bind(this, root_url)
-    })
-    
+      handler: biometricsMock.bind(this, root_url),
+    });
   }
 
   // ipcMinOnStateChange = async<
@@ -370,7 +375,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   //   }
 
   //   observeItem.res = res;
-  // } 
+  // }
 
   // barGetState = async <
   //   $ApisFnName extends keyof Pick<$APIS, 'statusBarGetState' | "navigationBarGetState">
@@ -407,7 +412,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   //   >,
   // >(
   //   apisFnName: $ApiFnName,
-  //   req: IncomingMessage, 
+  //   req: IncomingMessage,
   //   res: OutgoingMessage
   // ) => {
   //   const mmid = req.url?.split("?")[0].split("/")[1];
@@ -419,7 +424,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   //   if(searchParams.color !== undefined && typeof searchParams.color === "string"){
   //     const color = JSON.parse(searchParams.color)
   //     state  = await apis[apisFnName](
-  //       'color', 
+  //       'color',
   //       converRGBAToHexa(
   //         color.red, color.green, color.blue, color.alpha
   //       )
@@ -486,8 +491,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
   //     return;
   //   };
   //   if(observeItem.res === undefined) throw new Error(`observeItem.res === undefined`);
-  //   observeItem.isObserve 
-  //   ? observeItem.res.write(Buffer.concat([buffer, this.encoder.encode("\n")])) 
+  //   observeItem.isObserve
+  //   ? observeItem.res.write(Buffer.concat([buffer, this.encoder.encode("\n")]))
   //   : ""
   // }
 
@@ -525,12 +530,14 @@ export class MultiWebviewNMM extends NativeMicroModule {
   /**
    * 获取当前激活的 browserWindow 的 apis
    */
-  apisGetFromFocused(){
-    return Array.from(this._uid_wapis_map.values()).find(item => item.nww.isFocused())?.apis
+  apisGetFromFocused() {
+    return Array.from(this._uid_wapis_map.values()).find((item) =>
+      item.nww.isFocused()
+    )?.apis;
   }
 
-  browserWindowGetFocused(){
-    console.log('this._uid_wapis_map', this._uid_wapis_map)
+  browserWindowGetFocused() {
+    console.log("this._uid_wapis_map", this._uid_wapis_map);
     // Array.from(this._uid_wapis_map.values()).forEach(item => {
     //   console.log('item.nww.isFocused(): ', item.nww.isFocused())
     //   // 没有删除 _uid_wapis_map 里面的向
@@ -538,12 +545,14 @@ export class MultiWebviewNMM extends NativeMicroModule {
     // })
 
     setTimeout(() => {
-      console.log('this._uid_wapis_map: ', this._uid_wapis_map)
-    },3000)
+      console.log("this._uid_wapis_map: ", this._uid_wapis_map);
+    }, 3000);
 
-    return Array.from(this._uid_wapis_map.values()).find(item => item.nww.isFocused())?.nww
+    return Array.from(this._uid_wapis_map.values()).find((item) =>
+      item.nww.isFocused()
+    )?.nww;
   }
-  
+
   _shutdown() {
     this._uid_wapis_map.forEach((wapi) => {
       wapi.nww.close();
@@ -553,7 +562,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
 
   // 是不是可以获取 multi-webviw.html 中的全部api
   // this._uid_wapis_map 是更具 ipc.uid 作为键明保存的，
-  // 但是在一个 BrowserWindow 的内部会有多个 ipc 
+  // 但是在一个 BrowserWindow 的内部会有多个 ipc
   // 这样会导致问题出现 会多次触发 openNativeWindow
   forceGetWapis(ipc: Ipc, root_url: string) {
     return locks.request("multi-webview-get-window-" + ipc.uid, async () => {
@@ -571,37 +580,38 @@ export class MultiWebviewNMM extends NativeMicroModule {
         nww.webContents.openDevTools();
 
         const apis = nww.getApis<$APIS>();
-        const absolutePath = "file://" + path.resolve(__dirname, "./assets/preload.cjs")
-        apis.preloadAbsolutePathSet(absolutePath)
-        
+        const absolutePath = pathToFileURL(
+          path.resolve(__dirname, "./assets/preload.js")
+        ).href 
+        /// TIP: 这里通过类型强行引用 preload，目的是确保依赖关系，使得最终能产生编译内容
+        type _Preload = typeof import('./assets/preload.ts');
+        apis.preloadAbsolutePathSet(absolutePath);
+
         this._uid_wapis_map.set(ipc.uid, (wapi = { nww, apis }));
       }
       return wapi;
     });
   }
 
-  getWapisByUid(uid: number){
-    console.log("this._uid_wapis_map: ", this._uid_wapis_map,'---', uid)
+  getWapisByUid(uid: number) {
+    console.log("this._uid_wapis_map: ", this._uid_wapis_map, "---", uid);
     return this._uid_wapis_map.get(uid);
   }
 }
 
-function getOriginByReq(req: IncomingMessage){
-  return req.headers.origin ?? new URL(req.headers.referer as string).origin
+function getOriginByReq(req: IncomingMessage) {
+  return req.headers.origin ?? new URL(req.headers.referer as string).origin;
 }
 
-export interface $ObserveItem{
-  res: OutgoingMessage | undefined,
-  isObserve: boolean,
+export interface $ObserveItem {
+  res: OutgoingMessage | undefined;
+  isObserve: boolean;
 }
 
-type $ObserveMapNwwItem = Map<
-  string /** mmid */, 
-  $ObserveItem
->
- 
+type $ObserveMapNwwItem = Map<string /** mmid */, $ObserveItem>;
+
 type $ObserveMapNww = Map<
   // nww
   Electron.CrossProcessExports.BrowserWindow,
   $ObserveMapNwwItem
->
+>;

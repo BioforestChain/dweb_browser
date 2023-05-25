@@ -40,7 +40,7 @@ export class MultiWebViewContent extends LitElement {
     console.log("did-start-loading");
     const el = e.target;
     if (el === null) throw new Error(`el === null`);
-    (e.target as WebviewTag).executeJavaScript(ecxuteJavascriptCode);
+    (e.target as WebviewTag).executeJavaScript(ecxuteJavascriptCode.toString().match(/\{([\w\W]+)\}/)![0][1]);
   }
 
   onAnimationend(event: AnimationEvent) {

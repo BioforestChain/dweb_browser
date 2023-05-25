@@ -14,19 +14,19 @@ export class ServerUrlInfo {
     readonly public_origin: string
   ) {}
 
-  private buildUrl(origin: string, builder: $UrlBuilder) {
+  private buildUrl(origin: string, builder?: $UrlBuilder) {
     if (typeof builder === "string") {
       return new URL(builder, origin);
     }
     const url = new URL(origin);
     url.searchParams.set("X-Dweb-Host", this.host);
-    return builder(url) ?? url;
+    return builder?.(url) ?? url;
   }
-  buildPublicUrl(builder: $UrlBuilder) {
+  buildPublicUrl(builder?: $UrlBuilder) {
     return this.buildUrl(this.public_origin, builder);
   }
 
-  buildInternalUrl(builder: $UrlBuilder) {
+  buildInternalUrl(builder?: $UrlBuilder) {
     return this.buildUrl(this.internal_origin, builder);
   }
 }

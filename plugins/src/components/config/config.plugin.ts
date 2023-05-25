@@ -30,6 +30,9 @@ export class ConfigPlugin extends BasePlugin {
   getPublicUrl() {
     return (BasePlugin.public_url = this._getPublicUrl());
   }
+  setPublicUrl(url: string) {
+    return (BasePlugin.public_url = url);
+  }
   get public_url() {
     return BasePlugin.public_url;
   }

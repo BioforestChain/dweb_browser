@@ -259,7 +259,8 @@ const main = async () => {
   const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
     url.pathname = "/index.html";
   });
-  interUrl.searchParams.set("X-Api-Host", apiServer.startResult.urlInfo.host);
+  interUrl.searchParams.set("X-Plaoc-Internal-Url", apiServer.startResult.urlInfo.buildInternalUrl().href);
+  interUrl.searchParams.set("X-Plaoc-Public-Url", apiServer.startResult.urlInfo.buildPublicUrl().href);
   mainUrl.resolve(interUrl.href);
 
   /**

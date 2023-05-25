@@ -7,7 +7,12 @@ export class HTMLDwebConfigElement extends HTMLElement {
   }
 
   connectedCallback() {
-    configPlugin.setInternalUrl(`https://${new URL(location.href).searchParams.get("X-Api-Host")}`);
+    const searchParams = new URL(location.href).searchParams;
+    const internalUrl = searchParams.get("X-Plaoc-Internal-Url");
+    const publicUrl = searchParams.get("X-Plaoc-Public-Url");
+
+    publicUrl && configPlugin.setPublicUrl(publicUrl);
+    internalUrl && configPlugin.setInternalUrl(internalUrl);
   }
 
   getPublicUrl() {
@@ -23,4 +28,9 @@ export class HTMLDwebConfigElement extends HTMLElement {
   }
 }
 
+// <dweb-config/>
 customElements.define(configPlugin.tagName, HTMLDwebConfigElement);
+// <meta is="dweb-config"/>
+// customElements.define(configPlugin.tagName, HTMLDwebConfigElement, {
+//   extends: "meta",
+// });

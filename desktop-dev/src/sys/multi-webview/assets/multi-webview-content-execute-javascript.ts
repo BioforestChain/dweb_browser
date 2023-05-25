@@ -1,6 +1,5 @@
-export default `
-(() => {
-  console.log('--------')
+const code = () => {
+  console.log("--------");
   // if (!globalThis.__native_close_watcher_kit__) {
   //   globalThis.__native_close_watcher_kit__ =  {
   //     allc: 0,
@@ -30,10 +29,10 @@ export default `
 
   // console.log('window: ', window)
 
-  globalThis.fetch = () => {
-    console.log(">>>>>>>>>>>>")
-  } 
-  
+  // globalThis.fetch = () => {
+  //   console.log(">>>>>>>>>>>>")
+  // }
+
   // // 拦截 fetch
   // globalThis.nativeFetch = globalThis.fetch;
   // globalThis.fetch = (request) => {
@@ -55,100 +54,102 @@ export default `
   //   }
   // }
 
-  // core 
-  function inputBindVirtualKeyboard(el){
-    el.removeEventListener('focusin',bindVirtualKeyboardFocusin)
-    el.removeEventListener('focusout',bindVirtualKeyboardFocusout)
-    el.addEventListener('focusin', bindVirtualKeyboardFocusin)
-    el.addEventListener('focusout',bindVirtualKeyboardFocusout)
-    console.log('bind virtual keyboard')
+  // core
+  function inputBindVirtualKeyboard(el) {
+    el.removeEventListener("focusin", bindVirtualKeyboardFocusin);
+    el.removeEventListener("focusout", bindVirtualKeyboardFocusout);
+    el.addEventListener("focusin", bindVirtualKeyboardFocusin);
+    el.addEventListener("focusout", bindVirtualKeyboardFocusout);
+    console.log("bind virtual keyboard");
   }
 
-  function bindVirtualKeyboardFocusin(){
-    window.electron.ipcRenderer.sendToHost('virtual_keyboard_open')
+  function bindVirtualKeyboardFocusin() {
+    window.electron.ipcRenderer.sendToHost("virtual_keyboard_open");
   }
 
-  function bindVirtualKeyboardFocusout(){
-    window.electron.ipcRenderer.sendToHost('virtual_keyboard_close')
+  function bindVirtualKeyboardFocusout() {
+    window.electron.ipcRenderer.sendToHost("virtual_keyboard_close");
   }
 
-  function inputIsNeedBindVirtualKeyboard(node){
-    return node.tagName === "INPUT"
-    && (
-      node.type === "email"
-      || node.type === "number"
-      || node.type === "password"
-      || node.type === "search"
-      || node.type === "tel"
-      || node.type === "text"
-      || node.type === "url"
-    ) 
+  function inputIsNeedBindVirtualKeyboard(node) {
+    return (
+      node.tagName === "INPUT" &&
+      (node.type === "email" ||
+        node.type === "number" ||
+        node.type === "password" ||
+        node.type === "search" ||
+        node.type === "tel" ||
+        node.type === "text" ||
+        node.type === "url")
+    );
   }
 
-  function callback(mutationList, observe){
-    mutationList.forEach(mutationRecord => {
-      switch(mutationRecord.type){
+  function callback(mutationList, observe) {
+    mutationList.forEach((mutationRecord) => {
+      switch (mutationRecord.type) {
         case "childList":
-          mutationRecord.addedNodes.forEach(node => {
+          mutationRecord.addedNodes.forEach((node) => {
             // 添加了节点可能只有直接的子节点在这里，嵌套的子节点不再这里哦
-            if(node.nodeType !== Node.ELEMENT_NODE) return;
-            const allEl = getSub(node)
-            allEl.forEach(el => {
-              if(el.shadowRoot){
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+            const allEl = getSub(node);
+            allEl.forEach((el) => {
+              if (el.shadowRoot) {
                 // 添加 监听
-                createMutationObserver(el.shadowRoot, callback)
+                createMutationObserver(el.shadowRoot, callback);
                 return;
               }
               // 绑定 virtual-keyboard
-              inputIsNeedBindVirtualKeyboard(el)? inputBindVirtualKeyboard(el) : "";
-            })
-          })
+              inputIsNeedBindVirtualKeyboard(el)
+                ? inputBindVirtualKeyboard(el)
+                : "";
+            });
+          });
 
-          mutationRecord.removedNodes.forEach(node => {
+          mutationRecord.removedNodes.forEach((node) => {
             // 移除监听
-            if(node.shadowRoot){
+            if (node.shadowRoot) {
               node.shadowRoot.removeObserver();
             }
-          })
-        break;
+          });
+          break;
       }
-    })
+    });
   }
 
-  function getSub(root){
+  function getSub(root) {
     const sub = Array.from(root.children).reduce((pre, el) => {
-      getSub(el)
-      return [...pre, ...getSub(el)]
-    },[])
-    if(root.shadowRoot){
-      return [...root.shadowRoot.children, ...sub]
-    } 
-    return [...root.children, ...sub]
+      getSub(el);
+      return [...pre, ...getSub(el)];
+    }, []);
+    if (root.shadowRoot) {
+      return [...root.shadowRoot.children, ...sub];
+    }
+    return [...root.children, ...sub];
   }
 
-  function createMutationObserver(el, callback){
+  function createMutationObserver(el, callback) {
     const observerOptions = {
-      childList: true,  // 观察目标子节点的变化，是否有添加或者删除
-      subtree: true     // 观察后代节点，默认为 false
-    }
+      childList: true, // 观察目标子节点的变化，是否有添加或者删除
+      subtree: true, // 观察后代节点，默认为 false
+    };
     let observer = new MutationObserver(callback);
     observer.observe(el, observerOptions);
-    console.error('observer 在什么时候会被回收')
+    console.error("observer 在什么时候会被回收");
     el.removeObserver = () => {
-      console.log('回收了')
-      observer = null
-    }
+      console.log("回收了");
+      observer = null;
+    };
   }
 
-  createMutationObserver(document.body, callback)
-  const allEl = getSub(document.body)
-  allEl.forEach(el => {
-    if(el.shadowRoot){
-      createMutationObserver(el.shadowRoot, callback)
-      console.log('添加了 observe')
+  createMutationObserver(document.body, callback);
+  const allEl = getSub(document.body);
+  allEl.forEach((el) => {
+    if (el.shadowRoot) {
+      createMutationObserver(el.shadowRoot, callback);
+      console.log("添加了 observe");
       return;
     }
-    inputIsNeedBindVirtualKeyboard(el)? inputBindVirtualKeyboard(el) : "";
-  })
-})()
-`
+    inputIsNeedBindVirtualKeyboard(el) ? inputBindVirtualKeyboard(el) : "";
+  });
+};
+export default code;
