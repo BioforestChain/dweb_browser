@@ -14,7 +14,7 @@ const options = {
   bundle: true,
   format: "esm",
   entryPoints: ["./src/user/browser/browser.worker.ts"],
-  outfile: "./electron/bundle/browser.worker.js",
+  outfile: "./electron/assets/browser.worker.js",
   loader: {
     ".html": "text",
   },

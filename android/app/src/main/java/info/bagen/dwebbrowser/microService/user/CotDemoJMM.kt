@@ -12,7 +12,7 @@ class CotDemoJMM : JsMicroModule(
         version = "1.0.0",
         server = JmmMetadata.MainServer(
             root = "/sys",
-            entry = "/bundle/public.service.worker.js"
+            entry = "public.service.worker.js"
         ),
         icon = "https://www.bfmeta.info/imgs/logo3.webp",
         title = "CotDemo"

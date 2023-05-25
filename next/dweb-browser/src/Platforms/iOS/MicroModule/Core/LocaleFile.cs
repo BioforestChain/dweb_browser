@@ -60,7 +60,7 @@ public static class LocaleFile
     {
         try
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is "")
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is "" && parsedUrl.Path.StartsWith("/sys/"))
             {
                 var query = HttpUtility.ParseQueryString(parsedUrl.Query);
 
@@ -68,7 +68,7 @@ public static class LocaleFile
                 var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
                 //var preRead = query["pre-read"]?.ToBooleanStrictOrNull() ?? false;
 
-                var src = parsedUrl.Path.Substring(1); // 移除 '/'
+                var src = parsedUrl.Path.Substring(5); // 移除 '/sys/'
 
                 Console.Log("LocaleFileFetch", "OPEN {0}", src);
                 string dirname = Path.GetDirectoryName(src) ?? "";

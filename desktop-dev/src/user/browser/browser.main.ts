@@ -4,6 +4,6 @@ import { JsMicroModule } from "../../sys/jmm/micro-module.js.ts";
 export const browserJMM = new JsMicroModule(
   new JmmMetadata({
     id: "browser.sys.dweb",
-    server: { root: "file:///bundle", entry: "/browser.worker.js" },
+    server: { root: "file:///sys", entry: "/browser.worker.js" },
   })
 );

@@ -4,6 +4,6 @@ import { JsMicroModule } from "../../sys/jmm/micro-module.js.ts";
 export const desktopJmm = new JsMicroModule(
   new JmmMetadata({
     id: "desktop.sys.dweb",
-    server: { root: "file:///bundle", entry: "/desktop.worker.js" },
+    server: { root: "file:///sys", entry: "/desktop.worker.js" },
   })
 );

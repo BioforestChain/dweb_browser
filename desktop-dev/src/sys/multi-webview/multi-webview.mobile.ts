@@ -61,7 +61,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
         await IpcResponse.fromResponse(
           request.req_id,
           await this.nativeFetch(
-            "file:///bundle/multi-webview" + request.parsed_url.pathname
+            "file:///sys/multi-webview" + request.parsed_url.pathname
           ),
           ipc
         )

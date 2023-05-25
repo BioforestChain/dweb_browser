@@ -64,7 +64,7 @@ class DownLoadViewModel(val mmid: Mmid, val url: String) : ViewModel() {
       id = mmid,
       server = JmmMetadata.MainServer(
         root = "/sys",
-        entry = "/bundle/public.service.worker.js"
+        entry = "public.service.worker.js"
       ),
       downloadUrl = url,
       title = "测试",

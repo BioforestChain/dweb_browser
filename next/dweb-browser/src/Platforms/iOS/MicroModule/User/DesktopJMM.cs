@@ -5,7 +5,7 @@ public class DesktopJMM : JsMicroModule
 {
     public DesktopJMM() : base(new JmmMetadata(
         "desktop.user.dweb",
-        new JmmMetadata.MainServer() { Root = "file:///bundle", Entry = "/desktop.worker.js" }))
+        new JmmMetadata.MainServer() { Root = "file:///sys", Entry = "/desktop.worker.js" }))
     {
     }
 }

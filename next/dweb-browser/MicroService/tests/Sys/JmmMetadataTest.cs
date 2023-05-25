@@ -48,7 +48,7 @@ public class JmmMetadataTest
     //JmmMetadata jmmMetadata = new JmmMetadata(
 
     //        id: "cotdemo.user.dweb",
-    //        server: new JmmMetadata.MainServer() { Root = "file:///bundle", Entry = "/cot.worker.js" },
+    //        server: new JmmMetadata.MainServer() { Root = "file:///sys", Entry = "/cot.worker.js" },
     //        icon: "https://www.bfmeta.info/imgs/logo3.webp",
     //        title: "bfmeta",
     //        subtitle: "bfmeta",

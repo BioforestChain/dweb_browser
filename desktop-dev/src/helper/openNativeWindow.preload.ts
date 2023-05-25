@@ -1,5 +1,4 @@
 import { ipcRenderer } from "electron";
-/// 这里用了 require 函数，需要使用sandbox:false 来支持，可以通过 bundle 来把代码打包在一起
 import { updateRenderPort } from "./electronRenderPort.ts";
 const once = <F extends (...args: any[]) => any>(fn: F) => {
   let runed = false;

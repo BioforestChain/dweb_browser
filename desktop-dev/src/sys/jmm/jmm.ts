@@ -341,34 +341,6 @@ export interface $StaticWebServers {
   port: number;
 }
 
-// $AppMetaData 的实例 {
-//   title: 'cotdemo',
-//   subtitle: 'cotdemo',
-//   id: 'cotdemo.bfs.dweb',
-//   downloadUrl: 'https://shop.plaoc.com/KEJPMHLA/KEJPMHLA.bfsa',
-//   icon: 'https://www.bfmeta.info/imgs/logo3.webp',
-//   images: [
-//     'http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp',
-//     'http://qiniu-waterbang.waterbang.top/bfm/defi.png',
-//     'http://qiniu-waterbang.waterbang.top/bfm/nft.png'
-//   ],
-//   introduction: 'The Super Mobile BlockChain for Metaverse',
-//   author: [ 'bfs,bfs@bfs.com' ],
-//   version: '1.1.3',
-//   keywords: [ 'wallet' ],
-//   home: 'https://www.bfmeta.info/',
-//   mainUrl: '/assets/bfs.bfm.js',
-//   server: { root: 'file:///bundle', entry: '/cotDemo.worker.js' },
-//   splashScreen: { entry: 'https://www.bfmeta.org/' },
-//   staticWebServers: [ { root: '', entry: 'index.html', subdomain: '', port: 80 } ],
-//   openWebViewList: [],
-//   size: '2342398472',
-//   fileHash: '',
-//   permissions: [ 'camera.sys.dweb', 'jmm.sys.dweb', '???.sys.dweb' ],
-//   plugins: [ 'statusBar', 'share', 'notification', 'keyboard', 'scanner' ],
-//   releaseDate: '1677667362583'
-// }
-
 export enum DOWNLOAD_STATUS {
   DOWNLOAD,
   PAUSE,

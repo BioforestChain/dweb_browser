@@ -23,7 +23,7 @@ public class JsProcessNMM : NativeMicroModule
     private LazyBox<string> _LAZY_JS_PROCESS_WORKER_CODE = new();
     private string _JS_PROCESS_WORKER_CODE
     {
-        get => _LAZY_JS_PROCESS_WORKER_CODE.GetOrPut(() => NativeFetchAsync("file:///bundle/js-process.worker.js").Result.Body.ToUtf8String());
+        get => _LAZY_JS_PROCESS_WORKER_CODE.GetOrPut(() => NativeFetchAsync("file:///sys/js-process.worker.js").Result.Body.ToUtf8String());
     }
 
     private Dictionary<string, string> _CORS_HEADERS = new()
@@ -78,7 +78,7 @@ public class JsProcessNMM : NativeMicroModule
                 }
                 else
                 {
-                    var response = await NativeFetchAsync(String.Format("file:///bundle/js-process{0}", request.Uri.AbsolutePath));
+                    var response = await NativeFetchAsync(String.Format("file:///sys/js-process{0}", request.Uri.AbsolutePath));
                     /// 加入跨域支持
                     foreach (var (key, value) in _CORS_HEADERS)
                     {

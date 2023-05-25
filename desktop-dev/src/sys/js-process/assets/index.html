@@ -54,7 +54,7 @@
       async function openBrowserWindow(){
         // 启动之前必须要先实例化 borser 然后再 install 、open
         const mmid = "browser.sys.dweb"
-        const root = "file:///bundle"
+        const root = "file:///sys"
         const entry = "/browser.worker.js";
         const url = `http://api.js.sys.dweb-80.localhost:22605/open?mmid=${mmid}&root=${root}&entry=${entry}`
         const res = await fetch(url)
@@ -64,7 +64,7 @@
       async function openOtherBrowserWindow(){
         // 启动之前必须要先实例化 borser 然后再 install 、open
         const mmid = `browser.2.sys.dweb`
-        const root = "file:///bundle"
+        const root = "file:///sys"
         // const entry = "/browser.worker.js";
         const entry = "/desktop_2.worker.js" // 采用desktop的worker.js
         const url = `http://api.js.sys.dweb-80.localhost:22605/open?mmid=${mmid}&root=${root}&entry=${entry}`
@@ -75,7 +75,7 @@
       async function openDesktopBrowserWindow(){
         // 启动之前必须要先实例化 borser 然后再 install 、open
         const mmid = `desktop.sys.dweb`
-        const root = "file:///bundle"
+        const root = "file:///sys"
         const entry = "/desktop.worker.js";
         const url = `http://api.js.sys.dweb-80.localhost:22605/open?mmid=${mmid}&root=${root}&entry=${entry}`
         const res = await fetch(url)
@@ -85,7 +85,7 @@
       async function openTestBrowserWindow(){
         // 启动之前必须要先实例化 borser 然后再 install 、open
         const mmid = `test.sys.dweb`
-        const root = "file:///bundle"
+        const root = "file:///sys"
         const entry = "/test.worker.js";
         const url = `http://api.js.sys.dweb-80.localhost:22605/open?mmid=${mmid}&root=${root}&entry=${entry}`
         const res = await fetch(url)

@@ -130,7 +130,7 @@ export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.sys.dweb` as const;
 
   private JS_PROCESS_WORKER_CODE = once(() => {
-    return this.nativeFetch("file:///bundle/js-process.worker.js").text();
+    return this.nativeFetch("file:///sys/js-process.worker.js").text();
   });
 
   private INTERNAL_PATH = encodeURI("/<internal>");
@@ -158,7 +158,7 @@ export class JsProcessNMM extends NativeMicroModule {
         await IpcResponse.fromResponse(
           request.req_id,
           await this.nativeFetch(
-            "file:///bundle/js-process" + request.parsed_url.pathname
+            "file:///sys/js-process" + request.parsed_url.pathname
           ),
           ipc
         )

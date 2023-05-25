@@ -744,7 +744,7 @@ var main = async () => {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///cot-demo${pathname}?mode=stream`
+      `file:///sys/cot-demo${pathname}?mode=stream`
     );
     ipc2.postMessage(
       new IpcResponse2(

@@ -9,7 +9,7 @@ class CotJMM : JsMicroModule(
         id = "cot.bfs.dweb",
         server = JmmMetadata.MainServer(
             root = "/sys",
-            entry = "/bundle/public.service.worker.js"
+            entry = "public.service.worker.js"
         ),
         icon = "https://www.bfmeta.info/imgs/logo3.webp",
         title = "Cot"
