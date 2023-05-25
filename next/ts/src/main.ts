@@ -58,10 +58,10 @@ dns.install(new JmmNMM());
 
 dns.install(new BootNMM([
   // 核心模块
-  "http.sys.dweb",
-  "mwebview.sys.dweb",
-  "jmm.sys.dweb",
-  "js.sys.dweb",
+  // "http.sys.dweb",
+  // "mwebview.sys.dweb",
+  // "jmm.sys.dweb",
+  // "js.sys.dweb",
 
   // 插件模块
   // "download.sys.dweb",

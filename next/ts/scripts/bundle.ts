@@ -4,6 +4,10 @@ import chalk from "https://esm.sh/v124/chalk@5.2.0";
  * 所有的打包任务
  */
 const bundle_tasks: Record<string, $Task> = {
+    // "cot-demo":{
+    //   "cmd":'pnpm',
+    //   args:""  
+    // },
   "jmm.html": {
     cmd: "npx",
     args: "vite build src/sys/jmm/assets/ --outDir=../../../../electron/bundle/jmm --emptyOutDir -c electron-vite.config.ts",
@@ -76,7 +80,7 @@ type $Task = {
 const getArgs = (args?: string[] | string) =>
   args === undefined ? [] : Array.isArray(args) ? args : args.split(/\s+/);
 
-const filters = (Deno.args[0] || "*")
+const filters = (Deno.args.filter(arg=>!arg.startsWith("-"))[0] || "*")
   .trim()
   .split(/\s*,\s*/)
   .map((f) => {
