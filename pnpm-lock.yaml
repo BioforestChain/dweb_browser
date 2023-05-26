@@ -43,9 +43,6 @@ importers:
 
   plaoc/demo:
     dependencies:
-      '@bfex/plugin':
-        specifier: link:../build/plugin
-        version: link:../build/plugin
       vite-plugin-vuetify:
         specifier: ^1.0.2
         version: 1.0.2(vite@4.3.5)(vue@3.3.2)(vuetify@3.2.4)
