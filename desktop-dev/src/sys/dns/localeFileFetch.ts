@@ -31,4 +31,28 @@ nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {
       return new Response(String(err), { status: 404 });
     }
   }
+
+  // 临时添加的 /sys/ 目录不匹配
+  if (
+    parsedUrl.protocol === "file:" &&
+    parsedUrl.hostname === "" 
+  ) {
+    try {
+      const filepath = ROOT + parsedUrl.pathname.replace("/sys/", "/assets/");
+      const stats = await fs.statSync(filepath);
+      if (stats.isDirectory()) {
+        throw stats;
+      }
+      const ext = path.extname(filepath);
+      return new Response(Readable.toWeb(fs.createReadStream(filepath)), {
+        status: 200,
+        headers: {
+          "Content-Length": stats.size + "",
+          "Content-Type": mime.getType(ext) || "application/octet-stream",
+        },
+      });
+    } catch (err) {
+      return new Response(String(err), { status: 404 });
+    }
+  }
 }, -1);

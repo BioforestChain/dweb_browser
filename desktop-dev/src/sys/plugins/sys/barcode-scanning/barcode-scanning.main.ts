@@ -9,8 +9,8 @@ import type { HttpServerNMM } from "../../../http-server/http-server.ts";
 //   $ReqRes,
 //   $Observe,
 // } from "../../native-ui/status-bar/status-bar.main.ts";
-// import Jimp from "jimp";
-// import jsQR from "jsqr";
+import Jimp from "jimp";
+import jsQR from "jsqr";
 
 export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
   mmid = "barcode-scanning.sys.dweb" as const;
@@ -32,22 +32,24 @@ export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "string",
-      handler: (args, client_ipc, ipcRequest) => {
+      handler: async (args, client_ipc, ipcRequest) => {
+
+        // cosnole.log()
         // const host: string = ipcRequest.parsed_url.host;
         // const pathname = ipcRequest.parsed_url.pathname;
         // const search = ipcRequest.parsed_url.search;
         // const url = `file://mwebview.sys.dweb/plugin/${host}${pathname}${search}`
         // const result = await this.nativeFetch(url)
-        console.log(ipcRequest.body);
+        // console.log(ipcRequest.body);
 
-        // // 直接解析二维码
-        // return await Jimp.read(await ipcRequest.body.u8a()).then(
-        //   ({ bitmap }: any) => {
-        //     const result = jsQR(bitmap.data, bitmap.width, bitmap.height);
-        //     console.log("result: ", result);
-        //     return JSON.stringify(result === null ? [] : [result.data]);
-        //   }
-        // );
+        // 直接解析二维码
+        return await Jimp.read(await ipcRequest.body.u8a()).then(
+          ({ bitmap }: any) => {
+            const result = jsQR(bitmap.data, bitmap.width, bitmap.height);
+            console.log("result: ", result);
+            return JSON.stringify(result === null ? [] : [result.data]);
+          }
+        );
       },
     });
 

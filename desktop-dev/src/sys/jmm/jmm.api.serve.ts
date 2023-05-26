@@ -25,7 +25,7 @@ export async function createApiServer(this: JmmNMM) {
   streamIpc.onRequest(onRequest.bind(this));
 }
 
-async function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
+function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   const path = request.parsed_url.pathname;
   switch (path) {
     case "/get_data":
@@ -34,8 +34,9 @@ async function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
       return appDownload.bind(this)(request, ipc);
     case "/close/self":
       return appCloseSelf.bind(this)(request, ipc);
+    case "/app/open":
+      return appOpen.bind(this)(request, ipc)
     default: {
-      debugger;
       throw new Error(`${this.mmid} 有没有处理的pathname === ${path}`);
     }
   }
@@ -61,10 +62,10 @@ async function appDownload(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
     start: (_controller) => {
       this.donwloadStramController = _controller;
     },
-    cancel: (resone) => {
+    cancel: (_resone) => {
       this.donwloadStramController?.close();
     },
-    pull: (controller) => {
+    pull: (_controller) => {
       // eventTarget.dispatchEvent(new Event('pull'))
     },
   });
@@ -97,10 +98,10 @@ async function appDownload(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
     .pipe(writeAblestream);
 }
 
-async function onProgress(
+function onProgress(
   this: JmmNMM,
-  ipcRequest: IpcRequest,
-  ipc: Ipc,
+  _ipcRequest: IpcRequest,
+  _ipc: Ipc,
   state: $State
 ) {
   // // 测试关闭下载
@@ -118,10 +119,10 @@ async function onProgress(
  */
 async function _extract(
   this: JmmNMM,
-  id: string,
+  _id: string,
   tempPath: string,
-  request: IpcRequest,
-  ipc: Ipc
+  _request: IpcRequest,
+  _ipc: Ipc
 ) {
   const target = path.resolve(process.cwd(), `./apps`);
   // 判断 target 目录是否存在 不存在就创建目录
@@ -142,7 +143,6 @@ async function _extract(
 }
 
 async function appCloseSelf(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
-  const headers = ipcRequest.headers;
   const referer = ipcRequest.headers.get("referer");
   if (referer === null) throw new Error(`${this.mmid} referer === null`);
   const host = new URL(referer).host;
@@ -152,4 +152,21 @@ async function appCloseSelf(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
   ipc.postMessage(
     await IpcResponse.fromResponse(ipcRequest.req_id, res, ipc, true)
   );
+}
+
+async function appOpen(
+  this: JmmNMM,
+  request: IpcRequest,
+  ipc: Ipc
+){
+  const search= request.parsed_url.search
+  const url = `file://dns.sys.dweb/open_browser${search}`
+  const res = await this.nativeFetch(url);
+  ipc.postMessage(
+    await IpcResponse.fromResponse(
+      request.req_id,
+      res,
+      ipc
+    )
+  )
 }

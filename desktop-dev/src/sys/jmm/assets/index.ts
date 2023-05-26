@@ -103,17 +103,6 @@ elBtnDownload.addEventListener("click", async (e) => {
     );
     return;
   }
-
-  //
-
-  // 因为 注入改写了 fetch
-  // setDownloadBackground(0)
-  // setDownloadText(0)
-  // nativeFetch(fetchUrl, { headers: {origin: location.origin}})
-  // .then(
-  //   res => console.log('res', res),
-  //   err => console.error(err)
-  // )
 });
 
 elBtnMore.addEventListener("click", (e) => {
