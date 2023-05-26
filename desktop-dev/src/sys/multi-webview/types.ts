@@ -61,6 +61,8 @@ export interface $ShareOptions {
   text: string;
   link: string;
   src: string;
+  body: Uint8Array;
+  bodyType: string;
 }
 
 export interface $ColorRGB {

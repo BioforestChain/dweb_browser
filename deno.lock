@@ -180,6 +180,7 @@
     "https://esm.sh/v124/chalk@5.2.0/source/index.d.ts": "39e7f2d0493c35e18ad102a5f637f1df7391e2502601ef202c9471257842a189",
     "https://esm.sh/v124/chalk@5.2.0/source/vendor/ansi-styles/index.d.ts": "acfed6cc001e7f7f26d2ba42222a180ba669bb966d4dd9cb4ad5596516061b13",
     "https://esm.sh/v124/chalk@5.2.0/source/vendor/supports-color/index.d.ts": "ee6e758ba90039609db823ffb39b437c3bd6191880922652e301e5cde7efb109",
+    "https://esm.sh/v124/image-capture@0.4.0/deno/image-capture.mjs": "fcc2ce9e28b9d493a3c4c5e21655f7cbc39829ba83eb31cc5e51c5ca4ffc62d5",
     "https://esm.sh/v124/node.ns.d.ts": "0fb081f0cd2150931bd54baa04f31466abd9ca701fd9060d07931402cf8367ba"
   }
 }

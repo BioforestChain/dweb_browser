@@ -17,7 +17,7 @@ export async function open(
   root_url: string,
   args: $Schema1ToType<{ url: "string" }>,
   clientIpc: Ipc,
-  request: IpcRequest
+  _request: IpcRequest
 ) {
   const wapis = await this.forceGetWapis(clientIpc, root_url);
   const webview_id = await wapis.apis.openWebview(args.url);
@@ -27,18 +27,18 @@ export async function open(
 /**
  * 关闭当前激活项
  * @param this
- * @param root_url
- * @param args
- * @param clientIpc
- * @param request
+ * @param _root_url
+ * @param _args
+ * @param _clientIpc
+ * @param _request
  * @returns
  */
 export async function closeFocusedWindow(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
-  request: IpcRequest
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
+  _request: IpcRequest
 ) {
   const iterator = this._uid_wapis_map.entries();
   for (let item of iterator) {
@@ -52,9 +52,9 @@ export async function closeFocusedWindow(
 
 export async function openDownloadPage(
   this: MultiWebviewNMM,
-  root_url: string,
+  _root_url: string,
   args: $Schema1ToType<{ url: "string" }>,
-  clientIpc: Ipc,
+  _clientIpc: Ipc,
   request: IpcRequest
 ) {
   console.log(await request.body.text());
@@ -71,10 +71,10 @@ export async function openDownloadPage(
 /**
  * 设置状态栏
  * @param this
- * @param root_url
- * @param args
- * @param clientIpc
- * @param request
+ * @param _root_url
+ * @param _args
+ * @param _clientIpc
+ * @param _request
  * @returns
  */
 export async function barGetState<
@@ -85,10 +85,10 @@ export async function barGetState<
 >(
   this: MultiWebviewNMM,
   apiksKeyName: $ApiKeyName,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
-  request: IpcRequest
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
+  _request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
   if (apis === undefined) throw new Error(`wapi === undefined`);
@@ -102,9 +102,9 @@ export async function barGetState<
 /**
  * 设置状态
  * @param this
- * @param root_url
- * @param args
- * @param clientIpc
+ * @param _root_url
+ * @param _args
+ * @param _clientIpc
  * @param request
  * @returns
  */
@@ -116,9 +116,9 @@ export async function barSetState<
 >(
   this: MultiWebviewNMM,
   apiKeyName: $ApiKeyName,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
   request: IpcRequest
 ) {
   let state: $BarState | undefined = undefined;
@@ -167,10 +167,10 @@ export async function barSetState<
 
 export async function safeAreaGetState(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
-  request: IpcRequest
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
+  _request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
   if (apis === undefined) throw new Error(`wapi === undefined`);
@@ -182,9 +182,9 @@ export async function safeAreaGetState(
 
 export async function safeAreaSetState(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
   request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
@@ -201,10 +201,10 @@ export async function safeAreaSetState(
 
 export async function virtualKeyboardGetState(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
-  request: IpcRequest
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
+  _request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
   if (apis === undefined) throw new Error(`wapi === undefined`);
@@ -216,9 +216,9 @@ export async function virtualKeyboardGetState(
 
 export async function virtualKeyboardSetState(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
   request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
@@ -235,9 +235,9 @@ export async function virtualKeyboardSetState(
 
 export async function toastShow(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
   request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
@@ -261,9 +261,9 @@ export async function toastShow(
 
 export async function shareShare(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
   request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
@@ -277,16 +277,18 @@ export async function shareShare(
     text: text === null ? "" : text,
     link: link === null ? "" : link,
     src: "",
+    body: await request.body.u8a(),
+    bodyType: request.headers.get('content-type') as string
   });
   return true;
 }
 
 export async function toggleTorch(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
-  request: IpcRequest
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
+  _request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
   if (apis === undefined) throw new Error(`wapi === undefined`);
@@ -296,10 +298,10 @@ export async function toggleTorch(
 
 export async function torchState(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
-  request: IpcRequest
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
+  _request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
   if (apis === undefined) throw new Error(`wapi === undefined`);
@@ -308,9 +310,9 @@ export async function torchState(
 
 export async function haptics(
   this: MultiWebviewNMM,
-  root_url: string,
+  _root_url: string,
   args: $Schema1ToType<{ action: "string" }>,
-  clientIpc: Ipc,
+  _clientIpc: Ipc,
   request: IpcRequest
 ) {
   const query = request.parsed_url.searchParams;
@@ -335,10 +337,10 @@ export async function haptics(
 
 export async function biometricsMock(
   this: MultiWebviewNMM,
-  root_url: string,
-  args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
-  request: IpcRequest
+  _root_url: string,
+  _args: $Schema1ToType<{}>,
+  _clientIpc: Ipc,
+  _request: IpcRequest
 ) {
   const apis = this.apisGetFromFocused();
   if (apis === undefined) throw new Error(`wapi === undefined`);

@@ -49,15 +49,15 @@ export class HttpServerNMM extends NativeMicroModule {
       }
     | undefined;
 
-  private _allRoutes: Map<string, $Listener> = new Map();
+  // private _allRoutes: Map<string, $Listener> = new Map();
 
   protected async _bootstrap() {
     log.green(`${this.mmid} _bootstrap`);
 
-    // 用来接受 推送的消息
-    this.onConnect((remoteIpc) => {
-      remoteIpc.onEvent((_ipcEventMessage, _ipc) => {});
-    });
+    // // 用来接受 推送的消息
+    // this.onConnect((remoteIpc) => {
+    //   remoteIpc.onEvent((ipcEventMessage, ipc) => {});
+    // });
 
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     this._info = await this._dwebServer.create();
@@ -68,20 +68,7 @@ export class HttpServerNMM extends NativeMicroModule {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Headers", "*");
       res.setHeader("Access-Control-Allow-Methods", "*");
-      // 根据发送改过来的请求 创建一个新的request
-      // console.log('req.url: ', req.url)
-      // console.log('headers: ', req.headers)
-      // const _url = req.url?.split("request_path_100=")[1]
-      // if(_url === undefined) throw new Error(`_url === undefined`);
-      // const urlObj = new URL(_url)
-      // const targetUrl = _url.replace(urlObj.origin, "")
-      // // 需要更新request 试试采用 express 是否可以实现？？
-      // console.log("targetUrl: ", targetUrl)
-      // /// 获取 host
-      // const host = this.getHostByURLAndHeaders(targetUrl, req.headers)
-      // console.log('host: ', host)
       const host = this.getHostByReq(req);
-
       {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);

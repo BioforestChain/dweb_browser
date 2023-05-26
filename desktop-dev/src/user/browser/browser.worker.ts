@@ -10,7 +10,9 @@ import {
   nativeActivate,
   nativeOpen,
 } from "../tool/tool.native.ts";
-import { $Ipc, fetchSignal, onApiRequest } from "../tool/tool.request.ts";
+import { $Ipc, fetchSignal } from "../tool/tool.request.ts";
+// 测试用
+import { onApiRequest } from "./api.request.ts"
 
 const main = async () => {
   const { IpcEvent } = ipc;
@@ -71,7 +73,7 @@ const main = async () => {
   const externalReadableStreamIpc = await externalServer.listen();
 
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
-    console.log("->>>>>>>>>>>>");
+    console.log("->>>>>>>>>>>>===");
     const url = request.parsed_url;
     // serviceWorker
     if (url.pathname.startsWith("/dns.sys.dweb")) {
@@ -87,6 +89,7 @@ const main = async () => {
       // 返回数据到前端
       return ipc.postMessage(ipcResponse);
     }
+    console.log('ur.pathname: ', url.pathname)
     onApiRequest(apiServer.startResult.urlInfo, request, ipc);
   });
 

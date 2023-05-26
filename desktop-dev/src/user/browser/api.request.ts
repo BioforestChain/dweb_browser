@@ -8,7 +8,7 @@ import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
 import type { ServerUrlInfo } from "../../sys/http-server/const.ts";
 import { OBSERVE } from "../tool/tool.event.ts";
 import { cros } from "../tool/tool.native.ts";
-const { IpcResponse, Ipc, IpcRequest, IpcHeaders, IPC_METHOD } = ipc;
+const { IpcResponse, Ipc, IpcRequest } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 export type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;
@@ -46,16 +46,19 @@ export async function onApiRequest(
         serverurlInfo
       );
     } else {
+      // console.log(">>>> ")
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
-      const ipcProxyRequest = new IpcRequest(
+      // 需要使用 IpcReqeust.fromStream 才能够把body数据发送过去
+      const ipcProxyRequest = IpcRequest.fromStream(
         jsProcess.fetchIpc.allocReqId(),
         path,
         request.method,
         request.headers,
-        request.body,
+        await request.body.stream(),
         jsProcess.fetchIpc
       );
+  
       jsProcess.fetchIpc.postMessage(ipcProxyRequest);
       const ipcProxyResponse = await jsProcess.fetchIpc.registerReqId(
         ipcProxyRequest.req_id
@@ -184,7 +187,7 @@ const observeFactory = (mmid: string, host: string) => {
   const streamPo = new ReadableStreamOut<Uint8Array>();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
     const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };
-    result.ipc.resolve(jsProcess.connect(mmid));
+    result.ipc.resolve(jsProcess.connect(mmid as $MMID));
     result.ipc.promise.then((ipc) => {
       ipc.postMessage(IpcEvent.fromText("observe", host));
       ipc.onEvent((event) => {

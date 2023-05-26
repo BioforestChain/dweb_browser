@@ -71,6 +71,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
       ipc
     );
   }
+  // 如果需要发送stream数据 一定要使用这个方法才可以传递数据否则数据无法传递
   static fromStream(
     req_id: number,
     url: string,

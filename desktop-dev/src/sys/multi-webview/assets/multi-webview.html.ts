@@ -286,7 +286,7 @@ export class ViewTree extends LitElement {
    * @returns
    */
   navigationBarOnBack = () => {
-    const len = this.webviews.length;
+    // const len = this.webviews.length;
     const webview = this.webviews[0];
     const origin = new URL(webview.src).origin;
     this._multiWebviewContent?.forEach((el) => {

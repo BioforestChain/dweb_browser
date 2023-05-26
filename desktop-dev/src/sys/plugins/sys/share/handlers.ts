@@ -1,5 +1,4 @@
-import { ReadableStreamIpc } from "../../../../core/ipc-web/ReadableStreamIpc.ts";
-import { Ipc, IpcRequest, IPC_ROLE } from "../../../../core/ipc/index.ts";
+import { Ipc, IpcRequest } from "../../../../core/ipc/index.ts";
 import type { $Schema1, $Schema1ToType } from "../../../../helper/types.ts";
 import type { ShareNMM } from "./share.main.ts";
 
@@ -27,25 +26,4 @@ export async function share(
     method: ipcRequest.method,
   });
   return result;
-}
-
-export async function createStreamIpc(
-  this: ShareNMM,
-  _args: $Schema1ToType<$Schema1>,
-  _client_ipc: Ipc,
-  ipcRequest: IpcRequest
-) {
-  const readableStreamIpcToTestFromSysDweb = new ReadableStreamIpc(
-    this,
-    IPC_ROLE.SERVER
-  );
-  readableStreamIpcToTestFromSysDweb.bindIncomeStream(ipcRequest.body.stream());
-  readableStreamIpcToTestFromSysDweb.onEvent((event) => {
-    console.log("event: ", event);
-  });
-  readableStreamIpcToTestFromSysDweb.onStream((stream) => {
-    console.log("stream: ", (stream as any).binary);
-  });
-
-  return readableStreamIpcToTestFromSysDweb.stream;
 }

@@ -1,5 +1,6 @@
 import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { when } from 'lit/directives/when.js';
 
 @customElement("multi-webview-comp-share")
 export class MultiWebviewCompShare extends LitElement {
@@ -12,7 +13,7 @@ export class MultiWebviewCompShare extends LitElement {
   @property({ type: String }) _link = "http://www.baidu.com?url=";
   @property({ type: String }) _src =
     "https://img.tukuppt.com/photo-big/00/00/94/6152bc0ce6e5d805.jpg";
-
+  @property({ type: String }) _filename = ""
   protected override firstUpdated(
     _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ): void {
@@ -24,9 +25,16 @@ export class MultiWebviewCompShare extends LitElement {
   }
 
   override render() {
+    console.log("this._src: ", this._src)
     return html`
       <div class="panel">
-        <img class="img" src=${this._src}></img>
+        ${
+          when(
+            this._src,
+            () => html`<img class="img" src=${this._src}></img>`,
+            () => html`<div class="filename">${this._filename}</div>`
+          )
+        }
         <div class="text_container">
           <h2 class="h2">${this._title}</h2>
           <p class="p">${this._text}</p>
@@ -74,6 +82,17 @@ function createAllCSS() {
         padding: 30px;
         max-width: 100%;
         max-height: 300px;
+      }
+
+      .filename{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 30px;
+        max-width: 100%;
+        max-height: 300px;
+        font-size: 18px;
       }
 
       .text_container {
