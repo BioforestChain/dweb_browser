@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-import jmm from "../components/JMM.vue";
 </script>
 <template>
   <div class="container">
-    <jmm></jmm>
     <div class="logo">
-      <img src="../assets/logo.svg" alt="Dweb Browser" class="icon" />
+      <img src="@/assets/logo.svg" alt="Dweb Browser" class="icon" />
       <div class="gradient-text">Dweb Browser</div>
     </div>
   </div>

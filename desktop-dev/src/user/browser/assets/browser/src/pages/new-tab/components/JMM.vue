@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { DragSortableList } from '@/plugins/dragSortableList';
 import { onMounted, ref } from 'vue';
+import { DragSortableList } from '../plugins/dragSortableList';
 
 
 const apps = ref({});

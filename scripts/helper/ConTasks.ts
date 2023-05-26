@@ -39,6 +39,7 @@ class Logger extends WritableStream<string> {
         /// 如果有等待任务，那么进行判定
         if (this._waitters.size > 0) {
           const chunkText = chunk.replace(
+            // deno-lint-ignore no-control-regex
             /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
             ""
           );
@@ -51,7 +52,7 @@ class Logger extends WritableStream<string> {
         }
 
         /// 加上前缀
-        let log = chunk
+        const log = chunk
           .split(/\n/g)
           .map((line) => {
             if (line.length) {
