@@ -163,8 +163,6 @@
     "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/$types.ts": "68727c29374be58e6334cb5fcdb298f0d6ea45a0cb1439e2a833660bd5ae5678",
     "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts": "eb9e95417fd0697b1b1e81a306ef60ba36624faee38a8ed265d5dd1f4853435a",
     "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/index.ts": "0fee1713bca591266c27b0cf932f6fe51c2df4a08c6df5b0495c8a20de766368",
-    "https://esm.sh/image-capture@0.4.0": "7b53a7e814e9dd5115f1cedf53a944d6e4e734ab4f3e92be909c9ca1a60f0525",
-    "https://esm.sh/v119/image-capture@0.4.0/deno/image-capture.mjs": "fcc2ce9e28b9d493a3c4c5e21655f7cbc39829ba83eb31cc5e51c5ca4ffc62d5",
     "https://esm.sh/v124/@types/node@18.16.9/buffer.d.ts": "bcea71b60847e8c945a5100eb80744cb65fb69d24419e8b5f21a142a78d50cda",
     "https://esm.sh/v124/@types/node@18.16.9/crypto.d.ts": "b27845e9b87827cb4cf0732ec7fbc71b4327092087aac36882633c511306de7c",
     "https://esm.sh/v124/@types/node@18.16.9/dns.d.ts": "5bf512ea3d12dc56ff9e034a98ca702a70336d659a11c029eaa49d6248412edf",
@@ -182,7 +180,6 @@
     "https://esm.sh/v124/chalk@5.2.0/source/index.d.ts": "39e7f2d0493c35e18ad102a5f637f1df7391e2502601ef202c9471257842a189",
     "https://esm.sh/v124/chalk@5.2.0/source/vendor/ansi-styles/index.d.ts": "acfed6cc001e7f7f26d2ba42222a180ba669bb966d4dd9cb4ad5596516061b13",
     "https://esm.sh/v124/chalk@5.2.0/source/vendor/supports-color/index.d.ts": "ee6e758ba90039609db823ffb39b437c3bd6191880922652e301e5cde7efb109",
-    "https://esm.sh/v124/image-capture@0.4.0/deno/image-capture.mjs": "fcc2ce9e28b9d493a3c4c5e21655f7cbc39829ba83eb31cc5e51c5ca4ffc62d5",
     "https://esm.sh/v124/node.ns.d.ts": "0fb081f0cd2150931bd54baa04f31466abd9ca701fd9060d07931402cf8367ba"
   }
 }

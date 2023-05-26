@@ -60,7 +60,6 @@ export const doBuid = async (config: {
     shims: {
       custom: [
         // {
-        //   module: "https://cdn.esm.sh/image-capture@0.4.0",
         //   globalNames: ["ImageCapture"],
         // }
       ],

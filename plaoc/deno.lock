@@ -162,13 +162,10 @@
     "https://deno.land/x/ts_morph@15.1.0/common/ts_morph_common.js": "e43476019b9c74ca9116eb82b97a14e6bc2d1bba55b0575d933d98069c0c0c37",
     "https://deno.land/x/ts_morph@15.1.0/common/typescript.d.ts": "3fa86a2c33804b6a4221dda3714a6a2f8a2f26983ea6c63d2bf6f2839fbb778a",
     "https://deno.land/x/ts_morph@15.1.0/common/typescript.js": "4d7a5d2090a2ba739c02207bd8c49a60c9475dea7725a9cabfaf0f26cbf85f53",
-    "https://esm.sh/image-capture@0.4.0": "549a3528aed1c6e976e086577d6ce4d012f3e0288a70c869c89e3a9cd741bbe2",
-    "https://esm.sh/v111/@types/w3c-image-capture@1.0.7/index.d.ts": "75e60e0f9f52e283b996c84e5a4676e5fe1d8e3356bb2fd0a0ab9e931204cff1",
     "https://esm.sh/v111/@types/web@0.0.96/index.d.ts": "72b09e83a4055df1191f34da41cf3a7d874bad1282b9169beb008c7c83cfbaaf",
     "https://esm.sh/v111/@types/web@0.0.96/iterable.d.ts": "8abb577ccd031320b4d4f5de99ea591a4e963ab32bb457ba4965b201c2695da0",
     "https://esm.sh/v111/@types/webrtc@0.0.33/MediaStream.d.ts": "746f4428d2c3c9330013b323c95e056243953965dd2a48561f4201b8db5c8d12",
     "https://esm.sh/v111/@types/webrtc@0.0.33/RTCPeerConnection.d.ts": "b787461a78d95df875ef0d1ec9485b015f9939d8c1636e665507d701b52e368c",
-    "https://esm.sh/v111/@types/webrtc@0.0.33/index.d.ts": "e1e1e7f6074c9fc5159014af118e1d2b86313cab4e365a667c98d8b2dcbf9216",
-    "https://esm.sh/v111/image-capture@0.4.0/deno/image-capture.js": "180025642f942ccf61c3eaf4f81c7d66835b88c6c54bf10ccf7c74319c74da3d"
+    "https://esm.sh/v111/@types/webrtc@0.0.33/index.d.ts": "e1e1e7f6074c9fc5159014af118e1d2b86313cab4e365a667c98d8b2dcbf9216"
   }
 }
