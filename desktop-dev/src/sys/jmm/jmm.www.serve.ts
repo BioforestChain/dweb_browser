@@ -16,7 +16,7 @@ export async function createWWWServer(this: JmmNMM) {
 async function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   let pathname = request.parsed_url.pathname;
   pathname = pathname === "/" ? "/index.html" : pathname;
-  const url = `file:///assets/page_download/${pathname}?mode=stream`;
+  const url = `file:///sys/jmm/${pathname}?mode=stream`;
   // 打开首页的 路径
   const response = await this.nativeFetch(url);
   ipc.postMessage(

@@ -1,0 +1,217 @@
+/* html{
+        border: 10px solid blue;
+    } */
+body {
+  margin: 0px;
+  padding: 0px 12px;
+  background: #ffffffff;
+}
+body::-webkit-scrollbar {
+  display: block;
+  background: transparent;
+  width: 5px;
+}
+body::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 5px;
+}
+
+.top-bar-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 20px 0px;
+  width: auto;
+  height: 30px;
+  line-height: 30px;
+  cursor: pointer;
+}
+
+.summary-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  box-sizing: content-box;
+  padding: 10px 0px;
+  width: 100%;
+  height: 130px;
+}
+
+.icon-container {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  background-size: 60%;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 20px;
+}
+
+.text-container {
+  position: relative;
+  box-sizing: border-box;
+  margin-left: 10px;
+  width: 100%;
+  height: 100%;
+}
+
+.title {
+  margin: 0px;
+  width: 100%;
+  font-size: 24px;
+  line-height: 26px;
+}
+
+.explain {
+  margin: 0px;
+  font-size: 14px;
+  line-height: 22px;
+  color: #888;
+}
+.button-group-container {
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.btn-download {
+  position: relative;
+  padding: 3px 20px;
+  width: 60px;
+  height: 30px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff;
+  border: none;
+  background: #ddd;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.btn-download-mask {
+  position: absolute;
+  z-index: 0;
+  left: 0px;
+  top: 0px;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #1677ff 100%, #999);
+}
+
+.btn-download-label {
+  position: absolute;
+  z-index: 1;
+  left: 0px;
+  top: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.preview-container {
+  width: 100%;
+  height: auto;
+}
+
+.preview-container-title {
+  margin: 0px;
+}
+
+.img-container {
+  display: flex;
+  margin-top: 10px;
+  width: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.img-container::-webkit-scrollbar {
+  height: 5px;
+  background: transparent;
+}
+
+.img-container::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 5px;
+}
+
+.img-box {
+  flex: none;
+  margin-left: 10px;
+  width: 260px;
+  border-radius: 20px;
+  scroll-snap-align: center;
+}
+
+.img-box:first-of-type {
+  margin-left: 0px;
+}
+
+.detail-contaienr {
+  --font-size: 13px;
+  --line-height: 16px;
+  position: relative;
+  width: 100%;
+  height: auto;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.detail-text {
+  position: relative;
+  font-size: 13px;
+  line-height: 20px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.detail-text-open {
+  height: auto;
+}
+
+.detail-button-more {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  padding-left: 50px;
+  border: none;
+  color: #1677ff;
+  background: linear-gradient(to right, transparent, #ffff 40%);
+  cursor: pointer;
+}
+
+.detail-button-more-open {
+  bottom: -20px;
+}
+
+.developer-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0px 50px 0px;
+}
+
+.developer-name {
+  margin: 0px;
+  font-size: 13px;
+  line-height: 15px;
+  color: #1677ff;
+}
+
+.developer-title {
+  margin: 0px;
+  font-size: 12px;
+  line-height: 15px;
+  color: #999;
+}
+
+.icon-right {
+  color: #999;
+}

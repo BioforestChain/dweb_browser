@@ -2,45 +2,22 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { $AppMetaData } from "../jmm/jmm.ts";
 
 export async function getAllApps() {
-  return new Promise(async (resolve, reject) => {
-    const appsPath = path.resolve(process.cwd(), "./apps/infos");
-    const foldersName: string[] = await fsPromises.readdir(appsPath);
-    const appsInfo: $AppMetaData[] = [];
-    foldersName.forEach(async (folderName: string) => {
-      const metaData = (await JSON.parse(
-        fsPromises.readFile(
-          path.resolve(appsPath, `./${folderName}/package.json`),
-          "utf-8"
-        )
-      )) as $AppMetaData;
-      appsInfo.push(metaData);
-    });
-    resolve(appsInfo);
+  const appsPath = path.resolve(process.cwd(), "./apps/infos");
+  const foldersName: string[] = await fsPromises.readdir(appsPath);
+  const appsInfo: $AppMetaData[] = [];
+  foldersName.forEach(async (folderName: string) => {
+    const metaData = (await JSON.parse(
+      await fsPromises.readFile(
+        path.resolve(appsPath, `./${folderName}/package.json`),
+        "utf-8"
+      )
+    )) as $AppMetaData;
+    appsInfo.push(metaData);
   });
-}
-
-export interface $AppMetaData {
-  title: string;
-  subtitle: string;
-  id: string;
-  downloadUrl: string;
-  icon: string;
-  images: string[];
-  introduction: string;
-  author: string[];
-  version: string;
-  keywords: string[];
-  home: string;
-  mainUrl: string;
-  staticWebServers: $StaticWebServers[];
-  openWebViewList: string[];
-  size: string;
-  fileHash: string;
-  permissions: string;
-  plugins: string[];
-  releaseDate: string;
+  return appsInfo;
 }
 
 export interface $StaticWebServers {

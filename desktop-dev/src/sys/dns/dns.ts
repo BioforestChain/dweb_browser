@@ -326,7 +326,9 @@ export class DnsNMM extends NativeMicroModule {
         }
         const pathname = "/" + normalizePath.join("/");
         const url = new URL(
-          (dweb_deeplink + pathname).replace(/\/{2,}/g, "/") +
+          (dweb_deeplink + pathname)
+            .replace(/\/{2,}/g, "/")
+            .replace(/\/$/, "") +
             (hasSearch ? "?" + normalizeQuery.toString() : "")
         );
         return url;

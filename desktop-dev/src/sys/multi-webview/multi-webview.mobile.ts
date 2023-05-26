@@ -120,10 +120,10 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: { host: "string" },
       output: "boolean",
-      handler: async (args, client_ipc) => {
-        Array.from(this._uid_wapis_map.values()).forEach((wapis) => {
-          wapis.apis.destroyWebviewByHost(args.host);
-        });
+      handler: async (args) => {
+        for (const wapis of this._uid_wapis_map.values()) {
+          await wapis.apis.destroyWebviewByHost(args.host);
+        }
         return true;
       },
     });
@@ -133,10 +133,10 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: { host: "string" },
       output: "boolean",
-      handler: async (args, client_ipc) => {
-        Array.from(this._uid_wapis_map.values()).forEach((wapis) => {
-          wapis.apis.restartWebviewByHost(args.host);
-        });
+      handler: async (args) => {
+        for (const wapis of this._uid_wapis_map.values()) {
+          await wapis.apis.restartWebviewByHost(args.host);
+        }
         return true;
       },
     });

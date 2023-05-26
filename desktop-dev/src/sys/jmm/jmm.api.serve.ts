@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
+import process from "node:process";
 import request from "request";
 import progress from "request-progress";
 import tar from "tar";
@@ -25,7 +27,7 @@ export async function createApiServer(this: JmmNMM) {
 
 async function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   const path = request.parsed_url.pathname;
-  switch (request.parsed_url.pathname) {
+  switch (path) {
     case "/get_data":
       return getData.bind(this)(request, ipc);
     case "/app/download":
@@ -33,10 +35,8 @@ async function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
     case "/close/self":
       return appCloseSelf.bind(this)(request, ipc);
     default: {
-      throw new Error(
-        `${this.mmid} 有没有处理的pathname === ${request.parsed_url.pathname}`
-      );
       debugger;
+      throw new Error(`${this.mmid} 有没有处理的pathname === ${path}`);
     }
   }
 }
@@ -78,11 +78,17 @@ async function appDownload(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
       ipc
     )
   );
-  const tempPath = path.resolve(process.cwd(), `./temp/${id}.tar.gz`);
+
+  const tempPath = path.resolve(os.tmpdir(), `./jmm/${id}.tar.gz`);
+  fs.mkdirSync(path.dirname(tempPath), { recursive: true });
   const writeAblestream = fs.createWriteStream(tempPath, { flags: "w" });
   writeAblestream.on("close", () =>
     _extract.bind(this)(id, tempPath, ipcRequest, ipc)
   );
+  // const downloadTask = await fetch(downloadUrl)
+  // const totalSize = +(downloadTask.headers.get("content-length")??Infinity);
+  // const downloadStream = downloadTask.body!
+
   progress(request(downloadUrl), {})
     .on("progress", onProgress.bind(this, ipcRequest, ipc))
     .on("error", (err: Error) => {
@@ -102,11 +108,14 @@ async function onProgress(
   //   this.donwloadStramController?.close()
   // }
   // 测试关闭下载
-  const value = (state.percent * 100).toFixed(0);
+  const value = (state.percent * 100).toFixed(2);
   const ui8 = new TextEncoder().encode(`${value}\n`);
   this.donwloadStramController?.enqueue(ui8);
 }
 
+/**
+ * 解压安装包
+ */
 async function _extract(
   this: JmmNMM,
   id: string,
@@ -118,7 +127,7 @@ async function _extract(
   // 判断 target 目录是否存在 不存在就创建目录
   if (!fs.existsSync(target)) {
     await fsPromises.mkdir(target, {
-      recersive: true,
+      recursive: true,
     });
   }
 

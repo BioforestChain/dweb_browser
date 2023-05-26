@@ -1,7 +1,9 @@
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { log } from "../../helper/devtools.ts";
+import { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 import type { HttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import { createApiServer } from "./jmm.api.serve.ts";
 import { cancel, install, pause, resume } from "./jmm.handler.ts";
@@ -11,6 +13,7 @@ import { JsMicroModule } from "./micro-module.js.ts";
 
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.sys.dweb" as const;
+  dweb_deeplinks = ["dweb:install"] as $DWEB_DEEPLINK[];
   downloadStatus: DOWNLOAD_STATUS = 0;
   wwwServer: HttpDwebServer | undefined;
   apiServer: HttpDwebServer | undefined;
@@ -71,8 +74,16 @@ export class JmmNMM extends NativeMicroModule {
       input: { url: "string" },
       output: "void",
       handler: async (args) => {
+        console.log("!!!! install", args);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         /// 安装应用并打开
         await install(this, { metadataUrl: args.url });
+        const off = this.onInstalled.listen((info, fromUrl) => {
+          if (fromUrl === args.url) {
+            off();
+            context.dns.connect(info.id);
+          }
+        });
       },
     });
 
@@ -110,6 +121,8 @@ export class JmmNMM extends NativeMicroModule {
     //   },
     // });
   }
+
+  readonly onInstalled = createSignal<$Callback<[$AppMetaData, string]>>();
 
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");
@@ -314,7 +327,7 @@ export interface $State {
 export interface $AppMetaData {
   title: string;
   subtitle: string;
-  id: string;
+  id: $MMID;
   downloadUrl: string;
   icon: string;
   images: string[];
