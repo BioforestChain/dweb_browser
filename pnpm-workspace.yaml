@@ -1,3 +1,4 @@
 packages:
   - desktop-dev/
   - plaoc/demo/
+  - desktop-dev/src/user/browser/assets/browser
