@@ -5,14 +5,17 @@ import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import android.webkit.*
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,11 +26,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.web.*
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.sys.plugin.permission.PermissionManager
-import info.bagen.dwebbrowser.ui.browser.HomePage
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.splash.SplashPrivacyDialog
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
@@ -44,10 +48,14 @@ import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
+  // private var mKeepOnAtomicBool = java.util.concurrent.atomic.AtomicBoolean(true)
+
   @OptIn(DelicateCoroutinesApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    val splashScreen = installSplashScreen() // 必须放在setContent之前
     // 全屏
+    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
     val controller = WindowInsetsControllerCompat(window, window.decorView)
     // controller.isAppearanceLightStatusBars = true // false 状态颜色
     controller.hide(WindowInsetsCompat.Type.statusBars())
@@ -55,21 +63,24 @@ class SplashActivity : AppCompatActivity() {
 
     App.startMicroModuleProcess()
 
+    //splashScreen.setKeepOnScreenCondition { mKeepOnAtomicBool.get() }
+
     val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false)
+    if (enable) {
+      App.grant.resolve(true)
+      finish()
+      return
+    }
     setContent {
+      val scope = rememberCoroutineScope()
       RustApplicationTheme {
         val webUrl = remember { mutableStateOf("") }
         val showLoading = remember { mutableStateOf(false) }
-        // SplashMainView()
-        HomePage()
-        if (enable) {
-          App.grant.resolve(true)
-          return@RustApplicationTheme
-        }
+        
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
 
         SplashPrivacyDialog(
           openHome = {
-            // checkAndRequestPermission() // 上架要求不能在这边请求权限，必须等需要用到权限时再请求
             App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
             App.grant.resolve(true)
           },
@@ -77,7 +88,7 @@ class SplashActivity : AppCompatActivity() {
           closeApp = {
             App.grant.resolve(false)
             finish()
-            GlobalScope.launch {  // 如果不统一协议就把整个应用停了
+            scope.launch(ioAsyncExceptionHandler) {  // 如果不同意协议就把整个应用停了
               delay(100)
               exitProcess(0)
             }

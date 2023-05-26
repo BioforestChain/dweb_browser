@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
-  <style name="Theme.plaoc" parent="Theme.AppCompat.Light.NoActionBar">
+  <style name="Theme.dwebbrowser" parent="Theme.AppCompat.Light.NoActionBar">
     <!-- Primary brand color. -->
     <item name="colorPrimary">@color/colorPrimary_light</item>
     <item name="colorPrimaryVariant">@color/colorPrimaryVariant_light</item>
@@ -20,12 +20,30 @@
     <item name="android:onClick">onClick</item>
   </style>
 
-  <style name="Theme.plaoc.NoActionBar">
+  <style name="Theme.dwebbrowser.NoActionBar">
     <item name="windowActionBar">false</item>
     <item name="windowNoTitle">true</item>
   </style>
 
-  <style name="Theme.RustEample.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+  <style name="Theme.RustExample.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-  <style name="Theme.RustEample.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+  <style name="Theme.RustExample.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+  <!-- Splash启动页Style -->
+  <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+    <!--启动画面背景颜色-->
+    <item name="windowSplashScreenBackground">#FFFFFF</item>
+    <!-- 启动画面icon图标：这里可以是图片、帧动画等-->
+    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    <!--<item name="windowSplashScreenIconBackgroundColor">@drawable/ic_test</item>-->
+
+    <!-- icon动画在关闭之前显示的时长：最长时间为1000毫秒-->
+    <!--<item name="windowSplashScreenAnimationDuration">200</item>-->
+
+    <!-- 启动画面底部的 Brand 图片-->
+    <!--<item name="android:windowSplashScreenBrandingImage">@drawable/brand_img</item>-->
+
+    <!-- Splash退出后的主题-->
+    <item name="postSplashScreenTheme">@style/Theme.AppCompat.NoActionBar</item>
+  </style>
 </resources>

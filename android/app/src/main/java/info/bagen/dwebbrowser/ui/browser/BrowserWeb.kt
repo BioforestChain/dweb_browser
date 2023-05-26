@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.onEach
 @Composable
 internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
   val localFocusManager = LocalFocusManager.current
-  var webViewY = 0 // 用于截图的时候进行定位截图
+  val webViewY = 0 // 用于截图的时候进行定位截图
   LaunchedEffect(browserWebView.state) { // 点击跳转时，加载状态变化，将底部栏显示
     snapshotFlow { browserWebView.state.loadingState }.collect {
       if (it is LoadingState.Loading) {

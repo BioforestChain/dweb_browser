@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
+import android.view.MotionEvent
+import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -14,40 +16,31 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.web.LoadingState
+import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanView
-import info.bagen.dwebbrowser.ui.view.PermissionSingleView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -400,123 +393,6 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
   }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-private fun SearchTextField(
-  viewModel: BrowserViewModel,
-  inputText: MutableState<String>,
-  focus: MutableState<Boolean>,
-) {
-  val keyboardController = LocalSoftwareKeyboardController.current
-  val focusManager = LocalFocusManager.current
-  val currentText = remember {
-    mutableStateOf(
-      if (focus.value && !inputText.value.startsWith("file:///android_asset/dweb/")) {
-        inputText.value
-      } else {
-        ""
-      }
-    )
-  }
-
-  BasicTextField(
-    value = currentText.value,
-    onValueChange = {
-      currentText.value = it
-      viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(it.isNotEmpty()))
-      viewModel.handleIntent(BrowserIntent.UpdateInputText(it))
-    },
-    readOnly = false,
-    enabled = true,
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(horizontal = dimenSearchVerticalAlign)
-      .onFocusChanged {
-        focus.value = it.isFocused
-        val text = if (!it.isFocused || inputText.value.startsWith("file:///android_asset/dweb/")) {
-          ""
-        } else {
-          parseInputText(inputText.value, needHost = false) ?: inputText.value
-        }
-        currentText.value = text
-        viewModel.handleIntent(BrowserIntent.UpdateInputText(text))
-      },
-    singleLine = true,
-    maxLines = 1,
-    textStyle = TextStyle.Default.copy(
-      /*color = MaterialTheme.colorScheme.onPrimary, */fontSize = dimenTextFieldFontSize
-    ),
-    keyboardOptions = KeyboardOptions(
-      imeAction = if (currentText.value.isUrlOrHost()) {
-        ImeAction.Search
-      } else {
-        ImeAction.Done
-      }
-    ),
-    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }, onSearch = {
-      if (currentText.value.isEmpty()) return@KeyboardActions
-      viewModel.handleIntent(BrowserIntent.SearchWebView(currentText.value.toRequestUrl()))
-      focusManager.clearFocus()
-    })
-  ) { innerTextField ->
-    Box {
-      Surface(modifier = Modifier.align(Alignment.Center)) {
-        Row(
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          AnimatedVisibility(visible = !focus.value) {
-            Icon(
-              imageVector = Icons.Outlined.Search,
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.onSurface
-            )
-          }
-          Box(
-            modifier = Modifier
-              .weight(1f)
-              .padding(horizontal = dimenSearchHorizontalAlign)
-          ) {
-            val pair = if (focus.value && currentText.value.isEmpty()) {
-              Pair(stringResource(id = R.string.browser_search_hint), Alignment.CenterStart)
-            } else if (!focus.value) {
-              if (inputText.value.isEmpty() || inputText.value.startsWith("file:///android_asset/dweb/")) {
-                Pair(stringResource(id = R.string.browser_search_hint), Alignment.CenterStart)
-              } else {
-                parseInputText(inputText.value)?.let { text ->
-                  Pair(text, Alignment.Center)
-                } ?: Pair(stringResource(id = R.string.browser_search_hint), Alignment.CenterStart)
-              }
-            } else null
-            pair?.let { pair ->
-              Text(
-                text = pair.first,
-                modifier = Modifier.align(pair.second),
-                fontSize = dimenTextFieldFontSize,
-                maxLines = 1
-              )
-            }
-            innerTextField()
-          }
-
-          if (currentText.value.isNotEmpty()) {
-            Icon(imageVector = Icons.Outlined.Close,
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.onSurface,
-              modifier = Modifier
-                .size(25.dp)
-                .clickable {
-                  currentText.value = ""
-                  viewModel.handleIntent(BrowserIntent.UpdateInputText(""))
-                  viewModel.handleIntent(BrowserIntent.UpdateSearchEngineState(false))
-                  if (!viewModel.isShowKeyboard) focusManager.clearFocus() // 补充取消聚焦
-                })
-          }
-        }
-      }
-    }
-  }
-}
-
 /**
  * 提供给外部调用的  搜索界面，可以含有BrowserViewModel
  */
@@ -542,6 +418,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
     SearchView(
       text = text,
       imeShowed = imeShowed,
+      homePreview = { HomeWebviewPage(viewModel) },
       onClose = {
         viewModel.uiState.showSearchView.value = false
       },
@@ -551,4 +428,18 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
         viewModel.handleIntent(BrowserIntent.SearchWebView(url))
       })
   }
+}
+
+@Composable
+internal fun HomeWebviewPage(viewModel: BrowserViewModel) {
+  val webView = viewModel.getNewTabBrowserView()
+  WebView(
+    state = webView.state,
+    modifier = Modifier.fillMaxSize(),
+    navigator = webView.navigator,
+    factory = {
+      webView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
+      webView.webView
+    }
+  )
 }

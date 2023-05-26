@@ -39,23 +39,22 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />--> <!--生物识别-->
 
     <application
-        android:name="info.bagen.dwebbrowser.App"
+        android:name=".App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.plaoc"
+        android:theme="@style/Theme.dwebbrowser"
         android:usesCleartextTraffic="true">
         <profileable
             android:shell="true"
             tools:targetApi="29" />
 
         <activity
-            android:name="info.bagen.dwebbrowser.SplashActivity"
+            android:name=".SplashActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.plaoc">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -63,30 +62,29 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="info.bagen.dwebbrowser.microService.browser.BrowserActivity"
+            android:name=".microService.browser.BrowserActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.plaoc"
-            android:screenOrientation="portrait" />
-        <!--            android:launchMode="singleInstance"-->
+            android:theme="@style/Theme.dwebbrowser"
+            android:screenOrientation="fullSensor" />
+
         <activity
-            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder1Activity"
-            android:exported="true"
-            android:windowSoftInputMode="adjustPan" />
-        <activity
-            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder2Activity"
+            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder1Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder3Activity"
+            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder2Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder4Activity"
+            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder3Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name="info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewPlaceholder5Activity"
+            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder4Activity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder5Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
 
@@ -95,7 +93,7 @@
             android:value="barcode" />
 
         <activity
-            android:name="info.bagen.dwebbrowser.microService.sys.plugin.share.ShareActivity"
+            android:name=".microService.sys.plugin.share.ShareActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Transparent">
             <intent-filter>
@@ -103,19 +101,19 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="info.bagen.dwebbrowser.microService.sys.plugin.biometrics.BiometricsActivity"
+            android:name=".microService.sys.plugin.biometrics.BiometricsActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Transparent"></activity>
+            android:theme="@style/Theme.AppCompat.Transparent"/>
 
         <activity
-            android:name="info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity"
+            android:name=".microService.sys.jmm.ui.JmmManagerActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="info.bagen.dwebbrowser.openjmm" />
             </intent-filter>
         </activity>
 
-        <service android:name="info.bagen.dwebbrowser.service.DwebBrowserService" />
+        <service android:name=".service.DwebBrowserService" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -126,20 +124,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_opener_paths" />
         </provider>
-        <!-- Prompt Google Play services to install the backported photo picker module -->
-<!--        <service-->
-<!--            android:name="com.google.android.gms.metadata.ModuleDependencies"-->
-<!--            android:enabled="false"-->
-<!--            android:exported="false"-->
-<!--            tools:ignore="MissingClass">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />-->
-<!--            </intent-filter>-->
-
-<!--            <meta-data-->
-<!--                android:name="photopicker_activity:0:required"-->
-<!--                android:value="" />-->
-<!--        </service>-->
     </application>
 
 </manifest>

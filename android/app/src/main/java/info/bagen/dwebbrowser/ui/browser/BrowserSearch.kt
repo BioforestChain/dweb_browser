@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.KeyEvent
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.MutableTransitionState
@@ -13,12 +14,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -26,10 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -43,6 +48,7 @@ import info.bagen.dwebbrowser.database.WebSiteDatabase
 import info.bagen.dwebbrowser.database.WebSiteInfo
 import info.bagen.dwebbrowser.database.WebSiteType
 import info.bagen.dwebbrowser.datastore.DefaultSearchWebEngine
+import info.bagen.dwebbrowser.datastore.WebEngine
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import io.ktor.util.reflect.*
 import kotlinx.coroutines.delay
@@ -50,35 +56,30 @@ import kotlinx.coroutines.delay
 /**
  * 组件： 搜索组件
  */
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchView(
   text: String,
   imeShowed: MutableState<Boolean> = mutableStateOf(false),
+  homePreview: (@Composable () -> Unit)? = null,
   searchPreview: (@Composable () -> Unit)? = null,
   onClose: () -> Unit,
   onSearch: (String) -> Unit,
 ) {
   val focusManager = LocalFocusManager.current
-  val keyboardController = LocalSoftwareKeyboardController.current
-  var inputText by remember { mutableStateOf(parseInputText(text, false)) }
-  val focusRequester = remember { FocusRequester() }
+  val inputText = remember { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(false) }
   val webEngine = findWebEngine(text)
-
-  LaunchedEffect(focusRequester) {
-    delay(100)
-    focusRequester.requestFocus()
-  }
+  Log.e("lin.huang", "SearchView enter")
 
   Box(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background.copy(0.5f))
-      /*.clickable(indication = null, onClick = {
-        focusManager.clearFocus()
-        onClose()
-      }, interactionSource = remember { MutableInteractionSource() })*/
+      .clickable(
+        indication = null,
+        onClick = { /*focusManager.clearFocus(); onClose()*/ },
+        interactionSource = remember { MutableInteractionSource() }
+      )
   ) {
     Box(
       modifier = Modifier
@@ -86,7 +87,8 @@ internal fun SearchView(
         .navigationBarsPadding()
         .padding(bottom = dimenBottomHeight)
     ) {
-      //HomePage()
+      homePreview?.let { it() }
+
       Text(
         text = "取消",
         modifier = Modifier
@@ -112,73 +114,101 @@ internal fun SearchView(
         )
     }
 
-    CustomTextField(
-      value = inputText,
-      onValueChange = {
-        inputText = it.trim()
-        searchPreviewState.targetState = it.isNotEmpty()
-      },
-      modifier = Modifier
-        .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.surfaceVariant)
-        .navigationBarsPadding()
-        .imePadding()
-        .align(Alignment.BottomCenter)
-        .padding(
-          start = 25.dp,
-          end = 25.dp,
-          top = 10.dp,
-          bottom = if (imeShowed.value) 0.dp else 50.dp // 为了贴合当前的界面底部工具栏
-        )
-        .height(dimenSearchHeight)
-        .clip(RoundedCornerShape(8.dp))
-        .background(MaterialTheme.colorScheme.background)
-        .focusRequester(focusRequester)
-        .onKeyEvent {
-          if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-            webEngine?.let { webEngine ->
-              onSearch(String.format(webEngine.format, inputText))
-            } ?: if (inputText.isUrlOrHost()) {
-              onSearch(inputText.toRequestUrl())
-            } else {
-              focusManager.clearFocus(); keyboardController?.hide()
-            }
-            true
-          } else {
-            false
-          }
-        },
-      label = {
-        Text(
-          text = stringResource(id = R.string.browser_search_hint),
-          fontSize = dimenTextFieldFontSize,
-          textAlign = TextAlign.Start,
-          maxLines = 1
-        )
-      },
-      trailingIcon = {
-        Icon(
-          imageVector = Icons.Default.Close,
-          contentDescription = "Close",
-          modifier = Modifier.clickable { inputText = ""; searchPreviewState.targetState = false }
-        )
-      },
-      keyboardOptions = KeyboardOptions(
-        imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
-      ),
-      keyboardActions = KeyboardActions(
-        onDone = { focusManager.clearFocus(); keyboardController?.hide() },
-        onSearch = {
-          webEngine?.let { onSearch(String.format(it.format, inputText)) }
-            ?: onSearch(inputText.toRequestUrl())
-        }
-      )
+    BrowserTextField(
+      text = inputText,
+      webEngine = webEngine,
+      imeShowed = imeShowed,
+      onSearch = { onSearch(it) },
+      onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
     )
   }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun CustomTextField(
+internal fun BoxScope.BrowserTextField(
+  text: MutableState<String>,
+  webEngine: WebEngine?,
+  imeShowed: MutableState<Boolean>,
+  onSearch: (String) -> Unit,
+  onValueChanged: (String) -> Unit
+) {
+  val focusRequester = remember { FocusRequester() }
+  val focusManager = LocalFocusManager.current
+  val keyboardController = LocalSoftwareKeyboardController.current
+  var inputText by remember { mutableStateOf(text.value) }
+
+  LaunchedEffect(focusRequester) {
+    delay(100)
+    focusRequester.requestFocus()
+  }
+
+  CustomTextField(
+    value = inputText,
+    onValueChange = { inputText = it.trim(); onValueChanged(inputText) },
+    modifier = Modifier
+      .fillMaxWidth()
+      .background(MaterialTheme.colorScheme.surfaceVariant)
+      .navigationBarsPadding()
+      .imePadding()
+      .align(Alignment.BottomCenter)
+      .padding(
+        start = 25.dp,
+        end = 25.dp,
+        top = 10.dp,
+        bottom = if (imeShowed.value) 0.dp else 50.dp // 为了贴合当前的界面底部工具栏
+      )
+      .height(dimenSearchHeight)
+      .clip(RoundedCornerShape(8.dp))
+      .background(MaterialTheme.colorScheme.background)
+      .focusRequester(focusRequester)
+      .onKeyEvent {
+        if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+          webEngine?.let { webEngine ->
+            onSearch(String.format(webEngine.format, inputText))
+          } ?: if (inputText.isUrlOrHost()) {
+            onSearch(inputText.toRequestUrl())
+          } else {
+            focusManager.clearFocus(); keyboardController?.hide()
+          }
+          true
+        } else {
+          false
+        }
+      },
+    label = {
+      Text(
+        text = stringResource(id = R.string.browser_search_hint),
+        fontSize = dimenTextFieldFontSize,
+        textAlign = TextAlign.Start,
+        maxLines = 1
+      )
+    },
+    trailingIcon = {
+      Icon(
+        imageVector = ImageVector.vectorResource(R.drawable.ic_circle_close),
+        contentDescription = "Close",
+        modifier = Modifier
+          .clickable { inputText = ""; onValueChanged(inputText) }
+          .size(28.dp)
+          .padding(4.dp)
+      )
+    },
+    keyboardOptions = KeyboardOptions(
+      imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
+    ),
+    keyboardActions = KeyboardActions(
+      onDone = { focusManager.clearFocus(); keyboardController?.hide() },
+      onSearch = {
+        webEngine?.let { onSearch(String.format(it.format, inputText)) }
+          ?: onSearch(inputText.toRequestUrl())
+      }
+    )
+  )
+}
+
+@Composable
+fun CustomTextField(
   value: String,
   onValueChange: (String) -> Unit,
   modifier: Modifier = Modifier,
@@ -220,15 +250,15 @@ internal fun CustomTextField(
   }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("NewApi")
 @Composable
 internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
   show: MutableTransitionState<Boolean>,
-  text: String,
+  text: MutableState<String>,
   onClose: () -> Unit,
   onSearch: (String) -> Unit
 ) {
+  Log.e("lin.huang", "SearchPreview enter")
   if (show.targetState) {
     LazyColumn(
       modifier = Modifier
@@ -243,13 +273,7 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
             .padding(vertical = 20.dp)
         ) {
           Text(text = "搜索", modifier = Modifier.align(Alignment.Center), fontSize = 20.sp)
-          /*Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
-            contentDescription = "Close",
-            modifier = Modifier
-              .padding(end = 16.dp)
-              .size(24.dp)
-              .align(Alignment.CenterEnd)
-              .clickable { onClose() })*/
+
           Text(
             text = "取消",
             modifier = Modifier
@@ -261,7 +285,7 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
         }
       }
       item { // 搜索引擎
-        SearchItemEngines(text) { onSearch(it) }
+        SearchItemEngines(text.value) { onSearch(it) }
       }
     }
   }
@@ -398,4 +422,3 @@ private fun SearchWebsiteCardView(
     }
   }
 }
-
