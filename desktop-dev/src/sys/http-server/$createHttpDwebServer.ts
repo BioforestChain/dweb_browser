@@ -53,7 +53,7 @@ export class HttpDwebServer {
       },
     ]
   ) => {
-    return listenHttpDwebServer(this.nmm, this.startResult, routes);
+    return await listenHttpDwebServer(this.nmm, this.startResult, routes);
   };
   /** 关闭监听 */
   close = once(() => closeHttpDwebServer(this.nmm, this.options));
@@ -127,7 +127,7 @@ export const closeHttpDwebServer = async (
   microModule: $MicroModule,
   options: $DwebHttpServerOptions
 ) => {
-  return microModule
+  return await microModule
     .nativeFetch(
       buildUrl(new URL(`file://http.sys.dweb/close`), {
         search: options,

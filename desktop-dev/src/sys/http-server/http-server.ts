@@ -2,16 +2,16 @@ import crypto from "node:crypto";
 import type http from "node:http";
 import type { IncomingMessage, OutgoingMessage } from "node:http";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
+import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
 import { IPC_ROLE } from "../../core/ipc/const.ts";
 import type { Ipc } from "../../core/ipc/ipc.ts";
-import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { $ReqMatcher } from "../../helper/$ReqMatcher.ts";
 import { log } from "../../helper/devtools.ts";
 import { ServerStartResult, ServerUrlInfo } from "./const.ts";
 import { defaultErrorResponse } from "./defaultErrorResponse.ts";
-import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
 import { Http1Server } from "./net/Http1Server.ts";
+import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
 import { PortListener } from "./portListener.ts";
 
 interface $Gateway {
@@ -56,14 +56,14 @@ export class HttpServerNMM extends NativeMicroModule {
 
     // 用来接受 推送的消息
     this.onConnect((remoteIpc) => {
-      remoteIpc.onEvent((ipcEventMessage, ipc) => {});
+      remoteIpc.onEvent((_ipcEventMessage, _ipc) => {});
     });
 
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     this._info = await this._dwebServer.create();
     console.log("创建了服务： ", this._info);
 
-    this._info.server.on("request", async (req, res) => {
+    this._info.server.on("request", (req, res) => {
       console.log("接收到熬了请求 --- ");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Headers", "*");
@@ -140,7 +140,7 @@ export class HttpServerNMM extends NativeMicroModule {
       matchMode: "full",
       input: { token: "string", routes: "object" },
       output: "object",
-      handler: async (args, ipc, message) => {
+      handler: (args, _ipc, message) => {
         return this.listen(args.token, message, args.routes as $ReqMatcher[]);
       },
     });
@@ -187,7 +187,7 @@ export class HttpServerNMM extends NativeMicroModule {
     // jmmmetadata.sys.dweb-80.localhost:22605
     const token = Buffer.from(
       crypto.getRandomValues(new Uint8Array(64))
-    ).toString("base64url");
+    ).toString();
     const gateway: $Gateway = { listener, urlInfo: serverUrlInfo, token };
     this._tokenMap.set(token, gateway);
     this._gatewayMap.set(serverUrlInfo.host, gateway);
@@ -241,10 +241,10 @@ export class HttpServerNMM extends NativeMicroModule {
   // 获取 host
   getHostByReq = (req: IncomingMessage) => {
     /// 获取 host
-    var header_host: string | null = null;
-    var header_x_dweb_host: string | null = null;
-    var header_user_agent_host: string | null = null;
-    var query_x_web_host: string | null = new URL(
+    let header_host: string | null = null;
+    let header_x_dweb_host: string | null = null;
+    let header_user_agent_host: string | null = null;
+    let query_x_web_host: string | null = new URL(
       req.url || "/",
       this._dwebServer.origin
     ).searchParams.get("X-Dweb-Host");
@@ -269,6 +269,7 @@ export class HttpServerNMM extends NativeMicroModule {
           if (typeof value === "string") {
             header_x_dweb_host = value;
           }
+          break;
         }
         case "user-agent":
         case "User-Agent": {
@@ -299,10 +300,10 @@ export class HttpServerNMM extends NativeMicroModule {
   // 获取 host
   getHostByURLAndHeaders = (url: string, headers: {}) => {
     /// 获取 host
-    var header_host: string | null = null;
-    var header_x_dweb_host: string | null = null;
-    var header_user_agent_host: string | null = null;
-    var query_x_web_host: string | null = new URL(
+    let header_host: string | null = null;
+    let header_x_dweb_host: string | null = null;
+    let header_user_agent_host: string | null = null;
+    let query_x_web_host: string | null = new URL(
       url || "/",
       this._dwebServer.origin
     ).searchParams.get("X-Dweb-Host");
@@ -327,6 +328,7 @@ export class HttpServerNMM extends NativeMicroModule {
           if (typeof value === "string") {
             header_x_dweb_host = value;
           }
+          break;
         }
         case "user-agent":
         case "User-Agent": {
