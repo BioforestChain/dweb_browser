@@ -4,10 +4,11 @@ import type { $MMID } from "../helper/types.ts";
 export class BootNMM extends NativeMicroModule {
   constructor(private initMmids?: Iterable<$MMID>) {
     super();
+    this.registeredMmids = new Set<$MMID>(this.initMmids);
   }
   mmid = "boot.sys.dweb" as const;
   // private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]); // 被优化
-  private registeredMmids = new Set<$MMID>(this.initMmids);
+  private readonly registeredMmids: Set<$MMID>;
   async _bootstrap() {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/register",

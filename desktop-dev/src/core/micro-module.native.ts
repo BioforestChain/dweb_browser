@@ -3,6 +3,7 @@ import { $deserializeRequestToParams } from "../helper/$deserializeRequestToPara
 import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.ts";
 import { $serializeResultToResponse } from "../helper/$serializeResultToResponse.ts";
 import type {
+  $DWEB_DEEPLINK,
   $IpcSupportProtocols,
   $PromiseMaybe,
   $Schema1,
@@ -42,6 +43,7 @@ export abstract class NativeMicroModule extends MicroModule {
     protobuf: true,
     raw: true,
   };
+  readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
   _onConnect(ipc: Ipc) {}
 
@@ -57,12 +59,12 @@ export abstract class NativeMicroModule extends MicroModule {
     this.onConnect((client_ipc) => {
       this._onConnect(client_ipc);
       client_ipc.onRequest(async (request) => {
-        const { pathname } = request.parsed_url;
+        const { pathname, protocol } = request.parsed_url;
         let response: IpcResponse | undefined;
         // 添加了一个判断 如果没有注册匹配请求的监听器会有信息弹出到 终端;
         let has = false;
         for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {
-          if ($isMatchReq(hanlder_schema, pathname, request.method)) {
+          if ($isMatchReq(hanlder_schema, pathname, request.method, protocol)) {
             has = true;
             try {
               const result = await hanlder_schema.handler(

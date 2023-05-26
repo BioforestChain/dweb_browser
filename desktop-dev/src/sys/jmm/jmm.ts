@@ -36,30 +36,44 @@ export class JmmNMM extends NativeMicroModule {
       matchMode: "full",
       input: { metadataUrl: "string" },
       output: "boolean",
-      handler: install.bind(this),
+      handler: async (args) => {
+        return await install(this, args);
+      },
     });
-
     // 下载暂停
     this.registerCommonIpcOnMessageHandler({
       pathname: "/pause",
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: pause.bind(this),
+      handler: (args) => pause(this, args),
     });
     this.registerCommonIpcOnMessageHandler({
       pathname: "/resume",
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: resume.bind(this),
+      handler: (args) => resume(this, args),
     });
     this.registerCommonIpcOnMessageHandler({
       pathname: "/cancel",
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: cancel.bind(this),
+      handler: (args) => cancel(this, args),
+    });
+
+    /// dweb deeplink
+    this.registerCommonIpcOnMessageHandler({
+      protocol: "dweb:",
+      pathname: "install",
+      matchMode: "full",
+      input: { url: "string" },
+      output: "void",
+      handler: async (args) => {
+        /// 安装应用并打开
+        await install(this, { metadataUrl: args.url });
+      },
     });
 
     // this.registerCommonIpcOnMessageHandler({

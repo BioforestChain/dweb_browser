@@ -4,13 +4,22 @@ export interface $ReqMatcher {
   readonly pathname: string;
   readonly matchMode: "full" | "prefix";
   readonly method?: $Method;
+  readonly protocol?: string;
 }
 
 export const $isMatchReq = (
   matcher: $ReqMatcher,
   pathname: string,
-  method: string = "GET"
+  method: string = "GET",
+  protocol?: string
 ) => {
+  if (
+    protocol !== undefined &&
+    matcher.protocol !== undefined &&
+    matcher.protocol !== protocol
+  ) {
+    return false;
+  }
   return (
     (matcher.method ?? "GET") === method &&
     (matcher.matchMode === "full"

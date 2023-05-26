@@ -29,6 +29,9 @@ export class JsMicroModule extends MicroModule {
   get mmid() {
     return this.metadata.config.id;
   }
+  get dweb_deeplinks() {
+    return this.metadata.config.dweb_deeplinks ?? [];
+  }
 
   /**
    * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起

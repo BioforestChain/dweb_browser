@@ -3,6 +3,7 @@ import { createSignal } from "../helper/createSignal.ts";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
 import { PromiseOut } from "../helper/PromiseOut.ts";
 import type {
+  $DWEB_DEEPLINK,
   $IpcSupportProtocols,
   $MicroModule,
   $MMID,
@@ -12,6 +13,7 @@ import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type { Ipc } from "./ipc/index.ts";
 export abstract class MicroModule implements $MicroModule {
   abstract ipc_support_protocols: $IpcSupportProtocols;
+  abstract dweb_deeplinks: $DWEB_DEEPLINK[];
   abstract mmid: $MMID;
   protected abstract _bootstrap(context: $BootstrapContext): unknown;
   protected abstract _shutdown(): unknown;

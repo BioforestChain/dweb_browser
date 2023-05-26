@@ -1,9 +1,6 @@
 import { expose, proxy, wrap } from "comlink";
-import * as _Electron from "electron";
+import "./electron.ts";
 import { PromiseOut } from "./PromiseOut.ts";
-Object.assign(globalThis, {
-  Electron: _Electron,
-});
 
 export const openNativeWindow = async (
   url: string,

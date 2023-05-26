@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Electron Main",
+            "program": "${workspaceFolder}/electron",
+            "request": "launch",
+            "runtimeExecutable": "${workspaceFolder}/electron/node_modules/.bin/electron",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        }
+    
+    ]
+}

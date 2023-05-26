@@ -27,10 +27,13 @@ await build({
       start: "electron ./",
     },
   },
-  packageManager: "pnpm",
+  packageManager: "yarn",
   postBuild() {
     /// 启动
-    new Deno.Command("pnpm", { args: ["start"], cwd: "./electron" }).spawn();
+    new Deno.Command("pnpm", {
+      args: ["start", ...Deno.args.slice(Deno.args.indexOf("--start") + 1)],
+      cwd: "./electron",
+    }).spawn();
     // steps to run after building and before running the tests
     // Deno.copyFileSync("README.md", "npm/README.md");
   },

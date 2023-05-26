@@ -1,3 +1,5 @@
+import path from "node:path";
+import process from "node:process";
 import type {
   $BootstrapContext,
   $DnsMicroModule,
@@ -12,10 +14,12 @@ import {
 } from "../../core/nativeConnect.ts";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.ts";
 import { log } from "../../helper/devtools.ts";
+import "../../helper/electron.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import type { $MMID } from "../../helper/types.ts";
+import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
+
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
 
@@ -51,6 +55,7 @@ const connectTo_symbol = Symbol("connectTo");
  */
 export class DnsNMM extends NativeMicroModule {
   mmid = "dns.sys.dweb" as const;
+  readonly dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
   private apps = new Map<$MMID, MicroModule>();
 
   bootstrap(
@@ -132,7 +137,7 @@ export class DnsNMM extends NativeMicroModule {
     return po.promise;
   }
 
-  override _bootstrap() {
+  override async _bootstrap(context: $BootstrapContext) {
     log.green(`${this.mmid} _bootstrap`);
     this.install(this);
     this.running_apps.set(this.mmid, this);
@@ -154,6 +159,23 @@ export class DnsNMM extends NativeMicroModule {
           JSON.stringify(app),
           client_ipc
         );
+      },
+    });
+    /// dweb deeplink
+    this.registerCommonIpcOnMessageHandler({
+      protocol: "dweb:",
+      pathname: "open/",
+      matchMode: "prefix",
+      input: {},
+      output: "boolean",
+      handler: async (args, client_ipc, request) => {
+        const app_id = request.parsed_url.pathname.replace(
+          "open/",
+          ""
+        ) as $MMID;
+        /// TODO 询问用户是否授权该行为
+        const app = await this.open(app_id);
+        return true;
       },
     });
 
@@ -269,8 +291,67 @@ export class DnsNMM extends NativeMicroModule {
     );
 
     //#region 启动引导程序
-    return this.open(`boot.sys.dweb`);
+    await this.open(`boot.sys.dweb`);
     //#endregion
+
+    /**
+     * 获取应用程序命令行参数： 如果是开发模式，electron 后面需要跟 目录，所以从 2 开始
+     * 如果是应用模式，只需要应用程序名，所以从1开始
+     */
+    const args = process.argv.slice(
+      path.parse(process.argv0).name.toLowerCase() === "electron" ? 2 : 1
+    );
+    console.log("args:", args);
+
+    if (args.length > 0) {
+      const [domain, ...deeplink_args] = args;
+      const dweb_deeplink = `dweb:${domain}`;
+      const buildReqUrl = () => {
+        const normalizePath: string[] = [];
+        const normalizeQuery = new URLSearchParams();
+        let hasSearch = false;
+        for (let i = 0; i < deeplink_args.length; i++) {
+          const arg = deeplink_args[i];
+          if (arg.startsWith("-")) {
+            const k_v = arg.match(/^\-+(.+?)\=(.+)/);
+            if (k_v) {
+              normalizeQuery.append(k_v[1], k_v[2]);
+            } else {
+              normalizeQuery.append(arg.replace(/^-+/, ""), deeplink_args[++i]);
+            }
+            hasSearch = true;
+          } else {
+            normalizePath.push(arg);
+          }
+        }
+        const pathname = "/" + normalizePath.join("/");
+        const url = new URL(
+          (dweb_deeplink + pathname).replace(/\/{2,}/g, "/") +
+            (hasSearch ? "?" + normalizeQuery.toString() : "")
+        );
+        return url;
+      };
+      let _req_url: undefined | URL;
+      const getReqUrl = () => (_req_url ??= buildReqUrl());
+
+      /// 查询匹配deeplink的程序
+      for (const app of this.apps.values()) {
+        if (
+          undefined !==
+          app.dweb_deeplinks.find((dl) => dl.startsWith(dweb_deeplink))
+        ) {
+          const req = new Request(getReqUrl());
+          console.table({
+            title: `use ${app.mmid}`,
+            message: req.url,
+          });
+          const [ipc] = await context.dns.connect(app.mmid, req);
+          const ipc_req_init = await $readRequestAsIpcRequest(req);
+          /// 发送请求
+          await ipc.request(req.url, ipc_req_init);
+        }
+      }
+    }
   }
 
   async _shutdown() {

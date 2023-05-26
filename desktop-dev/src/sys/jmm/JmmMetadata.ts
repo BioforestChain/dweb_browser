@@ -1,4 +1,4 @@
-import { $MMID } from "../../helper/types.ts";
+import { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 
 export class JmmMetadata {
   constructor(readonly config: $JmmMetadata) {}
@@ -6,6 +6,7 @@ export class JmmMetadata {
 export interface $JmmMetadata {
   id: $MMID;
   server: $JmmMetadata.$MainServer;
+  dweb_deeplinks?: $DWEB_DEEPLINK[]
 }
 
 export namespace $JmmMetadata {
