@@ -7,7 +7,7 @@ import { routes } from "./routes";
 const router = useRouter();
 
 // router.push("/biometrics")
-router.push("/share")
+router.push("/barcodescanning")
 // router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");

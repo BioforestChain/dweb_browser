@@ -47,7 +47,7 @@ const main = async () => {
     );
   };
 
-  const { IpcResponse, IpcHeaders } = ipc;
+  const { IpcResponse } = ipc;
 
   /**给前端的文件服务 */
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
@@ -217,7 +217,7 @@ const main = async () => {
   };
 
   /// 如果有人来激活，那我就唤醒我的界面
-  jsProcess.onActivity(async (ipcEvent, ipc) => {
+  jsProcess.onActivity(async (_ipcEvent, ipc) => {
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
     if (hasActivityEventIpcs.has(ipc) === false) {
@@ -229,7 +229,7 @@ const main = async () => {
     }
   });
   const hasActivityEventIpcs = new Set<$Ipc>();
-  jsProcess.onClose(async (event, ipc) => {
+  jsProcess.onClose(() => {
     // 接收JMM更新程序的关闭消息（安装完新的app需要重启应用）
     multiWebViewCloseSignal.emit();
     return closeApp(
@@ -239,7 +239,7 @@ const main = async () => {
   });
 
   /// 同步 mwebview 的状态机
-  multiWebViewIpc.onEvent(async (event, ipc) => {
+  multiWebViewIpc.onEvent((event, ipc) => {
     if (event.name === EVENT.State && typeof event.data === "string") {
       const newState = JSON.parse(event.data);
       const diff = detailedDiff(oldWebviewState, newState);
