@@ -74,7 +74,7 @@ dns.install(
     // "biometrics.sys.dweb",
     // "haptics.sys.dweb",
     // "share.sys.dweb",
-    // "browser.sys.dweb",
+    "browser.sys.dweb",
     // cotDemoJMM.mmid
     // 下面是专门用来测是 connect 的模块
     // "test-from.sys.dweb",
