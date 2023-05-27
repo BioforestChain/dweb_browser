@@ -122,9 +122,10 @@ export class ConTasks {
       }
     }
     /// 根据依赖顺序，启动任务
+    const processTasks: Promise<void>[] = [];
     for (const name in children) {
       const { task, command, stdoutLogger, stderrLogger } = children[name];
-      (async () => {
+      const processTask = (async () => {
         /// 等待依赖执行完成
         if (task.startDeps?.length) {
           const allWhenLogs = task.startDeps
@@ -161,7 +162,8 @@ export class ConTasks {
 
         console.log(chalk.gray(name + " "), "done");
       })();
+      processTasks.push(processTask);
     }
-    return children;
+    return { children, processTasks, afterComplete: () => Promise.all(processTasks) };
   }
 }

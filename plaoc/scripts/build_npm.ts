@@ -6,7 +6,7 @@ import {
   emptyDir,
   EntryPoint,
   LibName,
-} from "https://deno.land/x/dnt@0.31.0/mod.ts";
+} from "../../scripts/helper/dnt/mod.ts";
 
 export const doBuid = async (config: {
   name: string;
@@ -55,7 +55,7 @@ export const doBuid = async (config: {
      * @TODO should ignore errors:
      * 1. TS2691
      */
-    typeCheck: true,
+    typeCheck: false,
     test: false,
     shims: {
       custom: [

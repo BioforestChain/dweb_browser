@@ -15,9 +15,12 @@ export const devTasks = new ConTasks({
     args: "task build:watch:demo",
     cwd: "./desktop-dev",
   },
-  "sync": { cmd: "deno", args: "task sync --watch" },
+  sync: { cmd: "deno", args: "task sync --watch" },
 });
 
+import { initTasks } from "./init.ts";
+
 if (import.meta.main) {
+  await initTasks.spawn().afterComplete();
   devTasks.spawn();
 }
