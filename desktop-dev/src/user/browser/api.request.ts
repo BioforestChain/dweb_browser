@@ -50,6 +50,7 @@ export async function onApiRequest(
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
       // 需要使用 IpcReqeust.fromStream 才能够把body数据发送过去
+     
       const ipcProxyRequest = IpcRequest.fromStream(
         jsProcess.fetchIpc.allocReqId(),
         path,

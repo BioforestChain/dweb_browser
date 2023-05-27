@@ -32,10 +32,8 @@ import type {
   CustomEventDomReadyDetail,
 } from "./multi-webview-content.html.ts";
 import "./multi-webview-devtools.html.ts";
-import excuteJavascriptCode from "./multi-webview-excute-javascript.ts";
 import { Webview } from "./multi-webview.ts";
 import WebviewTag = Electron.WebviewTag;
-// import { hexaToRGBA } from "../../../helper/colorFormat.ts"
 import type {
   $BarState,
   $OverlayState,
@@ -281,28 +279,37 @@ export class ViewTree extends LitElement {
   /**
    * navigation-bar 点击 back 的事件处理器
    * 业务逻辑：
-   * 向 webview 添加一个 ipc-message 事件监听器
-   * 向 webview 注入执行一段 javascript code
+   * 检查 watchers的数据是否有没返回的；
+   * 
+   * 如果有：
+   * webveiw执行 watcher.close(); 用来发消息
+   * 同时触发 close event 实际上关闭
+   * 
+   * 如果没有：
+   * webview 执行 历史回退 或发送back 消息回来处理
+   *  
    * @returns
    */
   navigationBarOnBack = () => {
-    // const len = this.webviews.length;
     const webview = this.webviews[0];
     const origin = new URL(webview.src).origin;
-    this._multiWebviewContent?.forEach((el) => {
-      if (el.src.includes(origin)) {
-        const webview = el.getWebviewTag();
-        webview?.addEventListener(
-          "ipc-message",
-          this.webviewTagOnIpcMessageHandlerBack
-        );
-      }
-    });
-    // executre 通过 fetch 把消息发送出来
-    this.executeJavascriptByHost(
-      origin, 
-      excuteJavascriptCode.toString().match(/\{([\w\W]+)\}/)![1]
-    );
+    const wathcers = Array.from(this.nativeCloseWatcherKitData.tokenToId.values());
+    const code = 
+      wathcers.length > 0
+      ?  `
+          ;(() => {
+            const watchers = Array.from(window.__native_close_watcher_kit__._watchers.values());
+            watchers[watchers.length - 1].close();
+            watchers[watchers.length - 1].dispatchEvent(new Event("close"));
+          })();
+        `
+      : `
+          history.state === null || history.state.back === null
+          ? window.electron.ipcRenderer.sendToHost('back')
+          : window.history.back();
+          `
+      ;
+    this.executeJavascriptByHost(origin,code);
   };
 
   /** 对webview视图进行状态整理 */
@@ -473,7 +480,7 @@ export class ViewTree extends LitElement {
     return true;
   }
 
-  async restartWebviewByHost(host: string) {
+  restartWebviewByHost(host: string) {
     this._restateWebviews();
     return true;
   }
@@ -483,7 +490,7 @@ export class ViewTree extends LitElement {
    * @param host
    * @param code
    */
-  async executeJavascriptByHost(host: string, code: string) {
+  executeJavascriptByHost(host: string, code: string) {
     this._multiWebviewContent?.forEach((el) => {
       const webview_url = new URL(el.src.split("?")[0]).origin;
       const target_url = new URL(host).origin;
@@ -494,51 +501,24 @@ export class ViewTree extends LitElement {
     });
   }
 
-  async acceptMessageFromWebview(options: {
-    origin: string;
-    action: string;
-    value: string;
-  }) {
-    switch (options.action) {
-      case "history_back":
-        this.destroyWebviewByOrigin(options.origin);
-        break;
-      default:
-        console.error(
-          "acceptMessageFromWebview 还有没有处理的 action = " + options.action
-        );
-    }
-  }
-
   preloadAbsolutePathSet(path: string) {
     this.preloadAbsolutePath = path;
   }
 
-  webviewTagOnIpcMessageHandlerBack = (e: Event) => {
-    const channel = Reflect.get(e, "channel");
-    const args = Reflect.get(e, "args");
-    if (
-      channel === "webveiw_message" &&
-      args[0] === "back" &&
-      e.target !== null
-    ) {
-      e.target.removeEventListener(
-        "ipc-message",
-        this.webviewTagOnIpcMessageHandlerBack
-      );
-      // 需要从 webviews 删除第一位
+  webviewTagOnIpcMessageHandlerBack = () => {
+    const len = this.webviews.length;
+    if(len > 1){
+      this.destroyWebview(this.webviews[0]);
       this.navigationBarState = this.navigationBarState.slice(1);
       this.statusBarState = this.statusBarState.slice(1);
       // 把 navigationBarState statusBarStte safe-area 的改变发出
       ipcRenderer.send("safe_are_insets_change");
       ipcRenderer.send("navigation_bar_state_change");
       ipcRenderer.send("status_bar_state_change");
+      return;
     }
-
-    const len = this.webviews.length;
-    len === 1
-      ? mainApis.closedBrowserWindow()
-      : this.destroyWebview(this.webviews[0]);
+    console.error('是否应该需要关闭 当前window了？？？ 还没有决定')
+    // mainApis.closedBrowserWindow()
   };
 
   webviewTagOnIpcMessageHandlerNormal = (e: Event) => {
@@ -554,8 +534,11 @@ export class ViewTree extends LitElement {
           visible: false,
         };
         break;
-      case "webveiw_message":
-        this.webviewTagOnIpcMessageHandlerBack(e);
+      case "back":
+        this.webviewTagOnIpcMessageHandlerBack();
+        break;
+      case "__native_close_watcher_kit__":
+        this.nativeCloseWatcherKit((args as {action: string, value: string | number}[])[0])
         break;
       default:
         throw new Error(
@@ -563,6 +546,44 @@ export class ViewTree extends LitElement {
         );
     }
   };
+
+  nativeCloseWatcherKitData = {
+    tokenToId: new Map<string, number>(),
+    idToToken: new Map<number, string>(),
+    allocId: 0,
+  }
+  nativeCloseWatcherKit = ({action, value}:  {action: string, value: string | number}) => {
+    console.log('接受的到了消息： ', action, value)
+    
+    if(action === "registry_token" && typeof value === "string"){
+      const id = this.nativeCloseWatcherKitData.allocId++;
+      this.nativeCloseWatcherKitData.tokenToId.set(value, id);
+      this.nativeCloseWatcherKitData.idToToken.set(id, value)
+      // 向 webview 执行数据 resolve watcher
+      const webview = this.webviews[0];
+      const origin = new URL(webview.src).origin;
+      this.executeJavascriptByHost(
+        origin,
+        `
+          ;(() => {
+            console.log(globalThis.__native_close_watcher_kit__._tasks);
+            const resolve = globalThis.__native_close_watcher_kit__._tasks.get("${value}");
+            resolve(${id});
+          })();
+        `
+      )
+      return;
+    }
+
+    if(action === "close" && typeof value === "number"){
+      const token = this.nativeCloseWatcherKitData.idToToken.get(value)!
+      this.nativeCloseWatcherKitData.idToToken.delete(value);
+      this.nativeCloseWatcherKitData.tokenToId.delete(token);
+      console.log("接受到了关闭的消息", value)
+      return;
+    }
+    
+  }
 
   // Render the UI as a function of component state
   override render() {
@@ -736,7 +757,6 @@ export const APIS = {
   destroyWebviewByHost: viewTree.destroyWebviewByHost.bind(viewTree),
   restartWebviewByHost: viewTree.restartWebviewByHost.bind(viewTree),
   executeJavascriptByHost: viewTree.executeJavascriptByHost.bind(viewTree),
-  acceptMessageFromWebview: viewTree.acceptMessageFromWebview.bind(viewTree),
   statusBarSetState: viewTree.barSetState.bind(viewTree, "statusBarState"),
   statusBarGetState: viewTree.barGetState.bind(viewTree, "statusBarState"),
   navigationBarSetState: viewTree.barSetState.bind(

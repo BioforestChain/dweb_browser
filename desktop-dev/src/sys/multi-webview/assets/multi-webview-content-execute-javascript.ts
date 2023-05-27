@@ -1,4 +1,10 @@
 const code = () => {
+
+  // 需要重写 open 但是还没有处理
+  Reflect.set(window, "open", function(url: string){
+    console.log('open url: ', url)
+  })
+
   const virtualkeyboard = {
     inputBindVirtualKeyboard(el: Element) {
       el.removeEventListener("focusin", this.bindVirtualKeyboardFocusin);

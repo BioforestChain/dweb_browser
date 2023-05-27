@@ -260,12 +260,13 @@ export class RootComp extends LitElement {
   }
 
   testShare() {
-    this.shareShare({
-      title: "标题",
-      text: "内容",
-      link: "https://www.baidu.com",
-      src: "https://img.tukuppt.com/photo-big/00/00/94/6152bc0ce6e5d805.jpg",
-    });
+    console.error("测试功能已经取消了")
+    // this.shareShare({
+    //   title: "标题",
+    //   text: "内容",
+    //   link: "https://www.baidu.com",
+    //   src: "https://img.tukuppt.com/photo-big/00/00/94/6152bc0ce6e5d805.jpg",
+    // });
   }
 
   testStatusbarSetBackground() {
