@@ -38,10 +38,11 @@ export class MultiWebViewContent extends LitElement {
   }
 
   webviewDidStartLoading(e: Event) {
+    console.log("执行了 javascript")
     const el = e.target;
     if (el === null) throw new Error(`el === null`);
     (e.target as WebviewTag).executeJavaScript(
-      ecxuteJavascriptCode.toString().match(/\{([\w\W]+)\}/)![0][1]
+      ecxuteJavascriptCode.toString().match(/\{([\w\W]+)\}/)![1]
     );
   }
 
