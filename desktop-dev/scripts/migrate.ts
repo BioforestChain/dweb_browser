@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { WalkDir } from "../../scripts/helper/WalkDir.ts";
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const easyWriteFile = (filepath: string, content: string | Uint8Array) => {
@@ -11,57 +12,6 @@ const easyWriteFile = (filepath: string, content: string | Uint8Array) => {
 const easyReadFile = (filepath: string) => fs.readFileSync(filepath, "utf-8");
 const emptyDir = (dir: string) =>
   fs.rmSync(dir, { recursive: true, force: true });
-
-function* WalkDir(rootpath: string) {
-  const dirs = [rootpath];
-  for (const dirpath of dirs) {
-    for (const filename of fs.readdirSync(dirpath)) {
-      if (filename === ".DS_Store") {
-        continue;
-      }
-      const filepath = path.join(dirpath, filename);
-      const stats = fs.statSync(filepath);
-      const isDirectory = stats.isDirectory();
-      const isFile = stats.isFile();
-
-      if (isFile) {
-        const relativepath = path.relative(rootpath, filepath);
-        yield {
-          dirpath,
-          filename,
-          filepath,
-          rootpath,
-          relativepath,
-          stats,
-          isFile,
-          isDirectory,
-          readText() {
-            return easyReadFile(filepath);
-          },
-          readJson<T>() {
-            return JSON.parse(this.readText()) as T;
-          },
-          read() {
-            return fs.readFileSync(filepath);
-          },
-          write(content: string | Uint8Array) {
-            return fs.writeFileSync(filepath, content);
-          },
-          updateText(updater: (content: string) => string) {
-            const oldContent = this.readText();
-            const newContent = updater(oldContent);
-            if (newContent !== oldContent) {
-              this.write(newContent);
-            }
-          },
-        };
-      }
-      if (isDirectory) {
-        dirs.push(filepath);
-      }
-    }
-  }
-}
 
 emptyDir(resolveTo("./assets-projects"));
 emptyDir(resolveTo("./src"));

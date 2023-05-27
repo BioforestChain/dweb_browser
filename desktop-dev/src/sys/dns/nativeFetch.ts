@@ -5,6 +5,6 @@ export type $FetchAdapter = (
   remote: MicroModule,
   parsedUrl: URL,
   requestInit: RequestInit
-) => Promise<Response | void>;
+) => Promise<Response | void> | Response | void;
 
 export const nativeFetchAdaptersManager = new AdaptersManager<$FetchAdapter>();

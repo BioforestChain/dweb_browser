@@ -183,7 +183,7 @@ export class JsProcessNMM extends NativeMicroModule {
         }).href,
         {
           /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
-          show: require.main?.filename.endsWith(".html"),
+          show: true, // require.main?.filename.endsWith(".html"),
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );
@@ -258,44 +258,6 @@ export class JsProcessNMM extends NativeMicroModule {
         return port_id;
       },
     });
-    // 下面是测试代码开始
-    // 创建一个 api服务器
-    // const apiServer = await createHttpDwebServer(this, {subdomain: "api"});
-    // ;(await apiServer.listen()).onRequest(async (request, ipc) => {
-    //   const pathname = request.parsed_url.pathname;
-    //   if(pathname === "/close"){
-    //     const mmid = request.parsed_url.searchParams.get('mmid')
-    //     if(mmid === null) throw new Error(`mmid === null`);
-
-    //     // 第一步 关闭对应的browser.window
-    //     const result = await this.nativeFetch(`file://dns.sys.dweb/close?app_id=${mmid}`)
-    //     const state = await result.text()
-    //     // 第二部 检查是否所有相关的ipc都已经删除完毕
-    //     return ipc.postMessage(
-    //       IpcResponse.fromText(
-    //         request.req_id,
-    //         200,
-    //         undefined,
-    //         state,
-    //         ipc
-    //       )
-    //     )
-    //   }
-    //   if(pathname === "/open"){
-    //     const search= request.parsed_url.search
-    //     const url = `file://dns.sys.dweb/open_browser${search}`
-    //     const res = await this.nativeFetch(url);
-    //     ipc.postMessage(
-    //       await IpcResponse.fromResponse(
-    //         request.req_id,
-    //         res,
-    //         ipc
-    //       )
-    //     )
-    //   }
-    // })
-
-    // 上面是测试代码结束
   }
   async _shutdown() {}
 

@@ -68,6 +68,10 @@ export class JsMicroModule extends MicroModule {
         );
       } else {
         // 获取 worker.js 代码
+        console.log(
+          `fetch:`,
+          this.metadata.config.server.root , request.parsed_url.pathname
+        );
         const main_code = await this.nativeFetch(
           this.metadata.config.server.root + request.parsed_url.pathname
         ).text();

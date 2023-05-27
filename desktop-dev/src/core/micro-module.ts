@@ -30,11 +30,14 @@ export abstract class MicroModule implements $MicroModule {
     return this._running_state_lock.promise;
   }
 
+  protected context?: $BootstrapContext;
+
   protected async before_bootstrap(context: $BootstrapContext) {
     if (await this._running_state_lock.promise) {
       throw new Error(`module ${this.mmid} alreay running`);
     }
     this._running_state_lock = new PromiseOut();
+    this.context = context;
   }
 
   protected async after_bootstrap(context: $BootstrapContext) {
@@ -55,6 +58,7 @@ export abstract class MicroModule implements $MicroModule {
       throw new Error(`module ${this.mmid} already shutdown`);
     }
     this._running_state_lock = new PromiseOut();
+    this.context = undefined;
   }
 
   protected after_shutdown() {

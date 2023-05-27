@@ -1,22 +1,20 @@
 // 获取全部的 app信息
 import fsPromises from "node:fs/promises";
 import path from "node:path";
-import process from "node:process";
+import { JMM_APPS_PATH } from "../jmm/jmm.api.serve.ts";
 import { $AppMetaData } from "../jmm/jmm.ts";
 
 export async function getAllApps() {
-  const appsPath = path.resolve(process.cwd(), "./apps/infos");
-  const foldersName: string[] = await fsPromises.readdir(appsPath);
   const appsInfo: $AppMetaData[] = [];
-  foldersName.forEach(async (folderName: string) => {
+  for (const app_id of await fsPromises.readdir(JMM_APPS_PATH)) {
     const metaData = (await JSON.parse(
       await fsPromises.readFile(
-        path.resolve(appsPath, `./${folderName}/package.json`),
+        path.join(JMM_APPS_PATH, app_id, `usr/metadata.json`),
         "utf-8"
       )
     )) as $AppMetaData;
     appsInfo.push(metaData);
-  });
+  }
   return appsInfo;
 }
 

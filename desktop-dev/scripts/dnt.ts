@@ -14,6 +14,7 @@ await build({
   typeCheck: false,
   test: false,
   esModule: false,
+  skipSourceOutput: true,
   package: {
     // package.json properties
     name: "@dweb-browser/desktop-sdk",

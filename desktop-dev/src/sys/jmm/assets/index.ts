@@ -96,7 +96,7 @@ elBtnDownload.addEventListener("click", async (e) => {
     // 然后打开指定的应用
     const mmid = window.appInfo.id;
     const root =
-      "file:///apps/" + window.appInfo.id + window.appInfo.server.root;
+      "file:///jmm/apps/" + window.appInfo.id + window.appInfo.server.root;
     const entry = window.appInfo.server.entry;
     const res = await fetch(
       `${url}/app/open?mmid=${mmid}&root=${root}&entry=${entry}`

@@ -179,38 +179,38 @@ export class DnsNMM extends NativeMicroModule {
       },
     });
 
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/open_browser",
-      matchMode: "full",
-      input: { mmid: "mmid", root: "string", entry: "string" },
-      output: "boolean",
-      handler: async (args, client_ipc, request) => {
-        const { JsMicroModule } = await import("../jmm/micro-module.js.ts");
-        const { JmmMetadata } = await import("../jmm/JmmMetadata.ts");
-        const metadata = new JmmMetadata({
-          id: args.mmid,
-          server: { root: args.root, entry: args.entry },
-        });
+    // this.registerCommonIpcOnMessageHandler({
+    //   pathname: "/open_browser",
+    //   matchMode: "full",
+    //   input: { mmid: "mmid", root: "string", entry: "string" },
+    //   output: "boolean",
+    //   handler: async (args, client_ipc, request) => {
+    //     const { JsMicroModule } = await import("../jmm/micro-module.js.ts");
+    //     const { JmmMetadata } = await import("../jmm/JmmMetadata.ts");
+    //     const metadata = new JmmMetadata({
+    //       id: args.mmid,
+    //       server: { root: args.root, entry: args.entry },
+    //     });
 
-        console.log("metadata: ", metadata);
+    //     console.log("metadata: ", metadata);
 
-        // 实例化
-        // 安装
-        this.install(new JsMicroModule(metadata));
+    //     // 实例化
+    //     // 安装
+    //     this.install(new JsMicroModule(metadata));
 
-        /// TODO 询问用户是否授权该行为
-        const app = await this.open(args.mmid);
-        return IpcResponse.fromJson(
-          request.req_id,
-          200,
-          new IpcHeaders({
-            "Content-Type": "application/json; charset=UTF-8",
-          }),
-          JSON.stringify(app),
-          client_ipc
-        );
-      },
-    });
+    //     /// TODO 询问用户是否授权该行为
+    //     const app = await this.open(args.mmid);
+    //     return IpcResponse.fromJson(
+    //       request.req_id,
+    //       200,
+    //       new IpcHeaders({
+    //         "Content-Type": "application/json; charset=UTF-8",
+    //       }),
+    //       JSON.stringify(app),
+    //       client_ipc
+    //     );
+    //   },
+    // });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
