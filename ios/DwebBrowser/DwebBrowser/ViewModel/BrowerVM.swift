@@ -36,39 +36,41 @@ class Page: Identifiable, ObservableObject, Hashable{
     }
 }
 
-
-
 class BrowerVM: ObservableObject {
     
-    @Published var showingOptions = true
+//    @Published var showingOptions = true
     @Published var selectedTabIndex = 0
+    {
+        didSet{
+            currentSnapshotImage = UIImage.snapshotImage(from: WebCacheStore.shared.store[selectedTabIndex].snapshotUrl)
+        }
+    }
     
-    
-    @Published var pages = WebCacheStore.shared.store.map{Page(webWrapper: WebWrapper(webCache: $0))}
+//    @Published var webWrappers = WebCacheStore.shared.store.map{WebWrapper(webCache: $0)}
     
     @Published var sharedResources = SharedSourcesVM()
     
-    @Published var currentSnapshotImage: UIImage?
+    @Published var currentSnapshotImage: UIImage
     
     @Published var capturedImage: UIImage?{
         didSet{
             if capturedImage != nil{
-                pages[selectedTabIndex].webWrapper.webCache.snapshotUrl = UIImage.createLocalUrl(withImage: capturedImage!, imageName: pages[selectedTabIndex].webWrapper.webCache.id.uuidString)
-                WebCacheStore.shared.saveCaches(caches: pages.map({ $0.webWrapper.webCache }))
+//                webWrappers[selectedTabIndex].webCache.snapshotUrl = UIImage.createLocalUrl(withImage: capturedImage!, imageName: webWrappers[selectedTabIndex].webCache.id.uuidString)
+//                WebCacheStore.shared.saveCaches(caches: webWrappers.map{ $0.webCache })
             }
             
         }
     }
+    
+//    var webWrappers: [WebWrapper]{
+//        pages.map({ $0.webWrapper})
+//    }
     
     var cancellables = Set<AnyCancellable>()
     
     init(){
         currentSnapshotImage = UIImage.defaultSnapShotImage
         addCapturedImageSubscriber()
-    }
-    
-    var addressBarHeight: CGFloat{
-        showingOptions ? 0 : addressBarH
     }
     
     func addCapturedImageSubscriber(){
@@ -80,29 +82,6 @@ class BrowerVM: ObservableObject {
             })
             .store(in: &cancellables)
     }
-    
-    func saveCaches(){
-        WebCacheStore.shared.saveCaches(caches: self.pages.map({ $0.webWrapper.webCache }))
-        print("save times \(savetimes)")
-        savetimes += 1
-    }
-    
-    func removePage(at index: Int){
-        var newStores = pages.map({ $0.webWrapper })
-        newStores.remove(at: index)
-        
-        if selectedTabIndex >= newStores.count{
-            selectedTabIndex = newStores.count-1
-        }
-        withAnimation(.easeIn(duration: 0.3),{
-            pages = newStores.map{Page(webWrapper: $0)}
-        })
-        
-        // TODO:
-        
-        // remove the snap shot
-        
-        //save caches to the sandbox
-    }
 }
+
  var savetimes = 1

@@ -8,33 +8,36 @@
 import SwiftUI
 
 struct AddressBarHStack: View {
-    @EnvironmentObject var states: ToolbarState
-    @EnvironmentObject var browser: BrowerVM
+//    @Binding var wrappers: [WebWrapper]
+
+    @EnvironmentObject var tabState: TabState
     @EnvironmentObject var xoffset: AddressBarOffsetOnX
-    
+
+    @Binding var selectedTabIndex: Int
     @State var currentIndex: Int = 0
     @State var offsetX: CGFloat = 0
-    
+
     var body: some View {
-        PagingScroll(contentSize: browser.pages.count, content: AddressBarHContainer(), currentPage: $currentIndex, offsetX: $offsetX)
+        PagingScroll(contentSize: WebWrapperManager.shared.wrapperStore.count, content: AddressBarHContainer(), currentPage: $currentIndex, offsetX: $offsetX)
             .onChange(of: currentIndex) { newValue in
-                browser.selectedTabIndex = currentIndex
+                selectedTabIndex = currentIndex
             }
             .onChange(of: offsetX) { newValue in
                 xoffset.offset = offsetX
-//                print("offsetX : \(offsetX)")
             }
-            .frame(height: browser.addressBarHeight)
+            .frame(height: tabState.addressBarHeight)
     }
 }
 
 struct AddressBarHContainer:View{
-    @EnvironmentObject var browser: BrowerVM
-    
+//    @EnvironmentObject var browser: BrowerVM
+//    @Binding var wrappers: [WebWrapper]
+
     var body: some View{
         HStack(spacing: 0) {
-            ForEach(browser.pages){ page in
-                AddressBar(inputText: "", webStore: page.webWrapper)
+            ForEach(WebWrapperManager.shared.wrapperStore){ webWrapper in
+                AddressBar(inputText: "")
+//                AddressBar(inputText: "", webWrapper: webWrapper)
                     .frame(width: screen_width)
             }
         }
@@ -43,10 +46,10 @@ struct AddressBarHContainer:View{
 }
 
 struct AddressBar: View {
-    @State var inputText: String = ""
+    @State var inputText: String = "inputText is empty"
     @FocusState var isAdressBarFocused: Bool
     
-    @ObservedObject var webStore: WebWrapper
+//    @ObservedObject var webWrapper: WebWrapper
     
     var body: some View {
         GeometryReader{ geometry in
@@ -59,16 +62,16 @@ struct AddressBar: View {
                     .overlay {
                         GeometryReader { geometry in
                             VStack(alignment: .leading, spacing: 0) {
-                                ProgressView(value: webStore.estimatedProgress)
-                                    .progressViewStyle(LinearProgressViewStyle())
-                                    .foregroundColor(.blue)
-                                    .background(Color(white: 1))
-                                    .cornerRadius(4)
-                                    .frame(height: webStore.estimatedProgress >= 1.0 ? 0 : 3)
-                                    .alignmentGuide(.leading) { d in
-                                        d[.leading]
-                                    }
-                                    .opacity(webStore.estimatedProgress > 0.0 && webStore.estimatedProgress < 1.0 ? 1 : 0)
+//                                ProgressView(value: webWrapper.estimatedProgress)
+//                                    .progressViewStyle(LinearProgressViewStyle())
+//                                    .foregroundColor(.blue)
+//                                    .background(Color(white: 1))
+//                                    .cornerRadius(4)
+//                                    .frame(height: webWrapper.estimatedProgress >= 1.0 ? 0 : 3)
+//                                    .alignmentGuide(.leading) { d in
+//                                        d[.leading]
+//                                    }
+//                                    .opacity(webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 ? 1 : 0)
                                 
                             }
                             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
@@ -88,7 +91,7 @@ struct AddressBar: View {
                     .keyboardType(.webSearch)
                     .focused($isAdressBarFocused)
                     .onAppear{
-                        print(inputText)
+                        print("aaaaaa")
                     }
                     .onTapGesture {
                         print("tapped")
@@ -101,7 +104,8 @@ struct AddressBar: View {
 
 struct AddressBarHStack_Previews: PreviewProvider {
     static var previews: some View {
-        AddressBar(webStore: WebWrapper(webCache: WebCache()))
-            .environmentObject(BrowerVM())
+        Text("")
+//        AddressBar(webWrapper: WebWrapper(webCache: WebCache()))
+//            .environmentObject(BrowerVM())
     }
 }

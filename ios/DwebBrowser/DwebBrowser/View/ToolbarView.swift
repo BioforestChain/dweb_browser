@@ -8,43 +8,44 @@
 import SwiftUI
 import UIKit
 
-class ToolbarState: ObservableObject {
-    @Published var canGoForward = false
-    @Published var canGoBack = false
-    @Published var addTapped = false
-    @Published var moreTapped = false
-    
-    @Published var newPageTapped = false
-//    @Published var doneTapped = false
-}
+//class ToolbarState: ObservableObject {
+//    @Published var canGoForward = false
+//    @Published var canGoBack = false
+//    @Published var addTapped = false
+//    @Published var moreTapped = false
+//
+//    @Published var newPageTapped = false
+////    @Published var doneTapped = false
+//}
 
 struct ToolbarView: View {
-    
-    @EnvironmentObject var toolbarStates: ToolbarState
-    @EnvironmentObject var browser: BrowerVM
+    @EnvironmentObject var tabstate: TabState
+    @State var moreTapped = false
+//    @Binding var showingOptions: Bool
+//    @Binding var tabCount: Int
     
     var body: some View {
-        if !browser.showingOptions{
+        if !tabstate.showingOptions{
             HStack(spacing: 5){
                 Group{
                     Spacer()
                         .frame(width: 25)
                     ToolbarItem(imageName: "chevron.backward") {
-                        toolbarStates.canGoBack = true
+//                        toolbarStates.canGoBack = true
                         print("backward was clicked")
                     }
                     
                     Spacer()
                     
                     ToolbarItem(imageName: "chevron.forward") {
-                        toolbarStates.canGoForward.toggle()
+//                        toolbarStates.canGoForward.toggle()
                         print("forwardp was clicked")
                     }
                     
                     Spacer()
                     
                     ToolbarItem(imageName: "plus") {
-                        toolbarStates.addTapped.toggle()
+//                        toolbarStates.addTapped.toggle()
                         print("plus was clicked")
                     }
                 }
@@ -54,12 +55,12 @@ struct ToolbarView: View {
                     ToolbarItem(imageName: "book") {
                         print("book was clicked")
                         withAnimation {
-                            toolbarStates.moreTapped = true
+                            moreTapped = true
                             
                         }
-                    }.sheet(isPresented: $toolbarStates.moreTapped) {
+                    }.sheet(isPresented: $moreTapped) {
                         withAnimation {
-                            toolbarStates.moreTapped = false
+                            moreTapped = false
                         }
                     } content: {
                         HistoryView()
@@ -68,7 +69,7 @@ struct ToolbarView: View {
                     Spacer()
                     
                     ToolbarItem(imageName: "doc.on.doc") {
-                        browser.showingOptions = true
+                        tabstate.showingOptions = true
                         print("arrow.up was clicked")
                     }
                     
@@ -84,15 +85,15 @@ struct ToolbarView: View {
                     .frame(width: 25)
                 
                 ToolbarItem(imageName: "plus") {
-                    toolbarStates.newPageTapped.toggle()
+//                    toolbarStates.newPageTapped.toggle()
                 }
                 
                 Spacer()
-                Text("\(browser.pages.count)个标签页")
+//                Text("\(WebWrapperManager.shared.wrapperStore.count)个标签页")
                 Spacer()
                 
                 ToolbarItem(title: "完成") {
-                    browser.showingOptions = false
+                    tabstate.showingOptions = false
                 }
                 .fontWeight(.semibold)
                 Spacer()

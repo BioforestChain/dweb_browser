@@ -16,10 +16,9 @@ class SharedSourcesVM: ObservableObject {
     
 }
 
-
 struct BrowserView: View {
     @ObservedObject var browser = BrowerVM()
-
+    @State var wrapperCount:Int = 1
     var body: some View {
         ZStack{
             GeometryReader{ sGgeometry in
@@ -27,13 +26,12 @@ struct BrowserView: View {
                     Color.clear.frame(height: 0.1)  //如果没有这个 向上滚动的时候会和状态栏重合
                     TabsContainerView()
                     Divider().background(Color(.darkGray))
-                    AddressBarHStack()
+                    AddressBarHStack(selectedTabIndex: $browser.selectedTabIndex)
                     ToolbarView()
                 }
                 .coordinateSpace(name: "Root")
-                .environmentObject(ToolbarState())
                 .environmentObject(browser)
-                .background(Color(white: 0.7))
+//                .background(Color(white: 0.7))
             }
         }
     }

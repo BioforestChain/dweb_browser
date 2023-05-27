@@ -21,7 +21,7 @@ let websites = [
 ]
 
 //打开新页面时
-class WebCache: ObservableObject, Identifiable, Hashable,Codable{
+class WebCache:ObservableObject, Identifiable, Hashable, Codable, Equatable{
     enum CodingKeys: String, CodingKey {
         case id
         case webIconUrl
@@ -62,11 +62,20 @@ class WebCache: ObservableObject, Identifiable, Hashable,Codable{
     }
     
     public static func == (lhs: WebCache, rhs: WebCache) -> Bool {
-        return lhs.id == rhs.id
+        return lhs.id == rhs.id &&
+        lhs.webIconUrl == rhs.webIconUrl &&
+        lhs.lastVisitedUrl == rhs.lastVisitedUrl &&
+        lhs.title == rhs.title &&
+        lhs.snapshotUrl == rhs.snapshotUrl
+        
     }
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+        hasher.combine(webIconUrl)
+        hasher.combine(lastVisitedUrl)
+        hasher.combine(title)
+        hasher.combine(snapshotUrl)
     }
 }
 
@@ -84,8 +93,18 @@ class WebCacheStore: ObservableObject{
 //        saveCaches()
     }
     
-    func saveCaches(caches: [WebCache]) {
-        let data = try? JSONEncoder().encode(caches)
+    func remove(webCache: WebCache){
+        guard let index = store.firstIndex(of: webCache) else { return }
+        store.remove(at:index)
+        let newStore = store.map({$0})
+        store = newStore
+//        self.objectWillChange.send()
+
+
+    }
+    
+    func saveCaches() {
+        let data = try? JSONEncoder().encode(store)
         UserDefaults.standard.set(data, forKey: userdefaultKey)
     }
     
@@ -100,8 +119,8 @@ class WebCacheStore: ObservableObject{
                 WebCache(lastVisitedUrl: testURL),
                 WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!),
                 WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!),
+                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!),
+                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!),
             ]
         }
     }

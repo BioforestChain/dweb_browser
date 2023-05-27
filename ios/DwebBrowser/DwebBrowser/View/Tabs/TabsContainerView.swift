@@ -48,6 +48,8 @@ let animationDuration: CGFloat = 0.5
 // observe the showingOptions variety to do the switch animation
 struct TabsContainerView: View{
     @EnvironmentObject var browser: BrowerVM
+    
+    @EnvironmentObject var tabState: TabState
 
     @State var cellFrames: [CGRect] = [.zero]
 
@@ -76,15 +78,15 @@ struct TabsContainerView: View{
             
             ZStack{
                 WebPreViewGrid(cellFrames: $cellFrames)
-                    .background(.secondary)
+//                    .background(.secondary)
                     .scaleEffect(x: gridScale, y: gridScale)
                 
                 if imageState == .shrinked {
-                    Color(white: 0.8)
+                    Color(.red)
                 }
 
-                if !browser.showingOptions, !imageState.isAnimating(){
-                    TabHStackView()
+                if !tabState.showingOptions, !imageState.isAnimating(){
+                    WebHScrollView()
                 }
 
                 if imageState.isAnimating(){
@@ -95,9 +97,11 @@ struct TabsContainerView: View{
                 geoRect = geo.frame(in: .global)
                 print("z geo: \(geoRect)")
             }
-            
-            .onChange(of: browser.showingOptions) { shouldShowGrid in
+            .onReceive(tabState.$showingOptions, perform: { shouldShowGrid in
                 print("change showOptions to \(shouldShowGrid)")
+                if imageState == .initial {
+                    return 
+                }
                 if shouldShowGrid{
                     imageState = .startShrinking
                 }else{
@@ -106,13 +110,14 @@ struct TabsContainerView: View{
                 withAnimation(.easeInOut(duration: animationDuration),{
                     gridScale = shouldShowGrid ? 1 : 0.8
                 })
-            }
+            })
+            
         }
     }
     
     var animationImage: some View{
         
-        Image(uiImage: browser.currentSnapshotImage!)
+        Image(uiImage: browser.currentSnapshotImage)
             .resizable()
             .scaledToFill()
             .frame(width: cellWidth(fullW: geoRect.width),
@@ -185,23 +190,24 @@ struct TabsContainerView: View{
     }
 }
 
-struct TabHStackView: View{
-    @EnvironmentObject var browser: BrowerVM
+struct WebHScrollView: View{
+//    @EnvironmentObject var browser: BrowerVM
 
     @EnvironmentObject var xoffset: AddressBarOffsetOnX
 
-//    @Binding var offset: CGFloat
-    private func webWrapper(at index: Int) -> WebWrapper{
-        browser.pages[index].webWrapper
-    }
+//    @Binding var webWrappers: [WebWrapper]
+//    private func webWrapper(at index: Int) -> WebWrapper{
+//        browser.pages[index].webWrapper
+//    }
     var body: some View{
         GeometryReader{ geo in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
-                    ForEach(browser.pages.indices){ index in
-                        TabPageView(webWrapper: webWrapper(at:index))
+                    ForEach(WebCacheStore.shared.store){ webCache in
+                        TabPageView(webCache: webCache, webWrapper: WebWrapperManager.shared.webWrapper(of: webCache.id))
                             .frame(width: screen_width)
-                           
+//                           Text("TabPageView")
+//                            .frame(width: screen_width)
                     }
                 }
                 .offset(x: xoffset.offset)

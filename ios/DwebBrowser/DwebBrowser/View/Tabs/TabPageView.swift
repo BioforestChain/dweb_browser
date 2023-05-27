@@ -6,21 +6,23 @@
 //
 
 import SwiftUI
-
+import Combine
 //层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 
-
 struct TabPageView: View {
-    
+    @ObservedObject var webCache: WebCache
     @ObservedObject var webWrapper: WebWrapper
-    @EnvironmentObject var browser: BrowerVM
 
+//    var webWrapper: WebWrapper {
+//        WebWrapperManager.webWrapper(of: webCache.id)
+//    }
+    
     @State var homeview = HomeView()
     @State var hasTook = false
     var  body: some View {
         ZStack{
             NavigationView {
-                WebView(webView: webWrapper.webView, url: webWrapper.webCache.lastVisitedUrl)
+                WebView(webView: webWrapper.webView, url: webCache.lastVisitedUrl)
                     .navigationBarTitle(Text(verbatim: webWrapper.title ?? ""), displayMode: .inline)
                     .navigationBarItems(trailing: HStack {
                         Button(action: goBack) {
@@ -36,42 +38,44 @@ struct TabPageView: View {
                                 .frame(width: 32, height: 32)
                         }.disabled(!webWrapper.canGoForward)
                     })
-                    .background(.red)
-            }.onAppear {
-//                print("webWrapper.webView ---- \(webWrapper.webView)")
+//                    .background(.red)
             }
-            .onChange(of: webWrapper.webView.url) { visitingUrl in
-                if let url = visitingUrl{
-                    webWrapper.webCache.lastVisitedUrl = url
-                }
+            .onAppear {
+                print("webWrapper.webView ---- \(webWrapper.webView)")
+                
             }
-            .onChange(of: webWrapper.webView.estimatedProgress) { progress in
-                if progress >= 1.0{
-                    print("caching \(webWrapper.webCache)")
-                    browser.saveCaches()
-                }
-            }
-            .onReceive(browser.$showingOptions) { showDeck in
-                if showDeck, !hasTook {
-                    let index = browser.pages.map({$0.webWrapper}).firstIndex(of: webWrapper)
-                    if index == browser.selectedTabIndex{
-                        if let image = self.environmentObject(browser).snapshot(){
-//                                            let rect = geo.frame(in: .global)
-                        print(image)
-                            hasTook = true
-                            browser.currentSnapshotImage = image
-                            DispatchQueue.main.asyncAfter(deadline: .now()+0.5, execute: {hasTook = false})
-//                                        if let image = self.takeScreenshot(of:rect) {
-//                                            if let image = self.snapshot() {
 
-//                                            browser.capturedImage = image
-                            
-                        }
-                    }
+            .onChange(of: webWrapper.estimatedProgress, perform: { newValue in
+                print("webWrapper:\(webWrapper): progress\(newValue)")
+            })
+            
+            .onChange(of: webWrapper.url) { visitingUrl in
+                if let url = visitingUrl{
+                    webCache.lastVisitedUrl = url
                 }
             }
+            .onChange(of: WebWrapperManager.shared.wrapperStore.count) { newValue in
+                print("web count is " ,newValue)
+            }
+//            .onReceive(browser.$showingOptions) { showDeck in
+//                if showDeck, !hasTook {
+//                    let index = browser.webWrappers.firstIndex(of: webWrapper)
+//                    if index == browser.selectedTabIndex{
+//                        if let image = self.environmentObject(browser).snapshot(){
+////                                            let rect = geo.frame(in: .global)
+//                        print(image)
+//                            hasTook = true  //avoid a dead runloop
+//
+//                            webWrapper.webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: webWrapper.webCache.id.uuidString)
+//                            browser.capturedImage = image
+//                            DispatchQueue.main.asyncAfter(deadline: .now()+0.5, execute: {hasTook = false}) // reset the state var once this time animation
+//
+//                        }
+//                    }
+//                }
+//            }
             
-            if webWrapper.webCache.lastVisitedUrl == nil{
+            if webCache.lastVisitedUrl == nil{
                 homeview
             }
         }
