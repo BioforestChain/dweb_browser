@@ -11,31 +11,23 @@ import type {
   $Schema2,
   $Schema2ToType,
 } from "../helper/types.ts";
-import { Ipc, IpcRequest, IpcResponse } from "./ipc/index.ts";
+import { NativeIpc } from "./ipc.native.ts";
+import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.ts";
 import { MicroModule } from "./micro-module.ts";
-// import { connectAdapterManager } from "./nativeConnect.ts";
+import { connectAdapterManager } from "./nativeConnect.ts";
 
-// connectAdapterManager.append((fromMM, toMM, reason) => {
-//   // // 原始代码
-//   // if (toMM instanceof NativeMicroModule) {
-//   //   const channel = new MessageChannel();
-//   //   const { port1, port2 } = channel;
-//   //   const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
-//   //   const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
-//   //   fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
-//   //   toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
-//   //   return [fromNativeIpc, toNativeIpc];
-//   // }
-
-//   // 测试代码
-//   const channel = new MessageChannel();
-//   const { port1, port2 } = channel;
-//   const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
-//   const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
-//   fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
-//   toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
-//   return [fromNativeIpc, toNativeIpc];
-// });
+connectAdapterManager.append((fromMM, toMM, reason) => {
+  // 测试代码
+  if (toMM instanceof NativeMicroModule) {
+    const channel = new MessageChannel();
+    const { port1, port2 } = channel;
+    const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
+    const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
+    fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
+    toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
+    return [fromNativeIpc, toNativeIpc];
+  }
+});
 
 export abstract class NativeMicroModule extends MicroModule {
   readonly ipc_support_protocols: $IpcSupportProtocols = {

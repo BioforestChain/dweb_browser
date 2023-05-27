@@ -449,7 +449,8 @@
   },
   "npm": {
     "specifiers": {
-      "jszip": "jszip@3.10.1"
+      "jszip": "jszip@3.10.1",
+      "mime": "mime@3.0.0"
     },
     "packages": {
       "core-util-is@1.0.3": {
@@ -482,6 +483,10 @@
         "dependencies": {
           "immediate": "immediate@3.0.6"
         }
+      },
+      "mime@3.0.0": {
+        "integrity": "sha512-jSCU7/VB1loIWBZe14aEYHU/+1UMEHoaO7qxCOVJOw9GgH72VAWppxNcjU+x9a2k3GSIBXNKxXQFqRvvZ7vr3A==",
+        "dependencies": {}
       },
       "pako@1.0.11": {
         "integrity": "sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==",

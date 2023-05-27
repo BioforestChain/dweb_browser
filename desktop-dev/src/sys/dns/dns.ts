@@ -1,4 +1,3 @@
-import path from "node:path";
 import process from "node:process";
 import type {
   $BootstrapContext,
@@ -299,7 +298,8 @@ export class DnsNMM extends NativeMicroModule {
      * 如果是应用模式，只需要应用程序名，所以从1开始
      */
     const args = process.argv.slice(
-      path.parse(process.argv0).name.toLowerCase() === "electron" ? 2 : 1
+      process.argv.findIndex((arg) => /^\w+$/.test(arg))
+      // path.parse(process.argv0).name.toLowerCase() === "electron" ? 2 : 1
     );
     console.log("args:", args);
 
@@ -338,6 +338,7 @@ export class DnsNMM extends NativeMicroModule {
 
       /// 查询匹配deeplink的程序
       for (const app of this.apps.values()) {
+        console.log("app.dweb_deeplinks:", app.dweb_deeplinks);
         if (
           undefined !==
           app.dweb_deeplinks.find((dl) => dl.startsWith(dweb_deeplink))

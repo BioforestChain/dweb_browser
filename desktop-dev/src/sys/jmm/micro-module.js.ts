@@ -2,12 +2,38 @@ import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
-import type { $IpcSupportProtocols } from "../../helper/types.ts";
+import { connectAdapterManager } from "../../core/nativeConnect.ts";
+import { mapHelper } from "../../helper/mapHelper.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
+import type { $IpcSupportProtocols, $MMID } from "../../helper/types.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
 
 import type { JmmMetadata } from "./JmmMetadata.ts";
 
+type $JsMM = { jmm: JsMicroModule; remoteMmid: $MMID };
+connectAdapterManager.append(async (fromMM, toMM, reason) => {
+  let jsmm: undefined | $JsMM;
+  if (toMM instanceof JsMicroModule) {
+    jsmm = { jmm: toMM, remoteMmid: fromMM.mmid };
+  } else if (fromMM instanceof JsMicroModule) {
+    jsmm = { jmm: fromMM, remoteMmid: toMM.mmid };
+  }
+  // 测试代码
+  if (jsmm !== undefined) {
+    /**
+     * 与 NMM 相比，这里会比较难理解：
+     * 因为这里是直接创建一个 Native2JsIpc 作为 ipcForFromMM，
+     * 而实际上的 ipcForToMM ，是在 js-context 里头去创建的，因此在这里是 一个假的存在
+     *
+     * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
+     * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
+     */
+    const originIpc = await jsmm.jmm._ipcBridge(jsmm.remoteMmid).promise;
+
+    return [originIpc, originIpc];
+  }
+}, 1);
 /**
  * 所有的js程序都只有这么一个动态的构造器
  */
@@ -38,12 +64,6 @@ export class JsMicroModule extends MicroModule {
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private _process_id?: string;
-  /**
-   * 一个 jsMM 可能连接多个模块
-   */
-  private _remoteIpcs = new Map<string, Ipc>();
-  private _workerIpc: Native2JsIpc | undefined;
-  private _connecting_ipcs = new Set<Ipc>();
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
@@ -70,7 +90,8 @@ export class JsMicroModule extends MicroModule {
         // 获取 worker.js 代码
         console.log(
           `fetch:`,
-          this.metadata.config.server.root , request.parsed_url.pathname
+          this.metadata.config.server.root,
+          request.parsed_url.pathname
         );
         const main_code = await this.nativeFetch(
           this.metadata.config.server.root + request.parsed_url.pathname
@@ -103,10 +124,9 @@ export class JsMicroModule extends MicroModule {
         }
       ).stream()
     );
-    this._connecting_ipcs.add(streamIpc);
 
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
-    this._connecting_ipcs.add(jsIpc);
+
     jsIpc.onRequest(async (ipcRequest) => {
       const request = ipcRequest.toRequest();
       const response = await this.nativeFetch(request);
@@ -122,35 +142,84 @@ export class JsMicroModule extends MicroModule {
       if (ipcEvent.name === "restart") {
         this.nativeFetch(`file://dns.sys.dweb/restart?app_id=${this.mmid}`);
         return;
-      }
-      if (ipcEvent.name === "dns/connect") {
+      } else if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
-        const [targetIpc] = await context.dns.connect(mmid);
-        const portId = await this.nativeFetch(
-          buildUrl(new URL(`file://js.sys.dweb/create-ipc`), {
-            search: { process_id: this._process_id, mmid },
-          })
-        ).number();
-        const originIpc = new Native2JsIpc(portId, this);
-        this._connecting_ipcs.add(targetIpc);
-        this._connecting_ipcs.add(originIpc);
         /**
-         * 将两个消息通道间接互联
+         * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
+         * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
+         *
+         * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
          */
-        originIpc.onMessage((ipcMessage) => targetIpc.postMessage(ipcMessage));
-        targetIpc.onMessage((ipcMessage) => originIpc.postMessage(ipcMessage));
+        /**
+         * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
+         * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
+         *
+         * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
+         */
+        const [targetIpc] = await context.dns.connect(mmid);
+        await this._ipcBridge(mmid, targetIpc).promise;
       }
+    });
+  }
+  private _fromMmid_originIpc_map = new Map<$MMID, PromiseOut<Ipc>>();
+  _ipcBridge(fromMmid: $MMID, targetIpc?: Ipc) {
+    return mapHelper.getOrPut(this._fromMmid_originIpc_map, fromMmid, () => {
+      const task = new PromiseOut<Ipc>();
+      (async () => {
+        try {
+          /**
+           * 向js模块发起连接
+           */
+          const portId = await this.nativeFetch(
+            buildUrl(new URL(`file://js.sys.dweb/create-ipc`), {
+              search: { process_id: this._process_id, mmid: fromMmid },
+            })
+          ).number();
+
+          const originIpc = new Native2JsIpc(portId, this);
+          // 同样要被生命周期管理销毁
+          await this.beConnect(
+            originIpc,
+            new Request(`file://${this.mmid}/event/dns/connect`)
+          );
+
+          /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，
+          /// 包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
+          if (targetIpc !== undefined) {
+            /**
+             * 将两个消息通道间接互联
+             */
+            originIpc.onMessage((ipcMessage) => {
+              targetIpc.postMessage(ipcMessage);
+            });
+            targetIpc.onMessage((ipcMessage) => {
+              originIpc.postMessage(ipcMessage);
+            });
+
+            /**
+             * 监听关闭事件
+             */
+            originIpc.onClose(() => {
+              this._fromMmid_originIpc_map.delete(originIpc.remote.mmid);
+              targetIpc.close();
+            });
+            targetIpc.onClose(() => {
+              this._fromMmid_originIpc_map.delete(targetIpc.remote.mmid);
+              originIpc.close();
+            });
+          }
+          task.resolve(originIpc);
+        } catch (e) {
+          console.error("_ipcBridge", e);
+          task.reject(e);
+        }
+      })();
+      return task;
     });
   }
 
   _shutdown() {
-    // 这里是否要全部关闭 ipc 这里的操作是 new 的时候就走了一遍了？
-    console.log("关闭了进程 micro-module.js.cts");
-    for (const outer_ipc of this._connecting_ipcs) {
-      outer_ipc.close();
-    }
-    this._connecting_ipcs.clear();
-
+    this.onCloseJsProcess.emit();
     /**
      * @TODO 发送指令，关停js进程
      */

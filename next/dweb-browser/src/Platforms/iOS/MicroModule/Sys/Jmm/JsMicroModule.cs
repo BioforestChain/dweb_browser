@@ -158,8 +158,7 @@ public class JsMicroModule : MicroModule
                 var targetIpc = connectResult.IpcForFromMM;
                 await _ipcBridgeAsync(Event.mmid, targetIpc);
             }
-            else
-            if (ipcEvent.Name is "restart")
+            else if (ipcEvent.Name is "restart")
             {
                 // 调用重启
                 bootstrapContext.Dns.Restart(Mmid);

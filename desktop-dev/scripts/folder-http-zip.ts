@@ -4,6 +4,7 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import JSZip from "npm:jszip";
+import mime from "npm:mime";
 import { WalkDir } from "../../scripts/helper/WalkDir.ts";
 const flags = parse(Deno.args, {
   string: ["port", "dir", "name"],
@@ -34,6 +35,10 @@ http
       for (const entry of WalkDir(dir)) {
         zip.file(entry.relativepath, entry.read());
       }
+      res.setHeader(
+        "Content-Type",
+        mime.getType(name) || "application/octet-stream"
+      );
       zip
         .generateNodeStream({ compression: "STORE" })
         .pipe(res as NodeJS.WritableStream);
@@ -60,6 +65,10 @@ http
                 .join("")}</ol>`
             );
           }
+          res.setHeader(
+            "Content-Type",
+            mime.getType(filepath) || "application/octet-stream"
+          );
           return;
         }
       } catch (err) {

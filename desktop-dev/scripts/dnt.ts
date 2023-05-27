@@ -1,4 +1,4 @@
-import { build } from "https://deno.land/x/dnt@0.35.0/mod.ts";
+import { build } from "../../scripts/helper/dnt/mod.ts";
 
 // await emptyDir("./npm");
 Deno.copyFileSync(".npmrc", "electron/.npmrc");
