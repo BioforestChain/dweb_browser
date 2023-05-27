@@ -110,7 +110,7 @@ export interface $RemoveObserver{
 }
 export interface $Electron{
   ipcRenderer: {
-    sendToHost(message: string): void
+    sendToHost(message: string, data?: unknown): void
   }
 }
 export interface $Virtualkeyboard{
@@ -125,6 +125,6 @@ export interface $Virtualkeyboard{
 }
 
 declare namespace globalThis{
-  const electron: $Electron;
-  const virtualkeyboard: $Virtualkeyboard;
+  let electron: $Electron;
+  let virtualkeyboard: $Virtualkeyboard;
 }

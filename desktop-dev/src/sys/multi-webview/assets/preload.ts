@@ -22,3 +22,5 @@ contextBridge.exposeInMainWorld("__native_close_watcher_kit__", {
     watcher.dispatchEvent(new Event("close"));
   },
 });
+
+ 

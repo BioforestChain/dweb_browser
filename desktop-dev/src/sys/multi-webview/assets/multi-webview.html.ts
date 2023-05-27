@@ -299,7 +299,10 @@ export class ViewTree extends LitElement {
       }
     });
     // executre 通过 fetch 把消息发送出来
-    this.executeJavascriptByHost(origin, excuteJavascriptCode);
+    this.executeJavascriptByHost(
+      origin, 
+      excuteJavascriptCode.toString().match(/\{([\w\W]+)\}/)![1]
+    );
   };
 
   /** 对webview视图进行状态整理 */

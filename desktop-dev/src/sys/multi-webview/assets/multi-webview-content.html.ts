@@ -12,14 +12,14 @@ export class MultiWebViewContent extends LitElement {
   static override styles = createAllCSS();
 
   @property({ type: Webview }) customWebview: Webview | undefined = undefined;
-  @property({ type: Boolean }) closing: Boolean = false;
-  @property({ type: Number }) zIndex: Number = 0;
-  @property({ type: Number }) scale: Number = 0;
-  @property({ type: Number }) opacity: Number = 1;
-  @property({ type: Number }) customWebviewId: Number = 0;
-  @property({ type: String }) src: String = "";
-  @property({ type: String }) preload: String = "";
-  @state() statusbarHidden: boolean = false;
+  @property({ type: Boolean }) closing = false;
+  @property({ type: Number }) zIndex  = 0;
+  @property({ type: Number }) scale  = 0;
+  @property({ type: Number }) opacity  = 1;
+  @property({ type: Number }) customWebviewId  = 0;
+  @property({ type: String }) src  = "";
+  @property({ type: String }) preload  = "";
+  @state() statusbarHidden  = false;
   @query("webview") elWebview: WebviewTag | undefined;
 
   onDomReady(event: Event) {

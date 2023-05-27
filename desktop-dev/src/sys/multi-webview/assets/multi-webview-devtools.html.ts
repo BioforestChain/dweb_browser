@@ -73,11 +73,11 @@ const allCss = [
 @customElement("multi-webview-devtools")
 export class MultiWebviewDevtools extends LitElement {
   @property({ type: Webview }) customWebview: Webview | undefined = undefined;
-  @property({ type: Boolean }) closing: boolean = false;
-  @property({ type: Number }) zIndex: Number = 0;
-  @property({ type: Number }) scale: Number = 0;
-  @property({ type: Number }) opacity: Number = 1;
-  @property({ type: Number }) customWebviewId: Number = 0;
+  @property({ type: Boolean }) closing  = false;
+  @property({ type: Number }) zIndex = 0;
+  @property({ type: Number }) scale = 0;
+  @property({ type: Number }) opacity = 1;
+  @property({ type: Number }) customWebviewId = 0;
 
   static override styles = allCss;
 
