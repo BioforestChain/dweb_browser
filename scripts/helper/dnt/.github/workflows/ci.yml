@@ -1,0 +1,42 @@
+name: CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags:
+    - '*'
+concurrency:
+  group: ${{ github.workflow }}-${{ !contains(github.event.pull_request.labels.*.name, 'test-flaky-ci') && github.head_ref || github.run_id }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dsherret/rust-toolchain-file@v1
+    - uses: Swatinem/rust-cache@v1
+    - uses: denoland/setup-deno@v1
+      with:
+        deno-version: ~1.x
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Format
+      run: |
+        cargo fmt --all -- --check
+        deno fmt --check
+    - name: Lint
+      run: |
+        cargo clippy --all-targets --all-features --release
+        deno lint
+
+    - name: Build
+      run: cargo build --all-targets --all-features --release
+    - name: Test (Rust)
+      run: cargo test --all-targets --all-features --release
+    - name: Test (Deno)
+      run: deno task test
