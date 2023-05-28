@@ -44,7 +44,7 @@ import type { MultiWebViewCompMobileShell } from "./components/multi-webview-com
 import type { MultiWebviewCompNavigationBar } from "./components/multi-webview-comp-navigator-bar.html.ts";
 import type { MultiWebviewCompVirtualKeyboard } from "./components/multi-webview-comp-virtual-keyboard.html.ts";
 import type { MultiWebViewContent } from "./multi-webview-content.html.ts";
-
+ 
 @customElement("view-tree")
 export class ViewTree extends LitElement {
   static override styles = createAllCSS();
@@ -319,7 +319,7 @@ export class ViewTree extends LitElement {
     let opening_acc = 0;
     let scale_sub = 0.05;
     let scale_acc = 1 + scale_sub;
-    let opacity_sub = 0.1;
+    const opacity_sub = 0.1;
     let opacity_acc = 1 + opacity_sub;
     for (const webview of this.webviews) {
       webview.state.zIndex = this.webviews.length - ++index_acc;
@@ -359,7 +359,6 @@ export class ViewTree extends LitElement {
       ];
       this.safeAreaState = [createDefaultSafeAreaState()];
     } else {
-      const len = this.webviews.length;
       // 同webviews的插入保持一致从前面插入
       this.statusBarState = [
         {
@@ -407,7 +406,7 @@ export class ViewTree extends LitElement {
     return true;
   }
 
-  private async onWebviewReady(webview: Webview, ele: WebviewTag) {
+  private onWebviewReady(webview: Webview, ele: WebviewTag) {
     webview.webContentId = ele.getWebContentsId();
     webview.doReady(ele);
     mainApis.denyWindowOpenHandler(
@@ -423,6 +422,13 @@ export class ViewTree extends LitElement {
         console.log("Destroy!!");
       })
     );
+
+    mainApis.openDevToolsAtBrowserWindowByWebContentsId(
+      webview.webContentId,
+      webview.src
+    );
+    console.log("weview: ", webview)
+
     ele?.addEventListener(
       "ipc-message",
       this.webviewTagOnIpcMessageHandlerNormal
@@ -442,12 +448,12 @@ export class ViewTree extends LitElement {
     );
   }
 
-  private async deleteTopBarState() {
+  private deleteTopBarState() {
     this.statusBarState = this.statusBarState.slice(1);
     this.navigationBarState = this.navigationBarState.slice(1);
   }
 
-  private async deleteTopSafeAreaState() {
+  private deleteTopSafeAreaState() {
     this.safeAreaState = this.safeAreaState.slice(1);
   }
 
@@ -460,7 +466,7 @@ export class ViewTree extends LitElement {
     this.deleteTopSafeAreaState();
   }
 
-  async destroyWebviewByHost(host: string) {
+  destroyWebviewByHost(host: string) {
     this.webviews.forEach((webview) => {
       const _url = new URL(webview.src);
       if (_url.host === host) {
@@ -470,7 +476,7 @@ export class ViewTree extends LitElement {
     return true;
   }
 
-  async destroyWebviewByOrigin(origin: string) {
+  destroyWebviewByOrigin(origin: string) {
     console.log("destroyWebviewByOrigin: ");
     this.webviews.forEach((webview) => {
       if (webview.src.includes(origin)) {
@@ -480,7 +486,7 @@ export class ViewTree extends LitElement {
     return true;
   }
 
-  restartWebviewByHost(host: string) {
+  restartWebviewByHost(_host: string) {
     this._restateWebviews();
     return true;
   }
@@ -518,7 +524,7 @@ export class ViewTree extends LitElement {
       return;
     }
     console.error('是否应该需要关闭 当前window了？？？ 还没有决定')
-    // mainApis.closedBrowserWindow()
+    mainApis.closedBrowserWindow()
   };
 
   webviewTagOnIpcMessageHandlerNormal = (e: Event) => {
@@ -582,14 +588,12 @@ export class ViewTree extends LitElement {
       console.log("接受到了关闭的消息", value)
       return;
     }
-    
   }
 
   // Render the UI as a function of component state
   override render() {
     const statusbarState = this.statusBarState[0];
     const navigationBarState = this.navigationBarState[0];
-    const arrWebviews = this.webviews;
     return html`
       <div class="app-container">
         <multi-webview-comp-mobile-shell
@@ -716,6 +720,7 @@ export class ViewTree extends LitElement {
           )}
         </multi-webview-comp-mobile-shell>
       </div>
+      <!--
       <div class="dev-tools-container">
         ${repeat(
           this.webviews,
@@ -743,6 +748,7 @@ export class ViewTree extends LitElement {
           }
         )}
       </div>
+      -->
     `;
   }
 }
@@ -797,6 +803,8 @@ function createAllCSS() {
       .app-container {
         flex-grow: 0;
         flex-shrink: 0;
+        width: 100%;
+        height: 100%;
       }
 
       .dev-tools-container {

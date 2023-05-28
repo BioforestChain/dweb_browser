@@ -48,7 +48,14 @@ export const openNativeWindow = async (
   const show_po = new PromiseOut<void>();
   win.once("ready-to-show", () => {
     win.show();
-    win.webContents.openDevTools();
+    // 是否显示 multi-webview devTools;
+    // win.webContents.openDevTools();
+    // 这个只是在开发 desktop-dev 的阶段才需要之后是不需要的
+    openDevToolsAtBrowserWindowByWebContents(
+      win.webContents,
+      `${win.webContents.getTitle()}`,
+      0
+    )
     show_po.resolve();
   });
 
@@ -84,13 +91,68 @@ export const openNativeWindow = async (
     },
   });
 };
+
+/**
+ * 根据 webContents 打开一个window对象用来承载 devTools
+ * @param webContents 
+ * @param title 
+ * @param y 
+ * @returns 
+ */
+function openDevToolsAtBrowserWindowByWebContents(
+  webContents: Electron.WebContents,
+  title: string,
+  y?: number
+){
+  const content_wcs = webContents
+  const diaplay = Electron.screen.getPrimaryDisplay()
+  const space = 10;
+  const devTools = new Electron.BrowserWindow({
+    title: title, // 好像没有效果
+    autoHideMenuBar: true,
+    width: diaplay.size.width - 375 - space,
+    height: 800,
+    x: 375 + space,
+    y: y !== undefined ? y : (diaplay.size.height - 800) / 2,
+    webPreferences: {
+      partition: 'devtools'
+    }
+  })
+  content_wcs.setDevToolsWebContents(devTools.webContents)
+  devTools.loadURL('devtools://devtools/bundled/inspector.html') // 不能缺少否则会报一个 js 导入文件的错误
+  devTools.webContents.executeJavaScript(`
+    (() => {
+      document.querySelector('title').innerText = "for: ${title}"
+    })()
+  `)
+  content_wcs.openDevTools();
+  return devTools;
+}
+
 export class ForRenderApi {
   constructor(private win: Electron.BrowserWindow) {}
+  private _devToolsWin: Electron.BrowserWindow | undefined;
+   
+  
+  /**
+   * 在一个新的窗口打开 devTools
+   * @param webContentsId 
+   * @param src 
+   */
+  openDevToolsAtBrowserWindowByWebContentsId(
+    webContentsId: number,
+    title: string
+  ){
+    const content_wcs = Electron.webContents.fromId(webContentsId)!;
+    this._devToolsWin  = openDevToolsAtBrowserWindowByWebContents(content_wcs, title)
+  }
+
   openDevTools(
     webContentsId: number,
     options?: Electron.OpenDevToolsOptions,
     devToolsId?: number
   ) {
+    // 原始代码
     const content_wcs = Electron.webContents.fromId(webContentsId);
     if (content_wcs === undefined) throw new Error(`content_wcs === undefined`);
     if (devToolsId) {
@@ -136,6 +198,7 @@ export class ForRenderApi {
   // 关闭 Browserwindow
   closedBrowserWindow() {
     this.win.close();
+    this._devToolsWin?.close()
   }
 }
 

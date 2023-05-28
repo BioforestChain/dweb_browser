@@ -330,16 +330,20 @@ export class MultiWebviewNMM extends NativeMicroModule {
     return locks.request("multi-webview-get-window-" + ipc.uid, async () => {
       let wapi = this._uid_wapis_map.get(ipc.uid);
       if (wapi === undefined) {
+        const diaplay = Electron.screen.getPrimaryDisplay()
+        
         const nww = await openNativeWindow(root_url, {
           webPreferences: {
             webviewTag: true,
           },
           autoHideMenuBar: true,
+          // 测试代码
+          width: 375,
+          height: 800,
+          x: 0,
+          y: (diaplay.size.height - 800) / 2,
+          frame: false,
         });
-        nww.maximize();
-
-        // 打开 开发工具
-        nww.webContents.openDevTools();
 
         const apis = nww.getApis<$APIS>();
         const absolutePath = pathToFileURL(

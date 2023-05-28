@@ -160,15 +160,15 @@ function createAllCSS() {
       }
 
       .shell_container {
-        --width: 375px;
+        --width: 100%;
         position: relative;
         display: flex;
         flex-direction: column;
         box-sizing: content-box;
         width: var(--width);
-        height: calc(var(--width) * 2.05);
-        border: 10px solid #000000;
-        border-radius: calc(var(--width) / 12);
+        height: 100%;
+        // border: 10px solid #000000;
+        // border-radius: calc(var(--width) / 12);
         overflow: hidden;
       }
 
