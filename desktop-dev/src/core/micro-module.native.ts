@@ -37,7 +37,9 @@ export abstract class NativeMicroModule extends MicroModule {
   };
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
-  _onConnect(ipc: Ipc) {}
+  // 用来在继承对象里面额外处理 ipc
+  // 现阶段主要用来实现 observe 相关的请求处理
+  _onConnect(_ipc: Ipc) {}
 
   private _commmon_ipc_on_message_hanlders =
     new Set<$RequestCustomHanlderSchema>();

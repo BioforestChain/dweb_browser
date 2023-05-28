@@ -8,7 +8,7 @@ import type { ServerUrlInfo } from "../../sys/http-server/const.ts";
 import { OBSERVE } from "./tool.event.ts";
 import { cros } from "./tool.native.ts";
 
-const { IpcResponse, Ipc, IpcRequest, IpcHeaders, IPC_METHOD } = ipc;
+const { IpcResponse, Ipc, IpcRequest } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 export type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;
@@ -48,17 +48,6 @@ export async function onApiRequest(
     } else {
       // 转发file请求到目标NMM
       const path = `file:/${url.pathname}${url.search}`;
-      //  // 截取mmid
-      //  const pathName = url.pathname.slice(
-      //   1,
-      //   url.pathname.indexOf(".dweb/") + 5
-      // );
-      // const ipc = await jsProcess.connect(pathName as $MMID);
-      // const ipcProxyResponse = await ipc.request(path, {
-      //   method:request.method,
-      //   body:  request.body.raw,
-      //   headers:request.headers
-      // });
       const ipcProxyRequest = new IpcRequest(
         jsProcess.fetchIpc.allocReqId(),
         path,
@@ -67,6 +56,7 @@ export async function onApiRequest(
         request.body,
         jsProcess.fetchIpc
       );
+      // 必须要直接向目标对发连接 通过这个 IPC 发送请求
       const targetIpc = await jsProcess.connect(
         ipcProxyRequest.parsed_url.host as $MMID
       );
@@ -126,7 +116,7 @@ const internalFactory = (
   }
   // 监听属性
   if (pathname === "/observe") {
-    const mmid = url.searchParams.get("mmid");
+    const mmid = url.searchParams.get("mmid") as $MMID;
     if (mmid === null) {
       throw new Error("observe require mmid");
     }
@@ -167,7 +157,7 @@ const serviceWorkerFetch = () => {
 };
 
 /**监听属性的变化 */
-const observeFactory = (mmid: string) => {
+const observeFactory = (mmid: $MMID) => {
   const streamPo = new ReadableStreamOut<Uint8Array>();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
     const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };

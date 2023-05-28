@@ -12,7 +12,7 @@ import {
 } from "../tool/tool.native.ts";
 import { $Ipc, fetchSignal } from "../tool/tool.request.ts";
 // 测试用
-import { onApiRequest } from "./api.request.ts"
+import { onApiRequest } from "../tool/tool.request.ts"
  
 
 const main = async () => {
@@ -74,7 +74,6 @@ const main = async () => {
   const externalReadableStreamIpc = await externalServer.listen();
 
   apiReadableStreamIpc.onRequest(async (request, ipc) => {
-    console.log("->>>>>>>>>>>>===");
     const url = request.parsed_url;
     // serviceWorker
     if (url.pathname.startsWith("/dns.sys.dweb")) {

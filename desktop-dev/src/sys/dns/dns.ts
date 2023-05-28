@@ -268,6 +268,7 @@ export class DnsNMM extends NativeMicroModule {
         async (fromMM, parsedUrl, requestInit) => {
           // 测试代码
           // Reflect.set(requestInit, "duplex", "half")
+          // fetch("file://xxx.dweb") 匹配
           if (
             parsedUrl.protocol === "file:" &&
             parsedUrl.hostname.endsWith(".dweb")

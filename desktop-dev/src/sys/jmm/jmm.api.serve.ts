@@ -198,7 +198,7 @@ async function appOpen(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
 }
 
 nativeFetchAdaptersManager.append((remote, parsedUrl) => {
-  /// fetch("file:///sys") 匹配
+  /// fetch("file:///jmm/") 匹配
   console.log("[fetch in jmm] ", parsedUrl.href, remote.mmid);
 
   if (parsedUrl.protocol === "file:" && parsedUrl.hostname === "") {
