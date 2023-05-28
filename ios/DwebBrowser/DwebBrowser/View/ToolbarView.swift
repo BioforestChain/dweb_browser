@@ -11,11 +11,9 @@ import UIKit
 struct ToolbarView: View {
     @EnvironmentObject var tabstate: TabState
     @State var moreTapped = false
-//    @Binding var showingOptions: Bool
-//    @Binding var tabCount: Int
-    
+    @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     var body: some View {
-        if !tabstate.showingOptions{
+        if !tabstate.showTabGrid{
             HStack(spacing: 5){
                 Group{
                     Spacer()
@@ -59,7 +57,7 @@ struct ToolbarView: View {
                     Spacer()
                     
                     ToolbarItem(imageName: "doc.on.doc") {
-                        tabstate.showingOptions = true
+                        tabstate.showTabGrid = true
                         print("arrow.up was clicked")
                     }
                     
@@ -79,11 +77,11 @@ struct ToolbarView: View {
                 }
                 
                 Spacer()
-                Text("\(WebWrapperMgr.shared.wrapperStore.count)个标签页")
+                Text("\(wrapperMgr.wrapperStore.count)个标签页")
                 Spacer()
                 
                 ToolbarItem(title: "完成") {
-                    tabstate.showingOptions = false
+                    tabstate.showTabGrid = false
                 }
                 .fontWeight(.semibold)
                 Spacer()

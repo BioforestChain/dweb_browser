@@ -9,20 +9,21 @@ import SwiftUI
 
 struct AddressBarHStack: View {
     @EnvironmentObject var tabState: TabState
-    @EnvironmentObject var xoffset: AddressBarOffsetOnX
+    @EnvironmentObject var addrBarOffset: AddrBarOffset
 
     @Binding var selectedTabIndex: Int
-    @State var currentIndex: Int = 0
-    @State var offsetX: CGFloat = 0
+//    @State var scrolltoIndex: Int = 0
+//    @ObservedObject var scrollXoffset: CGFloat
 
     var body: some View {
-        PagingScroll(contentSize: WebWrapperMgr.shared.wrapperStore.count, content: AddressBarHContainer(), currentPage: $currentIndex, offsetX: $offsetX)
-            .onChange(of: currentIndex) { newValue in
-                selectedTabIndex = currentIndex
-            }
-            .onChange(of: offsetX) { newValue in
-                xoffset.offset = offsetX
-            }
+        PagingScroll(contentSize: WebWrapperMgr.shared.wrapperStore.count, content: AddressBarHContainer(), currentPage: $selectedTabIndex, offsetX: $addrBarOffset.onX)
+//            .onChange(of: selectedTabIndex) { newValue in
+//                addrBarOffset.onX = -screen_width * CGFloat( selectedTabIndex)
+//            }
+//            .onChange(of: scrollXoffset) { newValue in
+//                xoffset.offset = scrollXoffset
+//            }
+//            .offset(x: xoffset.offset)
             .frame(height: tabState.addressBarHeight)
     }
 }
@@ -51,7 +52,8 @@ struct AddressBar: View {
             ZStack() {
                 Color(.white)
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.darkGray))
+                    .fill(colors[WebWrapperMgr.shared.wrapperStore.firstIndex(of: webWrapper) ?? 0])
+//                    .fill(Color(.darkGray))
                     .frame(width:screen_width - 48 ,height: 40)
                     .overlay {
                         GeometryReader { geometry in
@@ -76,7 +78,8 @@ struct AddressBar: View {
                 
                 TextField("", text: $inputText)
                     .placeholder(when: inputText.isEmpty) {
-                        Text("请输入搜索内容").foregroundColor(Color(white: 0.8))
+//                        Text("请输入搜索内容").foregroundColor(Color(white: 0.8))
+                        Text(webWrapper.title ?? "").foregroundColor(Color(white: 0.8))
                     }
                     .background(Color(.darkGray))
                     .foregroundColor(.white)
@@ -91,7 +94,8 @@ struct AddressBar: View {
                         print("tapped")
                         isAdressBarFocused = true
                     }
-            }.frame(height: addressBarH)
+            }
+            .frame(height: addressBarH)
         }
     }
 }

@@ -90,7 +90,7 @@ struct TabsContainerView: View{
                     Color(.red)
                 }
 
-                if !tabState.showingOptions, !imageState.isAnimating(){
+                if !tabState.showTabGrid, !imageState.isAnimating(){
                     WebHScrollView()
                 }
 
@@ -102,7 +102,7 @@ struct TabsContainerView: View{
                 geoRect = geo.frame(in: .global)
                 print("z geo: \(geoRect)")
             }
-            .onReceive(tabState.$showingOptions, perform: { shouldShowGrid in
+            .onReceive(tabState.$showTabGrid, perform: { shouldShowGrid in
                 print("change showOptions to \(shouldShowGrid)")
                 if imageState == .initial {
                     return 
@@ -196,19 +196,20 @@ struct TabsContainerView: View{
 }
 
 struct WebHScrollView: View{
-    @EnvironmentObject var xoffset: AddressBarOffsetOnX
+    @EnvironmentObject var addrBarOffset: AddrBarOffset
+    @EnvironmentObject var state: TabState
 
     var body: some View{
         GeometryReader{ geo in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
                     ForEach(WebCacheMgr.shared.store){ webCache in
-                        TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id))
+                        TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id),tabState: state)
                             .id(webCache.id)
                             .frame(width: screen_width)
                     }
                 }
-                .offset(x: xoffset.offset)
+                .offset(x: addrBarOffset.onX)
             }
             .scrollDisabled(true)
         }
@@ -252,7 +253,6 @@ struct TabHStackView_Previews: PreviewProvider {
     static var previews: some View {
         TabsContainerView()
             .environmentObject(BrowerVM())
-        
     }
 }
 

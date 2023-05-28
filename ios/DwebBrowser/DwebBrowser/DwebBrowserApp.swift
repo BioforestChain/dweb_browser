@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-class AddressBarOffsetOnX: ObservableObject {
-    @Published var offset: CGFloat = 0
+class AddrBarOffset: ObservableObject {
+    @Published var onX: CGFloat = 0
 }
 
 class TabState: ObservableObject {
-    @Published var showingOptions = true
+    @Published var showTabGrid = true
     var addressBarHeight: CGFloat{
-        showingOptions ? 0 : addressBarH
+        showTabGrid ? 0 : addressBarH
     }
 }
 
@@ -23,7 +23,7 @@ struct DwebBrowserApp: App {
     var body: some Scene {
         WindowGroup {
             BrowserView()
-                .environmentObject(AddressBarOffsetOnX())
+                .environmentObject(AddrBarOffset())
                 .environmentObject(TabState())
         }
     }

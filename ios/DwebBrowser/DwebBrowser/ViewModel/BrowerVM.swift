@@ -16,6 +16,7 @@ class BrowerVM: ObservableObject {
     @Published var selectedTabIndex = 0
     {
         didSet{
+            
             currentSnapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTabIndex].snapshotUrl)
         }
     }

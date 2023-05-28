@@ -25,7 +25,7 @@ struct CellFramePreferenceKey: PreferenceKey {
 
 struct TabGridView: View {
     @EnvironmentObject var browser: BrowerVM
-    @EnvironmentObject var addressbarOffset: AddressBarOffsetOnX
+    @EnvironmentObject var addrBarOffset: AddrBarOffset
     @EnvironmentObject var tabState: TabState
     
     @ObservedObject var cacheStore = WebCacheMgr.shared
@@ -58,17 +58,18 @@ struct TabGridView: View {
                                         print("inside of grid")
 
                                         browser.selectedTabIndex = index
-                                        tabState.showingOptions = false
+                                        addrBarOffset.onX = -CGFloat (index) * screen_width
+                                        tabState.showTabGrid = false
                                     }else{
                                         print("outside of grid")
                                         browser.selectedTabIndex = index
-                                        addressbarOffset.offset = -CGFloat (index) * screen_width
+                                        addrBarOffset.onX = -CGFloat (index) * screen_width
 
                                         withAnimation(.easeInOut(duration: 0.3),{
                                             scrollproxy.scrollTo(webCache.id)
                                         })
                                         DispatchQueue.main.asyncAfter(deadline: .now()+0.4, execute: {
-                                            tabState.showingOptions = false
+                                            tabState.showTabGrid = false
                                         })
                                     }
                                 }
@@ -77,7 +78,7 @@ struct TabGridView: View {
                     })
                     .padding(15)
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
-                        if tabState.showingOptions{
+                        if tabState.showTabGrid{
                             self.frames = newFrames
                             cellFrames = newFrames.map{ $0.frame }
                         }

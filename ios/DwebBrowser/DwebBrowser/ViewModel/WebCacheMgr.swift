@@ -35,7 +35,11 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
     @Published var lastVisitedUrl: URL     //the website that user has opened on webview
     @Published var title: String            // page title
     @Published var snapshotUrl: URL           //local file path is direct to the image has saved in document dir
-    
+    {
+        didSet{
+            WebCacheMgr.shared.saveCaches()
+        }
+    }
     public init(icon: URL = URL.defaultWebIconURL, lastVisitedUrl: URL = testURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
         self.webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
@@ -82,6 +86,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
 class WebCacheMgr: ObservableObject{
     static let shared = WebCacheMgr()
     @Published var store: [WebCache] = []
+    
     let userdefaultKey = "userdefaultWebCache"
     
     init(){
@@ -89,8 +94,8 @@ class WebCacheMgr: ObservableObject{
     }
     
     func append(cache: WebCache){
-//        store.append(cache)
-//        saveCaches()
+        //        store.append(cache)
+        //        saveCaches()
     }
     
     func remove(webCache: WebCache){
@@ -107,8 +112,10 @@ class WebCacheMgr: ObservableObject{
         
         saveCaches()
     }
-    
+    var saveCacheTimes = 0
     func saveCaches() {
+        saveCacheTimes += 1
+        print("have saved times: \(saveCacheTimes)")
         let data = try? JSONEncoder().encode(store)
         UserDefaults.standard.set(data, forKey: userdefaultKey)
     }

@@ -12,6 +12,9 @@ import Combine
 struct TabPageView: View {
     @ObservedObject var webCache: WebCache
     @ObservedObject var webWrapper: WebWrapper
+    
+    @ObservedObject var tabState: TabState
+    @EnvironmentObject var browser: BrowerVM
 
     @State var homeview = HomeView()
     @State var hasTook = false
@@ -41,10 +44,15 @@ struct TabPageView: View {
                 
             }
 
-            .onChange(of: webWrapper.estimatedProgress, perform: { newValue in
-                print("webWrapper:\(webWrapper): progress\(newValue)")
-            })
+            .onChange(of: webWrapper.estimatedProgress){ newValue in
+                if newValue >= 1.0{
+                    WebCacheMgr.shared.saveCaches()
+                }
+            }
             
+            .onChange(of: webWrapper.title!) { title in
+                    webCache.title = title
+            }
             .onChange(of: webWrapper.url) { visitingUrl in
                 if let url = visitingUrl{
                     webCache.lastVisitedUrl = url
@@ -53,17 +61,32 @@ struct TabPageView: View {
             .onChange(of: WebWrapperMgr.shared.wrapperStore.count) { newValue in
                 print("web count is " ,newValue)
             }
-//            .onReceive(browser.$showingOptions) { showDeck in
+            
+            .onChange(of: tabState.showTabGrid, perform: { showTabGrid in
+                if showTabGrid, !hasTook {
+                    let index = WebWrapperMgr.shared.wrapperStore.firstIndex(of: webWrapper)
+                    if index == browser.selectedTabIndex{
+                        if let image = self.environmentObject(browser).snapshot(){
+                        print(image)
+                            hasTook = true  //avoid a dead runloop
+                            webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: webCache.id.uuidString)
+                            browser.currentSnapshotImage = image
+                            DispatchQueue.main.asyncAfter(deadline: .now()+0.5, execute: {hasTook = false}) // reset the state var once this time animation
+
+                        }
+                    }
+                }
+            })
+            
+//            .onReceive(tabState.$showTabGrid) { showDeck in
 //                if showDeck, !hasTook {
-//                    let index = browser.webWrappers.firstIndex(of: webWrapper)
+//                    let index = WebWrapperMgr.shared.wrapperStore.firstIndex(of: webWrapper)
 //                    if index == browser.selectedTabIndex{
 //                        if let image = self.environmentObject(browser).snapshot(){
-////                                            let rect = geo.frame(in: .global)
 //                        print(image)
 //                            hasTook = true  //avoid a dead runloop
-//
-//                            webWrapper.webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: webWrapper.webCache.id.uuidString)
-//                            browser.capturedImage = image
+//                            webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: webCache.id.uuidString)
+//                            browser.currentSnapshotImage = image
 //                            DispatchQueue.main.asyncAfter(deadline: .now()+0.5, execute: {hasTook = false}) // reset the state var once this time animation
 //
 //                        }
