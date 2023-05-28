@@ -49,7 +49,7 @@ import type { MultiWebViewContent } from "./multi-webview-content.html.ts";
 export class ViewTree extends LitElement {
   static override styles = createAllCSS();
   private _id_acc = 0;
-  private webviews: Array<Webview> = [];
+  @state() webviews: Array<Webview> = []
   statusBarHeight = "38px";
   navigationBarHeight = "26px";
   virtualKeyboardAnimationSetIntervalId: unknown = 0;
@@ -345,11 +345,11 @@ export class ViewTree extends LitElement {
   // 打开一个新的webview标签
   // 在html中执行 open() 也会调用这个方法
   openWebview(src: string) {
+    // debugger;
     const webview_id = this._id_acc++;
     // 都从最前面插入
-    this.webviews.unshift(new Webview(webview_id, src));
+    this.webviews = [new Webview(webview_id, src), ...this.webviews]
     this._restateWebviews();
-
     if (this.webviews.length === 1) {
       this.statusBarState = [
         createDefaultBarState("statusbar", this.statusBarHeight),
@@ -379,6 +379,7 @@ export class ViewTree extends LitElement {
         ...this.safeAreaState,
       ];
     }
+    console.log('this.statusBarState: ', this.statusBarState)
     return webview_id;
   }
 
@@ -458,12 +459,10 @@ export class ViewTree extends LitElement {
   }
 
   private async destroyWebview(webview: Webview) {
-    console.log("destroyWebview: ");
-
     await mainApis.destroy(webview.webContentId);
-    // 还需要更新 statusbar navigationbar 和 safearea
-    this.deleteTopBarState();
-    this.deleteTopSafeAreaState();
+    // 可能出现越界的情况
+    this.webviews = this.webviews.slice(1)
+     
   }
 
   destroyWebviewByHost(host: string) {
@@ -514,9 +513,11 @@ export class ViewTree extends LitElement {
   webviewTagOnIpcMessageHandlerBack = () => {
     const len = this.webviews.length;
     if(len > 1){
+      console.log('this.webviews: ', this.webviews)
       this.destroyWebview(this.webviews[0]);
-      this.navigationBarState = this.navigationBarState.slice(1);
-      this.statusBarState = this.statusBarState.slice(1);
+      this.deleteTopBarState();
+      this.deleteTopSafeAreaState();
+      
       // 把 navigationBarState statusBarStte safe-area 的改变发出
       ipcRenderer.send("safe_are_insets_change");
       ipcRenderer.send("navigation_bar_state_change");
@@ -594,6 +595,8 @@ export class ViewTree extends LitElement {
   override render() {
     const statusbarState = this.statusBarState[0];
     const navigationBarState = this.navigationBarState[0];
+    console.log("statusbarState: ", statusbarState)
+    console.log("this.statusBarState: ", this.statusBarState[0])
     return html`
       <div class="app-container">
         <multi-webview-comp-mobile-shell

@@ -57,7 +57,6 @@ export async function openDownloadPage(
   _clientIpc: Ipc,
   request: IpcRequest
 ) {
-  console.log(await request.body.text());
   const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl;
   const apis = await this.apisGetFromFocused();
   const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`;
