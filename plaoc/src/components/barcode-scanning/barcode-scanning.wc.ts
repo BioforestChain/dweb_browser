@@ -1,7 +1,7 @@
 /// <reference path="../../shims/ImageCapture.d.ts" />
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { CameraDirection } from "../camera/camera.type.ts";
-import { CloseWatcher } from "../close-watcher/close-watcher.shim.ts";
+// import { CloseWatcher } from "../close-watcher/close-watcher.shim.ts";
 import { torchPlugin } from "../torch/torch.plugin.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
 import {
@@ -26,14 +26,14 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   }
 
   private createClose() {
-    const closer = new CloseWatcher();
+    // const closer = new CloseWatcher();
     this._isCloceLock = true;
-    closer.addEventListener("close", (_event) => {
-      this._isCloceLock = false;
-      if (this._activity) {
-        this.stopScanning();
-      }
-    });
+    // closer.addEventListener("close", (_event) => {
+    //   this._isCloceLock = false;
+    //   if (this._activity) {
+    //     this.stopScanning();
+    //   }
+    // });
   }
 
   /**
