@@ -51,11 +51,18 @@ export const openNativeWindow = async (
     // 是否显示 multi-webview devTools;
     // win.webContents.openDevTools();
     // 这个只是在开发 desktop-dev 的阶段才需要之后是不需要的
-    openDevToolsAtBrowserWindowByWebContents(
+    const devToolsWin = openDevToolsAtBrowserWindowByWebContents(
       win.webContents,
       `${win.webContents.getTitle()}`,
       0
     )
+    devToolsWin.once('ready-to-show', () => {
+      Object.assign(
+        win, 
+        "devToolsWin",
+        { devToolsWin}
+      )
+    })
     show_po.resolve();
   });
 
@@ -131,7 +138,7 @@ function openDevToolsAtBrowserWindowByWebContents(
 
 export class ForRenderApi {
   constructor(private win: Electron.BrowserWindow) {}
-  private _devToolsWin: Electron.BrowserWindow | undefined;
+  private _devToolsWin: Map<number, Electron.BrowserWindow> = new Map();
    
   
   /**
@@ -144,7 +151,10 @@ export class ForRenderApi {
     title: string
   ){
     const content_wcs = Electron.webContents.fromId(webContentsId)!;
-    this._devToolsWin  = openDevToolsAtBrowserWindowByWebContents(content_wcs, title)
+    this._devToolsWin.set(
+      webContentsId, 
+      openDevToolsAtBrowserWindowByWebContents(content_wcs, title)  
+    )
   }
 
   openDevTools(
@@ -180,6 +190,9 @@ export class ForRenderApi {
   destroy(webContentsId: number, options?: Electron.CloseOpts) {
     const contents = Electron.webContents.fromId(webContentsId);
     if (contents === undefined) throw new Error(`contents === undefined`);
+    const devToolsWin = this._devToolsWin.get(webContentsId);
+    if(devToolsWin === undefined) throw new Error(`devToolsWin === undefined`)
+    devToolsWin.close()
     return contents.close(options);
   }
   onDestroy(webContentsId: number, onDestroy: () => unknown) {
@@ -198,7 +211,8 @@ export class ForRenderApi {
   // 关闭 Browserwindow
   closedBrowserWindow() {
     this.win.close();
-    this._devToolsWin?.close()
+    const devToolsWin = Reflect.get(this.win, "devToolsWin");
+    if(devToolsWin) devToolsWin.close()
   }
 }
 

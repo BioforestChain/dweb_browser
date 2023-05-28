@@ -428,7 +428,6 @@ export class ViewTree extends LitElement {
       webview.webContentId,
       webview.src
     );
-    console.log("weview: ", webview)
 
     ele?.addEventListener(
       "ipc-message",
@@ -476,7 +475,6 @@ export class ViewTree extends LitElement {
   }
 
   destroyWebviewByOrigin(origin: string) {
-    console.log("destroyWebviewByOrigin: ");
     this.webviews.forEach((webview) => {
       if (webview.src.includes(origin)) {
         this.destroyWebview(webview);
@@ -513,11 +511,8 @@ export class ViewTree extends LitElement {
   webviewTagOnIpcMessageHandlerBack = () => {
     const len = this.webviews.length;
     if(len > 1){
-      console.log('this.webviews: ', this.webviews)
-      this.destroyWebview(this.webviews[0]);
       this.deleteTopBarState();
       this.deleteTopSafeAreaState();
-      
       // 把 navigationBarState statusBarStte safe-area 的改变发出
       ipcRenderer.send("safe_are_insets_change");
       ipcRenderer.send("navigation_bar_state_change");
@@ -525,6 +520,7 @@ export class ViewTree extends LitElement {
       return;
     }
     console.error('是否应该需要关闭 当前window了？？？ 还没有决定')
+    this.destroyWebview(this.webviews[0]);
     mainApis.closedBrowserWindow()
   };
 
@@ -560,8 +556,6 @@ export class ViewTree extends LitElement {
     allocId: 0,
   }
   nativeCloseWatcherKit = ({action, value}:  {action: string, value: string | number}) => {
-    console.log('接受的到了消息： ', action, value)
-    
     if(action === "registry_token" && typeof value === "string"){
       const id = this.nativeCloseWatcherKitData.allocId++;
       this.nativeCloseWatcherKitData.tokenToId.set(value, id);
@@ -595,8 +589,6 @@ export class ViewTree extends LitElement {
   override render() {
     const statusbarState = this.statusBarState[0];
     const navigationBarState = this.navigationBarState[0];
-    console.log("statusbarState: ", statusbarState)
-    console.log("this.statusBarState: ", this.statusBarState[0])
     return html`
       <div class="app-container">
         <multi-webview-comp-mobile-shell
