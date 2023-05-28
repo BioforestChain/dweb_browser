@@ -8,16 +8,6 @@
 import SwiftUI
 import UIKit
 
-//class ToolbarState: ObservableObject {
-//    @Published var canGoForward = false
-//    @Published var canGoBack = false
-//    @Published var addTapped = false
-//    @Published var moreTapped = false
-//
-//    @Published var newPageTapped = false
-////    @Published var doneTapped = false
-//}
-
 struct ToolbarView: View {
     @EnvironmentObject var tabstate: TabState
     @State var moreTapped = false
@@ -89,7 +79,7 @@ struct ToolbarView: View {
                 }
                 
                 Spacer()
-//                Text("\(WebWrapperManager.shared.wrapperStore.count)个标签页")
+                Text("\(WebWrapperMgr.shared.wrapperStore.count)个标签页")
                 Spacer()
                 
                 ToolbarItem(title: "完成") {

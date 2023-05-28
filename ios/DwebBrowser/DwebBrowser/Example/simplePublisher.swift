@@ -61,7 +61,7 @@ class MyStruct:ObservableObject {
     @State var count = 0
 }
 
-struct View64: View {
+struct InrecementView: View {
     @StateObject var myStruct = MyStruct()
     
     var body: some View {
@@ -78,6 +78,6 @@ struct View64: View {
 
 struct simplePublisher_Previews: PreviewProvider {
     static var previews: some View {
-        View64()
+        InrecementView()
     }
 }

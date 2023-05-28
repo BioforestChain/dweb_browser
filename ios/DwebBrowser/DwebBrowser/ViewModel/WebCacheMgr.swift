@@ -21,7 +21,7 @@ let websites = [
 ]
 
 //打开新页面时
-class WebCache:ObservableObject, Identifiable, Hashable, Codable, Equatable{
+class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
     enum CodingKeys: String, CodingKey {
         case id
         case webIconUrl
@@ -79,8 +79,8 @@ class WebCache:ObservableObject, Identifiable, Hashable, Codable, Equatable{
     }
 }
 
-class WebCacheStore: ObservableObject{
-    static let shared = WebCacheStore()
+class WebCacheMgr: ObservableObject{
+    static let shared = WebCacheMgr()
     @Published var store: [WebCache] = []
     let userdefaultKey = "userdefaultWebCache"
     
@@ -88,19 +88,24 @@ class WebCacheStore: ObservableObject{
         loadCaches()
     }
     
-    func addCacheItem(cache: WebCache){
+    func append(cache: WebCache){
 //        store.append(cache)
 //        saveCaches()
     }
     
     func remove(webCache: WebCache){
         guard let index = store.firstIndex(of: webCache) else { return }
-        store.remove(at:index)
-        let newStore = store.map({$0})
-        store = newStore
-//        self.objectWillChange.send()
-
-
+        let _ = withAnimation(.easeInOut){
+            store.remove(at:index)
+        }
+        // remove snapshot
+        
+        //    if selectedTabIndex >= newStores.count{
+        //        selectedTabIndex = newStores.count-1
+        //    }
+        
+        
+        saveCaches()
     }
     
     func saveCaches() {
@@ -116,11 +121,11 @@ class WebCacheStore: ObservableObject{
         }
         if store.count == 0 {
             store = [
-                WebCache(lastVisitedUrl: testURL),
-                WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!),
-                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!),
-                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!),
-                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!),
+                WebCache(lastVisitedUrl: testURL, title: "1"),
+                WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
+                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
+                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
+                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
             ]
         }
     }

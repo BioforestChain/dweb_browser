@@ -32,14 +32,14 @@ import WebKit
 struct WebView2: UIViewRepresentable {
     var webcache2: WebCache
 //    let request: URLRequest
-    init(webcache: WebCache){
+    init(webCache: WebCache){
         print("making WebView2....")
-        webcache2 = webcache
+        webcache2 = webCache
     }
 
     func makeUIView(context: Context) -> WKWebView {
         // 从WebViewManager中获取已有的WKWebView对象
-        let webView = WebWrapperManager.shared.webWrapper(of: webcache2.id).webView
+        let webView = WebWrapperMgr.shared.webWrapper(of: webcache2.id).webView
         webView.load(URLRequest(url:webcache2.lastVisitedUrl))
 //        WebViewManager.shared.webViews.insert(webView)
         return webView
@@ -59,10 +59,10 @@ struct MultipleWebView: View {
             ZStack{
                     ScrollView(.horizontal) {
                         HStack(spacing: 0) {
-                            ForEach(WebCacheStore.shared.store, id: \.id) { webCache in
-                                WebView2(webcache: webCache)
+                            ForEach(WebCacheMgr.shared.store, id: \.id) { webCache in
+                                WebView2(webCache: webCache)
                                     .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - 150)
-                                    .background(colors[WebCacheStore.shared.store.firstIndex(of: webCache) ?? 0])
+                                    .background(colors[WebCacheMgr.shared.store.firstIndex(of: webCache) ?? 0])
                                     .padding()
                             }.background(.blue)
                         }.background(.red)

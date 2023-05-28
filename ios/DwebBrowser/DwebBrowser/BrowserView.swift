@@ -8,14 +8,6 @@
 import SwiftUI
 import UIKit
 
-/*
- some views that need to be visited in outer view
-some methods and some datas might be visited in somewhere of the whole app
- */
-class SharedSourcesVM: ObservableObject {
-    
-}
-
 struct BrowserView: View {
     @ObservedObject var browser = BrowerVM()
     @State var wrapperCount:Int = 1

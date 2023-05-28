@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct AddressBarHStack: View {
-//    @Binding var wrappers: [WebWrapper]
-
     @EnvironmentObject var tabState: TabState
     @EnvironmentObject var xoffset: AddressBarOffsetOnX
 
@@ -18,7 +16,7 @@ struct AddressBarHStack: View {
     @State var offsetX: CGFloat = 0
 
     var body: some View {
-        PagingScroll(contentSize: WebWrapperManager.shared.wrapperStore.count, content: AddressBarHContainer(), currentPage: $currentIndex, offsetX: $offsetX)
+        PagingScroll(contentSize: WebWrapperMgr.shared.wrapperStore.count, content: AddressBarHContainer(), currentPage: $currentIndex, offsetX: $offsetX)
             .onChange(of: currentIndex) { newValue in
                 selectedTabIndex = currentIndex
             }
@@ -30,14 +28,10 @@ struct AddressBarHStack: View {
 }
 
 struct AddressBarHContainer:View{
-//    @EnvironmentObject var browser: BrowerVM
-//    @Binding var wrappers: [WebWrapper]
-
     var body: some View{
         HStack(spacing: 0) {
-            ForEach(WebWrapperManager.shared.wrapperStore){ webWrapper in
-                AddressBar(inputText: "")
-//                AddressBar(inputText: "", webWrapper: webWrapper)
+            ForEach(WebWrapperMgr.shared.wrapperStore){ webWrapper in
+                AddressBar(inputText: "", webWrapper: webWrapper)
                     .frame(width: screen_width)
             }
         }
@@ -49,7 +43,7 @@ struct AddressBar: View {
     @State var inputText: String = "inputText is empty"
     @FocusState var isAdressBarFocused: Bool
     
-//    @ObservedObject var webWrapper: WebWrapper
+    @ObservedObject var webWrapper: WebWrapper
     
     var body: some View {
         GeometryReader{ geometry in
@@ -62,16 +56,16 @@ struct AddressBar: View {
                     .overlay {
                         GeometryReader { geometry in
                             VStack(alignment: .leading, spacing: 0) {
-//                                ProgressView(value: webWrapper.estimatedProgress)
-//                                    .progressViewStyle(LinearProgressViewStyle())
-//                                    .foregroundColor(.blue)
-//                                    .background(Color(white: 1))
-//                                    .cornerRadius(4)
-//                                    .frame(height: webWrapper.estimatedProgress >= 1.0 ? 0 : 3)
-//                                    .alignmentGuide(.leading) { d in
-//                                        d[.leading]
-//                                    }
-//                                    .opacity(webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 ? 1 : 0)
+                                ProgressView(value: webWrapper.estimatedProgress)
+                                    .progressViewStyle(LinearProgressViewStyle())
+                                    .foregroundColor(.blue)
+                                    .background(Color(white: 1))
+                                    .cornerRadius(4)
+                                    .frame(height: webWrapper.estimatedProgress >= 1.0 ? 0 : 3)
+                                    .alignmentGuide(.leading) { d in
+                                        d[.leading]
+                                    }
+                                    .opacity(webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 ? 1 : 0)
                                 
                             }
                             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)

@@ -2,29 +2,16 @@ import SwiftUI
 import Combine
 import WebKit
 
-var visitCount: Int = 0
-
-class WebWrapperArray: ObservableObject {
-    @Published var wrappers: [WebWrapper] = []
-}
-
 @dynamicMemberLookup
-public class WebWrapper: ObservableObject, Identifiable,Hashable,Equatable{
-
+public class WebWrapper: ObservableObject, Identifiable,Hashable, Equatable{
     public var id = UUID()
-//    @Published var webCache: WebCache
+
     @Published public var webView: WKWebView {
         didSet {
             setupObservers()
         }
     }
-    
     init(cacheID: UUID) {
-//        let sharedManager = WebWrapperManager.shared // 将shared实例化放在init之前
-//        let webWrapper = WebWrapperManager.shared.webWrapper(of: cacheID)
-////            self.webView = webWrapper.webView
-//
-////        let webWrapper = WebWrapperManager.webWrapper(of: cacheID)
         self.webView = WKWebView()
         self.id = cacheID
         print("making a WebWrapper: \(self)")
@@ -97,7 +84,5 @@ public struct WebView: View, UIViewRepresentable {
     public func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {
 //        uiView.load(URLRequest(url:url))
         print("in WebView updateUIView.....")
-
-
     }
 }

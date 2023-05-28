@@ -42,6 +42,10 @@ enum AnimationProgress: Int{
     func isSmall() -> Bool{
         return self == .startExpanding || self == .shrinked
     }
+    
+    func isOnStage() -> Bool{
+        return self == .startExpanding
+    }
 }
 let animationDuration: CGFloat = 0.5
 
@@ -77,9 +81,10 @@ struct TabsContainerView: View{
         GeometryReader { geo in
             
             ZStack{
-                WebPreViewGrid(cellFrames: $cellFrames)
+                TabGridView(cellFrames: $cellFrames)
 //                    .background(.secondary)
                     .scaleEffect(x: gridScale, y: gridScale)
+                    .opacity(imageState == .invisible ? 0 : 1)
                 
                 if imageState == .shrinked {
                     Color(.red)
@@ -191,23 +196,16 @@ struct TabsContainerView: View{
 }
 
 struct WebHScrollView: View{
-//    @EnvironmentObject var browser: BrowerVM
-
     @EnvironmentObject var xoffset: AddressBarOffsetOnX
 
-//    @Binding var webWrappers: [WebWrapper]
-//    private func webWrapper(at index: Int) -> WebWrapper{
-//        browser.pages[index].webWrapper
-//    }
     var body: some View{
         GeometryReader{ geo in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
-                    ForEach(WebCacheStore.shared.store){ webCache in
-                        TabPageView(webCache: webCache, webWrapper: WebWrapperManager.shared.webWrapper(of: webCache.id))
+                    ForEach(WebCacheMgr.shared.store){ webCache in
+                        TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id))
+                            .id(webCache.id)
                             .frame(width: screen_width)
-//                           Text("TabPageView")
-//                            .frame(width: screen_width)
                     }
                 }
                 .offset(x: xoffset.offset)
@@ -216,10 +214,6 @@ struct WebHScrollView: View{
         }
         
     }
-    
-    
-    
-
     
     func takeScreenshot(of rect: CGRect) -> UIImage? {
             guard let window = UIApplication.shared.windows.first else {

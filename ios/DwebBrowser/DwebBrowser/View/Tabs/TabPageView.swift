@@ -13,10 +13,6 @@ struct TabPageView: View {
     @ObservedObject var webCache: WebCache
     @ObservedObject var webWrapper: WebWrapper
 
-//    var webWrapper: WebWrapper {
-//        WebWrapperManager.webWrapper(of: webCache.id)
-//    }
-    
     @State var homeview = HomeView()
     @State var hasTook = false
     var  body: some View {
@@ -54,7 +50,7 @@ struct TabPageView: View {
                     webCache.lastVisitedUrl = url
                 }
             }
-            .onChange(of: WebWrapperManager.shared.wrapperStore.count) { newValue in
+            .onChange(of: WebWrapperMgr.shared.wrapperStore.count) { newValue in
                 print("web count is " ,newValue)
             }
 //            .onReceive(browser.$showingOptions) { showDeck in
