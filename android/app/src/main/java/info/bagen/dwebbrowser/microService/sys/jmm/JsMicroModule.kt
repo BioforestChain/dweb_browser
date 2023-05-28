@@ -174,7 +174,10 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                      * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
                      */
                     val (targetIpc) = bootstrapContext.dns.connect(event.mmid)
-                    ipcBridge(event.mmid, targetIpc)
+                    /// 只要不是我们自己创建的直接连接的通道，就需要我们去创造直连并进行桥接
+                    if (targetIpc !is JmmIpc) {
+                        ipcBridge(event.mmid, targetIpc)
+                    }
                 }
             }
             if (ipcEvent.name == "restart") {
@@ -187,6 +190,8 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     }
 
     private val fromMmid_originIpc_WM = mutableMapOf<Mmid, PromiseOut<Ipc>>();
+
+    class JmmIpc(port_id: Int, remote: MicroModuleInfo) : Native2JsIpc(port_id, remote) {}
 
     /**
      * 桥接ipc到js内部：
@@ -205,7 +210,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                             Uri.of("file://js.sys.dweb/create-ipc").query("process_id", pid)
                                 .query("mmid", fromMmid)
                         ).int()
-                        val originIpc = Native2JsIpc(portId, this@JsMicroModule).also {
+                        val originIpc = JmmIpc(portId, this@JsMicroModule).also {
                             beConnect(it, Request(Method.GET, "file://$mmid/event/dns/connect"))
                         }
 

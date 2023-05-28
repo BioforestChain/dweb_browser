@@ -1,4 +1,4 @@
-﻿
+
 using System.Net;
 using System.Text.Json;
 using DwebBrowser.MicroService.Http;
@@ -14,20 +14,18 @@ public class JsMicroModule : MicroModule
     record JsMM(JsMicroModule jmm, Mmid remoteMmid);
     static JsMicroModule()
     {
+        var nativeToWhiteList = new List<Mmid>() { "js.sys.dweb" };
         NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
         {
-            JsMM? jsMM;
-            if (toMM is JsMicroModule tjmm)
+            JsMM? jsMM = null;
+            if (nativeToWhiteList.Contains(toMM.Mmid)) { }
+            else if (toMM is JsMicroModule tjmm)
             {
                 jsMM = new JsMM(tjmm, fromMM.Mmid);
             }
             else if (fromMM is JsMicroModule fjmm)
             {
                 jsMM = new JsMM(fjmm, toMM.Mmid);
-            }
-            else
-            {
-                jsMM = null;
             }
 
             if (jsMM is JsMM jsmm)
@@ -156,7 +154,10 @@ public class JsMicroModule : MicroModule
                  */
                 var connectResult = await bootstrapContext.Dns.ConnectAsync(Event.mmid);
                 var targetIpc = connectResult.IpcForFromMM;
-                await _ipcBridgeAsync(Event.mmid, targetIpc);
+                if (targetIpc is not JmmIpc)
+                {
+                    await _ipcBridgeAsync(Event.mmid, targetIpc);
+                }
             }
             else if (ipcEvent.Name is "restart")
             {
@@ -174,6 +175,12 @@ public class JsMicroModule : MicroModule
     private Dictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
 
 
+    class JmmIpc : Native2JsIpc
+    {
+        public JmmIpc(int port_id, MicroModuleInfo remote) : base(port_id, remote)
+        {
+        }
+    }
     /// <summary>
     /// 桥接ipc到js内部：
     /// 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
@@ -195,7 +202,7 @@ public class JsMicroModule : MicroModule
                         .SearchParamsSet("process_id", Pid).SearchParamsSet("mmid", fromMmid)))
                         .IntAsync() ?? throw new Exception("invalid Native2JsIpc.PortId");
 
-                    var originIpc = new Native2JsIpc(portId, this);
+                    var originIpc = new JmmIpc(portId, this);
                     // 同样要被生命周期管理销毁
                     await BeConnectAsync(originIpc, new PureRequest(String.Format("file://{0}/event/dns/connect", Mmid), IpcMethod.Get));
 

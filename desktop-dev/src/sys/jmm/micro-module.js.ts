@@ -12,9 +12,13 @@ import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
 import type { JmmMetadata } from "./JmmMetadata.ts";
 
 type $JsMM = { jmm: JsMicroModule; remoteMmid: $MMID };
+
+const nativeToWhiteList = new Set<$MMID>(["js.sys.dweb"]);
 connectAdapterManager.append(async (fromMM, toMM, reason) => {
   let jsmm: undefined | $JsMM;
-  if (toMM instanceof JsMicroModule) {
+  if (nativeToWhiteList.has(toMM.mmid)) {
+    /// 白名单，忽略
+  } else if (toMM instanceof JsMicroModule) {
     jsmm = { jmm: toMM, remoteMmid: fromMM.mmid };
   } else if (fromMM instanceof JsMicroModule) {
     jsmm = { jmm: fromMM, remoteMmid: toMM.mmid };
@@ -29,7 +33,7 @@ connectAdapterManager.append(async (fromMM, toMM, reason) => {
      * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
      * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
      */
-    const originIpc = await jsmm.jmm._ipcBridge(jsmm.remoteMmid).promise;
+    const originIpc = await jsmm.jmm.ipcBridge(jsmm.remoteMmid).promise;
 
     return [originIpc, originIpc];
   }
@@ -157,12 +161,15 @@ export class JsMicroModule extends MicroModule {
          * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
          */
         const [targetIpc] = await context.dns.connect(mmid);
-        await this._ipcBridge(mmid, targetIpc).promise;
+        /// 只要不是我们自己创建的直接连接的通道，就需要我们去创造直连并进行桥接
+        if (targetIpc instanceof JmmIpc === false) {
+          await this.ipcBridge(mmid, targetIpc).promise;
+        }
       }
     });
   }
   private _fromMmid_originIpc_map = new Map<$MMID, PromiseOut<Ipc>>();
-  _ipcBridge(fromMmid: $MMID, targetIpc?: Ipc) {
+  ipcBridge(fromMmid: $MMID, targetIpc?: Ipc) {
     return mapHelper.getOrPut(this._fromMmid_originIpc_map, fromMmid, () => {
       const task = new PromiseOut<Ipc>();
       (async () => {
@@ -176,7 +183,7 @@ export class JsMicroModule extends MicroModule {
             })
           ).number();
 
-          const originIpc = new Native2JsIpc(portId, this);
+          const originIpc = new JmmIpc(portId, this);
           // 同样要被生命周期管理销毁
           await this.beConnect(
             originIpc,
@@ -219,10 +226,10 @@ export class JsMicroModule extends MicroModule {
   }
 
   _shutdown() {
-    this.onCloseJsProcess.emit();
     /**
      * @TODO 发送指令，关停js进程
      */
     this._process_id = undefined;
   }
 }
+class JmmIpc extends Native2JsIpc {}

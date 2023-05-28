@@ -23,7 +23,7 @@ fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).als
  *
  * 那么连接发起方就可以通过这个 id(number) 和 Native2JsIpc 构造器来实现与 js-worker 的直连
  */
-class Native2JsIpc(
+open class Native2JsIpc(
   val port_id: Int,
   remote: Ipc.MicroModuleInfo,
   role: IPC_ROLE = IPC_ROLE.CLIENT,
