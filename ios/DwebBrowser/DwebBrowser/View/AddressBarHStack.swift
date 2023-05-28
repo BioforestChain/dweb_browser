@@ -16,7 +16,7 @@ struct AddressBarHStack: View {
 //    @ObservedObject var scrollXoffset: CGFloat
 
     var body: some View {
-        PagingScroll(contentSize: WebWrapperMgr.shared.wrapperStore.count, content: AddressBarHContainer(), currentPage: $selectedTabIndex, offsetX: $addrBarOffset.onX)
+        PagingScroll(contentSize: WebWrapperMgr.shared.store.count, content: AddressBarHContainer(), currentPage: $selectedTabIndex, offsetX: $addrBarOffset.onX)
 //            .onChange(of: selectedTabIndex) { newValue in
 //                addrBarOffset.onX = -screen_width * CGFloat( selectedTabIndex)
 //            }
@@ -31,7 +31,7 @@ struct AddressBarHStack: View {
 struct AddressBarHContainer:View{
     var body: some View{
         HStack(spacing: 0) {
-            ForEach(WebWrapperMgr.shared.wrapperStore){ webWrapper in
+            ForEach(WebWrapperMgr.shared.store){ webWrapper in
                 AddressBar(inputText: "", webWrapper: webWrapper)
                     .frame(width: screen_width)
             }
@@ -52,7 +52,7 @@ struct AddressBar: View {
             ZStack() {
                 Color(.white)
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(colors[WebWrapperMgr.shared.wrapperStore.firstIndex(of: webWrapper) ?? 0])
+                    .fill(colors[WebWrapperMgr.shared.store.firstIndex(of: webWrapper) ?? 0])
 //                    .fill(Color(.darkGray))
                     .frame(width:screen_width - 48 ,height: 40)
                     .overlay {

@@ -7,16 +7,6 @@
 
 import SwiftUI
 
-class AddrBarOffset: ObservableObject {
-    @Published var onX: CGFloat = 0
-}
-
-class TabState: ObservableObject {
-    @Published var showTabGrid = true
-    var addressBarHeight: CGFloat{
-        showTabGrid ? 0 : addressBarH
-    }
-}
 
 @main
 struct DwebBrowserApp: App {

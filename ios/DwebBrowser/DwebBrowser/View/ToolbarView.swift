@@ -77,7 +77,7 @@ struct ToolbarView: View {
                 }
                 
                 Spacer()
-                Text("\(wrapperMgr.wrapperStore.count)个标签页")
+                Text("\(wrapperMgr.store.count)个标签页")
                 Spacer()
                 
                 ToolbarItem(title: "完成") {

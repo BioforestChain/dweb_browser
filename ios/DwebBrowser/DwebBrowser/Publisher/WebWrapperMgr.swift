@@ -12,14 +12,14 @@ import Combine
 class WebWrapperMgr: ObservableObject {
     static let shared = WebWrapperMgr()
     private var cancellables = Set<AnyCancellable>()
-    @Published var wrapperStore: [WebWrapper] = []
+    @Published var store: [WebWrapper] = []
 
     func webWrapper(of expectedId: UUID) -> WebWrapper{
-        if let wrapper = wrapperStore.filter({ $0.id == expectedId}).first{
+        if let wrapper = store.filter({ $0.id == expectedId}).first{
             return wrapper
         }else{
             let wrapper = WebWrapper(cacheID: expectedId)
-            wrapperStore.append(wrapper)
+            store.append(wrapper)
             return wrapper
         }
     }
@@ -32,7 +32,7 @@ class WebWrapperMgr: ObservableObject {
                         let newStore = cacheIds.map{
                             self?.webWrapper(of: $0) ?? WebWrapper(cacheID: $0)
                         }
-                        self?.wrapperStore = newStore
+                        self?.store = newStore
                     }
                     .store(in: &cancellables)
     }

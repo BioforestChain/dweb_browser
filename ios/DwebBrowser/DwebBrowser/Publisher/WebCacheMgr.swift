@@ -85,10 +85,9 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
 
 class WebCacheMgr: ObservableObject{
     static let shared = WebCacheMgr()
+    private let userdefaultKey = "userdefaultWebCache"
     @Published var store: [WebCache] = []
-    
-    let userdefaultKey = "userdefaultWebCache"
-    
+
     init(){
         loadCaches()
     }
