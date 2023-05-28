@@ -1,15 +1,10 @@
 {
     "configurations": [
         {
-            "name": "Electron Main",
-            "program": "${workspaceFolder}/electron",
+            "command": "deno task dnt --start --inspect",
+            "name": "Start electron with inspect",
             "request": "launch",
-            "runtimeExecutable": "${workspaceFolder}/electron/node_modules/.bin/electron",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "node"
-        }
-    
+            "type": "node-terminal"
+        },
     ]
 }

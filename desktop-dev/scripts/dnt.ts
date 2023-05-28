@@ -1,7 +1,10 @@
 import { build } from "../../scripts/helper/dnt/mod.ts";
 
 // await emptyDir("./npm");
+
+/// before build
 Deno.copyFileSync(".npmrc", "electron/.npmrc");
+await Deno.remove("./electron/src").catch(() => {}); /// if is symlink, will be remove
 
 await build({
   entryPoints: ["./src/index.ts"],
@@ -14,7 +17,10 @@ await build({
   typeCheck: false,
   test: false,
   esModule: false,
-  skipSourceOutput: true,
+  compilerOptions: {
+    inlineSources: true,
+    sourceMap: true,
+  },
   package: {
     // package.json properties
     name: "@dweb-browser/desktop-sdk",
@@ -30,6 +36,9 @@ await build({
   },
   packageManager: "yarn",
   postBuild() {
+    Deno.removeSync("./electron/src", { recursive: true }); /// remove nodejs ts-source
+    Deno.symlinkSync("./src", "./electron/src"); /// create symlink
+
     /// 启动
     new Deno.Command("pnpm", {
       args: ["start", ...Deno.args.slice(Deno.args.indexOf("--start") + 1)],
