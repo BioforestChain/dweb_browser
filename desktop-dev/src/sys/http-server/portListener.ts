@@ -124,14 +124,13 @@ export class PortListener {
 
       ipc_req_body_stream = server_req_body_writter.stream;
     }
-    console.log(`分发消息 http://${req.headers.host}${url}`);
+    // console.log(`分发消息 http://${req.headers.host}${url}`);
     // 分发消息
     const http_response_info = await hasMatch.bind.streamIpc.request(url, {
       method,
       body: ipc_req_body_stream,
       headers: req.headers as Record<string, string>,
     });
-    console.log("消息返回了");
 
     /// 写回 res 对象
     res.statusCode = http_response_info.statusCode;

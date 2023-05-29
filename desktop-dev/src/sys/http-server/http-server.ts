@@ -61,9 +61,9 @@ export class HttpServerNMM extends NativeMicroModule {
 
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     this._info = await this._dwebServer.create();
+    // console.log(" ", this._info);
 
     this._info.server.on("request", (req, res) => {
-      console.log("接收到熬了请求 --- ");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Headers", "*");
       res.setHeader("Access-Control-Allow-Methods", "*");
