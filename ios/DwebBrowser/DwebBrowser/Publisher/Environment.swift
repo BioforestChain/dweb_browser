@@ -31,6 +31,8 @@ class TabState: ObservableObject {
     @Published var showTabGrid = true
     @Published var canGoBack = false
     @Published var canGoForward = false
+    @Published var goBackTapped = false
+    @Published var goForwardTapped = false
     
     var addressBarHeight: CGFloat{
         withAnimation(.easeInOut,{

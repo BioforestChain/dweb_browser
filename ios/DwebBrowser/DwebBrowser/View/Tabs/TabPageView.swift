@@ -70,6 +70,7 @@ struct TabPageView: View {
                     webCache.lastVisitedUrl = url
                 }
             }
+            
             .onReceive(animation.$progress, perform: { progress in
                 if progress == .initial, tabState.showTabGrid, !hasTook{
                     let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
@@ -85,6 +86,18 @@ struct TabPageView: View {
                     }
                 }
             })
+            .onChange(of: tabState.goForwardTapped) { tapped in
+                if tapped{
+                    goForward()
+                    tabState.goForwardTapped = false
+                }
+            }
+            .onChange(of: tabState.goBackTapped) { tapped in
+                if tapped{
+                    goBack()
+                    tabState.goBackTapped = false
+                }
+            }
             
             if webCache.lastVisitedUrl == nil{
                 homeview

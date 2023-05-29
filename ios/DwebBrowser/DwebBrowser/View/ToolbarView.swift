@@ -24,14 +24,14 @@ struct ToolbarView: View {
                     Spacer()
                         .frame(width: 25)
                     ToolbarItem(imageName: "chevron.backward") {
-//                        toolbarStates.canGoBack = true
+                        tabstate.goBackTapped = true
                         print("backward was clicked")
                     }.disabled(!tabstate.canGoBack)
                     
                     Spacer()
                     
                     ToolbarItem(imageName: "chevron.forward") {
-//                        toolbarStates.canGoForward.toggle()
+                        tabstate.goForwardTapped = true
                         print("forwardp was clicked")
                     }.disabled(!tabstate.canGoForward)
                     

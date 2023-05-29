@@ -93,7 +93,7 @@ class WebCacheMgr: ObservableObject{
     @Published var store: [WebCache] = []
 
     init(){
-//        loadCaches()
+        loadCaches()
     }
     
     func append(cache: WebCache){
