@@ -35,6 +35,9 @@ export function* WalkDir(rootpath: string) {
           write(content: string | Uint8Array) {
             return fs.writeFileSync(filepath, content);
           },
+          writeJson(json: unknown, space?: number) {
+            return this.write(JSON.stringify(json, null, space));
+          },
           updateText(updater: (content: string) => string) {
             const oldContent = this.readText();
             const newContent = updater(oldContent);

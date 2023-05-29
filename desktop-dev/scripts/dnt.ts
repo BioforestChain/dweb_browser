@@ -1,10 +1,12 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { WalkDir } from "../../scripts/helper/WalkDir.ts";
 import { build } from "../../scripts/helper/dnt/mod.ts";
-
 // await emptyDir("./npm");
 
 /// before build
 Deno.copyFileSync(".npmrc", "electron/.npmrc");
-await Deno.remove("./electron/src").catch(() => {}); /// if is symlink, will be remove
 
 await build({
   entryPoints: ["./src/index.ts"],
@@ -36,8 +38,35 @@ await build({
   },
   packageManager: "yarn",
   postBuild() {
-    Deno.removeSync("./electron/src", { recursive: true }); /// remove nodejs ts-source
-    Deno.symlinkSync("./src", "./electron/src"); /// create symlink
+    type $SourceMap = {
+      version: number;
+      file: string;
+      sourceRoot: string;
+      sources: string[];
+      names: string[];
+      mappings: string;
+      sourcesContent: string[];
+    };
+    const originSrcPath = fileURLToPath(import.meta.resolve("../"));
+    for (const entry of WalkDir("./electron/script")) {
+      if (entry.filename.endsWith(".js.map")) {
+        const sourceMap = entry.readJson<$SourceMap>();
+        sourceMap.sources = sourceMap.sources.map((source, index) => {
+          const denoFilepath = path.resolve(
+            originSrcPath,
+            entry.relativepath,
+            source
+          );
+          if (fs.existsSync(denoFilepath)) {
+            sourceMap.sourcesContent[index] =
+              Deno.readTextFileSync(denoFilepath);
+          }
+
+          return path.relative(entry.dirpath, denoFilepath);
+        });
+        entry.writeJson(sourceMap);
+      }
+    }
 
     /// 启动
     new Deno.Command("pnpm", {

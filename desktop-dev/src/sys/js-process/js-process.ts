@@ -1,22 +1,21 @@
-import type { Remote } from "comlink";
-import { transfer } from "comlink";
+import { transfer, type Remote } from "comlink";
 import { once } from "lodash";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
+import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
 import {
+  IPC_MESSAGE_TYPE,
+  IPC_ROLE,
   Ipc,
   IpcRequest,
   IpcResponse,
-  IPC_MESSAGE_TYPE,
-  IPC_ROLE,
 } from "../../core/ipc/index.ts";
-import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { $isMatchReq, $ReqMatcher } from "../../helper/$ReqMatcher.ts";
+import { $ReqMatcher, $isMatchReq } from "../../helper/$ReqMatcher.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { createResolveTo } from "../../helper/createResolveTo.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { openNativeWindow } from "../../helper/openNativeWindow.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
 import type { $PromiseMaybe } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
