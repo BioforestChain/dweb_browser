@@ -3,7 +3,9 @@ package info.bagen.dwebbrowser.ui.browser
 import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
@@ -51,13 +53,16 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
       }
     }.launchIn(this)
   }
+
+  val background = MaterialTheme.colorScheme.background
   WebView(
     state = browserWebView.state,
-    modifier = Modifier.fillMaxSize(),
+    modifier = Modifier.fillMaxSize().background(background),
     navigator = browserWebView.navigator,
     factory = {
       browserWebView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
       browserWebView.webView.apply {
+        setBackgroundColor(background.value.toInt()) // 为了保证浏览器背景色和系统主题一致
         setOnTouchListener { v, event ->
           if (event.action == MotionEvent.ACTION_UP) {
             browserWebView.controller.capture()

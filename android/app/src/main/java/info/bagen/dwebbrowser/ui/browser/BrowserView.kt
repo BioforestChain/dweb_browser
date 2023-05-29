@@ -433,12 +433,14 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
 @Composable
 internal fun HomeWebviewPage(viewModel: BrowserViewModel) {
   val webView = viewModel.getNewTabBrowserView()
+  val background = MaterialTheme.colorScheme.background
   WebView(
     state = webView.state,
-    modifier = Modifier.fillMaxSize(),
+    modifier = Modifier.fillMaxSize().background(background),
     navigator = webView.navigator,
     factory = {
       webView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
+      webView.webView.setBackgroundColor(background.value.toInt()) // 为了保证浏览器背景色和系统主题一致
       webView.webView
     }
   )

@@ -1,83 +1,73 @@
 package info.bagen.dwebbrowser
 
-import android.Manifest
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
-import android.view.WindowManager
 import android.webkit.*
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.WindowCompat
 import com.google.accompanist.web.*
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.sys.plugin.permission.PermissionManager
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.splash.SplashPrivacyDialog
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
 import info.bagen.dwebbrowser.util.KEY_ENABLE_AGREEMENT
 import info.bagen.dwebbrowser.util.getBoolean
-import info.bagen.dwebbrowser.util.permission.PermissionManager.Companion.MY_PERMISSIONS
-import info.bagen.dwebbrowser.util.permission.PermissionUtil
 import info.bagen.dwebbrowser.util.saveBoolean
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
-  // private var mKeepOnAtomicBool = java.util.concurrent.atomic.AtomicBoolean(true)
+  private var mKeepOnAtomicBool = java.util.concurrent.atomic.AtomicBoolean(true)
 
-  @OptIn(DelicateCoroutinesApi::class)
+  @SuppressLint("ObjectAnimatorBinding", "CoroutineCreationDuringComposition")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val splashScreen = installSplashScreen() // 必须放在setContent之前
-    // 全屏
-    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
-    val controller = WindowInsetsControllerCompat(window, window.decorView)
-    // controller.isAppearanceLightStatusBars = true // false 状态颜色
-    controller.hide(WindowInsetsCompat.Type.statusBars())
-    controller.hide(WindowInsetsCompat.Type.navigationBars())
+    splashScreen.setKeepOnScreenCondition { mKeepOnAtomicBool.get() } // 使用mKeepOnAtomicBool状态控制欢迎界面
+    App.startMicroModuleProcess() // 启动MicroModule
+    val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false) // 获取隐私协议状态
 
-    App.startMicroModuleProcess()
-
-    //splashScreen.setKeepOnScreenCondition { mKeepOnAtomicBool.get() }
-
-    val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false)
-    if (enable) {
-      App.grant.resolve(true)
-      finish()
-      return
-    }
     setContent {
       val scope = rememberCoroutineScope()
+      LaunchedEffect(mKeepOnAtomicBool) { // 最多显示1s就需要隐藏欢迎界面
+        delay(1000L)
+        mKeepOnAtomicBool.getAndSet(false)
+      }
+
       RustApplicationTheme {
+        SideEffect { // 为了全屏
+          WindowCompat.setDecorFitsSystemWindows(this@SplashActivity.window, false)
+        }
         val webUrl = remember { mutableStateOf("") }
         val showLoading = remember { mutableStateOf(false) }
-        
-        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+
+        SplashMainView()
+        if (enable) {
+          return@RustApplicationTheme
+        }
 
         SplashPrivacyDialog(
           openHome = {
@@ -98,101 +88,48 @@ class SplashActivity : AppCompatActivity() {
         LoadingView(showLoading)
       }
     }
+    splashScreen.setOnExitAnimationListener { splashScreenProvider ->
+      val objectAnimator = ObjectAnimator.ofFloat(splashScreenProvider, "alpha", 1f, 0f)
+      objectAnimator.duration = 1000L
+      objectAnimator.doOnEnd {
+        if (enable) {
+          App.grant.resolve(true)
+        } else {
+          splashScreenProvider.remove()
+        }
+      }
+      objectAnimator.start()
+    }
   }
 
   override fun onStop() {
     super.onStop()
     finish()
   }
-
-  private fun checkAndRequestPermission() {
-    if (!PermissionManager.hasPermissions(
-        this,
-        arrayOf(
-          Manifest.permission.READ_PHONE_STATE,
-          Manifest.permission.READ_EXTERNAL_STORAGE,
-          Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-      )
-    ) {
-      PermissionManager.requestPermissions(
-        this, arrayListOf(
-          Manifest.permission.READ_PHONE_STATE,
-          Manifest.permission.READ_EXTERNAL_STORAGE,
-          Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-      )
-    } else {
-      App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-      App.grant.resolve(true)
-    }
-  }
-
-  override fun onRequestPermissionsResult(
-    requestCode: Int,
-    permissions: Array<out String>,
-    grantResults: IntArray
-  ) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    if (requestCode == MY_PERMISSIONS) {
-      PermissionManager.onRequestPermissionsResult(requestCode, permissions, grantResults, this, object : info.bagen.dwebbrowser.util.permission.PermissionManager.PermissionCallback{
-        override fun onPermissionGranted(permissions: Array<out String>, grantResults: IntArray) {
-          App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-          App.grant.resolve(true)
-        }
-
-        override fun onPermissionDismissed(permission: String) {
-        }
-
-        override fun onPositiveButtonClicked(dialog: DialogInterface, which: Int) {
-          PermissionUtil.openAppSettings()
-        }
-
-        override fun onNegativeButtonClicked(dialog: DialogInterface, which: Int) {
-        }
-      })
-      /*grantResults.forEach {
-        if (it != PackageManager.PERMISSION_GRANTED) {
-          PermissionManager.requestPermissions(
-            this, arrayListOf(
-              Manifest.permission.READ_PHONE_STATE,
-              Manifest.permission.READ_EXTERNAL_STORAGE,
-              Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-          )
-          return
-        }
-      }
-      App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-      App.grant.resolve(true)*/
-    }
-  }
 }
 
-@OptIn(ExperimentalTextApi::class)
 @Composable
 fun SplashMainView() {
-  Column(modifier = Modifier.fillMaxSize()) {
-    Box(
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
+  ) {
+    Image(
+      imageVector = ImageVector.vectorResource(R.drawable.ic_launcher_foreground),
+      contentDescription = "AppIcon",
       modifier = Modifier
-        .fillMaxWidth()
-        .weight(1f)
-    ) {
-      val gradient = listOf(
-        Color(0xFF71D78E), Color(0xFF548FE3)
-      )
-      Text(
-        text = stringResource(id = R.string.app_name),
-        modifier = Modifier.align(Alignment.BottomCenter),
-        style = TextStyle(
-          brush = Brush.linearGradient(gradient), fontSize = 50.sp
-        )
-      )
-    }
-    Box(
+        .size(288.dp)
+        .align(Alignment.Center)
+    )
+
+    Image(
+      imageVector = ImageVector.vectorResource(R.drawable.ic_branding),
+      contentDescription = "Branding",
       modifier = Modifier
-        .fillMaxWidth()
-        .weight(1f)
+        .align(Alignment.BottomCenter)
+        .padding(bottom = 64.dp)
+        .size(width = 192.dp, height = 64.dp)
     )
   }
 }
@@ -262,24 +199,37 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
       }
     }
 
-    WebView(state = state, modifier = Modifier.fillMaxSize(),
-      client = remember { webViewClient },
-      chromeClient = remember { webChromeClient },
-      factory = {
-        WebView(it).also { webView ->
-          webView.settings.also { settings ->
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.databaseEnabled = true
-            settings.safeBrowsingEnabled = true
-            settings.loadWithOverviewMode = true
-            settings.loadsImagesAutomatically = true
-            settings.setSupportMultipleWindows(true)
-            settings.allowFileAccess = true
-            settings.javaScriptCanOpenWindowsAutomatically = true
-            settings.allowContentAccess = true
+    Box(
+      modifier = Modifier.clickable(
+        indication = null,
+        onClick = { },
+        interactionSource = remember { MutableInteractionSource() }
+      )
+    ) {
+      val background = MaterialTheme.colorScheme.background
+      WebView(
+        state = state,
+        modifier = Modifier.fillMaxSize().background(background), // TODO 为了避免暗模式突然闪一下白屏
+        client = remember { webViewClient },
+        chromeClient = remember { webChromeClient },
+        factory = {
+          WebView(it).also { webView ->
+            webView.setBackgroundColor(background.value.toInt()) // TODO 为了避免暗模式突然闪一下白屏
+            webView.settings.also { settings ->
+              settings.javaScriptEnabled = true
+              settings.domStorageEnabled = true
+              settings.databaseEnabled = true
+              settings.safeBrowsingEnabled = true
+              settings.loadWithOverviewMode = true
+              settings.loadsImagesAutomatically = true
+              settings.setSupportMultipleWindows(true)
+              settings.allowFileAccess = true
+              settings.javaScriptCanOpenWindowsAutomatically = true
+              settings.allowContentAccess = true
+            }
           }
         }
-      })
+      )
+    }
   }
 }

@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -116,11 +117,7 @@ fun SplashPrivacyDialog(
   val showPrivacyDeny = remember { mutableStateOf(false) }
 
   val transition = updateTransition(showPrivacyDeny.value, "")
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(Color.DarkGray.copy(0.6f))
-  ) {
+  Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(0.5f))) {
     Box(
       modifier = Modifier
         .fillMaxWidth()
@@ -156,7 +153,8 @@ private fun SplashPrivacyView(
   Column(
     modifier = Modifier
       .fillMaxWidth()
-      .background(Color.White, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+      .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+      .background(MaterialTheme.colorScheme.background)
       .padding(24.dp)
   ) {
     Text(
@@ -206,7 +204,8 @@ private fun BottomButton(
     Text(text = dismissStr,
       modifier = Modifier
         .weight(1f)
-        .background(Color(251, 251, 251), RoundedCornerShape(6.dp))
+        .clip(RoundedCornerShape(6.dp))
+        .background(MaterialTheme.colorScheme.surfaceVariant)
         .clickable { onDismiss() }
         .padding(top = 12.dp, bottom = 12.dp),
       fontWeight = FontWeight.Bold,
@@ -215,7 +214,8 @@ private fun BottomButton(
     Text(text = confirmStr,
       modifier = Modifier
         .weight(1f)
-        .background(Color(243, 243, 255), RoundedCornerShape(6.dp))
+        .clip(RoundedCornerShape(6.dp))
+        .background(MaterialTheme.colorScheme.surfaceVariant)
         .clickable { onConfirm() }
         .padding(top = 12.dp, bottom = 12.dp),
       fontWeight = FontWeight.Bold,
@@ -232,7 +232,8 @@ private fun SplashPrivacyDeny(onDismiss: () -> Unit, onConfirm: () -> Unit) {
   Column(
     modifier = Modifier
       .fillMaxWidth()
-      .background(Color.White, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+      .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+      .background(MaterialTheme.colorScheme.background)
       .padding(24.dp)
   ) {
     Text(

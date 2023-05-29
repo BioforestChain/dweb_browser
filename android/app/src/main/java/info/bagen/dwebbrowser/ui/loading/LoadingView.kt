@@ -5,13 +5,15 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -21,9 +23,9 @@ import kotlin.math.sin
 @Composable
 fun LoadingView(
   showLoading: MutableState<Boolean>,
-  whiteBackground: Boolean = true,
   viewModel: LoadingViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
+  val whiteBackground = !isSystemInDarkTheme()
   if (showLoading.value) {
     LaunchedEffect(Unit) {
       viewModel.setBackground(whiteBackground)
@@ -41,6 +43,7 @@ fun LoadingView(
     val rotateAngle = (360 / count).toDouble()
     Box(modifier = Modifier
       .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
       .clickable(
         indication = null,
         interactionSource = remember { MutableInteractionSource() }) {},
@@ -51,9 +54,8 @@ fun LoadingView(
         modifier = Modifier
           .width((width * 0.16f).dp)
           .aspectRatio(1f)
-          .background(
-            if (whiteBackground) Color.White else Color.Black, shape = RoundedCornerShape(10.dp)
-          ), contentAlignment = Alignment.Center
+          .clip(RoundedCornerShape(10.dp)),
+        contentAlignment = Alignment.Center
       ) {
         Canvas(
           modifier = Modifier
