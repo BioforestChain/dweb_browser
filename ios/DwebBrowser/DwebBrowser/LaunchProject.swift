@@ -17,7 +17,10 @@ public class Entry: NSObject{
         if WebCacheMgr.shared.store.count == 0{
             WebCacheMgr.shared.store = [WebCache.example]
         }
-        let vc = UIHostingController(rootView: BrowserView())
+        let vc = UIHostingController(rootView: BrowserView()
+            .environmentObject(AddrBarOffset())
+            .environmentObject(TabState())
+        )
         return vc
     }
 }
