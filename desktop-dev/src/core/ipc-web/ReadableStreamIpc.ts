@@ -49,10 +49,16 @@ export class ReadableStreamIpc extends Ipc {
   }
 
   private PONG_DATA = once(() => {
-    const pong = simpleEncoder("pong", "utf8");
+    const pong = encode("pong");
     this._len[0] = pong.length;
     return u8aConcat([this._len_u8a, pong]);
   });
+
+  private CLOSE_DATA = once(() => {
+    const close = encode('close');
+    this._len[0] = close.length;
+    return u8aConcat([this._len_u8a, close])
+  })
 
   private _incomne_stream?: ReadableStream<Uint8Array>;
   /**
@@ -78,9 +84,11 @@ export class ReadableStreamIpc extends Ipc {
         console.error("unkonwn message", data);
         return;
       }
+
       if (message === "pong") {
         return;
       }
+
       if (message === "close") {
         this.close();
         return;
