@@ -61,27 +61,28 @@ export class MultiWebViewCompMobileShell extends LitElement {
     this.appContentContainer?.appendChild(el);
   }
 
-  async shareShare(options: $ShareOptions) {
+  shareShare(options: $ShareOptions) {
     const el = document.createElement("multi-webview-comp-share");
     const ui8 = options.body;
     const contentType = options.bodyType;
     const sparator = new TextEncoder().encode(contentType.split("boundary=")[1]).join()
-    console.log("ui8: ", ui8, contentType)
     const file =  this.getFileFromUin8Array(ui8, sparator, 1)
-    console.log('fiel: ', file)
     let src = ""
     let filename = "";
-    if(
-      file.name.endsWith(".gif")
-      || file.name .endsWith(".png") 
-      || file.name.endsWith(".jpg")
-      || file.name.endsWith(".bmp")
-      || file.name.endsWith(".svg")
-      || file.name.endsWith(".webp")
-    ){
-      src = URL.createObjectURL(file)
-    }else{
-      filename = file.name
+
+    if(file !== undefined){
+      if(
+        file.name.endsWith(".gif")
+        || file.name .endsWith(".png") 
+        || file.name.endsWith(".jpg")
+        || file.name.endsWith(".bmp")
+        || file.name.endsWith(".svg")
+        || file.name.endsWith(".webp")
+      ){
+        src = URL.createObjectURL(file)
+      }else{
+        filename = file.name
+      }
     }
     [
       ["_title", options.title],
@@ -102,7 +103,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
       rawUi8: Uint8Array, 
       separatorStr: string,  
       index: number
-    ){
+    ): File | undefined{
       const ui8Str = rawUi8.join()
       // const lineBreak = new TextEncoder().encode('\r\n').join()
       const dubleLineBreak = new TextEncoder().encode('\r\n\r\n').join()
@@ -113,6 +114,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
       const str = resultNoPeratorStrArr[index];
       const arr = str.slice(7,-7).split(dubleLineBreak)
       arr.forEach((str: string, index: number) => {
+        if(str.length === 0) return;
         if(index === 0){
           const des = new TextDecoder().decode(
             new Uint8Array(str.slice(0, -1).split(",") as unknown as ArrayBufferLike)
@@ -135,7 +137,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
           file = new File([blob], filename)
         }
       })
-      return file as unknown as File
+      return file 
     }
 
   protected override render(): unknown {
