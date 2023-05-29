@@ -1,9 +1,7 @@
 // import esbuild from 'npm:esbuild'
-import { parse } from "https://deno.land/std@0.184.0/flags/mod.ts";
-import * as esbuild from "https://deno.land/x/esbuild@v0.17.19/mod.js";
-import { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.7.0/mod.ts";
+import { esbuild, esbuild_deno_loader, Flags } from "./deps.ts";
 
-const esbuildFlags = parse(Deno.args, {
+const esbuildFlags = Flags.parse(Deno.args, {
   boolean: ["bundle"],
   string: ["format", "target", "outfile"],
   default: {
@@ -13,11 +11,9 @@ const esbuildFlags = parse(Deno.args, {
   },
 });
 
-console.log("esbuildFlags", esbuildFlags);
-
 const result = await esbuild.build({
   plugins: [
-    ...denoPlugins({
+    ...esbuild_deno_loader.denoPlugins({
       // importMapURL: import.meta.resolve("../import_map.json") ,
       configPath: import.meta.resolve("../deno.json"),
     }),
@@ -28,6 +24,5 @@ const result = await esbuild.build({
   format: esbuildFlags.format as esbuild.Format,
   target: esbuildFlags.target,
 });
-console.log(result.outputFiles);
 
 // esbuild.stop();

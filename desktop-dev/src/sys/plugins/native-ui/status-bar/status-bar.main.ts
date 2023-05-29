@@ -4,7 +4,11 @@ import type { Ipc } from "../../../../core/ipc/ipc.ts";
 import { IpcEvent } from "../../../../core/ipc/IpcEvent.ts";
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import { getState, setState, startObserve, stopObserve } from "./handlers.ts";
+import {
+  barGetState,
+  barSetState,
+} from "../../../multi-webview/multi-webview.mobile.handler.ts";
+import { startObserve, stopObserve } from "./handlers.ts";
 export class StatusbarNativeUiNMM extends NativeMicroModule {
   mmid = "status-bar.nativeui.sys.dweb" as const;
   httpIpc: Ipc | undefined;
@@ -41,7 +45,7 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: getState.bind(this),
+      handler: barGetState.bind(this, "statusBarGetState"),
     });
 
     this.registerCommonIpcOnMessageHandler({
@@ -49,7 +53,7 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: setState.bind(this),
+      handler: barSetState.bind(this, "statusBarSetState"),
     });
 
     this.registerCommonIpcOnMessageHandler({

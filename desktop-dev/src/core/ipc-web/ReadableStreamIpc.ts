@@ -1,18 +1,18 @@
 import { encode } from "@msgpack/msgpack";
-import { once } from "lodash";
 import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.ts";
+import { once } from "../../helper/$once.ts";
 import { u8aConcat } from "../../helper/binaryHelper.ts";
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.ts";
 import {
-  binaryStreamRead,
   ReadableStreamOut,
+  binaryStreamRead,
 } from "../../helper/readableStreamHelper.ts";
 import type {
   $IpcMicroModuleInfo,
   $IpcSupportProtocols,
   $PromiseMaybe,
 } from "../../helper/types.ts";
-import type { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.ts";
+import type { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
 import { $jsonToIpcMessage } from "./$messageToIpcMessage.ts";

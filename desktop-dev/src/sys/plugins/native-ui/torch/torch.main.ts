@@ -1,6 +1,9 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import { toggleTorch, torchState } from "./handlers.ts";
+import {
+  toggleTorch,
+  torchState,
+} from "../../../multi-webview/multi-webview.mobile.handler.ts";
 
 export class TorchNMM extends NativeMicroModule {
   mmid = "torch.nativeui.sys.dweb" as const;

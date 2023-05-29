@@ -1,4 +1,3 @@
-import { parse } from "https://deno.land/std@0.184.0/flags/mod.ts";
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
@@ -6,7 +5,8 @@ import path from "node:path";
 import JSZip from "npm:jszip";
 import mime from "npm:mime";
 import { WalkDir } from "../../scripts/helper/WalkDir.ts";
-const flags = parse(Deno.args, {
+import { Flags } from "./deps.ts";
+const flags = Flags.parse(Deno.args, {
   string: ["port", "dir", "name"],
   default: { port: 8096 },
 });

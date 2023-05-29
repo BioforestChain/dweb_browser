@@ -12,10 +12,10 @@ import {
   connectMicroModules,
 } from "../../core/nativeConnect.ts";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { log } from "../../helper/devtools.ts";
 import "../../helper/electron.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
@@ -302,7 +302,7 @@ export class DnsNMM extends NativeMicroModule {
       process.argv.findIndex((arg) => /^\w+$/.test(arg))
       // path.parse(process.argv0).name.toLowerCase() === "electron" ? 2 : 1
     );
-    console.log("args:", args);
+    // console.log("args:", args);
 
     if (args.length > 0) {
       const [domain, ...deeplink_args] = args;
@@ -339,16 +339,16 @@ export class DnsNMM extends NativeMicroModule {
 
       /// 查询匹配deeplink的程序
       for (const app of this.apps.values()) {
-        console.log("app.dweb_deeplinks:", app.dweb_deeplinks);
+        // console.log("app.dweb_deeplinks:", app.dweb_deeplinks);
         if (
           undefined !==
           app.dweb_deeplinks.find((dl) => dl.startsWith(dweb_deeplink))
         ) {
           const req = new Request(getReqUrl());
-          console.table({
-            title: `use ${app.mmid}`,
-            message: req.url,
-          });
+          // console.table({
+          //   title: `use ${app.mmid}`,
+          //   message: req.url,
+          // });
           const [ipc] = await context.dns.connect(app.mmid, req);
           const ipc_req_init = await $readRequestAsIpcRequest(req);
           /// 发送请求

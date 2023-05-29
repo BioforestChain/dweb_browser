@@ -1,6 +1,6 @@
-import { once } from "lodash";
+import { once } from "../../helper/$once.ts";
 import { $Binary, binaryToU8a } from "../../helper/binaryHelper.ts";
-import { IpcMessage, IPC_MESSAGE_TYPE } from "./const.ts";
+import { IPC_MESSAGE_TYPE, IpcMessage } from "./const.ts";
 import type { Ipc } from "./ipc.ts";
 import type { IpcBody } from "./IpcBody.ts";
 import { IpcBodySender, setStreamId } from "./IpcBodySender.ts";

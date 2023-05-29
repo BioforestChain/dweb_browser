@@ -1,5 +1,4 @@
 import { transfer, type Remote } from "comlink";
-import { once } from "lodash";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
@@ -12,6 +11,7 @@ import {
 } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $ReqMatcher, $isMatchReq } from "../../helper/$ReqMatcher.ts";
+import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { createResolveTo } from "../../helper/createResolveTo.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";

@@ -3,7 +3,8 @@ import type { Ipc } from "../../../../core/ipc/ipc.ts";
 import { IpcEvent } from "../../../../core/ipc/IpcEvent.ts";
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import { getState, setState, startObserve, stopObserve } from "./handlers.ts";
+import { safeAreaGetState } from "../../../multi-webview/multi-webview.mobile.handler.ts";
+import { startObserve, stopObserve } from "./handlers.ts";
 
 export class SafeAreaNMM extends NativeMicroModule {
   mmid = "safe-area.nativeui.sys.dweb" as const;
@@ -41,7 +42,7 @@ export class SafeAreaNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: getState.bind(this),
+      handler: safeAreaGetState.bind(this),
     });
 
     this.registerCommonIpcOnMessageHandler({
@@ -49,7 +50,7 @@ export class SafeAreaNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: setState.bind(this),
+      handler: safeAreaGetState.bind(this),
     });
 
     this.registerCommonIpcOnMessageHandler({

@@ -1,6 +1,7 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import { show } from "./handlers.ts";
+import { toastShow } from "../../../multi-webview/multi-webview.mobile.handler.ts";
+
 export class ToastNMM extends NativeMicroModule {
   mmid = "toast.sys.dweb" as const;
   _bootstrap = () => {
@@ -10,7 +11,7 @@ export class ToastNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: show.bind(this),
+      handler: toastShow,
     });
   };
 

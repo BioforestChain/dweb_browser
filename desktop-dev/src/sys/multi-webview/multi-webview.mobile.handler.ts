@@ -1,9 +1,15 @@
-import type { Ipc } from "../../core/ipc/index.ts";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
+import type { Ipc } from "../../core/ipc/index.ts";
+import { MicroModule } from "../../core/micro-module.ts";
 import type { $Schema1ToType } from "../../helper/types.ts";
 import { converRGBAToHexa, hexaToRGBA } from "../plugins/helper.ts";
-import type { MultiWebviewNMM } from "./multi-webview.mobile.ts";
+import {
+  apisGetFromMmid,
+  deleteWapis,
+  forceGetWapis,
+} from "./mutil-webview.mobile.wapi.ts";
 import type { $BarState, $ToastPosition } from "./types.ts";
+
 // @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
@@ -13,13 +19,13 @@ type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
  * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
  */
 export async function open(
-  this: MultiWebviewNMM,
+  this: MicroModule,
   root_url: string,
   args: $Schema1ToType<{ url: "string" }>,
   clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  const wapis = await this.forceGetWapis(clientIpc, root_url);
+  const wapis = await forceGetWapis(clientIpc, root_url);
   const webview_id = await wapis.apis.openWebview(args.url);
   return webview_id;
 }
@@ -34,31 +40,25 @@ export async function open(
  * @returns
  */
 export async function closeFocusedWindow(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  const iterator = this._uid_wapis_map.entries();
-  for (let item of iterator) {
-    if (item[1].nww?.isFocused()) {
-      item[1].nww.close();
-      this._uid_wapis_map.delete(item[0]);
-    }
-  }
+  deleteWapis((wapi) => {
+    return wapi.nww.isFocused();
+  });
   return true;
 }
 
 export async function openDownloadPage(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   args: $Schema1ToType<{ url: "string" }>,
   _clientIpc: Ipc,
   request: IpcRequest
 ) {
   const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl;
-  const apis = await this.apisGetFromFocused();
+  const apis = await apisGetFromMmid(_clientIpc.remote.mmid);
   const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`;
   if (apis === undefined) {
     throw new Error(`apis === undefined`);
@@ -82,14 +82,13 @@ export async function barGetState<
     "statusBarGetState" | "navigationBarGetState"
   >
 >(
-  this: MultiWebviewNMM,
+  this: MicroModule,
   apiksKeyName: $ApiKeyName,
-  _root_url: string,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const state = await apis[apiksKeyName]();
   return {
@@ -113,15 +112,14 @@ export async function barSetState<
     "statusBarSetState" | "navigationBarSetState"
   >
 >(
-  this: MultiWebviewNMM,
+  this: MicroModule,
   apiKeyName: $ApiKeyName,
-  _root_url: string,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   request: IpcRequest
 ) {
   let state: $BarState | undefined = undefined;
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const color = request.parsed_url.searchParams.get("color");
   if (color) {
@@ -165,13 +163,12 @@ export async function barSetState<
 }
 
 export async function safeAreaGetState(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const state = await apis.safeAreaGetState();
   return {
@@ -180,13 +177,12 @@ export async function safeAreaGetState(
 }
 
 export async function safeAreaSetState(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const overlay = request.parsed_url.searchParams.get("overlay");
   if (overlay === null) throw new Error(`overlay === null`);
@@ -199,13 +195,12 @@ export async function safeAreaSetState(
 }
 
 export async function virtualKeyboardGetState(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const state = await apis.virtualKeyboardGetState();
   return {
@@ -214,13 +209,12 @@ export async function virtualKeyboardGetState(
 }
 
 export async function virtualKeyboardSetState(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const overlay = request.parsed_url.searchParams.get("overlay");
   if (overlay === null) throw new Error(`overlay === null`);
@@ -233,13 +227,12 @@ export async function virtualKeyboardSetState(
 }
 
 export async function toastShow(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const searchParams = request.parsed_url.searchParams;
   const message = searchParams.get("message");
@@ -259,13 +252,12 @@ export async function toastShow(
 }
 
 export async function shareShare(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const searchParams = request.parsed_url.searchParams;
   const title = searchParams.get("title");
@@ -277,39 +269,36 @@ export async function shareShare(
     link: link === null ? "" : link,
     src: "",
     body: await request.body.u8a(),
-    bodyType: request.headers.get('content-type') as string
+    bodyType: request.headers.get("content-type") as string,
   });
   return true;
 }
 
 export async function toggleTorch(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
 
   return await apis.torchStateToggle();
 }
 
 export async function torchState(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   return await apis.torchStateGet();
 }
 
 export async function haptics(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   args: $Schema1ToType<{ action: "string" }>,
   _clientIpc: Ipc,
   request: IpcRequest
@@ -329,19 +318,18 @@ export async function haptics(
   } else {
     str = `${args.action} : ${query.get("duration")}`;
   }
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   return await apis.hapticsSet(str);
 }
 
 export async function biometricsMock(
-  this: MultiWebviewNMM,
-  _root_url: string,
+  this: MicroModule,
   _args: $Schema1ToType<{}>,
   _clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  const apis = this.apisGetFromFocused();
+  const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
   return (await apis.biometricsMock()) as boolean;
 }

@@ -1,10 +1,10 @@
-import { once } from "lodash";
+import { once } from "../../helper/$once.ts";
 import { $Binary, binaryToU8a, isBinary } from "../../helper/binaryHelper.ts";
 import { parseUrl } from "../../helper/urlHelper.ts";
 import {
-  IpcMessage,
   IPC_MESSAGE_TYPE,
   IPC_METHOD,
+  IpcMessage,
   toIpcMethod,
 } from "./const.ts";
 import type { Ipc } from "./ipc.ts";

@@ -3,7 +3,11 @@ import { IpcEvent } from "../../../../core/ipc/index.ts";
 import type { Ipc } from "../../../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
 import { log } from "../../../../helper/devtools.ts";
-import { getState, setState, startObserve, stopObserve } from "./handlers.ts";
+import {
+  virtualKeyboardGetState,
+  virtualKeyboardSetState,
+} from "../../../multi-webview/multi-webview.mobile.handler.ts";
+import { startObserve, stopObserve } from "./handlers.ts";
 
 export class VirtualKeyboardNMM extends NativeMicroModule {
   mmid = "virtual-keyboard.nativeui.sys.dweb" as const;
@@ -40,7 +44,7 @@ export class VirtualKeyboardNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: getState.bind(this),
+      handler: virtualKeyboardGetState.bind(this),
     });
 
     this.registerCommonIpcOnMessageHandler({
@@ -48,7 +52,7 @@ export class VirtualKeyboardNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: setState.bind(this),
+      handler: virtualKeyboardSetState.bind(this),
     });
 
     this.registerCommonIpcOnMessageHandler({
