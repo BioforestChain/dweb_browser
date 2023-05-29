@@ -11,6 +11,7 @@
   "downloadUrl":"https://dweb.waterbang.top/game.dweb.waterbang.top.dweb.bfsa",
   "author": ["bfs","bfs@bfs.com"],
   "version": "1.0.0",
+  "newFeature":"船新版本，等你来玩！",
   "keywords": ["demo","vue3"],
   "home": "https://dweb.waterbang.top"
 }

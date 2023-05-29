@@ -200,6 +200,6 @@ if (import.meta.main) {
   if (Deno.args[1]) {
     target = Deno.args[1];
   }
-  // deno-lint-ignore no-explicit-any
+  
   await doBuildFromJson(import.meta.resolve(`./npm.${target}.json`));
 }
