@@ -79,7 +79,10 @@ struct TabsContainerView: View{
         
         Image(uiImage: animation.snapshotImage)
             .resizable()
-            .scaledToFill()
+//            .scaledToFill()
+//            .aspectRatio(contentMode: .fit)
+            .aspectRatio(contentMode: .fill)
+
             .frame(width: cellWidth(fullW: geoRect.width),
                    height: cellHeight(fullH: geoRect.height),alignment: .top)
             .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)

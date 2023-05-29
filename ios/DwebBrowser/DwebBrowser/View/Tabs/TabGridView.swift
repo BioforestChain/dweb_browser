@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-import Kingfisher
-import FaviconFinder
 import Combine
 
 struct CellFrameInfo: Equatable{
@@ -40,8 +38,8 @@ struct TabGridView: View {
             ScrollViewReader{ scrollproxy in
                 ScrollView{
                     LazyVGrid(columns: [
-                        GridItem(.adaptive(minimum: (screen_width/3.0 + 1),maximum: screen_width/2.0),spacing: 15)
-                    ],spacing: 20,content: {
+                        GridItem(.adaptive(minimum: (screen_width/3.0),maximum: screen_width/2.0), spacing: gridHSpace)
+                    ], spacing: gridVSpace, content: {
                         ForEach(cacheStore.store, id: \.id) { webCache in
                             GridCell(webCache: webCache)
                                 .id(webCache.id)
@@ -73,10 +71,10 @@ struct TabGridView: View {
                                         })
                                     }
                                 }
-                                .shadow(color: Color.gray, radius: 10)
+                                .shadow(color: Color.gray, radius: 6)
                         }
                     })
-                    .padding(15)
+                    .padding(gridHSpace)
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
                         if tabState.showTabGrid{
                             self.frames = newFrames
@@ -99,75 +97,6 @@ struct TabGridView: View {
     }
 }
 
-struct GridCell: View {
-
-    @State var runCount = 0
-    @ObservedObject var webCache: WebCache
-    var body: some View {
-        ZStack(alignment: .topTrailing){
-            VStack(spacing: 0) {
-                Image(uiImage:  .snapshotImage(from: webCache.snapshotUrl))
-                    .resizable()
-                    .frame(alignment: .top)
-                    .cornerRadius(gridcellCornerR)
-                    .clipped()
-                HStack{
-                    webIconImage
-                        .onAppear{
-                            fetchIconUrl()
-                        }
-                    Text(webCache.title)
-                        .fontWeight(.semibold)
-                        .lineLimit(1)
-                }.frame(height: gridcellBottomH)
-                
-            }
-            .aspectRatio(2.0/3.2, contentMode: .fit)
-            deleteButton
-        }
-    }
-    
-    func fetchIconUrl(){
-        URL.downloadWebsiteIcon(iconUrl: webCache.lastVisitedUrl) { url in
-            print("URL of Favicon: \(url)")
-            DispatchQueue.main.async {
-                webCache.webIconUrl = url
-            }
-        }
-    }
-
-    var deleteButton: some View{
-            Button {
-                print("delete this tab, remove data from cache")
-                WebCacheMgr.shared.remove(webCache: webCache)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 26)
-            }
-            .padding(.top, 8)
-            .padding(.trailing, 8)
-            .buttonStyle(CloseTabStyle())
-            .alignmentGuide(.top) { d in
-                d[.top]
-            }
-            .alignmentGuide(.trailing) { d in
-                d[.trailing]
-            }
-        }
-    
-    var webIconImage: some View{
-        KFImage.url(webCache.webIconUrl)
-            .fade(duration: 0.1)
-            .onProgress { receivedSize, totalSize in print("dowloading icon right now \(receivedSize / totalSize) %") }
-            .onSuccess { result in print("dowload icon done \(result)") }
-            .onFailure { error in print("dowload icon failed \(error)") }
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 22)
-    }
-}
 
 struct TabsCollectionView_Previews: PreviewProvider {
     static var previews: some View {

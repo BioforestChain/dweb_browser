@@ -49,6 +49,7 @@
 		F0E984312A21DC6D00F7180A /* WebWrapperMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */; };
 		F0E984332A2356AC00F7180A /* ShiftAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984322A2356AC00F7180A /* ShiftAnimation.swift */; };
 		F0E984352A248D8E00F7180A /* LaunchProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984342A248D8E00F7180A /* LaunchProject.swift */; };
+		F0E984512A24AC5800F7180A /* GridCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984502A24AC5800F7180A /* GridCellView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +94,7 @@
 		F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebWrapperMgr.swift; sourceTree = "<group>"; };
 		F0E984322A2356AC00F7180A /* ShiftAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftAnimation.swift; sourceTree = "<group>"; };
 		F0E984342A248D8E00F7180A /* LaunchProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchProject.swift; sourceTree = "<group>"; };
+		F0E984502A24AC5800F7180A /* GridCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridCellView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -227,6 +229,7 @@
 			children = (
 				F02899AB29FA882C00B8754A /* TabsContainerView.swift */,
 				F028999A29F7CC0000B8754A /* TabGridView.swift */,
+				F0E984502A24AC5800F7180A /* GridCellView.swift */,
 				F028998B29F7C3E400B8754A /* TabPageView.swift */,
 				F02899A929FA499D00B8754A /* HomeView.swift */,
 			);
@@ -373,6 +376,7 @@
 				F028998829F7C3DC00B8754A /* BrowserView.swift in Sources */,
 				F0E9842B2A1F4A4000F7180A /* StableForEach.swift in Sources */,
 				F028998929F7C3DC00B8754A /* ToolbarView.swift in Sources */,
+				F0E984512A24AC5800F7180A /* GridCellView.swift in Sources */,
 				F0B68D0C2A1CC6C700215036 /* CheckCellInGrid.swift in Sources */,
 				F0BC1C0B2A0F86D50077BE0A /* View+AnimationObserver.swift in Sources */,
 				F0E9842F2A21ACD300F7180A /* simplePublisher.swift in Sources */,
