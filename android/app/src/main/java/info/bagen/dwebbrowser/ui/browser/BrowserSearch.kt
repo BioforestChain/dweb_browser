@@ -1,10 +1,10 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.KeyEvent
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,11 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -28,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
@@ -82,6 +78,7 @@ internal fun SearchView(
     Box(
       modifier = Modifier
         .fillMaxWidth()
+        .background(MaterialTheme.colorScheme.background)
         .navigationBarsPadding()
         .padding(bottom = dimenBottomHeight)
     ) {
@@ -97,19 +94,18 @@ internal fun SearchView(
         color = MaterialTheme.colorScheme.primary
       )
 
-      searchPreview?.let { it() }
-        ?: SearchPreview(
-          show = searchPreviewState,
-          text = inputText,
-          onClose = {
-            focusManager.clearFocus()
-            onClose()
-          },
-          onSearch = {
-            focusManager.clearFocus()
-            onSearch(it)
-          }
-        )
+      searchPreview?.let { it() } ?: SearchPreview(
+        show = searchPreviewState,
+        text = inputText,
+        onClose = {
+          focusManager.clearFocus()
+          onClose()
+        },
+        onSearch = {
+          focusManager.clearFocus()
+          onSearch(it)
+        }
+      )
     }
 
     BrowserTextField(
@@ -183,7 +179,7 @@ internal fun BoxScope.BrowserTextField(
       )
     },
     trailingIcon = {
-      Icon(
+      Image(
         imageVector = ImageVector.vectorResource(R.drawable.ic_circle_close),
         contentDescription = "Close",
         modifier = Modifier
@@ -222,12 +218,15 @@ fun CustomTextField(
     modifier = modifier,
     maxLines = 1,
     singleLine = true,
-    textStyle = TextStyle.Default.copy(fontSize = dimenTextFieldFontSize),
+    textStyle = TextStyle.Default.copy(
+      fontSize = dimenTextFieldFontSize,
+      color = MaterialTheme.colorScheme.onSecondaryContainer
+    ),
     keyboardOptions = keyboardOptions,
     keyboardActions = keyboardActions,
   ) { innerTextField ->
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
-      Row(modifier = Modifier.fillMaxWidth()) {
+      Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Spacer(modifier = Modifier.width(10.dp))
         if (leadingIcon != null) {
           leadingIcon()
@@ -243,7 +242,6 @@ fun CustomTextField(
         }
         Spacer(modifier = Modifier.width(10.dp))
       }
-
     }
   }
 }
@@ -337,7 +335,7 @@ private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
     }
   }.firstOrNull()?.also { browserBaseView ->
     if (browserBaseView === viewModel.uiState.currentBrowserBaseView.value) return@also // TODO 如果搜索到的界面就是我当前显示的界面，就不显示该项
-    val website = browserBaseView .state.let {
+    val website = browserBaseView.state.let {
       WebSiteInfo(
         title = it.pageTitle ?: "无标题",
         url = it.lastLoadedUrl ?: "localhost",

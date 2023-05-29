@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
-import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
@@ -25,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
@@ -33,7 +33,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
@@ -88,9 +87,11 @@ fun BrowserView(viewModel: BrowserViewModel) {
       Box(modifier = Modifier.navigationBarsPadding()) {
         BrowserPopView(viewModel)       // 用于处理弹出框
       }
-    }) {
+    }
+  ) {
     Box(
       modifier = Modifier
+        .background(MaterialTheme.colorScheme.background)
         .statusBarsPadding()
         .navigationBarsPadding()
     ) {
@@ -196,7 +197,7 @@ private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
       visibleState = viewModel.uiState.showBottomBar,
       enter = bottomEnterAnimator,
       exit = bottomExitAnimator,
-      modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
+      modifier = Modifier.background(MaterialTheme.colorScheme.background) // surfaceVariant
     ) {
       Column(modifier = Modifier.fillMaxWidth()) {
         BrowserViewSearch(viewModel)
@@ -290,7 +291,11 @@ private fun RowScope.NavigatorButton(
         modifier = Modifier.size(28.dp),
         imageVector = ImageVector.vectorResource(id = resId),//ImageBitmap.imageResource(id = resId),
         contentDescription = stringResource(id = resName),
-        tint = if (show) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        tint = if (show) {
+          MaterialTheme.colorScheme.onSecondaryContainer
+        } else {
+          MaterialTheme.colorScheme.outlineVariant
+        }
       )
     }
   }
@@ -316,16 +321,14 @@ private fun SearchBox(
   baseView: BrowserBaseView,
 ) {
   Box(modifier = Modifier
-    .padding(
-      horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
-    )
+    .padding(horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign)
     .fillMaxWidth()
     .shadow(
       elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
     )
     .height(dimenSearchHeight)
     .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
-    .background(MaterialTheme.colorScheme.background)
+    .background(MaterialTheme.colorScheme.surface)
     .clickable {
       viewModel.uiState.showSearchView.value = true
     }) {
@@ -346,7 +349,7 @@ private fun SearchBox(
         )
       } else {
         Triple(
-          parseInputText(inputText.value) ?: inputText.value,
+          parseInputText(inputText.value),
           TextAlign.Center,
           Icons.Default.FormatSize
         )
@@ -436,7 +439,7 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel) {
   val background = MaterialTheme.colorScheme.background
   WebView(
     state = webView.state,
-    modifier = Modifier.fillMaxSize().background(background),
+    modifier = Modifier.fillMaxSize().background(Color.White),
     navigator = webView.navigator,
     factory = {
       webView.webView.parent?.let { (it as ViewGroup).removeAllViews() }

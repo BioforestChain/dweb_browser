@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,6 +27,7 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Alignment.Companion.TopStart
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -43,8 +43,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
@@ -90,7 +88,7 @@ class TabItem(
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
   var selectedTabIndex by remember { mutableStateOf(0) }
-  var popupViewState = remember { mutableStateOf(PopupViewState.Options) }
+  val popupViewState = remember { mutableStateOf(PopupViewState.Options) }
   val tabs = listOf(
     TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
     TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
@@ -256,11 +254,25 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
     Column(
       modifier = Modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.outline)
         .clickable(indication = null,
           onClick = { },
           interactionSource = remember { MutableInteractionSource() })
     ) {
+      // 高斯模糊做背景
+      viewModel.uiState.currentBrowserBaseView.value.bitmap?.let { bitmap ->
+        Image(
+          bitmap = bitmap,
+          contentDescription = "BackGround",
+          alignment = Center,
+          contentScale = ContentScale.Fit,
+          modifier = Modifier
+            .fillMaxSize()
+            .blur(radius = 16.dp)
+        )
+      } ?: Box(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background))
+
       if (browserViewList.size == 1) {
         Box(
           modifier = Modifier
@@ -300,7 +312,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
           contentDescription = "Add",
           modifier = Modifier
             .padding(start = 8.dp, end = 8.dp)
-            .size(32.dp)
+            .size(28.dp)
             .align(CenterVertically)
             .clickable { viewModel.handleIntent(BrowserIntent.AddNewMainView) },
           tint = MaterialTheme.colorScheme.primary,
@@ -404,7 +416,7 @@ private fun MultiItemView(
     }
 
     if (!onlyOne || browserBaseView is BrowserWebView) {
-      Icon(
+      Image(
         imageVector = ImageVector.vectorResource(R.drawable.ic_circle_close),
         contentDescription = "Close",
         modifier = Modifier
