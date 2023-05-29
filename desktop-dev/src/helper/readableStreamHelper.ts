@@ -156,7 +156,8 @@ export const streamFromCallback = <T extends (...args: any[]) => unknown>(
 ) => {
   const stream = new ReadableStream<Parameters<T>>({
     start(controller) {
-      onCancel?.then(() => controller.close());
+      // 可能出现数据没有传递完毕但是却关闭了
+      // onCancel?.then(() => controller.close());
       cb((...args: any[]) => {
         controller.enqueue(args as Parameters<T>);
       });

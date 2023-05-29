@@ -98,9 +98,11 @@ export class PortListener {
       const server_req_body_writter = new ReadableStreamOut<Uint8Array>();
       (async () => {
         const client_req_body_reader = Readable.toWeb(req).getReader();
-        client_req_body_reader.closed.then(() => {
-          server_req_body_writter.controller.close();
-        });
+        // 可能出现 数据还没有传递完毕，但是却关闭了
+        // client_req_body_reader.closed.then(() => {
+        //   console.log('执行了关闭？？')
+        //   server_req_body_writter.controller.close();
+        // });
         /// 根据数据拉取的情况，从 req 中按需读取数据，这种按需读取会反压到 web 的请求层那边暂缓数据的发送
         for await (const _ of streamRead(
           streamFromCallback(
