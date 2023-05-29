@@ -47,7 +47,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
       url,
       method,
       headers,
-      IpcBodySender.from(text, ipc),
+      IpcBodySender.fromText(text, ipc),
       ipc
     );
   }
@@ -67,7 +67,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
       url,
       method,
       headers,
-      IpcBodySender.from(binaryToU8a(binary), ipc),
+      IpcBodySender.fromBinary(binaryToU8a(binary), ipc),
       ipc
     );
   }
@@ -87,7 +87,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
       url,
       method,
       headers,
-      IpcBodySender.from(stream, ipc),
+      IpcBodySender.fromStream(stream, ipc),
       ipc
     );
   }
@@ -115,11 +115,11 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
 
     let ipcBody: IpcBody;
     if (isBinary(init.body)) {
-      ipcBody = IpcBodySender.from(init.body, ipc);
+      ipcBody = IpcBodySender.fromBinary(init.body, ipc);
     } else if (init.body instanceof ReadableStream) {
-      ipcBody = IpcBodySender.from(init.body, ipc);
+      ipcBody = IpcBodySender.fromStream(init.body, ipc);
     } else {
-      ipcBody = IpcBodySender.from(init.body ?? "", ipc);
+      ipcBody = IpcBodySender.fromText(init.body ?? "", ipc);
     }
 
     return new IpcRequest(req_id, url, method, headers, ipcBody, ipc);

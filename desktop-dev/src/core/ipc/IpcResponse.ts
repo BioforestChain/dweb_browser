@@ -59,13 +59,13 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     }
     let ipcBody: IpcBody;
     if (asBinary || response.body == undefined) {
-      ipcBody = IpcBodySender.from(
+      ipcBody = IpcBodySender.fromBinary(
         binaryToU8a(await response.arrayBuffer()),
         ipc
       );
     } else {
       setStreamId(response.body, response.url);
-      ipcBody = IpcBodySender.from(response.body, ipc);
+      ipcBody = IpcBodySender.fromStream(response.body, ipc);
     }
 
     return new IpcResponse(
@@ -105,7 +105,7 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
       req_id,
       statusCode,
       headers,
-      IpcBodySender.from(text, ipc),
+      IpcBodySender.fromText(text, ipc),
       ipc
     );
   }
@@ -122,7 +122,7 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
       req_id,
       statusCode,
       headers,
-      IpcBodySender.from(binaryToU8a(binary), ipc),
+      IpcBodySender.fromBinary(binaryToU8a(binary), ipc),
       ipc
     );
   }
@@ -138,7 +138,7 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
       req_id,
       statusCode,
       headers,
-      IpcBodySender.from(stream, ipc),
+      IpcBodySender.fromStream(stream, ipc),
       ipc
     );
     return ipcResponse;

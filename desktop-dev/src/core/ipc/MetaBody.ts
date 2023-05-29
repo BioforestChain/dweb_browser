@@ -100,6 +100,7 @@ export class MetaBody {
       case IPC_DATA_ENCODING.BINARY:
         return IPC_DATA_ENCODING.BINARY;
     }
+    return undefined;
   }
   @cacheGetter()
   get type_isInline() {

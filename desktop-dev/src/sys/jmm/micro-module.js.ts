@@ -134,14 +134,22 @@ export class JsMicroModule extends MicroModule {
     const [jsIpc] = await context.dns.connect("js.sys.dweb");
 
     jsIpc.onRequest(async (ipcRequest) => {
-      const request = ipcRequest.toRequest();
-      const response = await this.nativeFetch(request);
-      const newResponse = await IpcResponse.fromResponse(
-        ipcRequest.req_id,
-        response,
-        jsIpc
-      );
-      jsIpc.postMessage(newResponse);
+      /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
+      if (
+        ipcRequest.parsed_url.protocol === "file:" &&
+        ipcRequest.parsed_url.hostname.endsWith(".dweb")
+      ) {
+        debugger;
+      } else {
+        const request = ipcRequest.toRequest();
+        const response = await this.nativeFetch(request);
+        const newResponse = await IpcResponse.fromResponse(
+          ipcRequest.req_id,
+          response,
+          jsIpc
+        );
+        jsIpc.postMessage(newResponse);
+      }
     });
 
     jsIpc.onEvent(async (ipcEvent) => {

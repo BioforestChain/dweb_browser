@@ -8,7 +8,15 @@ import { IpcStreamAbort } from "./IpcStreamAbort.ts";
 import { IpcStreamPulling } from "./IpcStreamPulling.ts";
 
 export class IpcBodyReceiver extends IpcBody {
-  private static metaIdIpcMap = new Map<string, Ipc>();
+  /**
+   * 基于 metaBody 还原 IpcBodyReceiver
+   */
+  static from(metaBody: MetaBody, ipc: Ipc) {
+    return (
+      IpcBodyReceiver.CACHE.metaId_ipcBodySender_Map.get(metaBody.metaId) ??
+      new IpcBodyReceiver(metaBody, ipc)
+    );
+  }
 
   constructor(readonly metaBody: MetaBody, ipc: Ipc) {
     super();
@@ -17,14 +25,14 @@ export class IpcBodyReceiver extends IpcBody {
       const senderIpcUid = metaBody.senderUid;
       const metaId = `${senderIpcUid}/${streamId}`;
       /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
-      if (IpcBodyReceiver.metaIdIpcMap.has(metaId) === false) {
+      if (IpcBodyReceiver.CACHE.metaId_receiverIpc_Map.has(metaId) === false) {
         ipc.onClose(() => {
-          IpcBodyReceiver.metaIdIpcMap.delete(metaId);
+          IpcBodyReceiver.CACHE.metaId_receiverIpc_Map.delete(metaId);
         });
-        IpcBodyReceiver.metaIdIpcMap.set(metaId, ipc);
+        IpcBodyReceiver.CACHE.metaId_receiverIpc_Map.set(metaId, ipc);
         metaBody.receiverUid = ipc.uid;
       }
-      const receiver = IpcBodyReceiver.metaIdIpcMap.get(metaId);
+      const receiver = IpcBodyReceiver.CACHE.metaId_receiverIpc_Map.get(metaId);
       if (receiver === undefined) {
         throw new Error(`no found ipc by metaId:${metaId}`);
       }
@@ -88,9 +96,11 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
             // STREAM_DATA || STREAM_END
             switch (message.type) {
               case IPC_MESSAGE_TYPE.STREAM_DATA:
+                console.log("receiver/data", stream_id, ipc.uid);
                 controller.enqueue(message.binary);
                 break;
               case IPC_MESSAGE_TYPE.STREAM_END:
+                console.log("receiver/end", stream_id, ipc.uid);
                 controller.close();
                 off();
                 break;
@@ -101,6 +111,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
       pull(controller) {
         if (paused) {
           paused = false;
+          console.log("receiver/pull", stream_id, ipc.uid);
           stream_ipc.postMessage(new IpcStreamPulling(stream_id));
         }
       },
@@ -114,6 +125,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
       highWaterMark: 0,
     }
   );
+  console.log("receiver/start", stream_id, ipc.uid);
   return stream;
 };
 

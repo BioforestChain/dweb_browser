@@ -12,8 +12,8 @@ import {
 } from "../tool/tool.native.ts";
 import { $Ipc, fetchSignal } from "../tool/tool.request.ts";
 // 测试用
-// import { onApiRequest } from "../tool/tool.request.ts"
-import { onApiRequest } from "./api.request.ts";
+import { onApiRequest } from "../tool/tool.request.ts"
+// import { onApiRequest } from "./api.request.ts";
  
 
 const main = async () => {

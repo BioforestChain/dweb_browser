@@ -265,7 +265,6 @@ export async function shareShare(
   const link = searchParams.get("url");
   debugger;
   const body = await request.body.u8a();
-  console.log("share-body:", body);
   apis.shareShare({
     title: title === null ? "" : title,
     text: text === null ? "" : text,

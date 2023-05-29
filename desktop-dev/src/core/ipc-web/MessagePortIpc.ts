@@ -4,7 +4,7 @@ import type {
   $IpcMicroModuleInfo,
   $IpcSupportProtocols,
 } from "../../helper/types.ts";
-import { $IpcMessage, IpcMessage, IPC_ROLE } from "../ipc/const.ts";
+import { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
 import { IpcRequest } from "../ipc/IpcRequest.ts";
 import { IpcResponse } from "../ipc/IpcResponse.ts";
@@ -55,6 +55,9 @@ export class MessagePortIpc extends Ipc {
       if (message === "ping") {
         this.port.postMessage("pong");
         return;
+      }
+      if ("body" in message && message.body.metaBody.metaId === "rs-31") {
+        debugger;
       }
       // console.log("web-message-port-ipc", "onmessage", message);
       this._messageSignal.emit(message, this);

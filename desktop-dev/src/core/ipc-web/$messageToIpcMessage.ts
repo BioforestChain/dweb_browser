@@ -17,6 +17,7 @@ import { IpcStreamPulling } from "../ipc/IpcStreamPulling.ts";
 import { MetaBody } from "../ipc/MetaBody.ts";
 
 export type $JSON<T> = {
+  // deno-lint-ignore ban-types
   [key in keyof T]: T[key] extends Function ? never : T[key];
 };
 
@@ -35,7 +36,7 @@ export const $objectToIpcMessage = (
       data.url,
       data.method,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(MetaBody.fromJSON(data.metaBody), ipc),
+      IpcBodyReceiver.from(MetaBody.fromJSON(data.metaBody), ipc),
       ipc
     );
   } else if (data.type === IPC_MESSAGE_TYPE.RESPONSE) {
@@ -43,7 +44,7 @@ export const $objectToIpcMessage = (
       data.req_id,
       data.statusCode,
       new IpcHeaders(data.headers),
-      new IpcBodyReceiver(MetaBody.fromJSON(data.metaBody), ipc),
+      IpcBodyReceiver.from(MetaBody.fromJSON(data.metaBody), ipc),
       ipc
     );
   } else if (data.type === IPC_MESSAGE_TYPE.EVENT) {
