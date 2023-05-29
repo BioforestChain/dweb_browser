@@ -15,7 +15,8 @@ struct TabPageView: View {
     @ObservedObject var tabState: TabState
 
     @EnvironmentObject var browser: BrowerVM
-    @EnvironmentObject var animation: Animation
+//    @EnvironmentObject var animation: Animation
+    @ObservedObject var animation: Animation
 
     @State var homeview = HomeView()
     @State var hasTook = false
@@ -59,8 +60,8 @@ struct TabPageView: View {
                     webCache.lastVisitedUrl = url
                 }
             }
-            .onChange(of: animation.progress, perform: { progress in
-                if progress == .initial, tabState.showTabGrid{
+            .onReceive(animation.$progress, perform: { progress in
+                if progress == .initial, tabState.showTabGrid, !hasTook{
                     let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
                     if index == browser.selectedTabIndex{
                         if let image = self.environmentObject(browser).snapshot(){
@@ -74,12 +75,6 @@ struct TabPageView: View {
                     }
                 }
             })
-            
-//            .onChange(of: tabState.showTabGrid, perform: { showTabGrid in
-//                if showTabGrid, !hasTook {
-//
-//                }
-//            })
             
             if webCache.lastVisitedUrl == nil{
                 homeview

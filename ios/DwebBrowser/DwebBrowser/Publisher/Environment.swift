@@ -30,13 +30,15 @@ class AddrBarOffset: ObservableObject {
 class TabState: ObservableObject {
     @Published var showTabGrid = true
     var addressBarHeight: CGFloat{
-        showTabGrid ? 0 : addressBarH
+        withAnimation(.easeInOut,{
+            showTabGrid ? 0 : addressBarH
+        })
     }
 }
 
 class Animation: ObservableObject{
     @Published var snapshotImage: UIImage = UIImage.defaultSnapShotImage
-    @Published var progress: AnimationProgress = .none
+    @Published var progress: AnimationProgress = .invisible
     
     
 }

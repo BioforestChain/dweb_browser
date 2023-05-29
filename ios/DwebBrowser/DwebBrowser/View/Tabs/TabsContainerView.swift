@@ -40,23 +40,18 @@ struct TabsContainerView: View{
             
             ZStack{
                 TabGridView(cellFrames: $cellFrames)
-//                    .background(.secondary)
                     .scaleEffect(x: gridScale, y: gridScale)
-                    .opacity(animation.progress == .invisible ? 0 : 1)
                 
-                if animation.progress == .shrinked {
-                    Color(.red)
+                if !tabState.showTabGrid, !animation.progress.isAnimating() {
+                    Color(.white)
                 }
-
                 if !tabState.showTabGrid, !animation.progress.isAnimating(){
-                    WebHScrollView()
+                    WebHScrollView(animation: animation)
                         .environmentObject(animation)
                 }
-
                 if animation.progress.isAnimating(){
                     animationImage
                 }
-                
             }
             .onAppear{
                 geoRect = geo.frame(in: .global)
@@ -69,37 +64,14 @@ struct TabsContainerView: View{
                     animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[browser.selectedTabIndex].snapshotUrl)
                     animation.progress = .startExpanding
                 }
+                
+                withAnimation(.easeInOut(duration: shiftingDuration),{
+                    gridScale = shouldShowGrid ? 1 : 0.8
+                })
             })
-//            .onChange(of: animation.progress){ progress in
-//
-//                if progress == .initial{
-//                    return
-//                }
-//                if progress{
-//                    animation.progress = .startShrinking
-//                }else{
-//                    animation.progress = .startExpanding
-//                }
-//                withAnimation(.easeInOut(duration: shiftingDuration),{
-//                    gridScale == .startShrinking ? 1 : 0.8
-//                })
-//            }
-            
-//            .onReceive(tabState.$showTabGrid, perform: { shouldShowGrid in
-//                print("change showOptions to \(shouldShowGrid)")
-//                if animation.progress == .initial {
-//                    return
-//                }
-//                if shouldShowGrid{
-//                    animation.progress = .startShrinking
-//                }else{
-//                    animation.progress = .startExpanding
-//                }
-//                withAnimation(.easeInOut(duration: shiftingDuration),{
-//                    gridScale = shouldShowGrid ? 1 : 0.8
-//                })
-//            })
-            
+            .onReceive(animation.$progress) { progress in
+                print("animation progress is \(progress)")
+            }
         }
     }
     
@@ -115,16 +87,15 @@ struct TabsContainerView: View{
             .clipped()
             .position(x: cellCenterX(geoMidX: geoRect.midX),
                       y: cellCenterY(geoMidY: geoRect.midY - geoRect.minY))
-
+        
             .onAppear{
                 DispatchQueue.main.asyncAfter(deadline: .now()) {
                     withAnimation(.easeInOut(duration: shiftingDuration)) {
                         animation.progress = animation.progress.next() // change to expanded or shrinked
-                        
                     }
                 }
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.1) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.05) {
                     animation.progress = .fading // change to expanded or shrinked
                 }
                 
@@ -135,7 +106,6 @@ struct TabsContainerView: View{
                 }
             }
     }
-
 
     func cellCenterX(geoMidX: CGFloat)-> CGFloat{
         if animation.progress.imageIsSmall(){
@@ -181,13 +151,14 @@ struct TabsContainerView: View{
 struct WebHScrollView: View{
     @EnvironmentObject var addrBarOffset: AddrBarOffset
     @EnvironmentObject var state: TabState
-
+    @ObservedObject var animation: Animation
+    
     var body: some View{
         GeometryReader{ geo in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
                     ForEach(WebCacheMgr.shared.store){ webCache in
-                        TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id),tabState: state)
+                        TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id),tabState: state, animation: animation)
                             .id(webCache.id)
                             .frame(width: screen_width)
                     }
