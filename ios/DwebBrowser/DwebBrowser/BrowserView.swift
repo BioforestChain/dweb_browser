@@ -19,7 +19,7 @@ struct BrowserView: View {
                     TabsContainerView()
                     Divider().background(Color(.darkGray))
                     AddressBarHStack(selectedTabIndex: $browser.selectedTabIndex)
-                    ToolbarView()
+                    ToolbarView(selectedTabIndex: $browser.selectedTabIndex)
                 }
                 .coordinateSpace(name: "Root")
                 .environmentObject(browser)
@@ -27,6 +27,7 @@ struct BrowserView: View {
             }
         }
     }
+
 }
 
 struct MainContainerView_Previews: PreviewProvider {

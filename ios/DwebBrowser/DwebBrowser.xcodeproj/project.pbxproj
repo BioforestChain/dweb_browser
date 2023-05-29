@@ -48,6 +48,7 @@
 		F0E9842F2A21ACD300F7180A /* simplePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E9842E2A21ACD300F7180A /* simplePublisher.swift */; };
 		F0E984312A21DC6D00F7180A /* WebWrapperMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */; };
 		F0E984332A2356AC00F7180A /* ShiftAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984322A2356AC00F7180A /* ShiftAnimation.swift */; };
+		F0E984352A248D8E00F7180A /* LaunchProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984342A248D8E00F7180A /* LaunchProject.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -91,6 +92,7 @@
 		F0E9842E2A21ACD300F7180A /* simplePublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simplePublisher.swift; sourceTree = "<group>"; };
 		F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebWrapperMgr.swift; sourceTree = "<group>"; };
 		F0E984322A2356AC00F7180A /* ShiftAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftAnimation.swift; sourceTree = "<group>"; };
+		F0E984342A248D8E00F7180A /* LaunchProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchProject.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,6 +128,7 @@
 		F028997529F7C38500B8754A /* DwebBrowser */ = {
 			isa = PBXGroup;
 			children = (
+				F0E984342A248D8E00F7180A /* LaunchProject.swift */,
 				F028997629F7C38500B8754A /* DwebBrowserApp.swift */,
 				F028998529F7C3DA00B8754A /* BrowserView.swift */,
 				F02899AD29FBA27700B8754A /* Example */,
@@ -348,6 +351,7 @@
 			files = (
 				F08E10532A08DC9C00899DF8 /* Environment.swift in Sources */,
 				F028999129F7C4AA00B8754A /* View+snapshot.swift in Sources */,
+				F0E984352A248D8E00F7180A /* LaunchProject.swift in Sources */,
 				F08E10572A0A4F7C00899DF8 /* TestView.swift in Sources */,
 				F0E984332A2356AC00F7180A /* ShiftAnimation.swift in Sources */,
 				F0BC1C0D2A1219CA0077BE0A /* UIImage+Cache.swift in Sources */,

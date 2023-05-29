@@ -10,8 +10,13 @@ import UIKit
 
 struct ToolbarView: View {
     @EnvironmentObject var tabstate: TabState
+    @EnvironmentObject var browser: BrowerVM
+
     @State var moreTapped = false
     @ObservedObject var wrapperMgr = WebWrapperMgr.shared
+    
+    @Binding var selectedTabIndex: Int
+
     var body: some View {
         if !tabstate.showTabGrid{
             HStack(spacing: 5){
@@ -21,14 +26,14 @@ struct ToolbarView: View {
                     ToolbarItem(imageName: "chevron.backward") {
 //                        toolbarStates.canGoBack = true
                         print("backward was clicked")
-                    }
+                    }.disabled(!tabstate.canGoBack)
                     
                     Spacer()
                     
                     ToolbarItem(imageName: "chevron.forward") {
 //                        toolbarStates.canGoForward.toggle()
                         print("forwardp was clicked")
-                    }
+                    }.disabled(!tabstate.canGoForward)
                     
                     Spacer()
                     
@@ -66,6 +71,11 @@ struct ToolbarView: View {
                 }
             }
             .frame(height: toolBarHeight)
+            .onChange(of: browser.selectedTabIndex, perform: { index in
+                let currentWrapper = wrapperMgr.store[index]
+                tabstate.canGoBack = currentWrapper.canGoBack
+                tabstate.canGoForward = currentWrapper.canGoForward
+            })
             
         }else{
             HStack(spacing: 5){
@@ -89,12 +99,15 @@ struct ToolbarView: View {
             }
             .frame(height: toolBarHeight)
         }
+        
     }
+    
 }
 
 struct ToolbarView_Previews: PreviewProvider {
     static var previews: some View {
-        ToolbarView()
+//        ToolbarView()
+        Text("aa")
     }
 }
 

@@ -95,14 +95,14 @@ struct TabsContainerView: View{
                     }
                 }
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.05) {
-                    animation.progress = .fading // change to expanded or shrinked
-                }
+//                DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.05) {
+//                    animation.progress = .fading // change to expanded or shrinked
+//                }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.1) {
-                    withAnimation(.easeInOut(duration: fadingDuration)) {
+//                    withAnimation(.easeInOut(duration: fadingDuration)) {
                         animation.progress = .invisible
-                    }
+//                    }
                 }
             }
     }

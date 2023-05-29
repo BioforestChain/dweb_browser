@@ -29,6 +29,9 @@ class AddrBarOffset: ObservableObject {
 
 class TabState: ObservableObject {
     @Published var showTabGrid = true
+    @Published var canGoBack = false
+    @Published var canGoForward = false
+    
     var addressBarHeight: CGFloat{
         withAnimation(.easeInOut,{
             showTabGrid ? 0 : addressBarH

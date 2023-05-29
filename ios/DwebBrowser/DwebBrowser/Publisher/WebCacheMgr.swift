@@ -81,6 +81,10 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         hasher.combine(title)
         hasher.combine(snapshotUrl)
     }
+    
+    static var example: WebCache{
+        WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2")
+    }
 }
 
 class WebCacheMgr: ObservableObject{
@@ -89,7 +93,7 @@ class WebCacheMgr: ObservableObject{
     @Published var store: [WebCache] = []
 
     init(){
-        loadCaches()
+//        loadCaches()
     }
     
     func append(cache: WebCache){

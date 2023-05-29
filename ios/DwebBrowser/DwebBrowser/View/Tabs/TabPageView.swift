@@ -45,6 +45,16 @@ struct TabPageView: View {
                 print("webWrapper.webView ---- \(webWrapper.webView)")
                 
             }
+            .onChange(of: webWrapper.canGoBack, perform: { canGoBack in
+                if let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper), index == browser.selectedTabIndex{
+                    tabState.canGoBack = canGoBack
+                }
+            })
+            .onChange(of: webWrapper.canGoForward, perform: { canGoForward in
+                if let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper), index == browser.selectedTabIndex{
+                    tabState.canGoForward = canGoForward
+                }
+            })
 
             .onChange(of: webWrapper.estimatedProgress){ newValue in
                 if newValue >= 1.0{

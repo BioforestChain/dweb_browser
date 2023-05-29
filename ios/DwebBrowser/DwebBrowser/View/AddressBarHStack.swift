@@ -52,8 +52,8 @@ struct AddressBar: View {
             ZStack() {
                 Color(.white)
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(colors[WebWrapperMgr.shared.store.firstIndex(of: webWrapper) ?? 0])
-//                    .fill(Color(.darkGray))
+//                    .fill(colors[WebWrapperMgr.shared.store.firstIndex(of: webWrapper) ?? 0])
+                    .fill(Color(.darkGray))
                     .frame(width:screen_width - 48 ,height: 40)
                     .overlay {
                         GeometryReader { geometry in
@@ -78,8 +78,8 @@ struct AddressBar: View {
                 
                 TextField("", text: $inputText)
                     .placeholder(when: inputText.isEmpty) {
-//                        Text("请输入搜索内容").foregroundColor(Color(white: 0.8))
-                        Text(webWrapper.title ?? "").foregroundColor(Color(white: 0.8))
+                        Text("请输入搜索内容").foregroundColor(Color(white: 0.8))
+//                        Text(webWrapper.title ?? "").foregroundColor(Color(white: 0.8))
                     }
                     .background(Color(.darkGray))
                     .foregroundColor(.white)
