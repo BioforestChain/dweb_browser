@@ -17,6 +17,7 @@ export type $TypeName1ToType<T> = T extends "mmid"
   : T extends "boolean"
   ? boolean
   : T extends "object"
+  // deno-lint-ignore ban-types
   ? object
   : T extends "void"
   ? void

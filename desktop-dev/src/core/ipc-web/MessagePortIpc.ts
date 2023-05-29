@@ -63,8 +63,8 @@ export class MessagePortIpc extends Ipc {
   }
 
   _doPostMessage(message: $IpcMessage): void {
-    var message_data: any;
-    var message_raw: IpcMessage<any>;
+    let message_data: any;
+    let message_raw: IpcMessage<any>;
     if (message instanceof IpcRequest) {
       message_raw = message.ipcReqMessage();
     } else if (message instanceof IpcResponse) {

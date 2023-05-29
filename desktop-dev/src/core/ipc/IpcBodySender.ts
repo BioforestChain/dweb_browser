@@ -32,6 +32,10 @@ export class IpcBodySender extends IpcBody {
   }
   constructor(readonly data: $BodyData, private readonly ipc: Ipc) {
     super();
+    this._bodyHub = new BodyHub(data);
+    this.metaBody = this.$bodyAsMeta(data, ipc);
+    this.isStream = data instanceof ReadableStream;
+
     if (typeof data !== "string") {
       IpcBody.wm.set(data, this);
     }
@@ -39,7 +43,7 @@ export class IpcBodySender extends IpcBody {
     IpcBodySender.$usableByIpc(ipc, this);
   }
 
-  readonly isStream = this.data instanceof ReadableStream;
+  readonly isStream: boolean;
 
   private streamCtorSignal =
     createSignal<(signal: STREAM_CTOR_SIGNAL) => unknown>();
@@ -173,8 +177,8 @@ export class IpcBodySender extends IpcBody {
 
   /// bodyAsMeta
 
-  protected _bodyHub = new BodyHub(this.data);
-  readonly metaBody = this.$bodyAsMeta(this.data, this.ipc);
+  protected _bodyHub: BodyHub;
+  readonly metaBody: MetaBody;
 
   private $bodyAsMeta(body: $BodyData, ipc: Ipc): MetaBody {
     if (typeof body === "string") {
@@ -258,8 +262,8 @@ export class IpcBodySender extends IpcBody {
       }
     })().catch(console.error);
 
-    let streamType = IPC_META_BODY_TYPE.STREAM_ID;
-    let streamFirstData: string | Uint8Array = "";
+    const streamType = IPC_META_BODY_TYPE.STREAM_ID;
+    const streamFirstData: string | Uint8Array = "";
     if (
       "preReadableSize" in stream &&
       typeof stream.preReadableSize === "number" &&
@@ -336,7 +340,7 @@ export const setStreamId = (
 };
 
 class UsableIpcBodyMapper {
-  private map = new Map<String, IpcBodySender>();
+  private map = new Map<string, IpcBodySender>();
   add(streamId: string, ipcBody: IpcBodySender) {
     if (this.map.has(streamId)) {
       return true;

@@ -3,12 +3,18 @@ export class AdaptersManager<T> {
   private orderdAdapters: T[] = [];
   private _reorder() {
     this.orderdAdapters = [...this.adapterOrderMap]
-      .sort((a, b) => a[1] - b[1])
+      .sort((a, b) => b[1] - a[1]) // order 越大越靠前
       .map((a) => a[0]);
   }
   get adapters() {
     return this.orderdAdapters as ReadonlyArray<T>;
   }
+  /**
+   * 
+   * @param adapter 
+   * @param order 越大优先级越高
+   * @returns 
+   */
   append(adapter: T, order = 0) {
     this.adapterOrderMap.set(adapter, order);
     this._reorder();

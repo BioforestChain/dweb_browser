@@ -345,7 +345,6 @@ export class ViewTree extends LitElement {
   // 打开一个新的webview标签
   // 在html中执行 open() 也会调用这个方法
   openWebview(src: string) {
-    // debugger;
     const webview_id = this._id_acc++;
     // 都从最前面插入
     this.webviews = [new Webview(webview_id, src), ...this.webviews]

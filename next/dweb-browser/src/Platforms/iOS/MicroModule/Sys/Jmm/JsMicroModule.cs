@@ -39,6 +39,8 @@ public class JsMicroModule : MicroModule
                  * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
                  */
                 var originIpc = await jsmm.jmm._ipcBridgeAsync(jsmm.remoteMmid);
+                await fromMM.BeConnectAsync(originIpc, reason);
+                await toMM.BeConnectAsync(originIpc, reason);
 
                 return new ConnectResult(originIpc, originIpc);
             }
@@ -203,8 +205,6 @@ public class JsMicroModule : MicroModule
                         .IntAsync() ?? throw new Exception("invalid Native2JsIpc.PortId");
 
                     var originIpc = new JmmIpc(portId, this);
-                    // 同样要被生命周期管理销毁
-                    await BeConnectAsync(originIpc, new PureRequest(String.Format("file://{0}/event/dns/connect", Mmid), IpcMethod.Get));
 
                     /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，
                     /// 包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理

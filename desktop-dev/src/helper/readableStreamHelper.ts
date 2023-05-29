@@ -33,8 +33,8 @@ export const binaryStreamRead = (
   } = {}
 ) => {
   const reader = streamRead(stream, options);
-  var done = false;
-  var cache = new Uint8Array(0);
+  let done = false;
+  let cache = new Uint8Array(0);
   const appendToCache = async () => {
     const item = await reader.next();
     if (item.done) {
@@ -120,22 +120,25 @@ export const streamReadAllBuffer = async (
   ).result;
 };
 export class ReadableStreamOut<T> {
-  constructor(readonly strategy?: QueuingStrategy<T>) {}
+  constructor(readonly strategy?: QueuingStrategy<T>) {
+    this.stream = new ReadableStream<T>(
+      {
+        cancel: (reason) => {
+          this._on_cancel_signal?.emit(reason);
+        },
+        start: (controller) => {
+          this.controller = controller;
+        },
+        pull: () => {
+          this._on_pull_signal?.emit();
+        },
+      },
+      this.strategy
+    );
+  }
   controller!: ReadableStreamDefaultController<T>;
-  stream = new ReadableStream<T>(
-    {
-      cancel: (reason) => {
-        this._on_cancel_signal?.emit(reason);
-      },
-      start: (controller) => {
-        this.controller = controller;
-      },
-      pull: () => {
-        this._on_pull_signal?.emit();
-      },
-    },
-    this.strategy
-  );
+  stream: ReadableStream<T>;
+
   private _on_cancel_signal?: Signal<$Callback<[/* reason: */ any]>>;
   get onCancel() {
     return (this._on_cancel_signal ??= createSignal()).listen;

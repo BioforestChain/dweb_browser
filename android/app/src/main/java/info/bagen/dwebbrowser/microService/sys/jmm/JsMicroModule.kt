@@ -47,7 +47,8 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                      */
                     debugJMM("ipcBridge", "begin remoteMmid: ${jsMM.rmm.mmid} ")
                     val originIpc = jsMM.jmm.ipcBridge(jsMM.rmm.mmid)
-                    jsMM.rmm.beConnect(originIpc, reason)
+                    fromMM.beConnect(originIpc, reason)
+                    toMM.beConnect(originIpc, reason)
                     debugJMM("ipcBridge", "done remoteMmid: ${jsMM.rmm.mmid} ")
                     return@append ConnectResult(ipcForFromMM = originIpc, ipcForToMM = originIpc)
                 } else null
@@ -210,9 +211,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                             Uri.of("file://js.sys.dweb/create-ipc").query("process_id", pid)
                                 .query("mmid", fromMmid)
                         ).int()
-                        val originIpc = JmmIpc(portId, this@JsMicroModule).also {
-                            beConnect(it, Request(Method.GET, "file://$mmid/event/dns/connect"))
-                        }
+                        val originIpc = JmmIpc(portId, this@JsMicroModule)
 
                         /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
                         if (targetIpc != null) {

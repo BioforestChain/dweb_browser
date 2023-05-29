@@ -1,3 +1,4 @@
+// deno-lint-ignore-file ban-types
 import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
 import type { Ipc } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
@@ -10,7 +11,6 @@ import {
 } from "./mutil-webview.mobile.wapi.ts";
 import type { $BarState, $ToastPosition } from "./types.ts";
 
-// @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
 /**
@@ -236,7 +236,7 @@ export async function toastShow(
   if (apis === undefined) throw new Error(`wapi === undefined`);
   const searchParams = request.parsed_url.searchParams;
   const message = searchParams.get("message");
-  let duration = searchParams.get("duration");
+  const duration = searchParams.get("duration");
   const position = searchParams.get("position");
 
   if (message === null || duration === null || position === null)
@@ -263,6 +263,9 @@ export async function shareShare(
   const title = searchParams.get("title");
   const text = searchParams.get("text");
   const link = searchParams.get("url");
+  debugger;
+  const body = await request.body.u8a();
+  console.log("share-body:", body);
   apis.shareShare({
     title: title === null ? "" : title,
     text: text === null ? "" : text,
@@ -304,7 +307,7 @@ export async function haptics(
   request: IpcRequest
 ) {
   const query = request.parsed_url.searchParams;
-  let str: string = "";
+  let str = "";
   if (args.action === "impactLight" || args.action === "notification") {
     str = `${args.action} : ${query.get("style")}`;
   } else if (

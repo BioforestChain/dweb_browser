@@ -8,7 +8,7 @@ import type { ServerUrlInfo } from "../../sys/http-server/const.ts";
 import { OBSERVE } from "./tool.event.ts";
 import { cros } from "./tool.native.ts";
 
-const { IpcResponse, Ipc, IpcRequest } = ipc;
+const { IpcResponse, Ipc, IpcRequest, IpcBodySender } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 export type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;

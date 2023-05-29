@@ -2,8 +2,19 @@
   "importMap": "import_map.json",
   "exclude": [
     "assets-projects/",
-    "assets/"
+    "assets/",
+    "electron/"
   ],
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-explicit-any",
+        "no-unused-vars",
+        "no-debugger",
+        "require-await"
+      ]
+    }
+  },
   "tasks": {
     "dnt": "deno run -A ./scripts/dnt.ts",
     "start": "cd ./electron && pnpm start ",

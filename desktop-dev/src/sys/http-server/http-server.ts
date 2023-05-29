@@ -284,7 +284,7 @@ export class HttpServerNMM extends NativeMicroModule {
     return host;
   };
   // 获取 host
-  getHostByURLAndHeaders = (url: string, headers: {}) => {
+  getHostByURLAndHeaders = (url: string, headers: Record<string, string>) => {
     /// 获取 host
     let header_host: string | null = null;
     let header_x_dweb_host: string | null = null;

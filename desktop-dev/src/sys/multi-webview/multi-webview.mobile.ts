@@ -8,20 +8,8 @@ import { log } from "../../helper/devtools.ts";
 import { $Schema1ToType } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import {
-  barGetState,
-  barSetState,
-  biometricsMock,
   closeFocusedWindow,
-  haptics,
   openDownloadPage,
-  safeAreaGetState,
-  safeAreaSetState,
-  shareShare,
-  toastShow,
-  toggleTorch,
-  torchState,
-  virtualKeyboardGetState,
-  virtualKeyboardSetState,
 } from "./multi-webview.mobile.handler.ts";
 import {
   deleteWapis,
@@ -80,7 +68,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: { mmid: "mmid", url: "string" },
       output: "object",
-      handler: openDownloadPage.bind(this, root_url),
+      handler: openDownloadPage.bind(this),
     });
 
     // 关闭 ？？ 这个是关闭整个window  还是关闭一个 webview 标签
@@ -104,7 +92,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: { mmid: "mmid" },
       output: "boolean",
-      handler: closeFocusedWindow.bind(this, root_url),
+      handler: closeFocusedWindow.bind(this),
     });
 
     // 销毁指定的 webview
@@ -162,132 +150,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
         }
         return true;
       },
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/status-bar.nativeui.sys.dweb/getState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: barGetState.bind(this, "statusBarGetState", root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/status-bar.nativeui.sys.dweb/setState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: barSetState.bind(this, "statusBarSetState", root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/navigation-bar.nativeui.sys.dweb/getState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: barGetState.bind(this, "navigationBarGetState", root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/navigation-bar.nativeui.sys.dweb/setState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: barSetState.bind(this, "navigationBarSetState", root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/safe-area.nativeui.sys.dweb/getState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: safeAreaGetState.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/safe-area.nativeui.sys.dweb/setState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: safeAreaSetState.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/virtual-keyboard.nativeui.sys.dweb/getState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: virtualKeyboardGetState.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/virtual-keyboard.nativeui.sys.dweb/setState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: virtualKeyboardSetState.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/toast.sys.dweb/show",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: toastShow.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/share.sys.dweb/share",
-      method: "POST",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "object",
-      handler: shareShare.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/torch.nativeui.sys.dweb/toggleTorch",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "boolean",
-      handler: toggleTorch.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/torch.nativeui.sys.dweb/torchState",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "boolean",
-      handler: torchState.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plugin/haptics.sys.dweb",
-      method: "GET",
-      matchMode: "prefix",
-      input: { mmid: "mmid", action: "string" },
-      output: "boolean",
-      handler: haptics.bind(this, root_url),
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/plubin/biommetrices",
-      method: "GET",
-      matchMode: "full",
-      input: { mmid: "mmid" },
-      output: "boolean",
-      handler: biometricsMock.bind(this, root_url),
     });
   }
   /**

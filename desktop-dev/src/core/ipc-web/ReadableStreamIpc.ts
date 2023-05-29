@@ -96,7 +96,7 @@ export class ReadableStreamIpc extends Ipc {
   private _len = new Uint32Array(1);
   private _len_u8a = new Uint8Array(this._len.buffer);
   _doPostMessage(message: $IpcMessage): void {
-    var message_raw: IpcMessage<any>;
+    let message_raw: IpcMessage<any>;
     // 源代吗 在 处理 /internal/public-url 的时候无法正确的判断
     // message instanceof IpcResponse === false
     // 所以更改为使用message.type 判断

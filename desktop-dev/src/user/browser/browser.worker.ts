@@ -1,7 +1,7 @@
 import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import type { IpcResponse } from "../../core/ipc/IpcResponse.ts";
-import { createSignal } from "../../helper/createSignal.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { createSignal } from "../../helper/createSignal.ts";
 import { closeApp, webViewMap } from "../tool/app.handle.ts";
 import { EVENT, WebViewState } from "../tool/tool.event.ts";
 import {
@@ -12,8 +12,7 @@ import {
 } from "../tool/tool.native.ts";
 import { $Ipc, fetchSignal } from "../tool/tool.request.ts";
 // 测试用
-import { onApiRequest } from "../tool/tool.request.ts"
- 
+import { onApiRequest } from "../tool/tool.request.ts";
 
 const main = async () => {
   const { IpcEvent } = ipc;
@@ -89,7 +88,7 @@ const main = async () => {
       // 返回数据到前端
       return ipc.postMessage(ipcResponse);
     }
-    console.log('ur.pathname: ', url.pathname)
+    console.log("ur.pathname: ", url.pathname);
     onApiRequest(apiServer.startResult.urlInfo, request, ipc);
   });
 
@@ -291,4 +290,5 @@ const main = async () => {
   tryOpenView();
 };
 
-main();
+setTimeout(main, 1000);
+// main();

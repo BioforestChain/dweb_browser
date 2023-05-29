@@ -1,6 +1,6 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
-import { Ipc, IpcResponse, IPC_ROLE } from "../../core/ipc/index.ts";
+import { Ipc, IPC_ROLE, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
@@ -11,7 +11,7 @@ import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
 
 import type { JmmMetadata } from "./JmmMetadata.ts";
 
-type $JsMM = { jmm: JsMicroModule; remoteMmid: $MMID };
+type $JsMM = { jmm: JsMicroModule; remoteMm: MicroModule };
 
 const nativeToWhiteList = new Set<$MMID>(["js.sys.dweb"]);
 connectAdapterManager.append(async (fromMM, toMM, reason) => {
@@ -19,9 +19,9 @@ connectAdapterManager.append(async (fromMM, toMM, reason) => {
   if (nativeToWhiteList.has(toMM.mmid)) {
     /// 白名单，忽略
   } else if (toMM instanceof JsMicroModule) {
-    jsmm = { jmm: toMM, remoteMmid: fromMM.mmid };
+    jsmm = { jmm: toMM, remoteMm: fromMM };
   } else if (fromMM instanceof JsMicroModule) {
-    jsmm = { jmm: fromMM, remoteMmid: toMM.mmid };
+    jsmm = { jmm: fromMM, remoteMm: toMM };
   }
   // 测试代码
   if (jsmm !== undefined) {
@@ -33,7 +33,9 @@ connectAdapterManager.append(async (fromMM, toMM, reason) => {
      * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
      * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
      */
-    const originIpc = await jsmm.jmm.ipcBridge(jsmm.remoteMmid).promise;
+    const originIpc = await jsmm.jmm.ipcBridge(jsmm.remoteMm.mmid).promise;
+    fromMM.beConnect(originIpc, reason);
+    toMM.beConnect(originIpc, reason);
 
     return [originIpc, originIpc];
   }
@@ -184,11 +186,6 @@ export class JsMicroModule extends MicroModule {
           ).number();
 
           const originIpc = new JmmIpc(portId, this);
-          // 同样要被生命周期管理销毁
-          await this.beConnect(
-            originIpc,
-            new Request(`file://${this.mmid}/event/dns/connect`)
-          );
 
           /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，
           /// 包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
