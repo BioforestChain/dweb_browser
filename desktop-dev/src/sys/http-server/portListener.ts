@@ -114,7 +114,9 @@ export class PortListener {
           if (item.done) {
             /// 客户端的传输一旦关闭，转发管道也要关闭
             server_req_body_writter.controller.close();
+            break;
           } else {
+            // console.log('需要发送数据： ',item.value)
             server_req_body_writter.controller.enqueue(item.value);
           }
         }
