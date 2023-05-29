@@ -12,6 +12,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -28,6 +29,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.*
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import info.bagen.dwebbrowser.ui.browser.setDarkMode
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.splash.SplashPrivacyDialog
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
@@ -207,14 +209,17 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
       )
     ) {
       val background = MaterialTheme.colorScheme.background
+      val isDark = isSystemInDarkTheme()
       WebView(
         state = state,
-        modifier = Modifier.fillMaxSize().background(background), // TODO 为了避免暗模式突然闪一下白屏
+        modifier = Modifier
+          .fillMaxSize()
+          .background(background), // TODO 为了避免暗模式突然闪一下白屏
         client = remember { webViewClient },
         chromeClient = remember { webChromeClient },
         factory = {
           WebView(it).also { webView ->
-            webView.setBackgroundColor(background.value.toInt()) // TODO 为了避免暗模式突然闪一下白屏
+            webView.setDarkMode(isDark, background) // 设置深色主题
             webView.settings.also { settings ->
               settings.javaScriptEnabled = true
               settings.domStorageEnabled = true

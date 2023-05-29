@@ -11,6 +11,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -437,13 +438,14 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
 internal fun HomeWebviewPage(viewModel: BrowserViewModel) {
   val webView = viewModel.getNewTabBrowserView()
   val background = MaterialTheme.colorScheme.background
+  val isDark = isSystemInDarkTheme()
   WebView(
     state = webView.state,
-    modifier = Modifier.fillMaxSize().background(Color.White),
+    modifier = Modifier.fillMaxSize().background(background),
     navigator = webView.navigator,
     factory = {
       webView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
-      webView.webView.setBackgroundColor(background.value.toInt()) // 为了保证浏览器背景色和系统主题一致
+      webView.webView.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
       webView.webView
     }
   )

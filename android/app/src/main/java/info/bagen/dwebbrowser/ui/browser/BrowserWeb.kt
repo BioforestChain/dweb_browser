@@ -1,15 +1,20 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.view.MotionEvent
 import android.view.ViewGroup
+import android.webkit.WebSettings
+import android.webkit.WebView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import com.google.accompanist.web.LoadingState
@@ -55,14 +60,17 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
   }
 
   val background = MaterialTheme.colorScheme.background
+  val isDark = isSystemInDarkTheme()
   WebView(
     state = browserWebView.state,
-    modifier = Modifier.fillMaxSize().background(background),
+    modifier = Modifier
+      .fillMaxSize()
+      .background(background),
     navigator = browserWebView.navigator,
     factory = {
       browserWebView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
       browserWebView.webView.apply {
-        setBackgroundColor(background.value.toInt()) // 为了保证浏览器背景色和系统主题一致
+        setDarkMode(isDark, background) // 设置深色主题
         setOnTouchListener { v, event ->
           if (event.action == MotionEvent.ACTION_UP) {
             browserWebView.controller.capture()
@@ -83,4 +91,18 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
       }
       browserWebView.webView
     })
+}
+
+/**
+ * 用于设置当前的 WebView 是否跟随系统深色主题
+ * @param isDark 是否是深色主题
+ */
+fun WebView.setDarkMode(isDark: Boolean, background: Color) {
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    settings.isAlgorithmicDarkeningAllowed = isDark
+  } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    settings.forceDark = if (isDark) WebSettings.FORCE_DARK_ON else WebSettings.FORCE_DARK_OFF
+  } else {
+    setBackgroundColor(background.value.toInt())
+  }
 }
