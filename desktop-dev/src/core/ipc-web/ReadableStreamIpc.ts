@@ -134,6 +134,7 @@ export class ReadableStreamIpc extends Ipc {
   }
 
   _doClose() {
+    this.controller.enqueue(this.CLOSE_DATA())
     this.controller.close();
   }
 }
