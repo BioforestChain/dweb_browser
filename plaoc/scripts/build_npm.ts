@@ -1,6 +1,6 @@
 // ex. scripts/build_npm.ts
-import { copySync } from "https://deno.land/std@0.156.0/fs/mod.ts";
 import * as semver from "https://deno.land/std@0.156.0/semver/mod.ts";
+import { cpSync as copySync } from "node:fs";
 import {
   build,
   emptyDir,
@@ -200,6 +200,6 @@ if (import.meta.main) {
   if (Deno.args[1]) {
     target = Deno.args[1];
   }
-  
+
   await doBuildFromJson(import.meta.resolve(`./npm.${target}.json`));
 }
