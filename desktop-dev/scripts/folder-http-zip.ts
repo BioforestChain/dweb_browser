@@ -42,41 +42,41 @@ http
       zip
         .generateNodeStream({ compression: "STORE" })
         .pipe(res as NodeJS.WritableStream);
-    } else {
-      try {
-        const filepath = path.join(dir, req.url || "/index.html");
-        if (fs.existsSync(filepath)) {
-          if (fs.statSync(filepath).isFile()) {
-            console.log("file:", filepath);
-            fs.createReadStream(filepath).pipe(res as NodeJS.WritableStream);
-          } else {
-            res.setHeader("Content-Type", "text/html");
-            res.end(
-              `<ol>${fs
-                .readdirSync(filepath)
-                .map((name) => {
-                  const is_dir = fs
-                    .statSync(filepath + "/" + name)
-                    .isDirectory();
-                  return `<li>${
-                    is_dir ? `<span> > </span>` : ""
-                  }<a href="./${name}${is_dir ? "/" : ""}">${name}</a></li>`;
-                })
-                .join("")}</ol>`
-            );
-          }
-          res.setHeader(
-            "Content-Type",
-            mime.getType(filepath) || "application/octet-stream"
-          );
-          return;
-        }
-      } catch (err) {
-        res.write(err?.message ?? String(err));
-      }
-      res.statusCode = 404;
-      res.end();
+
+      return;
     }
+
+    try {
+      const filepath = path.join(dir, req.url || "/index.html");
+      if (fs.existsSync(filepath)) {
+        if (fs.statSync(filepath).isFile()) {
+          console.log("file:", filepath);
+          fs.createReadStream(filepath).pipe(res as NodeJS.WritableStream);
+        } else {
+          res.setHeader("Content-Type", "text/html");
+          res.end(
+            `<ol>${fs
+              .readdirSync(filepath)
+              .map((name) => {
+                const is_dir = fs.statSync(filepath + "/" + name).isDirectory();
+                return `<li>${
+                  is_dir ? `<span> > </span>` : ""
+                }<a href="./${name}${is_dir ? "/" : ""}">${name}</a></li>`;
+              })
+              .join("")}</ol>`
+          );
+        }
+        res.setHeader(
+          "Content-Type",
+          mime.getType(filepath) || "application/octet-stream"
+        );
+        return;
+      }
+    } catch (err) {
+      res.write(err?.message ?? String(err));
+    }
+    res.statusCode = 404;
+    res.end();
   })
   .listen(port, () => {
     for (const info of Object.values(os.networkInterfaces())

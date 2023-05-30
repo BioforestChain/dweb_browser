@@ -102,15 +102,15 @@ function openDevToolsAtBrowserWindowByWebContents(
       partition: "devtools",
     },
   });
-  content_wcs.setDevToolsWebContents(devTools.webContents);
+  // content_wcs.setDevToolsWebContents(devTools.webContents);
   // devTools.loadURL("devtools://devtools/bundled/inspector.html"); // 不能缺少否则会报一个 js 导入文件的错误
 
-  content_wcs.openDevTools();
-  devTools.webContents.executeJavaScript(
-    `(()=>{
-      document.title = ${JSON.stringify(`for: ${title}`)}
-    })()`
-  );
+  // content_wcs.openDevTools();
+  // devTools.webContents.executeJavaScript(
+  //   `(()=>{
+  //     document.title = ${JSON.stringify(`for: ${title}`)}
+  //   })()`
+  // );
   return devTools;
 }
 

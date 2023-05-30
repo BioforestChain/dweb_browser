@@ -68,13 +68,9 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
       ipcBody = IpcBodySender.fromStream(response.body, ipc);
     }
 
-    return new IpcResponse(
-      req_id,
-      response.status,
-      new IpcHeaders(response.headers),
-      ipcBody,
-      ipc
-    );
+    const ipcHeaders = new IpcHeaders(response.headers);
+
+    return new IpcResponse(req_id, response.status, ipcHeaders, ipcBody, ipc);
   }
   static fromJson(
     req_id: number,

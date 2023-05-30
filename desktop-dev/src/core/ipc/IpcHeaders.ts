@@ -4,6 +4,7 @@ export class IpcHeaders extends Headers {
       return;
     }
     this.set(key, value);
+    return this;
   }
   toJSON() {
     const record: Record<string, string> = {};

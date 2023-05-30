@@ -53,18 +53,16 @@ export async function closeFocusedWindow(
 
 export async function openDownloadPage(
   this: MicroModule,
+  root_url: string,
   args: $Schema1ToType<{ url: "string" }>,
   _clientIpc: Ipc,
   request: IpcRequest
 ) {
   const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl;
-  const apis = await apisGetFromMmid(_clientIpc.remote.mmid);
   const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`;
-  if (apis === undefined) {
-    throw new Error(`apis === undefined`);
-  }
-  const webview_id = await apis.openWebview(targetUrl);
-  return {};
+  const wapi = await forceGetWapis(_clientIpc, root_url);
+  const webview_id = await wapi.apis.openWebview(targetUrl);
+  return { webview_id };
 }
 
 /**

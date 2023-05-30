@@ -57,8 +57,16 @@ async function getData(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   const url = searchParams.get("url");
   if (url === null) throw new Error(`${this.mmid} url === null`);
   const res = await fetch(url);
+
+  const res_json_text = await res.text();
   ipc.postMessage(
-    await IpcResponse.fromResponse(request.req_id, res, ipc, true)
+    await IpcResponse.fromText(
+      request.req_id,
+      res.status,
+      new IpcHeaders().init("Content-Type", "application/json"),
+      res_json_text,
+      ipc
+    )
   );
 }
 

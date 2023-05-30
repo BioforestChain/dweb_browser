@@ -29,15 +29,11 @@ const enum DOWNLOAD_STATUS {
 let downloadState = DOWNLOAD_STATUS.INIT; // -1 没有在下载 0 下载暂停中
 
 type $AppMetaData = import("../jmm.ts").$AppMetaData;
-declare global {
-  var appInfo: $AppMetaData;
-}
+let appInfo: $AppMetaData;
 
 // 根据获取到的 appInfo 设置内容
 async function setAppInfoByAppInfo(info: any) {
-  const appInfo: $AppMetaData =
-    typeof info === "object" ? info : JSON.parse(info);
-  window.appInfo = appInfo;
+  appInfo = typeof info === "object" ? info : JSON.parse(info);
   elIcon.style.backgroundImage =
     "url('https://www.bfmeta.info/imgs/logo3.webp')";
   elMainTitle.innerHTML = appInfo.title;
@@ -62,9 +58,9 @@ elBtnDownload.addEventListener("click", async (e) => {
     downloadState = DOWNLOAD_STATUS.PROGRESS;
     // 通过返回一个 stream 实现 长连接
     const url = location.origin.replace("www.", "api.");
-    const res = await fetch(
-      `${url}/app/download?url=${window.appInfo.downloadUrl}&id=${window.appInfo.id}`
-    );
+    const fetch_url = `${url}/app/download?url=${appInfo.downloadUrl}&id=${appInfo.id}`;
+    console.log("fetch_url:", fetch_url);
+    const res = await fetch(fetch_url);
 
     const stream = res.body!;
     const reader = stream.getReader();
@@ -93,10 +89,9 @@ elBtnDownload.addEventListener("click", async (e) => {
   if (downloadState === DOWNLOAD_STATUS.DONE) {
     // closeSelf();
     // 然后打开指定的应用
-    const mmid = window.appInfo.id;
-    const root =
-      "file:///jmm/apps/" + window.appInfo.id + window.appInfo.server.root;
-    const entry = window.appInfo.server.entry;
+    const mmid = appInfo.id;
+    const root = "file:///jmm/apps/" + appInfo.id + appInfo.server.root;
+    const entry = appInfo.server.entry;
     const res = await fetch(
       `${url}/app/open?mmid=${mmid}&root=${root}&entry=${entry}`
     );
@@ -163,7 +158,9 @@ function getApiOrigin() {
   const metadataUrl = search.get("metadataUrl");
   console.log("metadataUrl: ", metadataUrl);
   const url = getApiOrigin();
-  const response = await fetch(`${url}/get_data?url=${metadataUrl}`);
+  const get_data_url = `${url}/get_data?url=${metadataUrl}`;
+  console.log("get-data url", get_data_url);
+  const response = await fetch(get_data_url);
   setAppInfoByAppInfo(await response.json());
 })();
 

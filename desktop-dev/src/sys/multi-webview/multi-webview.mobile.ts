@@ -17,8 +17,6 @@ import {
 } from "./mutil-webview.mobile.wapi.ts";
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
-
-
 /**
  * 构建一个视图树
  * 如果是桌面版，所以不用去管树的概念，直接生成生成就行了
@@ -67,9 +65,9 @@ export class MultiWebviewNMM extends NativeMicroModule {
       method: "POST",
       pathname: "/open_new_webveiw_at_focused",
       matchMode: "full",
-      input: { mmid: "mmid", url: "string" },
+      input: { url: "string" },
       output: "object",
-      handler: openDownloadPage.bind(this),
+      handler: openDownloadPage.bind(this, root_url),
     });
 
     // 关闭 ？？ 这个是关闭整个window  还是关闭一个 webview 标签
