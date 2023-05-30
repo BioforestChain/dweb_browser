@@ -8,14 +8,13 @@
 <br />
 <br />
 
-![plaoc doc](https://img.shields.io/badge/plaoc-doc-blue)
 ![stable-release](https://img.shields.io/badge/dweb-browser-success)
 ![stable-release](https://img.shields.io/badge/dweb-plaoc-orange)
 ![starts](https://shields.io/github/stars/BioforestChain/dweb_browser)
-<!-- [![Telegram Group][telegram-badge]][telegram-url] -->
+[![Plaoc Group][plaoc-badge]][plaoc-url]
 
-<!-- [telegram-badge]: https://cdn.jsdelivr.net/gh/Patrolavia/telegram-badge@8fe3382b3fd3a1c533ba270e608035a27e430c2e/chat.svg -->
-[plaoc doc]: https://github.com/BioforestChain/dweb_browser-docs
+[plaoc-badge]: https://img.shields.io/badge/plaoc-doc-blue
+[plaoc-url]: https://github.com/BioforestChain/dweb_browser-docs
 
 
 # About dweb-jmm-bundler
