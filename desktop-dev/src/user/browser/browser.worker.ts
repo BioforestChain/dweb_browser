@@ -13,6 +13,7 @@ import {
 import { $Ipc, fetchSignal } from "../tool/tool.request.ts";
 // 测试用
 import { onApiRequest } from "../tool/tool.request.ts"
+import { IpcRequest } from "../../../electron/script/core/ipc/IpcRequest.js";
 // import { onApiRequest } from "./api.request.ts";
  
 
@@ -185,6 +186,9 @@ const main = async () => {
   // 转发serviceWorker 请求
   const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
     const pathname = url.pathname;
+    // 关闭的流程需要调整
+    // 向dns发送关闭当前 模块的消息
+    // woker.js -> dns -> JsMicroModule -> woker.js -> 其他的 NativeMicroModule
 
     if (pathname.endsWith("close") || pathname.endsWith("restart")) {
       // 关闭全部的服务
@@ -197,22 +201,33 @@ const main = async () => {
       wwwReadableStreamIpc.close();
       externalReadableStreamIpc.close();
     }
-    // 关闭
-    if (pathname.endsWith("close")) {
-      jsProcess.close();
+
+    if(pathname.endsWith('close')){
+      jsProcess.nativeFetch(
+        `file://dns.sys.dweb/close?app_id=${jsProcess.mmid}`
+      )
+      return "close ok";
     }
+
+    if(pathname.endsWith("restart")){
+      jsProcess.nativeFetch(
+        `file://dns.sys.dweb/restart?app_id=${jsProcess.mmid}`
+      )
+      return "restart ok"
+    }
+    
     // 重启app，伴随着前后端重启
-    if (pathname.endsWith("restart")) {
-      // 关闭别人来激活的ipc
-      multiWebViewCloseSignal.emit();
-      closeApp(
-        [apiServer, wwwServer, externalServer],
-        [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
-      );
-      // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-      jsProcess.restart();
-      return "restart ok";
-    }
+    // if (pathname.endsWith("restart")) {
+    //   // 关闭别人来激活的ipc
+    //   multiWebViewCloseSignal.emit();
+    //   closeApp(
+    //     [apiServer, wwwServer, externalServer],
+    //     [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
+    //   );
+    //   // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
+    //   jsProcess.restart();
+    //   return "restart ok";
+    // }
     return "no action for serviceWorker Factory !!!";
   };
 

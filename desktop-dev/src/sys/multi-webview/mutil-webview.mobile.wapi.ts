@@ -33,6 +33,21 @@ export const apisGetFromMmid = (mmid: $MMID) => {
 };
 
 export const forceGetWapis = (ipc: Ipc, root_url: string) => {
+  ipc.onClose(() => {
+    // 是否会出现 一个 JsMicroModule 打开其他的 JsMicroModule 
+    // 的情况，如果是这样的话会出现一个 borserWindow 内会包含连个应用
+    // 当前判断不可以 是不可以 一个 browserWindow 内只会以一个 应用
+    const wapi = _mmid_wapis_map.get(ipc.remote.mmid);
+    const devToolsWin = wapi?.nww._devToolsWin.values()
+    if(devToolsWin !== undefined){
+      Array.from(devToolsWin).forEach(item => {
+        item.close();
+      })
+    }
+    wapi?.nww.close();
+    _mmid_wapis_map.delete(ipc.remote.mmid)
+  })
+
   return locks.request("multi-webview-get-window-" + ipc.remote.mmid, async () => {
     let wapi = _mmid_wapis_map.get(ipc.remote.mmid);
     if (wapi === undefined) {

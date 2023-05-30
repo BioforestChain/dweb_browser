@@ -29,7 +29,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
 
   async _bootstrap(context: $BootstrapContext) {
     console.always(`${this.mmid} _bootstrap`);
-
     const httpDwebServer = await createHttpDwebServer(this, {});
     this._after_shutdown_signal.listen(() => httpDwebServer.close());
     /// 从本地文件夹中读取数据返回，

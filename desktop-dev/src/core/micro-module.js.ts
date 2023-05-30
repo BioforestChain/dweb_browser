@@ -68,6 +68,8 @@ export class JsMicroModule extends MicroModule {
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private _process_id?: string;
+  private _streamIpc: ReadableStreamIpc  = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
+  private _jsIpc: Ipc | undefined;
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
@@ -79,16 +81,15 @@ export class JsMicroModule extends MicroModule {
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.sys.dweb/create-process
     // 用来提供 JsMicroModule 匹配的 worker.js 代码
-    const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
-    streamIpc.onRequest(async (request) => {
+    this._streamIpc.onRequest(async (request) => {
       if (request.parsed_url.pathname.endsWith("/")) {
-        streamIpc.postMessage(
+        this._streamIpc.postMessage(
           IpcResponse.fromText(
             request.req_id,
             403,
             undefined,
             "Forbidden",
-            streamIpc
+            this._streamIpc
           )
         );
       } else {
@@ -97,20 +98,20 @@ export class JsMicroModule extends MicroModule {
           this.metadata.config.server.root + request.parsed_url.pathname
         ).text();
 
-        streamIpc.postMessage(
+        this._streamIpc.postMessage(
           IpcResponse.fromText(
             request.req_id,
             200,
             undefined,
             main_code,
-            streamIpc
+            this._streamIpc
           )
         );
       }
     });
 
     // 创建一个 streamIpc
-    void streamIpc.bindIncomeStream(
+    void this._streamIpc.bindIncomeStream(
       this.nativeFetch(
         buildUrl(new URL(`file://js.sys.dweb/create-process`), {
           search: {
@@ -120,14 +121,14 @@ export class JsMicroModule extends MicroModule {
         }),
         {
           method: "POST",
-          body: streamIpc.stream,
+          body: this._streamIpc.stream,
         }
       ).stream()
     );
 
-    const [jsIpc] = await context.dns.connect("js.sys.dweb");
+    [this._jsIpc] = await context.dns.connect("js.sys.dweb");
 
-    jsIpc.onRequest(async (ipcRequest) => {
+    this._jsIpc.onRequest(async (ipcRequest) => {
       /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
       if (
         ipcRequest.parsed_url.protocol === "file:" &&
@@ -140,17 +141,19 @@ export class JsMicroModule extends MicroModule {
         const newResponse = await IpcResponse.fromResponse(
           ipcRequest.req_id,
           response,
-          jsIpc
+          this._jsIpc!
         );
-        jsIpc.postMessage(newResponse);
+        this._jsIpc!.postMessage(newResponse);
       }
     });
 
-    jsIpc.onEvent(async (ipcEvent) => {
-      if (ipcEvent.name === "restart") {
-        this.nativeFetch(`file://dns.sys.dweb/restart?app_id=${this.mmid}`);
-        return;
-      } else if (ipcEvent.name === "dns/connect") {
+    this._jsIpc.onEvent(async (ipcEvent) => {
+      // if (ipcEvent.name === "restart") {
+      //   // 
+      //   // this.nativeFetch(`file://dns.sys.dweb/restart?app_id=${this.mmid}`);
+      //   return;
+      // } else 
+      if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
         /**
          * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
@@ -225,6 +228,15 @@ export class JsMicroModule extends MicroModule {
   }
 
   _shutdown() {
+    // 关闭 streamIpc
+    this._streamIpc.close();
+    // 关闭 messagePortIpc
+    this._jsIpc!.close();
+    // 删除 _fromMmid_originIpc_map 里面的ipc
+    Array.from(this._fromMmid_originIpc_map.values()).forEach(async (item) => {
+      (await item.promise).close()
+    })
+
     /**
      * @TODO 发送指令，关停js进程
      */

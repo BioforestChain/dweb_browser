@@ -145,6 +145,10 @@ export class JsProcessMicroModule implements $MicroModule {
       this,
       IPC_ROLE.SERVER
     );
+
+    this.fetchIpc.onClose(() => {
+      this.close();
+    })
   }
 
   /// 这个通道只能用于基础的通讯
@@ -189,14 +193,19 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   /** 关闭 */
-  close() {
-    this.nativeFetch(`file://dns.sys.dweb/close?app_id=${this.mmid}`);
+  async close() {
+    // 关闭全部的IPC 不管是主动还是被动连接的IPC
+    Array.from(this._ipcConnectsMap.values()).forEach(async (item) => {
+      (await item.promise).close()
+    })
+    // 关闭当前wroker
+    self.close()
   }
 
-  /**重启 */
-  restart() {
-    this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
-  }
+  // /**重启 */
+  // restart() {
+  //   this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
+  // }
 
   private _activitySignal = createSignal<$OnIpcEventMessage>();
   private _closeSignal = createSignal<$OnIpcEventMessage>();

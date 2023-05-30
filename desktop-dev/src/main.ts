@@ -25,8 +25,12 @@ import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.ts";
  * "http"
  * "http/dweb-server",
  * 'http/port-listener'
+ * "mm"
  * "jmm"
  * "jsmm"
+ * "mwebview"
+ * "dns"
+ * 
  * "jsProcess"
  * 
  * "biometrices"
@@ -43,10 +47,16 @@ import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.ts";
  * "receiver/end"
  * "receiver/pull"
  * "receiver/start"
+ * "maphelper"
  */
 // 设置 console 过滤条件
 setFilter([
-  // "sender/pulling"
+  "jsmm",
+  "mwebview",
+  "jsProcess",
+  "mm",
+  "maphelper",
+  "dns"
 ])
 
 export const dns = new DnsNMM();

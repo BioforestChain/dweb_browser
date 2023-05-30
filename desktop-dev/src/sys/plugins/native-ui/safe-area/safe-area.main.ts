@@ -71,6 +71,10 @@ export class SafeAreaNMM extends NativeMicroModule {
 
   override _onConnect(ipc: Ipc) {
     this.observes.set(ipc.remote.mmid, ipc);
+    ipc.onClose(() => {
+      this.observes.delete(ipc.remote.mmid)
+      this.observesState.delete(ipc.remote.mmid)
+    })
   }
 
   _shutdown = () => {

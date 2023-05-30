@@ -19,8 +19,7 @@ import type { $PromiseMaybe } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 
-let pre = 0;
-
+// @ts-ignore
 type $APIS = typeof import("./assets/js-process.web.ts")["APIS"];
 
 class ImportLinker {
@@ -199,7 +198,6 @@ export class JsProcessNMM extends NativeMicroModule {
       input: { entry: "string", process_id: "string" },
       output: "object",
       handler: async (args, ipc, requestMessage) => {
-        // console.log("jsProcess","ipc.", ipc.remote.mmid);
         const processIdMap = mapHelper.getOrPut(
           ipcProcessIdMap,
           ipc,
@@ -211,6 +209,11 @@ export class JsProcessNMM extends NativeMicroModule {
             `ipc:${ipc.remote.mmid}/processId:${args.process_id} has already using`
           );
         }
+
+        ipc.onClose(() => {
+          ipcProcessIdMap.delete(ipc)
+        })
+
         const po = new PromiseOut<number>();
         processIdMap.set(args.process_id, po);
         const result = await this.createProcessAndRun(
@@ -313,22 +316,23 @@ export class JsProcessNMM extends NativeMicroModule {
             // onRequest 之后 通过 这个 steamIpc.postMessage() 无法把数据正常返回；
             // 但是 只要每次 woker 执行 创建和监听httpDwebServer比上一次woker要多一次
             // 就不会出现 streamIpc 无法返回的情况
-            const preStr = new Array(pre)
-              .fill(undefined)
-              .map((_, index) => {
-                return `
-                ;(async () => {
-                  const server = await http.createHttpDwebServer(jsProcess,{subdomain: ${pre}, port: parseInt(${
-                  10 + index
-                })})
-                  const streamIpc = await server.listen();
-                  // 一定要关闭
-                  server.close();
-                  streamIpc.close();
-                })();
-              `;
-              })
-              .join("\n");
+            // const preStr = new Array(pre)
+            //   .fill(undefined)
+            //   .map((_, index) => {
+            //     return `
+            //     ;(async () => {
+            //       const server = await http.createHttpDwebServer(jsProcess,{subdomain: ${pre}, port: parseInt(${
+            //       10 + index
+            //     })})
+            //       const streamIpc = await server.listen();
+            //       // 一定要关闭
+            //       server.close();
+            //       streamIpc.close();
+            //     })();
+            //   `;
+            //   })
+            //   .join("\n");
+            const preStr = "";
             const data = `${preStr};${await response.body.text()}`;
             return {
               /// TODO 默认只是js，未来会支持 WASM/JSON 等模块
@@ -340,7 +344,8 @@ export class JsProcessNMM extends NativeMicroModule {
       ]
     );
 
-    (await httpDwebServer.listen()).onRequest((request, ipc) => {
+    const httpStreamIpc = (await httpDwebServer.listen())
+    httpStreamIpc.onRequest((request, ipc) => {
       void _ipcResponseFromImportLinker(ipc, importLinker, request);
     });
 
@@ -377,12 +382,6 @@ export class JsProcessNMM extends NativeMicroModule {
     );
 
     ipc_to_worker.onMessage((ipcMessage) => {
-      if (
-        ipcMessage.type === IPC_MESSAGE_TYPE.REQUEST &&
-        ipcMessage.url.startsWith(`file://http.sys.dweb/listen`)
-      ) {
-        pre++;
-      }
       ipc.postMessage(ipcMessage);
     });
     ipc.onMessage((message) => {
@@ -406,12 +405,14 @@ export class JsProcessNMM extends NativeMicroModule {
      */
     ipc.onClose(() => {
       streamIpc.close();
+      ipc_to_worker.close()
     });
     /**
      * “代码IPC流通道”关闭的时候，关闭这个子域名
      */
     streamIpc.onClose(() => {
       httpDwebServer.close();
+      httpStreamIpc.close();
     });
     return {
       streamIpc,

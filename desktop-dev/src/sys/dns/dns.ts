@@ -1,4 +1,4 @@
-import process from "node:process";
+import process, { parentPort } from "node:process";
 import type {
   $BootstrapContext,
   $DnsMicroModule,
@@ -17,6 +17,7 @@ import "../../helper/electron.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
+import { JsMicroModule } from "../../core/micro-module.js.ts"
  
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
@@ -95,13 +96,13 @@ export class DnsNMM extends NativeMicroModule {
       fromMM,
       () => new Map<$MMID, PromiseOut<$ConnectResult>>()
     );
+    
 
     const po = mapHelper.getOrPut(fromMMconnectsMap, toMmid, () => {
       const po = new PromiseOut<$ConnectResult>();
       (async () => {
         /// 与指定应用建立通讯
         const toMM = await this.open(toMmid);
-
         const result = await connectMicroModules(fromMM, toMM, reason);
         const [ipcForFromMM, ipcForToMM] = result;
 
@@ -184,9 +185,6 @@ export class DnsNMM extends NativeMicroModule {
       handler: async (args) => {
         /// TODO 关闭应用首先要确保该应用的 parentProcessId 在 processTree 中
         const n = await this.close(args.app_id);
-        await this.nativeFetch(
-          `file://mwebview.sys.dweb/close/focused_window`
-        );
         return n;
       },
     });
@@ -216,21 +214,23 @@ export class DnsNMM extends NativeMicroModule {
         // 需要停止匹配的 jsMicroModule
         const mm = await this.query(args.app_id);
         if (mm === undefined) return false;
-        this.close(args.app_id);
-        // 关闭当前window对象
-        const result = await this.nativeFetch(
-          `file://mwebview.sys.dweb/close/focused_window`
-        ).boolean();
-
-        this.install(mm);
-        this.open(args.app_id);
-        return result;
+        const metadata = Reflect.get(mm, "metadata");
+        if(!metadata) {
+          console.error('dns', "没有dmetaata")
+          return false;
+        }
+        await this.close(args.app_id);
+        // 标准：不能够使用原来的 mm 必须要创建一个新的 MM 否则无法启动成功
+        await this.install(new JsMicroModule(metadata) as unknown as MicroModule);
+        await this.open(args.app_id);
+        return true;
       },
     });
 
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(
         async (fromMM, parsedUrl, requestInit) => {
+         
           // 测试代码
           // Reflect.set(requestInit, "duplex", "half")
           // fetch("file://xxx.dweb") 匹配
@@ -346,6 +346,7 @@ export class DnsNMM extends NativeMicroModule {
     if (app === undefined) {
       const mm = await this.query(mmid);
       if (mm === undefined) {
+        console.error('dns', '没有指定的 mm 抛出错误')
         throw new Error(`no found app: ${mmid}`);
       }
       this.running_apps.set(mmid, mm);
@@ -353,6 +354,7 @@ export class DnsNMM extends NativeMicroModule {
       await this.bootstrapMicroModule(mm);
       app = mm;
     }
+    
     return app;
   }
 

@@ -20,13 +20,13 @@ export const openNativeWindow = async (
     contextIsolation: false,
   };
 
-  const win = new Electron.BrowserWindow(options);
+  const win = new Electron.BrowserWindow(options) as $ExtendsBrowserWindow;
   if (webContentsConfig.userAgent) {
     win.webContents.setUserAgent(
       webContentsConfig.userAgent(win.webContents.userAgent)
     );
   }
-
+  win._devToolsWin = new Map();
   const show_po = new PromiseOut<void>();
   win.once("ready-to-show", () => {
     win.show();
@@ -39,7 +39,7 @@ export const openNativeWindow = async (
       0
     );
     devToolsWin.once("ready-to-show", () => {
-      Object.assign(win, "devToolsWin", { devToolsWin });
+      win._devToolsWin.set(devToolsWin.webContents.id, devToolsWin)
     });
     show_po.resolve();
   });
@@ -114,8 +114,8 @@ function openDevToolsAtBrowserWindowByWebContents(
 }
 
 export class ForRenderApi {
-  constructor(private win: Electron.BrowserWindow) {}
-  private _devToolsWin: Map<number, Electron.BrowserWindow> = new Map();
+  constructor(private win: $ExtendsBrowserWindow) {}
+  // private _devToolsWin: Map<number, Electron.BrowserWindow> = new Map();
 
   /**
    * 在一个新的窗口打开 devTools
@@ -127,7 +127,7 @@ export class ForRenderApi {
     title: string
   ) {
     const content_wcs = Electron.webContents.fromId(webContentsId)!;
-    this._devToolsWin.set(
+    this.win._devToolsWin.set(
       webContentsId,
       openDevToolsAtBrowserWindowByWebContents(content_wcs, title)
     );
@@ -166,7 +166,7 @@ export class ForRenderApi {
   destroy(webContentsId: number, options?: Electron.CloseOpts) {
     const contents = Electron.webContents.fromId(webContentsId);
     if (contents === undefined) throw new Error(`contents === undefined`);
-    const devToolsWin = this._devToolsWin.get(webContentsId);
+    const devToolsWin = this.win._devToolsWin.get(webContentsId);
     if (devToolsWin === undefined) throw new Error(`devToolsWin === undefined`);
     devToolsWin.close();
     return contents.close(options);
@@ -207,3 +207,10 @@ export class ForRenderApi {
 // };
 
 export type $NativeWindow = Awaited<ReturnType<typeof openNativeWindow>>;
+
+export interface $ExtendsBrowserWindow extends Electron.BrowserWindow{
+  _devToolsWin: Map<number, Electron.BrowserWindow>
+}
+// export interface $DevToolsWin {
+//   _devToolsWin: Map<number, Electron.BrowserWindow>
+// }

@@ -59,7 +59,6 @@ export class MessagePortIpc extends Ipc {
       if ("body" in message && message.body.metaBody.metaId === "rs-31") {
         debugger;
       }
-      // console.log("web-message-port-ipc", "onmessage", message);
       this._messageSignal.emit(message, this);
     });
     port.start();
