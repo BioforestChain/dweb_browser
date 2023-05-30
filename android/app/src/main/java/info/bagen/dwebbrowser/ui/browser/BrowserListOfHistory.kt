@@ -6,17 +6,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.dwebbrowser.database.WebSiteDatabase
@@ -47,7 +50,6 @@ fun BrowserListOfHistory(
     return
   }
 
-  val scope = rememberCoroutineScope()
   LazyColumn(modifier = modifier) {
     viewModel.historyList.forEach { webSiteInfoList ->
       stickyHeader {
@@ -55,19 +57,28 @@ fun BrowserListOfHistory(
           text = webSiteInfoList.key,
           modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.outlineVariant)
-            .padding(10.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp)
         )
       }
-      items(webSiteInfoList.value.size) { index ->
-        val webSiteInfo = webSiteInfoList.value[index]
+
+      itemsIndexed(webSiteInfoList.value) { index, webSiteInfo ->
         ListSwipeItem(
           webSiteInfo = webSiteInfo,
-          onRemove = {
-            webSiteInfoList.value.remove(it)
-            scope.launch(ioAsyncExceptionHandler) { WebSiteDatabase.INSTANCE.websiteDao().delete(it) }
-          }) {
-          ListItem(
+          onRemove = { viewModel.deleteWebSiteInfo(webSiteInfoList, it) }
+        ) {
+          val shape = when (index) {
+            0 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
+            webSiteInfoList.value.size - 1 -> RoundedCornerShape(
+              bottomStart = 6.dp,
+              bottomEnd = 6.dp
+            )
+
+            else -> RoundedCornerShape(0.dp)
+          }
+          if (index > 0) Divider(modifier = Modifier.padding(horizontal = 16.dp))
+          RowItemHistory(webSiteInfo, shape) { onSearch(it.url) }
+          /*ListItem(
             headlineContent = {
               Text(text = webSiteInfo.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
             },
@@ -77,11 +88,55 @@ fun BrowserListOfHistory(
             modifier = Modifier.clickable {
               onSearch(webSiteInfo.url)
             }
-          )
+          )*/
         }
-        Divider()
+
       }
     }
+  }
+}
+
+@Composable
+private fun RowItemHistory(
+  webSiteInfo: WebSiteInfo,
+  shape: RoundedCornerShape,
+  onClick: (WebSiteInfo) -> Unit
+) {
+  Column(modifier = Modifier
+    .fillMaxWidth()
+    .background(MaterialTheme.colorScheme.background)
+    .padding(horizontal = 16.dp)
+    .height(66.dp)
+    .clip(shape)
+    .background(MaterialTheme.colorScheme.surface)
+    .clickable { onClick(webSiteInfo) }
+    .padding(horizontal = 16.dp),
+    horizontalAlignment = Alignment.Start
+  ) {
+    Text(
+      text = webSiteInfo.title,
+      maxLines = 1,
+      fontSize = 16.sp,
+      overflow = TextOverflow.Ellipsis,
+      fontWeight = FontWeight(400),
+      color = MaterialTheme.colorScheme.onSurface,
+      modifier = Modifier
+        .padding(top = 14.dp)
+        .fillMaxWidth()
+        .height(20.dp)
+    )
+    Text(
+      text = webSiteInfo.url,
+      maxLines = 1,
+      fontSize = 11.sp,
+      overflow = TextOverflow.Ellipsis,
+      fontWeight = FontWeight(400),
+      color = MaterialTheme.colorScheme.outlineVariant,
+      modifier = Modifier
+        .padding(top = 4.dp)
+        .fillMaxWidth()
+        .height(14.dp)
+    )
   }
 }
 
@@ -113,6 +168,13 @@ class HistoryViewModel : ViewModel() {
           }
           currentKey?.let { key -> historyList.add(0, WebSiteInfoList(key, list)) }
         }
+    }
+  }
+
+  fun deleteWebSiteInfo(webSiteInfoList: WebSiteInfoList, webSiteInfo: WebSiteInfo) {
+    webSiteInfoList.value.remove(webSiteInfo)
+    viewModelScope.launch(ioAsyncExceptionHandler) {
+      WebSiteDatabase.INSTANCE.websiteDao().delete(webSiteInfo)
     }
   }
 }

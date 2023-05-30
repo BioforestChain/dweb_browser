@@ -1,14 +1,12 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -16,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -28,6 +25,7 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.database.WebSiteDatabase
 import info.bagen.dwebbrowser.database.WebSiteInfo
 import info.bagen.dwebbrowser.database.WebSiteType
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
 import kotlinx.coroutines.launch
 
@@ -239,12 +237,9 @@ private fun LazyColumnView(
       if (index > 0) Divider(modifier = Modifier.padding(start = 52.dp))
       ListSwipeItem(
         webSiteInfo = webSiteInfo,
-        onRemove = {
-          viewModel.bookList.remove(it)
-          WebSiteDatabase.INSTANCE.websiteDao().delete(it)
-        }
+        onRemove = { viewModel.deleteWebSiteInfo(it) }
       ) {
-        RowItemBook(webSiteInfo, { onSearch(webSiteInfo.url) }) { openSetting(it) }
+        RowItemBook(webSiteInfo, { onSearch(it.url) }) { openSetting(it) }
         /*ListItem(
           headlineContent = {
             Text(text = webSiteInfo.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -311,14 +306,14 @@ internal fun ListSwipeItem(
 @Composable
 private fun RowItemBook(
   webSiteInfo: WebSiteInfo,
-  onClick: () -> Unit,
+  onClick: (WebSiteInfo) -> Unit,
   onOpenSetting: (WebSiteInfo) -> Unit
 ) {
   Row(modifier = Modifier
     .fillMaxWidth()
     .height(50.dp)
     .background(MaterialTheme.colorScheme.surface)
-    .clickable { onClick() },
+    .clickable { onClick(webSiteInfo) },
     verticalAlignment = Alignment.CenterVertically
   ) {
     webSiteInfo.icon?.let { imageBitmap ->
@@ -372,6 +367,13 @@ class BookViewModel : ViewModel() {
             bookList.add(webSiteInfo)
           }
         }
+    }
+  }
+
+  fun deleteWebSiteInfo(webSiteInfo: WebSiteInfo) {
+    bookList.remove(webSiteInfo)
+    viewModelScope.launch(ioAsyncExceptionHandler) {
+      WebSiteDatabase.INSTANCE.websiteDao().delete(webSiteInfo)
     }
   }
 }
