@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,10 +9,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -224,15 +229,23 @@ private fun LazyColumnView(
   onSearch: (String) -> Unit,
   openSetting: (WebSiteInfo) -> Unit
 ) {
-  LazyColumn(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
-    items(viewModel.bookList) { webSiteInfo ->
+  LazyColumn(
+    modifier = modifier
+      .padding(horizontal = 16.dp, vertical = 12.dp)
+      .clip(RoundedCornerShape(6.dp))
+      .background(MaterialTheme.colorScheme.surface)
+  ) {
+    itemsIndexed(viewModel.bookList) { index, webSiteInfo ->
+      if (index > 0) Divider(modifier = Modifier.padding(start = 52.dp))
       ListSwipeItem(
         webSiteInfo = webSiteInfo,
         onRemove = {
           viewModel.bookList.remove(it)
           WebSiteDatabase.INSTANCE.websiteDao().delete(it)
-        }) {
-        ListItem(
+        }
+      ) {
+        RowItemBook(webSiteInfo, { onSearch(webSiteInfo.url) }) { openSetting(it) }
+        /*ListItem(
           headlineContent = {
             Text(text = webSiteInfo.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
           },
@@ -258,9 +271,8 @@ private fun LazyColumnView(
                 .graphicsLayer(rotationZ = -90f)
             )
           }
-        )
+        )*/
       }
-      Divider()
     }
   }
 }
@@ -270,7 +282,8 @@ private fun LazyColumnView(
 internal fun ListSwipeItem(
   webSiteInfo: WebSiteInfo, onRemove: (WebSiteInfo) -> Unit, listItemView: @Composable () -> Unit
 ) {
-  val dismissState = DismissState(DismissValue.Default, { true }, SwipeToDismissDefaults.FixedPositionalThreshold)
+  val dismissState =
+    DismissState(DismissValue.Default, { true }, SwipeToDismissDefaults.FixedPositionalThreshold)
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
       if (it != DismissValue.Default) {
@@ -285,13 +298,65 @@ internal fun ListSwipeItem(
       Box(
         Modifier
           .fillMaxSize()
-          .background(MaterialTheme.colorScheme.outlineVariant))
+          .background(MaterialTheme.colorScheme.surfaceVariant)
+      )
     },
     dismissContent = { // ”前景“ 显示的内容
-        listItemView()
+      listItemView()
     },
     directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart)
   )
+}
+
+@Composable
+private fun RowItemBook(
+  webSiteInfo: WebSiteInfo,
+  onClick: () -> Unit,
+  onOpenSetting: (WebSiteInfo) -> Unit
+) {
+  Row(modifier = Modifier
+    .fillMaxWidth()
+    .height(50.dp)
+    .background(MaterialTheme.colorScheme.surface)
+    .clickable { onClick() },
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    webSiteInfo.icon?.let { imageBitmap ->
+      Image(
+        bitmap = imageBitmap,
+        contentDescription = "Icon",
+        modifier = Modifier
+          .padding(horizontal = 12.dp, vertical = 11.dp)
+          .size(28.dp)
+      )
+    } ?: run {
+      Icon(
+        imageVector = ImageVector.vectorResource(R.drawable.ic_main_book),
+        contentDescription = "Book",
+        modifier = Modifier
+          .padding(horizontal = 12.dp, vertical = 11.dp)
+          .size(28.dp),
+        tint = MaterialTheme.colorScheme.onSurface
+      )
+    }
+
+    Text(
+      text = webSiteInfo.title,
+      modifier = Modifier.weight(1f),
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis
+    )
+    Icon(
+      imageVector = ImageVector.vectorResource(R.drawable.ic_more),
+      contentDescription = "Manager",
+      modifier = Modifier
+        .clickable { onOpenSetting(webSiteInfo) }
+        .padding(horizontal = 12.dp, vertical = 15.dp)
+        .size(20.dp)
+        .graphicsLayer(rotationZ = -90f),
+      tint = MaterialTheme.colorScheme.outlineVariant
+    )
+  }
 }
 
 class BookViewModel : ViewModel() {

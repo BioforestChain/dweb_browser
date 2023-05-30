@@ -28,7 +28,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.BottomEnd
 import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
@@ -384,69 +386,76 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         }
       })
   LazyColumn(modifier = Modifier.fillMaxSize()) {
-    item { Spacer(modifier = Modifier.height(12.dp)) }
-    // 分享和添加书签
     item {
-      ListItem(
-        modifier = Modifier
-          .padding(horizontal = 16.dp)
-          .clip(RoundedCornerShape(8.dp))
-          .clickable { viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo) },
-        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
-        headlineContent = { Text(text = "添加书签") },
-        trailingContent = {
-          Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_book),
-            contentDescription = null,
-            modifier = Modifier.size(28.dp),
-            tint = MaterialTheme.colorScheme.onSurface
-          )
-        }
-      )
-    }
-    item { Spacer(modifier = Modifier.height(12.dp)) }
-    item {
-      ListItem(
-        modifier = Modifier
-          .padding(horizontal = 16.dp)
-          .clip(RoundedCornerShape(8.dp))
-          .clickable {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-              viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
-            } else {
-              launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)/*请求权限*/
-            }
-          },
-        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
-        headlineContent = { Text(text = "分享") },
-        trailingContent = {
-          Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_share),
-            contentDescription = "Share",
-            modifier = Modifier.size(28.dp),
-            tint = MaterialTheme.colorScheme.onSurface
-          )
-        }
-      )
-    }
+      Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 12.dp)) {
+        RowItemMenuView(text = "添加书签", trailingIcon = R.drawable.ic_main_book) {
+          viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo)
+        } // 添加书签
 
-    item { Spacer(modifier = Modifier.height(12.dp)) }
-    item {
-      ListItem(
-        modifier = Modifier
-          .padding(horizontal = 10.dp)
-          .size(width = 50.dp, height = 30.dp)
-          .clip(RoundedCornerShape(8.dp)),
-        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
-        headlineContent = { Text(text = "无痕浏览") },
-        trailingContent = {
+        Spacer(modifier = Modifier.height(12.dp))
+        RowItemMenuView(text = "分享", trailingIcon = R.drawable.ic_main_share) {
+          if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+            viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+          } else {
+            launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)/*请求权限*/
+          }
+        } // 分享
+
+        Spacer(modifier = Modifier.height(12.dp))
+        RowItemMenuView(text = "无痕浏览", trailingContent = { modifier ->
           Switch(
+            modifier = modifier
+              .padding(horizontal = 12.dp, vertical = 10.dp)
+              .size(width = 50.dp, height = 30.dp),
             checked = viewModel.isNoTrace.value,
             onCheckedChange = { viewModel.saveBrowserMode(it) }
           )
-        }
-      )
+        }) {} // 无痕浏览
+      }
     }
+  }
+}
+
+@Composable
+private fun RowItemMenuView(
+  text: String,
+  @DrawableRes trailingIcon: Int? = null,
+  trailingContent: (@Composable (Modifier) -> Unit)? = null,
+  onClick: () -> Unit
+) {
+  Box(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(50.dp)
+      .clip(RoundedCornerShape(6.dp))
+      .background(MaterialTheme.colorScheme.surface)
+      .clickable { onClick() }
+  ) {
+    Text(
+      text = text,
+      modifier = Modifier
+        .fillMaxWidth()
+        .align(Alignment.CenterStart)
+        .padding(start = 16.dp, end = 52.dp, top = 15.dp, bottom = 15.dp),
+      textAlign = TextAlign.Start,
+      fontSize = 16.sp,
+      fontWeight = FontWeight(400),
+      color = MaterialTheme.colorScheme.onSurface
+    )
+
+    trailingIcon?.let { icon ->
+      Icon(
+        imageVector = ImageVector.vectorResource(icon),
+        contentDescription = "Icon",
+        modifier = Modifier
+          .align(CenterEnd)
+          .padding(horizontal = 12.dp, vertical = 11.dp)
+          .size(28.dp),
+        tint = MaterialTheme.colorScheme.onSurface
+      )
+    } ?: trailingContent?.let { view -> view(Modifier.align(CenterEnd)) }
   }
 }
 
