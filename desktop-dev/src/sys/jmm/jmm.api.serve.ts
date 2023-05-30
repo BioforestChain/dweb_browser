@@ -17,8 +17,7 @@ import {
 import { nativeFetchAdaptersManager } from "../dns/nativeFetch.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import type { $State, JmmNMM } from "./jmm.ts";
-import { JmmMetadata } from "./JmmMetadata.ts";
-import { JsMicroModule } from "./micro-module.js.ts";
+import { JsMicroModule, JsMMMetadata } from "../../core/micro-module.js.ts";
 
 export const JMM_APPS_PATH = path.join(Electron.app.getAppPath(), "apps");
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
@@ -173,7 +172,7 @@ async function _extract(
   const config = await (
     await this.nativeFetch(`file:///jmm/${_id}/usr/metadata.json`)
   ).json();
-  const metadata = new JmmMetadata(config);
+  const metadata = new JsMMMetadata(config);
   const jmm = new JsMicroModule(metadata);
   this.context!.dns.install(jmm);
 }

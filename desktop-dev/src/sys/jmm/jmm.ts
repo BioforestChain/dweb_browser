@@ -7,8 +7,8 @@ import type { HttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import { createApiServer } from "./jmm.api.serve.ts";
 import { cancel, install, pause, resume } from "./jmm.handler.ts";
 import { createWWWServer } from "./jmm.www.serve.ts";
-import { $JmmMetadata, JmmMetadata } from "./JmmMetadata.ts";
-import { JsMicroModule } from "./micro-module.js.ts";
+import { JsMicroModule } from "../../core/micro-module.js.ts";
+import { $JsMMMetadata, JsMMMetadata } from "../../core/micro-module.js.ts"
 
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.sys.dweb" as const;
@@ -94,11 +94,11 @@ export class JmmNMM extends NativeMicroModule {
   }
 
   private async openInstallPage(metadataUrl: string) {
-    const config = await this.nativeFetch(metadataUrl).object<$JmmMetadata>();
+    const config = await this.nativeFetch(metadataUrl).object<$JsMMMetadata>();
     // TODO 打开安装页面
 
     /// 成功安装
-    new JsMicroModule(new JmmMetadata(config));
+    new JsMicroModule(new JsMMMetadata(config));
     return config;
   }
 }

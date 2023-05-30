@@ -1,15 +1,13 @@
-import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
-import { Ipc, IPC_ROLE, IpcResponse } from "../../core/ipc/index.ts";
-import { MicroModule } from "../../core/micro-module.ts";
-import { connectAdapterManager } from "../../core/nativeConnect.ts";
-import { mapHelper } from "../../helper/mapHelper.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
-import type { $IpcSupportProtocols, $MMID } from "../../helper/types.ts";
-import { buildUrl } from "../../helper/urlHelper.ts";
-import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
-
-import type { JmmMetadata } from "./JmmMetadata.ts";
+import type { $BootstrapContext } from "./bootstrapContext.ts";
+import { ReadableStreamIpc } from "./ipc-web/ReadableStreamIpc.ts";
+import { Ipc, IPC_ROLE, IpcResponse } from "./ipc/index.ts";
+import { MicroModule } from "./micro-module.ts";
+import { connectAdapterManager } from "./nativeConnect.ts";
+import { mapHelper } from "../helper/mapHelper.ts";
+import { PromiseOut } from "../helper/PromiseOut.ts";
+import type { $IpcSupportProtocols, $MMID, $DWEB_DEEPLINK, } from "../helper/types.ts";
+import { buildUrl } from "../helper/urlHelper.ts";
+import { Native2JsIpc } from "../sys/js-process/ipc.native2js.ts"
 
 type $JsMM = { jmm: JsMicroModule; remoteMm: MicroModule };
 
@@ -54,7 +52,7 @@ export class JsMicroModule extends MicroModule {
      * js程序是动态外挂的
      * 所以需要传入一份配置信息
      */
-    readonly metadata: JmmMetadata
+    readonly metadata: JsMMMetadata
   ) {
     super();
   }
@@ -234,3 +232,21 @@ export class JsMicroModule extends MicroModule {
   }
 }
 class JmmIpc extends Native2JsIpc {}
+
+
+export class JsMMMetadata {
+  constructor(readonly config: $JsMMMetadata) {}
+}
+export interface $JsMMMetadata {
+  id: $MMID;
+  server: $JsMMMetadata.$MainServer;
+  dweb_deeplinks?: $DWEB_DEEPLINK[]
+}
+
+declare namespace $JsMMMetadata {
+  export interface $MainServer {
+    root: string;
+    entry: string;
+  }
+}
+

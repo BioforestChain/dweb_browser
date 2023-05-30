@@ -162,8 +162,6 @@ export class HttpServerNMM extends NativeMicroModule {
         this.close(ipc, hostOptions);
       })
     );
-    // jmmMetadata.sys.dweb-80.localhost:22605
-    // jmmmetadata.sys.dweb-80.localhost:22605
     const token = Buffer.from(
       crypto.getRandomValues(new Uint8Array(64))
     ).toString();
