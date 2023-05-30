@@ -1,4 +1,5 @@
 import process from "node:process";
+import { setFilter } from "./helper/devtools.ts";
 import { BootNMM } from "./sys/boot.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";
 import "./sys/dns/localeFileFetch.ts";
@@ -16,7 +17,6 @@ import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.ts";
 import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.ts";
 import { ShareNMM } from "./sys/plugins/sys/share/share.main.ts";
 import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.ts";
-import { setFilter } from "./helper/devtools.ts";
 
 /**
  * 设置 debugger 过滤条件

@@ -83,7 +83,7 @@ export class DnsNMM extends NativeMicroModule {
    * @param reason
    * @returns
    */
-  async [connectTo_symbol](
+  [connectTo_symbol](
     fromMM: MicroModule,
     toMmid: $MMID,
     reason: Request
@@ -165,13 +165,13 @@ export class DnsNMM extends NativeMicroModule {
       matchMode: "prefix",
       input: {},
       output: "boolean",
-      handler: async (args, client_ipc, request) => {
+      handler: async (_args, _client_ipc, request) => {
         const app_id = request.parsed_url.pathname.replace(
           "open/",
           ""
         ) as $MMID;
         /// TODO 询问用户是否授权该行为
-        const app = await this.open(app_id);
+        await this.open(app_id);
         return true;
       },
     });
@@ -184,7 +184,7 @@ export class DnsNMM extends NativeMicroModule {
       handler: async (args) => {
         /// TODO 关闭应用首先要确保该应用的 parentProcessId 在 processTree 中
         const n = await this.close(args.app_id);
-        const result = await this.nativeFetch(
+        await this.nativeFetch(
           `file://mwebview.sys.dweb/close/focused_window`
         );
         return n;
@@ -212,7 +212,7 @@ export class DnsNMM extends NativeMicroModule {
       matchMode: "full",
       input: { app_id: "mmid" },
       output: "boolean",
-      handler: async (args, ipc, request) => {
+      handler: async (args, _ipc, _request) => {
         // 需要停止匹配的 jsMicroModule
         const mm = await this.query(args.app_id);
         if (mm === undefined) return false;
@@ -220,11 +220,11 @@ export class DnsNMM extends NativeMicroModule {
         // 关闭当前window对象
         const result = await this.nativeFetch(
           `file://mwebview.sys.dweb/close/focused_window`
-        );
+        ).boolean();
 
         this.install(mm);
         this.open(args.app_id);
-        return true;
+        return result;
       },
     });
 
@@ -334,6 +334,7 @@ export class DnsNMM extends NativeMicroModule {
   }
 
   /** 查询应用 */
+  // deno-lint-ignore require-await
   async query(mmid: $MMID) {
     return this.apps.get(mmid);
   }

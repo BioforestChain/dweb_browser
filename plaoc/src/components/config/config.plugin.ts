@@ -31,7 +31,7 @@ export class ConfigPlugin extends BasePlugin {
       }).text();
       BasePlugin.internal_url_useable = true;
       return public_url;
-    } catch (err) {
+    } catch (_err) {
       BasePlugin.internal_url_useable = false;
       return "";
     }

@@ -40,7 +40,7 @@ export abstract class MicroModule implements $MicroModule {
     this.context = context;
   }
 
-  protected async after_bootstrap(context: $BootstrapContext) {
+  protected after_bootstrap(_context: $BootstrapContext) {
     this._running_state_lock.resolve(true);
   }
 
@@ -85,7 +85,7 @@ export abstract class MicroModule implements $MicroModule {
     return this._connectSignal.listen(cb);
   }
 
-  async beConnect(ipc: Ipc, reason: Request) {
+  beConnect(ipc: Ipc, reason: Request) {
     this._ipcSet.add(ipc);
     ipc.onClose(() => {
       this._ipcSet.delete(ipc);

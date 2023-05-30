@@ -19,7 +19,7 @@ async function* _doRead<T extends unknown>(
 
 export const streamRead = <T extends unknown>(
   stream: ReadableStream<T>,
-  options: {
+  _options: {
     signal?: AbortSignal;
   } = {}
 ) => {
@@ -139,6 +139,7 @@ export class ReadableStreamOut<T> {
   controller!: ReadableStreamDefaultController<T>;
   stream: ReadableStream<T>;
 
+  // deno-lint-ignore no-explicit-any
   private _on_cancel_signal?: Signal<$Callback<[/* reason: */ any]>>;
   get onCancel() {
     return (this._on_cancel_signal ??= createSignal()).listen;
@@ -150,14 +151,15 @@ export class ReadableStreamOut<T> {
 }
 export type $OnPull = () => unknown;
 
+// deno-lint-ignore no-explicit-any
 export const streamFromCallback = <T extends (...args: any[]) => unknown>(
   cb: T,
   onCancel?: Promise<unknown>
 ) => {
   const stream = new ReadableStream<Parameters<T>>({
     start(controller) {
-      // 可能出现数据没有传递完毕但是却关闭了
-      // onCancel?.then(() => controller.close());
+      onCancel?.then(() => controller.close());
+      // deno-lint-ignore no-explicit-any
       cb((...args: any[]) => {
         controller.enqueue(args as Parameters<T>);
       });

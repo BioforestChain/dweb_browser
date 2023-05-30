@@ -22,6 +22,7 @@ import { fetchExtends } from "../../helper/$makeFetchExtends.ts";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.ts";
 import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
 import type {
+  $DWEB_DEEPLINK,
   $IpcSupportProtocols,
   $MicroModule,
   $MMID,
@@ -35,7 +36,6 @@ import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import * as http from "../http-server/$createHttpDwebServer.ts";
-import { $DWEB_DEEPLINK } from "../../../electron/src/helper/types.ts";
 
 export class Metadata<T extends $Metadata = $Metadata> {
   constructor(readonly data: T, readonly env: Record<string, string>) {}
@@ -101,7 +101,7 @@ export class JsProcessMicroModule implements $MicroModule {
 
   constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
     const _beConnect =  (event: MessageEvent) => {
-      const data = event.data as any[];
+      const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
       }
@@ -249,7 +249,7 @@ export class JsProcessMicroModule implements $MicroModule {
 const waitFetchPort = () => {
   return new Promise<MessagePort>((resolve) => {
     self.addEventListener("message", function onFetchIpcChannel(event) {
-      const data = event.data as any[];
+      const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
       }
@@ -281,7 +281,7 @@ export const installEnv = async (metadata: Metadata) => {
 };
 
 self.addEventListener("message", async function runMain(event) {
-  const data = event.data as any[];
+  const data = event.data;
   if (Array.isArray(event.data) === false) {
     return;
   }

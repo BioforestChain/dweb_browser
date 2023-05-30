@@ -8,7 +8,6 @@ import {
   openNativeWindow,
 } from "../../helper/openNativeWindow.ts";
 
-// @ts-ignore
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
 export type $WApi = { nww: $NativeWindow; apis: Remote<$APIS> };

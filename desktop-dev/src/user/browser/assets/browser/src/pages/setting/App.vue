@@ -1,5 +1,4 @@
 <template>
-  <div>setting page</div>
   <router-view />
 </template>
 

@@ -1,5 +1,6 @@
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import { $JsMMMetadata, JsMMMetadata, JsMicroModule } from "../../core/micro-module.js.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
@@ -7,8 +8,6 @@ import type { HttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import { createApiServer } from "./jmm.api.serve.ts";
 import { cancel, install, pause, resume } from "./jmm.handler.ts";
 import { createWWWServer } from "./jmm.www.serve.ts";
-import { JsMicroModule } from "../../core/micro-module.js.ts";
-import { $JsMMMetadata, JsMMMetadata } from "../../core/micro-module.js.ts"
 
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.sys.dweb" as const;
@@ -20,6 +19,7 @@ export class JmmNMM extends NativeMicroModule {
   downloadStream: ReadableStream | undefined;
 
   resume: {
+    // deno-lint-ignore ban-types
     handler: Function;
     response: OutgoingMessage | undefined;
   } = {

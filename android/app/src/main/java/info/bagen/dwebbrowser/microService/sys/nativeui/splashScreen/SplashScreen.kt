@@ -39,7 +39,7 @@ class SplashScreen(
 
     companion object {
         private val sInstance by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-            SplashScreen(App.appContext, getSplashScreenConfig())
+//            SplashScreen(App.appContext, getSplashScreenConfig())
         }
 
         fun load() {

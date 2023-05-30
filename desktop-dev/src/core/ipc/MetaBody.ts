@@ -99,6 +99,8 @@ export class MetaBody {
         return IPC_DATA_ENCODING.BASE64;
       case IPC_DATA_ENCODING.BINARY:
         return IPC_DATA_ENCODING.BINARY;
+      default:
+        return IPC_DATA_ENCODING.UTF8;
     }
     return undefined;
   }

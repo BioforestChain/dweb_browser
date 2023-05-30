@@ -136,7 +136,7 @@ export abstract class Ipc {
   onClose = this._closeSignal.listen;
 
   private _req_id_acc = 0;
-  allocReqId(url?: string) {
+  allocReqId(_url?: string) {
     return this._req_id_acc++;
   }
 

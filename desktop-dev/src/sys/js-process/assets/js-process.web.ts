@@ -114,7 +114,7 @@ const createIpc = async (
   process_id: number,
   mmid: string,
   ipc_port: MessagePort,
-  env_json: string = "{}"
+  env_json = "{}"
 ) => {
   const process = _forceGetProcess(process_id);
 
@@ -164,7 +164,12 @@ const destroyProcess = (process_id: number) => {
   process.worker.terminate();
 };
 
-const on_create_process_signal = createSignal();
+type $OnCreateProcessMessage = (msg: {
+  process_id: number;
+  env_script_url: string;
+}) => unknown;
+
+const on_create_process_signal = createSignal<$OnCreateProcessMessage>();
 
 // 这里到处的 APIS 会通过 expose() 导入到给主进程调用
 export const APIS = {

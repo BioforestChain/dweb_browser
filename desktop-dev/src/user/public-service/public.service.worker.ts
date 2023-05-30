@@ -95,14 +95,8 @@ const main = async () => {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///sys/cot-demo${pathname}?mode=stream`
+      `file:///jmm/cot-demo${pathname}?mode=stream`
     );
-    /**
-     * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
-     * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
-     *
-     * 如此数据就不会发给我，节省大量传输成本
-     */
     ipc.postMessage(
       new IpcResponse(
         request.req_id,

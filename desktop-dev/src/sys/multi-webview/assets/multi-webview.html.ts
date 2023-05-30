@@ -16,34 +16,34 @@ import {
   exportApis,
   mainApis,
 } from "../../../helper/openNativeWindow.preload.ts";
-import "./components/multi-webview-comp-barcode-scanning.html.ts";
-import "./components/multi-webview-comp-biometrics.html.ts";
-import "./components/multi-webview-comp-haptics.html.ts";
-import "./components/multi-webview-comp-mobile-shell.html.ts";
-import "./components/multi-webview-comp-navigator-bar.html.ts";
-import { getButtomBarState } from "./components/multi-webview-comp-safe-area.shim.ts";
-import "./components/multi-webview-comp-share.html.ts";
-import "./components/multi-webview-comp-status-bar.html.ts";
-import "./components/multi-webview-comp-toast.html.ts";
-import "./components/multi-webview-comp-virtual-keyboard.html.ts";
-import "./multi-webview-content.html.ts";
-import type {
-  CustomEventAnimationendDetail,
-  CustomEventDomReadyDetail,
-} from "./multi-webview-content.html.ts";
-import "./multi-webview-devtools.html.ts";
-import { Webview } from "./multi-webview.ts";
-import WebviewTag = Electron.WebviewTag;
 import type {
   $BarState,
   $OverlayState,
   $ShareOptions,
   $VirtualKeyboardState,
 } from "../types.ts";
+import "./components/multi-webview-comp-barcode-scanning.html.ts";
+import "./components/multi-webview-comp-biometrics.html.ts";
+import "./components/multi-webview-comp-haptics.html.ts";
+import "./components/multi-webview-comp-mobile-shell.html.ts";
 import type { MultiWebViewCompMobileShell } from "./components/multi-webview-comp-mobile-shell.html.ts";
+import "./components/multi-webview-comp-navigator-bar.html.ts";
 import type { MultiWebviewCompNavigationBar } from "./components/multi-webview-comp-navigator-bar.html.ts";
+import { getButtomBarState } from "./components/multi-webview-comp-safe-area.shim.ts";
+import "./components/multi-webview-comp-share.html.ts";
+import "./components/multi-webview-comp-status-bar.html.ts";
+import "./components/multi-webview-comp-toast.html.ts";
+import "./components/multi-webview-comp-virtual-keyboard.html.ts";
 import type { MultiWebviewCompVirtualKeyboard } from "./components/multi-webview-comp-virtual-keyboard.html.ts";
-import type { MultiWebViewContent } from "./multi-webview-content.html.ts";
+import "./multi-webview-content.html.ts";
+import type {
+  CustomEventAnimationendDetail,
+  CustomEventDomReadyDetail,
+  MultiWebViewContent,
+} from "./multi-webview-content.html.ts";
+import "./multi-webview-devtools.html.ts";
+import { Webview } from "./multi-webview.ts";
+import WebviewTag = Electron.WebviewTag;
  
 @customElement("view-tree")
 export class ViewTree extends LitElement {

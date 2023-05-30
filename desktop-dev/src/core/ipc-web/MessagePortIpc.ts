@@ -66,7 +66,9 @@ export class MessagePortIpc extends Ipc {
   }
 
   _doPostMessage(message: $IpcMessage): void {
+    // deno-lint-ignore no-explicit-any
     let message_data: any;
+    // deno-lint-ignore no-explicit-any
     let message_raw: IpcMessage<any>;
     if (message instanceof IpcRequest) {
       message_raw = message.ipcReqMessage();

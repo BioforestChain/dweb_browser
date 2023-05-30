@@ -108,7 +108,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
           }
         });
       },
-      pull(controller) {
+      pull(_controller) {
         if (paused) {
           paused = false;
           console.log("receiver/pull", stream_id, ipc.uid);

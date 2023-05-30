@@ -4,7 +4,7 @@
   <div class="container">
     <div class="logo">
       <img src="@/assets/logo.svg" alt="Dweb Browser" class="icon" />
-      <div class="gradient-text">Dweb Browser</div>
+      <div class="gradient-text">Dweb Browser Setting</div>
     </div>
   </div>
 </template>
@@ -14,8 +14,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 100%;
+  height: 100vh;
   padding: 10px;
 }
 
@@ -34,7 +33,7 @@
   opacity: 1;
 }
 .gradient-text {
-  width: 150px;
+  width: 100%;
   height: 20px;
   font-size: 20px;
   font-family: Source Han Sans CN-Medium, Source Han Sans CN;

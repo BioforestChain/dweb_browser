@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { dwebServiceWorker } from "./plugin";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { dwebServiceWorker } from "./plugin";
 import { routes } from "./routes";
 
 const router = useRouter();
@@ -33,7 +33,6 @@ const drawer_controller = ref(false);
 // }
 </script>
 <template>
-  <dweb-config ></dweb-config>
   <v-app>
     <v-main>
       <div class="h-full drawer app-bg pt-10">

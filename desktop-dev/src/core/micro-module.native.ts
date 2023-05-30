@@ -12,7 +12,7 @@ import type {
   $Schema2ToType,
 } from "../helper/types.ts";
 import { NativeIpc } from "./ipc.native.ts";
-import { Ipc, IpcRequest, IpcResponse, IPC_ROLE } from "./ipc/index.ts";
+import { Ipc, IPC_ROLE, IpcRequest, IpcResponse } from "./ipc/index.ts";
 import { MicroModule } from "./micro-module.ts";
 import { connectAdapterManager } from "./nativeConnect.ts";
 
@@ -127,6 +127,7 @@ export abstract class NativeMicroModule extends MicroModule {
   >(common_hanlder_schema: $RequestCommonHanlderSchema<I, O>) {
     this._initCommmonIpcOnMessage();
     const hanlders = this._commmon_ipc_on_message_hanlders;
+    // deno-lint-ignore no-explicit-any
     const custom_handler_schema: $RequestCustomHanlderSchema<any, any> = {
       ...common_hanlder_schema,
       input: $deserializeRequestToParams(common_hanlder_schema.input),

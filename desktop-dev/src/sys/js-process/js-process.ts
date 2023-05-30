@@ -13,7 +13,6 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $ReqMatcher, $isMatchReq } from "../../helper/$ReqMatcher.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { createResolveTo } from "../../helper/createResolveTo.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { openNativeWindow } from "../../helper/openNativeWindow.ts";
 import type { $PromiseMaybe } from "../../helper/types.ts";
@@ -21,9 +20,7 @@ import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 
 let pre = 0;
-const resolveTo = createResolveTo(__dirname);
 
-// @ts-ignore
 type $APIS = typeof import("./assets/js-process.web.ts")["APIS"];
 
 class ImportLinker {
@@ -423,7 +420,7 @@ export class JsProcessNMM extends NativeMicroModule {
   }
 
   private async createIpc(
-    ipc: Ipc,
+    _ipc: Ipc,
     apis: Remote<$APIS>,
     process_id: number,
     mmid: string

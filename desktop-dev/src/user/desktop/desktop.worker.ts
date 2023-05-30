@@ -1,7 +1,7 @@
 import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import type { IpcResponse } from "../../core/ipc/IpcResponse.ts";
-import { createSignal } from "../../helper/createSignal.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { createSignal } from "../../helper/createSignal.ts";
 import { closeApp, closeFront, webViewMap } from "../tool/app.handle.ts";
 import { EVENT, WebViewState } from "../tool/tool.event.ts";
 import {
@@ -45,7 +45,7 @@ const main = async () => {
     );
   };
 
-  const { IpcResponse, IpcHeaders } = ipc;
+  const { IpcResponse } = ipc;
 
   /**给前端的文件服务 */
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
@@ -74,7 +74,7 @@ const main = async () => {
     const url = request.parsed_url;
     // serviceWorker
     if (url.pathname.startsWith("/dns.sys.dweb")) {
-      const result = await serviceWorkerFactory(url, ipc);
+      const result = await serviceWorkerFactory(url);
       const ipcResponse = IpcResponse.fromText(
         request.req_id,
         200,
@@ -179,7 +179,7 @@ const main = async () => {
   });
 
   // 转发serviceWorker 请求
-  const serviceWorkerFactory = async (url: URL, ipc: $Ipc) => {
+  const serviceWorkerFactory = (url: URL) => {
     const pathname = url.pathname;
     // 关闭前端
     if (pathname.endsWith("close")) {
@@ -201,7 +201,7 @@ const main = async () => {
   };
 
   /// 如果有人来激活，那我就唤醒我的界面
-  jsProcess.onActivity(async (ipcEvent, ipc) => {
+  jsProcess.onActivity(async (_ipcEvent, ipc) => {
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
     if (hasActivityEventIpcs.has(ipc) === false) {
@@ -213,7 +213,7 @@ const main = async () => {
     }
   });
   const hasActivityEventIpcs = new Set<$Ipc>();
-  jsProcess.onClose(async (event, ipc) => {
+  jsProcess.onClose((_event, _ipc) => {
     // 接收JMM更新程序的关闭消息（安装完新的app需要重启应用）
     multiWebViewCloseSignal.emit();
     return closeApp(
@@ -223,7 +223,7 @@ const main = async () => {
   });
 
   /// 同步 mwebview 的状态机
-  multiWebViewIpc.onEvent(async (event, ipc) => {
+  multiWebViewIpc.onEvent((event, ipc) => {
     if (event.name === EVENT.State && typeof event.data === "string") {
       const newState = JSON.parse(event.data);
       const diff = detailedDiff(oldWebviewState, newState);

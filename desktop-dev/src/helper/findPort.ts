@@ -2,7 +2,7 @@ import { createServer, type AddressInfo } from "node:net";
 export const isPortInUse = (try_port?: number, server = createServer()) => {
   return new Promise<number | false>((resolve) => {
     server
-      .once("error", (err) => {
+      .once("error", (_err) => {
         return resolve(false);
       })
       .once("listening", () => {

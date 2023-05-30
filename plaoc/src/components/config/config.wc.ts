@@ -29,8 +29,8 @@ export class HTMLDwebConfigElement extends HTMLElement {
 }
 
 // <dweb-config/>
-customElements.define(configPlugin.tagName, HTMLDwebConfigElement);
+// customElements.define(configPlugin.tagName, HTMLDwebConfigElement);
 // <meta is="dweb-config"/>
-// customElements.define(configPlugin.tagName, HTMLDwebConfigElement, {
-//   extends: "meta",
-// });
+customElements.define(configPlugin.tagName, HTMLDwebConfigElement, {
+  extends: "meta",
+});

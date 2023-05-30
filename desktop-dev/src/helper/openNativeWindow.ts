@@ -44,8 +44,7 @@ export const openNativeWindow = async (
     show_po.resolve();
   });
 
-  win.webContents.setWindowOpenHandler((detail) => {
-    debugger;
+  win.webContents.setWindowOpenHandler((_detail) => {
     return { action: "deny" };
   });
 

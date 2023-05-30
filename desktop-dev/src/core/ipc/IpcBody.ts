@@ -59,7 +59,7 @@ export abstract class IpcBody {
     return body_stream;
   }
   async text() {
-    const bodyHub = await this._bodyHub;
+    const bodyHub = this._bodyHub;
     let body_text = bodyHub.text;
     if (body_text === undefined) {
       body_text = simpleDecoder(await this.u8a(), "utf8");

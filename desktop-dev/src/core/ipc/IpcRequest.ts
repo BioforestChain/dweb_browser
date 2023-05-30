@@ -155,9 +155,9 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
 
   toJSON() {
     const { method } = this;
-    let body: undefined | $BodyData;
+    // let body: undefined | $BodyData;
     if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
-      body = this.body.raw;
+      // body = this.body.raw;
       return new IpcReqMessage(
         this.req_id,
         this.method,

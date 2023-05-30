@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.jmm
 import info.bagen.dwebbrowser.microService.helper.Mmid
 
 data class JmmMetadata(
-  val id: Mmid,
+  val id: Mmid, // jmmApp的id
   val server: MainServer, // 打开应用地址
   val title: String = "", // 应用名称
   val subtitle: String = "", // 应用副标题
@@ -13,12 +13,13 @@ data class JmmMetadata(
   val introduction: String = "", // 应用描述
   val author: List<String>? = null, // 开发者，作者
   val version: String = "", // 应用版本
+  val newFeature:String = "", // 新特性，新功能
   val keywords: List<String>? = null, // 关键词
   val home: String = "", // 首页地址
   val size: String = "", // 应用大小
-  val fileHash: String = "",
-  val permissions: List<String>? = null,
-  val plugins: List<String>? = null,
+  val fileHash: String = "", // 文件hash
+  val permissions: List<String>? = null, // app使用权限的情况
+  val plugins: List<String>? = null, // app使用插件的情况
   val releaseDate: String = "", // 发布时间
 ):java.io.Serializable {
     data class MainServer(

@@ -1,11 +1,13 @@
 import { cacheGetter } from "./cacheGetter.ts";
 
+// deno-lint-ignore no-explicit-any
 export const createSignal = <CB extends $Callback<any[]> = $Callback>(
   autoStart?: boolean
 ) => {
   return new Signal<CB>(autoStart);
 };
 
+// deno-lint-ignore no-explicit-any
 export class Signal<CB extends $Callback<any[]> = $Callback> {
   constructor(autoStart = true) {
     if (autoStart) {

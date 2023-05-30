@@ -36,7 +36,7 @@
   opacity: 1;
 }
 .gradient-text {
-  width: 150px;
+  width: 100%;
   height: 20px;
   font-size: 20px;
   font-family: Source Han Sans CN-Medium, Source Han Sans CN;
