@@ -31,7 +31,7 @@ export async function createBfsaDir(
     await mkdir(path.join(temporaryPath, "sys"));
     await mkdir(path.join(temporaryPath, "tmp"));
     await mkdir(path.join(temporaryPath, "home"));
-    await mkdir(path.join(temporaryPath, "usr/bfs_worker"),{
+    await mkdir(path.join(temporaryPath, "usr/www/bfs_worker"),{
       recursive: true,
     });
 

@@ -101,7 +101,7 @@ async function createBfsaMetaData(destPath: string) {
     id: `${bfsMeta.name}.${bfsUrl.host}.dweb`,
     server: {
       root: "/usr",
-      entry: "/bfs_worker/public.service.worker.js", // 后端未开放先固定
+      entry: "/www/bfs_worker/public.service.worker.js", // 后端未开放先固定
     },
     title: bfsMeta.name,
     subtitle: bfsMeta.subName,
