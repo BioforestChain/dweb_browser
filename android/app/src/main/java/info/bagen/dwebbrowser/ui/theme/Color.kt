@@ -40,7 +40,7 @@ internal object PaletteTokens {
   val Error10 = Color(red = 65, green = 14, blue = 11)
   val Error20 = Color(red = 96, green = 20, blue = 16)
   val Error30 = Color(red = 140, green = 29, blue = 24)
-  val Error40 = Color(red = 179, green = 38, blue = 30)
+  val Error40 = Color(red = 247, green = 69, blue = 69)
   val Error50 = Color(red = 220, green = 54, blue = 46)
   val Error60 = Color(red = 228, green = 105, blue = 98)
   val Error70 = Color(red = 236, green = 146, blue = 142)

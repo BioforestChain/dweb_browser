@@ -117,7 +117,11 @@ fun SplashPrivacyDialog(
   val showPrivacyDeny = remember { mutableStateOf(false) }
 
   val transition = updateTransition(showPrivacyDeny.value, "")
-  Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(0.5f))) {
+  Box(modifier = Modifier
+    .fillMaxSize()
+    .navigationBarsPadding()
+    .background(Color.Black.copy(0.5f))
+  ) {
     Box(
       modifier = Modifier
         .fillMaxWidth()

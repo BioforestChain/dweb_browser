@@ -8,13 +8,10 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
-import info.bagen.dwebbrowser.ui.browser.BrowserIntent
 import info.bagen.dwebbrowser.ui.browser.BrowserView
 import info.bagen.dwebbrowser.ui.loading.LoadingView
-import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanView
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
 
 class BrowserActivity : AppCompatActivity() {

@@ -1,22 +1,17 @@
 package info.bagen.dwebbrowser.ui.browser
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -28,17 +23,15 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.database.WebSiteDatabase
 import info.bagen.dwebbrowser.database.WebSiteInfo
 import info.bagen.dwebbrowser.database.WebSiteType
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun BrowserListOfBook(
   viewModel: BookViewModel = BookViewModel(),
-  modifier: Modifier = Modifier,
+  @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
   noFoundTip: (@Composable () -> Unit)? = null,
-  onOpenSetting: (() -> Unit)? = null,
+  onOpenSetting: (WebSiteInfo) -> Unit,
   onSearch: (String) -> Unit
 ) {
   if (viewModel.bookList.isNotEmpty()) {
@@ -57,15 +50,15 @@ fun BrowserListOfBook(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun BookListContent(
   viewModel: BookViewModel = BookViewModel(),
-  modifier: Modifier = Modifier,
-  onOpenSetting: (() -> Unit)? = null,
+  @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+  onOpenSetting: (WebSiteInfo) -> Unit,
   onSearch: (String) -> Unit
 ) {
-  var count by remember { mutableStateOf(0) } // 初始值为 0
+  LazyColumnView(viewModel, modifier, onSearch = { onSearch(it) }) { onOpenSetting(it) }
+  /*var count by remember { mutableStateOf(0) } // 初始值为 0
   AnimatedContent(
     targetState = count,
     transitionSpec = {
@@ -87,10 +80,10 @@ private fun BookListContent(
     } else {
       BookManagerView(viewModel) { count = 0 }
     }
-  }
+  }*/
 }
 
-@Composable
+/*@Composable
 private fun BookManagerView(viewModel: BookViewModel, onBack: () -> Unit) {
   val focusRequester = FocusRequester()
   val scope = rememberCoroutineScope()
@@ -222,7 +215,7 @@ private fun BookManagerView(viewModel: BookViewModel, onBack: () -> Unit) {
       Text(text = "删除")
     }
   }
-}
+}*/
 
 @Composable
 private fun LazyColumnView(
@@ -248,7 +241,7 @@ private fun LazyColumnView(
           },
           leadingContent = {
             webSiteInfo.icon?.let { icon ->
-              Icon(bitmap = icon, contentDescription = webSiteInfo.title, Modifier.size(18.dp))
+              Image(bitmap = icon, contentDescription = webSiteInfo.title, Modifier.size(22.dp))
             } ?: Icon(
               ImageVector.vectorResource(R.drawable.ic_main_book),
               webSiteInfo.title,

@@ -84,6 +84,8 @@ fun BrowserView(viewModel: BrowserViewModel) {
   BottomSheetScaffold(modifier = Modifier.navigationBarsPadding(),
     scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
     sheetPeekHeight = LocalConfiguration.current.screenHeightDp.dp / 2,
+    sheetContainerColor = MaterialTheme.colorScheme.background,
+    sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
     sheetContent = {
       Box(modifier = Modifier.navigationBarsPadding()) {
         BrowserPopView(viewModel)       // 用于处理弹出框
@@ -103,6 +105,12 @@ fun BrowserView(viewModel: BrowserViewModel) {
       BrowserMultiPopupView(viewModel)// 用于显示多界面
       BrowserSearchView(viewModel)
     }
+    BrowserMaskView(viewModel) {
+      scope.launch {
+        viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+      }
+    }
+
     // 增加扫码的界面
     QRCodeScanView(
       qrCodeScanState = viewModel.uiState.qrCodeScanState,
@@ -113,23 +121,29 @@ fun BrowserView(viewModel: BrowserViewModel) {
           viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
         }
       })
-    if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.isVisible) {
-      Box(modifier = Modifier
-        .fillMaxSize()
-        .clickable(
-          indication = null,
-          interactionSource = remember { MutableInteractionSource() }) {
-          scope.launch {
-            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
-          }
-        })
-    }
+
   }
   LaunchedEffect(Unit) { // TODO 这个是因为华为鸿蒙系统，运行后，半屏显示了Sheet，这边强制隐藏下
     scope.launch {
       delay(15)
       viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
     }
+  }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BrowserMaskView(viewModel: BrowserViewModel, onClick: () -> Unit) {
+  // 如果显示了sheet，这边做一层遮罩
+  if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.targetValue != SheetValue.Hidden) {
+    Box(modifier = Modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.onSurface.copy(0.2f))
+      .clickable(
+        indication = null,
+        interactionSource = remember { MutableInteractionSource() }
+      ) { onClick() }
+    )
   }
 }
 
@@ -154,7 +168,8 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       .fillMaxSize()
       .clickable(indication = null,
         onClick = { localFocusManager.clearFocus() },
-        interactionSource = remember { MutableInteractionSource() })
+        interactionSource = remember { MutableInteractionSource() }
+      )
   ) {
     // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
     HorizontalPager(

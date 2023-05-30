@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -211,6 +212,7 @@ fun CustomTextField(
   trailingIcon: @Composable (() -> Unit)? = null,
   keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
   keyboardActions: KeyboardActions = KeyboardActions.Default,
+  spacerWidth: Dp = 10.dp,
 ) {
   BasicTextField(
     value = value,
@@ -227,20 +229,20 @@ fun CustomTextField(
   ) { innerTextField ->
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
       Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(spacerWidth))
         if (leadingIcon != null) {
           leadingIcon()
-          Spacer(modifier = Modifier.width(10.dp))
+          Spacer(modifier = Modifier.width(spacerWidth))
         }
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
           innerTextField()
           if (label != null && value.isEmpty()) label() // 如果内容是空的才显示
         }
         if (trailingIcon != null) {
-          Spacer(modifier = Modifier.width(10.dp))
+          Spacer(modifier = Modifier.width(spacerWidth))
           trailingIcon()
         }
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(spacerWidth))
       }
     }
   }

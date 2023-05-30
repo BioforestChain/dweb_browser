@@ -1,16 +1,23 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -29,11 +36,16 @@ import androidx.compose.ui.Alignment.Companion.TopStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -44,6 +56,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.database.WebSiteDatabase
+import info.bagen.dwebbrowser.database.WebSiteInfo
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
@@ -77,17 +92,206 @@ enum class PopupViewState(
 }
 
 class TabItem(
-  @StringRes val title_res: Int,
-  @DrawableRes val icon_res: Int,
+  @StringRes val titleRid: Int,
+  @DrawableRes val iconRid: Int,
   val entry: PopupViewState
 ) {
-  val title @Composable get() = stringResource(id = title_res)
-  val icon @Composable get() = ImageVector.vectorResource(id = icon_res)
+  val title @Composable get() = stringResource(id = titleRid)
+  val icon @Composable get() = ImageVector.vectorResource(id = iconRid)
+}
+
+/**
+ * 弹出主界面，包括了三个tab和一个书签管理界面 TODO 目前缺少切换到书签管理界面后的展开问题
+ */
+@Composable
+internal fun BrowserPopView(viewModel: BrowserViewModel) {
+  val selectedTabIndex = remember { mutableStateOf(0) }
+  val pageIndex = remember { mutableStateOf(0) }
+  var webSiteInfo: WebSiteInfo? = null
+
+
+  AnimatedContent(targetState = pageIndex, label = "",
+    transitionSpec = {
+      if (targetState.value > initialState.value) {
+        // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
+        slideInHorizontally { fullWidth -> fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
+      } else {
+        // 数字变小时，进入的数字从左向右变深划入，退出的数字从左向右变浅划出
+        slideInHorizontally { fullWidth -> -fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
+      }
+    }
+  ) { targetPage ->
+    when (targetPage.value) {
+      0 -> {
+        PopTabRowContent(
+          viewModel = viewModel,
+          selectedTabIndex = selectedTabIndex,
+          openBookManager = {
+            webSiteInfo = it
+            pageIndex.value = 1
+          }
+        )
+      }
+
+      1 -> {
+        PopBookManagerView(webSiteInfo = webSiteInfo) { pageIndex.value = 0 }
+      }
+
+      else -> {}
+    }
+  }
+}
+
+/**
+ * 书签管理界面
+ */
+@Composable
+private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
+  val scope = rememberCoroutineScope()
+  val inputTitle = remember { mutableStateOf(webSiteInfo?.title ?: "") }
+  val inputUrl = remember { mutableStateOf(webSiteInfo?.url ?: "") }
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(44.dp), verticalAlignment = CenterVertically
+  ) {
+    Icon(
+      imageVector = ImageVector.vectorResource(R.drawable.ic_main_back),
+      contentDescription = "Back",
+      modifier = Modifier
+        .clickable { onBack() }
+        .padding(horizontal = 16.dp)
+        .size(22.dp),
+      tint = MaterialTheme.colorScheme.onBackground
+    )
+    Text(
+      text = "编辑书签",
+      modifier = Modifier.weight(1f),
+      textAlign = TextAlign.Center,
+      fontSize = 18.sp
+    )
+    Text(
+      text = "存储",
+      modifier = Modifier
+        .clickable {
+          webSiteInfo?.apply {
+            title = inputTitle.value
+            url = inputUrl.value
+            scope.launch(ioAsyncExceptionHandler) {
+              WebSiteDatabase.INSTANCE
+                .websiteDao()
+                .update(this@apply)
+            }
+            onBack()
+          }
+        }
+        .padding(horizontal = 16.dp),
+      color = MaterialTheme.colorScheme.primary,
+      fontSize = 18.sp
+    )
+  }
+  val item = webSiteInfo ?: return
+  val focusRequester = FocusRequester()
+  LaunchedEffect(focusRequester) {
+    delay(500)
+    focusRequester.requestFocus()
+  }
+
+  Column(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(start = 16.dp, end = 16.dp, top = 56.dp)
+  ) {
+    RowItemTextField(
+      leadingBitmap = item.icon,
+      leadingIcon = R.drawable.ic_main_book,
+      inputText = inputTitle,
+      focusRequester = focusRequester
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    RowItemTextField(leadingIcon = R.drawable.ic_main_link, inputText = inputUrl)
+    Spacer(modifier = Modifier.height(16.dp))
+    Box(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(50.dp)
+        .clip(RoundedCornerShape(6.dp))
+        .background(MaterialTheme.colorScheme.surface)
+        .clickable {
+          scope.launch(ioAsyncExceptionHandler) {
+            WebSiteDatabase.INSTANCE
+              .websiteDao()
+              .delete(webSiteInfo)
+            onBack()
+          }
+        },
+      contentAlignment = Center
+    ) {
+      Text(
+        text = "删除",
+        color = MaterialTheme.colorScheme.error,
+        fontSize = 16.sp,
+        fontWeight = FontWeight(400)
+      )
+    }
+  }
 }
 
 @Composable
-internal fun BrowserPopView(viewModel: BrowserViewModel) {
-  var selectedTabIndex by remember { mutableStateOf(0) }
+fun RowItemTextField(
+  leadingBitmap: ImageBitmap? = null,
+  @DrawableRes leadingIcon: Int,
+  inputText: MutableState<String>,
+  focusRequester: FocusRequester? = null,
+) {
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(50.dp)
+      .clip(RoundedCornerShape(6.dp))
+      .background(MaterialTheme.colorScheme.surface),
+    verticalAlignment = CenterVertically
+  ) {
+    val modifier = focusRequester?.let { Modifier.focusRequester(focusRequester) } ?: Modifier
+
+    CustomTextField(
+      value = inputText.value,
+      onValueChange = { inputText.value = it },
+      modifier = modifier,
+      spacerWidth = 0.dp,
+      leadingIcon = {
+        leadingBitmap?.let {
+          Image(
+            bitmap = it,
+            contentDescription = "Icon",
+            modifier = Modifier
+              .padding(horizontal = 12.dp, vertical = 11.dp)
+              .size(28.dp)
+          )
+        } ?: run {
+          Icon(
+            imageVector = ImageVector.vectorResource(leadingIcon),
+            contentDescription = "Icon",
+            modifier = Modifier
+              .padding(horizontal = 12.dp, vertical = 11.dp)
+              .size(28.dp),
+            tint = MaterialTheme.colorScheme.onSurface
+          )
+        }
+      }
+    )
+  }
+}
+
+/**
+ * 三个标签页主界面
+ */
+@Composable
+private fun PopTabRowContent(
+  viewModel: BrowserViewModel,
+  selectedTabIndex: MutableState<Int>,
+  openBookManager: (WebSiteInfo) -> Unit
+) {
   val popupViewState = remember { mutableStateOf(PopupViewState.Options) }
   val tabs = listOf(
     TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
@@ -96,7 +300,7 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
   )
 
   LaunchedEffect(selectedTabIndex) {
-    snapshotFlow { selectedTabIndex }.collect {
+    snapshotFlow { selectedTabIndex.value }.collect {
       if (it < tabs.size && it >= 0) {
         popupViewState.value = tabs[it].entry
       }
@@ -104,11 +308,15 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
   }
 
   Column {
-    TabRow(selectedTabIndex = selectedTabIndex) {
+    TabRow(
+      selectedTabIndex = selectedTabIndex.value,
+      containerColor = MaterialTheme.colorScheme.background,
+      divider = {}
+    ) {
       tabs.forEachIndexed { index, tabItem ->
         Tab(
-          selected = selectedTabIndex == index,
-          onClick = { selectedTabIndex = index },
+          selected = selectedTabIndex.value == index,
+          onClick = { selectedTabIndex.value = index },
           icon = {
             Icon(
               imageVector = tabItem.icon,
@@ -119,7 +327,7 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
         )
       }
     }
-    PopContentView(popupViewState, viewModel)
+    PopContentView(popupViewState, viewModel, openBookManager)
   }
 }
 
@@ -127,7 +335,9 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PopContentView(
-  popupViewState: MutableState<PopupViewState>, viewModel: BrowserViewModel
+  popupViewState: MutableState<PopupViewState>,
+  viewModel: BrowserViewModel,
+  openBookManager: (WebSiteInfo) -> Unit
 ) {
   val bookViewModel = remember { BookViewModel() }
   val historyViewModel = remember { HistoryViewModel() }
@@ -136,17 +346,13 @@ private fun PopContentView(
   Box(
     modifier = Modifier
       .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
       .navigationBarsPadding()
   ) {
     when (popupViewState.value) {
       PopupViewState.BookList -> BrowserListOfBook(
         bookViewModel,
-        onOpenSetting = {
-          scope.launch {
-            delay(500)
-            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.expand()
-          }
-        }
+        onOpenSetting = { openBookManager(it) }
       ) {
         scope.launch {
           viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
@@ -172,41 +378,37 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   val launcher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
       onResult = { isGranted ->
-        //判断权限申请结果，并根据结果显示不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composalbe 需要通过修改 state 等方式间接显示 Composable
+        //判断权限申请结果，并根据结果显示不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composable 需要通过修改 state 等方式间接显示 Composable
         if (isGranted) {
           viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
         }
       })
-  LazyColumn(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.outlineVariant)
-  ) {
+  LazyColumn(modifier = Modifier.fillMaxSize()) {
+    item { Spacer(modifier = Modifier.height(12.dp)) }
     // 分享和添加书签
     item {
       ListItem(
         modifier = Modifier
-          .padding(horizontal = 10.dp, vertical = 5.dp)
+          .padding(horizontal = 16.dp)
           .clip(RoundedCornerShape(8.dp))
           .clickable { viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo) },
-        colors = ListItemDefaults.colors(
-          containerColor = MaterialTheme.colorScheme.background,
-        ),
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         headlineContent = { Text(text = "添加书签") },
         trailingContent = {
           Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_book),
             contentDescription = null,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.onSurface
           )
         }
       )
     }
-
+    item { Spacer(modifier = Modifier.height(12.dp)) }
     item {
       ListItem(
         modifier = Modifier
-          .padding(horizontal = 10.dp, vertical = 5.dp)
+          .padding(horizontal = 16.dp)
           .clip(RoundedCornerShape(8.dp))
           .clickable {
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
@@ -215,23 +417,27 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
               launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)/*请求权限*/
             }
           },
-        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         headlineContent = { Text(text = "分享") },
         trailingContent = {
           Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_share),
             contentDescription = "Share",
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.onSurface
           )
         }
       )
     }
+
+    item { Spacer(modifier = Modifier.height(12.dp)) }
     item {
       ListItem(
         modifier = Modifier
-          .padding(horizontal = 10.dp, vertical = 5.dp)
+          .padding(horizontal = 10.dp)
+          .size(width = 50.dp, height = 30.dp)
           .clip(RoundedCornerShape(8.dp)),
-        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         headlineContent = { Text(text = "无痕浏览") },
         trailingContent = {
           Switch(
@@ -250,29 +456,32 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
 @Composable
 internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
   val browserViewList = viewModel.uiState.browserViewList
+
   AnimatedVisibility(visibleState = viewModel.uiState.multiViewShow) {
-    Column(
+    // 高斯模糊做背景
+    Box(
       modifier = Modifier
         .fillMaxSize()
-        .clickable(indication = null,
-          onClick = { },
-          interactionSource = remember { MutableInteractionSource() })
+        .background(MaterialTheme.colorScheme.background)
     ) {
-      // 高斯模糊做背景
       viewModel.uiState.currentBrowserBaseView.value.bitmap?.let { bitmap ->
         Image(
           bitmap = bitmap,
           contentDescription = "BackGround",
-          alignment = Center,
-          contentScale = ContentScale.Fit,
+          alignment = TopStart,
+          contentScale = ContentScale.FillWidth,
           modifier = Modifier
             .fillMaxSize()
             .blur(radius = 16.dp)
         )
-      } ?: Box(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background))
+      }
+    }
 
+    Column(
+      modifier = Modifier
+        .fillMaxSize()
+        .clickable(enabled = false) {}
+    ) {
       if (browserViewList.size == 1) {
         Box(
           modifier = Modifier
@@ -305,7 +514,8 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         modifier = Modifier
           .fillMaxWidth()
           .height(DimenBottomBarHeight)
-          .background(MaterialTheme.colorScheme.background), verticalAlignment = CenterVertically
+          .background(MaterialTheme.colorScheme.surface),
+        verticalAlignment = CenterVertically
       ) {
         Icon(
           imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_add),
@@ -354,24 +564,14 @@ private fun MultiItemView(
     Column(horizontalAlignment = CenterHorizontally, modifier = Modifier.clickable {
       viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, index))
     }) {
-      val color =
-        if (browserBaseView == viewModel.uiState.currentBrowserBaseView.value && !onlyOne) {
-          MaterialTheme.colorScheme.primary
-        } else {
-          MaterialTheme.colorScheme.outline
-        }
       Image(
         bitmap = browserBaseView.bitmap ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
         contentDescription = null,
         modifier = Modifier
+          .shadow(elevation = 4.dp, shape = RoundedCornerShape(16.dp))
           .size(width = sizeTriple.first, height = sizeTriple.second)
           .clip(RoundedCornerShape(16.dp))
-          .background(color)
-          .padding(2.dp)
-          .clip(RoundedCornerShape(16.dp))
-          .background(MaterialTheme.colorScheme.outline)
-          .padding(2.dp)
-          .clip(RoundedCornerShape(16.dp))
+          .background(MaterialTheme.colorScheme.surface)
           .align(CenterHorizontally),
         contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
         alignment = if (browserBaseView is BrowserMainView) Center else TopStart
@@ -402,9 +602,10 @@ private fun MultiItemView(
         verticalAlignment = CenterVertically
       ) {
         contentPair.second?.asImageBitmap()?.let { imageBitmap ->
-          Icon(
+          Image(
             bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp)
           )
+          Spacer(modifier = Modifier.width(2.dp))
         }
         Text(
           text = contentPair.first ?: "无标题",

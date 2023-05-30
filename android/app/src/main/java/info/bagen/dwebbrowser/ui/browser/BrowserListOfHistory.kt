@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.ui.browser
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,7 +30,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun BrowserListOfHistory(
   viewModel: HistoryViewModel = HistoryViewModel(),
-  modifier: Modifier = Modifier,
+  @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
   noFoundTip: (@Composable () -> Unit)? = null,
   onSearch: (String) -> Unit
 ) {

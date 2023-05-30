@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser
 
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
@@ -24,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.*
@@ -56,7 +54,11 @@ class SplashActivity : AppCompatActivity() {
       val scope = rememberCoroutineScope()
       LaunchedEffect(mKeepOnAtomicBool) { // 最多显示1s就需要隐藏欢迎界面
         delay(1000L)
-        mKeepOnAtomicBool.getAndSet(false)
+        if (enable) { // 如果已经同意协议了，不需要关闭欢迎界面，直接跳转主页
+          App.grant.resolve(true)
+        } else {
+          mKeepOnAtomicBool.getAndSet(false)
+        }
       }
 
       RustApplicationTheme {
@@ -89,18 +91,6 @@ class SplashActivity : AppCompatActivity() {
         PrivacyView(url = webUrl, showLoading)
         LoadingView(showLoading)
       }
-    }
-    splashScreen.setOnExitAnimationListener { splashScreenProvider ->
-      val objectAnimator = ObjectAnimator.ofFloat(splashScreenProvider, "alpha", 1f, 0f)
-      objectAnimator.duration = 1000L
-      objectAnimator.doOnEnd {
-        if (enable) {
-          App.grant.resolve(true)
-        } else {
-          splashScreenProvider.remove()
-        }
-      }
-      objectAnimator.start()
     }
   }
 

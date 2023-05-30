@@ -44,7 +44,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.App.Starting"
+        android:theme="@style/Theme.dwebbrowser"
         android:usesCleartextTraffic="true">
         <profileable
             android:shell="true"
@@ -65,7 +65,8 @@
             android:name=".microService.browser.BrowserActivity"
             android:exported="true"
             android:theme="@style/Theme.dwebbrowser"
-            android:screenOrientation="fullSensor" />
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
 
         <activity
             android:name=".microService.sys.mwebview.MultiWebViewPlaceholder1Activity"
