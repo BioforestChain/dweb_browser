@@ -16,6 +16,38 @@ import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.ts";
 import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.ts";
 import { ShareNMM } from "./sys/plugins/sys/share/share.main.ts";
 import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.ts";
+import { setFilter } from "./helper/devtools.ts";
+
+/**
+ * 设置 debugger 过滤条件
+ * 预设的值
+ * "micro-module/native"
+ * "http"
+ * "http/dweb-server",
+ * 'http/port-listener'
+ * "jmm"
+ * "jsmm"
+ * "jsProcess"
+ * 
+ * "biometrices"
+ * 
+ * 
+ * "sender/init"
+ * "sender/pulling"
+ * "sender/read"
+ * "sender/end"
+ * "sender/pull-end"
+ * "sender/use-by"
+ * 
+ * "receiver/data"
+ * "receiver/end"
+ * "receiver/pull"
+ * "receiver/start"
+ */
+// 设置 console 过滤条件
+setFilter([
+  // "sender/pulling"
+])
 
 export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());
@@ -56,32 +88,7 @@ dns.install(new JmmNMM());
 
 dns.install(
   new BootNMM([
-    // 核心模块
-    // "http.sys.dweb",
-    // "mwebview.sys.dweb",
-    // "jmm.sys.dweb",
-    // "js.sys.dweb",
-
-    // 插件模块
-    // "download.sys.dweb",
-    // "status-bar.nativeui.sys.dweb",
-    // "navigation-bar.nativeui.sys.dweb",
-    // "safe-area.nativeui.sys.dweb",
-    // "virtual-keyboard.nativeui.sys.dweb",
-    // "barcode-scanning.sys.dweb",
-    // "toast.sys.dweb",
-    // "torch.nativeui.sys.dweb",
-    // "biometrics.sys.dweb",
-    // "haptics.sys.dweb",
-    // "share.sys.dweb",
     "browser.sys.dweb",
-    // cotDemoJMM.mmid
-    // 下面是专门用来测是 connect 的模块
-    // "test-from.sys.dweb",
-
-    // "js.sys.dweb",
-    // jmmtestconnectJMM.mmid,
-    // jmmtestconnectJMM2.mmid
   ])
 );
 
@@ -100,3 +107,7 @@ import { webcrypto } from "node:crypto";
 if (typeof crypto === "undefined") {
   Object.assign(globalThis, { crypto: webcrypto });
 }
+
+ 
+// console.always("aa")
+ 

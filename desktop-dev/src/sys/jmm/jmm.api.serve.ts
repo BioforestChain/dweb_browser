@@ -57,7 +57,6 @@ async function getData(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   const searchParams = request.parsed_url.searchParams;
   const url = searchParams.get("url");
   if (url === null) throw new Error(`${this.mmid} url === null`);
-  console.log("getData:", url);
   const res = await fetch(url);
   ipc.postMessage(
     await IpcResponse.fromResponse(request.req_id, res, ipc, true)
@@ -150,7 +149,6 @@ async function _extract(
       fs.readFileSync(tempFilePath)
     );
     for (const [filePath, fileZipObj] of Object.entries(jszip.files)) {
-      console.log(filePath);
       const targetFilePath = path.join(outputDir, filePath);
       if (fileZipObj.dir) {
         fs.mkdirSync(targetFilePath, { recursive: true });
@@ -199,8 +197,6 @@ async function appOpen(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
 
 nativeFetchAdaptersManager.append((remote, parsedUrl) => {
   /// fetch("file:///jmm/") 匹配
-  // console.log("[fetch in jmm] ", parsedUrl.href, remote.mmid);
-
   if (parsedUrl.protocol === "file:" && parsedUrl.hostname === "") {
     if (
       parsedUrl.pathname.startsWith("/jmm/") &&
@@ -222,7 +218,6 @@ nativeFetchAdaptersManager.append((remote, parsedUrl) => {
   }
 }, 0);
 const resFile = (filepath: string) => {
-  console.log("read-file:", filepath);
   try {
     const stats = fs.statSync(filepath);
     if (stats.isDirectory()) {

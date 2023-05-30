@@ -315,7 +315,6 @@ self.addEventListener("message", async function runMain(event) {
       writable: false,
     });
 
-    console.log("config.main_url: ", config.main_url);
     await import(config.main_url);
     this.self.removeEventListener("message", runMain);
   }

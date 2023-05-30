@@ -12,19 +12,6 @@ const once = <F extends (...args: any[]) => any>(fn: F) => {
   }) as F;
 };
 
-// ipcRenderer.on("renderPort", (event) => {
-//   const port = event.ports[0];
-
-//   //   port.addEventListener("message", (event) => {
-//   //     console.log("prepare on messaage", event.data);
-//   //   });
-//   //   setInterval(() => {
-//   //     console.log("prepare send 2");
-//   //     port.postMessage(2);
-//   //   }, 1000);
-//   //   port.start();
-// });
-
 /**
  * port1 给内部使用
  * port2 给外部
@@ -39,14 +26,6 @@ ipcRenderer.postMessage("renderPort", {}, [
 ]);
 updateRenderPort(export_port);
 updateRenderPort(import_port);
-
-// setInterval(() => {
-//   console.log("render send msg", 1);
-//   ipc_port.postMessage(1);
-// }, 1000);
-// ipc_port.addEventListener("message", (event) => {
-//   console.log("render recv msg", event.data);
-// });
 
 const wm_listener = new Map<$MessageEventListener, $MessageEventListener>();
 type $MessageEventListener = (message: MessageEvent) => void;

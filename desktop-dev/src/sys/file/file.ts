@@ -22,7 +22,6 @@ export class FileNMM extends NativeMicroModule {
       output: "boolean",
       handler: async (arg, client_ipc, request) => {
         const appInfo = await request.body.text();
-        console.log(chalk.red("file.cts /download appInfo === ", appInfo));
         return new Promise((resolve, reject) => {
           download(arg.url, arg.app_id, _progressCallback, appInfo)
             .then((apkInfo) => {
@@ -46,7 +45,6 @@ export class FileNMM extends NativeMicroModule {
                   client_ipc
                 )
               );
-              console.log("下载出错： ", err);
             });
         });
 

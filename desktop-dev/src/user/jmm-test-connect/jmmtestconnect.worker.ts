@@ -3,10 +3,7 @@ const main = async () => {
   // 等待其他模块的主动连接
   {
     jsProcess.onConnect((remoteIpc) => {
-      console.log("jsmtestconnect.worker.mts onConnect");
       remoteIpc.onMessage((message, ipc) => {
-        console.log("jmtestconnect.worker.mct onmessage", message);
-
         setTimeout(() => {
           // 返回消息
           // 返回消息不需要有模块的名称
@@ -17,7 +14,6 @@ const main = async () => {
       });
 
       remoteIpc.onEvent((ipcEventMessage, ipc) => {
-        console.log("jmtestconnect.worker.mct onEvent", ipcEventMessage);
       });
     });
   }

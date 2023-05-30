@@ -13,12 +13,11 @@ import {
 } from "../../core/nativeConnect.ts";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { log } from "../../helper/devtools.ts";
 import "../../helper/electron.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
-
+ 
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
 
@@ -137,7 +136,6 @@ export class DnsNMM extends NativeMicroModule {
   }
 
   override async _bootstrap(context: $BootstrapContext) {
-    log.green(`${this.mmid} _bootstrap`);
     this.install(this);
     this.running_apps.set(this.mmid, this);
 
@@ -177,39 +175,6 @@ export class DnsNMM extends NativeMicroModule {
         return true;
       },
     });
-
-    // this.registerCommonIpcOnMessageHandler({
-    //   pathname: "/open_browser",
-    //   matchMode: "full",
-    //   input: { mmid: "mmid", root: "string", entry: "string" },
-    //   output: "boolean",
-    //   handler: async (args, client_ipc, request) => {
-    //     const { JsMicroModule } = await import("../jmm/micro-module.js.ts");
-    //     const { JmmMetadata } = await import("../jmm/JmmMetadata.ts");
-    //     const metadata = new JmmMetadata({
-    //       id: args.mmid,
-    //       server: { root: args.root, entry: args.entry },
-    //     });
-
-    //     console.log("metadata: ", metadata);
-
-    //     // 实例化
-    //     // 安装
-    //     this.install(new JsMicroModule(metadata));
-
-    //     /// TODO 询问用户是否授权该行为
-    //     const app = await this.open(args.mmid);
-    //     return IpcResponse.fromJson(
-    //       request.req_id,
-    //       200,
-    //       new IpcHeaders({
-    //         "Content-Type": "application/json; charset=UTF-8",
-    //       }),
-    //       JSON.stringify(app),
-    //       client_ipc
-    //     );
-    //   },
-    // });
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
@@ -302,7 +267,6 @@ export class DnsNMM extends NativeMicroModule {
       process.argv.findIndex((arg) => /^\w+$/.test(arg))
       // path.parse(process.argv0).name.toLowerCase() === "electron" ? 2 : 1
     );
-    // console.log("args:", args);
 
     if (args.length > 0) {
       const [domain, ...deeplink_args] = args;
@@ -339,16 +303,11 @@ export class DnsNMM extends NativeMicroModule {
 
       /// 查询匹配deeplink的程序
       for (const app of this.apps.values()) {
-        // console.log("app.dweb_deeplinks:", app.dweb_deeplinks);
         if (
           undefined !==
           app.dweb_deeplinks.find((dl) => dl.startsWith(dweb_deeplink))
         ) {
           const req = new Request(getReqUrl());
-          // console.table({
-          //   title: `use ${app.mmid}`,
-          //   message: req.url,
-          // });
           const [ipc] = await context.dns.connect(app.mmid, req);
           const ipc_req_init = await $readRequestAsIpcRequest(req);
           /// 发送请求

@@ -2,7 +2,6 @@ import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { log } from "../../helper/devtools.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 import type { HttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import { createApiServer } from "./jmm.api.serve.ts";
@@ -29,7 +28,7 @@ export class JmmNMM extends NativeMicroModule {
   };
 
   async _bootstrap(context: $BootstrapContext) {
-    log.green(`[${this.mmid}] _bootstrap`);
+    console.always(`[${this.mmid}] _bootstrap`);
 
     await createWWWServer.bind(this)();
     await createApiServer.bind(this)();
@@ -74,7 +73,7 @@ export class JmmNMM extends NativeMicroModule {
       input: { url: "string" },
       output: "void",
       handler: async (args) => {
-        console.log("!!!! install", args);
+        console.log("jmm","!!!! install", args);
         await new Promise((resolve) => setTimeout(resolve, 1000));
         /// 安装应用并打开
         await install(this, { metadataUrl: args.url });
@@ -86,40 +85,6 @@ export class JmmNMM extends NativeMicroModule {
         });
       },
     });
-
-    // this.registerCommonIpcOnMessageHandler({
-    //   pathname: "/open_page",
-    //   matchMode: "full",
-    //   input: {},
-    //   output: "object",
-    //   handler: async (args, client_ipc, request) => {
-    //     console.log('request: ', request)
-    //     const path = require('path');
-    //     const pathname = path.resolve(__dirname, './assets/index.html')
-    //     console.log('pathname: ', pathname)
-    //     const result = this.nativeFetch(`file:///assets/html/download.sys.dweb.html`)
-    //     return result;
-    //   }
-    // })
-
-    // // 专门用来做静态服务
-    // this.registerCommonIpcOnMessageHandler({
-    //   pathname: "/open",
-    //   matchMode: "full",
-    //   input: {},
-    //   output: "boolean",
-    //   handler: async (args, client_ipc, request) => {
-    //     const _url = new URL(request.url);
-    //     let appId = _url.searchParams.get("appId");
-    //     if (appId === null) return false;
-    //     // 注意全部需要小写
-    //     const mmid = createMMIDFromAppID(appId);
-    //     const response = await this.nativeFetch(
-    //       `file://dns.sys.dweb/open?app_id=${mmid}`
-    //     );
-    //     return IpcResponse.fromResponse(request.req_id, response, client_ipc);
-    //   },
-    // });
   }
 
   readonly onInstalled = createSignal<$Callback<[$AppMetaData, string]>>();

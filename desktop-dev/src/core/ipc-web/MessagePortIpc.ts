@@ -88,7 +88,6 @@ export class MessagePortIpc extends Ipc {
   }
 
   _doClose() {
-    console.log("web-message-port-ipc", "onclose");
     this.port.postMessage("close");
     this.port.close();
   }

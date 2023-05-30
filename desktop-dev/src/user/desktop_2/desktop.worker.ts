@@ -23,7 +23,6 @@ const main = async () => {
   let server = await http.createHttpDwebServer(jsProcess, {});
   let streamIpc = await server.listen();
   streamIpc.onRequest((request, ipc) => {
-    console.log("接收到奥了请求 desktop_2");
     streamIpc.postMessage(
       IpcResponse.fromText(
         request.req_id,

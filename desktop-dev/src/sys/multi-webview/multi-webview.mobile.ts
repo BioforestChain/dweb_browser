@@ -4,7 +4,6 @@ import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import { Ipc, IpcRequest } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { log } from "../../helper/devtools.ts";
 import { $Schema1ToType } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import {
@@ -31,7 +30,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   encoder = new TextEncoder();
 
   async _bootstrap(context: $BootstrapContext) {
-    log.green(`${this.mmid} _bootstrap`);
+    console.always(`${this.mmid} _bootstrap`);
 
     const httpDwebServer = await createHttpDwebServer(this, {});
     this._after_shutdown_signal.listen(() => httpDwebServer.close());

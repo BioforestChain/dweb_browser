@@ -10,24 +10,6 @@ export const openNativeWindow = async (
   const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
   await Electron.app.whenReady();
 
-  // Electron.protocol.registerHttpProtocol("http", (request, callback) => {
-  //   callback({
-  //     url: request.url,
-  //     method: request.method,
-  //     session: undefined,
-  //   });
-  // });
-
-  // Electron.protocol.registerHttpProtocol("https", (request, callback) => {
-  //   console.log("被转发了的请求request: ", request.url);
-  //   // 把 https 的请求转为 http 发送
-  //   callback({
-  //     url: request.url.replace("https://", "http://"),
-  //     method: request.method,
-  //     session: undefined,
-  //   });
-  // });
-
   options.webPreferences = {
     ...options.webPreferences,
     // preload: resolveTo("./openNativeWindow.preload.cjs"),
@@ -81,7 +63,6 @@ export const openNativeWindow = async (
     });
   });
 
-  console.log("[openNativeWindow.cts]url", url);
   await win.loadURL(url);
   await show_po.promise;
 

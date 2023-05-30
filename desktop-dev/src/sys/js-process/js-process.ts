@@ -135,7 +135,7 @@ export class JsProcessNMM extends NativeMicroModule {
   private INTERNAL_PATH = encodeURI("/<internal>");
 
   async _bootstrap() {
-    console.log("[js-process _bootstrap]");
+    console.log("jsProcess","[js-process _bootstrap]");
     const mainServer = await createHttpDwebServer(this, {});
     (await mainServer.listen()).onRequest(async (request, ipc) => {
       const pathname = request.parsed_url.pathname;
@@ -202,7 +202,7 @@ export class JsProcessNMM extends NativeMicroModule {
       input: { entry: "string", process_id: "string" },
       output: "object",
       handler: async (args, ipc, requestMessage) => {
-        console.log("ipc.", ipc.remote.mmid);
+        // console.log("jsProcess","ipc.", ipc.remote.mmid);
         const processIdMap = mapHelper.getOrPut(
           ipcProcessIdMap,
           ipc,

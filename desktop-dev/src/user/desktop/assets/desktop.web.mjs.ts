@@ -40,7 +40,6 @@ const script = () => {
       .then(
         function success(stream) {
           cameraView.srcObject = stream;
-          console.log(stream);
           cameraView.play();
         },
         (err) => {

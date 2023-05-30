@@ -90,7 +90,6 @@ const main = async () => {
       // 返回数据到前端
       return ipc.postMessage(ipcResponse);
     }
-    console.log("ur.pathname: ", url.pathname);
     onApiRequest(apiServer.startResult.urlInfo, request, ipc);
   });
 

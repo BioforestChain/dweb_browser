@@ -1,5 +1,4 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
-import { log } from "../../../../helper/devtools.ts";
 import {
   toggleTorch,
   torchState,
@@ -9,7 +8,7 @@ export class TorchNMM extends NativeMicroModule {
   mmid = "torch.nativeui.sys.dweb" as const;
 
   _bootstrap = () => {
-    log.green(`[${this.mmid} _bootstrap]`);
+    console.always(`[${this.mmid} _bootstrap]`);
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/toggleTorch",

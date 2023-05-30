@@ -132,9 +132,3 @@ export interface $ApkInfo {
 //       tag: 'manifest'
 //     }
 //   }
-// console.log(`package = ${manifest.package}`);
-// console.log(`versionCode = ${manifest.versionCode}`);
-// console.log(`versionName = ${manifest.versionName}`);
-// console.log('manifest：', manifest)
-// for properties which haven't any existing accessors you can use the raw binary xml
-// console.log(JSON.stringify(manifest.raw, null, 4));

@@ -4,7 +4,6 @@ import Jimp from "jimp";
 import jsQR from "jsqr";
  
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
-import { log } from "../../../../helper/devtools.ts";
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
 import type { Ipc } from "../../../../core/ipc/ipc.ts";
 
@@ -16,7 +15,7 @@ export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
   allocId = 0;
 
   _bootstrap = () => {
-    log.green(`[${this.mmid} _bootstrap]`);
+    console.always(`[${this.mmid} _bootstrap]`);
     let isStop = false;
     this.registerCommonIpcOnMessageHandler({
       method: "POST",
@@ -29,7 +28,6 @@ export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
         return await Jimp.read(Buffer.from(await ipcRequest.body.u8a()))
         .then(({ bitmap }: Jimp) => {
             const result = jsQR(bitmap.data as unknown as Uint8ClampedArray, bitmap.width, bitmap.height);
-            console.log("result: ", result);
             return result === null ? [] : [result.data];
           }
         );

@@ -3,7 +3,6 @@ import { ipcMain, IpcMainEvent } from "electron";
 import type { Ipc } from "../../../../core/ipc/ipc.ts";
 import { IpcEvent } from "../../../../core/ipc/IpcEvent.ts";
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
-import { log } from "../../../../helper/devtools.ts";
 import {
   barGetState,
   barSetState,
@@ -18,7 +17,7 @@ export class NavigationBarNMM extends NativeMicroModule {
   encoder = new TextEncoder();
 
   _bootstrap = () => {
-    log.green(`[${this.mmid} _bootstrap]`);
+    console.always(`[${this.mmid} _bootstrap]`);
 
     {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据

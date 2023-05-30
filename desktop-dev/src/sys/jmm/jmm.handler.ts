@@ -30,17 +30,17 @@ export async function install(
 }
 
 export async function pause(jmm: JmmNMM, args: $Schema1ToType<{}>) {
-  console.log("................ 下载暂停但是还没有处理");
+  console.log("jmm","................ 下载暂停但是还没有处理");
   return true;
 }
 
 export async function resume(jmm: JmmNMM, args: $Schema1ToType<{}>) {
-  console.log("................ 从新下载但是还没有处理");
+  console.log("jmm","................ 从新下载但是还没有处理");
   return true;
 }
 
 // 业务逻辑是会 停止下载 立即关闭下载页面
 export async function cancel(jmm: JmmNMM, args: $Schema1ToType<{}>) {
-  console.log("................ 从新下载但是还没有处理");
+  console.log("jmm","................ 从新下载但是还没有处理");
   return true;
 }

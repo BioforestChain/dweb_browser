@@ -15,6 +15,7 @@ export const createHttpDwebServer = async (
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const startResult = await startHttpDwebServer(microModule, options);
   console.log(
+    "http/dweb-server",
     "获得域名授权：",
     startResult.urlInfo.internal_origin,
     startResult.urlInfo.public_origin
@@ -89,12 +90,9 @@ export const listenHttpDwebServer = async (
   };
   const buildUrlValue = buildUrl(url, ext);
   const int = { method: "POST", body: httpServerIpc.stream };
-  // console.log('[$createHttpDwebServer.cts 调用 microModule.nativeFetch],int', int)
   const httpIncomeRequestStream = await microModule
     .nativeFetch(buildUrlValue, int)
     .stream();
-
-  console.log("开始响应服务请求");
 
   httpServerIpc.bindIncomeStream(httpIncomeRequestStream);
   return httpServerIpc;

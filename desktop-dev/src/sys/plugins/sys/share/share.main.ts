@@ -1,5 +1,4 @@
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
-import { log } from "../../../../helper/devtools.ts";
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
 import { shareShare } from "../../../multi-webview/multi-webview.mobile.handler.ts";
 
@@ -8,7 +7,7 @@ export class ShareNMM extends NativeMicroModule {
   httpNMM: HttpServerNMM | undefined;
 
   protected _bootstrap() {
-    log.green(`[${this.mmid}] _bootstrap`);
+    console.always(`[${this.mmid}] _bootstrap`);
 
     this.registerCommonIpcOnMessageHandler({
       method: "POST",

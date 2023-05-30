@@ -64,7 +64,6 @@ export async function onApiRequest(
       const ipcProxyResponse = await jsProcess.fetchIpc.registerReqId(
         ipcProxyRequest.req_id
       ).promise;
-      console.log("response.body: ", ipcProxyResponse.body)
       ipcResponse = new IpcResponse(
         request.req_id,
         ipcProxyResponse.statusCode,

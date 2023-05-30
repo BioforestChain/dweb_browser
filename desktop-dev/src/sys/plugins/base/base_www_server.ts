@@ -4,7 +4,6 @@ import type { Ipc } from "../../../core/ipc/ipc.ts";
 import type { IpcRequest } from "../../../core/ipc/IpcRequest.ts";
 import { IpcResponse } from "../../../core/ipc/IpcResponse.ts";
 import type { NativeMicroModule } from "../../../core/micro-module.native.ts";
-import { log } from "../../../helper/devtools.ts";
 import type { HttpDwebServer } from "../../http-server/$createHttpDwebServer.ts";
 import { createHttpDwebServer } from "../../http-server/$createHttpDwebServer.ts";
 
@@ -19,7 +18,7 @@ export abstract class BaseWWWServer<T extends NativeMicroModule> {
 
   private _int = async () => {
     this.server = await createHttpDwebServer(this.nmm, {});
-    log.green(
+    console.always(
       `[${this.nmm.mmid}] ${this.server.startResult.urlInfo.internal_origin}`
     );
     (await this.server.listen()).onMessage(this._onMessage);

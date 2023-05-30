@@ -98,6 +98,7 @@ export abstract class NativeMicroModule extends MicroModule {
         if (!has) {
           /** 没有匹配的事件处理器 弹出终端 优化了开发体验 */
           console.log(
+            "micro-module/native",
             chalk.red(
               "[micro-module.native.cts 没有匹配的注册方法 mmid===]",
               this.mmid

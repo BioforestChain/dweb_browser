@@ -58,13 +58,8 @@ export class PortListener {
    * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
    */
   async hookHttpRequest(req: WebServerRequest, res: WebServerResponse) {
-    // if (res.closed) {
-    //   throw new Error("http server response already closed");
-    // }
-
     const { url = "/", method = "GET" } = req;
     const parsed_url = parseUrl(url, this.origin);
-    // console.log('parsed_url: ', parsed_url.href)
     const hasMatch = this._isBindMatchReq(parsed_url.pathname, method);
     if (hasMatch === undefined) {
       defaultErrorResponse(req, res, 404, "no found");
@@ -100,7 +95,6 @@ export class PortListener {
         const client_req_body_reader = Readable.toWeb(req).getReader();
         // 可能出现 数据还没有传递完毕，但是却关闭了
         // client_req_body_reader.closed.then(() => {
-        //   console.log('执行了关闭？？')
         //   server_req_body_writter.controller.close();
         // });
         /// 根据数据拉取的情况，从 req 中按需读取数据，这种按需读取会反压到 web 的请求层那边暂缓数据的发送
@@ -116,7 +110,6 @@ export class PortListener {
             server_req_body_writter.controller.close();
             break;
           } else {
-            // console.log('需要发送数据： ',item.value)
             server_req_body_writter.controller.enqueue(item.value);
           }
         }
@@ -124,7 +117,7 @@ export class PortListener {
 
       ipc_req_body_stream = server_req_body_writter.stream;
     }
-    // console.log(`分发消息 http://${req.headers.host}${url}`);
+    // console.log('http/port-listener',`分发消息 http://${req.headers.host}${url}`);
     // 分发消息
     const http_response_info = await hasMatch.bind.streamIpc.request(url, {
       method,

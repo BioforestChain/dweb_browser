@@ -7,7 +7,6 @@ import { IPC_ROLE } from "../../core/ipc/const.ts";
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { $ReqMatcher } from "../../helper/$ReqMatcher.ts";
-import { log } from "../../helper/devtools.ts";
 import { ServerStartResult, ServerUrlInfo } from "./const.ts";
 import { defaultErrorResponse } from "./defaultErrorResponse.ts";
 import { Http1Server } from "./net/Http1Server.ts";
@@ -52,17 +51,10 @@ export class HttpServerNMM extends NativeMicroModule {
   // private _allRoutes: Map<string, $Listener> = new Map();
 
   protected async _bootstrap() {
-    log.green(`${this.mmid} _bootstrap`);
-
-    // // 用来接受 推送的消息
-    // this.onConnect((remoteIpc) => {
-    //   remoteIpc.onEvent((ipcEventMessage, ipc) => {});
-    // });
+    console.always(`${this.mmid} _bootstrap`);
 
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     this._info = await this._dwebServer.create();
-    // console.log(" ", this._info);
-
     this._info.server.on("request", (req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Headers", "*");
@@ -72,7 +64,8 @@ export class HttpServerNMM extends NativeMicroModule {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
         if (gateway == undefined) {
-          log.red(
+          console.error(
+            "http",
             `[http-server onRequest 既没分发也没有匹配 gatewaty请求] ${req.url}`
           );
           return defaultErrorResponse(

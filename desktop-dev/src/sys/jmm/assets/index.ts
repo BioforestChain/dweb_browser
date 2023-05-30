@@ -72,7 +72,6 @@ elBtnDownload.addEventListener("click", async (e) => {
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
-      console.log("done: ", done);
       let percent = decoder.decode(value);
       progress(parseInt(percent));
     }

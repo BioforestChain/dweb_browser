@@ -2,7 +2,6 @@ import { ipcMain, IpcMainEvent } from "electron";
 import type { Ipc } from "../../../../core/ipc/ipc.ts";
 import { IpcEvent } from "../../../../core/ipc/IpcEvent.ts";
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
-import { log } from "../../../../helper/devtools.ts";
 import { safeAreaGetState } from "../../../multi-webview/multi-webview.mobile.handler.ts";
 import { startObserve, stopObserve } from "./handlers.ts";
 
@@ -13,7 +12,7 @@ export class SafeAreaNMM extends NativeMicroModule {
   observesState: Map<string /**headers.host */, boolean> = new Map();
   encoder = new TextEncoder();
   _bootstrap = () => {
-    log.green(`[${this.mmid} _bootstrap]`);
+    console.always(`[${this.mmid} _bootstrap]`);
     {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
       ipcMain.on(

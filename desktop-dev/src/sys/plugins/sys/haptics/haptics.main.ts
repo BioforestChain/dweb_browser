@@ -1,6 +1,5 @@
 // haptics.sys.dweb
 import { NativeMicroModule } from "../../../../core/micro-module.native.ts";
-import { log } from "../../../../helper/devtools.ts";
 import type { HttpServerNMM } from "../../../http-server/http-server.ts";
 import { setHaptics } from "./handlers.ts";
 
@@ -11,7 +10,7 @@ export class HapticsNMM extends NativeMicroModule {
   notificationStyle: $NotificationStyle = "SUCCESS";
 
   protected _bootstrap() {
-    log.green(`[${this.mmid}] _bootstrap`);
+    console.always(`[${this.mmid}] _bootstrap`);
     // haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.sys.dweb%3A443&style=HEAVY
     this.registerCommonIpcOnMessageHandler({
       pathname: "/impactLight",

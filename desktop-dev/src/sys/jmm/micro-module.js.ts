@@ -74,6 +74,7 @@ export class JsMicroModule extends MicroModule {
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
     console.log(
+      "jsmm",
       `[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`
     );
     const pid = Math.ceil(Math.random() * 1000).toString();
@@ -94,11 +95,6 @@ export class JsMicroModule extends MicroModule {
         );
       } else {
         // 获取 worker.js 代码
-        // console.log(
-        //   `fetch:`,
-        //   this.metadata.config.server.root,
-        //   request.parsed_url.pathname
-        // );
         const main_code = await this.nativeFetch(
           this.metadata.config.server.root + request.parsed_url.pathname
         ).text();
