@@ -1,0 +1,12 @@
+{
+  "name": "@bfex/dweb-jmm-bundler",
+  "commandName": "jmm",
+  "buildFromRootDir": "./src/index.ts",
+  "buildToRootDir": "./build",
+  "version": "0.0.2",
+  "description": ".jmm application bundle service.",
+  "lib": [
+    "es2022",
+    "dom"
+  ]
+}

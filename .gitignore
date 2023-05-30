@@ -28,8 +28,10 @@ lerna-debug.log*
 .pnpm-debug.log*
 
 
-#plugins
-plugins/build
+#plaoc
+plaoc/build
+plaoc/cli/build
+plaoc/cli/bin
 
 # bak
 .*.bak
