@@ -17,7 +17,7 @@
 [plaoc-url]: https://github.com/BioforestChain/dweb_browser-docs
 
 
-# About dweb-jmm-bundler
+# About dweb-browser
 
 dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将浏览器的能力、以及浏览器相关的系统原生系统能力通过各种 dweb 模块暴露出来。目前我们实现了 Android、IOS、MacOS、Windows、Linux 这些主流平台的支持。
 它包含一下这些核心模块：
