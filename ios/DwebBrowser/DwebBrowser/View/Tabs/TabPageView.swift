@@ -81,7 +81,7 @@ struct TabPageView: View {
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: webCache.id.uuidString)
                             animation.snapshotImage = image
                             animation.progress = .startShrinking
-                            DispatchQueue.main.asyncAfter(deadline: .now()+0.1, execute: {hasTook = false}) // reset the state var once this time animation
+                            DispatchQueue.main.asyncAfter(deadline: .now()+0.1){hasTook = false} // reset the state var once this time animation
                         }
                     }
                 }

@@ -198,9 +198,9 @@
 			isa = PBXGroup;
 			children = (
 				F02899AB29FA882C00B8754A /* TabsContainerView.swift */,
+				F028998B29F7C3E400B8754A /* TabPageView.swift */,
 				F028999A29F7CC0000B8754A /* TabGridView.swift */,
 				F0E984502A24AC5800F7180A /* GridCellView.swift */,
-				F028998B29F7C3E400B8754A /* TabPageView.swift */,
 				F02899A929FA499D00B8754A /* HomeView.swift */,
 			);
 			path = Tabs;

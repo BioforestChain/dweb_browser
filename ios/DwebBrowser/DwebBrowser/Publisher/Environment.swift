@@ -29,7 +29,7 @@ class AddrBarOffset: ObservableObject {
 
 class AddressBarState: ObservableObject{
     @Published var searchTFFocused = false
-    @Published var tfInputText: String = ""
+    @Published var inputText: String = ""
 }
 
 class TabState: ObservableObject {

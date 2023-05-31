@@ -8,7 +8,6 @@
 import SwiftUI
 import WebKit
 
-// observe the showingOptions variety to do the switch animation
 struct TabsContainerView: View{
     @EnvironmentObject var browser: BrowerVM
     
@@ -76,12 +75,10 @@ struct TabsContainerView: View{
         Image(uiImage: animation.snapshotImage)
             .resizable()
             .aspectRatio(contentMode: .fill)
-            .frame(width: cellWidth(fullW: geoRect.width),
-                   height: cellHeight(fullH: geoRect.height),alignment: .top)
+            .frame(width: imageWidth(),height: imageHeight(), alignment: .top)
             .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
             .clipped()
-            .position(x: cellCenterX(geoMidX: geoRect.midX),
-                      y: cellCenterY(geoMidY: geoRect.midY - geoRect.minY))
+            .position(x: imageXcenter(),y: imageYcenter())
             .onReceive(animation.$progress, perform: { progress in
                 if progress == .startShrinking || progress == .startExpanding{
                     withAnimation(.easeInOut(duration: shiftingDuration)) {
@@ -94,41 +91,41 @@ struct TabsContainerView: View{
             })
     }
     
-    func cellCenterX(geoMidX: CGFloat)-> CGFloat{
+    func imageXcenter()-> CGFloat{
         if animation.progress.imageIsSmall(){
             return selectedCellFrame.minX + selectedCellFrame.width/2.0
         }else if animation.progress.imageIsLarge(){
-            return geoMidX
+            return geoRect.midX
         }else{
             return selectedCellFrame.minX + selectedCellFrame.width/2.0
         }
     }
     
-    func cellCenterY(geoMidY: CGFloat)-> CGFloat{
+    func imageYcenter()-> CGFloat{
         if animation.progress.imageIsSmall(){
             return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - topSafeArea
         }else if animation.progress.imageIsLarge(){
-            return geoMidY
+            return geoRect.midY - geoRect.minY
         }else{
             return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0
         }
     }
     
-    func cellWidth(fullW: CGFloat)->CGFloat{
+    func imageWidth()->CGFloat{
         if animation.progress.imageIsSmall(){
             return selectedCellFrame.width
         }else if animation.progress.imageIsLarge(){
-            return fullW
+            return geoRect.width
         }else {
             return selectedCellFrame.width
         }
     }
     
-    func cellHeight(fullH: CGFloat)->CGFloat{
+    func imageHeight()->CGFloat{
         if animation.progress.imageIsSmall(){
             return selectedCellFrame.height - gridcellBottomH
         }else if animation.progress.imageIsLarge(){
-            return fullH
+            return geoRect.height
         }else{
             return selectedCellFrame.height
         }

@@ -29,10 +29,11 @@ struct AddressBarHStack: View {
 }
 
 struct AddressBarHContainer:View{
+    @StateObject var addressBar = AddressBarState()
     var body: some View{
         HStack(spacing: 0) {
             ForEach(WebWrapperMgr.shared.store){ webWrapper in
-                AddressBar(inputText: "", webWrapper: webWrapper)
+                AddressBar(webWrapper: webWrapper, addressBar: addressBar)
                     .frame(width: screen_width)
             }
         }
@@ -41,9 +42,10 @@ struct AddressBarHContainer:View{
 }
 
 struct AddressBar: View {
-    @State var inputText: String = "inputText is empty"
+//    @State var inputText: String = "inputText is empty"
     @FocusState var isAdressBarFocused: Bool
     @ObservedObject var webWrapper: WebWrapper
+    @ObservedObject var addressBar: AddressBarState
     
     var body: some View {
         GeometryReader{ geometry in
@@ -75,8 +77,8 @@ struct AddressBar: View {
                     }
                 
                 
-                TextField("", text: $inputText)
-                    .placeholder(when: inputText.isEmpty) {
+                TextField("", text: $addressBar.inputText)
+                    .placeholder(when: addressBar.inputText.isEmpty) {
                         Text("请输入搜索内容").foregroundColor(Color(white: 0.8))
                     }
                     .background(Color(.darkGray))
@@ -91,6 +93,9 @@ struct AddressBar: View {
                     .onTapGesture {
                         print("tapped")
                         isAdressBarFocused = true
+                    }
+                    .onChange(of: isAdressBarFocused) { focused in
+                        addressBar.searchTFFocused = focused
                     }
             }
             .frame(height: addressBarH)
