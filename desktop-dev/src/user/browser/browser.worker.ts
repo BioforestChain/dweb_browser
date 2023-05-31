@@ -34,23 +34,28 @@ const main = async () => {
 
   /**尝试打开view */
   const tryOpenView = async () => {
-    if (webViewMap.size === 0) {
-      // open
-      const url = await mainUrl.promise;
-      const view_id = await nativeOpen(url);
-      webViewMap.set(view_id, {
-        isActivated: true,
-        webviewId: view_id,
-      });
-      return view_id;
-    }
-    // 当前的策略是有多少个webview激活多少个
-    await Promise.all(
-      [...webViewMap.values()].map((item) => {
-        // activate
-        return nativeActivate(item.webviewId);
-      })
-    );
+    console.log('tryOpenView... start')
+    const url = await mainUrl.promise;
+    nativeOpen(url);
+
+    console.log('tryOpenView... end', url)
+    // if (webViewMap.size === 0) {
+    //   // open
+    //   const url = await mainUrl.promise;
+    //   const view_id = await nativeOpen(url);
+    //   webViewMap.set(view_id, {
+    //     isActivated: true,
+    //     webviewId: view_id,
+    //   });
+    //   return view_id;
+    // }
+    // // 当前的策略是有多少个webview激活多少个
+    // await Promise.all(
+    //   [...webViewMap.values()].map((item) => {
+    //     // activate
+    //     return nativeActivate(item.webviewId);
+    //   })
+    // );
   };
 
   /**给前端的文件服务 */
@@ -216,26 +221,29 @@ const main = async () => {
     return "no action for serviceWorker Factory !!!";
   };
 
+  console.error(">>>>>>>>>>>>>>>>>>> jsProcess.onActivity")
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
+    
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
-    if (hasActivityEventIpcs.has(ipc) === false) {
-      hasActivityEventIpcs.add(ipc);
-      multiWebViewCloseSignal.listen(() => {
-        ipc.postMessage(IpcEvent.fromText("close", ""));
-        ipc.close();
-      });
-    }
+    // if (hasActivityEventIpcs.has(ipc) === false) {
+    //   hasActivityEventIpcs.add(ipc);
+    //   multiWebViewCloseSignal.listen(() => {
+    //     ipc.postMessage(IpcEvent.fromText("close", ""));
+    //     ipc.close();
+    //   });
+    // }
   });
   const hasActivityEventIpcs = new Set<$Ipc>();
   jsProcess.onClose(() => {
+    closeWindow()
     // 接收JMM更新程序的关闭消息（安装完新的app需要重启应用）
-    multiWebViewCloseSignal.emit();
-    return closeApp(
-      [apiServer, wwwServer, externalServer],
-      [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
-    );
+    // multiWebViewCloseSignal.emit();
+    // return closeApp(
+    //   [apiServer, wwwServer, externalServer],
+    //   [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
+    // );
   });
 
   /// 同步 mwebview 的状态机

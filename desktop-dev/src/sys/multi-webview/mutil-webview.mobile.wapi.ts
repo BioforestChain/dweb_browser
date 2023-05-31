@@ -32,6 +32,10 @@ export const apisGetFromMmid = (mmid: $MMID) => {
   return _mmid_wapis_map.get(mmid)?.apis;
 };
 
+export const nwwGetFromMmid = (mmid: $MMID) => {
+  return _mmid_wapis_map.get(mmid)?.nww
+}
+
 export const forceGetWapis = (ipc: Ipc, root_url: string) => {
   ipc.onClose(() => {
     // 是否会出现 一个 JsMicroModule 打开其他的 JsMicroModule 
@@ -46,7 +50,6 @@ export const forceGetWapis = (ipc: Ipc, root_url: string) => {
     let wapi = _mmid_wapis_map.get(ipc.remote.mmid);
     if (wapi === undefined) {
       const diaplay = Electron.screen.getPrimaryDisplay();
-
       const nww = await openNativeWindow(root_url, {
         webPreferences: {
           webviewTag: true,
@@ -59,6 +62,10 @@ export const forceGetWapis = (ipc: Ipc, root_url: string) => {
         y: (diaplay.size.height - 800) / 2,
         frame: false,
       });
+
+      nww.on('close', () => {
+        _mmid_wapis_map.delete(ipc.remote.mmid)
+      })
 
       const apis = nww.getApis<$APIS>();
       const absolutePath = pathToFileURL(

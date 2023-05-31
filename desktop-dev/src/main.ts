@@ -17,6 +17,7 @@ import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.ts";
 import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.ts";
 import { ShareNMM } from "./sys/plugins/sys/share/share.main.ts";
 import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.ts";
+import { DwebBrowserNMM } from "./sys/dweb-browser/dweb-browser.ts"
 
 /**
  * 设置 debugger 过滤条件
@@ -56,7 +57,8 @@ setFilter([
   "jsProcess",
   "mm",
   "maphelper",
-  "dns"
+  "dns",
+  "dwebbrowser"
 ])
 
 export const dns = new DnsNMM();
@@ -64,6 +66,7 @@ dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 dns.install(new HttpServerNMM());
 dns.install(new DownloadNMM());
+dns.install(new DwebBrowserNMM());
 dns.install(new StatusbarNativeUiNMM());
 dns.install(new NavigationBarNMM());
 dns.install(new SafeAreaNMM());
@@ -98,7 +101,8 @@ dns.install(new JmmNMM());
 
 dns.install(
   new BootNMM([
-    "browser.sys.dweb",
+    // "browser.sys.dweb",
+    "dweb-browser.sys.dweb"
   ])
 );
 

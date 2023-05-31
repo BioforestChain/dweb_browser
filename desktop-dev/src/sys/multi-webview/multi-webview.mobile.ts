@@ -7,6 +7,7 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Schema1ToType } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import {
+closeAppByIpc,
   closeFocusedWindow,
   openDownloadPage,
 } from "./multi-webview.mobile.handler.ts";
@@ -90,7 +91,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: closeFocusedWindow.bind(this)
+      handler: closeAppByIpc.bind(this)
     })
 
     /**
@@ -158,6 +159,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
         return true;
       },
     });
+
+    
     
    
   }
@@ -172,15 +175,16 @@ export class MultiWebviewNMM extends NativeMicroModule {
     clientIpc: Ipc,
     _request: IpcRequest
   ) {
-    Electron.ipcMain.once("sync:webveiw_state", (event: Electron.IpcMainEvent, webviewSate: WebViewState) => {
-      console.always('webviewSate: ', webviewSate)
-      clientIpc.postMessage(
-        IpcEvent.fromText(
-          EVENT.State,
-          JSON.stringify(webviewSate)
-        )
-      )
-    })
+    // 同步是否可以不需要要了？？
+    // 需要修改 通过 webview 需要 区分 ipc or window 来
+    // Electron.ipcMain.on("sync:webveiw_state", (event: Electron.IpcMainEvent, webviewSate: WebViewState) => {
+    //   clientIpc.postMessage(
+    //     IpcEvent.fromText(
+    //       EVENT.State,
+    //       JSON.stringify(webviewSate)
+    //     )
+    //   )
+    // })
     const wapis = await forceGetWapis(clientIpc, root_url);
     const webview_id = await wapis.apis.openWebview(args.url);
    

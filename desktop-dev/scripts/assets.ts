@@ -7,7 +7,12 @@ const devTasks = new ConTasks({
   // "cot-demo":{
   //   "cmd":'pnpm',
   //   args:""
-  // },
+  // } src/sys/dweb-browser/assets/index.html
+  "dweb-browser.html": {
+    cmd: "npx",
+    args: "vite build src/sys/dweb-browser/assets/ --outDir=../../../../electron/assets/dweb-browser --emptyOutDir -c electron-vite.config.ts",
+    devAppendArgs: "--minify=false --watch",
+  },
   "jmm.html": {
     cmd: "npx",
     args: "vite build src/sys/jmm/assets/ --outDir=../../../../electron/assets/jmm --emptyOutDir -c electron-vite.config.ts",
