@@ -2,7 +2,7 @@ import chalk from "chalk";
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
-import { Ipc, IpcRequest } from "../../core/ipc/index.ts";
+import { Ipc, IpcEvent, IpcRequest } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Schema1ToType } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
@@ -10,11 +10,13 @@ import {
   closeFocusedWindow,
   openDownloadPage,
 } from "./multi-webview.mobile.handler.ts";
+import { EVENT, WebViewState } from "../../user/tool/tool.event.ts"
 import {
   deleteWapis,
   forceGetWapis,
   getAllWapis,
 } from "./mutil-webview.mobile.wapi.ts";
+import Electron from "electron"
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
 /**
@@ -149,10 +151,12 @@ export class MultiWebviewNMM extends NativeMicroModule {
         return true;
       },
     });
+    
+   
   }
   /**
    * 打开 应用
-   * 如果 是由 jsProcdss 调用 会在当前的 browserWindow 打开一个新的 webview
+   * 如果 是由 jsProcess 调用 会在当前的 browserWindow 打开一个新的 webview
    * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
    */
   private async _open(
@@ -161,8 +165,18 @@ export class MultiWebviewNMM extends NativeMicroModule {
     clientIpc: Ipc,
     _request: IpcRequest
   ) {
+    Electron.ipcMain.once("sync:webveiw_state", (event: Electron.IpcMainEvent, webviewSate: WebViewState) => {
+      console.always('webviewSate: ', webviewSate)
+      clientIpc.postMessage(
+        IpcEvent.fromText(
+          EVENT.State,
+          JSON.stringify(webviewSate)
+        )
+      )
+    })
     const wapis = await forceGetWapis(clientIpc, root_url);
     const webview_id = await wapis.apis.openWebview(args.url);
+   
     return webview_id;
   }
 

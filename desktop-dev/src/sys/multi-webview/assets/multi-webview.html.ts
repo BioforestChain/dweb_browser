@@ -339,6 +339,7 @@ export class ViewTree extends LitElement {
         }
       }
     }
+
     this.requestUpdate("webviews");
   }
 
@@ -378,8 +379,23 @@ export class ViewTree extends LitElement {
         ...this.safeAreaState,
       ];
     }
-    console.log('this.statusBarState: ', this.statusBarState)
+    // 还需要报 webview 状态同步到指定 worker.js
+    this.syncWebviewToMian()
     return webview_id;
+  }
+
+  syncWebviewToMian(){
+    const allWebviewState = {}
+    this.webviews.forEach((item, index) => {
+      Reflect.set(allWebviewState, `${item.id}`,  JSON.stringify({
+        webviewId: item.id,
+        isActivated: index === 0 ? true : false
+      }))
+    })
+    ipcRenderer.send(
+      "sync:webveiw_state", 
+      allWebviewState
+    )
   }
 
   closeWebview(webview_id: number) {
@@ -402,6 +418,8 @@ export class ViewTree extends LitElement {
       return false;
     }
     this.webviews.splice(index, 1);
+    this.webviews = [...this.webviews];
+    this.syncWebviewToMian()
     this._restateWebviews();
     return true;
   }
@@ -460,6 +478,7 @@ export class ViewTree extends LitElement {
     await mainApis.destroy(webview.webContentId);
     // 可能出现越界的情况
     this.webviews = this.webviews.slice(1)
+    this.syncWebviewToMian();
      
   }
 
