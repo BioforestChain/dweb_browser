@@ -64,4 +64,10 @@ public enum IPC_ROLE
     CLIENT,
 }
 
-
+public record EIpcEvent(string Event)
+{
+    public static readonly EIpcEvent State = new("state");
+    public static readonly EIpcEvent Ready = new("ready");
+    public static readonly EIpcEvent Activity = new("activity");
+    public static readonly EIpcEvent Close = new("close");
+}
