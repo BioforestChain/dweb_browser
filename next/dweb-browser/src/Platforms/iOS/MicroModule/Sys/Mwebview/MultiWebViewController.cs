@@ -8,6 +8,7 @@ using Foundation;
 using Microsoft.Maui.Animations;
 using DwebBrowser.MicroService.Sys.NativeUI;
 using DwebBrowser.MicroService.Sys.Mwebview.DwebServiceWorker;
+using System.Runtime.CompilerServices;
 
 #nullable enable
 
@@ -26,6 +27,40 @@ public partial class MultiWebViewController : BaseViewController
         Mmid = mmid;
         LocaleMM = localeMM;
         RemoteMM = remoteMM;
+
+        var gesture = new UIScreenEdgePanGestureRecognizer();
+        gesture.AddTarget(() => OnScreenEdgePan(gesture));
+
+        //gesture.DelaysTouchesBegan = true;
+        gesture.Edges = UIRectEdge.Left;
+        gesture.CancelsTouchesInView = true;
+        EdgeView.AddGestureRecognizer(gesture);
+    }
+
+    UIGestureRecognizerState preState = UIGestureRecognizerState.Ended;
+    async void OnScreenEdgePan(UIScreenEdgePanGestureRecognizer pan)
+    {
+        //pan.ShouldRecognizeSimultaneously = new UIGesturesProbe();
+        if (pan.State != preState)
+        {
+            preState = pan.State;
+            Console.Log("OnScreenEdgePan", "state: {0}", pan.State);
+        }
+
+        if (pan.State == UIGestureRecognizerState.Ended)
+        {
+            if (LastViewOrNull is not null)
+            {
+                if (LastViewOrNull.webView.CanGoBack )
+                {
+                    LastViewOrNull.webView.GoBack();
+                }
+                else
+                {
+                    await this.CloseWebViewAsync(LastViewOrNull.webviewId);
+                }
+            }
+        }
     }
 
     public override void ViewDidAppear(bool animated)
@@ -102,8 +137,10 @@ public partial class MultiWebViewController : BaseViewController
         return MainThread.InvokeOnMainThreadAsync(() => new ViewItem(webviewId, dwebview, this).Also(it =>
         {
             WebViewList.Update(list => list?.Add(it));
-            // TODO: DWebView 还未实现 onCloseWindow
-            //CloseWebViewAsync();
+            dwebview.OnClose += async (_, _) =>
+            {
+                await CloseWebViewAsync(webviewId);
+            };
 
             Task.Run(async () =>
             {

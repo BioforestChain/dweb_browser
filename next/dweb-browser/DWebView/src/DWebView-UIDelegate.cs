@@ -54,7 +54,40 @@ public partial class DWebView : WKWebView
                 result = webView;
             };
             var args = (webView, configuration, navigationAction, windowFeatures, completionHandler);
-            (dWebView.OnCreateWebView?.Emit(args))?.Wait();
+
+            var url = navigationAction.Request.Url.AbsoluteString;
+            Action CreateAction = () =>
+            {
+                if (dWebView.CloseWatcherController.Consuming.Remove(url))
+                {
+                    var consumeToken = url!;
+                    var watcher = dWebView.CloseWatcherController.Apply(
+                        navigationAction.TargetFrame == null || !navigationAction.TargetFrame.MainFrame);
+                    dWebView.InvokeOnMainThread(() =>
+                    {
+                        dWebView.Dispose();
+                        dWebView.CloseWatcherController.ResolveToken(consumeToken, watcher);
+                    });
+                }
+                else
+                {
+                    (dWebView.OnCreateWebView?.Emit(args))?.Wait();
+                }
+            };
+
+            if (url is null)
+            {
+                dWebView.OnReady += async (_) =>
+                {
+                    url = navigationAction.Request.Url.AbsoluteString;
+                    CreateAction();
+                };
+            }
+            else
+            {
+                CreateAction();
+            }
+
             return result;
         }
         [Export("webViewDidClose:")]

@@ -90,6 +90,13 @@ public partial class DWebView : WKWebView
         }
         this.UIDelegate = new DWebViewUIDelegate(this);
 
+        /// closeWatcher 同一个ScriptName不能重复添加
+        try
+        {
+            this.Configuration.UserContentController.AddScriptMessageHandler(CloseWatcherMessageHanlder, "closeWatcher");
+        }
+        catch { }
+
 
         /// 设置 ContentInsetAdjustment 的默认行为，这样 SafeArea 就不会注入到 WKWebView.ScrollView.ContentInset 中
         this.ScrollView.ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior.Never;
@@ -114,6 +121,7 @@ public partial class DWebView : WKWebView
     {
         var configuration = new WKWebViewConfiguration();
         var preferences = configuration.Preferences;
+        // 关闭 window.open 自动打开
         preferences.JavaScriptCanOpenWindowsAutomatically = true;
         if (OperatingSystem.IsIOSVersionAtLeast(15) || OperatingSystem.IsMacCatalystVersionAtLeast(15))
         {

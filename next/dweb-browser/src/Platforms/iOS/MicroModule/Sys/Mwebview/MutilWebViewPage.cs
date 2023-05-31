@@ -12,13 +12,16 @@ public partial class MultiWebViewController : BaseViewController
     #region 视图绑定
 
     public UIView webviewContainer = new();
+    // 用于触发右滑
+    public UIView EdgeView = new();
+
     public State<CGRect> WebviewFrame = new(CGRect.Empty);
 
     async void BindWebViewItems()
     {
         // 设置视图控制器的背景颜色
-        //webviewContainer.BackgroundColor = UIColor.Green;
-        webviewContainer.BackgroundColor = UIColor.White;
+        webviewContainer.BackgroundColor = UIColor.Green;
+        //webviewContainer.BackgroundColor = UIColor.White;
         WebviewFrame.Set(webviewContainer.Frame);
 
         /// 视图绑定
@@ -51,31 +54,17 @@ public partial class MultiWebViewController : BaseViewController
             }
         }
     }
-
-    public override void ViewWillAppear(bool animated)
-    {
-        base.ViewWillAppear(animated);
-    }
-
     public override void ViewDidLoad()
     {
         base.ViewDidLoad();
+        EdgeView.Frame = new CGRect(0, 0, 5, View.Frame.Height);
         /// webview 完全覆盖屏幕，包括安全区域
         webviewContainer.Frame = new CGRect(0, 0, View.Frame.Width, View.Frame.Height);
 
         View.AddSubview(webviewContainer);
+        View.AddSubview(EdgeView);
 
         BindWebViewItems();
-    }
-
-    public override void ViewWillLayoutSubviews()
-    {
-        base.ViewWillLayoutSubviews();
-    }
-
-    public override void ViewDidLayoutSubviews()
-    {
-        base.ViewDidLayoutSubviews();
     }
 
     #endregion

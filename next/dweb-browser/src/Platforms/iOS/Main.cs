@@ -55,7 +55,11 @@ public class MicroService
         var desktopJMM = new DesktopJMM().InstallBy(dnsNMM);
         var cotDemoJMM = new CotDemoJMM().InstallBy(dnsNMM);
 
-        var bootMmidList = new List<Mmid> { cotDemoJMM.Mmid };
+        var bootMmidList = new List<Mmid>
+        {
+            cotDemoJMM.Mmid
+            //desktopJMM.Mmid
+        };
         /// 启动程序
         var bootNMM = new BootNMM(
             bootMmidList

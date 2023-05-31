@@ -14,7 +14,7 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
     {
         _OnActivity += async (mmid, controller, _) =>
         {
-            s_activityMap.Add(mmid, controller);
+            s_activityMap.TryAdd(mmid, controller);
             controller.OnDestroyController += async (_) => { s_activityMap.Remove(mmid); };
         };
     }

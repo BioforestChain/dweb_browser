@@ -1,6 +1,7 @@
 ﻿using DwebBrowser.MicroService;
 using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Message;
+using System;
 using System.Net;
 using UIKit;
 
@@ -62,9 +63,23 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         if (s_controllerMap.TryGetValue(remoteMmid, out var controller))
         {
             var vc = await RootViewController.WaitPromiseAsync();
+            
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                vc.PushViewController(controller, true);
+                // 无法push同一个UIViewController的实例两次
+                var index = vc.ViewControllers?.ToList().FindIndex(uvc => uvc == controller);
+                if (index >= 0)
+                {
+                    // 不是当前controller时，推到最新
+                    if (index != vc.ViewControllers!.Length - 1)
+                    {
+                        vc.PopToViewController(controller, true);
+                    }
+                }
+                else
+                {
+                    vc.PushViewController(controller, true);
+                }
             });
         }
     }

@@ -22,11 +22,41 @@ declare namespace globalThis {
   function open(url: string): Window;
 }
 
-const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
+let native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
 
 if (native_close_watcher_kit) {
   native_close_watcher_kit._watchers ??= new Map();
   native_close_watcher_kit._tasks ??= new Map();
+} else {
+  // 仅适用于iOS平台
+  Object.assign(globalThis, {
+    __native_close_watcher_kit__: {
+      registryToken(token: string) {
+        try {
+          // deno-lint-ignore no-explicit-any
+          (globalThis as any).webkit.messageHandlers.closeWatcher.postMessage({
+            token,
+          });
+        } catch {
+          // 非iOS平台才有可能会触发
+        }
+      },
+
+      tryClose(id: string) {
+        try {
+          // deno-lint-ignore no-explicit-any
+          (globalThis as any).webkit.messageHandlers.closeWatcher.postMessage({
+            id,
+          });
+        } catch {
+          // 非iOS平台才有可能会触发
+        }
+      },
+      _watchers: new Map(),
+      _tasks: new Map(),
+    },
+  });
+  native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
 }
 export class CloseWatcher extends EventTarget {
   constructor() {
