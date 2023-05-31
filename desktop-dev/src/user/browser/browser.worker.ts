@@ -3,9 +3,10 @@ import type { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { closeApp, webViewMap } from "../tool/app.handle.ts";
-import { EVENT, WebViewState } from "../tool/tool.event.ts";
+import { EVENT, WebViewState, AllWebviewState } from "../tool/tool.event.ts";
 import {
   closeDwebView,
+  closeWindow,
   cros,
   nativeActivate,
   nativeOpen,
@@ -22,12 +23,14 @@ const main = async () => {
   // 启动主页面的地址
   const mainUrl = new PromiseOut<string>();
   // 管理webview的状态，因为当前webview是通过状态判断操作的，比如激活，关闭
-  let oldWebviewState: WebViewState[] = [];
+  let oldWebviewState: AllWebviewState = {};
   // 跟multiWebView 建立连接
   const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
   // 关闭信号
   const multiWebViewCloseSignal = createSignal<() => unknown>();
   const EXTERNAL_PREFIX = "/external/";
+  const { IpcResponse } = ipc;
+  const externalMap = new Map<number, PromiseOut<IpcResponse>>();
 
   /**尝试打开view */
   const tryOpenView = async () => {
@@ -49,8 +52,6 @@ const main = async () => {
       })
     );
   };
-
-  const { IpcResponse } = ipc;
 
   /**给前端的文件服务 */
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
@@ -119,7 +120,7 @@ const main = async () => {
     );
   });
 
-  const externalMap = new Map<number, PromiseOut<IpcResponse>>();
+  
   // 提供APP之间通信的方法
   externalReadableStreamIpc.onRequest(async (request, ipc) => {
     const url = request.parsed_url;
@@ -190,7 +191,7 @@ const main = async () => {
     // 向dns发送关闭当前 模块的消息
     // woker.js -> dns -> JsMicroModule -> woker.js -> 其他的 NativeMicroModule
 
-    if (pathname.endsWith("close") || pathname.endsWith("restart")) {
+    if (pathname.endsWith("restart")) {
       // 关闭全部的服务
       await apiServer.close();
       await wwwServer.close();
@@ -200,34 +201,18 @@ const main = async () => {
       apiReadableStreamIpc.close();
       wwwReadableStreamIpc.close();
       externalReadableStreamIpc.close();
-    }
 
-    if(pathname.endsWith('close')){
-      jsProcess.nativeFetch(
-        `file://dns.sys.dweb/close?app_id=${jsProcess.mmid}`
-      )
-      return "close ok";
-    }
-
-    if(pathname.endsWith("restart")){
       jsProcess.nativeFetch(
         `file://dns.sys.dweb/restart?app_id=${jsProcess.mmid}`
       )
       return "restart ok"
     }
-    
-    // 重启app，伴随着前后端重启
-    // if (pathname.endsWith("restart")) {
-    //   // 关闭别人来激活的ipc
-    //   multiWebViewCloseSignal.emit();
-    //   closeApp(
-    //     [apiServer, wwwServer, externalServer],
-    //     [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
-    //   );
-    //   // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-    //   jsProcess.restart();
-    //   return "restart ok";
-    // }
+
+    // 只关闭 渲染一个渲染进程 不关闭 service
+    if(pathname.endsWith('close')){
+      closeWindow()
+      return `result ok`;
+    }
     return "no action for serviceWorker Factory !!!";
   };
 
@@ -257,9 +242,11 @@ const main = async () => {
   multiWebViewIpc.onEvent((event, ipc) => {
     if (event.name === EVENT.State && typeof event.data === "string") {
       const newState = JSON.parse(event.data);
+      // newState 的数据格式是 {key: string}
       const diff = detailedDiff(oldWebviewState, newState);
       oldWebviewState = newState;
       diffFactory(diff);
+      
     }
     multiWebViewCloseSignal.listen(() => {
       ipc.postMessage(IpcEvent.fromText("close", ""));

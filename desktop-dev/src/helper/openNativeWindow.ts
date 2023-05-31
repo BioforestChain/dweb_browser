@@ -43,6 +43,15 @@ export const openNativeWindow = async (
     });
     show_po.resolve();
   });
+  
+  win.on("close", () => {
+    const devToolsWin = win._devToolsWin.values()
+    if(devToolsWin !== undefined){
+      Array.from(devToolsWin).forEach(item => {
+        item.close();
+      })
+    }
+  })
 
   win.webContents.setWindowOpenHandler((_detail) => {
     return { action: "deny" };

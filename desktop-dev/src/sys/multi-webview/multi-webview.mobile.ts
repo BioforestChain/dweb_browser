@@ -84,6 +84,15 @@ export class MultiWebviewNMM extends NativeMicroModule {
       },
     });
 
+    /** 关闭window */
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/close/app",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: closeFocusedWindow.bind(this)
+    })
+
     /**
      * 关闭当前激活的window
      */
@@ -143,8 +152,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
           );
         }
         const code = await request.body.text();
-        // 问题新的 webveiw 没有被添加进来？？？
-        // console.log('-------------', getAllWapis())
         for (const [_, wapi] of getAllWapis()) {
           wapi.apis.executeJavascriptByHost(host, code);
         }

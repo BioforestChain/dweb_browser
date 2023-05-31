@@ -20,3 +20,8 @@ export type WebViewState = {
   isActivated: boolean;
   webviewId: string;
 };
+
+export interface  AllWebviewState{
+  [key: number]: WebViewState
+}
+

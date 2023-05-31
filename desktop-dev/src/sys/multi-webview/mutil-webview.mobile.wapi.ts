@@ -38,12 +38,6 @@ export const forceGetWapis = (ipc: Ipc, root_url: string) => {
     // 的情况，如果是这样的话会出现一个 borserWindow 内会包含连个应用
     // 当前判断不可以 是不可以 一个 browserWindow 内只会以一个 应用
     const wapi = _mmid_wapis_map.get(ipc.remote.mmid);
-    const devToolsWin = wapi?.nww._devToolsWin.values()
-    if(devToolsWin !== undefined){
-      Array.from(devToolsWin).forEach(item => {
-        item.close();
-      })
-    }
     wapi?.nww.close();
     _mmid_wapis_map.delete(ipc.remote.mmid)
   })
