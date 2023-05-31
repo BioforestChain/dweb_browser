@@ -130,11 +130,4 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
         return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
     }
 
-
-    private fun isFileLink(link: String): Boolean {
-        val pattern = Regex(".+\\.(js|css|png|jpg|jpeg|gif|ico|svg|webp)$")
-        return pattern.matches(link)
-    }
-
-
 }

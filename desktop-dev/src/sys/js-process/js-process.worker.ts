@@ -35,6 +35,7 @@ import { IpcEvent } from "../../core/ipc/IpcEvent.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { EVENT } from "../../user/tool/tool.event.ts";
 import * as http from "../http-server/$createHttpDwebServer.ts";
 
 export class Metadata<T extends $Metadata = $Metadata> {
@@ -100,7 +101,7 @@ export class JsProcessMicroModule implements $MicroModule {
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
 
   constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
-    const _beConnect =  (event: MessageEvent) => {
+    const _beConnect = (event: MessageEvent) => {
       const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
@@ -125,7 +126,7 @@ export class JsProcessMicroModule implements $MicroModule {
           {
             mmid,
             ipc_support_protocols,
-            dweb_deeplinks: []
+            dweb_deeplinks: [],
           },
           rote
         );
@@ -145,10 +146,6 @@ export class JsProcessMicroModule implements $MicroModule {
       this,
       IPC_ROLE.SERVER
     );
-
-    this.fetchIpc.onClose(() => {
-      this.close();
-    })
   }
 
   /// 这个通道只能用于基础的通讯
@@ -170,6 +167,7 @@ export class JsProcessMicroModule implements $MicroModule {
     const ipc = await jsProcess.connect(hostName as $MMID);
     const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
     const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
+    console.log("ipc_response=>",args.parsed_url.href)
     return ipc_response.toResponse(args.parsed_url.href);
   }
 
@@ -192,35 +190,35 @@ export class JsProcessMicroModule implements $MicroModule {
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
 
-  /** 关闭 */
-  async close() {
-    // 关闭全部的IPC 不管是主动还是被动连接的IPC
-    Array.from(this._ipcConnectsMap.values()).forEach(async (item) => {
-      (await item.promise).close()
-    })
-    // 关闭当前wroker
-    self.close()
+  /**重启 */
+  restart() {
+    this.closeSignal.emit()
+    this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
-
-  // /**重启 */
-  // restart() {
-  //   this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
-  // }
-
+  // 关闭信号
+  private closeSignal = createSignal<() => unknown>();
   private _activitySignal = createSignal<$OnIpcEventMessage>();
   private _closeSignal = createSignal<$OnIpcEventMessage>();
+  private _dwebviewStateSignal = createSignal<$OnIpcEventMessage>();
   private _on_activity_inited = false;
   onActivity(cb: $OnIpcEventMessage) {
     if (this._on_activity_inited === false) {
       this._on_activity_inited = true;
       this.onConnect((ipc) => {
         ipc.onEvent((ipcEvent, ipc) => {
-          if (ipcEvent.name === "activity") {
+          if (ipcEvent.name === EVENT.Activity) {
             return this._activitySignal.emit(ipcEvent, ipc);
           }
-          if (ipcEvent.name === "close") {
+          if (ipcEvent.name === EVENT.Close) {
             return this._closeSignal.emit(ipcEvent, ipc);
           }
+          if (ipcEvent.name === EVENT.State) {
+            return this._dwebviewStateSignal.emit(ipcEvent, ipc);
+          }
+        });
+        this.closeSignal.listen(() => {
+          ipc.postMessage(IpcEvent.fromText("close", ipc.remote.mmid));
+          ipc.close();
         });
       });
     }
@@ -228,6 +226,9 @@ export class JsProcessMicroModule implements $MicroModule {
   }
   onClose(cb: $OnIpcEventMessage) {
     return this._closeSignal.listen(cb);
+  }
+  onDwebViewState(cb: $OnIpcEventMessage) {
+    return this._dwebviewStateSignal.listen(cb);
   }
 
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();

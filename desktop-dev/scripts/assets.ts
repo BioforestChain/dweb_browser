@@ -43,31 +43,31 @@ const devTasks = new ConTasks({
     args: "esbuild ./src/user/desktop/desktop.worker.ts --outfile=./electron/assets/desktop.worker.js --bundle --format=esm --target=es2020",
     devAppendArgs: "--watch",
   },
-  "desktop_2.worker": {
-    cmd: "npx",
-    args: "esbuild ./src/user/desktop_2/desktop.worker.ts --outfile=./electron/assets/desktop_2.worker.js --bundle --format=esm --target=es2020",
-    devAppendArgs: "--watch",
-  },
-  "test.worker": {
-    cmd: "npx",
-    args: "esbuild ./src/user/test/test.worker.ts --outfile=./electron/assets/test.worker.js --bundle --format=esm --target=es2020",
-    devAppendArgs: "--watch",
-  },
-  "toy.worker": {
-    cmd: "npx",
-    args: "esbuild ./src/user/toy/toy.worker.ts --outfile=./electron/assets/toy.worker.js --bundle --format=esm --target=es2020",
-    devAppendArgs: "--watch",
-  },
-  "jmm.test.connect.worker": {
-    cmd: "npx",
-    args: "esbuild ./src/user/jmm-test-connect/jmmtestconnect.worker.ts --outfile=./electron/assets/jmmtestconnect.worker.js --bundle --format=esm",
-    devAppendArgs: "--watch",
-  },
-  "jmm.test.connect2.worker": {
-    cmd: "npx",
-    args: "esbuild ./src/user/jmm-test-connect2/jmmtestconnect2.worker.ts --outfile=./electron/assets/jmmtestconnect2.worker.js --bundle --format=esm",
-    devAppendArgs: "--watch",
-  },
+  // "desktop_2.worker": {
+  //   cmd: "npx",
+  //   args: "esbuild ./src/user/desktop_2/desktop.worker.ts --outfile=./electron/assets/desktop_2.worker.js --bundle --format=esm --target=es2020",
+  //   devAppendArgs: "--watch",
+  // },
+  // "test.worker": {
+  //   cmd: "npx",
+  //   args: "esbuild ./src/user/test/test.worker.ts --outfile=./electron/assets/test.worker.js --bundle --format=esm --target=es2020",
+  //   devAppendArgs: "--watch",
+  // },
+  // "toy.worker": {
+  //   cmd: "npx",
+  //   args: "esbuild ./src/user/toy/toy.worker.ts --outfile=./electron/assets/toy.worker.js --bundle --format=esm --target=es2020",
+  //   devAppendArgs: "--watch",
+  // },
+  // "jmm.test.connect.worker": {
+  //   cmd: "npx",
+  //   args: "esbuild ./src/user/jmm-test-connect/jmmtestconnect.worker.ts --outfile=./electron/assets/jmmtestconnect.worker.js --bundle --format=esm",
+  //   devAppendArgs: "--watch",
+  // },
+  // "jmm.test.connect2.worker": {
+  //   cmd: "npx",
+  //   args: "esbuild ./src/user/jmm-test-connect2/jmmtestconnect2.worker.ts --outfile=./electron/assets/jmmtestconnect2.worker.js --bundle --format=esm",
+  //   devAppendArgs: "--watch",
+  // },
 });
 
 if (import.meta.main) {

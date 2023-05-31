@@ -61,7 +61,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                     val connectResult = connectMicroModules(fromMM, toMM, reason)
                     connectResult.ipcForFromMM.onClose {
                         mmConnectsMapLock.withLock {
-                            mmConnectsMap.remove(mmKey);
+                            mmConnectsMap.remove(mmKey)
                         }
                     }
                     po.resolve(connectResult)
@@ -78,7 +78,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                                     );
                                     connectResult2.ipcForFromMM.onClose {
                                         mmConnectsMapLock.withLock {
-                                            mmConnectsMap.remove(mmKey2);
+                                            mmConnectsMap.remove(mmKey2)
                                         }
                                     }
                                     po2.resolve(connectResult2)
@@ -242,8 +242,8 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     suspend fun close(mmid: Mmid): Int {
         return runningApps.remove(mmid)?.let { microModulePo ->
             runCatching {
-                val microModule = microModulePo.waitPromise();
-                mmConnectsMap.remove(MM.from(microModule.mmid, mmid)) // 将这个连接关闭
+                val microModule = microModulePo.waitPromise()
+                mmConnectsMap.remove(MM.from(microModule.mmid, mmid))
                 microModule.shutdown()
                 1
             }.getOrDefault(0)

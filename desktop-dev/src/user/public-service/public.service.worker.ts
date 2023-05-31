@@ -1,27 +1,13 @@
-import { DetailedDiff, detailedDiff } from "deep-object-diff";
 import type { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { createSignal } from "../../helper/createSignal.ts";
 import { closeApp, closeFront, webViewMap } from "../tool/app.handle.ts";
-import { EVENT, WebViewState } from "../tool/tool.event.ts";
-import {
-  closeDwebView,
-  cros,
-  nativeActivate,
-  nativeOpen,
-} from "../tool/tool.native.ts";
+import { cros, nativeActivate, nativeOpen } from "../tool/tool.native.ts";
 import { $Ipc, fetchSignal, onApiRequest } from "../tool/tool.request.ts";
 
 const main = async () => {
   const { IpcEvent } = ipc;
   // 启动主页面的地址
   const mainUrl = new PromiseOut<string>();
-  // 管理webview的状态，因为当前webview是通过状态判断操作的，比如激活，关闭
-  let oldWebviewState: WebViewState[] = [];
-  // 跟multiWebView 建立连接
-  const multiWebViewIpc = await jsProcess.connect("mwebview.sys.dweb");
-  // 关闭信号
-  const multiWebViewCloseSignal = createSignal<() => unknown>();
   const EXTERNAL_PREFIX = "/external/";
 
   /**尝试打开view */
@@ -46,12 +32,12 @@ const main = async () => {
   };
 
   const { IpcResponse } = ipc;
-
   /**给前端的文件服务 */
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",
     port: 443,
   });
+  console.log("🇨🇳 wwwServer=>",wwwServer.startResult.urlInfo.internal_origin)
   /**给前端的api服务 */
   const apiServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "api",
@@ -173,83 +159,43 @@ const main = async () => {
   });
 
   // 转发serviceWorker 请求
-  const serviceWorkerFactory = (url: URL) => {
+  const serviceWorkerFactory = async (url: URL) => {
     const pathname = url.pathname;
     // 关闭前端
     if (pathname.endsWith("close")) {
-      return closeFront();
+      return await closeFront();
     }
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
-      // 关闭别人来激活的ipc
-      multiWebViewCloseSignal.emit();
+      // 关闭所有的DwebView
+      await closeFront();
       closeApp(
-        [apiServer, wwwServer, externalServer],
-        [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
+        [apiServer, wwwServer, externalServer]
       );
       // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
       jsProcess.restart();
+
       return "restart ok";
     }
     return "no action for serviceWorker Factory !!!";
   };
-
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
     if (hasActivityEventIpcs.has(ipc) === false) {
       hasActivityEventIpcs.add(ipc);
-      multiWebViewCloseSignal.listen(() => {
-        ipc.postMessage(IpcEvent.fromText("close", ""));
-        ipc.close();
-      });
     }
   });
   const hasActivityEventIpcs = new Set<$Ipc>();
-  jsProcess.onClose((_event, _ipc) => {
+  jsProcess.onClose((_event, ipc) => {
     // 接收JMM更新程序的关闭消息（安装完新的app需要重启应用）
-    multiWebViewCloseSignal.emit();
-    return closeApp(
-      [apiServer, wwwServer, externalServer],
-      [apiReadableStreamIpc, wwwReadableStreamIpc, externalReadableStreamIpc]
-    );
-  });
-
-  /// 同步 mwebview 的状态机
-  multiWebViewIpc.onEvent((event, ipc) => {
-    if (event.name === EVENT.State && typeof event.data === "string") {
-      const newState = JSON.parse(event.data);
-      const diff = detailedDiff(oldWebviewState, newState);
-      oldWebviewState = newState;
-      diffFactory(diff);
-    }
-    multiWebViewCloseSignal.listen(() => {
-      ipc.postMessage(IpcEvent.fromText("close", ""));
-      ipc.close();
-    });
-  });
-
-  const diffFactory = async (diff: DetailedDiff) => {
-    //  是否有新增
-    for (const id in diff.added) {
-      webViewMap.set(id, JSON.parse(diff.added[id as keyof typeof diff.added]));
-    }
-    // 是否有删除
-    for (const id in diff.deleted) {
-      webViewMap.delete(id);
-      await closeDwebView(id);
-    }
-    // 是否有更新
-    for (const id in diff.updated) {
-      webViewMap.set(
-        id,
-        JSON.parse(diff.updated[id as keyof typeof diff.updated])
+    if (ipc.remote.mmid === "jmm.sys.dweb") {
+      return closeApp(
+        [apiServer, wwwServer, externalServer]
       );
-      await nativeActivate(id);
     }
-  };
-
+  });
   const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
     url.pathname = "/index.html";
   });
@@ -262,7 +208,6 @@ const main = async () => {
     apiServer.startResult.urlInfo.buildPublicUrl().href
   );
   mainUrl.resolve(interUrl.href);
-
   /**
    * 立刻自启动
    */

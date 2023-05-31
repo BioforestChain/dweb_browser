@@ -720,6 +720,7 @@
   },
   "npm": {
     "specifiers": {
+      "deep-object-diff@^1.1.9": "deep-object-diff@1.1.9",
       "jszip": "jszip@3.10.1",
       "lmdb": "lmdb@2.8.0",
       "mime": "mime@3.0.0"

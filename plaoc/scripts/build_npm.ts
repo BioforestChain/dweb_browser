@@ -101,7 +101,7 @@ export const doBuid = async (config: {
     const fromFilename = fromFile;
     const toFilename = `${buildToRootDir}/${base}`;
     try {
-      copySync(fromFilename, toFilename, { overwrite: true });
+      copySync(fromFilename, toFilename, { force: true });
     } catch (err) {
       if (err instanceof Deno.errors.NotFound === false) {
         throw err;

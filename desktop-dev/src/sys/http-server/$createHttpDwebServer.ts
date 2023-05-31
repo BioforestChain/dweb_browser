@@ -99,14 +99,14 @@ export const listenHttpDwebServer = async (
 };
 
 /** 开始监听端口和域名 */
-export const startHttpDwebServer = (
+export const startHttpDwebServer = async (
   microModule: $MicroModule,
   options: $DwebHttpServerOptions
 ) => {
   const url = buildUrl(new URL(`file://http.sys.dweb/start`), {
     search: options,
   });
-  return microModule
+  return await microModule
     .nativeFetch(url)
     .object<ServerStartResult>()
     .then((obj) => {

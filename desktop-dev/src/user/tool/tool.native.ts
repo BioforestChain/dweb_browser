@@ -49,12 +49,5 @@ export const closeWindow = async() => {
   ).boolean()
 }
 
-/**触发更新事件 */
-export const emitUpdateFoundEvent = async () => {
-  return await jsProcess
-    .nativeFetch(`file://service-worker.nativeui.sys.dweb/emitUpdateFoundEvent`)
-    .text();
-};
-
 
  

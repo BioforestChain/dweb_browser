@@ -45,11 +45,9 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                      * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
                      * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
                      */
-                    debugJMM("ipcBridge", "begin remoteMmid: ${jsMM.rmm.mmid} ")
                     val originIpc = jsMM.jmm.ipcBridge(jsMM.rmm.mmid)
                     fromMM.beConnect(originIpc, reason)
                     toMM.beConnect(originIpc, reason)
-                    debugJMM("ipcBridge", "done remoteMmid: ${jsMM.rmm.mmid} ")
                     return@append ConnectResult(ipcForFromMM = originIpc, ipcForToMM = originIpc)
                 } else null
             }

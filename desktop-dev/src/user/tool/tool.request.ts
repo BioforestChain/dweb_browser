@@ -12,7 +12,6 @@ const { IpcResponse, Ipc, IpcRequest, IpcBodySender } = ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 export type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;
-export const hashConnentMap = new Set<$MMID>();
 
 const ipcObserversMap = new Map<
   $MMID,

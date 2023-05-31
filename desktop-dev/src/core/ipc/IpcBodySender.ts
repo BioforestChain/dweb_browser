@@ -213,7 +213,7 @@ export class IpcBodySender extends IpcBody {
     ipc: Ipc
   ): MetaBody {
     const stream_id = getStreamId(stream);
-    console.log("sender/init", stream_id, ipc.uid);
+    // console.log("sender/init", stream_id, ipc.uid);
 
     let _reader: undefined | ReturnType<typeof binaryStreamRead>;
     const getReader = () => (_reader ??= binaryStreamRead(stream));
@@ -249,7 +249,7 @@ export class IpcBodySender extends IpcBody {
       while (true) {
         // 等待流开始被拉取
         await pullingLock.promise;
-        console.log("sender/pulling", stream_id, ipc.uid);
+        // console.log("sender/pulling", stream_id, ipc.uid);
 
         const reader = getReader();
         // const desiredSize = this.maxPulledSize - this.curPulledSize;
@@ -257,7 +257,7 @@ export class IpcBodySender extends IpcBody {
         if (availableLen > 0) {
           // 开光了，流已经开始被读取
           this.isStreamOpened = true;
-          console.log("sender/read", stream_id, ipc.uid);
+          // console.log("sender/read", stream_id, ipc.uid);
 
           const message = IpcStreamData.fromBinary(
             stream_id,
@@ -267,7 +267,7 @@ export class IpcBodySender extends IpcBody {
             ipc.postMessage(message);
           }
         } else if (availableLen === -1) {
-          console.log("sender/end", stream_id, ipc.uid);
+          // console.log("sender/end", stream_id, ipc.uid);
           /// 不论是不是被 aborted，都发送结束信号
           const message = new IpcStreamEnd(stream_id);
           for (const ipc of this.usedIpcMap.keys()) {
@@ -277,7 +277,7 @@ export class IpcBodySender extends IpcBody {
           this.emitStreamClose();
           break;
         }
-        console.log("sender/pull-end", stream_id, ipc.uid);
+        // console.log("sender/pull-end", stream_id, ipc.uid);
       }
     })().catch(console.error);
 
@@ -313,7 +313,7 @@ export class IpcBodySender extends IpcBody {
   static $usableByIpc = (ipc: Ipc, ipcBody: IpcBodySender) => {
     if (ipcBody.isStream && !ipcBody._isStreamOpened) {
       const streamId = ipcBody.metaBody.streamId!;
-      console.log("sender/use-by", streamId, ipc.uid);
+      // console.log("sender/use-by", streamId, ipc.uid);
       let usableIpcBodyMapper = IpcUsableIpcBodyMap.get(ipc);
       if (usableIpcBodyMapper === undefined) {
         const mapper = new UsableIpcBodyMapper();

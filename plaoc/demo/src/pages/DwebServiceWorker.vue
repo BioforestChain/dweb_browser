@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { dwebServiceWorker as sw } from "../plugin";
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { dwebServiceWorker as sw } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;
 
@@ -72,7 +72,7 @@ const cancel = defineLogAction(
 
 const download = defineLogAction(
   async () => {
-    return await sw.updateContoller.download("https://dweb.waterbang.top/bfs-metadata.json");
+    return await sw.updateContoller.download("https://dweb.waterbang.top/plaoc-metadata.json");
   },
   { name: "cancel", args: [], logPanel: $logPanel }
 );

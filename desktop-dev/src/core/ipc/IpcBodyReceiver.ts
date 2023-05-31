@@ -96,11 +96,11 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
             // STREAM_DATA || STREAM_END
             switch (message.type) {
               case IPC_MESSAGE_TYPE.STREAM_DATA:
-                console.log("receiver/data", stream_id, ipc.uid);
+                // console.log("receiver/data", stream_id, ipc.uid);
                 controller.enqueue(message.binary);
                 break;
               case IPC_MESSAGE_TYPE.STREAM_END:
-                console.log("receiver/end", stream_id, ipc.uid);
+                // console.log("receiver/end", stream_id, ipc.uid);
                 controller.close();
                 off();
                 break;
@@ -111,7 +111,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
       pull(_controller) {
         if (paused) {
           paused = false;
-          console.log("receiver/pull", stream_id, ipc.uid);
+          // console.log("receiver/pull", stream_id, ipc.uid);
           stream_ipc.postMessage(new IpcStreamPulling(stream_id));
         }
       },
@@ -125,7 +125,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
       highWaterMark: 0,
     }
   );
-  console.log("receiver/start", stream_id, ipc.uid);
+  // console.log("receiver/start", stream_id, ipc.uid);
   return stream;
 };
 

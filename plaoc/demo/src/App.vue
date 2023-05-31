@@ -7,7 +7,8 @@ import { routes } from "./routes";
 const router = useRouter();
 
 // router.push("/biometrics")
-router.push("/share")
+// router.push("/share")
+router.push("/serviceworker")
 // router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");
@@ -33,6 +34,7 @@ const drawer_controller = ref(false);
 // }
 </script>
 <template>
+  <dweb-config ></dweb-config>
   <v-app>
     <v-main>
       <div class="h-full drawer app-bg pt-10">
