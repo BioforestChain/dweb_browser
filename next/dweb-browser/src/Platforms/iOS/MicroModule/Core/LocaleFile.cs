@@ -60,7 +60,7 @@ public static class LocaleFile
     {
         try
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is "" && parsedUrl.Path.StartsWith("/sys/"))
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is "" && parsedUrl.Path.StartsWith("/jmm/"))
             {
                 var query = HttpUtility.ParseQueryString(parsedUrl.Query);
 
