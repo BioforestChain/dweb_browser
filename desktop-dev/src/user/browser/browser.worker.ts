@@ -33,6 +33,7 @@ const main = async () => {
   const externalMap = new Map<number, PromiseOut<IpcResponse>>();
 
   /**尝试打开view */
+  // tryOpenView 是属于开发者自己写的内容
   const tryOpenView = async () => {
     console.log('tryOpenView... start')
     const url = await mainUrl.promise;
@@ -220,11 +221,9 @@ const main = async () => {
     }
     return "no action for serviceWorker Factory !!!";
   };
-
-  console.error(">>>>>>>>>>>>>>>>>>> jsProcess.onActivity")
+  
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
-    
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
     // if (hasActivityEventIpcs.has(ipc) === false) {
@@ -248,18 +247,20 @@ const main = async () => {
 
   /// 同步 mwebview 的状态机
   multiWebViewIpc.onEvent((event, ipc) => {
-    if (event.name === EVENT.State && typeof event.data === "string") {
-      const newState = JSON.parse(event.data);
-      // newState 的数据格式是 {key: string}
-      const diff = detailedDiff(oldWebviewState, newState);
-      oldWebviewState = newState;
-      diffFactory(diff);
+    console.log('allWebveiwState: ', event.data)
+    console.error('这里需要 同 android 协调 传递过来的 allWebview 数据数据类型')
+    // if (event.name === EVENT.State && typeof event.data === "string") {
+    //   const newState = JSON.parse(event.data);
+    //   // newState 的数据格式是 {key: string}
+    //   const diff = detailedDiff(oldWebviewState, newState);
+    //   oldWebviewState = newState;
+    //   diffFactory(diff);
       
-    }
-    multiWebViewCloseSignal.listen(() => {
-      ipc.postMessage(IpcEvent.fromText("close", ""));
-      ipc.close();
-    });
+    // }
+    // multiWebViewCloseSignal.listen(() => {
+    //   ipc.postMessage(IpcEvent.fromText("close", ""));
+    //   ipc.close();
+    // });
   });
 
   const diffFactory = async (diff: DetailedDiff) => {

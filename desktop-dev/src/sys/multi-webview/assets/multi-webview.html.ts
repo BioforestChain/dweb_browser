@@ -19,6 +19,7 @@ import {
 import type {
   $BarState,
   $OverlayState,
+  $SafeAreaState,
   $ShareOptions,
   $VirtualKeyboardState,
 } from "../types.ts";
@@ -178,15 +179,65 @@ export class ViewTree extends LitElement {
       this.isShowVirtualKeyboard,
       this.virtualKeyboardState
     );
+    return this.safeAreaGetStateByBar(
+      statusbarState,
+      bottomBarState,
+      this.safeAreaState[0]
+    )
+    // return {
+    //   overlay: this.safeAreaState[0].overlay,
+    //   insets: {
+    //     left: 0,
+    //     top: statusbarState.visible
+    //       ? statusbarState.overlay
+    //         ? statusbarState.insets.top
+    //         : 0
+    //       : statusbarState.insets.top,
+    //     right: 0,
+    //     bottom: bottomBarState.visible
+    //       ? bottomBarState.overlay
+    //         ? bottomBarState.insets.bottom
+    //         : 0
+    //       : 0,
+    //   },
+    //   cutoutInsets: {
+    //     left: 0,
+    //     top: statusbarState.insets.top,
+    //     right: 0,
+    //     bottom: 0,
+    //   },
+    //   // 外部尺寸
+    //   outerInsets: {
+    //     left: 0,
+    //     top: statusbarState.visible
+    //       ? statusbarState.overlay
+    //         ? 0
+    //         : statusbarState.insets.top
+    //       : 0,
+    //     right: 0,
+    //     bottom: bottomBarState.visible
+    //       ? bottomBarState.overlay
+    //         ? 0
+    //         : bottomBarState.insets.bottom
+    //       : 0,
+    //   },
+    // };
+  };
+
+  safeAreaGetStateByBar = (
+    topBarState: Pick<$BarState, "visible" | "insets" | "overlay">,
+    bottomBarState: Pick<$BarState, "visible" | "insets" | "overlay">,
+    safeAreaState: $OverlayState
+  ) => {
     return {
-      overlay: this.safeAreaState[0].overlay,
+      overlay: safeAreaState.overlay,
       insets: {
         left: 0,
-        top: statusbarState.visible
-          ? statusbarState.overlay
-            ? statusbarState.insets.top
+        top: topBarState.visible
+          ? topBarState.overlay
+            ? topBarState.insets.top
             : 0
-          : statusbarState.insets.top,
+          : topBarState.insets.top,
         right: 0,
         bottom: bottomBarState.visible
           ? bottomBarState.overlay
@@ -196,17 +247,17 @@ export class ViewTree extends LitElement {
       },
       cutoutInsets: {
         left: 0,
-        top: statusbarState.insets.top,
+        top: topBarState.insets.top,
         right: 0,
         bottom: 0,
       },
       // 外部尺寸
       outerInsets: {
         left: 0,
-        top: statusbarState.visible
-          ? statusbarState.overlay
+        top: topBarState.visible
+          ? topBarState.overlay
             ? 0
-            : statusbarState.insets.top
+            : topBarState.insets.top
           : 0,
         right: 0,
         bottom: bottomBarState.visible
@@ -216,7 +267,7 @@ export class ViewTree extends LitElement {
           : 0,
       },
     };
-  };
+  }
 
   safeAreaSetOverlay = (overlay: boolean) => {
     const state = this.safeAreaState;
@@ -385,15 +436,31 @@ export class ViewTree extends LitElement {
   }
 
   syncWebviewToMian(){
+    const uid = new URL(location.href).searchParams.get('uid')
     const allWebviewState = {}
     this.webviews.forEach((item, index) => {
-      Reflect.set(allWebviewState, `${item.id}`,  JSON.stringify({
+      const statusBarState = this.statusBarState[index];
+      const navigationBarState = this.navigationBarState[index];
+      const bottomBarState = getButtomBarState(
+        navigationBarState,
+        this.isShowVirtualKeyboard,
+        this.virtualKeyboardState,
+      );
+      Reflect.set(allWebviewState, item.id,  {
         webviewId: item.id,
-        isActivated: index === 0 ? true : false
-      }))
+        isActivated: index === 0 ? true : false,
+        statusBarState: statusBarState,
+        navigationBarState: navigationBarState,
+        safeAreaState: this.safeAreaGetStateByBar(
+          statusBarState,
+          bottomBarState,
+          this.safeAreaState[index]
+        )
+      })
     })
     ipcRenderer.send(
       "sync:webveiw_state", 
+      uid,
       allWebviewState
     )
   }
@@ -585,7 +652,6 @@ export class ViewTree extends LitElement {
         origin,
         `
           ;(() => {
-            console.log(globalThis.__native_close_watcher_kit__._tasks);
             const resolve = globalThis.__native_close_watcher_kit__._tasks.get("${value}");
             resolve(${id});
           })();
@@ -598,7 +664,6 @@ export class ViewTree extends LitElement {
       const token = this.nativeCloseWatcherKitData.idToToken.get(value)!
       this.nativeCloseWatcherKitData.idToToken.delete(value);
       this.nativeCloseWatcherKitData.tokenToId.delete(token);
-      console.log("接受到了关闭的消息", value)
       return;
     }
   }

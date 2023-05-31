@@ -75,3 +75,15 @@ export interface $ColorRGB {
 export type $ToastPosition = "top" | "bottom";
 export type $ImpactLightStyle = "HEAVY" | "MEDIUM" | "LIGHT";
 export type $NotificationStyle = "SUCCESS" | "WARNING" | "ERROR";
+
+export interface $AllWebviewState{
+  [key: number]: $WebViewState
+}
+
+export interface $WebViewState{
+  statusBarState: $BarState;
+  navigationBarState: $BarState;
+  safeAreaState: $SafeAreaState;
+  webviewId: number;
+  isActivated: boolean;
+}

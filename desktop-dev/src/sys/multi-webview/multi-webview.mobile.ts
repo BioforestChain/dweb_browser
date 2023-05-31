@@ -18,6 +18,7 @@ import {
   getAllWapis,
 } from "./mutil-webview.mobile.wapi.ts";
 import Electron from "electron"
+import { $AllWebviewState } from "./types.ts";
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
 /**
@@ -160,10 +161,24 @@ export class MultiWebviewNMM extends NativeMicroModule {
       },
     });
 
-    
-    
-   
+    // 同步是否可以不需要要了？？
+    // 需要修改 通过 webview 需要 区分 ipc or window 来
+    // 需要根据 ipc.uid 决定向那个 ipc 发送同步的数据
+    // 需要需要包括 webview_id isActive statusbar 等状态
+    // 
+    Electron.ipcMain.on("sync:webveiw_state", (event: Electron.IpcMainEvent, uid: string, allWebviewState: $AllWebviewState) => {
+      const ipc = this._all_open_ipc.get(parseInt(uid));
+      if(ipc === undefined) throw new Error(`ipc === undefined`)
+      ipc.postMessage(
+        IpcEvent.fromText(
+          EVENT.State,
+          JSON.stringify(allWebviewState)
+        )
+      )
+    })
   }
+
+  private _all_open_ipc = new Map<number, Ipc>()
   /**
    * 打开 应用
    * 如果 是由 jsProcess 调用 会在当前的 browserWindow 打开一个新的 webview
@@ -175,19 +190,12 @@ export class MultiWebviewNMM extends NativeMicroModule {
     clientIpc: Ipc,
     _request: IpcRequest
   ) {
-    // 同步是否可以不需要要了？？
-    // 需要修改 通过 webview 需要 区分 ipc or window 来
-    // Electron.ipcMain.on("sync:webveiw_state", (event: Electron.IpcMainEvent, webviewSate: WebViewState) => {
-    //   clientIpc.postMessage(
-    //     IpcEvent.fromText(
-    //       EVENT.State,
-    //       JSON.stringify(webviewSate)
-    //     )
-    //   )
-    // })
-    const wapis = await forceGetWapis(clientIpc, root_url);
+    this._all_open_ipc.set(clientIpc.uid, clientIpc)
+    clientIpc.onClose(() => {
+      this._all_open_ipc.delete(clientIpc.uid)
+    })
+    const wapis = await forceGetWapis(clientIpc, root_url+ `&uid=${clientIpc.uid}`);
     const webview_id = await wapis.apis.openWebview(args.url);
-   
     return webview_id;
   }
 
