@@ -17,6 +17,7 @@ import { JsMMMetadata, JsMicroModule } from "../../core/micro-module.js.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { locks } from "../../helper/locksManager.ts";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
+import { $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "../dns/nativeFetch.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import type { $AppMetaData, JmmNMM } from "./jmm.ts";

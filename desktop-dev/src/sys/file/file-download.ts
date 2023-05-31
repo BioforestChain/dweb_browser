@@ -3,8 +3,10 @@ import extract from "extract-zip";
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
+import process from "node:process";
 import request from "request";
 import progress from "request-progress";
+
 /**
  *
  * @param url

@@ -166,7 +166,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
     // 需要根据 ipc.uid 决定向那个 ipc 发送同步的数据
     // 需要需要包括 webview_id isActive statusbar 等状态
     // 
-    Electron.ipcMain.on("sync:webveiw_state", (event: Electron.IpcMainEvent, uid: string, allWebviewState: $AllWebviewState) => {
+    Electron.ipcMain.on("sync:webview_state", (event: Electron.IpcMainEvent, uid: string, allWebviewState: $AllWebviewState) => {
       const ipc = this._all_open_ipc.get(parseInt(uid));
       if(ipc === undefined) throw new Error(`ipc === undefined`)
       ipc.postMessage(

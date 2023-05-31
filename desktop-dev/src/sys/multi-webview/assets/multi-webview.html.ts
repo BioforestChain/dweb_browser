@@ -17,9 +17,9 @@ import {
   mainApis,
 } from "../../../helper/openNativeWindow.preload.ts";
 import type {
+  $AllWebviewState,
   $BarState,
   $OverlayState,
-  $SafeAreaState,
   $ShareOptions,
   $VirtualKeyboardState,
 } from "../types.ts";
@@ -45,12 +45,12 @@ import type {
 import "./multi-webview-devtools.html.ts";
 import { Webview } from "./multi-webview.ts";
 import WebviewTag = Electron.WebviewTag;
- 
+
 @customElement("view-tree")
 export class ViewTree extends LitElement {
   static override styles = createAllCSS();
   private _id_acc = 0;
-  @state() webviews: Array<Webview> = []
+  @state() webviews: Array<Webview> = [];
   statusBarHeight = "38px";
   navigationBarHeight = "26px";
   virtualKeyboardAnimationSetIntervalId: unknown = 0;
@@ -183,7 +183,7 @@ export class ViewTree extends LitElement {
       statusbarState,
       bottomBarState,
       this.safeAreaState[0]
-    )
+    );
     // return {
     //   overlay: this.safeAreaState[0].overlay,
     //   insets: {
@@ -267,7 +267,7 @@ export class ViewTree extends LitElement {
           : 0,
       },
     };
-  }
+  };
 
   safeAreaSetOverlay = (overlay: boolean) => {
     const state = this.safeAreaState;
@@ -331,36 +331,37 @@ export class ViewTree extends LitElement {
    * navigation-bar 点击 back 的事件处理器
    * 业务逻辑：
    * 检查 watchers的数据是否有没返回的；
-   * 
+   *
    * 如果有：
    * webveiw执行 watcher.close(); 用来发消息
    * 同时触发 close event 实际上关闭
-   * 
+   *
    * 如果没有：
    * webview 执行 历史回退 或发送back 消息回来处理
-   *  
+   *
    * @returns
    */
   navigationBarOnBack = () => {
     const webview = this.webviews[0];
     const origin = new URL(webview.src).origin;
-    const wathcers = Array.from(this.nativeCloseWatcherKitData.tokenToId.values());
-    const code = 
+    const wathcers = Array.from(
+      this.nativeCloseWatcherKitData.tokenToId.values()
+    );
+    const code =
       wathcers.length > 0
-      ?  `
+        ? `
           ;(() => {
             const watchers = Array.from(window.__native_close_watcher_kit__._watchers.values());
             watchers[watchers.length - 1].close();
             watchers[watchers.length - 1].dispatchEvent(new Event("close"));
           })();
         `
-      : `
+        : `
           history.state === null || history.state.back === null
           ? window.electron.ipcRenderer.sendToHost('back')
           : window.history.back();
-          `
-      ;
-    this.executeJavascriptByHost(origin,code);
+          `;
+    this.executeJavascriptByHost(origin, code);
   };
 
   /** 对webview视图进行状态整理 */
@@ -399,7 +400,7 @@ export class ViewTree extends LitElement {
   openWebview(src: string) {
     const webview_id = this._id_acc++;
     // 都从最前面插入
-    this.webviews = [new Webview(webview_id, src), ...this.webviews]
+    this.webviews = [new Webview(webview_id, src), ...this.webviews];
     this._restateWebviews();
     if (this.webviews.length === 1) {
       this.statusBarState = [
@@ -431,22 +432,22 @@ export class ViewTree extends LitElement {
       ];
     }
     // 还需要报 webview 状态同步到指定 worker.js
-    this.syncWebviewToMian()
+    this.syncWebviewToMian();
     return webview_id;
   }
 
-  syncWebviewToMian(){
-    const uid = new URL(location.href).searchParams.get('uid')
-    const allWebviewState = {}
+  syncWebviewToMian() {
+    const uid = new URL(location.href).searchParams.get("uid");
+    const allWebviewState: $AllWebviewState = {};
     this.webviews.forEach((item, index) => {
       const statusBarState = this.statusBarState[index];
       const navigationBarState = this.navigationBarState[index];
       const bottomBarState = getButtomBarState(
         navigationBarState,
         this.isShowVirtualKeyboard,
-        this.virtualKeyboardState,
+        this.virtualKeyboardState
       );
-      Reflect.set(allWebviewState, item.id,  {
+      allWebviewState[item.id] = {
         webviewId: item.id,
         isActivated: index === 0 ? true : false,
         statusBarState: statusBarState,
@@ -455,14 +456,11 @@ export class ViewTree extends LitElement {
           statusBarState,
           bottomBarState,
           this.safeAreaState[index]
-        )
-      })
-    })
-    ipcRenderer.send(
-      "sync:webveiw_state", 
-      uid,
-      allWebviewState
-    )
+        ),
+      };
+    });
+    debugger;
+    ipcRenderer.send("sync:webview_state", uid, allWebviewState);
   }
 
   closeWebview(webview_id: number) {
@@ -486,7 +484,7 @@ export class ViewTree extends LitElement {
     }
     this.webviews.splice(index, 1);
     this.webviews = [...this.webviews];
-    this.syncWebviewToMian()
+    this.syncWebviewToMian();
     this._restateWebviews();
     return true;
   }
@@ -544,9 +542,8 @@ export class ViewTree extends LitElement {
   private async destroyWebview(webview: Webview) {
     await mainApis.destroy(webview.webContentId);
     // 可能出现越界的情况
-    this.webviews = this.webviews.slice(1)
+    this.webviews = this.webviews.slice(1);
     this.syncWebviewToMian();
-     
   }
 
   destroyWebviewByHost(host: string) {
@@ -595,7 +592,7 @@ export class ViewTree extends LitElement {
 
   webviewTagOnIpcMessageHandlerBack = () => {
     const len = this.webviews.length;
-    if(len > 1){
+    if (len > 1) {
       this.deleteTopBarState();
       this.deleteTopSafeAreaState();
       // 把 navigationBarState statusBarStte safe-area 的改变发出
@@ -604,9 +601,9 @@ export class ViewTree extends LitElement {
       ipcRenderer.send("status_bar_state_change");
       return;
     }
-    console.error('是否应该需要关闭 当前window了？？？ 还没有决定')
+    console.error("是否应该需要关闭 当前window了？？？ 还没有决定");
     this.destroyWebview(this.webviews[0]);
-    mainApis.closedBrowserWindow()
+    mainApis.closedBrowserWindow();
   };
 
   webviewTagOnIpcMessageHandlerNormal = (e: Event) => {
@@ -626,7 +623,9 @@ export class ViewTree extends LitElement {
         this.webviewTagOnIpcMessageHandlerBack();
         break;
       case "__native_close_watcher_kit__":
-        this.nativeCloseWatcherKit((args as {action: string, value: string | number}[])[0])
+        this.nativeCloseWatcherKit(
+          (args as { action: string; value: string | number }[])[0]
+        );
         break;
       default:
         throw new Error(
@@ -639,12 +638,18 @@ export class ViewTree extends LitElement {
     tokenToId: new Map<string, number>(),
     idToToken: new Map<number, string>(),
     allocId: 0,
-  }
-  nativeCloseWatcherKit = ({action, value}:  {action: string, value: string | number}) => {
-    if(action === "registry_token" && typeof value === "string"){
+  };
+  nativeCloseWatcherKit = ({
+    action,
+    value,
+  }: {
+    action: string;
+    value: string | number;
+  }) => {
+    if (action === "registry_token" && typeof value === "string") {
       const id = this.nativeCloseWatcherKitData.allocId++;
       this.nativeCloseWatcherKitData.tokenToId.set(value, id);
-      this.nativeCloseWatcherKitData.idToToken.set(id, value)
+      this.nativeCloseWatcherKitData.idToToken.set(id, value);
       // 向 webview 执行数据 resolve watcher
       const webview = this.webviews[0];
       const origin = new URL(webview.src).origin;
@@ -656,17 +661,17 @@ export class ViewTree extends LitElement {
             resolve(${id});
           })();
         `
-      )
+      );
       return;
     }
 
-    if(action === "close" && typeof value === "number"){
-      const token = this.nativeCloseWatcherKitData.idToToken.get(value)!
+    if (action === "close" && typeof value === "number") {
+      const token = this.nativeCloseWatcherKitData.idToToken.get(value)!;
       this.nativeCloseWatcherKitData.idToToken.delete(value);
       this.nativeCloseWatcherKitData.tokenToId.delete(token);
       return;
     }
-  }
+  };
 
   // Render the UI as a function of component state
   override render() {
@@ -801,30 +806,30 @@ export class ViewTree extends LitElement {
       <!--
       <div class="dev-tools-container">
         ${repeat(
-          this.webviews,
-          (dialog) => dialog.id,
-          (webview) => {
-            const _styleMap = styleMap({ zIndex: webview.state.zIndex + "" });
-            return html`
-              <multi-webview-devtools
-                .customWebview=${webview}
-                .closing=${webview.closing}
-                .zIndex=${webview.state.zIndex}
-                .scale=${webview.state.scale}
-                .opacity=${webview.state.opacity}
-                .customWebviewId=${webview.id}
-                style="${_styleMap}"
-                @dom-ready=${(event: CustomEvent & { target: WebviewTag }) => {
-                  this.onDevtoolReady(
-                    webview,
-                    event.detail.event.target as WebviewTag
-                  );
-                }}
-                @destroy-webview=${() => this.destroyWebview(webview)}
-              ></multi-webview-devtools>
-            `;
-          }
-        )}
+        this.webviews,
+        (dialog) => dialog.id,
+        (webview) => {
+          const _styleMap = styleMap({ zIndex: webview.state.zIndex + "" });
+          return html`
+            <multi-webview-devtools
+              .customWebview=${webview}
+              .closing=${webview.closing}
+              .zIndex=${webview.state.zIndex}
+              .scale=${webview.state.scale}
+              .opacity=${webview.state.opacity}
+              .customWebviewId=${webview.id}
+              style="${_styleMap}"
+              @dom-ready=${(event: CustomEvent & { target: WebviewTag }) => {
+                this.onDevtoolReady(
+                  webview,
+                  event.detail.event.target as WebviewTag
+                );
+              }}
+              @destroy-webview=${() => this.destroyWebview(webview)}
+            ></multi-webview-devtools>
+          `;
+        }
+      )}
       </div>
       -->
     `;

@@ -1,10 +1,11 @@
 {
   "tasks": {
-    "dev":"deno run -A --allow-read  ./src/index.ts",
+    "dev": "deno run -A --allow-read  ./src/index.ts",
     "build": "deno run --unstable -A  ./scripts/npm.ts",
     "pub": "deno run --unstable -A --allow-env ./scripts/pub.ts",
-    "c":"deno run --unstable -A ./scripts/build.ts"
+    "c": "deno run --unstable -A ./scripts/build.ts"
   },
+  "importMap": "import_map.json",
   "compilerOptions": {
     "allowJs": false,
     "strict": true,

@@ -3,18 +3,34 @@
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
 declare global {
-  type $MMID = import("../../helper/types.ts").$MMID;
+  // type $MMID = import("../../helper/types.ts").$MMID;
   // import { JsProcessMicroModule as JsProcessMicroModuleContructor } from "./js-process.worker.ts";
   type JsProcessMicroModuleContructor =
     import("./js-process.worker.ts").JsProcessMicroModule;
   const JsProcessMicroModule: new (
     mmid: $MMID
   ) => JsProcessMicroModuleContructor;
-  //  { JsProcessMicroModule } from "./js-process.worker.ts";
-  const jsProcess: JsProcessMicroModuleContructor;
-  const http: typeof import("../http-server/$createHttpDwebServer.ts");
-  const ipc: typeof import("../../core/ipc/index.ts");
+  // //  { JsProcessMicroModule } from "./js-process.worker.ts";
+  // const jsProcess: JsProcessMicroModuleContructor;
+  // const http: typeof import("../http-server/$createHttpDwebServer.ts");
+  // const ipc: typeof import("../../core/ipc/index.ts");
+  // const helper: typeof import("../../helper/PromiseOut.ts") &
+  //   typeof import("../../helper/readableStreamHelper.ts") &
+  //   typeof import("../../helper/JsonlinesStream.ts") &
+  //   typeof import("../../helper/createSignal.ts");
+  interface DWebCore {
+    jsProcess: JsProcessMicroModuleContructor;
+    ipc: typeof import("../../core/ipc/index.ts");
+    http: typeof import("../http-server/$createHttpDwebServer.ts");
+  }
+  interface WorkerNavigator {
+    readonly dweb: DWebCore;
+  }
+  interface Navigator {
+    readonly dweb: DWebCore;
+  }
 }
+const workerGlobal = self as DedicatedWorkerGlobalScope;
 
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
 import { $OnIpcEventMessage, Ipc, IPC_ROLE } from "../../core/ipc/index.ts";
@@ -37,6 +53,10 @@ import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { EVENT } from "../../user/tool/tool.event.ts";
 import * as http from "../http-server/$createHttpDwebServer.ts";
+// import * as helper_createSignal from "../../helper/createSignal.ts";
+// import * as helper_JsonlinesStream from "../../helper/JsonlinesStream.ts";
+// import * as helper_PromiseOut from "../../helper/PromiseOut.ts";
+// import * as helper_readableStreamHelper from "../../helper/readableStreamHelper.ts";
 
 export class Metadata<T extends $Metadata = $Metadata> {
   constructor(readonly data: T, readonly env: Record<string, string>) {}
@@ -131,13 +151,13 @@ export class JsProcessMicroModule implements $MicroModule {
           rote
         );
         port_po.resolve(ipc);
-        self.postMessage(["ipc-connect-ready", mmid]);
+        workerGlobal.postMessage(["ipc-connect-ready", mmid]);
 
         /// 不论是连接方，还是被连接方，都需要触发事件
         this.beConnect(ipc);
       }
     };
-    self.addEventListener("message", _beConnect);
+    workerGlobal.addEventListener("message", _beConnect);
 
     this.mmid = meta.data.mmid;
     this.host = this.meta.envString("host");
@@ -164,10 +184,10 @@ export class JsProcessMicroModule implements $MicroModule {
       );
       return ipc_response.toResponse(args.parsed_url.href);
     }
-    const ipc = await jsProcess.connect(hostName as $MMID);
+    const ipc = await this.connect(hostName as $MMID);
     const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
     const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
-    console.log("ipc_response=>",args.parsed_url.href)
+    console.log("ipc_response=>", args.parsed_url.href);
     return ipc_response.toResponse(args.parsed_url.href);
   }
 
@@ -192,7 +212,7 @@ export class JsProcessMicroModule implements $MicroModule {
 
   /**重启 */
   restart() {
-    this.closeSignal.emit()
+    this.closeSignal.emit();
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
   // 关闭信号
@@ -258,7 +278,7 @@ export class JsProcessMicroModule implements $MicroModule {
 /// 消息通道构造器
 const waitFetchPort = () => {
   return new Promise<MessagePort>((resolve) => {
-    self.addEventListener("message", function onFetchIpcChannel(event) {
+    workerGlobal.addEventListener("message", function onFetchIpcChannel(event) {
       const data = event.data;
       if (Array.isArray(event.data) === false) {
         return;
@@ -267,7 +287,7 @@ const waitFetchPort = () => {
       /// 由 web 主线程代理传递过来
       if (data[0] === "fetch-ipc-channel") {
         resolve(data[1]);
-        self.removeEventListener("message", onFetchIpcChannel);
+        workerGlobal.removeEventListener("message", onFetchIpcChannel);
       }
     });
   });
@@ -279,53 +299,61 @@ const waitFetchPort = () => {
 export const installEnv = async (metadata: Metadata) => {
   const jsProcess = new JsProcessMicroModule(metadata, await waitFetchPort());
 
-  Object.assign(globalThis, {
+  const dweb = {
     jsProcess,
-    JsProcessMicroModule,
-    http,
     ipc,
-  });
+    // JsProcessMicroModule,
+    http,
+    // helper: {
+    //   ...helper_PromiseOut,
+    //   ...helper_readableStreamHelper,
+    //   ...helper_JsonlinesStream,
+    //   ...helper_createSignal,
+    // },
+  } satisfies DWebCore;
+  // Object.assign(globalThis, dweb);
+  Object.assign(navigator, { dweb });
   /// 安装完成，告知外部
-  self.postMessage(["env-ready"]);
+  workerGlobal.postMessage(["env-ready"]);
+
+  workerGlobal.addEventListener("message", async function runMain(event) {
+    const data = event.data;
+    if (Array.isArray(event.data) === false) {
+      return;
+    }
+    if (data[0] === "run-main") {
+      const config = data[1] as $RunMainConfig;
+      const main_parsed_url = updateUrlOrigin(
+        config.main_url,
+        `http://${jsProcess.host}`
+      );
+      const location = {
+        hash: main_parsed_url.hash,
+        host: main_parsed_url.host,
+        hostname: main_parsed_url.hostname,
+        href: main_parsed_url.href,
+        origin: main_parsed_url.origin,
+        pathname: main_parsed_url.pathname,
+        port: main_parsed_url.port,
+        protocol: main_parsed_url.protocol,
+        search: main_parsed_url.search,
+        toString() {
+          return main_parsed_url.href;
+        },
+      };
+      Object.setPrototypeOf(location, WorkerLocation.prototype);
+      Object.freeze(location);
+
+      Object.defineProperty(workerGlobal, "location", {
+        value: location,
+        configurable: false,
+        enumerable: false,
+        writable: false,
+      });
+
+      await import(config.main_url);
+      workerGlobal.removeEventListener("message", runMain);
+    }
+  });
   return jsProcess;
 };
-
-self.addEventListener("message", async function runMain(event) {
-  const data = event.data;
-  if (Array.isArray(event.data) === false) {
-    return;
-  }
-  if (data[0] === "run-main") {
-    const config = data[1] as $RunMainConfig;
-    const main_parsed_url = updateUrlOrigin(
-      config.main_url,
-      `http://${jsProcess.host}`
-    );
-    const location = {
-      hash: main_parsed_url.hash,
-      host: main_parsed_url.host,
-      hostname: main_parsed_url.hostname,
-      href: main_parsed_url.href,
-      origin: main_parsed_url.origin,
-      pathname: main_parsed_url.pathname,
-      port: main_parsed_url.port,
-      protocol: main_parsed_url.protocol,
-      search: main_parsed_url.search,
-      toString() {
-        return main_parsed_url.href;
-      },
-    };
-    Object.setPrototypeOf(location, WorkerLocation.prototype);
-    Object.freeze(location);
-
-    Object.defineProperty(self, "location", {
-      value: location,
-      configurable: false,
-      enumerable: false,
-      writable: false,
-    });
-
-    await import(config.main_url);
-    this.self.removeEventListener("message", runMain);
-  }
-});

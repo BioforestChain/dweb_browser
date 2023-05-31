@@ -4,6 +4,7 @@ import { BootNMM } from "./sys/boot.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";
 import "./sys/dns/localeFileFetch.ts";
 import { DownloadNMM } from "./sys/download/download.ts";
+import { DwebBrowserNMM } from "./sys/dweb-browser/dweb-browser.ts";
 import { HttpServerNMM } from "./sys/http-server/http-server.ts";
 import { JsProcessNMM } from "./sys/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./sys/multi-webview/multi-webview.mobile.ts";
@@ -17,7 +18,6 @@ import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.ts";
 import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.ts";
 import { ShareNMM } from "./sys/plugins/sys/share/share.main.ts";
 import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.ts";
-import { DwebBrowserNMM } from "./sys/dweb-browser/dweb-browser.ts"
 
 /**
  * 设置 debugger 过滤条件
@@ -31,19 +31,19 @@ import { DwebBrowserNMM } from "./sys/dweb-browser/dweb-browser.ts"
  * "jsmm"
  * "mwebview"
  * "dns"
- * 
+ *
  * "jsProcess"
- * 
+ *
  * "biometrices"
- * 
- * 
+ *
+ *
  * "sender/init"
  * "sender/pulling"
  * "sender/read"
  * "sender/end"
  * "sender/pull-end"
  * "sender/use-by"
- * 
+ *
  * "receiver/data"
  * "receiver/end"
  * "receiver/pull"
@@ -58,15 +58,16 @@ setFilter([
   "mm",
   "maphelper",
   "dns",
-  "dwebbrowser"
-])
+  "dwebbrowser",
+]);
 
 export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 dns.install(new HttpServerNMM());
 dns.install(new DownloadNMM());
-dns.install(new DwebBrowserNMM());
+const dwebBrowser = new DwebBrowserNMM();
+dns.install(dwebBrowser);
 dns.install(new StatusbarNativeUiNMM());
 dns.install(new NavigationBarNMM());
 dns.install(new SafeAreaNMM());
@@ -102,7 +103,7 @@ dns.install(new JmmNMM());
 dns.install(
   new BootNMM([
     // "browser.sys.dweb",
-    "dweb-browser.sys.dweb"
+    dwebBrowser.mmid,
   ])
 );
 
