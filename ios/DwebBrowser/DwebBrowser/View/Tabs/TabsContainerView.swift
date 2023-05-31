@@ -13,10 +13,10 @@ struct TabsContainerView: View{
     @EnvironmentObject var browser: BrowerVM
     
     @EnvironmentObject var tabState: TabState
-
+    
     @State var cellFrames: [CGRect] = [.zero]
     @State private var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
-
+    
     @StateObject var animation = Animation()
     
     private var selectedCellFrame: CGRect {
@@ -69,47 +69,31 @@ struct TabsContainerView: View{
                     gridScale = shouldShowGrid ? 1 : 0.8
                 })
             })
-            .onReceive(animation.$progress) { progress in
-                print("animation progress is \(progress)")
-            }
         }
     }
     
     var animationImage: some View{
-        
         Image(uiImage: animation.snapshotImage)
             .resizable()
-//            .scaledToFill()
-//            .aspectRatio(contentMode: .fit)
             .aspectRatio(contentMode: .fill)
-
             .frame(width: cellWidth(fullW: geoRect.width),
                    height: cellHeight(fullH: geoRect.height),alignment: .top)
             .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
-
             .clipped()
             .position(x: cellCenterX(geoMidX: geoRect.midX),
                       y: cellCenterY(geoMidY: geoRect.midY - geoRect.minY))
-        
-            .onAppear{
-                DispatchQueue.main.asyncAfter(deadline: .now()) {
+            .onReceive(animation.$progress, perform: { progress in
+                if progress == .startShrinking || progress == .startExpanding{
                     withAnimation(.easeInOut(duration: shiftingDuration)) {
-                        animation.progress = animation.progress.next() // change to expanded or shrinked
+                        animation.progress = progress.next() // change to expanded or shrinked
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.05) {
+                        animation.progress = .invisible // change to expanded or shrinked
                     }
                 }
-                
-//                DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.05) {
-//                    animation.progress = .fading // change to expanded or shrinked
-//                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.1) {
-//                    withAnimation(.easeInOut(duration: fadingDuration)) {
-                        animation.progress = .invisible
-//                    }
-                }
-            }
+            })
     }
-
+    
     func cellCenterX(geoMidX: CGFloat)-> CGFloat{
         if animation.progress.imageIsSmall(){
             return selectedCellFrame.minX + selectedCellFrame.width/2.0
@@ -119,7 +103,7 @@ struct TabsContainerView: View{
             return selectedCellFrame.minX + selectedCellFrame.width/2.0
         }
     }
-
+    
     func cellCenterY(geoMidY: CGFloat)-> CGFloat{
         if animation.progress.imageIsSmall(){
             return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - topSafeArea
@@ -129,7 +113,7 @@ struct TabsContainerView: View{
             return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0
         }
     }
-
+    
     func cellWidth(fullW: CGFloat)->CGFloat{
         if animation.progress.imageIsSmall(){
             return selectedCellFrame.width
@@ -139,7 +123,7 @@ struct TabsContainerView: View{
             return selectedCellFrame.width
         }
     }
-
+    
     func cellHeight(fullH: CGFloat)->CGFloat{
         if animation.progress.imageIsSmall(){
             return selectedCellFrame.height - gridcellBottomH
@@ -170,40 +154,7 @@ struct WebHScrollView: View{
             }
             .scrollDisabled(true)
         }
-        
     }
-    
-    func takeScreenshot(of rect: CGRect) -> UIImage? {
-            guard let window = UIApplication.shared.windows.first else {
-                return nil
-            }
-            let renderer = UIGraphicsImageRenderer(bounds: rect)
-            let image = renderer.image { context in
-                window.drawHierarchy(in: rect, afterScreenUpdates: false)
-            }
-            return image
-        }
-    
-    
-    func snapshot() -> UIImage? {
-        // 创建UIView
-        let uiView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)))
-
-        // 将视图添加到UIView上
-        let hostingController = UIHostingController(rootView: self)
-        hostingController.view.frame = uiView.bounds
-        uiView.addSubview(hostingController.view)
-
-        // 绘制屏幕可见区域
-        UIGraphicsBeginImageContextWithOptions(uiView.bounds.size, false, UIScreen.main.scale)
-        uiView.drawHierarchy(in: uiView.bounds, afterScreenUpdates: true)
-
-        // 获取截图并输出
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return image
-    }
-    
 }
 
 struct TabHStackView_Previews: PreviewProvider {

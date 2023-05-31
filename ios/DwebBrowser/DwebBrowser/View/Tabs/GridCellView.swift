@@ -18,10 +18,13 @@ struct GridCell: View {
                 Image(uiImage:  .snapshotImage(from: webCache.snapshotUrl))
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-
                     .frame(width: gridCellW, height: gridCellH, alignment: .top)
                     .cornerRadius(gridcellCornerR)
                     .clipped()
+                    .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.dwebTint, lineWidth: 2)
+                        )
                 HStack{
                     webIconImage
                         .onAppear{
@@ -50,20 +53,10 @@ struct GridCell: View {
                 print("delete this tab, remove data from cache")
                 WebCacheMgr.shared.remove(webCache: webCache)
             } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 26)
+                Image("tab_close")
             }
             .padding(.top, 8)
             .padding(.trailing, 8)
-            .buttonStyle(CloseTabStyle())
-            .alignmentGuide(.top) { d in
-                d[.top]
-            }
-            .alignmentGuide(.trailing) { d in
-                d[.trailing]
-            }
         }
     
     var webIconImage: some View{

@@ -39,7 +39,7 @@ extension HistoryItem: Codable {
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let id = try container.decode(UUID.self, forKey: .id)
+//        let id = try container.decode(UUID.self, forKey: .id)
         let title = try container.decode(String.self, forKey: .title)
         let url = try container.decode(String.self, forKey: .url)
         let date = try container.decode(Date.self, forKey: .date)

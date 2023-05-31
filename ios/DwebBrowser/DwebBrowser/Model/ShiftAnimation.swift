@@ -8,7 +8,7 @@
 import Foundation
 
 let fadingDuration = 0.01
-let shiftingDuration: CGFloat = 0.5
+var shiftingDuration: CGFloat = 0.5
 
 enum AnimationProgress: Int{
     case initial
@@ -18,19 +18,17 @@ enum AnimationProgress: Int{
     case startShrinking
     case shrinked
     
-    case fading
     case invisible
     
     func isAnimating() -> Bool{
-        return self.rawValue >= AnimationProgress.startExpanding.rawValue && self.rawValue <= AnimationProgress.fading.rawValue
+        return self.rawValue >= AnimationProgress.startExpanding.rawValue && self.rawValue < AnimationProgress.invisible.rawValue
     }
     
     func next()->AnimationProgress{
         switch self{
         case .startExpanding: return .expanded
         case .startShrinking: return .shrinked
-        case .fading: return .invisible
-        default: return .initial
+        default: return .invisible
         }
     }
     func imageIsLarge() -> Bool{

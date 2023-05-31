@@ -27,13 +27,18 @@ class AddrBarOffset: ObservableObject {
     @Published var onX: CGFloat = 0
 }
 
+class AddressBarState: ObservableObject{
+    @Published var searchTFFocused = false
+    @Published var tfInputText: String = ""
+}
+
 class TabState: ObservableObject {
     @Published var showTabGrid = true
     @Published var canGoBack = false
     @Published var canGoForward = false
     @Published var goBackTapped = false
     @Published var goForwardTapped = false
-    
+
     var addressBarHeight: CGFloat{
         withAnimation(.easeInOut,{
             showTabGrid ? 0 : addressBarH
@@ -44,6 +49,4 @@ class TabState: ObservableObject {
 class Animation: ObservableObject{
     @Published var snapshotImage: UIImage = UIImage.defaultSnapShotImage
     @Published var progress: AnimationProgress = .invisible
-    
-    
 }

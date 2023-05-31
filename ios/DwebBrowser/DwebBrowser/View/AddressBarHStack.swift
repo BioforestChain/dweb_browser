@@ -43,7 +43,6 @@ struct AddressBarHContainer:View{
 struct AddressBar: View {
     @State var inputText: String = "inputText is empty"
     @FocusState var isAdressBarFocused: Bool
-    
     @ObservedObject var webWrapper: WebWrapper
     
     var body: some View {
@@ -79,7 +78,6 @@ struct AddressBar: View {
                 TextField("", text: $inputText)
                     .placeholder(when: inputText.isEmpty) {
                         Text("请输入搜索内容").foregroundColor(Color(white: 0.8))
-//                        Text(webWrapper.title ?? "").foregroundColor(Color(white: 0.8))
                     }
                     .background(Color(.darkGray))
                     .foregroundColor(.white)
@@ -96,6 +94,7 @@ struct AddressBar: View {
                     }
             }
             .frame(height: addressBarH)
+            
         }
     }
 }

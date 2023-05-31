@@ -98,10 +98,6 @@ struct TabPageView: View {
                     tabState.goBackTapped = false
                 }
             }
-            
-            if webCache.lastVisitedUrl == nil{
-                homeview
-            }
         }
     }
     

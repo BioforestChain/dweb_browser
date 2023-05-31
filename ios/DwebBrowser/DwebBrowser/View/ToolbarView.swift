@@ -16,6 +16,7 @@ struct ToolbarView: View {
     @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     
     @Binding var selectedTabIndex: Int
+    private let itemSize = CGSize(width: 28, height: 28)
 
     var body: some View {
         if !tabstate.showTabGrid{
@@ -23,47 +24,43 @@ struct ToolbarView: View {
                 Group{
                     Spacer()
                         .frame(width: 25)
-                    ToolbarItem(imageName: "chevron.backward") {
+                    BiColorButton(size: itemSize, imageName: "back", disabled: !tabstate.canGoBack) {
                         tabstate.goBackTapped = true
-                        print("backward was clicked")
-                    }.disabled(!tabstate.canGoBack)
-                    
-                    Spacer()
-                    
-                    ToolbarItem(imageName: "chevron.forward") {
-                        tabstate.goForwardTapped = true
-                        print("forwardp was clicked")
-                    }.disabled(!tabstate.canGoForward)
-                    
-                    Spacer()
-                    
-                    ToolbarItem(imageName: "plus") {
-//                        toolbarStates.addTapped.toggle()
-                        print("plus was clicked")
                     }
+                    
+                    Spacer()
+                    BiColorButton(size: itemSize, imageName: "forward", disabled: !tabstate.canGoForward) {
+                        tabstate.goForwardTapped = true
+                    }
+                    Spacer()
+                    BiColorButton(size: itemSize, imageName: "add", disabled: false) {
+                        print("open new tab was clicked")
+                    }
+                    
                 }
                 Group{
                     Spacer()
+                    BiColorButton(size: itemSize, imageName: "shift", disabled: false) {
+                        print("shift tab was clicked")
+                        tabstate.showTabGrid = true
+
+                        
+                    }
                     
-                    ToolbarItem(imageName: "book") {
-                        print("book was clicked")
+                    
+                    Spacer()
+                    
+                    BiColorButton(size: itemSize, imageName: "more", disabled: false) {
                         withAnimation {
                             moreTapped = true
-                            
                         }
+                        print("more menu was clicked")
                     }.sheet(isPresented: $moreTapped) {
                         withAnimation {
                             moreTapped = false
                         }
                     } content: {
                         HistoryView()
-                    }
-                    
-                    Spacer()
-                    
-                    ToolbarItem(imageName: "doc.on.doc") {
-                        tabstate.showTabGrid = true
-                        print("arrow.up was clicked")
                     }
                     
                     Spacer()
@@ -82,12 +79,13 @@ struct ToolbarView: View {
                 Spacer()
                     .frame(width: 25)
                 
-                ToolbarItem(imageName: "plus") {
-//                    toolbarStates.newPageTapped.toggle()
+                BiColorButton(size: itemSize, imageName: "add", disabled: false) {
+                    print("open new tab was clicked")
                 }
                 
                 Spacer()
                 Text("\(wrapperMgr.store.count)个标签页")
+                    .font(.system(size: 18, weight: .medium))
                 Spacer()
                 
                 ToolbarItem(title: "完成") {
@@ -127,6 +125,7 @@ struct ToolbarItem: View {
                     .frame(height: 25)
             }else{
                 Text(title!)
+                    .foregroundColor(.dwebTint)
             }
         }
     }
