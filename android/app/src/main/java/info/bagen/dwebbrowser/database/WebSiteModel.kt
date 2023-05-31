@@ -48,6 +48,8 @@ enum class WebSiteType(val id: Int) {
   ;
 }
 
+enum class OrderBy { Desc, Asc; }
+
 /**
  * 定义数据访问对象
  */
@@ -62,12 +64,13 @@ interface WebSiteDao {
   @Query("SELECT * FROM $WebSiteTableName WHERE type IN (:type)")
   fun loadAllByType(type: WebSiteType): List<WebSiteInfo>
 
-  @Query("SELECT * FROM $WebSiteTableName WHERE type IN (:type) limit 500")
-  fun loadAllByTypeObserve(type: WebSiteType): LiveData<List<WebSiteInfo>>
+  @Query("SELECT * FROM $WebSiteTableName WHERE type IN (:type) order by timeMillis ASC, id ASC limit 500")
+  fun loadAllByTypeAscObserve(type: WebSiteType): LiveData<List<WebSiteInfo>>
 
-  @Query(
-    "SELECT * FROM $WebSiteTableName WHERE title LIKE :name LIMIT 10"
-  )
+  @Query("SELECT * FROM $WebSiteTableName WHERE type IN (:type) order by timeMillis DESC, id DESC limit 500")
+  fun loadAllByTypeDescObserve(type: WebSiteType): LiveData<List<WebSiteInfo>>
+
+  @Query("SELECT * FROM $WebSiteTableName WHERE title LIKE :name LIMIT 10")
   fun findByNameTop10(name: String): LiveData<List<WebSiteInfo>>
 
   @Insert(onConflict = OnConflictStrategy.IGNORE)

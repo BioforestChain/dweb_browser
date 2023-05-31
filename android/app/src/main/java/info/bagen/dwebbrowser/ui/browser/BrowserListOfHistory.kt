@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +49,11 @@ fun BrowserListOfHistory(
     return
   }
 
-  LazyColumn(modifier = modifier) {
+  LazyColumn(
+    modifier = modifier
+      .background(MaterialTheme.colorScheme.background)
+      .padding(horizontal = 16.dp)
+  ) {
     viewModel.historyList.forEach { webSiteInfoList ->
       stickyHeader {
         Text(
@@ -58,11 +61,16 @@ fun BrowserListOfHistory(
           modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
+            .padding(vertical = 12.dp),
+          fontWeight = FontWeight(500),
+          fontSize = 15.sp,
+          color = MaterialTheme.colorScheme.outline
         )
       }
 
-      itemsIndexed(webSiteInfoList.value) { index, webSiteInfo ->
+      items(webSiteInfoList.value.size) { index ->
+        val webSiteInfo = webSiteInfoList.value[index]
+        if (index > 0) Divider()
         ListSwipeItem(
           webSiteInfo = webSiteInfo,
           onRemove = { viewModel.deleteWebSiteInfo(webSiteInfoList, it) }
@@ -76,21 +84,8 @@ fun BrowserListOfHistory(
 
             else -> RoundedCornerShape(0.dp)
           }
-          if (index > 0) Divider(modifier = Modifier.padding(horizontal = 16.dp))
           RowItemHistory(webSiteInfo, shape) { onSearch(it.url) }
-          /*ListItem(
-            headlineContent = {
-              Text(text = webSiteInfo.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            },
-            supportingContent = {
-              Text(text = webSiteInfo.url, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            },
-            modifier = Modifier.clickable {
-              onSearch(webSiteInfo.url)
-            }
-          )*/
         }
-
       }
     }
   }
@@ -105,7 +100,6 @@ private fun RowItemHistory(
   Column(modifier = Modifier
     .fillMaxWidth()
     .background(MaterialTheme.colorScheme.background)
-    .padding(horizontal = 16.dp)
     .height(66.dp)
     .clip(shape)
     .background(MaterialTheme.colorScheme.surface)
@@ -150,7 +144,7 @@ class HistoryViewModel : ViewModel() {
 
   init {
     viewModelScope.launch(mainAsyncExceptionHandler) {
-      WebSiteDatabase.INSTANCE.websiteDao().loadAllByTypeObserve(WebSiteType.History)
+      WebSiteDatabase.INSTANCE.websiteDao().loadAllByTypeAscObserve(WebSiteType.History)
         .observeForever {
           var currentKey: String? = null
           var list: MutableList<WebSiteInfo> = mutableStateListOf()

@@ -229,44 +229,24 @@ private fun LazyColumnView(
 ) {
   LazyColumn(
     modifier = modifier
-      .padding(horizontal = 16.dp, vertical = 12.dp)
-      .clip(RoundedCornerShape(6.dp))
-      .background(MaterialTheme.colorScheme.surface)
+      .background(MaterialTheme.colorScheme.background)
+      .padding(horizontal = 16.dp)
   ) {
     itemsIndexed(viewModel.bookList) { index, webSiteInfo ->
-      if (index > 0) Divider(modifier = Modifier.padding(start = 52.dp))
+      if (index > 0) {
+        //Divider(modifier = Modifier.padding(start = 52.dp))
+        Spacer(modifier = Modifier.size(width = 52.dp, height = 1.dp).background(MaterialTheme.colorScheme.surface))
+      }
       ListSwipeItem(
         webSiteInfo = webSiteInfo,
         onRemove = { viewModel.deleteWebSiteInfo(it) }
       ) {
-        RowItemBook(webSiteInfo, { onSearch(it.url) }) { openSetting(it) }
-        /*ListItem(
-          headlineContent = {
-            Text(text = webSiteInfo.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-          },
-          modifier = Modifier.clickable {
-            onSearch(webSiteInfo.url)
-          },
-          leadingContent = {
-            webSiteInfo.icon?.let { icon ->
-              Image(bitmap = icon, contentDescription = webSiteInfo.title, Modifier.size(22.dp))
-            } ?: Icon(
-              ImageVector.vectorResource(R.drawable.ic_main_book),
-              webSiteInfo.title,
-              Modifier.size(22.dp)
-            )
-          },
-          trailingContent = {
-            Icon(
-              ImageVector.vectorResource(id = R.drawable.ic_more),
-              contentDescription = "Expand",
-              modifier = Modifier
-                .clickable { openSetting(webSiteInfo) }
-                .size(22.dp)
-                .graphicsLayer(rotationZ = -90f)
-            )
-          }
-        )*/
+        val shape = when (index) {
+          0 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
+          viewModel.bookList.size - 1 -> RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp)
+          else -> RoundedCornerShape(0.dp)
+        }
+        RowItemBook(webSiteInfo, shape, { onSearch(it.url) }) { openSetting(it) }
       }
     }
   }
@@ -275,9 +255,11 @@ private fun LazyColumnView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ListSwipeItem(
-  webSiteInfo: WebSiteInfo, onRemove: (WebSiteInfo) -> Unit, listItemView: @Composable () -> Unit
+  webSiteInfo: WebSiteInfo,
+  onRemove: (WebSiteInfo) -> Unit,
+  listItemView: @Composable RowScope.() -> Unit
 ) {
-  val dismissState =
+  val dismissState = // rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
     DismissState(DismissValue.Default, { true }, SwipeToDismissDefaults.FixedPositionalThreshold)
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
@@ -293,7 +275,7 @@ internal fun ListSwipeItem(
       Box(
         Modifier
           .fillMaxSize()
-          .background(MaterialTheme.colorScheme.surfaceVariant)
+          .background(MaterialTheme.colorScheme.background)
       )
     },
     dismissContent = { // ”前景“ 显示的内容
@@ -306,14 +288,17 @@ internal fun ListSwipeItem(
 @Composable
 private fun RowItemBook(
   webSiteInfo: WebSiteInfo,
+  shape: RoundedCornerShape,
   onClick: (WebSiteInfo) -> Unit,
   onOpenSetting: (WebSiteInfo) -> Unit
 ) {
-  Row(modifier = Modifier
-    .fillMaxWidth()
-    .height(50.dp)
-    .background(MaterialTheme.colorScheme.surface)
-    .clickable { onClick(webSiteInfo) },
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(50.dp)
+      .clip(shape)
+      .background(MaterialTheme.colorScheme.surface)
+      .clickable { onClick(webSiteInfo) },
     verticalAlignment = Alignment.CenterVertically
   ) {
     webSiteInfo.icon?.let { imageBitmap ->
@@ -360,7 +345,7 @@ class BookViewModel : ViewModel() {
 
   init {
     viewModelScope.launch(mainAsyncExceptionHandler) {
-      WebSiteDatabase.INSTANCE.websiteDao().loadAllByTypeObserve(WebSiteType.Book)
+      WebSiteDatabase.INSTANCE.websiteDao().loadAllByTypeAscObserve(WebSiteType.Book)
         .observeForever {
           bookList.clear()
           it.forEach { webSiteInfo ->

@@ -105,12 +105,22 @@ class TabItem(
 /**
  * 弹出主界面，包括了三个tab和一个书签管理界面 TODO 目前缺少切换到书签管理界面后的展开问题
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
   val selectedTabIndex = remember { mutableStateOf(0) }
   val pageIndex = remember { mutableStateOf(0) }
   var webSiteInfo: WebSiteInfo? = null
+  val scope = rememberCoroutineScope()
 
+  LaunchedEffect(pageIndex) {
+    snapshotFlow { pageIndex.value }.collect {
+      if (it == 1) {
+        delay(200)
+        scope.launch { viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.expand() }
+      }
+    }
+  }
 
   AnimatedContent(targetState = pageIndex, label = "",
     transitionSpec = {
@@ -152,89 +162,91 @@ private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
   val scope = rememberCoroutineScope()
   val inputTitle = remember { mutableStateOf(webSiteInfo?.title ?: "") }
   val inputUrl = remember { mutableStateOf(webSiteInfo?.url ?: "") }
-  Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(44.dp), verticalAlignment = CenterVertically
-  ) {
-    Icon(
-      imageVector = ImageVector.vectorResource(R.drawable.ic_main_back),
-      contentDescription = "Back",
+  Box(modifier = Modifier.fillMaxSize()) {
+    Row(
       modifier = Modifier
-        .clickable { onBack() }
-        .padding(horizontal = 16.dp)
-        .size(22.dp),
-      tint = MaterialTheme.colorScheme.onBackground
-    )
-    Text(
-      text = "编辑书签",
-      modifier = Modifier.weight(1f),
-      textAlign = TextAlign.Center,
-      fontSize = 18.sp
-    )
-    Text(
-      text = "存储",
+        .fillMaxWidth()
+        .height(44.dp), verticalAlignment = CenterVertically
+    ) {
+      Icon(
+        imageVector = ImageVector.vectorResource(R.drawable.ic_main_back),
+        contentDescription = "Back",
+        modifier = Modifier
+          .clickable { onBack() }
+          .padding(horizontal = 16.dp)
+          .size(22.dp),
+        tint = MaterialTheme.colorScheme.onBackground
+      )
+      Text(
+        text = "编辑书签",
+        modifier = Modifier.weight(1f),
+        textAlign = TextAlign.Center,
+        fontSize = 18.sp
+      )
+      Text(
+        text = "存储",
+        modifier = Modifier
+          .clickable {
+            webSiteInfo?.apply {
+              title = inputTitle.value
+              url = inputUrl.value
+              scope.launch(ioAsyncExceptionHandler) {
+                WebSiteDatabase.INSTANCE
+                  .websiteDao()
+                  .update(this@apply)
+              }
+              onBack()
+            }
+          }
+          .padding(horizontal = 16.dp),
+        color = MaterialTheme.colorScheme.primary,
+        fontSize = 18.sp
+      )
+    }
+    val item = webSiteInfo ?: return
+    val focusRequester = FocusRequester()
+    LaunchedEffect(focusRequester) {
+      delay(500)
+      focusRequester.requestFocus()
+    }
+
+    Column(
       modifier = Modifier
-        .clickable {
-          webSiteInfo?.apply {
-            title = inputTitle.value
-            url = inputUrl.value
+        .fillMaxWidth()
+        .padding(start = 16.dp, end = 16.dp, top = 56.dp)
+    ) {
+      RowItemTextField(
+        leadingBitmap = item.icon,
+        leadingIcon = R.drawable.ic_main_book,
+        inputText = inputTitle,
+        focusRequester = focusRequester
+      )
+      Spacer(modifier = Modifier.height(16.dp))
+      RowItemTextField(leadingIcon = R.drawable.ic_main_link, inputText = inputUrl)
+      Spacer(modifier = Modifier.height(16.dp))
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(50.dp)
+          .clip(RoundedCornerShape(6.dp))
+          .background(MaterialTheme.colorScheme.surface)
+          .clickable {
             scope.launch(ioAsyncExceptionHandler) {
               WebSiteDatabase.INSTANCE
                 .websiteDao()
-                .update(this@apply)
+                .delete(webSiteInfo)
+              onBack()
             }
-            onBack()
-          }
-        }
-        .padding(horizontal = 16.dp),
-      color = MaterialTheme.colorScheme.primary,
-      fontSize = 18.sp
-    )
-  }
-  val item = webSiteInfo ?: return
-  val focusRequester = FocusRequester()
-  LaunchedEffect(focusRequester) {
-    delay(500)
-    focusRequester.requestFocus()
-  }
-
-  Column(
-    modifier = Modifier
-      .fillMaxWidth()
-      .padding(start = 16.dp, end = 16.dp, top = 56.dp)
-  ) {
-    RowItemTextField(
-      leadingBitmap = item.icon,
-      leadingIcon = R.drawable.ic_main_book,
-      inputText = inputTitle,
-      focusRequester = focusRequester
-    )
-    Spacer(modifier = Modifier.height(16.dp))
-    RowItemTextField(leadingIcon = R.drawable.ic_main_link, inputText = inputUrl)
-    Spacer(modifier = Modifier.height(16.dp))
-    Box(
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(50.dp)
-        .clip(RoundedCornerShape(6.dp))
-        .background(MaterialTheme.colorScheme.surface)
-        .clickable {
-          scope.launch(ioAsyncExceptionHandler) {
-            WebSiteDatabase.INSTANCE
-              .websiteDao()
-              .delete(webSiteInfo)
-            onBack()
-          }
-        },
-      contentAlignment = Center
-    ) {
-      Text(
-        text = "删除",
-        color = MaterialTheme.colorScheme.error,
-        fontSize = 16.sp,
-        fontWeight = FontWeight(400)
-      )
+          },
+        contentAlignment = Center
+      ) {
+        Text(
+          text = "删除",
+          color = MaterialTheme.colorScheme.error,
+          fontSize = 16.sp,
+          fontWeight = FontWeight(400)
+        )
+      }
     }
   }
 }
@@ -473,16 +485,18 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background)
     ) {
-      viewModel.uiState.currentBrowserBaseView.value.bitmap?.let { bitmap ->
-        Image(
-          bitmap = bitmap,
-          contentDescription = "BackGround",
-          alignment = TopStart,
-          contentScale = ContentScale.FillWidth,
-          modifier = Modifier
-            .fillMaxSize()
-            .blur(radius = 16.dp)
-        )
+      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+        viewModel.uiState.currentBrowserBaseView.value.bitmap?.let { bitmap ->
+          Image(
+            bitmap = bitmap,
+            contentDescription = "BackGround",
+            alignment = TopStart,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+              .fillMaxSize()
+              .blur(radius = 16.dp)
+          )
+        }
       }
     }
 
