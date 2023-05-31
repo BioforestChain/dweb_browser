@@ -15,8 +15,6 @@ export class JmmNMM extends NativeMicroModule {
   downloadStatus: DOWNLOAD_STATUS = 0;
   wwwServer: HttpDwebServer | undefined;
   apiServer: HttpDwebServer | undefined;
-  donwloadStramController: ReadableStreamDefaultController | undefined;
-  downloadStream: ReadableStream | undefined;
 
   resume: {
     // deno-lint-ignore ban-types
@@ -120,7 +118,9 @@ export interface $AppMetaData {
   title: string;
   subtitle: string;
   id: $MMID;
-  downloadUrl: string;
+  bundleUrl: string;
+  bundleHash: string;
+  bundleSize: number;
   icon: string;
   images: string[];
   introduction: string;
@@ -136,11 +136,9 @@ export interface $AppMetaData {
   splashScreen: { entry: string };
   staticWebServers: $StaticWebServers[];
   openWebViewList: [];
-  size: string;
-  fileHash: "";
   permissions: string[];
   plugins: string[];
-  releaseDate: string[];
+  releaseDate: string;
 }
 
 export interface $StaticWebServers {

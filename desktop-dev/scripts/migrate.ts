@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { WalkDir } from "../../scripts/helper/WalkDir.ts";
+import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const easyWriteFile = (filepath: string, content: string | Uint8Array) => {
@@ -16,7 +16,7 @@ const emptyDir = (dir: string) =>
 emptyDir(resolveTo("./assets-projects"));
 emptyDir(resolveTo("./src"));
 
-for (const entry of WalkDir(resolveTo("../../desktop/src"))) {
+for (const entry of WalkFiles(resolveTo("../../desktop/src"))) {
   ///  资源文件夹的东西直接迁移
   if (entry.relativepath.includes("/assets/") && false) {
     const [dir, ...rels] = entry.relativepath.split("/assets/");
@@ -28,7 +28,7 @@ for (const entry of WalkDir(resolveTo("../../desktop/src"))) {
       )
     );
     easyWriteFile(toFile, entry.readText());
-  } else if (/\.(cts|mts|ts)$/.test(entry.filename)) {
+  } else if (/\.(cts|mts|ts)$/.test(entry.entryname)) {
     const toFile = fileURLToPath(
       import.meta.resolve(
         "./src/" + entry.relativepath.replace(/\.(cts|mts|ts)$/, ".ts")

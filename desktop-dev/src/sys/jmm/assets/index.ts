@@ -1,5 +1,8 @@
+import { JsonlinesStream } from "../../../helper/JsonlinesStream.ts";
+import { streamRead } from "../../../helper/readableStreamHelper.ts";
+import type { $InstallProgressInfo } from "../jmm.api.serve.ts";
+
 // const elBack = document.querySelector('.top-bar-container')
-const decoder = new TextDecoder();
 const elIcon = document.querySelector<HTMLElement>(".icon-container")!;
 const elMainTitle = document.querySelector<HTMLElement>(".title")!;
 const elMainExplain = document.querySelector<HTMLElement>(".explain")!;
@@ -32,10 +35,12 @@ type $AppMetaData = import("../jmm.ts").$AppMetaData;
 let appInfo: $AppMetaData;
 
 // 根据获取到的 appInfo 设置内容
-async function setAppInfoByAppInfo(info: any) {
-  appInfo = typeof info === "object" ? info : JSON.parse(info);
-  elIcon.style.backgroundImage =
-    "url('https://www.bfmeta.info/imgs/logo3.webp')";
+async function setAppInfoByAppInfo(
+  metadata: $AppMetaData,
+  metadataUrl: string
+) {
+  appInfo = typeof metadata === "object" ? metadata : JSON.parse(metadata);
+  elIcon.style.backgroundImage = `url(${JSON.stringify(metadata.icon)})`;
   elMainTitle.innerHTML = appInfo.title;
   elMainExplain.innerHTML = appInfo.subtitle;
   elDetailtext.innerHTML = appInfo.introduction;
@@ -57,22 +62,38 @@ elBtnDownload.addEventListener("click", async (e) => {
     progress(0);
     downloadState = DOWNLOAD_STATUS.PROGRESS;
     // 通过返回一个 stream 实现 长连接
-    const url = location.origin.replace("www.", "api.");
-    const fetch_url = `${url}/app/download?url=${appInfo.downloadUrl}&id=${appInfo.id}`;
-    console.log("fetch_url:", fetch_url);
-    const res = await fetch(fetch_url);
+    const api_origin = location.origin.replace("www.", "api.");
+    const install_url = `${api_origin}/app/install`;
+    console.log("fetch_url:", install_url);
+    const res = await fetch(install_url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(appInfo),
+    });
 
     const stream = res.body!;
-    const reader = stream.getReader();
+    const installProgressStream = stream
+      .pipeThrough(new TextDecoderStream())
+      .pipeThrough(new JsonlinesStream<$InstallProgressInfo>());
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      let percent = decoder.decode(value);
-      progress(parseInt(percent));
+    for await (const info of streamRead(installProgressStream)) {
+      console.log("info:", info);
+      progress(+(info.progress * 100).toFixed(2));
+      if (info.error) {
+        alert(info.error);
+        downloadState = DOWNLOAD_STATUS.INIT;
+        elBtnDownloadText.innerText = "重试";
+        return;
+      }
+      if (info.state === "install") {
+        elBtnDownloadText.innerText = "安装中";
+      } else if (info.state === "download") {
+        elBtnDownloadText.innerText = "下载中";
+      }
     }
-    reader.releaseLock();
-    stream.cancel("done");
+
     downloadState = DOWNLOAD_STATUS.DONE;
     elBtnDownloadText.innerText = "打开";
     return;
@@ -156,12 +177,13 @@ function getApiOrigin() {
 (async () => {
   const search = new URLSearchParams(location.search);
   const metadataUrl = search.get("metadataUrl");
+  if (!metadataUrl) {
+    throw new Error("miss params: metadataUrl");
+  }
   console.log("metadataUrl: ", metadataUrl);
   const url = getApiOrigin();
-  const get_data_url = `${url}/get_data?url=${metadataUrl}`;
-  console.log("get-data url", get_data_url);
-  const response = await fetch(get_data_url);
-  setAppInfoByAppInfo(await response.json());
+  const response = await fetch(metadataUrl);
+  setAppInfoByAppInfo(await response.json(), metadataUrl);
 })();
 
 // 测试开启

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { WalkDir } from "../../scripts/helper/WalkDir.ts";
+import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
 import { build } from "../../scripts/helper/dnt/mod.ts";
 // await emptyDir("./npm");
 
@@ -48,8 +48,8 @@ await build({
       sourcesContent: string[];
     };
     const originSrcPath = fileURLToPath(import.meta.resolve("../"));
-    for (const entry of WalkDir("./electron/script")) {
-      if (entry.filename.endsWith(".js.map")) {
+    for (const entry of WalkFiles("./electron/script")) {
+      if (entry.entryname.endsWith(".js.map")) {
         const sourceMap = entry.readJson<$SourceMap>();
         sourceMap.sources = sourceMap.sources.map((source, index) => {
           const denoFilepath = path.resolve(

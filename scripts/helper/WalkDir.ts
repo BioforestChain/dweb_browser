@@ -1,39 +1,44 @@
 import fs from "node:fs";
 import path from "node:path";
-export function* WalkDir(rootpath: string) {
+export function* WalkAny(rootpath: string) {
   const dirs = [rootpath];
   for (const dirpath of dirs) {
-    for (const filename of fs.readdirSync(dirpath)) {
-      if (filename === ".DS_Store") {
+    for (const entryname of fs.readdirSync(dirpath)) {
+      if (entryname === ".DS_Store") {
         continue;
       }
-      const filepath = path.join(dirpath, filename);
-      const stats = fs.statSync(filepath);
+      const entrypath = path.join(dirpath, entryname);
+      const stats = fs.statSync(entrypath);
       const isDirectory = stats.isDirectory();
       const isFile = stats.isFile();
+      const relativepath = path.relative(rootpath, entrypath);
+      const relativedirpath = path.relative(rootpath, dirpath);
+      const entryBase = {
+        entryname,
+        entrypath,
+        dirpath,
+        rootpath,
+        relativepath,
+        relativedirpath,
+        stats,
+      };
 
       if (isFile) {
-        const relativepath = path.relative(rootpath, filepath);
         yield {
-          dirpath,
-          filename,
-          filepath,
-          rootpath,
-          relativepath,
-          stats,
+          ...entryBase,
           isFile,
-          isDirectory,
+          isDirectory: false as const,
           readText() {
-            return fs.readFileSync(filepath, "utf-8");
+            return fs.readFileSync(entrypath, "utf-8");
           },
           readJson<T>() {
             return JSON.parse(this.readText()) as T;
           },
           read() {
-            return fs.readFileSync(filepath);
+            return fs.readFileSync(entrypath);
           },
           write(content: string | Uint8Array) {
-            return fs.writeFileSync(filepath, content);
+            return fs.writeFileSync(entrypath, content);
           },
           writeJson(json: unknown, space?: number) {
             return this.write(JSON.stringify(json, null, space));
@@ -48,8 +53,28 @@ export function* WalkDir(rootpath: string) {
         };
       }
       if (isDirectory) {
-        dirs.push(filepath);
+        yield {
+          ...entryBase,
+          isDirectory,
+          isFile: false as const,
+        };
+        dirs.push(entrypath);
       }
+    }
+  }
+}
+export function* WalkFiles(rootpath: string) {
+  for (const entry of WalkAny(rootpath)) {
+    if (entry.isFile) {
+      yield entry;
+    }
+  }
+}
+
+export function* WalkDirs(rootpath: string) {
+  for (const entry of WalkAny(rootpath)) {
+    if (entry.isDirectory) {
+      yield entry;
     }
   }
 }

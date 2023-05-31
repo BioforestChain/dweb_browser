@@ -5,9 +5,9 @@ import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
 import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import type { $State } from "./file-download.ts";
 import { download } from "./file-download.ts";
-import { getAllApps } from "./file-get-all-apps.ts";
 
 import chalk from "chalk";
+import { JMM_DB, getAllApps } from "../jmm/jmm.api.serve.ts";
 
 // 运行在 node 环境
 export class FileNMM extends NativeMicroModule {

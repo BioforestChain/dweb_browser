@@ -1,12 +1,11 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
-import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import JSZip from "npm:jszip";
+import { open } from "npm:lmdb";
 import mime from "npm:mime";
-import request from "request";
-import progress from "request-progress";
 import tar from "tar";
 import {
   Ipc,
@@ -14,13 +13,21 @@ import {
   IpcRequest,
   IpcResponse,
 } from "../../core/ipc/index.ts";
+import { JsMMMetadata, JsMicroModule } from "../../core/micro-module.js.ts";
+import { simpleEncoder } from "../../helper/encoding.ts";
+import { locks } from "../../helper/locksManager.ts";
+import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
 import { nativeFetchAdaptersManager } from "../dns/nativeFetch.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
-import type { $State, JmmNMM } from "./jmm.ts";
-import { JsMicroModule, JsMMMetadata } from "../../core/micro-module.js.ts";
+import type { $AppMetaData, JmmNMM } from "./jmm.ts";
 
 export const JMM_APPS_PATH = path.join(Electron.app.getAppPath(), "apps");
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
+
+export const JMM_DB = open<$AppMetaData, $MMID>({
+  path: path.join(JMM_APPS_PATH, "jmm"),
+  encoding: "json",
+});
 
 export const JMM_TMP_DIR = path.join(os.tmpdir(), "jmm");
 fs.mkdirSync(JMM_TMP_DIR, { recursive: true });
@@ -38,125 +45,204 @@ export async function createApiServer(this: JmmNMM) {
 function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   const path = request.parsed_url.pathname;
   switch (path) {
-    case "/get_data":
-      return getData.bind(this)(request, ipc);
-    case "/app/download":
-      return appDownload.bind(this)(request, ipc);
+    case "/app/install":
+      return appInstall.call(this, request, ipc);
     case "/close/self":
-      return appCloseSelf.bind(this)(request, ipc);
+      return appCloseSelf.call(this, request, ipc);
     case "/app/open":
-      return appOpen.bind(this)(request, ipc);
+      return appOpen.call(this, request, ipc);
     default: {
       throw new Error(`${this.mmid} 有没有处理的pathname === ${path}`);
     }
   }
 }
 
-async function getData(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
-  const searchParams = request.parsed_url.searchParams;
-  const url = searchParams.get("url");
-  if (url === null) throw new Error(`${this.mmid} url === null`);
-  const res = await fetch(url);
+export type $InstallProgressInfo = {
+  state: "download" | "install";
+  progress: number;
+  total: number;
+  current: number;
+  done: boolean;
+  error?: string;
+};
 
-  const res_json_text = await res.text();
-  ipc.postMessage(
-    await IpcResponse.fromText(
-      request.req_id,
-      res.status,
-      new IpcHeaders().init("Content-Type", "application/json"),
-      res_json_text,
-      ipc
-    )
+/**
+ * 应用程序安装, 安全锁
+ * @param this
+ * @param ipcRequest
+ * @param ipc
+ */
+async function appInstall(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
+  const appInfo: $AppMetaData = JSON.parse(await ipcRequest.body.text());
+  await locks.request(`jmm-install:${appInfo.id}`, () =>
+    _appInstall.call(this, appInfo, ipcRequest, ipc)
   );
 }
+/**
+ * 应用程序安装的核心逻辑
+ * @param this
+ * @param ipcRequest
+ * @param ipc
+ * @returns
+ */
+async function _appInstall(
+  this: JmmNMM,
+  appInfo: $AppMetaData,
+  ipcRequest: IpcRequest,
+  ipc: Ipc
+) {
+  const tempFilePath = path.join(JMM_TMP_DIR, `${appInfo.id}.jmmbundle`);
+  const hashFilePath = path.join(JMM_TMP_DIR, `${appInfo.id}.hash`);
+  fs.mkdirSync(JMM_TMP_DIR, { recursive: true });
 
-async function appDownload(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
-  const search = ipcRequest.parsed_url.searchParams;
-  const downloadUrl = search.get("url");
-  const id = search.get("id");
-  if (downloadUrl === null) throw new Error(`downloadUrl === null`);
-  if (id === null) throw new Error(`id === null`);
-  this.downloadStream = new ReadableStream({
-    start: (_controller) => {
-      this.donwloadStramController = _controller;
-    },
-    cancel: (_resone) => {
-      this.donwloadStramController?.close();
-    },
-    pull: (_controller) => {
-      // eventTarget.dispatchEvent(new Event('pull'))
-    },
-  });
+  let bundleWriter: fs.WriteStream;
+  let downloadHeaders: undefined | HeadersInit;
+  let bundleWritedSize = 0;
 
+  /// 如果文件存在、且hash不变、并且支持断点续传，那么将会尝试使用追加写入的方式
+  if (
+    fs.existsSync(tempFilePath) &&
+    fs.existsSync(hashFilePath) &&
+    fs.readFileSync(hashFilePath, "utf-8") === appInfo.bundleHash &&
+    ipcRequest.headers.get("Accept-Ranges") === "bytes"
+  ) {
+    bundleWritedSize = fs.statSync(tempFilePath).size;
+    downloadHeaders = {
+      "Content-Range": `bytes ${bundleWritedSize}-`,
+    };
+  }
+
+  const downloadTask = await this.nativeFetch(appInfo.bundleUrl, {
+    headers: downloadHeaders,
+  }).ok();
+  /// 再次确认这个下载是支持 Range:bytes 的
+  if (
+    downloadTask.headers.get("Accept-Ranges") === "bytes" &&
+    bundleWritedSize !== 0
+  ) {
+    bundleWriter = fs.createWriteStream(tempFilePath, { flags: "a" });
+  } else {
+    bundleWritedSize = 0;
+    bundleWriter = fs.createWriteStream(tempFilePath, { flags: "w" });
+  }
+  const totalLen = parseInt(
+    /**
+     * Content-Length: 2
+     * Accept-Ranges: bytes
+     * Content-Range: bytes 0-1/4300047
+     */
+    downloadTask.headers.get("Content-Range")?.split("/").pop() ??
+      /**
+       * Content-Length: 4300047
+       */
+      downloadTask.headers.get("Content-Length") ??
+      appInfo.bundleSize + ""
+  );
+  /**
+   * 下载进度的响应流
+   */
+  const downloadProgressStreamOut = new ReadableStreamOut<Uint8Array>();
+  const enqueueInstallProgress = (
+    state: $InstallProgressInfo["state"],
+    chunkByteLength: number,
+    done = false,
+    error?: string
+  ) => {
+    bundleWritedSize += chunkByteLength;
+    downloadProgressStreamOut.controller.enqueue(
+      simpleEncoder(
+        JSON.stringify({
+          state,
+          progress: bundleWritedSize / totalLen,
+          total: totalLen,
+          current: bundleWritedSize,
+          done,
+          error,
+        } satisfies $InstallProgressInfo) + "\n",
+        "utf8"
+      )
+    );
+    if (done) {
+      downloadProgressStreamOut.controller.close();
+    }
+  };
+  enqueueInstallProgress("download", 0);
+
+  /// 准备完毕，开始响应 install-app 这个任务，返回JSONLine格式的数据
   ipc.postMessage(
     await IpcResponse.fromStream(
       ipcRequest.req_id,
       200,
       new IpcHeaders(),
-      this.downloadStream,
+      downloadProgressStreamOut.stream,
       ipc
     )
   );
 
-  const tempFilePath = path.join(JMM_TMP_DIR, path.basename(downloadUrl));
-  fs.mkdirSync(path.dirname(tempFilePath), { recursive: true });
-
-  const writeAblestream = fs.createWriteStream(tempFilePath, { flags: "w" });
-  writeAblestream.on("close", () =>
-    _extract.bind(this)(id, tempFilePath, ipcRequest, ipc)
-  );
-  // const downloadTask = await fetch(downloadUrl)
-  // const totalSize = +(downloadTask.headers.get("content-length")??Infinity);
-  // const downloadStream = downloadTask.body!
-
-  progress(request(downloadUrl), {})
-    .on("progress", onProgress.bind(this, ipcRequest, ipc))
-    .on("error", (err: Error) => {
-      throw err;
+  /// 等待下载完成
+  await downloadTask.body!.pipeTo(
+    new WritableStream({
+      start: () => {
+        /// 下载开始，就写入hash
+        fs.writeFileSync(hashFilePath, appInfo.bundleHash);
+      },
+      write: (chunk, controller) => {
+        /// 流量进度监控
+        enqueueInstallProgress("download", chunk.byteLength);
+        /// 写入文件保存
+        bundleWriter.write(chunk);
+      },
+      close: () => {
+        bundleWriter.close();
+      },
+      abort: (err) => {
+        bundleWriter.close();
+      },
     })
-    .pipe(writeAblestream);
-}
-
-function onProgress(
-  this: JmmNMM,
-  _ipcRequest: IpcRequest,
-  _ipc: Ipc,
-  state: $State
-) {
-  // // 测试关闭下载
-  // if(this.downloadStream){
-  //   this.donwloadStramController?.close()
-  // }
-  // 测试关闭下载
-  const value = (state.percent * 100).toFixed(2);
-  const ui8 = new TextEncoder().encode(`${value}\n`);
-  this.donwloadStramController?.enqueue(ui8);
-}
-
-/**
- * 解压安装包
- */
-async function _extract(
-  this: JmmNMM,
-  _id: string,
-  tempFilePath: string,
-  _request: IpcRequest,
-  _ipc: Ipc
-) {
-  const outputDir = path.join(JMM_APPS_PATH, _id);
-  // 判断 target 目录是否存在 不存在就创建目录
-  if (!fs.existsSync(outputDir)) {
-    await fsPromises.mkdir(outputDir, {
-      recursive: true,
-    });
+  );
+  /// 将下载完成的文件进行hash校验
+  const hashVerifyer = crypto.createHash("sha256");
+  for await (const chunk of fs.createReadStream(tempFilePath)) {
+    hashVerifyer.update(chunk);
   }
-  if (tempFilePath.endsWith(".zip")) {
-    const jszip = await JSZip.loadAsync(
-      // fs.createReadStream(tempFilePath)
-      fs.readFileSync(tempFilePath)
+  const bundleHash = "sha256:" + hashVerifyer.digest("hex");
+  /// hash 校验失败，删除下载的文件，并且结束安装任务
+  if (bundleHash !== appInfo.bundleHash) {
+    console.log("hash 校验失败");
+    /// 移除文件
+    fs.rmSync(tempFilePath);
+    fs.rmSync(hashFilePath);
+    return enqueueInstallProgress(
+      "download",
+      0,
+      true,
+      `hash verifiy failed, actua:${bundleHash} expect:${appInfo.bundleHash}`
     );
+  }
+
+  console.log("hash 校验通过，开始解压安装");
+
+  /// 开始解压文件
+  enqueueInstallProgress("install", 0);
+  /**
+   * 安装的目录
+   */
+  const installDir = path.join(JMM_APPS_PATH, appInfo.id);
+  /// 判断 target 目录是否存在 不存在就创建目录
+  if (!fs.existsSync(installDir)) {
+    fs.mkdirSync(installDir, { recursive: true });
+  }
+  /// 如果存在，就要清空目录
+  else {
+    fs.rmSync(installDir, { recursive: true });
+  }
+
+  const bundleMime = downloadTask.headers.get("Content-Type");
+  if (bundleMime === "application/zip") {
+    // const jszip = await JSZip.loadAsync(fs.createReadStream(tempFilePath));
+    const jszip = await JSZip.loadAsync(fs.readFileSync(tempFilePath));
     for (const [filePath, fileZipObj] of Object.entries(jszip.files)) {
-      const targetFilePath = path.join(outputDir, filePath);
+      const targetFilePath = path.join(installDir, filePath);
       if (fileZipObj.dir) {
         fs.mkdirSync(targetFilePath, { recursive: true });
       } else {
@@ -165,24 +251,45 @@ async function _extract(
           .pipe(fs.createWriteStream(targetFilePath) as NodeJS.WritableStream);
       }
     }
-  } else {
+  } else if (bundleMime === "application/x-tar") {
     tar.x({
-      cwd: outputDir,
+      cwd: installDir,
       file: tempFilePath,
       sync: true,
     });
+  } else {
+    return enqueueInstallProgress(
+      "install",
+      0,
+      true,
+      `invalid bundle-mime-type: ${bundleMime}`
+    );
   }
-  await fsPromises.unlink(tempFilePath);
-  this.donwloadStramController?.enqueue(new TextEncoder().encode(`100\n`));
-  this.donwloadStramController?.close();
+  await fs.unlinkSync(tempFilePath);
+  await fs.unlinkSync(hashFilePath);
 
   /// 下载完成，开始安装
-  const config = await (
-    await this.nativeFetch(`file:///jmm/${_id}/usr/metadata.json`)
-  ).json();
-  const metadata = new JsMMMetadata(config);
+  if ((await JMM_DB.put(appInfo.id, appInfo)) === false) {
+    return enqueueInstallProgress(
+      "install",
+      0,
+      true,
+      `fail to save app info to database: ${appInfo.id}`
+    );
+  }
+  const metadata = new JsMMMetadata(appInfo);
   const jmm = new JsMicroModule(metadata);
   this.context!.dns.install(jmm);
+  return enqueueInstallProgress("install", 0, true);
+}
+
+/**
+ * 获取所有已经安装的应用
+ * @returns
+ */
+export async function getAllApps() {
+  const apps = await JMM_DB.getMany(JMM_DB.getKeys().asArray);
+  return apps as $AppMetaData[];
 }
 
 async function appCloseSelf(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
