@@ -8,45 +8,41 @@ namespace DwebBrowser.MicroService.Sys.Jmm;
 public class JmmMetadata
 {
     [JsonPropertyName("id")]
-    public Mmid Id { get; set; }
+    public Mmid Id { get; set; }    // jmmApp的id
     [JsonPropertyName("server")]
-    public MainServer Server { get; set; }
+    public MainServer Server { get; set; }      // 打开应用地址
     [JsonPropertyName("title")]
-    public string Title { get; set; }
+    public string Title { get; set; }       // 应用名称
     [JsonPropertyName("subtitle")]
-    public string Subtitle { get; set; }
+    public string Subtitle { get; set; }        // 应用副标题
     [JsonPropertyName("icon")]
-    public string Icon { get; set; }
+    public string Icon { get; set; }        // 应用图标
     [JsonPropertyName("downloadUrl")]
-    public string DownloadUrl { get; set; }
+    public string DownloadUrl { get; set; }     // 下载应用地址
     [JsonPropertyName("images")]
-    public List<string>? Images { get; set; }
+    public List<string>? Images { get; set; }       // 应用截图
     [JsonPropertyName("introduction")]
-    public string Introduction { get; set; }
-    [JsonPropertyName("splashScreen")]
-    public SSplashScreen SplashScreen { get; set; }
+    public string Introduction { get; set; }        // 应用描述
     [JsonPropertyName("author")]
-    public List<string>? Author { get; set; }
+    public List<string>? Author { get; set; }       // 开发者，作者
     [JsonPropertyName("version")]
-    public string Version { get; set; }
+    public string Version { get; set; }     // 应用版本
+    [JsonPropertyName("newFeature")]
+    public string NewFeature { get; set; }      // 新特性，新功能
     [JsonPropertyName("keywords")]
-    public List<string>? Keywords { get; set; }
+    public List<string>? Keywords { get; set; }     // 关键词
     [JsonPropertyName("home")]
-    public string Home { get; set; }
+    public string Home { get; set; }        // 首页地址
     [JsonPropertyName("size")]
-    public string Size { get; set; }
+    public string Size { get; set; }        // 应用大小
     [JsonPropertyName("fileHash")]
-    public string FileHash { get; set; }
+    public string FileHash { get; set; }        // 文件hash
     [JsonPropertyName("permissions")]
-    public List<string>? Permissions { get; set; }
+    public List<string>? Permissions { get; set; }      // app使用权限情况
     [JsonPropertyName("plugins")]
-    public List<string>? Plugins { get; set; }
+    public List<string>? Plugins { get; set; }      // app使用插件情况
     [JsonPropertyName("releaseDate")]
-    public string ReleaseDate { get; set; }
-    [JsonPropertyName("staticWebServers")]
-    public List<StaticWebServer> StaticWebServers { get; set; }
-    [JsonPropertyName("openWebViewList")]
-    public List<OpenWebView> OpenWebViewList { get; set; }
+    public string ReleaseDate { get; set; }     // 发布时间
 
     public JmmMetadata(
         Mmid id,
@@ -57,18 +53,16 @@ public class JmmMetadata
         string downloadUrl = "",
         List<string>? images = null,
         string introduction = "",
-        SSplashScreen splashScreen = new SSplashScreen(),
         List<string>? author = null,
         string version = "",
+        string newFeature = "",
         List<string>? keywords = null,
         string home = "",
         string size = "",
         string fileHash = "",
         List<string>? permissions = null,
         List<string>? plugins = null,
-        string releaseDate = "",
-        List<StaticWebServer>? staticWebServers = null,
-        List<OpenWebView>? openWebViewList = null)
+        string releaseDate = "")
     {
         Id = id;
         Server = server;
@@ -78,9 +72,9 @@ public class JmmMetadata
         DownloadUrl = downloadUrl;
         Images = images;
         Introduction = introduction;
-        SplashScreen = splashScreen;
         Author = author;
         Version = version;
+        NewFeature = newFeature;
         Keywords = keywords;
         Home = home;
         Size = size;
@@ -88,8 +82,6 @@ public class JmmMetadata
         Permissions = permissions;
         Plugins = plugins;
         ReleaseDate = releaseDate;
-        StaticWebServers = staticWebServers ?? new List<StaticWebServer>();
-        OpenWebViewList = openWebViewList ?? new List<OpenWebView>();
     }
 
     public struct MainServer

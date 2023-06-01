@@ -46,7 +46,7 @@ public class JsMicroModule : MicroModule
             }
 
             return null;
-        }, 99);
+        }, -1);
     }
 
     public JsMicroModule(JmmMetadata metadata) : base(metadata.Id)
@@ -108,6 +108,7 @@ public class JsMicroModule : MicroModule
         {
             await streamIpc.Close();
             await fetchIpc.Close();
+            _fromMmid_originIpc_map.Clear();
         };
 
         /**

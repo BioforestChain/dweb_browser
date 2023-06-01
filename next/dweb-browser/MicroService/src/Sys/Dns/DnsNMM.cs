@@ -280,10 +280,12 @@ public class DnsNMM : NativeMicroModule
         if (_runningApps.Remove(mmid, out var microModulePo))
         {
             var microModule = await microModulePo.WaitPromiseAsync();
-            var _bool = _mmConnectsMap.Remove(MM.From(microModule.Mmid, mmid));
+            //var _bool1 = _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.sys.dweb"));
+            //var _bool2 = _mmConnectsMap.Remove(MM.From("js.sys.dweb", microModule.Mmid));
             await microModule.ShutdownAsync();
 
-            return _bool ? 1 : 0;
+            //return _bool1 && _bool2 ? 1 : 0;
+            return 1;
         }
 
         return -1;
