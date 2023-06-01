@@ -11,7 +11,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.withStarted
 import info.bagen.dwebbrowser.microService.helper.PromiseOut
 import info.bagen.dwebbrowser.microService.helper.SimpleCallback
 import info.bagen.dwebbrowser.microService.helper.SimpleSignal
@@ -46,7 +45,7 @@ abstract class BaseActivity : ComponentActivity() {
 
         suspend fun launch(input: I): O {
             val task = PromiseOut<O>();
-            var preTask = tasks.lastOrNull()
+            val preTask = tasks.lastOrNull()
             tasks.add(task)
             /// 如果有上一个任务，那么等待上一个任务完成
             preTask?.waitPromise()
@@ -65,10 +64,7 @@ abstract class BaseActivity : ComponentActivity() {
         if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
             return true
         }
-        if (requestPermissionLauncher.launch(permission)) {
-            return true
-        }
-        return false
+        return requestPermissionLauncher.launch(permission)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,11 +75,8 @@ abstract class BaseActivity : ComponentActivity() {
         initData()
         setContent {
             RustApplicationTheme {
-                WindowCompat.getInsetsController(
-                    window,
-                    window.decorView
-                ).isAppearanceLightStatusBars =
-                    !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
+                WindowCompat.getInsetsController(window, window.decorView)
+                    .isAppearanceLightStatusBars = !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
                 InitViews()
             }
         }
@@ -94,7 +87,6 @@ abstract class BaseActivity : ComponentActivity() {
     @Composable
     open fun InitViews() {
     }// 填充Compose布局
-
 
     private val onDestroySignal = SimpleSignal()
 

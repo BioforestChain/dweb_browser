@@ -65,7 +65,7 @@ class DwebBrowserService : Service() {
       GlobalScope.launch(mainAsyncExceptionHandler) {
         Toast.makeText(this@DwebBrowserService, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
       }
-      return true
+      return false
     }
     downloadMap[downLoadInfo.jmmMetadata.id] = downLoadInfo
     NotificationUtil.INSTANCE.createNotificationForProgress(

@@ -1,7 +1,12 @@
 package info.bagen.dwebbrowser.microService.sys.jmm.ui
 
 import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.view.View
+import android.view.WindowManager
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
@@ -25,6 +30,13 @@ class JmmManagerActivity : BaseActivity() {
 
   private lateinit var jmmManagerViewModel: JmmManagerViewModel
 
+  override fun onCreate(savedInstanceState: Bundle?) {
+    transparentNavigatorBar()
+    transparentStatusBar()
+    super.onCreate(savedInstanceState)
+
+  }
+
   override fun initData() {
     intent.getSerializableExtra(KEY_JMM_METADATA)?.let {
       val jmmMetadata = it as JmmMetadata
@@ -34,7 +46,7 @@ class JmmManagerActivity : BaseActivity() {
 
   @Composable
   override fun InitViews() {
-    MALLBrowserView(jmmManagerViewModel)
+    MALLBrowserView(jmmManagerViewModel) { finish() }
   }
 
   override fun onStop() {
@@ -45,5 +57,39 @@ class JmmManagerActivity : BaseActivity() {
   override fun onDestroy() {
     jmmManagerViewModel.handlerIntent(JmmIntent.DestroyActivity)
     super.onDestroy()
+  }
+
+  private fun transparentStatusBar() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+      window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+      val option = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+      val vis = window.decorView.systemUiVisibility
+      window.decorView.systemUiVisibility = option or vis
+      window.statusBarColor = Color.Transparent.value.toInt()
+    } else {
+      window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+    }
+  }
+
+  private fun transparentNavigatorBar() {
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) return
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      window.isNavigationBarContrastEnforced = false
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      window.navigationBarColor = Color.Transparent.value.toInt()
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      if (window.attributes.flags and WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION === 0) {
+        window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
+      }
+    }
+    val decorView = window.decorView
+    val vis = decorView.systemUiVisibility
+    val option =
+      View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    decorView.systemUiVisibility = vis or option
   }
 }

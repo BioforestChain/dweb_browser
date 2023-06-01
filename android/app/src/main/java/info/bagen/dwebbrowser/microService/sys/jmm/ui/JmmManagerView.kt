@@ -1,182 +1,529 @@
 package info.bagen.dwebbrowser.microService.sys.jmm.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.sys.PluginType
 import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
 import java.text.DecimalFormat
 
+private val HeadHeight = 128.dp
+private val VerticalPadding = 16.dp
+private val HorizontalPadding = 16.dp
+private val ShapeCorner = 16.dp
+private val HeadIconSize = 28.dp
+private val AppTopBarHeight = 44.dp
+private val AppBottomHeight = 82.dp
+
 @Composable
-fun MALLBrowserView(jmmViewModel: JmmManagerViewModel) {
-  val jmmMetadata =jmmViewModel.uiState.downloadInfo.value.jmmMetadata
-  Box(
-    modifier = Modifier.fillMaxSize()
-  ) {
-    LazyColumn(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(start = 16.dp, end = 16.dp)
-    ) {
-      item { Spacer(modifier = Modifier.height(16.dp)) }
-      item { HeadContent(jmmMetadata = jmmMetadata) }
-      item { Spacer(modifier = Modifier.height(16.dp)) }
-      item { CaptureListView(jmmMetadata = jmmMetadata) }
-      item { Spacer(modifier = Modifier.height(16.dp)) }
-      item { AppIntroductionView(jmmMetadata = jmmMetadata) }
-      jmmMetadata.plugins?.let { plugins ->
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-        item { Text(text = "插件列表", fontSize = 24.sp, fontStyle = FontStyle.Normal) }
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-        itemsIndexed(plugins) { _, mmid ->
-          // InstallItemPlugins(index, mmid, plugins.size)
-          enumValues<PluginType>().find { it.mmid == mmid }?.PluginsView()
+fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
+  val jmmMetadata = viewModel.uiState.downloadInfo.value.jmmMetadata
+  val lazyListState = rememberLazyListState()
+  val topBarAlpha = remember { mutableStateOf(0f) }
+  val firstHeightPx =
+    HeadHeight.value * LocalContext.current.resources.displayMetrics.density / 2 // 头部item的高度是128.dp
+  val showPreview = remember { MutableTransitionState(false) }
+  val selectImage = remember { mutableStateOf(0) }
+  val offsetImage = remember { mutableStateOf(Offset.Zero) }
+
+  LaunchedEffect(lazyListState) {
+    snapshotFlow { lazyListState.firstVisibleItemScrollOffset }.collect {
+      topBarAlpha.value = when (lazyListState.firstVisibleItemIndex) {
+        0 -> if (it < firstHeightPx) {
+          0f
+        } else {
+          (it - firstHeightPx) / firstHeightPx
         }
+
+        else -> 1f
       }
-      item { Spacer(modifier = Modifier.height(60.dp)) }
     }
-
-    DownLoadButton(jmmViewModel)
   }
-}
 
-@Composable
-fun InstallBrowserView(jmmViewModel: JmmManagerViewModel) {
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .background(Color.LightGray)
-      .padding(start = 16.dp, end = 16.dp)
+      .background(MaterialTheme.colorScheme.background)
   ) {
-    LazyColumn {
-      item { Spacer(modifier = Modifier.height(16.dp)) }
-      item { InstallItemDeleteView() }
-      item { Spacer(modifier = Modifier.height(16.dp)) }
-      item { Text(text = "要安装此应用吗？", fontSize = 16.sp, color = Color.Gray) }
-      item { Spacer(modifier = Modifier.height(16.dp)) }
-      item { Text(text = "权限", fontSize = 16.sp, color = Color.Gray) }
-      item { Spacer(modifier = Modifier.height(16.dp)) }
-      jmmViewModel.uiState.downloadInfo.value.jmmMetadata.plugins?.let { plugins ->
-        itemsIndexed(plugins) { _, mmid ->
-          //InstallItemPlugins(index, mmid, plugins.size)
-          enumValues<PluginType>().find { it.mmid == mmid }?.PluginsView()
-        }
-      }
+    AppInfoContentView(lazyListState, jmmMetadata) { index, offset ->
+      selectImage.value = index
+      offsetImage.value = offset
+      showPreview.targetState = true
     }
+    TopAppBar(topBarAlpha, jmmMetadata.title, onBack)
+    BottomDownloadButton(viewModel)
+    ImagePreview(jmmMetadata, showPreview, selectImage, offsetImage)
+  }
+}
 
-    Column(
+@Composable
+private fun TopAppBar(alpha: MutableState<Float>, title: String, onBack: () -> Unit) {
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .background(MaterialTheme.colorScheme.surface.copy(alpha.value))
+      .statusBarsPadding()
+      .height(AppTopBarHeight),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Icon(
+      imageVector = ImageVector.vectorResource(R.drawable.ic_main_back),
+      contentDescription = "Back",
       modifier = Modifier
-        .align(Alignment.BottomCenter)
-        .fillMaxWidth()
-    ) {
-      Button(
-        onClick = { /*TODO*/ },
-        modifier = Modifier
-          .align(Alignment.CenterHorizontally)
-          .width(300.dp),
-        colors = ButtonDefaults.buttonColors(
-          containerColor = Color.Gray, contentColor = Color.Black
-        ),
-        shape = RoundedCornerShape(32.dp)
-      ) {
-        Text(text = "取消", fontSize = 16.sp)
-      }
-      Button(
-        onClick = { /*TODO*/ },
-        modifier = Modifier
-          .align(Alignment.CenterHorizontally)
-          .width(300.dp),
-        colors = ButtonDefaults.buttonColors(
-          containerColor = Color.Blue, contentColor = Color.White
-        ),
-        shape = RoundedCornerShape(32.dp)
-      ) {
-        Text(text = "安装", fontSize = 16.sp)
-      }
-    }
+        .clickable { onBack() }
+        .padding(horizontal = HorizontalPadding, vertical = VerticalPadding / 2)
+        .size(HeadIconSize)
+    )
+    Text(
+      text = title,
+      fontWeight = FontWeight(500),
+      fontSize = 18.sp,
+      color = MaterialTheme.colorScheme.onSurface.copy(alpha.value)
+    )
   }
 }
 
 @Composable
-fun UninstallBrowserView(jmmViewModel: JmmManagerViewModel) {
-  Box(modifier = Modifier.fillMaxSize()) {
-    Text(text = "当前是卸载界面", modifier = Modifier.align(Alignment.Center))
-  }
-}
-
-@Composable
-private fun BoxScope.DownLoadButton(jmmViewModel: JmmManagerViewModel) {
-  val downLoadInfo = jmmViewModel.uiState.downloadInfo.value
+private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
+  val background = MaterialTheme.colorScheme.surface
+  val downLoadInfo = viewModel.uiState.downloadInfo.value
   Box(
     modifier = Modifier
       .fillMaxWidth()
-      .height(60.dp)
       .align(Alignment.BottomCenter)
-      .background(Color.White.copy(0.8f))
+      .background(
+        brush = Brush.verticalGradient(listOf(background.copy(0f), background))
+      )
   ) {
     var showLinearProgress = false
     val text = when (downLoadInfo.downLoadStatus) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
         "下载 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
       }
+
       DownLoadStatus.NewVersion -> {
         "更新 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
       }
+
       DownLoadStatus.DownLoading -> {
         showLinearProgress = true
         "下载中".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
       }
+
       DownLoadStatus.PAUSE -> {
         showLinearProgress = true
         "暂停".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
       }
+
       DownLoadStatus.DownLoadComplete -> "安装中..."
       DownLoadStatus.INSTALLED -> "打开"
       DownLoadStatus.FAIL -> "重新下载"
     }
-    val boxModifier = Modifier
-      .size(300.dp, 50.dp)
-      .align(Alignment.Center)
-      .clip(RoundedCornerShape(32.dp))
-      .clickable { jmmViewModel.handlerIntent(JmmIntent.ButtonFunction) }
-      .background(if (showLinearProgress) Color.Gray else Color.Blue)
 
+    val modifier = Modifier
+      .padding(horizontal = 64.dp, vertical = 32.dp)
+      .shadow(elevation = 2.dp, shape = RoundedCornerShape(ShapeCorner))
+      .fillMaxWidth()
+      .height(50.dp)
+    val m2 = if (showLinearProgress) {
+      val percent =
+        if (downLoadInfo.size == 0L) 0f else downLoadInfo.dSize * 1.0f / downLoadInfo.size
+      modifier.background(
+        Brush.horizontalGradient(
+          0.0f to MaterialTheme.colorScheme.primary,
+          maxOf(percent - 0.02f, 0.0f) to MaterialTheme.colorScheme.primary,
+          minOf(percent + 0.02f, 1.0f) to MaterialTheme.colorScheme.outlineVariant,
+          1.0f to MaterialTheme.colorScheme.outlineVariant
+        )
+      )
+    } else {
+      modifier.background(MaterialTheme.colorScheme.primary)
+    }
 
-    Box(modifier = boxModifier) {
-      if (showLinearProgress) {
-        LinearProgressIndicator(
-          progress = 1.0f * downLoadInfo.dSize / downLoadInfo.size,
-          modifier = Modifier.fillMaxSize(),
-          color = Color.Blue,
-          //backgroundColor = Color.Gray,
+    Box(
+      modifier = m2.clickable { viewModel.handlerIntent(JmmIntent.ButtonFunction) },
+      contentAlignment = Alignment.Center
+    ) {
+      Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
+    }
+  }
+}
+
+@Composable
+private fun AppInfoContentView(
+  lazyListState: LazyListState, jmmMetadata: JmmMetadata, onSelectPic: (Int, Offset) -> Unit
+) {
+  LazyColumn(
+    state = lazyListState,
+    modifier = Modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
+      .statusBarsPadding()
+      .navigationBarsPadding()
+      .padding(top = AppTopBarHeight)
+  ) {
+    item { AppInfoHeadView(jmmMetadata) }
+
+    item {
+      Column(
+        modifier = Modifier
+          .fillMaxSize()
+          .clip(RoundedCornerShape(topStart = ShapeCorner, topEnd = ShapeCorner))
+          .background(MaterialTheme.colorScheme.surface)
+      ) {
+        AppInfoLazyRow(jmmMetadata)
+        CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+        CaptureListView(jmmMetadata, onSelectPic)
+        CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+        AppIntroductionView(jmmMetadata)
+        CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+        NewVersionInfoView(jmmMetadata)
+        CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+        OtherInfoView(jmmMetadata)
+        Spacer(modifier = Modifier.height(AppBottomHeight))
+      }
+    }
+  }
+}
+
+/**
+ * 顶部的头像和应用名称
+ */
+@Composable
+private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
+  val size = HeadHeight - VerticalPadding * 2
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(horizontal = HorizontalPadding, vertical = VerticalPadding),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    AsyncImage(
+      model = jmmMetadata.icon,
+      contentDescription = "AppIcon",
+      modifier = Modifier
+        .size(size)
+        .clip(RoundedCornerShape(16.dp))
+        .background(MaterialTheme.colorScheme.surface)
+    )
+    Spacer(modifier = Modifier.width(6.dp))
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(size)
+    ) {
+      Text(
+        text = jmmMetadata.title,
+        maxLines = 2,
+        fontWeight = FontWeight(500),
+        fontSize = 22.sp,
+        overflow = TextOverflow.Ellipsis,
+        color = MaterialTheme.colorScheme.onBackground
+      )
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      Text(
+        text = jmmMetadata.subtitle,
+        maxLines = 1,
+        color = MaterialTheme.colorScheme.outlineVariant,
+        overflow = TextOverflow.Ellipsis,
+        fontSize = 12.sp
+      )
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      Text(
+        text = buildAnnotatedString {
+          append("人工复检 · ")
+          withStyle(style = SpanStyle(color = Color.Green)) { append("无广告") }
+        },
+        fontSize = 12.sp
+      )
+    }
+  }
+}
+
+/**
+ * 中间的横向数据
+ */
+@Composable
+private fun AppInfoLazyRow(jmmMetadata: JmmMetadata) {
+  LazyRow(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(vertical = VerticalPadding),
+    contentPadding = PaddingValues(HorizontalPadding),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween
+  ) {
+    item { // 评分
+      DoubleRowItem(first = "4.9 分", second = "999+ 评论")
+    }
+    item { // 安装次数
+      DoubleRowItem(first = "9527 万", second = "次安装")
+    }
+    item { // 年龄限制
+      DoubleRowItem(first = "18+", second = "年满 18 周岁")
+    }
+    item { // 大小
+      DoubleRowItem(first = jmmMetadata.size.toSpaceSize(), second = "大小")
+    }
+  }
+}
+
+@Composable
+private fun DoubleRowItem(first: String, second: String) {
+  Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Text(
+      text = first,
+      fontSize = 18.sp,
+      fontWeight = FontWeight.Bold,
+      color = MaterialTheme.colorScheme.outline,
+      maxLines = 1
+    )
+    Spacer(modifier = Modifier.height(6.dp))
+    Text(
+      text = second,
+      fontSize = 12.sp,
+      color = MaterialTheme.colorScheme.outlineVariant,
+      maxLines = 1
+    )
+  }
+}
+
+/**
+ * 应用介绍的图片展示部分
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, Offset) -> Unit) {
+  jmmMetadata.images?.let { images ->
+    val lazyListState = rememberLazyListState()
+    LazyRow(
+      modifier = Modifier.padding(vertical = VerticalPadding),
+      state = lazyListState,
+      contentPadding = PaddingValues(HorizontalPadding)
+    ) {
+      itemsIndexed(images) { index, item ->
+        Card(
+          onClick = { onSelectPic(index, Offset(0.5f, 0.5f)) }, modifier = Modifier
+            .padding(end = 16.dp)
+            .size(135.dp, 240.dp)
+        ) {
+          AsyncImage(model = item, contentDescription = null)
+        }
+      }
+    }
+  }
+}
+
+/**
+ * 应用介绍描述部分
+ */
+@Composable
+private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
+  val expanded = remember { mutableStateOf(false) }
+  Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
+    Text(text = "应用介绍", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+    Box(modifier = Modifier
+      .animateContentSize()
+      .clickable { expanded.value = !expanded.value }) {
+      Text(
+        text = jmmMetadata.introduction,
+        maxLines = if (expanded.value) Int.MAX_VALUE else 2,
+        overflow = TextOverflow.Ellipsis
+      )
+    }
+  }
+}
+
+/**
+ * 应用新版本信息部分
+ */
+@Composable
+private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
+  val expanded = remember { mutableStateOf(false) }
+  Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
+    Text(text = "新功能", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+    Text(
+      text = "版本 ${jmmMetadata.version}",
+      fontSize = 12.sp,
+      fontWeight = FontWeight.Bold,
+      color = MaterialTheme.colorScheme.outlineVariant,
+      modifier = Modifier.padding(vertical = 6.dp)
+    )
+
+    Box(modifier = Modifier
+      .animateContentSize()
+      .clickable { expanded.value = !expanded.value }) {
+      Text(
+        text = "运用全新的功能，让使用更加安全便捷",
+        maxLines = if (expanded.value) Int.MAX_VALUE else 2,
+        overflow = TextOverflow.Ellipsis
+      )
+    }
+  }
+}
+
+/**
+ * 应用的其他相关内容
+ */
+@Composable
+private fun OtherInfoView(jmmMetadata: JmmMetadata) {
+  Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
+    Text(text = "信息", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+    Spacer(modifier = Modifier.height(HorizontalPadding))
+    OtherItemView(type = "开发者", content = jmmMetadata.author?.toContent() ?: "me")
+    OtherItemView(type = "大小", content = jmmMetadata.size.toSpaceSize())
+    OtherItemView(type = "类别", content = "娱乐")
+    OtherItemView(type = "语言", content = "中文")
+    OtherItemView(type = "年龄分级", content = "18+")
+    OtherItemView(type = "版权", content = "bgwl")
+  }
+}
+
+/**
+ * @param largeContent 该字段如果有数据，表示允许展开，查看详细信息
+ */
+@Composable
+private fun OtherItemView(type: String, content: String, largeContent: String? = null) {
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Text(text = type, color = MaterialTheme.colorScheme.outline)
+
+      Text(
+        text = content,
+        modifier = Modifier.weight(1f),
+        color = MaterialTheme.colorScheme.onSurface,
+        textAlign = TextAlign.End,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+      )
+    }
+    CustomerDivider()
+  }
+}
+
+@Composable
+private fun CustomerDivider(modifier: Modifier = Modifier) =
+  Divider(modifier = modifier, color = MaterialTheme.colorScheme.background)
+
+/**
+ * 图片预览图
+ * @param visibleState 本来想使用 MutableTransitionState，但是后面发现进入和退出的聚焦点会动态变化，这样子就会导致这个组件每次都会重组，所以也可以直接改为 MutableState
+ * @param select 当前查看的图片
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ImagePreview(
+  jmmMetadata: JmmMetadata,
+  visibleState: MutableTransitionState<Boolean>,
+  select: MutableState<Int>,
+  offset: MutableState<Offset>
+) {
+  AnimatedVisibility(
+    visibleState = visibleState,
+    enter = scaleIn(transformOrigin = TransformOrigin(offset.value.x, offset.value.y)) + fadeIn(),
+    exit = scaleOut(transformOrigin = TransformOrigin(offset.value.x, offset.value.y)) + fadeOut(),
+  ) {
+    BackHandler { visibleState.targetState = false }
+    val pagerState = rememberPagerState(select.value)
+    val imageList = jmmMetadata.images ?: listOf()
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .background(Color.Black)
+    ) {
+      HorizontalPager(
+        pageCount = imageList.size,
+        state = pagerState,
+        modifier = Modifier.fillMaxSize()
+      ) { index ->
+        AsyncImage(
+          model = imageList[index],
+          contentDescription = "Picture",
+          alignment = Alignment.Center,
+          contentScale = ContentScale.FillWidth,
+          modifier = Modifier
+            .fillMaxSize()
+            .clickable(indication = null,
+              onClick = { visibleState.targetState = false },
+              interactionSource = remember { MutableInteractionSource() }
+            )
         )
       }
-      Text(
-        text = text,
-        fontSize = 20.sp,
-        color = Color.White,
-        modifier = Modifier.align(Alignment.Center)
-      )
+      Row(
+        Modifier
+          .height(50.dp)
+          .fillMaxWidth()
+          .align(Alignment.BottomCenter),
+        horizontalArrangement = Arrangement.Center
+      ) {
+        repeat(imageList.size) { iteration ->
+          val color = if (pagerState.currentPage == iteration) Color.LightGray else Color.DarkGray
+          Box(
+            modifier = Modifier
+              .padding(2.dp)
+              .clip(CircleShape)
+              .background(color)
+              .size(8.dp)
+          )
+        }
+      }
     }
   }
 }
@@ -221,135 +568,11 @@ private fun String.toSpaceSize(): String {
   }
 }
 
-@Composable
-private fun HeadContent(jmmMetadata: JmmMetadata) {
-  Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(80.dp)
-  ) {
-    AsyncImage(
-      model = jmmMetadata.icon,
-      contentDescription = null,
-      modifier = Modifier
-        .size(80.dp)
-        .clip(RoundedCornerShape(6.dp))
-    )
-
-    Spacer(modifier = Modifier.width(16.dp))
-
-    Box(
-      modifier = Modifier.fillMaxSize()
-    ) {
-      Column(modifier = Modifier.align(Alignment.TopStart)) {
-        Text(text = jmmMetadata.title, fontSize = 24.sp)
-        Text(text = jmmMetadata.subtitle, fontSize = 12.sp, color = Color.Gray)
-        Row {
-          Text(text = "版本：${jmmMetadata.version}", fontSize = 12.sp, color = Color.Gray)
-          Spacer(modifier = Modifier.width(4.dp))
-          Text(text = "大小：${jmmMetadata.size.toSpaceSize()}", fontSize = 12.sp, color = Color.Gray)
-          Spacer(modifier = Modifier.width(4.dp))
-          Text(text = "作者：${jmmMetadata.author}", fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-      }
-    }
-
-    Spacer(modifier = Modifier.width(16.dp))
+fun List<String>.toContent(): String {
+  val sb = StringBuffer()
+  this.forEachIndexed { index, data ->
+    if (index > 0) sb.append(", ")
+    sb.append(data)
   }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CaptureListView(jmmMetadata: JmmMetadata) {
-  jmmMetadata.images?.let { images ->
-    LazyRow {
-      items(images) {
-        Card(
-          onClick = { /*TODO*/ }, modifier = Modifier
-            .padding(end = 16.dp)
-            .size(135.dp, 240.dp)
-        ) {
-          AsyncImage(model = it, contentDescription = null)
-        }
-      }
-    }
-  }
-}
-
-@Composable
-private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
-  val expanded = remember { mutableStateOf(false) }
-  Column {
-    Text(text = "应用介绍", fontSize = 24.sp, fontStyle = FontStyle.Normal)
-
-    Box(modifier = Modifier
-      .animateContentSize()
-      .clickable { expanded.value = !expanded.value }) {
-      Text(
-        text = jmmMetadata.introduction,
-        maxLines = if (expanded.value) Int.MAX_VALUE else 2,
-        overflow = TextOverflow.Ellipsis
-      )
-    }
-  }
-}
-
-@Composable
-fun InstallItemDeleteView() {
-  val switchChecked = remember { mutableStateOf(true) }
-  Box(
-    modifier = Modifier
-      .fillMaxWidth()
-      .clip(RoundedCornerShape(16.dp))
-      .background(Color.White)
-      .padding(16.dp)
-  ) {
-    Column(modifier = Modifier.align(Alignment.CenterStart)) {
-      Text(text = "删除安装程序包", fontSize = 24.sp)
-      Text(text = "应用程序安装后立即从设备中删除安装包", fontSize = 12.sp, color = Color.Gray)
-    }
-    Switch(modifier = Modifier.align(Alignment.BottomEnd),
-      checked = switchChecked.value,
-      colors = SwitchDefaults.colors(
-        checkedThumbColor = Color.White, // 圆圈的颜色
-        checkedTrackColor = Color.Blue, // 打开的进度的颜色
-        uncheckedThumbColor = Color.White, // 圆圈的颜色
-        uncheckedTrackColor = Color.Gray, // 关闭的进度的颜色
-      ),
-      onCheckedChange = { checked -> switchChecked.value = checked })
-  }
-}
-
-@Composable
-fun InstallItemPermission(index: Int, mmid: String, size: Int) {
-  Box(
-    modifier = Modifier
-      .clip(
-        RoundedCornerShape(
-          topStart = if (index == 0) 16.dp else 0.dp,
-          topEnd = if (index == 0) 16.dp else 0.dp,
-          bottomStart = if (index == size - 1) 16.dp else 0.dp,
-          bottomEnd = if (index == size - 1) 16.dp else 0.dp
-        )
-      )
-      .fillMaxWidth()
-      .background(Color.White)
-      .padding(16.dp)
-  ) {
-    Row {
-      AsyncImage(
-        model = R.mipmap.ic_launcher,
-        contentDescription = null,
-        modifier = Modifier
-          .align(Alignment.CenterVertically)
-          .size(20.dp)
-      )
-      Spacer(modifier = Modifier.width(16.dp))
-      Text(
-        text = mmid, modifier = Modifier.align(
-          Alignment.CenterVertically
-        )
-      )
-    }
-  }
+  return sb.toString()
 }
