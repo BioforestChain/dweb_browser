@@ -168,11 +168,15 @@ class MultiWebViewController(
         webViewList.add(viewItem)
         return true
     }
+    private val currentState = JSONObject()
     private suspend fun updateStateHook() {
         debugMultiWebView("updateStateHook =>", webViewList)
-        val currentState = JSONObject()
         webViewList.map {
-            currentState.put(it.webviewId, """{"webviewId":"${it.webviewId}","isActivated":"${it.hidden.value}"}""")
+            val viewItem = JSONObject()
+            viewItem.put("webviewId",it.webviewId)
+            viewItem.put("isActivated",it.hidden.value)
+            viewItem.put("url",(it.state.content as WebContent.Url).url)
+            currentState.put(it.webviewId, viewItem)
         }
         mIpcMap.getOrPut(mmid) {
             val (ipc) = localeMM.connect(mmid)
@@ -184,7 +188,6 @@ class MultiWebViewController(
             ipc.postMessage(IpcEvent.fromUtf8("state", currentState.toString()))
         }
     }
-
 
     private val webViewCloseSignal = Signal<String>()
     private val webViewOpenSignal = Signal<String>()

@@ -133,9 +133,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
 
         apiRouting = routes(
             "/start" bind Method.GET to defineHandler { request, ipc ->
-                val response = start(ipc, query_dwebServerOptions(request))
-                debugHttp("start response",response.urlInfo.internal_origin)
-                return@defineHandler response
+                start(ipc, query_dwebServerOptions(request))
             },
             "/listen" bind Method.POST to defineHandler { request ->
                 val token = query_token(request)

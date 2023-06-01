@@ -20,6 +20,7 @@ const main = async () => {
       webViewMap.set(view_id, {
         isActivated: true,
         webviewId: view_id,
+        url: url
       });
       return view_id;
     }

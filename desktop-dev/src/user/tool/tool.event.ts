@@ -19,6 +19,7 @@ export enum OBSERVE {
 export type WebViewState = {
   isActivated: boolean;
   webviewId: string;
+  url:string
 };
 
 export interface  AllWebviewState{

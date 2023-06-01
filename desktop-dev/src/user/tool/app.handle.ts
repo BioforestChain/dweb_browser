@@ -56,7 +56,7 @@ navigator.dweb.jsProcess.onDwebViewState((event, ipc) => {
 const diffFactory = async (diff: DetailedDiff) => {
   //  是否有新增
   for (const id in diff.added) {
-    webViewMap.set(id, JSON.parse(diff.added[id as keyof typeof diff.added]));
+    webViewMap.set(id, diff.added[id as keyof typeof diff.added]);
   }
   // 是否有删除
   for (const id in diff.deleted) {
@@ -67,7 +67,7 @@ const diffFactory = async (diff: DetailedDiff) => {
   for (const id in diff.updated) {
     webViewMap.set(
       id,
-      JSON.parse(diff.updated[id as keyof typeof diff.updated])
+      diff.updated[id as keyof typeof diff.updated]
     );
     await nativeActivate(id);
   }
