@@ -52,7 +52,7 @@ public class JmmMetadataTest
     //        icon: "https://www.bfmeta.info/imgs/logo3.webp",
     //        title: "bfmeta",
     //        subtitle: "bfmeta",
-    //        permissions: new List<string> { "camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb" },
+    //        permissions: new List<string> { "camera.sys.dweb", "jmm.browser.dweb", "???.sys.dweb" },
     //        downloadUrl: "https://shop.plaoc,com/KEJPMHLA/KEJPMHLA.bfsa",
     //        size: "337488",
     //        version: "1.0.1.1",

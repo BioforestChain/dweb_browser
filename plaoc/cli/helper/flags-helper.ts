@@ -79,13 +79,15 @@ export class BundleFlagHelper {
   };
   readonly www_dir: undefined | string;
   constructor(readonly flags: $BundleFlagHelperOptions) {
+    const bundleTarget = flags._?.[0]?.toString();
     /// 实时预览模式，使用代理html
-    if (flags.mode === SERVE_MODE.LIVE) {
-      const liveUrl = flags._?.find(
-        (arg) =>
-          typeof arg === "string" &&
-          (arg.startsWith("http:") || arg.startsWith("https:"))
-      ) as string | undefined;
+    if (
+      flags.mode === SERVE_MODE.LIVE ||
+      (flags.mode === undefined &&
+        bundleTarget !== undefined &&
+        /^http[s]:\/\//.test(bundleTarget))
+    ) {
+      const liveUrl = bundleTarget;
       if (liveUrl === undefined) {
         throw new Error(`no found live-url when serve-mode is '${flags.mode}'`);
       }
@@ -100,9 +102,7 @@ export class BundleFlagHelper {
     }
     /// 生产模式
     else if (flags.mode === SERVE_MODE.PROD) {
-      const bundle_file = flags._?.find(
-        (arg) => typeof arg === "string" && arg.startsWith("--") === false
-      ) as string | undefined;
+      const bundle_file = bundleTarget;
       if (bundle_file === undefined) {
         throw new Error(
           `no found bundle-file when serve-mode is '${flags.mode}'`
@@ -114,9 +114,7 @@ export class BundleFlagHelper {
     /// 默认使用 本地文件夹模式
     // if (flags.mode === SERVE_MODE.USR_WWW)
     else {
-      const www_dir = flags._?.find(
-        (arg) => typeof arg === "string" && arg.startsWith("--") === false
-      ) as string | undefined;
+      const www_dir = bundleTarget;
       if (www_dir === undefined) {
         throw new Error(`no found dir when serve-mode is '${flags.mode}'`);
       }
@@ -152,7 +150,7 @@ export class BundleFlagHelper {
         path: "usr/server/plaoc.server.js",
         data: fs.readFileSync(
           fileURLToPath(
-            import.meta.resolve("../../build/server/plaoc.server.js")
+            import.meta.resolve("../../dist/server/plaoc.server.js")
           )
         ),
       },

@@ -15,7 +15,7 @@ export class SafeAreaPlugin extends InsetsPlugin<
 > {
   readonly tagName = "dweb-safe-area";
   constructor() {
-    super("safe-area.nativeui.sys.dweb");
+    super("safe-area.nativeui.browser.dweb");
   }
 
   readonly coder: $Coder<$SafeAreaRawState, $SafeAreaState> = {

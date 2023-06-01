@@ -10,7 +10,7 @@ import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class NavigationBarNMM : NativeMicroModule("navigation-bar.nativeui.sys.dweb") {
+class NavigationBarNMM : NativeMicroModule("navigation-bar.nativeui.browser.dweb") {
 
 
     private fun getController(mmid: Mmid) =

@@ -10,12 +10,10 @@ export const devTasks = new ConTasks({
     args: "task build:watch:demo",
     cwd: "./plaoc",
   },
-  "desktop-dev:browser": {
+  sync: {
     cmd: "deno",
-    args: "task build:watch:demo",
-    cwd: "./desktop-dev",
+    args: "task sync --watch",
   },
-  sync: { cmd: "deno", args: "task sync --watch" },
 });
 
 import { initTasks } from "./init.ts";

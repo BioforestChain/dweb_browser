@@ -1,10 +1,10 @@
-import chalk from "chalk";
 import { $deserializeRequestToParams } from "../helper/$deserializeRequestToParams.ts";
 import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.ts";
 import { $serializeResultToResponse } from "../helper/$serializeResultToResponse.ts";
 import type {
   $DWEB_DEEPLINK,
   $IpcSupportProtocols,
+  $MMID,
   $PromiseMaybe,
   $Schema1,
   $Schema1ToType,
@@ -36,7 +36,7 @@ export abstract class NativeMicroModule extends MicroModule {
     raw: true,
   };
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
-  abstract override mmid: `${string}.${"sys" | "std"}.dweb`;
+  abstract override mmid: $MMID;
   // 用来在继承对象里面额外处理 ipc
   // 现阶段主要用来实现 observe 相关的请求处理
   _onConnect(_ipc: Ipc) {}
@@ -109,7 +109,7 @@ export abstract class NativeMicroModule extends MicroModule {
         // }
 
         if (response === undefined) {
-          console.always("response === undefined", request.parsed_url)
+          console.always("response === undefined", request.parsed_url);
           response = IpcResponse.fromText(
             request.req_id,
             404,

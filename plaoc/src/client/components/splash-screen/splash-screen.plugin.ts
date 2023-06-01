@@ -8,7 +8,7 @@ import type {
 export class SplashScreenPlugin extends BasePlugin {
   readonly tagName = "dweb-splash-screen";
   constructor() {
-    super("splash-screen.nativeui.sys.dweb");
+    super("splash-screen.nativeui.browser.dweb");
   }
 
   /**

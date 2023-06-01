@@ -6,7 +6,7 @@ import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class TorchNMM: NativeMicroModule("torch.nativeui.sys.dweb") {
+class TorchNMM: NativeMicroModule("torch.nativeui.browser.dweb") {
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
             // 打开关闭手电筒

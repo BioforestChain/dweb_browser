@@ -11,7 +11,6 @@ const main = async () => {
   const { IpcEvent } = ipc;
   // 启动主页面的地址
   const mainUrl = new PromiseOut<string>();
-  // 管理webview的状态，因为当前webview是通过状态判断操作的，比如激活，关闭
   // 关闭信号
   const EXTERNAL_PREFIX = "/external/";
   const { IpcResponse } = ipc;

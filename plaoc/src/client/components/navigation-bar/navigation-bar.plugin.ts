@@ -23,7 +23,7 @@ export class NavigationBarPlugin extends BarPlugin<
   readonly tagName = "dweb-navigation-bar";
 
   constructor() {
-    super("navigation-bar.nativeui.sys.dweb");
+    super("navigation-bar.nativeui.browser.dweb");
   }
   coder: $Coder<$NavigationBarRawState, $NavigationBarState> = {
     decode: (raw) => ({

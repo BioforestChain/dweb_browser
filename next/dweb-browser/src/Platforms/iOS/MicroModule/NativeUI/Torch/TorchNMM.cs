@@ -4,7 +4,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Torch;
 
 public class TorchNMM : NativeMicroModule
 {
-    public TorchNMM() : base("torch.nativeui.sys.dweb")
+    public TorchNMM() : base("torch.nativeui.browser.dweb")
     {
     }
 

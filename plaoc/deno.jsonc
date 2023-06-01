@@ -1,8 +1,8 @@
 {
   "tasks": {
-    "build": "deno task build:src && deno task build:demo && deno task sync:desktop && deno task sync:android",
-    "build:src": "deno run -A ./scripts/build_npm.ts",
-    "dev:src": "deno run -A --watch ./scripts/build_npm.ts",
+    "build": "deno task build:client && deno task build:server && deno task build:demo",
+    "build:client": "deno run -A ./scripts/npm-build.ts client",
+    "build:server": "deno run -A ./scripts/build-server.ts",
     "dev": "deno task dev:demo & deno task build:watch:demo",
     "dev:demo": "cd ./demo && pnpm dev",
     "build:demo": "cd ./demo && pnpm build",

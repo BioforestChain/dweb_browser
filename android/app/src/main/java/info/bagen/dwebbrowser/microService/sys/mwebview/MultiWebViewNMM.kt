@@ -19,7 +19,7 @@ import org.http4k.routing.routes
 inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("mwebview", tag, msg, err)
 
-class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
+class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     class ActivityClass(var mmid: Mmid, val ctor: Class<out MultiWebViewActivity>)
 
     companion object {
@@ -40,7 +40,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         /// nativeui 与 mwebview 是伴生关系
-        bootstrapContext.dns.bootstrap("nativeui.sys.dweb")
+        bootstrapContext.dns.bootstrap("nativeui.browser.dweb")
 
         // 打开webview
         val queryUrl = Query.string().required("url")
@@ -51,7 +51,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
             "/open" bind Method.GET to defineHandler { request, ipc ->
                 val url = queryUrl(request)
                 val remoteMm = ipc.asRemoteInstance()
-                    ?: throw Exception("mwebview.sys.dweb/open should be call by locale")
+                    ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
                 val viewItem = openDwebView(remoteMm, url)
                 Response(Status.OK).body(viewItem.webviewId)
             },

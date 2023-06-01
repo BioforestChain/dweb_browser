@@ -11,7 +11,7 @@ import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class VirtualKeyboardNMM : NativeMicroModule("virtual-keyboard.nativeui.sys.dweb") {
+class VirtualKeyboardNMM : NativeMicroModule("virtual-keyboard.nativeui.browser.dweb") {
 
     private fun getController(mmid: Mmid) =
         NativeUiController.fromMultiWebView(mmid).virtualKeyboard

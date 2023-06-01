@@ -18,7 +18,7 @@ import java.io.File
 inline fun debugVFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("VirtualFileSystem", tag, msg, err)
 
-class VirtualFileSystemNMM : NativeMicroModule("file.nativeui.sys.dweb") {
+class VirtualFileSystemNMM : NativeMicroModule("file.nativeui.browser.dweb") {
 
     val plugin = VirtualFileSystem()
 

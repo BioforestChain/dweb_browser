@@ -8,7 +8,7 @@ import info.bagen.dwebbrowser.microService.sys.nativeui.splashScreen.SplashScree
 import info.bagen.dwebbrowser.microService.sys.nativeui.statusBar.StatusBarNMM
 import info.bagen.dwebbrowser.microService.sys.nativeui.virtualKeyboard.VirtualKeyboardNMM
 
-class NativeUiNMM : NativeMicroModule("nativeui.sys.dweb") {
+class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb") {
     private val navigationBarNMM = NavigationBarNMM()
     private val statusBarNMM = StatusBarNMM()
     private val safeAreaNMM = SafeAreaNMM()

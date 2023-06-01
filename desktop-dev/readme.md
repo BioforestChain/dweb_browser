@@ -1,4 +1,9 @@
 # 工程中运行 plugin/demo 应用流程
-- 编译 demo 在 dweb_browser 终端运行 deno task dev 就能够实现 plugin demo 打包到 ./electron/assets/cot-demo 目录
-- 编译 dweb_browser/desktop-dev 终端运行： deno task assets [--dev]开启监听
-- 启动electron dweb_browsre/desktop-dev  终端运行: deno task dnt 
+
+- `deno task assets --dev` 开启监听
+  编译 dweb_browser/desktop-dev
+- `deno task dnt`
+  deno 代码会被转换成 nodejs 代码，并输出在 electron 目录下，完成 commonjs 的编译，之后会启动 electron。
+  已经做了 source-map 的映射，可以在 deno 代码中直接打断点进行调试（比如使用 vscode）
+- `deno task pkg`
+  打包 electron 应用

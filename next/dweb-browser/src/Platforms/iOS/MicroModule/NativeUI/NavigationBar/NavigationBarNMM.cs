@@ -6,7 +6,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.NavigationBar
 	public class NavigationBarNMM: NativeMicroModule
 	{
         static Debugger Console = new("NavigationBarNMM");
-		public NavigationBarNMM(): base("navigation-bar.nativeui.sys.dweb")
+		public NavigationBarNMM(): base("navigation-bar.nativeui.browser.dweb")
 		{
 		}
 

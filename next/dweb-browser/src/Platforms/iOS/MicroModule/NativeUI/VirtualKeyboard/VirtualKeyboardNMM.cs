@@ -6,7 +6,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.VirtualKeyboard;
 public class VirtualKeyboardNMM : NativeMicroModule
 {
     static Debugger Console = new("VirtualKeyboardNMM");
-    public VirtualKeyboardNMM() : base("virtual-keyboard.nativeui.sys.dweb")
+    public VirtualKeyboardNMM() : base("virtual-keyboard.nativeui.browser.dweb")
     {
     }
 

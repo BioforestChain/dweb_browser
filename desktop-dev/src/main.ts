@@ -1,23 +1,23 @@
 import process from "node:process";
-import { setFilter } from "./helper/devtools.ts";
-import { BootNMM } from "./sys/boot.ts";
-import { DnsNMM } from "./sys/dns/dns.ts";
 import "./sys/dns/localeFileFetch.ts";
-import { DownloadNMM } from "./sys/download/download.ts";
-import { DwebBrowserNMM } from "./sys/dweb-browser/dweb-browser.ts";
+
+import { BrowserNMM } from "./browser/browser/browser.ts";
+import { JsProcessNMM } from "./browser/js-process/js-process.ts";
+import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.mobile.ts";
+import { NavigationBarNMM } from "./browser/native-ui/navigation-bar/navigation-bar.main.ts";
+import { SafeAreaNMM } from "./browser/native-ui/safe-area/safe-area.main.ts";
+import { StatusbarNativeUiNMM } from "./browser/native-ui/status-bar/status-bar.main.ts";
+import { TorchNMM } from "./browser/native-ui/torch/torch.main.ts";
+import { VirtualKeyboardNMM } from "./browser/native-ui/virtual-keyboard/virtual-keyboard.main.ts";
+import { setFilter } from "./helper/devtools.ts";
+import { BarcodeScanningNativeUiNMM } from "./sys/barcode-scanning/barcode-scanning.main.ts";
+import { BiometricsNMM } from "./sys/biometrics/biometrics.main.ts";
+import { BootNMM } from "./sys/boot/boot.ts";
+import { DnsNMM } from "./sys/dns/dns.ts";
+import { HapticsNMM } from "./sys/haptics/haptics.main.ts";
 import { HttpServerNMM } from "./sys/http-server/http-server.ts";
-import { JsProcessNMM } from "./sys/js-process/js-process.ts";
-import { MultiWebviewNMM } from "./sys/multi-webview/multi-webview.mobile.ts";
-import { NavigationBarNMM } from "./sys/plugins/native-ui/navigation-bar/navigation-bar.main.ts";
-import { SafeAreaNMM } from "./sys/plugins/native-ui/safe-area/safe-area.main.ts";
-import { StatusbarNativeUiNMM } from "./sys/plugins/native-ui/status-bar/status-bar.main.ts";
-import { TorchNMM } from "./sys/plugins/native-ui/torch/torch.main.ts";
-import { VirtualKeyboardNMM } from "./sys/plugins/native-ui/virtual-keyboard/virtual-keyboard.main.ts";
-import { BarcodeScanningNativeUiNMM } from "./sys/plugins/sys/barcode-scanning/barcode-scanning.main.ts";
-import { BiometricsNMM } from "./sys/plugins/sys/biometrics/biometrics.main.ts";
-import { HapticsNMM } from "./sys/plugins/sys/haptics/haptics.main.ts";
-import { ShareNMM } from "./sys/plugins/sys/share/share.main.ts";
-import { ToastNMM } from "./sys/plugins/sys/toast/toast.main.ts";
+import { ShareNMM } from "./sys/share/share.main.ts";
+import { ToastNMM } from "./sys/toast/toast.main.ts";
 
 /**
  * 设置 debugger 过滤条件
@@ -65,8 +65,7 @@ export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 dns.install(new HttpServerNMM());
-dns.install(new DownloadNMM());
-const dwebBrowser = new DwebBrowserNMM();
+const dwebBrowser = new BrowserNMM();
 dns.install(dwebBrowser);
 dns.install(new StatusbarNativeUiNMM());
 dns.install(new NavigationBarNMM());
@@ -79,20 +78,11 @@ dns.install(new BiometricsNMM());
 dns.install(new HapticsNMM());
 dns.install(new ShareNMM());
 
-import { desktopJmm } from "./user/desktop/desktop.main.ts";
-dns.install(desktopJmm);
-
-import { browserJMM } from "./user/browser/browser.main.ts";
-dns.install(browserJMM);
-
-import { publicServiceJMM } from "./user/public-service/public.service.main.ts";
-dns.install(publicServiceJMM);
-
 // 安装 file.sys.dweb
 import { FileNMM } from "./sys/file/file.ts";
 dns.install(new FileNMM());
 
-import { JmmNMM } from "./sys/jmm/jmm.ts";
+import { JmmNMM } from "./browser/jmm/jmm.ts";
 dns.install(new JmmNMM());
 
 // import { jmmtestconnectJMM } from "./user/jmm-test-connect/jmmtestconnect.main.ts";
@@ -102,8 +92,8 @@ dns.install(new JmmNMM());
 
 dns.install(
   new BootNMM([
-    // "browser.sys.dweb",
-    // dwebBrowser.mmid,
+    //
+    dwebBrowser.mmid,
   ])
 );
 

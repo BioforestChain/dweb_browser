@@ -9,7 +9,7 @@ class UpdateControllerPlugin extends BasePlugin {
   progressNum = 0;
 
   constructor() {
-    super("jmm.sys.dweb");
+    super("jmm.browser.dweb");
   }
 
   async init() {}

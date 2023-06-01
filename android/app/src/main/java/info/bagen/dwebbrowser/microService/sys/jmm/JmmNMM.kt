@@ -40,7 +40,7 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-class JmmNMM : NativeMicroModule("jmm.sys.dweb") {
+class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
     companion object {
         private val apps = mutableStateMapOf<Mmid, JsMicroModule>()
         fun getAndUpdateJmmNmmApps() = apps

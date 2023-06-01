@@ -6,7 +6,7 @@ import { BasePlugin } from "../base/BasePlugin.ts";
 export class TorchPlugin extends BasePlugin {
   readonly tagName = "dweb-torch";
   constructor() {
-    super("torch.nativeui.sys.dweb");
+    super("torch.nativeui.browser.dweb");
   }
 
   /**

@@ -28,7 +28,7 @@ inline fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("js-process", tag, msg, err)
 
 
-class JsProcessNMM : NativeMicroModule("js.sys.dweb") {
+class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
 
     private val JS_PROCESS_WORKER_CODE by lazy {
         runBlockingCatching {

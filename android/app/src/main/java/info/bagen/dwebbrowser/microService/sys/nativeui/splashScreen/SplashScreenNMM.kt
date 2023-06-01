@@ -26,7 +26,7 @@ import org.http4k.routing.routes
 inline fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("SplashScreen", tag, msg, err)
 
-class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.sys.dweb") {
+class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb") {
 
     private fun currentController(mmid: Mmid): MultiWebViewController? {
         return MultiWebViewNMM.getCurrentWebViewController(mmid)

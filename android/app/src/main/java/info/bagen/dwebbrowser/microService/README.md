@@ -57,7 +57,7 @@
     1. GUI组件
         ```ts
         class MultiWebViewNMM extends NativeMicroModule {
-            mmid: 'mwebview.sys.dweb'
+            mmid: 'mwebview.browser.dweb'
             bootstrap(args) {
                 this.viewTree = new ViewTree();
             }
@@ -74,12 +74,12 @@
             }
         }
 
-        const webview_id = await fetch('file://mwebview.sys.dweb/open').number();
-        for await (const line of fetch(`file://mwebview.sys.dweb/listen/${webview_id}`).stream('jsonlines')) {
-            const request = IpcRequest.from(await fetch(`file://mwebview.sys.dweb/request/${line.request_id}`).json());
+        const webview_id = await fetch('file://mwebview.browser.dweb/open').number();
+        for await (const line of fetch(`file://mwebview.browser.dweb/listen/${webview_id}`).stream('jsonlines')) {
+            const request = IpcRequest.from(await fetch(`file://mwebview.browser.dweb/request/${line.request_id}`).json());
 
             const response = IpcResponse(request, {...data});
-            await fetch(`file://mwebview.sys.dweb/response`, { body:response });
+            await fetch(`file://mwebview.browser.dweb/response`, { body:response });
         }
 
         import { MWebView } from '@bfex/mwebview';

@@ -101,6 +101,6 @@ class BrowserController(val browserNMM: BrowserNMM) {
     }
 
     suspend fun uninstallJMM(jmmMetadata: JmmMetadata) = browserNMM.nativeFetch(
-        Uri.of("file://jmm.sys.dweb/uninstall").query("mmid", jmmMetadata.id)
+        Uri.of("file://jmm.browser.dweb/uninstall").query("mmid", jmmMetadata.id)
     )
 }

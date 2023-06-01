@@ -6,9 +6,6 @@ import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import type { $State } from "./file-download.ts";
 import { download } from "./file-download.ts";
 
-import chalk from "chalk";
-import { JMM_DB, getAllApps } from "../jmm/jmm.api.serve.ts";
-
 // 运行在 node 环境
 export class FileNMM extends NativeMicroModule {
   mmid = "file.sys.dweb" as const;
@@ -70,18 +67,6 @@ export class FileNMM extends NativeMicroModule {
           downloadProcess + "",
           client_ipc
         );
-      },
-    });
-
-    //   获取全部的 appsInfo
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/appsinfo",
-      matchMode: "full",
-      input: {},
-      output: "object",
-      handler: async (args, client_ipc, request) => {
-        const appsInfo = await getAllApps();
-        return appsInfo;
       },
     });
 

@@ -1,6 +1,6 @@
 import chalk from "https://esm.sh/v124/chalk@5.2.0";
+import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
 import { mapHelper } from "../../desktop-dev/src/helper/mapHelper.ts";
-import { PromiseOut } from "../../plaoc/deps.ts";
 
 export type $Task = {
   cmd: string;
@@ -164,6 +164,10 @@ export class ConTasks {
       })();
       processTasks.push(processTask);
     }
-    return { children, processTasks, afterComplete: () => Promise.all(processTasks) };
+    return {
+      children,
+      processTasks,
+      afterComplete: () => Promise.all(processTasks),
+    };
   }
 }

@@ -8,7 +8,7 @@ namespace DwebBrowser.MicroService.Sys.NativeUI;
 
 public class NativeUiNMM : NativeMicroModule
 {
-    public NativeUiNMM() : base("nativeui.sys.dweb")
+    public NativeUiNMM() : base("nativeui.browser.dweb")
     {
     }
 

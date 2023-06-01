@@ -16,14 +16,14 @@ const { jsProcess } = navigator.dweb;
 /**开启新页面 */
 export const nativeOpen = async (url: string) => {
   return await jsProcess
-    .nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`)
+    .nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`)
     .text();
 };
 
 export const nativeActivate = async (webview_id: string) => {
   return await jsProcess
     .nativeFetch(
-      `file://mwebview.sys.dweb/activate?webview_id=${encodeURIComponent(
+      `file://mwebview.browser.dweb/activate?webview_id=${encodeURIComponent(
         webview_id
       )}`
     )
@@ -34,7 +34,7 @@ export const nativeActivate = async (webview_id: string) => {
 export const closeDwebView = async (webview_id: string) => {
   return await jsProcess
     .nativeFetch(
-      `file://mwebview.sys.dweb/close?webview_id=${encodeURIComponent(
+      `file://mwebview.browser.dweb/close?webview_id=${encodeURIComponent(
         webview_id
       )}`
     )
@@ -47,6 +47,6 @@ export const closeDwebView = async (webview_id: string) => {
  * */
 export const closeWindow = async () => {
   return await jsProcess
-    .nativeFetch(`file://mwebview.sys.dweb/close/app`)
+    .nativeFetch(`file://mwebview.browser.dweb/close/app`)
     .boolean();
 };

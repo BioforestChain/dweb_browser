@@ -22,7 +22,7 @@ public class JmmNMM : NativeMicroModule
     public static JmmMetadata? GetBfsMetaData(Mmid mmid) => s_apps.GetValueOrDefault(mmid)?.Metadata;
 
 
-    public JmmNMM() : base("jmm.sys.dweb")
+    public JmmNMM() : base("jmm.browser.dweb")
     {
         // 启动的时候，从数据库中恢复 s_apps 对象
         Task.Run(async () =>
@@ -33,7 +33,7 @@ public class JmmNMM : NativeMicroModule
 
                 try
                 {
-                    await NativeFetchAsync(new URL("file://dns.sys.dweb/open").SearchParamsSet("app_id", "jmm.sys.dweb".EncodeURIComponent()).Uri);
+                    await NativeFetchAsync(new URL("file://dns.sys.dweb/open").SearchParamsSet("app_id", "jmm.browser.dweb".EncodeURIComponent()).Uri);
                     break;
                 }
                 catch

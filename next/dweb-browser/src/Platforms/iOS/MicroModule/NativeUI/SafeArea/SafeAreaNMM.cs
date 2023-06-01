@@ -5,7 +5,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.SafeArea;
 public class SafeAreaNMM: NativeMicroModule
 {
     static Debugger Console = new("SafeAreaNMM");
-	public SafeAreaNMM(): base("safe-area.nativeui.sys.dweb")
+	public SafeAreaNMM(): base("safe-area.nativeui.browser.dweb")
 	{
 	}
 

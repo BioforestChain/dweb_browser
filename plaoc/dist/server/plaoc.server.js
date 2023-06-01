@@ -1708,24 +1708,24 @@ var cros = (headers) => {
 };
 var { jsProcess } = navigator.dweb;
 var nativeOpen = async (url) => {
-  return await jsProcess.nativeFetch(`file://mwebview.sys.dweb/open?url=${encodeURIComponent(url)}`).text();
+  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`).text();
 };
 var nativeActivate = async (webview_id) => {
   return await jsProcess.nativeFetch(
-    `file://mwebview.sys.dweb/activate?webview_id=${encodeURIComponent(
+    `file://mwebview.browser.dweb/activate?webview_id=${encodeURIComponent(
       webview_id
     )}`
   ).text();
 };
 var closeDwebView = async (webview_id) => {
   return await jsProcess.nativeFetch(
-    `file://mwebview.sys.dweb/close?webview_id=${encodeURIComponent(
+    `file://mwebview.browser.dweb/close?webview_id=${encodeURIComponent(
       webview_id
     )}`
   ).text();
 };
 var closeWindow = async () => {
-  return await jsProcess.nativeFetch(`file://mwebview.sys.dweb/close/app`).boolean();
+  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
 };
 
 // src/server/tool/app.handle.ts
@@ -1902,7 +1902,7 @@ var main = async () => {
   const { IpcEvent: IpcEvent2 } = ipc2;
   const mainUrl = new PromiseOut();
   let oldWebviewState2 = {};
-  const multiWebViewIpc = await jsProcess3.connect("mwebview.sys.dweb");
+  const multiWebViewIpc = await jsProcess3.connect("mwebview.browser.dweb");
   const multiWebViewCloseSignal = createSignal();
   const EXTERNAL_PREFIX = "/external/";
   const { IpcResponse: IpcResponse3 } = ipc2;

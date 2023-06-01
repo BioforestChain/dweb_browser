@@ -13,7 +13,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 {
     static Debugger Console = new Debugger("MultiWebViewNMM");
 
-    public MultiWebViewNMM() : base("mwebview.sys.dweb")
+    public MultiWebViewNMM() : base("mwebview.browser.dweb")
     {
     }
 
@@ -23,13 +23,13 @@ public class MultiWebViewNMM : IOSNativeMicroModule
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         /// nativeui 与 mwebview 是伴生关系
-        await bootstrapContext.Dns.BootstrapAsync("nativeui.sys.dweb");
+        await bootstrapContext.Dns.BootstrapAsync("nativeui.browser.dweb");
 
         // 打开一个webview作为窗口
         HttpRouter.AddRoute(IpcMethod.Get, "/open", async (request, ipc) =>
         {
             var url = request.QueryStringRequired("url");
-            var remoteMM = ipc?.AsRemoteInstance() ?? throw new Exception("mwebview.sys.dweb/open should be call by locale");
+            var remoteMM = ipc?.AsRemoteInstance() ?? throw new Exception("mwebview.browser.dweb/open should be call by locale");
 
             var viewItem = await _openDwebViewAsync(remoteMM, url);
             return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StringContent(viewItem.webviewId));

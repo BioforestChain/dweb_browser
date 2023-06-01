@@ -1,4 +1,4 @@
-import process, { parentPort } from "node:process";
+import process from "node:process";
 import type {
   $BootstrapContext,
   $DnsMicroModule,
@@ -17,8 +17,7 @@ import "../../helper/electron.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
-import { JsMicroModule } from "../../core/micro-module.js.ts"
- 
+
 class MyDnsMicroModule implements $DnsMicroModule {
   constructor(private dnsNN: DnsNMM, private fromMM: MicroModule) {}
 
@@ -84,11 +83,7 @@ export class DnsNMM extends NativeMicroModule {
    * @param reason
    * @returns
    */
-  [connectTo_symbol](
-    fromMM: MicroModule,
-    toMmid: $MMID,
-    reason: Request
-  ) {
+  [connectTo_symbol](fromMM: MicroModule, toMmid: $MMID, reason: Request) {
     // v2.0
     // 创建连接
     const fromMMconnectsMap = mapHelper.getOrPut(
@@ -96,7 +91,6 @@ export class DnsNMM extends NativeMicroModule {
       fromMM,
       () => new Map<$MMID, PromiseOut<$ConnectResult>>()
     );
-    
 
     const po = mapHelper.getOrPut(fromMMconnectsMap, toMmid, () => {
       const po = new PromiseOut<$ConnectResult>();
@@ -215,13 +209,11 @@ export class DnsNMM extends NativeMicroModule {
         const mm = await this.query(args.app_id);
         if (mm === undefined) return false;
         const metadata = Reflect.get(mm, "metadata");
-        if(!metadata) {
-          console.error('dns', "没有dmetaata")
+        if (!metadata) {
+          console.error("dns", "没有dmetaata");
           return false;
         }
         await this.close(args.app_id);
-        // 标准：不能够使用原来的 mm 必须要创建一个新的 MM 否则无法启动成功
-        await this.install(new JsMicroModule(metadata) as unknown as MicroModule);
         await this.open(args.app_id);
         return true;
       },
@@ -230,7 +222,6 @@ export class DnsNMM extends NativeMicroModule {
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(
         async (fromMM, parsedUrl, requestInit) => {
-         
           // 测试代码
           // Reflect.set(requestInit, "duplex", "half")
           // fetch("file://xxx.dweb") 匹配
@@ -346,7 +337,7 @@ export class DnsNMM extends NativeMicroModule {
     if (app === undefined) {
       const mm = await this.query(mmid);
       if (mm === undefined) {
-        console.error('dns', '没有指定的 mm 抛出错误')
+        console.error("dns", "没有指定的 mm 抛出错误");
         throw new Error(`no found app: ${mmid}`);
       }
       this.running_apps.set(mmid, mm);
@@ -354,7 +345,7 @@ export class DnsNMM extends NativeMicroModule {
       await this.bootstrapMicroModule(mm);
       app = mm;
     }
-    
+
     return app;
   }
 

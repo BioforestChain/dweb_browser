@@ -14,7 +14,7 @@ public class JsMicroModule : MicroModule
     record JsMM(JsMicroModule jmm, Mmid remoteMmid);
     static JsMicroModule()
     {
-        var nativeToWhiteList = new List<Mmid>() { "js.sys.dweb" };
+        var nativeToWhiteList = new List<Mmid>() { "js.browser.dweb" };
         NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
         {
             JsMM? jsMM = null;
@@ -80,7 +80,7 @@ public class JsMicroModule : MicroModule
 
         var createIpc_req = new PureRequest(
 
-            new URL("file://js.sys.dweb/create-process")
+            new URL("file://js.browser.dweb/create-process")
                 .SearchParamsSet("entry", Metadata.Server.Entry)
                 .SearchParamsSet("process_id", Pid).Href,
             IpcMethod.Post,
@@ -98,9 +98,9 @@ public class JsMicroModule : MicroModule
         var streamIpc = await _createNativeStreamAsync();
 
         /**
-         * 拿到与js.sys.dweb模块的直连通道，它会将 Worker 中的数据带出来
+         * 拿到与js.browser.dweb模块的直连通道，它会将 Worker 中的数据带出来
          */
-        var connectResult = await bootstrapContext.Dns.ConnectAsync("js.sys.dweb");
+        var connectResult = await bootstrapContext.Dns.ConnectAsync("js.browser.dweb");
         var fetchIpc = connectResult.IpcForFromMM;
 
         // 监听关闭事件
@@ -201,7 +201,7 @@ public class JsMicroModule : MicroModule
                      * 向js模块发起连接
                      */
                     var portId = await (await NativeFetchAsync(
-                        new URL("file://js.sys.dweb/create-ipc")
+                        new URL("file://js.browser.dweb/create-ipc")
                         .SearchParamsSet("process_id", Pid).SearchParamsSet("mmid", fromMmid)))
                         .IntAsync() ?? throw new Exception("invalid Native2JsIpc.PortId");
 
@@ -252,7 +252,7 @@ public class JsMicroModule : MicroModule
     protected override async Task _shutdownAsync()
     {
         Console.Log("closeJsProcessSignal emit", String.Format("{0}/{1}", Mmid, Metadata));
-        await NativeFetchAsync("file://js.sys.dweb/close-process");
+        await NativeFetchAsync("file://js.browser.dweb/close-process");
         await (_onCloseJsProcess?.Emit()).ForAwait();
         _processId = null;
     }

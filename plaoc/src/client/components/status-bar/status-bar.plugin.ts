@@ -22,7 +22,7 @@ export class StatusBarPlugin extends BarPlugin<
   readonly tagName = "dweb-status-bar";
 
   constructor() {
-    super("status-bar.nativeui.sys.dweb");
+    super("status-bar.nativeui.browser.dweb");
   }
   coder: $Coder<$StatusBarRawState, $StatusBarState> = {
     decode: (raw: $StatusBarRawState) => ({

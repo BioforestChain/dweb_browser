@@ -10,7 +10,7 @@ import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.sys.dweb") {
+class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.browser.dweb") {
 
     private fun getController(mmid: Mmid) = NativeUiController.fromMultiWebView(mmid).safeArea
 

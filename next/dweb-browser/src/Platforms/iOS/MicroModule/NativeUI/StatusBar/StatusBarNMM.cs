@@ -6,7 +6,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.StatusBar;
 public class StatusBarNMM : NativeMicroModule
 {
     static Debugger Console = new("StatusBarNMM");
-    public StatusBarNMM() : base("status-bar.nativeui.sys.dweb")
+    public StatusBarNMM() : base("status-bar.nativeui.browser.dweb")
     {
     }
 

@@ -22,7 +22,7 @@ fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
 open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     companion object {
         init {
-            val nativeToWhiteList = listOf<Mmid>("js.sys.dweb")
+            val nativeToWhiteList = listOf<Mmid>("js.browser.dweb")
 
             data class JsMM(val jmm: JsMicroModule, val rmm: MicroModule)
             connectAdapterManager.append(-1) { fromMM, toMM, reason ->
@@ -54,8 +54,8 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             /**
              * -1
              * connectAdapterManager   fromMM: dns.sys.dweb => toMM: boot.sys.dweb ==> jsMM:false
-             * connectAdapterManager   fromMM: js.sys.dweb => toMM: http.sys.dweb ==> jsMM:false
-             * connectAdapterManager   fromMM: demo.www.bfmeta.info.dweb => toMM: js.sys.dweb ==> jsMM:true
+             * connectAdapterManager   fromMM: js.browser.dweb => toMM: http.sys.dweb ==> jsMM:false
+             * connectAdapterManager   fromMM: demo.www.bfmeta.info.dweb => toMM: js.browser.dweb ==> jsMM:true
              */
             /**
              * 99
@@ -95,7 +95,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             nativeFetch(
                 Request(
                     Method.POST,
-                    Uri.of("file://js.sys.dweb/create-process")
+                    Uri.of("file://js.browser.dweb/create-process")
                         .query("entry", metadata.server.entry).query("process_id", pid)
                 ).body(streamIpc.stream)
             ).stream()
@@ -108,9 +108,9 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 
         val streamIpc = createNativeStream()
         /**
-         * 拿到与js.sys.dweb模块的直连通道，它会将 Worker 中的数据带出来
+         * 拿到与js.browser.dweb模块的直连通道，它会将 Worker 中的数据带出来
          */
-        val (jsIpc) = bootstrapContext.dns.connect("js.sys.dweb")
+        val (jsIpc) = bootstrapContext.dns.connect("js.browser.dweb")
 
         // 监听关闭事件
         closeJsProcessSignal.listen {
@@ -207,7 +207,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                          * 向js模块发起连接
                          */
                         val portId = nativeFetch(
-                            Uri.of("file://js.sys.dweb/create-ipc").query("process_id", pid)
+                            Uri.of("file://js.browser.dweb/create-ipc").query("process_id", pid)
                                 .query("mmid", fromMmid)
                         ).int()
                         val originIpc = JmmIpc(portId, this@JsMicroModule)
@@ -250,7 +250,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     override suspend fun _shutdown() {
         debugJMM("closeJsProcessSignal emit", "$mmid/$metadata")
         /// 发送指令，关停js进程
-        nativeFetch("file://js.sys.dweb/close-process")
+        nativeFetch("file://js.browser.dweb/close-process")
         closeJsProcessSignal.emit()
         processId = null
     }
@@ -260,7 +260,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 //        onConnect { (clientIpc, reason) ->
 //            return@onConnect null
 ////            clientIpc.ro
-//            if (clientIpc.remote.mmid == "js.sys.dweb") {
+//            if (clientIpc.remote.mmid == "js.browser.dweb") {
 //                return@onConnect null
 //            }
 //
