@@ -1,5 +1,0 @@
-{
-    "imports": {
-        "dweb/": "./../../desktop-dev/src/"
-    }
-}

@@ -1,15 +1,17 @@
-const URL_BASE =
-  "document" in globalThis
-    ? document.baseURI
-    : "location" in globalThis &&
-      (location.protocol === "http:" ||
-        location.protocol === "https:" ||
-        location.protocol === "file:" ||
-        location.protocol === "chrome-extension:")
-    ? location.href
-    : "file:///";
+export const getBaseUrl = () =>
+  (URL_BASE ??=
+    "document" in globalThis
+      ? document.baseURI
+      : "location" in globalThis &&
+        (location.protocol === "http:" ||
+          location.protocol === "https:" ||
+          location.protocol === "file:" ||
+          location.protocol === "chrome-extension:")
+      ? location.href
+      : "file:///");
+let URL_BASE: undefined | string;
 
-export const parseUrl = (url: string | URL, base = URL_BASE) => {
+export const parseUrl = (url: string | URL, base = getBaseUrl()) => {
   return new URL(url, base);
 };
 

@@ -1,23 +1,23 @@
 import chalk from "chalk";
+import Electron from "electron";
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import { Ipc, IpcEvent, IpcRequest } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Schema1ToType } from "../../helper/types.ts";
+import { EVENT } from "../../user/tool/tool.event.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import {
-closeAppByIpc,
+  closeAppByIpc,
   closeFocusedWindow,
   openDownloadPage,
 } from "./multi-webview.mobile.handler.ts";
-import { EVENT, WebViewState } from "../../user/tool/tool.event.ts"
 import {
   deleteWapis,
   forceGetWapis,
   getAllWapis,
 } from "./mutil-webview.mobile.wapi.ts";
-import Electron from "electron"
 import { $AllWebviewState } from "./types.ts";
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
@@ -92,8 +92,8 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: closeAppByIpc.bind(this)
-    })
+      handler: closeAppByIpc.bind(this),
+    });
 
     /**
      * 关闭当前激活的window
@@ -165,20 +165,27 @@ export class MultiWebviewNMM extends NativeMicroModule {
     // 需要修改 通过 webview 需要 区分 ipc or window 来
     // 需要根据 ipc.uid 决定向那个 ipc 发送同步的数据
     // 需要需要包括 webview_id isActive statusbar 等状态
-    // 
-    Electron.ipcMain.on("sync:webview_state", (event: Electron.IpcMainEvent, uid: string, allWebviewState: $AllWebviewState) => {
-      const ipc = this._all_open_ipc.get(parseInt(uid));
-      if(ipc === undefined) throw new Error(`ipc === undefined`)
-      ipc.postMessage(
-        IpcEvent.fromText(
-          EVENT.State,
-          JSON.stringify(allWebviewState)
-        )
-      )
-    })
+    //
+    Electron.ipcMain.on(
+      "sync:webview_state",
+      (
+        event: Electron.IpcMainEvent,
+        uid: string,
+        allWebviewState: $AllWebviewState
+      ) => {
+        const ipc = this._all_open_ipc.get(parseInt(uid));
+        if (ipc === undefined) {
+          console.error(new Error(`ipc === undefined`));
+        } else {
+          ipc.postMessage(
+            IpcEvent.fromText(EVENT.State, JSON.stringify(allWebviewState))
+          );
+        }
+      }
+    );
   }
 
-  private _all_open_ipc = new Map<number, Ipc>()
+  private _all_open_ipc = new Map<number, Ipc>();
   /**
    * 打开 应用
    * 如果 是由 jsProcess 调用 会在当前的 browserWindow 打开一个新的 webview
@@ -190,11 +197,14 @@ export class MultiWebviewNMM extends NativeMicroModule {
     clientIpc: Ipc,
     _request: IpcRequest
   ) {
-    this._all_open_ipc.set(clientIpc.uid, clientIpc)
+    this._all_open_ipc.set(clientIpc.uid, clientIpc);
     clientIpc.onClose(() => {
-      this._all_open_ipc.delete(clientIpc.uid)
-    })
-    const wapis = await forceGetWapis(clientIpc, root_url+ `&uid=${clientIpc.uid}`);
+      this._all_open_ipc.delete(clientIpc.uid);
+    });
+    const wapis = await forceGetWapis(
+      clientIpc,
+      root_url + `&uid=${clientIpc.uid}`
+    );
     const webview_id = await wapis.apis.openWebview(args.url);
     return webview_id;
   }

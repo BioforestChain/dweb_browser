@@ -33,6 +33,7 @@ let downloadState = DOWNLOAD_STATUS.INIT; // -1 没有在下载 0 下载暂停�
 
 type $AppMetaData = import("../jmm.ts").$AppMetaData;
 let appInfo: $AppMetaData;
+let fromUrl: string;
 
 // 根据获取到的 appInfo 设置内容
 async function setAppInfoByAppInfo(
@@ -40,6 +41,7 @@ async function setAppInfoByAppInfo(
   metadataUrl: string
 ) {
   appInfo = typeof metadata === "object" ? metadata : JSON.parse(metadata);
+  fromUrl = metadataUrl;
   elIcon.style.backgroundImage = `url(${JSON.stringify(metadata.icon)})`;
   elMainTitle.innerHTML = appInfo.title;
   elMainExplain.innerHTML = appInfo.subtitle;
@@ -65,6 +67,13 @@ elBtnDownload.addEventListener("click", async (e) => {
     const api_origin = location.origin.replace("www.", "api.");
     const install_url = `${api_origin}/app/install`;
     console.log("fetch_url:", install_url);
+    /// 将下载链接进行补全
+    if (
+      (appInfo.bundleUrl.startsWith("http:") ||
+        appInfo.bundleUrl.startsWith("https:")) === false
+    ) {
+      appInfo.bundleUrl = new URL(appInfo.bundleUrl, fromUrl).href;
+    }
     const res = await fetch(install_url, {
       method: "POST",
       headers: {

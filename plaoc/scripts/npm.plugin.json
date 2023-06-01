@@ -1,9 +1,9 @@
 [
   {
-    "buildFromRootDir": "./src",
+    "buildFromRootDir": "./src/client",
     "mainExports": ".",
-    "buildToRootDir": "./build/plugin",
-    "name": "@bfex/plugin",
+    "buildToRootDir": "./build/client",
+    "name": "@dweb-browser/plaoc",
     "version": "1.3.0",
     "lib": [
       "es2021",

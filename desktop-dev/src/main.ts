@@ -103,7 +103,7 @@ dns.install(new JmmNMM());
 dns.install(
   new BootNMM([
     // "browser.sys.dweb",
-    dwebBrowser.mmid,
+    // dwebBrowser.mmid,
   ])
 );
 

@@ -10,6 +10,7 @@
     "pub": "deno run -A ./scripts/pub_npm.ts",
     "test": "deno test -A --unstable --no-check  ./test"
   },
+  "importMap": "import_map.json",
   "compilerOptions": {
     "allowJs": false,
     "strict": true,
@@ -19,7 +20,8 @@
     "rules": {
       "exclude": [
         "no-namespace",
-        "no-empty-interface"
+        "no-empty-interface",
+        "require-await"
       ]
     }
   },
