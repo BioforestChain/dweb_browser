@@ -46,21 +46,9 @@ export async function closeFocusedWindow(
   _clientIpc: Ipc,
   _request: IpcRequest
 ) {
-  console.log('关闭 window')
   deleteWapis((wapi) => {
     return wapi.nww.isFocused();
   });
-  return true;
-}
-
-export async function closeAppByIpc(
-  this: MicroModule,
-  _args: $Schema1ToType<{}>,
-  clientIpc: Ipc,
-  _request: IpcRequest
-){
-  const nww = await nwwGetFromMmid(clientIpc.remote.mmid)
-  nww?.close()
   return true;
 }
 

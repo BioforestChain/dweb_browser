@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.base.ExtensionResultContracts
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM.Companion.controllerMap
 import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.ServiceWorkerEvent
@@ -26,63 +25,6 @@ import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEv
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicInteger
-
-
-//open class PermissionActivity : BaseActivity() {
-//    companion object {
-//        private val requestPermissionsResultMap = mutableMapOf<Int, RequestPermissionsResult>()
-//        private var requestPermissionsCodeAcc = AtomicInteger(1);
-//    }
-//
-//    class RequestPermissionsResult(val code: Int) {
-//        val grants = mutableListOf<String>()
-//        val denied = mutableListOf<String>()
-//        private val task = PromiseOut<Unit>()
-//        fun done() {
-//            task.resolve(Unit)
-//        }
-//
-//        val isGranted get() = denied.size == 0
-//
-//        suspend fun waitPromise() = task.waitPromise()
-//    }
-//
-//    suspend fun requestPermissions(permissions: Array<String>): RequestPermissionsResult {
-//        val result = RequestPermissionsResult(requestPermissionsCodeAcc.getAndAdd(1))
-//
-//        if (permissions.isNotEmpty()) {
-//            requestPermissionsResultMap[result.code] = result
-//            runOnUiThread {
-//                ActivityCompat.requestPermissions(
-//                    this, permissions, result.code
-//                )
-//            }
-//        } else {
-//            result.done()
-//        }
-//
-//        result.waitPromise()
-//        return result
-//    }
-//
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//
-//        requestPermissionsResultMap.remove(requestCode)?.also { result ->
-//            grantResults.forEachIndexed { index, p ->
-//                if (p == PackageManager.PERMISSION_GRANTED) {
-//                    result.grants.add(permissions[index])
-//                } else {
-//                    result.denied.add(permissions[index])
-//                }
-//            }
-//            result.done()
-//        }
-//    }
-//}
 
 open class MultiWebViewActivity : BaseActivity() {
     private var remoteMmid by mutableStateOf("")
@@ -95,7 +37,7 @@ open class MultiWebViewActivity : BaseActivity() {
         controller = controllerMap[remoteMmid]?.also { controller ->
             controller.activity = this
             controller.onWebViewClose {
-                // 如果webview实例都销毁完了，那就关闭自己
+                // 如果webView实例都销毁完了，那就关闭自己
                 if (controller.lastViewOrNull == null) {
                     finish()
                 }
@@ -119,7 +61,6 @@ open class MultiWebViewActivity : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        controller?.destroyWebView()
         controllerMap.remove(remoteMmid)
     }
 

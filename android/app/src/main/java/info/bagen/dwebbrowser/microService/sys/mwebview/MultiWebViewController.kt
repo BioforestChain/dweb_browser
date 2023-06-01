@@ -1,8 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.mwebview
 
 import androidx.compose.runtime.*
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
@@ -12,12 +10,8 @@ import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.ipc.Ipc
 import info.bagen.dwebbrowser.microService.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.sys.nativeui.NativeUiController
-import info.bagen.dwebbrowser.microService.sys.nativeui.base.InsetsController
 import info.bagen.dwebbrowser.microService.webview.DWebView
-import info.bagen.dwebbrowser.util.IsChange
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import okhttp3.internal.notify
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -144,20 +138,29 @@ class MultiWebViewController(
     /**
      * 关闭WebView
      */
-    suspend fun closeWebView(webviewId: String) =
-        webViewList.find { it.webviewId == webviewId }?.let { viewItem ->
+    suspend fun closeWebView(webViewId: String) =
+        webViewList.find { it.webviewId == webViewId }?.let { viewItem ->
             webViewList.remove(viewItem)
             withContext(Dispatchers.Main) {
                 viewItem.webView.destroy()
             }
-            webViewCloseSignal.emit(webviewId)
+            webViewCloseSignal.emit(webViewId)
             return true
         } ?: false
 
     /**
      * 移除所有列表
      */
-    fun destroyWebView() = webViewList.clear()
+    suspend fun destroyWebView():Boolean {
+        webViewList.forEach { viewItem->
+            withContext(Dispatchers.Main) {
+                viewItem.webView.destroy()
+            }
+        }
+        webViewList.clear()
+        this.activity?.finish()
+        return true
+    }
 
     /**
      * 将指定WebView移动到顶部显示
@@ -168,9 +171,9 @@ class MultiWebViewController(
         webViewList.add(viewItem)
         return true
     }
-    private val currentState = JSONObject()
     private suspend fun updateStateHook() {
-        debugMultiWebView("updateStateHook =>", webViewList)
+        val currentState = JSONObject()
+        debugMultiWebView("updateStateHook =>", webViewList.size)
         webViewList.map {
             val viewItem = JSONObject()
             viewItem.put("webviewId",it.webviewId)

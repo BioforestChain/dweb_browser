@@ -62,6 +62,10 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.sys.dweb") {
 
                 closeDwebView(remoteMmid, webviewId)
             },
+            "close/window" bind Method.GET to defineHandler { request, ipc ->
+                val controller = controllerMap[ipc.remote.mmid] ?: return@defineHandler false;
+                controller.destroyWebView()
+            },
             // 界面没有关闭，用于重新唤醒
             "/activate" bind Method.GET to defineHandler { request, ipc ->
                 val remoteMmid = ipc.remote.mmid

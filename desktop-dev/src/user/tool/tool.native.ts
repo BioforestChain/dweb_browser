@@ -46,7 +46,7 @@ export const closeDwebView = async (webview_id: string) => {
  * */
 export const closeWindow = async() => {
   return await jsProcess.nativeFetch(
-    `file://mwebview.sys.dweb/close/app`
+    `file://mwebview.sys.dweb/close/window`
   ).boolean()
 }
 

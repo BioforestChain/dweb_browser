@@ -9,7 +9,6 @@ import { $Schema1ToType } from "../../helper/types.ts";
 import { EVENT } from "../../user/tool/tool.event.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import {
-  closeAppByIpc,
   closeFocusedWindow,
   openDownloadPage,
 } from "./multi-webview.mobile.handler.ts";
@@ -73,7 +72,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       handler: openDownloadPage.bind(this, root_url),
     });
 
-    // 关闭 ？？ 这个是关闭整个window  还是关闭一个 webview 标签
     // 用来关闭webview标签
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
@@ -86,22 +84,16 @@ export class MultiWebviewNMM extends NativeMicroModule {
       },
     });
 
-    /** 关闭window */
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/close/app",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: closeAppByIpc.bind(this),
-    });
-
     /**
      * 关闭当前激活的window
+     * ps: 在桌面端中，每个app的前端页面承载的对象是window,在android则是activity，
+     * 每个app都有个单独的service,我们承载在worker里面，这里是只关闭app的前端页面，也即关闭window
+     * 每个app只能关闭自己的window
      */
     this.registerCommonIpcOnMessageHandler({
-      pathname: "/close/focused_window",
+      pathname: "/close/window",
       matchMode: "full",
-      input: { mmid: "mmid" },
+      input: { },
       output: "boolean",
       handler: closeFocusedWindow.bind(this),
     });

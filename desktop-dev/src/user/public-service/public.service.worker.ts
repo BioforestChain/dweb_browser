@@ -1,12 +1,17 @@
 import type { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { closeApp, closeFront, webViewMap } from "../tool/app.handle.ts";
-import { cros, nativeActivate, nativeOpen } from "../tool/tool.native.ts";
-import { $Ipc, fetchSignal, onApiRequest } from "../tool/tool.request.ts";
+import { webViewMap } from "../tool/app.handle.ts";
+import {
+  closeWindow,
+  cros,
+  nativeActivate,
+  nativeOpen,
+} from "../tool/tool.native.ts";
+import { fetchSignal, onApiRequest } from "../tool/tool.request.ts";
 
 const main = async () => {
-  const { http,jsProcess} = navigator.dweb;
-  const { IpcEvent,IpcResponse } = navigator.dweb.ipc;
+  const { http, jsProcess } = navigator.dweb;
+  const { IpcEvent, IpcResponse } = navigator.dweb.ipc;
   // 启动主页面的地址
   const mainUrl = new PromiseOut<string>();
   const EXTERNAL_PREFIX = "/external/";
@@ -20,7 +25,7 @@ const main = async () => {
       webViewMap.set(view_id, {
         isActivated: true,
         webviewId: view_id,
-        url: url
+        url: url,
       });
       return view_id;
     }
@@ -162,17 +167,19 @@ const main = async () => {
   // 转发serviceWorker 请求
   const serviceWorkerFactory = async (url: URL) => {
     const pathname = url.pathname;
-    // 关闭前端
+    // 关闭前端 不关闭 service
     if (pathname.endsWith("close")) {
-      return await closeFront();
+      await closeWindow();
+      return "window close"
     }
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
-     await closeApp(
-        [apiServer, wwwServer, externalServer]
-      );
+      // 关闭全部的服务
+      await apiServer.close();
+      await wwwServer.close();
+      await externalServer.close();
       // 关闭所有的DwebView
-      await closeFront();
+      await closeWindow();
       // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
       jsProcess.restart();
 
@@ -184,18 +191,10 @@ const main = async () => {
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
-    if (hasActivityEventIpcs.has(ipc) === false) {
-      hasActivityEventIpcs.add(ipc);
-    }
   });
-  const hasActivityEventIpcs = new Set<$Ipc>();
-  jsProcess.onClose((_event, ipc) => {
+  jsProcess.onClose((_event) => {
     // 接收JMM更新程序的关闭消息（安装完新的app需要重启应用）
-    if (ipc.remote.mmid === "jmm.sys.dweb") {
-      return closeApp(
-        [apiServer, wwwServer, externalServer]
-      );
-    }
+    closeWindow();
   });
   const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
     url.pathname = "/index.html";
