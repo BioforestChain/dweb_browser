@@ -187,7 +187,6 @@ export class JsProcessMicroModule implements $MicroModule {
     const ipc = await this.connect(hostName as $MMID);
     const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
     const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
-    console.log("ipc_response=>", args.parsed_url.href);
     return ipc_response.toResponse(args.parsed_url.href);
   }
 

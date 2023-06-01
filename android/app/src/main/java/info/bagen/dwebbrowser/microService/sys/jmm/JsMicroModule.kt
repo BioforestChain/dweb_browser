@@ -116,6 +116,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         closeJsProcessSignal.listen {
             streamIpc.close()
             jsIpc.close()
+            fromMmid_originIpc_WM.clear()
         }
 
         /**

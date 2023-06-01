@@ -37,7 +37,7 @@ const main = async () => {
     subdomain: "www",
     port: 443,
   });
-  console.log("🇨🇳 wwwServer=>",wwwServer.startResult.urlInfo.internal_origin)
+
   /**给前端的api服务 */
   const apiServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "api",
@@ -167,11 +167,11 @@ const main = async () => {
     }
     // 重启app，伴随着前后端重启
     if (pathname.endsWith("restart")) {
-      // 关闭所有的DwebView
-      await closeFront();
-      closeApp(
+     await closeApp(
         [apiServer, wwwServer, externalServer]
       );
+      // 关闭所有的DwebView
+      await closeFront();
       // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
       jsProcess.restart();
 
