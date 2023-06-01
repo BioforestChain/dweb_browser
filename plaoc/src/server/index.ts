@@ -1,9 +1,5 @@
 import { IpcResponse, PromiseOut } from "./deps.ts";
-import {
-  closeWindow,
-  cros,
-  nativeOpen,
-} from "./tool/tool.native.ts";
+import { closeWindow, cros, nativeOpen } from "./tool/tool.native.ts";
 import { fetchSignal, onApiRequest } from "./tool/tool.request.ts";
 
 const main = async () => {
@@ -162,21 +158,21 @@ const main = async () => {
     // woker.js -> dns -> JsMicroModule -> woker.js -> 其他的 NativeMicroModule
 
     if (pathname.endsWith("restart")) {
-       // 关闭全部的服务
-       await apiServer.close();
-       await wwwServer.close();
-       await externalServer.close();
-       // 关闭所有的DwebView
-       await closeWindow();
-       // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-       jsProcess.restart();
+      // 关闭全部的服务
+      await apiServer.close();
+      await wwwServer.close();
+      await externalServer.close();
+      // 关闭所有的DwebView
+      await closeWindow();
+      // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
+      jsProcess.restart();
       return "restart ok";
     }
 
     // 只关闭 渲染一个渲染进程 不关闭 service
     if (pathname.endsWith("close")) {
       await closeWindow();
-      return "window close"
+      return "window close";
     }
     return "no action for serviceWorker Factory !!!";
   };

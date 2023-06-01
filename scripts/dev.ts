@@ -5,6 +5,11 @@ export const devTasks = new ConTasks({
     args: "task assets --dev",
     cwd: "./desktop-dev",
   },
+  "plaoc:server": {
+    cmd: "deno",
+    args: "task build:watch:server",
+    cwd: "./plaoc",
+  },
   "plaoc:demo": {
     cmd: "deno",
     args: "task build:watch:demo",

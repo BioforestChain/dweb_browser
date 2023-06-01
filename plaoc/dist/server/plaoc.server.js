@@ -2,47 +2,13 @@ var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __decorateClass = (decorators, target, key, kind) => {
   var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
-  for (var i2 = decorators.length - 1, decorator; i2 >= 0; i2--)
-    if (decorator = decorators[i2])
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
       result = (kind ? decorator(target, key, result) : decorator(result)) || result;
   if (kind && result)
     __defProp(target, key, result);
   return result;
 };
-
-// https://esm.sh/v124/deep-object-diff@1.1.9/deno/deep-object-diff.mjs
-var u = (t) => t instanceof Date;
-var m = (t) => Object.keys(t).length === 0;
-var i = (t) => t != null && typeof t == "object";
-var n = (t, ...e) => Object.prototype.hasOwnProperty.call(t, ...e);
-var d = (t) => i(t) && m(t);
-var p = () => /* @__PURE__ */ Object.create(null);
-var D = (t, e) => t === e || !i(t) || !i(e) ? {} : Object.keys(e).reduce((o, r) => {
-  if (n(t, r)) {
-    let f = D(t[r], e[r]);
-    return i(f) && m(f) || (o[r] = f), o;
-  }
-  return o[r] = e[r], o;
-}, p());
-var a = D;
-var x = (t, e) => t === e || !i(t) || !i(e) ? {} : Object.keys(t).reduce((o, r) => {
-  if (n(e, r)) {
-    let f = x(t[r], e[r]);
-    return i(f) && m(f) || (o[r] = f), o;
-  }
-  return o[r] = void 0, o;
-}, p());
-var b = x;
-var P = (t, e) => t === e ? {} : !i(t) || !i(e) ? e : u(t) || u(e) ? t.valueOf() == e.valueOf() ? {} : e : Object.keys(e).reduce((o, r) => {
-  if (n(t, r)) {
-    let f = P(t[r], e[r]);
-    return d(f) && !u(f) && (d(t[r]) || !d(e[r])) || (o[r] = f), o;
-  }
-  return o;
-}, p());
-var j = P;
-var E = (t, e) => ({ added: a(t, e), deleted: b(t, e), updated: j(t, e) });
-var W = E;
 
 // https://deno.land/std@0.184.0/flags/mod.ts
 var { hasOwn } = Object;
@@ -78,8 +44,8 @@ var simpleEncoder = (data, encoding) => {
   if (encoding === "base64") {
     const byteCharacters = atob(data);
     const binary = new Uint8Array(byteCharacters.length);
-    for (let i2 = 0; i2 < byteCharacters.length; i2++) {
-      binary[i2] = byteCharacters.charCodeAt(i2);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      binary[i] = byteCharacters.charCodeAt(i);
     }
     return binary;
   }
@@ -528,7 +494,7 @@ var AdaptersManager = class {
     this.orderdAdapters = [];
   }
   _reorder() {
-    this.orderdAdapters = [...this.adapterOrderMap].sort((a2, b2) => b2[1] - a2[1]).map((a2) => a2[0]);
+    this.orderdAdapters = [...this.adapterOrderMap].sort((a, b) => b[1] - a[1]).map((a) => a[0]);
   }
   get adapters() {
     return this.orderdAdapters;
@@ -1710,50 +1676,8 @@ var { jsProcess } = navigator.dweb;
 var nativeOpen = async (url) => {
   return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`).text();
 };
-var nativeActivate = async (webview_id) => {
-  return await jsProcess.nativeFetch(
-    `file://mwebview.browser.dweb/activate?webview_id=${encodeURIComponent(
-      webview_id
-    )}`
-  ).text();
-};
-var closeDwebView = async (webview_id) => {
-  return await jsProcess.nativeFetch(
-    `file://mwebview.browser.dweb/close?webview_id=${encodeURIComponent(
-      webview_id
-    )}`
-  ).text();
-};
 var closeWindow = async () => {
   return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
-};
-
-// src/server/tool/app.handle.ts
-var webViewMap = /* @__PURE__ */ new Map();
-var oldWebviewState = [];
-navigator.dweb.jsProcess.onDwebViewState((event, ipc2) => {
-  if (event.name === "state" /* State */ && typeof event.data === "string") {
-    const newState = JSON.parse(event.data);
-    const diff = W(oldWebviewState, newState);
-    oldWebviewState = newState;
-    diffFactory(diff);
-  }
-});
-var diffFactory = async (diff) => {
-  for (const id in diff.added) {
-    webViewMap.set(id, JSON.parse(diff.added[id]));
-  }
-  for (const id in diff.deleted) {
-    webViewMap.delete(id);
-    await closeDwebView(id);
-  }
-  for (const id in diff.updated) {
-    webViewMap.set(
-      id,
-      JSON.parse(diff.updated[id])
-    );
-    await nativeActivate(id);
-  }
 };
 
 // src/server/tool/tool.request.ts
@@ -1901,9 +1825,6 @@ var main = async () => {
   const { jsProcess: jsProcess3, ipc: ipc2, http } = navigator.dweb;
   const { IpcEvent: IpcEvent2 } = ipc2;
   const mainUrl = new PromiseOut();
-  let oldWebviewState2 = {};
-  const multiWebViewIpc = await jsProcess3.connect("mwebview.browser.dweb");
-  const multiWebViewCloseSignal = createSignal();
   const EXTERNAL_PREFIX = "/external/";
   const { IpcResponse: IpcResponse3 } = ipc2;
   const externalMap = /* @__PURE__ */ new Map();
@@ -1931,7 +1852,7 @@ var main = async () => {
   apiReadableStreamIpc.onRequest(async (request, ipc3) => {
     const url = request.parsed_url;
     if (url.pathname.startsWith("/dns.sys.dweb")) {
-      const result = await serviceWorkerFactory(url, ipc3);
+      const result = await serviceWorkerFactory(url);
       const ipcResponse = IpcResponse3.fromText(
         request.req_id,
         200,
@@ -2014,23 +1935,19 @@ var main = async () => {
       ipc3.postMessage(ipcResponse);
     }
   });
-  const serviceWorkerFactory = async (url, ipc3) => {
+  const serviceWorkerFactory = async (url) => {
     const pathname = url.pathname;
     if (pathname.endsWith("restart")) {
       await apiServer.close();
       await wwwServer.close();
       await externalServer.close();
-      apiReadableStreamIpc.close();
-      wwwReadableStreamIpc.close();
-      externalReadableStreamIpc.close();
-      jsProcess3.nativeFetch(
-        `file://dns.sys.dweb/restart?app_id=${jsProcess3.mmid}`
-      );
+      await closeWindow();
+      jsProcess3.restart();
       return "restart ok";
     }
     if (pathname.endsWith("close")) {
-      closeWindow();
-      return `result ok`;
+      await closeWindow();
+      return "window close";
     }
     return "no action for serviceWorker Factory !!!";
   };
@@ -2039,38 +1956,9 @@ var main = async () => {
     await tryOpenView();
     ipc3.postMessage(IpcEvent2.fromText("ready", "activity"));
   });
-  const hasActivityEventIpcs = /* @__PURE__ */ new Set();
   jsProcess3.onClose(() => {
     closeWindow();
   });
-  multiWebViewIpc.onEvent((event, ipc3) => {
-    if (event.name === "state" /* State */ && typeof event.data === "string") {
-      const newState = JSON.parse(event.data);
-      const diff = W(oldWebviewState2, newState);
-      oldWebviewState2 = newState;
-      diffFactory2(diff);
-    }
-    multiWebViewCloseSignal.listen(() => {
-      ipc3.postMessage(IpcEvent2.fromText("close", ""));
-      ipc3.close();
-    });
-  });
-  const diffFactory2 = async (diff) => {
-    for (const id in diff.added) {
-      webViewMap.set(id, JSON.parse(diff.added[id]));
-    }
-    for (const id in diff.deleted) {
-      webViewMap.delete(id);
-      await closeDwebView(id);
-    }
-    for (const id in diff.updated) {
-      webViewMap.set(
-        id,
-        JSON.parse(diff.updated[id])
-      );
-      await nativeActivate(id);
-    }
-  };
   const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
     url.pathname = "/index.html";
   });

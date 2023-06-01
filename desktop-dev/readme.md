@@ -7,3 +7,5 @@
   已经做了 source-map 的映射，可以在 deno 代码中直接打断点进行调试（比如使用 vscode）
 - `deno task pkg`
   打包 electron 应用
+- `deno task plaoc serve ./DIR_OR_URL`
+  将制定目录或者链接作为应用启动

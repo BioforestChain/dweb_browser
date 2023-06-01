@@ -6,6 +6,8 @@ export const esbuilder = new ESBuild({
   outfile: fileURLToPath(import.meta.resolve("../dist/server/plaoc.server.js")),
   bundle: true,
   format: "esm",
+  denoLoader: true,
+  importMapURL: import.meta.resolve("../import_map.json"),
 });
 
 if (import.meta.main) {

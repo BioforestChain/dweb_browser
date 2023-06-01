@@ -15,7 +15,6 @@ export const esbuilder = new ESBuild({
   bundle: true,
   format: "esm",
   target: "es2020",
-  importMapURL: import.meta.resolve("../import_map.json"),
 });
 
 if (import.meta.main) {

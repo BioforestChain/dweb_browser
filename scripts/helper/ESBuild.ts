@@ -2,6 +2,7 @@ import chalk from "npm:chalk";
 import { esbuild, esbuild_deno_loader } from "../deps.ts";
 
 export type $BuildOptions = esbuild.BuildOptions & {
+  denoLoader?: boolean;
   importMapURL?: string;
   signal?: AbortSignal;
 };
@@ -13,25 +14,28 @@ export class ESBuild {
     for (const options of optionsList) {
       Object.assign(esbuildOptions, options);
     }
-    esbuildOptions.plugins = [
-      ...(esbuildOptions.plugins || []),
-      // ESBuild plugin to rewrite import starting "npm:" to "esm.sh" for https plugin
-      {
-        name: "the-npm-plugin",
-        setup(build: any) {
-          build.onResolve({ filter: /^npm:/ }, (args: any) => {
-            return {
-              path: args.path.replace(/^npm:/, "//esm.sh/"),
-              namespace: "https",
-            };
-          });
+    esbuildOptions.plugins ??= [];
+    if (esbuildOptions.denoLoader) {
+      esbuildOptions.plugins!.push(
+        // ESBuild plugin to rewrite import starting "npm:" to "esm.sh" for https plugin
+        {
+          name: "the-npm-plugin",
+          setup(build: any) {
+            build.onResolve({ filter: /^npm:/ }, (args: any) => {
+              return {
+                path: args.path.replace(/^npm:/, "//esm.sh/"),
+                namespace: "https",
+              };
+            });
+          },
         },
-      },
-      ...esbuild_deno_loader.denoPlugins({
-        importMapURL: this.options.importMapURL,
-      }),
-    ];
-    for (const key of ["importMapURL", "signal"] as const) {
+        ...esbuild_deno_loader.denoPlugins({
+          importMapURL: this.options.importMapURL,
+        })
+      );
+    }
+
+    for (const key of ["importMapURL", "signal", "denoLoader"] as const) {
       delete esbuildOptions[key];
     }
     return esbuildOptions as esbuild.BuildOptions &

@@ -77,6 +77,7 @@ export abstract class NativeMicroModule extends MicroModule {
                 );
               }
             } catch (err) {
+              console.error("IPC-REQ-ERR:", err);
               let body: string;
               if (err instanceof Error) {
                 body = err.stack ?? err.message;
