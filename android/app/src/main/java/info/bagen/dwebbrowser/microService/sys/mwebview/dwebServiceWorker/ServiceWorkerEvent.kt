@@ -32,14 +32,12 @@ suspend fun emitEvent(mmid: Mmid, eventName: String, data: String = ""): Boolean
     if (eventName == DownloadControllerEvent.Progress.event) {
         payload = data
     }
-
     /// 尝试去触发客户端的监听，如果客户端有监听的话
     withContext(mainAsyncExceptionHandler) {
         controller.lastViewOrNull?.webView?.evaluateAsyncJavascriptCode(
             """
             new Promise((resolve,reject)=>{
                 try{
-                    console.log("eventName=>",$eventName)
                     const listeners = $DWEB_SERVICE_WORKER._listeners["$eventName"];
                     if (listeners.length !== 0) {
                       listeners.forEach(listener => listener($payload));

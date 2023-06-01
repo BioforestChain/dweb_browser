@@ -3,11 +3,10 @@ import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
 import {
-  IPC_MESSAGE_TYPE,
   IPC_ROLE,
   Ipc,
   IpcRequest,
-  IpcResponse,
+  IpcResponse
 } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $ReqMatcher, $isMatchReq } from "../../helper/$ReqMatcher.ts";
@@ -19,7 +18,6 @@ import type { $PromiseMaybe } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 
-// @ts-ignore
 type $APIS = typeof import("./assets/js-process.web.ts")["APIS"];
 
 class ImportLinker {
