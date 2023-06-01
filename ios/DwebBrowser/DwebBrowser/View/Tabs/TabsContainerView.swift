@@ -14,8 +14,8 @@ struct TabsContainerView: View{
     @EnvironmentObject var tabState: TabState
     
     @State var cellFrames: [CGRect] = [.zero]
-    @State private var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
-    
+    @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
+
     @StateObject var animation = Animation()
     
     private var selectedCellFrame: CGRect {
@@ -50,6 +50,8 @@ struct TabsContainerView: View{
                 }
                 if animation.progress.isAnimating(){
                     animationImage
+//                        .transition(.slide)
+                        
                 }
             }
             .onAppear{
@@ -64,7 +66,7 @@ struct TabsContainerView: View{
                     animation.progress = .startExpanding
                 }
                 
-                withAnimation(.easeInOut(duration: shiftingDuration),{
+                withAnimation(.easeInOut,{
                     gridScale = shouldShowGrid ? 1 : 0.8
                 })
             })
@@ -79,12 +81,13 @@ struct TabsContainerView: View{
             .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
             .clipped()
             .position(x: imageXcenter(),y: imageYcenter())
+//            .opacity(animation.progress == .invisible ? 0:1)
             .onReceive(animation.$progress, perform: { progress in
                 if progress == .startShrinking || progress == .startExpanding{
-                    withAnimation(.easeInOut(duration: shiftingDuration)) {
+                    withAnimation(.easeInOut){
                         animation.progress = progress.next() // change to expanded or shrinked
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + shiftingDuration + 0.05) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                         animation.progress = .invisible // change to expanded or shrinked
                     }
                 }
@@ -130,6 +133,7 @@ struct TabsContainerView: View{
             return selectedCellFrame.height
         }
     }
+    
 }
 
 struct WebHScrollView: View{

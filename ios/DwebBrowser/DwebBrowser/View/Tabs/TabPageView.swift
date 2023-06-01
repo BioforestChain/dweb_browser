@@ -13,11 +13,11 @@ struct TabPageView: View {
     @ObservedObject var webCache: WebCache
     @ObservedObject var webWrapper: WebWrapper
     @ObservedObject var tabState: TabState
-
+    
     @EnvironmentObject var browser: BrowerVM
-//    @EnvironmentObject var animation: Animation
+    //    @EnvironmentObject var animation: Animation
     @ObservedObject var animation: Animation
-
+    
     @State var homeview = HomeView()
     @State var hasTook = false
     var  body: some View {
@@ -39,12 +39,9 @@ struct TabPageView: View {
                                 .frame(width: 32, height: 32)
                         }.disabled(!webWrapper.canGoForward)
                     })
-//                    .background(.red)
+                    .background(.gray)
             }
-            .onAppear {
-                print("webWrapper.webView ---- \(webWrapper.webView)")
-                
-            }
+            
             .onChange(of: webWrapper.canGoBack, perform: { canGoBack in
                 if let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper), index == browser.selectedTabIndex{
                     tabState.canGoBack = canGoBack
@@ -55,7 +52,7 @@ struct TabPageView: View {
                     tabState.canGoForward = canGoForward
                 }
             })
-
+            
             .onChange(of: webWrapper.estimatedProgress){ newValue in
                 if newValue >= 1.0{
                     WebCacheMgr.shared.saveCaches()
@@ -63,7 +60,7 @@ struct TabPageView: View {
             }
             
             .onChange(of: webWrapper.title!) { title in
-                    webCache.title = title
+                webCache.title = title
             }
             .onChange(of: webWrapper.url) { visitingUrl in
                 if let url = visitingUrl{
@@ -76,10 +73,17 @@ struct TabPageView: View {
                     let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
                     if index == browser.selectedTabIndex{
                         if let image = self.environmentObject(browser).snapshot(){
-                        print(image)
+                            print(image)
+                            let scale = image.scale
+                            let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: 788.666 * scale)
+                            if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
+                                let croppedImage = UIImage(cgImage: croppedCGImage)
+                                // do something with croppedImage
+                                animation.snapshotImage = croppedImage
+                            }
                             hasTook = true  //avoid a dead runloop
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: webCache.id.uuidString)
-                            animation.snapshotImage = image
+                            //                            animation.snapshotImage = image
                             animation.progress = .startShrinking
                             DispatchQueue.main.asyncAfter(deadline: .now()+0.1){hasTook = false} // reset the state var once this time animation
                         }

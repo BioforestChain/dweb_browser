@@ -8,7 +8,7 @@
 import Foundation
 
 let fadingDuration = 0.01
-var shiftingDuration: CGFloat = 0.5
+//var shiftingDuration: CGFloat = 0.3
 
 enum AnimationProgress: Int{
     case initial

@@ -31,7 +31,7 @@ struct TabGridView: View {
     @State var frames: [CellFrameInfo] = []
     
     @Binding var cellFrames: [CGRect]
-  
+    
     var body: some View {
         
         GeometryReader { geo in

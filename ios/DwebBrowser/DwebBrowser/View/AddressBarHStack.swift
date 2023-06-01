@@ -25,6 +25,7 @@ struct AddressBarHStack: View {
 //            }
 //            .offset(x: xoffset.offset)
             .frame(height: tabState.addressBarHeight)
+            .animation(.easeInOut, value: tabState.addressBarHeight)
     }
 }
 
@@ -79,7 +80,7 @@ struct AddressBar: View {
                 
                 TextField("", text: $addressBar.inputText)
                     .placeholder(when: addressBar.inputText.isEmpty) {
-                        Text("请输入搜索内容").foregroundColor(Color(white: 0.8))
+                        Text(webWrapper.title!).foregroundColor(Color(white: 0.8))
                     }
                     .background(Color(.darkGray))
                     .foregroundColor(.white)
