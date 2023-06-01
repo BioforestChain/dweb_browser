@@ -4,11 +4,13 @@ import { simpleEncoder } from "../../helper/encoding.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
+import { $MMID } from "../../helper/types.ts";
 import type { ServerUrlInfo } from "../../sys/http-server/const.ts";
 import { OBSERVE } from "./tool.event.ts";
 import { cros } from "./tool.native.ts";
 
-const { IpcResponse, Ipc, IpcRequest, IpcBodySender } = ipc;
+const { jsProcess } = navigator.dweb;
+const { IpcResponse, Ipc, IpcRequest } = navigator.dweb.ipc;
 type $IpcResponse = InstanceType<typeof IpcResponse>;
 export type $Ipc = InstanceType<typeof Ipc>;
 type $IpcRequest = InstanceType<typeof IpcRequest>;

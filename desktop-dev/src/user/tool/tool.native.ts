@@ -10,6 +10,7 @@ export const cros = (headers: $IpcHeaders) => {
   // headers.init("Transfer-Encoding", "chunked");
   return headers;
 };
+const jsProcess = navigator.dweb.jsProcess;
 
 /**开启新页面 */
 export const nativeOpen = async (url: string) => {

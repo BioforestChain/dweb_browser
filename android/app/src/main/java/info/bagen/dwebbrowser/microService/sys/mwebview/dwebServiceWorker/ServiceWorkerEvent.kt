@@ -39,6 +39,7 @@ suspend fun emitEvent(mmid: Mmid, eventName: String, data: String = ""): Boolean
             """
             new Promise((resolve,reject)=>{
                 try{
+                    console.log("eventName=>",$eventName)
                     const listeners = $DWEB_SERVICE_WORKER._listeners["$eventName"];
                     if (listeners.length !== 0) {
                       listeners.forEach(listener => listener($payload));

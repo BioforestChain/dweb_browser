@@ -40,7 +40,7 @@ export const closeFront = (): Promise<string> => {
 };
 
 /// 同步 mwebview 的状态机
-jsProcess.onDwebViewState((event, ipc) => {
+navigator.dweb.jsProcess.onDwebViewState((event, ipc) => {
   if (event.name === EVENT.State && typeof event.data === "string") {
     const newState = JSON.parse(event.data);
     const diff = detailedDiff(oldWebviewState, newState);

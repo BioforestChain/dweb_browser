@@ -5,7 +5,8 @@ import { cros, nativeActivate, nativeOpen } from "../tool/tool.native.ts";
 import { $Ipc, fetchSignal, onApiRequest } from "../tool/tool.request.ts";
 
 const main = async () => {
-  const { IpcEvent } = ipc;
+  const { http,jsProcess} = navigator.dweb;
+  const { IpcEvent,IpcResponse } = navigator.dweb.ipc;
   // 启动主页面的地址
   const mainUrl = new PromiseOut<string>();
   const EXTERNAL_PREFIX = "/external/";
@@ -31,7 +32,6 @@ const main = async () => {
     );
   };
 
-  const { IpcResponse } = ipc;
   /**给前端的文件服务 */
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
     subdomain: "www",

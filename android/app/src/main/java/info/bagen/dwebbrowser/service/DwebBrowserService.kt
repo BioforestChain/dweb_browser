@@ -223,7 +223,7 @@ class DwebBrowserService : Service() {
   }
 
   private fun sendStatusToEmitEvent(mmid: Mmid, eventName: String, data: String = "") {
-    debugJMM("sendStatusToEmitEvent=>","mmid=>$mmid eventName=>$eventName data=>$data")
+//    debugJMM("sendStatusToEmitEvent=>","mmid=>$mmid eventName=>$eventName data=>$data")
     runBlockingCatching(ioAsyncExceptionHandler) {
       emitEvent(mmid, eventName, data) // 通知前台，下载进度
     }
