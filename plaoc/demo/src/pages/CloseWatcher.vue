@@ -2,16 +2,22 @@
 import { onMounted, ref } from "vue";
 import { CloseWatcher } from "../plugin";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
+import dialogPolyfill from "dialog-polyfill";
 
 const title = "Close Watcher";
 const $logPanel = ref<typeof LogPanel>();
 const $dialogEle = ref<HTMLDialogElement>();
+const showModal = ref(false);
 
 let console: Console;
 let dialogEle: HTMLDialogElement;
 onMounted(() => {
   console = toConsole($logPanel);
   dialogEle = $dialogEle.value!;
+
+  if (!(dialogEle.showModal instanceof Function)) {
+    dialogPolyfill.registerDialog(dialogEle);
+  }
 });
 
 const openDialog = () => {
@@ -19,10 +25,12 @@ const openDialog = () => {
     return;
   }
   dialogEle.showModal();
+  showModal.value = true;
   const closer = new CloseWatcher();
   closer.addEventListener("close", (event) => {
     console.log("CloseWatcher close", event.isTrusted, event.timeStamp);
     dialogEle.close();
+    showModal.value = false;
   });
   dialogEle.onclose = (event) => {
     console.log("DialogEle close", event.isTrusted, event.timeStamp);
@@ -46,7 +54,7 @@ const closeDialog = () => {
     <article class="card-body">
       <h2 class="card-title">Close Watcher</h2>
       <dialog ref="$dialogEle">
-        <div class="modal modal-open">
+        <div class="modal" :class="{'modal-open': showModal}">
           <div class="modal-box">
             <h3 class="text-lg font-bold">Dialog</h3>
             <p class="py-4">Hi</p>

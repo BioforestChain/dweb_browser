@@ -126,6 +126,9 @@ importers:
       daisyui:
         specifier: ^2.51.6
         version: 2.51.6(autoprefixer@10.4.14)(postcss@8.4.23)
+      dialog-polyfill:
+        specifier: ^0.5.6
+        version: 0.5.6
       postcss:
         specifier: ^8.4.23
         version: 8.4.23
@@ -1210,6 +1213,10 @@ packages:
   /deep-object-diff@1.1.9:
     resolution: {integrity: sha512-Rn+RuwkmkDwCi2/oXOFS9Gsr5lJZu/yTGpK7wAaAIE75CC+LCGEZHpY6VQJa/RoJcrmaA/docWJZvYohlNkWPA==}
     dev: false
+
+  /dialog-polyfill@0.5.6:
+    resolution: {integrity: sha512-ZbVDJI9uvxPAKze6z146rmfUZjBqNEwcnFTVamQzXH+svluiV7swmVIGr7miwADgfgt1G2JQIytypM9fbyhX4w==}
+    dev: true
 
   /didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
