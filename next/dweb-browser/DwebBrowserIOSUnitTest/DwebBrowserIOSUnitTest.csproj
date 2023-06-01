@@ -19,7 +19,6 @@
     <ProjectReference Include="..\src\DwebBrowser.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Resources\Assets\" />
     <None Remove="Resources\Assets\bundle\" />
     <None Remove="Resources\Assets\bundle\jmm\" />
     <None Remove="Resources\Assets\bundle\js-process\" />
@@ -27,7 +26,6 @@
     <None Remove="Tests\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\Assets\" />
     <Folder Include="Resources\Assets\bundle\" />
     <Folder Include="Resources\Assets\bundle\jmm\" />
     <Folder Include="Resources\Assets\bundle\js-process\" />
