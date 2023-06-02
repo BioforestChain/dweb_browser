@@ -1,15 +1,17 @@
-import { IpcResponse, PromiseOut } from "./deps.ts";
-import { closeWindow, cros, nativeOpen } from "./tool/tool.native.ts";
+import { IpcEvent, IpcResponse, PromiseOut } from "./deps.ts";
+import {
+  closeWindow,
+  cros,
+  nativeOpen,
+} from "./tool/tool.native.ts";
 import { fetchSignal, onApiRequest } from "./tool/tool.request.ts";
 
 const main = async () => {
-  const { jsProcess, ipc, http } = navigator.dweb;
-  const { IpcEvent } = ipc;
+  const { jsProcess, http } = navigator.dweb;
   // 启动主页面的地址
   const mainUrl = new PromiseOut<string>();
   // 关闭信号
   const EXTERNAL_PREFIX = "/external/";
-  const { IpcResponse } = ipc;
   const externalMap = new Map<number, PromiseOut<IpcResponse>>();
 
   /**尝试打开view */

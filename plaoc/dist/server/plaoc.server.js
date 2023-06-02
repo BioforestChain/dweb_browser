@@ -1278,6 +1278,13 @@ var getStreamId = (stream) => {
   }
   return id;
 };
+var setStreamId = (stream, cid) => {
+  let id = streamIdWM.get(stream);
+  if (id === void 0) {
+    streamIdWM.set(stream, id = `rs-${stream_id_acc++}[${cid}]`);
+  }
+  return id;
+};
 var UsableIpcBodyMapper = class {
   constructor() {
     this.map = /* @__PURE__ */ new Map();
@@ -1647,6 +1654,124 @@ __decorateClass([
   cacheGetter()
 ], IpcEvent.prototype, "jsonAble", 1);
 
+// ../desktop-dev/src/core/ipc/IpcResponse.ts
+var IpcResponse = class extends IpcMessage {
+  constructor(req_id, statusCode, headers, body, ipc2) {
+    super(1 /* RESPONSE */);
+    this.req_id = req_id;
+    this.statusCode = statusCode;
+    this.headers = headers;
+    this.body = body;
+    this.ipc = ipc2;
+    this.ipcResMessage = once(
+      () => new IpcResMessage(
+        this.req_id,
+        this.statusCode,
+        this.headers.toJSON(),
+        this.body.metaBody
+      )
+    );
+    if (body instanceof IpcBodySender) {
+      IpcBodySender.$usableByIpc(ipc2, body);
+    }
+  }
+  #ipcHeaders;
+  get ipcHeaders() {
+    return this.#ipcHeaders ??= new IpcHeaders(this.headers);
+  }
+  toResponse(url) {
+    const body = this.body.raw;
+    if (body instanceof Uint8Array) {
+      this.headers.init("Content-Length", body.length + "");
+    }
+    const response = new Response(body, {
+      headers: this.headers,
+      status: this.statusCode
+    });
+    if (url) {
+      Object.defineProperty(response, "url", {
+        value: url,
+        enumerable: true,
+        configurable: true,
+        writable: false
+      });
+    }
+    return response;
+  }
+  /** 将 response 对象进行转码变成 ipcResponse */
+  static async fromResponse(req_id, response, ipc2, asBinary = false) {
+    if (response.bodyUsed) {
+      throw new Error("body used");
+    }
+    let ipcBody;
+    if (asBinary || response.body == void 0) {
+      ipcBody = IpcBodySender.fromBinary(
+        binaryToU8a(await response.arrayBuffer()),
+        ipc2
+      );
+    } else {
+      setStreamId(response.body, response.url);
+      ipcBody = IpcBodySender.fromStream(response.body, ipc2);
+    }
+    const ipcHeaders = new IpcHeaders(response.headers);
+    return new IpcResponse(req_id, response.status, ipcHeaders, ipcBody, ipc2);
+  }
+  static fromJson(req_id, statusCode, headers = new IpcHeaders(), jsonable, ipc2) {
+    headers.init("Content-Type", "application/json");
+    return this.fromText(
+      req_id,
+      statusCode,
+      headers,
+      JSON.stringify(jsonable),
+      ipc2
+    );
+  }
+  static fromText(req_id, statusCode, headers = new IpcHeaders(), text, ipc2) {
+    headers.init("Content-Type", "text/plain");
+    return new IpcResponse(
+      req_id,
+      statusCode,
+      headers,
+      IpcBodySender.fromText(text, ipc2),
+      ipc2
+    );
+  }
+  static fromBinary(req_id, statusCode, headers = new IpcHeaders(), binary, ipc2) {
+    headers.init("Content-Type", "application/octet-stream");
+    headers.init("Content-Length", binary.byteLength + "");
+    return new IpcResponse(
+      req_id,
+      statusCode,
+      headers,
+      IpcBodySender.fromBinary(binaryToU8a(binary), ipc2),
+      ipc2
+    );
+  }
+  static fromStream(req_id, statusCode, headers = new IpcHeaders(), stream, ipc2) {
+    headers.init("Content-Type", "application/octet-stream");
+    const ipcResponse = new IpcResponse(
+      req_id,
+      statusCode,
+      headers,
+      IpcBodySender.fromStream(stream, ipc2),
+      ipc2
+    );
+    return ipcResponse;
+  }
+  toJSON() {
+    return this.ipcResMessage();
+  }
+};
+var IpcResMessage = class extends IpcMessage {
+  constructor(req_id, statusCode, headers, metaBody) {
+    super(1 /* RESPONSE */);
+    this.req_id = req_id;
+    this.statusCode = statusCode;
+    this.headers = headers;
+    this.metaBody = metaBody;
+  }
+};
+
 // ../desktop-dev/src/helper/mapHelper.ts
 var mapHelper = new class {
   getOrPut(map, key, putter) {
@@ -1682,7 +1807,7 @@ var closeWindow = async () => {
 
 // src/server/tool/tool.request.ts
 var { jsProcess: jsProcess2, ipc } = navigator.dweb;
-var { IpcResponse, Ipc: Ipc2, IpcRequest: IpcRequest2 } = ipc;
+var { IpcResponse: IpcResponse2, Ipc: Ipc2, IpcRequest: IpcRequest2 } = ipc;
 var ipcObserversMap = /* @__PURE__ */ new Map();
 var INTERNAL_PREFIX = "/internal";
 var fetchSignal = createSignal();
@@ -1714,7 +1839,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
       const ipcProxyResponse = await targetIpc.registerReqId(
         ipcProxyRequest.req_id
       ).promise;
-      ipcResponse = new IpcResponse(
+      ipcResponse = new IpcResponse2(
         request.req_id,
         ipcProxyResponse.statusCode,
         ipcProxyResponse.headers,
@@ -1729,7 +1854,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
     httpServerIpc.postMessage(ipcResponse);
   } catch (err) {
     if (ipcResponse === void 0) {
-      ipcResponse = await IpcResponse.fromText(
+      ipcResponse = await IpcResponse2.fromText(
         request.req_id,
         502,
         void 0,
@@ -1746,7 +1871,7 @@ async function onApiRequest(serverurlInfo, request, httpServerIpc) {
 var internalFactory = (url, req_id, httpServerIpc, serverurlInfo) => {
   const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
   if (pathname === "/public-url") {
-    return IpcResponse.fromText(
+    return IpcResponse2.fromText(
       req_id,
       200,
       void 0,
@@ -1761,7 +1886,7 @@ var internalFactory = (url, req_id, httpServerIpc, serverurlInfo) => {
       throw new Error("observe require mmid");
     }
     const streamPo = observeFactory(mmid);
-    return IpcResponse.fromStream(
+    return IpcResponse2.fromStream(
       req_id,
       200,
       void 0,
@@ -1771,7 +1896,7 @@ var internalFactory = (url, req_id, httpServerIpc, serverurlInfo) => {
   }
   if (pathname === "/fetch") {
     const streamPo = serviceWorkerFetch();
-    return IpcResponse.fromStream(
+    return IpcResponse2.fromStream(
       req_id,
       200,
       void 0,
@@ -1822,11 +1947,9 @@ var observeFactory = (mmid) => {
 
 // src/server/index.ts
 var main = async () => {
-  const { jsProcess: jsProcess3, ipc: ipc2, http } = navigator.dweb;
-  const { IpcEvent: IpcEvent2 } = ipc2;
+  const { jsProcess: jsProcess3, http } = navigator.dweb;
   const mainUrl = new PromiseOut();
   const EXTERNAL_PREFIX = "/external/";
-  const { IpcResponse: IpcResponse3 } = ipc2;
   const externalMap = /* @__PURE__ */ new Map();
   const tryOpenView = async () => {
     console.log("tryOpenView... start");
@@ -1849,23 +1972,23 @@ var main = async () => {
   const apiReadableStreamIpc = await apiServer.listen();
   const wwwReadableStreamIpc = await wwwServer.listen();
   const externalReadableStreamIpc = await externalServer.listen();
-  apiReadableStreamIpc.onRequest(async (request, ipc3) => {
+  apiReadableStreamIpc.onRequest(async (request, ipc2) => {
     const url = request.parsed_url;
     if (url.pathname.startsWith("/dns.sys.dweb")) {
       const result = await serviceWorkerFactory(url);
-      const ipcResponse = IpcResponse3.fromText(
+      const ipcResponse = IpcResponse.fromText(
         request.req_id,
         200,
         void 0,
         result,
-        ipc3
+        ipc2
       );
       cros(ipcResponse.headers);
-      return ipc3.postMessage(ipcResponse);
+      return ipc2.postMessage(ipcResponse);
     }
-    onApiRequest(apiServer.startResult.urlInfo, request, ipc3);
+    onApiRequest(apiServer.startResult.urlInfo, request, ipc2);
   });
-  wwwReadableStreamIpc.onRequest(async (request, ipc3) => {
+  wwwReadableStreamIpc.onRequest(async (request, ipc2) => {
     let pathname = request.parsed_url.pathname;
     if (pathname === "/") {
       pathname = "/index.html";
@@ -1873,58 +1996,58 @@ var main = async () => {
     const remoteIpcResponse = await jsProcess3.nativeRequest(
       `file:///usr/www${pathname}?mode=stream`
     );
-    ipc3.postMessage(
-      new IpcResponse3(
+    ipc2.postMessage(
+      new IpcResponse(
         request.req_id,
         remoteIpcResponse.statusCode,
         cros(remoteIpcResponse.headers),
         remoteIpcResponse.body,
-        ipc3
+        ipc2
       )
     );
   });
-  externalReadableStreamIpc.onRequest(async (request, ipc3) => {
+  externalReadableStreamIpc.onRequest(async (request, ipc2) => {
     const url = request.parsed_url;
     const xHost = decodeURIComponent(url.searchParams.get("X-Dweb-Host") ?? "");
     if (url.pathname.startsWith(EXTERNAL_PREFIX)) {
       const pathname = url.pathname.slice(EXTERNAL_PREFIX.length);
       const externalReqId = parseInt(pathname);
       if (typeof externalReqId !== "number" || isNaN(externalReqId)) {
-        return ipc3.postMessage(
-          IpcResponse3.fromText(
+        return ipc2.postMessage(
+          IpcResponse.fromText(
             request.req_id,
             400,
             request.headers,
             "reqId is NAN",
-            ipc3
+            ipc2
           )
         );
       }
       const responsePOo = externalMap.get(externalReqId);
       if (!responsePOo) {
-        return ipc3.postMessage(
-          IpcResponse3.fromText(
+        return ipc2.postMessage(
+          IpcResponse.fromText(
             request.req_id,
             500,
             request.headers,
             `not found external requst,req_id ${externalReqId}`,
-            ipc3
+            ipc2
           )
         );
       }
       responsePOo.resolve(
-        new IpcResponse3(externalReqId, 200, request.headers, request.body, ipc3)
+        new IpcResponse(externalReqId, 200, request.headers, request.body, ipc2)
       );
       externalMap.delete(externalReqId);
-      const icpResponse = IpcResponse3.fromText(
+      const icpResponse = IpcResponse.fromText(
         request.req_id,
         200,
         request.headers,
         "ok",
-        ipc3
+        ipc2
       );
       cros(icpResponse.headers);
-      return ipc3.postMessage(icpResponse);
+      return ipc2.postMessage(icpResponse);
     }
     if (xHost === externalServer.startResult.urlInfo.host) {
       fetchSignal.emit(request);
@@ -1932,7 +2055,7 @@ var main = async () => {
       externalMap.set(request.req_id, awaitResponse);
       const ipcResponse = await awaitResponse.promise;
       cros(ipcResponse.headers);
-      ipc3.postMessage(ipcResponse);
+      ipc2.postMessage(ipcResponse);
     }
   });
   const serviceWorkerFactory = async (url) => {
@@ -1952,9 +2075,9 @@ var main = async () => {
     return "no action for serviceWorker Factory !!!";
   };
   console.error(">>>>>>>>>>>>>>>>>>> jsProcess.onActivity");
-  jsProcess3.onActivity(async (_ipcEvent, ipc3) => {
+  jsProcess3.onActivity(async (_ipcEvent, ipc2) => {
     await tryOpenView();
-    ipc3.postMessage(IpcEvent2.fromText("ready", "activity"));
+    ipc2.postMessage(IpcEvent.fromText("ready", "activity"));
   });
   jsProcess3.onClose(() => {
     closeWindow();
