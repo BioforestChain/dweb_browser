@@ -15,7 +15,7 @@ importers:
         version: 2.8.8
       prettier-plugin-organize-imports:
         specifier: ^3.2.2
-        version: 3.2.2(prettier@2.8.8)(typescript@5.0.2)
+        version: 3.2.2(prettier@2.8.8)
 
   desktop-dev:
     dependencies:
@@ -34,6 +34,9 @@ importers:
       lit:
         specifier: ^2.6.1
         version: 2.6.1
+      vite:
+        specifier: ^4.3.9
+        version: 4.3.9
     devDependencies:
       vite-plugin-electron-renderer:
         specifier: ^0.12.1
@@ -2067,7 +2070,7 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
-  /prettier-plugin-organize-imports@3.2.2(prettier@2.8.8)(typescript@5.0.2):
+  /prettier-plugin-organize-imports@3.2.2(prettier@2.8.8):
     resolution: {integrity: sha512-e97lE6odGSiHonHJMTYC0q0iLXQyw0u5z/PJpvP/3vRy6/Zi9kLBwFAbEGjDzIowpjQv8b+J04PDamoUSQbzGA==}
     peerDependencies:
       '@volar/vue-language-plugin-pug': ^1.0.4
@@ -2081,7 +2084,6 @@ packages:
         optional: true
     dependencies:
       prettier: 2.8.8
-      typescript: 5.0.2
     dev: true
 
   /prettier@2.8.8:
@@ -2459,6 +2461,38 @@ packages:
       sass: 1.60.0
     optionalDependencies:
       fsevents: 2.3.2
+
+  /vite@4.3.9:
+    resolution: {integrity: sha512-qsTNZjO9NoJNW7KnOrgYwczm0WctJ8m/yqYAMAK9Lxt4SoySUfS5S8ia9K7JHpa3KEeMfyF8LoJ3c5NeBJy6pg==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      esbuild: 0.17.19
+      postcss: 8.4.23
+      rollup: 3.23.0
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: false
 
   /vue-eslint-parser@9.3.0(eslint@8.22.0):
     resolution: {integrity: sha512-48IxT9d0+wArT1+3wNIy0tascRoywqSUe2E1YalIC1L8jsUGe5aJQItWfRok7DVFGz3UYvzEI7n5wiTXsCMAcQ==}
