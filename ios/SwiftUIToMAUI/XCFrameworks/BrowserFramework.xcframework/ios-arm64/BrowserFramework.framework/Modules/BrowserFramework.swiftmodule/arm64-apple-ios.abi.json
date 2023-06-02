@@ -1,0 +1,4403 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "TopLevel",
+    "printedName": "TopLevel",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "WebKit",
+        "printedName": "WebKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "WebKit",
+        "printedName": "WebKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Kingfisher",
+        "printedName": "Kingfisher",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "FaviconFinder",
+        "printedName": "FaviconFinder",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "WebKit",
+        "printedName": "WebKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "BrowserManager",
+        "printedName": "BrowserManager",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "swiftView",
+            "printedName": "swiftView",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "UIKit.UIView?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UIView",
+                    "printedName": "UIKit.UIView",
+                    "usr": "c:objc(cs)UIView"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(py)swiftView",
+            "mangledName": "$s16BrowserFramework0A7ManagerC9swiftViewSo6UIViewCSgvp",
+            "moduleName": "BrowserFramework",
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "AccessControl",
+              "ObjC"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "UIKit.UIView?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "UIView",
+                        "printedName": "UIKit.UIView",
+                        "usr": "c:objc(cs)UIView"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(im)swiftView",
+                "mangledName": "$s16BrowserFramework0A7ManagerC9swiftViewSo6UIViewCSgvg",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "UIKit.UIView?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "UIView",
+                        "printedName": "UIKit.UIView",
+                        "usr": "c:objc(cs)UIView"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(im)setSwiftView:",
+                "mangledName": "$s16BrowserFramework0A7ManagerC9swiftViewSo6UIViewCSgvs",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:16BrowserFramework0A7ManagerC9swiftViewSo6UIViewCSgvM",
+                "mangledName": "$s16BrowserFramework0A7ManagerC9swiftViewSo6UIViewCSgvM",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "webViewList",
+            "printedName": "webViewList",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[WebKit.WKWebView]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[WebKit.WKWebView]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "WKWebView",
+                        "printedName": "WebKit.WKWebView",
+                        "usr": "c:objc(cs)WKWebView"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(py)webViewList",
+            "mangledName": "$s16BrowserFramework0A7ManagerC11webViewListSaySo05WKWebE0CGSgvp",
+            "moduleName": "BrowserFramework",
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "AccessControl",
+              "ObjC"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "[WebKit.WKWebView]?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Array",
+                        "printedName": "[WebKit.WKWebView]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "WKWebView",
+                            "printedName": "WebKit.WKWebView",
+                            "usr": "c:objc(cs)WKWebView"
+                          }
+                        ],
+                        "usr": "s:Sa"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(im)webViewList",
+                "mangledName": "$s16BrowserFramework0A7ManagerC11webViewListSaySo05WKWebE0CGSgvg",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "[WebKit.WKWebView]?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Array",
+                        "printedName": "[WebKit.WKWebView]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "WKWebView",
+                            "printedName": "WebKit.WKWebView",
+                            "usr": "c:objc(cs)WKWebView"
+                          }
+                        ],
+                        "usr": "s:Sa"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(im)setWebViewList:",
+                "mangledName": "$s16BrowserFramework0A7ManagerC11webViewListSaySo05WKWebE0CGSgvs",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:16BrowserFramework0A7ManagerC11webViewListSaySo05WKWebE0CGSgvM",
+                "mangledName": "$s16BrowserFramework0A7ManagerC11webViewListSaySo05WKWebE0CGSgvM",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "onValueChanged",
+            "printedName": "onValueChanged",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(([WebKit.WKWebView]) -> ())?",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "([WebKit.WKWebView]) -> ()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Array",
+                        "printedName": "[WebKit.WKWebView]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "WKWebView",
+                            "printedName": "WebKit.WKWebView",
+                            "usr": "c:objc(cs)WKWebView"
+                          }
+                        ],
+                        "usr": "s:Sa"
+                      }
+                    ]
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(py)onValueChanged",
+            "mangledName": "$s16BrowserFramework0A7ManagerC14onValueChangedySaySo9WKWebViewCGcSgvp",
+            "moduleName": "BrowserFramework",
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "AccessControl",
+              "ObjC"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "(([WebKit.WKWebView]) -> ())?",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "([WebKit.WKWebView]) -> ()",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Void",
+                            "printedName": "()"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Array",
+                            "printedName": "[WebKit.WKWebView]",
+                            "children": [
+                              {
+                                "kind": "TypeNominal",
+                                "name": "WKWebView",
+                                "printedName": "WebKit.WKWebView",
+                                "usr": "c:objc(cs)WKWebView"
+                              }
+                            ],
+                            "usr": "s:Sa"
+                          }
+                        ]
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(im)onValueChanged",
+                "mangledName": "$s16BrowserFramework0A7ManagerC14onValueChangedySaySo9WKWebViewCGcSgvg",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "(([WebKit.WKWebView]) -> ())?",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "([WebKit.WKWebView]) -> ()",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Void",
+                            "printedName": "()"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Array",
+                            "printedName": "[WebKit.WKWebView]",
+                            "children": [
+                              {
+                                "kind": "TypeNominal",
+                                "name": "WKWebView",
+                                "printedName": "WebKit.WKWebView",
+                                "usr": "c:objc(cs)WKWebView"
+                              }
+                            ],
+                            "usr": "s:Sa"
+                          }
+                        ]
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(im)setOnValueChanged:",
+                "mangledName": "$s16BrowserFramework0A7ManagerC14onValueChangedySaySo9WKWebViewCGcSgvs",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "declAttributes": [
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:16BrowserFramework0A7ManagerC14onValueChangedySaySo9WKWebViewCGcSgvM",
+                "mangledName": "$s16BrowserFramework0A7ManagerC14onValueChangedySaySo9WKWebViewCGcSgvM",
+                "moduleName": "BrowserFramework",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BrowserManager",
+                "printedName": "BrowserFramework.BrowserManager",
+                "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager(im)init",
+            "mangledName": "$s16BrowserFramework0A7ManagerCACycfc",
+            "moduleName": "BrowserFramework",
+            "overriding": true,
+            "objc_name": "init",
+            "declAttributes": [
+              "Dynamic",
+              "ObjC",
+              "Override",
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Class",
+        "usr": "c:@M@BrowserFramework@objc(cs)BrowserManager",
+        "mangledName": "$s16BrowserFramework0A7ManagerC",
+        "moduleName": "BrowserFramework",
+        "objc_name": "BrowserManager",
+        "declAttributes": [
+          "AccessControl",
+          "ObjC"
+        ],
+        "superclassUsr": "c:objc(cs)NSObject",
+        "inheritsConvenienceInitializers": true,
+        "superclassNames": [
+          "ObjectiveC.NSObject"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CVarArg",
+            "printedName": "CVarArg",
+            "usr": "s:s7CVarArgP",
+            "mangledName": "$ss7CVarArgP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_KeyValueCodingAndObservingPublishing",
+            "printedName": "_KeyValueCodingAndObservingPublishing",
+            "usr": "s:10Foundation37_KeyValueCodingAndObservingPublishingP",
+            "mangledName": "$s10Foundation37_KeyValueCodingAndObservingPublishingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_KeyValueCodingAndObserving",
+            "printedName": "_KeyValueCodingAndObserving",
+            "usr": "s:10Foundation27_KeyValueCodingAndObservingP",
+            "mangledName": "$s10Foundation27_KeyValueCodingAndObservingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomStringConvertible",
+            "printedName": "CustomStringConvertible",
+            "usr": "s:s23CustomStringConvertibleP",
+            "mangledName": "$ss23CustomStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomDebugStringConvertible",
+            "printedName": "CustomDebugStringConvertible",
+            "usr": "s:s28CustomDebugStringConvertibleP",
+            "mangledName": "$ss28CustomDebugStringConvertibleP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "FaviconFinder",
+        "printedName": "FaviconFinder",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "WebKit",
+        "printedName": "WebKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "FaviconFinder",
+        "printedName": "FaviconFinder",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "WebKit",
+        "printedName": "WebKit",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftUI",
+        "printedName": "SwiftUI",
+        "declKind": "Import",
+        "moduleName": "BrowserFramework"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "View",
+        "printedName": "View",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "animationObserver",
+            "printedName": "animationObserver(for:onChange:onComplete:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "ModifiedContent",
+                "printedName": "SwiftUI.ModifiedContent<τ_0_0, BrowserFramework.AnimationObserverModifier<τ_1_0>>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_0"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "AnimationObserverModifier",
+                    "printedName": "BrowserFramework.AnimationObserverModifier<τ_1_0>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "GenericTypeParam",
+                        "printedName": "τ_1_0"
+                      }
+                    ],
+                    "usr": "s:16BrowserFramework25AnimationObserverModifierV"
+                  }
+                ],
+                "usr": "s:7SwiftUI15ModifiedContentV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "GenericTypeParam",
+                "printedName": "τ_1_0"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "((τ_1_0) -> ())?",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(τ_1_0) -> ()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "GenericTypeParam",
+                        "printedName": "τ_1_0"
+                      }
+                    ]
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(() -> ())?",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "() -> ()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      }
+                    ]
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7SwiftUI4ViewP16BrowserFrameworkE17animationObserver3for8onChange0I8CompleteQrqd___yqd__cSgyycSgtAA16VectorArithmeticRd__lF",
+            "mangledName": "$s7SwiftUI4ViewP16BrowserFrameworkE17animationObserver3for8onChange0I8CompleteQrqd___yqd__cSgyycSgtAA16VectorArithmeticRd__lF",
+            "moduleName": "BrowserFramework",
+            "genericSig": "<τ_0_0, τ_1_0 where τ_0_0 : SwiftUI.View, τ_1_0 : SwiftUI.VectorArithmetic>",
+            "sugared_genericSig": "<Self, Value where Self : SwiftUI.View, Value : SwiftUI.VectorArithmetic>",
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "myAnimationObserver",
+            "printedName": "myAnimationObserver(for:onChange:onComplete:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "ModifiedContent",
+                "printedName": "SwiftUI.ModifiedContent<τ_0_0, BrowserFramework.MyAnimationObserverModifier>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_0"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "MyAnimationObserverModifier",
+                    "printedName": "BrowserFramework.MyAnimationObserverModifier",
+                    "usr": "s:16BrowserFramework27MyAnimationObserverModifierV"
+                  }
+                ],
+                "usr": "s:7SwiftUI15ModifiedContentV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "((Swift.Int) -> ())?",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.Int) -> ()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Int",
+                        "printedName": "Swift.Int",
+                        "usr": "s:Si"
+                      }
+                    ]
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(() -> ())?",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "() -> ()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      }
+                    ]
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7SwiftUI4ViewP16BrowserFrameworkE19myAnimationObserver3for8onChange0J8CompleteQrSi_ySicSgyycSgtF",
+            "mangledName": "$s7SwiftUI4ViewP16BrowserFrameworkE19myAnimationObserver3for8onChange0J8CompleteQrSi_ySicSgyycSgtF",
+            "moduleName": "BrowserFramework",
+            "genericSig": "<τ_0_0 where τ_0_0 : SwiftUI.View>",
+            "sugared_genericSig": "<Self where Self : SwiftUI.View>",
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:7SwiftUI4ViewP",
+        "mangledName": "$s7SwiftUI4ViewP",
+        "moduleName": "SwiftUI",
+        "genericSig": "<τ_0_0.Body : SwiftUI.View>",
+        "sugared_genericSig": "<Self.Body : SwiftUI.View>",
+        "intro_Macosx": "10.15",
+        "intro_iOS": "13.0",
+        "intro_tvOS": "13.0",
+        "intro_watchOS": "6.0",
+        "declAttributes": [
+          "TypeEraser",
+          "Available",
+          "Available",
+          "Available",
+          "Available"
+        ],
+        "isExternal": true
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 865,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 909,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "StringLiteral",
+      "offset": 942,
+      "length": 33,
+      "value": "\"visiting TabsContainerView init\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "StringLiteral",
+      "offset": 1759,
+      "length": 19,
+      "value": "\"z geo: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "StringLiteral",
+      "offset": 1777,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2329,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "FloatLiteral",
+      "offset": 2333,
+      "length": 3,
+      "value": "0.8"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "StringLiteral",
+      "offset": 2451,
+      "length": 35,
+      "value": "\"animation progress is \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "StringLiteral",
+      "offset": 2485,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2885,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "FloatLiteral",
+      "offset": 3685,
+      "length": 3,
+      "value": "0.1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "FloatLiteral",
+      "offset": 4051,
+      "length": 3,
+      "value": "2.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "FloatLiteral",
+      "offset": 4217,
+      "length": 3,
+      "value": "2.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "FloatLiteral",
+      "offset": 4423,
+      "length": 3,
+      "value": "2.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "FloatLiteral",
+      "offset": 4624,
+      "length": 3,
+      "value": "2.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 5528,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5569,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 6026,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 6415,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 6998,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabsContainerView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 7094,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/simplePublisher.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1253,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/simplePublisher.swift",
+      "kind": "StringLiteral",
+      "offset": 1396,
+      "length": 26,
+      "value": "\"Count: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/simplePublisher.swift",
+      "kind": "StringLiteral",
+      "offset": 1421,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/simplePublisher.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1487,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/simplePublisher.swift",
+      "kind": "StringLiteral",
+      "offset": 1527,
+      "length": 11,
+      "value": "\"Increment\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2173,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2213,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2253,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2293,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2334,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2385,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2550,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2622,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "BooleanLiteral",
+      "offset": 4200,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4284,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4728,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4975,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "BooleanLiteral",
+      "offset": 5130,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5338,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5406,
+      "length": 1,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/View\/Grid.swift",
+      "kind": "StringLiteral",
+      "offset": 5997,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapperMgr.swift",
+      "kind": "Array",
+      "offset": 297,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapperMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 742,
+      "length": 44,
+      "value": "\"caches titles \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapperMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 785,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/Environment.swift",
+      "kind": "IntegerLiteral",
+      "offset": 330,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/Environment.swift",
+      "kind": "IntegerLiteral",
+      "offset": 580,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/Environment.swift",
+      "kind": "BooleanLiteral",
+      "offset": 653,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/Environment.swift",
+      "kind": "BooleanLiteral",
+      "offset": 689,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/Environment.swift",
+      "kind": "BooleanLiteral",
+      "offset": 729,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/Environment.swift",
+      "kind": "IntegerLiteral",
+      "offset": 836,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "Array",
+      "offset": 328,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "Array",
+      "offset": 740,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "FloatLiteral",
+      "offset": 1036,
+      "length": 3,
+      "value": "3.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1042,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "FloatLiteral",
+      "offset": 1067,
+      "length": 3,
+      "value": "2.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1081,
+      "length": 2,
+      "value": "15"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1116,
+      "length": 2,
+      "value": "20"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1592,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 2020,
+      "length": 82,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 2037,
+      "length": 1,
+      "value": "\" - \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 2060,
+      "length": 1,
+      "value": "\", \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 2078,
+      "length": 1,
+      "value": "\" - \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 2101,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 2261,
+      "length": 16,
+      "value": "\"inside of grid\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2508,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 2603,
+      "length": 17,
+      "value": "\"outside of grid\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "FloatLiteral",
+      "offset": 2863,
+      "length": 3,
+      "value": "0.3"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "FloatLiteral",
+      "offset": 3078,
+      "length": 3,
+      "value": "0.4"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3161,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3349,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3431,
+      "length": 2,
+      "value": "15"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3857,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4116,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4256,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4780,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "FloatLiteral",
+      "offset": 4888,
+      "length": 3,
+      "value": "2.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "FloatLiteral",
+      "offset": 4892,
+      "length": 3,
+      "value": "3.2"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 5080,
+      "length": 24,
+      "value": "\"URL of Favicon: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 5103,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 5294,
+      "length": 41,
+      "value": "\"delete this tab, remove data from cache\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 5456,
+      "length": 19,
+      "value": "\"xmark.circle.fill\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5596,
+      "length": 2,
+      "value": "26"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5641,
+      "length": 1,
+      "value": "8"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5676,
+      "length": 1,
+      "value": "8"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "FloatLiteral",
+      "offset": 6006,
+      "length": 3,
+      "value": "0.1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 6070,
+      "length": 57,
+      "value": "\"dowloading icon right now \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 6124,
+      "length": 1,
+      "value": "\" %\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 6172,
+      "length": 29,
+      "value": "\"dowload icon done \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 6200,
+      "length": 4,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 6245,
+      "length": 30,
+      "value": "\"dowload icon failed \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 6274,
+      "length": 4,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 6374,
+      "length": 2,
+      "value": "22"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabGridView.swift",
+      "kind": "StringLiteral",
+      "offset": 6491,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 581,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "StringLiteral",
+      "offset": 817,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "StringLiteral",
+      "offset": 998,
+      "length": 14,
+      "value": "\"chevron.left\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1176,
+      "length": 2,
+      "value": "32"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1188,
+      "length": 2,
+      "value": "32"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "StringLiteral",
+      "offset": 1348,
+      "length": 15,
+      "value": "\"chevron.right\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1527,
+      "length": 2,
+      "value": "32"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1539,
+      "length": 2,
+      "value": "32"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "StringLiteral",
+      "offset": 1727,
+      "length": 47,
+      "value": "\"webWrapper.webView ---- \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "StringLiteral",
+      "offset": 1773,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "FloatLiteral",
+      "offset": 2474,
+      "length": 3,
+      "value": "1.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3314,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "FloatLiteral",
+      "offset": 3670,
+      "length": 3,
+      "value": "0.1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3695,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/TabPageView.swift",
+      "kind": "StringLiteral",
+      "offset": 4187,
+      "length": 9,
+      "value": "\"problem\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/BrowserView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 223,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/BrowserView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 341,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/BrowserView.swift",
+      "kind": "FloatLiteral",
+      "offset": 391,
+      "length": 3,
+      "value": "0.1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/BrowserView.swift",
+      "kind": "StringLiteral",
+      "offset": 776,
+      "length": 6,
+      "value": "\"Root\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryView.swift",
+      "kind": "StringLiteral",
+      "offset": 959,
+      "length": 9,
+      "value": "\"History\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1057,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryView.swift",
+      "kind": "StringLiteral",
+      "offset": 1105,
+      "length": 12,
+      "value": "\"Show Modal\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1148,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 357,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 394,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 423,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 767,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1032,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1488,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1555,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1709,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1920,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2006,
+      "length": 3,
+      "value": "300"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2012,
+      "length": 2,
+      "value": "44"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2183,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2333,
+      "length": 2,
+      "value": "20"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2338,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "StringLiteral",
+      "offset": 2426,
+      "length": 10,
+      "value": "\"Jay Chow\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "StringLiteral",
+      "offset": 2538,
+      "length": 6,
+      "value": "\"name\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "StringLiteral",
+      "offset": 2705,
+      "length": 10,
+      "value": "\"Jay Chow\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "StringLiteral",
+      "offset": 2809,
+      "length": 6,
+      "value": "\"name\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2873,
+      "length": 2,
+      "value": "60"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3201,
+      "length": 3,
+      "value": "400"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3207,
+      "length": 2,
+      "value": "60"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "FloatLiteral",
+      "offset": 3248,
+      "length": 3,
+      "value": "0.8"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3326,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3360,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3636,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3640,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "StringLiteral",
+      "offset": 3709,
+      "length": 9,
+      "value": "\"tap red\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3757,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3801,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3898,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3902,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "StringLiteral",
+      "offset": 3971,
+      "length": 10,
+      "value": "\"tap blue\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 4020,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/TestView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 4063,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1018,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "StringLiteral",
+      "offset": 1124,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "StringLiteral",
+      "offset": 1322,
+      "length": 20,
+      "value": "\"inputText is empty\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1620,
+      "length": 1,
+      "value": "8"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1811,
+      "length": 2,
+      "value": "48"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1823,
+      "length": 2,
+      "value": "40"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1976,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2266,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2320,
+      "length": 1,
+      "value": "4"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "FloatLiteral",
+      "offset": 2406,
+      "length": 3,
+      "value": "1.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2412,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2416,
+      "length": 1,
+      "value": "3"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "FloatLiteral",
+      "offset": 2654,
+      "length": 3,
+      "value": "0.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "FloatLiteral",
+      "offset": 2692,
+      "length": 3,
+      "value": "1.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2698,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2702,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2951,
+      "length": 1,
+      "value": "8"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "StringLiteral",
+      "offset": 3063,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "StringLiteral",
+      "offset": 3174,
+      "length": 23,
+      "value": "\"请输入搜索内容\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "FloatLiteral",
+      "offset": 3228,
+      "length": 3,
+      "value": "0.8"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3482,
+      "length": 2,
+      "value": "30"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3514,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "StringLiteral",
+      "offset": 3674,
+      "length": 8,
+      "value": "\"aaaaaa\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "StringLiteral",
+      "offset": 3772,
+      "length": 8,
+      "value": "\"tapped\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3827,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/AddressBarHStack.swift",
+      "kind": "StringLiteral",
+      "offset": 4029,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Util\/const.swift",
+      "kind": "IntegerLiteral",
+      "offset": 230,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Util\/const.swift",
+      "kind": "IntegerLiteral",
+      "offset": 261,
+      "length": 2,
+      "value": "60"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Util\/const.swift",
+      "kind": "IntegerLiteral",
+      "offset": 296,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Util\/const.swift",
+      "kind": "IntegerLiteral",
+      "offset": 330,
+      "length": 2,
+      "value": "35"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Util\/const.swift",
+      "kind": "StringLiteral",
+      "offset": 349,
+      "length": 46,
+      "value": "\"https:\/\/www.hackingwithswift.com\/quick-start\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "FloatLiteral",
+      "offset": 1733,
+      "length": 3,
+      "value": "0.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1794,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1798,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "FloatLiteral",
+      "offset": 1844,
+      "length": 3,
+      "value": "0.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1880,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 1991,
+      "length": 33,
+      "value": "\"Loading: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 2022,
+      "length": 1,
+      "value": "\"%\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2133,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2295,
+      "length": 3,
+      "value": "100"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2482,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 2579,
+      "length": 7,
+      "value": "\"Done!\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2636,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 2666,
+      "length": 35,
+      "value": "\"Woooooah, we're half way there...\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 2761,
+      "length": 8,
+      "value": "\"Reload\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2802,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2895,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2949,
+      "length": 1,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2988,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4597,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "BooleanLiteral",
+      "offset": 4631,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4760,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4865,
+      "length": 2,
+      "value": "80"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4877,
+      "length": 2,
+      "value": "80"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5017,
+      "length": 3,
+      "value": "200"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5030,
+      "length": 3,
+      "value": "100"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 5106,
+      "length": 14,
+      "value": "\"change shape\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "FloatLiteral",
+      "offset": 5189,
+      "length": 3,
+      "value": "0.5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5233,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 5337,
+      "length": 15,
+      "value": "\"now it's done\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 5394,
+      "length": 9,
+      "value": "\"not yet\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 5477,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 5501,
+      "length": 12,
+      "value": "\"it's round\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "StringLiteral",
+      "offset": 5555,
+      "length": 15,
+      "value": "\"it's retangle\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "BooleanLiteral",
+      "offset": 5757,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "BooleanLiteral",
+      "offset": 5864,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 6099,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+AnimationObserver.swift",
+      "kind": "IntegerLiteral",
+      "offset": 6126,
+      "length": 3,
+      "value": "-50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "FloatLiteral",
+      "offset": 123,
+      "length": 4,
+      "value": "0.01"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "FloatLiteral",
+      "offset": 160,
+      "length": 3,
+      "value": "0.5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 220,
+      "length": 14,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 244,
+      "length": 8,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 263,
+      "length": 14,
+      "value": "3"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 287,
+      "length": 8,
+      "value": "4"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 310,
+      "length": 6,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 326,
+      "length": 9,
+      "value": "6"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 220,
+      "length": 14,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 244,
+      "length": 8,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 263,
+      "length": 14,
+      "value": "3"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 287,
+      "length": 8,
+      "value": "4"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 310,
+      "length": 6,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 326,
+      "length": 9,
+      "value": "6"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 220,
+      "length": 14,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 244,
+      "length": 8,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 263,
+      "length": 14,
+      "value": "3"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 287,
+      "length": 8,
+      "value": "4"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 310,
+      "length": 6,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Model\/ShiftAnimation.swift",
+      "kind": "IntegerLiteral",
+      "offset": 326,
+      "length": 9,
+      "value": "6"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "BooleanLiteral",
+      "offset": 419,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "BooleanLiteral",
+      "offset": 476,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 574,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 897,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1118,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "FloatLiteral",
+      "offset": 1137,
+      "length": 3,
+      "value": "2.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1224,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1256,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "StringLiteral",
+      "offset": 1527,
+      "length": 11,
+      "value": "\"BrowserFramework.Coordinator\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2171,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "FloatLiteral",
+      "offset": 2207,
+      "length": 3,
+      "value": "0.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2249,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2332,
+      "length": 1,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2360,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2426,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2493,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2559,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2627,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2693,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "StringLiteral",
+      "offset": 2789,
+      "length": 8,
+      "value": "\"Random\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2873,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2877,
+      "length": 1,
+      "value": "4"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "StringLiteral",
+      "offset": 2952,
+      "length": 6,
+      "value": "\"Prev\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2999,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3042,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "StringLiteral",
+      "offset": 3130,
+      "length": 25,
+      "value": "\"Page \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3152,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "StringLiteral",
+      "offset": 3154,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "StringLiteral",
+      "offset": 3205,
+      "length": 6,
+      "value": "\"Next\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3252,
+      "length": 1,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/PagingScroll.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3295,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 258,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 455,
+      "length": 1,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 549,
+      "length": 2,
+      "value": "25"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 596,
+      "length": 18,
+      "value": "\"chevron.backward\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 705,
+      "length": 22,
+      "value": "\"backward was clicked\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 895,
+      "length": 17,
+      "value": "\"chevron.forward\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 1008,
+      "length": 22,
+      "value": "\"forwardp was clicked\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 1201,
+      "length": 6,
+      "value": "\"plus\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 1300,
+      "length": 18,
+      "value": "\"plus was clicked\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 1476,
+      "length": 6,
+      "value": "\"book\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 1516,
+      "length": 18,
+      "value": "\"book was clicked\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1617,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1814,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 2053,
+      "length": 12,
+      "value": "\"doc.on.doc\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2116,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 2151,
+      "length": 22,
+      "value": "\"arrow.up was clicked\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2285,
+      "length": 2,
+      "value": "25"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2697,
+      "length": 1,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2760,
+      "length": 2,
+      "value": "25"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 2820,
+      "length": 6,
+      "value": "\"plus\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 2970,
+      "length": 39,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 2996,
+      "length": 12,
+      "value": "\"个标签页\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 3088,
+      "length": 8,
+      "value": "\"完成\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3143,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3265,
+      "length": 2,
+      "value": "25"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "StringLiteral",
+      "offset": 3479,
+      "length": 4,
+      "value": "\"aa\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/ToolbarView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 3876,
+      "length": 2,
+      "value": "25"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+placeholder.swift",
+      "kind": "IntegerLiteral",
+      "offset": 403,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+placeholder.swift",
+      "kind": "IntegerLiteral",
+      "offset": 407,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+placeholder.swift",
+      "kind": "StringLiteral",
+      "offset": 530,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+placeholder.swift",
+      "kind": "StringLiteral",
+      "offset": 578,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+placeholder.swift",
+      "kind": "StringLiteral",
+      "offset": 682,
+      "length": 14,
+      "value": "\"please input\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+placeholder.swift",
+      "kind": "FloatLiteral",
+      "offset": 727,
+      "length": 3,
+      "value": "0.8"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+placeholder.swift",
+      "kind": "IntegerLiteral",
+      "offset": 768,
+      "length": 2,
+      "value": "30"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/BrowserManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 368,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/BrowserManager.swift",
+      "kind": "StringLiteral",
+      "offset": 514,
+      "length": 21,
+      "value": "\"title of \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/BrowserManager.swift",
+      "kind": "StringLiteral",
+      "offset": 534,
+      "length": 41,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/BrowserManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 625,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "Array",
+      "offset": 182,
+      "length": 175,
+      "value": "[\"https:\/\/www.baidu.com\", \"https:\/\/www.163.com\", \"https:\/\/www.sohu.com\", \"https:\/\/www.yahoo.com\", \"https:\/\/www.douban.com\", \"https:\/\/www.zhihu.com\"]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 1164,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 1297,
+      "length": 29,
+      "value": "\"Resources.bundle\/defWebIcon\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 1343,
+      "length": 5,
+      "value": "\"png\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 1788,
+      "length": 29,
+      "value": "\"Resources.bundle\/defWebIcon\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 1834,
+      "length": 5,
+      "value": "\"png\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 3201,
+      "length": 23,
+      "value": "\"https:\/\/www.apple.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 3235,
+      "length": 3,
+      "value": "\"2\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 3357,
+      "length": 21,
+      "value": "\"userdefaultWebCache\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "Array",
+      "offset": 3418,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4011,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4063,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4079,
+      "length": 37,
+      "value": "\"have saved times: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4115,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "IntegerLiteral",
+      "offset": 4506,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4589,
+      "length": 3,
+      "value": "\"1\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4648,
+      "length": 23,
+      "value": "\"https:\/\/www.apple.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4682,
+      "length": 3,
+      "value": "\"2\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4741,
+      "length": 21,
+      "value": "\"https:\/\/www.163.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4773,
+      "length": 3,
+      "value": "\"3\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4832,
+      "length": 24,
+      "value": "\"https:\/\/www.douban.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4867,
+      "length": 3,
+      "value": "\"4\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4926,
+      "length": 23,
+      "value": "\"https:\/\/www.douyu.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebCacheMgr.swift",
+      "kind": "StringLiteral",
+      "offset": 4960,
+      "length": 3,
+      "value": "\"5\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 313,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 407,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "StringLiteral",
+      "offset": 464,
+      "length": 8,
+      "value": "\"View 1\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 549,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "FloatLiteral",
+      "offset": 583,
+      "length": 3,
+      "value": "0.5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "StringLiteral",
+      "offset": 900,
+      "length": 8,
+      "value": "\"View 2\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "StringLiteral",
+      "offset": 1260,
+      "length": 8,
+      "value": "\"View 3\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1329,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/AutoFillView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1448,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "IntegerLiteral",
+      "offset": 360,
+      "length": 3,
+      "value": "100"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "IntegerLiteral",
+      "offset": 372,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "StringLiteral",
+      "offset": 499,
+      "length": 16,
+      "value": "\"Add WebWrapper\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "StringLiteral",
+      "offset": 571,
+      "length": 41,
+      "value": "\"WebWrapper \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "StringLiteral",
+      "offset": 611,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "StringLiteral",
+      "offset": 770,
+      "length": 19,
+      "value": "\"Remove WebWrapper\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "StringLiteral",
+      "offset": 963,
+      "length": 14,
+      "value": "\"change title\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1016,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "StringLiteral",
+      "offset": 1027,
+      "length": 12,
+      "value": "\" new title\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/StableForEach.swift",
+      "kind": "Array",
+      "offset": 1156,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "StringLiteral",
+      "offset": 311,
+      "length": 25,
+      "value": "\"yyyy-MM-dd HH:mm:ss.SSS\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1186,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1282,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "StringLiteral",
+      "offset": 1682,
+      "length": 9,
+      "value": "\"Capture\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "StringLiteral",
+      "offset": 1729,
+      "length": 20,
+      "value": "\"before snapshot5: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "StringLiteral",
+      "offset": 1921,
+      "length": 19,
+      "value": "\"after snapshot5: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "StringLiteral",
+      "offset": 2376,
+      "length": 10,
+      "value": "\"snapshot\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2428,
+      "length": 2,
+      "value": "80"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2488,
+      "length": 3,
+      "value": "-40"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2607,
+      "length": 2,
+      "value": "60"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+snapshot.swift",
+      "kind": "StringLiteral",
+      "offset": 2632,
+      "length": 15,
+      "value": "\"Hello, world!\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/DWButton.swift",
+      "kind": "IntegerLiteral",
+      "offset": 374,
+      "length": 2,
+      "value": "10"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/DWButton.swift",
+      "kind": "FloatLiteral",
+      "offset": 425,
+      "length": 3,
+      "value": "0.5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/DWButton.swift",
+      "kind": "FloatLiteral",
+      "offset": 431,
+      "length": 3,
+      "value": "1.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/DWButton.swift",
+      "kind": "FloatLiteral",
+      "offset": 513,
+      "length": 4,
+      "value": "0.95"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/DWButton.swift",
+      "kind": "FloatLiteral",
+      "offset": 703,
+      "length": 3,
+      "value": "0.5"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/DWButton.swift",
+      "kind": "FloatLiteral",
+      "offset": 709,
+      "length": 3,
+      "value": "1.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/DWButton.swift",
+      "kind": "StringLiteral",
+      "offset": 818,
+      "length": 8,
+      "value": "\"Button\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "Array",
+      "offset": 182,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 215,
+      "length": 16,
+      "value": "\"userdefaultKey\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "IntegerLiteral",
+      "offset": 898,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 961,
+      "length": 8,
+      "value": "\"Google\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 976,
+      "length": 24,
+      "value": "\"https:\/\/www.google.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1052,
+      "length": 7,
+      "value": "\"Apple\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1066,
+      "length": 23,
+      "value": "\"https:\/\/www.apple.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1141,
+      "length": 10,
+      "value": "\"Facebook\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1158,
+      "length": 26,
+      "value": "\"https:\/\/www.facebook.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1218,
+      "length": 6,
+      "value": "-86400"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1263,
+      "length": 9,
+      "value": "\"Twitter\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1279,
+      "length": 25,
+      "value": "\"https:\/\/www.twitter.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1338,
+      "length": 6,
+      "value": "-86400"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1383,
+      "length": 8,
+      "value": "\"Amazon\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1398,
+      "length": 24,
+      "value": "\"https:\/\/www.amazon.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1456,
+      "length": 7,
+      "value": "-172800"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1502,
+      "length": 11,
+      "value": "\"Microsoft\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "StringLiteral",
+      "offset": 1520,
+      "length": 27,
+      "value": "\"https:\/\/www.microsoft.com\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/HistoryView\/HistoryStore.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1581,
+      "length": 7,
+      "value": "-172800"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/MultipleWebView.swift",
+      "kind": "StringLiteral",
+      "offset": 951,
+      "length": 21,
+      "value": "\"making WebView2....\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/MultipleWebView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1554,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/MultipleWebView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1770,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/MultipleWebView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2038,
+      "length": 3,
+      "value": "150"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/MultipleWebView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2151,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/MultipleWebView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2389,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/MultipleWebView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2393,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/MultipleWebView.swift",
+      "kind": "StringLiteral",
+      "offset": 2503,
+      "length": 6,
+      "value": "\"hide\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/View\/Tabs\/HomeView.swift",
+      "kind": "StringLiteral",
+      "offset": 178,
+      "length": 15,
+      "value": "\"Hello, World!\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/UIImage+Cache.swift",
+      "kind": "StringLiteral",
+      "offset": 138,
+      "length": 11,
+      "value": "\"_snapshot\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/UIImage+Cache.swift",
+      "kind": "BooleanLiteral",
+      "offset": 469,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/UIImage+Cache.swift",
+      "kind": "FloatLiteral",
+      "offset": 702,
+      "length": 3,
+      "value": "1.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/UIImage+Cache.swift",
+      "kind": "StringLiteral",
+      "offset": 804,
+      "length": 32,
+      "value": "\"writing image data went wrong!\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/UIImage+Cache.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1247,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/UIImage+Cache.swift",
+      "kind": "StringLiteral",
+      "offset": 1571,
+      "length": 29,
+      "value": "\"snapshot url is \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/UIImage+Cache.swift",
+      "kind": "StringLiteral",
+      "offset": 1599,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/UIImage+Cache.swift",
+      "kind": "StringLiteral",
+      "offset": 1954,
+      "length": 31,
+      "value": "\"Resources.bundle\/snapshot.png\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 371,
+      "length": 9,
+      "value": "\"http:\/\/\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 400,
+      "length": 10,
+      "value": "\"https:\/\/\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 450,
+      "length": 16,
+      "value": "\"http:\/\/\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 465,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "Array",
+      "offset": 811,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "IntegerLiteral",
+      "offset": 886,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "BooleanLiteral",
+      "offset": 947,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 1341,
+      "length": 51,
+      "value": "\"https:\/\/www.baidu.com\/s?wd=\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 1391,
+      "length": 1,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 1605,
+      "length": 27,
+      "value": "\"Resources.bundle\/snapshot\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 1649,
+      "length": 5,
+      "value": "\"png\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 1801,
+      "length": 29,
+      "value": "\"Resources.bundle\/defWebIcon\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 1847,
+      "length": 5,
+      "value": "\"png\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 2317,
+      "length": 17,
+      "value": "\"Error: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/Url+Validator.swift",
+      "kind": "StringLiteral",
+      "offset": 2333,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+ancesterTree.swift",
+      "kind": "Array",
+      "offset": 160,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Helper\/View+ancesterTree.swift",
+      "kind": "Array",
+      "offset": 296,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "StringLiteral",
+      "offset": 374,
+      "length": 30,
+      "value": "\"making a WebWrapper: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "StringLiteral",
+      "offset": 403,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "Array",
+      "offset": 1361,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "StringLiteral",
+      "offset": 2081,
+      "length": 34,
+      "value": "\"using a webView: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "StringLiteral",
+      "offset": 2114,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "StringLiteral",
+      "offset": 2131,
+      "length": 34,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "StringLiteral",
+      "offset": 2149,
+      "length": 4,
+      "value": "\" have been made\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "FloatLiteral",
+      "offset": 2305,
+      "length": 3,
+      "value": "0.2"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "StringLiteral",
+      "offset": 2374,
+      "length": 28,
+      "value": "\"in WebView makeUIView.....\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Publisher\/WebWrapper.swift",
+      "kind": "StringLiteral",
+      "offset": 2603,
+      "length": 30,
+      "value": "\"in WebView updateUIView.....\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 215,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 322,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "StringLiteral",
+      "offset": 455,
+      "length": 23,
+      "value": "\"Count: \""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "StringLiteral",
+      "offset": 477,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "StringLiteral",
+      "offset": 586,
+      "length": 11,
+      "value": "\"Increment\""
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 831,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1331,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1388,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1486,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1759,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1980,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "FloatLiteral",
+      "offset": 1999,
+      "length": 3,
+      "value": "2.0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2086,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2118,
+      "length": 2,
+      "value": "50"
+    },
+    {
+      "filePath": "\/Users\/ui03\/Desktop\/SwiftUIToMAUI\/BrowserFramework\/BrowserFramework\/Example\/ObservableObjectView.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2281,
+      "length": 1,
+      "value": "3"
+    }
+  ]
+}

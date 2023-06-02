@@ -1,0 +1,12 @@
+﻿<BindingAssembly>
+	<NativeReference Name="BrowserFramework.xcframework">
+		<ForceLoad></ForceLoad>
+		<Frameworks>Foundation UIKit</Frameworks>
+		<IsCxx></IsCxx>
+		<Kind>Framework</Kind>
+		<LinkerFlags></LinkerFlags>
+		<NeedsGccExceptionHandling></NeedsGccExceptionHandling>
+		<SmartLink></SmartLink>
+		<WeakFrameworks></WeakFrameworks>
+	</NativeReference>
+</BindingAssembly>

@@ -1,0 +1,15 @@
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/bin/Debug/net7.0/SwiftUIMAUILibrary.deps.json
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/bin/Debug/net7.0/SwiftUIMAUILibrary.dll
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/bin/Debug/net7.0/SwiftUIMAUILibrary.pdb
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/bin/Debug/net7.0/SwiftUIBindingMAUI.dll
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/bin/Debug/net7.0/SwiftUIBindingMAUI.pdb
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/SwiftUIMAUILibrary.csproj.AssemblyReference.cache
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/SwiftUIMAUILibrary.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/SwiftUIMAUILibrary.AssemblyInfoInputs.cache
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/SwiftUIMAUILibrary.AssemblyInfo.cs
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/SwiftUIMAUILibrary.csproj.CoreCompileInputs.cache
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/SwiftUIMAUILibrary.csproj.CopyComplete
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/SwiftUIMAUILibrary.dll
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/refint/SwiftUIMAUILibrary.dll
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/SwiftUIMAUILibrary.pdb
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj/Debug/net7.0/ref/SwiftUIMAUILibrary.dll

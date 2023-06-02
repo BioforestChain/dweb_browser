@@ -1,0 +1,4 @@
+framework module BrowserFramework {
+  header "BrowserFramework-Swift.h"
+  requires objc
+}

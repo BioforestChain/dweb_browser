@@ -1,0 +1,14 @@
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/bin/Debug/net7.0-ios/SwiftUIBindingMAUI.resources.stamp
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/bin/Debug/net7.0-ios/SwiftUIBindingMAUI.dll
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/bin/Debug/net7.0-ios/SwiftUIBindingMAUI.pdb
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/_ProcessedBundleResourcesPath.items
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/_ProcessedContentPath.items
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/SwiftUIBindingMAUI.csproj.AssemblyReference.cache
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/SwiftUIBindingMAUI.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/SwiftUIBindingMAUI.AssemblyInfoInputs.cache
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/SwiftUIBindingMAUI.AssemblyInfo.cs
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/SwiftUIBindingMAUI.csproj.CoreCompileInputs.cache
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/SwiftUIBindingMAUI.dll
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/refint/SwiftUIBindingMAUI.dll
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/SwiftUIBindingMAUI.pdb
+/Users/ui03/Desktop/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj/Debug/net7.0-ios/ref/SwiftUIBindingMAUI.dll
