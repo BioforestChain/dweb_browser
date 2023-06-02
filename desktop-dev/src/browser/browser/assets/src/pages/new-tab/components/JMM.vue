@@ -1,11 +1,9 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { DragSortableList } from '../plugins/dragSortableList';
-
-
-const apps = ref({});
-
-
+const props = defineProps({
+  src: String,
+})
 
 onMounted(() => {
   // TODO 拖动排序效果
@@ -15,28 +13,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="jmm-container">
-    <div class="app" draggable="true" >
-      <div class="app-icon"></div>
-      <div class="app-name">JMM1</div>
+  <div class="app" draggable="true" >
+    <div class="app-icon">
+      <img class="img" :src="props.src"/>
     </div>
+    <div class="app-name">JMM1</div>
   </div>
 </template>
 <style scoped>
-.jmm-container {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
 
 .app {
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   margin: 12px;
+  cursor: pointer;
 }
 
 .app-icon {
@@ -48,6 +39,11 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+.img{
+  width: 90%;
+  height: auto;
 }
 .app-name {
   font-size: 14px;

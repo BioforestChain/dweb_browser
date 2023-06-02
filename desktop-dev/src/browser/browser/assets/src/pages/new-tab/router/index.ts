@@ -15,7 +15,7 @@ const routes = [
         component: () => import(/* webpackChunkName: "home" */ '@/pages/new-tab/views/Home.vue'),
       },
     ],
-  },
+  }
 ]
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
