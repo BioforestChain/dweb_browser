@@ -1,7 +1,10 @@
 import chalk from "https://esm.sh/v124/chalk@5.2.0";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
 import { mapHelper } from "../../desktop-dev/src/helper/mapHelper.ts";
 
+export type $Tasks = Record<string, $Task>;
 export type $Task = {
   cmd: string;
   args: string[] | string;
@@ -9,33 +12,30 @@ export type $Task = {
   devArgs?: string[] | string;
   devAppendArgs?: string[] | string;
   /** 启动依赖项 */
-  startDeps?: {
-    name: string;
-    whenLog: string;
-    logType?: "stdout" | "stderr" | "any";
-  }[];
+  startDeps?: $StartDep[];
+  logTransformer?: $LogTransformer;
+  logLineFilter?: $LogLineFilter;
 };
-export type $Tasks = Record<string, $Task>;
+export type $StartDep = {
+  name: string;
+  whenLog: string;
+  logType?: "stdout" | "stderr" | "any";
+};
+export type $LogTransformer = (log: string) => string;
+export type $LogLineFilter = (line: string) => boolean;
 const getArgs = (args?: string[] | string) =>
   args === undefined ? [] : Array.isArray(args) ? args : args.split(/\s+/);
 
-const filters = (Deno.args.filter((arg) => !arg.startsWith("-"))[0] || "*")
-  .trim()
-  .split(/\s*,\s*/)
-  .map((f) => {
-    if (f.includes("*")) {
-      const reg = new RegExp(f.replace(/\*/g, ".*"));
-      return (name: string) => reg.test(name);
-    }
-    return (name: string) => name === f;
-  });
-
-const useDev = Deno.args.includes("--dev");
-
-class Logger extends WritableStream<string> {
-  constructor(prefix: string) {
+class TaskLogger extends WritableStream<string> {
+  constructor(
+    prefix: string,
+    readonly writter: Deno.Writer,
+    logTransformer: $LogTransformer = (log) => log,
+    logLineFilter: $LogLineFilter = (line) => true
+  ) {
     super({
       write: async (chunk) => {
+        chunk = logTransformer(chunk);
         /// 如果有等待任务，那么进行判定
         if (this._waitters.size > 0) {
           const chunkText = chunk.replace(
@@ -54,6 +54,7 @@ class Logger extends WritableStream<string> {
         /// 加上前缀
         const log = chunk
           .split(/\n/g)
+          .filter(logLineFilter)
           .map((line) => {
             if (line.length) {
               return prefix + line;
@@ -67,7 +68,7 @@ class Logger extends WritableStream<string> {
   }
   static textEncoder = new TextEncoder();
   write(content: string) {
-    return Deno.stdout.write(Logger.textEncoder.encode(content));
+    return this.writter.write(TaskLogger.textEncoder.encode(content));
   }
   private _waitters = new Map<string, PromiseOut<void>>();
   waitContent(fragment: string) {
@@ -84,15 +85,35 @@ class Logger extends WritableStream<string> {
  * 并发执行任务
  */
 export class ConTasks {
-  constructor(readonly tasks: $Tasks) {}
-  spawn() {
+  constructor(readonly tasks: $Tasks, base: string) {
+    if (base.startsWith("file:")) {
+      base = fileURLToPath(base);
+    }
+    for (const task of Object.values(tasks)) {
+      task.cwd = path.resolve(base, task.cwd ?? "./");
+    }
+  }
+  spawn(args = Deno.args) {
+    const filters = (args.filter((arg) => !arg.startsWith("-"))[0] || "*")
+      .trim()
+      .split(/\s*,\s*/)
+      .map((f) => {
+        if (f.includes("*")) {
+          const reg = new RegExp(f.replace(/\*/g, ".*"));
+          return (name: string) => reg.test(name);
+        }
+        return (name: string) => name.startsWith(f);
+      });
+
+    const useDev = args.includes("--dev");
+
     const children: Record<
       string,
       {
         task: $Task;
         command: Deno.Command;
-        stdoutLogger: Logger;
-        stderrLogger: Logger;
+        stdoutLogger: TaskLogger;
+        stderrLogger: TaskLogger;
       }
     > = {};
     /// 先便利构建出所有任务
@@ -116,13 +137,24 @@ export class ConTasks {
         children[name] = {
           command,
           task,
-          stdoutLogger: new Logger(chalk.blue(name + " ")),
-          stderrLogger: new Logger(chalk.red(name + " ")),
+          stdoutLogger: new TaskLogger(
+            chalk.blue(name + " "),
+            Deno.stdout,
+            task.logTransformer,
+            task.logLineFilter
+          ),
+          stderrLogger: new TaskLogger(
+            chalk.red(name + " "),
+            Deno.stderr,
+            task.logTransformer,
+            task.logLineFilter
+          ),
         };
       }
     }
     /// 根据依赖顺序，启动任务
     const processTasks: Promise<void>[] = [];
+    console.log(Object.keys(this.tasks), "=>", Object.keys(children));
     for (const name in children) {
       const { task, command, stdoutLogger, stderrLogger } = children[name];
       const processTask = (async () => {
@@ -152,7 +184,7 @@ export class ConTasks {
           await Promise.all(allWhenLogs);
         }
         /// 开始启动任务
-        console.log(chalk.gray(name + " "), "begin");
+        console.log(chalk.gray(name + " "), chalk.cyan("---- begin ----"));
 
         const child = command.spawn();
         child.stdout.pipeThrough(new TextDecoderStream()).pipeTo(stdoutLogger);
@@ -160,7 +192,7 @@ export class ConTasks {
           .pipeThrough(new TextDecoderStream())
           .pipeTo(stderrLogger);
 
-        console.log(chalk.gray(name + " "), "done");
+        console.log(chalk.gray(name + " "), chalk.cyan("---- done ----"));
       })();
       processTasks.push(processTask);
     }
@@ -169,5 +201,15 @@ export class ConTasks {
       processTasks,
       afterComplete: () => Promise.all(processTasks),
     };
+  }
+  merge(comTasks: ConTasks, prefix = "") {
+    for (const [name, task] of Object.entries(comTasks.tasks)) {
+      const newTaskName = prefix + name;
+      if (this.tasks[newTaskName]) {
+        throw new Error(`Duplicate task name: ${newTaskName}`);
+      }
+      this.tasks[newTaskName] = task;
+    }
+    return this;
   }
 }

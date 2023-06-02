@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { dnt } from "../../scripts/deps.ts";
 import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
-import { build } from "../../scripts/helper/dnt/mod.ts";
 // await emptyDir("./npm");
 
 /// before build
 Deno.copyFileSync(".npmrc", "electron/.npmrc");
 
-await build({
+await dnt.build({
   entryPoints: ["./src/index.ts"],
   outDir: "./electron",
   shims: {

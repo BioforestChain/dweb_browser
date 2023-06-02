@@ -1,12 +1,7 @@
 // ex. scripts/build_npm.ts
 import * as semver from "https://deno.land/std@0.156.0/semver/mod.ts";
 import { copyFileSync } from "node:fs";
-import {
-  build,
-  emptyDir,
-  EntryPoint,
-  LibName,
-} from "../../scripts/helper/dnt/mod.ts";
+import { dnt } from "../../scripts/deps.ts";
 
 export const doBuidCore = async (config: {
   name: string;
@@ -15,7 +10,7 @@ export const doBuidCore = async (config: {
   buildFromRootDir: string;
   buildToRootDir: string;
   importMap?: string;
-  lib?: (LibName | string)[];
+  lib?: (dnt.LibName | string)[];
   devDependencies?: {
     [packageName: string]: string;
   };
@@ -24,9 +19,9 @@ export const doBuidCore = async (config: {
     config;
   console.log(`--- START BUILD: ${name} ${version} ---`);
 
-  await emptyDir(buildToRootDir);
+  await dnt.emptyDir(buildToRootDir);
 
-  const entryPoints: EntryPoint[] = [];
+  const entryPoints: dnt.EntryPoint[] = [];
   // console.group("entry-point:", dirEntry.name, config);
   // 适配入口不是index的情况
   let entry = `${buildFromRootDir}/index.ts`;
@@ -42,11 +37,11 @@ export const doBuidCore = async (config: {
 
   const orderMap = new Map([[".", 100]]);
   {
-    const getOrder = (ep: EntryPoint) => orderMap.get(ep.name) || 1;
+    const getOrder = (ep: dnt.EntryPoint) => orderMap.get(ep.name) || 1;
     entryPoints.sort((a, b) => getOrder(b) - getOrder(a));
   }
 
-  await build({
+  await dnt.build({
     importMap: importMap,
     entryPoints: entryPoints,
     outDir: buildToRootDir,
@@ -68,7 +63,7 @@ export const doBuidCore = async (config: {
       target: "ES2020",
       importHelpers: true,
       emitDecoratorMetadata: true,
-      lib: lib as LibName[],
+      lib: lib as dnt.LibName[],
     },
     packageManager: "npm",
     package: {
