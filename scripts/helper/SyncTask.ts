@@ -60,7 +60,7 @@ export class SyncTask {
     console.log("synced", relativeCwd(task.from), "=>", relativeCwd(task.to));
   }
 
-  watch(recursive = false) {
+  watch(recursive = true) {
     const watcherList = this.tasks.map((task) => {
       const watcher = (() => {
         // https://deno.land/std@0.186.0/fs/mod.ts?s=existsSync
