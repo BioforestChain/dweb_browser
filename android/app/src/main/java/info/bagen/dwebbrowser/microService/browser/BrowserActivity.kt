@@ -4,16 +4,12 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
-import info.bagen.dwebbrowser.microService.sys.jmm.defaultJmmMetadata
-import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.ui.browser.BrowserView
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
@@ -35,7 +31,6 @@ class BrowserActivity : AppCompatActivity() {
             LoadingView(showLoading)
           }
         }
-        Box(modifier = Modifier.fillMaxSize().clickable { JmmManagerActivity.startActivity(defaultJmmMetadata) })
       }
     }
   }
