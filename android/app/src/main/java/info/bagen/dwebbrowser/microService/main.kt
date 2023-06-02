@@ -5,21 +5,19 @@ import info.bagen.dwebbrowser.microService.helper.debugTags
 import info.bagen.dwebbrowser.microService.sys.boot.BootNMM
 import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
 import info.bagen.dwebbrowser.microService.sys.http.HttpNMM
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
-import info.bagen.dwebbrowser.microService.sys.js.JsProcessNMM
-import info.bagen.dwebbrowser.microService.sys.mwebview.MultiWebViewNMM
-import info.bagen.dwebbrowser.microService.sys.nativeui.NativeUiNMM
-import info.bagen.dwebbrowser.microService.sys.nativeui.torch.TorchNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.barcode.ScanningNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.biometrics.BiometricsNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.clipboard.ClipboardNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.device.*
-import info.bagen.dwebbrowser.microService.sys.plugin.fileSystem.FileSystemNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.haptics.HapticsNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.notification.NotificationNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.permission.PermissionsNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.share.ShareNMM
-import info.bagen.dwebbrowser.microService.sys.plugin.toast.ToastNMM
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
+import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
+import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
+import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
+import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
+import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
+import info.bagen.dwebbrowser.microService.sys.device.*
+import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemNMM
+import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
+import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
+import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
+import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import info.bagen.dwebbrowser.microService.user.CotDemoJMM
 import info.bagen.dwebbrowser.microService.user.CotJMM
 import info.bagen.dwebbrowser.microService.user.DesktopJMM
@@ -78,7 +76,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     val browserNMM = BrowserNMM().also { dnsNMM.install(it) }
 
     /// 扫码
-    val scannerNMM = ScanningNMM().also { dnsNMM.install(it) }
+    val scannerNMM = info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM().also { dnsNMM.install(it) }
     ///安装剪切板
     val clipboardNMM = ClipboardNMM().also { dnsNMM.install(it) }
     ///设备信息

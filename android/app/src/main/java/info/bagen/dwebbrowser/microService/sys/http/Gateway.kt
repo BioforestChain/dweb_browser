@@ -2,9 +2,9 @@ package info.bagen.dwebbrowser.microService.sys.http
 
 import info.bagen.dwebbrowser.microService.helper.SimpleCallback
 import info.bagen.dwebbrowser.microService.helper.SimpleSignal
-import info.bagen.dwebbrowser.microService.ipc.Ipc
-import info.bagen.dwebbrowser.microService.ipc.IpcMethod
-import info.bagen.dwebbrowser.microService.ipc.ReadableStreamIpc
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
+import info.bagen.dwebbrowser.microService.core.ipc.IpcMethod
+import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
 import io.ktor.util.collections.*
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -16,8 +16,8 @@ class Gateway(
 ) {
 
     class PortListener(
-      val ipc: Ipc,
-      val host: String
+        val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc,
+        val host: String
     ) {
         private val _routerSet = ConcurrentSet<StreamIpcRouter>();
 

@@ -7,22 +7,22 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
-import info.bagen.dwebbrowser.microService.sys.jmm.ui.DownLoadInfo
-import info.bagen.dwebbrowser.microService.sys.jmm.ui.DownLoadStatus
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.DownLoadInfo
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.DownLoadStatus
 import info.bagen.dwebbrowser.network.ApiService
 import info.bagen.dwebbrowser.util.FilesUtil
 import info.bagen.dwebbrowser.util.ZipUtil
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.sys.jmm.ui.JmmManagerActivity
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
-import info.bagen.dwebbrowser.microService.sys.jmm.DownLoadObserver
-import info.bagen.dwebbrowser.microService.sys.jmm.debugJMM
-import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.DownloadControllerEvent
-import info.bagen.dwebbrowser.microService.sys.mwebview.dwebServiceWorker.emitEvent
+import info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver
+import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
+import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.DownloadControllerEvent
+import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.util.NotificationUtil
 import kotlinx.coroutines.*
 import java.io.File
@@ -132,10 +132,10 @@ class DwebBrowserService : Service() {
   private fun DownLoadInfo.callDownLoadProgress(current: Long, total: Long) {
     if (current < 0) { // 专门针对下载异常情况，直接返回-1和0
       this.downLoadStatus = DownLoadStatus.FAIL
-      DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)
+      info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)
       sendStatusToEmitEvent(this.jmmMetadata.id, DownloadControllerEvent.End.event)
       downloadMap.remove(jmmMetadata.id) // 下载失败后也需要移除
-      DownLoadObserver.close(jmmMetadata.id) // 同时移除当前mmid所有关联推送
+      info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver.close(jmmMetadata.id) // 同时移除当前mmid所有关联推送
       return
     }
     this.downLoadStatus = DownLoadStatus.DownLoading
@@ -144,7 +144,7 @@ class DwebBrowserService : Service() {
     NotificationUtil.INSTANCE.updateNotificationForProgress(
       (current * 1.0 / total * 100).toInt(), notificationId
     )
-    DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.DownLoading, current, total)
+    info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.DownLoading, current, total)
     val mmid = this.jmmMetadata.id
     sendStatusToEmitEvent(mmid, DownloadControllerEvent.Progress.event, "${(current * 1.0 / total * 100).toInt()}") // 通知前台，下载进度
 
@@ -154,9 +154,9 @@ class DwebBrowserService : Service() {
         100, notificationId, "下载完成"
       ) {
         NotificationUtil.INSTANCE.cancelNotification(notificationId)
-        val intent = Intent(App.appContext, JmmManagerActivity::class.java).apply {
-          action = JmmManagerActivity.ACTION_LAUNCH
-          putExtra(JmmManagerActivity.KEY_JMM_METADATA, jmmMetadata)
+        val intent = Intent(App.appContext, info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity::class.java).apply {
+          action = info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity.ACTION_LAUNCH
+          putExtra(info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity.KEY_JMM_METADATA, jmmMetadata)
           flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
           `package` = App.appContext.packageName
         }
@@ -165,23 +165,23 @@ class DwebBrowserService : Service() {
           PendingIntent.getActivity(App.appContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         pendingIntent
       }
-      DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.DownLoadComplete)
+      info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.DownLoadComplete)
       runBlocking { delay(1000) }
       val unzip =
         ZipUtil.ergodicDecompress(this.path, FilesUtil.getAppUnzipPath(), mmid = jmmMetadata.id)
       if (unzip) {
         JmmMetadataDB.saveJmmMetadata(jmmMetadata.id, jmmMetadata)
         // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
-        DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.INSTALLED)
+        info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.INSTALLED)
         sendStatusToEmitEvent(this.jmmMetadata.id, DownloadControllerEvent.End.event)
         this.downLoadStatus = DownLoadStatus.INSTALLED
       } else {
-        DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)
+        info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver.emit(this.jmmMetadata.id, DownLoadStatus.FAIL)
         sendStatusToEmitEvent(this.jmmMetadata.id, DownloadControllerEvent.End.event)
         this.downLoadStatus = DownLoadStatus.FAIL
       }
       downloadMap.remove(jmmMetadata.id) // 下载完成后需要移除
-      DownLoadObserver.close(jmmMetadata.id) // 移除当前mmid所有关联推送
+      info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver.close(jmmMetadata.id) // 移除当前mmid所有关联推送
     }
   }
 

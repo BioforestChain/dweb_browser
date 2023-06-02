@@ -4,7 +4,7 @@ import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.Signal
 import info.bagen.dwebbrowser.microService.helper.text
-import info.bagen.dwebbrowser.microService.ipc.*
+import info.bagen.dwebbrowser.microService.core.ipc.*
 import info.bagen.dwebbrowser.microService.helper.toByteArray
 import kotlinx.coroutines.*
 import org.http4k.core.Method

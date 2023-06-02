@@ -2,8 +2,8 @@ package info.bagen.dwebbrowser.microService.sys.http
 
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.core.MicroModule
-import info.bagen.dwebbrowser.microService.ipc.IpcMethod
-import info.bagen.dwebbrowser.microService.ipc.ReadableStreamIpc
+import info.bagen.dwebbrowser.microService.core.ipc.IpcMethod
+import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

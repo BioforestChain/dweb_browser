@@ -1,10 +1,10 @@
 package info.bagen.dwebbrowser.microService.user
 
 import android.util.Log
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
-import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
-import info.bagen.dwebbrowser.microService.sys.jmm.getOrPutOrReplace
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
+import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
+import info.bagen.dwebbrowser.microService.browser.jmm.getOrPutOrReplace
 
 class CotDemoJMM : JsMicroModule(
     JmmMetadata(

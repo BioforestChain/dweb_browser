@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.sys.jmm.ui.DownLoadStatus
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.DownLoadStatus
 import info.bagen.dwebbrowser.ui.view.DialogInfo
 import info.bagen.dwebbrowser.ui.view.DialogType
 import info.bagen.dwebbrowser.ui.view.DialogView
@@ -47,10 +47,10 @@ fun DownloadDialogView(
  */
 @Composable
 fun DownloadAppMaskView(
-  mmid: Mmid,
-  path: String,
-  modifier: Modifier = Modifier,
-  callbackState: (DownLoadStatus, DialogInfo) -> Unit,
+    mmid: Mmid,
+    path: String,
+    modifier: Modifier = Modifier,
+    callbackState: (DownLoadStatus, DialogInfo) -> Unit,
 ) {
   val downLoadViewModel = DownLoadViewModel(mmid, path)
   downLoadViewModel.handleIntent(DownLoadIntent.DownLoad)
@@ -63,9 +63,9 @@ fun DownloadAppMaskView(
 
 @Composable
 fun DownloadAppMaskView(
-  downLoadViewModel: DownLoadViewModel,
-  modifier: Modifier = Modifier,
-  callbackState: (DownLoadStatus, DialogInfo) -> Unit,
+    downLoadViewModel: DownLoadViewModel,
+    modifier: Modifier = Modifier,
+    callbackState: (DownLoadStatus, DialogInfo) -> Unit,
 ) {
   DownloadAppProgressView(
     downLoadViewModel = downLoadViewModel,
@@ -76,9 +76,9 @@ fun DownloadAppMaskView(
 
 @Composable
 private fun DownloadAppProgressView(
-  downLoadViewModel: DownLoadViewModel,
-  modifier: Modifier,
-  callbackState: (DownLoadStatus, DialogInfo) -> Unit,
+    downLoadViewModel: DownLoadViewModel,
+    modifier: Modifier,
+    callbackState: (DownLoadStatus, DialogInfo) -> Unit,
 ) {
   val dialogInfo = DialogInfo(
     type = DialogType.PROGRESS,

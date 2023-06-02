@@ -69,23 +69,23 @@
             tools:ignore="LockedOrientationActivity" />
 
         <activity
-            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder1Activity"
+            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder1Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder2Activity"
+            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder2Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder3Activity"
+            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder3Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder4Activity"
+            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder4Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".microService.sys.mwebview.MultiWebViewPlaceholder5Activity"
+            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder5Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
 
@@ -94,7 +94,7 @@
             android:value="barcode" />
 
         <activity
-            android:name=".microService.sys.plugin.share.ShareActivity"
+            android:name=".microService.sys.share.ShareActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Transparent">
             <intent-filter>
@@ -102,7 +102,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".microService.sys.plugin.biometrics.BiometricsActivity"
+            android:name=".microService.sys.biometrics.BiometricsActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Transparent"/>
 

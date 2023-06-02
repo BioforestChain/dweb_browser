@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.ipc.*
+import info.bagen.dwebbrowser.microService.core.ipc.*
 import info.bagen.dwebbrowser.microService.helper.toUtf8
 import info.bagen.dwebbrowser.microService.helper.readByteArray
 import info.bagen.dwebbrowser.microService.helper.text

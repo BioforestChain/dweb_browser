@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.microService.user
 
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
-import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
+import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 
 class CotJMM : JsMicroModule(
     JmmMetadata(

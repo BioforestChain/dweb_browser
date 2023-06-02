@@ -11,8 +11,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.gson
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.sys.jmm.defaultJmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.defaultJmmMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

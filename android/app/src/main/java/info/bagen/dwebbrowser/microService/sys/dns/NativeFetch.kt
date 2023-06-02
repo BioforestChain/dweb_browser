@@ -7,7 +7,7 @@ import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.AdapterManager
 import info.bagen.dwebbrowser.microService.helper.printdebugln
 import info.bagen.dwebbrowser.microService.helper.readByteArray
-import info.bagen.dwebbrowser.microService.ipc.PreReadableInputStream
+import info.bagen.dwebbrowser.microService.core.ipc.PreReadableInputStream
 import info.bagen.dwebbrowser.util.APP_DIR_TYPE
 import info.bagen.dwebbrowser.util.FilesUtil
 import org.http4k.client.ApacheClient

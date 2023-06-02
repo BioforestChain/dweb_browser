@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.InternalBranch
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
 import info.bagen.dwebbrowser.ui.view.Captureable
 import kotlinx.coroutines.delay

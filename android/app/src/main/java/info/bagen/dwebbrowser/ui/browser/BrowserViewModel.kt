@@ -32,10 +32,10 @@ import info.bagen.dwebbrowser.microService.browser.BrowserNMM
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmNMM
-import info.bagen.dwebbrowser.microService.sys.jmm.JsMicroModule
-import info.bagen.dwebbrowser.microService.webview.DWebView
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
+import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
+import info.bagen.dwebbrowser.microService.browser.webview.DWebView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanState
 import info.bagen.dwebbrowser.util.*
@@ -44,24 +44,24 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 data class BrowserUIState (
-  val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
-  val currentBrowserBaseView: MutableState<BrowserWebView>,
-  val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
-  val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
-  val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
-  val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
-  val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
-  val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
+    val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
+    val currentBrowserBaseView: MutableState<BrowserWebView>,
+    val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
+    val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
+    val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
+    val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
+    val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
+    val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
     bottomSheetState = SheetState(
       skipPartiallyExpanded = false, initialValue = SheetValue.Hidden, skipHiddenState = false
     ),
     snackbarHostState = SnackbarHostState()
   ),
-  val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
-  val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
-  val showSearchView: MutableState<Boolean> = mutableStateOf(false), // 用于显示搜索的界面，也就是点击搜索框后界面
-  val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
-  val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
+    val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
+    val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
+    val showSearchView: MutableState<Boolean> = mutableStateOf(false), // 用于显示搜索的界面，也就是点击搜索框后界面
+    val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
+    val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
 )
 
 sealed class BrowserIntent {

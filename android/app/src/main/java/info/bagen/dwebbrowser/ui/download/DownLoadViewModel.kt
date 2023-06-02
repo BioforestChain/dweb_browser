@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.sys.jmm.DownLoadObserver
-import info.bagen.dwebbrowser.microService.sys.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.sys.jmm.ui.DownLoadStatus
-import info.bagen.dwebbrowser.microService.sys.jmm.ui.createDownLoadInfoByJmm
+import info.bagen.dwebbrowser.microService.browser.jmm.DownLoadObserver
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.DownLoadStatus
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.createDownLoadInfoByJmm
 import info.bagen.dwebbrowser.ui.entity.AppInfo
 import info.bagen.dwebbrowser.ui.view.DialogInfo
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
@@ -16,10 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 data class DownLoadUIState(
-  val downLoadState: MutableState<DownLoadStatus> = mutableStateOf(DownLoadStatus.IDLE),
-  val downLoadProgress: MutableState<Float> = mutableStateOf(0f),
-  var dialogInfo: DialogInfo = DialogInfo(),
-  var downloadAppInfo: AppInfo? = null,
+    val downLoadState: MutableState<DownLoadStatus> = mutableStateOf(DownLoadStatus.IDLE),
+    val downLoadProgress: MutableState<Float> = mutableStateOf(0f),
+    var dialogInfo: DialogInfo = DialogInfo(),
+    var downloadAppInfo: AppInfo? = null,
 )
 
 data class DownLoadProgress(

@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.helper
 
-import info.bagen.dwebbrowser.microService.ipc.Ipc
-import info.bagen.dwebbrowser.microService.ipc.IpcEvent
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
+import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import info.bagen.dwebbrowser.util.IsChange
 
 open class StateObservable(
@@ -12,8 +12,8 @@ open class StateObservable(
     val changeSignal = SimpleSignal()
     inline fun observe(noinline cb: SimpleCallback) = changeSignal.listen(cb)
 
-    val observerIpcMap = mutableMapOf<Ipc, OffListener>()
-    suspend fun startObserve(ipc: Ipc) {
+    val observerIpcMap = mutableMapOf<info.bagen.dwebbrowser.microService.core.ipc.Ipc, OffListener>()
+    suspend fun startObserve(ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
         observerIpcMap.getOrPut(ipc) {
             observe {
                 ipc.postMessage(
@@ -32,7 +32,7 @@ open class StateObservable(
         }.getOrNull()
     }
 
-    fun stopObserve(ipc: Ipc) = observerIpcMap.remove(ipc)?.let { off ->
+    fun stopObserve(ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) = observerIpcMap.remove(ipc)?.let { off ->
         off(Unit)
         true
     } ?: false

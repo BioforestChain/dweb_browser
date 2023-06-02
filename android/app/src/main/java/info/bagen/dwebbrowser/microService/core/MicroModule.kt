@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.microService.core
 
 import info.bagen.dwebbrowser.microService.helper.*
-import info.bagen.dwebbrowser.microService.ipc.Ipc
-import info.bagen.dwebbrowser.microService.ipc.IpcEvent
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
+import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import org.http4k.core.*
 
 
@@ -11,7 +11,7 @@ typealias AppRun = (options: NativeOptions) -> Any
 typealias NativeOptions = MutableMap<String, String>
 
 
-abstract class MicroModule : Ipc.MicroModuleInfo {
+abstract class MicroModule : info.bagen.dwebbrowser.microService.core.ipc.Ipc.MicroModuleInfo {
     override val mmid: Mmid = ""
     open val routers: Router? = null
 
@@ -80,7 +80,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
     /**
      * 连接池
      */
-    protected val _ipcSet = mutableSetOf<Ipc>();
+    protected val _ipcSet = mutableSetOf<info.bagen.dwebbrowser.microService.core.ipc.Ipc>();
 
     /**
      * 内部程序与外部程序通讯的方法
@@ -108,7 +108,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
     /**
      * 收到一个连接，触发相关事件
      */
-    suspend fun beConnect(ipc: Ipc, reason: Request) {
+    suspend fun beConnect(ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc, reason: Request) {
         this._ipcSet.add(ipc);
         ipc.onClose {
             this._ipcSet.remove(ipc);
@@ -123,7 +123,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
 
 
     /** 激活NMM入口*/
-    protected open suspend fun onActivity(event: IpcEvent, ipc: Ipc) {}
+    protected open suspend fun onActivity(event: IpcEvent, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {}
 
 //    protected var apiRouting: RoutingHttpHandler? = null
 //    protected val requestContexts = RequestContexts()
@@ -163,7 +163,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
 //
 }
 
-typealias IpcConnectArgs = Pair<Ipc, Request>
+typealias IpcConnectArgs = Pair<info.bagen.dwebbrowser.microService.core.ipc.Ipc, Request>
 
 //fun Uri.queryParameterByMap(): NativeOptions {
 //    val hashMap = hashMapOf<String, String>()

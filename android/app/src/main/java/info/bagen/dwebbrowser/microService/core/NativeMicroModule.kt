@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.core
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
-import info.bagen.dwebbrowser.microService.ipc.*
+import info.bagen.dwebbrowser.microService.core.ipc.*
 import info.bagen.dwebbrowser.microService.sys.dns.debugDNS
 import org.http4k.core.*
 import org.http4k.filter.ServerFilters
@@ -32,7 +32,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
 
 
     private val requestContexts = RequestContexts()
-    private val requestContextKey_ipc = RequestContextKey.required<Ipc>(requestContexts)
+    private val requestContextKey_ipc = RequestContextKey.required<info.bagen.dwebbrowser.microService.core.ipc.Ipc>(requestContexts)
     private val ipcApiFilter = ServerFilters.InitialiseRequestContext(requestContexts)
 
     /**
@@ -135,7 +135,7 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
 
     }
 
-    protected fun defineHandler(handler: suspend (request: Request, ipc: Ipc) -> Any?) =
+    protected fun defineHandler(handler: suspend (request: Request, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) -> Any?) =
         defineHandler { request ->
             handler(request, requestContextKey_ipc(request))
         }

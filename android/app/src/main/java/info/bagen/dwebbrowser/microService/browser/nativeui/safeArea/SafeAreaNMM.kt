@@ -1,0 +1,46 @@
+package info.bagen.dwebbrowser.microService.browser.nativeui.safeArea
+
+import info.bagen.dwebbrowser.microService.core.BootstrapContext
+import info.bagen.dwebbrowser.microService.core.NativeMicroModule
+import info.bagen.dwebbrowser.microService.helper.Mmid
+import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
+import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebView
+import info.bagen.dwebbrowser.microService.browser.nativeui.helper.QueryHelper
+import org.http4k.core.Method
+import org.http4k.routing.bind
+import org.http4k.routing.routes
+
+class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.browser.dweb") {
+
+    private fun getController(mmid: Mmid) = NativeUiController.fromMultiWebView(mmid).safeArea
+
+    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+        apiRouting = routes(
+            /** 获取状态 */
+            "/getState" bind Method.GET to defineHandler { _, ipc ->
+                return@defineHandler getController(ipc.remote.mmid)
+            },
+            /** 获取状态 */
+            "/setState" bind Method.GET to defineHandler { request, ipc ->
+                val controller = getController(ipc.remote.mmid)
+                QueryHelper.overlay(request)?.also { controller.overlayState.value = it }
+                return@defineHandler null
+            },
+            /**
+             * 开始数据订阅
+             */
+            "/startObserve" bind Method.GET to defineHandler { _, ipc ->
+                return@defineHandler getController(ipc.remote.mmid).observer.startObserve(ipc)
+            },
+            /**
+             * 开始数据订阅
+             */
+            "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
+                return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
+            },
+        )
+    }
+
+    override suspend fun _shutdown() {
+    }
+}

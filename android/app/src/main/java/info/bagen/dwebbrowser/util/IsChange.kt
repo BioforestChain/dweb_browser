@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.util
 
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import info.bagen.dwebbrowser.microService.sys.mwebview.debugMultiWebView
+import info.bagen.dwebbrowser.microService.browser.mwebview.debugMultiWebView
 
 @Stable
 class IsChange(

@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser
 
 import info.bagen.dwebbrowser.microService.helper.gson
-import info.bagen.dwebbrowser.microService.ipc.IPC_MESSAGE_TYPE
+import info.bagen.dwebbrowser.microService.core.ipc.IPC_MESSAGE_TYPE
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
