@@ -17,6 +17,7 @@ function focusout(){
       :class="$style.input" 
       @focusout="focusout"
       @focusin="focusin"
+      placeholder="请使用键盘输入！！entry确定"
     />
   </div>
 </template>
