@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.jmm.ui
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -28,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +38,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -52,26 +53,37 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 
+private val TopBarHeight = 44.dp
 private val HeadHeight = 128.dp
+private val AppInfoHeight = 88.dp
 private val VerticalPadding = 16.dp
 private val HorizontalPadding = 16.dp
 private val ShapeCorner = 16.dp
 private val HeadIconSize = 28.dp
-private val AppTopBarHeight = 44.dp
 private val AppBottomHeight = 82.dp
+private val ImageWidth = 135.dp
+private val ImageHeight = 240.dp
+
+private data class PreviewState(
+  val showPreview: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于判断是否显示预览界面
+  val selectIndex: MutableState<Int> = mutableStateOf(0), // 用于保存当前选中的图片下标
+  //val firstVisible: MutableState<Int> = mutableStateOf(0), // 用于记录第一个有效显示的照片
+  //val firstVisibleOffset: MutableState<Int> = mutableStateOf(0), // 用于记录第一个有效显示的照片偏移量
+  val offset: MutableState<Offset> = mutableStateOf(Offset.Zero), // 用于保存当前选中图片的中心坐标
+)
 
 @Composable
 fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
   val jmmMetadata = viewModel.uiState.downloadInfo.value.jmmMetadata
   val lazyListState = rememberLazyListState()
   val topBarAlpha = remember { mutableStateOf(0f) }
-  val firstHeightPx =
-    HeadHeight.value * LocalContext.current.resources.displayMetrics.density / 2 // 头部item的高度是128.dp
-  val showPreview = remember { MutableTransitionState(false) }
-  val selectImage = remember { mutableStateOf(0) }
-  val offsetImage = remember { mutableStateOf(Offset.Zero) }
+  val density = LocalContext.current.resources.displayMetrics.density
+  val firstHeightPx = HeadHeight.value * density / 2 // 头部item的高度是128.dp
+  val previewState = remember { PreviewState() }
+  val scope = rememberCoroutineScope()
 
   LaunchedEffect(lazyListState) {
     snapshotFlow { lazyListState.firstVisibleItemScrollOffset }.collect {
@@ -92,14 +104,29 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
   ) {
-    AppInfoContentView(lazyListState, jmmMetadata) { index, offset ->
-      selectImage.value = index
-      offsetImage.value = offset
-      showPreview.targetState = true
+    AppInfoContentView(lazyListState, jmmMetadata) { index, firstVisible, firstVisibleOffset ->
+      scope.launch {
+        previewState.selectIndex.value = index
+        // 计算图片中心点的坐标
+        val top = when (lazyListState.firstVisibleItemIndex) {
+          0 -> { (TopBarHeight + HeadHeight + AppInfoHeight).value * density - lazyListState.firstVisibleItemScrollOffset }
+          1 -> { (TopBarHeight + AppInfoHeight).value * density - lazyListState.firstVisibleItemScrollOffset }
+          2 -> { TopBarHeight.value * density - lazyListState.firstVisibleItemScrollOffset }
+          else -> { 0f }
+        }
+        val left = if (index > firstVisible) {
+          //((index - firstVisible - 1) * (ImageWidth + HorizontalPadding) + HorizontalPadding + ImageWidth / 2 ).value * density
+          0.5f
+        } else {
+          firstVisibleOffset.toFloat()
+        }
+        previewState.offset.value = Offset(top, left)
+        previewState.showPreview.targetState = true
+      }
     }
     TopAppBar(topBarAlpha, jmmMetadata.title, onBack)
     BottomDownloadButton(viewModel)
-    ImagePreview(jmmMetadata, showPreview, selectImage, offsetImage)
+    ImagePreview(jmmMetadata, previewState)
   }
 }
 
@@ -110,7 +137,7 @@ private fun TopAppBar(alpha: MutableState<Float>, title: String, onBack: () -> U
       .fillMaxWidth()
       .background(MaterialTheme.colorScheme.surface.copy(alpha.value))
       .statusBarsPadding()
-      .height(AppTopBarHeight),
+      .height(TopBarHeight),
     verticalAlignment = Alignment.CenterVertically
   ) {
     Icon(
@@ -198,7 +225,7 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
 
 @Composable
 private fun AppInfoContentView(
-    lazyListState: LazyListState, jmmMetadata: JmmMetadata, onSelectPic: (Int, Offset) -> Unit
+  lazyListState: LazyListState, jmmMetadata: JmmMetadata, onSelectPic: (Int, Int, Int) -> Unit
 ) {
   LazyColumn(
     state = lazyListState,
@@ -207,20 +234,39 @@ private fun AppInfoContentView(
       .background(MaterialTheme.colorScheme.background)
       .statusBarsPadding()
       .navigationBarsPadding()
-      .padding(top = AppTopBarHeight)
+      .padding(top = TopBarHeight)
   ) {
+    // 头部内容， HeadHeight 128.dp
     item { AppInfoHeadView(jmmMetadata) }
+    // 应用信息， 88.dp
+    item {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(topStart = ShapeCorner, topEnd = ShapeCorner))
+          .background(MaterialTheme.colorScheme.surface)
+      ) {
+        AppInfoLazyRow(jmmMetadata)
+      }
+    }
+    // 上面padding 16.dp
+    item {
+      Column(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(MaterialTheme.colorScheme.surface)
+      ) {
+        CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
+        CaptureListView(jmmMetadata, onSelectPic)
+      }
+    }
 
     item {
       Column(
         modifier = Modifier
           .fillMaxSize()
-          .clip(RoundedCornerShape(topStart = ShapeCorner, topEnd = ShapeCorner))
           .background(MaterialTheme.colorScheme.surface)
       ) {
-        AppInfoLazyRow(jmmMetadata)
-        CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
-        CaptureListView(jmmMetadata, onSelectPic)
         CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
         AppIntroductionView(jmmMetadata)
         CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
@@ -299,7 +345,7 @@ private fun AppInfoLazyRow(jmmMetadata: JmmMetadata) {
   LazyRow(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(vertical = VerticalPadding),
+      .height(AppInfoHeight),
     contentPadding = PaddingValues(HorizontalPadding),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween
@@ -344,9 +390,16 @@ private fun DoubleRowItem(first: String, second: String) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, Offset) -> Unit) {
+private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, Int, Int) -> Unit) {
   jmmMetadata.images?.let { images ->
     val lazyListState = rememberLazyListState()
+
+    LaunchedEffect(lazyListState) {
+      snapshotFlow { lazyListState.firstVisibleItemScrollOffset }.collect {
+        Log.e("lin.huang", "CaptureListView -> $it,, ${lazyListState.firstVisibleItemIndex}")
+      }
+    }
+
     LazyRow(
       modifier = Modifier.padding(vertical = VerticalPadding),
       state = lazyListState,
@@ -354,9 +407,14 @@ private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, Offset)
     ) {
       itemsIndexed(images) { index, item ->
         Card(
-          onClick = { onSelectPic(index, Offset(0.5f, 0.5f)) }, modifier = Modifier
+          onClick = {
+            onSelectPic(
+              index, lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset
+            )
+          },
+          modifier = Modifier
             .padding(end = 16.dp)
-            .size(135.dp, 240.dp)
+            .size(ImageWidth, ImageHeight)
         ) {
           AsyncImage(model = item, contentDescription = null)
         }
@@ -372,7 +430,12 @@ private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, Offset)
 private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
-    Text(text = "应用介绍", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+    Text(
+      text = "应用介绍",
+      fontSize = 18.sp,
+      fontWeight = FontWeight.Bold,
+      color = MaterialTheme.colorScheme.onSurface
+    )
 
     Box(modifier = Modifier
       .animateContentSize()
@@ -380,7 +443,8 @@ private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
       Text(
         text = jmmMetadata.introduction,
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
+        color = MaterialTheme.colorScheme.onSurface
       )
     }
   }
@@ -393,12 +457,17 @@ private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
 private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
-    Text(text = "新功能", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+    Text(
+      text = "新功能",
+      fontSize = 18.sp,
+      fontWeight = FontWeight.Bold,
+      color = MaterialTheme.colorScheme.onSurface
+    )
     Text(
       text = "版本 ${jmmMetadata.version}",
       fontSize = 12.sp,
       fontWeight = FontWeight.Bold,
-      color = MaterialTheme.colorScheme.outlineVariant,
+      color = MaterialTheme.colorScheme.outline,
       modifier = Modifier.padding(vertical = 6.dp)
     )
 
@@ -408,7 +477,8 @@ private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
       Text(
         text = "运用全新的功能，让使用更加安全便捷",
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
+        color = MaterialTheme.colorScheme.onSurface
       )
     }
   }
@@ -420,7 +490,12 @@ private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
 @Composable
 private fun OtherInfoView(jmmMetadata: JmmMetadata) {
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
-    Text(text = "信息", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+    Text(
+      text = "信息",
+      fontSize = 18.sp,
+      fontWeight = FontWeight.Bold,
+      color = MaterialTheme.colorScheme.onSurface
+    )
     Spacer(modifier = Modifier.height(HorizontalPadding))
     OtherItemView(type = "开发者", content = jmmMetadata.author?.toContent() ?: "me")
     OtherItemView(type = "大小", content = jmmMetadata.size.toSpaceSize())
@@ -470,18 +545,18 @@ private fun CustomerDivider(modifier: Modifier = Modifier) =
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ImagePreview(
-    jmmMetadata: JmmMetadata,
-    visibleState: MutableTransitionState<Boolean>,
-    select: MutableState<Int>,
-    offset: MutableState<Offset>
+  jmmMetadata: JmmMetadata,
+  previewState: PreviewState,
 ) {
   AnimatedVisibility(
-    visibleState = visibleState,
-    enter = scaleIn(transformOrigin = TransformOrigin(offset.value.x, offset.value.y)) + fadeIn(),
-    exit = scaleOut(transformOrigin = TransformOrigin(offset.value.x, offset.value.y)) + fadeOut(),
+    visibleState = previewState.showPreview,
+    enter = scaleIn() + fadeIn(),
+    exit = scaleOut() + fadeOut(),
+    //enter = scaleIn(transformOrigin = TransformOrigin(offset.value.x, offset.value.y)) + fadeIn(),
+    //exit = scaleOut(transformOrigin = TransformOrigin(offset.value.x, offset.value.y)) + fadeOut(),
   ) {
-    BackHandler { visibleState.targetState = false }
-    val pagerState = rememberPagerState(select.value)
+    BackHandler { previewState.showPreview.targetState = false }
+    val pagerState = rememberPagerState(previewState.selectIndex.value)
     val imageList = jmmMetadata.images ?: listOf()
     Box(
       modifier = Modifier
@@ -501,7 +576,7 @@ private fun ImagePreview(
           modifier = Modifier
             .fillMaxSize()
             .clickable(indication = null,
-              onClick = { visibleState.targetState = false },
+              onClick = { previewState.showPreview.targetState = false },
               interactionSource = remember { MutableInteractionSource() }
             )
         )
