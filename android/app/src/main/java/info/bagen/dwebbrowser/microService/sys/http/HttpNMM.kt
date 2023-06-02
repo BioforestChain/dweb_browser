@@ -3,9 +3,9 @@ package info.bagen.dwebbrowser.microService.sys.http
 import com.google.gson.reflect.TypeToken
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
+import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetchAdaptersManager
 import info.bagen.dwebbrowser.microService.sys.http.net.Http1Server
 import org.http4k.core.*
@@ -166,7 +166,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         fun buildInternalUrl() = Uri.of(internal_origin)
     }
 
-    private fun getServerUrlInfo(ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc, options: DwebHttpServerOptions): ServerUrlInfo {
+    private fun getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions): ServerUrlInfo {
         val mmid = ipc.remote.mmid
         val subdomainPrefix =
             if (options.subdomain == "" || options.subdomain.endsWith(".")) options.subdomain else "${options.subdomain}."
@@ -188,7 +188,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
     /**
      * 监听端口，启动服务
      */
-    private fun start(ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc, options: DwebHttpServerOptions): ServerStartResult {
+    private fun start(ipc: Ipc, options: DwebHttpServerOptions): ServerStartResult {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
         debugHttp("start","serverUrlInfo  ${serverUrlInfo.host}")
         if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
@@ -230,7 +230,7 @@ class HttpNMM() : NativeMicroModule("http.sys.dweb") {
         return Response(Status.OK).body(streamIpc.stream)
     }
 
-    private suspend fun close(ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc, options: DwebHttpServerOptions): Boolean {
+    private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {
         val serverUrlInfo = getServerUrlInfo(ipc, options)
         debugHttp("close", "mmid: ${ipc.remote.mmid} ${serverUrlInfo.host}")
         return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->

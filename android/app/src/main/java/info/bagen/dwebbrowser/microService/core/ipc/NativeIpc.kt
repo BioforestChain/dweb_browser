@@ -14,7 +14,7 @@ class NativeIpc(
   val port: NativePort<IpcMessage, IpcMessage>,
   override val remote: MicroModuleInfo,
   private val role_type: IPC_ROLE,
-) : info.bagen.dwebbrowser.microService.core.ipc.Ipc() {
+) : Ipc() {
     override val role get() = role_type.role
     override fun toString(): String {
         return super.toString() + "@NativeIpc"

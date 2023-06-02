@@ -2,9 +2,9 @@ package info.bagen.dwebbrowser.microService.sys.dns
 
 import android.content.res.Resources.NotFoundException
 import info.bagen.dwebbrowser.microService.core.*
-import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
+import info.bagen.dwebbrowser.microService.helper.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -184,7 +184,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
         )
     }
 
-    override suspend fun onActivity(event: IpcEvent, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
+    override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
         onActivity(event)
     }
 

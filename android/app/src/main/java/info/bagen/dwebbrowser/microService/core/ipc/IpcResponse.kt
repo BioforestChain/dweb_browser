@@ -11,7 +11,7 @@ class IpcResponse(
     val statusCode: Int,
     val headers: IpcHeaders,
     val body: IpcBody,
-    val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc,
+    val ipc: Ipc,
 ) : IpcMessage(IPC_MESSAGE_TYPE.RESPONSE) {
 
     init {
@@ -26,7 +26,7 @@ class IpcResponse(
           statusCode: Int = 200,
           headers: IpcHeaders = IpcHeaders(),
           jsonAble: Any,
-          ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+          ipc: Ipc
         ) = fromText(req_id, statusCode, headers.also {
             headers.init("Content-Type", "application/json")
         }, gson.toJson(jsonAble), ipc)
@@ -36,7 +36,7 @@ class IpcResponse(
           statusCode: Int = 200,
           headers: IpcHeaders = IpcHeaders(),
           text: String,
-          ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+          ipc: Ipc
         ) = IpcResponse(
             req_id,
             statusCode,
@@ -46,7 +46,7 @@ class IpcResponse(
         )
 
         fun fromBinary(
-          req_id: Int, statusCode: Int = 200, headers: IpcHeaders, binary: ByteArray, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+          req_id: Int, statusCode: Int = 200, headers: IpcHeaders, binary: ByteArray, ipc: Ipc
         ) = IpcResponse(
             req_id,
             statusCode,
@@ -64,7 +64,7 @@ class IpcResponse(
           statusCode: Int = 200,
           headers: IpcHeaders = IpcHeaders(),
           stream: InputStream,
-          ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+          ipc: Ipc
         ) = IpcResponse(
             req_id,
             statusCode,
@@ -76,7 +76,7 @@ class IpcResponse(
         )
 
         fun fromResponse(
-            req_id: Int, response: Response, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+            req_id: Int, response: Response, ipc: Ipc
         ) = IpcResponse(
             req_id,
             response.status.code,

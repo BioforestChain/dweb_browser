@@ -7,9 +7,10 @@ import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.core.MicroModule
-import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.webview.DWebView
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
+import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
@@ -58,7 +59,7 @@ class MultiWebViewController(
     fun isFistView(viewItem: ViewItem) = webViewList.firstOrNull() == viewItem
     val lastViewOrNull get() = webViewList.lastOrNull()
 
-    private val mIpcMap = mutableMapOf<Mmid, info.bagen.dwebbrowser.microService.core.ipc.Ipc>()
+    private val mIpcMap = mutableMapOf<Mmid, Ipc>()
 
     data class ViewItem(
         val webviewId: String,

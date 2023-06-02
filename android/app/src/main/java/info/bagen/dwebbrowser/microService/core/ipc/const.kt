@@ -5,30 +5,30 @@ import com.google.gson.annotations.JsonAdapter
 import info.bagen.dwebbrowser.microService.helper.*
 import java.lang.reflect.Type
 
-data class IpcMessageArgs(val message: IpcMessage, val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
+data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
     val component1 get() = message
     val component2 get() = ipc
 }
 typealias OnIpcMessage = Callback<IpcMessageArgs>
 
-data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
+data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc) {
     val component1 get() = request
     val component2 get() = ipc
 }
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
-data class IpcResponseMessageArgs(val response: IpcResponse, val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
+data class IpcResponseMessageArgs(val response: IpcResponse, val ipc: Ipc) {
     val component1 get() = response
     val component2 get() = ipc
 }
 typealias OnIpcResponseMessage = Callback<IpcResponseMessageArgs>
-data class IpcStreamMessageArgs(val response: IpcStream, val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
+data class IpcStreamMessageArgs(val response: IpcStream, val ipc: Ipc) {
     val component1 get() = response
     val component2 get() = ipc
 }
 typealias OnIpcStreamMessage = Callback<IpcStreamMessageArgs>
 
-data class IpcEventMessageArgs(val event: IpcEvent, val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
+data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc) {
     val component1 get() = event
     val component2 get() = ipc
 }

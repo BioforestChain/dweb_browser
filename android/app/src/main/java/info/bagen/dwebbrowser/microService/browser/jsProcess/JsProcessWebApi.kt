@@ -4,10 +4,11 @@ import android.net.Uri
 import android.webkit.WebMessage
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.gson
+import info.bagen.dwebbrowser.microService.browser.webview.DWebView
 import info.bagen.dwebbrowser.microService.core.ipc.IPC_ROLE
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.ipcWeb.MessagePortIpc
 import info.bagen.dwebbrowser.microService.core.ipc.ipcWeb.saveNative2JsIpcPort
-import info.bagen.dwebbrowser.microService.browser.webview.DWebView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,7 +29,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
         env_script_url: String,
         metadata_json: String,
         env_json: String,
-        remoteModule: info.bagen.dwebbrowser.microService.core.ipc.Ipc.MicroModuleInfo,
+        remoteModule: Ipc.MicroModuleInfo,
         host: String
     ) = withContext(Dispatchers.Main) {
         val channel = dWebView.createWebMessageChannel()

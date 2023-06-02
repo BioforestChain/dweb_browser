@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.helper.EIpcEvent
 import info.bagen.dwebbrowser.microService.helper.Mmid
@@ -7,7 +8,7 @@ import info.bagen.dwebbrowser.microService.helper.Mmid
 
 class JmmController(private val jmmNMM: JmmNMM) {
 
-    private val openIpcMap = mutableMapOf<Mmid, info.bagen.dwebbrowser.microService.core.ipc.Ipc>()
+    private val openIpcMap = mutableMapOf<Mmid, Ipc>()
 
     suspend fun openApp(mmid: Mmid) {
         openIpcMap.getOrPut(mmid) {

@@ -22,7 +22,7 @@ inline fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
 class ReadableStreamIpc(
   override val remote: MicroModuleInfo,
   override val role: String,
-) : info.bagen.dwebbrowser.microService.core.ipc.Ipc() {
+) : Ipc() {
     companion object {
         val incomeStreamCoroutineScope =
             CoroutineScope(CoroutineName("income-stream") + ioAsyncExceptionHandler)

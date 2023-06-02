@@ -4,11 +4,9 @@ import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.ConnectResult
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.core.connectAdapterManager
-import info.bagen.dwebbrowser.microService.helper.*
-import info.bagen.dwebbrowser.microService.core.ipc.IpcMessageArgs
-import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
-import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
+import info.bagen.dwebbrowser.microService.core.ipc.*;
 import info.bagen.dwebbrowser.microService.core.ipc.ipcWeb.Native2JsIpc
+import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -188,7 +186,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         _ipcSet.add(streamIpc);
     }
 
-    private val fromMmid_originIpc_WM = mutableMapOf<Mmid, PromiseOut<info.bagen.dwebbrowser.microService.core.ipc.Ipc>>();
+    private val fromMmid_originIpc_WM = mutableMapOf<Mmid, PromiseOut<Ipc>>();
 
     class JmmIpc(port_id: Int, remote: MicroModuleInfo) : Native2JsIpc(port_id, remote) {}
 
@@ -196,9 +194,9 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
      * 桥接ipc到js内部：
      * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
      */
-    private fun _ipcBridge(fromMmid: Mmid, targetIpc: info.bagen.dwebbrowser.microService.core.ipc.Ipc?) =
+    private fun _ipcBridge(fromMmid: Mmid, targetIpc: Ipc?) =
         fromMmid_originIpc_WM.getOrPut(fromMmid) {
-            PromiseOut<info.bagen.dwebbrowser.microService.core.ipc.Ipc>().also { po ->
+            PromiseOut<Ipc>().also { po ->
                 GlobalScope.launch(ioAsyncExceptionHandler) {
                     try {
                         debugJMM("ipcBridge", "fromMmid:$fromMmid targetIpc:$targetIpc")
@@ -243,7 +241,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             }
         }
 
-    private suspend fun ipcBridge(fromMmid: Mmid, targetIpc: info.bagen.dwebbrowser.microService.core.ipc.Ipc? = null) =
+    private suspend fun ipcBridge(fromMmid: Mmid, targetIpc: Ipc? = null) =
         _ipcBridge(fromMmid, targetIpc).waitPromise();
 
     override suspend fun _shutdown() {

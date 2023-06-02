@@ -25,7 +25,7 @@ abstract class IpcBody {
              * 每一个 metaBody 背后，都会有第一个 接收者IPC，这直接定义了它的应该由谁来接收这个数据，
              * 其它的 IPC 即便拿到了这个 metaBody 也是没有意义的，除非它是 INLINE
              */
-            val metaId_receiverIpc_Map = mutableMapOf<String, info.bagen.dwebbrowser.microService.core.ipc.Ipc>()
+            val metaId_receiverIpc_Map = mutableMapOf<String, Ipc>()
 
             /**
              * 每一个 metaBody 背后，都会有一个 IpcBodySender,

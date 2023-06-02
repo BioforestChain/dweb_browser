@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.core.ipc.ipcWeb
 import info.bagen.dwebbrowser.microService.core.ipc.*
 import info.bagen.dwebbrowser.microService.helper.gson
 
-fun jsonToIpcMessage(data: String, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc): Any? {
+fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
     if (data == "close" || data == "ping" || data == "pong") {
         return data
     }

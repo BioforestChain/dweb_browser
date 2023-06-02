@@ -4,13 +4,24 @@ import android.webkit.WebView
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.*
+import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import info.bagen.dwebbrowser.microService.browser.webview.DWebView
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcHeaders
 import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
 import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
-import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.sys.http.*
-import info.bagen.dwebbrowser.microService.browser.webview.DWebView
+import info.bagen.dwebbrowser.microService.helper.Mmid
+import info.bagen.dwebbrowser.microService.helper.PromiseOut
+import info.bagen.dwebbrowser.microService.helper.encodeURI
+import info.bagen.dwebbrowser.microService.helper.gson
+import info.bagen.dwebbrowser.microService.helper.printdebugln
+import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
+import info.bagen.dwebbrowser.microService.helper.text
+import info.bagen.dwebbrowser.microService.sys.http.DwebHttpServerOptions
+import info.bagen.dwebbrowser.microService.sys.http.HttpDwebServer
+import info.bagen.dwebbrowser.microService.sys.http.closeHttpDwebServer
+import info.bagen.dwebbrowser.microService.sys.http.createHttpDwebServer
+import info.bagen.dwebbrowser.microService.sys.http.debugHttp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -31,7 +42,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
 
     private val JS_PROCESS_WORKER_CODE by lazy {
         runBlockingCatching {
-            nativeFetch("file:///jmm/js-process.worker.js").text()
+            nativeFetch("file:///jmm/browser/js-process/worker-thread/js-process.worker.js").text()
         }.getOrThrow()
     }
 
@@ -77,7 +88,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
                         )
                     }
                 } else {
-                    val response = nativeFetch("file:///jmm/js-process${request.uri.path}")
+                    val response = nativeFetch("file:///jmm/browser/js-process/worker-thread${request.uri.path}")
                     ipc.postMessage(
                         IpcResponse.fromResponse(request.req_id, response, ipc)
                     )
@@ -93,8 +104,8 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
         val query_process_id = Query.string().required("process_id")
         val query_mmid = Query.string().required("mmid")
 
-        val ipcProcessIdMap = mutableMapOf<info.bagen.dwebbrowser.microService.core.ipc.Ipc, MutableMap<String, PromiseOut<Int>>>()
-        val processIpcMap = mutableMapOf<String, info.bagen.dwebbrowser.microService.core.ipc.Ipc>()
+        val ipcProcessIdMap = mutableMapOf<Ipc, MutableMap<String, PromiseOut<Int>>>()
+        val processIpcMap = mutableMapOf<String, Ipc>()
         val ipcProcessIdMapLock = Mutex()
         apiRouting = routes(
             /// 创建 web worker
@@ -179,7 +190,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
     }
 
     private suspend fun createProcessAndRun(
-        ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc,
+        ipc: Ipc,
         apis: JsProcessWebApi,
         bootstrap_url: String,
         entry: String?,
@@ -297,7 +308,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
     )
 
     private suspend fun createIpc(
-        ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc, apis: JsProcessWebApi, process_id: Int, mmid: Mmid
+        ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: Mmid
     ): Int {
         return apis.createIpc(process_id, mmid)
     }

@@ -3,8 +3,8 @@ package info.bagen.dwebbrowser
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.text
-import info.bagen.dwebbrowser.microService.core.ipc.IpcHeaders
-import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
+import IpcHeaders
+import IpcResponse
 import info.bagen.dwebbrowser.microService.sys.boot.BootNMM
 import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch

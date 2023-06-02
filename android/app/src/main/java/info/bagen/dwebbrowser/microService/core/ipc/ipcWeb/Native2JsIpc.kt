@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser.microService.core.ipc.ipcWeb
 
 import android.webkit.WebMessagePort
 import info.bagen.dwebbrowser.microService.core.ipc.IPC_ROLE
-import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -25,7 +24,7 @@ fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).als
  */
 open class Native2JsIpc(
     val port_id: Int,
-    remote: info.bagen.dwebbrowser.microService.core.ipc.Ipc.MicroModuleInfo,
+    remote: MicroModuleInfo,
     role: IPC_ROLE = IPC_ROLE.CLIENT,
 ) : MessagePortIpc(
     ALL_MESSAGE_PORT_CACHE[port_id]

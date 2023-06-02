@@ -11,7 +11,7 @@ class IpcRequest(
     val method: IpcMethod,
     val headers: IpcHeaders,
     val body: IpcBody,
-    val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc,
+    val ipc: Ipc,
 ) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST) {
     val uri by lazy { Uri.of(url) }
 
@@ -29,7 +29,7 @@ class IpcRequest(
           method: IpcMethod = IpcMethod.GET,
           headers: IpcHeaders = IpcHeaders(),
           text: String,
-          ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+          ipc: Ipc
         ) = IpcRequest(
             req_id,
             url,
@@ -45,7 +45,7 @@ class IpcRequest(
           url: String,
           headers: IpcHeaders = IpcHeaders(),
           binary: ByteArray,
-          ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+          ipc: Ipc
         ) = IpcRequest(
             req_id,
             url,
@@ -64,7 +64,7 @@ class IpcRequest(
             url: String,
             headers: IpcHeaders = IpcHeaders(),
             stream: InputStream,
-            ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc,
+            ipc: Ipc,
             size: Long? = null
         ) = IpcRequest(
             req_id,
@@ -81,7 +81,7 @@ class IpcRequest(
         )
 
         fun fromRequest(
-            req_id: Int, request: Request, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+            req_id: Int, request: Request, ipc: Ipc
         ) = IpcRequest(
             req_id,
             request.uri.toString(),

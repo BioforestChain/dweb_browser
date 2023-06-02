@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import info.bagen.dwebbrowser.ui.browser.BrowserViewModel
 import org.http4k.core.Uri
@@ -63,7 +64,7 @@ class BrowserController(val browserNMM: BrowserNMM) {
         return this
     }
 
-    private val openIPCMap = mutableMapOf<Mmid, info.bagen.dwebbrowser.microService.core.ipc.Ipc>()
+    private val openIPCMap = mutableMapOf<Mmid, Ipc>()
     private val dWebViewList = mutableListOf<View>()
 
     fun appendView(view: View) = dWebViewList.add(view)

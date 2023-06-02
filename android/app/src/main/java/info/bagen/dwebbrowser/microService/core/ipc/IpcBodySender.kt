@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class IpcBodySender(
     override val raw: Any,
-    ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc,
+    ipc: Ipc,
 ) : IpcBody() {
     val isStream by lazy { raw is InputStream }
     val isStreamClosed get() = if (isStream) _isStreamClosed else true
@@ -74,8 +74,8 @@ class IpcBodySender(
                 fun onDestroy(cb: SimpleCallback) = destroySignal.listen(cb)
             }
 
-            private val IpcUsableIpcBodyMap = WeakHashMap<info.bagen.dwebbrowser.microService.core.ipc.Ipc, UsableIpcBodyMapper>()
-            private fun info.bagen.dwebbrowser.microService.core.ipc.Ipc.getUsableIpcBodyMap(): UsableIpcBodyMapper =
+            private val IpcUsableIpcBodyMap = WeakHashMap<Ipc, UsableIpcBodyMapper>()
+            private fun Ipc.getUsableIpcBodyMap(): UsableIpcBodyMapper =
                 IpcUsableIpcBodyMap.getOrPut(this) {
                     debugIpcBody("ipcBodySenderUsableByIpc/OPEN/$this")
                     UsableIpcBodyMapper().also { mapper ->
@@ -104,7 +104,7 @@ class IpcBodySender(
              * 那么只要这个 ipc 接收到 pull 指令，就意味着成为"使用者"，那么这个 ipcBody 都会开始读取数据出来发送
              * 在开始发送第一帧数据之前，其它 ipc 也可以通过 pull 指令来参与成为"使用者"
              */
-            fun usableByIpc(ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc, ipcBody: IpcBodySender) {
+            fun usableByIpc(ipc: Ipc, ipcBody: IpcBodySender) {
                 if (!ipcBody.isStream || ipcBody._isStreamOpened) {
                     return
                 }
@@ -124,10 +124,10 @@ class IpcBodySender(
     /**
      * 被哪些 ipc 所真正使用，以及它们对应的信息
      */
-    private val usedIpcMap = mutableMapOf<info.bagen.dwebbrowser.microService.core.ipc.Ipc, UsedIpcInfo>()
+    private val usedIpcMap = mutableMapOf<Ipc, UsedIpcInfo>()
 
     inner class UsedIpcInfo(
-        val ipcBody: IpcBodySender, val ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc, var bandwidth: Int = 0, var fuse: Int = 0
+        val ipcBody: IpcBodySender, val ipc: Ipc, var bandwidth: Int = 0, var fuse: Int = 0
     ) {
         suspend fun emitStreamPull(message: IpcStreamPulling) =
             ipcBody.emitStreamPull(this, message)
@@ -144,7 +144,7 @@ class IpcBodySender(
      * ipc 将使用这个 body，也就是说接下来的 MessageData 也要通知一份给这个 ipc
      * 但一个流一旦开启了，那么就无法再被外部使用了
      */
-    private fun useByIpc(ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) = usedIpcMap[ipc] ?: if (isStream) {
+    private fun useByIpc(ipc: Ipc) = usedIpcMap[ipc] ?: if (isStream) {
         if (!_isStreamOpened) {
             /// 如果是未开启的流，插入
             UsedIpcInfo(this, ipc).also { info ->
@@ -258,13 +258,13 @@ class IpcBodySender(
 
     companion object {
 
-        private fun fromAny(raw: Any, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) =
+        private fun fromAny(raw: Any, ipc: Ipc) =
             CACHE.raw_ipcBody_WMap[raw] ?: IpcBodySender(raw, ipc)
 
-        fun fromText(raw: String, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) = fromBinary(raw.toByteArray(), ipc)
-        fun fromBase64(raw: String, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) = fromAny(raw, ipc)
-        fun fromBinary(raw: ByteArray, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) = fromAny(raw, ipc)
-        fun fromStream(raw: InputStream, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) = fromAny(raw, ipc)
+        fun fromText(raw: String, ipc: Ipc) = fromBinary(raw.toByteArray(), ipc)
+        fun fromBase64(raw: String, ipc: Ipc) = fromAny(raw, ipc)
+        fun fromBinary(raw: ByteArray, ipc: Ipc) = fromAny(raw, ipc)
+        fun fromStream(raw: InputStream, ipc: Ipc) = fromAny(raw, ipc)
 
 
         private val streamIdWM by lazy { WeakHashMap<InputStream, String>() }
@@ -281,14 +281,14 @@ class IpcBodySender(
     }
 
 
-    private fun bodyAsMeta(body: Any, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) = when (body) {
+    private fun bodyAsMeta(body: Any, ipc: Ipc) = when (body) {
         is String -> MetaBody.fromText(ipc.uid, body)
         is ByteArray -> MetaBody.fromBinary(ipc, body)
         is InputStream -> streamAsMeta(body, ipc)
         else -> throw Exception("invalid body type $body")
     }
 
-    private fun streamAsMeta(stream: InputStream, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc): MetaBody {
+    private fun streamAsMeta(stream: InputStream, ipc: Ipc): MetaBody {
         val stream_id = getStreamId(stream)
         debugIpcBody("sender/INIT/$stream", stream_id)
         val streamAsMetaScope =

@@ -5,8 +5,9 @@ import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
+import info.bagen.dwebbrowser.microService.helper.printdebugln
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.string
@@ -35,7 +36,7 @@ class BrowserNMM : NativeMicroModule("browser.sys.dweb") {
       })
   }
 
-  override suspend fun onActivity(event: IpcEvent, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
+  override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
     App.startActivity(BrowserActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)

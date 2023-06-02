@@ -19,9 +19,7 @@ import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import info.bagen.dwebbrowser.microService.user.CotDemoJMM
-import info.bagen.dwebbrowser.microService.user.CotJMM
 import info.bagen.dwebbrowser.microService.user.DesktopJMM
-import info.bagen.dwebbrowser.microService.user.ToyJMM
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.HLOppo, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true
@@ -114,13 +112,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     val desktopJMM = DesktopJMM().also {
         dnsNMM.install(it)
     }
-    val cotJMM = CotJMM().also {
-        dnsNMM.install(it)
-    }
     val cotDemoJMM = CotDemoJMM().also {
-        dnsNMM.install(it)
-    }
-    val toyJMM = ToyJMM().also {
         dnsNMM.install(it)
     }
 

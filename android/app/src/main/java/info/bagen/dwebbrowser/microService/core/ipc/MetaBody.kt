@@ -120,7 +120,7 @@ data class MetaBody(
         )
 
         fun fromBinary(
-            senderIpc: info.bagen.dwebbrowser.microService.core.ipc.Ipc,
+            senderIpc: Ipc,
             data: ByteArray,
             streamId: String? = null,
             receiverUid: Int? = null,

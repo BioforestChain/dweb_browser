@@ -13,7 +13,7 @@ import java.io.InputStream
 class StreamAsRawData(
     val stream_id: String,
     val stream: InputStream,
-    ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc
+    ipc: Ipc
 ) {
 //    stream
 }

@@ -3,10 +3,10 @@ package info.bagen.dwebbrowser.microService.sys.boot
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.core.Router
-import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.printdebugln
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
+import info.bagen.dwebbrowser.microService.helper.Mmid
+import info.bagen.dwebbrowser.microService.helper.printdebugln
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -40,7 +40,7 @@ class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb"
         )
     }
 
-    override suspend fun onActivity(event: IpcEvent, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc) {
+    override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
         for (mmid in registeredMmids) {
             debugBoot("launch", mmid)
             bootstrapContext.dns.bootstrap(mmid)

@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.core
 
-import info.bagen.dwebbrowser.microService.helper.AdapterManager
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
+import info.bagen.dwebbrowser.microService.helper.AdapterManager
 import org.http4k.core.Request
 
 /**
@@ -10,7 +10,7 @@ import org.http4k.core.Request
  * 1. fromIpc 是肯定有的，这个对象是我们当前的上下文发起连接得来的通道，要与 toMM 通讯都需要通过它
  * 1. toIpc 则不一定，远程模块可能是自己创建了 Ipc，我们的上下文拿不到这个内存对象
  */
-data class ConnectResult(val ipcForFromMM: info.bagen.dwebbrowser.microService.core.ipc.Ipc, val ipcForToMM: info.bagen.dwebbrowser.microService.core.ipc.Ipc?) {
+data class ConnectResult(val ipcForFromMM: Ipc, val ipcForToMM: Ipc?) {
     val component1 get() = ipcForFromMM
     val component2 get() = ipcForToMM
 }

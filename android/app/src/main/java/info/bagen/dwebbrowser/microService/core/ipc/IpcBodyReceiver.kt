@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class IpcBodyReceiver(
     override val metaBody: MetaBody,
-    ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc,
+    ipc: Ipc,
 ) : IpcBody() {
 
     class IPC {
@@ -60,7 +60,7 @@ class IpcBodyReceiver(
 
     companion object {
 
-        fun from(metaBody: MetaBody, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc): IpcBody {
+        fun from(metaBody: MetaBody, ipc: Ipc): IpcBody {
             return CACHE.metaId_ipcBodySender_Map[metaBody.metaId] ?: IpcBodyReceiver(metaBody, ipc)
         }
 
@@ -68,7 +68,7 @@ class IpcBodyReceiver(
         /**
          * @return {String | ByteArray | InputStream}
          */
-        fun metaToStream(metaBody: MetaBody, ipc: info.bagen.dwebbrowser.microService.core.ipc.Ipc): InputStream {
+        fun metaToStream(metaBody: MetaBody, ipc: Ipc): InputStream {
             /// metaToStream
             val stream_id = metaBody.streamId!!;
             /**
