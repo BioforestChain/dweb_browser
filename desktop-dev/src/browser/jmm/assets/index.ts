@@ -195,7 +195,7 @@ function getApiOrigin() {
 
 // 测试开启
 // setTimeout(() => {
-//   const url = `http://api.browser.sys.dweb-443.localhost:22605/status-bar.nativeui.browser.dweb/setState?X-Dweb-Host=api.browser.sys.dweb%3A443&color=%7B%22red%22%3A204%2C%22green%22%3A30%2C%22blue%22%3A30%2C%22alpha%22%3A255%7D`
+//   const url = `http://api.browser.dweb-443.localhost:22605/status-bar.nativeui.browser.dweb/setState?X-Dweb-Host=api.browser.dweb%3A443&color=%7B%22red%22%3A204%2C%22green%22%3A30%2C%22blue%22%3A30%2C%22alpha%22%3A255%7D`
 //   fetch(url)
 //   .then(res => {
 //     setTimeout(() => {

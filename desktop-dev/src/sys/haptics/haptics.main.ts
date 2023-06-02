@@ -11,7 +11,7 @@ export class HapticsNMM extends NativeMicroModule {
 
   protected _bootstrap() {
     console.always(`[${this.mmid}] _bootstrap`);
-    // haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.sys.dweb%3A443&style=HEAVY
+    // haptics.sys.dweb/impactLight?X-Dweb-Host=api.browser.dweb%3A443&style=HEAVY
     this.registerCommonIpcOnMessageHandler({
       pathname: "/impactLight",
       matchMode: "full",
@@ -20,7 +20,7 @@ export class HapticsNMM extends NativeMicroModule {
       handler: setHaptics.bind(this),
     });
 
-    // /haptics.sys.dweb/notification?X-Dweb-Host=api.browser.sys.dweb%3A443&style=SUCCESS | WARNING | ERROR
+    // /haptics.sys.dweb/notification?X-Dweb-Host=api.browser.dweb%3A443&style=SUCCESS | WARNING | ERROR
     this.registerCommonIpcOnMessageHandler({
       pathname: "/notification",
       matchMode: "full",
@@ -74,7 +74,7 @@ export class HapticsNMM extends NativeMicroModule {
       handler: setHaptics.bind(this),
     });
 
-    // /haptics.sys.dweb/customize?X-Dweb-Host=api.browser.sys.dweb%3A443&duration=300
+    // /haptics.sys.dweb/customize?X-Dweb-Host=api.browser.dweb%3A443&duration=300
     this.registerCommonIpcOnMessageHandler({
       pathname: "/customize",
       matchMode: "full",

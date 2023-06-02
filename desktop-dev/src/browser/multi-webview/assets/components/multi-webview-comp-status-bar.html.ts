@@ -54,7 +54,7 @@ export class MultiWebviewCompStatusBar extends LitElement {
     const attributeProperties = Array.from(_changedProperties.keys());
     ipcRenderer.send(
       "status_bar_state_change",
-      // 数据格式 api.browser.sys.dweb-443.localhost:22605
+      // 数据格式 api.browser.dweb-443.localhost:22605
       new URL(this._webview_src).host.replace("www.", "api."),
       {
         color: hexaToRGBA(this._color),

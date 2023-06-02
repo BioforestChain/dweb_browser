@@ -5,7 +5,7 @@ import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 
 class BrowserJMM : JsMicroModule(
     JmmMetadata(
-        id = "browser.sys.dweb",
+        id = "browser.dweb",
         server = JmmMetadata.MainServer(
             root = "/sys",
             entry = "public.service.worker.js"
