@@ -54,13 +54,15 @@ onBeforeMount(async () => {
   console.log("开始获取 appInfo")
   const url = `${location.origin.replace('www.', "api.")}/file.sys.dweb/appsinfo`
   const res = await fetch(url)
+  if(res.status !== 200){
+    console.error('请求失败：', res.statusText)
+    return;
+  }
   const appsInfo = await res.json()
   updateAppsInfo(appsInfo)
-  console.log('appsInfo: ', appsInfo)
 })
 
 function updateAppsInfo(value: $AppMetaData[]){
-  console.log('value: ', value)
   state.appsInfo = value
 }
 
