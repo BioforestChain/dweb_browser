@@ -1,17 +1,17 @@
 ﻿using DwebBrowser.MicroService.Sys.Dns;
-using DwebBrowser.MicroService.Sys.Js;
 using DwebBrowser.MicroService.Sys.Http;
-using DwebBrowser.MicroService.Sys.User;
 using DwebBrowser.MicroService.Sys.Boot;
-using DwebBrowser.MicroService.Sys.Mwebview;
-using DwebBrowser.MicroService.Sys.NativeUI;
-using DwebBrowser.Platforms.iOS.MicroModule.NativeUI.Torch;
-using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Share;
-using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Clipboard;
-using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Toast;
-using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Haptics;
-using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Barcode;
-using DwebBrowser.Platforms.iOS.MicroModule.Plugin.Biometrics;
+using DwebBrowser.MicroService.Sys.Share;
+using DwebBrowser.MicroService.Sys.Clipboard;
+using DwebBrowser.MicroService.Sys.Toast;
+using DwebBrowser.MicroService.Sys.Haptics;
+using DwebBrowser.MicroService.Sys.Barcode;
+using DwebBrowser.MicroService.Sys.Biometrics;
+using DwebBrowser.MicroService.Browser.Js;
+using DwebBrowser.MicroService.Browser.Mwebview;
+using DwebBrowser.MicroService.Browser.NativeUI;
+using DwebBrowser.MicroService.Browser.NativeUI.Torch;
+using DwebBrowser.MicroService.User;
 
 namespace DwebBrowser.Platforms.iOS;
 

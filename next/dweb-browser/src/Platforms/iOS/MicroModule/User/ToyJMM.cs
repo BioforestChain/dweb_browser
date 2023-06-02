@@ -1,5 +1,5 @@
-﻿using DwebBrowser.MicroService.Sys.Jmm;
-namespace DwebBrowser.MicroService.Sys.User;
+﻿using DwebBrowser.MicroService.Browser.Jmm;
+namespace DwebBrowser.MicroService.User;
 
 public class ToyJMM : JsMicroModule
 {

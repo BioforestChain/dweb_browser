@@ -1,14 +1,7 @@
-﻿using DwebBrowser.MicroService.Core;
-using DwebBrowser.Helper;
-using System.Net;
+﻿using System.Net;
 using System.Web;
-using Foundation;
-using MobileCoreServices;
-using System.Net.Http.Headers;
-using CoreMedia;
-using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Maui.Storage;
 using DwebBrowser.MicroService.Http;
+using Microsoft.AspNetCore.StaticFiles;
 
 #nullable enable
 

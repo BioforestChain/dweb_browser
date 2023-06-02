@@ -1,11 +1,6 @@
-﻿using CoreGraphics;
-using DwebBrowser.MicroService.Sys.Http;
-//using System.Diagnostics;
-using System.Net;
-using System.Net.Http.Headers;
-using DwebBrowser.MicroService.Sys.Mwebview;
+﻿using UIKit;
 using Foundation;
-using UIKit;
+using CoreGraphics;
 
 namespace DwebBrowser.Platforms.iOS;
 
