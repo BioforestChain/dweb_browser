@@ -5,7 +5,7 @@ using DwebBrowser.MicroService.Http;
 namespace DwebBrowser.MicroService;
 public abstract class Ipc
 {
-    static Debugger Console = new Debugger("Ipc");
+    static readonly Debugger Console = new("Ipc");
     private static int s_uid_acc = 0;
     private static int s_req_id_acc = 0;
 
@@ -49,7 +49,7 @@ public abstract class Ipc
 
     public abstract string Role { get; }
 
-    public override string ToString() => String.Format("#i{0}", Uid);
+    public override string ToString() => string.Format("#i{0}", Uid);
 
     public async Task PostMessageAsync(IpcMessage message)
     {
@@ -184,7 +184,7 @@ public abstract class Ipc
             {
                 if (!reqResMap.Remove(ipcResponse.ReqId, out var res))
                 {
-                    throw new Exception(String.Format("no found response by req_id: {0}", ipcResponse.ReqId));
+                    throw new Exception(string.Format("no found response by req_id: {0}", ipcResponse.ReqId));
                 }
 
                 res.Resolve(ipcResponse);

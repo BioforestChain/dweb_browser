@@ -8,7 +8,7 @@ public record PureRequest(
     PureBody? Body = null
 )
 {
-    static Debugger Console = new("PureRequest");
+    static readonly Debugger Console = new("PureRequest");
 
     public IpcHeaders Headers = Headers ?? new();
     public PureBody Body = Body ?? PureBody.Empty;

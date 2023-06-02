@@ -42,7 +42,7 @@ public class NativeIpc : Ipc
 
 public class NativePort<I, O>
 {
-    static Debugger Console = new Debugger("NativePort");
+    static readonly Debugger Console = new("NativePort");
     private BufferBlock<I> _channel_in { get; set; }
     private BufferBlock<O> _channel_out { get; set; }
     private PromiseOut<Unit> _closePo = new PromiseOut<Unit>();
@@ -69,7 +69,7 @@ public class NativePort<I, O>
 
     private int _uid = Interlocked.Increment(ref s_uid_acc);
 
-    public override string ToString() => String.Format("#p{0}", _uid);
+    public override string ToString() => string.Format("#p{0}", _uid);
 
     private bool _started { get; set; } = false;
 

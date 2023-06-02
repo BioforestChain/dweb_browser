@@ -30,7 +30,7 @@ public class SignalResult<R>
 
 public static class SignalExtendsions
 {
-    static Debugger Console = new("Signal");
+    static readonly Debugger Console = new("Signal");
     public static bool IsEmpty(this Signal self)
     {
         return self.GetInvocationList().Length is 0;

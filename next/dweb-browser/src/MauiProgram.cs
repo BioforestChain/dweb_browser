@@ -7,7 +7,7 @@ namespace DwebBrowser;
 
 public static class MauiProgram
 {
-    static Debugger Console = new Debugger("MauiProgram");
+    static readonly Debugger Console = new("MauiProgram");
     public static MauiApp CreateMauiApp()
     {
         Console.Log("CreateMauiApp", "Start");

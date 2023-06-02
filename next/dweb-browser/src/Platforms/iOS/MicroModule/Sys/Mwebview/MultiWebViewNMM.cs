@@ -11,7 +11,7 @@ namespace DwebBrowser.MicroService.Sys.Mwebview;
 
 public class MultiWebViewNMM : IOSNativeMicroModule
 {
-    static Debugger Console = new Debugger("MultiWebViewNMM");
+    static readonly Debugger Console = new("MultiWebViewNMM");
 
     public MultiWebViewNMM() : base("mwebview.browser.dweb")
     {

@@ -5,7 +5,7 @@ namespace DwebBrowserIOSUnitTest.Tests;
 
 public static class UTTypesTest
 {
-	static Debugger Console = new("UTTypesTest");
+	static readonly Debugger Console = new("UTTypesTest");
 
 	public static void UTTypes_ToString()
 	{

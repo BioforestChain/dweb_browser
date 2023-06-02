@@ -16,14 +16,14 @@ public class EventDelegateTest
 		OnStreamHandler off = null!;
 		off = count =>
 		{
-			Debug.WriteLine(String.Format("count: {0}", count));
+			Debug.WriteLine(string.Format("count: {0}", count));
 			OnStream -= off;
 			return count;
 		};
         OnStreamHandler off2 = null!;
 		off2 = count =>
         {
-            Debug.WriteLine(String.Format("count2: {0}", count));
+            Debug.WriteLine(string.Format("count2: {0}", count));
             OnStream -= off2;
 			return count;
         };

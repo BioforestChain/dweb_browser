@@ -1,6 +1,4 @@
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Xml.Linq;
+//using System.Diagnostics;
 
 namespace DwebBrowser.Helper;
 
@@ -26,8 +24,13 @@ public static class StreamExtensions
     }
 
     public static BinaryReader GetBinaryReader(this Stream self) =>
-        new BinaryReader(self);
+        new(self);
 
+    private static readonly LazyBox<Debugger> _lazyConsole = new();
+    private static Debugger _console
+    {
+        get => _lazyConsole.GetOrPut(() => new("StreamExtensions"));
+    }
 
     //[MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<int> ReadIntAsync(this Stream self)
@@ -35,13 +38,13 @@ public static class StreamExtensions
         var buffer = new byte[4];
         try
         {
-            Console.WriteLine("ReadIntAsync start:{0}", self);
+            _console.Log("ReadIntAsync", "start:{0}", self);
             await self.ReadExactlyAsync(buffer);
-            Console.WriteLine("ReadIntAsync end:{0}", self);
+            _console.Log("ReadIntAsync", "end:{0}", self);
         }
         catch(Exception e)
         {
-            Console.WriteLine("EEE: {0}", e);
+            _console.Error("ReadIntAsync", "exception: {0}", e);
         }
         return buffer.ToInt();
     }

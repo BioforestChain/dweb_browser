@@ -5,7 +5,7 @@ namespace DwebBrowserIOSUnitTest.Tests;
 
 public static class ColorTest
 {
-	static Debugger Console = new("ColorTest");
+	static readonly Debugger Console = new("ColorTest");
 
 	public static void FromArgb_ReturnSuccess()
 	{

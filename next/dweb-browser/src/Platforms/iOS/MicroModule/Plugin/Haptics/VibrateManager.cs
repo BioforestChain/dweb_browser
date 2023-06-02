@@ -7,7 +7,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Haptics;
 
 public static class VibrateManager
 {
-    static Debugger Console = new("VibrateManager");
+    static readonly Debugger Console = new("VibrateManager");
     static bool s_isSupportHaptics = CHHapticEngine.GetHardwareCapabilities().SupportsHaptics;
 
     public enum VibrateType

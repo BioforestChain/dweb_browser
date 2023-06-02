@@ -6,7 +6,7 @@ namespace DwebBrowser.MicroService.Core;
 
 public class HttpRouter
 {
-    static Debugger Console = new Debugger("HttpRouter");
+    static readonly Debugger Console = new("HttpRouter");
     private readonly Dictionary<RouteConfig, RouterHandlerType> _routes = new();
 
     public void AddRoute(IpcMethod method, string path, RouterHandlerType handler) =>

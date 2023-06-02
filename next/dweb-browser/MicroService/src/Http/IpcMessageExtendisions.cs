@@ -26,7 +26,7 @@ static public class IpcMessageExtendisions
             string stringData => new PureUtf8StringBody(stringData),
             byte[] byteArrayData => new PureByteArrayBody(byteArrayData),
             Stream streamData => new PureStreamBody(streamData),
-            var unknownData => throw new Exception(String.Format("invalid body to request: {0}", unknownData)),
+            var unknownData => throw new Exception(string.Format("invalid body to request: {0}", unknownData)),
         };
     }
 

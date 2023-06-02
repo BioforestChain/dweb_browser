@@ -12,7 +12,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.VirtualKeyboard;
 
 public class VirtualKeyboardController : AreaController, IToJsonAble
 {
-    static Debugger Console = new("VirtualKeyboardController");
+    static readonly Debugger Console = new("VirtualKeyboardController");
     public readonly State<VirtualKeyboardState> Observer;
     public StateObservable<VirtualKeyboardState> StateObserver { get; init; }
     public readonly State<bool> VisibleState = new(false);

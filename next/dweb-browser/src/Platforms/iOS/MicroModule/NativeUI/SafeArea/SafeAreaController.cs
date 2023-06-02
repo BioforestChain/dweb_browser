@@ -11,7 +11,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.SafeArea;
 
 public class SafeAreaController : AreaController, IToJsonAble
 {
-    static Debugger Console = new("SafeAreaController");
+    static readonly Debugger Console = new("SafeAreaController");
 
     // Notch 刘海 or Dynamic Island 灵动岛
     public State<AreaJson> CutoutInsets { get; init; }

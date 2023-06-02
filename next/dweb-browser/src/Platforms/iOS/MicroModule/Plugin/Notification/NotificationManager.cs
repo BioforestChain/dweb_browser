@@ -8,7 +8,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Notification;
 
 public static class NotificationManager
 {
-    static Debugger Console = new("NotificationManager");
+    static readonly Debugger Console = new("NotificationManager");
 
     public enum ChannelType
     {

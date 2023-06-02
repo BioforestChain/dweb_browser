@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace DwebBrowser.Helper;
@@ -19,15 +17,24 @@ public static class DebuggerExtensions
 }
 public class Debugger
 {
-    string scopePrefix;
+    public static List<string> DebugTags = new();
+
+    readonly string scopePrefix;
     public Debugger(string scope)
     {
         //Math.Ceiling((float)scope.Length / 4) * 4;
-        this.scopePrefix = scope.TabEnd(8) + "⇉ ";
+        scopePrefix = scope.TabEnd(8) + "⇉ ";
     }
+
     public void Write(Func<string> style, string tag, string msg)
     {
         Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "┊ " + msg);
+    }
+    public void WriteIf(Func<string> style, string tag, string msg)
+    {
+        //Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "┊ " + msg);
+        var _bool = DebugTags.Count > 0 && DebugTags.FindIndex(scopePrefix.StartsWith) > -1;
+        Debug.WriteLineIf(_bool, style() + scopePrefix + tag.TabEnd() + "┊ " + msg);
     }
     public void Write(Func<string> style, string tag, string format, params object?[] args)
     {
@@ -44,17 +51,34 @@ public class Debugger
             }
             return "{" + index + "}" + hashCode;
         });
-        Write(style, tag, String.Format(myFormat, args));
+        Write(style, tag, string.Format(myFormat, args));
+    }
+    public void WriteIf(Func<string> style, string tag, string format, params object?[] args)
+    {
+        var myFormat = Regex.Replace(format, @"{(\d):H}", (match) =>
+        {
+            var index = match.Groups[1].Value;
+            var hashCode = "";
+            if (index.ToIntOrNull() is not null and int index_int)
+            {
+                if (args.GetValue(index_int) is not null and var arg)
+                {
+                    hashCode = "@" + arg.GetHashCode().ToString();
+                }
+            }
+            return "{" + index + "}" + hashCode;
+        });
+        WriteIf(style, tag, string.Format(myFormat, args));
     }
 
     static string LogStyle() => DateTime.Now.ToLongTimeString() + " 💙 ";
     public void Log(string tag, string msg)
     {
-        Write(LogStyle, tag, msg);
+        WriteIf(LogStyle, tag, msg);
     }
     public void Log(string tag, string format, params object?[] args)
     {
-        Write(LogStyle, tag, format, args);
+        WriteIf(LogStyle, tag, format, args);
     }
     static string WarnStyle() => DateTime.Now.ToLongTimeString() + " 🧡 ";
     public void Warn(string tag, string msg)

@@ -1,9 +1,4 @@
-﻿using System;
-using DwebBrowser.MicroService;
-using DwebBrowser.MicroService.Core;
-using DwebBrowser.Helper;
-using DwebBrowser.DWebView;
-using DwebBrowser.MicroService.Sys.Dns;
+﻿using DwebBrowser.MicroService.Sys.Dns;
 using DwebBrowser.MicroService.Sys.Js;
 using DwebBrowser.MicroService.Sys.Http;
 using DwebBrowser.MicroService.Sys.User;
@@ -30,8 +25,59 @@ static class MicroModuleExtendions
 }
 public class MicroService
 {
+    #region 日志tag标识
+    /// BiometricsManager
+    /// BiometricsNMM
+    /// BootNMM
+    /// ClipboardNMM
+    /// DWebView
+    /// HttpNMM
+    /// HttpRouter
+    /// Ipc
+    /// IpcBodyReceiver
+    /// IpcBodySender
+    /// JmmController
+    /// JsMicroModule
+    /// JsProcessNMM
+    /// JsProcessWebApi
+    /// LocaleFile
+    /// MessagePort
+    /// MessagePortIpc
+    /// MultiWebViewController
+    /// MultiWebViewNMM
+    /// NativePort
+    /// NMM
+    /// NavigationBarController
+    /// NotificationManager
+    /// PureRequest
+    /// ReadableStreamIpc
+    /// ResponseRegistry
+    /// SafeAreaController
+    /// SafeAreaNMM
+    /// ScanningManager
+    /// ScanningNMM
+    /// Signal
+    /// StatusBarController
+    /// StatusBarNMM
+    /// TorchNMM
+    /// VibrateManager
+    /// VirtualKeyboardController
+    /// VirtualKeyboardNMM
+    #endregion
+
+    // 添加debug日志过滤
+    private static readonly List<string> _debugTags = new()
+    {
+        "JsMicroModule",
+        "HttpNMM",
+        "LocaleFile",
+        "DnsNMM",
+        "MessagePortIpc"
+    };
+
     public static async Task<DnsNMM> Start()
     {
+        Debugger.DebugTags = _debugTags;
         LocaleFile.Init();
         var dnsNMM = new DnsNMM();
         /// 安装系统应用

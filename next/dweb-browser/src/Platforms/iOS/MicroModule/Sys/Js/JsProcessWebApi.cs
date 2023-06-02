@@ -10,7 +10,7 @@ namespace DwebBrowser.MicroService.Sys.Js;
 
 public class JsProcessWebApi
 {
-    static Debugger Console = new Debugger("JsProcessWebApi");
+    static readonly Debugger Console = new("JsProcessWebApi");
     public DWebView.DWebView DWebView { get; init; }
 
     public JsProcessWebApi(DWebView.DWebView dWebView)
@@ -77,7 +77,7 @@ public class JsProcessWebApi
         this.DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})");
 
     public Task DestroyProcess(int process_id) =>
-        this.DWebView.EvaluateJavaScriptAsync(String.Format("void destroy({0})", process_id).Trim());
+        this.DWebView.EvaluateJavaScriptAsync(string.Format("void destroy({0})", process_id).Trim());
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {

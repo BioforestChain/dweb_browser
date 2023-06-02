@@ -18,12 +18,12 @@ public class Http1Server
 
     public string Authority
     {
-        get => String.Format("localhost:{0}", _bindingPort);
+        get => string.Format("localhost:{0}", _bindingPort);
     }
 
     public string Origin
     {
-        get => String.Format("{0}{1}", PREFIX, Authority);
+        get => string.Format("{0}{1}", PREFIX, Authority);
     }
 
     public IServerInfo<HttpListener> CreateServer(HttpHandler handler)

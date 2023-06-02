@@ -16,7 +16,7 @@ namespace DwebBrowser.MicroService.Sys.Mwebview;
 
 public partial class MultiWebViewController : BaseViewController
 {
-    static Debugger Console = new Debugger("MultiWebViewController");
+    static readonly Debugger Console = new("MultiWebViewController");
 
     public Mmid Mmid { get; set; }
     public MultiWebViewNMM LocaleMM { get; set; }

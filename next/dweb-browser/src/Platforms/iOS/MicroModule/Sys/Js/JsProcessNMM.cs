@@ -15,7 +15,7 @@ namespace DwebBrowser.MicroService.Sys.Js;
 
 public class JsProcessNMM : NativeMicroModule
 {
-    static Debugger Console = new("JsProcessNMM");
+    static readonly Debugger Console = new("JsProcessNMM");
     public JsProcessNMM() : base("js.browser.dweb")
     {
     }
@@ -72,13 +72,13 @@ public class JsProcessNMM : NativeMicroModule
                                 404,
                                 /// 加入跨域支持
                                 IpcHeaders.With(_CORS_HEADERS),
-                                String.Format("// no found {0}", internalUri.AbsolutePath),
+                                string.Format("// no found {0}", internalUri.AbsolutePath),
                                 ipc));
                     }
                 }
                 else
                 {
-                    var response = await NativeFetchAsync(String.Format("file:///sys/browser/js-process/main-thread{0}", request.Uri.AbsolutePath));
+                    var response = await NativeFetchAsync(String.Format("file:///jmm/js-process{0}", request.Uri.AbsolutePath));
                     /// 加入跨域支持
                     foreach (var (key, value) in _CORS_HEADERS)
                     {
@@ -92,7 +92,7 @@ public class JsProcessNMM : NativeMicroModule
             };
         });
 
-        var bootstrap_url = mainServer.StartResult.urlInfo.BuildInternalUrl().Path(String.Format("{0}/bootstrap.js", s_INTERNAL_PATH)).ToPublicDwebHref();
+        var bootstrap_url = mainServer.StartResult.urlInfo.BuildInternalUrl().Path(string.Format("{0}/bootstrap.js", s_INTERNAL_PATH)).ToPublicDwebHref();
 
         var apis = await _createJsProcessWeb(mainServer);
 
@@ -120,7 +120,7 @@ public class JsProcessNMM : NativeMicroModule
 
                 if (processIdMap.Keys.Contains(processId))
                 {
-                    throw new Exception(String.Format("ipc:{0}/processId:{1} has already using", ipc.Remote.Mmid, processId));
+                    throw new Exception(string.Format("ipc:{0}/processId:{1} has already using", ipc.Remote.Mmid, processId));
                 }
 
                 po = new PromiseOut<int>().Also(it => processIdMap.Add(processId, it));
@@ -155,7 +155,7 @@ public class JsProcessNMM : NativeMicroModule
             int process_id;
             if (!ipcProcessIdMap.TryGetValue(ipc, out var processIdMap) || !processIdMap.TryGetValue(processId, out var po))
             {
-                throw new Exception(String.Format("ipc:{0}/processId:{1} invalid", ipc.Remote.Mmid, processId));
+                throw new Exception(string.Format("ipc:{0}/processId:{1} invalid", ipc.Remote.Mmid, processId));
             }
             process_id = await po.WaitPromiseAsync();
 

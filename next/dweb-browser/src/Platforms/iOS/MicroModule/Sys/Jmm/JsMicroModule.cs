@@ -10,7 +10,7 @@ namespace DwebBrowser.MicroService.Sys.Jmm;
 
 public class JsMicroModule : MicroModule
 {
-    static Debugger Console = new Debugger("JsMicroModule");
+    static readonly Debugger Console = new("JsMicroModule");
     record JsMM(JsMicroModule jmm, Mmid remoteMmid);
     static JsMicroModule()
     {
@@ -251,7 +251,7 @@ public class JsMicroModule : MicroModule
 
     protected override async Task _shutdownAsync()
     {
-        Console.Log("closeJsProcessSignal emit", String.Format("{0}/{1}", Mmid, Metadata));
+        Console.Log("closeJsProcessSignal emit", string.Format("{0}/{1}", Mmid, Metadata));
         await NativeFetchAsync("file://js.browser.dweb/close-process");
         await (_onCloseJsProcess?.Emit()).ForAwait();
         _processId = null;

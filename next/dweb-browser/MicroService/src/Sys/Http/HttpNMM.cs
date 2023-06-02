@@ -11,7 +11,7 @@ public static class UrlExtensions
 }
 public class HttpNMM : NativeMicroModule
 {
-    static Debugger Console = new Debugger("HttpNMM");
+    static readonly Debugger Console = new("HttpNMM");
     public static Http1Server DwebServer = new Http1Server();
     public const string X_DWEB_HREF = "/X-Dweb-Href/";
     public const string X_DWEB_HOST = "X-Dweb-Host";
@@ -153,10 +153,10 @@ public class HttpNMM : NativeMicroModule
             ? options.Subdomain : options.Subdomain + ".";
 
         var port = options.Port <= 0 || options.Port >= 65536
-            ? throw new Exception(String.Format("invalid dweb http port: {0}", options.Port)) : options.Port;
+            ? throw new Exception(string.Format("invalid dweb http port: {0}", options.Port)) : options.Port;
 
-        var host = String.Format("{0}{1}:{2}", subdomainPrefix, mmid, port);
-        var internal_origin = String.Format("{0}://{1}", INTERNAL_SCHEME, host);
+        var host = string.Format("{0}{1}:{2}", subdomainPrefix, mmid, port);
+        var internal_origin = string.Format("{0}://{1}", INTERNAL_SCHEME, host);
         var public_origin = DwebServer.Origin;
 
         return new ServerUrlInfo(host, internal_origin, public_origin);
@@ -229,7 +229,7 @@ public class HttpNMM : NativeMicroModule
         var serverUrlInfo = _getServerUrlInfo(ipc, options);
         if (_gatewayMap.ContainsKey(serverUrlInfo.Host))
         {
-            throw new Exception(String.Format("already in listen: {0}", serverUrlInfo.Internal_Origin));
+            throw new Exception(string.Format("already in listen: {0}", serverUrlInfo.Internal_Origin));
         }
 
         var listener = new Gateway.PortListener(ipc, serverUrlInfo.Host);
@@ -258,10 +258,10 @@ public class HttpNMM : NativeMicroModule
         PureRequest request,
         List<Gateway.RouteConfig> routes)
     {
-        var gateway = _tokenMap.GetValueOrDefault(token) ?? throw new Exception(String.Format("no gateway with token: {0}", token));
+        var gateway = _tokenMap.GetValueOrDefault(token) ?? throw new Exception(string.Format("no gateway with token: {0}", token));
         Console.Log("Listen", "host: {0}, token: {1}", gateway.UrlInfo.Host, token);
 
-        var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, String.Format("http-gateway/{0}", gateway.UrlInfo.Host));
+        var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, string.Format("http-gateway/{0}", gateway.UrlInfo.Host));
         streamIpc.BindIncomeStream(request.Body.ToStream());
 
         foreach (var routeConfig in routes)

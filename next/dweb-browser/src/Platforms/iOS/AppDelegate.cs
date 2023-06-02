@@ -14,8 +14,6 @@ public class AppDelegate : MauiUIApplicationDelegate
 {
     protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
-    static Debugger Console = new Debugger("AppDelegate");
-
     public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
     {
         _ = base.FinishedLaunching(application, launchOptions);

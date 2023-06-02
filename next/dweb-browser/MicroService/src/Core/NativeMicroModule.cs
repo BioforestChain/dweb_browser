@@ -5,7 +5,7 @@ namespace DwebBrowser.MicroService.Core;
 
 public abstract class NativeMicroModule : MicroModule
 {
-    static Debugger Console = new Debugger("NMM");
+    static readonly Debugger Console = new("NMM");
     protected HttpRouter HttpRouter = new();
 
     static NativeMicroModule()

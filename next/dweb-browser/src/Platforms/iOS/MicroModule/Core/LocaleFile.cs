@@ -16,7 +16,7 @@ namespace DwebBrowser.MicroService.Core;
 
 public static class LocaleFile
 {
-    static Debugger Console = new Debugger("LocaleFile");
+    static readonly Debugger Console = new("LocaleFile");
     /// <summary>
     /// 需要一些初始化调用，才能让LocaleFile模块正的运作起来
     /// </summary>
@@ -86,7 +86,7 @@ public static class LocaleFile
                 if (absoluteDirFiles.Contains(absoluteFile) is false)
                 {
                     Console.Log("LocaleFileFetch", "NO-FOUND {0}", parsedUrl.Path);
-                    var notFoundResponse = new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody(String.Format("not found file: {0}.", parsedUrl.Path)));
+                    var notFoundResponse = new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody(string.Format("not found file: {0}.", parsedUrl.Path)));
                     return notFoundResponse;
                 }
 

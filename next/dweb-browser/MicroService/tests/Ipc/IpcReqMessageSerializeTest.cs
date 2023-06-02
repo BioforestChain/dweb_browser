@@ -83,16 +83,16 @@ public class IpcReqMessageSerializeTest
         //    ");
 
         Debug.WriteLine(ipcReqMessage);
-        Debug.WriteLine(String.Format("type: {0}", ipcReqMessage.Type.ToString()));
-        Debug.WriteLine(String.Format("req_id: {0}", ipcReqMessage.ReqId));
-        Debug.WriteLine(String.Format("method: {0}", ipcReqMessage.Method));
-        Debug.WriteLine(String.Format("url: {0}", ipcReqMessage.Url));
-        Debug.WriteLine(String.Format("headers: {0}", ipcReqMessage.Headers));
+        Debug.WriteLine(string.Format("type: {0}", ipcReqMessage.Type.ToString()));
+        Debug.WriteLine(string.Format("req_id: {0}", ipcReqMessage.ReqId));
+        Debug.WriteLine(string.Format("method: {0}", ipcReqMessage.Method));
+        Debug.WriteLine(string.Format("url: {0}", ipcReqMessage.Url));
+        Debug.WriteLine(string.Format("headers: {0}", ipcReqMessage.Headers));
         foreach (var entry in ipcReqMessage.Headers)
         {
-            Debug.WriteLine(String.Format("{0} : {1}", entry.Key, entry.Value));
+            Debug.WriteLine(string.Format("{0} : {1}", entry.Key, entry.Value));
         }
-        Debug.WriteLine(String.Format("metaBody: {0}", ipcReqMessage.MetaBody));
+        Debug.WriteLine(string.Format("metaBody: {0}", ipcReqMessage.MetaBody));
 
         Assert.IsType<IpcReqMessage>(ipcReqMessage);
     }

@@ -11,7 +11,7 @@ namespace DwebBrowser.IpcWeb;
 
 public class MessagePortIpc : Ipc
 {
-    static Debugger Console = new Debugger("MessagePortIpc");
+    static readonly Debugger Console = new("MessagePortIpc");
 
     public MessagePort Port { get; init; }
     private IPC_ROLE _role_type { get; init; }
@@ -58,7 +58,7 @@ public class MessagePortIpc : Ipc
                     Console.Log("OnWebMessage", "OnWebMessage is number: {0}", data);
                     break;
                 default:
-                    throw new Exception(String.Format("unknown message: {0}", message));
+                    throw new Exception(string.Format("unknown message: {0}", message));
             }
         };
 

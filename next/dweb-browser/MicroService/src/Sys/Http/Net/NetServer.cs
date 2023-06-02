@@ -63,8 +63,8 @@ public static class NetServer
     /// <returns></returns>
     public static IServerInfo<HttpListener> HttpCreateServer(ListenOptions listenOptions, HttpHandler handler)
     {
-        var host = String.Format("{0}:{1}", listenOptions.Hostname, listenOptions.Port);
-        var origin = String.Format("http://{0}/", host);
+        var host = string.Format("{0}:{1}", listenOptions.Hostname, listenOptions.Port);
+        var origin = string.Format("http://{0}/", host);
 
         var listener = new HttpListener();
         listener.Prefixes.Add(origin);

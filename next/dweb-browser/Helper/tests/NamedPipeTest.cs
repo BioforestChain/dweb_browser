@@ -25,7 +25,7 @@ public class NamedPipeTest
             for (int i = 1; i <= 10; i++)
             {
                 await Task.Delay(100);
-                var message = String.Format("Hi{0}", i);
+                var message = string.Format("Hi{0}", i);
                 var buffer = Encoding.UTF8.GetBytes(message);
                 pipeServer.Write(buffer, 0, buffer.Length);
                 Debug.WriteLine("已发送消息：{0}", message);
@@ -33,7 +33,7 @@ public class NamedPipeTest
             //pipeServer.DisposeLocalCopyOfClientHandle();
             //pipeClient.Close();
             pipeServer.Close();
-            //var bufferx = Encoding.UTF8.GetBytes(String.Format("Hi{0}", 99));
+            //var bufferx = Encoding.UTF8.GetBytes(string.Format("Hi{0}", 99));
             //pipeServer.Write(bufferx, 0, bufferx.Length);
         });
 
@@ -52,15 +52,15 @@ public class NamedPipeTest
                     Debug.WriteLine("收到回复消息：{0} {1}", message, pipeClient.IsConnected);
                 }
 
-                Debug.WriteLine(String.Format("正常关闭了 {0}/{1}", pipeClient.IsConnected, pipeClient.CanRead));
+                Debug.WriteLine(string.Format("正常关闭了 {0}/{1}", pipeClient.IsConnected, pipeClient.CanRead));
             }
             catch (EndOfStreamException e)
             {
-                Debug.WriteLine(String.Format("异常关闭了EndOfStreamException {0}/{1}", pipeClient.IsConnected, pipeClient.CanRead));
+                Debug.WriteLine(string.Format("异常关闭了EndOfStreamException {0}/{1}", pipeClient.IsConnected, pipeClient.CanRead));
             }
             catch (ObjectDisposedException e)
             {
-                Debug.WriteLine(String.Format("异常关闭了ObjectDisposedException {0}/{1}", pipeClient.IsConnected, pipeClient.CanRead));
+                Debug.WriteLine(string.Format("异常关闭了ObjectDisposedException {0}/{1}", pipeClient.IsConnected, pipeClient.CanRead));
             }
         });
 

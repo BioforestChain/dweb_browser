@@ -4,7 +4,7 @@ namespace DwebBrowser.MicroService.Sys.Jmm;
 
 public class JmmController
 {
-    static Debugger Console = new("JmmController");
+    static readonly Debugger Console = new("JmmController");
     private JmmNMM _jmmNMM { get; init; }
     private Dictionary<Mmid, Ipc> _openIpcMap = new();
 

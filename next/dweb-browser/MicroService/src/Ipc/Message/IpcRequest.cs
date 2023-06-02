@@ -86,7 +86,7 @@ public class IpcRequest : IpcMessage
         }
     }
 
-    public override string ToString() => String.Format("#IpcRequest/{0}/{1}", Method.Method, Url);
+    public override string ToString() => string.Format("#IpcRequest/{0}/{1}", Method.Method, Url);
 }
 
 public class IpcReqMessage : IpcMessage

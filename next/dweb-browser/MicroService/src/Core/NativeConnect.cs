@@ -32,7 +32,7 @@ public static class NativeConnect
             }
         }
 
-        throw new Exception(String.Format("no support connect MicroModules, from:{0} to:{1}", fromMM.Mmid, toMM.Mmid));
+        throw new Exception(string.Format("no support connect MicroModules, from:{0} to:{1}", fromMM.Mmid, toMM.Mmid));
     }
 }
 

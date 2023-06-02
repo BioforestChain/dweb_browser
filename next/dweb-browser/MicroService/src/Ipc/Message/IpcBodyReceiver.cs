@@ -8,7 +8,7 @@ namespace DwebBrowser.MicroService.Message;
  */
 public class IpcBodyReceiver : IpcBody
 {
-    static Debugger Console = new Debugger("IpcBodyReceiver");
+    static readonly Debugger Console = new("IpcBodyReceiver");
     public Ipc Ipc { get; set; }
     public IpcBodyReceiver(MetaBody metaBody, Ipc ipc)
     {
@@ -42,7 +42,7 @@ public class IpcBodyReceiver : IpcBody
                 {
                     if (!CACHE.MetaId_receiverIpc_Map.TryGetValue(MetaBody.MetaId, out Ipc? ipc))
                     {
-                        throw new Exception(String.Format("no found ipc by metaId: {0}", MetaBody.MetaId));
+                        throw new Exception(string.Format("no found ipc by metaId: {0}", MetaBody.MetaId));
                     }
 
                     data = MetaToStream(MetaBody, ipc);
@@ -61,7 +61,7 @@ public class IpcBodyReceiver : IpcBody
                             data = ((string)MetaBody.Data).ToBase64ByteArray();
                             break;
                         default:
-                            throw new Exception(String.Format("invalid metaBody type {0}", MetaBody.Type));
+                            throw new Exception(string.Format("invalid metaBody type {0}", MetaBody.Type));
                     }
                 }
 
@@ -104,7 +104,7 @@ public class IpcBodyReceiver : IpcBody
          * 默认是暂停状态
          */
         var paused = 1;
-        var stream = new ReadableStream(String.Format("receiver-{0}", stream_id),
+        var stream = new ReadableStream(string.Format("receiver-{0}", stream_id),
             onStart: async controller =>
             {
                 /// 如果有初始帧，直接存起来

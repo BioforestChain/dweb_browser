@@ -4,7 +4,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Biometrics;
 
 public static class BiometricsManager
 {
-	static Debugger Console = new("BiometricsManager");
+	static readonly Debugger Console = new("BiometricsManager");
 
 	private static LAContext _context = new LAContext();
 

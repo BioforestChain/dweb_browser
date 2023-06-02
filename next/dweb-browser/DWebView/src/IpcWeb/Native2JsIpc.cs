@@ -12,7 +12,7 @@ public class Native2JsIpc: MessagePortIpc
         IPC_ROLE role = IPC_ROLE.CLIENT
         ): base(
             IpcWebMessageCache.ALL_MESSAGE_PORT_CACHE.GetValueOrDefault(port_id)
-            ?? throw new Exception(String.Format("no found port2(js-process) by id: {0}", port_id)),
+            ?? throw new Exception(string.Format("no found port2(js-process) by id: {0}", port_id)),
             remote,
             role)
 	{

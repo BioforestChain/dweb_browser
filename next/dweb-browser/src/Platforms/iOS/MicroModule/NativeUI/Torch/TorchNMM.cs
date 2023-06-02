@@ -8,7 +8,7 @@ public class TorchNMM : NativeMicroModule
     {
     }
 
-    static Debugger Console = new Debugger("TorchNMM");
+    static readonly Debugger Console = new("TorchNMM");
 
     private AVCaptureDevice _device = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
 

@@ -7,7 +7,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Barcode;
 
 public class ScanningManager
 {
-    static Debugger Console = new("ScanningManager");
+    static readonly Debugger Console = new("ScanningManager");
 
     private NSData _data { get; init; }
     private PromiseOut<string[]> _scanningPo { get; init; }

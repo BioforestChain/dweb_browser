@@ -21,7 +21,7 @@ namespace DwebBrowser.MicroService.Message;
 
 public class IpcBodySender : IpcBody
 {
-    static Debugger Console = new Debugger("IpcBodySender");
+    static readonly Debugger Console = new("IpcBodySender");
     public override object? Raw { get; }
     public Ipc SenderIpc { get; set; }
 
@@ -353,7 +353,7 @@ public class IpcBodySender : IpcBody
 
     private static string s_getStreamId(Stream stream) => s_streamIdWM.GetValueOrPut(stream, () =>
     {
-        return String.Format("rs-{0}", Interlocked.Increment(ref s_stream_id_acc));
+        return string.Format("rs-{0}", Interlocked.Increment(ref s_stream_id_acc));
     });
 
 
@@ -363,7 +363,7 @@ public class IpcBodySender : IpcBody
         byte[] value => MetaBody.FromBinary(ipc, value),
 
         Stream value => StreamAsMeta(value, ipc),
-        _ => throw new Exception(String.Format("invalid body type {0}", body)),
+        _ => throw new Exception(string.Format("invalid body type {0}", body)),
     };
 
     /// <summary>

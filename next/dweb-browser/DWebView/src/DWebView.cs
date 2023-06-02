@@ -19,7 +19,7 @@ namespace DwebBrowser.DWebView;
 
 public partial class DWebView : WKWebView
 {
-    static Debugger Console = new Debugger("DWebView");
+    static readonly Debugger Console = new("DWebView");
 
     MicroModule localeMM;
     MicroModule remoteMM;

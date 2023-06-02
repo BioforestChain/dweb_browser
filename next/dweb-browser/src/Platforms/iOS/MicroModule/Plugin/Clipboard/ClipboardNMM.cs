@@ -11,7 +11,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Clipboard;
 
 public class ClipboardNMM : NativeMicroModule
 {
-    static Debugger Console = new("ClipboardNMM");
+    static readonly Debugger Console = new("ClipboardNMM");
 
     public ClipboardNMM() : base("clipboard.sys.dweb")
     {

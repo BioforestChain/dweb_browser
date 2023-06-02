@@ -10,7 +10,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.NativeUI.StatusBar;
 
 public class StatusBarController : BarController, IToJsonAble
 {
-    static Debugger Console = new("StatusBarController");
+    static readonly Debugger Console = new("StatusBarController");
     public readonly State<StatusBarState> Observer;
     public StateObservable<StatusBarState> StateObserver { get; init; }
     public NativeUiController NativeUiController { get; init; }

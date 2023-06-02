@@ -83,15 +83,15 @@ public class IpcResMessageSerializeTest
             ");
 
         Debug.WriteLine(ipcResMessage);
-        Debug.WriteLine(String.Format("type: {0}", ipcResMessage.Type.ToString()));
-        Debug.WriteLine(String.Format("req_id: {0}", ipcResMessage.ReqId));
-        Debug.WriteLine(String.Format("method: {0}", ipcResMessage.StatusCode));
-        Debug.WriteLine(String.Format("headers: {0}", ipcResMessage.Headers));
+        Debug.WriteLine(string.Format("type: {0}", ipcResMessage.Type.ToString()));
+        Debug.WriteLine(string.Format("req_id: {0}", ipcResMessage.ReqId));
+        Debug.WriteLine(string.Format("method: {0}", ipcResMessage.StatusCode));
+        Debug.WriteLine(string.Format("headers: {0}", ipcResMessage.Headers));
         foreach (var entry in ipcResMessage.Headers)
         {
-            Debug.WriteLine(String.Format("{0} : {1}", entry.Key, entry.Value));
+            Debug.WriteLine(string.Format("{0} : {1}", entry.Key, entry.Value));
         }
-        Debug.WriteLine(String.Format("metaBody: {0}", ipcResMessage.MetaBody));
+        Debug.WriteLine(string.Format("metaBody: {0}", ipcResMessage.MetaBody));
 
         Assert.IsType<IpcResMessage>(ipcResMessage);
     }

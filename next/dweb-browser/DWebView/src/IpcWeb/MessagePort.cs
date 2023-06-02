@@ -9,7 +9,7 @@ namespace DwebBrowser.IpcWeb;
 
 public class MessagePort
 {
-    static Debugger Console = new Debugger("MessagePort");
+    static readonly Debugger Console = new("MessagePort");
 
     private static ConditionalWeakTable<WebMessagePort, MessagePort> s_wm = new();
     public static MessagePort From(WebMessagePort port) => s_wm.GetValue(port, (port) => new MessagePort(port));

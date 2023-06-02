@@ -10,7 +10,7 @@ public static class ServiceWorker
     public static async Task<bool> EmitEventAsync(Mmid mmid, string eventName, string data = "")
     {
         var controller = MultiWebViewNMM.GetCurrentWebViewController(mmid);
-        var payload = String.Format("new Event({0})", eventName);
+        var payload = string.Format("new Event({0})", eventName);
 
         // progress,fetch,onFetch为自定义构造返回
         if (eventName == DownloadControllerEvent.Progress.Event)

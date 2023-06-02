@@ -3,7 +3,7 @@ namespace DwebBrowser.MicroService;
 
 public class ReadableStreamIpc : Ipc
 {
-    static Debugger Console = new Debugger("ReadableStreamIpc");
+    static readonly Debugger Console = new("ReadableStreamIpc");
 
     public ReadableStreamIpc(MicroModuleInfo remote, string role)
     {
@@ -13,7 +13,7 @@ public class ReadableStreamIpc : Ipc
         ReadableStream = new ReadableStream(
             Role,
             onStart: controller => _controller = controller,
-            onPull: args => Console.Log("OnPull", String.Format("ON-PULL/{0}", args.Item2.Stream), args.Item1),
+            onPull: args => Console.Log("OnPull", string.Format("ON-PULL/{0}", args.Item2.Stream), args.Item1),
             onClose: () => Console.Log("OnClose", "")
            );
     }
@@ -119,7 +119,7 @@ public class ReadableStreamIpc : Ipc
                     await _OnMessageEmit(ipcMessage, this);
                     break;
                 default:
-                    throw new Exception(String.Format("unknown message: {0}", message));
+                    throw new Exception(string.Format("unknown message: {0}", message));
             }
         }
 

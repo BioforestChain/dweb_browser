@@ -4,7 +4,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Biometrics;
 
 public class BiometricsNMM : NativeMicroModule
 {
-    static Debugger Console = new("BiometricsNMM");
+    static readonly Debugger Console = new("BiometricsNMM");
 
     public BiometricsNMM() : base("biometrics.sys.dweb")
     {

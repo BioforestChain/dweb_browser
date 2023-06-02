@@ -7,7 +7,7 @@ namespace DwebBrowser.MicroService.Core;
 // TODO: ResponseRegistry 静态初始化问题未解决
 public static class ResponseRegistry
 {
-    static Debugger Console = new("ResponseRegistry");
+    static readonly Debugger Console = new("ResponseRegistry");
     static readonly Dictionary<Type, Func<object, PureResponse>> RegMap = new();
 
     public static void RegistryResponse<T>(Type type, Func<T, PureResponse> handler)

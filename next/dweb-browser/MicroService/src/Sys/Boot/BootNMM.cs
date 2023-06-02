@@ -3,7 +3,7 @@ namespace DwebBrowser.MicroService.Sys.Boot;
 
 public class BootNMM : NativeMicroModule
 {
-    static Debugger Console = new Debugger("BootNMM");
+    static readonly Debugger Console = new("BootNMM");
     /**
      * 开机启动项注册表
      * TODO 这里需要从数据库中读取

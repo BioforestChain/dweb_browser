@@ -13,17 +13,17 @@ public class PromiseOutTest
         stopwatch.Start();
 
 
-        Debug.WriteLine(String.Format("{0} start", stopwatch.Elapsed));
+        Debug.WriteLine(string.Format("{0} start", stopwatch.Elapsed));
         var startTime = DateTime.Now;
-        Debug.WriteLine(String.Format("{0} start: {1}", stopwatch.Elapsed, startTime));
+        Debug.WriteLine(string.Format("{0} start: {1}", stopwatch.Elapsed, startTime));
         var po = new PromiseOut<bool>();
-        Debug.WriteLine(String.Format("{0} Task start: {1}", stopwatch.Elapsed, DateTime.Now));
+        Debug.WriteLine(string.Format("{0} Task start: {1}", stopwatch.Elapsed, DateTime.Now));
         _ = Task.Run(() => SleepResolve(1000, po));
-        Debug.WriteLine(String.Format("{0} Task end: {1}", stopwatch.Elapsed, DateTime.Now));
+        Debug.WriteLine(string.Format("{0} Task end: {1}", stopwatch.Elapsed, DateTime.Now));
         var b = await po.WaitPromiseAsync();
-        Debug.WriteLine(String.Format("{0} resolve value: {1}", stopwatch.Elapsed, b.ToString()));
+        Debug.WriteLine(string.Format("{0} resolve value: {1}", stopwatch.Elapsed, b.ToString()));
         var endTime = DateTime.Now;
-        Debug.WriteLine(String.Format("{0} end: {1}", stopwatch.Elapsed, endTime));
+        Debug.WriteLine(string.Format("{0} end: {1}", stopwatch.Elapsed, endTime));
         Assert.Equal(1, (endTime - startTime).Seconds);
     }
     [Fact]
@@ -56,10 +56,10 @@ public class PromiseOutTest
 
     internal static void SleepResolve(int s, PromiseOut<bool> po)
     {
-        Debug.WriteLine(String.Format("sleepAsync start: {0}", DateTime.Now));
+        Debug.WriteLine(string.Format("sleepAsync start: {0}", DateTime.Now));
         Thread.Sleep(s);
         po.Resolve(true);
-        Debug.WriteLine(String.Format("sleepAsync end: {0}", DateTime.Now));
+        Debug.WriteLine(string.Format("sleepAsync end: {0}", DateTime.Now));
     }
 
     [Fact]
@@ -107,9 +107,9 @@ public class PromiseOutTest
 
     internal static async void SleepWait(PromiseOut<bool> po, int sort)
     {
-        Debug.WriteLine(String.Format("start wait {0}", sort));
+        Debug.WriteLine(string.Format("start wait {0}", sort));
         await po.WaitPromiseAsync();
-        Debug.WriteLine(String.Format("resolve {0}", sort));
+        Debug.WriteLine(string.Format("resolve {0}", sort));
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class PromiseOutTest
         while (Interlocked.Read(ref result2) < times)
         {
             await Task.Delay(200);
-            Debug.WriteLine(String.Format("times result1: {0} result2: {1}", Interlocked.Read(ref result1), Interlocked.Read(ref result2)));
+            Debug.WriteLine(string.Format("times result1: {0} result2: {1}", Interlocked.Read(ref result1), Interlocked.Read(ref result2)));
         }
 
         Assert.Equal(Interlocked.Read(ref result1), Interlocked.Read(ref result2));

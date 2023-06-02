@@ -3,7 +3,7 @@ namespace DwebBrowser.Platforms.iOS.MicroModule.Plugin.Barcode;
 
 public class ScanningNMM : NativeMicroModule
 {
-    static Debugger Console = new("ScanningNMM");
+    static readonly Debugger Console = new("ScanningNMM");
 
     public ScanningNMM() : base("barcode-scanning.sys.dweb")
     { }

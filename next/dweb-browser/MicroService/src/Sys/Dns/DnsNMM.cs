@@ -6,7 +6,7 @@ namespace DwebBrowser.MicroService.Sys.Dns;
 
 public class DnsNMM : NativeMicroModule
 {
-    static Debugger Console = new Debugger("DnsNMM");
+    static readonly Debugger Console = new("DnsNMM");
     // 已安装的应用
     private Dictionary<Mmid, MicroModule> _installApps = new();
 
@@ -151,7 +151,7 @@ public class DnsNMM : NativeMicroModule
         public Task<ConnectResult> ConnectAsync(string mmid, PureRequest? reason = null)
         {
             return _dnsMM._connectTo(
-                _fromMM, mmid, reason ?? new PureRequest(String.Format("file://{0}", mmid), IpcMethod.Get));
+                _fromMM, mmid, reason ?? new PureRequest(string.Format("file://{0}", mmid), IpcMethod.Get));
         }
 
         public Task BootstrapAsync(string mmid) => _dnsMM.Open(mmid);
@@ -261,7 +261,7 @@ public class DnsNMM : NativeMicroModule
                     }
                     else
                     {
-                        po.Reject(String.Format("no found app: {0}", mmid));
+                        po.Reject(string.Format("no found app: {0}", mmid));
                         }
                     }
                 catch (Exception e) {

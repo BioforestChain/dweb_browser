@@ -58,7 +58,7 @@ namespace DwebBrowser.MicroService.Core
         public async Task<ReadableStreamIpc> ListenHttpDwebServer(
             HttpNMM.ServerStartResult startResult, Gateway.RouteConfig[] routes)
         {
-            var streamIpc = new ReadableStreamIpc(this, String.Format("http-server/{0}", startResult.urlInfo.Host));
+            var streamIpc = new ReadableStreamIpc(this, string.Format("http-server/{0}", startResult.urlInfo.Host));
             var pureResponse = await NativeFetchAsync(
                 new PureRequest(
                     new URL("file://http.sys.dweb/listen")
