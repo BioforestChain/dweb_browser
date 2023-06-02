@@ -5,7 +5,7 @@ using DwebBrowser.MicroService.Sys.Http;
 
 #nullable enable
 
-namespace DwebBrowser.MicroService.Browser.Js;
+namespace DwebBrowser.MicroService.Browser.JsProcess;
 
 public class JsProcessNMM : NativeMicroModule
 {

@@ -1,7 +1,7 @@
 ﻿using Foundation;
 using System.Text.Json.Serialization;
 
-namespace DwebBrowser.MicroService.Browser.Js;
+namespace DwebBrowser.MicroService.Browser.JsProcess;
 
 public class JsProcessWebApi
 {

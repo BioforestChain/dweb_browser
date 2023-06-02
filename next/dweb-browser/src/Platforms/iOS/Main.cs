@@ -7,7 +7,7 @@ using DwebBrowser.MicroService.Sys.Toast;
 using DwebBrowser.MicroService.Sys.Haptics;
 using DwebBrowser.MicroService.Sys.Barcode;
 using DwebBrowser.MicroService.Sys.Biometrics;
-using DwebBrowser.MicroService.Browser.Js;
+using DwebBrowser.MicroService.Browser.JsProcess;
 using DwebBrowser.MicroService.Browser.Mwebview;
 using DwebBrowser.MicroService.Browser.NativeUI;
 using DwebBrowser.MicroService.Browser.NativeUI.Torch;
@@ -17,7 +17,7 @@ namespace DwebBrowser.Platforms.iOS;
 
 static class MicroModuleExtendions
 {
-    public static T InstallBy<T>(this T self, DnsNMM dns) where T : DwebBrowser.MicroService.Core.MicroModule
+    public static T InstallBy<T>(this T self, DnsNMM dns) where T : MicroModule
     {
         dns.Install(self);
         return self;
