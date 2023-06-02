@@ -17,6 +17,11 @@ fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
     printdebugln("jmm", tag, msg, err)
 
 open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
+
+    override val dweb_deeplinks: MutableList<DWEB_DEEPLINK>
+        get() = this.metadata.dweb_deeplinks
+
+
     companion object {
         init {
             val nativeToWhiteList = listOf<Mmid>("js.browser.dweb")

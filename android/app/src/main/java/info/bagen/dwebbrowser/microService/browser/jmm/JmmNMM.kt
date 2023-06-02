@@ -9,6 +9,7 @@ import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.json
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
+import info.bagen.dwebbrowser.microService.helper.DWEB_DEEPLINK
 import info.bagen.dwebbrowser.service.DownLoadController
 import info.bagen.dwebbrowser.service.compareAppVersionHigh
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
@@ -41,6 +42,7 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
 
 @OptIn(DelicateCoroutinesApi::class)
 class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
+    override val dweb_deeplinks  = mutableListOf<DWEB_DEEPLINK>("dweb:install")
     companion object {
         private val apps = mutableStateMapOf<Mmid, JsMicroModule>()
         fun getAndUpdateJmmNmmApps() = apps

@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.core
 
 import info.bagen.dwebbrowser.microService.core.ipc.*;
+import info.bagen.dwebbrowser.microService.helper.DWEB_DEEPLINK
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
@@ -11,7 +12,9 @@ import org.http4k.lens.RequestContextKey
 import org.http4k.routing.RoutingHttpHandler
 import java.io.InputStream
 
-abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
+abstract class NativeMicroModule(
+    override val mmid: Mmid,
+) : MicroModule() {
 
     companion object {
         init {
@@ -108,12 +111,14 @@ abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
 
         }
     }
+
     protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
         runBlockingCatching {
             when (val result = handler(request)) {
                 null, Unit -> {
                     Response(Status.OK)
                 }
+
                 is Response -> result
                 is ByteArray -> Response(Status.OK).body(MemoryBody(result))
                 is InputStream -> Response(Status.OK).body(result)

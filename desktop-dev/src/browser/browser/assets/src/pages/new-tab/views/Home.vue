@@ -1,48 +1,7 @@
 <script lang="ts" setup>
+import { $AppMetaData } from "@/types/app.type";
+import { onBeforeMount, reactive } from 'vue';
 import jmm from "../components/JMM.vue";
-import Address from "../components/ADDRESS.vue"
-import { onBeforeMount, reactive } from 'vue'
-
-export interface $AppMetaData {
-  title: string;
-  subtitle: string;
-  id: string;
-  bundleUrl: string;
-  bundleHash: string;
-  bundleSize: number;
-  icon: string;
-  images: string[];
-  introduction: string;
-  author: string[];
-  version: string;
-  keywords: string[];
-  home: string;
-  mainUrl: string;
-  server: {
-    root: string;
-    entry: string;
-  };
-  splashScreen: { entry: string };
-  staticWebServers: $StaticWebServers[];
-  openWebViewList: [];
-  permissions: string[];
-  plugins: string[];
-  releaseDate: string;
-}
-
-export interface $StaticWebServers {
-  root: string;
-  entry: string;
-  subdomain: string;
-  port: number;
-}
-
-// type $DWEB_DEEPLINK = `dweb:${string}`;
-console.log("address: ", Address);
-interface $MainServer {
-    root: string;
-    entry: string;
-  }
 
 const state: {
   appsInfo: $AppMetaData[]
@@ -83,8 +42,6 @@ function jmmOnClick(appMetaData: $AppMetaData){
     :src="item.icon"
     @click="() => jmmOnClick(item)"
   >{{ item }}</jmm>
-  <!-- 地址栏 -->
-  <Address></Address>
   </div>
 </template>
 <style module>
@@ -107,7 +64,7 @@ function jmmOnClick(appMetaData: $AppMetaData){
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  opacity: 0.1;
+  opacity: 0.5;
 }
 
 .jmm_container {

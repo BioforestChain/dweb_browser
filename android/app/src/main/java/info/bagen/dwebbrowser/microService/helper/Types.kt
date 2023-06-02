@@ -9,3 +9,5 @@ enum class EIpcEvent(val event:String){
     Activity("activity"),
     Close("close")
 }
+
+typealias DWEB_DEEPLINK = String;

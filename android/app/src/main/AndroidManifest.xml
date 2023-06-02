@@ -107,7 +107,7 @@
             android:theme="@style/Theme.AppCompat.Transparent"/>
 
         <activity
-            android:name=".microService.sys.jmm.ui.JmmManagerActivity"
+            android:name=".microService.browser.jmm.ui.JmmManagerActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="info.bagen.dwebbrowser.openjmm" />

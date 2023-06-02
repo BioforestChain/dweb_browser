@@ -105,12 +105,12 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     // return info.bagen.dwebbrowser.ui.entity.BrowserMainView() // 打开原生的主界面
     // 打开webview
     val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(url ?: "file:///android_asset/dweb/newtab.html"))
+    val state = WebViewState(WebContent.Url(url ?: "file:///android_asset/browser/newtab/index.html"))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
     return BrowserWebView(
       webViewId = webviewId,
-      webView = createDwebView(url ?: "file:///android_asset/dweb/newtab.html"),
+      webView = createDwebView(url ?: "file:///android_asset/browser/newtab/index.html"),
       state = state,
       coroutineScope = coroutineScope,
       navigator = navigator

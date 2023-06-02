@@ -13,6 +13,7 @@ typealias NativeOptions = MutableMap<String, String>
 
 abstract class MicroModule : Ipc.MicroModuleInfo {
     override val mmid: Mmid = ""
+    override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>()
     open val routers: Router? = null
 
     private var runningStateLock = PromiseOut.resolve(false)

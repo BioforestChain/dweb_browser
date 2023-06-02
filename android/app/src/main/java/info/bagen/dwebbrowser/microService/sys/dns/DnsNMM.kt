@@ -21,6 +21,7 @@ inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("fetch", tag, msg, err)
 
 class DnsNMM : NativeMicroModule("dns.sys.dweb") {
+    override val dweb_deeplinks  = mutableListOf<DWEB_DEEPLINK>("dweb:install")
     private val installApps = mutableMapOf<Mmid, MicroModule>() // 已安装的应用
     private val runningApps = mutableMapOf<Mmid, PromiseOut<MicroModule>>() // 正在运行的应用
 

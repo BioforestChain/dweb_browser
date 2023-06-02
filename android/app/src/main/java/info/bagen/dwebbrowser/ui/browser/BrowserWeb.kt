@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.view.MotionEvent
 import android.view.ViewGroup
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.compose.foundation.background
@@ -17,14 +19,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
+import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
+import info.bagen.dwebbrowser.microService.browser.debugBrowser
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
+import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.view.drawToBitmapPostLaidOut
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import org.http4k.core.Method
+import org.http4k.core.Request
 
 @SuppressLint("ClickableViewAccessibility")
 @Composable
@@ -59,9 +68,39 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
     }.launchIn(this)
   }
 
+  class BrowserWebViewClient: AccompanistWebViewClient() {
+
+    override fun shouldInterceptRequest(
+      view: WebView, request: WebResourceRequest
+    ): WebResourceResponse? {
+      debugBrowser("shouldInterceptRequest =>",request.url)
+      if (request.url.scheme == "dweb") {
+        val response = runBlockingCatching(ioAsyncExceptionHandler) {
+//          this.nativeFetch(
+//            Request(
+//              Method.GET, request.url.toString()
+//            ).headers(request.requestHeaders.toList()).header("X-Dweb-Proxy-Id", localeMM.mmid)
+//          )
+        }.getOrThrow()
+
+//        val contentType = Header.CONTENT_TYPE(response)
+//        return WebResourceResponse(
+//          contentType?.value,
+//          contentType?.directives?.find { it.first == "charset" }?.second,
+//          response.status.code,
+//          response.status.description,
+//          response.headers.toMap(),
+//          response.body.stream,
+//        )/**/
+      }
+      return super.shouldInterceptRequest(view, request)
+    }
+  }
+
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
   WebView(
+    client = BrowserWebViewClient(),
     state = browserWebView.state,
     modifier = Modifier
       .fillMaxSize()

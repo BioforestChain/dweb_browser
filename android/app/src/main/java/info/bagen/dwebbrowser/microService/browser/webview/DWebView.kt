@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.webkit.*
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import info.bagen.dwebbrowser.microService.browser.debugBrowser
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
@@ -174,7 +175,7 @@ class DWebView(
 
         // 初始化设置 ua，这个是无法动态修改的
         val uri = Uri.of(options.url)
-        if ((uri.scheme == "http" || uri.scheme == "https") && uri.host.endsWith(".dweb")) {
+        if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host.endsWith(".dweb")) {
             dwebHost = uri.authority
         }
         // 加入默认端口
@@ -479,35 +480,4 @@ class DWebView(
         }
     }
 
-
-//    suspend fun close(onBeforeUnload: suspend (beforeUnloadPrompt: String) -> Boolean = { true }) {
-//        val beforeUnloadPrompt = evaluator.evaluateSyncJavascriptCode(
-//            """
-//            (() => {
-//              const e = new CustomEvent("beforeunload");
-//              let beforeUnloadPrompt = "";
-//              Object.defineProperty(e, "returnValue", {
-//                configurable: true,
-//                enumerable: true,
-//                get: () => {
-//                  return beforeUnloadPrompt;
-//                },
-//                set: (v) => {
-//                  beforeUnloadPrompt = v;
-//                },
-//              });
-//              dispatchEvent(e);
-//              return beforeUnloadPrompt;
-//            })();""".trimIndent()
-//        )
-//        var canClose = true
-//        if (beforeUnloadPrompt.isNotEmpty()) {
-//            canClose = onBeforeUnload(beforeUnloadPrompt)
-//        }
-//        if (canClose) {
-//            runBlockingCatching(Dispatchers.Main) {
-//                destroy()
-//            }.getOrThrow()
-//        }
-//    }
 }

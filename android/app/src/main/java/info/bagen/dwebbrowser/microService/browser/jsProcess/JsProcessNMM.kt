@@ -287,7 +287,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
          * > 自己shutdown的时候，这些ipc会被关闭
          */
         ipc.onClose {
-            debugHttp("jsProcessNMM","🥥🍒 close the ipc")
             streamIpc.close()
             codeProxyServerIpc.close()
         }

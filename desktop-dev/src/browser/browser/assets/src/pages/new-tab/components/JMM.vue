@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
 import { DragSortableList } from '../plugins/dragSortableList';
 const props = defineProps({
   src: String,
