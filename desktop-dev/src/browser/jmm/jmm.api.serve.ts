@@ -21,6 +21,7 @@ import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
 import { $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
+import Electron from "electron";
 import type { $AppMetaData, JmmNMM } from "./jmm.ts";
 
 export const JMM_APPS_PATH = path.join(Electron.app.getAppPath(), "apps");
