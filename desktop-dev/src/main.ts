@@ -31,6 +31,7 @@ import { ToastNMM } from "./sys/toast/toast.main.ts";
  * "jsmm"
  * "mwebview"
  * "dns"
+ * "browser"
  *
  * "jsProcess"
  *
@@ -52,13 +53,8 @@ import { ToastNMM } from "./sys/toast/toast.main.ts";
  */
 // 设置 console 过滤条件
 setFilter([
-  "jsmm",
-  "mwebview",
-  "jsProcess",
-  "mm",
-  "maphelper",
-  "dns",
-  "dwebbrowser",
+  "browser",
+  "mwebveiw"
 ]);
 
 export const dns = new DnsNMM();
