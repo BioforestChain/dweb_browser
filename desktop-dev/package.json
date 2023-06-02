@@ -6,7 +6,8 @@
         "@msgpack/msgpack": "3.0.0-beta2",
         "comlink": "^4.4.1",
         "deep-object-diff": "^1.1.9",
-        "lit": "^2.6.1"
+        "lit": "^2.6.1",
+        "vite": "^4.3.9"
     },
     "devDependencies": {
         "vite-plugin-electron-renderer": "^0.12.1"
