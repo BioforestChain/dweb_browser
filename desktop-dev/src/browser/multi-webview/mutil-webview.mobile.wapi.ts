@@ -51,7 +51,7 @@ export const forceGetWapis = (ipc: Ipc, root_url: string) => {
       let wapi = _mmid_wapis_map.get(ipc.remote.mmid);
       if (wapi === undefined) {
         const diaplay = Electron.screen.getPrimaryDisplay();
-        const nww = await openNativeWindow(root_url, {
+        const nww = await openNativeWindow(root_url + `&uid=${ipc.uid}`, {
           webPreferences: {
             webviewTag: true,
           },

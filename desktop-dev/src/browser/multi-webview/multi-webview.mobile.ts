@@ -35,6 +35,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
     (await httpDwebServer.listen()).onRequest(async (request, ipc) => {
+      
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
@@ -165,7 +166,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       ) => {
         const ipc = this._all_open_ipc.get(parseInt(uid));
         if (ipc === undefined) {
-          console.error(new Error(`ipc === undefined`));
+          throw new Error(`sync:webview_state ipc === undefined`)
         } else {
           ipc.postMessage(
             IpcEvent.fromText(MWEBVIEW_LIFECYCLE_EVENT.State, JSON.stringify(allWebviewState))
@@ -193,7 +194,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
     });
     const wapis = await forceGetWapis(
       clientIpc,
-      root_url + `&uid=${clientIpc.uid}`
+      root_url
     );
     const webview_id = await wapis.apis.openWebview(args.url);
     return webview_id;

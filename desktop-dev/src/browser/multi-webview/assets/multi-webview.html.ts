@@ -440,23 +440,24 @@ export class ViewTree extends LitElement {
     const uid = new URL(location.href).searchParams.get("uid");
     const allWebviewState: $AllWebviewState = {};
     this.webviews.forEach((item, index) => {
-      const statusBarState = this.statusBarState[index];
-      const navigationBarState = this.navigationBarState[index];
-      const bottomBarState = getButtomBarState(
-        navigationBarState,
-        this.isShowVirtualKeyboard,
-        this.virtualKeyboardState
-      );
+      // const statusBarState = this.statusBarState[index];
+      // const navigationBarState = this.navigationBarState[index];
+      // const bottomBarState = getButtomBarState(
+      //   navigationBarState,
+      //   this.isShowVirtualKeyboard,
+      //   this.virtualKeyboardState
+      // );
       allWebviewState[item.id] = {
         webviewId: item.id,
         isActivated: index === 0 ? true : false,
-        statusBarState: statusBarState,
-        navigationBarState: navigationBarState,
-        safeAreaState: this.safeAreaGetStateByBar(
-          statusBarState,
-          bottomBarState,
-          this.safeAreaState[index]
-        ),
+        // statusBarState: statusBarState,
+        // navigationBarState: navigationBarState,
+        // safeAreaState: this.safeAreaGetStateByBar(
+        //   statusBarState,
+        //   bottomBarState,
+        //   this.safeAreaState[index]
+        // ),
+        src: item.src
       };
     });
     debugger;

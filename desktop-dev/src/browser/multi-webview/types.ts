@@ -81,11 +81,12 @@ export interface $AllWebviewState {
 }
 
 export interface $WebViewState {
-  statusBarState: $BarState;
-  navigationBarState: $BarState;
-  safeAreaState: $SafeAreaState;
+  // statusBarState: $BarState;
+  // navigationBarState: $BarState;
+  // safeAreaState: $SafeAreaState;
   webviewId: number;
   isActivated: boolean;
+  src: string;
 }
 export const enum MWEBVIEW_LIFECYCLE_EVENT {
   State = "state", // 获取窗口状态
