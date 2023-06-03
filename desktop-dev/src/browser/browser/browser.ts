@@ -19,7 +19,7 @@ export class BrowserNMM extends NativeMicroModule {
  
     const addressBarHeight = 38;
     await Electron.app.whenReady();
-    this.bw = createBrowserWindow()
+    this.bw = createBrowserWindow.bind(this)()
     this.contentBV = createCBV.bind(this)(this.bw, addressBarHeight);
     this.addressBV = createAddressBrowserVeiw.bind(this)(this.bw, addressBarHeight)
 

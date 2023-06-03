@@ -3,7 +3,6 @@ import path from "node:path";
 import { $BW } from "./browser.bw.ts";
 import Electron from "electron";
 import type { BrowserNMM } from "./browser.ts"
-import type { $Details, $Callback } from "./types.ts";
 
 export function createAddressBrowserVeiw(
   this: BrowserNMM,
@@ -39,10 +38,5 @@ export function createAddressBrowserVeiw(
     height: barHeight,
   })
   bv.webContents.openDevTools();
-  // const session = bv.webContents.session;
-  // session.webRequest.onBeforeRequest((details: $Details, callback: $Callback) => {
-  //   console.always('拦截到了 请求： ', details.url)
-  //   callback({ cancel: false })
-  // })
   return bv;
 }
