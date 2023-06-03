@@ -12,7 +12,7 @@ export interface $Details{
 }
 
 export interface $Callback{
-  (arg: $Callback.$Response): void;
+  (arg: $Callback.$Response | unknown): void;
 }
 
 export declare namespace $Callback{

@@ -2,9 +2,11 @@
 import path from "node:path";
 import { $BW } from "./browser.bw.ts";
 import Electron from "electron";
+import type { BrowserNMM } from "./browser.ts"
 import type { $Details, $Callback } from "./types.ts";
 
 export function createAddressBrowserVeiw(
+  this: BrowserNMM,
   bw: $BW,
   barHeight: number
 ){
@@ -42,4 +44,5 @@ export function createAddressBrowserVeiw(
   //   console.always('拦截到了 请求： ', details.url)
   //   callback({ cancel: false })
   // })
+  return bv;
 }

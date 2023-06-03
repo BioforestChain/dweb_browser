@@ -3,8 +3,10 @@ import path from "node:path";
 import { $BW } from "./browser.bw.ts";
 import Electron from "electron";
 import type { $Details, $Callback } from "./types.ts";
+import type { BrowserNMM } from "./browser.ts";
 
 export function createCBV(
+  this: BrowserNMM,
   bw: $BW,
   barHeight: number
 ): $CBV{
@@ -39,11 +41,26 @@ export function createCBV(
   })
   cbv.webContents.openDevTools();
   
-  // const session = cbv.webContents.session;
-  // session.webRequest.onBeforeRequest((details: $Details, callback: $Callback) => {
-  //   console.always('拦截到了 请求： ', details.url)
-  //   callback({ cancel: false })
-  // })
+  const session = cbv.webContents.session;
+  const filter = {
+    // 拦截全部 devtools:// 协议发起的请求
+    // urls: ["devtools://*/*"]
+    urls: ["http://browser.dweb/appsinfo"]
+  }
+  try{
+    session.webRequest.onBeforeRequest(filter, async (details: $Details, callback: $Callback) => {
+      const _url = new URL(details.url)
+      // 不能够直接返回只能够重新定向 broser.dweb 的 apiServer 服务器
+      const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}`
+      callback({ 
+        cancel: false,
+        redirectURL: url
+      })
+    })
+
+  }catch(err){
+    console.always('err: ', err)
+  }
 
   Reflect.set(
     cbv,
