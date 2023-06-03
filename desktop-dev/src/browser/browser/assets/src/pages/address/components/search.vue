@@ -1,9 +1,26 @@
 <template>
   <div :class="$style.container">
-    <input :class="$style.input" type="text"/>
+    <input 
+      :class="$style.input" 
+      type="text"
+      ref="input"
+      @keydown="keydown"
+    />
   </div>
 </template>
 <script lang="ts" setup>
+import { ref } from "vue";
+const input = ref<HTMLInputElement>();
+async function keydown(e: KeyboardEvent){
+  // console.log('e: ', e.code)
+  console.log('input: ', input.value?.value)
+  if(e.code === "Enter"){
+    const url = `http://browser.dweb/update/content?url=${input.value?.value}`
+    console.log("___url: ", url)
+    fetch(url)
+  }
+}
+
 </script>
 <style module>
 .container{
