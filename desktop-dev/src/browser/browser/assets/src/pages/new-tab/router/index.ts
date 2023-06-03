@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/:pathMatch(.*)*/index.html',
+    // path: '/',
     component: () => import('@/layouts/default/Default.vue'),
     children: [
       {
@@ -22,5 +23,5 @@ const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
 })
-
+console.log('router: ')
 export default router

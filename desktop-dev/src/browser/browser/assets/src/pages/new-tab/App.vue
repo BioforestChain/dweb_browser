@@ -3,6 +3,7 @@
 </template>
 
 <script lang="ts" setup>
+console.log("appvue")
 //
 </script>
 <style scoped>
@@ -16,10 +17,10 @@ html::-webkit-scrollbar{
 }
 /* 隐藏滚动条结束 */
 body {
+  box-sizing: border-box;
   background-color: #f2f2f2;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
 }
 </style>
