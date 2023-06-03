@@ -1,7 +1,46 @@
 <script lang="ts" setup>
-import { $AppMetaData } from "@/types/app.type";
-import { onBeforeMount, reactive } from 'vue';
 import jmm from "../components/JMM.vue";
+import { onBeforeMount, reactive } from 'vue'
+
+export interface $AppMetaData {
+  title: string;
+  subtitle: string;
+  id: string;
+  bundleUrl: string;
+  bundleHash: string;
+  bundleSize: number;
+  icon: string;
+  images: string[];
+  introduction: string;
+  author: string[];
+  version: string;
+  keywords: string[];
+  home: string;
+  mainUrl: string;
+  server: {
+    root: string;
+    entry: string;
+  };
+  splashScreen: { entry: string };
+  staticWebServers: $StaticWebServers[];
+  openWebViewList: [];
+  permissions: string[];
+  plugins: string[];
+  releaseDate: string;
+}
+
+export interface $StaticWebServers {
+  root: string;
+  entry: string;
+  subdomain: string;
+  port: number;
+}
+
+// type $DWEB_DEEPLINK = `dweb:${string}`;
+interface $MainServer {
+    root: string;
+    entry: string;
+  }
 
 const state: {
   appsInfo: $AppMetaData[]
@@ -10,14 +49,14 @@ const state: {
 })
 
 onBeforeMount(async () => {
-  console.log("开始获取 appInfo")
-  const url = `${location.origin.replace('www.', "api.")}/file.sys.dweb/appsinfo`
+  const url = `http://browser.dweb/appsinfo`
   const res = await fetch(url)
   if(res.status !== 200){
     console.error('请求失败：', res.statusText)
     return;
   }
   const appsInfo = await res.json()
+  console.log('appInfo: ', appsInfo)
   updateAppsInfo(appsInfo)
 })
 
