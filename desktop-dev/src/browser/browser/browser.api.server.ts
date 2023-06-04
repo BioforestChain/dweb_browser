@@ -246,42 +246,20 @@ async function external(
 
   // 下面的数据是测试数据实际操作不需要如下处理
   if(_url.hostname === "shop.plaoc.com" && _url.pathname.endsWith(".json")){
-    console.always('接受到请求 需要打开 jmm 模块')
-    // deno task plaoc server ./asset/www
-    // /Users/pengxiaohua/project/dweb_browser/desktop-dev/src/browser/browser/browser.api.server.ts
-    // ../../../../../
-    try{
-      const dir = path.resolve(process.cwd(), "../../");
-      console.always('dir', dir)
-      const child = exec(
-        'deno task plaoc serve ./asset/www', 
-        // 'deno --version', 
-        {
-          cwd: dir
-        },
-        (error, stdout, stderr) => {
-          console.always("error", error)
-          console.always("stdout", stdout)
-          console.always("stderr", stderr)
-        }
-      );
-
-      child.stdout?.on('data', (data: unknown) => {
-        console.log(`stdout: ${data}`);
-      });
-
-      child.stderr?.on('data', (data: unknown) => {
-        console.error(`stderr: ${data}`);
-      });
-
-      child.on('close', (code: unknown) => {
-        console.log(`child process exited with code ${code}`);
-      });
-      
-    }catch(err){
-      console.error('error', `运行的deno失败`, err)
-    }
+    // 测试用的 http://127.0.0.1:8096/metadata.json 本地服务的地址
+    // 连接 jmm 发起 request
+    const [jmmIpc] = await this.context!.dns.connect('jmm.browser.dweb')
+    await jmmIpc.request(  // 需要通过 deep_link 启动 jmm
+      `dweb:install?url=http://127.0.0.1:8096/metadata.json`
+    )
+    ipc.postMessage(
+      await IpcResponse.fromText(
+        request.req_id, 
+        200, 
+        undefined,
+        "ok",
+        ipc, 
+      )
+    )
   }
-  console.always('external', externalUrl)
-
 }
