@@ -32,6 +32,7 @@ import { ToastNMM } from "./sys/toast/toast.main.ts";
  * "mwebview"
  * "dns"
  * "browser"
+ * "error"
  *
  * "jsProcess"
  *
@@ -53,6 +54,7 @@ import { ToastNMM } from "./sys/toast/toast.main.ts";
  */
 // 设置 console 过滤条件
 setFilter([
+  "error",
   "browser",
   "mwebveiw"
 ]);

@@ -9,6 +9,12 @@ export async function createAPIServer(this: BrowserNMM) {
     subdomain: "api",
     port: 433,
   });
+  // 数据体
+  // ServerUrlInfo {
+  //   host: 'api.browser.dweb:433',
+  //   internal_origin: 'http://api.browser.dweb-433.localhost:22605',
+  //   public_origin: 'http://localhost:22605'
+  // }
   const apiReadableStreamIpc = await this.apiServer.listen();
   apiReadableStreamIpc.onRequest(onRequest.bind(this));
 }
@@ -78,8 +84,7 @@ async function updateContent(
   }
   const regexp = /^(https?|http):\/\/([a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?)(\/.*)?$/i;
   if(regexp.test(href)){
-    this.contentBV?.webContents.stop();
-    this.contentBV?.webContents.loadURL(href);
+    this.contentBV.loadWithHistory(href)
     ipc.postMessage(
       await IpcResponse.fromText(
         request.req_id, 
@@ -116,7 +121,7 @@ async function canGoBack(
         "Content-Type": "application/json"
       }),
       JSON.stringify({
-        value: this.contentBV?.webContents.canGoBack()
+        value: this.contentBV.canGoBack()
       }),
       ipc, 
     )
@@ -136,7 +141,7 @@ async function canGoForward(
         "Content-Type": "application/json"
       }),
       JSON.stringify({
-        value: this.contentBV?.webContents.canGoForward()
+        value: this.contentBV.canGoForward()
       }),
       ipc, 
     )
@@ -148,7 +153,7 @@ async function goBack(
   request: IpcRequest, 
   ipc: Ipc
 ){
-  this.contentBV?.webContents.goBack()
+  this.contentBV.goBack()
   ipc.postMessage(
     await IpcResponse.fromText(
       request.req_id, 
@@ -170,7 +175,7 @@ async function goForward(
   ipc: Ipc
 ){
   
-  this.contentBV?.webContents.goForward()
+  this.contentBV.goForward()
   ipc.postMessage(
     await IpcResponse.fromText(
       request.req_id, 
@@ -191,7 +196,13 @@ async function refresh(
   request: IpcRequest, 
   ipc: Ipc
 ){
-  this.contentBV?.webContents.reload()
+  try{
+    this.contentBV.reload()
+  }catch(err){
+    console.error('error', err)
+    throw new Error(`refresh err`)
+  }
+  
   ipc.postMessage(
     await IpcResponse.fromText(
       request.req_id, 
