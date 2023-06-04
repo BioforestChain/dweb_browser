@@ -83,23 +83,12 @@ dns.install(new FileNMM());
 import { JmmNMM } from "./browser/jmm/jmm.ts";
 dns.install(new JmmNMM());
 
-// import { jmmtestconnectJMM } from "./user/jmm-test-connect/jmmtestconnect.main.ts";
-// import { jmmtestconnectJMM2 } from "./user/jmm-test-connect2/jmmtestconnect2.main.ts";
-// dns.install(jmmtestconnectJMM)
-// dns.install(jmmtestconnectJMM2)
-
 dns.install(
   new BootNMM([
     //
     dwebBrowser.mmid,
   ])
 );
-
-// 载入安装测试的代码
-// import { TestFromNMM } from "./test/test.from.nmm.ts";
-// import { TestToNMM } from "./test/test.to.nmm.ts";
-// dns.install(new TestFromNMM())
-// dns.install(new TestToNMM())
 
 Object.assign(globalThis, { dns: dns });
 process.on("unhandledRejection", (error) => {
