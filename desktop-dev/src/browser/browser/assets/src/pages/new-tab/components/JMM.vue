@@ -1,19 +1,21 @@
 <script lang="ts" setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { DragSortableList } from '../plugins/dragSortableList';
+const refContainer = ref<HTMLDivElement>()
 const props = defineProps({
   src: String,
 })
 
 onMounted(() => {
   // TODO 拖动排序效果
-  const container = document.querySelector(".jmm-container") as HTMLElement;
-  new DragSortableList(container);
+  if(refContainer.value !== undefined){
+    new DragSortableList(refContainer.value);
+  }
 })
 </script>
 
 <template>
-  <div class="app" draggable="true" >
+  <div class="app" draggable="true"  ref="refContainer">
     <div class="app-icon">
       <img class="img" :src="props.src"/>
     </div>
