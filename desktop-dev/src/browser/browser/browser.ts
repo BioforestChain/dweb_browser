@@ -17,7 +17,7 @@ export class BrowserNMM extends NativeMicroModule {
   
   protected async _bootstrap(context: $BootstrapContext) {
     await createAPIServer.bind(this)()
-    const addressBarHeight = 338;
+    const addressBarHeight = 138;
     await Electron.app.whenReady();
     this.bw = createBrowserWindow.bind(this)()
     this.contentBV = createCBV.bind(this)(this.bw, addressBarHeight);

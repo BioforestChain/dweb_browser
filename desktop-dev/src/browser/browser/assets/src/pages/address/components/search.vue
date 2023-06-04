@@ -5,6 +5,7 @@
       type="text"
       ref="input"
       @keydown="keydown"
+      value="https://www.bfmeta.info/"
     />
   </div>
 </template>
@@ -12,11 +13,8 @@
 import { ref } from "vue";
 const input = ref<HTMLInputElement>();
 async function keydown(e: KeyboardEvent){
-  // console.log('e: ', e.code)
-  console.log('input: ', input.value?.value)
   if(e.code === "Enter"){
     const url = `http://browser.dweb/update/content?url=${input.value?.value}`
-    console.log("___url: ", url)
     fetch(url)
   }
 }

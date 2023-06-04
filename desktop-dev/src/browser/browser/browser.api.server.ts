@@ -1,6 +1,9 @@
 import { Ipc, IpcRequest, IpcResponse, IpcHeaders } from "../../core/ipc/index.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { getAllApps } from "../jmm/jmm.api.serve.ts"
+import { exec } from "node:child_process";
+import path from "node:path";
+import process from "node:process";
 import type { BrowserNMM } from "./browser.ts";
 
 export async function createAPIServer(this: BrowserNMM) {
@@ -42,6 +45,9 @@ async function onRequest(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
       break;
     case "/refresh":
       refresh.bind(this)(request, ipc);
+      break;
+    case "/external":
+      external.bind(this)(request, ipc);
       break;
     default: console.error("browser", "还有没有匹配的 api 请求 pathname ===", pathname)
   }
@@ -216,4 +222,66 @@ async function refresh(
       ipc, 
     )
   )
+}
+
+async function external(
+  this: BrowserNMM, 
+  request: IpcRequest, 
+  ipc: Ipc
+){
+  const externalUrl = request.parsed_url.searchParams.get("url");
+  if(externalUrl === null){
+    ipc.postMessage(
+      await IpcResponse.fromText(
+        request.req_id, 
+        400, 
+        undefined,
+        "缺少 url 参数",
+        ipc, 
+      )
+    )
+    return;
+  }
+  const _url = new URL(externalUrl)
+
+  // 下面的数据是测试数据实际操作不需要如下处理
+  if(_url.hostname === "shop.plaoc.com" && _url.pathname.endsWith(".json")){
+    console.always('接受到请求 需要打开 jmm 模块')
+    // deno task plaoc server ./asset/www
+    // /Users/pengxiaohua/project/dweb_browser/desktop-dev/src/browser/browser/browser.api.server.ts
+    // ../../../../../
+    try{
+      const dir = path.resolve(process.cwd(), "../../");
+      console.always('dir', dir)
+      const child = exec(
+        'deno task plaoc serve ./asset/www', 
+        // 'deno --version', 
+        {
+          cwd: dir
+        },
+        (error, stdout, stderr) => {
+          console.always("error", error)
+          console.always("stdout", stdout)
+          console.always("stderr", stderr)
+        }
+      );
+
+      child.stdout?.on('data', (data: unknown) => {
+        console.log(`stdout: ${data}`);
+      });
+
+      child.stderr?.on('data', (data: unknown) => {
+        console.error(`stderr: ${data}`);
+      });
+
+      child.on('close', (code: unknown) => {
+        console.log(`child process exited with code ${code}`);
+      });
+      
+    }catch(err){
+      console.error('error', `运行的deno失败`, err)
+    }
+  }
+  console.always('external', externalUrl)
+
 }

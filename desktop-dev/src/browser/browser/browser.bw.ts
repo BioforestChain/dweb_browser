@@ -33,18 +33,26 @@ export function createBrowserWindow(
     // 拦截全部 devtools:// 协议发起的请求
     // urls: ["devtools://*/*"]
     urls: [
-      "http://browser.dweb/*"
+      "http://browser.dweb/*",
+      "https://shop.plaoc.com/*.json"
     ]
   }
   
   session.webRequest.onBeforeRequest(filter, async (details: $Details, callback: $Callback) => {
     const _url = new URL(details.url)
-    console.always("browser.content.bv.ts 拦截到了请求", details.url)
+    // console.always("browser.content.bv.ts 拦截到了请求", _url)
     // 不能够直接返回只能够重新定向 broser.dweb 的 apiServer 服务器
-    if(details.method === "GET"){
+    if(_url.hostname === "browser.dweb" && details.method === "GET"){
       relayGerRequest.bind(this)(details, callback)
       return;
     }
+
+    if(_url.hostname === "shop.plaoc.com" && details.method === 'GET'){
+      relayExternalGetRequest.bind(this)(details, callback)
+      return;
+    }
+
+    throw new Error(`还有被拦截但没有转发的请求 ${details.url}`)
   })
 
   return bw;
@@ -66,6 +74,12 @@ function getTitleBarHeight(this: Electron.BrowserWindow){
 async function relayGerRequest(this: BrowserNMM,details: $Details, callback: $Callback){
   const _url = new URL(details.url)
   const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}${_url.search}`;
+  callback({ cancel: false, redirectURL: url })
+}
+
+/** 用来转发特定的外部 get 请求 */
+async function relayExternalGetRequest(this: BrowserNMM, details: $Details, callback: $Callback){
+  const url = `${this.apiServer?.startResult.urlInfo.internal_origin}/external?url=${details.url}`;
   callback({ cancel: false, redirectURL: url })
 }
 
