@@ -1,7 +1,14 @@
 <template>
   <div :class="$style.container">
     <div 
-      :class="{[$style.icon]: true, [$style.icon_back]: true}"
+      :class="{
+        [$style.icon]: true, 
+        [$style.icon_back]: true,
+        [$style.icon_active]: state.goBackIsActive
+      }"
+      @click="back"
+      @mouseenter="goBackOnMouseentery"
+      @mouseleave="goBackOnMouseleave"
     >
       <svg 
         t="1685784528771" 
@@ -19,7 +26,14 @@
       </svg>
     </div>
     <div
-      :class="[[$style.icon], [$style.icon_forward]]"
+      :class="{
+        [$style.icon]: true, 
+        [$style.icon_forward]: true,
+        [$style.icon_active]: state.goForwardIsActive  
+      }"
+      @click="forward"
+      @mouseenter="goForwardMouseenter"
+      @mouseleave="goForwardOnMouseLeave"
     >
       <svg 
         t="1685784674107" 
@@ -37,7 +51,15 @@
           </path>
         </svg>
     </div>
-    <div :class="[[$style.icon]]">
+    <div 
+      :class="{
+        [$style.icon]: true, 
+        [$style.icon_active]: state.refreshIsActive
+      }" 
+      @click="refresh"
+      @mouseenter="refreshOnMouseenter"
+      @mouseleave="refreshOnMouseLeave"  
+    >
       <svg 
         t="1685784952385" 
         :class="$style.icon_svg" 
@@ -57,6 +79,59 @@
   </div>
 </template>
 <script lang="ts" setup>
+import { reactive } from "vue";
+import { CONST } from "@/const";
+const state = reactive({
+  goBackIsActive: false,
+  goForwardIsActive: false,
+  refreshIsActive: false,
+})
+
+async function goBackOnMouseentery(){
+  const url = `${CONST.BASR_URL}/can-go-back`
+  const res = await fetch(url)
+  const value = await res.json();
+  console.log('value: ', value)
+  state.goBackIsActive = value.value;
+}
+
+function goBackOnMouseleave(){
+  state.goBackIsActive = false
+}
+
+async function goForwardMouseenter(){
+  const url = `${CONST.BASR_URL}/can-go-forward`
+  const res = await fetch(url)
+  const value = await res.json();
+  state.goForwardIsActive = value.value;
+}
+
+function goForwardOnMouseLeave(){
+  state.goForwardIsActive = false;
+}
+
+function refreshOnMouseenter(){
+  state.refreshIsActive = true;
+}
+
+function refreshOnMouseLeave(){
+  state.refreshIsActive = false;
+}
+
+async function back(){
+  const url = `${CONST.BASR_URL}/go-back`
+  fetch(url)
+}
+
+async function forward(){
+  const url = `${CONST.BASR_URL}/go-forward`
+  fetch(url)
+}
+
+async function refresh(){
+  const url = `${CONST.BASR_URL}/refresh`
+  fetch(url)
+}
 
 </script>
 <style module>
@@ -77,6 +152,11 @@
   align-items: center;
   width: auto;
   height: 100%;
+  color: #cccccc;
+}
+
+.icon_active{
+  color: #666;
   cursor: pointer;
 }
 
@@ -87,7 +167,7 @@
 .icon_svg{
   width: 22px;
   height: 22px;
-  color: #cccccc;
+  
 }
 
 .icon_forward{

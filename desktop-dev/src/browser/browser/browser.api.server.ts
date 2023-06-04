@@ -1,4 +1,4 @@
-import { Ipc, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";
+import { Ipc, IpcRequest, IpcResponse, IpcHeaders } from "../../core/ipc/index.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { getAllApps } from "../jmm/jmm.api.serve.ts"
 import type { BrowserNMM } from "./browser.ts";
@@ -21,6 +21,21 @@ async function onRequest(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
       break;
     case "/update/content":
       updateContent.bind(this)(request, ipc);
+      break;
+    case "/can-go-back":
+      canGoBack.bind(this)(request, ipc);
+      break;
+    case "/can-go-forward":
+      canGoForward.bind(this)(request, ipc);
+      break;
+    case "/go-back":
+      goBack.bind(this)(request, ipc);
+      break;
+    case "/go-forward":
+      goForward.bind(this)(request, ipc);
+      break;
+    case "/refresh":
+      refresh.bind(this)(request, ipc);
       break;
     default: console.error("browser", "还有没有匹配的 api 请求 pathname ===", pathname)
   }
@@ -82,6 +97,111 @@ async function updateContent(
       400, 
       undefined,
       "非法的 url 参数:" + href,
+      ipc, 
+    )
+  )
+}
+
+
+async function canGoBack(
+  this: BrowserNMM, 
+  request: IpcRequest, 
+  ipc: Ipc
+){
+  ipc.postMessage(
+    await IpcResponse.fromText(
+      request.req_id, 
+      200, 
+      new IpcHeaders({
+        "Content-Type": "application/json"
+      }),
+      JSON.stringify({
+        value: this.contentBV?.webContents.canGoBack()
+      }),
+      ipc, 
+    )
+  )
+}
+
+async function canGoForward(
+  this: BrowserNMM, 
+  request: IpcRequest, 
+  ipc: Ipc
+){
+  ipc.postMessage(
+    await IpcResponse.fromText(
+      request.req_id, 
+      200, 
+      new IpcHeaders({
+        "Content-Type": "application/json"
+      }),
+      JSON.stringify({
+        value: this.contentBV?.webContents.canGoForward()
+      }),
+      ipc, 
+    )
+  )
+}
+
+async function goBack(
+  this: BrowserNMM, 
+  request: IpcRequest, 
+  ipc: Ipc
+){
+  this.contentBV?.webContents.goBack()
+  ipc.postMessage(
+    await IpcResponse.fromText(
+      request.req_id, 
+      200, 
+      new IpcHeaders({
+        "Content-Type": "application/json"
+      }),
+      JSON.stringify({
+        value: "ok"
+      }),
+      ipc, 
+    )
+  )
+}
+
+async function goForward(
+  this: BrowserNMM, 
+  request: IpcRequest, 
+  ipc: Ipc
+){
+  
+  this.contentBV?.webContents.goForward()
+  ipc.postMessage(
+    await IpcResponse.fromText(
+      request.req_id, 
+      200, 
+      new IpcHeaders({
+        "Content-Type": "application/json"
+      }),
+      JSON.stringify({
+        value: "ok"
+      }),
+      ipc, 
+    )
+  )
+}
+
+async function refresh(
+  this: BrowserNMM, 
+  request: IpcRequest, 
+  ipc: Ipc
+){
+  this.contentBV?.webContents.reload()
+  ipc.postMessage(
+    await IpcResponse.fromText(
+      request.req_id, 
+      200, 
+      new IpcHeaders({
+        "Content-Type": "application/json"
+      }),
+      JSON.stringify({
+        value: "ok"
+      }),
       ipc, 
     )
   )

@@ -41,15 +41,35 @@ export function createBrowserWindow(
     const _url = new URL(details.url)
     // console.always("browser.content.bv.ts 拦截到了请求", details)
     // 不能够直接返回只能够重新定向 broser.dweb 的 apiServer 服务器
-    switch(_url.pathname){
-      case "/appsinfo":
-        appsInfo.bind(this)(details, callback)
-        break;
-      case "/update/content":
-        updateContent.bind(this)(details,callback)
-        break;
-      default: callback({cancel: false})
+     
+    if(details.method === "GET"){
+      relayGerRequest.bind(this)(details, callback)
+      return;
     }
+  //   switch(_url.pathname){
+  //     case "/appsinfo":
+  //       appsInfo.bind(this)(details, callback)
+  //       break;
+  //     case "/update/content":
+  //       updateContent.bind(this)(details,callback)
+  //       break;
+  //     case "/can-go-back":
+  //       canGoBack.bind(this)(details,callback);
+  //       break;
+  //     case "/can-go-forward":
+  //       canGoForward.bind(this)(details,callback);
+  //       break;
+  //     case "/go-back":
+  //       goBack.bind(this)(details,callback);
+  //       break;
+  //     case "/go-forward":
+  //       goForward.bind(this)(details,callback);
+  //       break;
+  //     case "/refresh":
+  //       refresh.bind(this)(details,callback);
+  //       break;
+  //     default: callback({cancel: false})
+  //   }
   })
 
   return bw;
@@ -68,20 +88,48 @@ function getTitleBarHeight(this: Electron.BrowserWindow){
   return this.getBounds().height - this.getContentBounds().height;
 }
 
-async function appsInfo(this: BrowserNMM, details: $Details, callback: $Callback){
-  const _url = new URL(details.url)
-  const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}`
-  callback({ 
-    cancel: false,
-    redirectURL: url
-  })
-}
-
-async function updateContent(this: BrowserNMM,details: $Details, callback: $Callback){
+async function relayGerRequest(this: BrowserNMM,details: $Details, callback: $Callback){
   const _url = new URL(details.url)
   const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}${_url.search}`;
   callback({ cancel: false, redirectURL: url })
 }
+
+// async function appsInfo(this: BrowserNMM, details: $Details, callback: $Callback){
+//   const _url = new URL(details.url)
+//   const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}`
+//   callback({ 
+//     cancel: false,
+//     redirectURL: url
+//   })
+// }
+
+// async function updateContent(this: BrowserNMM,details: $Details, callback: $Callback){
+//   const _url = new URL(details.url)
+//   const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}${_url.search}`;
+//   callback({ cancel: false, redirectURL: url })
+// }
+
+// async function canGoBack(this: BrowserNMM,details: $Details, callback: $Callback){
+  
+// }
+
+// async function canGoForward(this: BrowserNMM,details: $Details, callback: $Callback){
+  
+// }
+
+// async function goBack(this: BrowserNMM,details: $Details, callback: $Callback){
+  
+// }
+
+// async function goForward(this: BrowserNMM,details: $Details, callback: $Callback){
+  
+// }
+
+// async function refresh(this: BrowserNMM,details: $Details, callback: $Callback){
+  
+// }
+
+
 
 export type $BW = Electron.BrowserWindow & $ExtendsBrowserWindow;
 
