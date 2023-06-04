@@ -166,7 +166,9 @@ export class MultiWebviewNMM extends NativeMicroModule {
       ) => {
         const ipc = this._all_open_ipc.get(parseInt(uid));
         if (ipc === undefined) {
-          throw new Error(`sync:webview_state ipc === undefined`)
+          // throw new Error(`sync:webview_state ipc === undefined`)
+          // 暂时来说 只有通过 _open 打开的需要 才能监听
+          return;
         } else {
           ipc.postMessage(
             IpcEvent.fromText(MWEBVIEW_LIFECYCLE_EVENT.State, JSON.stringify(allWebviewState))
